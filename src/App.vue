@@ -17,6 +17,7 @@
 <!--            transition="scale-transition"-->
 <!--            width="200"-->
 <!--        />-->
+        <span class="red--text font-weight-bold ml-2">GUI</span>
       </router-link>
 
       <v-spacer></v-spacer>

@@ -1,45 +1,42 @@
 <template>
-  <div class="home d-flex justify-center align-center" style="min-height: 90vh;">
-    <div class="above-the-fold">
+  <div class="home" style="min-height: 90vh;">
       <v-container class="">
-        <div class="text-h3" style="line-height: 1.3;">
-          An open, comprehensive catalog of scholarly papers, authors, institutions, and more.
-        </div>
-        <div class="text-h5 mt-6">
-          <p style="">
-            OpenAlex will launch in December 2021, as a drop-in replacement for
-            <a href="https://www.microsoft.com/en-us/research/project/academic/articles/microsoft-academic-to-expand-horizons-with-community-driven-approach/">Microsoft
-              Academic Graph.</a> Learn more in our latest blog post, and join the mailing list to stay up-to-date.
-          </p>
-
-        </div>
-        <div class="mt-8 d-flex">
-          <v-btn
-              x-large
-              class=""
-              color="primary"
-              href="http://eepurl.com/hA8PhL"
-              target="_blank"
+        <div class="results">
+          results:
+          <div
+              :key="JSON.stringify(result)"
+              v-for="result in results"
+              class="my-12 py-12"
           >
-            Join mailing list
-            <v-icon right>mdi-open-in-new</v-icon>
-          </v-btn>
-          <v-btn
-              x-large
-              class="ml-4"
-              color="primary"
-              text
-              href="https://blog.ourresearch.org/openalex-update-june"
-              target="_blank"
-          >
-            Read latest blog post
-            <v-icon right>mdi-open-in-new</v-icon>
-          </v-btn>
+            <div class="text-h5">{{result.original_title}}</div>
+            <div>
+              <span class="date">
+                {{ result.year}}
+              </span>
+              <span class="sep">-</span>
+              <span class="authors">Authors unknown</span>
+              <span class="sep">-</span>
+              <span class="venue">Venue unknown</span>
+            </div>
+            <div>
+              <v-row
+                  :key="resultKey"
+                  class="pa-0 mt-4"
+                v-for="resultKey in Object.keys(result)"
+              >
+                <v-col cols="2" class="pa-0 text-right pr-2">
+                  {{resultKey}}
+                </v-col>
+                <v-col cols="10" class="pa-0">
+                  {{result[resultKey]}}
+                </v-col>
 
+              </v-row>
+            </div>
+
+          </div>
         </div>
       </v-container>
-
-    </div>
 
 
     <!--        <homepage-user-logos/>-->
@@ -88,22 +85,32 @@
 
 <script>
 
+import axios from "axios";
+
 export default {
   name: 'home',
   components: {},
   metaInfo: {
-    title: "OpenAlex: The open catalog to the global research system",
+    title: "OpenAlex GUI",
     titleTemplate: undefined, // have to override this or it'll get the site title template
   },
   data() {
     return {
-      userEmail: "",
-      errorMsg: ""
+      results: []
+
     }
   },
   computed: {},
-  methods: {},
+  methods: {
+    async doSearch(){
+      const resp = await axios.get("https://api.openalex.org/works/query?filter=continent:Asia,genre:proceedings&details")
+      this.results = resp.data.response
+      console.log("got a response!", resp.data.response)
+
+    }
+  },
   mounted() {
+    this.doSearch()
   },
 }
 </script>
