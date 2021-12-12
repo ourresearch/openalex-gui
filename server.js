@@ -16,9 +16,7 @@ app.get('*', function (req, res) {
     // https://medium.com/@seunghunsunmoonlee/how-to-enforce-https-redirect-http-to-https-on-heroku-deployed-apps-a87a653ba61e
     // not going to implement for now because it's not essential and we're short on time.
 
-    if (req.hostname !== "ourresearch.org") {
-        res.redirect("https://ourresearch.org" + req.path)
-    }
+
 
     res.sendfile('./dist/index.html');
 });
