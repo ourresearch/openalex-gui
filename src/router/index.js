@@ -8,12 +8,32 @@ import goTo from 'vuetify/es5/services/goto'
 
 Vue.use(VueRouter)
 
+const entityTypes = {
+    "W": "works",
+    "I": "institutions",
+    "V": "venues",
+    "A": "authors",
+    "C": "concepts",
+};
+
 const routes = [
     {
         path: '/',
         name: 'Home',
         component: Home
     },
+
+    {
+        path: '/:id([wWiIvVaAcC]\\d+)',
+        redirect: to => {
+            // https://router.vuejs.org/api/#the-route-object
+            const firstLetter = to.params.id.substr(0,1).toUpperCase()
+            const entityType = entityTypes[firstLetter]
+            return `/${entityType}/${to.params.id}`
+        },
+    },
+
+
     {
         path: '/:entityType(works|authors|venues|institutions|concepts)/:id',
         name: 'EntityPage',
@@ -42,8 +62,7 @@ const router = new VueRouter({
             })
         } else if (savedPosition) {
             return savedPosition
-        }
-        else {
+        } else {
             return {x: 0, y: 0}
         }
 

@@ -1,6 +1,5 @@
 <template>
   <div>
-    Work Entity component
     <pre>
       {{data}}
     </pre>
