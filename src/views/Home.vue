@@ -1,41 +1,7 @@
 <template>
   <div class="home" style="min-height: 90vh;">
       <v-container class="">
-        <div class="results">
-          results:
-          <div
-              :key="JSON.stringify(result)"
-              v-for="result in results"
-              class="my-12 py-12"
-          >
-            <div class="text-h5">{{result.original_title}}</div>
-            <div>
-              <span class="date">
-                {{ result.year}}
-              </span>
-              <span class="sep">-</span>
-              <span class="authors">Authors unknown</span>
-              <span class="sep">-</span>
-              <span class="venue">Venue unknown</span>
-            </div>
-            <div>
-              <v-row
-                  :key="resultKey"
-                  class="pa-0 mt-4"
-                v-for="resultKey in Object.keys(result)"
-              >
-                <v-col cols="2" class="pa-0 text-right pr-2">
-                  {{resultKey}}
-                </v-col>
-                <v-col cols="10" class="pa-0">
-                  {{result[resultKey]}}
-                </v-col>
 
-              </v-row>
-            </div>
-
-          </div>
-        </div>
       </v-container>
 
 
@@ -110,7 +76,7 @@ export default {
     }
   },
   mounted() {
-    this.doSearch()
+    // this.doSearch()
   },
 }
 </script>

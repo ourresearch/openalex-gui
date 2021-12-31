@@ -7,8 +7,7 @@
         color="white"
 
     >
-      <router-link to="/" class="d-flex align-center text-h4 text-decoration-none">
-        OpenAlex
+      <router-link to="/" class=" text-decoration-none">
 <!--        <v-img-->
 <!--            alt="OurResearch Logo"-->
 <!--            class="shrink mr-2"-->
@@ -17,7 +16,10 @@
 <!--            transition="scale-transition"-->
 <!--            width="200"-->
 <!--        />-->
-        <span class="red--text font-weight-bold ml-2">GUI</span>
+        <img
+          src="@/assets/explore-OpenAlex-logo.png"
+          style="height: 40px;"
+        />
       </router-link>
 
       <v-spacer></v-spacer>

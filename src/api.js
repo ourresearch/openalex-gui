@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 
-// let urlBase = "https://api.openalex.org"
-let urlBase = "https://openalex-guts.herokuapp.com"
+let urlBase = "https://api.openalex.org"
+// let urlBase = "https://openalex-guts.herokuapp.com"
 // let urlBase = "https://unpaywall-jump-api-dev.herokuapp.com/"
 
 
@@ -36,17 +36,17 @@ const api = (function () {
     return {
         get: async function (path) {
             console.log("api GET:", path)
-            let url = urlBase + path
+            let url = urlBase + path + "?mailto=team@ourresearch.org"
             let res
             try {
-                res = await axios.get(url, getConfig())
+                res = await axios.get(url)
                 console.log(`api GET ${path} success:`, res.data)
             } catch (e) {
                 // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
                 console.log("api GET failure:", e.response)
                 throw e
             }
-            return res
+            return res.data
         },
     }
 })()

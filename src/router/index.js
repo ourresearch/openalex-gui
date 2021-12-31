@@ -17,10 +17,16 @@ const entityTypes = {
 };
 
 const routes = [
+    // {
+    //     path: '/',
+    //     name: 'Home',
+    //     component: Home
+    // },
+
+    // temp for now
     {
         path: '/',
-        name: 'Home',
-        component: Home
+        redirect: 'works/W2741809807',
     },
 
     {
