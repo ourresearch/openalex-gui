@@ -26,7 +26,8 @@
 <!--      </v-card>-->
 
 
-            <works-entity v-if="entityType==='works'" :data="apiResp"/>
+            <entity-work v-if="entityType==='works'" :data="apiResp"/>
+            <entity-author v-if="entityType==='authors'" :data="apiResp"/>
       <!--      <works-entity :data="apiResp"/>-->
 
     </div>
@@ -40,7 +41,8 @@
 
 
 import {api} from "../api";
-import WorksEntity from "../components/WorksEntity";
+import EntityWork from "../components/EntityWork";
+import EntityAuthor from "../components/EntityAuthor";
 
 export default {
   name: "EntityPage",
@@ -50,7 +52,9 @@ export default {
     }
   },
   components: {
-    WorksEntity,
+    EntityWork,
+    EntityAuthor,
+
     // VueJsonPretty,
   },
   props: {},

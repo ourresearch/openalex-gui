@@ -2,12 +2,14 @@
   <v-container>
     <div class="caption">{{ data.type }}</div>
     <h1 class="text-h3">{{ data.title }}</h1>
-    <div>
+
+    <div class="mb-4">
       {{ data.publication_year }}
       <a :href="data.host_venue.id">
         {{ data.host_venue.display_name }}
       </a>
     </div>
+
     <div>
       <div
           v-for="authorship in data.authorships"
@@ -24,8 +26,6 @@
             </template>)
 
         </span>
-
-
 
       </div>
     </div>
@@ -44,7 +44,7 @@ import AuthorLink from "./AuthorLink";
 import InstitutionLink from "./InstitutionLink";
 
 export default {
-  name: "WorkEntity",
+  name: "EntityWork",
   components: {AuthorLink, InstitutionLink},
   props: {
     data: Object,
