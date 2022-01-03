@@ -137,6 +137,10 @@ export default {
   //border-bottom: 3px solid #333;
 }
 
+body {
+  font-size: 18px;
+}
+
 .low-key-button {
   font-size: 16px !important;
   text-transform: none !important;

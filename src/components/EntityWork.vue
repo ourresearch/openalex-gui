@@ -1,25 +1,21 @@
 <template>
   <v-container>
     <div class="">
-      📄 Work<template v-if="data.type"> ({{ data.type }})</template>
+      📄 <strong>Work</strong><template v-if="data.type"> ({{ data.type }})</template>
+      <a :href="data.id" class="black--text d-block body-2">{{data.id}}</a>
     </div>
-    <a :href="data.id" class="grey--text d-block">{{data.id}}</a>
-    <h1 class="text-h3">{{ data.title }}</h1>
+
+    <h1 class="text-h3 my-6">{{ data.title }}</h1>
 
     <div class="">
       {{ data.publication_year }}
       <a :href="data.host_venue.id">
-        {{ data.host_venue.display_name }}
+        {{ data.host_venue.display_name }}.
       </a>
     </div>
-    <div class="body-2">
-
-<!--      <span class="mx-2">|</span>-->
-
-      <a :href="data.ids.doi" class="grey--text d-block">
+      <a :href="data.ids.doi" class="grey--text body-2 d-block">
       {{ data.ids.doi }}
       </a>
-    </div>
 
     <div class="mt-2">
       <link-concept
