@@ -45,7 +45,7 @@
     <div class="text-h4 mt-12" v-if="data.works_count !== null">
       {{data.works_count.toLocaleString()}} affiliated works
     </div>
-    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.wrks_api_url}}</a>
+    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
 
     <div class="text-h4 mt-12">
       Location
