@@ -59,6 +59,13 @@
     </v-app-bar>
 
     <v-main>
+      <v-container>
+      <v-alert text outlined type="warning">
+        <strong>Under construction.</strong>
+        This website officially launches on 02-02-2022
+      </v-alert>
+
+      </v-container>
       <router-view :key="$route.fullPath"/>
     </v-main>
 
