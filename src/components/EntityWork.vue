@@ -1,6 +1,9 @@
 <template>
   <v-container>
-    <div class="caption">{{ data.type }}</div>
+    <div class="body-1">
+      Work<template v-if="data.type"> ({{ data.type }})</template>:
+      <span>{{data.id}}</span>
+    </div>
     <h1 class="text-h3">{{ data.title }}</h1>
 
     <div class="mb-4">
@@ -8,6 +11,14 @@
       <a :href="data.host_venue.id">
         {{ data.host_venue.display_name }}
       </a>
+    </div>
+
+    <div class="my-4">
+      <link-concept
+          v-for="concept in data.concepts"
+          :key="concept.id"
+          :data="concept"
+      />
     </div>
 
     <div>
@@ -29,9 +40,6 @@
 
       </div>
     </div>
-    <pre>
-      {{ data }}
-    </pre>
 
   </v-container>
 
@@ -42,12 +50,15 @@
 <script>
 import LinkAuthor from "./LinkAuthor";
 import LinkInstitution from "./LinkInstitution";
+import LinkConcept from "./LinkConcept";
 
 export default {
   name: "EntityWork",
   components: {
     LinkAuthor,
     LinkInstitution,
+    LinkConcept,
+
   },
   props: {
     data: Object,
