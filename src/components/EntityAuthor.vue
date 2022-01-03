@@ -1,11 +1,35 @@
 <template>
   <v-container>
-    <div class="caption">Author</div>
+    <div class="font-weight-bold">👩🏻 Author</div>
     <h1 class="text-h3">{{ data.display_name }}</h1>
+    <div v-if="data.last_known_institution.id">
+      <link-institution :data="data.last_known_institution"/>
+    </div>
 
-    <pre class="mt-12 pt-12">
-      {{ data }}
-    </pre>
+    <div class="mt-2">
+      <link-concept
+          v-for="concept in data.x_concepts"
+          :key="concept.id"
+          :data="concept"
+      />
+    </div>
+
+
+    <div class="mt-8 pb-12">
+      <v-btn class="mr-4" :href="`${data.id}.json`" target="_blank">
+        View in API
+      </v-btn>
+    </div>
+
+    <div class="text-h4">Identifiers</div>
+    <id-list :data="data.ids" />
+
+    <div class="text-h4 mt-12">
+      Created works ({{data.works_count}})
+    </div>
+    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
+
+
 
   </v-container>
 
@@ -14,10 +38,16 @@
 
 
 <script>
+import LinkInstitution from "./LinkInstitution";
+import LinkConcept from "./LinkConcept";
+import IdList from "./IdList";
 
 export default {
   name: "EntityAuthor",
   components: {
+    LinkInstitution,
+    LinkConcept,
+    IdList,
   },
   props: {
     data: Object,
@@ -28,7 +58,13 @@ export default {
     }
   },
   methods: {},
-  computed: {},
+  computed: {
+    apiUrl() {
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return `https://api.openalex.org/authors/${shortId}`
+    },
+
+  },
   created() {
   },
   mounted() {

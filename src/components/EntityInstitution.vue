@@ -1,7 +1,12 @@
 <template>
   <v-container>
-    <div class="caption">Institution</div>
-    <h1 class="text-h3">{{ data.display_name }}</h1>
+    <div class="">
+      <strong>
+        🏫 Institution
+      </strong>
+    </div>
+      <a :href="data.id" class="black--text body-2">{{ data.id }}</a>
+    <h1 class="text-h3 my-6">{{ data.display_name }}</h1>
 
     <pre class="mt-12 pt-12">
       {{ data }}
@@ -17,8 +22,7 @@
 
 export default {
   name: "EntityInstitution",
-  components: {
-  },
+  components: {},
   props: {
     data: Object,
   },

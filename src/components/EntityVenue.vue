@@ -1,11 +1,36 @@
 <template>
   <v-container>
-    <div class="caption">Venue</div>
+    <div class="font-weight-bold">📚 Venue</div>
     <h1 class="text-h3">{{ data.display_name }}</h1>
+    <div>{{data.publisher}}</div>
+    <div v-if="data.is_oa">
+      <v-icon small>mdi-lock-open-outline</v-icon>
+      Open Access<template v-if="data.is_in_doaj"> and indexed in <a href="https://doaj.org/">DOAJ</a></template>
+    </div>
+    <div class="mt-4">
+      <link-concept
+            v-for="concept in data.x_concepts"
+            :key="concept.id"
+            :data="concept"
+        />
+    </div>
 
-    <pre class="mt-12 pt-12">
-      {{ data }}
-    </pre>
+
+    <div class="mt-8 pb-12">
+      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+        View in API
+      </v-btn>
+      <v-btn v-if="data.homepage_url" :href="data.homepage_url" class="mr-4">
+        View webpage
+      </v-btn>
+    </div>
+
+    <div class="text-h4 mt-12">
+      Hosted works ({{data.works_count}})
+    </div>
+    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
+
+
 
   </v-container>
 
@@ -14,10 +39,12 @@
 
 
 <script>
+import LinkConcept from "./LinkConcept";
 
 export default {
   name: "EntityVenue",
   components: {
+    LinkConcept,
   },
   props: {
     data: Object,
@@ -28,7 +55,12 @@ export default {
     }
   },
   methods: {},
-  computed: {},
+  computed: {
+    apiUrl() {
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return `https://api.openalex.org/venues/${shortId}`
+    },
+  },
   created() {
   },
   mounted() {

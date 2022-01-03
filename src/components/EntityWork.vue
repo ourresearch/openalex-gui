@@ -3,27 +3,16 @@
     <div class="">
       📄 <strong>Work</strong>
       <template v-if="data.type"> ({{ data.type }})</template>
-      <a :href="data.id" class="black--text d-block body-2">{{ data.id }}</a>
+<!--      <a :href="data.id" class="black&#45;&#45;text d-block body-2">{{ data.id }}</a>-->
     </div>
 
-    <h1 class="text-h3 my-6">{{ data.title }}</h1>
+    <h1 class="text-h3">{{ data.title }}</h1>
 
     <div class="">
       {{ data.publication_year }}
-      <a :href="data.host_venue.id">
+      <a :href="data.host_venue.id | idLink">
         {{ data.host_venue.display_name }}.
       </a>
-    </div>
-    <a :href="data.ids.doi" class="grey--text body-2 d-block">
-      {{ data.ids.doi }}
-    </a>
-
-    <div class="mt-2">
-      <link-concept
-          v-for="concept in data.concepts"
-          :key="concept.id"
-          :data="concept"
-      />
     </div>
     <div class="mt-2">
       <div v-if="!data.open_access.is_oa">
@@ -36,6 +25,13 @@
         Open Access
       </div>
 
+    </div>
+    <div class="mt-2">
+      <link-concept
+          v-for="concept in data.concepts"
+          :key="concept.id"
+          :data="concept"
+      />
     </div>
 
     <div class="mt-8">
@@ -57,20 +53,23 @@
 
       </div>
     </div>
-    <div class="mt-8">
+    <div class="mt-8 pb-12">
       <v-btn class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
-      <v-btn class="mr-4">
+      <v-btn :href="data.host_venue.url" class="mr-4">
         <v-icon left v-if="workIsFreeAtPublisher">mdi-lock-open-outline</v-icon>
         <v-icon left v-if="!workIsFreeAtPublisher">mdi-lock-outline</v-icon>
         View work
       </v-btn>
-      <v-btn v-if="data.open_access.oa_status==='green'">
+      <v-btn :href="data.open_access.oa_url" v-if="data.open_access.oa_status==='green'">
         <v-icon left>mdi-lock-open-outline</v-icon>
         View free copy
       </v-btn>
     </div>
+
+    <div class="text-h4">Identifiers</div>
+    <id-list :data="data.ids" />
 
   </v-container>
 
@@ -82,6 +81,7 @@
 import LinkAuthor from "./LinkAuthor";
 import LinkInstitution from "./LinkInstitution";
 import LinkConcept from "./LinkConcept";
+import IdList from "./IdList";
 
 export default {
   name: "EntityWork",
@@ -89,6 +89,7 @@ export default {
     LinkAuthor,
     LinkInstitution,
     LinkConcept,
+    IdList,
 
   },
   props: {
@@ -107,7 +108,7 @@ export default {
     apiUrl() {
       return this.data.id + ".json"
       const shortId = this.data.id.replace("https://openalex.org/", "")
-      return `https://api.openalex.org/work/${shortId}`
+      return `https://api.openalex.org/works/${shortId}`
     }
   },
   created() {

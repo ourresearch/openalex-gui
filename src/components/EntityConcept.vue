@@ -1,22 +1,24 @@
 <template>
   <v-container>
     <div class="">
-      💡 <strong>Concept</strong> at level {{ levelChar }}
-      <a :href="data.id" class="grey--text d-block body-2">{{ data.id }}</a>
+      💡 <strong>Concept</strong>
+<!--      <a :href="data.id" class="grey&#45;&#45;text d-block body-2">{{ data.id }}</a>-->
     </div>
 
-    <h1 class="text-h3 mb-4 mt-2">{{ data.display_name }}</h1>
-    <div class="description">
-      {{data.description}}
-      <a :href="data.ids.wikipedia">(Wikipedia)</a>.
+    <h1 class="text-h3">{{ data.display_name }}</h1>
+    <div class="description text-h5">
+      {{data.description}}.
+      <a :href="data.ids.wikipedia">(Wikipedia)</a>
     </div>
-    <a :href="data.wikidata" class="grey--text body-2 d-block">{{ data.wikidata }}</a>
+    <div>{{ levelChar }} level</div>
     <div class="mt-8 pb-12">
       <v-btn class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
     </div>
 
+    <div class="text-h4">Identifiers</div>
+    <id-list :data="data.ids" />
 
 
     <div v-if="data.level > 0">
@@ -63,11 +65,13 @@
 
 <script>
 import LinkConcept from "./LinkConcept";
+import IdList from "./IdList";
 
 export default {
   name: "EntityConcept",
   components: {
     LinkConcept,
+    IdList,
   },
   props: {
     data: Object,
@@ -80,7 +84,8 @@ export default {
   methods: {},
   computed: {
     apiUrl() {
-      return this.data.id + ".json"
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return `https://api.openalex.org/concepts/${shortId}`
     },
     levelChar(){
       const chars = [

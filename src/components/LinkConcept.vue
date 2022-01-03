@@ -1,8 +1,8 @@
 <template>
   <v-chip
+      outlined
       :to="data.id | idLink"
-      class="mr-2"
-      small
+      class="mr-2 mb-2"
   >
     <div>
       <span :class="`concept-level level-${data.level}`">{{ levelChar }}</span>
