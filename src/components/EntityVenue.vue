@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="caption">Author</div>
+    <div class="caption">Venue</div>
     <h1 class="text-h3">{{ data.display_name }}</h1>
 
     <pre class="mt-12 pt-12">
@@ -16,7 +16,7 @@
 <script>
 
 export default {
-  name: "EntityAuthor",
+  name: "EntityVenue",
   components: {
   },
   props: {

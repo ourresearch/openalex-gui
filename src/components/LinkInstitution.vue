@@ -1,7 +1,7 @@
 <template>
-  <a :href="data.id">
+  <router-link :to="data.id | idLink">
     {{data.display_name}}
-  </a>
+  </router-link>
 </template>
 
 

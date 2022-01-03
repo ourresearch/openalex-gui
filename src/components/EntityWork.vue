@@ -16,10 +16,10 @@
           :key="authorship.author.id"
           class="authorship"
       >
-        <author-link :data="authorship.author" class="body-1" />
+        <link-author :data="authorship.author" class="body-1" />
         <span class="ml-2 institutions-list body-2">
           (<template v-for="(institution, i) in authorship.institutions">
-              <template v-if="i > 0">, </template><institution-link
+              <template v-if="i > 0">, </template><link-institution
                   :key="institution.id"
                   :data="institution"
               />
@@ -40,12 +40,15 @@
 
 
 <script>
-import AuthorLink from "./AuthorLink";
-import InstitutionLink from "./InstitutionLink";
+import LinkAuthor from "./LinkAuthor";
+import LinkInstitution from "./LinkInstitution";
 
 export default {
   name: "EntityWork",
-  components: {AuthorLink, InstitutionLink},
+  components: {
+    LinkAuthor,
+    LinkInstitution,
+  },
   props: {
     data: Object,
   },

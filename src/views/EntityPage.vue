@@ -1,10 +1,10 @@
 <template>
   <v-container class="entity-page">
 <!--    <h1 class="text-h3 my-12">{{ entityType }} entity: {{ this.entityId }}</h1>-->
-    <div class="loading" v-if="loading">
+    <div class="loading" v-if="!apiResp.id">
       loading....
     </div>
-    <div class="loaded" v-if="!loading">
+    <div class="loaded" v-if="apiResp.id">
 
       <v-btn
           color="primary"
@@ -25,9 +25,11 @@
 <!--        <vue-json-pretty :data="apiResp"/>-->
 <!--      </v-card>-->
 
-
             <entity-work v-if="entityType==='works'" :data="apiResp"/>
             <entity-author v-if="entityType==='authors'" :data="apiResp"/>
+            <entity-venue v-if="entityType==='venues'" :data="apiResp"/>
+            <entity-institution v-if="entityType==='institutions'" :data="apiResp"/>
+            <entity-concept v-if="entityType==='concepts'" :data="apiResp"/>
       <!--      <works-entity :data="apiResp"/>-->
 
     </div>
@@ -43,6 +45,9 @@
 import {api} from "../api";
 import EntityWork from "../components/EntityWork";
 import EntityAuthor from "../components/EntityAuthor";
+import EntityVenue from "../components/EntityVenue";
+import EntityInstitution from "../components/EntityInstitution";
+import EntityConcept from "../components/EntityConcept";
 
 export default {
   name: "EntityPage",
@@ -54,7 +59,9 @@ export default {
   components: {
     EntityWork,
     EntityAuthor,
-
+    EntityVenue,
+    EntityInstitution,
+    EntityConcept,
     // VueJsonPretty,
   },
   props: {},
