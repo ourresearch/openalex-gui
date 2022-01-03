@@ -8,32 +8,35 @@
 
     >
       <router-link to="/" class=" text-decoration-none">
-<!--        <v-img-->
-<!--            alt="OurResearch Logo"-->
-<!--            class="shrink mr-2"-->
-<!--            contain-->
-<!--            src="@/assets/logos/ourresearch_logo.png"-->
-<!--            transition="scale-transition"-->
-<!--            width="200"-->
-<!--        />-->
+        <!--        <v-img-->
+        <!--            alt="OurResearch Logo"-->
+        <!--            class="shrink mr-2"-->
+        <!--            contain-->
+        <!--            src="@/assets/logos/ourresearch_logo.png"-->
+        <!--            transition="scale-transition"-->
+        <!--            width="200"-->
+        <!--        />-->
         <img
-          src="@/assets/explore-OpenAlex-logo.png"
-          style="height: 40px;"
+            src="@/assets/explore-OpenAlex-logo.png"
+            style="height: 40px;"
         />
       </router-link>
 
       <v-spacer></v-spacer>
 
-<!--      DESKTOP MENU -->
-      <v-toolbar-items class="d-none hidden-sm-and-down">
+      <!--      DESKTOP MENU -->
+      <v-toolbar-items class=" hidden-sm-and-down">
         <v-btn class="no-active low-key-button" text to="/">Home</v-btn>
-        <v-btn class="no-active low-key-button" text to="./about">About</v-btn>
-        <v-btn class="no-active low-key-button" text to="./projects">Projects</v-btn>
-        <v-btn class="no-active low-key-button" text to="./transparency">Transparency</v-btn>
+        <v-btn class="no-active low-key-button" text href="https://openalex.org">
+          About OpenAlex
+          <v-icon small right>mdi-open-in-new</v-icon>
+        </v-btn>
+        <!--        <v-btn class="no-active low-key-button" text to="./projects">Projects</v-btn>-->
+        <!--        <v-btn class="no-active low-key-button" text to="./transparency">Transparency</v-btn>-->
       </v-toolbar-items>
 
-<!--      MOBILE MENU -->
-      <div class="d-none hidden-md-and-up">
+      <!--      MOBILE MENU -->
+      <div class=" hidden-md-and-up">
         <v-menu offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">
             <v-btn icon color="" v-on="on">
@@ -42,9 +45,12 @@
           </template>
           <v-list>
             <v-list-item to="/">Home</v-list-item>
-            <v-list-item to="./about">About</v-list-item>
-            <v-list-item to="./projects">Projects</v-list-item>
-            <v-list-item to="./transparency">Transparency</v-list-item>
+            <v-list-item href="https://openalex.org">
+              About OpenAlex
+              <v-icon small right>mdi-open-in-new</v-icon>
+            </v-list-item>
+            <!--            <v-list-item to="./projects">Projects</v-list-item>-->
+            <!--            <v-list-item to="./transparency">Transparency</v-list-item>-->
           </v-list>
         </v-menu>
       </div>
@@ -53,11 +59,10 @@
     </v-app-bar>
 
     <v-main>
-      <router-view  :key="$route.fullPath"/>
+      <router-view :key="$route.fullPath"/>
     </v-main>
 
     <v-footer
-        v-if="0"
         class="py-10 site-footer"
         style="margin-top: 150px;"
         dark
@@ -65,32 +70,20 @@
     >
       <v-container>
         <v-row>
-          <v-col cols="12" sm="2">
+          <v-col cols="12" sm="4">
             <div>
               <router-link to="/">Home</router-link>
             </div>
             <div>
-              <router-link to="/about">About</router-link>
+              <a href="https://openalex.org">
+                About OpenAlex
+                <v-icon small right>mdi-open-in-new</v-icon>
+              </a>
             </div>
-            <div>
-              <router-link to="/projects">Projects</router-link>
-            </div>
-            <div>
-              <router-link to="/transparency">Transparency</router-link>
-            </div>
-            <div>
-              <router-link to="/accessibility">Accessibility</router-link>
-            </div>
-          </v-col>
-          <v-col cols="12" sm="2">
-            <div><a href="https://twitter.com/OurResearch_org" target="_blank">Twitter</a></div>
-            <div><a href="https://blog.ourresearch.org" target="_blank">Blog</a></div>
-            <div><a href="https://github.com/ourresearch" target="_blank">GitHub</a></div>
-            <div><a href="mailto:team@ourresearch.org">Email</a></div>
           </v-col>
           <v-col cols="12" sm="4" class="text-center">
             <router-link to="/">
-              <img class="site-footer-logo" src="@/assets/logos/ourresearch-logo-icon-white.png" alt=""/>
+              <img class="site-footer-logo" src="@/assets/openalex-logo-icon.png" alt=""/>
             </router-link>
           </v-col>
           <v-col cols="12" sm="4" class="body-2">
@@ -109,10 +102,9 @@
 
 export default {
   name: 'App',
-    metaInfo: {
+  metaInfo: {
     titleTemplate: '%s | OpenAlex Web',
-    link: [
-    ],
+    link: [],
 
     meta: []
   },
@@ -132,8 +124,9 @@ export default {
 .v-btn--active.no-active::before {
   opacity: 0.05 !important;
 }
+
 .v-btn--active.no-active {
-    //text-decoration: underline !important;
+  //text-decoration: underline !important;
   //border-bottom: 3px solid #333;
 }
 
@@ -162,7 +155,7 @@ body {
 }
 
 img.site-footer-logo {
-  width: 30px;
+  width: 60px;
 
 }
 </style>
