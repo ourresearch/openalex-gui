@@ -1,8 +1,46 @@
 <template>
-  <div class="home" style="min-height: 90vh;">
-      <v-container class="">
+  <div class="home">
+    <v-container style="min-height: 75vh;" class="d-flex align-center">
+      <v-row>
+        <v-col cols="3" class="hidden-xs-only"></v-col>
+        <v-col>
+          <v-card flat class="">
+            <v-text-field
+                solo
+                disabled
+                label="Search is coming soon..."
+            />
+            <div class="d-flex justify-center">
+              <v-btn large disabled class="mr-2">Search</v-btn>
+              <v-menu offset-y content-class="no-highlight" min-width="150">
+                <template v-slot:activator="{on}">
+                  <v-btn large v-on="on">
+                    I'm feeling lucky
+                    <v-icon>mdi-menu-down</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item to="/works/random">📄 random &nbsp; <strong>work</strong></v-list-item>
+                  <v-list-item to="/authors/random">👩🏻 random &nbsp; <strong>author</strong></v-list-item>
+                  <v-list-item to="/venues/random">📚 random &nbsp; <strong>venue</strong></v-list-item>
+                  <v-list-item to="/institutions/random">🏫 random &nbsp; <strong>institution</strong></v-list-item>
+                  <v-list-item to="/concepts/random">💡 random &nbsp; <strong>concept</strong></v-list-item>
+                  <!--            <v-list-item to="./projects">Projects</v-list-item>-->
+                  <!--            <v-list-item to="./transparency">Transparency</v-list-item>-->
+                </v-list>
+              </v-menu>
 
-      </v-container>
+            </div>
+            <div>
+            </div>
+          </v-card>
+
+        </v-col>
+        <v-col cols="3" class="hidden-xs-only"></v-col>
+
+      </v-row>
+
+    </v-container>
 
 
     <!--        <homepage-user-logos/>-->
@@ -68,7 +106,7 @@ export default {
   },
   computed: {},
   methods: {
-    async doSearch(){
+    async doSearch() {
       const resp = await axios.get("https://api.openalex.org/works/query?filter=continent:Asia,genre:proceedings&details")
       this.results = resp.data.response
       console.log("got a response!", resp.data.response)
