@@ -1,19 +1,27 @@
 <template>
   <v-container>
-    <div class="body-1">
-      Work<template v-if="data.type"> ({{ data.type }})</template>:
-      <span>{{data.id}}</span>
+    <div class="">
+      📄 Work<template v-if="data.type"> ({{ data.type }})</template>
     </div>
+    <a :href="data.id" class="grey--text d-block">{{data.id}}</a>
     <h1 class="text-h3">{{ data.title }}</h1>
 
-    <div class="mb-4">
+    <div class="">
       {{ data.publication_year }}
       <a :href="data.host_venue.id">
         {{ data.host_venue.display_name }}
       </a>
     </div>
+    <div class="body-2">
 
-    <div class="my-4">
+<!--      <span class="mx-2">|</span>-->
+
+      <a :href="data.ids.doi" class="grey--text d-block">
+      {{ data.ids.doi }}
+      </a>
+    </div>
+
+    <div class="mt-2">
       <link-concept
           v-for="concept in data.concepts"
           :key="concept.id"
@@ -21,7 +29,7 @@
       />
     </div>
 
-    <div>
+    <div class="mt-8">
       <div
           v-for="authorship in data.authorships"
           :key="authorship.author.id"
@@ -39,6 +47,20 @@
         </span>
 
       </div>
+    </div>
+    <div class="mt-8">
+      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+        View in API
+      </v-btn>
+      <v-btn class="mr-4">
+        <v-icon left v-if="workIsFreeAtPublisher">mdi-lock-open-outline</v-icon>
+        <v-icon left v-if="!workIsFreeAtPublisher">mdi-lock-outline</v-icon>
+        View work
+      </v-btn>
+      <v-btn v-if="data.open_access.oa_status==='green'">
+        <v-icon left >mdi-lock-open-outline</v-icon>
+        View free copy
+      </v-btn>
     </div>
 
   </v-container>
@@ -69,7 +91,16 @@ export default {
     }
   },
   methods: {},
-  computed: {},
+  computed: {
+    workIsFreeAtPublisher(){
+      return this.data.open_access.is_oa && this.data.open_access.oa_status !== "green"
+    },
+    apiUrl(){
+      return this.data.id + ".json"
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return `https://api.openalex.org/work/${shortId}`
+    }
+  },
   created() {
   },
   mounted() {

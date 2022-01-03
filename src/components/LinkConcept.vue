@@ -2,6 +2,7 @@
   <v-chip
       :to="data.id | idLink"
       class="mr-2"
+      small
   >
     <div>
       <span :class="`concept-level level-${data.level}`">{{ levelChar }}</span>
@@ -30,13 +31,22 @@ export default {
   methods: {},
   computed: {
     levelChar() {
+      // const chars = [
+      //   "🄌",
+      //   "➊",
+      //   "➋",
+      //   "➍",
+      //   "➎",
+      //   "➏",
+      //
+      // ]
       const chars = [
-        "🄌",
-        "➊",
-        "➋",
-        "➍",
-        "➎",
-        "➏",
+        "⓪",
+        "①",
+        "②",
+        "③",
+        "④",
+        "⑤",
 
       ]
       return chars[this.data.level]
@@ -52,11 +62,11 @@ export default {
 
 <style lang="scss">
 span.concept-level {
-  font-size: 130%;
+  //font-size: 130%;
   vertical-align: bottom;
 
   &.level-0 {
-    font-size: 100%;
+    //font-size: 100%;
   }
 }
 

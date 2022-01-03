@@ -6,16 +6,6 @@
     </div>
     <div class="loaded" v-if="apiResp.id">
 
-      <v-btn
-          color="primary"
-          large
-          class="mb-12"
-          target="_blank"
-          :href="apiUrl"
-      >
-        view in API
-        <v-icon right>mdi-open-in-new</v-icon>
-      </v-btn>
 
 <!--      <v-card class="pa-5" color="#fafafa">-->
 <!--        <div class="text-h4">-->
