@@ -2,7 +2,6 @@
   <v-container>
     <div class="">
       📄 <strong>Work</strong>
-      <template v-if="data.type"> ({{ data.type }})</template>
 <!--      <a :href="data.id" class="black&#45;&#45;text d-block body-2">{{ data.id }}</a>-->
     </div>
 
@@ -10,9 +9,14 @@
 
     <div class="">
       {{ data.publication_year }}
-      <a :href="data.host_venue.id | idLink">
-        {{ data.host_venue.display_name }}.
-      </a>
+      <span v-if="data.type">{{ data.type.replace("-", " ") }}</span>
+      <span v-if="data.host_venue.display_name">
+        published by
+        <a :href="data.host_venue.id | idLink">
+          {{ data.host_venue.display_name }}.
+        </a>
+      </span>
+
     </div>
     <div class="mt-2">
       <div v-if="!data.open_access.is_oa">
@@ -53,8 +57,8 @@
 
       </div>
     </div>
-    <div class="mt-8 pb-12">
-      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+    <div class="mt-8">
+      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
       <v-btn :href="data.host_venue.url" class="mr-4">
@@ -67,6 +71,7 @@
         View free copy
       </v-btn>
     </div>
+    <v-divider class="mt-12 pt-12" />
 
     <div class="text-h4">Identifiers</div>
     <id-list :data="data.ids" />

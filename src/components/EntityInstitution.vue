@@ -16,14 +16,15 @@
         />
     </div>
 
-    <div class="mt-8 pb-12">
-      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+    <div class="mt-8">
+      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
       <v-btn v-if="data.homepage_url" :href="data.homepage_url" class="mr-4">
         View webpage
       </v-btn>
     </div>
+    <v-divider class="mt-12 pt-12" />
 
     <div class="text-h4">Identifiers</div>
     <id-list :data="data.ids" />
@@ -40,10 +41,11 @@
       </ul>
     </div>
 
-    <div class="text-h4 mt-12">
-      {{data.works_count}} affiliated works
+
+    <div class="text-h4 mt-12" v-if="data.works_count !== null">
+      {{data.works_count.toLocaleString()}} affiliated works
     </div>
-    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
+    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.wrks_api_url}}</a>
 
     <div class="text-h4 mt-12">
       Location

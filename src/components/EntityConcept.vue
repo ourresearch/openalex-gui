@@ -11,11 +11,12 @@
       <a :href="data.ids.wikipedia">(Wikipedia)</a>
     </div>
     <div>{{ levelChar }} level</div>
-    <div class="mt-8 pb-12">
-      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+    <div class="mt-8">
+      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
     </div>
+    <v-divider class="mt-12 pt-12" />
 
     <div class="text-h4">Identifiers</div>
     <id-list :data="data.ids" />
@@ -23,7 +24,7 @@
 
     <div v-if="data.level > 0">
       <div class="text-h4 mt-12">
-        Ancestor concepts ({{data.ancestors.length}})
+        {{data.ancestors.length.toLocaleString()}} ancestor concepts
       </div>
       <link-concept
             v-for="concept in data.ancestors"
@@ -33,7 +34,7 @@
 
     </div>
     <div class="text-h4 mt-12">
-      Related concepts ({{data.related_concepts.length}})
+      {{data.related_concepts.length.toLocaleString()}} related concepts
     </div>
     <link-concept
           v-for="concept in data.related_concepts"
@@ -52,7 +53,7 @@
     </ul>
 
     <div class="text-h4 mt-12">
-      Tagged works ({{data.works_count}})
+      {{data.works_count.toLocaleString()}} tagged works
     </div>
     Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
 

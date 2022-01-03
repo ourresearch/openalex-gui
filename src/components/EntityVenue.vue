@@ -16,17 +16,18 @@
     </div>
 
 
-    <div class="mt-8 pb-12">
-      <v-btn class="mr-4" :href="apiUrl" target="_blank">
+    <div class="mt-8 ">
+      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
         View in API
       </v-btn>
       <v-btn v-if="data.homepage_url" :href="data.homepage_url" class="mr-4">
         View webpage
       </v-btn>
     </div>
+    <v-divider class="mt-12 pt-12" />
 
     <div class="text-h4 mt-12">
-      Hosted works ({{data.works_count}})
+      {{data.works_count.toLocaleString()}} hosted works
     </div>
     Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
 
