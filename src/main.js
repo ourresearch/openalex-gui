@@ -13,6 +13,7 @@ Vue.use(VueMeta, {
 
 
 Vue.filter("idLink", function (fullId) {
+    if (!fullId) return
   const shortId = fullId.replace("https://openalex.org/", "")
     const shortIdFirstLetter = shortId.substr(0, 1).toUpperCase()
     const entityTypes = {

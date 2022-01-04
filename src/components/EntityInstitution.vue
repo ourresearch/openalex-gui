@@ -59,10 +59,10 @@
 
     <div class="mt-12">
       <div class="text-h4">Alternate names</div>
-      <div v-if="data.display_name_acroynyms.length" class="mb-4">
+      <div v-if="data.display_name_acronyms.length" class="mb-4">
         <div class="text-h6">Initialisms</div>
         <ul>
-          <li v-for="v in data.display_name_acroynyms" :key="v">{{ v }}</li>
+          <li v-for="v in data.display_name_acronyms" :key="v">{{ v }}</li>
         </ul>
       </div>
 
