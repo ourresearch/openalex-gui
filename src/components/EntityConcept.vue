@@ -12,9 +12,7 @@
     </div>
     <div>{{ levelChar }} level</div>
     <div class="mt-8">
-      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
-        View in API
-      </v-btn>
+      <view-in-api-button :id="data.id" />
     </div>
     <v-divider class="mt-12 pt-12" />
 
@@ -67,12 +65,14 @@
 <script>
 import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
+import ViewInApiButton from "./ViewInApiButton";
 
 export default {
   name: "EntityConcept",
   components: {
     LinkConcept,
     IdList,
+    ViewInApiButton,
   },
   props: {
     data: Object,
@@ -84,10 +84,6 @@ export default {
   },
   methods: {},
   computed: {
-    apiUrl() {
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      return `https://api.openalex.org/concepts/${shortId}`
-    },
     levelChar(){
       const chars = [
         "⓪",

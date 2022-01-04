@@ -17,9 +17,7 @@
     </div>
 
     <div class="mt-8">
-      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
-        View in API
-      </v-btn>
+      <view-in-api-button :id="data.id" />
       <v-btn v-if="data.homepage_url" :href="data.homepage_url" class="mr-4">
         View webpage
       </v-btn>
@@ -96,12 +94,14 @@
 <script>
 import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
+import ViewInApiButton from "./ViewInApiButton";
 
 export default {
   name: "EntityInstitution",
   components: {
     LinkConcept,
     IdList,
+    ViewInApiButton,
   },
   props: {
     data: Object,
@@ -124,11 +124,6 @@ export default {
         return x.v
       })
     },
-    apiUrl() {
-      return this.data.id + ".json"
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      return `https://api.openalex.org/institutions/${shortId}`
-    }
   },
   created() {
   },

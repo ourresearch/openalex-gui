@@ -58,9 +58,7 @@
       </div>
     </div>
     <div class="mt-8">
-      <v-btn color="primary" class="mr-4" :href="apiUrl" target="_blank">
-        View in API
-      </v-btn>
+      <view-in-api-button :id="data.id" />
       <v-btn :href="data.host_venue.url" class="mr-4">
         <v-icon left v-if="workIsFreeAtPublisher">mdi-lock-open-outline</v-icon>
         <v-icon left v-if="!workIsFreeAtPublisher">mdi-lock-outline</v-icon>
@@ -87,6 +85,7 @@ import LinkAuthor from "./LinkAuthor";
 import LinkInstitution from "./LinkInstitution";
 import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
+import ViewInApiButton from "./ViewInApiButton";
 
 export default {
   name: "EntityWork",
@@ -95,6 +94,7 @@ export default {
     LinkInstitution,
     LinkConcept,
     IdList,
+    ViewInApiButton,
 
   },
   props: {
@@ -110,11 +110,6 @@ export default {
     workIsFreeAtPublisher() {
       return this.data.open_access.is_oa && this.data.open_access.oa_status !== "green"
     },
-    apiUrl() {
-      return this.data.id + ".json"
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      return `https://api.openalex.org/works/${shortId}`
-    }
   },
   created() {
   },

@@ -14,7 +14,7 @@ Vue.use(VueMeta, {
 
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return
-  const shortId = fullId.replace("https://openalex.org/", "")
+    const shortId = fullId.replace("https://openalex.org/", "")
     const shortIdFirstLetter = shortId.substr(0, 1).toUpperCase()
     const entityTypes = {
         "W": "works",
@@ -23,8 +23,13 @@ Vue.filter("idLink", function (fullId) {
         "A": "authors",
         "C": "concepts",
     };
-  const myEntityType = entityTypes[shortIdFirstLetter]
-  return `/${myEntityType}/${shortId}`
+    const myEntityType = entityTypes[shortIdFirstLetter]
+    return `/${myEntityType}/${shortId}`
+})
+Vue.filter("idApiUrl", function (fullId) {
+    if (!fullId) return
+    const shortId = fullId.replace("https://openalex.org/", "")
+    return `https://api.openalex.org/${shortId}`
 })
 
 new Vue({

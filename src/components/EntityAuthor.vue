@@ -2,7 +2,7 @@
   <v-container>
     <div class="font-weight-bold">👩🏻 Author</div>
     <h1 class="text-h3">{{ data.display_name }}</h1>
-    <div v-if="data.last_known_institution.id">
+    <div v-if="data.last_known_institution && data.last_known_institution.id">
       <link-institution :data="data.last_known_institution"/>
     </div>
 
@@ -16,9 +16,7 @@
 
 
     <div class="mt-8">
-      <v-btn color="primary" class="mr-4" :href="`${data.id}.json`" target="_blank">
-        View in API
-      </v-btn>
+      <view-in-api-button :id="data.id" />
     </div>
     <v-divider class="mt-12 pt-12" />
 
@@ -42,6 +40,7 @@
 import LinkInstitution from "./LinkInstitution";
 import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
+import ViewInApiButton from "./ViewInApiButton";
 
 export default {
   name: "EntityAuthor",
@@ -49,6 +48,7 @@ export default {
     LinkInstitution,
     LinkConcept,
     IdList,
+    ViewInApiButton,
   },
   props: {
     data: Object,
@@ -60,10 +60,6 @@ export default {
   },
   methods: {},
   computed: {
-    apiUrl() {
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      return `https://api.openalex.org/authors/${shortId}`
-    },
 
   },
   created() {
