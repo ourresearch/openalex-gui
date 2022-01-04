@@ -29,11 +29,11 @@
     <div class="text-h4">Identifiers</div>
     <id-list :data="data.ids" />
 
-    <div class="mt-12" v-if="data.associated_insitutions.length">
+    <div class="mt-12" v-if="data.associated_institutions.length">
       <div class="text-h4">Associated Institutions</div>
       <ul>
         <li
-          v-for="institution in data.associated_insitutions"
+          v-for="institution in data.associated_institutions"
           :key="institution.id"
         >
           <a :href="institution.id | idLink">{{ institution.display_name }}</a> ({{ institution.relationship}})
