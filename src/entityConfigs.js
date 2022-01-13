@@ -7,22 +7,22 @@ const entityConfigs = {
     author: {
         icon: "🧑",
         name: "author",
-        descr: "<em>create</em> works",
+        descr: "create works",
     },
     venue: {
         icon: "📚",
         name: "venue",
-        descr: "(like journals and repositories) <em>host</em> works",
+        descr: "(like journals and repositories) host works",
     },
     institution: {
         icon: "🏫",
         name: "institution",
-        descr: "(like universities)<em>are affiliated with</em> works",
+        descr: "(like universities) are affiliated with works",
     },
     concept: {
         icon: "💡",
         name: "concept",
-        descr: "<em>describe</em> the topics of works",
+        descr: "describe the topics of works",
     },
 
 
