@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import EntityPage from "../views/EntityPage";
+import Serp from "../views/Serp";
 import Accessibility from "../views/Accessibility";
 import Transparency from "../views/Transparency";
 import goTo from 'vuetify/es5/services/goto'
@@ -29,6 +30,7 @@ const routes = [
     //     redirect: 'works/W2741809807',
     // },
 
+    // explore.openalex.org/w123
     {
         path: '/:id([wWiIvVaAcC]\\d+)',
         redirect: to => {
@@ -40,10 +42,18 @@ const routes = [
     },
 
 
+    // explore.openalex.org/works/w123
     {
         path: '/:entityType(works|authors|venues|institutions|concepts)/:id',
         name: 'EntityPage',
         component: EntityPage,
+    },
+
+    // explore.openalex/works?filters=foo:42
+    {
+        path: '/:entityType(works|authors|venues|institutions|concepts)',
+        name: 'Serp',
+        component: Serp,
     },
     {path: '/team', redirect: "/about"},
     {path: '/accessibility', component: Accessibility},

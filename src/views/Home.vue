@@ -17,9 +17,9 @@
                 <span v-html="`${config.descr}.`"></span>
               </li>
             </ul>
-            <search-box />
+            <search-box @submit="goSearch" />
             <div class="d-flex justify-center">
-              <v-btn large disabled class="mr-2">Search</v-btn>
+              <v-btn large @click="goSearch" class="mr-2">Search</v-btn>
               <v-menu offset-y content-class="no-highlight" min-width="150">
                 <template v-slot:activator="{on}">
                   <v-btn large v-on="on">
@@ -65,6 +65,7 @@
 import axios from "axios";
 import SearchBox from "../components/SearchBox";
 import {entityConfigs} from "../entityConfigs";
+import {mapGetters} from "vuex";
 
 export default {
   name: 'home',
@@ -83,13 +84,15 @@ export default {
 
     }
   },
-  computed: {},
+  computed: {
+    ...mapGetters([
+        "serpUrl",
+    ]),
+  },
   methods: {
-    async doSearch() {
-      const resp = await axios.get("https://api.openalex.org/works/query?filter=continent:Asia,genre:proceedings&details")
-      this.results = resp.data.response
-      console.log("got a response!", resp.data.response)
-
+    goSearch() {
+      console.log("goSearch", this.serpUrl)
+      // this.$router.push(this.serpUrl)
     }
   },
   mounted() {

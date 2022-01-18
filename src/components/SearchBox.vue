@@ -1,8 +1,8 @@
 <template>
 
   <form class="main-search">
-<!--    <div>select: {{ select }}</div>-->
-<!--    <div>searchstring: {{ searchString }}</div>-->
+    <!--    <div>select: {{ select }}</div>-->
+    <!--    <div>searchstring: {{ searchString }}</div>-->
     <!--    <div>items: {{items.map(x => x.display_name)}}</div>-->
 
     <v-combobox
@@ -15,7 +15,6 @@
         item-value="id"
         :loading="loading"
         @input="makeSelection"
-        auto-select-first
         autofocus
     >
       <template v-slot:item="data">
@@ -24,9 +23,9 @@
         </v-list-item-icon>
         <v-list-item-content>
           <div>
-<!--            <div class="caption text-capitalize">-->
-<!--              {{ data.item.entity_type }}-->
-<!--            </div>-->
+            <!--            <div class="caption text-capitalize">-->
+            <!--              {{ data.item.entity_type }}-->
+            <!--            </div>-->
             <div>
               {{ data.item.display_name }}
             </div>
@@ -42,6 +41,8 @@
 
 <script>
 import axios from 'axios'
+import {mapGetters, mapMutations, mapActions,} from 'vuex'
+
 import {search} from '../search'
 import {entityConfigs} from "../entityConfigs";
 
@@ -52,38 +53,30 @@ export default {
     loading: false,
     items: [],
     searchString: "",
-    oldSearchString: "",
     search: search
   }),
   computed: {
+    ...mapGetters([]),
     displayItems() {
       return this.items.slice(0, 6)
     }
   },
   methods: {
-    makeSelection(){
-      console.log("makeSelection()")
-      if (!this.select?.id) return
-      const shortId = this.select.id.replace("https://openalex.org/", "")
-      this.$router.push(`/${this.select.entity_type}s/${shortId}`)
-    },
-    goSearch(q) {
-      console.log("goSearch()")
-      return
-      // this.items = this.items.filter(x=>{
-      //     let suggestion = (x || "").toLowerCase()
-      //     let myQ = (q || "").toLowerCase()
-      //     return suggestion.indexOf(myQ) > -1
-      // })
-      if (q) {
-        this.fetchSuggestions(q)
+    ...mapMutations([
+    ]),
+    ...mapActions([
+      "updateTextSearch",
+    ]),
+    makeSelection() {
+      if (!this.select?.id) {
+        // text search
+        this.updateTextSearch(this.searchString)
+        this.$emit("submit", this.searchString)
       } else {
-        this.items = []
+        // entity lookup
+        const shortId = this.select.id.replace("https://openalex.org/", "")
+        this.$router.push(`/${this.select.entity_type}s/${shortId}`)
       }
-      search.setQ(q)
-      search.query.page = 1
-      this.$emit("submit", q)
-
     },
     fetchSuggestions(v) {
       if (!v) {
@@ -112,10 +105,7 @@ export default {
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
-    select(val){
-      if (val){
-        console.log("selection made!")
-      }
+    select(val) {
     }
   }
 }
@@ -141,6 +131,7 @@ form.main-search {
     padding: 0;
     align-items: center;
     display: flex;
+
     .our-icon {
       padding-top: 5px;
     }
@@ -164,7 +155,6 @@ form.main-search {
 .v-input__icon--append .v-icon {
   display: none !important;
 }
-
 
 
 </style>
