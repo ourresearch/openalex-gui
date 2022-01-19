@@ -1,9 +1,7 @@
 <template>
 
-  <form class="main-search">
-    <!--    <div>select: {{ select }}</div>-->
-    <!--    <div>searchstring: {{ searchString }}</div>-->
-    <!--    <div>items: {{items.map(x => x.display_name)}}</div>-->
+  <form class="main-search d-flex">
+
 
     <v-combobox
         v-model="select"
@@ -17,6 +15,36 @@
         @input="makeSelection"
         autofocus
     >
+      <template v-slot:prepend-inner>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+                large
+                tile
+                class="ma-0 text-capitalize"
+                depressed
+                v-bind="attrs"
+                v-on="on"
+            >
+<!--              <span class="mr-2">{{ selectedEntityType.icon }}</span>-->
+              <span>{{ selectedEntityType.name }}</span>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+                v-for="entityType in entityTypeOptions"
+                :key="entityType.name"
+                @click="setSelectedEntityType(entityType)"
+                class="text-capitalize"
+            >
+              <span class="mr-2">{{ entityType.icon }}</span>
+              <span>{{ entityType.name }}</span>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+
       <template v-slot:item="data">
         <v-list-item-icon>
           <span class="our-icon mr-2">{{ data.item.icon }}</span>
@@ -50,10 +78,23 @@ export default {
   name: "SearchBox",
   data: () => ({
     select: "",
+    entityType: "all",
     loading: false,
     items: [],
     searchString: "",
-    search: search
+    search: search,
+    entityConfigs,
+    entityTypeOptions: [
+      {
+        icon: "🌈",
+        name: "all"
+      },
+      ...Object.values(entityConfigs)
+    ],
+    selectedEntityType: {
+      icon: "🌈",
+      name: "all"
+    },
   }),
   computed: {
     ...mapGetters([]),
@@ -63,14 +104,20 @@ export default {
   },
   methods: {
     ...mapMutations([
+        "setEntityType"
     ]),
     ...mapActions([
       "updateTextSearch",
     ]),
+    setSelectedEntityType(value) {
+      this.selectedEntityType = value
+    },
     makeSelection() {
       if (!this.select?.id) {
         // text search
         this.updateTextSearch(this.searchString)
+        const entityType = this.selectedEntityType.name.replace("all", "work")
+        this.setEntityType(entityType)
         this.$emit("submit", this.searchString)
       } else {
         // entity lookup
@@ -84,8 +131,13 @@ export default {
         return
       }
       this.loading = true
-      const url = `https://api.openalex.org/autocomplete?q=${v}&mailto=team@ourresearch.org`
-      axios.get(url)
+      const url = new URL("https://api.openalex.org/autocomplete");
+      url.searchParams.set("email", "team@ourresearch.org")
+      url.searchParams.set("q", v)
+      if (this.selectedEntityType.name !== "all")  {
+        url.searchParams.set("entity_type", this.selectedEntityType.name)
+      }
+      axios.get(url.toString())
           .then(resp => {
             if (!this.searchString) {
               console.log("no search string, clearing items")
@@ -101,20 +153,30 @@ export default {
   },
   watch: {
     searchString(val) {
-      console.log("searchString changed", `"${val}"`)
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
-    select(val) {
+    "selectedEntityType.name": function(){
+      this.fetchSuggestions(this.searchString)
+
     }
   }
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" >
 form.main-search {
   width: 100%;
+  .v-btn:not(.v-btn--round).v-size--large {
+    height: 49px;
+  }
+  .v-input__slot {
+    padding-left: 0 !important;
+  }
+
 }
+
+
 
 .v-autocomplete__content {
   .v-list__tile {

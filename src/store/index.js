@@ -6,7 +6,7 @@ import {makeUrl} from "../urls";
 
 Vue.use(Vuex)
 
-const allEntityTypes = function(){
+const allEntityTypes = function () {
     return ["work", "author", "institution", "venue", "concept"]
 }
 
@@ -34,16 +34,25 @@ const makeSearchFilters = function () {
     ]
 }
 
-
-export default new Vuex.Store({
-    state: {
+const stateDefaults = function () {
+    return {
         entityType: "work",
         filters: makeSearchFilters(),
         results: [],
         isLoading: false,
-    },
-    mutations: {
+    }
+}
 
+export default new Vuex.Store({
+    state: stateDefaults(),
+    mutations: {
+        resetSearch(state) {
+            state.foo = 42
+            state = stateDefaults()
+        },
+        setEntityType(state, entityType) {
+            state.entityType = entityType;
+        },
     },
     actions: {
         // eslint-disable-next-line no-unused-vars
@@ -76,20 +85,20 @@ export default new Vuex.Store({
 
         // search getters that modify things or do some kind of work
 
-        serpUrl(state, getters){
+        serpUrl(state, getters) {
             console.log("serpUrl")
             return makeUrl(
                 getters.entityTypeAsPath,
                 getters.searchParams
             )
         },
-        searchTerm(state){
+        searchTerm(state) {
             state.filters.find(f => f.id === "display_name").value
         },
-        entityTypeAsPath(state){
+        entityTypeAsPath(state) {
             return `/${state.entityType}s`
         },
-        searchParams(state){
+        searchParams(state) {
             console.log("state.filter", state.filters)
             const filters = state.filters
                 .filter(f => {
