@@ -91,7 +91,6 @@ export default {
   },
   methods: {
     goSearch() {
-      console.log("goSearch", this.serpUrl)
       // this.$router.push(this.serpUrl)
     }
   },

@@ -86,7 +86,6 @@ export default new Vuex.Store({
         // search getters that modify things or do some kind of work
 
         serpUrl(state, getters) {
-            console.log("serpUrl")
             return makeUrl(
                 getters.entityTypeAsPath,
                 getters.searchParams
@@ -99,7 +98,6 @@ export default new Vuex.Store({
             return `/${state.entityType}s`
         },
         searchParams(state) {
-            console.log("state.filter", state.filters)
             const filters = state.filters
                 .filter(f => {
                     return typeof f.value !== "undefined"

@@ -2,19 +2,15 @@
   <v-container class="entity-page">
     <h3>hola serp</h3>
 <!--    <h1 class="text-h3 my-12">{{ entityType }} entity: {{ this.entityId }}</h1>-->
-    <div class="loading" v-if="!apiResp.id">
-      loading....
-    </div>
-    <div class="loaded" v-if="apiResp.id">
+    <div class="loaded">
+      <div>
+        {{$route.query.display_name}}
+      </div>
+      <search-box
+          :entity-type="$route.params.entityType"
+          :value="getFilterValue('display_name')"
+      />
 
-
-<!--      <v-card class="pa-5" color="#fafafa">-->
-<!--        <div class="text-h4">-->
-<!--          JSON data-->
-<!--        </div>-->
-<!--        <div class="body-2 mb-9">(click brackets to collapse/expand objects)</div>-->
-<!--        <vue-json-pretty :data="apiResp"/>-->
-<!--      </v-card>-->
 
     </div>
   </v-container>
@@ -29,6 +25,7 @@
 import {api} from "../api";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import SearchBox from "../components/SearchBox";
+import {readFilter} from "../urls";
 
 export default {
   name: "EntityPage",
@@ -70,7 +67,13 @@ export default {
     ]),
     ...mapActions([
       "updateTextSearch",
-    ]),},
+    ]),
+    getFilterValue(k){
+      return readFilter(k, this.$route.query.filters)
+
+    }
+  },
+
   created() {
   },
   async mounted() {

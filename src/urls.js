@@ -29,7 +29,6 @@ const makeUrl = function (pathName, searchParams, base = "relative") {
     (base === "api") && params.set("mailto", "team@ourresearch.org");
 
     const baseAndPath = urlBase[base] + pathName;
-    console.log("urlbase", base, baseAndPath)
 
 
     const paramsStr = [...params.entries()]
@@ -41,11 +40,36 @@ const makeUrl = function (pathName, searchParams, base = "relative") {
         })
         .join("&")
 
-    console.log("making url with paramsstr", baseAndPath, paramsStr)
 
     return [baseAndPath, paramsStr].join("?")
 }
 
+const addFilter = function (k, v, oldFilters) {
+    v = v.replace(":", " ").replace(",", " ")
+    oldFilters = oldFilters ?? ""
+
+    const updated = oldFilters
+        .split(",")
+        .filter(f => {
+            return f && f.split(":")[0] !== k
+        })
+
+    updated.push(k + ":" + v)
+    return updated
+        .sort()
+        .join(",")
+}
+const readFilter = function(k, filters){
+    if (filters.indexOf(":") === -1) return
+    const matchingFilter = filters.split(",").find(f => {
+        return f && f.split(":")[0] === k
+    })
+    return matchingFilter && matchingFilter.split(":")[1]
+}
+
+
 export {
     makeUrl,
+    addFilter,
+    readFilter,
 }
