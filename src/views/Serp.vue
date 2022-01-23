@@ -1,14 +1,14 @@
 <template>
   <v-container class="entity-page">
-    <h3>hola serp</h3>
-<!--    <h1 class="text-h3 my-12">{{ entityType }} entity: {{ this.entityId }}</h1>-->
-    <div class="loaded">
-      <div>
-        {{$route.query.display_name}}
+    <search-box />
+    <div>
+      <div
+          v-for="result in $store.state.results"
+          class="result-container my-4"
+          :key="result.id"
+      >
+        <result-work :data="result" />
       </div>
-      <search-box />
-
-
     </div>
   </v-container>
 </template>
@@ -23,6 +23,8 @@ import {api} from "../api";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import SearchBox from "../components/SearchBox";
 
+import ResultWork from "../components/ResultWork";
+
 export default {
   name: "EntityPage",
   metaInfo() {
@@ -32,6 +34,7 @@ export default {
   },
   components: {
     SearchBox,
+    ResultWork,
   },
   props: {},
   data() {
