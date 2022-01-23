@@ -18,6 +18,10 @@ const api = (function () {
     return {
         get: async function (pathName, searchParams) {
             console.log("api GET:", pathName, searchParams)
+            if (pathName.indexOf("/") !== 0) {
+                pathName = "/" + pathName
+            }
+
             const url = makeUrl(pathName, searchParams, "api")
 
             let res

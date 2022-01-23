@@ -119,6 +119,11 @@ export default {
   data: () => ({
     //
   }),
+  beforeMount() {
+    if (this.$route.name === "Serp") {
+      this.$store.dispatch("doSearch", true)
+    }
+  }
 };
 </script>
 <style lang="scss">

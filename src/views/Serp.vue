@@ -6,10 +6,7 @@
       <div>
         {{$route.query.display_name}}
       </div>
-      <search-box
-          :entity-type="$route.params.entityType"
-          :value="getFilterValue('display_name')"
-      />
+      <search-box />
 
 
     </div>
@@ -25,7 +22,6 @@
 import {api} from "../api";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import SearchBox from "../components/SearchBox";
-import {readFilter} from "../urls";
 
 export default {
   name: "EntityPage",
@@ -69,7 +65,6 @@ export default {
       "updateTextSearch",
     ]),
     getFilterValue(k){
-      return readFilter(k, this.$route.query.filters)
 
     }
   },

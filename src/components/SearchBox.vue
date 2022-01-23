@@ -95,14 +95,14 @@ export default {
     },
   },
   data: function () {
-    const myEntityType = this.entityType ?? "all"
+    const myEntityType = this.$store.state.entityType ?? "all"
     const cleanEntityType = (myEntityType.slice(-1) === "s") ?
         myEntityType.slice(0, -1) :
         myEntityType
 
 
     return {
-      select: this.value,
+      select: this.$store.state.filters["display_name.search"],
       loading: false,
       items: [],
       searchString: "",
@@ -120,6 +120,9 @@ export default {
     },
     entityTypeName() {
       return this.selectedEntityType.name.replace("all", "work") + "s"
+    },
+    cleanSearchString() {
+      return this.searchString.replace(":", " ").replace(",", " ")
     }
   },
   methods: {
@@ -127,7 +130,7 @@ export default {
       "setEntityType"
     ]),
     ...mapActions([
-      "updateTextSearch",
+      "doTextSearch",
     ]),
     setSelectedEntityType(value) {
       this.selectedEntityType = value
@@ -135,39 +138,15 @@ export default {
       this.fetchSuggestions(this.searchString)
     },
     submitSearch() {
-      console.log("submitSearch")
       if (this.select?.id) {
         console.log("there's a select.id", this.select)
         // take us to an entity page, if possible
         this.goToEntityPage()
       } else {
-        // if that didn't work, do a search
-        // this.updateTextSearch(this.searchString)
-
-        const cleanSearchString = this.searchString.replace(":", " ").replace(",", " ")
-
-        const routerPushTo = {
-          query: {
-            filters: "display_name:" + cleanSearchString,
-          },
-          name: "Serp",
-          params: {entityType: this.entityTypeName},
-        };
-
-        if (this.$route.name === "Serp") {
-          routerPushTo.query = {
-            ...this.$route.query,
-            filters: addFilter("display_name", cleanSearchString, this.$route.query?.filters),
-          }
-          console.log("current serp path:", this.$route.query, routerPushTo.query)
-        }
-
-        this.$router.push(routerPushTo)
-            .catch((e) => {
-              if (e.name !== "NavigationDuplicated") {
-                throw e
-              }
-            })
+        this.doTextSearch({
+          entityType: this.entityTypeName,
+          searchString: this.cleanSearchString,
+        })
       }
     },
 

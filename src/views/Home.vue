@@ -1,5 +1,9 @@
 <template>
   <div class="home">
+    state:
+<pre>
+{{$store.state}}
+</pre>
     <v-container style="min-height: 75vh;" class="d-flex align-center">
       <v-row>
         <v-col cols="2" class="hidden-xs-only"></v-col>
@@ -94,8 +98,10 @@ export default {
       // this.$router.push(this.serpUrl)
     }
   },
-  mounted() {
+  beforeMount() {
     // this.doSearch()
+    console.log("mounting the home page")
+    this.$store.commit("resetSearch")
   },
 }
 </script>
