@@ -60,7 +60,7 @@
 
     <v-main>
       <v-container>
-      <v-alert text outlined type="warning">
+      <v-alert v-if="0" text outlined type="warning">
         <strong>Under construction.</strong>
         This website officially launches February 2022.
       </v-alert>

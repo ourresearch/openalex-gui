@@ -24,7 +24,7 @@
         Closed access
       </div>
       <div v-if="data.open_access.is_oa" class="text-capitalize">
-        <v-icon small>mdi-lock-open-outline</v-icon>
+        <v-icon small>mdi-lock-open-variant-outline</v-icon>
         {{ data.open_access.oa_status}}
         Open Access
       </div>
