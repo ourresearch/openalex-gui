@@ -1,5 +1,8 @@
 <template>
   <v-container class="entity-page">
+    <v-alert type="warning" text class="mx-3">
+      jason: it's not supposed to be pretty yet.
+    </v-alert>
     <search-box />
     <div>
       <div
