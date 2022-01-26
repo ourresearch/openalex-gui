@@ -70,6 +70,7 @@ export default new Vuex.Store({
     actions: {
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
+            commit("setPage", 1)
             state.entityType = entityType
             commit("setFilters", {"display_name.search": searchString});
             await dispatch("doSearch")
@@ -77,6 +78,7 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
             state.sort = newSortValue
+            commit("setPage", 1)
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
@@ -86,6 +88,7 @@ export default new Vuex.Store({
         },
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
+            state.isLoading = true
             if (loadFromRoute) {
                 state.entityType = router.currentRoute.params.entityType
                 commit("setPage", router.currentRoute.query.page)
@@ -104,14 +107,20 @@ export default new Vuex.Store({
                     }
                 })
 
-            const resp = await api.get(state.entityType, getters.searchQuery)
-            console.log("got response back from le server", resp)
-            state.results = resp.results
+            try {
+                const resp = await api.get(state.entityType, getters.searchQuery)
+                console.log("got response back from le server", resp)
+                state.results = resp.results
+
+            } finally {
+                state.isLoading = false
+            }
+
 
         }
     },
     getters: {
-        searchQuery(state, getters){
+        searchQuery(state, getters) {
             const query = {
                 page: state.page
             }
@@ -119,8 +128,8 @@ export default new Vuex.Store({
             if (state.sort) query["sort:desc"] = state.sort
             return query
         },
-        searchApiUrl(state, getters){
-             return api.getUrl(state.entityType, getters.searchQuery)
+        searchApiUrl(state, getters) {
+            return api.getUrl(state.entityType, getters.searchQuery)
         },
 
         searchTerm(state) {
