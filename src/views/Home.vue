@@ -13,13 +13,12 @@
                   class="my-1"
               >
                 {{ config.icon }}
-                <strong class="text-capitalize">{{ config.name }}s </strong>
+                <strong class="text-capitalize">{{ config.name }} </strong>
                 <span v-html="`${config.descr}.`"></span>
               </li>
             </ul>
-            <search-box @submit="goSearch" />
+            <search-box :allow-all-entities="true" />
             <div class="d-flex justify-center">
-              <v-btn large @click="goSearch" class="mr-2">Search</v-btn>
               <v-menu offset-y content-class="no-highlight" min-width="150">
                 <template v-slot:activator="{on}">
                   <v-btn large v-on="on">

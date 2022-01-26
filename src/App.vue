@@ -144,6 +144,11 @@ export default {
 
 body {
   font-size: 18px;
+  .v-application {
+    .body-1, .body-2 {
+      letter-spacing: normal !important;
+    }
+  }
 }
 
 .low-key-button {

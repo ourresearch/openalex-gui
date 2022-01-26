@@ -27,6 +27,8 @@
           v-if="data.open_access.oa_status==='green'"
       >
         free at {{ oaUrlHostname }}
+
+
       </a>
     </div>
   </div>

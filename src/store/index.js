@@ -138,7 +138,7 @@ export default new Vuex.Store({
             state.filters.find(f => f.id === "display_name").value
         },
         entityTypeAsPath(state) {
-            return `/${state.entityType}s`
+            return `/${state.entityType}`
         },
 
         filtersAsArray(state) {

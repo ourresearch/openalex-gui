@@ -1,27 +1,27 @@
 const entityConfigs = {
-    work: {
+    works: {
         icon: "📄",
-        name: "work",
+        name: "works",
         descr: "(like papers and datasets) are products of research",
     },
-    author: {
+    authors: {
         icon: "🧑",
-        name: "author",
+        name: "authors",
         descr: "create works",
     },
-    venue: {
+    venues: {
         icon: "📚",
-        name: "venue",
+        name: "venues",
         descr: "(like journals and repositories) host works",
     },
-    institution: {
+    institutions: {
         icon: "🏫",
-        name: "institution",
+        name: "institutions",
         descr: "(like universities) are affiliated with works",
     },
-    concept: {
+    concepts: {
         icon: "💡",
-        name: "concept",
+        name: "concepts",
         descr: "describe the topics of works",
     },
 

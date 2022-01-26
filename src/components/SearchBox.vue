@@ -25,8 +25,7 @@
                 v-bind="attrs"
                 v-on="on"
             >
-              <!--              <span class="mr-2">{{ selectedEntityType.icon }}</span>-->
-              <span>{{ selectedEntityType.name }}</span>
+              <span>{{ selectedEntityType }}</span>
               <v-icon>mdi-menu-down</v-icon>
             </v-btn>
           </template>
@@ -34,7 +33,7 @@
             <v-list-item
                 v-for="entityType in entityTypeOptions"
                 :key="entityType.name"
-                @click="setSelectedEntityType(entityType)"
+                @click="setSelectedEntityType(entityType.name)"
                 class="text-capitalize"
             >
               <span class="mr-2">{{ entityType.icon }}</span>
@@ -73,14 +72,6 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs} from "../entityConfigs";
 import {addFilter} from "../urls";
 
-const entityTypeOptions = [
-  {
-    icon: "🌈",
-    name: "all"
-  },
-  ...Object.values(entityConfigs)
-]
-
 
 export default {
   name: "SearchBox",
@@ -93,13 +84,13 @@ export default {
       type: String,
       value: "all",
     },
+    allowAllEntities: {
+      type: Boolean,
+      value: false,
+    }
   },
   data: function () {
-    const myEntityType = this.$store.state.entityType ?? "all"
-    const cleanEntityType = (myEntityType.slice(-1) === "s") ?
-        myEntityType.slice(0, -1) :
-        myEntityType
-
+    const selectedEntityType =this.$store.state.entityType ?? "all"
 
     return {
       select: this.$store.state.filters["display_name.search"],
@@ -107,22 +98,42 @@ export default {
       items: [],
       searchString: "",
       entityConfigs,
-      entityTypeOptions,
-      selectedEntityType: entityTypeOptions.find(e => {
-        return e.name === cleanEntityType
-      })
+      selectedEntityType
     }
   },
   computed: {
     ...mapGetters([]),
+    entityTypeOptions() {
+      const ret = [...Object.values(entityConfigs)]
+      if (this.allowAllEntities) {
+        ret.unshift({
+          icon: "🌈",
+          name: "all"
+        })
+      }
+      return ret
+    },
+    selectedEntityTypeObject(){
+       this.entityTypeOptions.find(e => {
+        return e.name === this.selectedEntityType
+      })
+    },
     displayItems() {
       return this.items.slice(0, 6)
     },
-    entityTypeName() {
-      return this.selectedEntityType.name.replace("all", "work") + "s"
-    },
     cleanSearchString() {
+      if (!this.searchString) return ""
       return this.searchString.replace(":", " ").replace(",", " ")
+    },
+    autocompleteUrl() {
+      const url = new URL("https://api.openalex.org/autocomplete");
+      url.searchParams.set("email", "team@ourresearch.org")
+      url.searchParams.set("q", this.searchString)
+      if (this.selectedEntityType !== "all") {
+        const singularName = this.selectedEntityType.slice(0, -1)
+        url.searchParams.set("entity_type", singularName)
+      }
+      return url.toString()
     }
   },
   methods: {
@@ -134,8 +145,8 @@ export default {
     ]),
     setSelectedEntityType(value) {
       this.selectedEntityType = value
-      this.setEntityType(this.entityTypeName)
-      this.fetchSuggestions(this.searchString)
+      // this.setEntityType(this.selectedEntityType)
+      // this.fetchSuggestions(this.searchString)
     },
     submitSearch() {
       if (this.select?.id) {
@@ -143,8 +154,10 @@ export default {
         // take us to an entity page, if possible
         this.goToEntityPage()
       } else {
+        const entityTypeForApi = (this.selectedEntityType === "all") ? "works" : this.selectedEntityType;
+
         this.doTextSearch({
-          entityType: this.entityTypeName,
+          entityType: entityTypeForApi,
           searchString: this.cleanSearchString,
         })
       }
@@ -153,29 +166,24 @@ export default {
     goToEntityPage() {
       if (this.select?.id) {
         const shortId = this.select.id.replace("https://openalex.org/", "")
-        this.$router.push(`/${this.select.entity_type}s/${shortId}`)
+        this.$router.push(`/${this.select.entity_type}/${shortId}`)
 
       }
     },
     fetchSuggestions(v) {
-      if (!v) {
+      if (!this.searchString) {
         this.items = []
         return
       }
       this.loading = true
-      const url = new URL("https://api.openalex.org/autocomplete");
-      url.searchParams.set("email", "team@ourresearch.org")
-      url.searchParams.set("q", v)
-      if (this.selectedEntityType.name !== "all") {
-        url.searchParams.set("entity_type", this.selectedEntityType.name)
-      }
-      axios.get(url.toString())
+      axios.get(this.autocompleteUrl)
           .then(resp => {
             if (!this.searchString) {
               console.log("no search string, clearing items")
               this.items = []
             } else this.items = resp.data.results.slice(0, 5).map(i => {
-              i.icon = entityConfigs[i.entity_type].icon
+              const pluralEntityType = i.entity_type + "s"
+              i.icon = entityConfigs[pluralEntityType].icon
               return i
             })
 
@@ -188,8 +196,6 @@ export default {
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
-    "selectedEntityType.name": function () {
-    }
   }
 }
 </script>
