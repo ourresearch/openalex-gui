@@ -22,13 +22,15 @@ const filterConfigs = {
 const stateDefaults = function () {
     const filterValues = {}
     Object.keys(filterConfigs).forEach(k => {
-        filterValues[k] = null
+        filterValues[k] = undefined
     })
     const ret = {
         entityType: null,
         filters: filterValues,
         page: 1,
         results: [],
+        sort: null,
+        resultsMeta: null,
         isLoading: false,
     }
 
@@ -52,7 +54,8 @@ export default new Vuex.Store({
             state.entityType = entityType;
         },
         setPage(state, page) {
-            state.page = page
+            const pageInt = parseInt(page)
+            state.page = (isNaN(pageInt)) ? 1 : pageInt
         },
         setFilters(state, newFilters) {
             Object.assign(state.filters, newFilters)
@@ -74,19 +77,33 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
+        async setSort({commit, getters, dispatch, state}, newSortValue) {
+            state.sort = newSortValue
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
+        async setPage({commit, getters, dispatch, state}, newPage) {
+            commit("setPage", newPage)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             if (loadFromRoute) {
-                console.log("loading search params from route", router.currentRoute)
                 state.entityType = router.currentRoute.params.entityType
-                state.page = router.currentRoute.query.page
+                commit("setPage", router.currentRoute.query.page)
                 commit("setFiltersFromString", router.currentRoute.query.filter)
             }
 
+            const query = {
+                page: state.page
+            }
+            if (getters.filtersAsString) query.filter = getters.filtersAsString
+            if (state.sort) query["sort:desc"] = state.sort
+
+            console.log("query:", query, getters.filtersAsString)
+
             const routerPushTo = {
-                query: {
-                    filter: getters.filtersAsString,
-                    page: state.page,
-                },
+                query,
                 name: "Serp",
                 params: {entityType: state.entityType},
             };
@@ -97,10 +114,7 @@ export default new Vuex.Store({
                     }
                 })
 
-            const resp = await api.get(state.entityType, {
-                page: state.page,
-                filter: getters.filtersAsString
-            })
+            const resp = await api.get(state.entityType, query)
             console.log("got response back from le server", resp)
             state.results = resp.results
 
@@ -124,10 +138,6 @@ export default new Vuex.Store({
         },
 
         // search getters that modify things or do some kind of work
-
-        getFilterValue: (state, getters) => (filterId) => {
-
-        },
         serpUrl(state, getters) {
             return makeUrl(
                 getters.entityTypeAsPath,

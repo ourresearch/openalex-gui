@@ -5,6 +5,9 @@
     </v-alert>
     <search-box :allow-all-entities="false" />
     <div>
+
+    </div>
+    <div>
       <div
           v-for="result in $store.state.results"
           class="result-container my-4"
@@ -17,6 +20,13 @@
         <result-concept v-if="$store.state.entityType === 'concepts'" :data="result" />
       </div>
     </div>
+    <div class="serp-bottom">
+      <v-pagination
+          v-model="page"
+          :length="10"
+      />
+    </div>
+
   </v-container>
 </template>
 
@@ -54,7 +64,6 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       loading: false,
       apiResp: {},
     }
@@ -66,6 +75,14 @@ export default {
         "searchResults",
         "searchIsLoading",
     ]),
+    page: {
+      get(){
+        return this.$store.state.page
+      },
+      set(val){
+        this.$store.dispatch("setPage", val)
+      }
+    },
     entityType() {
       return this.$route.params.entityType
     },
