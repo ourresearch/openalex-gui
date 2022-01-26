@@ -3,7 +3,6 @@ import Vuex from 'vuex'
 import router from "../router";
 
 import {api} from "../api";
-import {makeUrl} from "../urls";
 
 Vue.use(Vuex)
 
@@ -44,7 +43,6 @@ export default new Vuex.Store({
     mutations: {
         // eslint-disable-next-line no-unused-vars
         resetSearch(state) {
-            // state = stateDefaults()
             const defaults = stateDefaults()
             Object.keys(defaults).forEach(k => {
                 state[k] = defaults[k]
@@ -94,16 +92,8 @@ export default new Vuex.Store({
                 commit("setFiltersFromString", router.currentRoute.query.filter)
             }
 
-            const query = {
-                page: state.page
-            }
-            if (getters.filtersAsString) query.filter = getters.filtersAsString
-            if (state.sort) query["sort:desc"] = state.sort
-
-            console.log("query:", query, getters.filtersAsString)
-
             const routerPushTo = {
-                query,
+                query: getters.searchQuery,
                 name: "Serp",
                 params: {entityType: state.entityType},
             };
@@ -114,36 +104,25 @@ export default new Vuex.Store({
                     }
                 })
 
-            const resp = await api.get(state.entityType, query)
+            const resp = await api.get(state.entityType, getters.searchQuery)
             console.log("got response back from le server", resp)
             state.results = resp.results
 
         }
     },
     getters: {
-
-        // simple search getters
-
-        searchEntityType(state) {
-            return state.entityType
+        searchQuery(state, getters){
+            const query = {
+                page: state.page
+            }
+            if (getters.filtersAsString) query.filter = getters.filtersAsString
+            if (state.sort) query["sort:desc"] = state.sort
+            return query
         },
-        searchFilters(state) {
-            return state.searchFilters
-        },
-        searchResults(state) {
-            return state.results
-        },
-        searchIsLoading(state) {
-            return state.results
+        searchApiUrl(state, getters){
+             return api.getUrl(state.entityType, getters.searchQuery)
         },
 
-        // search getters that modify things or do some kind of work
-        serpUrl(state, getters) {
-            return makeUrl(
-                getters.entityTypeAsPath,
-                getters.searchParams
-            )
-        },
         searchTerm(state) {
             state.filters.find(f => f.id === "display_name").value
         },

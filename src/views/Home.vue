@@ -85,7 +85,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-        "serpUrl",
     ]),
   },
   methods: {

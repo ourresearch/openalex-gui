@@ -5,7 +5,13 @@
     </v-alert>
     <search-box :allow-all-entities="false" />
     <div>
-
+      <v-btn
+          outlined
+          target="_blank"
+          :href="searchApiUrl"
+      >
+        View in API
+      </v-btn>
     </div>
     <div>
       <div
@@ -70,10 +76,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-        "searchEntityType",
-        "searchFilters",
-        "searchResults",
-        "searchIsLoading",
+        "searchApiUrl",
     ]),
     page: {
       get(){

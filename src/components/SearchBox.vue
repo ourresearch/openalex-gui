@@ -70,7 +70,6 @@ import axios from 'axios'
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
-import {addFilter} from "../urls";
 
 
 export default {

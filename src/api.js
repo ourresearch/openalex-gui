@@ -1,28 +1,61 @@
 import axios from 'axios'
-import {makeUrl} from "./urls";
+
+let urlBase = {
+    api: "https://api.openalex.org",
+    web: "https://explore.openalex.org",
+    relative: "",
+}
 
 
-// const getConfig = function () {
-//     const token = localStorage.getItem("token")
-//     const headers = {}
-//     if (token) {
-//         headers.Authorization = `Bearer ${token}`
-//     }
-//     return {
-//         headers: headers
-//     }
-// }
+// this lets you develop against a local API endpoint
+// to set the port, when you start your dev server, use: npm run serve -- --port <my port num>
+// example:
+// npm run serve -- --port 8081
+if (window.location.port && parseInt(window.location.port) === 8081) {
+    urlBase.api = "http://localhost:5004/"  // your locally-hosted API
+    console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
+} else if (window.location.port && parseInt(window.location.port) === 8082) {
+    urlBase.api = "https://staging-jump-api.herokuapp.com/"  // staging heroku url
+    console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
+}
+
+
+// @pathName is the path, like /works
+// @searchParams can be in these formats:
+//      {foo: 42, bar: 43}
+//      [["foo", 42], ["bar", 43]]
+//      ?foo=42&bar=43
+// @base is "web" or "api"
+const makeUrl = function (pathName, searchParams, includeEmail = true) {
+    const params = new URLSearchParams(searchParams);
+    (includeEmail) && params.set("mailto", "team@ourresearch.org");
+
+    if (pathName.indexOf("/") !== 0) {
+        pathName = "/" + pathName
+    }
+    const baseAndPath = urlBase.api + pathName;
+    const paramsStr = [...params.entries()]
+        .filter(p => {
+            return p[1]
+        })
+        .map(p => {
+            return p[0] + "=" + p[1]
+        })
+        .join("&")
+
+
+    return [baseAndPath, paramsStr].join("?")
+}
 
 
 const api = (function () {
     return {
+        getUrl: function (pathName, searchParams) {
+            return makeUrl(pathName, searchParams, false)
+        },
         get: async function (pathName, searchParams) {
-            console.log("api GET:", pathName, searchParams)
-            if (pathName.indexOf("/") !== 0) {
-                pathName = "/" + pathName
-            }
-
-            const url = makeUrl(pathName, searchParams, "api")
+            const url = makeUrl(pathName, searchParams)
+            console.log("api GET:", url)
 
             let res
             try {
@@ -37,7 +70,6 @@ const api = (function () {
         },
     }
 })()
-
 
 
 export {
