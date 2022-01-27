@@ -18,6 +18,29 @@ const filterConfigs = {
     }
 }
 
+const sortConfigs = [
+    {
+        key: "cited_by_count",
+        displayName: "Citations",
+    },
+    {
+        // only for non-work entities
+        key: "works_count",
+        displayName: "Works",
+    },
+    {
+        // only for works
+        key: "publication_date",
+        displayName: "Date",
+    },
+    {
+        // only if there's a text search on
+        key: "relevance_score",
+        displayName: "Relevance",
+    },
+]
+
+
 const stateDefaults = function () {
     const filterValues = {}
     Object.keys(filterConfigs).forEach(k => {
@@ -29,7 +52,8 @@ const stateDefaults = function () {
         page: 1,
         results: [],
         sort: null,
-        resultsMeta: null,
+        responseTime: 0,
+        resultsCount: 0,
         isLoading: false,
     }
 
@@ -54,6 +78,13 @@ export default new Vuex.Store({
         setPage(state, page) {
             const pageInt = parseInt(page)
             state.page = (isNaN(pageInt)) ? 1 : pageInt
+        },
+        setSort(state, sortKey) {
+            // if we don't recognize this key, set it to the default
+            if (!sortConfigs.some(c => c.key === sortKey)) {
+                sortKey = "cited_by_count"
+            }
+            state.sort = sortKey
         },
         setFilters(state, newFilters) {
             Object.assign(state.filters, newFilters)
@@ -92,6 +123,7 @@ export default new Vuex.Store({
             if (loadFromRoute) {
                 state.entityType = router.currentRoute.params.entityType
                 commit("setPage", router.currentRoute.query.page)
+                commit("setSort", router.currentRoute.query.sort)
                 commit("setFiltersFromString", router.currentRoute.query.filter)
             }
 
@@ -111,6 +143,8 @@ export default new Vuex.Store({
                 const resp = await api.get(state.entityType, getters.searchQuery)
                 console.log("got response back from le server", resp)
                 state.results = resp.results
+                state.responseTime = resp.meta.db_response_time_ms
+                state.resultsCount = resp.meta.count
 
             } finally {
                 state.isLoading = false
@@ -120,12 +154,24 @@ export default new Vuex.Store({
         }
     },
     getters: {
+        sortObjectOptions(state, getters) {
+            if (!state.results.length) return
+            return sortConfigs.filter(sortOption => {
+                return sortOption.key in state.results[0]
+            })
+        },
+        sortObject(state, getters) {
+            console.log("sortObject", state.sort)
+            return sortConfigs.find(sortOption => {
+                return sortOption.key === state.sort
+            })
+        },
         searchQuery(state, getters) {
             const query = {
                 page: state.page
             }
             if (getters.filtersAsString) query.filter = getters.filtersAsString
-            if (state.sort) query["sort:desc"] = state.sort
+            if (state.sort) query["sort"] = state.sort + ":desc"
             return query
         },
         searchApiUrl(state, getters) {

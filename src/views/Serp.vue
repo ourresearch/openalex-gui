@@ -3,29 +3,59 @@
     <v-alert type="warning" text class="mx-3">
       jason: it's not supposed to be pretty yet.
     </v-alert>
-    <search-box :allow-all-entities="false" />
+    <search-box :allow-all-entities="false"/>
+
+    <pre>{{sort}}</pre>
 
     <div class="is-loading-false" v-if="!$store.state.isLoading">
-      <div>
-        <v-btn
-            outlined
-            target="_blank"
-            :href="searchApiUrl"
-        >
-          View in API
-        </v-btn>
+      <div class="d-flex align-end">
+        <div class="body-1 grey--text">
+          <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
+          <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
+        </div>
+        <v-spacer/>
+        <v-select
+          v-model="sort"
+          item-text="displayName"
+          item-value="key"
+          :items="$store.getters.sortObjectOptions"
+        ></v-select>
+
+
+
+        <v-menu offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn icon color="black" v-on="on">
+              <v-icon>mdi-cloud-download-outline</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-subheader>Export these results as:</v-subheader>
+            <v-list-item
+                target="_blank"
+                :href="searchApiUrl"
+            >
+              <v-icon left>mdi-code-json</v-icon>
+              JSON
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+
       </div>
+
+
       <div>
         <div
             v-for="result in $store.state.results"
             class="result-container my-4"
             :key="result.id"
         >
-          <result-work v-if="$store.state.entityType === 'works'" :data="result" />
-          <result-author v-if="$store.state.entityType === 'authors'" :data="result" />
-          <result-venue v-if="$store.state.entityType === 'venues'" :data="result" />
-          <result-institution v-if="$store.state.entityType === 'institutions'" :data="result" />
-          <result-concept v-if="$store.state.entityType === 'concepts'" :data="result" />
+          <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+          <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+          <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+          <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+          <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
         </div>
       </div>
       <div class="serp-bottom">
@@ -80,14 +110,23 @@ export default {
   },
   computed: {
     ...mapGetters([
-        "searchApiUrl",
+      "searchApiUrl",
+      "sortOptions",
     ]),
     page: {
-      get(){
+      get() {
         return this.$store.state.page
       },
-      set(val){
+      set(val) {
         this.$store.dispatch("setPage", val)
+      }
+    },
+    sort: {
+      get() {
+        return this.$store.getters.sortObject
+      },
+      set(val) {
+        this.$store.dispatch("setSort", val)
       }
     },
     entityType() {
@@ -101,12 +140,11 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([
-    ]),
+    ...mapMutations([]),
     ...mapActions([
       "updateTextSearch",
     ]),
-    getFilterValue(k){
+    getFilterValue(k) {
 
     }
   },

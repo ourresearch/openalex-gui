@@ -10,7 +10,9 @@
       <span>{{ data.publication_year }} </span>
       <span class="font-italic">{{ data.host_venue.display_name }}</span>
     </div>
-    <div>
+    <concepts-list :concepts="data.concepts" />
+
+    <div class="body-1">
       <span>Cited by {{ data.cited_by_count }}</span>
       <a
           :href="data.host_venue.url"
@@ -25,10 +27,7 @@
           class=""
           target="_blank"
           v-if="data.open_access.oa_status==='green'"
-      >
-        free at {{ oaUrlHostname }}
-
-
+      >free at {{ oaUrlHostname }}
       </a>
     </div>
   </div>
@@ -36,9 +35,12 @@
 
 
 <script>
+import ConceptsList from "./ConceptsList";
 
 export default {
-  components: {},
+  components: {
+    ConceptsList,
+  },
   props: {
     data: Object,
   },
