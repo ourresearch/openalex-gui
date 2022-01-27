@@ -5,21 +5,26 @@
     </v-alert>
     <search-box :allow-all-entities="false"/>
 
-    <pre>{{sort}}</pre>
 
     <div class="is-loading-false" v-if="!$store.state.isLoading">
-      <div class="d-flex align-end">
+      <div class="d-flex align-end mb-12">
         <div class="body-1 grey--text">
           <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
           <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
         </div>
         <v-spacer/>
-        <v-select
-          v-model="sort"
-          item-text="displayName"
-          item-value="key"
-          :items="$store.getters.sortObjectOptions"
-        ></v-select>
+        <div style="max-width: 200px; margin-right: 30px;">
+          <v-select
+            v-model="sort"
+            item-text="displayName"
+            item-value="key"
+            :items="$store.getters.sortObjectOptions"
+            label="Sort by"
+            dense
+            hide-details
+
+          ></v-select>
+        </div>
 
 
 
