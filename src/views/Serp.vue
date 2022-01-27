@@ -13,7 +13,7 @@
           <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
         </div>
         <v-spacer/>
-        <div style="max-width: 200px; margin-right: 30px;">
+        <div style="max-width: 130px; margin-right: 30px;">
           <v-select
             v-model="sort"
             item-text="displayName"

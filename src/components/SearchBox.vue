@@ -255,7 +255,7 @@ form.main-search {
 }
 
 .v-input__icon--append .v-icon {
-  display: none !important;
+  //display: none !important;
 }
 
 
