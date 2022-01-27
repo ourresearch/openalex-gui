@@ -30,8 +30,8 @@
 
         <v-menu offset-y>
           <template v-slot:activator="{on}">
-            <v-btn icon color="black" v-on="on">
-              <v-icon>mdi-cloud-download-outline</v-icon>
+            <v-btn icon v-on="on">
+              <v-icon color="gr">mdi-cloud-download-outline</v-icon>
             </v-btn>
           </template>
           <v-list>

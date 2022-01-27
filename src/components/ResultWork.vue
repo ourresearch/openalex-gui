@@ -11,7 +11,7 @@
 
 <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
 <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
-      <span class="font-italic"> - {{ data.host_venue.display_name }}</span>
+      <span v-if="data.host_venue.display_name" class="font-italic"> - {{ data.host_venue.display_name | truncate(50) }}</span>
       <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
 
     </div>

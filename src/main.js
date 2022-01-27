@@ -11,6 +11,8 @@ Vue.use(VueMeta, {
     refreshOnceOnNavigation: true
 })
 
+const VueTruncate = require('vue-truncate-filter')
+Vue.use(VueTruncate)
 
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return
