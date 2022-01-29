@@ -8,7 +8,8 @@
 
         <div class="is-loading-false" v-if="!$store.state.isLoading">
 
-          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>
+<!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
+<!--          <pre>{{ $store.state.groupBys}}</pre>-->
 
           <div class="d-flex align-end mb-6">
             <div class="body-1 grey--text">

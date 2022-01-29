@@ -1,6 +1,9 @@
 <template>
   <div class="facet">
-    facet: {{ name }}: {{ value }}
+    <div>
+      <strong>{{ dimensionDisplayName }}</strong> ({{ dimensionKey }})
+    </div>
+    <pre>{{groups.slice(0, 2)}}</pre>
 
 
   </div>
@@ -23,10 +26,11 @@ export default {
     }
   },
   components: {},
-  props: [
-    "value",
-    "name"
-  ],
+  props: {
+    dimensionKey: String,
+    dimensionDisplayName: String,
+    groups: Array,
+  },
   data() {
     return {
       loading: false,

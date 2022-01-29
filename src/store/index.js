@@ -13,8 +13,7 @@ const allEntityTypes = function (hideThese) {
         return types.filter(e => {
             return hideThese.indexOf(e) > -1
         })
-    }
-    else {
+    } else {
         return types
     }
 }
@@ -192,22 +191,27 @@ export default new Vuex.Store({
                 state.isLoading = false
             }
 
-            state.groupBys = filterConfigsList
+
+            state.groupBys = []
+            const filtersToGroupBy = filterConfigsList
                 .filter(config => {
                     return config.entityTypes.indexOf(state.entityType) > -1
                 })
                 .filter(config => {
                     return config.key.indexOf(".search") === -1
                 })
-                .map(async (config) => {
-                    const resp = api.get(state.entityType, getters.groupByQuery(config.key))
-                    return {
-                        attribute: config.key,
-                        groups: resp.group_by
-                    }
+
+            for (let i = 0; i < filtersToGroupBy.length; i++) {
+                const config = filtersToGroupBy[i]
+                console.log("doing groupby query", config)
+                const resp = await api.get(state.entityType, getters.groupByQuery(config.key))
+                state.groupBys.push({
+                    dimensionKey: config.key,
+                    dimensionDisplayName: config.displayName,
+                    groups: resp.group_by
                 })
 
-
+            }
         }
     },
     getters: {
