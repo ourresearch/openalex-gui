@@ -5,9 +5,10 @@
         absolute
         flat
         color="white"
+        class=""
 
     >
-      <router-link to="/" class=" text-decoration-none">
+      <router-link style="min-width: 330px;" to="/" class=" text-decoration-none">
         <img
             src="@/assets/explore-OpenAlex-logo.png"
             style="height: 40px;"

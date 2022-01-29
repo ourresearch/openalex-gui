@@ -6,17 +6,58 @@ import {api} from "../api";
 
 Vue.use(Vuex)
 
-const allEntityTypes = function () {
-    return ["work", "author", "institution", "venue", "concept"]
+const allEntityTypes = function (hideThese) {
+    const types = ["works", "authors", "institutions", "venues", "concepts"]
+    if (hideThese) {
+        if (!Array.isArray(hideThese)) hideThese = [hideThese]
+        return types.filter(e => {
+            return hideThese.indexOf(e) > -1
+        })
+    }
+    else {
+        return types
+    }
 }
+
+const deepClone = function (obj) {
+    return JSON.parse(JSON.stringify(obj))
+}
+
 
 const filterConfigs = {
     "display_name.search": {
         key: "display_name.search",
         entityTypes: allEntityTypes(),
         displayName: "Name",
-    }
+    },
+    concepts: {
+        key: "x-concepts",
+        entityTypes: ["authors", "institutions", "venues"],
+        displayName: "Concepts",
+    },
 }
+const filterConfigsList = [
+    {
+        key: "display_name.search",
+        entityTypes: allEntityTypes(),
+        displayName: "Name",
+    },
+    {
+        key: "x-concepts.id",
+        entityTypes: ["authors", "institutions", "venues"],
+        displayName: "Concepts",
+    },
+    {
+        key: "concept.id",
+        entityTypes: ["works"],
+        displayName: "Concepts",
+    },
+    {
+        key: "host_venue.id",
+        entityTypes: ["works"],
+        displayName: "Venues",
+    },
+]
 
 const sortConfigs = [
     {
@@ -43,12 +84,14 @@ const sortConfigs = [
 
 const stateDefaults = function () {
     const filterValues = {}
-    Object.keys(filterConfigs).forEach(k => {
-        filterValues[k] = undefined
+    filterConfigsList.forEach(config => {
+        filterValues[config.key] = undefined
     })
+
     const ret = {
         entityType: null,
         filters: filterValues,
+        groupBys: [],
         page: 1,
         results: [],
         sort: null,
@@ -124,7 +167,7 @@ export default new Vuex.Store({
                 state.entityType = router.currentRoute.params.entityType
                 commit("setPage", router.currentRoute.query.page)
                 commit("setSort", router.currentRoute.query.sort)
-                commit("setFiltersFromString", router.currentRoute.query.filter)
+                // commit("setFiltersFromString", router.currentRoute.query.filter)
             }
 
             const routerPushTo = {
@@ -141,7 +184,6 @@ export default new Vuex.Store({
 
             try {
                 const resp = await api.get(state.entityType, getters.searchQuery)
-                console.log("got response back from le server", resp)
                 state.results = resp.results
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
@@ -149,6 +191,21 @@ export default new Vuex.Store({
             } finally {
                 state.isLoading = false
             }
+
+            state.groupBys = filterConfigsList
+                .filter(config => {
+                    return config.entityTypes.indexOf(state.entityType) > -1
+                })
+                .filter(config => {
+                    return config.key.indexOf(".search") === -1
+                })
+                .map(async (config) => {
+                    const resp = api.get(state.entityType, getters.groupByQuery(config.key))
+                    return {
+                        attribute: config.key,
+                        groups: resp.group_by
+                    }
+                })
 
 
         }
@@ -161,7 +218,6 @@ export default new Vuex.Store({
             })
         },
         sortObject(state, getters) {
-            console.log("sortObject", state.sort)
             return sortConfigs.find(sortOption => {
                 return sortOption.key === state.sort
             })
@@ -172,6 +228,13 @@ export default new Vuex.Store({
             }
             if (getters.filtersAsString) query.filter = getters.filtersAsString
             if (state.sort) query["sort"] = state.sort + ":desc"
+            return query
+        },
+        groupByQuery: (state, getters) => (key) => {
+            const query = {}
+            if (getters.filtersAsString) query.filter = getters.filtersAsString
+            query.group_by = key
+            console.log("groupBy query", query)
             return query
         },
         searchApiUrl(state, getters) {
@@ -185,6 +248,8 @@ export default new Vuex.Store({
             return `/${state.entityType}`
         },
 
+
+        // todo this should work differently and have a better name
         filtersAsArray(state) {
             const filtersAsArray = Object.entries(state.filters)
                 .map(([k, v]) => {
@@ -207,6 +272,20 @@ export default new Vuex.Store({
                     return `${f.key}:${f.value}`
                 })
                 .join(",")
+        },
+
+        filterObjects(state) {
+            return Object.values(filterConfigs)
+                .filter(config => {
+                    return config.entityTypes.indexOf(state.entityType)
+                })
+                .map(config => {
+                    console.log("filterObjects.map()", state.filters, config.key)
+                    return {
+                        ...config,
+                        value: state.filters[config.key]
+                    }
+                })
         },
 
     },

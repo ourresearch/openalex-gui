@@ -5,7 +5,7 @@
         v-model="select"
         :items="items"
         :search-input.sync="searchString"
-        class="mx-12"
+        class="mr-12"
         flat
         outlined
         dense

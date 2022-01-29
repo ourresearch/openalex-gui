@@ -1,13 +1,16 @@
 <template>
-  <v-container fluid class="entity-page ma-0 pa-0">
-    <v-row>
-      <v-col cols="3">
-        facets go here
-      </v-col>
-      <v-col cols="9">
+  <div  class="entity-page mt-12 pa-0">
+    <div class="d-flex" style="max-width: 1500px;">
+      <div style="min-width: 350px;" class="px-4">
+        <facets-panel />
+      </div>
+      <div>
 
         <div class="is-loading-false" v-if="!$store.state.isLoading">
-          <div class="d-flex align-end mb-12">
+
+          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>
+
+          <div class="d-flex align-end mb-6">
             <div class="body-1 grey--text">
               <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
               <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
@@ -70,13 +73,13 @@
           </div>
 
         </div>
-      </v-col>
-    </v-row>
+      </div>
+    </div>
 
 
 
 
-  </v-container>
+  </div>
 </template>
 
 <script>
@@ -85,9 +88,9 @@
 // import 'vue-json-pretty/lib/styles.css';
 
 
-import {api} from "../api";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import SearchBox from "../components/SearchBox";
+
+import FacetsPanel from "../components/FacetsPanel";
 
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
@@ -103,7 +106,8 @@ export default {
     }
   },
   components: {
-    SearchBox,
+    FacetsPanel,
+
     ResultWork,
     ResultAuthor,
     ResultVenue,
