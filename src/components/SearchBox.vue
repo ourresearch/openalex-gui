@@ -153,6 +153,7 @@ export default {
       // this.fetchSuggestions(this.searchString)
     },
     submitSearch() {
+      this.items = []
       if (this.select?.id) {
         console.log("there's a select.id", this.select)
         // take us to an entity page, if possible
