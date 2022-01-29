@@ -1,18 +1,23 @@
 <template>
 
-  <form class="main-search d-flex">
+  <form class="main-search">
     <v-combobox
         v-model="select"
         :items="items"
         :search-input.sync="searchString"
-        class="mx-3 mb-8"
+        class="mx-12"
+        flat
+        outlined
+        dense
         solo
+        hide-details
         item-text="display_name"
         item-value="id"
         :loading="loading"
         @keyup.enter="submitSearch"
         @input="goToEntityPage"
         autofocus
+        clearable
     >
       <template v-slot:prepend-inner>
         <v-menu offset-y>

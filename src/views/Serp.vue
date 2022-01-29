@@ -1,76 +1,80 @@
 <template>
-  <v-container class="entity-page">
-    <v-alert type="warning" text class="mx-3">
-      jason: it's not supposed to be pretty yet.
-    </v-alert>
-    <search-box :allow-all-entities="false"/>
+  <v-container fluid class="entity-page ma-0 pa-0">
+    <v-row>
+      <v-col cols="3">
+        facets go here
+      </v-col>
+      <v-col cols="9">
+
+        <div class="is-loading-false" v-if="!$store.state.isLoading">
+          <div class="d-flex align-end mb-12">
+            <div class="body-1 grey--text">
+              <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
+              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
+            </div>
+            <v-spacer/>
+            <div style="max-width: 130px; margin-right: 30px;">
+              <v-select
+                  v-model="sort"
+                  item-text="displayName"
+                  item-value="key"
+                  :items="$store.getters.sortObjectOptions"
+                  label="Sort by"
+                  dense
+                  hide-details
+
+              ></v-select>
+            </div>
 
 
-    <div class="is-loading-false" v-if="!$store.state.isLoading">
-      <div class="d-flex align-end mb-12">
-        <div class="body-1 grey--text">
-          <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
-          <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
-        </div>
-        <v-spacer/>
-        <div style="max-width: 130px; margin-right: 30px;">
-          <v-select
-            v-model="sort"
-            item-text="displayName"
-            item-value="key"
-            :items="$store.getters.sortObjectOptions"
-            label="Sort by"
-            dense
-            hide-details
-
-          ></v-select>
-        </div>
+            <v-menu offset-y>
+              <template v-slot:activator="{on}">
+                <v-btn icon v-on="on">
+                  <v-icon color="gr">mdi-cloud-download-outline</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-subheader>Export these results as:</v-subheader>
+                <v-list-item
+                    target="_blank"
+                    :href="searchApiUrl"
+                >
+                  <v-icon left>mdi-code-json</v-icon>
+                  JSON
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
 
+          </div>
 
-        <v-menu offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
-              <v-icon color="gr">mdi-cloud-download-outline</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-subheader>Export these results as:</v-subheader>
-            <v-list-item
-                target="_blank"
-                :href="searchApiUrl"
+
+          <div>
+            <div
+                v-for="result in $store.state.results"
+                class="result-container my-4"
+                :key="result.id"
             >
-              <v-icon left>mdi-code-json</v-icon>
-              JSON
-            </v-list-item>
-          </v-list>
-        </v-menu>
+              <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+              <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+              <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+              <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+            </div>
+          </div>
+          <div class="serp-bottom">
+            <v-pagination
+                v-model="page"
+                :length="10"
+            />
+          </div>
 
-
-      </div>
-
-
-      <div>
-        <div
-            v-for="result in $store.state.results"
-            class="result-container my-4"
-            :key="result.id"
-        >
-          <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-          <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-          <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-          <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-          <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
         </div>
-      </div>
-      <div class="serp-bottom">
-        <v-pagination
-            v-model="page"
-            :length="10"
-        />
-      </div>
+      </v-col>
+    </v-row>
 
-    </div>
+
+
 
   </v-container>
 </template>

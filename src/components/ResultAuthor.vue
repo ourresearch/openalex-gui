@@ -2,7 +2,7 @@
   <div>
     <div>
       <div>
-        <router-link :to="data.id | idLink">
+        <router-link  class="text-decoration-none" :to="data.id | idLink">
           {{ data.display_name }}
         </router-link>
       </div>

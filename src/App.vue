@@ -2,26 +2,20 @@
   <v-app>
     <v-app-bar
         app
-        elevate-on-scroll
-        fixed
+        absolute
+        flat
         color="white"
 
     >
       <router-link to="/" class=" text-decoration-none">
-        <!--        <v-img-->
-        <!--            alt="OurResearch Logo"-->
-        <!--            class="shrink mr-2"-->
-        <!--            contain-->
-        <!--            src="@/assets/logos/ourresearch_logo.png"-->
-        <!--            transition="scale-transition"-->
-        <!--            width="200"-->
-        <!--        />-->
         <img
             src="@/assets/explore-OpenAlex-logo.png"
             style="height: 40px;"
         />
       </router-link>
 
+      <v-spacer></v-spacer>
+      <search-box v-if="$route.name !== 'Home'" :allow-all-entities="false"/>
       <v-spacer></v-spacer>
 
       <!--      DESKTOP MENU -->
@@ -57,6 +51,10 @@
 
 
     </v-app-bar>
+
+<!--    <v-navigation-drawer app clipped>-->
+<!--      hi-->
+<!--    </v-navigation-drawer>-->
 
     <v-main>
       <v-container>
@@ -106,6 +104,7 @@
 </template>
 
 <script>
+import SearchBox from "./components/SearchBox";
 
 export default {
   name: 'App',
@@ -114,6 +113,9 @@ export default {
     link: [],
 
     meta: []
+  },
+  components: {
+    SearchBox,
   },
 
   data: () => ({

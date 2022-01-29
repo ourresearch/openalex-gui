@@ -20,7 +20,7 @@
     <concepts-list class="d-none" :concepts="data.concepts"/>
 
     <div class="body-1">
-      <span>Cited by {{ data.cited_by_count }}</span>
+      <span>Cited by {{ data.cited_by_count.toLocaleString() }}</span>
       <a
           :href="data.host_venue.url"
           target="_blank"
