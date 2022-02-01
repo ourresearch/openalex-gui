@@ -1,12 +1,20 @@
 <template>
-  <div class="facet">
-    <div>
-      <strong>{{ dimensionDisplayName }}</strong> ({{ dimensionKey }})
-    </div>
-    <pre>{{groups.slice(0, 2)}}</pre>
-
-
-  </div>
+  <v-list-item
+  >
+      <v-list-item-action>
+        <v-checkbox></v-checkbox>
+      </v-list-item-action>
+    <v-list-item-content>
+      <div>
+      university of north carolina - west haverbrook
+      </div>
+    </v-list-item-content>
+    <v-list-item-action>
+        <v-list-item-action-text>
+          123,456
+        </v-list-item-action-text>
+      </v-list-item-action>
+  </v-list-item>
 </template>
 
 <script>
@@ -19,7 +27,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 
 export default {
-  name: "Facet",
+  name: "FacetValueListItem",
   metaInfo() {
     return {
       title: `${this.entityId}`

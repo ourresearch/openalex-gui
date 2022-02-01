@@ -1,16 +1,16 @@
 <template>
-  <div  class="facets-panel">
-    <facet
-      v-for="group in $store.state.groupBys"
-      :key="group.dimensionKey"
-      :dimension-key="group.dimensionKey"
-      :dimension-display-name="group.dimensionDisplayName"
-      :groups="group.groups"
-    ></facet>
+  <v-list class="facets-panel">
+
+    <facet-list-item
+        v-for="group in $store.state.groupBys"
+        :key="group.dimensionKey"
+        :dimension-key="group.dimensionKey"
+        :dimension-display-name="group.dimensionDisplayName"
+        :groups="group.groups"
+    ></facet-list-item>
 
 
-
-  </div>
+  </v-list>
 </template>
 
 <script>
@@ -20,7 +20,7 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import Facet from "./Facet";
+import FacetListItem from "./FacetListItem";
 
 export default {
   name: "FacetsPanel",
@@ -30,7 +30,7 @@ export default {
     }
   },
   components: {
-    Facet,
+    FacetListItem,
   },
   props: {},
   data() {
