@@ -13,10 +13,13 @@
         hide-default-footer
         hide-default-header
         show-select
+        item-key="key"
+        v-model="selected"
         class="facet-values-table"
     >
 
     </v-data-table>
+    <pre>{{selected}}</pre>
     <!--    <facet-value-list-item-->
     <!--        v-for="group in groups.slice(0, 2)"-->
     <!--        :key="group.key"-->
@@ -60,6 +63,7 @@ export default {
     return {
       loading: false,
       apiResp: {},
+      selected: []
     }
   },
   computed: {
@@ -76,7 +80,7 @@ export default {
     },
     tableHeaders() {
       return [
-        {sortable: false, value: "key",},
+        {sortable: false, value: "display_name",},
         {sortable: false, value: "count",},
       ]
     },
@@ -119,9 +123,6 @@ export default {
   created() {
   },
   async mounted() {
-    this.loading = true
-    // this.apiResp = await api.get(this.apiUrl)
-    this.loading = false
 
   },
   watch: {}

@@ -22,41 +22,47 @@ const deepClone = function (obj) {
     return JSON.parse(JSON.stringify(obj))
 }
 
-
-const filterConfigs = {
-    "display_name.search": {
-        key: "display_name.search",
-        entityTypes: allEntityTypes(),
-        displayName: "Name",
-    },
-    concepts: {
-        key: "x-concepts",
-        entityTypes: ["authors", "institutions", "venues"],
-        displayName: "Concepts",
-    },
+const filterConfigsList = function () {
+    const ret = [
+        {
+            key: "display_name.search",
+            entityTypes: allEntityTypes(),
+            displayName: "Name",
+        },
+        {
+            key: "x-concepts.id",
+            entityTypes: ["authors", "institutions", "venues"],
+            displayName: "Concepts",
+        },
+        {
+            key: "concept.id",
+            entityTypes: ["works"],
+            displayName: "Concepts",
+        },
+        {
+            key: "host_venue.id",
+            entityTypes: ["works"],
+            displayName: "Venues",
+        },
+    ]
+    return ret.map(config => {
+        return {
+            ...config,
+            count: null,
+            value: null,
+            isApplied: null,
+        }
+    })
 }
-const filterConfigsList = [
-    {
-        key: "display_name.search",
-        entityTypes: allEntityTypes(),
-        displayName: "Name",
-    },
-    {
-        key: "x-concepts.id",
-        entityTypes: ["authors", "institutions", "venues"],
-        displayName: "Concepts",
-    },
-    {
-        key: "concept.id",
-        entityTypes: ["works"],
-        displayName: "Concepts",
-    },
-    {
-        key: "host_venue.id",
-        entityTypes: ["works"],
-        displayName: "Venues",
-    },
-]
+
+const createFilter = function ({key, value, count, isApplied}) {
+    const ret = filterConfigsList().find(f => f.key === key)
+    console.log("createFilter ret", ret, key, value)
+    ret.value = value
+    ret.count = count
+    ret.isApplied = isApplied
+    return ret
+}
 
 const sortConfigs = [
     {
@@ -83,13 +89,14 @@ const sortConfigs = [
 
 const stateDefaults = function () {
     const filterValues = {}
-    filterConfigsList.forEach(config => {
+    filterConfigsList().forEach(config => {
         filterValues[config.key] = undefined
     })
 
     const ret = {
         entityType: null,
         filters: filterValues,
+        filtersList: [],
         groupBys: [],
         page: 1,
         results: [],
@@ -128,8 +135,20 @@ export default new Vuex.Store({
             }
             state.sort = sortKey
         },
-        setFilters(state, newFilters) {
+        addFilters(state, newFilters) {
             Object.assign(state.filters, newFilters)
+        },
+        addFilter(state, {key, value, count, isApplied}) {
+            // first, check: is there another filter loaded that has this exact same key and value?
+            const filterAlreadyLoaded = state.filtersList.some(f => {
+                    return f.key === key && f.value === value
+                })
+            if (filterAlreadyLoaded) return
+
+            const newFilter = createFilter({key, value, count, isApplied})
+
+            console.log("addFilter, pushing this new filter", newFilter, key, value)
+            state.filtersList.push(newFilter)
         },
         setFiltersFromString(state, filtersString) {
             if (!filtersString) return
@@ -139,13 +158,26 @@ export default new Vuex.Store({
                 state.filters[key] = value
             })
         },
+
     },
     actions: {
+        // this is an sync functino, even though it's in actions, because it needs to call mutations
+        // eslint-disable-next-line no-unused-vars
+        applyFiltersFromString({commit, getters, dispatch, state}, filtersString) {
+            if (!filtersString) return
+            if (filtersString.indexOf(":") === -1) return
+            filtersString.split(",").forEach(filterString => {
+                const [key, value] = filterString.split(":");
+
+                commit("addFilter", {key, value, isApplied: true})
+            })
+        },
+
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
             commit("setPage", 1)
             state.entityType = entityType
-            commit("setFilters", {"display_name.search": searchString});
+            commit("addFilters", {"display_name.search": searchString});
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
@@ -160,13 +192,19 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
+        async addFilter({commit, getters, dispatch, state}, newFilter) {
+            commit("setFilters", newFilter)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             state.isLoading = true
             if (loadFromRoute) {
                 state.entityType = router.currentRoute.params.entityType
                 commit("setPage", router.currentRoute.query.page)
                 commit("setSort", router.currentRoute.query.sort)
-                // commit("setFiltersFromString", router.currentRoute.query.filter)
+                commit("setFiltersFromString", router.currentRoute.query.filter)
+                dispatch("applyFiltersFromString", router.currentRoute.query.filter)
             }
 
             const routerPushTo = {
@@ -193,7 +231,7 @@ export default new Vuex.Store({
 
 
             state.groupBys = []
-            const filtersToGroupBy = filterConfigsList
+            const filtersToGroupBy = filterConfigsList()
                 .filter(config => {
                     return config.entityTypes.indexOf(state.entityType) > -1
                 })
@@ -208,7 +246,16 @@ export default new Vuex.Store({
                 state.groupBys.push({
                     dimensionKey: config.key,
                     dimensionDisplayName: config.displayName,
-                    groups: resp.group_by
+                    groups: [],
+                    // groups: await Promise.all(resp.group_by.slice(0, 5).map(async group => {
+                    //     const resp = await api.get(group.key)
+                    //     const display_name = resp.display_name
+                    //
+                    //     return {
+                    //         ...group,
+                    //         display_name
+                    //     }
+                    // })),
                 })
 
             }
@@ -279,7 +326,7 @@ export default new Vuex.Store({
         },
 
         filterObjects(state) {
-            return Object.values(filterConfigs)
+            return filterConfigsList()
                 .filter(config => {
                     return config.entityTypes.indexOf(state.entityType)
                 })
