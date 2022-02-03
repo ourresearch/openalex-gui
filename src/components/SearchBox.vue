@@ -97,7 +97,7 @@ export default {
     const selectedEntityType =this.$store.state.entityType ?? "all"
 
     return {
-      select: this.$store.state.filters["display_name.search"],
+      select: this.$store.state.textSearch,
       loading: false,
       items: [],
       searchString: "",

@@ -3,65 +3,29 @@ import Vuex from 'vuex'
 import router from "../router";
 
 import {api} from "../api";
+import {facetConfigs} from "../facetConfigs";
 
 Vue.use(Vuex)
 
-const allEntityTypes = function (hideThese) {
-    const types = ["works", "authors", "institutions", "venues", "concepts"]
-    if (hideThese) {
-        if (!Array.isArray(hideThese)) hideThese = [hideThese]
-        return types.filter(e => {
-            return hideThese.indexOf(e) > -1
-        })
-    } else {
-        return types
-    }
-}
 
-const deepClone = function (obj) {
-    return JSON.parse(JSON.stringify(obj))
-}
 
-const filterConfigsList = function () {
-    const ret = [
-        {
-            key: "display_name.search",
-            entityTypes: allEntityTypes(),
-            displayName: "Name",
-        },
-        {
-            key: "x-concepts.id",
-            entityTypes: ["authors", "institutions", "venues"],
-            displayName: "Concepts",
-        },
-        {
-            key: "concept.id",
-            entityTypes: ["works"],
-            displayName: "Concepts",
-        },
-        {
-            key: "host_venue.id",
-            entityTypes: ["works"],
-            displayName: "Venues",
-        },
-    ]
-    return ret.map(config => {
-        return {
-            ...config,
-            count: null,
-            value: null,
-            isApplied: null,
-        }
-    })
-}
 
 const createFilter = function ({key, value, count, isApplied}) {
-    const ret = filterConfigsList().find(f => f.key === key)
-    console.log("createFilter ret", ret, key, value)
-    ret.value = value
-    ret.count = count
-    ret.isApplied = isApplied
-    return ret
+    return {
+        key,
+        value,
+        count,
+        isApplied,
+        displayName: "",
+    }
+    //
+    //
+    // const ret = facetConfigs().find(f => f.key === key)
+    // console.log("createFilter ret", ret, key, value)
+    // ret.value = value
+    // ret.count = count
+    // ret.isApplied = isApplied
+    // return ret
 }
 
 const sortConfigs = [
@@ -89,7 +53,7 @@ const sortConfigs = [
 
 const stateDefaults = function () {
     const filterValues = {}
-    filterConfigsList().forEach(config => {
+    facetConfigs().forEach(config => {
         filterValues[config.key] = undefined
     })
 
@@ -97,6 +61,7 @@ const stateDefaults = function () {
         entityType: null,
         filters: filterValues,
         filtersList: [],
+        textSearch: "",
         groupBys: [],
         page: 1,
         results: [],
@@ -138,17 +103,36 @@ export default new Vuex.Store({
         addFilters(state, newFilters) {
             Object.assign(state.filters, newFilters)
         },
-        addFilter(state, {key, value, count, isApplied}) {
+        setFilterCount(state, {key, value, count}) {
+            const myFilter = state.filtersList.find(f => {
+                return f.key === key && f.value === value
+            })
+            if (myFilter) myFilter.count = count
+        },
+        setFilterIsApplied(state, {key, value, isApplied}) {
+            const myFilter = state.filtersList.find(f => {
+                return f.key === key && f.value === value
+            })
+            if (myFilter) myFilter.isApplied = isApplied
+        },
+        addFilter(state, {key, value}) {
             // first, check: is there another filter loaded that has this exact same key and value?
-            const filterAlreadyLoaded = state.filtersList.some(f => {
-                    return f.key === key && f.value === value
-                })
-            if (filterAlreadyLoaded) return
+            const isFilterAlreadyThere = state.filtersList.some(f => {
+                return f.key === key && f.value === value
+            })
+            if (!isFilterAlreadyThere)  {
+                const newFilter = createFilter({key, value})
+                // console.log("addFilter, pushing this new filter", newFilter, key, value)
+                state.filtersList.push(newFilter)
+            }
 
-            const newFilter = createFilter({key, value, count, isApplied})
-
-            console.log("addFilter, pushing this new filter", newFilter, key, value)
-            state.filtersList.push(newFilter)
+            // if (identicalFilter) {
+            //     // we've already got this key:value pair in the filters list
+            //     // if we've been given the @count param, let's update the count on this filter
+            //     if (Number.isFinite(count)) identicalFilter.count = count
+            // } else {
+            //     // this is a new key:value filter that we haven't seen before
+            // }
         },
         setFiltersFromString(state, filtersString) {
             if (!filtersString) return
@@ -169,7 +153,12 @@ export default new Vuex.Store({
             filtersString.split(",").forEach(filterString => {
                 const [key, value] = filterString.split(":");
 
-                commit("addFilter", {key, value, isApplied: true})
+                if (key === "display_name.search") {
+                    state.textSearch = value
+                }
+                else {
+                    dispatch("mergeNewFilter", {key, value, isApplied: true})
+                }
             })
         },
 
@@ -177,7 +166,12 @@ export default new Vuex.Store({
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
             commit("setPage", 1)
             state.entityType = entityType
-            commit("addFilters", {"display_name.search": searchString});
+            state.textSearch = searchString
+            // dispatch("mergeNewFilter", {
+            //     key: "display_name.search",
+            //     value: searchString,
+            //     isApplied: true,
+            // })
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
@@ -197,13 +191,18 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
+        async mergeNewFilter({commit, getters, dispatch, state}, {key, value, count, isApplied}) {
+            commit("addFilter", {key, value})
+            if (Number.isFinite(count)) commit("setFilterCount", {key, value, count})
+            if (typeof isApplied === "boolean") commit("setFilterIsApplied", {key, value, isApplied})
+        },
+        // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             state.isLoading = true
             if (loadFromRoute) {
                 state.entityType = router.currentRoute.params.entityType
                 commit("setPage", router.currentRoute.query.page)
                 commit("setSort", router.currentRoute.query.sort)
-                commit("setFiltersFromString", router.currentRoute.query.filter)
                 dispatch("applyFiltersFromString", router.currentRoute.query.filter)
             }
 
@@ -230,23 +229,24 @@ export default new Vuex.Store({
             }
 
 
-            state.groupBys = []
-            const filtersToGroupBy = filterConfigsList()
-                .filter(config => {
-                    return config.entityTypes.indexOf(state.entityType) > -1
-                })
-                .filter(config => {
-                    return config.key.indexOf(".search") === -1
-                })
-
-            for (let i = 0; i < filtersToGroupBy.length; i++) {
-                const config = filtersToGroupBy[i]
+            // state.groupBys = []
+            for (let i = 0; i < getters.searchFacetConfigs.length; i++) {
+                const config = getters.searchFacetConfigs[i]
                 console.log("doing groupby query", config)
                 const resp = await api.get(state.entityType, getters.groupByQuery(config.key))
-                state.groupBys.push({
-                    dimensionKey: config.key,
-                    dimensionDisplayName: config.displayName,
-                    groups: [],
+                resp.group_by.forEach(group => {
+                    dispatch("mergeNewFilter", {
+                        key: config.key,
+                        value: group.key,
+                        count: group.count,
+                    })
+                })
+
+
+                // state.groupBys.push({
+                //     key: config.key,
+                //     displayName: config.displayName,
+                //     values: [],
                     // groups: await Promise.all(resp.group_by.slice(0, 5).map(async group => {
                     //     const resp = await api.get(group.key)
                     //     const display_name = resp.display_name
@@ -256,7 +256,7 @@ export default new Vuex.Store({
                     //         display_name
                     //     }
                     // })),
-                })
+                // })
 
             }
         }
@@ -299,45 +299,30 @@ export default new Vuex.Store({
             return `/${state.entityType}`
         },
 
-
-        // todo this should work differently and have a better name
-        filtersAsArray(state) {
-            const filtersAsArray = Object.entries(state.filters)
-                .map(([k, v]) => {
-                    return {key: k, value: v}
+        searchFacetConfigs(state) {
+            return facetConfigs()
+                .filter(config => {
+                    return config.entityTypes.indexOf(state.entityType) > -1
                 })
-
-            filtersAsArray.sort((a, b) => {
-                return a.key > b.key
-            })
-
-            return filtersAsArray
-                .filter(f => {
-                    return typeof f.value !== "undefined"
+                .filter(config => {
+                    return config.key.indexOf(".search") === -1
                 })
         },
 
+
         filtersAsString(state, getters) {
-            return getters.filtersAsArray
+            const filterStrings = state.filtersList
+                .filter(f => f.isApplied)
                 .map(f => {
                     return `${f.key}:${f.value}`
                 })
-                .join(",")
+            if (state.textSearch){
+                filterStrings.push(`display_name.search:${state.textSearch}`)
+            }
+            filterStrings.sort()
+            return filterStrings.join(",")
         },
 
-        filterObjects(state) {
-            return filterConfigsList()
-                .filter(config => {
-                    return config.entityTypes.indexOf(state.entityType)
-                })
-                .map(config => {
-                    console.log("filterObjects.map()", state.filters, config.key)
-                    return {
-                        ...config,
-                        value: state.filters[config.key]
-                    }
-                })
-        },
 
     },
     modules: {}

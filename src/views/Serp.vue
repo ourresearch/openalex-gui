@@ -1,6 +1,6 @@
 <template>
   <div  class="entity-page mt-12 pa-0">
-    <pre>{{$store.state.filtersList}}</pre>
+<!--    <pre>{{$store.state.filtersList}}</pre>-->
     <div class="d-flex" style="max-width: 1500px;">
       <div style="min-width: 350px;" class="px-4">
         <facets-panel />

@@ -4,7 +4,7 @@
   <v-list-group>
     <template v-slot:activator>
       <v-list-item-title>
-        <strong>{{ dimensionDisplayName }}</strong> ({{ dimensionKey }})
+        <strong>{{ displayName }}</strong> ({{ facetKey }})
       </v-list-item-title>
     </template>
     <v-data-table
@@ -13,24 +13,11 @@
         hide-default-footer
         hide-default-header
         show-select
-        item-key="key"
+        item-key="value"
         v-model="selected"
         class="facet-values-table"
-    >
-
-    </v-data-table>
-    <pre>{{selected}}</pre>
-    <!--    <facet-value-list-item-->
-    <!--        v-for="group in groups.slice(0, 2)"-->
-    <!--        :key="group.key"-->
-    <!--    ></facet-value-list-item>-->
+    ></v-data-table>
   </v-list-group>
-
-  <!--      <div>-->
-  <!--        <strong>{{ dimensionDisplayName }}</strong> ({{ dimensionKey }})-->
-  <!--      </div>-->
-  <!--      <pre>{{groups.slice(0, 2)}}</pre>-->
-  <!--      </v-list-item>-->
 
 </template>
 
@@ -40,24 +27,19 @@
 // import 'vue-json-pretty/lib/styles.css';
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-
-import FacetValueListItem from "./FacetValueListItem";
-
+import {facetConfigs} from "../facetConfigs";
 
 export default {
-  name: "FacetListItem",
+  name: "Facet",
   metaInfo() {
     return {
       title: `${this.entityId}`
     }
   },
   components: {
-    FacetValueListItem,
   },
   props: {
-    dimensionKey: String,
-    dimensionDisplayName: String,
-    groups: Array,
+    facetKey: String,
   },
   data() {
     return {
@@ -71,8 +53,14 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
+    displayName(){
+      return facetConfigs().find(c => c.key === this.facetKey).displayName
+    },
     tableItems() {
-      return this.groups
+      return this.$store.state.filtersList
+          .filter(f => {
+            return f.key === this.facetKey
+          })
           .slice(0, 5)
           .map(group => {
             return group
@@ -80,7 +68,7 @@ export default {
     },
     tableHeaders() {
       return [
-        {sortable: false, value: "display_name",},
+        {sortable: false, value: "displayName",},
         {sortable: false, value: "count",},
       ]
     },

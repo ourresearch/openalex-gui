@@ -35,9 +35,9 @@ export default {
   },
   components: {},
   props: {
-    dimensionKey: String,
-    dimensionDisplayName: String,
-    groups: Array,
+    value: String,
+    valueDisplayName: String,
+    count: Array,
   },
   data() {
     return {
