@@ -1,5 +1,5 @@
 <template>
-  <v-list class="facets-panel">
+  <v-list class="facets-panel mt-12 pt-10">
 
     <facet
         v-for="facet in $store.getters.searchFacetConfigs"

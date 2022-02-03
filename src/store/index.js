@@ -4,29 +4,14 @@ import router from "../router";
 
 import {api} from "../api";
 import {facetConfigs} from "../facetConfigs";
+import {createFilter} from "../views/filterConfigs";
 
 Vue.use(Vuex)
 
 
 
 
-const createFilter = function ({key, value, count, isApplied}) {
-    return {
-        key,
-        value,
-        count,
-        isApplied,
-        displayName: "",
-    }
-    //
-    //
-    // const ret = facetConfigs().find(f => f.key === key)
-    // console.log("createFilter ret", ret, key, value)
-    // ret.value = value
-    // ret.count = count
-    // ret.isApplied = isApplied
-    // return ret
-}
+
 
 const sortConfigs = [
     {
@@ -100,9 +85,6 @@ export default new Vuex.Store({
             }
             state.sort = sortKey
         },
-        addFilters(state, newFilters) {
-            Object.assign(state.filters, newFilters)
-        },
         setFilterCount(state, {key, value, count}) {
             const myFilter = state.filtersList.find(f => {
                 return f.key === key && f.value === value
@@ -115,32 +97,14 @@ export default new Vuex.Store({
             })
             if (myFilter) myFilter.isApplied = isApplied
         },
-        addFilter(state, {key, value}) {
+        addFilter(state, filterObj) {
             // first, check: is there another filter loaded that has this exact same key and value?
             const isFilterAlreadyThere = state.filtersList.some(f => {
-                return f.key === key && f.value === value
+                return f.id === filterObj.id
             })
             if (!isFilterAlreadyThere)  {
-                const newFilter = createFilter({key, value})
-                // console.log("addFilter, pushing this new filter", newFilter, key, value)
-                state.filtersList.push(newFilter)
+                state.filtersList.push(filterObj)
             }
-
-            // if (identicalFilter) {
-            //     // we've already got this key:value pair in the filters list
-            //     // if we've been given the @count param, let's update the count on this filter
-            //     if (Number.isFinite(count)) identicalFilter.count = count
-            // } else {
-            //     // this is a new key:value filter that we haven't seen before
-            // }
-        },
-        setFiltersFromString(state, filtersString) {
-            if (!filtersString) return
-            if (filtersString.indexOf(":") === -1) return
-            filtersString.split(",").forEach(filterString => {
-                const [key, value] = filterString.split(":");
-                state.filters[key] = value
-            })
         },
 
     },
@@ -157,7 +121,8 @@ export default new Vuex.Store({
                     state.textSearch = value
                 }
                 else {
-                    dispatch("mergeNewFilter", {key, value, isApplied: true})
+                    const myFilter = createFilter({key, value, isApplied: true})
+                    dispatch("mergeNewFilter", myFilter)
                 }
             })
         },
@@ -165,13 +130,9 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
             commit("setPage", 1)
+            commit("setSort", "relevance_score")
             state.entityType = entityType
             state.textSearch = searchString
-            // dispatch("mergeNewFilter", {
-            //     key: "display_name.search",
-            //     value: searchString,
-            //     isApplied: true,
-            // })
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
@@ -181,20 +142,37 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
+        async setFilterIsApplied({commit, getters, dispatch, state}, filterData) {
+            const filterObj = createFilter(filterData)
+            commit("setFilterIsApplied", filterObj)
+            commit("setPage", 1)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
+        async setFilterIsAppliedMultiple({commit, getters, dispatch, state}, filterObjectsList) {
+            filterObjectsList.forEach(filterObj => {
+                commit("setFilterIsApplied", filterObj)
+            })
+            commit("setPage", 1)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
         async setPage({commit, getters, dispatch, state}, newPage) {
             commit("setPage", newPage)
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
-        async addFilter({commit, getters, dispatch, state}, newFilter) {
-            commit("setFilters", newFilter)
-            await dispatch("doSearch")
+        async mergeNewFilter({commit, getters, dispatch, state}, filterObj) {
+            commit("addFilter", filterObj)
+            if (Number.isFinite(filterObj.count)) commit("setFilterCount", filterObj)
+            if (typeof filterObj.isApplied === "boolean") commit("setFilterIsApplied", filterObj)
         },
         // eslint-disable-next-line no-unused-vars
-        async mergeNewFilter({commit, getters, dispatch, state}, {key, value, count, isApplied}) {
-            commit("addFilter", {key, value})
-            if (Number.isFinite(count)) commit("setFilterCount", {key, value, count})
-            if (typeof isApplied === "boolean") commit("setFilterIsApplied", {key, value, isApplied})
+        async setFilters({commit, getters, dispatch, state}, filterObjectsList) {
+            filterObjectsList.forEach(filter => {
+                dispatch("mergeNewFilter", filter)
+            })
+            dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
@@ -232,14 +210,14 @@ export default new Vuex.Store({
             // state.groupBys = []
             for (let i = 0; i < getters.searchFacetConfigs.length; i++) {
                 const config = getters.searchFacetConfigs[i]
-                console.log("doing groupby query", config)
                 const resp = await api.get(state.entityType, getters.groupByQuery(config.key))
-                resp.group_by.forEach(group => {
-                    dispatch("mergeNewFilter", {
+                resp.group_by.slice(0,4).forEach(group => {
+                    const myFilter = createFilter({
                         key: config.key,
                         value: group.key,
                         count: group.count,
                     })
+                    dispatch("mergeNewFilter", myFilter)
                 })
 
 
@@ -283,9 +261,8 @@ export default new Vuex.Store({
         },
         groupByQuery: (state, getters) => (key) => {
             const query = {}
-            if (getters.filtersAsString) query.filter = getters.filtersAsString
+            if (getters.filtersAsString) query.filter = getters.filtersAsStringExceptForThisOneKey(key)
             query.group_by = key
-            console.log("groupBy query", query)
             return query
         },
         searchApiUrl(state, getters) {
@@ -308,11 +285,24 @@ export default new Vuex.Store({
                     return config.key.indexOf(".search") === -1
                 })
         },
-
-
         filtersAsString(state, getters) {
             const filterStrings = state.filtersList
                 .filter(f => f.isApplied)
+                .map(f => {
+                    return `${f.key}:${f.value}`
+                })
+            if (state.textSearch){
+                filterStrings.push(`display_name.search:${state.textSearch}`)
+            }
+            filterStrings.sort()
+            return filterStrings.join(",")
+        },
+
+        // this is a ghastly hack
+        filtersAsStringExceptForThisOneKey: (state, getters) => (key) => {
+            const filterStrings = state.filtersList
+                .filter(f => f.isApplied)
+                .filter(f => f.key !== key)
                 .map(f => {
                     return `${f.key}:${f.value}`
                 })

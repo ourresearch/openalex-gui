@@ -16,6 +16,7 @@
         item-key="value"
         v-model="selected"
         class="facet-values-table"
+        dense
     ></v-data-table>
   </v-list-group>
 
@@ -28,6 +29,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../facetConfigs";
+import {createFilter} from "../views/filterConfigs";
 
 export default {
   name: "Facet",
@@ -36,8 +38,7 @@ export default {
       title: `${this.entityId}`
     }
   },
-  components: {
-  },
+  components: {},
   props: {
     facetKey: String,
   },
@@ -45,7 +46,6 @@ export default {
     return {
       loading: false,
       apiResp: {},
-      selected: []
     }
   },
   computed: {
@@ -53,7 +53,7 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
-    displayName(){
+    displayName() {
       return facetConfigs().find(c => c.key === this.facetKey).displayName
     },
     tableItems() {
@@ -61,8 +61,8 @@ export default {
           .filter(f => {
             return f.key === this.facetKey
           })
-          .slice(0, 5)
-          .map(group => {
+          // .slice(0, 5)
+          .map(group => { // work with a copy
             return group
           })
     },
@@ -72,12 +72,28 @@ export default {
         {sortable: false, value: "count",},
       ]
     },
-    page: {
+    selected: {
       get() {
-        return this.$store.state.page
+        return this.$store.state.filtersList
+            .filter(f => {
+              return f.isApplied && f.key === this.facetKey
+            })
       },
-      set(val) {
-        this.$store.dispatch("setPage", val)
+      set(selectedFilters) {
+        selectedFilters = selectedFilters.map(f => createFilter(f))
+        const updatedFilters = this.tableItems.map(filter => {
+
+          // is this filter in the list of selected filters?
+          // if so, set its filter.isApplied = true; if not, filter.isApplied = false
+          const isApplied = selectedFilters.some(f => {
+            return f.id === filter.id
+          })
+          filter.isApplied = isApplied
+
+          // return the filter with its isApplied property showing whether you selected it or not.
+          return filter
+        })
+        this.$store.dispatch("setFilters", updatedFilters)
       }
     },
     sort: {
@@ -124,7 +140,8 @@ export default {
       &:first-child {
         padding: 0 0 0 10px;
       }
-      &:nth-child(2){
+
+      &:nth-child(2) {
         padding-left: 3px;
       }
     }

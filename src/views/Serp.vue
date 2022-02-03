@@ -1,6 +1,5 @@
 <template>
-  <div  class="entity-page mt-12 pa-0">
-<!--    <pre>{{$store.state.filtersList}}</pre>-->
+  <div  class="entity-page mt-2 pa-0">
     <div class="d-flex" style="max-width: 1500px;">
       <div style="min-width: 350px;" class="px-4">
         <facets-panel />
@@ -11,6 +10,14 @@
 
 <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
 <!--          <pre>{{ $store.state.groupBys}}</pre>-->
+          <v-chip
+            v-for="f in $store.state.filtersList.filter(f => f.isApplied)"
+            :key="f.key + f.value"
+            outlined
+            class="mr-2"
+            >
+            {{f.key}}: {{f.value}}
+          </v-chip>
 
           <div class="d-flex align-end mb-6">
             <div class="body-1 grey--text">

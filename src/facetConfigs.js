@@ -40,6 +40,9 @@ const facetConfigs = function () {
     })
 }
 
+
+
+
 export {
     facetConfigs
 }
