@@ -149,6 +149,7 @@ export default {
     ]),
     setSelectedEntityType(value) {
       this.selectedEntityType = value
+      this.submitSearch()
       // this.setEntityType(this.selectedEntityType)
       // this.fetchSuggestions(this.searchString)
     },

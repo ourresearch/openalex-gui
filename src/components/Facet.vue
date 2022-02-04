@@ -29,7 +29,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../facetConfigs";
-import {createFilter} from "../views/filterConfigs";
+import {createFilterId} from "../views/filterConfigs";
 
 export default {
   name: "Facet",
@@ -80,20 +80,28 @@ export default {
             })
       },
       set(selectedFilters) {
-        selectedFilters = selectedFilters.map(f => createFilter(f))
-        const updatedFilters = this.tableItems.map(filter => {
+        // selectedFilters = selectedFilters.map(f => createFilter(f))
+        const add = selectedFilters.map(f => createFilterId(f.key, f.value))
+        const remove = this.tableItems
+            .map(f => f.id)
+            .filter(id => !add.includes(id))
+        this.$store.dispatch("setAppliedFilters", {add, remove})
 
-          // is this filter in the list of selected filters?
-          // if so, set its filter.isApplied = true; if not, filter.isApplied = false
-          const isApplied = selectedFilters.some(f => {
-            return f.id === filter.id
-          })
-          filter.isApplied = isApplied
 
-          // return the filter with its isApplied property showing whether you selected it or not.
-          return filter
-        })
-        this.$store.dispatch("setFilters", updatedFilters)
+        // const updatedFilters = this.tableItems.forEach(filter => {
+        //
+        //   // is this filter in the list of selected filters?
+        //   // if so, set its filter.isApplied = true; if not, filter.isApplied = false
+        //   const isApplied = selectedFilters.some(f => {
+        //     return f.id === filter.id
+        //   })
+        //   filter.isApplied = isApplied
+        //
+        //   // return the filter with its isApplied property showing whether you selected it or not.
+        //   return filter
+        // })
+        // this.$store.dispatch("setFiltersIsApplied", updatedFilters)
+
       }
     },
     sort: {

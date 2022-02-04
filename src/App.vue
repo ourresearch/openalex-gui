@@ -65,7 +65,8 @@
       </v-alert>
 
       </v-container>
-      <router-view :key="$route.fullPath"/>
+<!--      <router-view :key="$route.fullPath"/>-->
+      <router-view />
     </v-main>
 
     <v-footer
@@ -124,7 +125,7 @@ export default {
   }),
   beforeMount() {
     if (this.$route.name === "Serp") {
-      this.$store.dispatch("doSearch", true)
+      this.$store.dispatch("bootFromUrl")
     }
   }
 };
