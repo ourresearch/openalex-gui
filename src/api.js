@@ -53,9 +53,19 @@ const api = (function () {
         getUrl: function (pathName, searchParams) {
             return makeUrl(pathName, searchParams, false)
         },
+        async getEntityDisplayNames(openAlexIds) {
+            const ret = {}
+            await Promise.all(openAlexIds.map(async (id) => {
+                const url = "https://api.openalex.org/" + id
+                const resp = await axios.get(url)
+                ret[id] = resp.data.display_name
+            }))
+            console.log("getEntityDisplayNames", ret)
+            return ret
+        },
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
-            console.log("api GET:", url)
+            // console.log("api GET:", url)
 
             let res
             try {

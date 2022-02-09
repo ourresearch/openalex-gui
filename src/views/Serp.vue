@@ -5,19 +5,24 @@
         <facets-panel />
       </div>
       <div>
-
-        <div class="is-loading-false" v-if="!$store.state.isLoading">
+        <div class="search-results-meta mt-1" style="width: 100%;">
 
 <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
-<!--          <pre>{{ $store.state.groupBys}}</pre>-->
-          <v-chip
-            v-for="f in $store.state.filtersList.filter(f => f.isApplied)"
-            :key="f.key + f.value"
-            outlined
-            class="mr-2"
-            >
-            {{f.key}}: {{f.value}}
-          </v-chip>
+<!--          <pre>{{ $store.state.appliedFilterObjects }}</pre>-->
+
+          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">
+            <filter-chip
+              v-for="f in $store.state.appliedFilterObjects"
+              :key="f.id"
+              :filter-key="f.key"
+              :filter-value="f.value"
+              :filter-dispay-name="f.displayName"
+              class="mr-2"
+              >
+              {{f.key}}: {{f.value}}
+            </filter-chip>
+
+          </div>
 
           <div class="d-flex align-end mb-6">
             <div class="body-1 grey--text">
@@ -95,6 +100,7 @@
 
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
+import FilterChip from "../components/FilterChip";
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
@@ -108,7 +114,7 @@ import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
 
 export default {
-  name: "EntityPage",
+  name: "Serp",
   metaInfo() {
     return {
       title: `${this.entityId}`
@@ -116,7 +122,7 @@ export default {
   },
   components: {
     FacetsPanel,
-
+    FilterChip,
     ResultWork,
     ResultAuthor,
     ResultVenue,

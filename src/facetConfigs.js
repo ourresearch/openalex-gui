@@ -20,16 +20,19 @@ const facetConfigs = function () {
             key: "x-concepts.id",
             entityTypes: ["authors", "institutions", "venues"],
             displayName: "Concepts",
+            isEntity: true,
         },
         {
-            key: "concept.id",
+            key: "concepts.id",
             entityTypes: ["works"],
             displayName: "Concepts",
+            isEntity: true,
         },
         {
             key: "host_venue.id",
             entityTypes: ["works"],
             displayName: "Venues",
+            isEntity: true,
         },
     ]
     return ret.map(config => {
@@ -40,9 +43,13 @@ const facetConfigs = function () {
     })
 }
 
-
+const getFacetConfig = function(key, attr){
+    const myFacetConfig = facetConfigs().find(f => f.key === key)
+    if (myFacetConfig) return myFacetConfig[attr]
+}
 
 
 export {
-    facetConfigs
+    facetConfigs,
+    getFacetConfig,
 }

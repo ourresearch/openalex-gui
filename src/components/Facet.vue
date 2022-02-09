@@ -4,7 +4,8 @@
   <v-list-group>
     <template v-slot:activator>
       <v-list-item-title>
-        <strong>{{ displayName }}</strong> ({{ facetKey }})
+        <strong>{{ displayName }}</strong>
+<!--        <span class="ml-3 caption grey&#45;&#45;text" style="font-family: monospace !important;">{{ facetKey }}</span>-->
       </v-list-item-title>
     </template>
     <v-data-table
@@ -29,7 +30,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../facetConfigs";
-import {createFilterId} from "../views/filterConfigs";
+import {createFilter} from "../views/filterConfigs";
 
 export default {
   name: "Facet",
@@ -52,12 +53,13 @@ export default {
     ...mapGetters([
       "searchApiUrl",
       "sortOptions",
+      "appliedFilters",
     ]),
     displayName() {
       return facetConfigs().find(c => c.key === this.facetKey).displayName
     },
     tableItems() {
-      return this.$store.state.filtersList
+      return this.$store.state.filterObjects
           .filter(f => {
             return f.key === this.facetKey
           })
@@ -69,39 +71,20 @@ export default {
     tableHeaders() {
       return [
         {sortable: false, value: "displayName",},
-        {sortable: false, value: "count",},
+        {sortable: false, value: "count", align: "end"},
       ]
     },
     selected: {
       get() {
-        return this.$store.state.filtersList
+        return this.$store.state.appliedFilterObjects
             .filter(f => {
-              return f.isApplied && f.key === this.facetKey
+              return f.key === this.facetKey
             })
       },
       set(selectedFilters) {
-        // selectedFilters = selectedFilters.map(f => createFilter(f))
-        const add = selectedFilters.map(f => createFilterId(f.key, f.value))
-        const remove = this.tableItems
-            .map(f => f.id)
-            .filter(id => !add.includes(id))
-        this.$store.dispatch("setAppliedFilters", {add, remove})
-
-
-        // const updatedFilters = this.tableItems.forEach(filter => {
-        //
-        //   // is this filter in the list of selected filters?
-        //   // if so, set its filter.isApplied = true; if not, filter.isApplied = false
-        //   const isApplied = selectedFilters.some(f => {
-        //     return f.id === filter.id
-        //   })
-        //   filter.isApplied = isApplied
-        //
-        //   // return the filter with its isApplied property showing whether you selected it or not.
-        //   return filter
-        // })
-        // this.$store.dispatch("setFiltersIsApplied", updatedFilters)
-
+        const filtersToAdd = selectedFilters.map(f => createFilter(f.key, f.value))
+        const filterIdsToRemoveFirst = this.tableItems.map(f => f.id) // all of them for this facet
+        this.$store.dispatch("setAppliedFilters", {filtersToAdd, filterIdsToRemoveFirst})
       }
     },
     sort: {
