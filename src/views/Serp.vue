@@ -14,6 +14,7 @@
             <filter-chip
               v-for="f in $store.state.appliedFilterObjects"
               :key="f.id"
+              :filter="f"
               :filter-key="f.key"
               :filter-value="f.value"
               :filter-dispay-name="f.displayName"

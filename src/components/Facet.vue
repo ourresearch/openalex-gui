@@ -82,7 +82,8 @@ export default {
             })
       },
       set(selectedFilters) {
-        const filtersToAdd = selectedFilters.map(f => createFilter(f.key, f.value))
+        console.log("set selectedFilters", selectedFilters)
+        const filtersToAdd = selectedFilters
         const filterIdsToRemoveFirst = this.tableItems.map(f => f.id) // all of them for this facet
         this.$store.dispatch("setAppliedFilters", {filtersToAdd, filterIdsToRemoveFirst})
       }

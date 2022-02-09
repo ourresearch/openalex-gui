@@ -1,6 +1,9 @@
 <template>
   <v-chip
     outlined
+    close
+    close-icon="mdi-close"
+    @click:close="removeFilterId(filter.id)"
   >
     {{ getFacetConfig(filterKey, "displayName") }}: {{filterDispayName}}
   </v-chip>
@@ -21,6 +24,7 @@ export default {
   components: {
   },
   props: {
+    filter: null,
     filterKey: String,
     filterValue: String,
     filterDispayName: String,
@@ -49,6 +53,7 @@ export default {
 
     ]),
     ...mapActions([
+        "removeFilterId",
 
     ]),
   },

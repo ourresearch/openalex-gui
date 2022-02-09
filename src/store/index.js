@@ -146,6 +146,14 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
+        async removeFilterId({commit, getters, dispatch, state}, filterId) {
+            state.appliedFilterObjects = state.appliedFilterObjects.filter(f => {
+                return f.id !== filterId
+            })
+            commit("setPage", 1)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
         async setAppliedFilters({commit, getters, dispatch, state}, {filtersToAdd, filterIdsToRemoveFirst}) {
 
             // important to do the removal first:
@@ -201,6 +209,7 @@ export default new Vuex.Store({
                     facetFilters.push(myFilter)
                 })
             }
+            state.filterObjects = facetFilters
             state.filterObjects = await addDisplayNamesToFilters(facetFilters)
         },
 
@@ -228,7 +237,11 @@ export default new Vuex.Store({
         },
         groupByQuery: (state, getters) => (key) => {
             const query = {}
+
             if (getters.filtersAsString) query.filter = getters.filtersAsStringExceptForThisOneKey(key)
+            // if (getters.filtersAsString) query.filter = getters.filtersAsString
+
+
             query.group_by = key
             return query
         },
