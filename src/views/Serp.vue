@@ -1,26 +1,26 @@
 <template>
-  <div  class="entity-page mt-2 pa-0">
+  <div class="entity-page mt-2 pa-0">
     <div class="d-flex" style="max-width: 1500px;">
       <div style="min-width: 350px;" class="px-4">
-        <facets-panel />
+        <facets-panel/>
       </div>
       <div>
         <div class="search-results-meta mt-1" style="width: 100%;">
 
-<!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
-<!--          <pre>{{ $store.state.appliedFilterObjects }}</pre>-->
+          <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
+          <pre>{{ $store.state.appliedFilterObjects }}</pre>
 
           <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">
             <filter-chip
-              v-for="f in $store.state.appliedFilterObjects"
-              :key="f.id"
-              :filter="f"
-              :filter-key="f.key"
-              :filter-value="f.value"
-              :filter-dispay-name="f.displayName"
-              class="mr-2"
-              >
-              {{f.key}}: {{f.value}}
+                v-for="f in $store.state.appliedFilterObjects"
+                :key="f.id"
+                :filter="f"
+                :filter-key="f.key"
+                :filter-value="f.value"
+                :filter-dispay-name="f.displayName"
+                class="mr-2"
+            >
+              {{ f.key }}: {{ f.value }}
             </filter-chip>
 
           </div>
@@ -60,6 +60,12 @@
                   <v-icon left>mdi-code-json</v-icon>
                   JSON
                 </v-list-item>
+                <v-list-item
+                    @click="downloadCsvDialogIsOpen = true"
+                >
+                  <v-icon left>mdi-table</v-icon>
+                  CSV
+                </v-list-item>
               </v-list>
             </v-menu>
 
@@ -92,8 +98,17 @@
     </div>
 
 
-
-
+    <v-dialog v-model="downloadCsvDialogIsOpen">
+      <v-card>
+        <v-card-title>
+          Download as CSV
+        </v-card-title>
+        <div class="pa-4">
+          <div class="">Preparing your download now...</div>
+          <div class="text-h1 font-weight-bold">0%</div>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -107,6 +122,7 @@ import FilterChip from "../components/FilterChip";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import FacetsPanel from "../components/FacetsPanel";
+import DownloadCsvDialog from "../components/DownloadCsvDialog";
 
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
@@ -123,6 +139,7 @@ export default {
   },
   components: {
     FacetsPanel,
+    DownloadCsvDialog,
     FilterChip,
     ResultWork,
     ResultAuthor,
@@ -135,6 +152,8 @@ export default {
     return {
       loading: false,
       apiResp: {},
+      downloadCsvDialogIsOpen: false,
+      csvDownloadPercentComplete: 0,
     }
   },
   computed: {
@@ -173,9 +192,23 @@ export default {
     ...mapActions([
       "updateTextSearch",
     ]),
-    getFilterValue(k) {
+    downloadCsv() {
+      this.downloadCsvDialogIsOpen = true
+      this.csvDownloadPercentComplete = 0
 
-    }
+
+      // make this work:
+
+      // console.log("pollServer")
+      // await this.refreshPublisherFileStatus(this.fileType)
+      // while (this.myDataFile.status === "parsing") {
+      // console.log("this.myDataFile.status", this.myDataFile.status)
+      //   await this.refreshPublisherFileStatus(this.fileType)
+      //   await sleep(1000)
+      // }
+
+
+    },
   },
 
   created() {

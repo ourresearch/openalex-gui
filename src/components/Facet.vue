@@ -1,7 +1,8 @@
 <template>
 
   <!--  <v-list-item>-->
-  <v-list-group>
+  <v-list>
+  <v-list-group value="true">
     <template v-slot:activator>
       <v-list-item-title>
         <strong>{{ displayName }}</strong>
@@ -21,6 +22,8 @@
     ></v-data-table>
   </v-list-group>
 
+  </v-list>
+
 </template>
 
 <script>
@@ -30,7 +33,9 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../facetConfigs";
-import {createFilter} from "../views/filterConfigs";
+import {createFilter} from "../filterConfigs";
+import {makeFacet} from "../facetConfigs";
+import {api} from "../api";
 
 export default {
   name: "Facet",
@@ -46,7 +51,7 @@ export default {
   data() {
     return {
       loading: false,
-      apiResp: {},
+      facet: null,
     }
   },
   computed: {
@@ -54,6 +59,7 @@ export default {
       "searchApiUrl",
       "sortOptions",
       "appliedFilters",
+      "filtersAsString",
     ]),
     displayName() {
       return facetConfigs().find(c => c.key === this.facetKey).displayName
@@ -102,8 +108,10 @@ export default {
     entityId() {
       return this.$route.params.id
     },
-    apiUrl() {
-      return `/${this.entityType}/${this.entityId}`
+    apiQuery() {
+      const query = {
+        group_by: this.facetKey,
+      }
     },
   },
   methods: {
@@ -111,8 +119,11 @@ export default {
     ...mapActions([
       "updateTextSearch",
     ]),
-    getFilterValue(k) {
-
+    async setFilterValues() {
+      const resp = await api.get(
+          this.$store.state.entityType,
+          this.apiUrl
+      )
     }
   },
 
@@ -121,7 +132,11 @@ export default {
   async mounted() {
 
   },
-  watch: {}
+  watch: {
+    "filtersAsString": function(newVal, oldVal){
+      console.log("$store.state.appliedFilterObjects changed", this.facetKey, newVal, oldVal)
+    }
+  }
 }
 </script>
 

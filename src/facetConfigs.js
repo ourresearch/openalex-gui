@@ -9,6 +9,11 @@ const allEntityTypes = function (hideThese) {
         return types
     }
 }
+
+const makeFacetQueryFilters = function(facetFilters){
+
+}
+
 const facetConfigs = function () {
     const ret = [
         {
@@ -48,8 +53,21 @@ const getFacetConfig = function(key, attr){
     if (myFacetConfig) return myFacetConfig[attr]
 }
 
+const makeFacet = function(key, isNegated, values){
+    return {
+        key,
+        isNegated,
+        values,
+        config: facetConfigs()[key]
+
+    }
+
+}
+
+
 
 export {
+    makeFacet,
     facetConfigs,
     getFacetConfig,
 }

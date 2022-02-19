@@ -1,5 +1,5 @@
 <template>
-  <v-list class="facets-panel ">
+  <div class="facets-panel ">
 
     <facet
         v-for="facet in $store.getters.searchFacetConfigs"
@@ -8,7 +8,7 @@
     ></facet>
 
 
-  </v-list>
+  </div>
 </template>
 
 <script>

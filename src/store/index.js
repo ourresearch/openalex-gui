@@ -4,7 +4,7 @@ import router from "../router";
 
 import {api} from "../api";
 import {facetConfigs} from "../facetConfigs";
-import {createFilter, createFilterId, addDisplayNamesToFilters} from "../views/filterConfigs";
+import {createFilter, createFilterId, addDisplayNamesToFilters} from "../filterConfigs";
 
 Vue.use(Vuex)
 
@@ -156,17 +156,18 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async setAppliedFilters({commit, getters, dispatch, state}, {filtersToAdd, filterIdsToRemoveFirst}) {
 
+            console.log("setAppliedFilters", filtersToAdd, filterIdsToRemoveFirst)
             // important to do the removal first:
-            state.appliedFilterObjects = state.appliedFilterObjects.filter(f => {
+            const filteredFilters = state.appliedFilterObjects.filter(f => {
                 return !filterIdsToRemoveFirst.includes(f.id)
             })
 
             // then do the adding:
-            state.appliedFilterObjects = [...state.appliedFilterObjects, ...filtersToAdd]
+            state.appliedFilterObjects = [...filteredFilters, ...filtersToAdd]
 
             // refresh the whole search
             commit("setPage", 1)
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
         },
 
 
