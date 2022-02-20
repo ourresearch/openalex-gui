@@ -8,7 +8,7 @@
         <div class="search-results-meta mt-1" style="width: 100%;">
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
-          <pre>{{ $store.state.appliedFilterObjects }}</pre>
+          <pre>{{ $store.state.inputFilters }}</pre>
 
           <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">
             <filter-chip

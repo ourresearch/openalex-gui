@@ -4,7 +4,14 @@ import router from "../router";
 
 import {api} from "../api";
 import {facetConfigs} from "../facetConfigs";
-import {createFilter, createFilterId, addDisplayNamesToFilters} from "../filterConfigs";
+import {
+    createFilter,
+    filtersFromUrlStr,
+    filtersAsUrlStr,
+    textSearchFromUrlString,
+    addDisplayNamesToFilters,
+    createSimpleFilter
+} from "../filterConfigs";
 
 Vue.use(Vuex)
 
@@ -49,6 +56,9 @@ const sortConfigs = [
 const stateDefaults = function () {
     const ret = {
         entityType: null,
+
+        inputFilters: [],
+        resultFilters: [],
 
         filterObjects: [],
         appliedFilterObjects: [],
@@ -100,30 +110,12 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
-            state.isLoading = true
             state.entityType = router.currentRoute.params.entityType
             commit("setPage", router.currentRoute.query.page)
             commit("setSort", router.currentRoute.query.sort)
-
-            const filtersString = router.currentRoute.query.filter
-            if (!filtersString) return
-            if (filtersString.indexOf(":") === -1) return
-
-
-            const filterObjects = []
-            filtersString.split(",").forEach(filterString => {
-                const [key, value] = filterString.split(":");
-                // although the api (and our own URL) treats this as just another filter,
-                // we don't store it that way.
-                if (key === "display_name.search") {
-                    state.textSearch = value
-                } else {
-                    filterObjects.push(createFilter(key, value))
-                }
-            });
-            state.appliedFilterObjects = await addDisplayNamesToFilters(filterObjects)
+            state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
+            state.textSearch = textSearchFromUrlString(router.currentRoute.query.filter)
             await dispatch("doSearch")
-            state.isLoading = false
         },
 
         // eslint-disable-next-line no-unused-vars
@@ -183,6 +175,9 @@ export default new Vuex.Store({
                 name: "Serp",
                 params: {entityType: state.entityType},
             };
+
+            console.log("doSearch", getters.searchQuery)
+
             router.push(routerPushTo)
                 .catch((e) => {
                     if (e.name !== "NavigationDuplicated") {
@@ -261,12 +256,13 @@ export default new Vuex.Store({
                 })
         },
         filtersAsString(state, getters) {
-            const filterStrings = [...state.appliedFilterObjects.map(f => f.id)]
-            if (state.textSearch) {
-                filterStrings.push(`display_name.search:${state.textSearch}`)
-            }
-            filterStrings.sort()
-            return filterStrings.join(",")
+            return filtersAsUrlStr([
+                ...state.inputFilters,
+                getters.textSearchFilter
+            ])
+        },
+        textSearchFilter(state, getters){
+            return createSimpleFilter("display_name.search", state.textSearch)
         },
 
         // this is a yucky hack

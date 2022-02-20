@@ -29,13 +29,21 @@ const addDisplayNamesToFilters = async function (filtersList) {
 }
 
 const textSearchFromUrlString = function (str) {
-    str.split(",").find(filterString => {
-        const [key, value] = filterString.split(":");
-        return key ==="display_name.search"
-    })?.value
+    if (!str) return
+    return str.split(",")
+        .map(filterString => {
+            const [key, value] = filterString.split(":");
+            return {key, value}
+        })
+        .find(f => {
+            return f.key === "display_name.search"
+        })?.value
 }
 
-const filterPairsFromUrlStr = async function (str) {
+const filtersFromUrlStr = function (str) {
+    if (!str) return []
+    if (str.indexOf(":") === -1) return []
+
     const facetStrings = str.split(",")
     const filters = []
     facetStrings.forEach(facetStr => {
@@ -47,57 +55,47 @@ const filterPairsFromUrlStr = async function (str) {
 
             const values = valuesStr.split("|")
             values.forEach(value => {
-                filters.push([key, value])
+                filters.push(createSimpleFilter(key, value))
             })
         }
-
     })
-    const ret = await addDisplayNamesToFilters(filters)
-    return ret
-
+    return filters
 }
 
-const filterPairsAsUrlStrOld = function (filters) {
-    const keys = filters.map(f => f.key)
+const filtersAsUrlStr = function (filters) {
+    const keys = filters.filter(f => typeof f.value !== "undefined").map(f => f.key)
+    keys.sort()
     const facetStrings = keys.map(k => {
         const values = filters.filter(f => f.key === k).map(f => f.value)
         return k + ":" + values.join("|")
     })
     return facetStrings.join(",")
 }
-const filterPairsAsUrlStr = function (filterPairs) {
-    const keys = filterPairs.map(f => f[0])
-    const facetStrings = keys.map(k => {
-        const values = filterPairs.filter(f => f[0] === k).map(f => f[1])
-        return k + ":" + values.join("|")
-    })
-    return facetStrings.join(",")
-}
 
 
-const createFilterValue = function(rawValue){
+const createFilterValue = function (rawValue) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
-    }    
+    }
     return rawValue
 }
 
 // change name to createFilter() after refactor
-const createSimpleFilter = function(key, value){
+const createSimpleFilter = function (key, value) {
     const cleanValue = createFilterValue(value)
     return {
         key,
         value: cleanValue,
         asStr: createFilterId(key, cleanValue),
+        isEntity: entityKeys.includes(key), // better to just include the whole config maybe...
     }
 }
 
-const createDisplayFilter = function (key, value, displayName, count) {
+const createDisplayFilter = function (key, value, displayValue, count) {
     return {
         ...createSimpleFilter(key, value),
-        displayName,
+        displayValue,
         count,
-        isEntity: entityKeys.includes(key), // better to just include the whole config maybe...
     }
 }
 
@@ -119,6 +117,10 @@ const createFilter = function (key, value, displayName, count) {
 }
 
 export {
+    filtersAsUrlStr,
+    filtersFromUrlStr,
+    textSearchFromUrlString,
+
     createFilter,
     createSimpleFilter,
     createDisplayFilter,
