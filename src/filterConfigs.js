@@ -62,12 +62,14 @@ const filtersFromUrlStr = function (str) {
     return filters
 }
 
-const filtersAsUrlStr = function (filters) {
+const filtersAsUrlStr = function (filters, keyToNegate) {
     const keys = filters.filter(f => typeof f.value !== "undefined").map(f => f.key)
     keys.sort()
     const facetStrings = keys.map(k => {
         const values = filters.filter(f => f.key === k).map(f => f.value)
-        return k + ":" + values.join("|")
+        let valueString = values.join("|")
+        if (keyToNegate === k) valueString = "!" + valueString
+        return k + ":" + valueString
     })
     return facetStrings.join(",")
 }

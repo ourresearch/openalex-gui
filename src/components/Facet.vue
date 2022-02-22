@@ -2,25 +2,25 @@
 
   <!--  <v-list-item>-->
   <v-list>
-  <v-list-group value="true">
-    <template v-slot:activator>
-      <v-list-item-title>
-        <strong>{{ displayName }}</strong>
-<!--        <span class="ml-3 caption grey&#45;&#45;text" style="font-family: monospace !important;">{{ facetKey }}</span>-->
-      </v-list-item-title>
-    </template>
-    <v-data-table
-        :headers="tableHeaders"
-        :items="tableItems"
-        hide-default-footer
-        hide-default-header
-        show-select
-        item-key="value"
-        v-model="selected"
-        class="facet-values-table"
-        dense
-    ></v-data-table>
-  </v-list-group>
+    <v-list-group value="true">
+      <template v-slot:activator>
+        <v-list-item-title>
+          <strong>{{ displayName }}</strong>
+          <!--        <span class="ml-3 caption grey&#45;&#45;text" style="font-family: monospace !important;">{{ facetKey }}</span>-->
+        </v-list-item-title>
+      </template>
+      <v-data-table
+          :headers="tableHeaders"
+          :items="tableItems"
+          hide-default-footer
+          hide-default-header
+          show-select
+          item-key="value"
+          v-model="selected"
+          class="facet-values-table"
+          dense
+      ></v-data-table>
+    </v-list-group>
 
   </v-list>
 
@@ -33,8 +33,9 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../facetConfigs";
-import {createFilter} from "../filterConfigs";
+import {filtersAsUrlStr, createDisplayFilter} from "../filterConfigs";
 import {makeFacet} from "../facetConfigs";
+
 import {api} from "../api";
 
 export default {
@@ -52,6 +53,7 @@ export default {
     return {
       loading: false,
       facet: null,
+      unselctedFilters: [],
     }
   },
   computed: {
@@ -65,32 +67,29 @@ export default {
       return facetConfigs().find(c => c.key === this.facetKey).displayName
     },
     tableItems() {
-      return this.$store.state.filterObjects
-          .filter(f => {
-            return f.key === this.facetKey
-          })
-          // .slice(0, 5)
+      return this.unselctedFilters
+          .slice(0, 5)
           .map(group => { // work with a copy
             return group
           })
     },
     tableHeaders() {
       return [
-        {sortable: false, value: "displayName",},
+        {sortable: false, value: "displayValue",},
         {sortable: false, value: "count", align: "end"},
       ]
     },
     selected: {
       get() {
-        return this.$store.state.appliedFilterObjects
+        return this.$store.state.inputFilters
             .filter(f => {
               return f.key === this.facetKey
             })
       },
-      set(selectedFilters) {
-        console.log("set selectedFilters", selectedFilters)
-        const filtersToAdd = selectedFilters
-        const filterIdsToRemoveFirst = this.tableItems.map(f => f.id) // all of them for this facet
+      set(selectedRows) {
+        console.log(`Facet "${this.facetKey}": set selectedRows`, selectedRows)
+        const filtersToAdd = selectedRows
+        const filterIdsToRemoveFirst = this.tableItems.map(f => f.asStr) // all of them for this facet
         this.$store.dispatch("setAppliedFilters", {filtersToAdd, filterIdsToRemoveFirst})
       }
     },
@@ -109,8 +108,10 @@ export default {
       return this.$route.params.id
     },
     apiQuery() {
-      const query = {
+      console.log("facet apiquery", this.$store.getters.filtersForUrl)
+      return {
         group_by: this.facetKey,
+        filter: filtersAsUrlStr(this.$store.getters.filtersForUrl, this.facetKey)
       }
     },
   },
@@ -122,8 +123,17 @@ export default {
     async setFilterValues() {
       const resp = await api.get(
           this.$store.state.entityType,
-          this.apiUrl
+          this.apiQuery,
       )
+      console.log("got filterValues back", resp)
+      this.unselctedFilters = resp.group_by.map(group => {
+        return createDisplayFilter(
+            this.facetKey,
+            group.key,
+            group.key_display_name,
+            group.count
+        )
+      })
     }
   },
 
@@ -133,8 +143,12 @@ export default {
 
   },
   watch: {
-    "filtersAsString": function(newVal, oldVal){
-      console.log("$store.state.appliedFilterObjects changed", this.facetKey, newVal, oldVal)
+    "filtersAsString": {
+      immediate: true,
+      handler(newVal, oldVal) {
+        console.log("$store.state.appliedFilterObjects changed", this.facetKey, newVal)
+        this.setFilterValues()
+      },
     }
   }
 }

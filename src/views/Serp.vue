@@ -10,20 +10,20 @@
           <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
           <pre>{{ $store.state.inputFilters }}</pre>
 
-          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">
-            <filter-chip
-                v-for="f in $store.state.appliedFilterObjects"
-                :key="f.id"
-                :filter="f"
-                :filter-key="f.key"
-                :filter-value="f.value"
-                :filter-dispay-name="f.displayName"
-                class="mr-2"
-            >
-              {{ f.key }}: {{ f.value }}
-            </filter-chip>
+<!--          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">-->
+<!--            <filter-chip-->
+<!--                v-for="f in $store.state.appliedFilterObjects"-->
+<!--                :key="f.id"-->
+<!--                :filter="f"-->
+<!--                :filter-key="f.key"-->
+<!--                :filter-value="f.value"-->
+<!--                :filter-dispay-name="f.displayName"-->
+<!--                class="mr-2"-->
+<!--            >-->
+<!--              {{ f.key }}: {{ f.value }}-->
+<!--            </filter-chip>-->
 
-          </div>
+<!--          </div>-->
 
           <div class="d-flex align-end mb-6">
             <div class="body-1 grey--text">

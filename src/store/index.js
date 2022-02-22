@@ -58,7 +58,7 @@ const stateDefaults = function () {
         entityType: null,
 
         inputFilters: [],
-        resultFilters: [],
+        resultsFilters: [],
 
         filterObjects: [],
         appliedFilterObjects: [],
@@ -150,16 +150,16 @@ export default new Vuex.Store({
 
             console.log("setAppliedFilters", filtersToAdd, filterIdsToRemoveFirst)
             // important to do the removal first:
-            const filteredFilters = state.appliedFilterObjects.filter(f => {
+            const filteredFilters = state.inputFilters.filter(f => {
                 return !filterIdsToRemoveFirst.includes(f.id)
             })
 
             // then do the adding:
-            state.appliedFilterObjects = [...filteredFilters, ...filtersToAdd]
+            state.inputFilters = [...filteredFilters, ...filtersToAdd]
 
             // refresh the whole search
             commit("setPage", 1)
-            // await dispatch("doSearch")
+            await dispatch("doSearch")
         },
 
 
@@ -189,24 +189,14 @@ export default new Vuex.Store({
                 state.results = resp.results
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
+
+                const path = `${state.entityType}/filters/${getters.filtersAsString}`
+                state.resultsFilters = await api.get(path)
+
             } finally {
                 state.isLoading = false
             }
 
-            // get the groupBy filters, including their counts
-            const facetFilters = []
-            for (let i = 0; i < getters.searchFacetConfigs.length; i++) {
-                const config = getters.searchFacetConfigs[i]
-                const resp = await api.get(state.entityType, getters.groupByQuery(config.key))
-
-                resp.group_by.slice(0, 4).forEach(group => {
-                    const myFilter = createFilter(config.key, group.key)
-                    myFilter.count = group.count
-                    facetFilters.push(myFilter)
-                })
-            }
-            state.filterObjects = facetFilters
-            state.filterObjects = await addDisplayNamesToFilters(facetFilters)
         },
 
 
@@ -256,10 +246,13 @@ export default new Vuex.Store({
                 })
         },
         filtersAsString(state, getters) {
-            return filtersAsUrlStr([
+            return filtersAsUrlStr(getters.filtersForUrl)
+        },
+        filtersForUrl(state, getters) {
+            return [
                 ...state.inputFilters,
                 getters.textSearchFilter
-            ])
+            ]
         },
         textSearchFilter(state, getters){
             return createSimpleFilter("display_name.search", state.textSearch)
