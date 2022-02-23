@@ -8,14 +8,16 @@
         class=""
 
     >
-      <router-link style="min-width: 330px;" to="/" class=" text-decoration-none">
+      <router-link to="/" class="logo-link">
         <img
-            src="@/assets/explore-OpenAlex-logo.png"
-            style="height: 40px;"
+            src="@/assets/openalex-logo-icon.png"
+            class="logo-icon"
         />
+        <span class="logo-text">
+          OpenAlex
+        </span>
       </router-link>
 
-      <v-spacer></v-spacer>
       <search-box v-if="$route.name !== 'Home'" :allow-all-entities="false"/>
       <v-spacer></v-spacer>
 
@@ -53,20 +55,20 @@
 
     </v-app-bar>
 
-<!--    <v-navigation-drawer app clipped>-->
-<!--      hi-->
-<!--    </v-navigation-drawer>-->
+    <!--    <v-navigation-drawer app clipped>-->
+    <!--      hi-->
+    <!--    </v-navigation-drawer>-->
 
     <v-main>
       <v-container>
-      <v-alert v-if="0" text outlined type="warning">
-        <strong>Under construction.</strong>
-        This website officially launches February 2022.
-      </v-alert>
+        <v-alert v-if="0" text outlined type="warning">
+          <strong>Under construction.</strong>
+          This website officially launches February 2022.
+        </v-alert>
 
       </v-container>
-<!--      <router-view :key="$route.fullPath"/>-->
-      <router-view />
+      <!--      <router-view :key="$route.fullPath"/>-->
+      <router-view/>
     </v-main>
 
     <v-footer
@@ -90,7 +92,7 @@
           </v-col>
           <v-col cols="12" sm="4" class="text-center">
             <router-link to="/">
-              <img class="site-footer-logo" src="@/assets/openalex-logo-icon.png" alt=""/>
+              <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
             </router-link>
           </v-col>
           <v-col cols="12" sm="4" class="body-2">
@@ -141,6 +143,29 @@ export default {
   opacity: 0.05 !important;
 }
 
+.logo-link {
+  text-decoration: none;
+  width: 500px;
+  display: flex;
+  align-items: center;
+  padding-left: 7px;
+  .logo-icon {
+    height: 45px;
+  }
+  .logo-text {
+    padding: 0 14px;
+    margin: 5px 15px;
+    line-height: 1.2;
+    border-left: 1px solid #333;
+    color: #000;
+    font-family: Dosis;
+    letter-spacing: .03em;
+    font-size: 30px;
+    font-weight: 300;
+  }
+
+}
+
 .v-btn--active.no-active {
   //text-decoration: underline !important;
   //border-bottom: 3px solid #333;
@@ -148,6 +173,7 @@ export default {
 
 body {
   font-size: 18px;
+
   .v-application {
     .body-1, .body-2 {
       letter-spacing: normal !important;

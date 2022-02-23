@@ -1,31 +1,31 @@
 <template>
-  <div class="entity-page mt-2 pa-0">
-    <div class="d-flex" style="max-width: 1500px;">
-      <div style="min-width: 350px;" class="px-4">
+  <div class="serp-page mt-2 pa-0">
+    <div class="serp-container">
+      <div class="facets-panel-container">
         <facets-panel/>
       </div>
       <div>
-        <div class="search-results-meta mt-1" style="width: 100%;">
+        <div class="search-results-meta" style="width: 100%;">
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
-          <pre>{{ $store.state.resultsFilters }}</pre>
+          <!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
 
-<!--          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">-->
-<!--            <filter-chip-->
-<!--                v-for="f in $store.state.appliedFilterObjects"-->
-<!--                :key="f.id"-->
-<!--                :filter="f"-->
-<!--                :filter-key="f.key"-->
-<!--                :filter-value="f.value"-->
-<!--                :filter-dispay-name="f.displayName"-->
-<!--                class="mr-2"-->
-<!--            >-->
-<!--              {{ f.key }}: {{ f.value }}-->
-<!--            </filter-chip>-->
+          <!--          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">-->
+          <!--            <filter-chip-->
+          <!--                v-for="f in $store.state.appliedFilterObjects"-->
+          <!--                :key="f.id"-->
+          <!--                :filter="f"-->
+          <!--                :filter-key="f.key"-->
+          <!--                :filter-value="f.value"-->
+          <!--                :filter-dispay-name="f.displayName"-->
+          <!--                class="mr-2"-->
+          <!--            >-->
+          <!--              {{ f.key }}: {{ f.value }}-->
+          <!--            </filter-chip>-->
 
-<!--          </div>-->
+          <!--          </div>-->
 
-          <div class="d-flex align-end mb-6">
+          <div class="d-flex align-end mb-2">
             <div class="body-1 grey--text">
               <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
               <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
@@ -223,6 +223,17 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.serp-container {
+  max-width: 1500px;
+  display: flex;
+
+.facets-panel-container {
+  min-width: 353px;
+  max-width: 353px;
+  padding: 34px 40px 0 20px;
+}
+
+}
 
 </style>
