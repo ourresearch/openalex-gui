@@ -59,19 +59,37 @@ const filtersFromUrlStr = function (str) {
             })
         }
     })
+
+
     return filters
 }
 
 const filtersAsUrlStr = function (filters, keyToNegate) {
     const keys = filters.filter(f => typeof f.value !== "undefined").map(f => f.key)
     keys.sort()
-    const facetStrings = keys.map(k => {
+    const uniqueKeys = [...new Set(keys)]
+    const facetStrings = uniqueKeys.map(k => {
         const values = filters.filter(f => f.key === k).map(f => f.value)
         let valueString = values.join("|")
         if (keyToNegate === k) valueString = "!" + valueString
         return k + ":" + valueString
     })
     return facetStrings.join(",")
+}
+
+const makeResultsFiltersFromApi = function (apiFacets) {
+    const ret = []
+    apiFacets.forEach(facet => {
+        facet.values.forEach(valueObj => {
+            ret.push(createDisplayFilter(
+                facet.key,
+                valueObj.value,
+                valueObj.display_name,
+                valueObj.count,
+            ))
+        })
+    })
+    return ret
 }
 
 
@@ -124,6 +142,7 @@ export {
     textSearchFromUrlString,
 
     createFilter,
+    makeResultsFiltersFromApi,
     createSimpleFilter,
     createDisplayFilter,
     createFilterId,

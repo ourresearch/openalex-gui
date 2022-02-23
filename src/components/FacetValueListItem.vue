@@ -1,20 +1,22 @@
 <template>
-  <v-list-item
+  <div
+      class="py-1 my-0 d-flex filter-row"
+      v-ripple
   >
-      <v-list-item-action>
-        <v-checkbox></v-checkbox>
-      </v-list-item-action>
-    <v-list-item-content>
-      <div>
-      university of north carolina - west haverbrook
-      </div>
-    </v-list-item-content>
-    <v-list-item-action>
-        <v-list-item-action-text>
-          123,456
-        </v-list-item-action-text>
-      </v-list-item-action>
-  </v-list-item>
+    <div>
+      <v-checkbox dense hide-details class="pa-0 ma-0" v-model="isChecked"/>
+    </div>
+    <div
+        class="body-1 black--text"
+        style="line-height: 1.2; padding-top: 2px;"
+    >
+      {{ filter.displayValue }}
+    </div>
+    <v-spacer></v-spacer>
+    <div class="body-2 grey--text" style="margin: 1px 5px;">
+      {{ filter.count.toLocaleString() }}
+    </div>
+  </div>
 </template>
 
 <script>
@@ -35,14 +37,14 @@ export default {
   },
   components: {},
   props: {
-    value: String,
-    valueDisplayName: String,
-    count: Array,
+    filter: Object,
+    showChecked: Boolean,
   },
   data() {
     return {
       loading: false,
       apiResp: {},
+      isChecked: this.showChecked,
     }
   },
   computed: {
@@ -80,6 +82,8 @@ export default {
     ...mapMutations([]),
     ...mapActions([
       "updateTextSearch",
+      "addInputFilter",
+      "removeInputFilter",
     ]),
     getFilterValue(k) {
 
@@ -94,10 +98,25 @@ export default {
     this.loading = false
 
   },
-  watch: {}
+  watch: {
+    isChecked: {
+      immediate: false,
+      handler(isCheckedNow) {
+        if (isCheckedNow) this.addInputFilter(this.filter)
+        else this.removeInputFilter(this.filter)
+      },
+    },
+  }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.filter-row {
+  cursor: pointer;
+
+  &:hover {
+    background: #eee;
+  }
+}
 
 </style>

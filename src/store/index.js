@@ -9,7 +9,7 @@ import {
     filtersFromUrlStr,
     filtersAsUrlStr,
     textSearchFromUrlString,
-    addDisplayNamesToFilters,
+    makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
 
@@ -145,17 +145,39 @@ export default new Vuex.Store({
             commit("setPage", 1)
             await dispatch("doSearch")
         },
-        // eslint-disable-next-line no-unused-vars
-        async setAppliedFilters({commit, getters, dispatch, state}, {filtersToAdd, filterIdsToRemoveFirst}) {
 
-            console.log("setAppliedFilters", filtersToAdd, filterIdsToRemoveFirst)
+        // eslint-disable-next-line no-unused-vars
+        async addInputFilter({commit, getters, dispatch, state}, filter) {
+            if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
+                console.log("pushing filter", filter)
+                state.inputFilters.push(filter)
+                console.log("state.inputFilters", state.inputFilters)
+            }
+            commit("setPage", 1)
+            await dispatch("doSearch")
+        },
+        // eslint-disable-next-line no-unused-vars
+        async removeInputFilter({commit, getters, dispatch, state}, filter) {
+            state.inputFilters = state.inputFilters.filter(f => {
+                return f.asStr !== filter.asStr
+            })
+            commit("setPage", 1)
+            await dispatch("doSearch")
+        },
+
+
+        // eslint-disable-next-line no-unused-vars
+        async setInputFilters({commit, getters, dispatch, state}, {filtersToAdd, filtersToRemove}) {
+
+            console.log("setInputFilters", filtersToAdd, filtersToRemove)
             // important to do the removal first:
-            const filteredFilters = state.inputFilters.filter(f => {
-                return !filterIdsToRemoveFirst.includes(f.id)
+            const filtersToRemoveAsStrings = filtersToRemove.map(f => f.asStr)
+            const filtersToKeep = state.inputFilters.filter(f => {
+                return !filtersToRemoveAsStrings.includes(f.asStr)
             })
 
             // then do the adding:
-            state.inputFilters = [...filteredFilters, ...filtersToAdd]
+            state.inputFilters = [...filtersToKeep, ...filtersToAdd]
 
             // refresh the whole search
             commit("setPage", 1)
@@ -169,6 +191,7 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
+
             state.isLoading = true
             const routerPushTo = {
                 query: getters.searchQuery,
@@ -190,9 +213,9 @@ export default new Vuex.Store({
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
 
-                const path = `${state.entityType}/filters/${getters.filtersAsString}`
-                state.resultsFilters = await api.get(path)
-
+                const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
+                const filtersResp = await api.get(path)
+                state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
             } finally {
                 state.isLoading = false
             }
@@ -217,25 +240,18 @@ export default new Vuex.Store({
             const query = {
                 page: state.page
             }
-            if (getters.filtersAsString) query.filter = getters.filtersAsString
+            if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
             if (state.sort) query["sort"] = state.sort + ":desc"
-            return query
-        },
-        groupByQuery: (state, getters) => (key) => {
-            const query = {}
-
-            if (getters.filtersAsString) query.filter = getters.filtersAsStringExceptForThisOneKey(key)
-            // if (getters.filtersAsString) query.filter = getters.filtersAsString
-
-
-            query.group_by = key
             return query
         },
         searchApiUrl(state, getters) {
             return api.getUrl(state.entityType, getters.searchQuery)
         },
-
-
+        resultsFiltersAsStringToWatch(state, getters) {
+            const copy = [...state.resultsFilters]
+            copy.sort()
+            return JSON.stringify(copy)
+        },
         searchFacetConfigs(state) {
             return facetConfigs()
                 .filter(config => {
@@ -245,10 +261,12 @@ export default new Vuex.Store({
                     return config.key.indexOf(".search") === -1
                 })
         },
-        filtersAsString(state, getters) {
-            return filtersAsUrlStr(getters.filtersForUrl)
+        inputFiltersAsString(state, getters) {
+            const copy = [...getters.inputFiltersForUrl]
+            copy.sort()
+            return filtersAsUrlStr(copy)
         },
-        filtersForUrl(state, getters) {
+        inputFiltersForUrl(state, getters) {
             return [
                 ...state.inputFilters,
                 getters.textSearchFilter
@@ -257,22 +275,6 @@ export default new Vuex.Store({
         textSearchFilter(state, getters){
             return createSimpleFilter("display_name.search", state.textSearch)
         },
-
-        // this is a yucky hack
-        filtersAsStringExceptForThisOneKey: (state, getters) => (keyToOmit) => {
-            const filterStrings = [...state.appliedFilterObjects]
-                .filter(f => {
-                    return f.key !== keyToOmit
-                })
-                .map(f => f.id)
-
-            if (state.textSearch) {
-                filterStrings.push(`display_name.search:${state.textSearch}`)
-            }
-            filterStrings.sort()
-            return filterStrings.join(",")
-        },
-
 
     },
     modules: {}
