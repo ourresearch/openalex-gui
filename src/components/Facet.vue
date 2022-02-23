@@ -19,28 +19,6 @@
       </div>
 
 
-      <v-data-table
-          v-if="false"
-          :headers="tableHeaders"
-          :items="tableItems"
-          hide-default-footer
-          hide-default-header
-          item-key="value"
-          v-model="selectedFilterValues"
-          class="facet-values-table"
-          dense
-      >
-        <template v-slot:item="row">
-          <facet-value-list-item :filter="row.item"/>
-
-          <!--          <tr>-->
-          <!--          <td>{{ row.item.displayValue }}</td>-->
-          <!--          <td>{{ row.item.count }}</td>-->
-
-          <!--          </tr>-->
-        </template>
-
-      </v-data-table>
     </v-list-group>
 
   </v-list>
@@ -87,7 +65,8 @@ export default {
       return facetConfigs().find(c => c.key === this.facetKey).displayName
     },
     tableItems() {
-      const ret = this.resultsFiltersToShow
+      const ret = [...this.resultsFiltersToShow]
+
       this.potentialFilterValues.slice(0, 5).forEach(f => {
 
         // only push potential filter values if they're not already loaded as
@@ -95,6 +74,9 @@ export default {
         if (!ret.map(f => f.asStr).includes(f.asStr)) {
           ret.push(f)
         }
+      })
+      ret.sort(function(a,b){
+        return a.count > b.count
       })
 
       return ret

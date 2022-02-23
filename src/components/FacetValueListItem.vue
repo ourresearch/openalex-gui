@@ -2,6 +2,7 @@
   <div
       class="py-1 my-0 d-flex filter-row"
       v-ripple
+      @click="isChecked = !isChecked"
   >
     <div>
       <v-checkbox dense hide-details class="pa-0 ma-0" v-model="isChecked"/>
@@ -85,8 +86,8 @@ export default {
       "addInputFilter",
       "removeInputFilter",
     ]),
-    getFilterValue(k) {
-
+    toggleIsChecked() {
+      this.isChecked = !this.isChecked
     }
   },
 
