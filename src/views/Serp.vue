@@ -6,9 +6,9 @@
       </div>
       <div>
         <div class="search-results-meta" style="width: 100%;">
+<!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
-          <!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
 
           <!--          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">-->
           <!--            <filter-chip-->

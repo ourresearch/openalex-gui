@@ -39,6 +39,12 @@ const facetConfigs = function () {
             displayName: "Venues",
             isEntity: true,
         },
+        {
+            key: "institutions.id",
+            entityTypes: ["works"],
+            displayName: "Institution",
+            isEntity: true,
+        },
     ]
     return ret.map(config => {
         return {

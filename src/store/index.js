@@ -148,16 +148,16 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async addInputFilter({commit, getters, dispatch, state}, filter) {
+            console.log("Vuex addInputFilter", filter)
             if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
-                console.log("pushing filter", filter)
                 state.inputFilters.push(filter)
-                console.log("state.inputFilters", state.inputFilters)
             }
             commit("setPage", 1)
             await dispatch("doSearch")
         },
         // eslint-disable-next-line no-unused-vars
         async removeInputFilter({commit, getters, dispatch, state}, filter) {
+            console.log("Vuex removeInputFilter", filter)
             state.inputFilters = state.inputFilters.filter(f => {
                 return f.asStr !== filter.asStr
             })
@@ -165,24 +165,6 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
 
-
-        // eslint-disable-next-line no-unused-vars
-        async setInputFilters({commit, getters, dispatch, state}, {filtersToAdd, filtersToRemove}) {
-
-            console.log("setInputFilters", filtersToAdd, filtersToRemove)
-            // important to do the removal first:
-            const filtersToRemoveAsStrings = filtersToRemove.map(f => f.asStr)
-            const filtersToKeep = state.inputFilters.filter(f => {
-                return !filtersToRemoveAsStrings.includes(f.asStr)
-            })
-
-            // then do the adding:
-            state.inputFilters = [...filtersToKeep, ...filtersToAdd]
-
-            // refresh the whole search
-            commit("setPage", 1)
-            await dispatch("doSearch")
-        },
 
 
         // *****************************************

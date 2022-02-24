@@ -5,7 +5,12 @@
       @click="isChecked = !isChecked"
   >
     <div>
-      <v-checkbox dense hide-details class="pa-0 ma-0" v-model="isChecked"/>
+      <v-checkbox
+          dense
+          hide-details
+          class="pa-0 ma-0"
+          readonly
+          v-model="isChecked"/>
     </div>
     <div
         class="body-1 black--text"
