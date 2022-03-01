@@ -56,6 +56,11 @@ const facetConfigs = function () {
             entityTypes: ["works"],
             displayName: "Open Access",
         },
+        {
+            key: "host_venue.publisher",
+            entityTypes: ["works"],
+            displayName: "Publisher",
+        },
     ]
     return ret.map(config => {
         return {

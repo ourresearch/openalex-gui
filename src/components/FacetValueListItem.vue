@@ -16,7 +16,13 @@
         class="body-1 black--text"
         style="line-height: 1.2; padding-top: 2px;"
     >
-      {{ filter.displayValue }}
+      <span
+        v-if="filter.key === 'host_venue.publisher'"
+        class="text-capitalize"
+      >
+        {{ getPublisherDisplayName(filter.displayValue) }}
+      </span>
+      <span v-else>{{ filter.displayValue }}</span>
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
@@ -33,6 +39,9 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
+const getPublisherDisplayName = function(str){
+  return str.replace("ieee", "IEEE")
+}
 
 export default {
   name: "FacetValueListItem",
@@ -51,6 +60,7 @@ export default {
       loading: false,
       apiResp: {},
       isChecked: this.showChecked,
+      getPublisherDisplayName,
     }
   },
   computed: {
