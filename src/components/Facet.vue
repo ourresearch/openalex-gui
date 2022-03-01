@@ -1,13 +1,29 @@
 <template>
 
   <!--  <v-list-item>-->
-  <v-list>
-    <v-list-group value="true">
+  <v-list
+      class="pa-0 facets-panel"
+      style="border-bottom: 1px solid #ddd;"
+  >
+    <v-list-group
+        :value="resultsFiltersToShow.length"
+        style="padding: 0; min-height: 0; margin-left: 0;"
+    >
       <template v-slot:activator>
-        <v-list-item-title>
-          <strong>{{ displayName }}</strong>
-          <!--        <span class="ml-3 caption grey&#45;&#45;text" style="font-family: monospace !important;">{{ facetKey }}</span>-->
-        </v-list-item-title>
+
+          <v-list-item-title class="facet-heading ma-0 pa-0">
+            <div class="facet-count-container">
+              <v-chip
+                  x-small
+                  class="mb-1 mr-1 px-1"
+                  color="primary"
+                  v-if="resultsFiltersToShow.length > 0"
+              >
+                {{ resultsFiltersToShow.length }}
+              </v-chip>
+            </div>
+            <strong>{{ displayName }}</strong>
+          </v-list-item-title>
       </template>
       <div>
         <facet-value-list-item
@@ -75,7 +91,7 @@ export default {
           ret.push(f)
         }
       })
-      ret.sort(function(a,b){
+      ret.sort(function (a, b) {
         return a.count > b.count
       })
 
@@ -83,9 +99,11 @@ export default {
     },
     apiQuery() {
       console.log("facet apiquery", this.$store.getters.inputFiltersForUrl)
+
+      const myFilters = this.$store.getters.inputFiltersForUrl.filter(f => f.key !== this.facetKey)
       return {
         group_by: this.facetKey,
-        filter: filtersAsUrlStr(this.$store.getters.inputFiltersForUrl, this.facetKey)
+        filter: filtersAsUrlStr(myFilters)
       }
     },
     resultsFiltersToShow() {
@@ -137,20 +155,24 @@ export default {
 </script>
 
 <style lang="scss">
-.v-data-table > .v-data-table__wrapper > table {
-  tr {
-    td {
-      &:first-child {
-        padding: 0 0 0 10px;
-      }
-
-      &:nth-child(2) {
-        padding-left: 3px;
-      }
-    }
-
+.facets-panel {
+  .v-list-item {
+    padding: 0 !important;
   }
+  .facet-heading {
+    display: flex;
+    margin-left: 0;
+    padding-left: 0;
+
+    .facet-count-container {
+      width: 30px;
+      text-align: right;
+      padding-right: 6px;
+    }
+  }
+
 }
+
 
 
 </style>

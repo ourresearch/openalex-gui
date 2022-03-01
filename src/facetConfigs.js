@@ -45,6 +45,17 @@ const facetConfigs = function () {
             displayName: "Institution",
             isEntity: true,
         },
+        {
+            key: "author.id",
+            entityTypes: ["works"],
+            displayName: "Author",
+            isEntity: true,
+        },
+        {
+            key: "oa_status",
+            entityTypes: ["works"],
+            displayName: "Open Access",
+        },
     ]
     return ret.map(config => {
         return {
