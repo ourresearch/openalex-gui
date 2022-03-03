@@ -2,11 +2,15 @@
   <div class="serp-page mt-2 pa-0">
     <div class="serp-container">
       <div class="facets-panel-container">
-        <facets-panel/>
+        <facet
+            v-for="facet in $store.getters.searchFacetConfigs"
+            :key="facet.key"
+            :facet-key="facet.key"
+        ></facet>
       </div>
       <div>
         <div class="search-results-meta" style="width: 100%;">
-<!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
+          <!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
 
@@ -121,7 +125,7 @@ import FilterChip from "../components/FilterChip";
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
-import FacetsPanel from "../components/FacetsPanel";
+import Facet from "../components/Facet/FacetWithOptions";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 
 import ResultWork from "../components/ResultWork";
@@ -138,7 +142,7 @@ export default {
     }
   },
   components: {
-    FacetsPanel,
+    Facet,
     DownloadCsvDialog,
     FilterChip,
     ResultWork,
@@ -228,11 +232,11 @@ export default {
   max-width: 1500px;
   display: flex;
 
-.facets-panel-container {
-  min-width: 353px;
-  max-width: 353px;
-  padding: 34px 40px 0 20px;
-}
+  .facets-panel-container {
+    min-width: 353px;
+    max-width: 353px;
+    padding: 34px 40px 0 20px;
+  }
 
 }
 

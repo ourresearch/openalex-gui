@@ -61,6 +61,16 @@ const facetConfigs = function () {
             entityTypes: ["works"],
             displayName: "Publisher",
         },
+        {
+            key: "institutions.country_code",
+            entityTypes: ["works"],
+            displayName: "Country",
+        },
+        {
+            key: "type",
+            entityTypes: ["works"],
+            displayName: "Type",
+        },
     ]
     return ret.map(config => {
         return {

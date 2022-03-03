@@ -47,13 +47,13 @@
 // import 'vue-json-pretty/lib/styles.css';
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {facetConfigs} from "../facetConfigs";
-import {filtersAsUrlStr, createDisplayFilter} from "../filterConfigs";
-import {makeFacet} from "../facetConfigs";
+import {facetConfigs} from "../../facetConfigs";
+import {filtersAsUrlStr, createDisplayFilter} from "../../filterConfigs";
+import {makeFacet} from "../../facetConfigs";
 
-import {api} from "../api";
+import {api} from "../../api";
 
-import FacetValueListItem from "./FacetValueListItem";
+import FacetValueListItem from "./FacetOption";
 
 export default {
   name: "Facet",

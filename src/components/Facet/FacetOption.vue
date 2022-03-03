@@ -13,16 +13,16 @@
           v-model="isChecked"/>
     </div>
     <div
-        class="body-1 black--text"
+        class="body-1 black--text text-capitalize"
         style="line-height: 1.2; padding-top: 2px;"
     >
       <span
-        v-if="filter.key === 'host_venue.publisher'"
-        class="text-capitalize"
+          v-if="filter.key === 'host_venue.publisher'"
+          class="text-capitalize"
       >
-        {{ getPublisherDisplayName(filter.displayValue) }}
+        {{ prettyDisplayName }}
       </span>
-      <span v-else>{{ filter.displayValue }}</span>
+      <span v-else>{{ prettyDisplayName }}</span>
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
@@ -38,10 +38,6 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-
-const getPublisherDisplayName = function(str){
-  return str.replace("ieee", "IEEE")
-}
 
 export default {
   name: "FacetValueListItem",
@@ -60,7 +56,6 @@ export default {
       loading: false,
       apiResp: {},
       isChecked: this.showChecked,
-      getPublisherDisplayName,
     }
   },
   computed: {
@@ -68,6 +63,17 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
+    prettyDisplayName() {
+      let ret = this.filter.displayValue
+          .replace("ieee", "IEEE")
+          .replace("United States of America", "USA")
+          .replace("United Kingdom of Great Britain and Northern Ireland", "UK")
+
+      if (this.filter.key === "type") {
+        ret = ret.replace("-", " ")
+      }
+      return ret
+    },
     page: {
       get() {
         return this.$store.state.page
