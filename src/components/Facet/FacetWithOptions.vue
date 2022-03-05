@@ -51,8 +51,11 @@
 
     </v-list-group>
 
-    <v-dialog max-width="600" v-model="comboboxDialogIsOpen">
-      <v-card>
+    <v-dialog
+        max-width="600"
+        v-model="comboboxDialogIsOpen"
+    >
+      <v-card :loading="comboboxAddFiltersIsLoading">
         <v-card-title>
           Add filter
         </v-card-title>
@@ -133,7 +136,8 @@ export default {
       comboboxSelect: "",
       comboboxItems: [],
       comboboxSearchString: "",
-      comboboxIsLoading: false,
+      comboboxFetchMatchesIsLoading: false,
+      comboboxAddFiltersIsLoading: false,
     }
   },
   computed: {
@@ -204,13 +208,29 @@ export default {
         )
       })
     },
-    async comboboxAddFilter() {
-      const myFilter = createSimpleFilter(this.facetKey, this.comboboxSelect.id)
-      await this.addInputFilters([myFilter])
+    comboboxReset(){
+      this.comboboxSelect = ""
+      this.comboboxItems = []
+      this.comboboxSearchString = ""
+      this.comboboxFetchMatchesIsLoading = false
+      this.comboboxAddFiltersIsLoading = false
+    },
+    comboboxOpen(){
+      this.comboboxReset()
+      this.comboboxDialogIsOpen = true
+    },
+    comboboxClose(){
+      this.comboboxReset()
       this.comboboxDialogIsOpen = false
     },
+    async comboboxAddFilter() {
+      this.comboboxAddFiltersIsLoading = true
+      const myFilter = createSimpleFilter(this.facetKey, this.comboboxSelect.id)
+      await this.addInputFilters([myFilter])
+      this.comboboxClose()
+    },
     async comboboxFetchMatches() {
-      this.comboboxIsLoading = true
+      this.comboboxFetchMatchesIsLoading = true
 
       const urlObj = new URL("https://api.openalex.org/" + this.myFacetConfig.autocompleteEndpoint);
       urlObj.searchParams.set("email", "team@ourresearch.org")
@@ -225,7 +245,7 @@ export default {
             } else {
               this.comboboxItems = resp.data.results.slice(0, 5)
             }
-            this.loading = false
+            this.comboboxFetchMatchesIsLoading = false
           })
     },
   },
@@ -241,7 +261,10 @@ export default {
         }
     ,
     comboboxSearchString(val) {
-      if (!val) this.items = []
+      if (!val) {
+        this.items = []
+        return
+      }
       this.comboboxFetchMatches(val)
     }
   }
