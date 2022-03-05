@@ -104,8 +104,8 @@ export default {
     ...mapMutations([]),
     ...mapActions([
       "updateTextSearch",
-      "addInputFilter",
-      "removeInputFilter",
+      "addInputFilters",
+      "removeInputFilters",
     ]),
     toggleIsChecked() {
       this.isChecked = !this.isChecked
@@ -124,8 +124,8 @@ export default {
     isChecked: {
       immediate: false,
       handler(isCheckedNow) {
-        if (isCheckedNow) this.addInputFilter(this.filter)
-        else this.removeInputFilter(this.filter)
+        if (isCheckedNow) this.addInputFilters([this.filter])
+        else this.removeInputFilters([this.filter])
       },
     },
   }

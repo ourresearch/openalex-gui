@@ -3,7 +3,6 @@
     outlined
     close
     close-icon="mdi-close"
-    @click:close="removeFilterId(filter.id)"
   >
     {{ getFacetConfig(filterKey, "displayName") }}: {{filterDispayName}}
   </v-chip>
@@ -53,7 +52,6 @@ export default {
 
     ]),
     ...mapActions([
-        "removeFilterId",
 
     ]),
   },

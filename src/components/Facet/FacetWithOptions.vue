@@ -11,31 +11,57 @@
     >
       <template v-slot:activator>
 
-          <v-list-item-title class="facet-heading ma-0 pa-0">
-            <div class="facet-count-container">
-              <v-chip
-                  x-small
-                  class="mb-1 mr-1 px-1"
-                  color="primary"
-                  v-if="resultsFiltersToShow.length > 0"
-              >
-                {{ resultsFiltersToShow.length }}
-              </v-chip>
-            </div>
-            <strong>{{ displayName }}</strong>
-          </v-list-item-title>
+        <v-list-item-title class="facet-heading ma-0 pa-0">
+          <div class="facet-count-container">
+            <v-chip
+                x-small
+                class="mb-1 mr-1 px-1"
+                color="primary"
+                v-if="resultsFiltersToShow.length > 0"
+            >
+              {{ resultsFiltersToShow.length }}
+            </v-chip>
+          </div>
+          <strong>
+            {{ groupByQueryResultsCount }}:
+            {{ displayName }}
+          </strong>
+        </v-list-item-title>
       </template>
       <div>
-        <facet-value-list-item
+        <!--        <facet-option-is-oa-->
+        <!--            v-if="facetKey === 'oa_status'"-->
+        <!--            key="oa_statue"-->
+        <!--        />-->
+
+        <facet-option
             v-for="filter in tableItems"
             :filter="filter"
             :show-checked="filter.isResultsFilter"
             :key="filter.asStr"
         />
+        <div
+            class="more-link ml-5 mt-1"
+            v-if="groupByQueryResultsCount > maxPotentialFiltersToShow"
+            @click="isCustomFilterDialogOpen = true"
+        >
+          <v-btn small plain>more</v-btn>
+        </div>
       </div>
 
 
     </v-list-group>
+
+    <v-dialog v-model="isCustomFilterDialogOpen">
+      <v-card>
+        <v-card-title>
+          Add filter
+        </v-card-title>
+        <div class="pa-4">
+          <div class="">do the adding...</div>
+        </div>
+      </v-card>
+    </v-dialog>
 
   </v-list>
 
@@ -53,12 +79,14 @@ import {makeFacet} from "../../facetConfigs";
 
 import {api} from "../../api";
 
-import FacetValueListItem from "./FacetOption";
+import FacetOption from "./FacetOption";
+import FacetOptionIsOa from "./FacetOptionIsOa";
 
 export default {
-  name: "Facet",
+  name: "FacetWithOptions",
   components: {
-    FacetValueListItem,
+    FacetOption,
+    FacetOptionIsOa,
   },
   props: {
     facetKey: String,
@@ -66,8 +94,11 @@ export default {
   data() {
     return {
       loading: false,
+      isCustomFilterDialogOpen: false,
       facet: null,
       potentialFilterValues: [],
+      groupByQueryResultsCount: null,
+      maxPotentialFiltersToShow: 5,
     }
   },
   computed: {
@@ -83,7 +114,7 @@ export default {
     tableItems() {
       const ret = [...this.resultsFiltersToShow]
 
-      this.potentialFilterValues.slice(0, 5).forEach(f => {
+      this.potentialFilterValues.slice(0, this.maxPotentialFiltersToShow).forEach(f => {
 
         // only push potential filter values if they're not already loaded as
         // in a resultsFilter
@@ -126,6 +157,7 @@ export default {
           this.$store.state.entityType,
           this.apiQuery,
       )
+      this.groupByQueryResultsCount = resp.meta.count
       this.potentialFilterValues = resp.group_by.map(group => {
         return createDisplayFilter(
             this.facetKey,
@@ -159,6 +191,7 @@ export default {
   .v-list-item {
     padding: 0 !important;
   }
+
   .facet-heading {
     display: flex;
     margin-left: 0;
@@ -172,7 +205,6 @@ export default {
   }
 
 }
-
 
 
 </style>

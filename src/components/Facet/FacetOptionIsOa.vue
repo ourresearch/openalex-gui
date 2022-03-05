@@ -16,11 +16,13 @@
         class="body-1 black--text"
         style="line-height: 1.2; padding-top: 2px;"
     >
-      {{ filter.displayValue }}
+      Is free to read
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
-      {{ filter.count.toLocaleString() }}
+<!--      {{ filter.count.toLocaleString() }} -->
+
+      42
     </div>
   </div>
 </template>
@@ -43,6 +45,7 @@ export default {
   },
   data() {
     return {
+      isChecked: false,
     }
   },
   computed: {
@@ -50,38 +53,13 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
-    page: {
-      get() {
-        return this.$store.state.page
-      },
-      set(val) {
-        this.$store.dispatch("setPage", val)
-      }
-    },
-    sort: {
-      get() {
-        return this.$store.getters.sortObject
-      },
-      set(val) {
-        this.$store.dispatch("setSort", val)
-      }
-    },
-    entityType() {
-      return this.$route.params.entityType
-    },
-    entityId() {
-      return this.$route.params.id
-    },
-    apiUrl() {
-      return `/${this.entityType}/${this.entityId}`
-    },
   },
   methods: {
     ...mapMutations([]),
     ...mapActions([
       "updateTextSearch",
-      "addInputFilter",
-      "removeInputFilter",
+      "addInputFilters",
+      "removeInputFilters",
     ]),
     toggleIsChecked() {
       this.isChecked = !this.isChecked
@@ -91,17 +69,16 @@ export default {
   created() {
   },
   async mounted() {
-    this.loading = true
-    // this.apiResp = await api.get(this.apiUrl)
-    this.loading = false
 
   },
   watch: {
     isChecked: {
       immediate: false,
       handler(isCheckedNow) {
-        if (isCheckedNow) this.addInputFilter(this.filter)
-        else this.removeInputFilter(this.filter)
+        console.log("FacetOptionIsOa: check me out")
+
+        // if (isCheckedNow) this.addInputFilters([this.filter])
+        // else this.removeInputFilterss([this.filter])
       },
     },
   }

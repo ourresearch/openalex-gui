@@ -99,6 +99,16 @@ export default new Vuex.Store({
             }
             state.sort = sortKey
         },
+        addInputFilter(state, filter) {
+            if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
+                state.inputFilters.push(filter)
+            }
+        },
+        removeInputFilter(state, filter) {
+            state.inputFilters = state.inputFilters.filter(f => {
+                return f.asStr !== filter.asStr
+            })
+        },
 
 
     },
@@ -137,34 +147,25 @@ export default new Vuex.Store({
             commit("setPage", newPage)
             await dispatch("doSearch")
         },
+
         // eslint-disable-next-line no-unused-vars
-        async removeFilterId({commit, getters, dispatch, state}, filterId) {
-            state.appliedFilterObjects = state.appliedFilterObjects.filter(f => {
-                return f.id !== filterId
+        async addInputFilters({commit, getters, dispatch, state}, filters) {
+            console.log("Vuex addInputFilters", filters)
+            filters.forEach(f => {
+                commit("addInputFilter", f)
             })
             commit("setPage", 1)
             await dispatch("doSearch")
         },
-
         // eslint-disable-next-line no-unused-vars
-        async addInputFilter({commit, getters, dispatch, state}, filter) {
-            console.log("Vuex addInputFilter", filter)
-            if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
-                state.inputFilters.push(filter)
-            }
-            commit("setPage", 1)
-            await dispatch("doSearch")
-        },
-        // eslint-disable-next-line no-unused-vars
-        async removeInputFilter({commit, getters, dispatch, state}, filter) {
-            console.log("Vuex removeInputFilter", filter)
-            state.inputFilters = state.inputFilters.filter(f => {
-                return f.asStr !== filter.asStr
+        async removeInputFilters({commit, getters, dispatch, state}, filters) {
+            console.log("Vuex removeInputFilters", filters)
+            filters.forEach(f => {
+                commit("removeInputFilter", f)
             })
             commit("setPage", 1)
             await dispatch("doSearch")
         },
-
 
 
         // *****************************************
@@ -254,7 +255,7 @@ export default new Vuex.Store({
                 getters.textSearchFilter
             ]
         },
-        textSearchFilter(state, getters){
+        textSearchFilter(state, getters) {
             return createSimpleFilter("display_name.search", state.textSearch)
         },
 
