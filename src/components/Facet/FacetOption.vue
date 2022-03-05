@@ -61,7 +61,6 @@ export default {
   computed: {
     ...mapGetters([
       "searchApiUrl",
-      "sortOptions",
     ]),
     prettyDisplayName() {
       let ret = this.filter.displayValue
@@ -73,22 +72,6 @@ export default {
         ret = ret.replace("-", " ")
       }
       return ret
-    },
-    page: {
-      get() {
-        return this.$store.state.page
-      },
-      set(val) {
-        this.$store.dispatch("setPage", val)
-      }
-    },
-    sort: {
-      get() {
-        return this.$store.getters.sortObject
-      },
-      set(val) {
-        this.$store.dispatch("setSort", val)
-      }
     },
     entityType() {
       return this.$route.params.entityType

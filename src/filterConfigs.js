@@ -100,7 +100,6 @@ const createFilterValue = function (rawValue) {
     return rawValue
 }
 
-// change name to createFilter() after refactor
 const createSimpleFilter = function (key, value) {
     const cleanValue = createFilterValue(value)
     return {
@@ -120,28 +119,11 @@ const createDisplayFilter = function (key, value, displayValue, count) {
 }
 
 
-// goal is to completely replace this with createSimpleFilter() and createDisplayFilter()
-const createFilter = function (key, value, displayName, count) {
-    if (typeof value === "string") {
-        value = value.replace("https://openalex.org/", "")
-    }
-
-    return {
-        id: createFilterId(key, value),
-        key,
-        value,
-        count: null,
-        displayName: displayName ?? value,
-        isEntity: entityKeys.includes(key)
-    }
-}
-
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
     textSearchFromUrlString,
 
-    createFilter,
     makeResultsFiltersFromApi,
     createSimpleFilter,
     createDisplayFilter,

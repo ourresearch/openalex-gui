@@ -23,8 +23,7 @@
             </v-chip>
           </div>
           <strong>
-            {{ groupByQueryResultsCount }}:
-            {{ displayName }}
+            {{ myFacetConfig.displayName }}
           </strong>
         </v-list-item-title>
       </template>
@@ -43,7 +42,7 @@
         <div
             class="more-link ml-5 mt-1"
             v-if="groupByQueryResultsCount > maxPotentialFiltersToShow"
-            @click="isCustomFilterDialogOpen = true"
+            @click="comboboxDialogIsOpen = true"
         >
           <v-btn small plain>more</v-btn>
         </div>
@@ -52,13 +51,42 @@
 
     </v-list-group>
 
-    <v-dialog v-model="isCustomFilterDialogOpen">
+    <v-dialog max-width="600" v-model="comboboxDialogIsOpen">
       <v-card>
         <v-card-title>
           Add filter
         </v-card-title>
         <div class="pa-4">
-          <div class="">do the adding...</div>
+          <form class="main-search">
+            <v-combobox
+                v-model="comboboxSelect"
+                :items="comboboxItems"
+                :search-input.sync="comboboxSearchString"
+                class="mr-12"
+                flat
+                outlined
+                dense
+                solo
+                hide-details
+                item-text="display_name"
+                item-value="id"
+                :loading="loading"
+                @input="comboboxAddFilter"
+                autofocus
+                clearable
+            >
+              <template v-slot:item="data">
+                <v-list-item-content>
+                  <div>
+                    <div>
+                      {{ data.item.display_name }}
+                    </div>
+                  </div>
+                </v-list-item-content>
+              </template>
+            </v-combobox>
+
+          </form>
         </div>
       </v-card>
     </v-dialog>
@@ -74,13 +102,15 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../../facetConfigs";
-import {filtersAsUrlStr, createDisplayFilter} from "../../filterConfigs";
+import {filtersAsUrlStr, createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
 import {makeFacet} from "../../facetConfigs";
 
 import {api} from "../../api";
 
 import FacetOption from "./FacetOption";
 import FacetOptionIsOa from "./FacetOptionIsOa";
+import axios from "axios";
+import {entityConfigs} from "../../entityConfigs";
 
 export default {
   name: "FacetWithOptions",
@@ -94,11 +124,16 @@ export default {
   data() {
     return {
       loading: false,
-      isCustomFilterDialogOpen: false,
+      comboboxDialogIsOpen: false,
       facet: null,
       potentialFilterValues: [],
       groupByQueryResultsCount: null,
       maxPotentialFiltersToShow: 5,
+
+      comboboxSelect: "",
+      comboboxItems: [],
+      comboboxSearchString: "",
+      comboboxIsLoading: false,
     }
   },
   computed: {
@@ -108,8 +143,8 @@ export default {
       "appliedFilters",
       "inputFiltersAsString",
     ]),
-    displayName() {
-      return facetConfigs().find(c => c.key === this.facetKey).displayName
+    myFacetConfig() {
+      return facetConfigs().find(c => c.key === this.facetKey)
     },
     tableItems() {
       const ret = [...this.resultsFiltersToShow]
@@ -147,10 +182,12 @@ export default {
           })
     },
   },
+
+
   methods: {
     ...mapMutations([]),
     ...mapActions([
-      "updateTextSearch",
+      "addInputFilters",
     ]),
     async setFilterValues() {
       const resp = await api.get(
@@ -166,22 +203,47 @@ export default {
             group.count
         )
       })
-    }
-  },
+    },
+    async comboboxAddFilter() {
+      const myFilter = createSimpleFilter(this.facetKey, this.comboboxSelect.id)
+      await this.addInputFilters([myFilter])
+      this.comboboxDialogIsOpen = false
+    },
+    async comboboxFetchMatches() {
+      this.comboboxIsLoading = true
 
-  created() {
-  },
-  async mounted() {
+      const urlObj = new URL("https://api.openalex.org/" + this.myFacetConfig.autocompleteEndpoint);
+      urlObj.searchParams.set("email", "team@ourresearch.org")
+      urlObj.searchParams.set("q", this.comboboxSearchString)
+      const url = urlObj.toString()
 
+      axios.get(url)
+          .then(resp => {
+            if (!this.comboboxSearchString) {
+              console.log("no search string, clearing items")
+              this.comboboxItems = []
+            } else {
+              this.comboboxItems = resp.data.results.slice(0, 5)
+            }
+            this.loading = false
+          })
+    },
   },
   watch: {
-    "$store.getters.resultsFiltersAsStringToWatch": {
-      immediate: false,
-      handler(newVal, oldVal) {
-        console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
-        this.setFilterValues()
-      },
-    },
+    "$store.getters.resultsFiltersAsStringToWatch":
+        {
+          immediate: false,
+          handler(newVal, oldVal) {
+            console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
+            this.setFilterValues()
+          }
+          ,
+        }
+    ,
+    comboboxSearchString(val) {
+      if (!val) this.items = []
+      this.comboboxFetchMatches(val)
+    }
   }
 }
 </script>

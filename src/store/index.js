@@ -5,7 +5,6 @@ import router from "../router";
 import {api} from "../api";
 import {facetConfigs} from "../facetConfigs";
 import {
-    createFilter,
     filtersFromUrlStr,
     filtersAsUrlStr,
     textSearchFromUrlString,
