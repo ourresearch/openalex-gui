@@ -22,7 +22,7 @@ const facetConfigs = function () {
             displayName: "Name",
         },
         {
-            key: "x-concepts.id",
+            key: "x_concepts.id",
             entityTypes: ["authors", "institutions", "venues"],
             displayName: "Concepts",
             isEntity: true,
