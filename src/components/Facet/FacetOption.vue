@@ -50,6 +50,7 @@ export default {
   props: {
     filter: Object,
     showChecked: Boolean,
+    indent: Boolean,
   },
   data() {
     return {
@@ -71,6 +72,15 @@ export default {
       if (this.filter.key === "type") {
         ret = ret.replace("-", " ")
       }
+      if (this.filter.key === 'oa_status') {
+        ret = ret.replace("hybrid", "hybrid OA")
+            .replace("gold", "gold OA")
+            .replace("green", "gold OA")
+            .replace("bronze", "gold OA")
+            .replace("closed", "paywalled")
+      }
+
+
       return ret
     },
     entityType() {

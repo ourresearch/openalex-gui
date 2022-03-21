@@ -28,16 +28,17 @@
         </v-list-item-title>
       </template>
       <div>
-        <facet-option-is-oa
-            v-if="facetKey === 'oa_status'"
-            key="oa_status"
-        />
+<!--        <facet-option-is-oa-->
+<!--            v-if="facetKey === 'oa_status'"-->
+<!--            key="oa_status"-->
+<!--        />-->
 
         <facet-option
             v-for="filter in tableItems"
             :filter="filter"
             :show-checked="filter.isResultsFilter"
             :key="filter.asStr + filter.isResultsFilter"
+            :indent="facetKey === 'oa_status' && filter.value != 'closed'"
         />
         <div
             class="more-link ml-5 mt-1"

@@ -17,13 +17,12 @@
         class="body-1 black--text"
         style="line-height: 1.2; padding-top: 2px;"
     >
-      Free to read
+      All OA
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
       <!--      {{ filter.count.toLocaleString() }} -->
 
-      42
     </div>
   </div>
 </template>
