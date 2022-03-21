@@ -2,7 +2,7 @@
   <div
       class="py-1 my-0 d-flex filter-row"
       v-ripple
-      @click="isChecked = !isChecked"
+      @click="clickHandler"
   >
     <div>
       <v-checkbox
@@ -10,17 +10,18 @@
           hide-details
           class="pa-0 ma-0"
           readonly
+          :indeterminate="isIndeterminate"
           v-model="isChecked"/>
     </div>
     <div
         class="body-1 black--text"
         style="line-height: 1.2; padding-top: 2px;"
     >
-      Is free to read
+      Free to read
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
-<!--      {{ filter.count.toLocaleString() }} -->
+      <!--      {{ filter.count.toLocaleString() }} -->
 
       42
     </div>
@@ -34,6 +35,14 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
+import {createSimpleFilter} from "../../filterConfigs";
+
+const oaFilterValues = ["gold", "bronze", "green", "hybrid",]
+const makeOaFilters = function () {
+  return oaFilterValues.map(v => {
+    return createSimpleFilter("oa_status", v)
+  })
+}
 
 
 export default {
@@ -46,6 +55,7 @@ export default {
   data() {
     return {
       isChecked: false,
+      isIndeterminate: false,
     }
   },
   computed: {
@@ -53,6 +63,20 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
+    oaResultsFilterValues(){
+      return this.$store.state.resultsFilters.filter(f => f.key === "oa_status").map(f => f.value)
+    },
+    everyOaFilterIsSet() {
+      return oaFilterValues.every(oaValue => {
+          return this.oaResultsFilterValues.includes(oaValue)
+        })
+    },
+    someOaFiltersAreSet(){
+      return oaFilterValues.some(oaValue => {
+          return this.oaResultsFilterValues.includes(oaValue)
+        })
+    }
+
   },
   methods: {
     ...mapMutations([]),
@@ -63,6 +87,14 @@ export default {
     ]),
     toggleIsChecked() {
       this.isChecked = !this.isChecked
+    },
+    clickHandler(){
+      this.isChecked = !this.isChecked
+      this.isIndeterminate = false
+
+      const oaFilters = makeOaFilters()
+      if (this.isChecked) this.addInputFilters(oaFilters)
+      else this.removeInputFilters(oaFilters)
     }
   },
 
@@ -72,14 +104,23 @@ export default {
 
   },
   watch: {
-    isChecked: {
-      immediate: false,
-      handler(isCheckedNow) {
-        console.log("FacetOptionIsOa: check me out")
-
-        // if (isCheckedNow) this.addInputFilters([this.filter])
-        // else this.removeInputFilterss([this.filter])
-      },
+    // isChecked: {
+    //   immediate: false,
+    //   handler(isCheckedNow) {
+    //     const oaFilters = makeOaFilters()
+    //     console.log("FacetOptionIsOa: check me out", isCheckedNow, oaFilters)
+    //
+    //     if (isCheckedNow) this.addInputFilters(oaFilters)
+    //     else this.removeInputFilters(oaFilters)
+    //   },
+    // },
+    "$store.getters.resultsFiltersAsStringToWatch": {
+      immediate: true,
+      handler(newVal, oldVal) {
+        this.isIndeterminate = this.someOaFiltersAreSet && !this.everyOaFilterIsSet
+        this.isChecked = this.someOaFiltersAreSet
+      }
+      ,
     },
   }
 }

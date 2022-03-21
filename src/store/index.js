@@ -257,6 +257,10 @@ export default new Vuex.Store({
         textSearchFilter(state, getters) {
             return createSimpleFilter("display_name.search", state.textSearch)
         },
+        allOaStatusFiltersAreActive(state) {
+            const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")
+
+        }
 
     },
     modules: {}

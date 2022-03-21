@@ -28,16 +28,16 @@
         </v-list-item-title>
       </template>
       <div>
-        <!--        <facet-option-is-oa-->
-        <!--            v-if="facetKey === 'oa_status'"-->
-        <!--            key="oa_statue"-->
-        <!--        />-->
+        <facet-option-is-oa
+            v-if="facetKey === 'oa_status'"
+            key="oa_status"
+        />
 
         <facet-option
             v-for="filter in tableItems"
             :filter="filter"
             :show-checked="filter.isResultsFilter"
-            :key="filter.asStr"
+            :key="filter.asStr + filter.isResultsFilter"
         />
         <div
             class="more-link ml-5 mt-1"
@@ -106,14 +106,23 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {facetConfigs} from "../../facetConfigs";
 import {filtersAsUrlStr, createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
-import {makeFacet} from "../../facetConfigs";
 
 import {api} from "../../api";
 
 import FacetOption from "./FacetOption";
 import FacetOptionIsOa from "./FacetOptionIsOa";
 import axios from "axios";
-import {entityConfigs} from "../../entityConfigs";
+
+
+const compareByCount = function (a, b) {
+  if (a.count < b.count) {
+    return -1;
+  }
+  if (a.count > b.count) {
+    return 1;
+  }
+  return 0;
+}
 
 export default {
   name: "FacetWithOptions",
@@ -151,7 +160,8 @@ export default {
       return facetConfigs().find(c => c.key === this.facetKey)
     },
     tableItems() {
-      const ret = [...this.resultsFiltersToShow]
+      let ret = [...this.resultsFiltersToShow]
+      console.log(this.facetKey, "tableItems", ret, this.potentialFilterValues.slice(0, 5))
 
       this.potentialFilterValues.slice(0, this.maxPotentialFiltersToShow).forEach(f => {
 
@@ -161,9 +171,9 @@ export default {
           ret.push(f)
         }
       })
-      ret.sort(function (a, b) {
-        return a.count > b.count
-      })
+      console.log(this.facetKey, "tableItems before sorting", ret)
+      ret.sort(compareByCount)
+      console.log(this.facetKey, "tableItems after sorting", ret)
 
       return ret
     },
@@ -177,6 +187,10 @@ export default {
       }
     },
     resultsFiltersToShow() {
+      // these ones are already selected by the user. we got them from the store,
+      // which refreshes them from the server every time we search.
+      // (which may have gotten from either user action or the URL)
+      console.log(this.facetKey, " resultsFiltersToShow")
       return this.$store.state.resultsFilters
           .filter(f => {
             return f.key === this.facetKey
@@ -208,18 +222,18 @@ export default {
         )
       })
     },
-    comboboxReset(){
+    comboboxReset() {
       this.comboboxSelect = ""
       this.comboboxItems = []
       this.comboboxSearchString = ""
       this.comboboxFetchMatchesIsLoading = false
       this.comboboxAddFiltersIsLoading = false
     },
-    comboboxOpen(){
+    comboboxOpen() {
       this.comboboxReset()
       this.comboboxDialogIsOpen = true
     },
-    comboboxClose(){
+    comboboxClose() {
       this.comboboxReset()
       this.comboboxDialogIsOpen = false
     },
@@ -250,16 +264,14 @@ export default {
     },
   },
   watch: {
-    "$store.getters.resultsFiltersAsStringToWatch":
-        {
-          immediate: false,
-          handler(newVal, oldVal) {
-            console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
-            this.setFilterValues()
-          }
-          ,
-        }
-    ,
+    "$store.getters.resultsFiltersAsStringToWatch": {
+      immediate: false,
+      handler(newVal, oldVal) {
+        // console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
+        this.setFilterValues()
+      }
+      ,
+    },
     comboboxSearchString(val) {
       if (!val) {
         this.items = []
