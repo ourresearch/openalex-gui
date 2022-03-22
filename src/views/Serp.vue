@@ -8,7 +8,7 @@
             :facet-key="facet.key"
         ></facet>
       </div>
-      <div v-if="$store.state.resultsCount !== null">
+      <div class="flex-fill" v-if="$store.state.resultsCount !== null">
         <div class="search-results-meta" style="width: 100%;">
           <!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
 
@@ -35,24 +35,14 @@
               <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
             </div>
             <v-spacer/>
-            <div style="max-width: 130px; margin-right: 30px;">
-              <v-select
-                  v-model="sort"
-                  item-text="displayName"
-                  item-value="key"
-                  :items="$store.getters.sortObjectOptions"
-                  label="Sort by"
-                  dense
-                  hide-details
 
-              ></v-select>
-            </div>
 
 
             <v-menu offset-y>
               <template v-slot:activator="{on}">
-                <v-btn icon v-on="on">
-                  <v-icon color="gr">mdi-cloud-download-outline</v-icon>
+                <v-btn text small v-on="on">
+                  <v-icon small left>mdi-download-outline</v-icon>
+                  export
                 </v-btn>
               </template>
               <v-list>
@@ -72,6 +62,28 @@
                 </v-list-item>
               </v-list>
             </v-menu>
+
+            <v-btn
+                text
+                small
+              >
+              <v-icon small left>mdi-bell-outline</v-icon>
+              Create alert
+            </v-btn>
+
+
+            <div style="max-width: 130px; margin: 0 20px; padding-bottom: 3px;">
+              <v-select
+                  v-model="sort"
+                  item-text="displayName"
+                  item-value="key"
+                  :items="$store.getters.sortObjectOptions"
+                  label="Sort by"
+                  dense
+                  hide-details
+
+              ></v-select>
+            </div>
 
 
           </div>
