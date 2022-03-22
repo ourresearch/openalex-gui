@@ -8,7 +8,7 @@
             :facet-key="facet.key"
         ></facet>
       </div>
-      <div>
+      <div v-if="$store.state.resultsCount !== null">
         <div class="search-results-meta" style="width: 100%;">
           <!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
 
@@ -83,11 +83,11 @@
                 class="result-container my-4"
                 :key="result.id"
             >
-              <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-              <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-              <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-              <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+                <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+                <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+                <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+                <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+                <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
             </div>
           </div>
           <div class="serp-bottom">

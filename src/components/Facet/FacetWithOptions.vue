@@ -116,10 +116,10 @@ import axios from "axios";
 
 
 const compareByCount = function (a, b) {
-  if (a.count < b.count) {
+  if (a.count > b.count) {
     return -1;
   }
-  if (a.count > b.count) {
+  if (a.count < b.count) {
     return 1;
   }
   return 0;
@@ -141,7 +141,6 @@ export default {
       facet: null,
       potentialFilterValues: [],
       groupByQueryResultsCount: null,
-      maxPotentialFiltersToShow: 5,
 
       comboboxSelect: "",
       comboboxItems: [],
@@ -160,10 +159,12 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetKey)
     },
+    maxPotentialFiltersToShow(){
+      return 5
+      return this.myFacetConfig.maxPotentialFiltersToShow ?? 5
+    },
     tableItems() {
       let ret = [...this.resultsFiltersToShow]
-      console.log(this.facetKey, "tableItems", ret, this.potentialFilterValues.slice(0, 5))
-
       this.potentialFilterValues.slice(0, this.maxPotentialFiltersToShow).forEach(f => {
 
         // only push potential filter values if they're not already loaded as
@@ -172,15 +173,11 @@ export default {
           ret.push(f)
         }
       })
-      console.log(this.facetKey, "tableItems before sorting", ret)
       ret.sort(compareByCount)
-      console.log(this.facetKey, "tableItems after sorting", ret)
 
       return ret
     },
     apiQuery() {
-      console.log("facet apiquery", this.$store.getters.inputFiltersForUrl)
-
       const myFilters = this.$store.getters.inputFiltersForUrl.filter(f => f.key !== this.facetKey)
       return {
         group_by: this.facetKey,
@@ -191,7 +188,6 @@ export default {
       // these ones are already selected by the user. we got them from the store,
       // which refreshes them from the server every time we search.
       // (which may have gotten from either user action or the URL)
-      console.log(this.facetKey, " resultsFiltersToShow")
       return this.$store.state.resultsFilters
           .filter(f => {
             return f.key === this.facetKey

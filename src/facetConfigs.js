@@ -16,6 +16,7 @@ const makeFacetQueryFilters = function(facetFilters){
 
 const facetConfigs = function () {
     const ret = [
+        // shared
         {
             key: "display_name.search",
             entityTypes: allEntityTypes(),
@@ -24,10 +25,13 @@ const facetConfigs = function () {
         {
             key: "x_concepts.id",
             entityTypes: ["authors", "institutions", "venues"],
-            displayName: "Concepts",
+            displayName: "Core concepts",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/concepts",
         },
+
+
+        // works
         {
             key: "concepts.id",
             entityTypes: ["works"],
@@ -77,6 +81,71 @@ const facetConfigs = function () {
             key: "type",
             entityTypes: ["works"],
             displayName: "Type",
+        },
+
+
+        // authors
+        {
+            key: "last_known_institution.id",
+            entityTypes: ["authors"],
+            displayName: "Institution",
+            isEntity: true,
+            autocompleteEndpoint: "autocomplete/institutions",
+        },
+        {
+            key: "last_known_institution.country_code",
+            entityTypes: ["authors"],
+            displayName: "Country",
+            autocompleteEndpoint: "autocomplete/institutions/country",
+        },
+        {
+            key: "last_known_institution.type",
+            entityTypes: ["authors"],
+            displayName: "Institution type",
+            autocompleteEndpoint: "autocomplete/institutions/type",
+        },
+
+
+        // venues
+        {
+            key: "publisher",
+            entityTypes: ["venues"],
+            displayName: "Publisher",
+            autocompleteEndpoint: "autocomplete/venues/publisher",
+        },
+        {
+            key: "is_oa",
+            entityTypes: ["venues"],
+            displayName: "Open Access",
+        },
+        {
+            key: "is_in_doaj",
+            entityTypes: ["venues"],
+            displayName: "Indexed in DOAJ",
+        },
+
+
+        // institutions
+        {
+            key: "country_code",
+            entityTypes: ["institutions"],
+            displayName: "Country",
+            autocompleteEndpoint: "autocomplete/institutions/country",
+        },
+        {
+            key: "type",
+            entityTypes: ["institutions"],
+            displayName: "Type",
+            autocompleteEndpoint: "autocomplete/institutions/type",
+        },
+
+
+        // concepts
+        {
+            key: "level",
+            entityTypes: ["concepts"],
+            displayName: "Level",
+            maxPotentialFiltersToShow: 10,
         },
     ]
     return ret.map(config => {

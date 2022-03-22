@@ -65,9 +65,9 @@ const stateDefaults = function () {
         textSearch: "",
         page: 1,
         results: [],
-        sort: null,
-        responseTime: 0,
-        resultsCount: 0,
+        sort: "relevance_score",
+        responseTime: null,
+        resultsCount: null,
         isLoading: false,
     }
     return ret
@@ -94,7 +94,7 @@ export default new Vuex.Store({
         setSort(state, sortKey) {
             // if we don't recognize this key, set it to the default
             if (!sortConfigs.some(c => c.key === sortKey)) {
-                sortKey = "cited_by_count"
+                sortKey = "relevance_score"
             }
             state.sort = sortKey
         },
@@ -129,8 +129,9 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
-            commit("setPage", 1)
-            commit("setSort", "relevance_score")
+            commit("resetSearch")
+            // commit("setPage", 1)
+            // commit("setSort", "relevance_score")
             state.entityType = entityType
             state.textSearch = searchString
             await dispatch("doSearch")
