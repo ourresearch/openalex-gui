@@ -69,6 +69,10 @@ const stateDefaults = function () {
         responseTime: null,
         resultsCount: null,
         isLoading: false,
+
+        // this really should go someplace else
+        snackbarIsOpen: false,
+        snackbarMsg: "",
     }
     return ret
 }
@@ -83,6 +87,14 @@ export default new Vuex.Store({
             Object.entries(stateDefaults()).forEach(([k, v]) => {
                 state[k] = v
             })
+        },
+        snackbar(state, msg){
+            state.snackbarMsg = msg
+            state.snackbarIsOpen = true
+        },
+        closeSnackbar(state){
+            state.snackbarMsg = ""
+            state.snackbarIsOpen = false
         },
         setEntityType(state, entityType) {
             state.entityType = entityType;

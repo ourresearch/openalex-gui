@@ -104,6 +104,23 @@
         </v-row>
       </v-container>
     </v-footer>
+
+
+    <v-snackbar
+        bottom
+        v-model="$store.state.snackbarIsOpen">
+      {{ $store.state.snackbarMsg }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn
+            icon
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -149,9 +166,11 @@ export default {
   display: flex;
   align-items: center;
   padding-left: 7px;
+
   .logo-icon {
     height: 45px;
   }
+
   .logo-text {
     padding: 0 14px;
     margin: 5px 15px;

@@ -37,7 +37,6 @@
             <v-spacer/>
 
 
-
             <v-menu offset-y>
               <template v-slot:activator="{on}">
                 <v-btn text small v-on="on">
@@ -55,7 +54,7 @@
                   JSON
                 </v-list-item>
                 <v-list-item
-                    @click="downloadCsvDialogIsOpen = true"
+                    @click="openExportToCsvDialog"
                 >
                   <v-icon left>mdi-table</v-icon>
                   CSV
@@ -66,7 +65,7 @@
             <v-btn
                 text
                 small
-              >
+            >
               <v-icon small left>mdi-bell-outline</v-icon>
               Create alert
             </v-btn>
@@ -95,11 +94,11 @@
                 class="result-container my-4"
                 :key="result.id"
             >
-                <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-                <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-                <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-                <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-                <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+              <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+              <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+              <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+              <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
             </div>
           </div>
           <div class="serp-bottom">
@@ -114,17 +113,89 @@
     </div>
 
 
-    <v-dialog v-model="downloadCsvDialogIsOpen">
+    <v-dialog max-width="600" v-model="dialogs.export">
       <v-card>
         <v-card-title>
-          Download as CSV
+          <v-icon left>mdi-download-outline</v-icon>
+          Export results as CSV
         </v-card-title>
-        <div class="pa-4">
-          <div class="">Preparing your download now...</div>
-          <div class="text-h1 font-weight-bold">0%</div>
+
+        <div class="card-content px-6">
+          <template v-if="$store.state.resultsCount > 100000">
+            <v-alert outlined text type="error" class="mb-0">
+              <p class="font-weight-bold">
+                Too many results to export
+              </p>
+              <p>
+                Sorry, but you can only export 100,000 results at a time to CSV. Try refining your search, or splitting
+                it into two searches and exporting them individually.
+              </p>
+            </v-alert>
+          </template>
+          <template v-else>
+
+            <template v-if="isExportInProgress">
+              <v-alert outlined text type="error" class="mb-0">
+                <p class="font-weight-bold">
+                  This export is still in progress
+                </p>
+                <p>
+                  We're still making this CSV export file for you...it can take up to 15 minutes. When it's complete,
+                  we'll email a download link to the address you provided.
+                </p>
+                <p>
+                  <strong>Tip:</strong>
+                  Don't forget to check your spam folder for the email!
+                </p>
+              </v-alert>
+            </template>
+            <template v-else>
+              <div class="">
+                It'll take us up to 15 minutes to prepare your CSV export. When we're done, we'll email you a link where
+                you can
+                download it
+              </div>
+              <div class="mt-6">
+                <strong>Tip:</strong>
+                Make sure to check your spam folder for the email!
+              </div>
+              <div class="mt-8">
+                <v-text-field
+                    label="Your email"
+                    v-model="downloadEmail"
+                    placeholder="you@example.com"
+                    type="email"
+                    outlined
+                    hide-details
+                    prepend-inner-icon="mdi-email-outline"
+                ></v-text-field>
+              </div>
+              <div class="body-2 mt-2">
+                We'll only use this address to send you your requested download link, and we'll never share it with
+                anyone.
+              </div>
+            </template>
+
+          </template>
         </div>
+
+        <v-card-actions class="py-6">
+          <v-spacer></v-spacer>
+          <v-btn text @click="dialogs.export = false">Close</v-btn>
+          <v-btn
+              :disabled="!downloadEmailIsValid"
+              text
+              v-if="$store.state.resultsCount <= 100000 && !isExportInProgress"
+              color="primary"
+              @click="exportToCsv"
+          >
+            Begin Export
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
+
+
   </div>
 </template>
 
@@ -168,8 +239,12 @@ export default {
     return {
       loading: false,
       apiResp: {},
-      downloadCsvDialogIsOpen: false,
-      csvDownloadPercentComplete: 0,
+      isExportInProgress: false,
+      downloadEmail: "",
+      dialogs: {
+        export: false,
+        createAlert: false,
+      }
     }
   },
   computed: {
@@ -177,24 +252,11 @@ export default {
       "searchApiUrl",
       "sortOptions",
     ]),
-    page: {
-      get() {
-        return this.$store.state.page
-      },
-      set(val) {
-        this.$store.dispatch("setPage", val)
-      }
-    },
-    sort: {
-      get() {
-        return this.$store.getters.sortObject
-      },
-      set(val) {
-        this.$store.dispatch("setSort", val)
-      }
-    },
     entityType() {
       return this.$route.params.entityType
+    },
+    downloadEmailIsValid() {
+      return /.+@.+/.test(this.downloadEmail)
     },
     entityId() {
       return this.$route.params.id
@@ -204,13 +266,25 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+      "snackbar",
+    ]),
     ...mapActions([
       "updateTextSearch",
     ]),
-    downloadCsv() {
-      this.downloadCsvDialogIsOpen = true
-      this.csvDownloadPercentComplete = 0
+    openExportToCsvDialog() {
+      this.isExportInProgress = false
+      this.dialogs.export = true
+    },
+    exportToCsv() {
+
+      // send the export job to the server
+
+      // if we get back a 200, yay
+      this.snackbar("Export job submitted.")
+
+      // but if we get back an Already In Progress thingy, show that.
+      this.isExportInProgress = true
 
 
       // make this work:
