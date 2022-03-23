@@ -65,6 +65,7 @@
             <v-btn
                 text
                 small
+                @click="openCreateAlertDialog"
             >
               <v-icon small left>mdi-bell-outline</v-icon>
               Create alert
@@ -114,7 +115,7 @@
 
 
     <v-dialog max-width="600" v-model="dialogs.export">
-      <v-card>
+      <v-card :loading="exportIsLoading">
         <v-card-title>
           <v-icon left>mdi-download-outline</v-icon>
           Export results as CSV
@@ -134,7 +135,7 @@
           </template>
           <template v-else>
 
-            <template v-if="isExportInProgress">
+            <template v-if="exportIsInProgress">
               <v-alert outlined text type="error" class="mb-0">
                 <p class="font-weight-bold">
                   This export is still in progress
@@ -162,12 +163,14 @@
               <div class="mt-8">
                 <v-text-field
                     label="Your email"
-                    v-model="downloadEmail"
+                    v-model="exportEmail"
                     placeholder="you@example.com"
                     type="email"
                     outlined
                     hide-details
                     prepend-inner-icon="mdi-email-outline"
+                    @keypress.enter="exportToCsv"
+                    :disabled="exportIsLoading"
                 ></v-text-field>
               </div>
               <div class="body-2 mt-2">
@@ -183,14 +186,50 @@
           <v-spacer></v-spacer>
           <v-btn text @click="dialogs.export = false">Close</v-btn>
           <v-btn
-              :disabled="!downloadEmailIsValid"
+              :disabled="!exportEmailIsValid || exportIsLoading"
               text
-              v-if="$store.state.resultsCount <= 100000 && !isExportInProgress"
+              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"
               color="primary"
               @click="exportToCsv"
           >
             Begin Export
           </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
+
+    <v-dialog max-width="600" v-model="dialogs.createAlert">
+      <v-card>
+        <v-card-title>
+          <v-icon left>mdi-bell-outline</v-icon>
+          Create email alert
+        </v-card-title>
+
+        <div class="card-content px-6">
+          <template v-if="createAlert.velocityIsLoading">
+            Building alert...
+          </template>
+          <template v-else>
+
+            the alert she is done.
+
+          </template>
+        </div>
+
+        <v-card-actions class="py-6">
+          <v-spacer></v-spacer>
+          <v-btn text @click="dialogs.export = false">Close</v-btn>
+<!--          <v-btn-->
+<!--              :disabled="!exportEmailIsValid"-->
+<!--              text-->
+<!--              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"-->
+<!--              color="primary"-->
+<!--              @click="exportToCsv"-->
+<!--          >-->
+<!--            Create Alert-->
+<!--          </v-btn>-->
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -216,6 +255,7 @@ import ResultAuthor from "../components/ResultAuthor";
 import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
+import axios from "axios";
 
 export default {
   name: "Serp",
@@ -239,24 +279,44 @@ export default {
     return {
       loading: false,
       apiResp: {},
-      isExportInProgress: false,
-      downloadEmail: "",
       dialogs: {
         export: false,
         createAlert: false,
+      },
+      exportEmail: "",
+      exportIsLoading: false,
+      exportIsInProgress: false,
+      createAlert: {
+        velocityIsLoading: false
       }
     }
   },
   computed: {
     ...mapGetters([
       "searchApiUrl",
-      "sortOptions",
+      "inputFiltersAsString",
     ]),
+    page: {
+      get() {
+        return this.$store.state.page
+      },
+      set(val) {
+        this.$store.dispatch("setPage", val)
+      }
+    },
+    sort: {
+      get() {
+        return this.$store.getters.sortObject
+      },
+      set(val) {
+        this.$store.dispatch("setSort", val)
+      }
+    },
     entityType() {
       return this.$route.params.entityType
     },
-    downloadEmailIsValid() {
-      return /.+@.+/.test(this.downloadEmail)
+    exportEmailIsValid() {
+      return /.+@.+/.test(this.exportEmail)
     },
     entityId() {
       return this.$route.params.id
@@ -273,31 +333,37 @@ export default {
       "updateTextSearch",
     ]),
     openExportToCsvDialog() {
-      this.isExportInProgress = false
+      this.exportIsInProgress = false
       this.dialogs.export = true
+      this.exportEmail = ""
     },
-    exportToCsv() {
+    async openCreateAlertDialog() {
+      this.dialogs.createAlert = true
+      this.createAlert.velocityIsLoading = true
 
-      // send the export job to the server
+      // check the velocity endpoint
+      const url =  `https://api.openalex.org/alert/work/${this.inputFiltersAsString}/velocity`
+      const resp = await axios.get(url)
+      console.log("openCreateAlertDialog velocity:", resp.data)
 
-      // if we get back a 200, yay
-      this.snackbar("Export job submitted.")
-
-      // but if we get back an Already In Progress thingy, show that.
-      this.isExportInProgress = true
-
-
-      // make this work:
-
-      // console.log("pollServer")
-      // await this.refreshPublisherFileStatus(this.fileType)
-      // while (this.myDataFile.status === "parsing") {
-      // console.log("this.myDataFile.status", this.myDataFile.status)
-      //   await this.refreshPublisherFileStatus(this.fileType)
-      //   await sleep(1000)
-      // }
-
-
+    },
+    async exportToCsv() {
+      const url = `https://api.openalex.org/works?filter=${this.inputFiltersAsString}&format=csv`
+      this.exportIsLoading = true
+      try {
+        const resp = await axios.get(url)
+        console.log("exportToCsv submitted", resp.data)
+        this.snackbar("Export job submitted.")
+      }
+      catch (e){
+        console.log("exportToCsv error", e)
+        this.exportIsInProgress = true
+      }
+      finally {
+        this.exportIsLoading = false
+        this.dialogs.export = false
+        this.exportEmail = ""
+      }
     },
   },
 
