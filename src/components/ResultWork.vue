@@ -22,19 +22,13 @@
     <div class="body-1">
       <span>Cited by {{ data.cited_by_count.toLocaleString() }}</span>
       <a
-          :href="data.host_venue.url"
+          :href="fulltextUrl"
           target="_blank"
-          class="mx-3"
+          class="mx-3 text-decoration-none"
+          v-if="fulltextUrl"
       >
-        <template v-if="workIsFreeAtPublisher">Open Access</template>
-        <template v-if="!workIsFreeAtPublisher">paywalled</template>
-      </a>
-      <a
-          :href="data.open_access.oa_url"
-          class=""
-          target="_blank"
-          v-if="data.open_access.oa_status==='green'"
-      >free at {{ oaUrlHostname }}
+        <v-icon small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
+        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online"}}
       </a>
     </div>
   </div>
@@ -64,7 +58,13 @@ export default {
       return url.hostname
     },
     workIsFreeAtPublisher() {
-      return this.data.open_access.is_oa && this.data.open_access.oa_status !== "green"
+      return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
+    },
+    fulltextUrl(){
+      // this is kind of hacky because the oa data we get back from the api has weird holes.
+      if (this.data.open_access.oa_url) return this.data.open_access.oa_url
+      else if (this.data.open_access.is_oa) return this.data.host_venue.url
+      else return null
     },
     authorsList() {
       return this.data.authorships.map(a => {

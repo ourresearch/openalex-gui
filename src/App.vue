@@ -24,9 +24,8 @@
       <!--      DESKTOP MENU -->
       <v-toolbar-items class=" hidden-sm-and-down">
         <v-btn class="no-active low-key-button" text to="/">Home</v-btn>
-        <v-btn class="no-active low-key-button" text href="https://openalex.org">
-          About OpenAlex
-          <v-icon small right>mdi-open-in-new</v-icon>
+        <v-btn class="no-active low-key-button" text href="/about">
+          About
         </v-btn>
         <!--        <v-btn class="no-active low-key-button" text to="./projects">Projects</v-btn>-->
         <!--        <v-btn class="no-active low-key-button" text to="./transparency">Transparency</v-btn>-->
@@ -42,9 +41,8 @@
           </template>
           <v-list>
             <v-list-item to="/">Home</v-list-item>
-            <v-list-item href="https://openalex.org">
-              About OpenAlex
-              <v-icon small right>mdi-open-in-new</v-icon>
+            <v-list-item href="/about">
+              About
             </v-list-item>
             <!--            <v-list-item to="./projects">Projects</v-list-item>-->
             <!--            <v-list-item to="./transparency">Transparency</v-list-item>-->
@@ -84,9 +82,8 @@
               <router-link to="/">Home</router-link>
             </div>
             <div>
-              <a href="https://openalex.org">
-                About OpenAlex
-                <v-icon small right>mdi-open-in-new</v-icon>
+              <a href="/about">
+                About
               </a>
             </div>
           </v-col>
@@ -130,7 +127,7 @@ import SearchBox from "./components/SearchBox";
 export default {
   name: 'App',
   metaInfo: {
-    titleTemplate: '%s | OpenAlex Web',
+    titleTemplate: '%s | OpenAlex',
     link: [],
 
     meta: []

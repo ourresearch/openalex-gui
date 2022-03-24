@@ -28,10 +28,6 @@
         </v-list-item-title>
       </template>
       <div>
-        <!--        <facet-option-is-oa-->
-        <!--            v-if="facetKey === 'oa_status'"-->
-        <!--            key="oa_status"-->
-        <!--        />-->
 
         <facet-option
             v-for="filter in tableItems"
@@ -42,19 +38,10 @@
         />
         <div
             class="more-link ml-5 mt-1"
-            v-if="myFacetConfig.valuesToShow === 'select'"
-            @click="comboboxDialogIsOpen = true"
-        >
-          <v-btn small plain>select</v-btn>
-        </div>
-        <div
-            class="more-link ml-5 mt-1"
-            v-if="showMoreOptionsButton"
             @click="comboboxDialogIsOpen = true"
         >
           <v-btn small plain>more</v-btn>
         </div>
-        <div></div>
       </div>
 
 
@@ -134,7 +121,7 @@ const compareByCount = function (a, b) {
 }
 
 export default {
-  name: "FacetWithOptions",
+  name: "FacetWithOutOptions",
   components: {
     FacetOption,
     FacetOptionIsOa,
@@ -167,11 +154,7 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetKey)
     },
-    showMoreOptionsButton() {
-      if (this.myFacetConfig.valuesToShow === "select") return false
-      return this.groupByQueryResultsCount > this.maxPotentialFiltersToShow
-    },
-    maxPotentialFiltersToShow() {
+    maxPotentialFiltersToShow(){
       return 5
       return this.myFacetConfig.maxPotentialFiltersToShow ?? 5
     },
@@ -216,9 +199,7 @@ export default {
     ...mapActions([
       "addInputFilters",
     ]),
-    async setFilterOptions() {
-      if (this.myFacetConfig.noOptions) return
-
+    async setFilterValues() {
       const resp = await api.get(
           this.$store.state.entityType,
           this.apiQuery,
@@ -279,7 +260,7 @@ export default {
       immediate: false,
       handler(newVal, oldVal) {
         // console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
-        this.setFilterOptions()
+        this.setFilterValues()
       }
       ,
     },

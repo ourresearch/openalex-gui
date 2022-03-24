@@ -4,7 +4,7 @@
     close
     close-icon="mdi-close"
   >
-    {{ getFacetConfig(filterKey, "displayName") }}: {{filterDispayName}}
+    {{ getFacetConfig(filterKey, "displayName") }}: {{filterDisplayValue}}
   </v-chip>
 </template>
 
@@ -23,10 +23,9 @@ export default {
   components: {
   },
   props: {
-    filter: null,
     filterKey: String,
     filterValue: String,
-    filterDispayName: String,
+    filterDisplayValue: String,
   },
   data() {
     return {

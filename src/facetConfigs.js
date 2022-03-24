@@ -21,6 +21,7 @@ const facetConfigs = function () {
             key: "display_name.search",
             entityTypes: allEntityTypes(),
             displayName: "Name",
+            valuesToShow: "mostCommon",
         },
         {
             key: "x_concepts.id",
@@ -28,6 +29,7 @@ const facetConfigs = function () {
             displayName: "Core concepts",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/concepts",
+            valuesToShow: "mostCommon",
         },
 
 
@@ -38,6 +40,7 @@ const facetConfigs = function () {
             displayName: "Concepts",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/concepts",
+            valuesToShow: "mostCommon",
         },
         {
             key: "host_venue.id",
@@ -45,6 +48,7 @@ const facetConfigs = function () {
             displayName: "Venues",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/venues",
+            valuesToShow: "mostCommon",
         },
         {
             key: "institutions.id",
@@ -52,6 +56,7 @@ const facetConfigs = function () {
             displayName: "Institution",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/institutions",
+            valuesToShow: "mostCommon",
         },
         {
             key: "author.id",
@@ -59,28 +64,41 @@ const facetConfigs = function () {
             displayName: "Author",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/authors",
+            valuesToShow: "mostCommon",
         },
         {
-            key: "oa_status",
+            key: "is_oa",
             entityTypes: ["works"],
-            displayName: "Open Access",
+            displayName: "Fulltext Available",
+            valuesToShow: "mostCommon",
         },
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
+            valuesToShow: "mostCommon",
         },
         {
             key: "institutions.country_code",
             entityTypes: ["works"],
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
+            valuesToShow: "mostCommon",
         },
         {
             key: "type",
             entityTypes: ["works"],
             displayName: "Type",
+            valuesToShow: "mostCommon",
+        },
+        {
+            key: "referenced_works",
+            entityTypes: ["works"],
+            displayName: "Cites these works",
+            autocompleteEndpoint: "autocomplete/works",
+            noOptions: true,
+            valuesToShow: "select",
         },
 
 
@@ -91,18 +109,21 @@ const facetConfigs = function () {
             displayName: "Institution",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/institutions",
+            valuesToShow: "mostCommon",
         },
         {
             key: "last_known_institution.country_code",
             entityTypes: ["authors"],
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
+            valuesToShow: "mostCommon",
         },
         {
             key: "last_known_institution.type",
             entityTypes: ["authors"],
             displayName: "Institution type",
             autocompleteEndpoint: "autocomplete/institutions/type",
+            valuesToShow: "mostCommon",
         },
 
 
@@ -112,16 +133,19 @@ const facetConfigs = function () {
             entityTypes: ["venues"],
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
+            valuesToShow: "mostCommon",
         },
         {
             key: "is_oa",
             entityTypes: ["venues"],
             displayName: "Open Access",
+            valuesToShow: "mostCommon",
         },
         {
             key: "is_in_doaj",
             entityTypes: ["venues"],
             displayName: "Indexed in DOAJ",
+            valuesToShow: "mostCommon",
         },
 
 
@@ -131,12 +155,14 @@ const facetConfigs = function () {
             entityTypes: ["institutions"],
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
+            valuesToShow: "mostCommon",
         },
         {
             key: "type",
             entityTypes: ["institutions"],
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
+            valuesToShow: "mostCommon",
         },
 
 
@@ -146,6 +172,7 @@ const facetConfigs = function () {
             entityTypes: ["concepts"],
             displayName: "Level",
             maxPotentialFiltersToShow: 10,
+            valuesToShow: "mostCommon",
         },
     ]
     return ret.map(config => {

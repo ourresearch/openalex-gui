@@ -1,41 +1,46 @@
 <template>
   <v-container>
-    <div class="">
-      📄 <strong>Work</strong>
-<!--      <a :href="data.id" class="black&#45;&#45;text d-block body-2">{{ data.id }}</a>-->
+    <div class="body-2">
+      📄 Work<span v-if="data.type">: {{ data.type.replace("-", " ") }}</span>
     </div>
 
-    <h1 class="text-h3">{{ data.title }}</h1>
+    <h1 class="text-h4">{{ data.title }}</h1>
 
     <div class="">
-      {{ data.publication_year }}
-      <span v-if="data.type">{{ data.type.replace("-", " ") }}</span>
+      Published {{ data.publication_year }}
       <span v-if="data.host_venue.display_name">
-        published by
+        in
         <a :href="data.host_venue.id | idLink">
           {{ data.host_venue.display_name }}.
         </a>
       </span>
 
     </div>
-    <div class="mt-2">
-      <div v-if="!data.open_access.is_oa">
-        <v-icon small>mdi-lock-outline</v-icon>
-        Closed access
-      </div>
-      <div v-if="data.open_access.is_oa" class="text-capitalize">
-        <v-icon small>mdi-lock-open-variant-outline</v-icon>
-        {{ data.open_access.oa_status}}
-        Open Access
-      </div>
+<!--    <div class="mt-2">-->
+<!--      <div v-if="!data.open_access.is_oa">-->
+<!--        <v-icon small>mdi-lock-outline</v-icon>-->
+<!--        Closed access-->
+<!--      </div>-->
+<!--      <div v-if="data.open_access.is_oa" class="text-capitalize">-->
+<!--        <v-icon small>mdi-lock-open-variant-outline</v-icon>-->
+<!--        {{ data.open_access.oa_status}}-->
+<!--        Open Access-->
+<!--      </div>-->
 
     </div>
     <div class="mt-2">
-      <link-concept
-          v-for="concept in data.concepts"
-          :key="concept.id"
-          :data="concept"
-      />
+      Concepts:
+      <template
+          v-for="(concept, i) in data.concepts"
+      >
+        <link-concept
+            :key="concept.id"
+            :data="concept"
+            :append-comma="i < data.concepts.length - 1"
+            class="mr-1"
+        />
+
+      </template>
     </div>
 
     <div class="mt-8">

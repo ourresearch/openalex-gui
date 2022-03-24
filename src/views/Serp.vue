@@ -3,31 +3,29 @@
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
-            v-for="facet in $store.getters.searchFacetConfigs"
+            v-for="facet in searchFacetConfigs"
             :key="facet.key"
             :facet-key="facet.key"
         ></facet>
       </div>
       <div class="flex-fill" v-if="$store.state.resultsCount !== null">
         <div class="search-results-meta" style="width: 100%;">
-          <!--                    <pre>{{ $store.state.resultsFilters }}</pre>-->
+<!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
 
-          <!--          <div v-for="(v, k) in $store.state.filters">{{k}}: {{v}}</div>-->
+<!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
 
-          <!--          <div class="applied-filters pt-3" v-if="$store.state.appliedFilterObjects.length">-->
-          <!--            <filter-chip-->
-          <!--                v-for="f in $store.state.appliedFilterObjects"-->
-          <!--                :key="f.id"-->
-          <!--                :filter="f"-->
-          <!--                :filter-key="f.key"-->
-          <!--                :filter-value="f.value"-->
-          <!--                :filter-dispay-name="f.displayName"-->
-          <!--                class="mr-2"-->
-          <!--            >-->
-          <!--              {{ f.key }}: {{ f.value }}-->
-          <!--            </filter-chip>-->
+          <div class="applied-filters pt-3" v-if="$store.state.resultsFilters.length">
+            <filter-chip
+                v-for="f in $store.state.resultsFilters"
+                :key="f.id"
+                :filter-key="f.key"
+                :filter-value="f.value"
+                :filter-display-value="f.displayValue"
+                class="mr-2"
+            >
+            </filter-chip>
 
-          <!--          </div>-->
+          </div>
 
           <div class="d-flex align-end mb-2">
             <div class="body-1 grey--text">
@@ -199,7 +197,6 @@
     </v-dialog>
 
 
-
     <v-dialog max-width="600" v-model="dialogs.createAlert">
       <v-card>
         <v-card-title>
@@ -221,15 +218,15 @@
         <v-card-actions class="py-6">
           <v-spacer></v-spacer>
           <v-btn text @click="dialogs.export = false">Close</v-btn>
-<!--          <v-btn-->
-<!--              :disabled="!exportEmailIsValid"-->
-<!--              text-->
-<!--              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"-->
-<!--              color="primary"-->
-<!--              @click="exportToCsv"-->
-<!--          >-->
-<!--            Create Alert-->
-<!--          </v-btn>-->
+          <!--          <v-btn-->
+          <!--              :disabled="!exportEmailIsValid"-->
+          <!--              text-->
+          <!--              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"-->
+          <!--              color="primary"-->
+          <!--              @click="exportToCsv"-->
+          <!--          >-->
+          <!--            Create Alert-->
+          <!--          </v-btn>-->
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -261,7 +258,7 @@ export default {
   name: "Serp",
   metaInfo() {
     return {
-      title: `${this.entityId}`
+      title: this.$store.state.textSearch || `All ${this.entityType}`
     }
   },
   components: {
@@ -294,6 +291,7 @@ export default {
   computed: {
     ...mapGetters([
       "searchApiUrl",
+      "searchFacetConfigs",
       "inputFiltersAsString",
     ]),
     page: {
@@ -314,6 +312,12 @@ export default {
     },
     entityType() {
       return this.$route.params.entityType
+    },
+    facetsWithOptions(){
+      return this.searchFacetConfigs.filter(f => !f.noOptions)
+    },
+    facetsWithoutOptions(){
+      return this.searchFacetConfigs.filter(f => f.noOptions)
     },
     exportEmailIsValid() {
       return /.+@.+/.test(this.exportEmail)
@@ -342,7 +346,7 @@ export default {
       this.createAlert.velocityIsLoading = true
 
       // check the velocity endpoint
-      const url =  `https://api.openalex.org/alert/work/${this.inputFiltersAsString}/velocity`
+      const url = `https://api.openalex.org/alert/work/${this.inputFiltersAsString}/velocity`
       const resp = await axios.get(url)
       console.log("openCreateAlertDialog velocity:", resp.data)
 
@@ -354,12 +358,10 @@ export default {
         const resp = await axios.get(url)
         console.log("exportToCsv submitted", resp.data)
         this.snackbar("Export job submitted.")
-      }
-      catch (e){
+      } catch (e) {
         console.log("exportToCsv error", e)
         this.exportIsInProgress = true
-      }
-      finally {
+      } finally {
         this.exportIsLoading = false
         this.dialogs.export = false
         this.exportEmail = ""

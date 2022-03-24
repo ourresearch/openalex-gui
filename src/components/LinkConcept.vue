@@ -1,16 +1,19 @@
 <template>
-  <v-chip
-      outlined
+  <!--  <v-chip-->
+  <!--      outlined-->
+  <!--      :to="data.id | idLink"-->
+  <!--      class="mr-1 mb-1"-->
+  <!--  >-->
+  <!--    <div>-->
+  <!--      <span :class="`concept-level level-${data.level}`">{{ levelChar }}</span>-->
+  <!--      {{ data.display_name }}-->
+
+  <!--    </div>-->
+
+  <!--  </v-chip>-->
+  <router-link
       :to="data.id | idLink"
-      class="mr-1 mb-1"
-  >
-    <div>
-      <span :class="`concept-level level-${data.level}`">{{ levelChar }}</span>
-      {{ data.display_name }}
-
-    </div>
-
-  </v-chip>
+  >{{ data.display_name }}{{ (appendComma) ? ',' : '' }}</router-link>
 
 
 </template>
@@ -22,6 +25,7 @@ export default {
   components: {},
   props: {
     data: Object,
+    appendComma: Boolean,
   },
   data() {
     return {

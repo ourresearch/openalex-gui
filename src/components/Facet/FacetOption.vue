@@ -73,11 +73,11 @@ export default {
         ret = ret.replace("-", " ")
       }
       if (this.filter.key === 'oa_status') {
-        ret = ret.replace("hybrid", "hybrid OA")
-            .replace("gold", "gold OA")
-            .replace("green", "gold OA")
-            .replace("bronze", "gold OA")
-            .replace("closed", "paywalled")
+        // ret = ret.replace("hybrid", "hybrid OA")
+        //     .replace("gold", "gold OA")
+        //     .replace("green", "gold OA")
+        //     .replace("bronze", "gold OA")
+        //     .replace("closed", "paywalled")
       }
 
 
