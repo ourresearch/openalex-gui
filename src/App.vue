@@ -194,6 +194,9 @@ body {
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
+    .text-initial {
+      text-transform: initial !important;
+    }
   }
 }
 
