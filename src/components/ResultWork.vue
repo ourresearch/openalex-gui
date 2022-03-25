@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link class="text-decoration-none" :to="data.id | idLink">
+    <router-link class="text-decoration-none subtitle-1" :to="data.id | idLink">
       {{ data.display_name }}
     </router-link>
     <div v-if="authorsCount" class="body-1">
@@ -9,9 +9,11 @@
       <span v-if="authorNames.length > 2">, et al.</span>
 
 
-<!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
-<!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
-      <span v-if="data.host_venue.display_name" class="font-italic"> - {{ data.host_venue.display_name | truncate(50) }}</span>
+      <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
+      <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
+      <span v-if="data.host_venue.display_name" class="font-italic"> - {{
+          data.host_venue.display_name | truncate(50)
+        }}</span>
       <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
 
     </div>
@@ -28,7 +30,7 @@
           v-if="fulltextUrl"
       >
         <v-icon small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
-        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online"}}
+        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
       </a>
     </div>
   </div>
@@ -60,7 +62,7 @@ export default {
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
     },
-    fulltextUrl(){
+    fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
       if (this.data.open_access.oa_url) return this.data.open_access.oa_url
       else if (this.data.open_access.is_oa) return this.data.host_venue.url
@@ -82,7 +84,7 @@ export default {
       return this.authorNames.slice(2, this.lastAuthorIndex)
 
     },
-    lastAuthorIndex(){
+    lastAuthorIndex() {
       return this.authorNames.length - 1
     },
     lastAuthorName() {

@@ -17,6 +17,8 @@ const entityTypes = {
     "C": "concepts",
 };
 
+const openAlexIdRegex = "[wWiIvVaAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
+
 const routes = [
     {
         path: '/',
@@ -32,7 +34,7 @@ const routes = [
 
     // explore.openalex.org/w123
     {
-        path: '/:id([wWiIvVaAcC]\\d+)',
+        path: `/:id(${openAlexIdRegex})`,
         redirect: to => {
             // https://router.vuejs.org/api/#the-route-object
             const firstLetter = to.params.id.substr(0,1).toUpperCase()
@@ -43,15 +45,15 @@ const routes = [
 
 
     // explore.openalex.org/works/w123
-    {
-        path: '/:entityType(works|authors|venues|institutions|concepts)/:id',
-        name: 'EntityPage',
-        component: EntityPage,
-    },
+    // {
+    //     path: '/:entityType(works|authors|venues|institutions|concepts)/:id',
+    //     name: 'EntityPage',
+    //     component: EntityPage,
+    // },
 
     // explore.openalex/works?filters=foo:42
     {
-        path: '/:entityType(works|authors|venues|institutions|concepts)',
+        path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
         name: 'Serp',
         component: Serp,
     },

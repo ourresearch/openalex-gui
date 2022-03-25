@@ -188,12 +188,19 @@ export default {
 }
 
 body {
-  font-size: 18px;
+  font-size: 16px;
 
   .v-application {
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
+    .body-1 {
+      font-size: 15px !important;
+    }
+    .body-2 {
+      font-size: 13px !important;
+    }
+    .subtitle-1 {font-size: 17px !important;}
     .text-initial {
       text-transform: initial !important;
     }

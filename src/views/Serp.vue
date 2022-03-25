@@ -1,5 +1,6 @@
 <template>
   <div class="serp-page mt-2 pa-0">
+    <h1>ID: {{zoomId}}</h1>
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
@@ -312,6 +313,9 @@ export default {
     },
     entityType() {
       return this.$route.params.entityType
+    },
+    zoomId() {
+      return this.$route.params.id
     },
     facetsWithOptions(){
       return this.searchFacetConfigs.filter(f => !f.noOptions)

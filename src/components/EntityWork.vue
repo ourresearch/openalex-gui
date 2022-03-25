@@ -1,121 +1,122 @@
 <template>
   <v-container>
-    <div class="body-2">
-      📄 Work<span v-if="data.type">: {{ data.type.replace("-", " ") }}</span>
-    </div>
+    <v-row class="top-row">
+      <v-col cols="9" class="top-row-left">
 
-    <h1 class="text-h4">{{ data.title }}</h1>
+        <div class="body-2">
+          📄 Work<span v-if="data.type">: {{ data.type.replace("-", " ") }}</span>
+        </div>
 
-    <div class="">
-      Published {{ data.publication_year }}
-      <span v-if="data.host_venue.display_name">
-        in
-        <a :href="data.host_venue.id | idLink">
+        <h1 class="text-h4">{{ data.title }}</h1>
+
+        <div class="">
+          Published {{ data.publication_year }}
+          <span v-if="data.host_venue.display_name">
+          in
+          <a :href="data.host_venue.id | idLink">
           {{ data.host_venue.display_name }}.
-        </a>
-      </span>
+          </a>
+          </span>
+        </div>
+        <div>
+          Concepts:
+          <template
+              v-for="(concept, i) in data.concepts"
+          >
+            <link-concept
+                :key="concept.id"
+                :data="concept"
+                :append-comma="i < data.concepts.length - 1"
+                class="mr-1"
+            />
 
-    </div>
-    <!--    <div class="mt-2">-->
-    <!--      <div v-if="!data.open_access.is_oa">-->
-    <!--        <v-icon small>mdi-lock-outline</v-icon>-->
-    <!--        Closed access-->
-    <!--      </div>-->
-    <!--      <div v-if="data.open_access.is_oa" class="text-capitalize">-->
-    <!--        <v-icon small>mdi-lock-open-variant-outline</v-icon>-->
-    <!--        {{ data.open_access.oa_status}}-->
-    <!--        Open Access-->
-    <!--      </div>-->
+          </template>
+        </div>
 
-    </div>
-    <div class="mt-2">
-      Concepts:
-      <template
-          v-for="(concept, i) in data.concepts"
-      >
-        <link-concept
-            :key="concept.id"
-            :data="concept"
-            :append-comma="i < data.concepts.length - 1"
-            class="mr-1"
-        />
+        <div class="mt-8">
+          <v-row
+              v-for="authorship in data.authorships"
+              :key="authorship.author.id"
+              class="authorship d-flex"
+          >
+            <v-col cols="3">
+              <link-author :data="authorship.author" class=""/>
+            </v-col>
+            <v-col cols="9">
+              <div
+                  v-for="(institution, i) in authorship.institutions"
+                  :key="institution.id"
+                  class="body-2"
+              >
+                <link-institution v-if="institution.id" :data="institution"  />
+                <span v-else>{{ institution.display_name }}</span>
+              </div>
+            </v-col>
 
-      </template>
-    </div>
+          </v-row>
+        </div>
+        <div class="mt-8">
+          <!--      <view-in-api-button :id="data.id" />-->
 
-    <div class="mt-8">
-      <div
-          v-for="authorship in data.authorships"
-          :key="authorship.author.id"
-          class="authorship"
-      >
-        <link-author :data="authorship.author" class=""/>
-        <span class="ml-2 institutions-list body-2">
-          (<template v-for="(institution, i) in authorship.institutions">
-              <template v-if="i > 0">, </template><link-institution
-            :key="institution.id"
-            :data="institution"
-        />
-            </template>)
+          <v-btn
+              :href="fulltextUrl"
+              target="_blank"
+              class="mr-3"
+              v-if="fulltextUrl"
+              color="primary"
+              small
+          >
+            <v-icon left>mdi-open-in-new</v-icon>
+            Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
+          </v-btn>
 
-        </span>
+          <v-btn
+              :href="data.host_venue.url"
+              target="_blank"
+              class="mr-3"
+              v-if="data.host_venue.url"
+              small
+          >
+            <v-icon left>mdi-open-in-new</v-icon>
+            Paywalled at publisher
+          </v-btn>
+          <v-btn
+              :href="apiUrl + '.bib'"
+              class="mx-2 text-initial"
+              small
+              text
+          >
+            <v-icon small left>mdi-download-outline</v-icon>
+            BibTeX
+          </v-btn>
+          <v-btn
+              :href="apiUrl"
+              target="_blank"
+              class="mx-2 text-initial"
+              small
+              text
+          >
+            <v-icon small left>mdi-cog-outline</v-icon>
+            API
+          </v-btn>
+          <v-btn
+              @click="copyPermalinkToClipboard"
+              class="mx-2 text-initial"
+              small
+              text
+          >
+            <v-icon small left>mdi-content-copy</v-icon>
+            Permalink
+          </v-btn>
+        </div>
+      </v-col>
 
-      </div>
-    </div>
-    <div class="mt-8">
-      <!--      <view-in-api-button :id="data.id" />-->
+      <v-col cols="3" class="top-row-right">
+        citations yo
+      </v-col>
+    </v-row>
 
-      <v-btn
-          :href="fulltextUrl"
-          target="_blank"
-          class="mr-3"
-          v-if="fulltextUrl"
-          color="primary"
-          small
-      >
-        <v-icon left>mdi-open-in-new</v-icon>
-        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
-      </v-btn>
 
-      <v-btn
-          :href="data.host_venue.url"
-          target="_blank"
-          class="mr-3"
-          v-if="data.host_venue.url"
-          small
-      >
-        <v-icon left >mdi-open-in-new</v-icon>
-        Paywalled at publisher
-      </v-btn>
-      <v-btn
-          :href="apiUrl + '.bib'"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-download-outline</v-icon>
-        BibTeX
-      </v-btn>
-      <v-btn
-          :href="apiUrl"
-          target="_blank"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-cog-outline</v-icon>
-        API
-      </v-btn>
-      <v-btn
-          @click="copyPermalinkToClipboard"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-content-copy</v-icon>
-        Permalink
-      </v-btn>
-    </div>
     <v-divider class="mt-12 pt-12"/>
 
     <div class="text-h4">Identifiers</div>
@@ -155,19 +156,17 @@ export default {
   },
   methods: {
     ...mapMutations([
-        "snackbar"
+      "snackbar"
     ]),
-    ...mapActions([
-    ]),
-    async copyPermalinkToClipboard(){
+    ...mapActions([]),
+    async copyPermalinkToClipboard() {
       await navigator.clipboard.writeText(this.data.id);
       this.snackbar("Permalink copied to clipboard.")
       // alert('Copied!');
     }
   },
   computed: {
-    ...mapGetters([
-    ]),
+    ...mapGetters([]),
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
     },
