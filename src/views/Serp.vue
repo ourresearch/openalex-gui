@@ -1,6 +1,6 @@
 <template>
   <div class="serp-page mt-2 pa-0">
-    <h1>ID: {{zoomId}}</h1>
+    <h1>ID: {{ zoomId }}</h1>
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
@@ -11,9 +11,9 @@
       </div>
       <div class="flex-fill" v-if="$store.state.resultsCount !== null">
         <div class="search-results-meta" style="width: 100%;">
-<!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
+          <!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
 
-<!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
+          <!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
 
           <div class="applied-filters pt-3" v-if="$store.state.resultsFilters.length">
             <filter-chip
@@ -317,10 +317,10 @@ export default {
     zoomId() {
       return this.$route.params.id
     },
-    facetsWithOptions(){
+    facetsWithOptions() {
       return this.searchFacetConfigs.filter(f => !f.noOptions)
     },
-    facetsWithoutOptions(){
+    facetsWithoutOptions() {
       return this.searchFacetConfigs.filter(f => f.noOptions)
     },
     exportEmailIsValid() {
@@ -381,7 +381,22 @@ export default {
     this.loading = false
 
   },
-  watch: {}
+  watch: {
+    "$route": {
+      immediate: true,
+      handler(to, from) {
+        console.log("serp route change", to.params, from)
+        if (to.params.id){
+          console.log("this is an entity zoom, load the entity but leave the search alone")
+        }
+        else{
+          console.log("there's no entity zoom")
+          this.$store.dispatch("bootFromUrl")
+
+        }
+      }
+    }
+  }
 }
 </script>
 

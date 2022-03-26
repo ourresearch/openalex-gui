@@ -188,6 +188,9 @@ export default new Vuex.Store({
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
 
             state.isLoading = true
+            if (!state.textSearch && state.sort === "relevance_score") {
+                commit("setSort", "cited_by_count")
+            }
             const routerPushTo = {
                 query: getters.searchQuery,
                 name: "Serp",
@@ -208,9 +211,11 @@ export default new Vuex.Store({
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
 
-                const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
-                const filtersResp = await api.get(path)
-                state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
+                if (getters.inputFiltersAsString){
+                    const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
+                    const filtersResp = await api.get(path)
+                    state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
+                }
             } finally {
                 state.isLoading = false
             }

@@ -29,7 +29,7 @@ const addDisplayNamesToFilters = async function (filtersList) {
 }
 
 const textSearchFromUrlString = function (str) {
-    if (!str) return
+    if (!str) str = "display_name.search:" // this is required for all URLs for now
     return str.split(",")
         .map(filterString => {
             const [key, value] = filterString.split(":");

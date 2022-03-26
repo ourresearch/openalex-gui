@@ -141,7 +141,7 @@ export default {
   }),
   beforeMount() {
     if (this.$route.name === "Serp") {
-      this.$store.dispatch("bootFromUrl")
+      // this.$store.dispatch("bootFromUrl")
     }
   }
 };
