@@ -1,9 +1,8 @@
 <template>
   <div class="serp-page mt-2 pa-0">
-    <v-navigation-drawer right dark app width="400" value="true" clipped>
-      hi
+    <v-navigation-drawer right  app :width="($store.state.results.length) ? 400 : '50%'" value="true" clipped>
+      <h1>ID: {{ zoomId }}</h1>
     </v-navigation-drawer>
-    <h1>ID: {{ zoomId }}</h1>
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
