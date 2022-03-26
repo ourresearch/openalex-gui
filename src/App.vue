@@ -2,7 +2,8 @@
   <v-app>
     <v-app-bar
         app
-        absolute
+        fixed
+        clipped-right
         flat
         color="white"
         class=""
@@ -56,6 +57,18 @@
     <!--    <v-navigation-drawer app clipped>-->
     <!--      hi-->
     <!--    </v-navigation-drawer>-->
+
+    <v-navigation-drawer right app clipped>
+      hi
+      <div v-if="$store.state.entityZoomData">
+        <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
+        <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
+        <entity-venue v-if="$store.state.entityZoomType==='venues'" :data="$store.state.entityZoomData"/>
+        <entity-institution v-if="$store.state.entityZoomType==='institutions'" :data="$store.state.entityZoomData"/>
+        <entity-concept v-if="$store.state.entityZoomType==='concepts'" :data="$store.state.entityZoomData"/>
+
+      </div>
+    </v-navigation-drawer>
 
     <v-main>
       <v-container>
@@ -124,6 +137,12 @@
 <script>
 import SearchBox from "./components/SearchBox";
 
+import EntityWork from "./components/EntityWork";
+import EntityAuthor from "./components/EntityAuthor";
+import EntityVenue from "./components/EntityVenue";
+import EntityInstitution from "./components/EntityInstitution";
+import EntityConcept from "./components/EntityConcept";
+
 export default {
   name: 'App',
   metaInfo: {
@@ -134,6 +153,11 @@ export default {
   },
   components: {
     SearchBox,
+    EntityWork,
+    EntityAuthor,
+    EntityVenue,
+    EntityInstitution,
+    EntityConcept,
   },
 
   data: () => ({
@@ -194,13 +218,19 @@ body {
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
+
     .body-1 {
       font-size: 15px !important;
     }
+
     .body-2 {
       font-size: 13px !important;
     }
-    .subtitle-1 {font-size: 17px !important;}
+
+    .subtitle-1 {
+      font-size: 17px !important;
+    }
+
     .text-initial {
       text-transform: initial !important;
     }

@@ -14,9 +14,28 @@ const toHexHash = function(str){
 
 
 
+const entityTypes = {
+    "w": "works",
+    "i": "institutions",
+    "v": "venues",
+    "a": "authors",
+    "c": "concepts",
+};
+
+const shortenOpenAlexId = function(longId){
+    return longId.replace("https://openalex.org/", "").toLowerCase()
+}
+
+const entityTypeFromId = function(id){
+    const firstLetter = shortenOpenAlexId(id).substr(0, 1)
+    return entityTypes[firstLetter]
+}
+
 
 
 export {
     sleep,
-    toHexHash
+    toHexHash,
+    shortenOpenAlexId,
+    entityTypeFromId,
 }

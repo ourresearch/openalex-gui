@@ -11,6 +11,7 @@ import {
     makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
+import {entityTypeFromId} from "../util";
 
 Vue.use(Vuex)
 
@@ -73,6 +74,10 @@ const stateDefaults = function () {
         // this really should go someplace else
         snackbarIsOpen: false,
         snackbarMsg: "",
+
+        // entity stuff
+        entityZoomData: null,
+        entityZoomType: null,
     }
     return ret
 }
@@ -88,11 +93,11 @@ export default new Vuex.Store({
                 state[k] = v
             })
         },
-        snackbar(state, msg){
+        snackbar(state, msg) {
             state.snackbarMsg = msg
             state.snackbarIsOpen = true
         },
-        closeSnackbar(state){
+        closeSnackbar(state) {
             state.snackbarMsg = ""
             state.snackbarIsOpen = false
         },
@@ -211,7 +216,7 @@ export default new Vuex.Store({
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
 
-                if (getters.inputFiltersAsString){
+                if (getters.inputFiltersAsString) {
                     const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
                     const filtersResp = await api.get(path)
                     state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
@@ -219,6 +224,19 @@ export default new Vuex.Store({
             } finally {
                 state.isLoading = false
             }
+
+        },
+
+
+        // *****************************************
+        // entityZoom stuff
+        // *****************************************
+
+        // eslint-disable-next-line no-unused-vars
+        async setEntityZoom({commit, getters, dispatch, state}, id) {
+            state.entityZoomType = entityTypeFromId(id)
+            const pathName = state.entityZoomType + "/" + id
+            state.entityZoomData = await api.get(pathName)
 
         },
 

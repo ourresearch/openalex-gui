@@ -6,16 +6,10 @@ import Serp from "../views/Serp";
 import Accessibility from "../views/Accessibility";
 import Transparency from "../views/Transparency";
 import goTo from 'vuetify/es5/services/goto'
+import {entityTypeFromId} from "../util";
 
 Vue.use(VueRouter)
 
-const entityTypes = {
-    "W": "works",
-    "I": "institutions",
-    "V": "venues",
-    "A": "authors",
-    "C": "concepts",
-};
 
 const openAlexIdRegex = "[wWiIvVaAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
 
@@ -37,8 +31,7 @@ const routes = [
         path: `/:id(${openAlexIdRegex})`,
         redirect: to => {
             // https://router.vuejs.org/api/#the-route-object
-            const firstLetter = to.params.id.substr(0,1).toUpperCase()
-            const entityType = entityTypes[firstLetter]
+            const entityType = entityTypeFromId(to.params.id)
             return `/${entityType}/${to.params.id}`
         },
     },

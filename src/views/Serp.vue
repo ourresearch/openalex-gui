@@ -1,8 +1,6 @@
 <template>
   <div class="serp-page mt-2 pa-0">
-    <v-navigation-drawer right  app :width="($store.state.results.length) ? 400 : '50%'" value="true" clipped>
-      <h1>ID: {{ zoomId }}</h1>
-    </v-navigation-drawer>
+
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
@@ -341,6 +339,7 @@ export default {
     ]),
     ...mapActions([
       "updateTextSearch",
+      "setEntityZoom",
     ]),
     openExportToCsvDialog() {
       this.exportIsInProgress = false
@@ -388,10 +387,9 @@ export default {
       immediate: true,
       handler(to, from) {
         console.log("serp route change", to.params, from)
-        if (to.params.id){
-          console.log("this is an entity zoom, load the entity but leave the search alone")
-        }
-        else{
+        if (to.params.id) {
+          this.setEntityZoom(to.params.id)
+        } else {
           console.log("there's no entity zoom")
           this.$store.dispatch("bootFromUrl")
 
