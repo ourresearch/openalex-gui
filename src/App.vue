@@ -58,8 +58,15 @@
     <!--      hi-->
     <!--    </v-navigation-drawer>-->
 
-    <v-navigation-drawer right app clipped>
-      hi
+    <v-navigation-drawer
+        right
+        app
+        clipped
+        floating
+        temporary
+        width="400"
+        value="true"
+    >
       <div v-if="$store.state.entityZoomData">
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
         <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
