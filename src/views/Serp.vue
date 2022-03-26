@@ -1,5 +1,8 @@
 <template>
   <div class="serp-page mt-2 pa-0">
+    <v-navigation-drawer right dark app width="400" value="true" clipped>
+      hi
+    </v-navigation-drawer>
     <h1>ID: {{ zoomId }}</h1>
     <div class="serp-container">
       <div class="facets-panel-container">
