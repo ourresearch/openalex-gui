@@ -12,7 +12,7 @@
 
   <!--  </v-chip>-->
   <router-link
-      :to="data.id | idLink"
+      :to="data.id | idLink" style="white-space: nowrap; display: inline-block;"
   >{{ data.display_name }}{{ (appendComma) ? ',' : '' }}</router-link>
 
 

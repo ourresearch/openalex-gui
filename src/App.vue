@@ -87,19 +87,6 @@
       </div>
     </v-navigation-drawer>
 
-<!--    <v-navigation-drawer-->
-<!--        app-->
-<!--        clipped-->
-<!--        floating-->
-<!--        permanent-->
-<!--    >-->
-<!--      <facet-->
-<!--            v-for="facet in searchFacetConfigs"-->
-<!--            :key="facet.key"-->
-<!--            :facet-key="facet.key"-->
-<!--        ></facet>-->
-<!--    </v-navigation-drawer>-->
-
     <v-main>
       <v-container>
         <v-alert v-if="0" text outlined type="warning">
@@ -197,6 +184,7 @@ export default {
 
   data: () => ({
     doubleZoom: false,
+    zoomDrawerDesktopWidth: 400,
   }),
   computed: {
     ...mapGetters([
@@ -212,7 +200,7 @@ export default {
     },
     zoomDrawerWidth(){
       if (this.$vuetify.breakpoint.lgAndUp){
-        return (this.doubleZoom) ? "95%" : "400"
+        return (this.doubleZoom) ? "95%" : this.zoomDrawerDesktopWidth
       }
       else {
         return "100%"
@@ -282,17 +270,17 @@ body {
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
-
     .body-1 {
       font-size: 15px !important;
     }
-
     .body-2 {
       font-size: 13px !important;
     }
-
     .subtitle-1 {
       font-size: 17px !important;
+    }
+    .text-h6 {
+      line-height: 1.3;
     }
 
     .text-initial {

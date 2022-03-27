@@ -1,14 +1,26 @@
 <template>
   <div>
-<!--        <v-chip-->
-<!--            outlined-->
-<!--            class="mr-1 mb-1"-->
-<!--            v-for="concept in data.x_concepts.slice(0,4)"-->
-<!--            :key="concept.id"-->
-<!--        >-->
-<!--          {{ concept.display_name }}-->
-<!--        </v-chip>-->
-        <span class="body-1">{{ conceptNamesString }}</span>
+    <template v-if="isClickable">
+      <link-concept
+          v-for="(concept, i) in conceptsToShow"
+          :key="concept.id"
+          :data="concept"
+          :append-comma="i < conceptsToShow.length - 1"
+          class="mr-1"
+      />
+      <v-btn
+          small
+          text
+          color="primary"
+          @click="showAll = !showAll">
+        <template v-if="!showAll">+{{ concepts.length - maxToShow }} more</template>
+        <template v-else>show less</template>
+      </v-btn>
+    </template>
+    <template v-else>
+      <span class="body-1">{{ conceptsToShow.join(",") }}</span>
+
+    </template>
 
 
   </div>
@@ -16,28 +28,45 @@
 
 
 <script>
+import LinkConcept from "./LinkConcept";
 
 export default {
-  components: {},
+  components: {
+    LinkConcept,
+  },
   props: {
     concepts: Array,
+    isClickable: Boolean,
+    maxToShow: {
+      type: Number,
+      default: 3,
+    },
   },
   data() {
     return {
-      foo: 42,
+      showAll: false,
     }
   },
   methods: {},
   computed: {
-    conceptNamesString(){
-      return this.concepts.slice(0, 4).map(c => c.display_name).join(", ")
-    }
+    conceptNamesString() {
+      return this.concepts.slice(0, this.maxToShow).map(c => c.display_name).join(", ")
+    },
+    conceptsToShow() {
+      const max = (this.showAll) ? Infinity : this.maxToShow
+      return this.concepts.slice(0, max)
+    },
   },
   created() {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    "concepts": function(to, from){
+      console.log("ConceptsList new concepts", to)
+      this.showAll = false
+    }
+  }
 }
 </script>
 

@@ -1,7 +1,6 @@
 <template>
-  <router-link :to="data.id | idLink">
-    {{data.display_name}}
-  </router-link>
+  <router-link :to="data.id | idLink" style="display: inline-block; white-space: nowrap;">
+    {{data.display_name}}{{ (appendComma) ? ',' : '' }}</router-link>
 
 </template>
 
@@ -13,6 +12,7 @@ export default {
   },
   props: {
     data: Object,
+    appendComma: Boolean,
   },
   data() {
     return {

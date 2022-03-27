@@ -1,58 +1,56 @@
 <template>
-  <v-container>
+  <v-container style="overflow: initial;">
 
     <div class="body-2">
       📄 Work<span v-if="data.type">: {{ data.type.replace("-", " ") }}</span>
     </div>
 
-    <h1 class="text-h4">{{ data.title }}</h1>
+    <div class="text-h6">{{ data.title }}</div>
 
     <div class="">
-      Published {{ data.publication_year }}
-      <span v-if="data.host_venue.display_name">
-          in
-          <a :href="data.host_venue.id | idLink">
-          {{ data.host_venue.display_name }}.
-          </a>
-          </span>
+      <a class="font-italic" v-if="data.host_venue.display_name"
+         :href="data.host_venue.id | idLink">{{ data.host_venue.display_name }}</a>
+      <span class="year ml-2" v-if="data.publication_year">
+        ({{ data.publication_year }})
+      </span>
     </div>
     <div>
-      Concepts:
-      <template
-          v-for="(concept, i) in data.concepts"
-      >
-        <link-concept
-            :key="concept.id"
-            :data="concept"
-            :append-comma="i < data.concepts.length - 1"
-            class="mr-1"
-        />
+      <concepts-list :concepts="data.concepts" :is-clickable="true"/>
+    </div>
 
+
+    <div class="mt-4">
+      <template v-if="authorshipsToShow.length === 1">
+        <authorship
+            :key="authorshipsToShow[0].author.id"
+            :authorship="authorshipsToShow[0]"
+            :show-institutions="true"
+        />
+      </template>
+      <template v-else>
+        <authorship
+            v-for="(authorship, i) in authorshipsToShow"
+            :key="authorship.author.id"
+            :authorship="authorship"
+            :append-comma="i < authorshipsToShow.length - 1"
+            :show-institutions="showAuthorDetails"
+        />
+        <v-btn
+            small
+            text
+            color="primary"
+            @click="showAuthorDetails = !showAuthorDetails"
+        >
+          <template v-if="showAuthorDetails">show less</template>
+          <template v-else>
+            <template v-if="truncatedAuthorshipsCount">+{{ truncatedAuthorshipsCount }} more</template>
+            <template v-if="!truncatedAuthorshipsCount && authorshipsHaveAtLeastOneInstitution">show details</template>
+          </template>
+
+        </v-btn>
       </template>
     </div>
 
-    <div class="mt-8">
-      <v-row
-          v-for="authorship in data.authorships"
-          :key="authorship.author.id"
-          class="authorship d-flex"
-      >
-        <v-col cols="3">
-          <link-author :data="authorship.author" class=""/>
-        </v-col>
-        <v-col cols="9">
-          <div
-              v-for="(institution, i) in authorship.institutions"
-              :key="institution.id"
-              class="body-2"
-          >
-            <link-institution v-if="institution.id" :data="institution"/>
-            <span v-else>{{ institution.display_name }}</span>
-          </div>
-        </v-col>
-
-      </v-row>
-    </div>
     <div class="mt-8">
       <!--      <view-in-api-button :id="data.id" />-->
 
@@ -72,40 +70,42 @@
           :href="data.host_venue.url"
           target="_blank"
           class="mr-3"
-          v-if="data.host_venue.url"
+          v-if="data.host_venue.url && !workIsFreeAtPublisher"
           small
       >
         <v-icon left>mdi-open-in-new</v-icon>
         Paywalled at publisher
       </v-btn>
-      <v-btn
-          :href="apiUrl + '.bib'"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-download-outline</v-icon>
-        BibTeX
-      </v-btn>
-      <v-btn
-          :href="apiUrl"
-          target="_blank"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-cog-outline</v-icon>
-        API
-      </v-btn>
-      <v-btn
-          @click="copyPermalinkToClipboard"
-          class="mx-2 text-initial"
-          small
-          text
-      >
-        <v-icon small left>mdi-content-copy</v-icon>
-        Permalink
-      </v-btn>
+      <div class="mt-3">
+        <v-btn
+            :href="apiUrl + '.bib'"
+            class=" text-initial"
+            small
+            text
+        >
+          <v-icon small left>mdi-download-outline</v-icon>
+          BibTeX
+        </v-btn>
+        <v-btn
+            :href="apiUrl"
+            target="_blank"
+            class=" text-initial"
+            small
+            text
+        >
+          <v-icon small left>mdi-cog-outline</v-icon>
+          API
+        </v-btn>
+        <v-btn
+            @click="copyPermalinkToClipboard"
+            class=" text-initial"
+            small
+            text
+        >
+          <v-icon small left>mdi-content-copy</v-icon>
+          Permalink
+        </v-btn>
+      </div>
     </div>
 
 
@@ -121,21 +121,18 @@
 
 
 <script>
-import LinkAuthor from "./LinkAuthor";
-import LinkInstitution from "./LinkInstitution";
-import LinkConcept from "./LinkConcept";
+import ConceptsList from "./ConceptsList";
 import IdList from "./IdList";
-import ViewInApiButton from "./ViewInApiButton";
+import Authorship from "./Authorship";
+
 import {mapActions, mapMutations, mapGetters} from "vuex";
 
 export default {
   name: "EntityWork",
   components: {
-    LinkAuthor,
-    LinkInstitution,
-    LinkConcept,
+    ConceptsList,
     IdList,
-    ViewInApiButton,
+    Authorship,
 
   },
   props: {
@@ -143,7 +140,8 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      showAuthorDetails: false,
+      maxAuthorshipsToShowAtFirst: 10,
     }
   },
   methods: {
@@ -172,13 +170,36 @@ export default {
       const shortId = this.data.id.replace("https://openalex.org/", "")
       return `https://api.openalex.org/works/${shortId}`
     },
+    authorshipsCount() {
+      return this.data.authorships.length
+    },
+
+    authorshipsHaveAtLeastOneInstitution() {
+      return this.data.authorships.some(a => {
+        return a.institutions.length
+      })
+    },
+
+    truncatedAuthorshipsCount() {
+      return Math.max(this.data.authorships.length - this.maxAuthorshipsToShowAtFirst, 0)
+    },
+    authorshipsToShow() {
+      if (!this.authorshipsCount) return []
+      const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
+      return this.data.authorships.slice(0, sliceAt)
+    },
   },
   created() {
   },
   mounted() {
 
   },
-  watch: {}
+  watch: {
+    "data.id": function(to, from){
+      console.log("EntityWork new ID", to)
+      this.showAuthorDetails = false
+    }
+  }
 }
 </script>
 

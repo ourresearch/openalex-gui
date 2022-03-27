@@ -377,6 +377,7 @@ export default {
   created() {
   },
   async mounted() {
+    console.log("mount serp")
     this.loading = true
     // this.apiResp = await api.get(this.apiUrl)
     this.loading = false

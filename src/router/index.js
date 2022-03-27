@@ -73,6 +73,8 @@ const router = new VueRouter({
             })
         } else if (savedPosition) {
             return savedPosition
+        } else if (to.name === "Serp") {
+            // do nothing
         } else {
             return {x: 0, y: 0}
         }
