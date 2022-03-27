@@ -134,7 +134,7 @@ const compareByCount = function (a, b) {
 }
 
 export default {
-  name: "FacetWithOptions",
+  name: "Facet",
   components: {
     FacetOption,
     FacetOptionIsOa,

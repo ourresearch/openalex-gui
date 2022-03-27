@@ -245,7 +245,7 @@ import FilterChip from "../components/FilterChip";
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
-import Facet from "../components/Facet/FacetWithOptions";
+import Facet from "../components/Facet/Facet";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 
 import ResultWork from "../components/ResultWork";

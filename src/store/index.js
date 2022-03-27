@@ -78,6 +78,7 @@ const stateDefaults = function () {
         // entity stuff
         entityZoomData: null,
         entityZoomType: null,
+        entityZoomDrawerIsOpen: false,
     }
     return ret
 }
@@ -127,8 +128,30 @@ export default new Vuex.Store({
         },
 
 
+
     },
     actions: {
+
+        // *****************************************
+        // mess with the URL
+        // *****************************************
+
+        // eslint-disable-next-line no-unused-vars
+        async pushSearchUrl({commit, getters, dispatch, state}) {
+            const routerPushTo = {
+                query: getters.searchQuery,
+                name: "Serp",
+                params: {entityType: state.entityType},
+            };
+            router.push(routerPushTo)
+                .catch((e) => {
+                    if (e.name !== "NavigationDuplicated") {
+                        throw e
+                    }
+                })
+        },
+
+
 
         // *****************************************
         // change stuff and then do a search
@@ -196,20 +219,9 @@ export default new Vuex.Store({
             if (!state.textSearch && state.sort === "relevance_score") {
                 commit("setSort", "cited_by_count")
             }
-            const routerPushTo = {
-                query: getters.searchQuery,
-                name: "Serp",
-                params: {entityType: state.entityType},
-            };
-
             console.log("doSearch", getters.searchQuery)
 
-            router.push(routerPushTo)
-                .catch((e) => {
-                    if (e.name !== "NavigationDuplicated") {
-                        throw e
-                    }
-                })
+            dispatch("pushSearchUrl")
             try {
                 const resp = await api.get(state.entityType, getters.searchQuery)
                 state.results = resp.results
@@ -234,10 +246,19 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async setEntityZoom({commit, getters, dispatch, state}, id) {
+            state.entityZoomDrawerIsOpen = true
             state.entityZoomType = entityTypeFromId(id)
             const pathName = state.entityZoomType + "/" + id
             state.entityZoomData = await api.get(pathName)
+        },
 
+        // eslint-disable-next-line no-unused-vars
+        closeEntityZoomDrawer({commit, getters, dispatch, state}, id) {
+            if (!state.entityType) state.entityType = state.entityZoomType
+            dispatch("pushSearchUrl")
+            state.entityZoomDrawerIsOpen = false
+            state.entityZoomType = null
+            state.entityZoomData = null
         },
 
 

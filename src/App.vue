@@ -4,9 +4,9 @@
         app
         fixed
         clipped-right
-        flat
         color="white"
         class=""
+        elevate-on-scroll
 
     >
       <router-link to="/" class="logo-link">
@@ -65,8 +65,13 @@
         floating
         temporary
         width="400"
-        value="true"
+        :value="$store.state.entityZoomDrawerIsOpen"
     >
+      <v-toolbar flat>
+        <v-btn icon><v-icon>mdi-arrow-right</v-icon></v-btn>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="closeEntityZoomDrawer"><v-icon>mdi-close</v-icon></v-btn>
+      </v-toolbar>
       <div v-if="$store.state.entityZoomData">
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
         <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
@@ -76,6 +81,19 @@
 
       </div>
     </v-navigation-drawer>
+
+<!--    <v-navigation-drawer-->
+<!--        app-->
+<!--        clipped-->
+<!--        floating-->
+<!--        permanent-->
+<!--    >-->
+<!--      <facet-->
+<!--            v-for="facet in searchFacetConfigs"-->
+<!--            :key="facet.key"-->
+<!--            :facet-key="facet.key"-->
+<!--        ></facet>-->
+<!--    </v-navigation-drawer>-->
 
     <v-main>
       <v-container>
@@ -144,11 +162,14 @@
 <script>
 import SearchBox from "./components/SearchBox";
 
+import Facet from "./components/Facet/Facet";
+
 import EntityWork from "./components/EntityWork";
 import EntityAuthor from "./components/EntityAuthor";
 import EntityVenue from "./components/EntityVenue";
 import EntityInstitution from "./components/EntityInstitution";
 import EntityConcept from "./components/EntityConcept";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: 'App',
@@ -165,16 +186,26 @@ export default {
     EntityVenue,
     EntityInstitution,
     EntityConcept,
+
+    Facet,
   },
 
   data: () => ({
     //
   }),
-  beforeMount() {
-    if (this.$route.name === "Serp") {
-      // this.$store.dispatch("bootFromUrl")
-    }
-  }
+  computed: {
+    ...mapGetters([
+      "searchFacetConfigs",
+    ]),
+  },
+  methods: {
+    ...mapMutations([
+    ]),
+    ...mapActions([
+        "closeEntityZoomDrawer"
+
+    ])
+  },
 };
 </script>
 <style lang="scss">
