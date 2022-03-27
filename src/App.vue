@@ -63,14 +63,19 @@
         app
         clipped
         floating
-        temporary
-        width="400"
-        :value="$store.state.entityZoomDrawerIsOpen"
+        :temporary="zoomDrawerIsTemporary"
+        stateless
+        :mobile-breakpoint="0"
+        :width="zoomDrawerWidth"
+        :value="zoomDrawerValue"
     >
-      <v-toolbar flat>
-        <v-btn icon><v-icon>mdi-arrow-right</v-icon></v-btn>
+      <v-toolbar flat v-if="$store.state.entityZoomType">
+        <template v-if="$vuetify.breakpoint.lgAndUp">
+          <v-btn icon v-if="doubleZoom" @click="doubleZoom = false"><v-icon>mdi-arrow-right</v-icon></v-btn>
+          <v-btn icon v-else @click="doubleZoom = true"><v-icon>mdi-arrow-left</v-icon></v-btn>
+        </template>
         <v-spacer></v-spacer>
-        <v-btn icon @click="closeEntityZoomDrawer"><v-icon>mdi-close</v-icon></v-btn>
+        <v-btn icon @click="clearZoomDrawer"><v-icon>mdi-close</v-icon></v-btn>
       </v-toolbar>
       <div v-if="$store.state.entityZoomData">
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
@@ -191,20 +196,41 @@ export default {
   },
 
   data: () => ({
-    //
+    doubleZoom: false,
   }),
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
     ]),
+    zoomDrawerValue(){
+      if (this.$vuetify.breakpoint.lgAndUp){
+        return true
+      }
+      else {
+        return !!this.$store.state.entityZoomType
+      }
+    },
+    zoomDrawerWidth(){
+      if (this.$vuetify.breakpoint.lgAndUp){
+        return (this.doubleZoom) ? "95%" : "400"
+      }
+      else {
+        return "100%"
+      }
+    },
+    zoomDrawerIsTemporary(){
+      return (this.$vuetify.breakpoint.mdAndDown || this.doubleZoom)
+    }
   },
   methods: {
     ...mapMutations([
     ]),
     ...mapActions([
-        "closeEntityZoomDrawer"
-
-    ])
+    ]),
+    clearZoomDrawer(){
+      this.doubleZoom = false
+      this.$store.dispatch("closeEntityZoomDrawer")
+    },
   },
 };
 </script>
