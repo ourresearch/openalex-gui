@@ -12,8 +12,10 @@
           small
           text
           color="primary"
+          v-if="hiddenConceptsCount"
+          class="d-block"
           @click="showAll = !showAll">
-        <template v-if="!showAll">+{{ concepts.length - maxToShow }} more</template>
+        <template v-if="!showAll">+{{ hiddenConceptsCount }} more</template>
         <template v-else>show less</template>
       </v-btn>
     </template>
@@ -55,6 +57,9 @@ export default {
     conceptsToShow() {
       const max = (this.showAll) ? Infinity : this.maxToShow
       return this.concepts.slice(0, max)
+    },
+    hiddenConceptsCount() {
+      return Math.max(this.concepts.length - this.maxToShow, 0)
     },
   },
   created() {

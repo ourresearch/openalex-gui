@@ -58,24 +58,20 @@
     <!--      hi-->
     <!--    </v-navigation-drawer>-->
 
-    <v-navigation-drawer
-        right
-        app
-        clipped
-        floating
-        :temporary="zoomDrawerIsTemporary"
-        stateless
-        :mobile-breakpoint="0"
-        :width="zoomDrawerWidth"
-        :value="zoomDrawerValue"
+    <div
+        :style="{width: entityZoomConfig.width}"
+        id="entity-zoom"
     >
       <v-toolbar flat v-if="$store.state.entityZoomType">
         <template v-if="$vuetify.breakpoint.lgAndUp">
-          <v-btn icon v-if="doubleZoom" @click="doubleZoom = false"><v-icon>mdi-arrow-right</v-icon></v-btn>
-          <v-btn icon v-else @click="doubleZoom = true"><v-icon>mdi-arrow-left</v-icon></v-btn>
+          <v-btn icon v-if="doubleZoom" @click="doubleZoom = false">
+            <v-icon>mdi-arrow-right</v-icon>
+          </v-btn>
+          <v-btn icon v-else @click="doubleZoom = true">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
         </template>
         <v-spacer></v-spacer>
-        <v-btn icon @click="clearZoomDrawer"><v-icon>mdi-close</v-icon></v-btn>
       </v-toolbar>
       <div v-if="$store.state.entityZoomData">
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
@@ -85,17 +81,9 @@
         <entity-concept v-if="$store.state.entityZoomType==='concepts'" :data="$store.state.entityZoomData"/>
 
       </div>
-    </v-navigation-drawer>
+    </div>
 
     <v-main>
-      <v-container>
-        <v-alert v-if="0" text outlined type="warning">
-          <strong>Under construction.</strong>
-          This website officially launches February 2022.
-        </v-alert>
-
-      </v-container>
-      <!--      <router-view :key="$route.fullPath"/>-->
       <router-view/>
     </v-main>
 
@@ -163,6 +151,61 @@ import EntityInstitution from "./components/EntityInstitution";
 import EntityConcept from "./components/EntityConcept";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
+const entityZoomConfigs = [
+  // closed mobile
+  {
+    isOpen: false,
+    isMobile: true,
+    width: 0,
+  },
+
+  // closed desktop
+  {
+    isOpen: false,
+    isMobile: false,
+    width: "450px",
+  },
+
+  // open desktop (sidebar)
+  {
+    isOpen: true,
+    isMobile: false,
+    isSkinny: true,
+    width: "450px",
+    bodyPaddingRight: "450px",
+    buttons: {
+      setFullscreen: true,
+      setClose: true,
+    }
+  },
+
+  // open desktop (fullscreen)
+  {
+    isOpen: true,
+    isMobile: false,
+    isSkinny: false,
+    width: "95%",
+    bodyScrollLock: true,
+    bodyPaddingRight: "450px",
+    buttons: {
+      setClose: true,
+      setNotFullscreen: true,
+    }
+  },
+
+  // open mobile
+  {
+    isOpen: true,
+    isMobile: true,
+    isSkinny: true,
+    width: "95%",
+    bodyScrollLock: true,
+    buttons: {
+      setClose: true,
+    }
+  },
+]
+
 export default {
   name: 'App',
   metaInfo: {
@@ -182,47 +225,46 @@ export default {
     Facet,
   },
 
-  data: () => ({
-    doubleZoom: false,
-    zoomDrawerDesktopWidth: 400,
-  }),
+  data: function () {
+    return {
+      doubleZoom: false,
+      zoomIsSkinny: true,
+
+    }
+  },
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
     ]),
-    zoomDrawerValue(){
-      if (this.$vuetify.breakpoint.lgAndUp){
-        return true
-      }
-      else {
-        return !!this.$store.state.entityZoomType
-      }
-    },
-    zoomDrawerWidth(){
-      if (this.$vuetify.breakpoint.lgAndUp){
-        return (this.doubleZoom) ? "95%" : this.zoomDrawerDesktopWidth
-      }
-      else {
-        return "100%"
-      }
-    },
-    zoomDrawerIsTemporary(){
-      return (this.$vuetify.breakpoint.mdAndDown || this.doubleZoom)
+    entityZoomConfig() {
+      return entityZoomConfigs.find(c => {
+        const matches = [
+          c.isMobile === this.$vuetify.breakpoint.mdAndDown,
+          c.isOpen === this.$store.state.entityZoomIsOpen,
+          c.isSkinny === this.zoomIsSkinny,
+        ]
+        console.log("matches", matches)
+        return matches.every(x => x)
+      })
     }
   },
   methods: {
-    ...mapMutations([
-    ]),
-    ...mapActions([
-    ]),
-    clearZoomDrawer(){
-      this.doubleZoom = false
-      this.$store.dispatch("closeEntityZoomDrawer")
-    },
+    ...mapMutations([]),
+    ...mapActions([]),
   },
 };
 </script>
 <style lang="scss">
+
+
+#entity-zoom {
+  position: fixed;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  background: #fff;
+}
 
 // hack to get rid of vue's active class on buttons, which makes them display different
 // when they are linking to the page you're on right now.
@@ -270,15 +312,19 @@ body {
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
+
     .body-1 {
       font-size: 15px !important;
     }
+
     .body-2 {
       font-size: 13px !important;
     }
+
     .subtitle-1 {
       font-size: 17px !important;
     }
+
     .text-h6 {
       line-height: 1.3;
     }

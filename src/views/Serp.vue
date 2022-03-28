@@ -31,16 +31,15 @@
           <div class="d-flex align-end mb-2">
             <div class="body-1 grey--text">
               <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
-              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>
+<!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
             </div>
             <v-spacer/>
 
 
             <v-menu offset-y>
               <template v-slot:activator="{on}">
-                <v-btn text small v-on="on">
-                  <v-icon small left>mdi-download-outline</v-icon>
-                  export
+                <v-btn icon v-on="on">
+                  <v-icon>mdi-download-outline</v-icon>
                 </v-btn>
               </template>
               <v-list>
@@ -62,12 +61,10 @@
             </v-menu>
 
             <v-btn
-                text
-                small
+                icon
                 @click="openCreateAlertDialog"
             >
-              <v-icon small left>mdi-bell-outline</v-icon>
-              Create alert
+              <v-icon>mdi-bell-outline</v-icon>
             </v-btn>
 
 
@@ -104,7 +101,7 @@
           <div class="serp-bottom">
             <v-pagination
                 v-model="page"
-                :length="10"
+                :length="5"
             />
           </div>
 
@@ -403,7 +400,7 @@ export default {
 
 <style scoped lang="scss">
 .serp-container {
-  max-width: 1500px;
+  //max-width: 1500px;
   display: flex;
 
   .facets-panel-container {

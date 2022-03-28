@@ -8,56 +8,70 @@
     <div class="text-h6">{{ data.title }}</div>
 
     <div class="">
-      <a class="font-italic" v-if="data.host_venue.display_name"
-         :href="data.host_venue.id | idLink">{{ data.host_venue.display_name }}</a>
-      <span class="year ml-2" v-if="data.publication_year">
-        ({{ data.publication_year }})
-      </span>
+      Venue:
+      <div>
+        <a class="font-italic" v-if="data.host_venue.display_name"
+           :href="data.host_venue.id | idLink">{{ data.host_venue.display_name }}</a>
+        <span class="year ml-2" v-if="data.publication_year">
+          ({{ data.publication_year }})
+        </span>
+      </div>
     </div>
-    <div>
+    <div class="mt-2">
+      Authors:
+      <div>
+        <template v-if="authorshipsToShow.length === 1">
+          <authorship
+              :key="authorshipsToShow[0].author.id"
+              :authorship="authorshipsToShow[0]"
+              :show-institutions="true"
+          />
+        </template>
+        <template v-else>
+          <authorship
+              v-for="(authorship, i) in authorshipsToShow"
+              :key="authorship.author.id"
+              :authorship="authorship"
+              :append-comma="i < authorshipsToShow.length - 1"
+              :show-institutions="showAuthorDetails"
+              class="mr-1"
+          />
+          <div>
+            <v-btn
+                small
+                text
+                color="primary"
+                @click="showAuthorDetails = !showAuthorDetails"
+            >
+              <template v-if="showAuthorDetails">show less</template>
+              <template v-else>
+                <template v-if="truncatedAuthorshipsCount">+{{ truncatedAuthorshipsCount }} more</template>
+                <template v-if="!truncatedAuthorshipsCount && authorshipsHaveAtLeastOneInstitution">show details
+                </template>
+              </template>
+
+            </v-btn>
+
+          </div>
+        </template>
+
+
+      </div>
+    </div>
+
+    <div class="mt-2">
+      Concepts:
       <concepts-list :concepts="data.concepts" :is-clickable="true"/>
     </div>
 
 
-    <div class="mt-4">
-      <template v-if="authorshipsToShow.length === 1">
-        <authorship
-            :key="authorshipsToShow[0].author.id"
-            :authorship="authorshipsToShow[0]"
-            :show-institutions="true"
-        />
-      </template>
-      <template v-else>
-        <authorship
-            v-for="(authorship, i) in authorshipsToShow"
-            :key="authorship.author.id"
-            :authorship="authorship"
-            :append-comma="i < authorshipsToShow.length - 1"
-            :show-institutions="showAuthorDetails"
-        />
-        <v-btn
-            small
-            text
-            color="primary"
-            @click="showAuthorDetails = !showAuthorDetails"
-        >
-          <template v-if="showAuthorDetails">show less</template>
-          <template v-else>
-            <template v-if="truncatedAuthorshipsCount">+{{ truncatedAuthorshipsCount }} more</template>
-            <template v-if="!truncatedAuthorshipsCount && authorshipsHaveAtLeastOneInstitution">show details</template>
-          </template>
-
-        </v-btn>
-      </template>
-    </div>
-
-    <div class="mt-8">
+    <div class="mt-8">isOpen: false,
       <!--      <view-in-api-button :id="data.id" />-->
 
       <v-btn
           :href="fulltextUrl"
           target="_blank"
-          class="mr-3"
+          class="mr-3 mt-3"
           v-if="fulltextUrl"
           color="primary"
           small
@@ -69,7 +83,7 @@
       <v-btn
           :href="data.host_venue.url"
           target="_blank"
-          class="mr-3"
+          class="mr-3 mt-3"
           v-if="data.host_venue.url && !workIsFreeAtPublisher"
           small
       >
@@ -111,8 +125,8 @@
 
     <v-divider class="mt-12 pt-12"/>
 
-    <div class="text-h4">Identifiers</div>
-    <id-list :data="data.ids"/>
+    <!--    <div class="text-h4">Identifiers</div>-->
+    <!--    <id-list :data="data.ids"/>-->
 
   </v-container>
 
@@ -195,7 +209,7 @@ export default {
 
   },
   watch: {
-    "data.id": function(to, from){
+    "data.id": function (to, from) {
       console.log("EntityWork new ID", to)
       this.showAuthorDetails = false
     }

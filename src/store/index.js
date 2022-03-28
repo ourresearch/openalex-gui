@@ -78,7 +78,7 @@ const stateDefaults = function () {
         // entity stuff
         entityZoomData: null,
         entityZoomType: null,
-        entityZoomDrawerIsOpen: false,
+        entityZoomIsOpen: false,
     }
     return ret
 }
@@ -246,7 +246,7 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async setEntityZoom({commit, getters, dispatch, state}, id) {
-            state.entityZoomDrawerIsOpen = true
+            state.entityZoomIsOpen = true
             state.entityZoomType = entityTypeFromId(id)
             const pathName = state.entityZoomType + "/" + id
             state.entityZoomData = await api.get(pathName)
@@ -256,7 +256,7 @@ export default new Vuex.Store({
         closeEntityZoomDrawer({commit, getters, dispatch, state}, id) {
             if (!state.entityType) state.entityType = state.entityZoomType
             dispatch("pushSearchUrl")
-            state.entityZoomDrawerIsOpen = false
+            state.entityZoomIsOpen = false
             state.entityZoomType = null
             state.entityZoomData = null
         },
