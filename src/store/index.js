@@ -253,7 +253,7 @@ export default new Vuex.Store({
         },
 
         // eslint-disable-next-line no-unused-vars
-        closeEntityZoomDrawer({commit, getters, dispatch, state}, id) {
+        closeEntityZoomDrawer({commit, getters, dispatch, state}) {
             if (!state.entityType) state.entityType = state.entityZoomType
             dispatch("pushSearchUrl")
             state.entityZoomIsOpen = false

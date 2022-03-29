@@ -62,17 +62,20 @@
         :style="{width: entityZoomConfig.width}"
         id="entity-zoom"
     >
-      <v-toolbar flat v-if="$store.state.entityZoomType">
-        <template v-if="$vuetify.breakpoint.lgAndUp">
-          <v-btn icon v-if="doubleZoom" @click="doubleZoom = false">
-            <v-icon>mdi-arrow-right</v-icon>
-          </v-btn>
-          <v-btn icon v-else @click="doubleZoom = true">
+      <v-toolbar flat>
+        <template v-if="entityZoomConfig && entityZoomConfig.buttons">
+          <v-btn icon v-if="entityZoomConfig.buttons.setDoubleZoom" @click="doubleZoom = true">
             <v-icon>mdi-arrow-left</v-icon>
           </v-btn>
+          <v-btn icon v-if="entityZoomConfig.buttons.unsetDoubleZoom" @click="doubleZoom = false">
+            <v-icon>mdi-arrow-right</v-icon>
+          </v-btn>
+          <v-btn icon v-if="entityZoomConfig.buttons.setClose" @click="closeEntityZoom">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </template>
-        <v-spacer></v-spacer>
       </v-toolbar>
+
       <div v-if="$store.state.entityZoomData">
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
         <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
@@ -170,11 +173,10 @@ const entityZoomConfigs = [
   {
     isOpen: true,
     isMobile: false,
-    isSkinny: true,
     width: "450px",
     bodyPaddingRight: "450px",
     buttons: {
-      setFullscreen: true,
+      setDoubleZoom: true,
       setClose: true,
     }
   },
@@ -183,13 +185,13 @@ const entityZoomConfigs = [
   {
     isOpen: true,
     isMobile: false,
-    isSkinny: false,
+    requiresDoubleZoom: true,
     width: "95%",
     bodyScrollLock: true,
     bodyPaddingRight: "450px",
     buttons: {
       setClose: true,
-      setNotFullscreen: true,
+      unsetDoubleZoom: true,
     }
   },
 
@@ -197,7 +199,6 @@ const entityZoomConfigs = [
   {
     isOpen: true,
     isMobile: true,
-    isSkinny: true,
     width: "95%",
     bodyScrollLock: true,
     buttons: {
@@ -229,7 +230,6 @@ export default {
     return {
       doubleZoom: false,
       zoomIsSkinny: true,
-
     }
   },
   computed: {
@@ -239,11 +239,10 @@ export default {
     entityZoomConfig() {
       return entityZoomConfigs.find(c => {
         const matches = [
-          c.isMobile === this.$vuetify.breakpoint.mdAndDown,
-          c.isOpen === this.$store.state.entityZoomIsOpen,
-          c.isSkinny === this.zoomIsSkinny,
+          !!c.isMobile === this.$vuetify.breakpoint.mdAndDown,
+          !!c.isOpen === this.$store.state.entityZoomIsOpen,
+          !!c.requiresDoubleZoom === this.doubleZoom,
         ]
-        console.log("matches", matches)
         return matches.every(x => x)
       })
     }
@@ -251,6 +250,10 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
+    closeEntityZoom(){
+      this.doubleZoom = false
+      this.$store.dispatch("closeEntityZoomDrawer")
+    },
   },
 };
 </script>
