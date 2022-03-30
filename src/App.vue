@@ -88,6 +88,9 @@
     </div>
 
     <v-main :style="{paddingRight: bodyPaddingRight}">
+      <v-fade-transition>
+        <div id="zoom-overlay" v-if="applyOverlay"></div>
+      </v-fade-transition>
       <router-view/>
     </v-main>
 
@@ -186,7 +189,7 @@ const entityZoomConfigs = [
     }
   },
 
-  // open desktop (fullscreen)
+  // open desktop (fullscreen "double-zoom")
   {
     isOpen: true,
     isMobile: false,
@@ -194,6 +197,7 @@ const entityZoomConfigs = [
     width: "95%",
     bodyScrollLock: true,
     bodyPaddingRight: "450px",
+    applyOverlay: true,
     buttons: {
       setClose: true,
       unsetDoubleZoom: true,
@@ -206,6 +210,7 @@ const entityZoomConfigs = [
     isMobile: true,
     width: "95%",
     bodyScrollLock: true,
+    applyOverlay: true,
     buttons: {
       setClose: true,
     }
@@ -258,6 +263,10 @@ export default {
     },
     bodyScrollLock() {
       return this.entityZoomConfig?.bodyScrollLock
+    },
+    applyOverlay(){
+      return this.entityZoomConfig?.applyOverlay
+
     }
   },
   methods: {
@@ -289,8 +298,11 @@ html, body {
   top: 64px;
   right: 0;
   bottom: 0;
-  z-index: 9;
+  z-index: 4;
   background: #fff;
+  transition: width 200ms;
+
+
 }
 
 #entity-zoom-content {
@@ -298,7 +310,15 @@ html, body {
   position: absolute;
   overflow-y: scroll;
   height: 100%;
+}
 
+#zoom-overlay {
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,.5);
 }
 
 // hack to get rid of vue's active class on buttons, which makes them display different
