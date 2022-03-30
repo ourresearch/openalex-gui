@@ -62,7 +62,7 @@
         :style="{width: entityZoomConfig.width}"
         id="entity-zoom"
     >
-      <v-toolbar flat>
+      <v-toolbar flat fixed dense>
         <template v-if="entityZoomConfig && entityZoomConfig.buttons">
           <v-btn icon v-if="entityZoomConfig.buttons.setDoubleZoom" @click="doubleZoom = true">
             <v-icon>mdi-arrow-left</v-icon>
@@ -76,23 +76,25 @@
         </template>
       </v-toolbar>
 
-      <div v-if="$store.state.entityZoomData">
+      <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="bodyScrollLock">
+
+
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
         <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
         <entity-venue v-if="$store.state.entityZoomType==='venues'" :data="$store.state.entityZoomData"/>
         <entity-institution v-if="$store.state.entityZoomType==='institutions'" :data="$store.state.entityZoomData"/>
         <entity-concept v-if="$store.state.entityZoomType==='concepts'" :data="$store.state.entityZoomData"/>
-
       </div>
     </div>
 
-    <v-main>
+    <v-main :style="{paddingRight: bodyPaddingRight}">
       <router-view/>
     </v-main>
 
     <v-footer
         class="py-10 site-footer"
         style="margin-top: 150px;"
+        :style="{paddingRight: bodyPaddingRight}"
         dark
         color="#555"
     >
@@ -153,6 +155,8 @@ import EntityVenue from "./components/EntityVenue";
 import EntityInstitution from "./components/EntityInstitution";
 import EntityConcept from "./components/EntityConcept";
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {sleep} from "./util";
+
 
 const entityZoomConfigs = [
   // closed mobile
@@ -167,6 +171,7 @@ const entityZoomConfigs = [
     isOpen: false,
     isMobile: false,
     width: "450px",
+    bodyPaddingRight: "450px",
   },
 
   // open desktop (sidebar)
@@ -207,6 +212,7 @@ const entityZoomConfigs = [
   },
 ]
 
+
 export default {
   name: 'App',
   metaInfo: {
@@ -225,6 +231,7 @@ export default {
 
     Facet,
   },
+
 
   data: function () {
     return {
@@ -245,19 +252,36 @@ export default {
         ]
         return matches.every(x => x)
       })
+    },
+    bodyPaddingRight() {
+      return this.entityZoomConfig?.bodyPaddingRight
+    },
+    bodyScrollLock() {
+      return this.entityZoomConfig?.bodyScrollLock
     }
   },
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
-    closeEntityZoom(){
+    closeEntityZoom() {
       this.doubleZoom = false
       this.$store.dispatch("closeEntityZoomDrawer")
     },
   },
+  async mounted() {
+    // await sleep(2000)
+    // console.log("disable body scroll")
+    // bodyScrollLock.disableBodyScroll()
+  }
 };
 </script>
 <style lang="scss">
+
+html, body {
+  // THIS IS REQUIRED to disable styles that Vuetify applies,
+  // which keep the v-scroll-lock directive from working.
+  overflow: initial;
+}
 
 
 #entity-zoom {
@@ -267,6 +291,14 @@ export default {
   bottom: 0;
   z-index: 9;
   background: #fff;
+}
+
+#entity-zoom-content {
+  overflow-y: scroll;
+  position: absolute;
+  overflow-y: scroll;
+  height: 100%;
+
 }
 
 // hack to get rid of vue's active class on buttons, which makes them display different

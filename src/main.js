@@ -4,12 +4,14 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
+import VScrollLock from "v-scroll-lock";
 
 Vue.config.productionTip = false
 
 Vue.use(VueMeta, {
     refreshOnceOnNavigation: true
 })
+Vue.use(VScrollLock)
 
 const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
