@@ -173,10 +173,11 @@ export default {
       return ret
     },
     apiQuery() {
-      const myFilters = this.$store.getters.inputFiltersForUrl.filter(f => f.key !== this.facetKey)
+      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
       return {
         group_by: this.facetKey,
-        filter: filtersAsUrlStr(myFilters)
+        filter: filtersAsUrlStr(myFilters),
+        search: this.$store.state.textSearch,
       }
     },
     resultsFiltersToShow() {

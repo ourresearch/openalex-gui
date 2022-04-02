@@ -18,12 +18,6 @@ const facetConfigs = function () {
     const ret = [
         // shared
         {
-            key: "display_name.search",
-            entityTypes: allEntityTypes(),
-            displayName: "Name",
-            valuesToShow: "mostCommon",
-        },
-        {
             key: "x_concepts.id",
             entityTypes: ["authors", "institutions", "venues"],
             displayName: "Core concepts",

@@ -306,10 +306,12 @@ html, body {
 }
 
 #entity-zoom-content {
-  overflow-y: scroll;
   position: absolute;
   overflow-y: scroll;
-  height: 100%;
+  top: 48px;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 #zoom-overlay {

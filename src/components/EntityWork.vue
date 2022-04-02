@@ -1,5 +1,5 @@
 <template>
-  <v-container style="overflow: initial;">
+  <v-container class="entity-zoom-container">
 
     <div class="body-2">
       📄 Work<span v-if="data.type">: {{ data.type.replace("-", " ") }}</span>
@@ -64,8 +64,15 @@
       <concepts-list :concepts="data.concepts" :is-clickable="true"/>
     </div>
 
+    <div v-if="0">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </div>
 
-    <div class="mt-8">isOpen: false,
+
+    <div class="mt-8 entity-buttons d-flex">
       <!--      <view-in-api-button :id="data.id" />-->
 
       <v-btn
@@ -86,44 +93,42 @@
           class="mr-3 mt-3"
           v-if="data.host_venue.url && !workIsFreeAtPublisher"
           small
+          icon
       >
-        <v-icon left>mdi-open-in-new</v-icon>
-        Paywalled at publisher
+        <v-icon left>mdi-file-lock-outline</v-icon>
+<!--        Paywalled at publisher-->
       </v-btn>
+      <v-spacer></v-spacer>
       <div class="mt-3">
         <v-btn
             :href="apiUrl + '.bib'"
             class=" text-initial"
-            small
-            text
+            icon
         >
-          <v-icon small left>mdi-download-outline</v-icon>
-          BibTeX
+          <v-icon>mdi-download-outline</v-icon>
+<!--          BibTeX-->
         </v-btn>
         <v-btn
             :href="apiUrl"
             target="_blank"
             class=" text-initial"
-            small
-            text
+            icon
         >
-          <v-icon small left>mdi-cog-outline</v-icon>
-          API
+          <v-icon>mdi-cog-outline</v-icon>
+<!--          API-->
         </v-btn>
         <v-btn
             @click="copyPermalinkToClipboard"
             class=" text-initial"
-            small
-            text
+            icon
         >
-          <v-icon small left>mdi-content-copy</v-icon>
-          Permalink
+          <v-icon>mdi-link</v-icon>
+<!--          Permalink-->
         </v-btn>
       </div>
     </div>
 
 
-    <v-divider class="mt-12 pt-12"/>
 
     <!--    <div class="text-h4">Identifiers</div>-->
     <!--    <id-list :data="data.ids"/>-->
@@ -217,7 +222,20 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.entity-buttons {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+}
+.entity-zoom-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+}
 
 
 </style>

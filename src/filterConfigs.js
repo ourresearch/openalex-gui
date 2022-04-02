@@ -28,18 +28,6 @@ const addDisplayNamesToFilters = async function (filtersList) {
     })
 }
 
-const textSearchFromUrlString = function (str) {
-    if (!str) str = "display_name.search:" // this is required for all URLs for now
-    return str.split(",")
-        .map(filterString => {
-            const [key, value] = filterString.split(":");
-            return {key, value}
-        })
-        .find(f => {
-            return f.key === "display_name.search"
-        })?.value
-}
-
 const filtersFromUrlStr = function (str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
@@ -49,15 +37,10 @@ const filtersFromUrlStr = function (str) {
     facetStrings.forEach(facetStr => {
         const [key, valuesStr] = facetStr.split(":")
 
-        // although the api (and our own URL) treats this as just another filter,
-        // we don't store it that way.
-        if (key !== "display_name.search") {
-
-            const values = valuesStr.split("|")
-            values.forEach(value => {
-                filters.push(createSimpleFilter(key, value))
-            })
-        }
+        const values = valuesStr.split("|")
+        values.forEach(value => {
+            filters.push(createSimpleFilter(key, value))
+        })
     })
 
 
@@ -122,7 +105,6 @@ const createDisplayFilter = function (key, value, displayValue, count) {
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
-    textSearchFromUrlString,
 
     makeResultsFiltersFromApi,
     createSimpleFilter,

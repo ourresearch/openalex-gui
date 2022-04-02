@@ -7,7 +7,6 @@ import {facetConfigs} from "../facetConfigs";
 import {
     filtersFromUrlStr,
     filtersAsUrlStr,
-    textSearchFromUrlString,
     makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
@@ -163,7 +162,7 @@ export default new Vuex.Store({
             commit("setPage", router.currentRoute.query.page)
             commit("setSort", router.currentRoute.query.sort)
             state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
-            state.textSearch = textSearchFromUrlString(router.currentRoute.query.filter)
+            state.textSearch = router.currentRoute.query.search
             await dispatch("doSearch")
         },
 
@@ -281,6 +280,7 @@ export default new Vuex.Store({
             }
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
             if (state.sort) query["sort"] = state.sort + ":desc"
+            if (state.textSearch) query.search = state.textSearch
             return query
         },
         searchApiUrl(state, getters) {
@@ -301,18 +301,9 @@ export default new Vuex.Store({
                 })
         },
         inputFiltersAsString(state, getters) {
-            const copy = [...getters.inputFiltersForUrl]
+            const copy = [...state.inputFilters]
             copy.sort()
             return filtersAsUrlStr(copy)
-        },
-        inputFiltersForUrl(state, getters) {
-            return [
-                ...state.inputFilters,
-                getters.textSearchFilter
-            ]
-        },
-        textSearchFilter(state, getters) {
-            return createSimpleFilter("display_name.search", state.textSearch)
         },
         allOaStatusFiltersAreActive(state) {
             const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")
