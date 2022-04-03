@@ -7,18 +7,36 @@
 
     <div class="text-h6">{{ data.title }}</div>
 
-    <div class="">
-      Venue:
+    <div v-if="data.host_venue.display_name" class="">
       <div>
-        <a class="font-italic" v-if="data.host_venue.display_name"
-           :href="data.host_venue.id | idLink">{{ data.host_venue.display_name }}</a>
+        <a class="font-italic" :href="data.host_venue.id | idLink">{{ data.host_venue.display_name }}</a>
         <span class="year ml-2" v-if="data.publication_year">
           ({{ data.publication_year }})
         </span>
       </div>
     </div>
-    <div class="mt-2">
-      Authors:
+    <div v-if="!data.host_venue.display_name && data.publication_year">Published in {{ data.publication_year }}</div>
+
+
+    <div class="mt-5" v-if="authorshipsToShow.length">
+      <div>
+
+        <span class="font-weight-bold">
+          {{ data.authorships.length }}
+          Author{{ (authorshipsToShow.length > 1) ? 's' : '' }}
+        </span>
+        <a
+            @click="showAuthorDetails = !showAuthorDetails"
+        >
+          <template v-if="showAuthorDetails">(show less)</template>
+          <template v-else>
+            <template v-if="truncatedAuthorshipsCount">(show all)</template>
+            <template v-if="!truncatedAuthorshipsCount && authorshipsHaveAtLeastOneInstitution">(show details)
+            </template>
+          </template>
+
+        </a>
+      </div>
       <div>
         <template v-if="authorshipsToShow.length === 1">
           <authorship
@@ -36,68 +54,79 @@
               :show-institutions="showAuthorDetails"
               class="mr-1"
           />
-          <div>
-            <v-btn
-                small
-                text
-                color="primary"
-                @click="showAuthorDetails = !showAuthorDetails"
-            >
-              <template v-if="showAuthorDetails">show less</template>
-              <template v-else>
-                <template v-if="truncatedAuthorshipsCount">+{{ truncatedAuthorshipsCount }} more</template>
-                <template v-if="!truncatedAuthorshipsCount && authorshipsHaveAtLeastOneInstitution">show details
-                </template>
-              </template>
-
-            </v-btn>
-
-          </div>
         </template>
 
 
       </div>
     </div>
 
-    <div class="mt-2">
-      Concepts:
+    <div class="mt-5" v-if="data.concepts.length">
       <concepts-list :concepts="data.concepts" :is-clickable="true"/>
     </div>
 
+    <div class="mt-5">
+      <div><span class="font-weight-bold">{{ data.cited_by_count }}</span>
+        incoming citations
+        <a @click="viewIncomingCitations">view</a>
+      </div>
+      <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>
+      <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>
+
+    </div>
+
+
     <div v-if="0">
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
+      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
     </div>
 
 
     <div class="mt-8 entity-buttons d-flex">
       <!--      <view-in-api-button :id="data.id" />-->
 
-      <v-btn
-          :href="fulltextUrl"
-          target="_blank"
-          class="mr-3 mt-3"
-          v-if="fulltextUrl"
-          color="primary"
-          small
-      >
-        <v-icon left>mdi-open-in-new</v-icon>
-        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
-      </v-btn>
+      <div>
+        <div>
+          <v-btn
+              :href="fulltextUrl"
+              target="_blank"
+              class="mr-3 mt-3"
+              v-if="fulltextUrl"
+              color="primary"
+              small
+          >
+            <v-icon left>mdi-open-in-new</v-icon>
+            Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
+          </v-btn>
 
-      <v-btn
-          :href="data.host_venue.url"
-          target="_blank"
-          class="mr-3 mt-3"
-          v-if="data.host_venue.url && !workIsFreeAtPublisher"
-          small
-          icon
-      >
-        <v-icon left>mdi-file-lock-outline</v-icon>
-<!--        Paywalled at publisher-->
-      </v-btn>
+        </div>
+        <v-btn
+            :href="data.host_venue.url"
+            target="_blank"
+            class="mr-3 mt-3 text-initial"
+            v-if="data.host_venue.url && !workIsFreeAtPublisher"
+            small
+            text
+        >
+          <v-icon left>mdi-file-lock-outline</v-icon>
+          Paywalled at publisher
+        </v-btn>
+
+      </div>
+
       <v-spacer></v-spacer>
       <div class="mt-3">
         <v-btn
@@ -106,7 +135,7 @@
             icon
         >
           <v-icon>mdi-download-outline</v-icon>
-<!--          BibTeX-->
+          <!--          BibTeX-->
         </v-btn>
         <v-btn
             :href="apiUrl"
@@ -115,7 +144,7 @@
             icon
         >
           <v-icon>mdi-cog-outline</v-icon>
-<!--          API-->
+          <!--          API-->
         </v-btn>
         <v-btn
             @click="copyPermalinkToClipboard"
@@ -123,11 +152,10 @@
             icon
         >
           <v-icon>mdi-link</v-icon>
-<!--          Permalink-->
+          <!--          Permalink-->
         </v-btn>
       </div>
     </div>
-
 
 
     <!--    <div class="text-h4">Identifiers</div>-->
@@ -143,6 +171,8 @@
 import ConceptsList from "./ConceptsList";
 import IdList from "./IdList";
 import Authorship from "./Authorship";
+
+import {createSimpleFilter} from "../filterConfigs";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
 
@@ -172,7 +202,12 @@ export default {
       await navigator.clipboard.writeText(this.data.id);
       this.snackbar("Permalink copied to clipboard.")
       // alert('Copied!');
-    }
+    },
+    viewIncomingCitations(){
+      const filter = createSimpleFilter("cites", this.data.id)
+      this.$store.dispatch("replaceInputFilters", [filter])
+    },
+
   },
   computed: {
     ...mapGetters([]),
@@ -224,11 +259,9 @@ export default {
 
 <style lang="scss" scoped>
 .entity-buttons {
-  position: absolute;
-  bottom: 0;
-  right: 0;
   width: 100%;
 }
+
 .entity-zoom-container {
   position: absolute;
   top: 0;

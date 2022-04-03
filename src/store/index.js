@@ -206,6 +206,13 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
 
+        // eslint-disable-next-line no-unused-vars
+        async replaceInputFilters({commit, getters, dispatch, state}, filters) {
+            console.log("Vuex replaceInputFilters", filters)
+            state.inputFilters = []
+            await dispatch("addInputFilters", filters)
+        },
+
 
         // *****************************************
         // do the search

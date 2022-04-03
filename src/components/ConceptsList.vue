@@ -1,6 +1,19 @@
 <template>
   <div>
     <template v-if="isClickable">
+      <div class="">
+        <span class="font-weight-bold">
+        {{ concepts.length }}
+      Concept{{ (concepts.length > 1) ? 's' : '' }}
+
+        </span>
+        <a
+            v-if="hiddenConceptsCount"
+            @click="showAll = !showAll">
+          <template v-if="!showAll">(show all)</template>
+          <template v-else>(show less)</template>
+        </a>
+      </div>
       <link-concept
           v-for="(concept, i) in conceptsToShow"
           :key="concept.id"
@@ -8,16 +21,6 @@
           :append-comma="i < conceptsToShow.length - 1"
           class="mr-1"
       />
-      <v-btn
-          small
-          text
-          color="primary"
-          v-if="hiddenConceptsCount"
-          class="d-block"
-          @click="showAll = !showAll">
-        <template v-if="!showAll">+{{ hiddenConceptsCount }} more</template>
-        <template v-else>show less</template>
-      </v-btn>
     </template>
     <template v-else>
       <span class="body-1">{{ conceptsToShow.join(",") }}</span>
@@ -67,7 +70,7 @@ export default {
   mounted() {
   },
   watch: {
-    "concepts": function(to, from){
+    "concepts": function (to, from) {
       console.log("ConceptsList new concepts", to)
       this.showAll = false
     }
