@@ -257,7 +257,7 @@ export default {
     },
   },
   watch: {
-    "$store.getters.resultsFiltersAsStringToWatch": {
+    "$store.getters.searchParamsAsStringToWatch": {
       immediate: false,
       handler(newVal, oldVal) {
         // console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)

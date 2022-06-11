@@ -113,7 +113,7 @@ export default {
     //     else this.removeInputFilters(oaFilters)
     //   },
     // },
-    "$store.getters.resultsFiltersAsStringToWatch": {
+    "$store.getters.searchParamsAsStringToWatch": {
       immediate: true,
       handler(newVal, oldVal) {
         this.isIndeterminate = this.someOaFiltersAreSet && !this.everyOaFilterIsSet

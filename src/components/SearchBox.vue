@@ -86,36 +86,25 @@ export default {
     },
     entityType: {
       type: String,
-      value: "all",
-    },
-    allowAllEntities: {
-      type: Boolean,
-      value: false,
+      value: "works",
+      default: "works",
     }
   },
   data: function () {
-    const selectedEntityType =this.$store.state.entityType ?? "all"
 
     return {
-      select: this.$store.state.textSearch,
+      select: this.value,
       loading: false,
       items: [],
       searchString: "",
       entityConfigs,
-      selectedEntityType
+      selectedEntityType: this.entityType,
     }
   },
   computed: {
     ...mapGetters([]),
     entityTypeOptions() {
-      const ret = [...Object.values(entityConfigs)]
-      if (this.allowAllEntities) {
-        ret.unshift({
-          icon: "🌈",
-          name: "all"
-        })
-      }
-      return ret
+      return [...Object.values(entityConfigs)]
     },
     selectedEntityTypeObject(){
        this.entityTypeOptions.find(e => {
@@ -133,10 +122,8 @@ export default {
       const url = new URL("https://api.openalex.org/autocomplete");
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
-      if (this.selectedEntityType !== "all") {
-        const singularName = this.selectedEntityType.slice(0, -1)
-        url.searchParams.set("entity_type", singularName)
-      }
+      const singularName = this.selectedEntityType.slice(0, -1)
+      url.searchParams.set("entity_type", singularName)
       return url.toString()
     }
   },
@@ -149,7 +136,7 @@ export default {
     ]),
     setSelectedEntityType(value) {
       this.selectedEntityType = value
-      this.submitSearch()
+      // this.submitSearch()
       // this.setEntityType(this.selectedEntityType)
       // this.fetchSuggestions(this.searchString)
     },
@@ -160,10 +147,9 @@ export default {
         // take us to an entity page, if possible
         this.goToEntityPage()
       } else {
-        const entityTypeForApi = (this.selectedEntityType === "all") ? "works" : this.selectedEntityType;
 
         this.doTextSearch({
-          entityType: entityTypeForApi,
+          entityType: this.selectedEntityType,
           searchString: this.cleanSearchString,
         })
       }

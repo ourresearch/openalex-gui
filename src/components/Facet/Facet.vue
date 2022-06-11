@@ -276,10 +276,10 @@ export default {
     },
   },
   watch: {
-    "$store.getters.resultsFiltersAsStringToWatch": {
-      immediate: false,
+    "$store.getters.searchParamsAsStringToWatch": {
+      immediate: true,
       handler(newVal, oldVal) {
-        // console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
+        console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
         this.setFilterOptions()
       }
       ,

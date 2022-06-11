@@ -1,6 +1,7 @@
 <template>
   <div class="serp-page mt-2 pa-0">
 
+
     <div class="serp-container">
       <div class="facets-panel-container">
         <facet
@@ -15,7 +16,7 @@
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
 
-          <div class="applied-filters pt-3" v-if="$store.state.resultsFilters.length">
+          <div class="d-none applied-filters pt-3" v-if="$store.state.resultsFilters.length">
             <filter-chip
                 v-for="f in $store.state.resultsFilters"
                 :key="f.id"
@@ -388,7 +389,6 @@ export default {
         if (to.params.id) {
           this.setEntityZoom(to.params.id)
         } else {
-          console.log("there's no entity zoom")
           this.$store.dispatch("bootFromUrl")
 
         }

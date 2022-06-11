@@ -17,6 +17,7 @@
     </div>
     <div v-if="!data.host_venue.display_name && data.publication_year">Published in {{ data.publication_year }}</div>
 
+    
 
     <div class="mt-5" v-if="authorshipsToShow.length">
       <div>

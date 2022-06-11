@@ -71,8 +71,7 @@ export default {
   },
   watch: {
     "concepts": function (to, from) {
-      console.log("ConceptsList new concepts", to)
-      this.showAll = false
+      // this.showAll = false
     }
   }
 }

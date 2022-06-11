@@ -54,7 +54,7 @@ const sortConfigs = [
 
 const stateDefaults = function () {
     const ret = {
-        entityType: null,
+        entityType: "works",
 
         inputFilters: [],
         resultsFilters: [],
@@ -159,6 +159,10 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
             state.entityType = router.currentRoute.params.entityType
+
+            console.log("bootFromUrl set entity type", router.currentRoute.params.entityType, state.entityType)
+
+
             commit("setPage", router.currentRoute.query.page)
             commit("setSort", router.currentRoute.query.sort)
             state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
@@ -236,8 +240,11 @@ export default new Vuex.Store({
 
                 if (getters.inputFiltersAsString) {
                     const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
-                    const filtersResp = await api.get(path)
+                    const filtersResp = await api.get(path, {search: state.textSearch})
                     state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
+                }
+                else {
+                    state.resultsFilters = []
                 }
             } finally {
                 state.isLoading = false
@@ -293,8 +300,8 @@ export default new Vuex.Store({
         searchApiUrl(state, getters) {
             return api.getUrl(state.entityType, getters.searchQuery)
         },
-        resultsFiltersAsStringToWatch(state, getters) {
-            const copy = [...state.resultsFilters]
+        searchParamsAsStringToWatch(state, getters) {
+            const copy = [...state.resultsFilters, state.textSearch]
             copy.sort()
             return JSON.stringify(copy)
         },

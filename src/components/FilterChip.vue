@@ -1,11 +1,14 @@
 <template>
-  <v-chip
-    outlined
-    close
-    close-icon="mdi-close"
-  >
-    {{ getFacetConfig(filterKey, "displayName") }}: {{filterDisplayValue}}
-  </v-chip>
+  <div>
+    <v-btn icon small><v-icon small>mdi-close</v-icon></v-btn>
+    <span class="grey--text">
+      {{ getFacetConfig(filterKey, "displayName") }}:
+    </span>
+    <span>
+      {{ filterDisplayValue }}
+    </span>
+
+  </div>
 </template>
 
 <script>
@@ -15,13 +18,12 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import { getFacetConfig} from "../facetConfigs";
+import {getFacetConfig} from "../facetConfigs";
 
 
 export default {
   name: "FilterChip",
-  components: {
-  },
+  components: {},
   props: {
     filterKey: String,
     filterValue: String,
@@ -34,9 +36,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
+    ...mapGetters([]),
     page: {
       get() {
         return this.$store.state.page
@@ -47,12 +47,8 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([
-
-    ]),
-    ...mapActions([
-
-    ]),
+    ...mapMutations([]),
+    ...mapActions([]),
   },
 
   created() {
