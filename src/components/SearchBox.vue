@@ -17,6 +17,7 @@
         @input="makeSelection"
         auto-select-first
         autofocus
+        no-filter
     >
       <template v-slot:item="data">
         <v-list-item-icon>
