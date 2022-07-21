@@ -84,21 +84,22 @@ export default {
       type: String,
       value: "",
     },
-    entityType: {
-      type: String,
-      value: "works",
-      default: "works",
-    }
+    // entityType: {
+    //   type: String,
+    //   value: "works",
+    //   default: "works",
+    // }
   },
   data: function () {
 
     return {
       select: this.value,
+      entityType: "works",
       loading: false,
       items: [],
       searchString: "",
       entityConfigs,
-      selectedEntityType: this.entityType,
+      selectedEntityType: "works",
     }
   },
   computed: {
@@ -187,6 +188,11 @@ export default {
     searchString(val) {
       if (!val) this.items = []
       this.fetchSuggestions(val)
+    },
+    "$store.state.entityType": function(to, from) {
+      console.log("SearchBox: $store.state.entityType changed", to, from)
+      this.setSelectedEntityType(to)
+
     },
   }
 }

@@ -19,7 +19,7 @@
         </span>
       </router-link>
 
-      <search-box v-if="$route.name !== 'Home'" :entity-type="$store.state.entityType" />
+      <search-box v-if="$route.name !== 'Home'" />
       <v-spacer></v-spacer>
 
       <!--      DESKTOP MENU -->
