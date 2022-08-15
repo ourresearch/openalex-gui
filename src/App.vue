@@ -63,20 +63,14 @@
         id="entity-zoom"
     >
       <v-toolbar flat fixed dense>
-        <template v-if="entityZoomConfig && entityZoomConfig.buttons">
-          <v-btn icon v-if="entityZoomConfig.buttons.setDoubleZoom" @click="doubleZoom = true">
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
-          <v-btn icon v-if="entityZoomConfig.buttons.unsetDoubleZoom" @click="doubleZoom = false">
-            <v-icon>mdi-arrow-right</v-icon>
-          </v-btn>
-          <v-btn icon v-if="entityZoomConfig.buttons.setClose" @click="closeEntityZoom">
+        <template>
+          <v-btn icon @click="closeEntityZoom">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </template>
       </v-toolbar>
 
-      <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="bodyScrollLock">
+      <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="true">
 
 
         <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
@@ -87,7 +81,7 @@
       </div>
     </div>
 
-    <v-main :style="{paddingRight: bodyPaddingRight}">
+    <v-main :style="{paddingRight: 0}">
       <v-fade-transition>
         <div id="zoom-overlay" v-if="applyOverlay"></div>
       </v-fade-transition>
@@ -97,7 +91,7 @@
     <v-footer
         class="py-10 site-footer"
         style="margin-top: 150px;"
-        :style="{paddingRight: bodyPaddingRight}"
+        :style="{paddingRight: 0}"
         dark
         color="#555"
     >
@@ -251,15 +245,15 @@ export default {
     entityZoomConfig() {
       return entityZoomConfigs.find(c => {
         const matches = [
-          !!c.isMobile === this.$vuetify.breakpoint.mdAndDown,
+          !!c.isMobile === true,
           !!c.isOpen === this.$store.state.entityZoomIsOpen,
           !!c.requiresDoubleZoom === this.doubleZoom,
         ]
         return matches.every(x => x)
       })
     },
-    bodyPaddingRight() {
-      return this.entityZoomConfig?.bodyPaddingRight
+    entityZoomWidth() {
+      return this.entityZoomConfig?.bodyScrollLock
     },
     bodyScrollLock() {
       return this.entityZoomConfig?.bodyScrollLock

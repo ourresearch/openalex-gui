@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import EntityPage from "../views/EntityPage";
 import Serp from "../views/Serp";
 import Accessibility from "../views/Accessibility";
 import Transparency from "../views/Transparency";

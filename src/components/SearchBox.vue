@@ -80,10 +80,10 @@ import {entityConfigs} from "../entityConfigs";
 export default {
   name: "SearchBox",
   props: {
-    value: {
-      type: String,
-      value: "",
-    },
+    // value: {
+    //   type: String,
+    //   value: "",
+    // },
     // entityType: {
     //   type: String,
     //   value: "works",
@@ -93,7 +93,7 @@ export default {
   data: function () {
 
     return {
-      select: this.value,
+      select: "",
       entityType: "works",
       loading: false,
       items: [],
@@ -107,8 +107,8 @@ export default {
     entityTypeOptions() {
       return [...Object.values(entityConfigs)]
     },
-    selectedEntityTypeObject(){
-       this.entityTypeOptions.find(e => {
+    selectedEntityTypeObject() {
+      this.entityTypeOptions.find(e => {
         return e.name === this.selectedEntityType
       })
     },
@@ -189,10 +189,22 @@ export default {
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
-    "$store.state.entityType": function(to, from) {
-      console.log("SearchBox: $store.state.entityType changed", to, from)
-      this.setSelectedEntityType(to)
 
+
+    "$store.state.entityType": {
+      handler(to, from) {
+        console.log("SearchBox: $store.state.entityType changed", to, from)
+        this.setSelectedEntityType(to)
+      },
+      immediate: true,
+    },
+
+    "$store.state.textSearch": {
+      handler(to, from) {
+        console.log("SearchBox: $store.state.textSearch changed", to, from)
+        this.select = to
+      },
+      immediate: true,
     },
   }
 }
