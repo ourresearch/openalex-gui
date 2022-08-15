@@ -59,7 +59,7 @@
     <!--    </v-navigation-drawer>-->
 
     <div
-        :style="{width: entityZoomConfig.width}"
+        :style="{width: entityZoomWidth}"
         id="entity-zoom"
     >
       <v-toolbar flat fixed dense>
@@ -155,61 +155,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 
 
-const entityZoomConfigs = [
-  // closed mobile
-  {
-    isOpen: false,
-    isMobile: true,
-    width: 0,
-  },
-
-  // closed desktop
-  {
-    isOpen: false,
-    isMobile: false,
-    width: "450px",
-    bodyPaddingRight: "450px",
-  },
-
-  // open desktop (sidebar)
-  {
-    isOpen: true,
-    isMobile: false,
-    width: "450px",
-    bodyPaddingRight: "450px",
-    buttons: {
-      setDoubleZoom: true,
-      setClose: true,
-    }
-  },
-
-  // open desktop (fullscreen "double-zoom")
-  {
-    isOpen: true,
-    isMobile: false,
-    requiresDoubleZoom: true,
-    width: "95%",
-    bodyScrollLock: true,
-    bodyPaddingRight: "450px",
-    applyOverlay: true,
-    buttons: {
-      setClose: true,
-      unsetDoubleZoom: true,
-    }
-  },
-
-  // open mobile
-  {
-    isOpen: true,
-    isMobile: true,
-    width: "95%",
-    bodyScrollLock: true,
-    applyOverlay: true,
-    buttons: {
-      setClose: true,
-    }
-  },
-]
 
 
 export default {
@@ -234,32 +179,20 @@ export default {
 
   data: function () {
     return {
-      doubleZoom: false,
-      zoomIsSkinny: true,
     }
   },
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
     ]),
-    entityZoomConfig() {
-      return entityZoomConfigs.find(c => {
-        const matches = [
-          !!c.isMobile === true,
-          !!c.isOpen === this.$store.state.entityZoomIsOpen,
-          !!c.requiresDoubleZoom === this.doubleZoom,
-        ]
-        return matches.every(x => x)
-      })
-    },
     entityZoomWidth() {
-      return this.entityZoomConfig?.bodyScrollLock
+      return this.$store.state.entityZoomIsOpen ? "95%" : 0
     },
     bodyScrollLock() {
-      return this.entityZoomConfig?.bodyScrollLock
+      return this.$store.state.entityZoomIsOpen
     },
     applyOverlay(){
-      return this.entityZoomConfig?.applyOverlay
+      return this.$store.state.entityZoomIsOpen
 
     }
   },
@@ -267,7 +200,6 @@ export default {
     ...mapMutations([]),
     ...mapActions([]),
     closeEntityZoom() {
-      this.doubleZoom = false
       this.$store.dispatch("closeEntityZoomDrawer")
     },
   },
@@ -292,7 +224,7 @@ html, body {
   top: 64px;
   right: 0;
   bottom: 0;
-  z-index: 4;
+  z-index: 5;
   background: #fff;
   transition: width 200ms;
 

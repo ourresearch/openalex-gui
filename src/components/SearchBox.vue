@@ -2,9 +2,6 @@
 
   <form class="main-search">
     <v-combobox
-        v-model="select"
-        :items="items"
-        :search-input.sync="searchString"
         class="mr-12"
         flat
         outlined
@@ -13,11 +10,18 @@
         hide-details
         item-text="display_name"
         item-value="id"
+        autofocus
+        append-icon="mdi-magnify"
+
+        v-model="select"
+        :items="items"
+        :search-input.sync="searchString"
         :loading="loading"
+
         @keyup.enter="submitSearch"
         @input="goToEntityPage"
-        autofocus
-        clearable
+        @click:append="submitSearch"
+
     >
       <template v-slot:prepend-inner>
         <v-menu offset-y>
@@ -210,7 +214,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" >
 form.main-search {
   width: 100%;
 
@@ -224,6 +228,18 @@ form.main-search {
 
   .v-select__slot input {
     padding-left: 10px;
+  }
+
+  // very fragile hack to hide the down-arrow icon on the far right
+  .v-select__slot {
+    .v-input__append-inner:nth-child(3) {
+      //display: none !important;
+      visibility: hidden;
+    }
+  }
+  // very fragile hack to hide the down-arrow icon on the far right
+  .v-select.v-select--is-menu-active .v-input__icon--append .v-icon {
+    transform: none !important;
   }
 
 }
