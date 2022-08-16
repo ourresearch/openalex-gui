@@ -2,27 +2,37 @@ const entityConfigs = {
     works: {
         icon: "📄",
         name: "works",
-        descr: "(like papers and datasets) are products of research",
+        descr: "Scholarly papers, books, datasets, etc.",
+        eg: "On the Electrodynamics of Moving Bodies",
+        placeholder: "Search 230M scholarly papers ",
     },
     authors: {
         icon: "🧑",
         name: "authors",
-        descr: "create works",
+        descr: "Creators of scholarly works",
+        eg: "Albert Einstein",
+        placeholder: "Search 200M scholarly authors",
     },
     venues: {
         icon: "📚",
         name: "venues",
-        descr: "(like journals and repositories) host works",
+        descr: "Academic journals and content repositories",
+        eg: "The New England Journal of Medicine",
+        placeholder: "Search 100k academic journals & repositories",
     },
     institutions: {
         icon: "🏫",
         name: "institutions",
-        descr: "(like universities) are affiliated with works",
+        descr: "Universities and research centers",
+        eg: "Harvard University",
+        placeholder: "Search 100k academic institutions",
     },
     concepts: {
         icon: "💡",
         name: "concepts",
-        descr: "describe the topics of works",
+        descr: "Topics and fields of study",
+        eg: "History",
+        placeholder: "Search 50k topics",
     },
 
 

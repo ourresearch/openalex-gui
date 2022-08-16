@@ -10,14 +10,16 @@
         hide-details
         item-text="display_name"
         item-value="id"
-        autofocus
         append-icon="mdi-magnify"
 
         v-model="select"
         :items="items"
         :search-input.sync="searchString"
         :loading="loading"
+        :autofocus="isAloneOnPage"
 
+
+        @focus="onFocus"
         @keyup.enter="submitSearch"
         @input="goToEntityPage"
         @click:append="submitSearch"
@@ -33,38 +35,50 @@
                 depressed
                 v-bind="attrs"
                 v-on="on"
+                @click="clickToSetSelectedEntityType"
             >
               <span>{{ selectedEntityType }}</span>
               <v-icon>mdi-menu-down</v-icon>
             </v-btn>
           </template>
-          <v-list>
+          <v-list
+              two-line
+          >
             <v-list-item
                 v-for="entityType in entityTypeOptions"
                 :key="entityType.name"
                 @click="setSelectedEntityType(entityType.name)"
-                class="text-capitalize"
+                class=""
             >
-              <span class="mr-2">{{ entityType.icon }}</span>
-              <span>{{ entityType.name }}</span>
+              <!--              <v-list-item-icon>-->
+              <!--                -->
+              <!--              </v-list-item-icon>-->
+              <!--                <span class="mr-2">{{ entityType.icon }}</span>-->
+              <v-list-item-content>
+                <v-list-item-title class="text-capitalize">
+                  <span>{{ entityType.name }}</span>
+                </v-list-item-title>
+                <v-list-item-subtitle class="">
+                  {{ entityType.descr }}
+                </v-list-item-subtitle>
+
+              </v-list-item-content>
             </v-list-item>
           </v-list>
         </v-menu>
       </template>
 
       <template v-slot:item="data">
-        <v-list-item-icon>
-          <span class="our-icon mr-2">{{ data.item.icon }}</span>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <div>
-            <!--            <div class="caption text-capitalize">-->
-            <!--              {{ data.item.entity_type }}-->
-            <!--            </div>-->
-            <div>
+<!--        <v-list-item-icon>-->
+<!--          <span class="our-icon mr-2">{{ data.item.icon }}</span>-->
+<!--        </v-list-item-icon>-->
+        <v-list-item-content class="" style="">
+            <v-list-item-title style="font-weight: normal; font-size: 16px;">
               {{ data.item.display_name }}
-            </div>
-          </div>
+            </v-list-item-title>
+            <v-list-item-subtitle style="font-weight: normal; margin-top:5px; white-space: normal;">
+              {{ data.item.hint }}
+            </v-list-item-subtitle>
         </v-list-item-content>
       </template>
     </v-combobox>
@@ -84,15 +98,10 @@ import {entityConfigs} from "../entityConfigs";
 export default {
   name: "SearchBox",
   props: {
-    // value: {
-    //   type: String,
-    //   value: "",
-    // },
-    // entityType: {
-    //   type: String,
-    //   value: "works",
-    //   default: "works",
-    // }
+    isAloneOnPage: {
+      type: Boolean,
+      default: false,
+    }
   },
   data: function () {
 
@@ -140,10 +149,24 @@ export default {
       "doTextSearch",
     ]),
     setSelectedEntityType(value) {
+      this.items = []
       this.selectedEntityType = value
+      this.fetchSuggestions()
       // this.submitSearch()
       // this.setEntityType(this.selectedEntityType)
       // this.fetchSuggestions(this.searchString)
+    },
+    clickToSetSelectedEntityType(){
+      this.items = []
+    },
+    onFocus() {
+      // the vuetify component's default behavior is to highlight the whole imput string.
+      // i don't want this, i want to just place the cursor at the end of the string.
+      setTimeout(function () {
+        let sel = document.getSelection();
+        sel.collapseToEnd();
+
+      }, 0)
     },
     submitSearch() {
       this.items = []
@@ -214,7 +237,7 @@ export default {
 }
 </script>
 
-<style lang="scss" >
+<style lang="scss">
 form.main-search {
   width: 100%;
 
@@ -237,6 +260,7 @@ form.main-search {
       visibility: hidden;
     }
   }
+
   // very fragile hack to hide the down-arrow icon on the far right
   .v-select.v-select--is-menu-active .v-input__icon--append .v-icon {
     transform: none !important;

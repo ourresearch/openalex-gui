@@ -5,20 +5,9 @@
         <v-col cols="2" class="hidden-xs-only"></v-col>
         <v-col>
           <v-card flat class="">
-            <div class="text-h4 text-center">Look up entities:</div>
-            <ul style="list-style-type: none;" class="my-6">
-              <li
-                  v-for="config in entityConfigs"
-                  :key="config.name"
-                  class="my-1"
-              >
-                {{ config.icon }}
-                <strong class="text-capitalize">{{ config.name }} </strong>
-                <span v-html="`${config.descr}.`"></span>
-              </li>
-            </ul>
-            <search-box :allow-all-entities="true" />
-            <div class="d-flex justify-center">
+            <div class="text-h5 text-center mb-4">Search scholarly works, people, places, and more</div>
+            <search-box is-alone-on-page />
+            <div class="d-flex justify-center" v-if="0">
               <v-menu offset-y content-class="no-highlight" min-width="150">
                 <template v-slot:activator="{on}">
                   <v-btn large v-on="on">
