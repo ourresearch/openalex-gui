@@ -11,12 +11,13 @@
         item-text="display_name"
         item-value="id"
         append-icon="mdi-magnify"
+        id="main-search"
 
         v-model="select"
         :items="items"
         :search-input.sync="searchString"
         :loading="loading"
-        :autofocus="isAloneOnPage"
+        :placeholder="selectedEntityTypeConfig.placeholder"
 
 
         @focus="onFocus"
@@ -35,10 +36,11 @@
                 depressed
                 v-bind="attrs"
                 v-on="on"
-                @click="clickToSetSelectedEntityType"
+                @click="openEntityMenu"
             >
-              <span>{{ selectedEntityType }}</span>
-              <v-icon>mdi-menu-down</v-icon>
+              <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>
+              <span>{{ selectedEntityTypeConfig.displayName }}</span>
+              <v-icon right>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list
@@ -47,16 +49,15 @@
             <v-list-item
                 v-for="entityType in entityTypeOptions"
                 :key="entityType.name"
-                @click="setSelectedEntityType(entityType.name)"
+                @click="clickToSetSelectedEntityType(entityType.name)"
                 class=""
             >
-              <!--              <v-list-item-icon>-->
-              <!--                -->
-              <!--              </v-list-item-icon>-->
-              <!--                <span class="mr-2">{{ entityType.icon }}</span>-->
+              <v-list-item-icon>
+                <v-icon>{{ entityType.icon }}</v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title class="text-capitalize">
-                  <span>{{ entityType.name }}</span>
+                  <span>{{ entityType.displayName }}</span>
                 </v-list-item-title>
                 <v-list-item-subtitle class="">
                   {{ entityType.descr }}
@@ -69,16 +70,16 @@
       </template>
 
       <template v-slot:item="data">
-<!--        <v-list-item-icon>-->
-<!--          <span class="our-icon mr-2">{{ data.item.icon }}</span>-->
-<!--        </v-list-item-icon>-->
+        <!--        <v-list-item-icon>-->
+        <!--          <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
+        <!--        </v-list-item-icon>-->
         <v-list-item-content class="" style="">
-            <v-list-item-title style="font-weight: normal; font-size: 16px;">
-              {{ data.item.display_name }}
-            </v-list-item-title>
-            <v-list-item-subtitle style="font-weight: normal; margin-top:5px; white-space: normal;">
-              {{ data.item.hint }}
-            </v-list-item-subtitle>
+          <v-list-item-title style="font-weight: normal; font-size: 16px;">
+            {{ data.item.display_name }}
+          </v-list-item-title>
+          <v-list-item-subtitle style="font-weight: normal; margin-top:5px; white-space: normal;">
+            {{ data.item.hint }}
+          </v-list-item-subtitle>
         </v-list-item-content>
       </template>
     </v-combobox>
@@ -94,6 +95,12 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
 
+// setTimeout(function(){
+//   const searchInput = document.getElementById("main-search")
+//   console.log("focus!", searchInput)
+//   searchInput.focus()
+//
+// }, 2000)
 
 export default {
   name: "SearchBox",
@@ -107,7 +114,6 @@ export default {
 
     return {
       select: "",
-      entityType: "works",
       loading: false,
       items: [],
       searchString: "",
@@ -120,10 +126,8 @@ export default {
     entityTypeOptions() {
       return [...Object.values(entityConfigs)]
     },
-    selectedEntityTypeObject() {
-      this.entityTypeOptions.find(e => {
-        return e.name === this.selectedEntityType
-      })
+    selectedEntityTypeConfig() {
+      return entityConfigs[this.selectedEntityType]
     },
     displayItems() {
       return this.items.slice(0, 6)
@@ -148,16 +152,26 @@ export default {
     ...mapActions([
       "doTextSearch",
     ]),
+    clickToSetSelectedEntityType(value) {
+      this.setSelectedEntityType(value)
+
+      // i need this to set the focus on the search input after the users clicks to make
+      // an entity selection.
+      setTimeout(function () {
+        const searchInput = document.getElementById("main-search")
+        searchInput.focus()
+      }, 0)
+
+    },
+
     setSelectedEntityType(value) {
       this.items = []
       this.selectedEntityType = value
       this.fetchSuggestions()
-      // this.submitSearch()
-      // this.setEntityType(this.selectedEntityType)
-      // this.fetchSuggestions(this.searchString)
     },
-    clickToSetSelectedEntityType(){
+    openEntityMenu() {
       this.items = []
+
     },
     onFocus() {
       // the vuetify component's default behavior is to highlight the whole imput string.
@@ -233,7 +247,16 @@ export default {
       },
       immediate: true,
     },
-  }
+  },
+  mounted() {
+    const autoFocus = this.isAloneOnPage
+    setTimeout(function () {
+      const searchInput = document.getElementById("main-search")
+      if (autoFocus) {
+        searchInput.focus()
+      }
+    }, 0)
+  },
 }
 </script>
 
@@ -266,6 +289,11 @@ form.main-search {
     transform: none !important;
   }
 
+
+}
+
+.v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
+  margin-right: 15px !important;
 }
 
 
