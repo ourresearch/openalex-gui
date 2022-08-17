@@ -10,7 +10,12 @@
             :facet-key="facet.key"
         ></facet>
       </div>
-      <div class="flex-fill" v-if="$store.state.resultsCount !== null">
+
+
+      <div
+          class="results-panel-container flex-fill"
+          v-if="$store.state.resultsCount !== null"
+      >
         <div class="search-results-meta" style="width: 100%;">
           <!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
 
@@ -102,7 +107,9 @@
           <div class="serp-bottom">
             <v-pagination
                 v-model="page"
-                :length="5"
+                :length="numPages"
+                :total-visible="10"
+                light
             />
           </div>
 
@@ -275,6 +282,7 @@ export default {
     return {
       loading: false,
       apiResp: {},
+      resultsPerPage: 25, // not editable now, but could be in future
       dialogs: {
         export: false,
         createAlert: false,
@@ -308,6 +316,12 @@ export default {
       set(val) {
         this.$store.dispatch("setSort", val)
       }
+    },
+    numPages(){
+      return Math.min(
+          Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
+          10
+      )
     },
     entityType() {
       return this.$route.params.entityType
@@ -407,6 +421,9 @@ export default {
     min-width: 353px;
     max-width: 353px;
     padding: 34px 40px 0 20px;
+  }
+  .results-panel-container {
+    max-width: 900px;
   }
 
 }

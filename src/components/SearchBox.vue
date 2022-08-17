@@ -238,7 +238,6 @@ export default {
 
     "$store.state.entityType": {
       handler(to, from) {
-        console.log("SearchBox: $store.state.entityType changed", to, from)
         this.setSelectedEntityType(to)
       },
       immediate: true,
@@ -246,7 +245,6 @@ export default {
 
     "$store.state.textSearch": {
       handler(to, from) {
-        console.log("SearchBox: $store.state.textSearch changed", to, from)
         this.select = to
       },
       immediate: true,

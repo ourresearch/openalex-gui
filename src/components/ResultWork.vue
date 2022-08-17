@@ -22,7 +22,20 @@
     <concepts-list class="d-none" :concepts="data.concepts"/>
 
     <div class="body-1">
-      <span>Cited by {{ data.cited_by_count.toLocaleString() }}</span>
+      <span>
+        <v-icon small color="primary">mdi-format-quote-close</v-icon>
+        <router-link
+            :to="linkToCitingPapers"
+            class="text-decoration-none"
+        >
+          {{ data.cited_by_count.toLocaleString() }}
+        </router-link>
+      </span>
+
+
+
+
+
       <a
           :href="fulltextUrl"
           target="_blank"
@@ -61,6 +74,15 @@ export default {
     },
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
+    },
+    linkToCitingPapers(){
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return {
+        // name: "Serp",
+        path: "/works",
+        // params: {entityType: "works"},
+        query: {filter: `referenced_works:${shortId}`}
+      }
     },
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.

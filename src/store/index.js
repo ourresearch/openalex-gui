@@ -65,7 +65,7 @@ const stateDefaults = function () {
         textSearch: "",
         page: 1,
         results: [],
-        sort: "relevance_score",
+        sort: "cited_by_count",
         responseTime: null,
         resultsCount: null,
         isLoading: false,
@@ -111,7 +111,7 @@ export default new Vuex.Store({
         setSort(state, sortKey) {
             // if we don't recognize this key, set it to the default
             if (!sortConfigs.some(c => c.key === sortKey)) {
-                sortKey = "relevance_score"
+                sortKey = (state.textSearch) ? "relevance_score" : "cited_by_count"
             }
             state.sort = sortKey
         },
@@ -137,6 +137,8 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async pushSearchUrl({commit, getters, dispatch, state}) {
+            console.log("state.pushSearchUrl", getters.searchQuery)
+
             const routerPushTo = {
                 query: getters.searchQuery,
                 name: "Serp",
@@ -159,10 +161,6 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
             state.entityType = router.currentRoute.params.entityType
-
-            console.log("bootFromUrl set entity type", router.currentRoute.params.entityType, state.entityType)
-
-
             commit("setPage", router.currentRoute.query.page)
             commit("setSort", router.currentRoute.query.sort)
             state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
@@ -181,7 +179,7 @@ export default new Vuex.Store({
         },
         // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
-            state.sort = newSortValue
+            commit("setSort", newSortValue)
             commit("setPage", 1)
             await dispatch("doSearch")
         },
@@ -289,13 +287,15 @@ export default new Vuex.Store({
             })
         },
         searchQuery(state, getters) {
-            const query = {
-                page: state.page
-            }
+            const query = {}
+            if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
-            if (state.sort) query["sort"] = state.sort + ":desc"
+            if (state.sort !==  getters.defaultSort) query["sort"] = state.sort + ":desc"
             if (state.textSearch) query.search = state.textSearch
             return query
+        },
+        defaultSort(state, getters){
+            return (state.textSearch) ? "relevance_score" : "citation_count"
         },
         searchApiUrl(state, getters) {
             return api.getUrl(state.entityType, getters.searchQuery)

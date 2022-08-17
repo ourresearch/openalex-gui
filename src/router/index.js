@@ -46,6 +46,7 @@ const routes = [
     // explore.openalex/works?filters=foo:42
     {
         path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
+        // path: `/:entityType(works|authors|venues|institutions|concepts)`,
         name: 'Serp',
         component: Serp,
     },
