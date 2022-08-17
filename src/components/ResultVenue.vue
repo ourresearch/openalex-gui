@@ -1,12 +1,15 @@
 <template>
   <div>
     <div>
+      <v-icon small v-if="!data.is_oa">mdi-lock-outline</v-icon>
+      <v-icon small v-else>mdi-lock-open-variant-outline</v-icon>
+
       <router-link  class="text-decoration-none" :to="data.id | idLink">
         {{ data.display_name }}
       </router-link>
     </div>
-<!--    <div v-if="data.last_known_institution">-->
-<!--      {{ data.last_known_institution.display_name }} ({{ data.last_known_institution.country_code }})-->
+<!--    <div v-if="data.publisher" class="body-2">-->
+<!--      {{ data.publisher }}-->
 <!--    </div>-->
     <div>
       <concepts-list :concepts="data.x_concepts"/>

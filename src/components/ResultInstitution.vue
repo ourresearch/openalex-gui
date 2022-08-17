@@ -1,13 +1,19 @@
 <template>
   <div>
     <div>
-      <router-link  class="text-decoration-none" :to="data.id | idLink">
+      <router-link class="text-decoration-none" :to="data.id | idLink">
         {{ data.display_name }}
       </router-link>
     </div>
-<!--    <div v-if="data.last_known_institution">-->
-<!--      {{ data.last_known_institution.display_name }} ({{ data.last_known_institution.country_code }})-->
-<!--    </div>-->
+    <div v-if="data.geo.country" class="d-inline-flex align-center">
+      <flag :squared="false" :iso="data.geo.country_code" style="height:12px; margin-right: 3px;"/>
+      <span class="mr-1" v-if="data.geo.city">{{data.geo.city}},    </span>     {{ data.geo.country }}
+    </div>
+
+    <div v-if="data.last_known_institution" >
+      {{ data.last_known_institution.display_name }}
+    </div>
+
     <div>
       <concepts-list :concepts="data.x_concepts"/>
     </div>
@@ -35,8 +41,7 @@ export default {
     }
   },
   methods: {},
-  computed: {
-  },
+  computed: {},
   created() {
   },
   mounted() {
