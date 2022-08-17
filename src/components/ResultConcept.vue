@@ -5,9 +5,9 @@
         {{ data.display_name }}
       </router-link>
     </div>
-<!--    <div v-if="data.last_known_institution">-->
-<!--      {{ data.last_known_institution.display_name }} ({{ data.last_known_institution.country_code }})-->
-<!--    </div>-->
+    <div v-if="data.description" class="capitalize-first-letter">
+      {{ data.description }}
+    </div>
     <div>
       <concepts-list :concepts="data.related_concepts"/>
     </div>

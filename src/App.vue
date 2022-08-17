@@ -338,6 +338,10 @@ body {
   }
 }
 
+
+.capitalize-first-letter:first-letter {
+    text-transform: uppercase;
+}
 img.site-footer-logo {
   width: 60px;
 
