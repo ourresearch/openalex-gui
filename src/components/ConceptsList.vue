@@ -23,7 +23,7 @@
       />
     </template>
     <template v-else>
-      <span class="body-1">{{ conceptsToShow.join(",") }}</span>
+      <span class="body-1">{{ conceptNamesString }}</span>
 
     </template>
 

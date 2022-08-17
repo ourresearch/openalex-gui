@@ -16,6 +16,9 @@ Vue.use(VScrollLock)
 const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
+import FlagIcon from 'vue-flag-icon'
+Vue.use(FlagIcon);
+
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")

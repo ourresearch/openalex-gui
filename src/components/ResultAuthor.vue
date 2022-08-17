@@ -6,8 +6,9 @@
           {{ data.display_name }}
         </router-link>
       </div>
-      <div v-if="data.last_known_institution">
-        {{ data.last_known_institution.display_name }} ({{ data.last_known_institution.country_code}})
+      <div v-if="data.last_known_institution" class="d-inline-flex align-center">
+        <flag :squared="false" :iso="data.last_known_institution.country_code" style="height:12px; margin-right: 3px;" />
+        {{ data.last_known_institution.display_name }}
       </div>
       <div>
 <!--        <v-chip-->

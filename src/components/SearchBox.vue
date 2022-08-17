@@ -154,13 +154,17 @@ export default {
     ]),
     clickToSetSelectedEntityType(value) {
       this.setSelectedEntityType(value)
-
-      // i need this to set the focus on the search input after the users clicks to make
-      // an entity selection.
-      setTimeout(function () {
-        const searchInput = document.getElementById("main-search")
-        searchInput.focus()
-      }, 0)
+      if (this.isAloneOnPage){
+        // i need this to set the focus on the search input after the users clicks to make
+        // an entity selection.
+        setTimeout(function () {
+          const searchInput = document.getElementById("main-search")
+          searchInput.focus()
+        }, 0)
+      }
+      else {
+        this.submitSearch()
+      }
 
     },
 

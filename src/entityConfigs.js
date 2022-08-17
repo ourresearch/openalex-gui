@@ -10,8 +10,8 @@ const entityConfigs = {
     },
     authors: {
         emoji: "🧑",
-        icon: "mdi-account-school-outline",
-        // icon: "mdi-account-outline",
+        // icon: "mdi-account-school-outline",
+        icon: "mdi-account-outline",
         name: "authors",
         displayName: "people",
         descr: "Creators of scholarly works",
