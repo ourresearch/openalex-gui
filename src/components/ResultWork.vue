@@ -22,26 +22,12 @@
       </div>
       <concepts-list class="d-none" :concepts="data.concepts"/>
 
-      <div class="body-1">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <span
-                v-bind="attrs"
-                v-on="on"
-            >
-              <v-icon small :color="(data.cited_by_count) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
-              <router-link
-                  :to="linkToCitingPapers"
-                  class="text-decoration-none"
-                  v-if="data.cited_by_count"
-              >
-                {{ data.cited_by_count.toLocaleString() }}
-              </router-link>
-              <span class="ml-1" v-else>0</span>
-            </span>
-          </template>
-          <span>Cited by {{ data.cited_by_count.toLocaleString() }} works</span>
-        </v-tooltip>
+      <div>
+        <result-citation-count
+            :id="data.id"
+            :cited-by-count="data.cited_by_count"
+            entity-type="works"
+        />
 
       </div>
     </v-col>
@@ -63,10 +49,12 @@
 
 <script>
 import ConceptsList from "./ConceptsList";
+import ResultCitationCount from "./ResultCitationCount";
 
 export default {
   components: {
     ConceptsList,
+    ResultCitationCount,
   },
   props: {
     data: Object,
@@ -85,15 +73,6 @@ export default {
     },
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
-    },
-    linkToCitingPapers() {
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      return {
-        // name: "Serp",
-        path: "/works",
-        // params: {entityType: "works"},
-        query: {filter: `referenced_works:${shortId}`}
-      }
     },
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
