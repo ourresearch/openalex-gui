@@ -267,7 +267,8 @@ export default new Vuex.Store({
 
                 if (getters.inputFiltersAsString) {
                     const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
-                    const filtersResp = await api.get(path, {search: state.textSearch})
+                    const params = (state.textSearch) ? {search:state.textSearch} : {}
+                    const filtersResp = await api.get(path, params)
                     state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
                 }
                 else {

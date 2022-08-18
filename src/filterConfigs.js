@@ -80,6 +80,7 @@ const makeResultsFiltersFromApi = function (apiFacets) {
 const createFilterValue = function (rawValue) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
+        rawValue = rawValue.replace("unknown", null)
     }
     return rawValue
 }

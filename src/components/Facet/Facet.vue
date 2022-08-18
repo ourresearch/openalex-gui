@@ -191,11 +191,12 @@ export default {
     },
     apiQuery() {
       const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
-      return {
+      const ret = {
         group_by: this.facetKey,
         filter: filtersAsUrlStr(myFilters),
-        search: this.$store.state.textSearch,
       }
+      if (this.$store.state.textSearch) ret.search = this.$store.state.textSearch
+      return ret
     },
     resultsFiltersToShow() {
       // these ones are already selected by the user. we got them from the store,

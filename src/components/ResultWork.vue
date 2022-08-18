@@ -1,41 +1,51 @@
 <template>
-  <div>
-    <router-link class="text-decoration-none subtitle-1" :to="data.id | idLink">
-      {{ data.display_name }}
-    </router-link>
-    <div v-if="authorsCount" class="body-1">
-      <span>{{ authorNames[0] }}</span>
-      <span v-if="authorNames.length > 1">, {{ authorNames[1] }}</span>
-      <span v-if="authorNames.length > 2">, et al.</span>
+  <v-row>
+    <v-col cols="9" class="content">
+      <router-link class="text-decoration-none subtitle-1" :to="data.id | idLink">
+        {{ data.display_name }}
+      </router-link>
+      <div v-if="authorsCount" class="body-1">
+        <span>{{ authorNames[0] }}</span>
+        <span v-if="authorNames.length > 1">, {{ authorNames[1] }}</span>
+        <span v-if="authorNames.length > 2">, et al.</span>
 
 
-      <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
-      <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
-      <span v-if="data.host_venue.display_name" class="font-italic"> - {{
-          data.host_venue.display_name | truncate(50)
-        }}</span>
-      <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
+        <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
+        <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
+        <span v-if="data.host_venue.display_name" class="font-italic"> - {{
+            data.host_venue.display_name | truncate(50)
+          }}</span>
+        <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
 
-    </div>
-    <div>
-    </div>
-    <concepts-list class="d-none" :concepts="data.concepts"/>
+      </div>
+      <div>
+      </div>
+      <concepts-list class="d-none" :concepts="data.concepts"/>
 
-    <div class="body-1">
-      <span>
-        <v-icon small color="primary">mdi-format-quote-close</v-icon>
-        <router-link
-            :to="linkToCitingPapers"
-            class="text-decoration-none"
-        >
-          {{ data.cited_by_count.toLocaleString() }}
-        </router-link>
-      </span>
+      <div class="body-1">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <span
+                v-bind="attrs"
+                v-on="on"
+            >
+              <v-icon small :color="(data.cited_by_count) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
+              <router-link
+                  :to="linkToCitingPapers"
+                  class="text-decoration-none"
+                  v-if="data.cited_by_count"
+              >
+                {{ data.cited_by_count.toLocaleString() }}
+              </router-link>
+              <span class="ml-1" v-else>0</span>
+            </span>
+          </template>
+          <span>Cited by {{ data.cited_by_count.toLocaleString() }} works</span>
+        </v-tooltip>
 
-
-
-
-
+      </div>
+    </v-col>
+    <v-col cols="3" class="linkout">
       <a
           :href="fulltextUrl"
           target="_blank"
@@ -45,8 +55,9 @@
         <v-icon small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
         Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
       </a>
-    </div>
-  </div>
+    </v-col>
+
+  </v-row>
 </template>
 
 
@@ -75,7 +86,7 @@ export default {
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
     },
-    linkToCitingPapers(){
+    linkToCitingPapers() {
       const shortId = this.data.id.replace("https://openalex.org/", "")
       return {
         // name: "Serp",
