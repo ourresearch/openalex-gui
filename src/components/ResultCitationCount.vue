@@ -6,15 +6,17 @@
                 v-bind="attrs"
                 v-on="on"
             >
-              <v-icon small :color="(citedByCount) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
+              <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>
               <router-link
                   :to="linkToCitingPapers"
                   class="text-decoration-none"
-                  v-if="citedByCount"
+                  v-if="formatAsLink"
               >
                 {{ citedByCount.toLocaleString() }}
               </router-link>
-              <span class="ml-1" v-else>0</span>
+              <span class="" v-else>
+                {{ citedByCount.toLocaleString() }}
+              </span>
             </span>
           </template>
           <span>Cited by {{ citedByCount.toLocaleString() }} works</span>
@@ -33,6 +35,10 @@ export default {
     citedByCount: Number,
     id: String,
     entityType: String,
+    linkToSearch: {
+      type:Boolean,
+      default: false,
+    }
   },
   data() {
     return {
@@ -41,7 +47,16 @@ export default {
   },
   computed: {
     ...mapGetters([]),
+    formatAsLink(){
+      return this.id && this.entityType && this.citedByCount > 0
+    },
+    iconColor(){
+      if (this.id && this.entityType && this.citedByCount > 0) return "primary"
+      return "#333333"
+    },
     linkToCitingPapers() {
+      if (!this.id || !this.entityType) return false
+
       const shortId = this.id.replace("https://openalex.org/", "")
       return {
         name: "Serp",
