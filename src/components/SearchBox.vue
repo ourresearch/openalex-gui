@@ -16,7 +16,7 @@
         v-model="select"
         :items="items"
         :search-input.sync="searchString"
-        :loading="loading"
+        :loading="isFetchingItems"
         :placeholder="selectedEntityTypeConfig.placeholder"
 
 
@@ -91,6 +91,7 @@
 
 <script>
 import axios from 'axios'
+// import AbortController from 'axios'
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
@@ -111,14 +112,16 @@ export default {
     }
   },
   data: function () {
+    // const controller = new AbortController()
 
     return {
       select: "",
-      loading: false,
+      isFetchingItems: false,
       items: [],
       searchString: "",
       entityConfigs,
       selectedEntityType: "works",
+      // axiosAbortController: new AbortController()
     }
   },
   computed: {
@@ -187,6 +190,7 @@ export default {
     },
     submitSearch() {
       this.items = []
+      this.isFetchingItems = false
       if (this.select?.id) {
         console.log("there's a select.id", this.select)
         // take us to an entity page, if possible
@@ -212,19 +216,24 @@ export default {
         this.items = []
         return
       }
-      this.loading = true
+      this.isFetchingItems = true
       axios.get(this.autocompleteUrl)
           .then(resp => {
             if (!this.searchString) {
               console.log("no search string, clearing items")
               this.items = []
-            } else this.items = resp.data.results.slice(0, 5).map(i => {
-              const pluralEntityType = i.entity_type + "s"
-              i.icon = entityConfigs[pluralEntityType].icon
-              return i
-            })
-
-            this.loading = false
+            }
+            else if (!this.isFetchingItems){
+              // if someone set isFetchingItems to false, we need to abort
+            }
+            else {
+              this.items = resp.data.results.slice(0, 5).map(i => {
+                const pluralEntityType = i.entity_type + "s"
+                i.icon = entityConfigs[pluralEntityType].icon
+                return i
+              })
+            }
+            this.isFetchingItems = false
           })
     }
   },
