@@ -1,20 +1,20 @@
 async function sleep(ms) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
 }
 
 function hashCode(str) {
     return Math.abs(str.split('').reduce((prevHash, currVal) =>
         (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
 }
-const toHexHash = function(str){
+
+const toHexHash = function (str) {
     return "0x" + hashCode(str).toString(16)
 }
 
 
-
-const entityTypes = {
+const entityTypesDict = {
     "w": "works",
     "i": "institutions",
     "v": "venues",
@@ -22,15 +22,28 @@ const entityTypes = {
     "c": "concepts",
 };
 
-const shortenOpenAlexId = function(longId){
+const shortenOpenAlexId = function (longId) {
     return longId.replace("https://openalex.org/", "").toLowerCase()
 }
 
-const entityTypeFromId = function(id){
+const entityTypeFromId = function (id) {
     const firstLetter = shortenOpenAlexId(id).substr(0, 1)
-    return entityTypes[firstLetter]
+    return entityTypesDict[firstLetter]
 }
 
+
+const entityTypes = {
+    all() {
+        return Object.values(entityTypesDict)
+    },
+    allExcept(removeThisOne) {
+        return Object.values(entityTypesDict).filter(e => e !== removeThisOne)
+    },
+    fromId(id) {
+        const firstLetter = shortenOpenAlexId(id).substr(0, 1)
+        return entityTypesDict[firstLetter]
+    }
+}
 
 
 export {
@@ -38,4 +51,5 @@ export {
     toHexHash,
     shortenOpenAlexId,
     entityTypeFromId,
+    entityTypes,
 }

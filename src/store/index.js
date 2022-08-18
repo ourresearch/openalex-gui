@@ -10,7 +10,8 @@ import {
     makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
-import {entityTypeFromId} from "../util";
+import {entityTypes} from "../util";
+
 
 Vue.use(Vuex)
 
@@ -28,26 +29,53 @@ const subtractArray = function (base, subtractThese) {
     })
 }
 
+const sortDefaults = {
+    works: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "publication_date:desc",
+    },
+    authors: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
+    venues: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
+    institutions: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
+    concepts: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
+}
 
 const sortConfigs = [
     {
-        key: "cited_by_count",
+        key: "cited_by_count:desc",
         displayName: "Citations",
+        showForEntityTypes: entityTypes.all(),
     },
     {
         // only for non-work entities
-        key: "works_count",
+        key: "works_count:desc",
         displayName: "Works",
+        showForEntityTypes: entityTypes.allExcept("works"),
     },
     {
         // only for works
-        key: "publication_date",
+        key: "publication_date:desc",
         displayName: "Date",
+        showForEntityTypes: ["works"],
     },
     {
         // only if there's a text search on
-        key: "relevance_score",
+        key: "relevance_score:desc",
         displayName: "Relevance",
+        showForEntityTypes: entityTypes.all(),
+        requiresTextSearch: true,
     },
 ]
 
@@ -65,7 +93,7 @@ const stateDefaults = function () {
         textSearch: "",
         page: 1,
         results: [],
-        sort: "cited_by_count",
+        sort: null,
         responseTime: null,
         resultsCount: null,
         isLoading: false,
@@ -104,16 +132,16 @@ export default new Vuex.Store({
         setEntityType(state, entityType) {
             state.entityType = entityType;
         },
+        setTextSearch(state, textSearch) {
+            state.textSearch = textSearch;
+        },
         setPage(state, page) {
             const pageInt = parseInt(page)
             state.page = (isNaN(pageInt)) ? 1 : pageInt
         },
         setSort(state, sortKey) {
-            // if we don't recognize this key, set it to the default
-            if (!sortConfigs.some(c => c.key === sortKey)) {
-                sortKey = (state.textSearch) ? "relevance_score" : "cited_by_count"
-            }
-            state.sort = sortKey
+            const mySortConfig = sortConfigs.find(c => c.key === sortKey)
+            if (mySortConfig) state.sort = mySortConfig.key
         },
         addInputFilter(state, filter) {
             if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
@@ -137,8 +165,6 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async pushSearchUrl({commit, getters, dispatch, state}) {
-            console.log("state.pushSearchUrl", getters.searchQuery)
-
             const routerPushTo = {
                 query: getters.searchQuery,
                 name: "Serp",
@@ -160,11 +186,19 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
-            state.entityType = router.currentRoute.params.entityType
+            commit("setEntityType", router.currentRoute.params.entityType)
+            commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
-            commit("setSort", router.currentRoute.query.sort)
+
+            // this must be after setting the text search, because it affects the defaults
+            if (router.currentRoute.query.sort) {
+                commit("setSort", router.currentRoute.query.sort)
+            }
+            else {
+                commit("setSort", getters.defaultSort)
+            }
+
             state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
-            state.textSearch = router.currentRoute.query.search
             await dispatch("doSearch")
         },
 
@@ -172,8 +206,8 @@ export default new Vuex.Store({
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
             commit("resetSearch")
             // commit("setPage", 1)
-            // commit("setSort", "relevance_score")
-            state.entityType = entityType
+            // commit("setSort", "relevance_score:desc")
+            commit("setEntityType", entityType)
             state.textSearch = searchString
             await dispatch("doSearch")
         },
@@ -222,14 +256,9 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
-
             state.isLoading = true
-            if (!state.textSearch && state.sort === "relevance_score") {
-                commit("setSort", "cited_by_count")
-            }
-            console.log("doSearch", getters.searchQuery)
-
             dispatch("pushSearchUrl")
+
             try {
                 const resp = await api.get(state.entityType, getters.searchQuery)
                 state.results = resp.results
@@ -258,7 +287,7 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async setEntityZoom({commit, getters, dispatch, state}, id) {
             state.entityZoomIsOpen = true
-            state.entityZoomType = entityTypeFromId(id)
+            state.entityZoomType = entityTypes.fromId(id)
             const pathName = state.entityZoomType + "/" + id
             state.entityZoomData = await api.get(pathName)
         },
@@ -277,8 +306,10 @@ export default new Vuex.Store({
     getters: {
         sortObjectOptions(state, getters) {
             if (!state.results.length) return
-            return sortConfigs.filter(sortOption => {
-                return sortOption.key in state.results[0]
+            return sortConfigs.filter(sortConfig => {
+                if (sortConfig.requiresTextSearch && !state.textSearch) return false
+                if (!sortConfig.showForEntityTypes.includes(state.entityType)) return false
+                return true
             })
         },
         sortObject(state, getters) {
@@ -290,12 +321,12 @@ export default new Vuex.Store({
             const query = {}
             if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
-            if (state.sort !==  getters.defaultSort) query["sort"] = state.sort + ":desc"
+            if (state.sort && state.sort !==  getters.defaultSort) query["sort"] = state.sort
             if (state.textSearch) query.search = state.textSearch
             return query
         },
         defaultSort(state, getters){
-            return (state.textSearch) ? "relevance_score" : "citation_count"
+            return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]
         },
         searchApiUrl(state, getters) {
             return api.getUrl(state.entityType, getters.searchQuery)
