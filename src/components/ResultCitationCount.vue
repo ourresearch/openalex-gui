@@ -19,7 +19,24 @@
               </span>
             </span>
           </template>
-          <span>Cited by {{ citedByCount.toLocaleString() }} works</span>
+          <span>
+            Incoming citations to
+            <template v-if="entityType=='works'">
+              this work
+            </template>
+            <template v-if="entityType=='authors'">
+              this this author's works.
+            </template>
+            <template v-if="entityType=='venues'">
+              this journal's works
+            </template>
+            <template v-if="entityType=='institutions'">
+              this institution's works.
+            </template>
+            <template v-if="entityType=='concepts'">
+              works tagged with this concept
+            </template>
+          </span>
         </v-tooltip>
     
   </span>

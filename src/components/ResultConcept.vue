@@ -13,7 +13,10 @@
     </div>
     <div class="body-1">
       <span class="mr-3">{{ data.works_count.toLocaleString() }} Works</span>
-      <span>Cited by {{ data.cited_by_count.toLocaleString() }}</span>
+      <result-citation-count
+            :cited-by-count="data.cited_by_count"
+            entity-type="concepts"
+        />
     </div>
   </div>
 </template>
@@ -21,10 +24,12 @@
 
 <script>
 import ConceptsList from "./ConceptsList";
+import ResultCitationCount from "./ResultCitationCount";
 
 export default {
   components: {
     ConceptsList,
+    ResultCitationCount,
   },
   props: {
     data: Object,

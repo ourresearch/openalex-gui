@@ -27,6 +27,7 @@
         <span class="mr-3">{{data.works_count.toLocaleString()}} Works</span>
         <result-citation-count
             :cited-by-count="data.cited_by_count"
+            entity-type="authors"
         />
       </div>
     </div>
