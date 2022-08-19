@@ -10,7 +10,7 @@
 
     >
       <v-toolbar-items
-          style="width: 1100px;"
+          style="width: 1200px;"
           class="align-center d-flex"
       >
         <v-col cols="3" class="logo-section">

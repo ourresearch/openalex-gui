@@ -2,7 +2,7 @@
   <div class="serp-page mt-4 pa-0">
 
 
-    <div class="serp-container d-flex" style="width: 1100px;">
+    <div class="serp-container d-flex" style="width: 1200px;">
       <v-col cols="3" class="facets-panel-container">
         <facet
             v-for="facet in searchFacetConfigs"
