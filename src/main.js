@@ -5,6 +5,7 @@ import store from './store'
 import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
+import millify from "millify";
 
 Vue.config.productionTip = false
 
@@ -37,6 +38,14 @@ Vue.filter("idApiUrl", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")
     return `https://api.openalex.org/${shortId}`
+})
+Vue.filter("millify", function (number) {
+    return millify(
+        number,
+        {
+            precision: 0,
+        }
+    )
 })
 
 new Vue({

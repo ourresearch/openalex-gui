@@ -37,8 +37,8 @@
 
           <div class="d-flex align-end mb-2">
             <div class="body-1 grey--text">
-              <span>{{ $store.state.resultsCount.toLocaleString() }} results </span>
-<!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
+              <span>About {{ roundedResultsCount }} results </span>
+              <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
             </div>
             <v-spacer/>
 
@@ -247,6 +247,7 @@
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
 import FilterChip from "../components/FilterChip";
+import millify from "millify";
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
@@ -318,7 +319,7 @@ export default {
         this.$store.dispatch("setSort", val)
       }
     },
-    numPages(){
+    numPages() {
       return Math.min(
           Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
           10
@@ -344,6 +345,18 @@ export default {
     },
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
+    },
+    roundedResultsCount() {
+      const asString = millify(
+          this.$store.state.resultsCount,
+          {precision: 0}
+      )
+      const asNumber = Number(
+          asString
+              .replace("K", "000")
+              .replace("M", "000000")
+      )
+      return asNumber.toLocaleString()
     },
   },
   methods: {
@@ -425,6 +438,7 @@ export default {
     //width: 350px;
     padding: 34px 40px 0 20px;
   }
+
   .results-panel-container {
     //max-width: 900px;
   }
