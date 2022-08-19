@@ -9,31 +9,37 @@
         elevate-on-scroll
 
     >
-      <router-link to="/" class="logo-link">
-        <img
-            src="@/assets/openalex-logo-icon.png"
-            class="logo-icon"
-        />
-        <span class="logo-text">
-          OpenAlex
-        </span>
-      </router-link>
-
-      <search-box v-if="$route.name !== 'Home'" />
+      <v-toolbar-items
+          style="width: 1100px;"
+          class="align-center d-flex"
+      >
+        <v-col cols="3" class="logo-section">
+          <router-link to="/" class="logo-link">
+            <img
+                src="@/assets/openalex-logo-icon.png"
+                class="logo-icon"
+            />
+            <span class="logo-text">
+              OpenAlex
+            </span>
+          </router-link>
+        </v-col>
+        <v-col cols="9">
+          <search-box v-if="$route.name !== 'Home'" />
+        </v-col>
+      </v-toolbar-items>
       <v-spacer></v-spacer>
 
       <!--      DESKTOP MENU -->
-      <v-toolbar-items class=" hidden-sm-and-down">
+      <v-toolbar-items v-if="0" class=" hidden-sm-and-down">
         <v-btn class="no-active low-key-button" text to="/">Home</v-btn>
         <v-btn class="no-active low-key-button" text href="/about">
           About
         </v-btn>
-        <!--        <v-btn class="no-active low-key-button" text to="./projects">Projects</v-btn>-->
-        <!--        <v-btn class="no-active low-key-button" text to="./transparency">Transparency</v-btn>-->
       </v-toolbar-items>
 
       <!--      MOBILE MENU -->
-      <div class=" hidden-md-and-up">
+      <div class="">
         <v-menu offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">
             <v-btn icon color="" v-on="on">
@@ -85,7 +91,10 @@
       <v-fade-transition>
         <div id="zoom-overlay" v-if="applyOverlay"></div>
       </v-fade-transition>
+      <v-container fluid>
       <router-view/>
+
+      </v-container>
     </v-main>
 
     <v-footer
@@ -258,27 +267,28 @@ html, body {
   opacity: 0.05 !important;
 }
 
-.logo-link {
-  text-decoration: none;
-  width: 500px;
-  display: flex;
-  align-items: center;
-  padding-left: 7px;
 
-  .logo-icon {
-    height: 45px;
-  }
+.logo-section {
+  .logo-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    //padding-left: 30px;
+    .logo-icon {
+      height: 45px;
+    }
 
-  .logo-text {
-    padding: 0 14px;
-    margin: 5px 15px;
-    line-height: 1.2;
-    border-left: 1px solid #333;
-    color: #000;
-    font-family: Dosis;
-    letter-spacing: .03em;
-    font-size: 30px;
-    font-weight: 300;
+    .logo-text {
+      padding: 0 14px;
+      margin: 5px 15px;
+      line-height: 1.2;
+      border-left: 1px solid #333;
+      color: #000;
+      font-family: Dosis;
+      letter-spacing: .03em;
+      font-size: 30px;
+      font-weight: 300;
+    }
   }
 
 }

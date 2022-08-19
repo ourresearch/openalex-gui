@@ -7,10 +7,10 @@
     </div>
     <div v-if="data.geo.country" class="d-inline-flex align-center">
       <flag :squared="false" :iso="data.geo.country_code" style="height:12px; margin-right: 3px;"/>
-      <span class="mr-1" v-if="data.geo.city">{{data.geo.city}},    </span>     {{ data.geo.country }}
+      <span class="mr-1" v-if="data.geo.city">{{ data.geo.city }},    </span> {{ data.geo.country }}
     </div>
 
-    <div v-if="data.last_known_institution" >
+    <div v-if="data.last_known_institution">
       {{ data.last_known_institution.display_name }}
     </div>
 
@@ -18,11 +18,16 @@
       <concepts-list :concepts="data.x_concepts"/>
     </div>
     <div class="body-1">
-      <span class="mr-3">{{ data.works_count.toLocaleString() }} Works</span>
+      <result-works-count
+          :works-count="data.works_count"
+          :id="data.id"
+          entity-type="institutions"
+          class="mr-4"
+      />
       <result-citation-count
-            :cited-by-count="data.cited_by_count"
-            entity-type="institutions"
-        />
+          :cited-by-count="data.cited_by_count"
+          entity-type="institutions"
+      />
     </div>
   </div>
 </template>
@@ -31,11 +36,13 @@
 <script>
 import ConceptsList from "./ConceptsList";
 import ResultCitationCount from "./ResultCitationCount";
+import ResultWorksCount from "./ResultWorksCount";
 
 export default {
   components: {
     ConceptsList,
-    ResultCitationCount
+    ResultCitationCount,
+    ResultWorksCount,
   },
   props: {
     data: Object,

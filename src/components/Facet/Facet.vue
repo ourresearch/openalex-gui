@@ -308,9 +308,9 @@ export default {
     padding-left: 0;
 
     .facet-count-container {
-      width: 30px;
+      //width: 30px;
       text-align: right;
-      padding-right: 6px;
+      //padding-right: 6px;
     }
   }
 

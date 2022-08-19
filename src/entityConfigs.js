@@ -39,7 +39,7 @@ const entityConfigs = {
         descr: "Universities and research centers",
         eg: "Harvard University",
         placeholder: "Search 100k academic institutions",
-        filterName: "institution",
+        filterName: "institutions",
     },
     concepts: {
         emoji: "💡",
@@ -49,7 +49,7 @@ const entityConfigs = {
         descr: "Topics and fields of study",
         eg: "History",
         placeholder: "Search 50k topics",
-        filterName: "concept",
+        filterName: "concepts",
     },
 
 

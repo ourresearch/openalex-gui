@@ -1,19 +1,20 @@
 <template>
-  <div class="serp-page mt-2 pa-0">
+  <div class="serp-page mt-4 pa-0">
 
 
-    <div class="serp-container">
-      <div class="facets-panel-container">
+    <div class="serp-container d-flex" style="width: 1100px;">
+      <v-col cols="3" class="facets-panel-container">
         <facet
             v-for="facet in searchFacetConfigs"
             :key="facet.key"
             :facet-key="facet.key"
         ></facet>
-      </div>
+      </v-col>
 
 
-      <div
-          class="results-panel-container flex-fill"
+      <v-col
+          cols="9"
+          class="results-panel-container flex-fill mt-9"
           v-if="$store.state.resultsCount !== null"
       >
         <div class="search-results-meta" style="width: 100%;">
@@ -104,7 +105,7 @@
               <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
             </div>
           </div>
-          <div class="serp-bottom">
+          <div class="serp-bottom" v-if="$store.state.results.length">
             <v-pagination
                 v-model="page"
                 :length="numPages"
@@ -114,7 +115,7 @@
           </div>
 
         </div>
-      </div>
+      </v-col>
     </div>
 
 
@@ -416,15 +417,16 @@ export default {
 <style scoped lang="scss">
 .serp-container {
   //max-width: 1500px;
-  display: flex;
+  //display: flex;
 
   .facets-panel-container {
-    min-width: 353px;
-    max-width: 353px;
+    //min-width: 353px;
+    //max-width: 353px;
+    //width: 350px;
     padding: 34px 40px 0 20px;
   }
   .results-panel-container {
-    max-width: 900px;
+    //max-width: 900px;
   }
 
 }
