@@ -7,6 +7,7 @@ const entityConfigs = {
         descr: "Scholarly papers, books, datasets, etc.",
         eg: "On the Electrodynamics of Moving Bodies",
         placeholder: "Search 230M scholarly papers, books, and more",
+        filterName: "work",
     },
     authors: {
         emoji: "🧑",
@@ -17,6 +18,7 @@ const entityConfigs = {
         descr: "Creators of scholarly works",
         eg: "Albert Einstein",
         placeholder: "Search 200M scholarly authors",
+        filterName: "author",
     },
     venues: {
         emoji: "📚",
@@ -27,6 +29,7 @@ const entityConfigs = {
         descr: "Academic journals and content repositories",
         eg: "The New England Journal of Medicine",
         placeholder: "Search 100k academic journals & repositories",
+        filterName: "host_venue",
     },
     institutions: {
         emoji: "🏫",
@@ -36,6 +39,7 @@ const entityConfigs = {
         descr: "Universities and research centers",
         eg: "Harvard University",
         placeholder: "Search 100k academic institutions",
+        filterName: "institution",
     },
     concepts: {
         emoji: "💡",
@@ -45,6 +49,7 @@ const entityConfigs = {
         descr: "Topics and fields of study",
         eg: "History",
         placeholder: "Search 50k topics",
+        filterName: "concept",
     },
 
 

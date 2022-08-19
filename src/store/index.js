@@ -83,6 +83,7 @@ const sortConfigs = [
 const stateDefaults = function () {
     const ret = {
         entityType: "works",
+        // resultsEntityType: "works",
 
         inputFilters: [],
         resultsFilters: [],
@@ -186,6 +187,8 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
+            // commit("resetSearch")
+            state.results = []
             commit("setEntityType", router.currentRoute.params.entityType)
             commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
@@ -204,9 +207,11 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
-            commit("resetSearch")
+            // commit("resetSearch")
             // commit("setPage", 1)
             // commit("setSort", "relevance_score:desc")
+            if (entityType !== state.entityType) commit("resetSearch")
+
             commit("setEntityType", entityType)
             state.textSearch = searchString
             await dispatch("doSearch")
@@ -258,10 +263,12 @@ export default new Vuex.Store({
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             state.isLoading = true
             dispatch("pushSearchUrl")
+            // if (state.entityType !== this.state.resultsEntityType) commit("resetSearch")
 
             try {
                 const resp = await api.get(state.entityType, getters.searchQuery)
                 state.results = resp.results
+                // state.resultsEntityType = state.entityType
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count
 

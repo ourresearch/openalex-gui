@@ -6,50 +6,50 @@
                 v-bind="attrs"
                 v-on="on"
             >
-              <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>
+              <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">{{icon}}</v-icon>
               <router-link
-                  :to="linkToCitingPapers"
+                  :to="linkToWorks"
                   class="text-decoration-none"
                   v-if="formatAsLink"
               >
-                {{ citedByCount.toLocaleString() }}
+                {{ worksCount.toLocaleString() }}
               </router-link>
               <span class="" v-else>
-                {{ citedByCount.toLocaleString() }}
+                {{ worksCount.toLocaleString() }}
               </span>
             </span>
           </template>
           <span>
-            Incoming citations to
             <template v-if="entityType=='works'">
-              this work
+              Related works
             </template>
             <template v-if="entityType=='authors'">
-              this this person's works.
+              Works created by this person
             </template>
             <template v-if="entityType=='venues'">
-              this journal's works
+              Works published in this venue
             </template>
             <template v-if="entityType=='institutions'">
-              this institution's works.
+              Works published by people at this institution
             </template>
             <template v-if="entityType=='concepts'">
-              works tagged with this concept
+              Works tagged with this concept
             </template>
           </span>
         </v-tooltip>
-    
+
   </span>
 </template>
 
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
+import {entityConfigs} from "../entityConfigs";
 
 export default {
-  name: "ResultCitationCount",
+  name: "ResultWorksCount",
   components: {},
   props: {
-    citedByCount: Number,
+    worksCount: Number,
     id: String,
     entityType: String,
     linkToSearch: {
@@ -65,20 +65,24 @@ export default {
   computed: {
     ...mapGetters([]),
     formatAsLink(){
-      return this.id && this.entityType && this.citedByCount > 0
+      return this.id && this.entityType && this.worksCount > 0
+    },
+    icon(){
+      return entityConfigs.works.icon
     },
     iconColor(){
-      if (this.id && this.entityType && this.citedByCount > 0) return "primary"
+      if (this.id && this.entityType && this.worksCount > 0) return "primary"
       return "#333333"
     },
-    linkToCitingPapers() {
+    linkToWorks() {
       if (!this.id || !this.entityType) return false
 
       const shortId = this.id.replace("https://openalex.org/", "")
+      const filterName = entityConfigs[this.entityType].filterName + ".id"
       return {
         name: "Serp",
         params: {entityType: "works"},
-        query: {filter: `referenced_works:${shortId}`}
+        query: {filter: `${filterName}:${shortId}`}
       }
     },
   },

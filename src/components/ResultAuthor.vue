@@ -24,7 +24,12 @@
 
       </div>
       <div >
-        <span class="mr-3">{{data.works_count.toLocaleString()}} Works</span>
+        <result-works-count
+            :works-count="data.works_count"
+            :id="data.id"
+            entity-type="authors"
+            class="mr-4"
+        />
         <result-citation-count
             :cited-by-count="data.cited_by_count"
             entity-type="authors"
@@ -38,12 +43,14 @@
 <script>
 import ConceptsList from "./ConceptsList";
 import ResultCitationCount from "./ResultCitationCount";
+import ResultWorksCount from "./ResultWorksCount";
 
 
 export default {
   components: {
     ConceptsList,
     ResultCitationCount,
+    ResultWorksCount,
   },
   props: {
     data: Object,

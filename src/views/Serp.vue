@@ -399,7 +399,8 @@ export default {
     "$route": {
       immediate: true,
       handler(to, from) {
-        console.log("serp route change", to.params, from)
+        console.log("serp route change", to, from)
+
         if (to.params.id) {
           this.setEntityZoom(to.params.id)
         } else {
