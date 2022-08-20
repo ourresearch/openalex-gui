@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div>
+  <v-row>
+    <v-col cols="10">
       <div>
         <router-link  class="text-decoration-none" :to="data.id | idLink">
           {{ data.display_name }}
@@ -35,8 +35,8 @@
             entity-type="authors"
         />
       </div>
-    </div>
-  </div>
+    </v-col>
+  </v-row>
 </template>
 
 

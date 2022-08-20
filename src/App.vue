@@ -10,7 +10,7 @@
 
     >
       <v-toolbar-items
-          style="width: 1200px;"
+          style="width: 1100px;"
           class="align-center d-flex"
       >
         <v-col cols="3" class="logo-section">
@@ -25,7 +25,7 @@
           </router-link>
         </v-col>
         <v-col cols="9">
-          <search-box v-if="$route.name !== 'Home'" />
+          <search-box v-if="$route.name !== 'Home'"/>
         </v-col>
       </v-toolbar-items>
       <v-spacer></v-spacer>
@@ -92,7 +92,7 @@
         <div id="zoom-overlay" v-if="applyOverlay"></div>
       </v-fade-transition>
       <v-container fluid>
-      <router-view/>
+        <router-view/>
 
       </v-container>
     </v-main>
@@ -164,8 +164,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 
 
-
-
 export default {
   name: 'App',
   metaInfo: {
@@ -187,8 +185,7 @@ export default {
 
 
   data: function () {
-    return {
-    }
+    return {}
   },
   computed: {
     ...mapGetters([
@@ -200,7 +197,7 @@ export default {
     bodyScrollLock() {
       return this.$store.state.entityZoomIsOpen
     },
-    applyOverlay(){
+    applyOverlay() {
       return this.$store.state.entityZoomIsOpen
 
     }
@@ -251,11 +248,11 @@ html, body {
 
 #zoom-overlay {
   position: absolute;
-  top:0;
+  top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0, 0, 0, .5);
 }
 
 // hack to get rid of vue's active class on buttons, which makes them display different
@@ -350,8 +347,9 @@ body {
 
 
 .capitalize-first-letter:first-letter {
-    text-transform: uppercase;
+  text-transform: uppercase;
 }
+
 img.site-footer-logo {
   width: 60px;
 

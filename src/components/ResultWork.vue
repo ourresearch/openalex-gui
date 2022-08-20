@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="9" class="content">
+    <v-col cols="10" class="content">
       <router-link class="text-decoration-none subtitle-1" :to="data.id | idLink">
         {{ data.display_name }}
       </router-link>
@@ -31,15 +31,16 @@
 
       </div>
     </v-col>
-    <v-col cols="3" class="linkout">
+    <v-col cols="2" class="linkout d-flex justify-end">
       <a
           :href="fulltextUrl"
           target="_blank"
           class="mx-3 text-decoration-none"
           v-if="fulltextUrl"
       >
-        <v-icon small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
-        Fulltext {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}
+        Fulltext
+<!--        {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}-->
+        <v-icon x-small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
       </a>
     </v-col>
 

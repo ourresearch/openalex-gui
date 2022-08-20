@@ -12,6 +12,7 @@
         item-value="id"
         append-icon="mdi-magnify"
         id="main-search"
+        style="width: 100%;"
 
         v-model="select"
         :items="items"

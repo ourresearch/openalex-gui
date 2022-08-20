@@ -1,32 +1,44 @@
 <template>
-  <div>
-    <div>
-      <v-icon small v-if="!data.is_oa">mdi-lock-outline</v-icon>
-      <v-icon small v-else>mdi-lock-open-variant-outline</v-icon>
+  <v-row>
+    <v-col cols="9">
+      <div>
+        <router-link class="text-decoration-none" :to="data.id | idLink">
+          {{ data.display_name }}
+        </router-link>
+      </div>
+      <!--    <div v-if="data.publisher" class="body-2">-->
+      <!--      {{ data.publisher }}-->
+      <!--    </div>-->
+      <div>
+        <concepts-list :concepts="data.x_concepts"/>
+      </div>
+      <div class="body-1">
+        <result-works-count
+            :works-count="data.works_count"
+            :id="data.id"
+            entity-type="venues"
+            class="mr-4"
+        />
+        <result-citation-count
+            :cited-by-count="data.cited_by_count"
+            entity-type="venues"
+        />
+      </div>
+    </v-col>
+    <v-col cols="3" class="justify-end d-flex">
+      <a
+          :href="data.homepage_url"
+          target="_blank"
+          class="mx-3 text-decoration-none"
+          v-if="data.homepage_url && data.is_oa"
+      >
+        <v-icon small color="primary">mdi-lock-open-variant-outline</v-icon>
+        Open Access
+      </a>
 
-      <router-link class="text-decoration-none" :to="data.id | idLink">
-        {{ data.display_name }}
-      </router-link>
-    </div>
-    <!--    <div v-if="data.publisher" class="body-2">-->
-    <!--      {{ data.publisher }}-->
-    <!--    </div>-->
-    <div>
-      <concepts-list :concepts="data.x_concepts"/>
-    </div>
-    <div class="body-1">
-      <result-works-count
-          :works-count="data.works_count"
-          :id="data.id"
-          entity-type="venues"
-          class="mr-4"
-      />
-      <result-citation-count
-          :cited-by-count="data.cited_by_count"
-          entity-type="venues"
-      />
-    </div>
-  </div>
+
+    </v-col>
+  </v-row>
 </template>
 
 

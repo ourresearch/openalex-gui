@@ -2,7 +2,7 @@
   <div class="serp-page mt-4 pa-0">
 
 
-    <div class="serp-container d-flex" style="width: 1200px;">
+    <div class="serp-container d-flex" style="width: 1100px;">
       <v-col cols="3" class="facets-panel-container">
         <facet
             v-for="facet in searchFacetConfigs"
@@ -32,64 +32,59 @@
                 class="mr-2"
             >
             </filter-chip>
-
           </div>
 
-          <div class="d-flex align-end mb-2">
-            <div class="body-1 grey--text">
+          <v-row class="mb-2 align-baseline">
+            <v-col cols="6" class="body-1 grey--text">
               <span>About {{ roundedResultsCount }} results </span>
               <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
-            </div>
-            <v-spacer/>
+            </v-col>
+            <v-col cols="6" class="d-flex justify-end">
+              <v-menu offset-y>
+                <template v-slot:activator="{on}">
+                  <v-btn icon v-on="on">
+                    <v-icon>mdi-download-outline</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-subheader>Export these results as:</v-subheader>
+                  <v-list-item
+                      target="_blank"
+                      :href="searchApiUrl"
+                  >
+                    <v-icon left>mdi-code-json</v-icon>
+                    JSON
+                  </v-list-item>
+                  <v-list-item
+                      @click="openExportToCsvDialog"
+                  >
+                    <v-icon left>mdi-table</v-icon>
+                    CSV
+                  </v-list-item>
+                </v-list>
+              </v-menu>
 
+              <v-btn
+                  icon
+                  @click="openCreateAlertDialog"
+              >
+                <v-icon>mdi-bell-outline</v-icon>
+              </v-btn>
 
-            <v-menu offset-y>
-              <template v-slot:activator="{on}">
-                <v-btn icon v-on="on">
-                  <v-icon>mdi-download-outline</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-subheader>Export these results as:</v-subheader>
-                <v-list-item
-                    target="_blank"
-                    :href="searchApiUrl"
-                >
-                  <v-icon left>mdi-code-json</v-icon>
-                  JSON
-                </v-list-item>
-                <v-list-item
-                    @click="openExportToCsvDialog"
-                >
-                  <v-icon left>mdi-table</v-icon>
-                  CSV
-                </v-list-item>
-              </v-list>
-            </v-menu>
+              <div style="max-width: 180px;" class="ml-4">
+                <v-select
+                    v-model="sort"
+                    item-text="displayName"
+                    item-value="key"
+                    :items="$store.getters.sortObjectOptions"
+                    dense
+                    hide-details
+                    prepend-icon="mdi-sort-descending"
 
-            <v-btn
-                icon
-                @click="openCreateAlertDialog"
-            >
-              <v-icon>mdi-bell-outline</v-icon>
-            </v-btn>
-
-
-            <div style="max-width: 130px; margin: 0 20px; padding-bottom: 3px;">
-              <v-select
-                  v-model="sort"
-                  item-text="displayName"
-                  item-value="key"
-                  :items="$store.getters.sortObjectOptions"
-                  label="Sort by"
-                  dense
-                  hide-details
-
-              ></v-select>
-            </div>
-
-
-          </div>
+                ></v-select>
+              </div>
+            </v-col>
+          </v-row>
 
 
           <div>
