@@ -63,7 +63,7 @@ const facetConfigs = function () {
         {
             key: "is_oa",
             entityTypes: ["works"],
-            displayName: "Fulltext Available",
+            displayName: "Free to read",
             valuesToShow: "mostCommon",
         },
         {
@@ -89,7 +89,7 @@ const facetConfigs = function () {
         {
             key: "referenced_works",
             entityTypes: ["works"],
-            displayName: "Cites these works",
+            displayName: "Cites work",
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",

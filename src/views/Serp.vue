@@ -22,7 +22,9 @@
 
           <!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
 
-          <div class="d-none applied-filters pt-3" v-if="$store.state.resultsFilters.length">
+          <v-card flat class="mb-4 py-3 applied-filters" v-if="$store.state.resultsFilters.length">
+            <div>
+            </div>
             <filter-chip
                 v-for="f in $store.state.resultsFilters"
                 :key="f.id"
@@ -32,7 +34,8 @@
                 class="mr-2"
             >
             </filter-chip>
-          </div>
+          </v-card>
+          <v-divider></v-divider>
 
           <v-row class="mb-2 align-baseline">
             <v-col cols="6" class="body-1 grey--text">
