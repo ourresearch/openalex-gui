@@ -31,6 +31,19 @@ const entityTypeFromId = function (id) {
     return entityTypesDict[firstLetter]
 }
 
+const unravel = function(invertedIndex){
+    const unraveled = {}
+    Object.entries(invertedIndex).forEach(([k, v]) => {
+        v.forEach(myValue => {
+            unraveled[myValue] = k
+        })
+    })
+    const ret = Object.values(unraveled)
+        .join(" ")
+        .replace("\n", "")
+        .replace(/^[Aa]bstract/, "")
+    return ret
+}
 
 const entityTypes = {
     all() {
@@ -52,4 +65,5 @@ export {
     shortenOpenAlexId,
     entityTypeFromId,
     entityTypes,
+    unravel,
 }

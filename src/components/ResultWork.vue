@@ -18,7 +18,8 @@
         <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
 
       </div>
-      <div>
+      <div class="body-1" v-if="abstract && isOpenlyLicensed">
+        {{ abstract | truncate(200) }}
       </div>
       <concepts-list class="d-none" :concepts="data.concepts"/>
 
@@ -51,6 +52,7 @@
 <script>
 import ConceptsList from "./ConceptsList";
 import ResultCitationCount from "./ResultCitationCount";
+import {unravel} from "../util";
 
 export default {
   components: {
@@ -74,6 +76,13 @@ export default {
     },
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
+    },
+    isOpenlyLicensed(){
+      return ["gold", "bronze"].includes(this.data.open_access.oa_status)
+    },
+    abstract(){
+      if (!this.data.abstract_inverted_index) return
+      return unravel(this.data.abstract_inverted_index)
     },
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
