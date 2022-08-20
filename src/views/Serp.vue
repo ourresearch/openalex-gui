@@ -14,28 +14,11 @@
 
       <v-col
           cols="9"
-          class="results-panel-container flex-fill mt-9"
+          class="results-panel-container flex-fill mt-6"
           v-if="$store.state.resultsCount !== null"
       >
         <div class="search-results-meta" style="width: 100%;">
-          <!--          <pre>{{ $store.state.resultsFilters }}</pre>-->
-
-          <!--          <div v-for="(v, k) in $store.state.filters">{{ k }}: {{ v }}</div>-->
-
-          <v-card flat class="mb-4 py-3 applied-filters" v-if="$store.state.resultsFilters.length">
-            <div>
-            </div>
-            <filter-chip
-                v-for="f in $store.state.resultsFilters"
-                :key="f.id"
-                :filter-key="f.key"
-                :filter-value="f.value"
-                :filter-display-value="f.displayValue"
-                class="mr-2"
-            >
-            </filter-chip>
-          </v-card>
-          <v-divider></v-divider>
+          <serp-filters-list />
 
           <v-row class="mb-2 align-baseline">
             <v-col cols="6" class="body-1 grey--text">
@@ -252,6 +235,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import Facet from "../components/Facet/Facet";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
+import SerpFiltersList from "../components/SerpFiltersList";
 
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
@@ -270,7 +254,7 @@ export default {
   components: {
     Facet,
     DownloadCsvDialog,
-    FilterChip,
+    SerpFiltersList,
     ResultWork,
     ResultAuthor,
     ResultVenue,
