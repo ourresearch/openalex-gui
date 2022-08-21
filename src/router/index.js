@@ -31,7 +31,7 @@ const routes = [
         redirect: to => {
             // https://router.vuejs.org/api/#the-route-object
             const entityType = entityTypeFromId(to.params.id)
-            return `/${entityType}/${to.params.id}`
+            return `/${entityType}?zoom=${to.params.id}`
         },
     },
 
@@ -47,6 +47,12 @@ const routes = [
     {
         path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
         // path: `/:entityType(works|authors|venues|institutions|concepts)`,
+        name: 'Serp',
+        component: Serp,
+    },
+    {
+        // path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
+        path: `/:entityType(works|authors|venues|institutions|concepts)`,
         name: 'Serp',
         component: Serp,
     },

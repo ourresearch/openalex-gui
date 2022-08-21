@@ -31,6 +31,9 @@ const entityTypeFromId = function (id) {
     return entityTypesDict[firstLetter]
 }
 
+
+
+
 const unravel = function(invertedIndex){
     const unraveled = {}
     Object.entries(invertedIndex).forEach(([k, v]) => {

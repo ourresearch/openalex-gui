@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-col cols="10" class="content">
-      <router-link class="text-decoration-none subtitle-1" :to="data.id | idLink">
+      <router-link class="text-decoration-none subtitle-1" :to="data.id | zoomLink">
         {{ data.display_name }}
       </router-link>
       <div v-if="authorsCount" class="body-1">

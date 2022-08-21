@@ -34,6 +34,24 @@ Vue.filter("idLink", function (fullId) {
     const myEntityType = entityTypes[shortIdFirstLetter]
     return `/${myEntityType}/${shortId}`
 })
+
+
+Vue.filter("zoomLink", function (fullId) {
+    if (!fullId) return
+    const shortId = fullId.replace("https://openalex.org/", "")
+    const url = new URL(window.location.href)
+    const params = [...url.searchParams.entries()].filter(p => {
+        return p[0] !== "zoom"
+    })
+    params.push(["zoom", shortId])
+    const queryString = params.map(p => `${p[0]}=${p[1]}`).join("&")
+    url.search = "?" + queryString
+    return [url.path, queryString].join("?")
+})
+
+
+
+
 Vue.filter("idApiUrl", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")

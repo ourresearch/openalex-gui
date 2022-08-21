@@ -214,18 +214,21 @@ export default new Vuex.Store({
 
             commit("setEntityType", entityType)
             state.textSearch = searchString
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
+            dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
             commit("setSort", newSortValue)
             commit("setPage", 1)
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
+            dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars
         async setPage({commit, getters, dispatch, state}, newPage) {
             commit("setPage", newPage)
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
+            dispatch("pushSearchUrl")
         },
 
         // eslint-disable-next-line no-unused-vars
@@ -235,7 +238,8 @@ export default new Vuex.Store({
                 commit("addInputFilter", f)
             })
             commit("setPage", 1)
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
+            dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars
         async removeInputFilters({commit, getters, dispatch, state}, filters) {
@@ -244,7 +248,8 @@ export default new Vuex.Store({
                 commit("removeInputFilter", f)
             })
             commit("setPage", 1)
-            await dispatch("doSearch")
+            // await dispatch("doSearch")
+            dispatch("pushSearchUrl")
         },
 
         // eslint-disable-next-line no-unused-vars
@@ -262,7 +267,7 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             state.isLoading = true
-            dispatch("pushSearchUrl")
+            // dispatch("pushSearchUrl")
             // if (state.entityType !== this.state.resultsEntityType) commit("resetSearch")
 
             try {
