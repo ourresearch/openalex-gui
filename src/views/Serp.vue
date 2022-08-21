@@ -397,8 +397,8 @@ export default {
       handler(to, from) {
         console.log("serp route change", to, from)
 
-        if (to.params.id) {
-          this.setEntityZoom(to.params.id)
+        if (to.query.zoom) {
+          this.setEntityZoom(to.query.zoom)
         } else {
           this.$store.dispatch("bootFromUrl")
 

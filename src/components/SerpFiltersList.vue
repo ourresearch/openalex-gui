@@ -1,21 +1,26 @@
 <template>
-  <v-card outlined class="pa-3 mb-8">
-    <div class="d-flex ml-1 mb-3">
-      <div class="subtitle-1 font-weight-bold">
+  <v-card outlined class="mb-8">
+    <v-toolbar dense flat class="pr-0">
+      <v-toolbar-title class="subtitle-1 font-weight-bold">
         <v-icon small>mdi-filter-outline</v-icon>
         {{ $store.state.resultsFilters.length }} filters
-      </div>
+
+      </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-          small
-          text
-          color="primary"
-      >
-        <v-icon left small>mdi-close</v-icon>
-        Clear all
-      </v-btn>
-    </div>
-    <v-row v-if="$store.state.resultsFilters.length">
+      <v-toolbar-items>
+        <v-btn
+            small
+            text
+            color="primary"
+        >
+          <v-icon left small>mdi-close</v-icon>
+          Clear
+        </v-btn>
+
+      </v-toolbar-items>
+    </v-toolbar>
+    <v-divider></v-divider>
+    <v-row v-if="$store.state.resultsFilters.length" class="py-3 px-3">
       <v-col cols="9">
         <table class="serp-filters-list">
           <tr
@@ -48,7 +53,7 @@
 
       </v-col>
     </v-row>
-<!--    <v-divider class="my-4"></v-divider>-->
+    <!--    <v-divider class="my-4"></v-divider>-->
 
   </v-card>
 </template>
