@@ -251,6 +251,12 @@ export default new Vuex.Store({
             // await dispatch("doSearch")
             dispatch("pushSearchUrl")
         },
+        // eslint-disable-next-line no-unused-vars
+        async removeAllInputFilters({commit, getters, dispatch, state}) {
+            state.inputFilters = []
+            commit("setPage", 1)
+            dispatch("pushSearchUrl")
+        },
 
         // eslint-disable-next-line no-unused-vars
         async replaceInputFilters({commit, getters, dispatch, state}, filters) {
@@ -317,6 +323,9 @@ export default new Vuex.Store({
 
     },
     getters: {
+        resultsFilters(state, getters) {
+            return state.resultsFilters
+        },
         sortObjectOptions(state, getters) {
             if (!state.results.length) return
             return sortConfigs.filter(sortConfig => {

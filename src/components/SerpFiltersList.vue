@@ -1,9 +1,14 @@
 <template>
-  <v-card outlined class="mb-8">
+  <v-card
+      outlined
+      flat
+      class="mb-8"
+      v-if="resultsFilters.length"
+  >
     <v-toolbar dense flat class="pr-0">
       <v-toolbar-title class="subtitle-1 font-weight-bold">
         <v-icon small>mdi-filter-outline</v-icon>
-        {{ $store.state.resultsFilters.length }} filters
+        {{ resultsFilters.length }} filter{{ (resultsFilters.length !== 1) ? "s" : "" }}
 
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -12,6 +17,8 @@
             small
             text
             color="primary"
+            :disabled="resultsFilters.length === 0"
+            @click="removeAllInputFilters"
         >
           <v-icon left small>mdi-close</v-icon>
           Clear
@@ -28,7 +35,12 @@
               :key="f.id"
           >
             <td>
-              <v-btn icon x-small class="align-baseline">
+              <v-btn
+                  icon
+                  x-small
+                  class="align-baseline"
+                  @click="removeInputFilters([f])"
+              >
                 <v-icon small>mdi-close</v-icon>
               </v-btn>
 
@@ -45,7 +57,6 @@
                 {{ f.displayValue }}
               </template>
             </td>
-
           </tr>
         </table>
       </v-col>
@@ -80,7 +91,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([]),
+    ...mapGetters([
+        "resultsFilters"
+    ]),
     page: {
       get() {
         return this.$store.state.page
@@ -92,7 +105,10 @@ export default {
   },
   methods: {
     ...mapMutations([]),
-    ...mapActions([]),
+    ...mapActions([
+        "removeAllInputFilters",
+        "removeInputFilters",
+    ]),
     getEntityIcon(facetKey) {
       const entityId = getFacetConfig(facetKey, "entityId")
       if (!entityId) return
