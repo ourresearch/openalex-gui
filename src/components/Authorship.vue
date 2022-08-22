@@ -1,18 +1,23 @@
 <template>
   <span class="authorship" :class="{showInstitutions}">
     <span class="author">
-      <link-author :data="authorship.author" :append-comma="appendCommaComputed" />
+      <link-author :data="authorship.author" :append="appendToAuthorLink" />
     </span>
-    <div v-if="showInstitutions">
-      <div
+
+    <span v-if="showInstitutions">
+      (<span
           v-for="(institution, i) in authorship.institutions"
           :key="institution.id"
-          class="body-2"
+          class=""
       >
-        <link-institution v-if="institution.id" :data="institution"/>
+        <link-institution
+            v-if="institution.id"
+            :data="institution"
+            :append="(i<authorship.institutions.length - 1) ? ', ' : ''"
+        />
         <span v-else>{{ institution.display_name }}</span>
-      </div>
-    </div>
+      </span>){{ (appendComma) ? ";": ""}}
+    </span>
   </span>
 </template>
 
@@ -39,9 +44,25 @@ export default {
   },
   methods: {},
   computed: {
+    symbolToAppend(){
+      if (!this.appendComma) return ""
+      return (this.showInstitutions) ? ";" : ","
+    },
+    appendToAuthorLink(){
+        return (!this.institutionsToShow.length) ?  this.symbolToAppend : ""
+    },
+    appendToAuthorship(){
+
+    },
+    institutionsToShow(){
+      return (this.showInstitutions) ? this.authorship.institutions : []
+    },
     appendCommaComputed(){
       return this.appendComma && !this.showInstitutions
-    }
+    },
+    appendSemicolonComputed(){
+      return this.appendComma && this.showInstitutions
+    },
   },
   created() {
   },
@@ -53,8 +74,8 @@ export default {
 
 <style lang="scss" scoped>
   span.authorship.showInstitutions {
-    display: block;
-    margin-bottom: 10px;
+    //display: block;
+    //margin-bottom: 10px;
   }
 
 

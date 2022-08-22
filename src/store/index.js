@@ -156,7 +156,6 @@ export default new Vuex.Store({
         },
 
 
-
     },
     actions: {
 
@@ -180,14 +179,12 @@ export default new Vuex.Store({
         },
 
 
-
         // *****************************************
         // change stuff and then do a search
         // *****************************************
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
-            // commit("resetSearch")
             state.results = []
             commit("setEntityType", router.currentRoute.params.entityType)
             commit("setTextSearch", router.currentRoute.query.search)
@@ -196,8 +193,7 @@ export default new Vuex.Store({
             // this must be after setting the text search, because it affects the defaults
             if (router.currentRoute.query.sort) {
                 commit("setSort", router.currentRoute.query.sort)
-            }
-            else {
+            } else {
                 commit("setSort", getters.defaultSort)
             }
 
@@ -285,11 +281,10 @@ export default new Vuex.Store({
 
                 if (getters.inputFiltersAsString) {
                     const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
-                    const params = (state.textSearch) ? {search:state.textSearch} : {}
+                    const params = (state.textSearch) ? {search: state.textSearch} : {}
                     const filtersResp = await api.get(path, params)
                     state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
-                }
-                else {
+                } else {
                     state.resultsFilters = []
                 }
             } finally {
@@ -312,7 +307,7 @@ export default new Vuex.Store({
         },
 
         // eslint-disable-next-line no-unused-vars
-        closeEntityZoomDrawer({commit, getters, dispatch, state}) {
+        closeEntityZoom({commit, getters, dispatch, state}) {
             // if (!state.entityType) state.entityType = state.entityZoomType
             // dispatch("pushSearchUrl")
             state.entityZoomIsOpen = false
@@ -343,11 +338,11 @@ export default new Vuex.Store({
             const query = {}
             if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
-            if (state.sort && state.sort !==  getters.defaultSort) query["sort"] = state.sort
+            if (state.sort && state.sort !== getters.defaultSort) query["sort"] = state.sort
             if (state.textSearch) query.search = state.textSearch
             return query
         },
-        defaultSort(state, getters){
+        defaultSort(state, getters) {
             return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]
         },
         searchApiUrl(state, getters) {

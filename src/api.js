@@ -1,4 +1,16 @@
 import axios from 'axios'
+import _ from 'lodash'
+
+const cache = {}
+const getFromCache = function (url) {
+    if (!cache[url]) return
+    return _.cloneDeep(cache[url])
+}
+const clearCache = function(){
+    Object.keys(cache).forEach(k => {
+        cache[k] = null
+    })
+}
 
 let urlBase = {
     api: "https://api.openalex.org",
@@ -65,6 +77,11 @@ const api = (function () {
         },
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
+            const cachedResponse = getFromCache(url)
+            if (cachedResponse) {
+                console.log("api.js returning cached response", cachedResponse)
+                return cachedResponse
+            }
             // console.log("api GET:", url)
 
             let res
@@ -76,6 +93,7 @@ const api = (function () {
                 console.log("api GET failure:", e.response)
                 throw e
             }
+            cache[url] = res.data
             return res.data
         },
     }

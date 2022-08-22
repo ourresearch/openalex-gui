@@ -69,11 +69,9 @@
         id="entity-zoom"
     >
       <v-toolbar flat fixed dense>
-        <template>
-          <v-btn icon @click="closeEntityZoom">
+          <v-btn icon :to="currentUrlWithoutZoom" class="no-active">
             <v-icon>mdi-close</v-icon>
           </v-btn>
-        </template>
       </v-toolbar>
 
       <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="true">
@@ -199,15 +197,20 @@ export default {
     },
     applyOverlay() {
       return this.$store.state.entityZoomIsOpen
-
+    },
+    currentUrlWithoutZoom() {
+      const url = new URL(window.location.href)
+      const params = [...url.searchParams.entries()].filter(p => {
+        return p[0] !== "zoom"
+      })
+      const queryString = params.map(p => `${p[0]}=${p[1]}`).join("&")
+      url.search = "?" + queryString
+      return [url.path, queryString].join("?")
     }
   },
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
-    closeEntityZoom() {
-      this.$store.dispatch("closeEntityZoomDrawer")
-    },
   },
   async mounted() {
     // await sleep(2000)
@@ -261,7 +264,7 @@ html, body {
 // you have to also add this to the button:
 // <v-btn active-class="no-active"></v-btn>
 .v-btn--active.no-active::before {
-  opacity: 0.05 !important;
+  opacity: 0.00005 !important;
 }
 
 
