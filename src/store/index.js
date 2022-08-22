@@ -10,7 +10,7 @@ import {
     makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
-import {entityTypes} from "../util";
+import {entityTypes, entityTypeFromId} from "../util";
 
 
 Vue.use(Vuex)
@@ -105,8 +105,7 @@ const stateDefaults = function () {
 
         // entity stuff
         entityZoomData: null,
-        entityZoomType: null,
-        entityZoomIsOpen: false,
+        zoomId: null,
     }
     return ret
 }
@@ -185,15 +184,21 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
-            console.log("bootFromUrl")
             state.results = []
             commit("setEntityType", router.currentRoute.params.entityType)
             commit("setTextSearch", router.currentRoute.query.search)
-            dispatch("setEntityZoom", router.currentRoute.query.zoom)
-
-            console.log("set the text search", state.textSearch)
-
             commit("setPage", router.currentRoute.query.page)
+
+            if (router.currentRoute.query.zoom) {
+                state.zoomId = router.currentRoute.query.zoom
+                const pathName = entityTypeFromId(state.zoomId) + "/" + state.zoomId
+                state.entityZoomData = await api.get(pathName)
+            }
+            else {
+                state.zoomId = null
+                state.entityZoomData = null
+            }
+
 
             // this must be after setting the text search, because it affects the defaults
             if (router.currentRoute.query.sort) {
@@ -277,7 +282,7 @@ export default new Vuex.Store({
             // if (state.entityType !== this.state.resultsEntityType) commit("resetSearch")
 
             try {
-                const resp = await api.get(state.entityType, getters.searchQuery)
+                const resp = await api.get(state.entityType, getters.searchQueryBase)
                 state.results = resp.results
                 // state.resultsEntityType = state.entityType
                 state.responseTime = resp.meta.db_response_time_ms
@@ -304,17 +309,9 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async setEntityZoom({commit, getters, dispatch, state}, id) {
-            if (id)  {
-                state.entityZoomIsOpen = true
-                state.entityZoomType = entityTypes.fromId(id)
-                const pathName = state.entityZoomType + "/" + id
-                state.entityZoomData = await api.get(pathName)
-            }
-            else {
-                state.entityZoomIsOpen = false
-                state.entityZoomType = null
-                state.entityZoomData = null
-            }
+            console.log("setting entity zoom", id)
+            state.zoomId = id
+            dispatch("pushSearchUrl")
         },
     },
     getters: {
@@ -334,13 +331,25 @@ export default new Vuex.Store({
                 return sortOption.key === state.sort
             })
         },
-        searchQuery(state, getters) {
+        // stuff used by both the server and UI
+        searchQueryBase(state, getters) {
             const query = {}
             if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
             if (state.sort && state.sort !== getters.defaultSort) query["sort"] = state.sort
             if (state.textSearch) query.search = state.textSearch
             return query
+        },
+
+        // adds stuff just used by the ui
+        searchQuery(state, getters) {
+            const ret = getters.searchQueryBase
+            if (state.zoomId) ret.zoom = state.zoomId
+            return ret
+        },
+        zoomType(state) {
+            if (!state.zoomId) return
+            return entityTypeFromId(state.zoomId)
         },
         defaultSort(state, getters) {
             return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]

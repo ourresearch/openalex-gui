@@ -77,11 +77,11 @@
       <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="true">
 
 
-        <entity-work v-if="$store.state.entityZoomType==='works'" :data="$store.state.entityZoomData"/>
-        <entity-author v-if="$store.state.entityZoomType==='authors'" :data="$store.state.entityZoomData"/>
-        <entity-venue v-if="$store.state.entityZoomType==='venues'" :data="$store.state.entityZoomData"/>
-        <entity-institution v-if="$store.state.entityZoomType==='institutions'" :data="$store.state.entityZoomData"/>
-        <entity-concept v-if="$store.state.entityZoomType==='concepts'" :data="$store.state.entityZoomData"/>
+        <entity-work v-if="zoomType==='works'" :data="$store.state.entityZoomData"/>
+        <entity-author v-if="zoomType==='authors'" :data="$store.state.entityZoomData"/>
+        <entity-venue v-if="zoomType==='venues'" :data="$store.state.entityZoomData"/>
+        <entity-institution v-if="zoomType==='institutions'" :data="$store.state.entityZoomData"/>
+        <entity-concept v-if="zoomType==='concepts'" :data="$store.state.entityZoomData"/>
       </div>
     </div>
 
@@ -188,15 +188,17 @@ export default {
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
+      "zoomType",
+
     ]),
     entityZoomWidth() {
-      return this.$store.state.entityZoomIsOpen ? "95%" : 0
+      return !!this.$store.state.zoomId ? "95%" : 0
     },
     bodyScrollLock() {
-      return this.$store.state.entityZoomIsOpen
+      return !!this.$store.state.zoomId
     },
     applyOverlay() {
-      return this.$store.state.entityZoomIsOpen
+      return !!this.$store.state.zoomId
     },
     currentUrlWithoutZoom() {
       const url = new URL(window.location.href)

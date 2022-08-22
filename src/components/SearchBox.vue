@@ -96,6 +96,7 @@ import axios from 'axios'
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
+import {entityTypeFromId} from "../util";
 
 // setTimeout(function(){
 //   const searchInput = document.getElementById("main-search")
@@ -145,7 +146,9 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
       const singularName = this.selectedEntityType.slice(0, -1)
-      url.searchParams.set("entity_type", singularName)
+      if (singularName !== "work") {
+        url.searchParams.set("entity_type", singularName)
+      }
       return url.toString()
     }
   },
@@ -155,6 +158,7 @@ export default {
     ]),
     ...mapActions([
       "doTextSearch",
+      "setEntityZoom",
     ]),
     clickToSetSelectedEntityType(value) {
       this.setSelectedEntityType(value)
@@ -192,8 +196,8 @@ export default {
     submitSearch() {
       this.items = []
       this.isFetchingItems = false
+
       if (this.select?.id) {
-        console.log("there's a select.id", this.select)
         // take us to an entity page, if possible
         this.goToEntityPage()
       } else {
@@ -205,10 +209,15 @@ export default {
       }
     },
 
-    goToEntityPage() {
+    async goToEntityPage() {
       if (this.select?.id) {
+        console.log("goToEntityPage", this.select)
         const shortId = this.select.id.replace("https://openalex.org/", "")
-        this.$router.push(`/${this.select.entity_type}/${shortId}`)
+        await this.doTextSearch({
+          entityType: entityTypeFromId(shortId),
+          searchString: this.select.display_name,
+        })
+        this.setEntityZoom(shortId)
 
       }
     },
