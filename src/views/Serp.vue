@@ -164,7 +164,6 @@ export default {
     ...mapActions([
       "updateTextSearch",
       "setEntityZoom",
-      "closeEntityZoom",
     ]),
   },
 
@@ -182,12 +181,10 @@ export default {
       immediate: true,
       handler(to, from) {
         console.log("serp route change", to, from)
+        this.$store.dispatch("bootFromUrl")
 
         if (to.query.zoom) {
-          this.setEntityZoom(to.query.zoom)
         } else {
-          this.closeEntityZoom()
-          this.$store.dispatch("bootFromUrl")
         }
       }
     }

@@ -185,9 +185,14 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
+            console.log("bootFromUrl")
             state.results = []
             commit("setEntityType", router.currentRoute.params.entityType)
             commit("setTextSearch", router.currentRoute.query.search)
+            dispatch("setEntityZoom", router.currentRoute.query.zoom)
+
+            console.log("set the text search", state.textSearch)
+
             commit("setPage", router.currentRoute.query.page)
 
             // this must be after setting the text search, because it affects the defaults
@@ -203,13 +208,12 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
-            // commit("resetSearch")
-            // commit("setPage", 1)
-            // commit("setSort", "relevance_score:desc")
             if (entityType !== state.entityType) commit("resetSearch")
 
             commit("setEntityType", entityType)
             state.textSearch = searchString
+            commit("setSort", getters.defaultSort)
+
             // await dispatch("doSearch")
             dispatch("pushSearchUrl")
         },
@@ -300,22 +304,18 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async setEntityZoom({commit, getters, dispatch, state}, id) {
-            state.entityZoomIsOpen = true
-            state.entityZoomType = entityTypes.fromId(id)
-            const pathName = state.entityZoomType + "/" + id
-            state.entityZoomData = await api.get(pathName)
+            if (id)  {
+                state.entityZoomIsOpen = true
+                state.entityZoomType = entityTypes.fromId(id)
+                const pathName = state.entityZoomType + "/" + id
+                state.entityZoomData = await api.get(pathName)
+            }
+            else {
+                state.entityZoomIsOpen = false
+                state.entityZoomType = null
+                state.entityZoomData = null
+            }
         },
-
-        // eslint-disable-next-line no-unused-vars
-        closeEntityZoom({commit, getters, dispatch, state}) {
-            // if (!state.entityType) state.entityType = state.entityZoomType
-            // dispatch("pushSearchUrl")
-            state.entityZoomIsOpen = false
-            state.entityZoomType = null
-            state.entityZoomData = null
-        },
-
-
     },
     getters: {
         resultsFilters(state, getters) {
