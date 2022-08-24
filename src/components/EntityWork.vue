@@ -1,88 +1,99 @@
 <template>
   <v-container class="entity-zoom-container">
 
-    <div class="body-2">
+    <div class="sub">
       <span v-if="data.type && data.type !=='journal-article'" class="text-capitalize">{{
           data.type.replace("-", " ")
         }}</span>
     </div>
 
-    <div class="text-h6">{{ data.title }}</div>
+    <div class="text-h5 mb-3">{{ data.title }}</div>
 
     <!--    venue and year-->
-    <div class="venue-and-year">
-      <span v-if="data.host_venue.display_name" class="">
-        <v-icon small left>mdi-book-open-page-variant-outline</v-icon>
-        <a
-            class="font-italic text-decoration-none"
-            :href="data.host_venue.id | idLink"
-            v-if="data.host_venue.id"
-        >{{ data.host_venue.display_name }}
-        </a>
-        <span
-            v-else
-            class="font-italic text-capitalize"
-        >{{ data.host_venue.display_name }}
-        </span>
-        <span
-            class="year ml-1"
-            v-if="data.publication_year"
-        >({{ data.publication_year }})
-        </span>
-      </span>
+    <div class="venue-and-year subtitle-1 d-flex align-start">
+      <v-icon
+          left
+          v-if="data.host_venue.display_name"
+      >
+        mdi-book-open-page-variant-outline
+      </v-icon>
+      <div>
+        <template v-if="data.host_venue.display_name" class="">
+          <a
+              class="font-italic text-decoration-none"
+              :href="data.host_venue.id | idLink"
+              v-if="data.host_venue.id"
+          >{{ data.host_venue.display_name }}
+          </a>
+          <span
+              v-else
+              class="font-italic text-capitalize"
+          >{{ data.host_venue.display_name }}
+            </span>
+          <span
+              class="year ml-1"
+              v-if="data.publication_year"
+          >({{ data.publication_year }})
+          </span>
+        </template>
 
-      <span
-          v-if="!data.host_venue.display_name && data.publication_year"
-      >Published in {{ data.publication_year }}</span>
+        <template
+            v-if="!data.host_venue.display_name && data.publication_year"
+        >Published in {{ data.publication_year }}
+        </template>
+      </div>
     </div>
 
 
     <!--    Author list-->
-    <div class="authors mt-1" v-if="authorshipsToShow.length">
-      <v-icon small left>mdi-account-outline</v-icon>
+    <div class="authors mt-1 d-flex align-start" v-if="authorshipsToShow.length">
+      <v-icon left>mdi-account-outline</v-icon>
+      <div>
+        <!--      Single author-->
+        <template v-if="authorshipsToShow.length === 1">
+          <authorship
+              :key="authorshipsToShow[0].author.id"
+              :authorship="authorshipsToShow[0]"
+              :show-institutions="true"
+          />
+        </template>
 
-      <!--      Single author-->
-      <template v-if="authorshipsToShow.length === 1">
-        <authorship
-            :key="authorshipsToShow[0].author.id"
-            :authorship="authorshipsToShow[0]"
-            :show-institutions="true"
-        />
-      </template>
+        <!--      Multiple authors-->
+        <template v-else>
+          <authorship
+              v-for="(authorship, i) in authorshipsToShow"
+              :key="authorship.author.id"
+              :authorship="authorship"
+              :append-comma="i < authorshipsToShow.length - 1"
+              :show-institutions="showAuthorDetails"
+              class="mr-1"
+          />
 
-      <!--      Multiple authors-->
-      <template v-else>
-        <authorship
-            v-for="(authorship, i) in authorshipsToShow"
-            :key="authorship.author.id"
-            :authorship="authorship"
-            :append-comma="i < authorshipsToShow.length - 1"
-            :show-institutions="showAuthorDetails"
-            class="mr-1"
-        />
+          <!--        <a-->
+          <!--            v-if="truncatedAuthorshipsCount"-->
+          <!--            @click="showAuthorDetails = !showAuthorDetails"-->
+          <!--            class="font-weight-bold"-->
+          <!--        >+ {{truncatedAuthorshipsCount}} more-->
 
-<!--        <a-->
-<!--            v-if="truncatedAuthorshipsCount"-->
-<!--            @click="showAuthorDetails = !showAuthorDetails"-->
-<!--            class="font-weight-bold"-->
-<!--        >+ {{truncatedAuthorshipsCount}} more-->
+          <!--        </a>-->
+        </template>
 
-<!--        </a>-->
-
-
-      </template>
-
+      </div>
     </div>
 
-
-    <div class="mt-5" v-if="data.concepts.length">
+    <!--    Concepts list-->
+    <div class="mt-1" v-if="data.concepts.length">
       <concepts-list :concepts="data.concepts" :is-clickable="true"/>
     </div>
 
     <div class="mt-5">
-      <div><span class="font-weight-bold">{{ data.cited_by_count }}</span>
-        incoming citations
-        <a @click="viewIncomingCitations">view</a>
+      <div>
+        <v-icon>mdi-format-quote-close-outline</v-icon>
+        <router-link :to="linkToIncomingCitations">
+          <span class="font-weight-bold">{{ data.cited_by_count }}</span>
+          incoming citations
+        </router-link>
+<!--        <a @click="viewIncomingCitations">view</a>-->
       </div>
       <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>
       <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>
@@ -222,6 +233,11 @@ export default {
       const filter = createSimpleFilter("cites", this.data.id)
       this.$store.dispatch("replaceInputFilters", [filter])
     },
+    linkToIncomingCitations() {
+      const filter = createSimpleFilter("cites", this.data.id)
+      return `works?${filter.asStr}`
+    },
+
 
   },
   computed: {

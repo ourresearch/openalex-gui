@@ -1,5 +1,7 @@
 <template>
-  <router-link class="text-decoration-none" :to="data.id | zoomLink">{{data.display_name}}{{ append }}</router-link>
+  <router-link
+      class="text-decoration-none subtitle-1"
+      :to="data.id | zoomLink">{{data.display_name}}{{ append }}</router-link>
 </template>
 
 
