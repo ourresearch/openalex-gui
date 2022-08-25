@@ -97,6 +97,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
 import {entityTypeFromId} from "../util";
+import {createSimpleFilter} from "../filterConfigs";
 
 // setTimeout(function(){
 //   const searchInput = document.getElementById("main-search")
@@ -211,13 +212,35 @@ export default {
 
     async goToEntityPage() {
       if (this.select?.id) {
-        console.log("goToEntityPage", this.select)
+        console.log("goToEntityPage", this.select, this.selectedEntityType)
         const shortId = this.select.id.replace("https://openalex.org/", "")
-        await this.doTextSearch({
-          entityType: entityTypeFromId(shortId),
-          searchString: this.select.display_name,
-        })
-        this.setEntityZoom(shortId)
+        if (this.selectedEntityType === "works") {
+          console.log("instead of going to entity page, do works search with filter", this.select)
+
+          const myEntityConfig = entityConfigs[entityTypeFromId(shortId)]
+          const myFilter = createSimpleFilter(
+              myEntityConfig.filterName + ".id",
+              shortId
+          )
+
+          // works search with filter
+          const pushTo = {
+            query: {
+              "filter": myFilter.asStr
+            },
+            name: "Serp",
+            params: {entityType: "works"},
+          }
+          this.$router.push(pushTo)
+        } else {
+          // open entity zoom
+          await this.doTextSearch({
+            entityType: entityTypeFromId(shortId),
+            searchString: this.select.display_name,
+          })
+          this.setEntityZoom(shortId)
+        }
+
 
       }
     },
@@ -232,11 +255,9 @@ export default {
             if (!this.searchString) {
               console.log("no search string, clearing items")
               this.items = []
-            }
-            else if (!this.isFetchingItems){
+            } else if (!this.isFetchingItems) {
               // if someone set isFetchingItems to false, we need to abort
-            }
-            else {
+            } else {
               this.items = resp.data.results.slice(0, 5).map(i => {
                 const pluralEntityType = i.entity_type + "s"
                 i.icon = entityConfigs[pluralEntityType].icon
