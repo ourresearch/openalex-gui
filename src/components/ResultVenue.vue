@@ -2,7 +2,7 @@
   <v-row>
     <v-col cols="9">
       <div>
-        <router-link class="text-decoration-none" :to="data.id | idLink">
+        <router-link class="text-decoration-none" :to="data.id | zoomLink">
           {{ data.display_name }}
         </router-link>
       </div>

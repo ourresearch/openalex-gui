@@ -88,15 +88,15 @@
 
     <div class="mt-5">
       <div>
-        <v-icon>mdi-format-quote-close-outline</v-icon>
+        <v-icon class="mr-1">mdi-format-quote-close</v-icon>
         <router-link :to="linkToIncomingCitations">
           <span class="font-weight-bold">{{ data.cited_by_count }}</span>
           incoming citations
         </router-link>
 <!--        <a @click="viewIncomingCitations">view</a>-->
       </div>
-      <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>
-      <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>
+<!--      <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>-->
+<!--      <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>-->
 
     </div>
 
@@ -233,10 +233,6 @@ export default {
       const filter = createSimpleFilter("cites", this.data.id)
       this.$store.dispatch("replaceInputFilters", [filter])
     },
-    linkToIncomingCitations() {
-      const filter = createSimpleFilter("cites", this.data.id)
-      return `works?${filter.asStr}`
-    },
 
 
   },
@@ -263,6 +259,14 @@ export default {
       return this.data.authorships.some(a => {
         return a.institutions.length
       })
+    },
+    linkToIncomingCitations() {
+      const filter = createSimpleFilter("referenced_works", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
     },
 
     truncatedAuthorshipsCount() {
