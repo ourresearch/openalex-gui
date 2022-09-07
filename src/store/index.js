@@ -32,7 +32,8 @@ const subtractArray = function (base, subtractThese) {
 const sortDefaults = {
     works: {
         textSearch: "relevance_score:desc",
-        noTextSearch: "publication_date:desc",
+        // noTextSearch: "publication_date:desc",
+        noTextSearch: "cited_by_count:desc",
     },
     authors: {
         textSearch: "relevance_score:desc",
