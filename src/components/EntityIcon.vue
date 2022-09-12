@@ -1,20 +1,33 @@
 <template>
   <span>
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <span
-            v-bind="attrs"
-            v-on="on"
-        >
-          <v-icon left :small="small">{{entityConfig.icon}}</v-icon>
-        </span>
-      </template>
-      <span>
-        <span class="text-capitalize font-weight-bold">{{entityConfig.displayName}}: </span>
-        <span>{{entityConfig.descr}}</span>
+    <span v-if="expand" class="mr-2 text-capitalize">
+      <v-icon  :small="small">{{entityConfig.icon}}</v-icon>
+      <span
+          style="color: #555;"
+          class="body-1"
+      >
+        {{ (singular) ? entityConfig.displayNameSingular : entityConfig.displayName }}:
       </span>
-    </v-tooltip>
+    </span>
+    <span v-else>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <span
+              v-bind="attrs"
+              v-on="on"
+          >
+            <v-icon left :small="small">{{entityConfig.icon}}</v-icon>
+          </span>
+        </template>
+        <span>
+          <span class="text-capitalize font-weight-bold">{{entityConfig.displayName}}: </span>
+          <span>{{entityConfig.descr}}</span>
+        </span>
+      </v-tooltip>
+    </span>
+
   </span>
+
 </template>
 
 
@@ -26,6 +39,8 @@ export default {
   props: {
     type: String,
     small: Boolean,
+    expand: Boolean,
+    singular: Boolean,
   },
   data() {
     return {

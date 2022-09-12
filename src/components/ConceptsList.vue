@@ -1,6 +1,9 @@
 <template>
   <div class="subtitle-1 d-flex align-start">
-    <entity-icon type="concepts" />
+    <entity-icon
+        type="concepts"
+        expand
+    />
     <div>
       <template v-if="isClickable">
         <!--      <div class="">-->

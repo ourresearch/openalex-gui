@@ -5,7 +5,12 @@
 
     <!--    venue and year-->
     <div class="venue-and-year subtitle-1 d-flex align-start">
-      <entity-icon v-if="data.host_venue.display_name" type="venues" />
+      <entity-icon
+          v-if="data.host_venue.display_name"
+          type="venues"
+          expand
+          singular
+      />
 
       <div>
         <template v-if="data.host_venue.display_name" class="">
@@ -37,7 +42,10 @@
 
     <!--    Author list-->
     <div class="authors mt-1 d-flex align-start" v-if="authorshipsToShow.length">
-      <entity-icon type="authors"></entity-icon>
+      <entity-icon
+          type="authors"
+          expand
+      />
       <div>
         <!--      Single author-->
         <template v-if="authorshipsToShow.length === 1">
