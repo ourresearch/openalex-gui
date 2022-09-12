@@ -1,30 +1,20 @@
 <template>
-  <v-container class="entity-zoom-container">
+<!--  <div class="entity-zoom-container">-->
+  <div class="">
 
-    <div class="sub">
-      <span v-if="data.type && data.type !=='journal-article'" class="text-capitalize">{{
-          data.type.replace("-", " ")
-        }}</span>
-    </div>
-
-    <div class="text-h5 mb-3">{{ data.title }}</div>
 
     <!--    venue and year-->
     <div class="venue-and-year subtitle-1 d-flex align-start">
-      <v-icon
-          left
-          v-if="data.host_venue.display_name"
-      >
-        mdi-book-open-page-variant-outline
-      </v-icon>
+      <entity-icon v-if="data.host_venue.display_name" type="venues" />
+
       <div>
         <template v-if="data.host_venue.display_name" class="">
-          <a
+          <router-link
               class="font-italic text-decoration-none"
-              :href="data.host_venue.id | idLink"
+              :to="data.host_venue.id | zoomLink"
               v-if="data.host_venue.id"
           >{{ data.host_venue.display_name }}
-          </a>
+          </router-link>
           <span
               v-else
               class="font-italic text-capitalize"
@@ -47,7 +37,7 @@
 
     <!--    Author list-->
     <div class="authors mt-1 d-flex align-start" v-if="authorshipsToShow.length">
-      <v-icon left>mdi-account-outline</v-icon>
+      <entity-icon type="authors"></entity-icon>
       <div>
         <!--      Single author-->
         <template v-if="authorshipsToShow.length === 1">
@@ -187,7 +177,7 @@
     <!--    <div class="text-h4">Identifiers</div>-->
     <!--    <id-list :data="data.ids"/>-->
 
-  </v-container>
+  </div>
 
 
 </template>
@@ -195,8 +185,8 @@
 
 <script>
 import ConceptsList from "./ConceptsList";
-import IdList from "./IdList";
 import Authorship from "./Authorship";
+import EntityIcon from "./EntityIcon";
 
 import {createSimpleFilter} from "../filterConfigs";
 
@@ -206,9 +196,8 @@ export default {
   name: "EntityWork",
   components: {
     ConceptsList,
-    IdList,
     Authorship,
-
+    EntityIcon,
   },
   props: {
     data: Object,

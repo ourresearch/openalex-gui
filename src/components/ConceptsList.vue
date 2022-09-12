@@ -1,6 +1,6 @@
 <template>
   <div class="subtitle-1 d-flex align-start">
-    <v-icon left>mdi-lightbulb-outline</v-icon>
+    <entity-icon type="concepts" />
     <div>
       <template v-if="isClickable">
         <!--      <div class="">-->
@@ -38,10 +38,12 @@
 
 <script>
 import LinkConcept from "./LinkConcept";
+import EntityIcon from "./EntityIcon";
 
 export default {
   components: {
     LinkConcept,
+    EntityIcon,
   },
   props: {
     concepts: Array,

@@ -1,12 +1,5 @@
 <template>
-  <v-container>
-    <div class="">
-      <strong>
-        🏫 Institution
-      </strong>
-    </div>
-<!--      <a :href="data.id" class="black&#45;&#45;text body-2">{{ data.id }}</a>-->
-    <h1 class="text-h3">{{ data.display_name }}</h1>
+  <div>
     <div>Type: {{ data.type }}</div>
     <div class="mt-4">
       <link-concept
@@ -85,7 +78,7 @@
 
 
 
-  </v-container>
+  </div>
 
 
 </template>

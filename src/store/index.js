@@ -11,6 +11,7 @@ import {
     createSimpleFilter
 } from "../filterConfigs";
 import {entityTypes, entityTypeFromId} from "../util";
+import {entityConfigs} from "../entityConfigs";
 
 
 Vue.use(Vuex)
@@ -191,6 +192,7 @@ export default new Vuex.Store({
             commit("setPage", router.currentRoute.query.page)
 
             if (router.currentRoute.query.zoom) {
+                state.entityZoomData = null
                 state.zoomId = router.currentRoute.query.zoom
                 const pathName = entityTypeFromId(state.zoomId) + "/" + state.zoomId
                 state.entityZoomData = await api.get(pathName)
@@ -351,6 +353,15 @@ export default new Vuex.Store({
         zoomType(state) {
             if (!state.zoomId) return
             return entityTypeFromId(state.zoomId)
+        },
+        zoomTypeConfig(state) {
+            if (!state.zoomId) return
+            const entityType = entityTypeFromId(state.zoomId)
+            return entityConfigs[entityType]
+        },
+        entityZoomData(state) {
+            if (!state.zoomId) return
+            return state.entityZoomData
         },
         defaultSort(state, getters) {
             return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]

@@ -79,7 +79,6 @@ const api = (function () {
             const url = makeUrl(pathName, searchParams)
             const cachedResponse = getFromCache(url)
             if (cachedResponse) {
-                console.log("api.js returning cached response", cachedResponse)
                 return cachedResponse
             }
             // console.log("api GET:", url)

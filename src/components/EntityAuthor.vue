@@ -1,7 +1,5 @@
 <template>
-  <v-container>
-    <div class="font-weight-bold">👩🏻 Author</div>
-    <h1 class="text-h3">{{ data.display_name }}</h1>
+  <div>
     <div v-if="data.last_known_institution && data.last_known_institution.id">
       <link-institution :data="data.last_known_institution"/>
     </div>
@@ -30,7 +28,7 @@
 
 
 
-  </v-container>
+  </div>
 
 
 </template>
@@ -41,6 +39,7 @@ import LinkInstitution from "./LinkInstitution";
 import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
 import ViewInApiButton from "./ViewInApiButton";
+import EntityIcon from "./EntityIcon";
 
 export default {
   name: "EntityAuthor",
@@ -49,6 +48,7 @@ export default {
     LinkConcept,
     IdList,
     ViewInApiButton,
+    EntityIcon,
   },
   props: {
     data: Object,

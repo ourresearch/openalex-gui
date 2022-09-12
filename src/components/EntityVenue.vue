@@ -1,7 +1,5 @@
 <template>
-  <v-container>
-    <div class="font-weight-bold">📚 Venue</div>
-    <h1 class="text-h3">{{ data.display_name }}</h1>
+  <div>
     <div>{{data.publisher}}</div>
     <div v-if="data.is_oa">
       <v-icon small>mdi-lock-open-outline</v-icon>
@@ -31,7 +29,7 @@
 
 
 
-  </v-container>
+  </div>
 
 
 </template>

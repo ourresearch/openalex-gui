@@ -1,11 +1,5 @@
 <template>
-  <v-container>
-    <div class="">
-      💡 <strong>Concept</strong>
-<!--      <a :href="data.id" class="grey&#45;&#45;text d-block body-2">{{ data.id }}</a>-->
-    </div>
-
-    <h1 class="text-h3">{{ data.display_name }}</h1>
+  <div>
     <div class="description text-h5">
       {{data.description}}.
       <a :href="data.ids.wikipedia">(Wikipedia)</a>
@@ -56,7 +50,7 @@
     Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
 
 
-  </v-container>
+  </div>
 
 
 </template>

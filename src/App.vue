@@ -74,14 +74,12 @@
           </v-btn>
       </v-toolbar>
 
-      <div id="entity-zoom-content" v-if="$store.state.entityZoomData" v-scroll-lock="true">
-
-
-        <entity-work v-if="zoomType==='works'" :data="$store.state.entityZoomData"/>
-        <entity-author v-if="zoomType==='authors'" :data="$store.state.entityZoomData"/>
-        <entity-venue v-if="zoomType==='venues'" :data="$store.state.entityZoomData"/>
-        <entity-institution v-if="zoomType==='institutions'" :data="$store.state.entityZoomData"/>
-        <entity-concept v-if="zoomType==='concepts'" :data="$store.state.entityZoomData"/>
+      <div
+          id="entity-zoom-content"
+          v-if="$store.state.entityZoomData"
+          v-scroll-lock="true"
+      >
+        <entity-zoom />
       </div>
     </div>
 
@@ -152,12 +150,9 @@
 import SearchBox from "./components/SearchBox";
 
 import Facet from "./components/Facet/Facet";
+import EntityZoom from "./components/EntityZoom";
 
-import EntityWork from "./components/EntityWork";
-import EntityAuthor from "./components/EntityAuthor";
-import EntityVenue from "./components/EntityVenue";
-import EntityInstitution from "./components/EntityInstitution";
-import EntityConcept from "./components/EntityConcept";
+
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 
@@ -172,11 +167,7 @@ export default {
   },
   components: {
     SearchBox,
-    EntityWork,
-    EntityAuthor,
-    EntityVenue,
-    EntityInstitution,
-    EntityConcept,
+    EntityZoom,
 
     Facet,
   },
@@ -188,8 +179,6 @@ export default {
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
-      "zoomType",
-
     ]),
     entityZoomWidth() {
       return !!this.$store.state.zoomId ? "95%" : 0
@@ -201,13 +190,13 @@ export default {
       return !!this.$store.state.zoomId
     },
     currentUrlWithoutZoom() {
-      const url = new URL(window.location.href)
-      const params = [...url.searchParams.entries()].filter(p => {
-        return p[0] !== "zoom"
-      })
-      const queryString = params.map(p => `${p[0]}=${p[1]}`).join("&")
-      url.search = "?" + queryString
-      return [url.path, queryString].join("?")
+      const newQuery = {...this.$route.query}
+      newQuery.zoom = undefined
+      return {
+        name: this.$route.name,
+        params: this.$route.params,
+        query: newQuery
+      }
     }
   },
   methods: {
