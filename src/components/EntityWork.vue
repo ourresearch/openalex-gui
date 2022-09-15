@@ -6,7 +6,7 @@
     <table class="mb-12">
       <!--    venue and year-->
       <tr>
-        <td>
+        <td class="table-row-label">
           <entity-icon
               v-if="data.host_venue.display_name"
               type="venues"
@@ -44,7 +44,7 @@
 
       <!--    Author list-->
       <tr v-if="authorshipsToShow.length">
-        <td>
+        <td class="table-row-label">
           <entity-icon
               type="authors"
               expand
@@ -85,7 +85,7 @@
 
       <!--    Concepts list-->
       <tr v-if="data.concepts.length">
-        <td>
+        <td class="table-row-label">
           <entity-icon
               type="concepts"
               expand
@@ -96,17 +96,63 @@
         </td>
       </tr>
 
+
+      <!--    Concepts list-->
+      <tr v-if="abstract">
+        <td class="table-row-label">
+          <v-icon class="mr-1">mdi-text</v-icon>
+          <span class="body-1" style="color:#555;">Abstract: </span>
+        </td>
+        <td>
+          {{ abstract }}
+        </td>
+      </tr>
+
       <!--    Cited By  -->
       <tr>
-        <td class="pt-6">
+        <td class="pt-6 table-row-label">
           <v-icon class="mr-1">mdi-format-quote-close</v-icon>
           <span class="body-1" style="color:#555;">Cited by: </span>
         </td>
         <td class="pt-6">
-          <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> documents
-          <router-link :to="linkToIncomingCitations">
-            (view)
+          <router-link v-if="data.cited_by_count" :to="linkToIncomingCitations" class="text-decoration-none">
+            <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> works
           </router-link>
+          <span v-else class="grey--text">
+            <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> works
+          </span>
+        </td>
+      </tr>
+
+      <!--    References  -->
+      <tr>
+        <td class="table-row-label">
+          <!--          <v-icon class="mr-1">mdi-code-parentheses</v-icon>-->
+          <v-icon class="mr-1">mdi-format-quote-open</v-icon>
+          <span class="body-1" style="color:#555;">Cites: </span>
+        </td>
+        <td class="">
+          <router-link v-if="data.referenced_works.length" :to="linkToReferences" class="text-decoration-none">
+            <span class="font-weight-bold">{{ data.referenced_works.length.toLocaleString() }}</span> works
+          </router-link>
+          <span v-else class="grey--text">
+            <span class="font-weight-bold">{{ data.referenced_works.length.toLocaleString() }}</span> works
+          </span>
+        </td>
+      </tr>
+      <!--    Related works  -->
+      <tr>
+        <td  class="table-row-label">
+          <v-icon class="mr-1">mdi-file-document-multiple-outline</v-icon>
+          <span class="body-1" style="color:#555;">Related: </span>
+        </td>
+        <td class="">
+          <router-link v-if="data.related_works.length" :to="linkToRelatedWorks" class="text-decoration-none">
+            <span class="font-weight-bold">{{ data.related_works.length.toLocaleString() }}</span> works
+          </router-link>
+          <span v-else class="grey--text">
+            <span class="font-weight-bold">{{ data.related_works.length.toLocaleString() }}</span> works
+          </span>
         </td>
       </tr>
 
@@ -114,35 +160,11 @@
 
 
     <div class="mt-5">
-        <!--        <a @click="viewIncomingCitations">view</a>-->
+      <!--        <a @click="viewIncomingCitations">view</a>-->
       <!--      <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>-->
       <!--      <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>-->
 
     </div>
-
-
-    <div v-if="0">
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-      magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    </div>
-
-
-    <!--    <div class="text-h4">Identifiers</div>-->
-    <!--    <id-list :data="data.ids"/>-->
 
   </div>
 
@@ -156,6 +178,7 @@ import Authorship from "./Authorship";
 import EntityIcon from "./EntityIcon";
 
 import {createSimpleFilter} from "../filterConfigs";
+import {unravel} from "../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
 
@@ -197,6 +220,9 @@ export default {
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
     },
+    abstract() {
+      return unravel(this.data.abstract_inverted_index)
+    },
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
       if (this.data.open_access.oa_url) return this.data.open_access.oa_url
@@ -217,7 +243,23 @@ export default {
       })
     },
     linkToIncomingCitations() {
-      const filter = createSimpleFilter("referenced_works", this.data.id)
+      const filter = createSimpleFilter("cites", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+    },
+    linkToReferences() {
+      const filter = createSimpleFilter("cited_by", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+    },
+    linkToRelatedWorks() {
+      const filter = createSimpleFilter("related_to", this.data.id)
       return {
         name: "Serp",
         params: {entityType: "works"},
@@ -251,6 +293,13 @@ export default {
 <style lang="scss" scoped>
 .entity-buttons {
   width: 100%;
+}
+
+table {
+  td.table-row-label {
+    white-space: nowrap;
+    vertical-align: top;
+  }
 }
 
 .entity-zoom-container {
