@@ -1,32 +1,72 @@
 <template>
   <div>
-    <div>{{data.publisher}}</div>
-    <div v-if="data.is_oa">
-      <v-icon small>mdi-lock-open-outline</v-icon>
-      Open Access<template v-if="data.is_in_doaj"> and indexed in <a href="https://doaj.org/">DOAJ</a></template>
-    </div>
-    <div class="mt-4">
-      <link-concept
-            v-for="concept in data.x_concepts"
-            :key="concept.id"
-            :data="concept"
-        />
-    </div>
+    <table>
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-domain</v-icon>
+          Publisher:
+        </td>
+        <td>
+          {{ data.publisher }}
+        </td>
+      </tr>
 
+      <tr>
+        <td class="table-row-label">
+          <entity-icon
+              type="concepts"
+              expand
+          />
+        </td>
+        <td>
+          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
+        </td>
+      </tr>
 
-    <div class="mt-8 ">
-      <view-in-api-button :id="data.id" />
-      <v-btn v-if="data.homepage_url" :href="data.homepage_url" class="mr-4">
-        View webpage
-      </v-btn>
-    </div>
-    <v-divider class="mt-12 pt-12" />
+      <tr>
+        <td class="table-row-label">
+          <entity-icon
+              type="works"
+              expand
+          />
+        </td>
+        <td>
+          <link-to-search
+            :count="data.works_count"
+            filter-key="host_venue.id"
+            :filter-value="data.id"
+            entity-type="works"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-format-quote-close</v-icon>
+          Cited by:
+        </td>
+        <td>
+          {{ data.cited_by_count.toLocaleString() }} works
+        </td>
+      </tr>
 
-    <div class="text-h4 mt-12">
-      {{data.works_count.toLocaleString()}} hosted works
-    </div>
-    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
+      <tr>
+        <td class="table-row-label">
+          <v-icon v-if="data.is_oa">mdi-lock-open-outline</v-icon>
+          <v-icon v-else>mdi-lock-outline</v-icon>
+          Access:
+        </td>
+        <td>
+          <span v-if="!data.is_oa">
+            toll-access
+          </span>
+          <span v-else>
+            Open Access
+            <template v-if="doajLink">(indexed in <a target="_blank" :href="doajLink">DOAJ</a>)</template>
+          </span>
+        </td>
+      </tr>
 
+    </table>
 
 
   </div>
@@ -36,14 +76,18 @@
 
 
 <script>
-import LinkConcept from "./LinkConcept";
-import ViewInApiButton from "./ViewInApiButton";
+import LinkToSearch from "./LinkToSearch";
+import LinkToEntity from "./LinkToEntity";
+import EntityIcon from "./EntityIcon";
+import ConceptsList from "./ConceptsList";
 
 export default {
   name: "EntityVenue",
   components: {
-    LinkConcept,
-    ViewInApiButton,
+    LinkToSearch,
+    LinkToEntity,
+    EntityIcon,
+    ConceptsList,
   },
   props: {
     data: Object,
@@ -55,6 +99,10 @@ export default {
   },
   methods: {},
   computed: {
+    doajLink(){
+      if (!this.data.issn_l) return
+      return `https://doaj.org/toc/${this.data.issn_l}`
+    }
   },
   created() {
   },
@@ -65,7 +113,13 @@ export default {
 }
 </script>
 
-<style lang="scss">
-
+<style lang="scss" scoped>
+table {
+  td.table-row-label {
+    white-space: nowrap;
+    vertical-align: top;
+    color: #555;
+  }
+}
 
 </style>
