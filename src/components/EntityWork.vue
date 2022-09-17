@@ -301,6 +301,8 @@ table {
   td.table-row-label {
     white-space: nowrap;
     vertical-align: top;
+    color: #555;
+    font-size: 15px;
   }
 }
 

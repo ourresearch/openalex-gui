@@ -37,18 +37,28 @@
         </td>
         <td>
           <link-to-search
-            :count="data.works_count"
-            filter-key="author.id"
-            :filter-value="data.id"
-            entity-type="works"
+              :count="data.works_count"
+              filter-key="author.id"
+              :filter-value="data.id"
+              entity-type="works"
           />
+        </td>
+      </tr>
+
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-format-quote-close</v-icon>
+          Cited by:
+        </td>
+        <td>
+          {{ data.cited_by_count.toLocaleString() }} works
         </td>
       </tr>
 
     </table>
 
 
-<!--    <id-list :data="data.ids"/>-->
+    <!--    <id-list :data="data.ids"/>-->
 
 
   </div>
@@ -58,10 +68,6 @@
 
 
 <script>
-import LinkInstitution from "./LinkInstitution";
-import LinkConcept from "./LinkConcept";
-import IdList from "./IdList";
-import ViewInApiButton from "./ViewInApiButton";
 import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
 import LinkToEntity from "./LinkToEntity";
@@ -70,10 +76,6 @@ import LinkToSearch from "./LinkToSearch";
 export default {
   name: "EntityAuthor",
   components: {
-    LinkInstitution,
-    LinkConcept,
-    IdList,
-    ViewInApiButton,
     EntityIcon,
     ConceptsList,
     LinkToEntity,
@@ -104,6 +106,8 @@ table {
   td.table-row-label {
     white-space: nowrap;
     vertical-align: top;
+    color: #555;
+    font-size: 15px;
   }
 }
 

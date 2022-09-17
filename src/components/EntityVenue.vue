@@ -32,10 +32,10 @@
         </td>
         <td>
           <link-to-search
-            :count="data.works_count"
-            filter-key="host_venue.id"
-            :filter-value="data.id"
-            entity-type="works"
+              :count="data.works_count"
+              filter-key="host_venue.id"
+              :filter-value="data.id"
+              entity-type="works"
           />
         </td>
       </tr>
@@ -99,7 +99,7 @@ export default {
   },
   methods: {},
   computed: {
-    doajLink(){
+    doajLink() {
       if (!this.data.issn_l) return
       return `https://doaj.org/toc/${this.data.issn_l}`
     }
@@ -119,6 +119,7 @@ table {
     white-space: nowrap;
     vertical-align: top;
     color: #555;
+    font-size: 15px;
   }
 }
 
