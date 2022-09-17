@@ -71,6 +71,12 @@ const facetConfigs = function () {
             displayName: "Free to read",
             valuesToShow: "mostCommon",
         },
+        // {
+        //     key: "has_abstract",
+        //     entityTypes: ["works"],
+        //     displayName: "Has abstract",
+        //     valuesToShow: "mostCommon",
+        // },
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],

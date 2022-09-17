@@ -1,5 +1,40 @@
 <template>
   <div>
+    <table>
+      <tr>
+        <td class="table-row-label">
+          <entity-icon
+              type="concepts"
+              expand
+          />
+        </td>
+        <td>
+          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
+        </td>
+      </tr>
+
+      <tr v-if="data.last_known_institution">
+        <td class="table-row-label">
+          <entity-icon
+              type="institutions"
+              expand
+          />
+        </td>
+        <td>
+          <router-link
+              v-if="data.last_known_institution.id"
+              :to="data.last_known_institution.id | idLink"
+              class="text-decoration-none"
+          >
+            <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> works
+          </router-link>
+        </td>
+      </tr>
+
+
+    </table>
+
+
     <div v-if="data.last_known_institution && data.last_known_institution.id">
       <link-institution :data="data.last_known_institution"/>
     </div>
@@ -40,6 +75,7 @@ import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
 import ViewInApiButton from "./ViewInApiButton";
 import EntityIcon from "./EntityIcon";
+import ConceptsList from "./ConceptsList";
 
 export default {
   name: "EntityAuthor",
@@ -49,6 +85,7 @@ export default {
     IdList,
     ViewInApiButton,
     EntityIcon,
+    ConceptsList,
   },
   props: {
     data: Object,

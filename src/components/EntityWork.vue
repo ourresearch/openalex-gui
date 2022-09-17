@@ -103,7 +103,7 @@
           <v-icon class="mr-1">mdi-text</v-icon>
           <span class="body-1" style="color:#555;">Abstract: </span>
         </td>
-        <td>
+        <td class="body-1">
           {{ abstract }}
         </td>
       </tr>
@@ -115,12 +115,12 @@
           <span class="body-1" style="color:#555;">Cited by: </span>
         </td>
         <td class="pt-6">
-          <router-link v-if="data.cited_by_count" :to="linkToIncomingCitations" class="text-decoration-none">
-            <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> works
-          </router-link>
-          <span v-else class="grey--text">
-            <span class="font-weight-bold">{{ data.cited_by_count.toLocaleString() }}</span> works
-          </span>
+          <link-to-search
+              :count="data.cited_by_count"
+              entity-type="works"
+              filter-key="cites"
+              :filter-value="data.id"
+          />
         </td>
       </tr>
 
@@ -132,27 +132,27 @@
           <span class="body-1" style="color:#555;">Cites: </span>
         </td>
         <td class="">
-          <router-link v-if="data.referenced_works.length" :to="linkToReferences" class="text-decoration-none">
-            <span class="font-weight-bold">{{ data.referenced_works.length.toLocaleString() }}</span> works
-          </router-link>
-          <span v-else class="grey--text">
-            <span class="font-weight-bold">{{ data.referenced_works.length.toLocaleString() }}</span> works
-          </span>
+          <link-to-search
+              :count="data.referenced_works.length"
+              entity-type="works"
+              filter-key="cited_by"
+              :filter-value="data.id"
+          />
         </td>
       </tr>
       <!--    Related works  -->
       <tr>
-        <td  class="table-row-label">
+        <td class="table-row-label">
           <v-icon class="mr-1">mdi-file-document-multiple-outline</v-icon>
           <span class="body-1" style="color:#555;">Related: </span>
         </td>
         <td class="">
-          <router-link v-if="data.related_works.length" :to="linkToRelatedWorks" class="text-decoration-none">
-            <span class="font-weight-bold">{{ data.related_works.length.toLocaleString() }}</span> works
-          </router-link>
-          <span v-else class="grey--text">
-            <span class="font-weight-bold">{{ data.related_works.length.toLocaleString() }}</span> works
-          </span>
+          <link-to-search
+              :count="data.related_works.length"
+              entity-type="works"
+              filter-key="related_to"
+              :filter-value="data.id"
+          />
         </td>
       </tr>
 
@@ -178,6 +178,7 @@ import Authorship from "./Authorship";
 import EntityIcon from "./EntityIcon";
 
 import {createSimpleFilter} from "../filterConfigs";
+import LinkToSearch from "./LinkToSearch";
 import {unravel} from "../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
@@ -188,6 +189,7 @@ export default {
     ConceptsList,
     Authorship,
     EntityIcon,
+    LinkToSearch,
   },
   props: {
     data: Object,
