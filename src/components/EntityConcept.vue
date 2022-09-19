@@ -1,53 +1,70 @@
 <template>
   <div>
-    <div class="description text-h5">
-      {{data.description}}.
-      <a :href="data.ids.wikipedia">(Wikipedia)</a>
-    </div>
-    <div>{{ levelChar }} level</div>
-    <div class="mt-8">
-      <view-in-api-button :id="data.id" />
-    </div>
-    <v-divider class="mt-12 pt-12" />
+    <table>
+      <tr>
+        <td class="table-row-label">
+          <v-icon class="mr-1">mdi-text</v-icon>
+          Description:
+        </td>
+        <td class="description">
+          {{ data.description }}
+        </td>
+      </tr>
 
-    <div class="text-h4">Identifiers</div>
-    <id-list :data="data.ids" />
-
-
-    <div v-if="data.level > 0">
-      <div class="text-h4 mt-12">
-        {{data.ancestors.length.toLocaleString()}} ancestor concepts
-      </div>
-      <link-concept
-            v-for="concept in data.ancestors"
-            :key="concept.id"
-            :data="concept"
-        />
-
-    </div>
-    <div class="text-h4 mt-12">
-      {{data.related_concepts.length.toLocaleString()}} related concepts
-    </div>
-    <link-concept
-          v-for="concept in data.related_concepts"
-          :key="concept.id"
-          :data="concept"
-      />
+      <tr v-if="parentConcepts.length">
+        <td class="table-row-label">
+          <entity-icon
+              type="concepts"
+          />
+          {{"Parent concept" | pluralize(parentConcepts)}}:
+        </td>
+        <td>
+          <concepts-list :concepts="parentConcepts" :is-clickable="true"/>
+        </td>
+      </tr>
 
 
-    <div class="text-h4 mt-12">
-      Alternate languages
-    </div>
-    <ul>
-      <li v-for="(val, lang) in data.international.display_name" :key="lang">
-        <span class="font-weight-bold">{{lang}}:</span> {{val}}
-      </li>
-    </ul>
+      <tr v-if="data.related_concepts.length">
+        <td class="table-row-label">
+          <entity-icon
+              type="concepts"
+          />
+          {{"Related concept" | pluralize(data.related_concepts)}}:
+        </td>
+        <td>
+          <concepts-list :concepts="data.related_concepts" :is-clickable="true"/>
+        </td>
+      </tr>
 
-    <div class="text-h4 mt-12">
-      {{data.works_count.toLocaleString()}} tagged works
-    </div>
-    Click to view in API: <a :href="data.works_api_url" target="_blank">{{data.works_api_url}}</a>
+
+      <tr>
+        <td class="table-row-label">
+          <entity-icon
+              type="works"
+              expand
+          />
+        </td>
+        <td>
+          <link-to-search
+              :count="data.works_count"
+              filter-key="author.id"
+              :filter-value="data.id"
+              entity-type="works"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-format-quote-close</v-icon>
+          Cited by:
+        </td>
+        <td>
+          {{ data.cited_by_count.toLocaleString() }} works
+        </td>
+      </tr>
+
+
+    </table>
 
 
   </div>
@@ -57,16 +74,20 @@
 
 
 <script>
-import LinkConcept from "./LinkConcept";
 import IdList from "./IdList";
-import ViewInApiButton from "./ViewInApiButton";
+import EntityIcon from "./EntityIcon";
+import ConceptsList from "./ConceptsList";
+import LinkToEntity from "./LinkToEntity";
+import LinkToSearch from "./LinkToSearch";
 
 export default {
   name: "EntityConcept",
   components: {
-    LinkConcept,
     IdList,
-    ViewInApiButton,
+    EntityIcon,
+    ConceptsList,
+    LinkToEntity,
+    LinkToSearch,
   },
   props: {
     data: Object,
@@ -78,7 +99,7 @@ export default {
   },
   methods: {},
   computed: {
-    levelChar(){
+    levelChar() {
       const chars = [
         "⓪",
         "①",
@@ -86,10 +107,15 @@ export default {
         "③",
         "④",
         "⑤",
-
       ]
       return chars[this.data.level]
-    }
+    },
+    parentConcepts(){
+      if (!this.data.ancestors.length) return []
+      return this.data.ancestors.filter(c => {
+        return c.level === this.data.level - 1
+      })
+    },
   },
   created() {
   },
@@ -102,11 +128,23 @@ export default {
 </script>
 
 <style lang="scss">
-  .description {
-    &:first-letter {
-      text-transform: capitalize;
-    }
+.description {
+  &:first-letter {
+    text-transform: capitalize;
   }
+}
+table {
+  td.table-row-label {
+    white-space: nowrap;
+    vertical-align: top;
+    color: #555;
+    font-size: 15px;
+    padding-right: 5px;
+  }
+  td {
+    vertical-align: top;
+  }
+}
 
 
 </style>

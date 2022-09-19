@@ -16,7 +16,7 @@
               v-bind="attrs"
               v-on="on"
           >
-            <v-icon left :small="small">{{entityConfig.icon}}</v-icon>
+            <v-icon :left="left" :small="small">{{entityConfig.icon}}</v-icon>
           </span>
         </template>
         <span>
@@ -41,6 +41,7 @@ export default {
     small: Boolean,
     expand: Boolean,
     singular: Boolean,
+    left: Boolean,
   },
   data() {
     return {

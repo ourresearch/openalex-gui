@@ -3,7 +3,7 @@
   <v-row class="entity-zoom-container pa-5" v-if="entityZoomData">
     <v-col cols="12" md="8" class="pr-12">
       <div class="caption text-capitalize">
-        <entity-icon :type="zoomType" small/>
+        <entity-icon :type="zoomType" small left />
         <span>{{ zoomTypeConfig.displayNameSingular }}</span>
 
         <span v-if="zoomType === 'works' && entityZoomData.type">

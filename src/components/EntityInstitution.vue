@@ -1,7 +1,16 @@
 <template>
   <div>
     <table>
-
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-map-marker-outline</v-icon>
+          Location:
+        </td>
+        <td>
+          {{ locationStr }}
+          <a v-if="mapLink" :href="mapLink" target="_blank">(map)</a>
+        </td>
+      </tr>
       <tr>
         <td class="table-row-label">
           <entity-icon
@@ -11,6 +20,24 @@
         </td>
         <td>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
+        </td>
+      </tr>
+
+
+      <tr  v-if="data.associated_institutions.length">
+        <td class="table-row-label">
+          <entity-icon
+              type="institutions"
+          />
+          Associated:
+        </td>
+        <td>
+            <div
+                v-for="institution in data.associated_institutions"
+                :key="institution.id"
+            >
+              <a :href="institution.id | idLink">{{ institution.display_name }}</a> ({{ institution.relationship }})
+            </div>
         </td>
       </tr>
 
@@ -39,37 +66,9 @@
           {{ data.cited_by_count.toLocaleString() }} works
         </td>
       </tr>
-      <tr>
-        <td class="table-row-label">
-          <v-icon>mdi-map-marker-outline</v-icon>
-          Location:
-        </td>
-        <td>
-          {{ locationStr }}
-          <a v-if="mapLink" :href="mapLink" target="_blank">(map)</a>
-        </td>
-      </tr>
+
 
     </table>
-
-    <div class="py-12"></div>
-
-    <!--    <id-list :data="data.ids"/>-->
-
-    <div class="mt-12" v-if="data.associated_institutions.length">
-      <div class="text-h4">Associated Institutions</div>
-      <ul>
-        <li
-            v-for="institution in data.associated_institutions"
-            :key="institution.id"
-        >
-          <a :href="institution.id | idLink">{{ institution.display_name }}</a> ({{ institution.relationship }})
-        </li>
-      </ul>
-    </div>
-
-
-
 
   </div>
 
@@ -103,15 +102,15 @@ export default {
   },
   methods: {},
   computed: {
-    locationStr(){
+    locationStr() {
       const locArr = [
-          this.data.geo.city,
-          this.data.geo.region,
-          this.data.geo.country
+        this.data.geo.city,
+        this.data.geo.region,
+        this.data.geo.country
       ]
       return locArr.join(", ")
     },
-    mapLink(){
+    mapLink() {
       if (!this.data.geo.latitude || !this.data.geo.longitude) return
       return `https://www.openstreetmap.org/?mlat=${this.data.geo.latitude}&mlon=${this.data.geo.longitude}`
     },
@@ -144,6 +143,7 @@ table {
     vertical-align: top;
     color: #555;
     font-size: 15px;
+    padding-right: 5px;
   }
 }
 
