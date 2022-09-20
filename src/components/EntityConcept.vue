@@ -1,7 +1,7 @@
 <template>
   <div>
     <table>
-      <tr>
+      <tr v-if="data.description">
         <td class="table-row-label">
           <v-icon class="mr-1">mdi-text</v-icon>
           Description:
@@ -47,7 +47,7 @@
         <td>
           <link-to-search
               :count="data.works_count"
-              filter-key="author.id"
+              filter-key="concept.id"
               :filter-value="data.id"
               entity-type="works"
           />
@@ -62,6 +62,8 @@
           {{ data.cited_by_count.toLocaleString() }} works
         </td>
       </tr>
+
+      <entity-zoom-ids-row :ids="data.ids" />
 
 
     </table>
@@ -79,6 +81,7 @@ import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
 import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
+import EntityZoomIdsRow from "./EntityZoomIdsRow";
 
 export default {
   name: "EntityConcept",
@@ -88,6 +91,7 @@ export default {
     ConceptsList,
     LinkToEntity,
     LinkToSearch,
+    EntityZoomIdsRow,
   },
   props: {
     data: Object,

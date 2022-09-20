@@ -4,7 +4,7 @@
       <link-author :data="authorship.author" :append="appendToAuthorLink" />
     </span>
 
-    <span v-if="showInstitutions">
+    <span v-if="showInstitutions && authorship.institutions.length">
       (<span
           v-for="(institution, i) in authorship.institutions"
           :key="institution.id"

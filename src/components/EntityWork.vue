@@ -4,8 +4,19 @@
 
 
     <table class="mb-12">
+      <tr v-if="!data.host_venue.display_name && data.publication_year">
+        <td class="table-row-label">
+          <v-icon>mdi-calendar-text</v-icon>
+          Publication year:
+        </td>
+        <td>
+          {{ data.publication_year }}
+        </td>
+      </tr>
+
+
       <!--    venue and year-->
-      <tr>
+      <tr v-if="data.host_venue.display_name">
         <td class="table-row-label">
           <entity-icon
               v-if="data.host_venue.display_name"
@@ -15,29 +26,12 @@
           />
         </td>
         <td>
-          <template v-if="data.host_venue.display_name" class="">
-            <router-link
-                class="font-italic text-decoration-none"
-                :to="data.host_venue.id | zoomLink"
-                v-if="data.host_venue.id"
-            >{{ data.host_venue.display_name }}
-            </router-link>
-            <span
-                v-else
-                class="font-italic text-capitalize"
-            >{{ data.host_venue.display_name }}
-            </span>
+          <link-to-entity :entity="data.host_venue" />
             <span
                 class="year ml-1"
                 v-if="data.publication_year"
             >({{ data.publication_year }})
           </span>
-          </template>
-
-          <template
-              v-if="!data.host_venue.display_name && data.publication_year"
-          >Published in {{ data.publication_year }}
-          </template>
         </td>
       </tr>
 
@@ -155,6 +149,8 @@
           />
         </td>
       </tr>
+      <entity-zoom-ids-row :ids="data.ids" />
+
 
     </table>
 
@@ -182,14 +178,18 @@ import LinkToSearch from "./LinkToSearch";
 import {unravel} from "../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
+import LinkToEntity from "./LinkToEntity";
+import EntityZoomIdsRow from "./EntityZoomIdsRow";
 
 export default {
   name: "EntityWork",
   components: {
+    LinkToEntity,
     ConceptsList,
     Authorship,
     EntityIcon,
     LinkToSearch,
+    EntityZoomIdsRow,
   },
   props: {
     data: Object,

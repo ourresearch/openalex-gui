@@ -35,6 +35,7 @@ const entityTypeFromId = function (id) {
 
 
 const unravel = function(invertedIndex){
+    if (!invertedIndex) return
     const unraveled = {}
     Object.entries(invertedIndex).forEach(([k, v]) => {
         v.forEach(myValue => {

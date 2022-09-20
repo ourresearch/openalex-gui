@@ -66,6 +66,8 @@
         </td>
       </tr>
 
+      <entity-zoom-ids-row :ids="data.ids" />
+
     </table>
 
 
@@ -80,6 +82,7 @@ import LinkToSearch from "./LinkToSearch";
 import LinkToEntity from "./LinkToEntity";
 import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
+import EntityZoomIdsRow from "./EntityZoomIdsRow";
 
 export default {
   name: "EntityVenue",
@@ -88,6 +91,7 @@ export default {
     LinkToEntity,
     EntityIcon,
     ConceptsList,
+    EntityZoomIdsRow,
   },
   props: {
     data: Object,

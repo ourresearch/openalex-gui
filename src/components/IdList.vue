@@ -1,19 +1,41 @@
 <template>
-  <ul>
-    <li v-for="idPair in liveIds" :key="idPair.ns">
-      <strong>{{idPair.ns}}: </strong>
-      <a v-if="idPair.isLink" :href="idPair.id" target="_blank">{{idPair.id}}</a>
-      <span v-if="!idPair.isLink">{{idPair.id}}</span>
-    </li>
-  </ul>
+  <div class="body-1">
+    <div v-for="idPair in liveIds" :key="idPair.ns">
+      <!--      <span>{{idPair.ns}}: </span>-->
+      <span>
+        {{ idPair.id }}
+      </span>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+              small
+              icon
+              v-if="idPair.ns !== 'openalex' && idPair.isLink"
+              :href="idPair.id"
+              v-bind="attrs"
+              v-on="on"
+          >
+            <v-icon
+                small
+            >
+              mdi-open-in-new
+            </v-icon>
+          </v-btn>
+        </template>
+        <span>Open via</span>
+      </v-tooltip>
+
+
+    </div>
+  </div>
 </template>
 
 
 <script>
 
 export default {
-  components: {
-  },
+  components: {},
   props: {
     data: Object,
   },
@@ -24,7 +46,7 @@ export default {
   },
   methods: {},
   computed: {
-    liveIds(){
+    liveIds() {
       return Object.entries(this.data).map(([k, v]) => {
         return {
           ns: k,
@@ -32,16 +54,19 @@ export default {
           isLink: typeof v === "string" && v.substr(0, 4) === "http"
         }
       })
-      .filter(x => {
-        if (!x.id) return false
-        if (Array.isArray(x.id) && !x.id.length) return false
-        return true
-      })
+          .filter(x => {
+            if (!x.id) return false
+            if (Array.isArray(x.id) && !x.id.length) return false
+            if (x.ns === "mag") return false
+            return true
+          })
 
     }
   },
-  created() {},
-  mounted() {},
+  created() {
+  },
+  mounted() {
+  },
   watch: {}
 }
 </script>
