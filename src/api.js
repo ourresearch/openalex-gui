@@ -81,12 +81,11 @@ const api = (function () {
             if (cachedResponse) {
                 return cachedResponse
             }
-            // console.log("api GET:", url)
 
             let res
             try {
                 res = await axios.get(url)
-                console.log(`api GET ${url} success:`, res.data)
+                // console.log(`api GET ${url} success:`, res.data)
             } catch (e) {
                 // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
                 console.log("api GET failure:", e.response)

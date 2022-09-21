@@ -94,8 +94,6 @@ export default {
       const ids = []
       let issnL
       Object.entries(this.data).forEach(([idKey, idValue]) => {
-        console.log("liveIds iterating", idKey, idValue)
-
         if (idKey === "issn_l") issnL = idValue
 
         if (!idValue) return false

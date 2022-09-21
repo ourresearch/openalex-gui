@@ -195,7 +195,11 @@ export default new Vuex.Store({
                 state.entityZoomData = null
                 state.zoomId = router.currentRoute.query.zoom
                 const pathName = entityTypeFromId(state.zoomId) + "/" + state.zoomId
-                state.entityZoomData = await api.get(pathName)
+
+                // do this async to save time, and to keep results from jerky scroll behavior
+                api.get(pathName).then(resp => {
+                    state.entityZoomData = resp
+                })
             }
             else {
                 state.zoomId = null
@@ -353,6 +357,9 @@ export default new Vuex.Store({
         zoomType(state) {
             if (!state.zoomId) return
             return entityTypeFromId(state.zoomId)
+        },
+        zoomId(state) {
+            return state.zoomId
         },
         zoomTypeConfig(state) {
             if (!state.zoomId) return

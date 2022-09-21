@@ -43,6 +43,8 @@
 
         </div>
       </v-col>
+
+      <entity-zoom/>
     </div>
 
 
@@ -74,6 +76,7 @@ import ResultAuthor from "../components/ResultAuthor";
 import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
+import EntityZoom from "../components/EntityZoom";
 import axios from "axios";
 
 export default {
@@ -92,6 +95,7 @@ export default {
     ResultVenue,
     ResultInstitution,
     ResultConcept,
+    EntityZoom,
   },
   props: {},
   data() {
@@ -179,9 +183,11 @@ export default {
   watch: {
     "$route": {
       immediate: true,
-      handler(to, from) {
-        console.log("serp route change", to, from)
-        this.$store.dispatch("bootFromUrl")
+      async handler(to, from) {
+        const scrollTop = window.scrollY
+        console.log("serp route change", scrollTop)
+        await this.$store.dispatch("bootFromUrl")
+        window.scroll(0, scrollTop)
 
         if (to.query.zoom) {
         } else {

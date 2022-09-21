@@ -60,38 +60,15 @@
 
     </v-app-bar>
 
-    <!--    <v-navigation-drawer app clipped>-->
-    <!--      hi-->
-    <!--    </v-navigation-drawer>-->
-
-    <div
-        :style="{width: entityZoomWidth}"
-        id="entity-zoom"
-    >
-      <v-toolbar flat fixed dense>
-          <v-btn icon :to="currentUrlWithoutZoom" class="no-active">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-      </v-toolbar>
-
-      <div
-          id="entity-zoom-content"
-          v-if="$store.state.entityZoomData"
-          v-scroll-lock="true"
-      >
-        <entity-zoom />
-      </div>
-    </div>
 
     <v-main :style="{paddingRight: 0}">
-      <v-fade-transition>
-        <div id="zoom-overlay" v-if="applyOverlay"></div>
-      </v-fade-transition>
       <v-container fluid>
         <router-view/>
 
       </v-container>
+
     </v-main>
+
 
     <v-footer
         class="py-10 site-footer"
@@ -180,24 +157,6 @@ export default {
     ...mapGetters([
       "searchFacetConfigs",
     ]),
-    entityZoomWidth() {
-      return !!this.$store.state.zoomId ? "95%" : 0
-    },
-    bodyScrollLock() {
-      return !!this.$store.state.zoomId
-    },
-    applyOverlay() {
-      return !!this.$store.state.zoomId
-    },
-    currentUrlWithoutZoom() {
-      const newQuery = {...this.$route.query}
-      newQuery.zoom = undefined
-      return {
-        name: this.$route.name,
-        params: this.$route.params,
-        query: newQuery
-      }
-    }
   },
   methods: {
     ...mapMutations([]),
@@ -218,37 +177,38 @@ html, body {
   overflow: initial;
 }
 
-
-#entity-zoom {
-  position: fixed;
-  top: 64px;
-  right: 0;
-  bottom: 0;
-  z-index: 5;
-  background: #fff;
-  transition: width 200ms;
-
-
-}
-
-#entity-zoom-content {
-  position: absolute;
-  overflow-y: scroll;
-  top: 48px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-#zoom-overlay {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 4;
-  background: rgba(0, 0, 0, .5);
-}
+//
+//
+//#entity-zoom {
+//  position: fixed;
+//  top: 64px;
+//  right: 0;
+//  bottom: 0;
+//  z-index: 5;
+//  background: #fff;
+//  transition: width 200ms;
+//
+//
+//}
+//
+//#entity-zoom-content {
+//  position: absolute;
+//  overflow-y: scroll;
+//  top: 48px;
+//  right: 0;
+//  bottom: 0;
+//  left: 0;
+//}
+//
+//#zoom-overlay {
+//  position: fixed;
+//  top: 0;
+//  bottom: 0;
+//  left: 0;
+//  right: 0;
+//  z-index: 4;
+//  background: rgba(0, 0, 0, .5);
+//}
 
 // hack to get rid of vue's active class on buttons, which makes them display different
 // when they are linking to the page you're on right now.
