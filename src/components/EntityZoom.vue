@@ -6,34 +6,47 @@
       max-width="900"
   >
     <v-card flat v-if="entityZoomData">
-      <div class="pt-6 px-6 pb-3 d-flex">
-        <div>
-          <div class="caption text-capitalize">
-            <entity-icon :type="zoomType" small left/>
-            <span>{{ zoomTypeConfig.displayNameSingular }}</span>
-
-            <span v-if="zoomType === 'works' && entityZoomData.type">
-              ({{ entityZoomData.type.replace("-", " ") }})
-            </span>
-            <span v-if="zoomType=== 'institutions' && entityZoomData.type">
-               ({{ entityZoomData.type.replace("-", " ") }})
-            </span>
-            <span v-if="zoomType=== 'concepts'">
-               (Level {{ entityZoomData.level }})
-            </span>
-            <div class="text-h6 font-weight-medium mb-3 mt-1" style="font-weight: 450 !important; line-height: 1.5;">
-              {{ entityZoomData.display_name }}
-            </div>
+      <div>
+        <div style="background: #ddd;" class="px-6 py-2">
+          <!--          {{ entityZoomHistoryData }}-->
+          <div
+              v-for="zoomData in entityZoomHistoryData"
+              :key="zoomData.id"
+          >
+            <router-link :to="zoomData.id | zoomLink" class="text-decoration-none">
+              {{ zoomData.display_name }}
+            </router-link>
           </div>
-
-
         </div>
-        <v-spacer/>
-        <div class="pl-10">
-          <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
+        <div class="pt-6 px-6 pb-3 d-flex">
+          <div>
+            <div class="caption text-capitalize">
+              <entity-icon :type="zoomType" small left/>
+              <span>{{ zoomTypeConfig.displayNameSingular }}</span>
 
+              <span v-if="zoomType === 'works' && entityZoomData.type">
+                ({{ entityZoomData.type.replace("-", " ") }})
+              </span>
+              <span v-if="zoomType=== 'institutions' && entityZoomData.type">
+                 ({{ entityZoomData.type.replace("-", " ") }})
+              </span>
+              <span v-if="zoomType=== 'concepts'">
+                 (Level {{ entityZoomData.level }})
+              </span>
+              <div class="text-h6 font-weight-medium mb-3 mt-1" style="font-weight: 450 !important; line-height: 1.5;">
+                {{ entityZoomData.display_name }}
+              </div>
+            </div>
+
+
+          </div>
+          <v-spacer/>
+          <div class="pl-10">
+            <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+
+          </div>
         </div>
       </div>
       <v-divider></v-divider>
@@ -169,13 +182,13 @@ export default {
       "entityZoomData",
       "zoomId",
       "zoomTypeConfig",
+      "entityZoomHistoryData",
     ]),
     zoomIsOpen: {
       get() {
         return !!this.zoomId
       },
       set(newVal) {
-        console.log("entityZoom.zoomeIsOpen.set()", newVal)
         this.$router.push(this.currentUrlWithoutZoom)
       }
     },

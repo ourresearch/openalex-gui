@@ -31,6 +31,10 @@ const entityTypeFromId = function (id) {
     return entityTypesDict[firstLetter]
 }
 
+const idsAreEqual = function(id1, id2){
+    return shortenOpenAlexId(id1) === shortenOpenAlexId(id2)
+}
+
 
 
 
@@ -70,4 +74,5 @@ export {
     entityTypeFromId,
     entityTypes,
     unravel,
+    idsAreEqual,
 }

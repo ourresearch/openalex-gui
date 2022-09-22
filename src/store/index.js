@@ -10,7 +10,7 @@ import {
     makeResultsFiltersFromApi,
     createSimpleFilter
 } from "../filterConfigs";
-import {entityTypes, entityTypeFromId} from "../util";
+import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
 import {entityConfigs} from "../entityConfigs";
 
 
@@ -108,6 +108,9 @@ const stateDefaults = function () {
         // entity stuff
         entityZoomData: null,
         zoomId: null,
+
+        zoomIdsStack: [],
+        zoomDataResponses: []
     }
     return ret
 }
@@ -192,18 +195,27 @@ export default new Vuex.Store({
             commit("setPage", router.currentRoute.query.page)
 
             if (router.currentRoute.query.zoom) {
-                state.entityZoomData = null
-                state.zoomId = router.currentRoute.query.zoom
-                const pathName = entityTypeFromId(state.zoomId) + "/" + state.zoomId
+                state.zoomDataResponses = []
+                state.zoomIdsStack = router.currentRoute.query.zoom.split(",")
+                state.zoomIdsStack.forEach(zoomId => {
+                    const pathName = entityTypeFromId(zoomId) + "/" + zoomId
+                    // console.log("bootFromUrl calling pathName", pathName)
 
-                // do this async to save time, and to keep results from jerky scroll behavior
-                api.get(pathName).then(resp => {
-                    state.entityZoomData = resp
+                    // do this async to save time, and to keep results from jerky scroll behavior
+                    api.get(pathName).then(resp => {
+                        state.zoomDataResponses.push(resp)
+                    })
                 })
+
+
+
             }
             else {
                 state.zoomId = null
                 state.entityZoomData = null
+
+                state.zoomDataResponses = []
+                state.zoomIdsStack = []
             }
 
 
@@ -354,21 +366,34 @@ export default new Vuex.Store({
             if (state.zoomId) ret.zoom = state.zoomId
             return ret
         },
-        zoomType(state) {
-            if (!state.zoomId) return
-            return entityTypeFromId(state.zoomId)
-        },
         zoomId(state) {
-            return state.zoomId
+            return state.zoomIdsStack.slice(-1)[0] // last item in stack
+        },
+        zoomType(state) {
+            const lastInStack = state.zoomIdsStack.slice(-1)[0]
+            if (!lastInStack) return
+            return entityTypeFromId(lastInStack)
         },
         zoomTypeConfig(state) {
-            if (!state.zoomId) return
-            const entityType = entityTypeFromId(state.zoomId)
+            const lastInStack = state.zoomIdsStack.slice(-1)[0]
+            if (!lastInStack) return
+            const entityType = entityTypeFromId(lastInStack)
             return entityConfigs[entityType]
         },
         entityZoomData(state) {
-            if (!state.zoomId) return
-            return state.entityZoomData
+            const lastInStack = state.zoomIdsStack.slice(-1)[0]
+            if (!lastInStack) return
+            return state.zoomDataResponses.find(resp => {
+                return idsAreEqual(resp.id, lastInStack)
+            })
+        },
+        entityZoomHistoryData(state) {
+            return state.zoomDataResponses
+            return state.zoomIdsStack.map(zoomId => {
+                return state.zoomDataResponses.find(zoomData => {
+                    idsAreEqual(zoomData.id, zoomId)
+                })
+            })
         },
         defaultSort(state, getters) {
             return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]
