@@ -73,7 +73,6 @@ const router = new VueRouter({
     routes,
     mode: "history",
     scrollBehavior: (to, from, savedPosition) => {
-        console.log("router.scrollBehavior", from)
 
         if (to.hash) {
             return goTo(to.hash, {

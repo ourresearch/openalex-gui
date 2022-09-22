@@ -185,7 +185,6 @@ export default {
       immediate: true,
       async handler(to, from) {
         const scrollTop = window.scrollY
-        console.log("serp route change", scrollTop)
         await this.$store.dispatch("bootFromUrl")
         window.scroll(0, scrollTop)
 

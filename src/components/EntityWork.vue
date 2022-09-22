@@ -223,6 +223,7 @@ export default {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
     },
     abstract() {
+      if (!this.data.open_access.is_oa) return
       return unravel(this.data.abstract_inverted_index)
     },
     fulltextUrl() {

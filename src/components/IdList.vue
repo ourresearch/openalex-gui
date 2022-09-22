@@ -1,10 +1,33 @@
 <template>
-  <div class="body-1">
+  <div class="">
     <div
         v-for="idObj in liveIds"
         :key="idObj.namespace + idObj.url"
         style="white-space: nowrap;"
     >
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+              small
+              icon
+              :href="idObj.url"
+              target="_blank"
+              v-bind="attrs"
+              v-on="on"
+          >
+            <v-icon
+                small
+            >
+<!--              {{ (idObj.namespace==='openalex') ? 'mdi-link' : 'mdi-open-in-new' }}-->
+              mdi-link
+            </v-icon>
+          </v-btn>
+        </template>
+        <span>Open on {{ idObj.provider }}</span>
+      </v-tooltip>
+
+
       <span>{{ idObj.displayNamespace }}: </span>
       <span style="font-family: monospace;">
         {{ idObj.simpleId }}
@@ -29,26 +52,6 @@
         <span>Copy to clipboard</span>
       </v-tooltip>
 
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              small
-              icon
-              :href="idObj.url"
-              target="_blank"
-              v-bind="attrs"
-              v-on="on"
-          >
-            <v-icon
-                small
-            >
-<!--              {{ (idObj.namespace==='openalex') ? 'mdi-link' : 'mdi-open-in-new' }}-->
-              mdi-link
-            </v-icon>
-          </v-btn>
-        </template>
-        <span>Open on {{ idObj.provider }}</span>
-      </v-tooltip>
 
 
 

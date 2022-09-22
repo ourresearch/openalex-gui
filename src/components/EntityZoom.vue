@@ -2,109 +2,100 @@
 
   <v-dialog
       v-model="zoomIsOpen"
+      scrollable
       max-width="900"
   >
-    <v-card flat>
-      <v-toolbar flat fixed dense>
-        <v-btn icon :to="currentUrlWithoutZoom" class="no-active">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-toolbar>
-
-
-      <v-row class="entity-zoom-container pa-5"  v-if="entityZoomData">
-        <v-col cols="12" md="8" class="pr-12">
+    <v-card flat v-if="entityZoomData">
+      <div class="pt-6 px-6 pb-3 d-flex">
+        <div>
           <div class="caption text-capitalize">
             <entity-icon :type="zoomType" small left/>
             <span>{{ zoomTypeConfig.displayNameSingular }}</span>
 
             <span v-if="zoomType === 'works' && entityZoomData.type">
-          ({{ entityZoomData.type.replace("-", " ") }})
-        </span>
+              ({{ entityZoomData.type.replace("-", " ") }})
+            </span>
             <span v-if="zoomType=== 'institutions' && entityZoomData.type">
-           ({{ entityZoomData.type.replace("-", " ") }})
-        </span>
+               ({{ entityZoomData.type.replace("-", " ") }})
+            </span>
             <span v-if="zoomType=== 'concepts'">
-           (Level {{ entityZoomData.level }})
-        </span>
+               (Level {{ entityZoomData.level }})
+            </span>
+            <div class="text-h6 font-weight-medium mb-3 mt-1" style="font-weight: 450 !important; line-height: 1.5;">
+              {{ entityZoomData.display_name }}
+            </div>
           </div>
 
-          <div class="text-h5 mb-3">{{ entityZoomData.display_name }}</div>
 
+        </div>
+        <v-spacer/>
+        <div class="pl-10">
+          <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
 
-          <entity-work v-if="zoomType==='works'" :data="entityZoomData"/>
-          <entity-author v-if="zoomType==='authors'" :data="entityZoomData"/>
-          <entity-venue v-if="zoomType==='venues'" :data="entityZoomData"/>
-          <entity-institution v-if="zoomType==='institutions'" :data="entityZoomData"/>
-          <entity-concept v-if="zoomType==='concepts'" :data="entityZoomData"/>
-        </v-col>
-        <v-col cols="12" md="4">
-          <div class="mt-4 mb-2">
-            <v-btn
-                :href="linkoutUrl"
-                target="_blank"
-                class=""
-                v-if="linkoutUrl"
-                color="primary"
-                :outlined="!linkoutButtonIsGood"
-                small
-            >
-              <v-icon left>mdi-open-in-new</v-icon>
-              {{ linkoutButtonText }}
-            </v-btn>
-          </div>
+        </div>
+      </div>
+      <v-divider></v-divider>
+      <v-card-text class="pa-6" style="font-size: 16px;">
 
-          <div v-if="greenUrl" class="mb-2">
-            <v-btn
-                :href="greenUrl"
-                target="_blank"
-                color="primary"
-                small
-            >
-              <v-icon left>mdi-open-in-new</v-icon>
-              Read (free)
-            </v-btn>
-          </div>
-          <!--      <v-divider class="my-4"></v-divider>-->
-          <div v-if="zoomType==='works'" class="mb-2">
-            <v-btn
-                :href="apiUrl + '.bib'"
-                target="_blank"
-                x-small
-                text
-            >
+        <entity-work v-if="zoomType==='works'" :data="entityZoomData"/>
+        <entity-author v-if="zoomType==='authors'" :data="entityZoomData"/>
+        <entity-venue v-if="zoomType==='venues'" :data="entityZoomData"/>
+        <entity-institution v-if="zoomType==='institutions'" :data="entityZoomData"/>
+        <entity-concept v-if="zoomType==='concepts'" :data="entityZoomData"/>
+
+      </v-card-text>
+      <v-divider/>
+      <v-card-actions class="py-6 px-5">
+
+        <div v-if="greenUrl" class="mr-3">
+          <v-btn
+              :href="greenUrl"
+              target="_blank"
+              color="primary"
+          >
+            <v-icon left>mdi-open-in-new</v-icon>
+            Read (free)
+          </v-btn>
+        </div>
+        <div class="">
+          <v-btn
+              :href="linkoutUrl"
+              target="_blank"
+              class=""
+              v-if="linkoutUrl"
+              color="primary"
+              :outlined="!linkoutButtonIsGood"
+          >
+            <v-icon left>mdi-open-in-new</v-icon>
+            {{ linkoutButtonText }}
+          </v-btn>
+        </div>
+        <v-spacer/>
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn text v-on="on">
               <v-icon left>mdi-download-outline</v-icon>
-              Export as BibTeX
+              Export
+              <v-icon>mdi-menu-down</v-icon>
             </v-btn>
-          </div>
-          <div class="mb-2">
-            <v-btn
-                @click="copyPermalinkToClipboard"
-                x-small
-                text
-            >
-              <v-icon left>mdi-share-variant-outline</v-icon>
-              <!--          <v-icon>mdi-api</v-icon>-->
-              Copy URL
-            </v-btn>
-          </div>
-          <div class="mb-2">
-            <v-btn
-                :href="apiUrl"
-                target="_blank"
-                x-small
-                text
-            >
+          </template>
+          <v-list>
+            <v-list-item :href="apiUrl" target="_blank">
               <v-icon left>mdi-code-json</v-icon>
-              <!--          <v-icon>mdi-api</v-icon>-->
-              View in API
-            </v-btn>
-          </div>
+              JSON (API)
+            </v-list-item>
+            <v-list-item :href="apiUrl + '.bib'" target="_blank">
+              <v-icon left>mdi-file-download-outline</v-icon>
+              BibTeX
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
 
-        </v-col>
+      </v-card-actions>
 
-      </v-row>
 
     </v-card>
 
@@ -180,10 +171,10 @@ export default {
       "zoomTypeConfig",
     ]),
     zoomIsOpen: {
-      get(){
+      get() {
         return !!this.zoomId
       },
-      set(newVal){
+      set(newVal) {
         console.log("entityZoom.zoomeIsOpen.set()", newVal)
         this.$router.push(this.currentUrlWithoutZoom)
       }
