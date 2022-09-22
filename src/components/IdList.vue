@@ -1,61 +1,33 @@
 <template>
   <div class="">
-    <div
-        v-for="idObj in liveIds"
+
+
+    <v-menu
+        v-for="(idObj, i) in liveIds"
         :key="idObj.namespace + idObj.url"
-        style="white-space: nowrap;"
     >
+      <template v-slot:activator="{on}">
+        <a v-on="on">
+          {{ idObj.displayNamespace }}{{ (i < liveIds.length-1) ? "," : "" }}
+        </a>
+      </template>
+      <v-list dense>
+        <div
+            class="px-5 py-2"
+            style="font-family: monospace; background-color: #333; color: #fff; font-size: 14px;">
+          {{idObj.id}}
+        </div>
+        <v-list-item @click="copyToClipboard(idObj.id)">
+          <v-icon left>mdi-content-copy</v-icon>
+          Copy to clipboard
+        </v-list-item>
+        <v-list-item :href="idObj.url" target="_blank">
+          <v-icon left>mdi-open-in-new</v-icon>
+          View on {{ idObj.provider }}
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              small
-              icon
-              :href="idObj.url"
-              target="_blank"
-              v-bind="attrs"
-              v-on="on"
-          >
-            <v-icon
-                small
-            >
-<!--              {{ (idObj.namespace==='openalex') ? 'mdi-link' : 'mdi-open-in-new' }}-->
-              mdi-link
-            </v-icon>
-          </v-btn>
-        </template>
-        <span>Open on {{ idObj.provider }}</span>
-      </v-tooltip>
-
-
-      <span>{{ idObj.displayNamespace }}: </span>
-      <span style="font-family: monospace;">
-        {{ idObj.simpleId }}
-      </span>
-
-      <v-tooltip v-if="0" bottom>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              small
-              icon
-              @click="copyToClipboard(idObj.simpleId)"
-              v-bind="attrs"
-              v-on="on"
-          >
-            <v-icon
-                small
-            >
-              mdi-content-copy
-            </v-icon>
-          </v-btn>
-        </template>
-        <span>Copy to clipboard</span>
-      </v-tooltip>
-
-
-
-
-    </div>
   </div>
 </template>
 
@@ -106,13 +78,12 @@ export default {
           idValue.forEach(idString => {
             ids.push(makeIdObject(idKey, idString))
           })
-        }
-        else { // id is a simple string
+        } else { // id is a simple string
           ids.push(makeIdObject(idKey, idValue))
         }
       })
 
-      if (issnL){
+      if (issnL) {
         return ids.filter(i => {
           return !(i.namespace === "issn" && i.id === issnL)
         })
