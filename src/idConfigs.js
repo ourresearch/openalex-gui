@@ -39,7 +39,7 @@ const idConfigs = {
     },
     pmid: {
         namespace: "pmid",
-        displayNamespace: "PubMed ID",
+        displayNamespace: "PubMed",
         provider: "PubMed",
         prefix: "https://pubmed.ncbi.nlm.nih.gov/",
         urlPattern: "https://pubmed.ncbi.nlm.nih.gov/",
@@ -47,7 +47,7 @@ const idConfigs = {
     },
     pmcid: {
         namespace: "pmcid",
-        displayNamespace: "PubMed Central ID",
+        displayNamespace: "PubMed Central",
         provider: "PubMed Central",
         prefix: "https://www.ncbi.nlm.nih.gov/pmc/articles/",
         urlPattern: "https://www.ncbi.nlm.nih.gov/pmc/articles/",
@@ -96,7 +96,7 @@ const idConfigs = {
     // institutions
     ror: {
         namespace: "ror",
-        displayNamespace: "ROR ID",
+        displayNamespace: "ROR",
         provider: "The Research Organization Registry",
         prefix: "https://ror.org/",
         urlPattern: "https://ror.org/",
