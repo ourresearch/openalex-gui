@@ -29,13 +29,13 @@
       </tr>
 
       <tr>
-        <td class="table-row-label">
+        <td class="table-row-label pt-6">
           <entity-icon
               type="works"
               expand
           />
         </td>
-        <td>
+        <td class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="author.id"
@@ -50,7 +50,7 @@
           <v-icon>mdi-format-quote-close</v-icon>
           Cited by:
         </td>
-        <td>
+        <td class="">
           {{ data.cited_by_count.toLocaleString() }} works
         </td>
       </tr>

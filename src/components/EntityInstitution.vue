@@ -36,19 +36,21 @@
                 v-for="institution in data.associated_institutions"
                 :key="institution.id"
             >
-              <a :href="institution.id | idLink">{{ institution.display_name }}</a> ({{ institution.relationship }})
+              <a :href="institution.id | idLink" class="text-decoration-none">
+                {{ institution.display_name }}
+              </a> ({{ institution.relationship }})
             </div>
         </td>
       </tr>
 
       <tr>
-        <td class="table-row-label">
+        <td class="table-row-label pt-6">
           <entity-icon
               type="works"
               expand
           />
         </td>
-        <td>
+        <td class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="author.id"

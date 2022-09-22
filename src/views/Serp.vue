@@ -186,10 +186,9 @@ export default {
       async handler(to, from) {
         const scrollTop = window.scrollY
         await this.$store.dispatch("bootFromUrl")
-        window.scroll(0, scrollTop)
 
-        if (to.query.zoom) {
-        } else {
+        if (to?.query?.zoom || from?.query?.qoom) {
+          window.scroll(0, scrollTop)
         }
       }
     }

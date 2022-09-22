@@ -25,32 +25,6 @@
 
       <tr>
         <td class="table-row-label">
-          <entity-icon
-              type="works"
-              expand
-          />
-        </td>
-        <td>
-          <link-to-search
-              :count="data.works_count"
-              filter-key="host_venue.id"
-              :filter-value="data.id"
-              entity-type="works"
-          />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-row-label">
-          <v-icon>mdi-format-quote-close</v-icon>
-          Cited by:
-        </td>
-        <td>
-          {{ data.cited_by_count.toLocaleString() }} works
-        </td>
-      </tr>
-
-      <tr>
-        <td class="table-row-label">
           <v-icon v-if="data.is_oa">mdi-lock-open-outline</v-icon>
           <v-icon v-else>mdi-lock-outline</v-icon>
           Access:
@@ -66,7 +40,34 @@
         </td>
       </tr>
 
-      <entity-zoom-ids-row :ids="data.ids" />
+      <tr>
+        <td class="table-row-label pt-6">
+          <entity-icon
+              type="works"
+              expand
+          />
+        </td>
+        <td class="pt-6">
+          <link-to-search
+              :count="data.works_count"
+              filter-key="host_venue.id"
+              :filter-value="data.id"
+              entity-type="works"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td class="table-row-label">
+          <v-icon>mdi-format-quote-close</v-icon>
+          Cited by:
+        </td>
+        <td class="">
+          {{ data.cited_by_count.toLocaleString() }} works
+        </td>
+      </tr>
+
+
+      <entity-zoom-ids-row :ids="data.ids"/>
 
     </table>
 

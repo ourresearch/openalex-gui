@@ -7,7 +7,7 @@
           Description:
         </td>
         <td class="description">
-          {{ data.description }}
+          {{ data.description }}.
         </td>
       </tr>
 
@@ -29,7 +29,7 @@
           <entity-icon
               type="concepts"
           />
-          {{"Related concept" | pluralize(data.related_concepts)}}:
+          Related:
         </td>
         <td>
           <concepts-list :concepts="data.related_concepts" :is-clickable="true"/>
@@ -38,13 +38,13 @@
 
 
       <tr>
-        <td class="table-row-label">
+        <td class="table-row-label pt-6">
           <entity-icon
               type="works"
               expand
           />
         </td>
-        <td>
+        <td class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="concept.id"
