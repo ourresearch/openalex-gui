@@ -388,7 +388,12 @@ export default new Vuex.Store({
             })
         },
         entityZoomHistoryData(state) {
-            return state.zoomDataResponses
+            const lastInStack = state.zoomIdsStack.slice(-1)[0]
+            if (!lastInStack) return
+
+            return state.zoomDataResponses.filter(resp => !idsAreEqual(resp.id, lastInStack))
+
+
             return state.zoomIdsStack.map(zoomId => {
                 return state.zoomDataResponses.find(zoomData => {
                     idsAreEqual(zoomData.id, zoomId)

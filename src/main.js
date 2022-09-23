@@ -48,19 +48,8 @@ Vue.filter("zoomLink", function (fullId) {
     if (firstInstanceIndex > -1) {
         zoomIds.splice(firstInstanceIndex, 9999999999)
     }
-
-    console.log(`zoomLink firstInstanceIndex *${shortId}*`, firstInstanceIndex, zoomIds)
-    console.log(`zoomLink splice *${shortId}*`, zoomIds)
-
-
     zoomIds.push(shortId)
-    console.log(`zoomLink push *${shortId}*`, zoomIds)
     paramsDict.zoom = zoomIds.join(",")
-
-    // const params = [...url.searchParams.entries()].filter(p => {
-    //     return p[0] !== "zoom"
-    // })
-    // params.push(["zoom", shortId])
     const queryString = Object.entries(paramsDict).map(([k, v]) => `${k}=${v}`).join("&")
     url.search = "?" + queryString
     return [url.path, queryString].join("?")

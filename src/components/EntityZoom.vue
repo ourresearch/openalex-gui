@@ -7,20 +7,30 @@
   >
     <v-card flat v-if="entityZoomData">
       <div>
-        <div style="background: #ddd;" class="px-6 py-2">
+        <div
+            class="py-2 body-1"
+            v-if="entityZoomHistoryData.length"
+            style="background: #fff;"
+        >
           <!--          {{ entityZoomHistoryData }}-->
           <div
               v-for="zoomData in entityZoomHistoryData"
               :key="zoomData.id"
           >
-            <router-link :to="zoomData.id | zoomLink" class="text-decoration-none">
+            <router-link
+                :to="zoomData.id | zoomLink"
+                class="text-decoration-none px-6 grey--text"
+            >
+              <v-icon small left color="">mdi-history</v-icon>
+<!--              <v-icon small color="primary">{{ getEntityIconFromId(zoomData.id) }}</v-icon>-->
               {{ zoomData.display_name }}
             </router-link>
           </div>
         </div>
+        <v-divider v-if="entityZoomHistoryData.length"/>
         <div class="pt-6 px-6 pb-3 d-flex">
           <div>
-            <div class="caption text-capitalize">
+            <div class="body-1 text-capitalize">
               <entity-icon :type="zoomType" small left/>
               <span>{{ zoomTypeConfig.displayNameSingular }}</span>
 
@@ -33,7 +43,7 @@
               <span v-if="zoomType=== 'concepts'">
                  (Level {{ entityZoomData.level }})
               </span>
-              <div class="text-h6 font-weight-medium mb-3 mt-1" style="font-weight: 450 !important; line-height: 1.5;">
+              <div class="text-h6 font-weight-medium mb-3 mt-0" style="font-weight: 450 !important; line-height: 1.5;">
                 {{ entityZoomData.display_name }}
               </div>
             </div>
@@ -123,6 +133,7 @@ import EntityVenue from "./EntityVenue";
 import EntityInstitution from "./EntityInstitution";
 import EntityConcept from "./EntityConcept";
 import EntityIcon from "./EntityIcon";
+import {entityConfigs} from "../entityConfigs";
 
 import {entityTypeFromId} from "../util";
 
@@ -174,6 +185,10 @@ export default {
       await navigator.clipboard.writeText(this.entityZoomData.id);
       this.snackbar("URL copied to clipboard.")
       // alert('Copied!');
+    },
+    getEntityIconFromId(id) {
+      const type = entityTypeFromId(id)
+      return entityConfigs[type]?.icon
     },
   },
   computed: {
