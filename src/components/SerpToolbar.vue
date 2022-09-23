@@ -5,49 +5,92 @@
   >
     <div class="d-flex align-baseline">
       <div
-          class="subtitle-1 grey--text"
+          class="subtitle-1"
       >
-        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>
-        <span>
-<!--          {{($store.state.resultsCount < 1000) ? "About" : "" }}-->
-          {{ $store.state.resultsCount | millify }} results
+        <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
+        <span class=" font-weight-bold">
+<!--          {{(resultsCount < 1000) ? "About" : "" }}-->
+          {{ resultsCount | millify }}
+          {{ entityType | pluralize(results.length) }}
+
         </span>
+        <a
+            v-if="resultsFilters.length > 0"
+            @click="removeAllInputFilters"
+        >
+          (clear {{ "filter" | pluralize(resultsFilters.length) }})
+        </a>
         <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
 
 
       </div>
       <v-spacer></v-spacer>
-      <v-btn
-          icon
-          v-if="resultsFilters.length > 0"
-          @click="removeAllInputFilters"
-      >
-        <v-icon>mdi-filter-off-outline</v-icon>
-        <!--            <v-icon>mdi-filter-remove-outline</v-icon>-->
-      </v-btn>
 
-
-      <v-menu offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on">
-            <!--              <v-icon>mdi-download-outline</v-icon>-->
-            <v-icon>mdi-table-arrow-down</v-icon>
-          </v-btn>
+      <!--      nesting tooltip and menu is confusing...see here for docs:-->
+      <!--      https://vuetifyjs.com/en/components/menus/#activator-and-tooltip-->
+      <v-menu>
+        <template v-slot:activator="{ on: menu, attrs }">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on: tooltip }">
+              <v-btn
+                  icon
+                  v-bind="attrs"
+                  v-on="{ ...tooltip, ...menu }"
+              >
+                <v-icon>mdi-download-outline</v-icon>
+              </v-btn>
+            </template>
+            <span>Export these {{ entityType }}</span>
+          </v-tooltip>
         </template>
-        <v-list>
-          <v-subheader>Export these results as:</v-subheader>
+        <v-list >
+          <v-subheader class="">Export these {{ entityType }} as:</v-subheader>
+          <v-divider></v-divider>
           <v-list-item
               target="_blank"
               :href="searchApiUrl"
           >
-            <v-icon left>mdi-code-json</v-icon>
-            JSON
+            <v-list-item-icon>
+              <v-icon left>mdi-code-json</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                API response
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                JSON format
+              </v-list-item-subtitle>
+            </v-list-item-content>
           </v-list-item>
+
           <v-list-item
               @click="openExportToCsvDialog"
+              :disabled="resultsCount > 100000"
           >
-            <v-icon left>mdi-table</v-icon>
-            CSV
+            <v-list-item-icon>
+              <v-icon
+                  left
+                  :color="(resultsCount > 100000) ? 'grey' : null"
+              >
+                mdi-table
+              </v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Spreadsheet
+              </v-list-item-title>
+              <v-list-item-subtitle
+                  :class="(resultsCount > 100000) ? 'grey--text' : ''"
+              >
+                CSV format
+              </v-list-item-subtitle>
+              <v-list-item-subtitle
+                  v-if="resultsCount > 100000"
+                  class="grey--text font-weight-bold"
+              >
+                Max 100k results
+              </v-list-item-subtitle>
+            </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -75,8 +118,6 @@
 
 
     </div>
-    <!--    <v-divider></v-divider>-->
-
 
     <!--FILTERS-->
     <!--*****************************************************************************************-->
@@ -85,11 +126,11 @@
 
 
     <v-card
-        v-if="$store.state.resultsFilters.length" class="py-3 px-3 mt-7"
+        v-if="$store.state.resultsFilters.length" class="pt-2 pb-1 px-5 mt-5"
         outlined
     >
       <v-row>
-        <v-col cols="9">
+        <v-col cols="9" class="pl-0">
           <table class="serp-filters-list">
             <tr
                 v-for="f in $store.state.resultsFilters"
@@ -102,7 +143,7 @@
                     class="align-baseline"
                     @click="removeInputFilters([f])"
                 >
-                  <v-icon>mdi-close</v-icon>
+                  <v-icon small>mdi-close</v-icon>
                 </v-btn>
 
               </td>
@@ -115,7 +156,7 @@
                     :to="f.value | zoomLink"
                     class="text-decoration-none"
                 >
-                  <entity-icon :id="f.value" small color="primary" />
+                  <entity-icon :id="f.value" small color="primary"/>
                   {{ f.displayValue }}
                 </router-link>
                 <span v-else>
@@ -154,7 +195,7 @@
         </v-card-title>
 
         <div class="card-content px-6">
-          <template v-if="$store.state.resultsCount > 100000">
+          <template v-if="resultsCount > 100000">
             <v-alert outlined text type="error" class="mb-0">
               <p class="font-weight-bold">
                 Too many results to export
@@ -220,7 +261,7 @@
           <v-btn
               :disabled="!exportEmailIsValid || exportIsLoading"
               text
-              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"
+              v-if="resultsCount <= 100000 && !exportIsInProgress"
               color="primary"
               @click="exportToCsv"
           >
@@ -255,7 +296,7 @@
           <!--          <v-btn-->
           <!--              :disabled="!exportEmailIsValid"-->
           <!--              text-->
-          <!--              v-if="$store.state.resultsCount <= 100000 && !exportIsInProgress"-->
+          <!--              v-if="resultsCount <= 100000 && !exportIsInProgress"-->
           <!--              color="primary"-->
           <!--              @click="exportToCsv"-->
           <!--          >-->
@@ -308,6 +349,9 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "searchApiUrl",
+      "entityType",
+      "results",
+      "resultsCount",
     ]),
 
     sort: {

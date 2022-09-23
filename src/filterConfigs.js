@@ -86,7 +86,6 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function (key, value) {
-    console.log("createSimpleFilter", key, value)
     const cleanValue = createFilterValue(value)
     return {
         ...getFacetConfig(key),

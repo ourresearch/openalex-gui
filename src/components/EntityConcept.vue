@@ -16,7 +16,7 @@
           <entity-icon
               type="concepts"
           />
-          {{"Parent concept" | pluralize(parentConcepts)}}:
+          {{"Parent" | pluralize(parentConcepts.length)}}:
         </td>
         <td>
           <concepts-list :concepts="parentConcepts" :is-clickable="true"/>

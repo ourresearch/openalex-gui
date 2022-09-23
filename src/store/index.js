@@ -337,6 +337,9 @@ export default new Vuex.Store({
         resultsFilters(state, getters) {
             return state.resultsFilters
         },
+        entityType(state) { return state.entityType},
+        results(state) { return state.results},
+        resultsCount(state) { return state.resultsCount},
         sortObjectOptions(state, getters) {
             if (!state.results.length) return
             return sortConfigs.filter(sortConfig => {

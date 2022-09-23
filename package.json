@@ -18,6 +18,7 @@
     "vue-flag-icon": "^2.1.0",
     "vue-json-pretty": "^1.8.2",
     "vue-meta": "^2.4.0",
+    "vue-pluralize": "^0.0.2",
     "vue-router": "^3.2.0",
     "vue-truncate-filter": "^1.1.7",
     "vuetify": "^2.4.0",

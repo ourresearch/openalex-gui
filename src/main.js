@@ -19,8 +19,12 @@ const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
 import FlagIcon from 'vue-flag-icon'
-
 Vue.use(FlagIcon);
+
+import VuePluralize from 'vue-pluralize'
+Vue.use(VuePluralize)
+
+
 
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return
@@ -56,9 +60,9 @@ Vue.filter("zoomLink", function (fullId) {
     return [url.path, queryString].join("?")
 })
 
-Vue.filter("pluralize", function (word, list) {
-    return word + ((list.length === 1) ? "" : "s")
-})
+
+
+
 
 Vue.filter("prettyName", function (name) {
     let ret = name
