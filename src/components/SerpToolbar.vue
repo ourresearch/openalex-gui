@@ -43,7 +43,7 @@
             <span>Export these {{ entityType }}</span>
           </v-tooltip>
         </template>
-        <v-list >
+        <v-list>
           <v-subheader class="">Export these {{ entityType }} as:</v-subheader>
           <v-divider></v-divider>
           <v-list-item
@@ -189,75 +189,58 @@
 
     <v-dialog max-width="600" v-model="dialogs.export">
       <v-card :loading="exportIsLoading">
-        <v-card-title>
+        <v-card-title class="d-flex">
+          <div>
           <v-icon left>mdi-download-outline</v-icon>
-          Export results as CSV
+          Export results as spreadsheet
+          </div>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialogs.export = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
+        <v-divider/>
 
         <div class="card-content px-6">
-          <template v-if="resultsCount > 100000">
+
+          <template v-if="exportIsInProgress">
             <v-alert outlined text type="error" class="mb-0">
               <p class="font-weight-bold">
-                Too many results to export
+                This export is still in progress
               </p>
               <p>
-                Sorry, but you can only export 100,000 results at a time to CSV. Try refining your search, or splitting
-                it into two searches and exporting them individually.
+                We're still making this CSV export file for you...it can take up to 15 minutes. When it's complete,
+                we'll email a download link to the address you provided.
+              </p>
+              <p>
+                <strong>Tip:</strong>
+                Don't forget to check your spam folder for the email!
               </p>
             </v-alert>
           </template>
           <template v-else>
+            <div class="mt-8">
+              <v-text-field
+                  label="Your email (We won't share this)"
+                  v-model="exportEmail"
+                  type="email"
+                  outlined
+                  hide-details
+                  prepend-inner-icon="mdi-email-outline"
+                  @keypress.enter="exportToCsv"
+                  :disabled="exportIsLoading"
+              ></v-text-field>
+            </div>
+            <div class="mt-4">
+              We'll prepare your spreadsheet and email it to you in under fifteen minutes. Don't forget to check your spam folder!
+            </div>
 
-            <template v-if="exportIsInProgress">
-              <v-alert outlined text type="error" class="mb-0">
-                <p class="font-weight-bold">
-                  This export is still in progress
-                </p>
-                <p>
-                  We're still making this CSV export file for you...it can take up to 15 minutes. When it's complete,
-                  we'll email a download link to the address you provided.
-                </p>
-                <p>
-                  <strong>Tip:</strong>
-                  Don't forget to check your spam folder for the email!
-                </p>
-              </v-alert>
-            </template>
-            <template v-else>
-              <div class="">
-                It'll take us up to 15 minutes to prepare your CSV export. When we're done, we'll email you a link where
-                you can
-                download it
-              </div>
-              <div class="mt-6">
-                <strong>Tip:</strong>
-                Make sure to check your spam folder for the email!
-              </div>
-              <div class="mt-8">
-                <v-text-field
-                    label="Your email"
-                    v-model="exportEmail"
-                    placeholder="you@example.com"
-                    type="email"
-                    outlined
-                    hide-details
-                    prepend-inner-icon="mdi-email-outline"
-                    @keypress.enter="exportToCsv"
-                    :disabled="exportIsLoading"
-                ></v-text-field>
-              </div>
-              <div class="body-2 mt-2">
-                We'll only use this address to send you your requested download link, and we'll never share it with
-                anyone.
-              </div>
-            </template>
 
           </template>
         </div>
 
         <v-card-actions class="py-6">
           <v-spacer></v-spacer>
-          <v-btn text @click="dialogs.export = false">Close</v-btn>
           <v-btn
               :disabled="!exportEmailIsValid || exportIsLoading"
               text
