@@ -204,19 +204,9 @@
         <div class="card-content px-6">
 
           <template v-if="exportIsInProgress">
-            <v-alert outlined text type="error" class="mb-0">
-              <p class="font-weight-bold">
-                This export is still in progress
-              </p>
-              <p>
-                We're still making this CSV export file for you...it can take up to 15 minutes. When it's complete,
-                we'll email a download link to the address you provided.
-              </p>
-              <p>
-                <strong>Tip:</strong>
-                Don't forget to check your spam folder for the email!
-              </p>
-            </v-alert>
+            <div class="mt-4">
+              Your export is in progress! We'll email it to you in under fifteen minutes; don't forget to check your spam folder.
+            </div>
           </template>
           <template v-else>
             <div class="mt-8">
@@ -244,11 +234,19 @@
           <v-btn
               :disabled="!exportEmailIsValid || exportIsLoading"
               text
-              v-if="resultsCount <= 100000 && !exportIsInProgress"
+              v-if="!exportIsInProgress"
               color="primary"
               @click="exportToCsv"
           >
             Begin Export
+          </v-btn>
+          <v-btn
+              v-if="exportIsInProgress"
+              text
+              color="primary"
+              @click="dialogs.export = false"
+          >
+            Close
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -335,6 +333,7 @@ export default {
       "entityType",
       "results",
       "resultsCount",
+      "inputFiltersAsString",
     ]),
 
     sort: {
@@ -364,7 +363,6 @@ export default {
     openExportToCsvDialog() {
       this.exportIsInProgress = false
       this.dialogs.export = true
-      this.exportEmail = ""
     },
     async openCreateAlertDialog() {
       this.dialogs.createAlert = true
@@ -377,19 +375,24 @@ export default {
 
     },
     async exportToCsv() {
-      const url = `https://api.openalex.org/works?filter=${this.inputFiltersAsString}&format=csv`
+      const params = [
+          `filter=${this.inputFiltersAsString}`,
+          `email=${this.exportEmail}`,
+          "format=csv",
+      ]
+      const url = `https://api.openalex.org/works?` + params.join("&")
       this.exportIsLoading = true
       try {
         const resp = await axios.get(url)
         console.log("exportToCsv submitted", resp.data)
-        this.snackbar("Export job submitted.")
+        // this.snackbar("Export job submitted.")
       } catch (e) {
         console.log("exportToCsv error", e)
-        this.exportIsInProgress = true
       } finally {
+        this.exportIsInProgress = true
         this.exportIsLoading = false
-        this.dialogs.export = false
-        this.exportEmail = ""
+        // this.dialogs.export = false
+        // this.exportEmail = ""
       }
     },
   },
