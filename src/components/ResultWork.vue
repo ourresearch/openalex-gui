@@ -21,7 +21,7 @@
       <div class="body-1" v-if="abstract && isOpenlyLicensed">
         {{ abstract | truncate(200) }}
       </div>
-      <concepts-list class="d-none" :concepts="data.concepts"/>
+<!--      <concepts-list class="d-none" :concepts="data.concepts"/>-->
 
       <div>
         <result-citation-count

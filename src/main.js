@@ -19,6 +19,7 @@ const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
 import FlagIcon from 'vue-flag-icon'
+
 Vue.use(FlagIcon);
 
 Vue.filter("idLink", function (fullId) {
@@ -59,7 +60,18 @@ Vue.filter("pluralize", function (word, list) {
     return word + ((list.length === 1) ? "" : "s")
 })
 
+Vue.filter("prettyName", function (name) {
+    let ret = name
+        .replace("ieee", "IEEE")
+        .replace("United States of America", "USA")
+        .replace("United Kingdom of Great Britain and Northern Ireland", "UK")
 
+    // make "journal-article" into Journal Article
+    const typeRe = /[a-z]+-[a-z]+/
+    if (typeRe.test(ret)) ret = ret.replace("-", " ")
+
+    return ret
+})
 
 
 Vue.filter("idApiUrl", function (fullId) {

@@ -76,6 +76,14 @@
 
     </div>
     <!--    <v-divider></v-divider>-->
+
+
+    <!--FILTERS-->
+    <!--*****************************************************************************************-->
+    <!--*****************************************************************************************-->
+    <!--*****************************************************************************************-->
+
+
     <v-card
         v-if="$store.state.resultsFilters.length" class="py-3 px-3 mt-7"
         outlined
@@ -99,16 +107,26 @@
 
               </td>
               <td class="filter-key  pr-1">
-                {{ getFacetConfig(f.key, "displayName") }}:
+                {{ f.displayName }}:
               </td>
               <td class="filter-value">
-                <template v-if="getFacetConfig(f.key, 'entityId')">
-                  <!--            <v-icon style="vertical-align: unset" small>{{getEntityIcon(f.key)}}</v-icon>-->
+                <router-link
+                    v-if="f.isEntity"
+                    :to="f.value | zoomLink"
+                    class="text-decoration-none"
+                >
+                  <entity-icon :id="f.value" small color="primary" />
                   {{ f.displayValue }}
-                </template>
-                <template v-else>
-                  {{ f.displayValue }}
-                </template>
+                </router-link>
+                <span v-else>
+                  <flag
+                      :squared="false"
+                      :iso="f.value"
+                      style="height:12px; vertical-align: -2px;"
+                      v-if="f.isCountry"
+                  />
+                  {{ f.displayValue | prettyName }}
+                </span>
               </td>
             </tr>
           </table>
@@ -260,12 +278,15 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
 import {entityConfigs} from "../entityConfigs";
+import EntityIcon from "./EntityIcon";
 import axios from "axios";
 
 
 export default {
   name: "SerpToolbar",
-  components: {},
+  components: {
+    EntityIcon,
+  },
   props: {},
   data() {
     return {

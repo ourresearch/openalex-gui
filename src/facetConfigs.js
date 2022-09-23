@@ -90,6 +90,7 @@ const facetConfigs = function () {
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
+            isCountry: true,
         },
         {
             key: "type",
@@ -101,6 +102,7 @@ const facetConfigs = function () {
             key: "cited_by",
             entityTypes: ["works"],
             displayName: "Cited by",
+            isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
@@ -109,6 +111,7 @@ const facetConfigs = function () {
             key: "cites",
             entityTypes: ["works"],
             displayName: "Cites",
+            isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
@@ -117,6 +120,7 @@ const facetConfigs = function () {
             key: "related_to",
             entityTypes: ["works"],
             displayName: "Related to",
+            isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
@@ -139,6 +143,7 @@ const facetConfigs = function () {
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
+            isCountry: true,
         },
         {
             key: "last_known_institution.type",
@@ -178,6 +183,7 @@ const facetConfigs = function () {
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
+            isCountry: true,
         },
         {
             key: "type",
@@ -200,13 +206,15 @@ const facetConfigs = function () {
     return ret.map(config => {
         return {
             ...config,
-            values: [],
+            // values: [],
         }
     })
 }
 
 const getFacetConfig = function(key, attr){
     const myFacetConfig = facetConfigs().find(f => f.key === key)
+
+    if (!attr) return myFacetConfig
     if (myFacetConfig) return myFacetConfig[attr]
 }
 

@@ -1,4 +1,4 @@
-import {facetConfigs} from "./facetConfigs";
+import {facetConfigs, getFacetConfig} from "./facetConfigs";
 import {api} from "./api";
 
 const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
@@ -86,9 +86,11 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function (key, value) {
+    console.log("createSimpleFilter", key, value)
     const cleanValue = createFilterValue(value)
     return {
-        key,
+        ...getFacetConfig(key),
+        // key,
         value: cleanValue,
         asStr: createFilterId(key, cleanValue),
         isEntity: entityKeys.includes(key), // better to just include the whole config maybe...

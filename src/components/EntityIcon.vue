@@ -1,7 +1,12 @@
 <template>
   <span>
     <span v-if="expand" class="mr-2 text-capitalize">
-      <v-icon  :small="small">{{entityConfig.icon}}</v-icon>
+      <v-icon
+          :small="small"
+          :color="color"
+      >
+        {{entityConfig.icon}}
+      </v-icon>
       <span
           style="color: #555;"
           class="body-1"
@@ -16,7 +21,14 @@
               v-bind="attrs"
               v-on="on"
           >
-            <v-icon :left="left" :small="small">{{entityConfig.icon}}</v-icon>
+            <v-icon
+                :left="left"
+                :small="small"
+                :color="color"
+                style="vertical-align: unset;"
+            >
+              {{entityConfig.icon}}
+            </v-icon>
           </span>
         </template>
         <span>
@@ -33,15 +45,21 @@
 
 <script>
 import {entityConfigs} from "../entityConfigs";
+import {entityTypeFromId} from "../util";
 
 export default {
   components: {},
   props: {
+    // one of these two is required
     type: String,
+    id: String,
+
+    // these are optional
     small: Boolean,
     expand: Boolean,
     singular: Boolean,
     left: Boolean,
+    color: String,
   },
   data() {
     return {
@@ -51,8 +69,12 @@ export default {
   methods: {},
   computed: {
     entityConfig(){
-      return entityConfigs[this.type]
-    }
+      return entityConfigs[this.entityType]
+    },
+    entityType(){
+      if (this.type) return this.type
+      else if (this.id) return entityTypeFromId(this.id)
+    },
   },
   created() {
   },
