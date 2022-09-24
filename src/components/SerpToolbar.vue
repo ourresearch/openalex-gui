@@ -17,6 +17,7 @@
         <a
             v-if="resultsFilters.length > 0"
             @click="removeAllInputFilters"
+            style="font-size: 16px;"
         >
           (clear {{ "filter" | pluralize(resultsFilters.length) }})
         </a>
@@ -98,6 +99,7 @@
       <v-btn
           icon
           @click="openCreateAlertDialog"
+          disabled
       >
         <v-icon>mdi-bell-outline</v-icon>
       </v-btn>
@@ -126,7 +128,7 @@
 
 
     <v-card
-        v-if="$store.state.resultsFilters.length" class="pt-2 pb-1 px-5 mt-5"
+        v-if="$store.state.resultsFilters.length" class="pt-2 pb-1 pr-5 pl-4 mt-5"
         outlined
     >
       <v-row>
@@ -156,7 +158,7 @@
                     :to="f.value | zoomLink"
                     class="text-decoration-none"
                 >
-                  <entity-icon :id="f.value" small color="primary"/>
+<!--                  <entity-icon :id="f.value" small color="primary"/>-->
                   {{ f.displayValue }}
                 </router-link>
                 <span v-else>

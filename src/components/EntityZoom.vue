@@ -22,7 +22,7 @@
                 class="text-decoration-none px-6 grey--text"
             >
               <v-icon small left color="">mdi-history</v-icon>
-<!--              <v-icon small color="primary">{{ getEntityIconFromId(zoomData.id) }}</v-icon>-->
+              <!--              <v-icon small color="primary">{{ getEntityIconFromId(zoomData.id) }}</v-icon>-->
               {{ zoomData.display_name }}
             </router-link>
           </div>
@@ -72,29 +72,85 @@
       <v-divider/>
       <v-card-actions class="py-6 px-5">
 
-        <div v-if="greenUrl" class="mr-3">
-          <v-btn
-              :href="greenUrl"
-              target="_blank"
-              color="primary"
-          >
-            <v-icon left>mdi-open-in-new</v-icon>
-            Read (free)
-          </v-btn>
-        </div>
-        <div class="">
-          <v-btn
-              :href="linkoutUrl"
-              target="_blank"
-              class=""
-              v-if="linkoutUrl"
-              color="primary"
-              :outlined="!linkoutButtonIsGood"
-          >
-            <v-icon left>mdi-open-in-new</v-icon>
-            {{ linkoutButtonText }}
-          </v-btn>
-        </div>
+        <!--        just for works-->
+        <v-template v-if="zoomType==='works'">
+          <div>
+
+            <!--            free to read at repository (green oa)-->
+            <v-btn
+                v-if="isGreenOa"
+                :href="oaUrl"
+                target="_blank"
+                color="primary"
+                class="py-2 mr-3"
+                style="height: auto; text-align: left;"
+            >
+              <v-icon left>mdi-open-in-new</v-icon>
+              <div>
+                <div>
+                   fulltext
+                </div>
+                <div
+                    class="body-2 text-lowercase"
+                    style="font-weight: normal;"
+                >
+                  <span class="">free</span>
+                  <span style="font-weight: normal">
+                    via repository
+                  </span>
+                </div>
+              </div>
+            </v-btn>
+
+            <!--            at the publisher (OA or not)-->
+            <v-btn
+                :href="oaUrl"
+                target="_blank"
+                color="primary"
+                :outlined="!isOaAtPublisher"
+                class="py-2 mr-3"
+                style="height: auto; text-align: left;"
+            >
+              <v-icon left>mdi-open-in-new</v-icon>
+              <div>
+                <div>
+                   fulltext
+                </div>
+                <div
+                    class="body-2 text-lowercase"
+                    style="font-weight: normal;"
+                >
+                  <span
+                      class=""
+                  >
+                    {{(isOaAtPublisher) ? "free" : "paywalled"}}
+                  </span>
+                  <span style="font-weight: normal">
+                    at publisher
+                  </span>
+                </div>
+              </div>
+            </v-btn>
+          </div>
+        </v-template>
+
+        <!--        everything except for works-->
+        <template v-else>
+          <div class="">
+            <v-btn
+                :href="linkoutUrl"
+                target="_blank"
+                class=""
+                v-if="linkoutUrl"
+                color="primary"
+                :outlined="!linkoutButtonIsGood"
+            >
+              <v-icon left>mdi-open-in-new</v-icon>
+              {{ linkoutButtonText }}
+            </v-btn>
+          </div>
+        </template>
+
         <v-spacer/>
         <v-menu>
           <template v-slot:activator="{on}">
@@ -220,6 +276,18 @@ export default {
       if (this.zoomType !== "works") return
       if (this.entityZoomData.open_access.oa_status !== "green") return
       return this.entityZoomData.open_access.oa_url
+    },
+    oaUrl() {
+      if (this.zoomType !== "works") return
+      return this.entityZoomData.open_access.oa_url
+    },
+    isGreenOa() {
+      if (this.zoomType !== "works") return
+      return this.entityZoomData.open_access?.oa_status === 'green'
+    },
+    isOaAtPublisher() {
+      if (this.zoomType !== "works") return
+      return this.entityZoomData.open_access?.is_oa && this.entityZoomData.open_access?.oa_status !== 'green'
     },
     linkoutUrl() {
       if (this.zoomType === "works") {

@@ -71,15 +71,35 @@
       </template>
 
       <template v-slot:item="data">
-        <!--        <v-list-item-icon>-->
-        <!--          <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
-        <!--        </v-list-item-icon>-->
+        <v-list-item-icon>
+          <!--          <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
+          <entity-icon :type="data.item.entity_type + 's'"/>
+        </v-list-item-icon>
         <v-list-item-content class="" style="">
           <v-list-item-title style="font-weight: normal; font-size: 16px;">
             {{ data.item.display_name }}
           </v-list-item-title>
-          <v-list-item-subtitle style="font-weight: normal; margin-top:5px; white-space: normal;">
-            {{ data.item.hint }}
+          <v-list-item-subtitle
+              style="font-weight: normal; margin-top:5px; white-space: normal;"
+          >
+<!--            <span-->
+<!--                style="text-transform: capitalize;"-->
+<!--                v-if="data.item.entity_type !== 'concept'"-->
+<!--            >-->
+<!--              {{ data.item.entity_type }}-->
+<!--            </span>-->
+            <span v-if="data.item.hint" class="">
+              <span v-if="data.item.entity_type === 'work'">By: </span>
+              <span v-if="data.item.entity_type === 'author'">Latest work: </span>
+              <span v-if="data.item.entity_type === 'venue'">Publisher: </span>
+              <span v-if="data.item.entity_type === 'institution'"></span>
+              <span v-if="data.item.entity_type === 'concept'"></span>
+            </span>
+
+            <span class="hint capitalize-first-letter d-inline-block">
+              {{ data.item.hint }}
+            </span>
+
           </v-list-item-subtitle>
         </v-list-item-content>
       </template>
@@ -98,6 +118,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs} from "../entityConfigs";
 import {entityTypeFromId} from "../util";
 import {createSimpleFilter} from "../filterConfigs";
+import EntityIcon from "./EntityIcon";
 
 // setTimeout(function(){
 //   const searchInput = document.getElementById("main-search")
@@ -113,6 +134,9 @@ export default {
       type: Boolean,
       default: false,
     }
+  },
+  components: {
+    EntityIcon,
   },
   data: function () {
     // const controller = new AbortController()
@@ -196,7 +220,7 @@ export default {
     },
     submitSearch() {
       this.items = []
-      this.isFetchingItems = false
+      // this.isFetchingItems = false
 
       if (this.select?.id) {
         // take us to an entity page, if possible
@@ -249,22 +273,24 @@ export default {
         this.items = []
         return
       }
-      this.isFetchingItems = true
+      // this.isFetchingItems = true
       axios.get(this.autocompleteUrl)
           .then(resp => {
             if (!this.searchString) {
               console.log("no search string, clearing items")
               this.items = []
-            } else if (!this.isFetchingItems) {
-              // if someone set isFetchingItems to false, we need to abort
-            } else {
+            }
+            // else if (!this.isFetchingItems) {
+            //   // if someone set isFetchingItems to false, we need to abort
+            // }
+            else {
               this.items = resp.data.results.slice(0, 5).map(i => {
                 const pluralEntityType = i.entity_type + "s"
                 i.icon = entityConfigs[pluralEntityType].icon
                 return i
               })
             }
-            this.isFetchingItems = false
+            // this.isFetchingItems = false
           })
     }
   },
@@ -377,6 +403,8 @@ form.main-search {
 .v-input__icon--append .v-icon {
   //display: none !important;
 }
+
+
 
 
 </style>

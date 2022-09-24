@@ -302,7 +302,7 @@ body {
 
 
 .capitalize-first-letter:first-letter {
-  text-transform: uppercase;
+  text-transform: uppercase !important;
 }
 
 img.site-footer-logo {
