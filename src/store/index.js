@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import router from "../router";
+import sanitizeHtml from 'sanitize-html';
+
 
 import {api} from "../api";
 import {facetConfigs} from "../facetConfigs";
@@ -302,7 +304,14 @@ export default new Vuex.Store({
 
             try {
                 const resp = await api.get(state.entityType, getters.searchQueryBase)
-                state.results = resp.results
+                state.results = resp.results.map(r => {
+                    return {
+                        ...r,
+                        safeTitle: sanitizeHtml(r.display_name, {
+                            allowedTags: [ 'b', 'i', 'em', 'strong', 'a' ],
+                        }),
+                    }
+                })
                 // state.resultsEntityType = state.entityType
                 state.responseTime = resp.meta.db_response_time_ms
                 state.resultsCount = resp.meta.count

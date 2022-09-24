@@ -1,9 +1,11 @@
 <template>
   <v-row>
     <v-col cols="10" class="content">
-      <router-link class="text-decoration-none subtitle-1" :to="data.id | zoomLink">
-        {{ data.display_name }}
-      </router-link>
+      <router-link
+          class="text-decoration-none subtitle-1"
+          :to="data.id | zoomLink"
+          v-html="data.safeTitle"
+      />
       <div v-if="authorsCount" class="body-1">
         <span>{{ authorNames[0] }}</span>
         <span v-if="authorNames.length > 1">, {{ authorNames[1] }}</span>
