@@ -82,12 +82,12 @@
           <v-list-item-subtitle
               style="font-weight: normal; margin-top:5px; white-space: normal;"
           >
-<!--            <span-->
-<!--                style="text-transform: capitalize;"-->
-<!--                v-if="data.item.entity_type !== 'concept'"-->
-<!--            >-->
-<!--              {{ data.item.entity_type }}-->
-<!--            </span>-->
+            <!--            <span-->
+            <!--                style="text-transform: capitalize;"-->
+            <!--                v-if="data.item.entity_type !== 'concept'"-->
+            <!--            >-->
+            <!--              {{ data.item.entity_type }}-->
+            <!--            </span>-->
             <span v-if="data.item.hint" class="">
               <span v-if="data.item.entity_type === 'work'">By: </span>
               <span v-if="data.item.entity_type === 'author'">Latest work: </span>
@@ -126,6 +126,15 @@ import EntityIcon from "./EntityIcon";
 //   searchInput.focus()
 //
 // }, 2000)
+
+const pushSafe = async function (router, pushTo) {
+  await router.push(pushTo)
+      .catch((e) => {
+        if (e.name !== "NavigationDuplicated") {
+          throw e
+        }
+      })
+}
 
 export default {
   name: "SearchBox",
@@ -182,7 +191,6 @@ export default {
       "setEntityType"
     ]),
     ...mapActions([
-      "doTextSearch",
       "setEntityZoom",
     ]),
     clickToSetSelectedEntityType(value) {
@@ -218,27 +226,25 @@ export default {
 
       }, 0)
     },
-    submitSearch() {
+    async submitSearch() {
       this.items = []
       // this.isFetchingItems = false
-
-      if (this.select?.id) {
-        // take us to an entity page, if possible
-        this.goToEntityPage()
-      } else {
-
-        this.doTextSearch({
-          entityType: this.selectedEntityType,
-          searchString: this.cleanSearchString,
-        })
+      console.log("submitSearch() this.select", this.select)
+      const pushTo = {
+        name: "Serp",
+        params: {entityType: this.selectedEntityType},
+        query: {search: this.select}
       }
+      return await pushSafe(this.$router, pushTo)
     },
 
     async goToEntityPage() {
       if (this.select?.id) {
         console.log("goToEntityPage", this.select, this.selectedEntityType)
         const shortId = this.select.id.replace("https://openalex.org/", "")
-        if (this.selectedEntityType === "works") {
+        const idEntityType = entityTypeFromId(shortId)
+
+        if (this.selectedEntityType === "works" && idEntityType !== "works") {
           console.log("instead of going to entity page, do works search with filter", this.select)
 
           const myEntityConfig = entityConfigs[entityTypeFromId(shortId)]
@@ -249,20 +255,19 @@ export default {
 
           // works search with filter
           const pushTo = {
-            query: {
-              "filter": myFilter.asStr
-            },
+            query: {"filter": myFilter.asStr},
             name: "Serp",
             params: {entityType: "works"},
           }
-          this.$router.push(pushTo)
+          await pushSafe(this.$router, pushTo)
         } else {
           // open entity zoom
-          await this.doTextSearch({
-            entityType: entityTypeFromId(shortId),
-            searchString: this.select.display_name,
+          this.select = null
+          await this.$router.push({
+            name: "Serp",
+            params: {entityType: idEntityType},
+            query: {zoom: shortId}
           })
-          this.setEntityZoom(shortId)
         }
 
 
@@ -280,8 +285,8 @@ export default {
               console.log("no search string, clearing items")
               this.items = []
             }
-            // else if (!this.isFetchingItems) {
-            //   // if someone set isFetchingItems to false, we need to abort
+                // else if (!this.isFetchingItems) {
+                //   // if someone set isFetchingItems to false, we need to abort
             // }
             else {
               this.items = resp.data.results.slice(0, 5).map(i => {
@@ -310,6 +315,8 @@ export default {
 
     "$store.state.textSearch": {
       handler(to, from) {
+        console.log("textSearch watcher", to)
+
         this.select = to
       },
       immediate: true,
@@ -403,8 +410,6 @@ form.main-search {
 .v-input__icon--append .v-icon {
   //display: none !important;
 }
-
-
 
 
 </style>

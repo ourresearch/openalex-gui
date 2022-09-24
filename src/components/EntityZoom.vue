@@ -73,7 +73,7 @@
       <v-card-actions class="py-6 px-5">
 
         <!--        just for works-->
-        <v-template v-if="zoomType==='works'">
+        <template v-if="zoomType==='works'">
           <div>
 
             <!--            free to read at repository (green oa)-->
@@ -132,7 +132,7 @@
               </div>
             </v-btn>
           </div>
-        </v-template>
+        </template>
 
         <!--        everything except for works-->
         <template v-else>

@@ -231,16 +231,16 @@ export default new Vuex.Store({
         },
 
         // eslint-disable-next-line no-unused-vars
-        async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
-            if (entityType !== state.entityType) commit("resetSearch")
-
-            commit("setEntityType", entityType)
-            state.textSearch = searchString
-            commit("setSort", getters.defaultSort)
-
-            // await dispatch("doSearch")
-            dispatch("pushSearchUrl")
-        },
+        // async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
+        //     if (entityType !== state.entityType) commit("resetSearch")
+        //
+        //     commit("setEntityType", entityType)
+        //     state.textSearch = searchString
+        //     commit("setSort", getters.defaultSort)
+        //
+        //     // await dispatch("doSearch")
+        //     dispatch("pushSearchUrl")
+        // },
         // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
             commit("setSort", newSortValue)
