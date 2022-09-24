@@ -8,6 +8,8 @@ import VScrollLock from "v-scroll-lock";
 import millify from "millify";
 import {idsAreEqual} from "./util";
 
+import {filtersFromUrlStr, filtersAsUrlStr} from "./filterConfigs";
+
 Vue.config.productionTip = false
 
 Vue.use(VueMeta, {
@@ -58,7 +60,25 @@ Vue.filter("zoomLink", function (fullId) {
     const queryString = Object.entries(paramsDict).map(([k, v]) => `${k}=${v}`).join("&")
     url.search = "?" + queryString
     return [url.path, queryString].join("?")
-})
+});
+
+
+Vue.filter("addFilterLink", function (newFilter) {
+    console.log("addFilterLink", newFilter)
+    if (!newFilter.key) return
+
+    const query = {...router.currentRoute.query}
+    const filters = filtersFromUrlStr(query.filter)
+    filters.push(newFilter)
+    query.filter = filtersAsUrlStr(filters)
+    delete query.zoom
+
+    return {
+        name: "Serp",
+        query,
+    }
+
+});
 
 
 

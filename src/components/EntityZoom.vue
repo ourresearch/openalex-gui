@@ -139,16 +139,25 @@
         <template v-else>
           <div class="">
             <v-btn
-                :href="linkoutUrl"
-                target="_blank"
+                :to="filterToShowWorks | addFilterLink"
                 class=""
-                v-if="linkoutUrl"
                 color="primary"
-                :outlined="!linkoutButtonIsGood"
             >
-              <v-icon left>mdi-open-in-new</v-icon>
-              {{ linkoutButtonText }}
+              <v-icon left>mdi-filter-plus-outline</v-icon>
+              add filter
             </v-btn>
+
+<!--            <v-btn-->
+<!--                :href="linkoutUrl"-->
+<!--                target="_blank"-->
+<!--                class=""-->
+<!--                v-if="linkoutUrl"-->
+<!--                color="primary"-->
+<!--                :outlined="!linkoutButtonIsGood"-->
+<!--            >-->
+<!--              <v-icon left>mdi-open-in-new</v-icon>-->
+<!--              {{ linkoutButtonText }}-->
+<!--            </v-btn>-->
           </div>
         </template>
 
@@ -193,6 +202,7 @@ import EntityIcon from "./EntityIcon";
 import {entityConfigs} from "../entityConfigs";
 
 import {entityTypeFromId} from "../util";
+import {createSimpleFilter} from "../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
@@ -264,6 +274,9 @@ export default {
         this.$router.push(this.currentUrlWithoutZoom)
       }
     },
+    myEntityConfig(){
+      return entityConfigs[this.zoomType]
+    },
     currentUrlWithoutZoom() {
       const newQuery = {...this.$route.query}
       newQuery.zoom = undefined
@@ -272,6 +285,14 @@ export default {
         params: this.$route.params,
         query: newQuery,
       }
+    },
+    filterToShowWorks(){
+      if (this.zoomType === "works") return
+      return createSimpleFilter(
+          // this isn't right...pick up here.
+          this.myEntityConfig.filterKey,
+          this.zoomId,
+      )
     },
     greenUrl() {
       if (this.zoomType !== "works") return

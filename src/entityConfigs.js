@@ -21,6 +21,7 @@ const entityConfigs = {
         eg: "Albert Einstein",
         placeholder: "Search scholarly authors",
         filterName: "author",
+        filterKey: "author.id",
     },
     venues: {
         emoji: "📚",
@@ -33,6 +34,7 @@ const entityConfigs = {
         eg: "The New England Journal of Medicine",
         placeholder: "Search academic journals & repositories",
         filterName: "host_venue",
+        filterKey: "host_venue.id",
     },
     institutions: {
         emoji: "🏫",
@@ -44,6 +46,7 @@ const entityConfigs = {
         eg: "Harvard University",
         placeholder: "Search academic institutions",
         filterName: "institutions",
+        filterKey: "institutions.id",
     },
     concepts: {
         emoji: "💡",
@@ -55,6 +58,7 @@ const entityConfigs = {
         eg: "History",
         placeholder: "Search topics",
         filterName: "concepts",
+        filterKey: "x_concepts.id",
     },
 
 

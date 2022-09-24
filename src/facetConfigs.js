@@ -213,6 +213,7 @@ const facetConfigs = function () {
 
 const getFacetConfig = function(key, attr){
     const myFacetConfig = facetConfigs().find(f => f.key === key)
+    if (!myFacetConfig) throw(`openAlex error: getFacetConfig: no such key as "${key}"`)
 
     if (!attr) return myFacetConfig
     if (myFacetConfig) return myFacetConfig[attr]

@@ -87,8 +87,9 @@ const createFilterValue = function (rawValue) {
 
 const createSimpleFilter = function (key, value) {
     const cleanValue = createFilterValue(value)
+    const facetConfig = getFacetConfig(key)
     return {
-        ...getFacetConfig(key),
+        ...facetConfig,
         // key,
         value: cleanValue,
         asStr: createFilterId(key, cleanValue),
