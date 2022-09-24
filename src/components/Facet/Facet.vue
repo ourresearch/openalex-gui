@@ -177,7 +177,11 @@ export default {
     },
     tableItems() {
       let ret = [...this.resultsFiltersToShow]
-      this.potentialFilterValues.slice(0, this.maxPotentialFiltersToShow).forEach(f => {
+
+
+      this.potentialFilterValues
+          .filter(f => f.value !== "unknown")
+          .slice(0, this.maxPotentialFiltersToShow).forEach(f => {
 
         // only push potential filter values if they're not already loaded as
         // in a resultsFilter
