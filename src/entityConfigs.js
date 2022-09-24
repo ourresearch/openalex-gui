@@ -58,7 +58,7 @@ const entityConfigs = {
         eg: "History",
         placeholder: "Search topics",
         filterName: "concepts",
-        filterKey: "x_concepts.id",
+        filterKey: "concepts.id",
     },
 
 
