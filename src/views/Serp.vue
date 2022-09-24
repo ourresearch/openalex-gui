@@ -63,6 +63,7 @@
 // import 'vue-json-pretty/lib/styles.css';
 import FilterChip from "../components/FilterChip";
 import millify from "millify";
+import _ from 'lodash';
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
@@ -82,9 +83,10 @@ import axios from "axios";
 export default {
   name: "Serp",
   metaInfo() {
-    return {
-      title: this.$store.state.textSearch || `All ${this.entityType}`
-    }
+    const ret = {title: _.capitalize(this.entityType)}
+    if (this.$store.state.textSearch) ret.title = this.$store.state.textSearch
+    if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
+    return ret
   },
   components: {
     Facet,
@@ -120,6 +122,7 @@ export default {
       "searchApiUrl",
       "searchFacetConfigs",
       "inputFiltersAsString",
+      "entityZoomData",
     ]),
     page: {
       get() {
