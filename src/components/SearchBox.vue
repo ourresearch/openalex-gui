@@ -22,9 +22,9 @@
 
 
         @focus="onFocus"
-        @keyup.enter="submitSearch"
-        @input="goToEntityPage"
-        @click:append="submitSearch"
+        @keydown.enter="doSearch('keyup.enter')"
+        @input="doSearch('input')"
+        @click:append="doSearch"
 
     >
       <template v-slot:prepend-inner>
@@ -119,6 +119,8 @@ import {entityConfigs} from "../entityConfigs";
 import {entityTypeFromId} from "../util";
 import {createSimpleFilter} from "../filterConfigs";
 import EntityIcon from "./EntityIcon";
+import _ from 'lodash'
+
 
 // setTimeout(function(){
 //   const searchInput = document.getElementById("main-search")
@@ -204,7 +206,7 @@ export default {
       if (this.isAloneOnPage) {
         this.fetchSuggestions()
       } else {
-        this.submitSearch()
+        this.doSearch()
       }
 
     },
@@ -226,24 +228,20 @@ export default {
 
       }, 0)
     },
-    async submitSearch() {
+
+    doSearch: _.debounce( async function(context) {
+      console.log("doSearch", context, this.select,)
       this.items = []
-      // this.isFetchingItems = false
-      console.log("submitSearch() this.select", this.select)
       const pushTo = {
         name: "Serp",
-        params: {entityType: this.selectedEntityType},
-        query: {search: this.select}
       }
-      return await pushSafe(this.$router, pushTo)
-    },
 
-    async goToEntityPage() {
-      if (this.select?.id) {
-        console.log("goToEntityPage", this.select, this.selectedEntityType)
+
+      if (this.select?.id) { // there's an id: this is an entity-based search
         const shortId = this.select.id.replace("https://openalex.org/", "")
         const idEntityType = entityTypeFromId(shortId)
 
+        // search works with a filter
         if (this.selectedEntityType === "works" && idEntityType !== "works") {
           console.log("instead of going to entity page, do works search with filter", this.select)
 
@@ -254,25 +252,25 @@ export default {
           )
 
           // works search with filter
-          const pushTo = {
-            query: {"filter": myFilter.asStr},
-            name: "Serp",
-            params: {entityType: "works"},
-          }
-          await pushSafe(this.$router, pushTo)
+          pushTo.query = {"filter": myFilter.asStr}
+          pushTo.params = {entityType: "works"}
+
         } else {
           // open entity zoom
-          this.select = null
-          await this.$router.push({
-            name: "Serp",
-            params: {entityType: idEntityType},
-            query: {zoom: shortId}
-          })
+          pushTo.query = {zoom: shortId}
+          pushTo.params = {entityType: idEntityType}
         }
+        this.select = null
 
-
+      // there's no ID, this is a text search
+      } else {
+        pushTo.params =  {entityType: this.selectedEntityType}
+        if (this.select) pushTo.query = {search: this.select}
       }
-    },
+
+      console.log("pushing this to router", pushTo)
+      await pushSafe(this.$router, pushTo)
+    }, 10, {leading: false}),
     fetchSuggestions(v) {
       if (!this.searchString) {
         this.items = []
@@ -313,10 +311,10 @@ export default {
       immediate: true,
     },
 
+
     "$store.state.textSearch": {
       handler(to, from) {
         console.log("textSearch watcher", to)
-
         this.select = to
       },
       immediate: true,

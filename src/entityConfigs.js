@@ -7,7 +7,7 @@ const entityConfigs = {
         displayNameSingular: "work",
         descr: "Scholarly papers, books, datasets, etc.",
         eg: "On the Electrodynamics of Moving Bodies",
-        placeholder: "Search 230M scholarly papers, books, and more",
+        placeholder: "Search scholarly papers, books, and more",
         filterName: "work",
     },
     authors: {
@@ -19,7 +19,7 @@ const entityConfigs = {
         displayNameSingular: "person",
         descr: "Creators of scholarly works",
         eg: "Albert Einstein",
-        placeholder: "Search 200M scholarly authors",
+        placeholder: "Search scholarly authors",
         filterName: "author",
     },
     venues: {
@@ -31,7 +31,7 @@ const entityConfigs = {
         displayNameSingular: "journal",
         descr: "Journals, conferences, and repositories",
         eg: "The New England Journal of Medicine",
-        placeholder: "Search 100k academic journals & repositories",
+        placeholder: "Search academic journals & repositories",
         filterName: "host_venue",
     },
     institutions: {
@@ -42,7 +42,7 @@ const entityConfigs = {
         displayNameSingular: "institution",
         descr: "Universities and research centers",
         eg: "Harvard University",
-        placeholder: "Search 100k academic institutions",
+        placeholder: "Search academic institutions",
         filterName: "institutions",
     },
     concepts: {
@@ -53,7 +53,7 @@ const entityConfigs = {
         displayNameSingular: "concept",
         descr: "Topics and fields of study",
         eg: "History",
-        placeholder: "Search 50k topics",
+        placeholder: "Search topics",
         filterName: "concepts",
     },
 
