@@ -71,12 +71,20 @@
       </template>
 
       <template v-slot:item="data">
+<!--        <v-subheader v-if="data.item.isFirstShortcut">-->
+<!--          Shortcuts-->
+<!--        </v-subheader>-->
+<!--        <v-subheader v-if="data.item.isFirstFilter">-->
+<!--          Shortcuts-->
+<!--        </v-subheader>-->
         <v-list-item-icon>
-          <!--          <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
           <entity-icon :type="data.item.entity_type + 's'"/>
         </v-list-item-icon>
         <v-list-item-content class="" style="">
           <v-list-item-title style="font-weight: normal; font-size: 16px;">
+<!--            <v-icon small>-->
+<!--              {{ (data.item.isShortcut) ? "mdi-subdirectory-arrow-right" : "mdi-filter"}}-->
+<!--            </v-icon>-->
             {{ data.item.display_name }}
           </v-list-item-title>
           <v-list-item-subtitle
@@ -89,8 +97,8 @@
             <!--              {{ data.item.entity_type }}-->
             <!--            </span>-->
             <span v-if="data.item.hint" class="">
-              <span v-if="data.item.entity_type === 'work'">By: </span>
-              <span v-if="data.item.entity_type === 'author'">Latest work: </span>
+              <span v-if="data.item.entity_type === 'work'"></span>
+              <span v-if="data.item.entity_type === 'author'">Author of: </span>
               <span v-if="data.item.entity_type === 'venue'">Publisher: </span>
               <span v-if="data.item.entity_type === 'institution'"></span>
               <span v-if="data.item.entity_type === 'concept'"></span>
@@ -283,17 +291,29 @@ export default {
               console.log("no search string, clearing items")
               this.items = []
             }
-                // else if (!this.isFetchingItems) {
-                //   // if someone set isFetchingItems to false, we need to abort
-            // }
             else {
-              this.items = resp.data.results.slice(0, 5).map(i => {
+              let items = resp.data.results.map(i => {
                 const pluralEntityType = i.entity_type + "s"
                 i.icon = entityConfigs[pluralEntityType].icon
+                i.isShortcut = pluralEntityType === this.selectedEntityType
+                i.isFilter = !i.isShortcut
                 return i
               })
+
+              items.sort((a, b) => {
+                if (a.isShortcut) {
+                  return 1
+                }
+                return -1
+              })
+              const firstShortcutIndex = items.findIndex(i => i.isShortcut)
+              if (firstShortcutIndex > -1) items[firstShortcutIndex].isFirstShortcut = true
+
+              const firstFilterIndex = items.findIndex(i => i.isFilter)
+              if (firstFilterIndex > -1) items[firstFilterIndex].isFirstFilter = true
+
+              this.items = items.slice(0, 5)
             }
-            // this.isFetchingItems = false
           })
     }
   },

@@ -2,27 +2,31 @@
   <div
       class="py-1 my-0 d-flex filter-row"
       v-ripple
-      @click="isChecked = !isChecked"
   >
     <div>
       <v-checkbox
           dense
           hide-details
           class="pa-0 ma-0"
-          readonly
           v-model="isChecked"/>
     </div>
     <div
         class="body-1 black--text text-capitalize"
         style="line-height: 1.2; padding-top: 2px;"
     >
+      <router-link
+        v-if="filter.isEntity"
+        :to="filter.value | zoomLink"
+        class="text-decoration-none"
+      >
+        {{ prettyDisplayName }}
+      </router-link>
       <span
-          v-if="filter.key === 'host_venue.publisher'"
-          class="text-capitalize"
+          v-else
+          :class="{textCapitalize: filter.key === 'host_venue.publisher'}"
       >
         {{ prettyDisplayName }}
       </span>
-      <span v-else>{{ prettyDisplayName }}</span>
     </div>
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
@@ -117,6 +121,7 @@ export default {
     isChecked: {
       immediate: false,
       handler(isCheckedNow) {
+        console.log("FacetOptions isChecked watcher", isCheckedNow)
         if (isCheckedNow) this.addInputFilters([this.filter])
         else this.removeInputFilters([this.filter])
       },
