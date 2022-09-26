@@ -47,7 +47,7 @@
         <td class="pt-6">
           <link-to-search
               :count="data.works_count"
-              filter-key="concept.id"
+              filter-key="concepts.id"
               :filter-value="data.id"
               entity-type="works"
           />

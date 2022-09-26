@@ -229,6 +229,7 @@ export default new Vuex.Store({
             }
 
             state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
+
             await dispatch("doSearch")
         },
 
@@ -302,6 +303,7 @@ export default new Vuex.Store({
             // dispatch("pushSearchUrl")
             // if (state.entityType !== this.state.resultsEntityType) commit("resetSearch")
 
+
             try {
                 const resp = await api.get(state.entityType, getters.searchQueryBase)
                 state.results = resp.results.map(r => {
@@ -320,6 +322,7 @@ export default new Vuex.Store({
                     const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
                     const params = (state.textSearch) ? {search: state.textSearch} : {}
                     const filtersResp = await api.get(path, params)
+
                     state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
                 } else {
                     state.resultsFilters = []

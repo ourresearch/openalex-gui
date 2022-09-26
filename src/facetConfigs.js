@@ -27,6 +27,12 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
 
+        // {
+        //     key: "search",
+        //     entityTypes: ["works", "authors", "venues", "institutions", "concepts"],
+        //     displayName: "Fulltext search",
+        // },
+
 
         // works
         {

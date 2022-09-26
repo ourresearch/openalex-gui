@@ -190,9 +190,10 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
       const singularName = this.selectedEntityType.slice(0, -1)
-      if (singularName !== "work") {
-        url.searchParams.set("entity_type", singularName)
-      }
+      url.searchParams.set("entity_type", singularName)
+      // if (singularName !== "work") {
+      //   url.searchParams.set("entity_type", singularName)
+      // }
       return url.toString()
     }
   },
@@ -300,12 +301,12 @@ export default {
                 return i
               })
 
-              items.sort((a, b) => {
-                if (a.isShortcut) {
-                  return 1
-                }
-                return -1
-              })
+              // items.sort((a, b) => {
+              //   if (a.isShortcut) {
+              //     return 1
+              //   }
+              //   return -1
+              // })
               const firstShortcutIndex = items.findIndex(i => i.isShortcut)
               if (firstShortcutIndex > -1) items[firstShortcutIndex].isFirstShortcut = true
 

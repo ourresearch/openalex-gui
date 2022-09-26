@@ -62,7 +62,9 @@ const filtersAsUrlStr = function (filters, keyToNegate) {
 
 const makeResultsFiltersFromApi = function (apiFacets) {
     let ret = []
-    apiFacets.forEach(facet => {
+    apiFacets
+        .filter(f => f.key !== "search")
+        .forEach(facet => {
         facet.values.forEach(valueObj => {
             ret.push(createDisplayFilter(
                 facet.key,
