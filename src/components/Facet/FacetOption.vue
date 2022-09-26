@@ -1,7 +1,6 @@
 <template>
   <div
       class="py-1 my-0 d-flex filter-row"
-      v-ripple
   >
     <div>
       <v-checkbox
@@ -45,11 +44,6 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 export default {
   name: "FacetValueListItem",
-  metaInfo() {
-    return {
-      title: `${this.entityId}`
-    }
-  },
   components: {},
   props: {
     filter: Object,

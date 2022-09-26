@@ -83,7 +83,9 @@ import axios from "axios";
 export default {
   name: "Serp",
   metaInfo() {
-    const ret = {title: _.capitalize(this.entityType)}
+    const ret = {title: "Search results"}
+
+    // const ret = {title: _.capitalize(this.entityType)}
     if (this.$store.state.textSearch) ret.title = this.$store.state.textSearch
     if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
     return ret
