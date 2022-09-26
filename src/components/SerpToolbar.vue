@@ -15,11 +15,11 @@
 
         </span>
         <a
-            v-if="resultsFilters.length > 0"
-            @click="removeAllInputFilters"
+            v-if="resultsFilters.length > 0 || textSearch"
+            @click="removeFiltersAndSearch"
             style="font-size: 16px;"
         >
-          (clear {{ "filter" | pluralize(resultsFilters.length) }})
+          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})
         </a>
         <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
 
@@ -128,12 +128,32 @@
 
 
     <v-card
-        v-if="$store.state.resultsFilters.length" class="pt-2 pb-1 pr-5 pl-4 mt-5"
+        v-if="resultsFilters.length || textSearch" class="pt-2 pb-1 pr-5 pl-4 mt-5"
         outlined
     >
       <v-row>
         <v-col cols="9" class="pl-0">
           <table class="serp-filters-list">
+            <tr>
+              <td>
+                <v-btn
+                    icon
+                    small
+                    class="align-baseline"
+                    @click="removeTextSearch()"
+                >
+                  <v-icon small>mdi-close</v-icon>
+                </v-btn>
+              </td>
+              <td class="filter-key">
+                Fulltext:
+              </td>
+              <td class="filter-value">
+                "{{textSearch}}"
+              </td>
+            </tr>
+
+
             <tr
                 v-for="f in $store.state.resultsFilters"
                 :key="f.id"
@@ -158,7 +178,7 @@
                     :to="f.value | zoomLink"
                     class="text-decoration-none"
                 >
-<!--                  <entity-icon :id="f.value" small color="primary"/>-->
+                  <!--                  <entity-icon :id="f.value" small color="primary"/>-->
                   {{ f.displayValue }}
                 </router-link>
                 <span v-else>
@@ -193,8 +213,8 @@
       <v-card :loading="exportIsLoading">
         <v-card-title class="d-flex">
           <div>
-          <v-icon left>mdi-download-outline</v-icon>
-          Export results as spreadsheet
+            <v-icon left>mdi-download-outline</v-icon>
+            Export results as spreadsheet
           </div>
           <v-spacer></v-spacer>
           <v-btn icon @click="dialogs.export = false">
@@ -207,7 +227,8 @@
 
           <template v-if="exportIsInProgress">
             <div class="mt-4">
-              Your export is in progress! We'll email it to you in under fifteen minutes; don't forget to check your spam folder.
+              Your export is in progress! We'll email it to you in under fifteen minutes; don't forget to check your
+              spam folder.
             </div>
           </template>
           <template v-else>
@@ -224,7 +245,8 @@
               ></v-text-field>
             </div>
             <div class="mt-4">
-              We'll prepare your spreadsheet and email it to you in under fifteen minutes. Don't forget to check your spam folder!
+              We'll prepare your spreadsheet and email it to you in under fifteen minutes. Don't forget to check your
+              spam folder!
             </div>
 
 
@@ -332,6 +354,8 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "searchApiUrl",
+      "searchQuery",
+      "textSearch",
       "entityType",
       "results",
       "resultsCount",
@@ -353,9 +377,19 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([
-      "removeAllInputFilters",
       "removeInputFilters",
     ]),
+    removeTextSearch(){
+      this.$router.push({
+        name: "Serp",
+        filter: this.inputFiltersAsString,
+      })
+    },
+    removeFiltersAndSearch(){
+      this.$router.push({
+        name: "Serp",
+      })
+    },
     getEntityIcon(facetKey) {
       const entityId = getFacetConfig(facetKey, "entityId")
       if (!entityId) return
@@ -378,9 +412,9 @@ export default {
     },
     async exportToCsv() {
       const params = [
-          `filter=${this.inputFiltersAsString}`,
-          `email=${this.exportEmail}`,
-          "format=csv",
+        `filter=${this.inputFiltersAsString}`,
+        `email=${this.exportEmail}`,
+        "format=csv",
       ]
       const url = `https://api.openalex.org/works?` + params.join("&")
       this.exportIsLoading = true

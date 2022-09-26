@@ -370,6 +370,10 @@ export default new Vuex.Store({
             const query = {}
             if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
+
+            console.log("searchQueryBase", state.sort, getters.defaultSort)
+
+
             if (state.sort && state.sort !== getters.defaultSort) query["sort"] = state.sort
             if (state.textSearch) query.search = state.textSearch
             return query
@@ -380,6 +384,10 @@ export default new Vuex.Store({
             const ret = getters.searchQueryBase
             if (state.zoomId) ret.zoom = state.zoomId
             return ret
+        },
+        // adds stuff just used by the ui
+        textSearch(state, getters) {
+            return state.textSearch
         },
         zoomId(state) {
             return state.zoomIdsStack.slice(-1)[0] // last item in stack
