@@ -224,7 +224,7 @@
                     class="text-decoration-none"
                 >
                   <!--                  <entity-icon :id="f.value" small color="primary"/>-->
-                  {{ f.displayValue }}\
+                  {{ f.displayValue }}
                 </router-link>
                 <span v-else>
                   <flag

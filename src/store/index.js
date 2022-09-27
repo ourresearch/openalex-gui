@@ -379,9 +379,6 @@ export default new Vuex.Store({
             if (state.page > 1) query.page = state.page
             if (getters.inputFiltersAsString) query.filter = getters.inputFiltersAsString
 
-            console.log("searchQueryBase", state.sort, getters.defaultSort)
-
-
             if (state.sort && state.sort !== getters.defaultSort) query["sort"] = state.sort
             if (state.textSearch) query.search = state.textSearch
             return query
