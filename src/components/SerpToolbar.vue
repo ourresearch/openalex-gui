@@ -27,9 +27,9 @@
       </div>
       <v-spacer></v-spacer>
 
-      <!--      nesting tooltip and menu is confusing...see here for docs:-->
-      <!--      https://vuetifyjs.com/en/components/menus/#activator-and-tooltip-->
-      <v-menu>
+      <!--     EXPORT results-->
+
+      <v-menu class="">
         <template v-slot:activator="{ on: menu, attrs }">
           <v-tooltip bottom>
             <template v-slot:activator="{ on: tooltip }">
@@ -37,15 +37,16 @@
                   icon
                   v-bind="attrs"
                   v-on="{ ...tooltip, ...menu }"
+                  class="mr-1"
               >
                 <v-icon>mdi-download-outline</v-icon>
               </v-btn>
             </template>
-            <span>Export these {{ entityType }}</span>
+            <span>Export results</span>
           </v-tooltip>
         </template>
         <v-list>
-          <v-subheader class="">Export these {{ entityType }} as:</v-subheader>
+          <v-subheader class="">Export results as:</v-subheader>
           <v-divider></v-divider>
           <v-list-item
               target="_blank"
@@ -58,7 +59,7 @@
               <v-list-item-title>
                 API response
               </v-list-item-title>
-              <v-list-item-subtitle>
+              <v-list-item-subtitle :class="(resultsCount > 100000) ? 'black--text' : ''">
                 JSON format
               </v-list-item-subtitle>
             </v-list-item-content>
@@ -81,7 +82,7 @@
                 Spreadsheet
               </v-list-item-title>
               <v-list-item-subtitle
-                  :class="(resultsCount > 100000) ? 'grey--text' : ''"
+                  v-if="resultsCount <= 100000"
               >
                 CSV format
               </v-list-item-subtitle>
@@ -96,28 +97,72 @@
         </v-list>
       </v-menu>
 
+      <!--     CREATE ALERT from results-->
       <v-btn
           icon
           @click="openCreateAlertDialog"
           disabled
+          class="mr-1"
       >
         <v-icon>mdi-bell-outline</v-icon>
       </v-btn>
 
-      <v-select
-          v-model="sort"
-          item-text="displayName"
-          item-value="key"
-          :items="$store.getters.sortObjectOptions"
-          dense
-          background-color="#fff"
-          hide-details
-          prepend-inner-icon="mdi-sort-descending"
-          style="max-width: 180px;"
-          class="ml-4 align-center"
 
-      ></v-select>
+      <!--     SORT results-->
+      <v-menu>
+        <template v-slot:activator="{ on: menu, attrs }">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on: tooltip }">
+              <v-btn
+                  icon
+                  v-bind="attrs"
+                  v-on="{ ...tooltip, ...menu }"
+                  class="mr-2"
+              >
+                <v-icon>mdi-sort-ascending</v-icon>
+              </v-btn>
+            </template>
+            <span>Sort results</span>
+          </v-tooltip>
+        </template>
+        <v-list>
+          <v-subheader class="">Sort results by:</v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              v-for="mySortOption in $store.getters.sortObjectOptions"
+              :key="mySortOption.key"
+              @click="setSort(mySortOption.key)"
+          >
+            <v-list-item-icon>
+              <v-icon>
+                {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+              </v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ mySortOption.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
 
+        </v-list>
+      </v-menu>
+
+      <v-tooltip bottom v-model="filterResultsTooltip">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+              color="primary"
+              :to="'filters' | zoomLink"
+              v-bind="attrs"
+              v-on="on"
+              fab
+              small
+          >
+            <v-icon>mdi-filter-plus</v-icon>
+          </v-btn>
+        </template>
+        <span>Filter results</span>
+      </v-tooltip>
 
     </div>
 
@@ -134,7 +179,7 @@
       <v-row>
         <v-col cols="9" class="pl-0">
           <table class="serp-filters-list">
-            <tr>
+            <tr v-if="textSearch">
               <td>
                 <v-btn
                     icon
@@ -149,7 +194,7 @@
                 Fulltext:
               </td>
               <td class="filter-value">
-                "{{textSearch}}"
+                "{{ textSearch }}"
               </td>
             </tr>
 
@@ -179,7 +224,7 @@
                     class="text-decoration-none"
                 >
                   <!--                  <entity-icon :id="f.value" small color="primary"/>-->
-                  {{ f.displayValue }}
+                  {{ f.displayValue }}\
                 </router-link>
                 <span v-else>
                   <flag
@@ -338,6 +383,7 @@ export default {
     return {
       loading: false,
       getFacetConfig,
+      filterResultsTooltip: false,
       dialogs: {
         export: false,
         createAlert: false,
@@ -360,6 +406,8 @@ export default {
       "results",
       "resultsCount",
       "inputFiltersAsString",
+      "sortObjectOptions",
+      "sortObject"
     ]),
 
     sort: {
@@ -378,14 +426,15 @@ export default {
     ...mapMutations([]),
     ...mapActions([
       "removeInputFilters",
+      "setSort"
     ]),
-    removeTextSearch(){
+    removeTextSearch() {
       this.$router.push({
         name: "Serp",
         filter: this.inputFiltersAsString,
       })
     },
-    removeFiltersAndSearch(){
+    removeFiltersAndSearch() {
       this.$router.push({
         name: "Serp",
       })
@@ -437,7 +486,16 @@ export default {
   },
   async mounted() {
   },
-  watch: {}
+  watch: {
+    "$route": function(to, from){
+      // hack.
+      // otherwise the tooltip on the "filter results" button returns when you close the zoom, for some reason.
+      if (!to.query.zoom){
+        const that = this
+        setTimeout(function(){that.filterResultsTooltip = false}, 10)
+      }
+    }
+  }
 }
 </script>
 

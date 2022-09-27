@@ -1,10 +1,5 @@
 <template>
 
-  <v-dialog
-      v-model="zoomIsOpen"
-      scrollable
-      max-width="900"
-  >
     <v-card flat v-if="entityZoomData">
       <div>
         <div
@@ -188,7 +183,6 @@
 
     </v-card>
 
-  </v-dialog>
 </template>
 
 

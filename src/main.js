@@ -51,10 +51,10 @@ Vue.filter("zoomLink", function (fullId) {
     const paramsDict = Object.fromEntries(new URLSearchParams(location.search))
     const zoomIds = paramsDict.zoom?.split(",") ?? []
 
-    const firstInstanceIndex = zoomIds.findIndex(id => idsAreEqual(id, shortId))
-    if (firstInstanceIndex > -1) {
-        zoomIds.splice(firstInstanceIndex, 9999999999)
-    }
+    // const firstInstanceIndex = zoomIds.findIndex(id => idsAreEqual(id, shortId))
+    // if (firstInstanceIndex > -1) {
+    //     zoomIds.splice(firstInstanceIndex, 9999999999)
+    // }
     zoomIds.push(shortId)
     paramsDict.zoom = zoomIds.join(",")
     const queryString = Object.entries(paramsDict).map(([k, v]) => `${k}=${v}`).join("&")

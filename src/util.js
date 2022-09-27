@@ -32,6 +32,7 @@ const entityTypeFromId = function (id) {
 }
 
 const idsAreEqual = function(id1, id2){
+    if (!id1 || !id2) return
     return shortenOpenAlexId(id1) === shortenOpenAlexId(id2)
 }
 

@@ -3,17 +3,17 @@
 
 
     <div class="serp-container d-flex" style="width: 1100px;">
-      <v-col cols="3" class="facets-panel-container">
-        <facet
-            v-for="facet in searchFacetConfigs"
-            :key="facet.key"
-            :facet-key="facet.key"
-        ></facet>
+      <v-col cols="2" class="facets-panel-container">
+<!--        <facet-->
+<!--            v-for="facet in searchFacetConfigs"-->
+<!--            :key="facet.key"-->
+<!--            :facet-key="facet.key"-->
+<!--        ></facet>-->
       </v-col>
 
 
       <v-col
-          cols="9"
+          cols="10"
           class="results-panel-container flex-fill mt-6"
           v-if="$store.state.resultsCount !== null"
       >
@@ -44,7 +44,7 @@
         </div>
       </v-col>
 
-      <entity-zoom/>
+      <zoom/>
     </div>
 
 
@@ -77,15 +77,13 @@ import ResultAuthor from "../components/ResultAuthor";
 import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
-import EntityZoom from "../components/EntityZoom";
+import Zoom from "../components/Zoom";
 import axios from "axios";
 
 export default {
   name: "Serp",
   metaInfo() {
-    const ret = {title: "Search results"}
-
-    // const ret = {title: _.capitalize(this.entityType)}
+    const ret = {title: _.capitalize(this.entityType)}
     if (this.$store.state.textSearch) ret.title = this.$store.state.textSearch
     if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
     return ret
@@ -99,7 +97,7 @@ export default {
     ResultVenue,
     ResultInstitution,
     ResultConcept,
-    EntityZoom,
+    Zoom,
   },
   props: {},
   data() {

@@ -108,11 +108,12 @@ const stateDefaults = function () {
         snackbarMsg: "",
 
         // entity stuff
-        entityZoomData: null,
-        zoomId: null,
+        // entityZoomData: null,
+        // zoomId: null,
 
         zoomIdsStack: [],
-        zoomDataResponses: []
+        zoomDataResponses: [],
+
     }
     return ret
 }
@@ -200,21 +201,28 @@ export default new Vuex.Store({
                 state.zoomDataResponses = []
                 state.zoomIdsStack = router.currentRoute.query.zoom.split(",")
                 state.zoomIdsStack.forEach(zoomId => {
-                    const pathName = entityTypeFromId(zoomId) + "/" + zoomId
-                    // console.log("bootFromUrl calling pathName", pathName)
+                    if (zoomId.indexOf("filters") === 0){
+                        state.zoomDataResponses.push({
+                            display_name: zoomId
+                        })
+                    }
+                    else {
+                        const pathName = entityTypeFromId(zoomId) + "/" + zoomId
+                        // console.log("bootFromUrl calling pathName", pathName)
 
-                    // do this async to save time, and to keep results from jerky scroll behavior
-                    api.get(pathName).then(resp => {
-                        state.zoomDataResponses.push(resp)
-                    })
+                        // do this async to save time, and to keep results from jerky scroll behavior
+                        api.get(pathName).then(resp => {
+                            state.zoomDataResponses.push(resp)
+                        })
+                    }
+
+
                 })
 
 
 
             }
             else {
-                state.zoomId = null
-                state.entityZoomData = null
 
                 state.zoomDataResponses = []
                 state.zoomIdsStack = []
@@ -339,11 +347,11 @@ export default new Vuex.Store({
         // *****************************************
 
         // eslint-disable-next-line no-unused-vars
-        async setEntityZoom({commit, getters, dispatch, state}, id) {
-            console.log("setting entity zoom", id)
-            state.zoomId = id
-            dispatch("pushSearchUrl")
-        },
+        // async setEntityZoom({commit, getters, dispatch, state}, id) {
+        //     console.log("setting entity zoom", id)
+        //     state.zoomId = id
+        //     dispatch("pushSearchUrl")
+        // },
     },
     getters: {
         resultsFilters(state, getters) {
@@ -382,7 +390,7 @@ export default new Vuex.Store({
         // adds stuff just used by the ui
         searchQuery(state, getters) {
             const ret = getters.searchQueryBase
-            if (state.zoomId) ret.zoom = state.zoomId
+            if (getters.zoomId) ret.zoom = getters.zoomId
             return ret
         },
         // adds stuff just used by the ui
@@ -407,6 +415,7 @@ export default new Vuex.Store({
             const lastInStack = state.zoomIdsStack.slice(-1)[0]
             if (!lastInStack) return
             return state.zoomDataResponses.find(resp => {
+
                 return idsAreEqual(resp.id, lastInStack)
             })
         },

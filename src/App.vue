@@ -13,7 +13,7 @@
           style="width: 1100px;"
           class="align-center d-flex"
       >
-        <v-col cols="3" class="logo-section">
+        <v-col cols="2" class="logo-section">
           <router-link to="/" class="logo-link">
             <img
                 src="@/assets/openalex-logo-icon.png"
@@ -24,7 +24,7 @@
             </span>
           </router-link>
         </v-col>
-        <v-col cols="9">
+        <v-col cols="10">
           <search-box v-if="$route.name !== 'Home'"/>
         </v-col>
       </v-toolbar-items>
@@ -127,7 +127,7 @@
 import SearchBox from "./components/SearchBox";
 
 import Facet from "./components/Facet/Facet";
-import EntityZoom from "./components/EntityZoom";
+import EntityZoom from "./components/ZoomEntity";
 
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -227,18 +227,19 @@ html, body {
     align-items: center;
     //padding-left: 30px;
     .logo-icon {
-      height: 45px;
+      height: 35px;
     }
 
     .logo-text {
-      padding: 0 14px;
+      //padding: 0 14px;
+
       margin: 5px 15px;
       line-height: 1.2;
-      border-left: 1px solid #333;
+      //border-left: 1px solid #333;
       color: #000;
       font-family: Dosis;
       letter-spacing: .03em;
-      font-size: 30px;
+      font-size: 24px;
       font-weight: 300;
     }
   }

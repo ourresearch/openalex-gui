@@ -186,14 +186,9 @@ export default {
       return this.searchString.replace(":", " ").replace(",", " ")
     },
     autocompleteUrl() {
-      const url = new URL("https://api.openalex.org/autocomplete");
+      const url = new URL(`https://api.openalex.org/autocomplete/${this.selectedEntityType}`);
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
-      const singularName = this.selectedEntityType.slice(0, -1)
-      url.searchParams.set("entity_type", singularName)
-      // if (singularName !== "work") {
-      //   url.searchParams.set("entity_type", singularName)
-      // }
       return url.toString()
     }
   },
