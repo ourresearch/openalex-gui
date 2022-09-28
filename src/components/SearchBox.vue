@@ -71,20 +71,20 @@
       </template>
 
       <template v-slot:item="data">
-<!--        <v-subheader v-if="data.item.isFirstShortcut">-->
-<!--          Shortcuts-->
-<!--        </v-subheader>-->
-<!--        <v-subheader v-if="data.item.isFirstFilter">-->
-<!--          Shortcuts-->
-<!--        </v-subheader>-->
+        <!--        <v-subheader v-if="data.item.isFirstShortcut">-->
+        <!--          Shortcuts-->
+        <!--        </v-subheader>-->
+        <!--        <v-subheader v-if="data.item.isFirstFilter">-->
+        <!--          Shortcuts-->
+        <!--        </v-subheader>-->
         <v-list-item-icon>
           <entity-icon :type="data.item.entity_type + 's'"/>
         </v-list-item-icon>
         <v-list-item-content class="" style="">
           <v-list-item-title style="font-weight: normal; font-size: 16px;">
-<!--            <v-icon small>-->
-<!--              {{ (data.item.isShortcut) ? "mdi-subdirectory-arrow-right" : "mdi-filter"}}-->
-<!--            </v-icon>-->
+            <!--            <v-icon small>-->
+            <!--              {{ (data.item.isShortcut) ? "mdi-subdirectory-arrow-right" : "mdi-filter"}}-->
+            <!--            </v-icon>-->
             {{ data.item.display_name }}
           </v-list-item-title>
           <v-list-item-subtitle
@@ -121,6 +121,7 @@
 <script>
 import axios from 'axios'
 // import AbortController from 'axios'
+import {url} from "../url";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
@@ -233,7 +234,7 @@ export default {
       }, 0)
     },
 
-    doSearch: _.debounce( async function(context) {
+    doSearch: _.debounce(async function (context) {
       console.log("doSearch", context, this.select,)
       this.items = []
       const pushTo = {
@@ -241,39 +242,28 @@ export default {
       }
 
 
-      if (this.select?.id) { // there's an id: this is an entity-based search
+      if (this.select?.id) {
+        // there's an id: this is an entity-based search
         const shortId = this.select.id.replace("https://openalex.org/", "")
         const idEntityType = entityTypeFromId(shortId)
 
-        // search works with a filter
-        if (this.selectedEntityType === "works" && idEntityType !== "works") {
-          console.log("instead of going to entity page, do works search with filter", this.select)
-
-          const myEntityConfig = entityConfigs[entityTypeFromId(shortId)]
-          const myFilter = createSimpleFilter(
-              myEntityConfig.filterName + ".id",
-              shortId
-          )
-
-          // works search with filter
-          pushTo.query = {"filter": myFilter.asStr}
-          pushTo.params = {entityType: "works"}
-
-        } else {
-          // open entity zoom
-          pushTo.query = {zoom: shortId}
-          pushTo.params = {entityType: idEntityType}
-        }
+        // open entity zoom
+        pushTo.query = {zoom: shortId}
+        pushTo.params = {entityType: idEntityType}
         this.select = null
+        console.log("pushing this to router", pushTo)
+        await pushSafe(this.$router, pushTo)
 
-      // there's no ID, this is a text search
-      } else {
-        pushTo.params =  {entityType: this.selectedEntityType}
-        if (this.select) pushTo.query = {search: this.select}
+      } else if (this.select) {
+        // there's no ID, this is a text search
+        await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
+        // pushTo.params = {entityType: this.selectedEntityType}
+        // if (this.select) pushTo.query = {search: this.select}
+      }
+      else {
+        // blank search, do nothing.
       }
 
-      console.log("pushing this to router", pushTo)
-      await pushSafe(this.$router, pushTo)
     }, 10, {leading: false}),
     fetchSuggestions(v) {
       if (!this.searchString) {
@@ -286,8 +276,7 @@ export default {
             if (!this.searchString) {
               console.log("no search string, clearing items")
               this.items = []
-            }
-            else {
+            } else {
               let items = resp.data.results.map(i => {
                 const pluralEntityType = i.entity_type + "s"
                 i.icon = entityConfigs[pluralEntityType].icon

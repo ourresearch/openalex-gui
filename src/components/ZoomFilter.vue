@@ -2,25 +2,43 @@
 
   <v-card flat>
 
-    <div class="pt-6 px-6 pb-3 d-flex">
+    <div class="pt-6 px-6 pb-0 d-flex">
       <div>
         <div class="text-h6 font-weight-medium mx-0" style="font-weight: 450 !important; line-height: 1.5;">
-          <span>Add filter</span>
-          <span v-if="myFacetConfig"> > {{ myFacetConfig.displayName }}</span>
+          <template v-if="myFacetConfig">
+            <router-link :to="'filters' | zoomLink" class="text-decoration-none">Add filter</router-link>
+            <v-icon>mdi-chevron-right</v-icon>
+            <span>{{ myFacetConfig.displayName }}</span>
+          </template>
+          <span v-else>Add filter</span>
         </div>
-        <div>{{ resultsCount | millify }} results</div>
+        <div></div>
       </div>
       <v-spacer/>
       <div class="pl-10">
         <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
           <v-icon>mdi-close</v-icon>
         </v-btn>
-
       </div>
+    </div>
+    <div class="px-6 pb-2">
+      <v-text-field
+          flat
+          outlined
+          dense
+          solo
+          hide-details
+          append-icon="mdi-magnify"
+          clearable
+          style="width: 100%;"
+
+          v-model="search"
+          :placeholder="searchPlaceholder"
+      />
     </div>
     <v-divider></v-divider>
     <v-card-text class="pa-6" style="font-size: 16px;">
-      <div v-if="!myFacetConfig">
+      <div v-if="!myFacetConfig && !searchResults.length">
         <div v-for="facet in searchFacetConfigs" :key="facet.key">
           <router-link
               :to="'filters:' + facet.key | zoomLink"
@@ -31,19 +49,27 @@
       </div>
       <div v-else>
 
-        <facet-option
-            v-for="filter in tableItems"
-            :filter="filter"
-            :show-checked="filter.isResultsFilter"
-            :key="filter.asStr + filter.isResultsFilter"
-            :indent="facetKey === 'oa_status' && filter.value != 'closed'"
-        />
+          <div v-for="result in searchResults">
+            {{ result }}
+          </div>
+
+<!--        <facet-option-->
+<!--            v-for="filter in tableItems"-->
+<!--            :filter="filter"-->
+<!--            :show-checked="filter.isResultsFilter"-->
+<!--            :key="filter.asStr + filter.isResultsFilter"-->
+<!--            :indent="facetKey === 'oa_status' && filter.value != 'closed'"-->
+<!--        />-->
       </div>
 
     </v-card-text>
     <v-divider/>
     <v-card-actions class="py-6 px-5">
-      action
+      <v-btn
+          color="primary"
+      >
+        View {{ resultsCount | millify }} results
+      </v-btn>
     </v-card-actions>
 
 
@@ -62,6 +88,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../facetConfigs";
 import FacetOption from "./Facet/FacetOption";
 import {api} from "../api";
+import axios from "axios";
 
 const compareByCount = function (a, b) {
   if (a.count > b.count) {
@@ -84,7 +111,9 @@ export default {
   },
   data() {
     return {
+      search: "",
       foo: 42,
+      searchResults: [],
       potentialFilterValues: [],
       groupByQueryResultsCount: null,
     }
@@ -99,6 +128,9 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
     ]),
+    searchPlaceholder() {
+      return "search for stuff"
+    },
     facetKey() {
       return this.zoomId.split(":")[1]
     },
@@ -151,6 +183,14 @@ export default {
         query: newQuery,
       }
     },
+
+    autocompleteUrl() {
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = this.myFacetConfig?.autocompleteEndpoint ?? "autocomplete"
+      url.searchParams.set("email", "team@ourresearch.org")
+      url.searchParams.set("q", this.search)
+      return url.toString()
+    },
     apiUrl() {
       // const shortId = this.entityZoomData.id.replace("https://openalex.org/", "")
       // const entityType = entityTypeFromId(shortId)
@@ -186,6 +226,32 @@ export default {
         )
       })
     },
+    fetchSuggestions() {
+      if (!this.search) {
+        this.searchResults = []
+        return
+      }
+      // this.isFetchingItems = true
+      axios.get(this.autocompleteUrl)
+          .then(resp => {
+            if (!this.search) {
+              console.log("no search string, clearing items")
+              this.items = []
+            }
+            else {
+              let items = resp.data.results.map(i => {
+                // return createDisplayFilter(
+                //
+                // )
+
+                const pluralEntityType = i.entity_type + "s"
+                // i.icon = entityConfigs[pluralEntityType].icon
+                return i
+              })
+              this.searchResults = items.slice(0, 5)
+            }
+          })
+    }
   },
   created() {
   },
@@ -193,6 +259,10 @@ export default {
     console.log("mount up")
   },
   watch: {
+    search(newVal, oldVal) {
+      console.log("search changed" , newVal)
+      this.fetchSuggestions()
+    },
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
@@ -200,7 +270,8 @@ export default {
         this.setFilterOptions()
       }
       ,
-    },}
+    },
+  }
 }
 </script>
 
