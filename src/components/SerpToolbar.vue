@@ -187,7 +187,7 @@
                     class="align-baseline"
                     @click="removeTextSearch()"
                 >
-                  <v-icon small>mdi-filter-outline</v-icon>
+                  <v-icon small>mdi-filter-remove-outline</v-icon>
                 </v-btn>
               </td>
               <td class="filter-key">
@@ -195,14 +195,6 @@
               </td>
               <td class="filter-value">
                 "{{ textSearch }}"
-                <v-btn
-                    icon
-                    x-small
-                    class="align-baseline"
-                    @click="removeTextSearch()"
-                >
-                  <v-icon small>mdi-close</v-icon>
-                </v-btn>
               </td>
               <td>
 
@@ -219,9 +211,10 @@
                 <v-btn
                     icon
                     small
-                    class="align-baseline"
+                    class="align-baseline no-active"
+                    :to="f | linkRemoveFilter"
                 >
-                  <v-icon small>mdi-filter-outline</v-icon>
+                  <v-icon small>mdi-filter-remove-outline</v-icon>
                 </v-btn>
 
               </td>
@@ -247,14 +240,6 @@
                   />
                   {{ f.displayValue | prettyName }}
                 </span>
-                <v-btn
-                    icon
-                    x-small
-                    class="align-baseline"
-                    :to="f | linkRemoveFilter"
-                >
-                  <v-icon small>mdi-close</v-icon>
-                </v-btn>
               </td>
               <td>
 
@@ -455,7 +440,7 @@ export default {
     removeTextSearch() {
       this.$router.push({
         name: "Serp",
-        filter: this.inputFiltersAsString,
+        query: {filter: this.$route.query.filter}
       })
     },
     removeFiltersAndSearch() {
