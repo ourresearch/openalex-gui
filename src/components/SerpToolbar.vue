@@ -187,7 +187,7 @@
                     class="align-baseline"
                     @click="removeTextSearch()"
                 >
-                  <v-icon small>mdi-close</v-icon>
+                  <v-icon small>mdi-filter-outline</v-icon>
                 </v-btn>
               </td>
               <td class="filter-key">
@@ -195,6 +195,18 @@
               </td>
               <td class="filter-value">
                 "{{ textSearch }}"
+                <v-btn
+                    icon
+                    x-small
+                    class="align-baseline"
+                    @click="removeTextSearch()"
+                >
+                  <v-icon small>mdi-close</v-icon>
+                </v-btn>
+              </td>
+              <td>
+
+
               </td>
             </tr>
 
@@ -208,9 +220,8 @@
                     icon
                     small
                     class="align-baseline"
-                    @click="removeInputFilters([f])"
                 >
-                  <v-icon small>mdi-close</v-icon>
+                  <v-icon small>mdi-filter-outline</v-icon>
                 </v-btn>
 
               </td>
@@ -218,6 +229,7 @@
                 {{ f.displayName }}:
               </td>
               <td class="filter-value">
+
                 <router-link
                     v-if="f.isEntity"
                     :to="f.value | zoomLink"
@@ -235,6 +247,18 @@
                   />
                   {{ f.displayValue | prettyName }}
                 </span>
+                <v-btn
+                    icon
+                    x-small
+                    class="align-baseline"
+                    :to="f | linkRemoveFilter"
+                >
+                  <v-icon small>mdi-close</v-icon>
+                </v-btn>
+              </td>
+              <td>
+
+
               </td>
             </tr>
           </table>
@@ -487,12 +511,14 @@ export default {
   async mounted() {
   },
   watch: {
-    "$route": function(to, from){
+    "$route": function (to, from) {
       // hack.
       // otherwise the tooltip on the "filter results" button returns when you close the zoom, for some reason.
-      if (!to.query.zoom){
+      if (!to.query.zoom) {
         const that = this
-        setTimeout(function(){that.filterResultsTooltip = false}, 10)
+        setTimeout(function () {
+          that.filterResultsTooltip = false
+        }, 10)
       }
     }
   }

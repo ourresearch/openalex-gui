@@ -28,6 +28,7 @@ const addDisplayNamesToFilters = async function (filtersList) {
     })
 }
 
+
 const filtersFromUrlStr = function (str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
@@ -58,6 +59,16 @@ const filtersAsUrlStr = function (filters, keyToNegate) {
         return k + ":" + valueString
     })
     return facetStrings.join(",")
+}
+
+
+const removeFilterFromUrlStr = function(urlStr, filterToRemove){
+    if (!urlStr) return
+    const filters = filtersFromUrlStr(urlStr)
+    const newFilters = filters.filter(f => {
+        return f.asStr !== filterToRemove.asStr
+    })
+    return filtersAsUrlStr(newFilters)
 }
 
 const makeResultsFiltersFromApi = function (apiFacets) {
@@ -111,6 +122,7 @@ const createDisplayFilter = function (key, value, displayValue, count) {
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
+    removeFilterFromUrlStr,
 
     makeResultsFiltersFromApi,
     createSimpleFilter,

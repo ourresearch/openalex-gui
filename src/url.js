@@ -12,13 +12,18 @@ const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
     return newQuery
+}
 
+const removeFromQuery = function (oldQuery, k) {
+    const newQuery = {...oldQuery}
+    delete newQuery[k]
+    return newQuery
 }
 
 const pushNewSearch = async function (router, entityType, search) {
     const newRoute = {
         name: "Serp",
-        params: {entityType, },
+        params: {entityType,},
         query: addToQuery(router.currentRoute.query, "search", search)
     }
 

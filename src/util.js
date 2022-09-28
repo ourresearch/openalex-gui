@@ -4,6 +4,16 @@ async function sleep(ms) {
     });
 }
 
+const setOrDelete = function(obj, k, v){
+    if (v){
+        obj[k] = v
+    }
+    else {
+        delete obj[k]
+    }
+    return obj
+}
+
 function hashCode(str) {
     return Math.abs(str.split('').reduce((prevHash, currVal) =>
         (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
@@ -76,4 +86,5 @@ export {
     entityTypes,
     unravel,
     idsAreEqual,
+    setOrDelete,
 }

@@ -6,9 +6,14 @@ import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
-import {idsAreEqual} from "./util";
+import {idsAreEqual, setOrDelete} from "./util";
+import _ from 'lodash'
 
-import {filtersFromUrlStr, filtersAsUrlStr} from "./filterConfigs";
+import {
+    filtersFromUrlStr,
+    filtersAsUrlStr,
+    removeFilterFromUrlStr,
+} from "./filterConfigs";
 
 Vue.config.productionTip = false
 
@@ -44,6 +49,7 @@ Vue.filter("idLink", function (fullId) {
 })
 
 
+
 Vue.filter("zoomLink", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")
@@ -60,6 +66,20 @@ Vue.filter("zoomLink", function (fullId) {
     const queryString = Object.entries(paramsDict).map(([k, v]) => `${k}=${v}`).join("&")
     url.search = "?" + queryString
     return [url.path, queryString].join("?")
+});
+
+
+Vue.filter("linkRemoveFilter", function (filterObject) {
+    if (!filterObject) return
+    const newFiltersStr = removeFilterFromUrlStr(router.currentRoute.query.filter, filterObject)
+    const newQuery = {...router.currentRoute.query}
+    setOrDelete(newQuery, "filter", newFiltersStr)
+    delete newQuery.page
+    const ret = {
+        name: "Serp",
+        query: newQuery,
+    }
+    return ret
 });
 
 
