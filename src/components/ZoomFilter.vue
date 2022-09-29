@@ -2,65 +2,79 @@
 
   <v-card flat>
 
-    <div class="pt-6 px-6 pb-0 d-flex">
+    <div class="pt-3 px-6 pb-2 d-flex align-center">
       <div>
         <div class="text-h6 font-weight-medium mx-0" style="font-weight: 450 !important; line-height: 1.5;">
+
+          <v-icon>mdi-filter-outline</v-icon>
           <template v-if="myFacetConfig">
-            <router-link :to="'filters' | zoomLink" class="text-decoration-none">Add filter</router-link>
+            <router-link :to="'filters' | zoomLink" class="text-decoration-none">Filters</router-link>
             <v-icon>mdi-chevron-right</v-icon>
             <span>{{ myFacetConfig.displayName }}</span>
           </template>
-          <span v-else>Add filter</span>
+          <span v-else>Filters</span>
         </div>
-        <div></div>
       </div>
-      <v-spacer/>
-      <div class="pl-10">
-        <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-    </div>
-    <div class="px-6 pb-2">
-      <v-text-field
-          flat
-          outlined
-          dense
-          solo
-          hide-details
-          append-icon="mdi-magnify"
-          clearable
-          style="width: 100%;"
+      <div class="flex-fill pl-6 pr-2">
+        <v-text-field
+            flat
+            outlined
+            dense
+            solo
+            hide-details
+            append-icon="mdi-magnify"
+            full-width
+            clearable
 
-          v-model="search"
-          :placeholder="searchPlaceholder"
-      />
+            v-model="search"
+            :placeholder="searchPlaceholder"
+        />
+      </div>
+      <div>
+        <div class="">
+          <v-btn large icon :to="currentUrlWithoutZoom" class="no-active">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+      </div>
+
     </div>
     <v-divider></v-divider>
     <v-card-text class="pa-6" style="font-size: 16px;">
-      <div v-if="!myFacetConfig && !searchResults.length">
-        <div v-for="facet in searchFacetConfigs" :key="facet.key">
-          <router-link
-              :to="'filters:' + facet.key | zoomLink"
-          >
-            {{ facet.displayName }}
-          </router-link>
+
+      <div v-if="search">
+<!--      always show search results if we have them-->
+        <div
+            v-for="result in searchResults"
+        >
+          {{ result }}
         </div>
       </div>
+
       <div v-else>
-
-          <div v-for="result in searchResults">
-            {{ result }}
+<!--      if no search results, depends on what page we're on.-->
+        <div v-if="myFacetConfig">
+<!--        no search results, and we're a specific facet-->
+          <facet-option
+              v-for="filter in tableItems"
+              :filter="filter"
+              :show-checked="filter.isResultsFilter"
+              :key="filter.asStr + filter.isResultsFilter"
+              :indent="facetKey === 'oa_status' && filter.value != 'closed'"
+          />
+        </div>
+        <div v-else>
+<!--        no search results, and we're on the general "filters" page -->
+          <div v-for="facet in searchFacetConfigs" :key="facet.key">
+            <router-link
+                :to="'filters:' + facet.key | zoomLink"
+            >
+              {{ facet.displayName }}
+            </router-link>
           </div>
-
-<!--        <facet-option-->
-<!--            v-for="filter in tableItems"-->
-<!--            :filter="filter"-->
-<!--            :show-checked="filter.isResultsFilter"-->
-<!--            :key="filter.asStr + filter.isResultsFilter"-->
-<!--            :indent="facetKey === 'oa_status' && filter.value != 'closed'"-->
-<!--        />-->
+        </div>
       </div>
+
 
     </v-card-text>
     <v-divider/>
@@ -237,8 +251,7 @@ export default {
             if (!this.search) {
               console.log("no search string, clearing items")
               this.items = []
-            }
-            else {
+            } else {
               let items = resp.data.results.map(i => {
                 // return createDisplayFilter(
                 //
@@ -260,7 +273,7 @@ export default {
   },
   watch: {
     search(newVal, oldVal) {
-      console.log("search changed" , newVal)
+      console.log("search changed", newVal)
       this.fetchSuggestions()
     },
     "$route.query": {
@@ -268,6 +281,7 @@ export default {
       handler(newVal, oldVal) {
         console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
         this.setFilterOptions()
+        this.search = ""
       }
       ,
     },

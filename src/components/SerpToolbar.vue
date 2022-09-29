@@ -101,10 +101,9 @@
       <v-btn
           icon
           @click="openCreateAlertDialog"
-          disabled
           class="mr-1"
       >
-        <v-icon>mdi-bell-outline</v-icon>
+        <v-icon>mdi-bell-off-outline</v-icon>
       </v-btn>
 
 
@@ -158,7 +157,7 @@
               fab
               small
           >
-            <v-icon>mdi-filter-plus</v-icon>
+            <v-icon>mdi-filter</v-icon>
           </v-btn>
         </template>
         <span>Filter results</span>
@@ -219,7 +218,9 @@
 
               </td>
               <td class="filter-key  pr-1">
-                {{ f.displayName }}:
+                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">
+                  {{ f.displayName }}:
+                </router-link>
               </td>
               <td class="filter-value">
 

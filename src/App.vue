@@ -2,44 +2,31 @@
   <v-app>
     <v-app-bar
         app
-        fixed
-        clipped-right
         color="white"
         class=""
+        fixed
         elevate-on-scroll
 
     >
-      <v-toolbar-items
-          style="width: 1100px;"
-          class="align-center d-flex"
-      >
-        <v-col cols="2" class="logo-section">
-          <router-link to="/" class="logo-link">
-            <img
-                src="@/assets/openalex-logo-icon.png"
-                class="logo-icon"
-            />
-            <span class="logo-text">
-              OpenAlex
-            </span>
-          </router-link>
-        </v-col>
-        <v-col cols="10">
-          <search-box v-if="$route.name !== 'Home'"/>
-        </v-col>
-      </v-toolbar-items>
-      <v-spacer></v-spacer>
+      <div class="d-flex flex-fill justify-space-between align-center">
+        <div class="d-flex flex-fill" style="max-width: 1000px;">
+          <v-col cols="2" class="logo-section">
+            <router-link to="/" class="logo-link">
+              <img
+                  src="@/assets/openalex-logo-icon.png"
+                  class="logo-icon"
+              />
+              <span class="logo-text">
+                OpenAlex
+              </span>
+            </router-link>
+          </v-col>
+          <v-col cols="10">
+            <search-box v-if="$route.name !== 'Home'"/>
+          </v-col>
+        </div>
 
-      <!--      DESKTOP MENU -->
-      <v-toolbar-items v-if="0" class=" hidden-sm-and-down">
-        <v-btn class="no-active low-key-button" text to="/">Home</v-btn>
-        <v-btn class="no-active low-key-button" text href="/about">
-          About
-        </v-btn>
-      </v-toolbar-items>
-
-      <!--      MOBILE MENU -->
-      <div class="">
+        <div class="">
         <v-menu offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">
             <v-btn icon color="" v-on="on">
@@ -57,15 +44,29 @@
         </v-menu>
       </div>
 
+      </div>
+
+<!--      <v-toolbar-items-->
+<!--          class="align-center flex-fill"-->
+
+<!--      >-->
+
+<!--      </v-toolbar-items>-->
+<!--      <v-spacer></v-spacer>-->
+
+
+      <!--      MOBILE MENU -->
+
+
 
     </v-app-bar>
 
 
     <v-main :style="{paddingRight: 0}">
-      <v-container fluid>
+      <div style="max-width: 1000px; margin: 0 16px;">
         <router-view/>
 
-      </v-container>
+      </div>
 
     </v-main>
 
