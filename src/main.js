@@ -53,6 +53,9 @@ Vue.filter("idLink", function (fullId) {
 Vue.filter("zoomLink", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")
+
+
+
     const url = new URL(window.location.href)
     const paramsDict = Object.fromEntries(new URLSearchParams(location.search))
     const zoomIds = paramsDict.zoom?.split(",") ?? []

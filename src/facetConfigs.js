@@ -10,9 +10,23 @@ const allEntityTypes = function (hideThese) {
     }
 }
 
-const makeFacetQueryFilters = function(facetFilters){
+const makeFacetQueryFilters = function (facetFilters) {
 
 }
+
+
+const onlyReturnTheseFacets = [
+    "authorships.author.id",
+    "authorships.institutions.country_code",
+    "authorships.institutions.id",
+    "authorships.institutions.type",
+    "host_venue.display_name",
+    "host_venue.license",
+    "host_venue.publisher",
+    "host_venue.type",
+    "open_access.oa_status",
+    "type"
+]
 
 const facetConfigs = function () {
     const ret = [
@@ -27,14 +41,9 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
 
-        // {
-        //     key: "search",
-        //     entityTypes: ["works", "authors", "venues", "institutions", "concepts"],
-        //     displayName: "Fulltext search",
-        // },
-
 
         // works
+        // wavic
         {
             key: "concepts.id",
             entityTypes: ["works"],
@@ -54,7 +63,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
         {
-            key: "institutions.id",
+            key: "authorships.institutions.id",
             entityTypes: ["works"],
             displayName: "Institution",
             isEntity: true,
@@ -63,7 +72,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
         {
-            key: "author.id",
+            key: "authorships.author.id",
             entityTypes: ["works"],
             displayName: "Author",
             isEntity: true,
@@ -71,18 +80,9 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
         },
-        {
-            key: "is_oa",
-            entityTypes: ["works"],
-            displayName: "Free to read",
-            valuesToShow: "mostCommon",
-        },
-        // {
-        //     key: "has_abstract",
-        //     entityTypes: ["works"],
-        //     displayName: "Has abstract",
-        //     valuesToShow: "mostCommon",
-        // },
+
+
+        // host venue
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],
@@ -91,7 +91,46 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
         {
-            key: "institutions.country_code",
+            key: "host_venue.type",
+            entityTypes: ["works"],
+            displayName: "Venue type",
+            autocompleteEndpoint: "autocomplete/venues/publisher",
+            valuesToShow: "mostCommon",
+        },
+
+
+        // open access
+        {
+            key: "is_oa",
+            entityTypes: ["works"],
+            displayName: "Free to read",
+            valuesToShow: "mostCommon",
+        },
+        {
+            key: "host_venue.license",
+            entityTypes: ["works"],
+            displayName: "License",
+            valuesToShow: "mostCommon",
+        },
+        {
+            key: "open_access.oa_status",
+            entityTypes: ["works"],
+            displayName: "OA status",
+            valuesToShow: "mostCommon",
+        },
+
+
+        // {
+        //     key: "has_abstract",
+        //     entityTypes: ["works"],
+        //     displayName: "Has abstract",
+        //     valuesToShow: "mostCommon",
+        // },
+
+
+        // institutions:
+        {
+            key: "authorships.institutions.country_code",
             entityTypes: ["works"],
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
@@ -99,11 +138,23 @@ const facetConfigs = function () {
             isCountry: true,
         },
         {
+            key: "authorships.institutions.type",
+            entityTypes: ["works"],
+            displayName: "Institution type",
+            autocompleteEndpoint: "autocomplete/institutions/country",
+            valuesToShow: "mostCommon",
+        },
+
+
+        // general work stuff
+        {
             key: "type",
             entityTypes: ["works"],
             displayName: "Type",
             valuesToShow: "mostCommon",
         },
+
+        // links to other works
         {
             key: "cited_by",
             entityTypes: ["works"],
@@ -209,7 +260,9 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
         },
     ]
-    return ret.map(config => {
+    return ret
+        .filter(f => onlyReturnTheseFacets.includes(f.key))
+        .map(config => {
         return {
             ...config,
             // values: [],
@@ -217,7 +270,7 @@ const facetConfigs = function () {
     })
 }
 
-const getFacetConfig = function(key, attr){
+const getFacetConfig = function (key, attr) {
     const myFacetConfig = facetConfigs().find(f => f.key === key)
     if (!myFacetConfig) throw(`openAlex error: getFacetConfig: no such key as "${key}"`)
 
@@ -225,7 +278,7 @@ const getFacetConfig = function(key, attr){
     if (myFacetConfig) return myFacetConfig[attr]
 }
 
-const makeFacet = function(key, isNegated, values){
+const makeFacet = function (key, isNegated, values) {
     return {
         key,
         isNegated,
@@ -235,7 +288,6 @@ const makeFacet = function(key, isNegated, values){
     }
 
 }
-
 
 
 export {

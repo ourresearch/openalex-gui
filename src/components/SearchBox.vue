@@ -10,7 +10,7 @@
         hide-details
         item-text="display_name"
         item-value="id"
-        append-icon="mdi-magnify"
+        :append-icon="(false) ? 'mdi-magnify' : ''"
         id="main-search"
         style="width: 100%;"
 
@@ -31,16 +31,15 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-                large
                 tile
-                class="ma-0 text-capitalize"
+                class="ma-0 text-capitalize px-0"
                 depressed
                 v-bind="attrs"
                 v-on="on"
                 @click="openEntityMenu"
             >
-              <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>
-              <span>{{ selectedEntityTypeConfig.displayName }}</span>
+              <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>
+              <span class="d-none">{{ selectedEntityTypeConfig.displayName }}</span>
               <v-icon right>mdi-menu-down</v-icon>
             </v-btn>
           </template>

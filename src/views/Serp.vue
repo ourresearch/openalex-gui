@@ -3,7 +3,7 @@
 
 
     <div class="serp-container d-flex">
-      <v-col cols="2" class="facets-panel-container">
+      <v-col cols="2" class="facets-panel-container d-none d-md-block">
 <!--        <facet-->
 <!--            v-for="facet in searchFacetConfigs"-->
 <!--            :key="facet.key"-->
@@ -13,8 +13,10 @@
 
 
       <v-col
-          cols="10"
-          class="results-panel-container flex-fill mt-6"
+          cols="12"
+          md="10"
+
+          class="results-panel-container flex-fill mt-6 px-0"
           v-if="$store.state.resultsCount !== null"
       >
         <div class="search-results-meta" style="width: 100%;">

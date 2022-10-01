@@ -10,7 +10,7 @@
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 1000px;">
-          <v-col cols="2" class="logo-section">
+          <v-col cols="2" class="logo-section d-none d-md-block">
             <router-link to="/" class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon.png"
@@ -21,42 +21,47 @@
               </span>
             </router-link>
           </v-col>
-          <v-col cols="10">
+          <v-col cols="12" md="10" class="px-0 d-flex">
+            <router-link to="/" class="logo-link pr-4 d-md-none">
+              <img
+                  src="@/assets/openalex-logo-icon.png"
+                  class="logo-icon"
+              />
+            </router-link>
             <search-box v-if="$route.name !== 'Home'"/>
           </v-col>
         </div>
 
         <div class="">
-        <v-menu offset-y content-class="no-highlight" min-width="150">
-          <template v-slot:activator="{on}">
-            <v-btn icon color="" v-on="on">
-              <v-icon class="">mdi-menu</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item to="/">Home</v-list-item>
-            <v-list-item href="/about">
-              About
-            </v-list-item>
-            <!--            <v-list-item to="./projects">Projects</v-list-item>-->
-            <!--            <v-list-item to="./transparency">Transparency</v-list-item>-->
-          </v-list>
-        </v-menu>
-      </div>
+          <v-menu offset-y content-class="no-highlight" min-width="150">
+            <template v-slot:activator="{on}">
+              <v-btn icon color="" v-on="on">
+                <v-icon class="">mdi-menu</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/">Home</v-list-item>
+              <v-list-item href="/about">
+                About
+              </v-list-item>
+              <!--            <v-list-item to="./projects">Projects</v-list-item>-->
+              <!--            <v-list-item to="./transparency">Transparency</v-list-item>-->
+            </v-list>
+          </v-menu>
+        </div>
 
       </div>
 
-<!--      <v-toolbar-items-->
-<!--          class="align-center flex-fill"-->
+      <!--      <v-toolbar-items-->
+      <!--          class="align-center flex-fill"-->
 
-<!--      >-->
+      <!--      >-->
 
-<!--      </v-toolbar-items>-->
-<!--      <v-spacer></v-spacer>-->
+      <!--      </v-toolbar-items>-->
+      <!--      <v-spacer></v-spacer>-->
 
 
       <!--      MOBILE MENU -->
-
 
 
     </v-app-bar>
@@ -220,32 +225,34 @@ html, body {
   opacity: 0.00005 !important;
 }
 
+.theme--light.v-list-item--active::before {
+  opacity: 0;
+}
 
-.logo-section {
-  .logo-link {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    //padding-left: 30px;
-    .logo-icon {
-      height: 35px;
-    }
 
-    .logo-text {
-      //padding: 0 14px;
-
-      margin: 5px 15px;
-      line-height: 1.2;
-      //border-left: 1px solid #333;
-      color: #000;
-      font-family: Dosis;
-      letter-spacing: .03em;
-      font-size: 24px;
-      font-weight: 300;
-    }
+.logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  //padding-left: 30px;
+  .logo-icon {
+    height: 35px;
   }
 
+  .logo-text {
+    //padding: 0 14px;
+
+    margin: 5px 15px;
+    line-height: 1.2;
+    //border-left: 1px solid #333;
+    color: #000;
+    font-family: Dosis;
+    letter-spacing: .03em;
+    font-size: 24px;
+    font-weight: 300;
+  }
 }
+
 
 .v-btn--active.no-active {
   //text-decoration: underline !important;

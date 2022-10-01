@@ -1,8 +1,39 @@
 <template>
 
   <v-card flat>
+    <v-toolbar
+        class="px-0"
+        flat
+        extended
+    >
+      <v-icon class="mr-2">mdi-filter-outline</v-icon>
+      <v-toolbar-title class="mr-6">
+        Filter by
+        <span class="font-weight-bold">{{ myFacetConfig.displayName }}</span>
+      </v-toolbar-title>
+      <v-spacer />
+      <v-btn icon :to="currentUrlWithoutZoom" class="no-active">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <template v-slot:extension>
+          <v-text-field
+              flat
+              outlined
+              dense
+              solo
+              hide-details
+              prepend-inner-icon="mdi-magnify"
+              full-width
+              clearable
+              class="pb-2"
 
-    <div class="pt-3 px-6 pb-2 d-flex align-center">
+              v-model="search"
+              :placeholder="searchPlaceholder"
+          />
+      </template>
+    </v-toolbar>
+
+    <div v-if="0" class=" pt-3 px-6 pb-2 d-flex align-center">
       <div>
         <div class="text-h6 font-weight-medium mx-0" style="font-weight: 450 !important; line-height: 1.5;">
 
@@ -22,7 +53,7 @@
             dense
             solo
             hide-details
-            append-icon="mdi-magnify"
+            prepend-inner-icon="mdi-magnify"
             full-width
             clearable
 
@@ -40,40 +71,17 @@
 
     </div>
     <v-divider></v-divider>
-    <v-card-text class="pa-6" style="font-size: 16px;">
+    <v-card-text class="pa-6" style="font-size: 16px; min-height: 70vh;">
 
-      <div v-if="search">
-<!--      always show search results if we have them-->
-        <div
-            v-for="result in searchResults"
-        >
-          {{ result }}
-        </div>
-      </div>
 
-      <div v-else>
-<!--      if no search results, depends on what page we're on.-->
-        <div v-if="myFacetConfig">
-<!--        no search results, and we're a specific facet-->
-          <facet-option
-              v-for="filter in tableItems"
-              :filter="filter"
-              :show-checked="filter.isResultsFilter"
-              :key="filter.asStr + filter.isResultsFilter"
-              :indent="facetKey === 'oa_status' && filter.value != 'closed'"
-          />
-        </div>
-        <div v-else>
-<!--        no search results, and we're on the general "filters" page -->
-          <div v-for="facet in searchFacetConfigs" :key="facet.key">
-            <router-link
-                :to="'filters:' + facet.key | zoomLink"
-            >
-              {{ facet.displayName }}
-            </router-link>
-          </div>
-        </div>
-      </div>
+        <facet-option
+            v-for="filter in filtersToShow"
+            :filter="filter"
+            :show-checked="filter.isResultsFilter"
+            :key="filter.asStr + filter.isResultsFilter"
+            :indent="facetKey === 'oa_status' && filter.value != 'closed'"
+        />
+
 
 
     </v-card-text>
@@ -127,8 +135,8 @@ export default {
     return {
       search: "",
       foo: 42,
-      searchResults: [],
-      potentialFilterValues: [],
+      filtersFromAutocomplete: [],
+      filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
     }
   },
@@ -138,19 +146,25 @@ export default {
       "resultsCount",
       "entityZoomData",
       "searchFacetConfigs",
+      "resultsFilters",
       "zoomId",
+      "textSearch",
+      "entityType",
       "zoomTypeConfig",
       "entityZoomHistoryData",
     ]),
     searchPlaceholder() {
-      return "search for stuff"
+      const displayName = this
+          .$pluralize(this.myFacetConfig.displayName, 2)
+          .toLowerCase()
+      return `search ${displayName}`
     },
     facetKey() {
       return this.zoomId.split(":")[1]
     },
-    tableItems() {
-      let ret = [...this.resultsFiltersToShow]
-      this.potentialFilterValues
+    filtersToShowWhenNotSearching() {
+      let ret = [...this.filtersFromServer]
+      this.filtersFromGroupBy
           .filter(f => f.value !== "unknown")
           .slice(0, this.maxPotentialFiltersToShow).forEach(f => {
 
@@ -167,7 +181,9 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetKey)
     },
-    apiQuery() {
+
+    // this is old and unused
+    groupByQueryObj() {
       const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
       const ret = {
         group_by: this.facetKey,
@@ -176,7 +192,17 @@ export default {
       if (this.$store.state.textSearch) ret.search = this.$store.state.textSearch
       return ret
     },
-    resultsFiltersToShow() {
+    filtersToShow(){
+      if (this.search) {
+        return this.filtersFromAutocomplete
+      }
+      else {
+        return this.filtersToShowWhenNotSearching
+      }
+    },
+
+
+    filtersFromServer() {
       // these ones are already selected by the user. we got them from the store,
       // which refreshes them from the server every time we search.
       // (which may have gotten from either user action or the URL)
@@ -197,18 +223,16 @@ export default {
         query: newQuery,
       }
     },
-
     autocompleteUrl() {
       const url = new URL(`https://api.openalex.org`);
-      url.pathname = this.myFacetConfig?.autocompleteEndpoint ?? "autocomplete"
-      url.searchParams.set("email", "team@ourresearch.org")
+      // url.pathname = this.myFacetConfig?.autocompleteEndpoint ?? "autocomplete"
+      url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
+      url.searchParams.set("filter", filtersAsUrlStr(this.resultsFilters))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
       url.searchParams.set("q", this.search)
+      url.searchParams.set("email", "team@ourresearch.org")
+
       return url.toString()
-    },
-    apiUrl() {
-      // const shortId = this.entityZoomData.id.replace("https://openalex.org/", "")
-      // const entityType = entityTypeFromId(shortId)
-      // return `https://api.openalex.org/${entityType}/${shortId}`
     },
   },
 
@@ -228,10 +252,10 @@ export default {
 
       const resp = await api.get(
           this.$store.state.entityType,
-          this.apiQuery,
+          this.groupByQueryObj,
       )
       this.groupByQueryResultsCount = resp.meta.count
-      this.potentialFilterValues = resp.group_by.map(group => {
+      this.filtersFromGroupBy = resp.group_by.map(group => {
         return createDisplayFilter(
             this.facetKey,
             group.key,
@@ -242,26 +266,24 @@ export default {
     },
     fetchSuggestions() {
       if (!this.search) {
-        this.searchResults = []
+        this.filtersFromAutocomplete = []
         return
       }
       // this.isFetchingItems = true
       axios.get(this.autocompleteUrl)
           .then(resp => {
-            if (!this.search) {
-              console.log("no search string, clearing items")
-              this.items = []
-            } else {
-              let items = resp.data.results.map(i => {
-                // return createDisplayFilter(
-                //
-                // )
-
-                const pluralEntityType = i.entity_type + "s"
-                // i.icon = entityConfigs[pluralEntityType].icon
-                return i
+              this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
+                return createDisplayFilter(
+                    this.myFacetConfig.key,
+                    apiData.value,
+                    apiData.display_value,
+                    apiData.works_count,
+                )
               })
-              this.searchResults = items.slice(0, 5)
+
+            if (!this.search) {
+              this.filtersFromAutocomplete = []
+            } else {
             }
           })
     }

@@ -4,8 +4,9 @@
       class="mb-8 serp-filters-list"
   >
     <div class="d-flex align-baseline">
+      <serp-filter-button class="ml-1" />
       <div
-          class="subtitle-1"
+          class="subtitle-1 ml-2"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
         <span class=" font-weight-bold">
@@ -14,13 +15,13 @@
           {{ entityType | pluralize(results.length) }}
 
         </span>
-        <a
-            v-if="resultsFilters.length > 0 || textSearch"
-            @click="removeFiltersAndSearch"
-            style="font-size: 16px;"
-        >
-          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})
-        </a>
+<!--        <a-->
+<!--            v-if="resultsFilters.length > 0 || textSearch"-->
+<!--            @click="removeFiltersAndSearch"-->
+<!--            style="font-size: 16px;"-->
+<!--        >-->
+<!--          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})-->
+<!--        </a>-->
         <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
 
 
@@ -147,21 +148,6 @@
         </v-list>
       </v-menu>
 
-      <v-tooltip bottom v-model="filterResultsTooltip">
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              color="primary"
-              :to="'filters' | zoomLink"
-              v-bind="attrs"
-              v-on="on"
-              fab
-              small
-          >
-            <v-icon>mdi-filter</v-icon>
-          </v-btn>
-        </template>
-        <span>Filter results</span>
-      </v-tooltip>
 
     </div>
 
@@ -380,6 +366,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
 import {entityConfigs} from "../entityConfigs";
 import EntityIcon from "./EntityIcon";
+import SerpFilterButton from "./SerpFilterButton";
 import axios from "axios";
 
 
@@ -387,6 +374,7 @@ export default {
   name: "SerpToolbar",
   components: {
     EntityIcon,
+    SerpFilterButton,
   },
   props: {},
   data() {
