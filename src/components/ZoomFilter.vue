@@ -1,6 +1,6 @@
 <template>
 
-  <v-card flat>
+  <v-card flat :loading="isLoading">
     <v-toolbar
         class="px-0"
         flat
@@ -11,25 +11,25 @@
         Filter by
         <span class="font-weight-bold">{{ myFacetConfig.displayName }}</span>
       </v-toolbar-title>
-      <v-spacer />
+      <v-spacer/>
       <v-btn icon :to="currentUrlWithoutZoom" class="no-active">
         <v-icon>mdi-close</v-icon>
       </v-btn>
       <template v-slot:extension>
-          <v-text-field
-              flat
-              outlined
-              dense
-              solo
-              hide-details
-              prepend-inner-icon="mdi-magnify"
-              full-width
-              clearable
-              class="pb-2"
+        <v-text-field
+            flat
+            outlined
+            dense
+            solo
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            full-width
+            clearable
+            class="pb-2"
 
-              v-model="search"
-              :placeholder="searchPlaceholder"
-          />
+            v-model="search"
+            :placeholder="searchPlaceholder"
+        />
       </template>
     </v-toolbar>
 
@@ -74,14 +74,13 @@
     <v-card-text class="pa-6" style="font-size: 16px; min-height: 70vh;">
 
 
-        <facet-option
-            v-for="filter in filtersToShow"
-            :filter="filter"
-            :show-checked="filter.isResultsFilter"
-            :key="filter.asStr + filter.isResultsFilter"
-            :indent="facetKey === 'oa_status' && filter.value != 'closed'"
-        />
-
+      <facet-option
+          v-for="filter in filtersToShow"
+          :filter="filter"
+          :show-checked="filter.isResultsFilter"
+          :key="filter.asStr + filter.isResultsFilter"
+          :indent="facetKey === 'oa_status' && filter.value != 'closed'"
+      />
 
 
     </v-card-text>
@@ -134,7 +133,7 @@ export default {
   data() {
     return {
       search: "",
-      foo: 42,
+      isLoading: false,
       filtersFromAutocomplete: [],
       filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
@@ -192,13 +191,19 @@ export default {
       if (this.$store.state.textSearch) ret.search = this.$store.state.textSearch
       return ret
     },
-    filtersToShow(){
-      if (this.search) {
-        return this.filtersFromAutocomplete
-      }
-      else {
-        return this.filtersToShowWhenNotSearching
-      }
+    filtersToShow() {
+      let ret = [...this.filtersFromServer]
+      this.filtersFromAutocomplete
+          .filter(f => f.value !== "unknown")
+          .forEach(f => {
+
+            // only push potential filter values if they're not already loaded as
+            // in a resultsFilter
+            if (!ret.map(f => f.asStr).includes(f.asStr)) {
+            ret.push(f)
+        }
+      })
+      return ret
     },
 
 
@@ -224,10 +229,13 @@ export default {
       }
     },
     autocompleteUrl() {
+
       const url = new URL(`https://api.openalex.org`);
-      // url.pathname = this.myFacetConfig?.autocompleteEndpoint ?? "autocomplete"
       url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      url.searchParams.set("filter", filtersAsUrlStr(this.resultsFilters))
+
+      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
+      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
+
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       url.searchParams.set("q", this.search)
       url.searchParams.set("email", "team@ourresearch.org")
@@ -249,49 +257,42 @@ export default {
       console.log("setFilterOptions", this.myFacetConfig)
       if (!this.myFacetConfig || this.myFacetConfig.noOptions) return
       console.log("setFilterOptions")
+      await this.fetchSuggestions()
 
-      const resp = await api.get(
-          this.$store.state.entityType,
-          this.groupByQueryObj,
-      )
-      this.groupByQueryResultsCount = resp.meta.count
-      this.filtersFromGroupBy = resp.group_by.map(group => {
-        return createDisplayFilter(
-            this.facetKey,
-            group.key,
-            group.key_display_name,
-            group.count
-        )
-      })
+
+      // const resp = await api.get(
+      //     this.$store.state.entityType,
+      //     this.groupByQueryObj,
+      // )
+      // this.groupByQueryResultsCount = resp.meta.count
+      // this.filtersFromGroupBy = resp.group_by.map(group => {
+      //   return createDisplayFilter(
+      //       this.facetKey,
+      //       group.key,
+      //       group.key_display_name,
+      //       group.count
+      //   )
+      // })
     },
     fetchSuggestions() {
-      if (!this.search) {
-        this.filtersFromAutocomplete = []
-        return
-      }
-      // this.isFetchingItems = true
+      this.isLoading =true
       axios.get(this.autocompleteUrl)
           .then(resp => {
-              this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
-                return createDisplayFilter(
-                    this.myFacetConfig.key,
-                    apiData.value,
-                    apiData.display_value,
-                    apiData.works_count,
-                )
-              })
-
-            if (!this.search) {
-              this.filtersFromAutocomplete = []
-            } else {
-            }
+            this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
+              return createDisplayFilter(
+                  this.myFacetConfig.key,
+                  apiData.value,
+                  apiData.display_value,
+                  apiData.works_count,
+              )
+            })
+            this.isLoading = false
           })
     }
   },
   created() {
   },
   mounted() {
-    console.log("mount up")
   },
   watch: {
     search(newVal, oldVal) {
