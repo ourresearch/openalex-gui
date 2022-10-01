@@ -212,7 +212,7 @@
 
                 <router-link
                     v-if="f.isEntity"
-                    :to="f.value | zoomLink"
+                    :to="f.value | entityZoomLink"
                     class="text-decoration-none"
                 >
                   <!--                  <entity-icon :id="f.value" small color="primary"/>-->

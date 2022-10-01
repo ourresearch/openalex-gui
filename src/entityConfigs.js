@@ -21,7 +21,7 @@ const entityConfigs = {
         eg: "Albert Einstein",
         placeholder: "Search scholarly authors",
         filterName: "author",
-        filterKey: "author.id",
+        filterKey: "authorships.author.id",
     },
     venues: {
         emoji: "📚",
@@ -46,7 +46,7 @@ const entityConfigs = {
         eg: "Harvard University",
         placeholder: "Search academic institutions",
         filterName: "institutions",
-        filterKey: "institutions.id",
+        filterKey: "authorships.institutions.id",
     },
     concepts: {
         emoji: "💡",

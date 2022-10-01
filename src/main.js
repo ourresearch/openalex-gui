@@ -7,6 +7,9 @@ import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
 import {idsAreEqual, setOrDelete} from "./util";
+import {url} from "./url"
+import SearchBox from "./components/SearchBox";
+
 import _ from 'lodash'
 
 import {
@@ -17,6 +20,9 @@ import {
 
 Vue.config.productionTip = false
 
+// we have to globally register this or it throws errors.
+// https://stackoverflow.com/a/58875919
+Vue.component("SearchBox", SearchBox)
 Vue.use(VueMeta, {
     refreshOnceOnNavigation: true
 })
@@ -50,25 +56,35 @@ Vue.filter("idLink", function (fullId) {
 
 
 
+Vue.filter("entityZoomLink", function (id) {
+    if (!id) return
+    const shortId = id.replace("https://openalex.org/", "")
+    return {
+        name: "entity-zoom",
+        params: {
+            entityType: router.currentRoute.params.entityType,
+            id: shortId,
+        },
+        query: {...router.currentRoute.query},
+    }
+
+});
+
+
 Vue.filter("zoomLink", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")
 
-
-
-    const url = new URL(window.location.href)
-    const paramsDict = Object.fromEntries(new URLSearchParams(location.search))
-    const zoomIds = paramsDict.zoom?.split(",") ?? []
-
-    // const firstInstanceIndex = zoomIds.findIndex(id => idsAreEqual(id, shortId))
-    // if (firstInstanceIndex > -1) {
-    //     zoomIds.splice(firstInstanceIndex, 9999999999)
-    // }
+    const zoomIds = router.currentRoute.query.zoom?.split(",") ?? []
     zoomIds.push(shortId)
-    paramsDict.zoom = zoomIds.join(",")
-    const queryString = Object.entries(paramsDict).map(([k, v]) => `${k}=${v}`).join("&")
-    url.search = "?" + queryString
-    return [url.path, queryString].join("?")
+
+    const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join())
+
+    return {
+        name: "Serp",
+        query: newQuery,
+    }
+
 });
 
 

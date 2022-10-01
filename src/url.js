@@ -1,3 +1,5 @@
+import router from "./router";
+
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
     newQuery.zoom = undefined
@@ -13,6 +15,7 @@ const addToQuery = function (oldQuery, k, v) {
     newQuery[k] = v
     return newQuery
 }
+
 
 const removeFromQuery = function (oldQuery, k) {
     const newQuery = {...oldQuery}
@@ -40,9 +43,34 @@ const pushToRoute = async function (router, newRoute) {
         })
 }
 
+
+
+
+const addZoomToRoute = function(router, zoom) {
+    if (!zoom) return
+    const shortId = zoom.replace("https://openalex.org/", "")
+
+    const zoomIds = router.currentRoute.query.zoom?.split(",") ?? []
+    zoomIds.push(shortId)
+
+    const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join())
+    return {
+        name: "Serp",
+        query: newQuery,
+    }
+}
+
+const goToZoom = async function(router, zoom) {
+    return pushToRoute(router, addZoomToRoute(router, zoom))
+}
+
 const url = {
     makeRoute,
     pushToRoute,
+    addToQuery,
+
+    goToZoom,
+    addZoomToRoute,
 
     pushNewSearch,
 }

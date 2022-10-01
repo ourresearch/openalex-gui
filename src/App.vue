@@ -130,10 +130,8 @@
 </template>
 
 <script>
-import SearchBox from "./components/SearchBox";
-
 import Facet from "./components/Facet/Facet";
-import EntityZoom from "./components/ZoomEntity";
+import EntityZoom from "./components/Zoom/ZoomEntity";
 
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -149,9 +147,7 @@ export default {
     meta: []
   },
   components: {
-    SearchBox,
     EntityZoom,
-
     Facet,
   },
 

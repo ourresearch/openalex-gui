@@ -3,7 +3,7 @@
     <v-col cols="10" class="content">
       <router-link
           class="text-decoration-none subtitle-1"
-          :to="data.id | zoomLink"
+          :to="data.id | entityZoomLink"
           v-html="data.safeTitle"
       />
       <div v-if="authorsCount" class="body-1">

@@ -1,6 +1,9 @@
 <template>
   <div class="serp-page mt-4 pa-0">
 
+    id: {{$route.params}}
+
+    <router-view></router-view>
 
     <div class="serp-container d-flex">
       <v-col cols="2" class="facets-panel-container d-none d-md-block">
@@ -46,7 +49,9 @@
         </div>
       </v-col>
 
-      <zoom/>
+
+
+<!--      <zoom/>-->
     </div>
 
 
@@ -79,7 +84,7 @@ import ResultAuthor from "../components/ResultAuthor";
 import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
-import Zoom from "../components/Zoom";
+import Zoom from "../components/Zoom/Zoom";
 import axios from "axios";
 
 export default {
@@ -179,7 +184,6 @@ export default {
   created() {
   },
   async mounted() {
-    console.log("mount serp")
     this.loading = true
     // this.apiResp = await api.get(this.apiUrl)
     this.loading = false

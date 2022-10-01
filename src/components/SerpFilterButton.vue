@@ -4,33 +4,35 @@
         content-class="no-highlight"
         min-width="150"
         open-on-hover
+        offset-y
+
     >
       <template v-slot:activator="{on, attrs}">
         <v-btn
-        color="primary"
-        v-bind="attrs"
-        v-on="on"
-        fab
-        x-small
-    >
-      <v-icon>mdi-filter-menu</v-icon>
-    </v-btn>
+            color="primary"
+            v-bind="attrs"
+            v-on="on"
+            fab
+            x-small
+            :to="{name: 'filter-types', query: {...$route.query}}"
+        >
+          <v-icon>mdi-filter-menu</v-icon>
+        </v-btn>
       </template>
       <v-list
           dense
       >
         <v-subheader class="">Filter by:</v-subheader>
-          <v-divider></v-divider>
-        <v-list-item
+        <v-divider></v-divider>
+        <filter-type-list-item
             v-for="facet in searchFacetConfigs"
             :key="facet.key"
-            :to="'filters:'+ facet.key | zoomLink"
+            :facet-key="facet.key"
         >
           {{ facet.displayName }}
-        </v-list-item>
+        </filter-type-list-item>
       </v-list>
     </v-menu>
-
 
 
   </div>
@@ -45,14 +47,16 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
 import {entityConfigs} from "../entityConfigs";
+import {url} from "../url"
 import EntityIcon from "./EntityIcon";
 import axios from "axios";
+import FilterTypeListItem from "./Facet/FilterTypeListItem";
 
 
 export default {
   name: "SerpToolbar",
   components: {
-    EntityIcon,
+    FilterTypeListItem,
   },
   props: {},
   data() {
@@ -95,6 +99,12 @@ export default {
       "removeInputFilters",
       "setSort"
     ]),
+    goToFiltersListZoom() {
+      console.log("click goToFiltersListZoom")
+      this.$router.push({
+        name: "filters-list"
+      })
+    },
     removeTextSearch() {
       this.$router.push({
         name: "Serp",
@@ -105,6 +115,9 @@ export default {
       this.$router.push({
         name: "Serp",
       })
+    },
+    async goToZoomFilter(facetKey) {
+      await url.goToZoom(this.$router, "filters:" + facetKey)
     },
     getEntityIcon(facetKey) {
       const entityId = getFacetConfig(facetKey, "entityId")

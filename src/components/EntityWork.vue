@@ -91,7 +91,7 @@
       </tr>
 
 
-      <!--    Concepts list-->
+      <!--    Abstract -->
       <tr v-if="abstract">
         <td class="table-row-label">
           <v-icon class="mr-1">mdi-text</v-icon>

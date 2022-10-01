@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+
     <v-container style="min-height: 75vh;" class="d-flex align-center">
       <v-row>
         <v-col cols="2" class="hidden-xs-only"></v-col>
@@ -51,14 +52,12 @@
 <script>
 
 import axios from "axios";
-import SearchBox from "../components/SearchBox";
 import {entityConfigs} from "../entityConfigs";
 import {mapGetters} from "vuex";
 
 export default {
   name: 'home',
   components: {
-    SearchBox,
   },
   metaInfo: {
     title: "OpenAlex GUI",

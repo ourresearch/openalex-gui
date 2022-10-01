@@ -6,11 +6,16 @@ import Accessibility from "../views/Accessibility";
 import Transparency from "../views/Transparency";
 import goTo from 'vuetify/es5/services/goto'
 import {entityTypeFromId} from "../util";
+import Zoom from "../components/Zoom/Zoom";
+import ZoomFilter from "../components/Zoom/ZoomFilter";
+import ZoomEntity from "../components/Zoom/ZoomEntity";
 
 Vue.use(VueRouter)
 
 
 const openAlexIdRegex = "[wWiIvVaAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
+
+
 
 const routes = [
     {
@@ -45,16 +50,28 @@ const routes = [
 
     // explore.openalex/works?filters=foo:42
     {
-        path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
-        // path: `/:entityType(works|authors|venues|institutions|concepts)`,
-        name: 'Serp',
-        component: Serp,
-    },
-    {
-        // path: `/:entityType(works|authors|venues|institutions|concepts)/:id(${openAlexIdRegex})?`,
         path: `/:entityType(works|authors|venues|institutions|concepts)`,
         name: 'Serp',
         component: Serp,
+        children: [
+            {
+                path: `:id(${openAlexIdRegex})`,
+                name: "entity-zoom",
+                component: ZoomEntity
+            },
+            {
+                path: "filters",
+                name: "filter-types",
+                component: ZoomFilter,
+                children: [
+                    {
+                        path: ":filterTypeKey",
+                        name: "filter",
+
+                    }
+                ]
+            }
+        ]
     },
     {path: '/team', redirect: "/about"},
     {path: '/accessibility', component: Accessibility},

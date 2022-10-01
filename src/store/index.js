@@ -199,6 +199,7 @@ export default new Vuex.Store({
 
             if (router.currentRoute.query.zoom) {
                 state.zoomDataResponses = []
+
                 state.zoomIdsStack = router.currentRoute.query.zoom.split(",")
                 state.zoomIdsStack.forEach(zoomId => {
                     if (zoomId.indexOf("filters") === 0){

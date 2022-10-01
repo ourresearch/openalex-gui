@@ -261,7 +261,7 @@ const facetConfigs = function () {
         },
     ]
     return ret
-        .filter(f => onlyReturnTheseFacets.includes(f.key))
+        // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
         return {
             ...config,

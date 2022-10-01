@@ -12,7 +12,7 @@
 
   <!--  </v-chip>-->
   <router-link
-      :to="data.id | zoomLink"
+      :to="data.id | entityZoomLink"
       style="white-space: nowrap; display: inline-block;"
       class="text-decoration-none"
   >{{ data.display_name }}{{ (appendComma) ? ',' : '' }}</router-link>

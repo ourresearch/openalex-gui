@@ -125,7 +125,6 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
 import {entityTypeFromId} from "../util";
-import {createSimpleFilter} from "../filterConfigs";
 import EntityIcon from "./EntityIcon";
 import _ from 'lodash'
 
@@ -318,7 +317,6 @@ export default {
 
     "$store.state.textSearch": {
       handler(to, from) {
-        console.log("textSearch watcher", to)
         this.select = to
       },
       immediate: true,
