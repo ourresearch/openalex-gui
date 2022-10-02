@@ -204,7 +204,11 @@
 
               </td>
               <td class="filter-key  pr-1">
-                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">
+<!--                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">-->
+                <router-link
+                    :to="{name: 'filter', params:{filterTypeKey: f.key}, query: {...$route.query} }"
+                    class="text-decoration-none"
+                >
                   {{ f.displayName }}:
                 </router-link>
               </td>

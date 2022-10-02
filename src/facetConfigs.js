@@ -153,6 +153,14 @@ const facetConfigs = function () {
             displayName: "Type",
             valuesToShow: "mostCommon",
         },
+        // general work stuff
+        {
+            key: "publication_year",
+            entityTypes: ["works"],
+            displayName: "Year",
+            valuesToShow: "mostCommon",
+            sortByValue: true,
+        },
 
         // links to other works
         {

@@ -52,9 +52,16 @@
         <v-divider></v-divider>
         <v-card-text
             v-if="$route.params.filterTypeKey"
-            class="pa-6"
+            class="pa-0"
             style="font-size: 16px; min-height: 70vh;"
         >
+          <facet-option
+              v-for="filter in filtersFromServer"
+              :filter="filter"
+              :show-checked="filter.isResultsFilter"
+              :key="filter.asStr + filter.isResultsFilter"
+              :indent="$route.params.filterTypeKey === 'oa_status' && filter.value != 'closed'"
+          />
           <facet-option
               v-for="filter in filtersToShow"
               :filter="filter"
@@ -63,6 +70,8 @@
               :indent="$route.params.filterTypeKey === 'oa_status' && filter.value != 'closed'"
           />
         </v-card-text>
+
+
         <v-card-text
             v-else
             class="pa-0"
@@ -81,13 +90,15 @@
         <v-divider/>
 
 
-        <!--    <v-card-actions class="py-6 px-5">-->
-        <!--      <v-btn-->
-        <!--          color="primary"-->
-        <!--      >-->
-        <!--        View {{ resultsCount | millify }} results-->
-        <!--      </v-btn>-->
-        <!--    </v-card-actions>-->
+        <v-card-actions class="">
+          <v-btn
+              text
+          >
+            View {{ resultsCount | millify }} results
+          </v-btn>
+          <v-spacer />
+          <v-btn>export</v-btn>
+        </v-card-actions>
 
 
       </v-card>
@@ -173,17 +184,28 @@ export default {
       return facetConfigs().find(c => c.key === this.$route.params.filterTypeKey)
     },
     filtersToShow() {
-      let ret = [...this.filtersFromServer]
-      this.filtersFromAutocomplete
+      // let ret = [...this.filtersFromServer]
+      const ret = this.filtersFromAutocomplete
           .filter(f => f.value !== "unknown")
-          .forEach(f => {
+          .filter(f => {
 
             // only push potential filter values if they're not already loaded as
             // in a resultsFilter
-            if (!ret.map(f => f.asStr).includes(f.asStr)) {
-              ret.push(f)
-            }
+            return !this.filtersFromServer.map(f => f.asStr).includes(f.asStr)
           })
+
+      const maxCount = Math.max(...ret.map(r => r.count))
+      console.log("max count", maxCount)
+      ret.forEach(f => {
+        f.countNormalized = f.count / maxCount
+      })
+
+      if (this.myFacetConfig.sortByValue) {
+        ret.sort((a, b) => {
+          return (a.value > b.value) ? -1 : 1
+        })
+      }
+
       return ret
     },
 
@@ -268,7 +290,6 @@ export default {
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        console.log(`Facet "${this.$route.params.filterTypeKey}" watcher: resultsFilters changed:`, newVal)
         this.setFilterOptions()
         this.search = ""
       }
