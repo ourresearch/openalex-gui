@@ -11,7 +11,7 @@
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill" style="max-width: 1000px;">
+        <div class="d-flex flex-fill">
           <v-col cols="4" class="logo-section d-none d-md-block">
             <router-link to="/" class="logo-link">
               <img
@@ -57,45 +57,46 @@
         width="400"
         v-model="filterDrawerIsOpen"
     >
-      <zoom-filter @close="filterDrawerIsOpen = false" />
+      <zoom-filter @close="filterDrawerIsOpen = false"/>
     </v-navigation-drawer>
 
 
     <v-main>
-      <div class="serp-page px-3 px-10">
 
-        <div class="serp-container d-flex" v-if="$store.state.resultsCount !== null">
+    <div class="serp-container d-flex px-10"
+         v-if="$store.state.resultsCount !== null"
+         style="max-width: 900px;"
+    >
 
 
-          <div class="search-results-meta" style="width: 100%;">
-            <serp-toolbar
-                @open-filter-drawer="filterDrawerIsOpen = true"
-                :filter-drawer-is-open="filterDrawerIsOpen"
-            />
-            <div>
-              <div
-                  v-for="result in $store.state.results"
-                  class="result-container my-4"
-                  :key="result.id"
-              >
-                <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-                <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-                <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-                <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-                <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
-              </div>
-            </div>
-            <div class="serp-bottom" v-if="$store.state.results.length">
-              <v-pagination
-                  v-model="page"
-                  :length="numPages"
-                  :total-visible="10"
-                  light
-              />
-            </div>
+      <div class="search-results-meta" style="width: 100%;">
+        <serp-toolbar
+            @open-filter-drawer="filterDrawerIsOpen = true"
+            :filter-drawer-is-open="filterDrawerIsOpen"
+        />
+        <div>
+          <div
+              v-for="result in $store.state.results"
+              class="result-container my-4"
+              :key="result.id"
+          >
+            <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+            <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+            <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+            <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+            <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
           </div>
         </div>
+        <div class="serp-bottom" v-if="$store.state.results.length">
+          <v-pagination
+              v-model="page"
+              :length="numPages"
+              :total-visible="10"
+              light
+          />
+        </div>
       </div>
+    </div>
 
 
     </v-main>

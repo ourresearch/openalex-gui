@@ -3,6 +3,17 @@
       @click="$emit('select')"
       style="min-height: 30px;"
   >
+    <v-list-item-icon>
+      <v-chip
+        color="primary"
+        small
+        outlined
+        class="px-2"
+        v-if="appliedFiltersCount"
+      >
+        {{ appliedFiltersCount }}
+      </v-chip>
+    </v-list-item-icon>
     {{ config.displayName }}
   </v-list-item>
 </template>
@@ -15,6 +26,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr} from "../../filterConfigs";
 
 export default {
   name: "FilterTypeListItem",
@@ -33,6 +45,14 @@ export default {
     ...mapGetters([
       "searchApiUrl",
     ]),
+    appliedFiltersCount(){
+      const allFilters = filtersFromUrlStr(this.$route.query.filter)
+      console.log("allFilters", allFilters)
+      const myFilters = allFilters.filter(f => {
+        return f.key === this.facetKey
+      })
+      return myFilters.length
+    },
     config() {
       return getFacetConfig(this.facetKey)
     },
@@ -63,5 +83,4 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 </style>

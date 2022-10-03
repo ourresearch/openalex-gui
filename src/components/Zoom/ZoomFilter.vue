@@ -1,78 +1,107 @@
 <template>
-    <v-card
+  <v-card
+      flat
+      :loading="isLoading"
+      tile
+  >
+    <v-toolbar
+        v-if="!filterTypeKey"
         flat
-        :loading="isLoading"
+        extended
+        color="#eee"
+    >
+
+      <v-btn icon @click="filterTypeKey = null">
+        <v-icon color="#333">mdi-filter</v-icon>
+      </v-btn>
+      <div class="text-h6">
+        Filters
+      </div>
+      <v-spacer/>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+
+      <template v-slot:extension v-if="!filterTypeKey">
+        <v-text-field
+            flat
+            outlined
+            dense
+            solo
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            full-width
+            clearable
+            class="pb-2"
+
+            v-model="filterTypeSearch"
+            placeholder="Search for filters"
+        />
+      </template>
+    </v-toolbar>
+
+
+    <!--      <v-divider color="#333" />-->
+
+
+    <v-card
+        v-if="!filterTypeKey"
+        flat
+    >
+      <v-list
+          dense
+      >
+        <filter-type-list-item
+            v-for="facet in filterTypeSearchResults"
+            :key="facet.key"
+            :facet-key="facet.key"
+            @select="filterTypeKey = facet.key"
+        />
+
+      </v-list>
+    </v-card>
+
+
+    <v-card
+        v-if="filterTypeKey"
+        flat
     >
       <v-toolbar
-          class="px-0"
-          flat
-          :extended="!filterTypeKey"
-          color="#ddd"
-          :dense="filterTypeKey"
-      >
-        <v-btn icon  @click="filterTypeKey = null">
-          <v-icon color="#333">mdi-filter</v-icon>
-        </v-btn>
-        <div class="text-h6">
-          Filters
-        </div>
-        <v-spacer/>
-        <v-btn icon @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-
-        <template v-slot:extension v-if="!filterTypeKey">
-          <v-text-field
-              flat
-              outlined
-              dense
-              solo
-              hide-details
-              prepend-inner-icon="mdi-magnify"
-              full-width
-              clearable
-              class="pb-2"
-
-              v-model="filterTypeSearch"
-              placeholder="Search for filters"
-          />
-        </template>
-      </v-toolbar>
-<!--      <v-divider color="#333" />-->
-
-
-      <v-card
-          v-if="!filterTypeKey"
-          flat
-      >
-        <v-list
-            dense
-        >
-          <filter-type-list-item
-              v-for="facet in filterTypeSearchResults"
-              :key="facet.key"
-              :facet-key="facet.key"
-              @select="filterTypeKey = facet.key"
-          />
-
-        </v-list>
-      </v-card>
-
-
-      <v-card
           v-if="filterTypeKey"
           flat
-      >
-        <v-toolbar
+          dense
           class="px-0"
+          @click="filterTypeKey = null"
+          color="#ddd"
+      >
+        <v-toolbar-items>
+          <v-btn  text class="body-2 low-key-button" style="margin-left: -20px;">
+            <v-icon small>mdi-arrow-left</v-icon>
+            Back to filters
+
+          </v-btn>
+        </v-toolbar-items>
+        <v-spacer/>
+
+      </v-toolbar>
+
+      <v-toolbar
           flat
           extended
           color="#eee"
       >
-        <v-btn icon color="#333">
-          <v-icon>mdi-filter-outline</v-icon>
-        </v-btn>
-        <div class="text-h6" style="font-weight: normal;">
+        <v-chip
+            v-if="filtersFromServer.length"
+            small
+            outlined
+            color="primary"
+            class="px-2"
+        >
+          {{ filtersFromServer.length }}
+        </v-chip>
+        <v-icon v-else class="">mdi-filter-outline</v-icon>
+
+        <div class="text-h6 ml-1" style="font-weight: normal;">
           {{ myFacetConfig.displayName }}
         </div>
         <v-spacer/>
@@ -90,7 +119,7 @@
               prepend-inner-icon="mdi-magnify"
               full-width
               clearable
-              class="pb-2"
+              class="pb-4"
 
               v-model="search"
               :placeholder="searchPlaceholder"
@@ -99,29 +128,24 @@
       </v-toolbar>
 
 
-        <div
-            style="height: 80vh; overflow-y:scroll;"
-        >
-            <facet-option
-                v-for="filter in filtersToShow"
-                :filter="filter"
-                :show-checked="filter.isResultsFilter"
-                :key="filter.asStr + filter.isResultsFilter"
-                :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"
+      <div
+          style="height: 80vh; overflow-y:scroll;"
+      >
+        <facet-option
+            v-for="filter in filtersToShow"
+            :filter="filter"
+            :show-checked="filter.isResultsFilter"
+            :key="filter.asStr + filter.isResultsFilter"
+            :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"
 
-            />
-        </div>
-
-
-      </v-card>
-
-
-
-
-
+        />
+      </div>
 
 
     </v-card>
+
+
+  </v-card>
 
 </template>
 
@@ -188,7 +212,7 @@ export default {
           .toLowerCase()
       return `search ${displayName}`
     },
-    filterTypeSearchResults(){
+    filterTypeSearchResults() {
       return this.searchFacetConfigs.filter(c => {
         return c.displayName.toLowerCase().match(this.filterTypeSearch.toLowerCase())
       })
@@ -216,7 +240,6 @@ export default {
       }
 
       const ret = [...this.filtersFromServer, ...fromAutocomplete]
-
 
 
       const maxCount = Math.max(...ret.map(r => r.count))
@@ -252,7 +275,7 @@ export default {
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
 
       console.log("set searchParams: ", this.search, this.search === "")
-      url.searchParams.set("q",  "")
+      url.searchParams.set("q", "")
       url.searchParams.set("email", "team@ourresearch.org")
 
       return url.toString()

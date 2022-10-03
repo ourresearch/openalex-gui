@@ -159,7 +159,6 @@ body {
 }
 
 .low-key-button {
-  font-size: 16px !important;
   text-transform: none !important;
   font-weight: normal !important;
   letter-spacing: 0 !important;
