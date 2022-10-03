@@ -186,7 +186,6 @@ export default {
 
 
       const maxCount = Math.max(...ret.map(r => r.count))
-      console.log("max count", maxCount)
       ret.forEach(f => {
         f.countNormalized = f.count / maxCount
       })
@@ -217,7 +216,9 @@ export default {
       url.searchParams.set("filter", filtersAsUrlStr(myFilters))
 
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      url.searchParams.set("q", this.search ?? "")
+
+      console.log("set searchParams: ", this.search, this.search === "")
+      url.searchParams.set("q",  "")
       url.searchParams.set("email", "team@ourresearch.org")
 
       return url.toString()

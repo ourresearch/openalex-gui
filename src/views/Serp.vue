@@ -1,60 +1,154 @@
 <template>
-  <div class="serp-page mt-4 pa-0">
-
-<!--    id: {{$route.params}}-->
-
-<!--    <router-view></router-view>-->
-
-    <div class="serp-container d-flex">
-      <v-col cols="5" class="facets-panel-container pl-0 ">
-        <zoom-filter />
-
-      </v-col>
 
 
-      <v-col
-          cols="7"
+  <v-app>
+    <v-app-bar
+        app
+        color="white"
+        class=""
+        absolute
+        flat
 
-          class="results-panel-container flex-fill pt-0 px-0"
-          v-if="$store.state.resultsCount !== null"
-      >
-        <div class="search-results-meta" style="width: 100%;">
-          <serp-toolbar  />
-          <div>
-            <div
-                v-for="result in $store.state.results"
-                class="result-container my-4"
-                :key="result.id"
-            >
-              <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-              <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-              <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-              <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+    >
+      <div class="d-flex flex-fill justify-space-between align-center">
+        <div class="d-flex flex-fill" style="max-width: 1000px;">
+          <v-col cols="4" class="logo-section d-none d-md-block">
+            <router-link to="/" class="logo-link">
+              <img
+                  src="@/assets/openalex-logo-icon.png"
+                  class="logo-icon"
+              />
+              <span class="logo-text">
+                OpenAlex
+              </span>
+            </router-link>
+          </v-col>
+          <v-col cols="12" md="8" class="px-0 d-flex">
+            <router-link to="/" class="logo-link pr-4 d-md-none">
+              <img
+                  src="@/assets/openalex-logo-icon.png"
+                  class="logo-icon"
+              />
+            </router-link>
+            <!--            <search-box v-if="$route.name !== 'Home'"/>-->
+          </v-col>
+        </div>
+
+        <div class="">
+          <v-menu offset-y content-class="no-highlight" min-width="150">
+            <template v-slot:activator="{on}">
+              <v-btn icon color="" v-on="on">
+                <v-icon class="">mdi-menu</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/">Home</v-list-item>
+              <v-list-item href="/about">
+                About
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </div>
+      </div>
+    </v-app-bar>
+
+    <v-navigation-drawer
+        app
+        width="400"
+        v-model="navDrawerIsOpen"
+    >
+      <zoom-filter/>
+    </v-navigation-drawer>
+
+
+    <v-main>
+      <div class="serp-page mt-4 pa-0">
+
+        <div class="serp-container d-flex" v-if="$store.state.resultsCount !== null">
+
+
+          <div class="search-results-meta" style="width: 100%;">
+            <serp-toolbar/>
+            <div>
+              <div
+                  v-for="result in $store.state.results"
+                  class="result-container my-4"
+                  :key="result.id"
+              >
+                <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+                <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+                <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+                <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+                <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+              </div>
+            </div>
+            <div class="serp-bottom" v-if="$store.state.results.length">
+              <v-pagination
+                  v-model="page"
+                  :length="numPages"
+                  :total-visible="10"
+                  light
+              />
             </div>
           </div>
-          <div class="serp-bottom" v-if="$store.state.results.length">
-            <v-pagination
-                v-model="page"
-                :length="numPages"
-                :total-visible="10"
-                light
-            />
-          </div>
-
         </div>
-      </v-col>
+      </div>
 
 
-
-<!--      <zoom/>-->
-    </div>
+    </v-main>
 
 
+    <v-footer
+        class="py-10 site-footer"
+        style="margin-top: 150px;"
+        :style="{paddingRight: 0}"
+        dark
+        color="#555"
+    >
+      <v-container>
+        <v-row>
+          <v-col cols="12" sm="4">
+            <div>
+              <router-link to="/">Home</router-link>
+            </div>
+            <div>
+              <a href="/about">
+                About
+              </a>
+            </div>
+          </v-col>
+          <v-col cols="12" sm="4" class="text-center">
+            <router-link to="/">
+              <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
+            </router-link>
+          </v-col>
+          <v-col cols="12" sm="4" class="body-2">
+            OurResearch is supported in part by <a
+              style="text-decoration: underline;"
+              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
+            charitable fund of Lisbet Rausing and Peter Baldwin</a>.
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-footer>
 
 
+    <v-snackbar
+        bottom
+        v-model="$store.state.snackbarIsOpen">
+      {{ $store.state.snackbarMsg }}
 
-
+      <template v-slot:action="{ attrs }">
+        <v-btn
+            icon
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
+  </v-app>
 
 
   </div>
@@ -108,6 +202,7 @@ export default {
   data() {
     return {
       loading: false,
+      navDrawerIsOpen: true,
       apiResp: {},
       filterTypeKey: null,
       resultsPerPage: 25, // not editable now, but could be in future
