@@ -1,26 +1,86 @@
 <template>
-  <div>
-    <v-card flat outlined :loading="isLoading">
+    <v-card
+        flat
+        :loading="isLoading"
+    >
       <v-toolbar
           class="px-0"
           flat
-          dense
-          :extended="!!myFacetConfig"
+          :extended="!filterTypeKey"
+          color="#ddd"
+          :dense="filterTypeKey"
       >
-        <v-btn icon color="primary" @click="filterTypeKey = null">
-          <v-icon>mdi-filter-outline</v-icon>
+        <v-btn icon  @click="filterTypeKey = null">
+          <v-icon color="#333">mdi-filter</v-icon>
         </v-btn>
         <div class="text-h6">
-          <template v-if="myFacetConfig">
-            filters >
-            <span class="">{{ myFacetConfig.displayName }}</span>
-          </template>
-          <span v-else>Filters</span>
-
+          Filters
         </div>
         <v-spacer/>
+        <v-btn icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
 
-        <template v-slot:extension v-if="myFacetConfig">
+        <template v-slot:extension v-if="!filterTypeKey">
+          <v-text-field
+              flat
+              outlined
+              dense
+              solo
+              hide-details
+              prepend-inner-icon="mdi-magnify"
+              full-width
+              clearable
+              class="pb-2"
+
+              v-model="filterTypeSearch"
+              placeholder="Search for filters"
+          />
+        </template>
+      </v-toolbar>
+<!--      <v-divider color="#333" />-->
+
+
+      <v-card
+          v-if="!filterTypeKey"
+          flat
+      >
+        <v-list
+            dense
+        >
+          <filter-type-list-item
+              v-for="facet in filterTypeSearchResults"
+              :key="facet.key"
+              :facet-key="facet.key"
+              @select="filterTypeKey = facet.key"
+          />
+
+        </v-list>
+      </v-card>
+
+
+      <v-card
+          v-if="filterTypeKey"
+          flat
+      >
+        <v-toolbar
+          class="px-0"
+          flat
+          extended
+          color="#eee"
+      >
+        <v-btn icon color="#333">
+          <v-icon>mdi-filter-outline</v-icon>
+        </v-btn>
+        <div class="text-h6" style="font-weight: normal;">
+          {{ myFacetConfig.displayName }}
+        </div>
+        <v-spacer/>
+        <v-btn icon @click="filterTypeKey = null">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+
+        <template v-slot:extension>
           <v-text-field
               flat
               outlined
@@ -37,63 +97,31 @@
           />
         </template>
       </v-toolbar>
-<!--      <v-divider></v-divider>-->
-      <v-card-text
-          v-if="filterTypeKey"
-          class="px-3"
-          style="font-size: 16px; min-height: 70vh;"
-      >
-<!--        <facet-option-->
-<!--            v-for="filter in filtersFromServer"-->
-<!--            :filter="filter"-->
-<!--            :show-checked="filter.isResultsFilter"-->
-<!--            :key="filter.asStr + filter.isResultsFilter"-->
-<!--            :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"-->
-<!--        />-->
-        <facet-option
-            v-for="filter in filtersToShow"
-            :filter="filter"
-            :show-checked="filter.isResultsFilter"
-            :key="filter.asStr + filter.isResultsFilter"
-            :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"
-
-        />
-      </v-card-text>
 
 
-      <v-card-text
-          v-else
-          class="px-3"
-          style="font-size: 16px; min-height: 20vh;"
-      >
-        <v-list
-            dense
+        <div
+            style="height: 80vh; overflow-y:scroll;"
         >
-          <filter-type-list-item
-              v-for="facet in searchFacetConfigs"
-              :key="facet.key"
-              :facet-key="facet.key"
-              @select="filterTypeKey = facet.key"
-          />
+            <facet-option
+                v-for="filter in filtersToShow"
+                :filter="filter"
+                :show-checked="filter.isResultsFilter"
+                :key="filter.asStr + filter.isResultsFilter"
+                :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"
 
-        </v-list>
-      </v-card-text>
-      <v-divider/>
+            />
+        </div>
 
 
-      <v-card-actions class="">
-        <v-btn
-            text
-        >
-          View {{ resultsCount | millify }} results
-        </v-btn>
-        <v-spacer/>
-        <v-btn>export</v-btn>
-      </v-card-actions>
+      </v-card>
+
+
+
+
+
 
 
     </v-card>
-  </div>
 
 </template>
 
@@ -133,6 +161,7 @@ export default {
   data() {
     return {
       search: "",
+      filterTypeSearch: "",
       filterTypeKey: null,
       isLoading: false,
       filtersFromAutocomplete: [],
@@ -158,6 +187,11 @@ export default {
           .$pluralize(this.myFacetConfig.displayName, 2)
           .toLowerCase()
       return `search ${displayName}`
+    },
+    filterTypeSearchResults(){
+      return this.searchFacetConfigs.filter(c => {
+        return c.displayName.toLowerCase().match(this.filterTypeSearch.toLowerCase())
+      })
     },
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.filterTypeKey)

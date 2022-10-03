@@ -4,7 +4,12 @@
       class="mb-8 serp-filters-list"
   >
     <div class="d-flex align-baseline">
-      <serp-filter-button class="d-none ml-1" />
+      <!--      <serp-filter-button class="d-none ml-1" />-->
+
+        <v-btn v-if="!filterDrawerIsOpen" fab x-small color="primary" @click="$emit('open-filter-drawer')">
+          <v-icon>mdi-filter</v-icon>
+        </v-btn>
+
       <div
           class="subtitle-1 ml-2"
       >
@@ -15,13 +20,13 @@
           {{ entityType | pluralize(results.length) }}
 
         </span>
-<!--        <a-->
-<!--            v-if="resultsFilters.length > 0 || textSearch"-->
-<!--            @click="removeFiltersAndSearch"-->
-<!--            style="font-size: 16px;"-->
-<!--        >-->
-<!--          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})-->
-<!--        </a>-->
+        <!--        <a-->
+        <!--            v-if="resultsFilters.length > 0 || textSearch"-->
+        <!--            @click="removeFiltersAndSearch"-->
+        <!--            style="font-size: 16px;"-->
+        <!--        >-->
+        <!--          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})-->
+        <!--        </a>-->
         <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
 
 
@@ -156,7 +161,7 @@
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
 
-    <search-box class="mt-3" />
+    <search-box class="mt-3"/>
 
     <v-card
         v-if="resultsFilters.length || textSearch" class="pt-2 pb-1 pr-5 pl-4 mt-2"
@@ -166,28 +171,28 @@
       <v-row>
         <v-col cols="9" class="pl-0">
           <table class="serp-filters-list">
-<!--            <tr v-if="textSearch">-->
-<!--              <td>-->
-<!--                <v-btn-->
-<!--                    icon-->
-<!--                    small-->
-<!--                    class="align-baseline"-->
-<!--                    @click="removeTextSearch()"-->
-<!--                >-->
-<!--                  <v-icon small>mdi-filter-remove-outline</v-icon>-->
-<!--                </v-btn>-->
-<!--              </td>-->
-<!--              <td class="filter-key">-->
-<!--                Fulltext:-->
-<!--              </td>-->
-<!--              <td class="filter-value">-->
-<!--                "{{ textSearch }}"-->
-<!--              </td>-->
-<!--              <td>-->
+            <!--            <tr v-if="textSearch">-->
+            <!--              <td>-->
+            <!--                <v-btn-->
+            <!--                    icon-->
+            <!--                    small-->
+            <!--                    class="align-baseline"-->
+            <!--                    @click="removeTextSearch()"-->
+            <!--                >-->
+            <!--                  <v-icon small>mdi-filter-remove-outline</v-icon>-->
+            <!--                </v-btn>-->
+            <!--              </td>-->
+            <!--              <td class="filter-key">-->
+            <!--                Fulltext:-->
+            <!--              </td>-->
+            <!--              <td class="filter-value">-->
+            <!--                "{{ textSearch }}"-->
+            <!--              </td>-->
+            <!--              <td>-->
 
 
-<!--              </td>-->
-<!--            </tr>-->
+            <!--              </td>-->
+            <!--            </tr>-->
 
 
             <tr
@@ -206,7 +211,7 @@
 
               </td>
               <td class="filter-key  pr-1">
-<!--                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">-->
+                <!--                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">-->
                 <router-link
                     :to="{name: 'filter', params:{filterTypeKey: f.key}, query: {...$route.query} }"
                     class="text-decoration-none"
@@ -247,7 +252,7 @@
       </v-row>
 
     </v-card>
-        <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>
+    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>
 
 
     <!--DIALOGS-->
@@ -382,7 +387,9 @@ export default {
     EntityIcon,
     SerpFilterButton,
   },
-  props: {},
+  props: {
+    filterDrawerIsOpen: Boolean,
+  },
   data() {
     return {
       loading: false,

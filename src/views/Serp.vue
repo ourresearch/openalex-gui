@@ -5,7 +5,7 @@
     <v-app-bar
         app
         color="white"
-        class=""
+        class="px-4"
         absolute
         flat
 
@@ -55,20 +55,23 @@
     <v-navigation-drawer
         app
         width="400"
-        v-model="navDrawerIsOpen"
+        v-model="filterDrawerIsOpen"
     >
-      <zoom-filter/>
+      <zoom-filter @close="filterDrawerIsOpen = false" />
     </v-navigation-drawer>
 
 
     <v-main>
-      <div class="serp-page mt-4 pa-0">
+      <div class="serp-page px-3 px-10">
 
         <div class="serp-container d-flex" v-if="$store.state.resultsCount !== null">
 
 
           <div class="search-results-meta" style="width: 100%;">
-            <serp-toolbar/>
+            <serp-toolbar
+                @open-filter-drawer="filterDrawerIsOpen = true"
+                :filter-drawer-is-open="filterDrawerIsOpen"
+            />
             <div>
               <div
                   v-for="result in $store.state.results"
@@ -202,7 +205,7 @@ export default {
   data() {
     return {
       loading: false,
-      navDrawerIsOpen: true,
+      filterDrawerIsOpen: true,
       apiResp: {},
       filterTypeKey: null,
       resultsPerPage: 25, // not editable now, but could be in future
