@@ -10,7 +10,7 @@
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 1000px;">
-          <v-col cols="2" class="logo-section d-none d-md-block">
+          <v-col cols="4" class="logo-section d-none d-md-block">
             <router-link to="/" class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon.png"
@@ -21,14 +21,14 @@
               </span>
             </router-link>
           </v-col>
-          <v-col cols="12" md="10" class="px-0 d-flex">
+          <v-col cols="12" md="8" class="px-0 d-flex">
             <router-link to="/" class="logo-link pr-4 d-md-none">
               <img
                   src="@/assets/openalex-logo-icon.png"
                   class="logo-icon"
               />
             </router-link>
-            <search-box v-if="$route.name !== 'Home'"/>
+<!--            <search-box v-if="$route.name !== 'Home'"/>-->
           </v-col>
         </div>
 

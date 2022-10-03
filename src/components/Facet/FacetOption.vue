@@ -11,17 +11,16 @@
     </div>
     <div
         class="body-1 black--text text-capitalize"
-        style="line-height: 1.2; padding-top: 2px;"
+        style="line-height: 1.5; "
     >
-      <router-link
-        v-if="filter.isEntity"
-        :to="filter.value | zoomLink"
-        class="text-decoration-none"
-      >
-        {{ prettyDisplayName }}
-      </router-link>
+      <!--      <router-link-->
+      <!--        v-if="filter.isEntity"-->
+      <!--        :to="filter.value | zoomLink"-->
+      <!--        class="text-decoration-none"-->
+      <!--      >-->
+      <!--        {{ prettyDisplayName }}-->
+      <!--      </router-link>-->
       <span
-          v-else
           :class="{textCapitalize: filter.key === 'host_venue.publisher'}"
       >
         {{ prettyDisplayName }}
@@ -30,6 +29,16 @@
     <v-spacer></v-spacer>
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
       {{ filter.count.toLocaleString() }}
+    </div>
+    <div class="facet-option-bar-container">
+      <div
+          class="facet-option-bar-bar"
+          :class="{selected: isChecked}"
+          :style="{width: (filter.countNormalized * 100) + '%'}"
+      >
+
+      </div>
+
     </div>
   </div>
 </template>
@@ -125,12 +134,28 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.filter-row {
-  cursor: pointer;
+.facet-option-bar-container {
+  width: 20px;
+  height: 12px;
+  background: #eee;
+  flex: none;
+  margin-top: 4px;
+}
 
-  &:hover {
-    background: #eee;
+.facet-option-bar-bar {
+  background: #555;
+  height: 100%;
+  &.selected {
+    background: #1976d2;
   }
+}
+
+.filter-row {
+  //cursor: pointer;
+  //
+  //&:hover {
+  //  background: #eee;
+  //}
 }
 
 </style>

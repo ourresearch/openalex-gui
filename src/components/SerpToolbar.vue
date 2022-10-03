@@ -4,14 +4,14 @@
       class="mb-8 serp-filters-list"
   >
     <div class="d-flex align-baseline">
-      <serp-filter-button class="ml-1" />
+      <serp-filter-button class="d-none ml-1" />
       <div
           class="subtitle-1 ml-2"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class=" font-weight-bold">
+        <span class="text-h6">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
-          {{ resultsCount | millify }}
+          {{ resultsCount | millify(3) }}
           {{ entityType | pluralize(results.length) }}
 
         </span>
@@ -156,36 +156,38 @@
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
 
+    <search-box class="mt-3" />
 
     <v-card
-        v-if="resultsFilters.length || textSearch" class="pt-2 pb-1 pr-5 pl-4 mt-5"
-        outlined
+        v-if="resultsFilters.length || textSearch" class="pt-2 pb-1 pr-5 pl-4 mt-2"
+        flat
     >
+
       <v-row>
         <v-col cols="9" class="pl-0">
           <table class="serp-filters-list">
-            <tr v-if="textSearch">
-              <td>
-                <v-btn
-                    icon
-                    small
-                    class="align-baseline"
-                    @click="removeTextSearch()"
-                >
-                  <v-icon small>mdi-filter-remove-outline</v-icon>
-                </v-btn>
-              </td>
-              <td class="filter-key">
-                Fulltext:
-              </td>
-              <td class="filter-value">
-                "{{ textSearch }}"
-              </td>
-              <td>
+<!--            <tr v-if="textSearch">-->
+<!--              <td>-->
+<!--                <v-btn-->
+<!--                    icon-->
+<!--                    small-->
+<!--                    class="align-baseline"-->
+<!--                    @click="removeTextSearch()"-->
+<!--                >-->
+<!--                  <v-icon small>mdi-filter-remove-outline</v-icon>-->
+<!--                </v-btn>-->
+<!--              </td>-->
+<!--              <td class="filter-key">-->
+<!--                Fulltext:-->
+<!--              </td>-->
+<!--              <td class="filter-value">-->
+<!--                "{{ textSearch }}"-->
+<!--              </td>-->
+<!--              <td>-->
 
 
-              </td>
-            </tr>
+<!--              </td>-->
+<!--            </tr>-->
 
 
             <tr
@@ -245,7 +247,7 @@
       </v-row>
 
     </v-card>
-    <!--    <v-divider class="my-4"></v-divider>-->
+        <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>
 
 
     <!--DIALOGS-->

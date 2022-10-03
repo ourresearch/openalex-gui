@@ -1,25 +1,21 @@
 <template>
   <div class="serp-page mt-4 pa-0">
 
-    id: {{$route.params}}
+<!--    id: {{$route.params}}-->
 
-    <router-view></router-view>
+<!--    <router-view></router-view>-->
 
     <div class="serp-container d-flex">
-      <v-col cols="2" class="facets-panel-container d-none d-md-block">
-<!--        <facet-->
-<!--            v-for="facet in searchFacetConfigs"-->
-<!--            :key="facet.key"-->
-<!--            :facet-key="facet.key"-->
-<!--        ></facet>-->
+      <v-col cols="5" class="facets-panel-container pl-0 ">
+        <zoom-filter />
+
       </v-col>
 
 
       <v-col
-          cols="12"
-          md="10"
+          cols="7"
 
-          class="results-panel-container flex-fill mt-6 px-0"
+          class="results-panel-container flex-fill pt-0 px-0"
           v-if="$store.state.resultsCount !== null"
       >
         <div class="search-results-meta" style="width: 100%;">
@@ -85,6 +81,7 @@ import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
 import Zoom from "../components/Zoom/Zoom";
+import ZoomFilter from "../components/Zoom/ZoomFilter";
 import axios from "axios";
 
 export default {
@@ -105,12 +102,14 @@ export default {
     ResultInstitution,
     ResultConcept,
     Zoom,
+    ZoomFilter,
   },
   props: {},
   data() {
     return {
       loading: false,
       apiResp: {},
+      filterTypeKey: null,
       resultsPerPage: 25, // not editable now, but could be in future
       dialogs: {
         export: false,
@@ -214,7 +213,7 @@ export default {
     //min-width: 353px;
     //max-width: 353px;
     //width: 350px;
-    padding: 34px 40px 0 20px;
+    padding: 0px 40px 0 20px;
   }
 
   .results-panel-container {

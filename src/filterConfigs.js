@@ -107,6 +107,7 @@ const createSimpleFilter = function (key, value) {
         value: cleanValue,
         asStr: createFilterId(key, cleanValue),
         isEntity: entityKeys.includes(key), // better to just include the whole config maybe...
+        normalizedValue: 0,
     }
 }
 

@@ -1,6 +1,7 @@
 <template>
   <v-list-item
-    :to="link"
+      @click="$emit('select')"
+      style="min-height: 30px;"
   >
     {{ config.displayName }}
   </v-list-item>
