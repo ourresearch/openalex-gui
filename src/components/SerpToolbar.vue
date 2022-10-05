@@ -1,20 +1,105 @@
 <template>
   <v-card
       flat
-      class="mb-8 serp-filters-list"
+      class="serp-filters-list mt-12 pt"
   >
-    <div class="d-flex align-baseline">
-      <!--      <serp-filter-button class="d-none ml-1" />-->
 
-        <v-btn v-if="!filterDrawerIsOpen" fab x-small color="primary" @click="$emit('open-filter-drawer')">
-          <v-icon>mdi-filter</v-icon>
-        </v-btn>
+
+    <!--FILTERS-->
+    <!--*****************************************************************************************-->
+    <!--*****************************************************************************************-->
+    <!--*****************************************************************************************-->
+
+    <div class="d-flex align-center" >
+<!--      <v-icon class="px-2">mdi-filter-outline</v-icon>-->
+<!--      <span class="mr-2">Search: </span>-->
+<!--      <search-box class=""/>-->
+
+    </div>
+
+    <v-card
+        v-if="resultsFilters.length || textSearch" class="d-none pt-2 pb-1 pr-5 pl-4 mt-2"
+        flat
+    >
+
+      <v-row>
+        <v-col cols="9" class="pl-0">
+          <table class="serp-filters-list">
+            <tr
+                v-for="f in $store.state.resultsFilters"
+                :key="f.id"
+            >
+              <td class="pr-2">
+                <v-btn
+                    icon
+                    small
+                    class="align-baseline no-active"
+                    :to="f | linkRemoveFilter"
+                >
+                  <v-icon>mdi-filter-outline</v-icon>
+                </v-btn>
+
+              </td>
+              <td class="filter-key  pr-1">
+                <!--                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">-->
+                <router-link
+                    :to="{name: 'filter', params:{filterTypeKey: f.key}, query: {...$route.query} }"
+                    class="text-decoration-none"
+                >
+                  {{ f.displayName }}:
+                </router-link>
+              </td>
+              <td class="filter-value">
+
+                <router-link
+                    v-if="f.isEntity"
+                    :to="f.value | entityZoomLink"
+                    class="text-decoration-none"
+                >
+                  <!--                  <entity-icon :id="f.value" small color="primary"/>-->
+                  {{ f.displayValue }}
+                </router-link>
+                <span v-else>
+                  <flag
+                      :squared="false"
+                      :iso="f.value"
+                      style="height:12px; vertical-align: -2px;"
+                      v-if="f.isCountry"
+                  />
+                  {{ f.displayValue | prettyName }}
+                </span>
+              </td>
+              <td>
+
+
+              </td>
+            </tr>
+          </table>
+        </v-col>
+        <v-col cols="3" class="d-flex justify-end">
+
+        </v-col>
+      </v-row>
+
+    </v-card>
+
+
+    <div class="d-flex align-center pb-2">
+<!--      <v-btn-->
+<!--          fab x-small-->
+<!--          class="mr-2"-->
+<!--          color="primary"-->
+<!--          :outlined="filterDrawerIsOpen"-->
+<!--          @click="$emit('toggle-filter-drawer')"-->
+<!--      >-->
+<!--        <v-icon>mdi-filter</v-icon>-->
+<!--      </v-btn>-->
 
       <div
-          class="subtitle-1 ml-2"
+          class="subtitle-1 font-weight-bold"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class="text-h6">
+        <span class="">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
           {{ resultsCount | millify(3) }}
           {{ entityType | pluralize(results.length) }}
@@ -156,103 +241,17 @@
 
     </div>
 
-    <!--FILTERS-->
+
+
+
+
+<!--    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>-->
+
+
+    <!-- RESULTS TOOLBAR -->
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
-
-    <search-box class="mt-3"/>
-
-    <v-card
-        v-if="resultsFilters.length || textSearch" class="pt-2 pb-1 pr-5 pl-4 mt-2"
-        flat
-    >
-
-      <v-row>
-        <v-col cols="9" class="pl-0">
-          <table class="serp-filters-list">
-            <!--            <tr v-if="textSearch">-->
-            <!--              <td>-->
-            <!--                <v-btn-->
-            <!--                    icon-->
-            <!--                    small-->
-            <!--                    class="align-baseline"-->
-            <!--                    @click="removeTextSearch()"-->
-            <!--                >-->
-            <!--                  <v-icon small>mdi-filter-remove-outline</v-icon>-->
-            <!--                </v-btn>-->
-            <!--              </td>-->
-            <!--              <td class="filter-key">-->
-            <!--                Fulltext:-->
-            <!--              </td>-->
-            <!--              <td class="filter-value">-->
-            <!--                "{{ textSearch }}"-->
-            <!--              </td>-->
-            <!--              <td>-->
-
-
-            <!--              </td>-->
-            <!--            </tr>-->
-
-
-            <tr
-                v-for="f in $store.state.resultsFilters"
-                :key="f.id"
-            >
-              <td>
-                <v-btn
-                    icon
-                    small
-                    class="align-baseline no-active"
-                    :to="f | linkRemoveFilter"
-                >
-                  <v-icon small>mdi-filter-remove-outline</v-icon>
-                </v-btn>
-
-              </td>
-              <td class="filter-key  pr-1">
-                <!--                <router-link :to="`filters:${f.key}` | zoomLink" class="text-decoration-none">-->
-                <router-link
-                    :to="{name: 'filter', params:{filterTypeKey: f.key}, query: {...$route.query} }"
-                    class="text-decoration-none"
-                >
-                  {{ f.displayName }}:
-                </router-link>
-              </td>
-              <td class="filter-value">
-
-                <router-link
-                    v-if="f.isEntity"
-                    :to="f.value | entityZoomLink"
-                    class="text-decoration-none"
-                >
-                  <!--                  <entity-icon :id="f.value" small color="primary"/>-->
-                  {{ f.displayValue }}
-                </router-link>
-                <span v-else>
-                  <flag
-                      :squared="false"
-                      :iso="f.value"
-                      style="height:12px; vertical-align: -2px;"
-                      v-if="f.isCountry"
-                  />
-                  {{ f.displayValue | prettyName }}
-                </span>
-              </td>
-              <td>
-
-
-              </td>
-            </tr>
-          </table>
-        </v-col>
-        <v-col cols="3" class="d-flex justify-end">
-
-        </v-col>
-      </v-row>
-
-    </v-card>
-    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>
 
 
     <!--DIALOGS-->

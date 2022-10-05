@@ -105,7 +105,7 @@ html, body {
   align-items: center;
   //padding-left: 30px;
   .logo-icon {
-    height: 35px;
+    height: 40px;
   }
 
   .logo-text {

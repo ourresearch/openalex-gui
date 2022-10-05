@@ -5,14 +5,16 @@
         class="mr-12"
         flat
         outlined
-        dense
         solo
         hide-details
         item-text="display_name"
         item-value="id"
-        :append-icon="(false) ? 'mdi-magnify' : ''"
+        clearable
+        prepend-inner-icon="mdi-magnify"
         id="main-search"
         style="width: 100%;"
+        dense
+        rounded
 
         v-model="select"
         :items="items"
@@ -25,9 +27,10 @@
         @keydown.enter="doSearch('keyup.enter')"
         @input="doSearch('input')"
         @click:append="doSearch"
+        @click:clear="searchString = ''"
 
     >
-      <template v-slot:prepend-inner>
+      <template v-if="false" v-slot:prepend-inner>
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -252,14 +255,9 @@ export default {
         console.log("pushing this to router", pushTo)
         await pushSafe(this.$router, pushTo)
 
-      } else if (this.select) {
+      } else {
         // there's no ID, this is a text search
         await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
-        // pushTo.params = {entityType: this.selectedEntityType}
-        // if (this.select) pushTo.query = {search: this.select}
-      }
-      else {
-        // blank search, do nothing.
       }
 
     }, 10, {leading: false}),
@@ -338,23 +336,31 @@ export default {
 form.main-search {
   width: 100%;
 
-  .v-btn:not(.v-btn--round).v-size--large {
-    height: 49px;
-  }
-
-  .v-input__slot {
-    padding-left: 0 !important;
-  }
-
-  .v-select__slot input {
-    padding-left: 10px;
-  }
+  //.v-btn:not(.v-btn--round).v-size--large {
+  //  height: 49px;
+  //}
+  //
+  //.v-input__slot {
+  //  padding-left: 0 !important;
+  //}
+  //
+  //.v-select__slot input {
+  //  padding-left: 10px;
+  //}
 
   // very fragile hack to hide the down-arrow icon on the far right
   .v-select__slot {
     .v-input__append-inner:nth-child(3) {
       //display: none !important;
       visibility: hidden;
+    }
+  }
+
+  // very fragile hack to hide the down-arrow icon on the far right
+  .v-select__slot {
+    .v-input__append-inner:nth-child(2) {
+      //display: none !important;
+      margin-right: -25px;
     }
   }
 

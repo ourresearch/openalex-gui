@@ -1,6 +1,6 @@
 <template>
   <div
-      class="py-1 pl-3 pr-5 my-0 d-flex filter-row"
+      class="py-1 pl-4 pr-6 my-0 d-flex filter-row"
   >
     <div>
       <v-checkbox
@@ -30,7 +30,7 @@
     <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
       {{ filter.count.toLocaleString() }}
     </div>
-    <div class="facet-option-bar-container">
+    <div v-if="!hideBar" class="facet-option-bar-container">
       <div
           class="facet-option-bar-bar"
           :class="{selected: isChecked}"
@@ -58,6 +58,7 @@ export default {
     filter: Object,
     showChecked: Boolean,
     indent: Boolean,
+    hideBar: Boolean,
   },
   data() {
     return {

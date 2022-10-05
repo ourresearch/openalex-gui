@@ -11,8 +11,7 @@
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill">
-          <v-col cols="4" class="logo-section d-none d-md-block">
+        <div class="d-flex flex-fill" style="max-width: 710px;">
             <router-link to="/" class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon.png"
@@ -22,16 +21,13 @@
                 OpenAlex
               </span>
             </router-link>
-          </v-col>
-          <v-col cols="12" md="8" class="px-0 d-flex">
             <router-link to="/" class="logo-link pr-4 d-md-none">
               <img
                   src="@/assets/openalex-logo-icon.png"
                   class="logo-icon"
               />
             </router-link>
-            <!--            <search-box v-if="$route.name !== 'Home'"/>-->
-          </v-col>
+            <search-box  class="flex-fill"/>
         </div>
 
         <div class="">
@@ -52,29 +48,29 @@
       </div>
     </v-app-bar>
 
-    <v-navigation-drawer
-        app
-        width="400"
-        v-model="filterDrawerIsOpen"
-    >
-      <zoom-filter @close="filterDrawerIsOpen = false"/>
-    </v-navigation-drawer>
+    <zoom-filter />
+
 
 
     <v-main>
 
-    <div class="serp-container d-flex px-10"
-         v-if="$store.state.resultsCount !== null"
-         style="max-width: 900px;"
-    >
+      <div class="serp-container"
+           v-if="$store.state.resultsCount !== null"
+      >
 
 
-      <div class="search-results-meta" style="width: 100%;">
-        <serp-toolbar
-            @open-filter-drawer="filterDrawerIsOpen = true"
-            :filter-drawer-is-open="filterDrawerIsOpen"
-        />
-        <div>
+        <div class="search-results-meta px-8" style="max-width: 800px;">
+          <serp-toolbar
+              @toggle-filter-drawer="filterDrawerIsOpen = !filterDrawerIsOpen"
+              :filter-drawer-is-open="filterDrawerIsOpen"
+          />
+          <v-divider />
+        </div>
+
+
+
+
+        <div class="search-results px-8" style="max-width: 800px;">
           <div
               v-for="result in $store.state.results"
               class="result-container my-4"
@@ -96,7 +92,6 @@
           />
         </div>
       </div>
-    </div>
 
 
     </v-main>
@@ -207,6 +202,7 @@ export default {
     return {
       loading: false,
       filterDrawerIsOpen: true,
+      filterDrawerIsMini: true,
       apiResp: {},
       filterTypeKey: null,
       resultsPerPage: 25, // not editable now, but could be in future

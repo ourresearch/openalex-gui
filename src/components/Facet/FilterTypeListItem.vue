@@ -3,18 +3,24 @@
       @click="$emit('select')"
       style="min-height: 30px;"
   >
-    <v-list-item-icon>
+    <v-list-item-icon v-if="appliedFiltersCount">
       <v-chip
-        color="primary"
-        small
-        outlined
-        class="px-2"
-        v-if="appliedFiltersCount"
+          color="primary"
+          small
+          outlined
+          class="px-2"
       >
         {{ appliedFiltersCount }}
       </v-chip>
     </v-list-item-icon>
+    <span v-else class="px-5"></span>
+    <v-list-item-title style="font-size: 16px; font-weight: normal;"
+      :class="{'font-weight-bold': bold}"
+    >
     {{ config.displayName }}
+
+    </v-list-item-title>
+
   </v-list-item>
 </template>
 
@@ -33,6 +39,7 @@ export default {
   components: {},
   props: {
     facetKey: String,
+    bold: Boolean,
   },
   data() {
     return {
@@ -45,9 +52,8 @@ export default {
     ...mapGetters([
       "searchApiUrl",
     ]),
-    appliedFiltersCount(){
+    appliedFiltersCount() {
       const allFilters = filtersFromUrlStr(this.$route.query.filter)
-      console.log("allFilters", allFilters)
       const myFilters = allFilters.filter(f => {
         return f.key === this.facetKey
       })
@@ -56,7 +62,7 @@ export default {
     config() {
       return getFacetConfig(this.facetKey)
     },
-    link(){
+    link() {
       return {
         name: "filter",
         params: {
@@ -68,8 +74,7 @@ export default {
   },
   methods: {
     ...mapMutations([]),
-    ...mapActions([
-    ]),
+    ...mapActions([]),
   },
 
   created() {
@@ -77,8 +82,7 @@ export default {
   async mounted() {
 
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 

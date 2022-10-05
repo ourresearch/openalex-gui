@@ -1,152 +1,181 @@
 <template>
-  <v-card
-      flat
-      :loading="isLoading"
-      tile
+
+
+  <v-navigation-drawer
+      app
+      width="400"
+      v-model="isOpen"
+      :mini-variant.sync="isMini"
   >
-    <v-toolbar
-        v-if="!filterTypeKey"
-        flat
-        extended
-        color="#eee"
-    >
-
-      <v-btn icon @click="filterTypeKey = null">
-        <v-icon color="#333">mdi-filter</v-icon>
-      </v-btn>
-      <div class="text-h6">
-        Filters
-      </div>
-      <v-spacer/>
-      <v-btn icon @click="$emit('close')">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-
-      <template v-slot:extension v-if="!filterTypeKey">
-        <v-text-field
-            flat
-            outlined
-            dense
-            solo
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            full-width
-            clearable
-            class="pb-2"
-
-            v-model="filterTypeSearch"
-            placeholder="Search for filters"
-        />
-      </template>
-    </v-toolbar>
-
-
-    <!--      <v-divider color="#333" />-->
 
 
     <v-card
-        v-if="!filterTypeKey"
         flat
+        :loading="isLoading"
+        tile
     >
       <v-list
-          dense
+          :color="(filterTypeKey) ? '#eee' : '#f5f5f5' "
+          class="pt-0"
+          :class="(filterTypeKey) ? 'pb-0' : 'pb-2'"
       >
-        <filter-type-list-item
-            v-for="facet in filterTypeSearchResults"
-            :key="facet.key"
-            :facet-key="facet.key"
-            @select="filterTypeKey = facet.key"
-        />
+        <v-list-item @click="topListItemClick">
+          <v-list-item-icon>
+            <v-chip
+                v-if="resultsFilters.length"
+                small
+                color="primary"
+                class="px-2"
+            >
+              {{ resultsFilters.length }}
+            </v-chip>
+            <v-icon v-else color="primary">mdi-filter-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title class="text-h6">
+            {{ "Filter" | pluralize(resultsFilters.length) }}
+          </v-list-item-title>
+          <v-btn
+              icon
+              @click.stop="clearAllFilters"
+              v-if="!filterTypeKey"
+          >
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </v-list-item>
+
+        <v-list-item v-if="!filterTypeKey">
+          <v-list-item-icon>
+            <v-icon>mdi-magnify</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title class="">
+            <v-text-field
+                flat
+                outlined
+                dense
+                solo
+                hide-details
+                full-width
+                clearable
+                autofocus
+
+                v-model="filterTypeSearch"
+                placeholder="Search for filters"
+            />
+          </v-list-item-title>
+        </v-list-item>
 
       </v-list>
-    </v-card>
 
 
-    <v-card
-        v-if="filterTypeKey"
-        flat
-    >
-      <v-toolbar
-          v-if="filterTypeKey"
-          flat
-          dense
-          class="px-0"
-          @click="filterTypeKey = null"
-          color="#ddd"
-      >
-        <v-toolbar-items>
-          <v-btn  text class="body-2 low-key-button" style="margin-left: -20px;">
-            <v-icon small>mdi-arrow-left</v-icon>
-            Back to filters
-
+      <v-list class="pt-0" color="#f5f5f5" v-if="filterTypeKey">
+        <v-list-item>
+          <v-list-item-icon>
+            <v-chip
+                v-if="filtersFromServer.length"
+                small
+                outlined
+                color="primary"
+                class="px-2"
+            >
+              {{ filtersFromServer.length }}
+            </v-chip>
+            <v-icon v-else class="">mdi-filter-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content class="font-weight-bold">
+            {{ myFacetConfig.displayName }}
+          </v-list-item-content>
+          <v-btn icon @click="filterTypeKey = null">
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
-        </v-toolbar-items>
-        <v-spacer/>
 
-      </v-toolbar>
+          <!--          <v-btn icon @click="filterTypeKey = null">-->
+          <!--            <v-icon>mdi-close</v-icon>-->
+          <!--          </v-btn>-->
 
-      <v-toolbar
-          flat
-          extended
-          color="#eee"
+        </v-list-item>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>mdi-magnify</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title class="">
+            <v-text-field
+                flat
+                outlined
+                dense
+                solo
+                hide-details
+                full-width
+                clearable
+
+                v-model="search"
+                :placeholder="searchPlaceholder"
+            />
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+
+      <v-divider />
+
+
+
+
+<!--      List of filter types-->
+<!--      *****************************************************************-->
+      <v-list
+          dense
+          v-if="!filterTypeKey"
+          style="max-height: 82vh; overflow-y: scroll"
       >
-        <v-chip
-            v-if="filtersFromServer.length"
-            small
-            outlined
-            color="primary"
-            class="px-2"
+        <template
+            v-for="filterType in filterTypeSearchResults"
         >
-          {{ filtersFromServer.length }}
-        </v-chip>
-        <v-icon v-else class="">mdi-filter-outline</v-icon>
-
-        <div class="text-h6 ml-1" style="font-weight: normal;">
-          {{ myFacetConfig.displayName }}
-        </div>
-        <v-spacer/>
-        <v-btn icon @click="filterTypeKey = null">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-
-        <template v-slot:extension>
-          <v-text-field
-              flat
-              outlined
-              dense
-              solo
-              hide-details
-              prepend-inner-icon="mdi-magnify"
-              full-width
-              clearable
-              class="pb-4"
-
-              v-model="search"
-              :placeholder="searchPlaceholder"
+          <filter-type-list-item
+              :key="filterType.key"
+              :facet-key="filterType.key"
+              :bold="filterType.filters.length > 0"
+              @select="filterTypeKey = filterType.key"
           />
+          <facet-option
+            v-for="liveFilter in filterType.filters"
+            :filter="liveFilter"
+            :show-checked="true"
+            :key="liveFilter.asStr"
+            :hide-bar="true"
+            class="ml-10"
+        />
+
+          <v-divider class="my-2" v-if="filterType.filters.length"></v-divider>
         </template>
-      </v-toolbar>
+      </v-list>
 
 
+<!--      List of filters-->
+<!--      *****************************************************************-->
       <div
-          style="height: 80vh; overflow-y:scroll;"
+          v-if="filterTypeKey"
+          style="height: 75vh; overflow-y:scroll;"
+          class="pt-3"
       >
         <facet-option
-            v-for="filter in filtersToShow"
+            v-for="filter in filtersToShow.filter(f => f.isResultsFilter)"
             :filter="filter"
-            :show-checked="filter.isResultsFilter"
-            :key="filter.asStr + filter.isResultsFilter"
-            :indent="filterTypeKey === 'oa_status' && filter.value != 'closed'"
-
+            :show-checked="true"
+            :key="filter.asStr"
         />
+        <v-divider class="my-1" />
+        <facet-option
+            v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"
+            :filter="filter"
+            :show-checked="false"
+            :key="filter.asStr"
+        />
+
       </div>
 
 
     </v-card>
-
-
-  </v-card>
-
+  </v-navigation-drawer>
 </template>
 
 
@@ -184,6 +213,8 @@ export default {
   props: {},
   data() {
     return {
+      isOpen: true,
+      isMini: true,
       search: "",
       filterTypeSearch: "",
       filterTypeKey: null,
@@ -213,9 +244,21 @@ export default {
       return `search ${displayName}`
     },
     filterTypeSearchResults() {
-      return this.searchFacetConfigs.filter(c => {
-        return c.displayName.toLowerCase().match(this.filterTypeSearch.toLowerCase())
+      const ret = this.searchFacetConfigs
+          .filter(c => {
+            return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
+          })
+          .map(c => {
+            const filters = this.resultsFilters.filter(f => f.key === c.key)
+            return {
+              ...c,
+              filters
+            }
+          })
+      ret.sort((a, b)=> {
+        return b.filters.length - a.filters.length
       })
+      return ret
     },
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.filterTypeKey)
@@ -287,7 +330,21 @@ export default {
       "snackbar"
     ]),
     ...mapActions([]),
+    topListItemClick() {
+      if (this.isMini) {
 
+      } else {
+        if (this.filterTypeKey) {
+          this.filterTypeKey = null
+        } else {
+          this.isMini = true
+        }
+      }
+    },
+    clearAllFilters() {
+      console.log("clear all filters")
+      return false
+    },
 
     facetZoomLink(key) {
       return url.addZoomToRoute(
