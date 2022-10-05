@@ -11,7 +11,7 @@
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill" style="max-width: 710px;">
+        <div class="d-flex flex-fill" style="max-width: 820px;">
             <router-link to="/" class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon.png"
@@ -27,7 +27,7 @@
                   class="logo-icon"
               />
             </router-link>
-            <search-box  class="flex-fill"/>
+            <search-box  class="ml-2 flex-fill"/>
         </div>
 
         <div class="">
@@ -54,12 +54,13 @@
 
     <v-main>
 
-      <div class="serp-container"
+      <router-view></router-view>
+      <div class="serp-container pt-12"
            v-if="$store.state.resultsCount !== null"
       >
 
 
-        <div class="search-results-meta px-8" style="max-width: 800px;">
+        <div class="search-results-meta px-8" style="max-width: 900px;">
           <serp-toolbar
               @toggle-filter-drawer="filterDrawerIsOpen = !filterDrawerIsOpen"
               :filter-drawer-is-open="filterDrawerIsOpen"
@@ -70,7 +71,7 @@
 
 
 
-        <div class="search-results px-8" style="max-width: 800px;">
+        <div class="search-results px-8" style="max-width: 900px;">
           <div
               v-for="result in $store.state.results"
               class="result-container my-4"
@@ -150,7 +151,6 @@
   </v-app>
 
 
-  </div>
 </template>
 
 <script>
@@ -176,6 +176,7 @@ import ResultConcept from "../components/ResultConcept";
 import Zoom from "../components/Zoom/Zoom";
 import ZoomFilter from "../components/Zoom/ZoomFilter";
 import axios from "axios";
+import ZoomEntity from "../components/Zoom/ZoomEntity";
 
 export default {
   name: "Serp",
@@ -186,6 +187,7 @@ export default {
     return ret
   },
   components: {
+    ZoomEntity,
     Facet,
     DownloadCsvDialog,
     SerpToolbar,

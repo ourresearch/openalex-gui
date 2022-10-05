@@ -6,11 +6,12 @@
       <v-checkbox
           dense
           hide-details
-          class="pa-0 ma-0"
+          color="primary"
+          class="pa-0 ma-0 mr-2"
           v-model="isChecked"/>
     </div>
     <div
-        class="body-1 black--text text-capitalize"
+        class="body-1  text-capitalize"
         style="line-height: 1.5; "
     >
       <!--      <router-link-->

@@ -6,6 +6,8 @@
       width="400"
       v-model="isOpen"
       :mini-variant.sync="isMini"
+      color="#333"
+      dark
   >
 
 
@@ -13,95 +15,150 @@
         flat
         :loading="isLoading"
         tile
+        color="#333"
+        dark
     >
       <v-list
-          :color="(filterTypeKey) ? '#eee' : '#f5f5f5' "
-          class="pt-0"
-          :class="(filterTypeKey) ? 'pb-0' : 'pb-2'"
+          class="pb-0 pt-1"
       >
         <v-list-item @click="topListItemClick">
           <v-list-item-icon>
+            <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>
             <v-chip
-                v-if="resultsFilters.length"
+                v-else-if="resultsFilters.length"
                 small
                 color="primary"
                 class="px-2"
+                style="cursor: pointer;"
             >
               {{ resultsFilters.length }}
             </v-chip>
-            <v-icon v-else color="primary">mdi-filter-outline</v-icon>
+            <v-icon v-else>mdi-filter</v-icon>
           </v-list-item-icon>
-          <v-list-item-title class="text-h6">
-            {{ "Filter" | pluralize(resultsFilters.length) }}
+          <v-list-item-title
+              class="text-h6"
+              :class="{'font-weight-light': !!filterTypeKey}"
+          >
+            Filters
           </v-list-item-title>
-          <v-btn
-              icon
-              @click.stop="clearAllFilters"
+          <v-menu
               v-if="!filterTypeKey"
           >
-            <v-icon>mdi-dots-vertical</v-icon>
-          </v-btn>
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item  @click="copyUrlToClipboard">
+                <v-list-item-icon>
+                  <v-icon >mdi-content-copy</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Copy filter URL
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                  color="red"
+                  :to="{name: 'Serp', query:{...$route.query, filter: undefined}}"
+                  @click="snackbar('Filters cleared')"
+              >
+                <v-list-item-icon>
+                  <v-icon >mdi-filter-off-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Clear all filters
+
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-list-item>
 
-        <v-list-item v-if="!filterTypeKey">
-          <v-list-item-icon>
-            <v-icon>mdi-magnify</v-icon>
-          </v-list-item-icon>
-          <v-list-item-title class="">
-            <v-text-field
-                flat
-                outlined
-                dense
-                solo
-                hide-details
-                full-width
-                clearable
-                autofocus
+<!--        <v-list-item  v-if="!filterTypeKey">-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-magnify</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-title class="">-->
+<!--            <v-text-field-->
+<!--                flat-->
+<!--                outlined-->
+<!--                dense-->
+<!--                solo-->
+<!--                hide-details-->
+<!--                full-width-->
+<!--                clearable-->
+<!--                autofocus-->
 
-                v-model="filterTypeSearch"
-                placeholder="Search for filters"
-            />
-          </v-list-item-title>
-        </v-list-item>
+<!--                v-model="filterTypeSearch"-->
+<!--                placeholder="Search for filters"-->
+<!--            />-->
+<!--          </v-list-item-title>-->
+<!--        </v-list-item>-->
 
       </v-list>
 
 
-      <v-list class="pt-0" color="#f5f5f5" v-if="filterTypeKey">
-        <v-list-item>
+      <v-list class="pt-0 pb-0" v-if="filterTypeKey">
+        <v-list-item class="">
           <v-list-item-icon>
-            <v-chip
-                v-if="filtersFromServer.length"
-                small
-                outlined
-                color="primary"
-                class="px-2"
-            >
-              {{ filtersFromServer.length }}
-            </v-chip>
-            <v-icon v-else class="">mdi-filter-outline</v-icon>
+
+              <v-icon class="">mdi-chevron-down</v-icon>
           </v-list-item-icon>
-          <v-list-item-content class="text-h6" style="font-weight: normal;">
-            {{ myFacetConfig.displayName | pluralize(filtersFromServer.length) }}
+<!--            <v-btn icon class="mr-2" @click="filterTypeKey = null">-->
+<!--              <v-icon class="">mdi-chevron-down</v-icon>-->
+<!--            </v-btn>-->
+          <v-list-item-content class="font-weight-bold text-h6">
+            <template v-if="myFacetConfig.isBoolean">
+              {{ myFacetConfig.displayName }}
+            </template>
+            <template v-else>
+              {{ myFacetConfig.displayName | pluralize(filtersFromServer.length) }}
+            </template>
           </v-list-item-content>
-          <v-btn icon @click="filterTypeKey = null">
-            <v-icon>mdi-dots-vertical</v-icon>
+          <v-btn icon @click="showSearch = !showSearch" v-if="!myFacetConfig.isBoolean">
+            <v-icon>mdi-magnify</v-icon>
           </v-btn>
+          <v-menu
+          >
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item  @click="copyUrlToClipboard">
+                <v-list-item-icon>
+                  <v-icon >mdi-table</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Export spreadsheet
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item  @click="copyUrlToClipboard">
+                <v-list-item-icon>
+                  <v-icon >mdi-code-json</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Export API call
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-list-item>
 
-        <v-list-item>
+        <v-list-item v-if="showSearch">
           <v-list-item-icon>
             <v-icon>mdi-magnify</v-icon>
           </v-list-item-icon>
           <v-list-item-title class="">
             <v-text-field
                 flat
-                outlined
                 dense
-                solo
                 hide-details
                 full-width
                 clearable
+                autofocus
 
                 v-model="search"
                 :placeholder="searchPlaceholder"
@@ -110,13 +167,11 @@
         </v-list-item>
       </v-list>
 
-      <v-divider />
+      <v-divider/>
 
 
-
-
-<!--      List of filter types-->
-<!--      *****************************************************************-->
+      <!--      List of filter types-->
+      <!--      *****************************************************************-->
       <v-list
           dense
           v-if="!filterTypeKey && !isMini"
@@ -132,21 +187,22 @@
               @select="filterTypeKey = filterType.key"
           />
           <facet-option
-            v-for="liveFilter in filterType.filters"
-            :filter="liveFilter"
-            :show-checked="true"
-            :key="liveFilter.asStr"
-            :hide-bar="true"
-            class="ml-0"
-        />
+              v-for="liveFilter in filterType.filters"
+              :filter="liveFilter"
+              :show-checked="true"
+              :key="liveFilter.asStr"
+              :hide-bar="true"
+              class="ml-0"
+          />
 
-          <v-divider class="my-2" v-if="filterType.filters.length"></v-divider>
+<!--          <div class="my-6" v-if="filterType.filters.length"></div>-->
+          <v-divider class="mb-2 mt-4" v-if="filterType.filters.length"></v-divider>
         </template>
       </v-list>
 
 
-<!--      List of filters-->
-<!--      *****************************************************************-->
+      <!--      List of filters-->
+      <!--      *****************************************************************-->
       <div
           v-if="filterTypeKey && !isMini"
           style="height: 75vh; overflow-y:scroll;"
@@ -158,7 +214,7 @@
             :show-checked="true"
             :key="filter.asStr"
         />
-        <v-divider class="my-1" />
+<!--        <v-divider class="my-1"/>-->
         <facet-option
             v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"
             :filter="filter"
@@ -210,6 +266,7 @@ export default {
     return {
       isOpen: true,
       isMini: true,
+      showSearch: false,
       search: "",
       filterTypeSearch: "",
       filterTypeKey: null,
@@ -250,8 +307,8 @@ export default {
               filters
             }
           })
-      ret.sort((a, b)=> {
-        return b.filters.length - a.filters.length
+      ret.sort((a, b) => {
+        return (b.filters.length && !a.filters.length) ? 1 : -1
       })
       return ret
     },
@@ -313,7 +370,9 @@ export default {
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
 
       console.log("set searchParams: ", this.search, this.search === "")
-      url.searchParams.set("q", "")
+      if (this.myFacetConfig.valuesToShow === "mostCommon") {
+        url.searchParams.set("q", this.search ?? "")
+      }
       url.searchParams.set("email", "team@ourresearch.org")
 
       return url.toString()
@@ -325,6 +384,12 @@ export default {
       "snackbar"
     ]),
     ...mapActions([]),
+    async copyUrlToClipboard() {
+      const url = window.location.origin + this.$route.fullPath
+      await navigator.clipboard.writeText(url);
+      console.log("copied to clipboard", url)
+      this.snackbar("Filters copied to clipboard.")
+    },
     topListItemClick() {
       if (this.isMini) {
 

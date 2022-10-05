@@ -1,20 +1,21 @@
 <template>
   <v-list-item
       @click="$emit('select')"
-      style="min-height: 30px;"
+      style="min-height: 30px; "
   >
-    <v-list-item-icon v-if="appliedFiltersCount">
-      <v-chip
-          color="primary"
-          x-small
-          outlined
-          class="px-1 mt-1 ml-1"
-      >
-        {{ appliedFiltersCount }}
-      </v-chip>
+    <v-list-item-icon class="mt-1 mb-1">
+      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>
+      <v-icon v-else>mdi-chevron-right</v-icon>
+<!--      <v-chip-->
+<!--          color="primary"-->
+<!--          small-->
+<!--          outlined-->
+<!--          class="px-2"-->
+<!--      >-->
+<!--        {{ appliedFiltersCount }}-->
+<!--      </v-chip>-->
     </v-list-item-icon>
-    <span v-else class="px-5"></span>
-    <v-list-item-title style="font-size: 16px; font-weight: normal;"
+    <v-list-item-title style=" font-weight: normal; line-height: 1.2;font-size: 16px;"
       :class="{'font-weight-bold': bold}"
     >
     {{ config.displayName }}

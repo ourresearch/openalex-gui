@@ -16,15 +16,23 @@ const makeFacetQueryFilters = function (facetFilters) {
 
 
 const onlyReturnTheseFacets = [
+    "has_doi",
+    "has_ngrams",
+    "is_paratext",
+    "is_retracted",
+
+    "open_access.is_oa",
     "authorships.author.id",
     "authorships.institutions.country_code",
     "authorships.institutions.id",
     "authorships.institutions.type",
+    "has_abstract",
     "host_venue.display_name",
     "host_venue.license",
     "host_venue.publisher",
     "host_venue.type",
     "open_access.oa_status",
+    "publication_year",
     "type"
 ]
 
@@ -42,8 +50,7 @@ const facetConfigs = function () {
         },
 
 
-        // works
-        // wavic
+        // works:  wavic
         {
             key: "concepts.id",
             entityTypes: ["works"],
@@ -82,7 +89,7 @@ const facetConfigs = function () {
         },
 
 
-        // host venue
+        // works: host venue
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],
@@ -99,12 +106,13 @@ const facetConfigs = function () {
         },
 
 
-        // open access
+        // works: open access
         {
-            key: "is_oa",
+            key: "open_access.is_oa",
             entityTypes: ["works"],
             displayName: "Free to read",
-            valuesToShow: "mostCommon",
+            valuesToShow: "boolean",
+            isBoolean: true,
         },
         {
             key: "host_venue.license",
@@ -118,8 +126,6 @@ const facetConfigs = function () {
             displayName: "OA status",
             valuesToShow: "mostCommon",
         },
-
-
         // {
         //     key: "has_abstract",
         //     entityTypes: ["works"],
@@ -128,7 +134,7 @@ const facetConfigs = function () {
         // },
 
 
-        // institutions:
+        // works: institutions:
         {
             key: "authorships.institutions.country_code",
             entityTypes: ["works"],
@@ -146,14 +152,13 @@ const facetConfigs = function () {
         },
 
 
-        // general work stuff
+        // works: general
         {
             key: "type",
             entityTypes: ["works"],
             displayName: "Type",
             valuesToShow: "mostCommon",
         },
-        // general work stuff
         {
             key: "publication_year",
             entityTypes: ["works"],
@@ -161,8 +166,36 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             sortByValue: true,
         },
+        {
+            key: "has_doi",
+            entityTypes: ["works"],
+            displayName: "Has DOI",
+            valuesToShow: "boolean",
+            isBoolean: true,
+        },
+        {
+            key: "has_ngrams",
+            entityTypes: ["works"],
+            displayName: "Has N-grams",
+            valuesToShow: "boolean",
+            isBoolean: true,
+        },
+        {
+            key: "is_paratext",
+            entityTypes: ["works"],
+            displayName: "Is paratext",
+            valuesToShow: "boolean",
+            isBoolean: true,
+        },
+        {
+            key: "is_retracted",
+            entityTypes: ["works"],
+            displayName: "Is retracted",
+            valuesToShow: "boolean",
+            isBoolean: true,
+        },
 
-        // links to other works
+        // works: links to other works
         {
             key: "cited_by",
             entityTypes: ["works"],
@@ -271,11 +304,11 @@ const facetConfigs = function () {
     return ret
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
-        return {
-            ...config,
-            // values: [],
-        }
-    })
+            return {
+                ...config,
+                // values: [],
+            }
+        })
 }
 
 const getFacetConfig = function (key, attr) {

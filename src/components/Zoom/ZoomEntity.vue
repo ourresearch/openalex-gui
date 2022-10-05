@@ -3,7 +3,7 @@
     <v-dialog
         v-model="zoomIsOpen"
         scrollable
-        max-width="500"
+        max-width="800"
     >
 
 

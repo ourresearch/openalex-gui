@@ -10,10 +10,10 @@
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
 
-    <div class="d-flex align-center" >
-<!--      <v-icon class="px-2">mdi-filter-outline</v-icon>-->
-<!--      <span class="mr-2">Search: </span>-->
-<!--      <search-box class=""/>-->
+    <div class="d-flex align-center">
+      <!--      <v-icon class="px-2">mdi-filter-outline</v-icon>-->
+      <!--      <span class="mr-2">Search: </span>-->
+      <!--      <search-box class=""/>-->
 
     </div>
 
@@ -85,26 +85,30 @@
 
 
     <div class="d-flex align-center pb-2">
-<!--      <v-btn-->
-<!--          fab x-small-->
-<!--          class="mr-2"-->
-<!--          color="primary"-->
-<!--          :outlined="filterDrawerIsOpen"-->
-<!--          @click="$emit('toggle-filter-drawer')"-->
-<!--      >-->
-<!--        <v-icon>mdi-filter</v-icon>-->
-<!--      </v-btn>-->
+      <!--      <v-btn-->
+      <!--          fab x-small-->
+      <!--          class="mr-2"-->
+      <!--          color="primary"-->
+      <!--          :outlined="filterDrawerIsOpen"-->
+      <!--          @click="$emit('toggle-filter-drawer')"-->
+      <!--      >-->
+      <!--        <v-icon>mdi-filter</v-icon>-->
+      <!--      </v-btn>-->
 
       <div
-          class="subtitle-1 font-weight-bold"
+          class="subtitle-1"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class="">
+        <span class="font-weight-bold">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
-          {{ resultsCount | millify(3) }}
-          {{ entityType | pluralize(results.length) }}
+          <!--          {{ resultsCount | millify(3) }}-->
+          {{ resultsCount.toLocaleString() }}
 
         </span>
+        <span>
+          {{ entityType | pluralize(results.length) }}
+
+          </span>
         <!--        <a-->
         <!--            v-if="resultsFilters.length > 0 || textSearch"-->
         <!--            @click="removeFiltersAndSearch"-->
@@ -242,10 +246,7 @@
     </div>
 
 
-
-
-
-<!--    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>-->
+    <!--    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>-->
 
 
     <!-- RESULTS TOOLBAR -->

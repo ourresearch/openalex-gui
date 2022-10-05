@@ -59,18 +59,18 @@ const routes = [
                 name: "entity-zoom",
                 component: ZoomEntity
             },
-            {
-                path: "filters",
-                name: "filter-types",
-                component: ZoomFilter,
-                children: [
-                    {
-                        path: ":filterTypeKey",
-                        name: "filter",
-
-                    }
-                ]
-            }
+            // {
+            //     path: "filters",
+            //     name: "filter-types",
+            //     component: ZoomFilter,
+            //     children: [
+            //         {
+            //             path: ":filterTypeKey",
+            //             name: "filter",
+            //
+            //         }
+            //     ]
+            // }
         ]
     },
     {path: '/team', redirect: "/about"},
