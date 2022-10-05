@@ -6,7 +6,7 @@ const getFromCache = function (url) {
     if (!cache[url]) return
     return _.cloneDeep(cache[url])
 }
-const clearCache = function(){
+const clearCache = function () {
     Object.keys(cache).forEach(k => {
         cache[k] = null
     })
@@ -61,8 +61,28 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
 
 
 const api = (function () {
+
+    const getUrl = async function (url) {
+        const cachedResponse = getFromCache(url)
+        if (cachedResponse) {
+            return cachedResponse
+        }
+
+        let res
+        try {
+            res = await axios.get(url)
+            // console.log(`api GET ${url} success:`, res.data)
+        } catch (e) {
+            // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
+            console.log("api GET failure:", e.response)
+            throw e
+        }
+        cache[url] = res.data
+        return res.data
+    }
+
     return {
-        getUrl: function (pathName, searchParams) {
+        createUrl: function (pathName, searchParams) {
             return makeUrl(pathName, searchParams, false)
         },
         async getEntityDisplayNames(openAlexIds) {
@@ -75,25 +95,14 @@ const api = (function () {
             console.log("getEntityDisplayNames", ret)
             return ret
         },
+
+
+        getUrl,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
-            const cachedResponse = getFromCache(url)
-            if (cachedResponse) {
-                return cachedResponse
-            }
+            return await getUrl(url)
+        }
 
-            let res
-            try {
-                res = await axios.get(url)
-                // console.log(`api GET ${url} success:`, res.data)
-            } catch (e) {
-                // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-                console.log("api GET failure:", e.response)
-                throw e
-            }
-            cache[url] = res.data
-            return res.data
-        },
     }
 })()
 

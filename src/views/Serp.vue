@@ -12,7 +12,7 @@
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 820px;">
-            <router-link to="/" class="logo-link">
+            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon.png"
                   class="logo-icon"
@@ -21,7 +21,7 @@
                 OpenAlex
               </span>
             </router-link>
-            <router-link to="/" class="logo-link pr-4 d-md-none">
+            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}"  class="logo-link pr-4 d-md-none">
               <img
                   src="@/assets/openalex-logo-icon.png"
                   class="logo-icon"

@@ -6,18 +6,18 @@
       width="400"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      color="#333"
+      color="#444"
       dark
   >
 
 
     <v-card
         flat
-        :loading="isLoading"
         tile
-        color="#333"
+        color="#444"
         dark
     >
+      <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
       <v-list
           class="pb-0 pt-1"
       >
@@ -27,7 +27,6 @@
             <v-chip
                 v-else-if="resultsFilters.length"
                 small
-                color="primary"
                 class="px-2"
                 style="cursor: pointer;"
             >
@@ -50,9 +49,9 @@
               </v-btn>
             </template>
             <v-list>
-              <v-list-item  @click="copyUrlToClipboard">
+              <v-list-item @click="copyUrlToClipboard">
                 <v-list-item-icon>
-                  <v-icon >mdi-content-copy</v-icon>
+                  <v-icon>mdi-content-copy</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
                   Copy filter URL
@@ -64,7 +63,7 @@
                   @click="snackbar('Filters cleared')"
               >
                 <v-list-item-icon>
-                  <v-icon >mdi-filter-off-outline</v-icon>
+                  <v-icon>mdi-filter-off-outline</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
                   Clear all filters
@@ -75,26 +74,26 @@
           </v-menu>
         </v-list-item>
 
-<!--        <v-list-item  v-if="!filterTypeKey">-->
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>mdi-magnify</v-icon>-->
-<!--          </v-list-item-icon>-->
-<!--          <v-list-item-title class="">-->
-<!--            <v-text-field-->
-<!--                flat-->
-<!--                outlined-->
-<!--                dense-->
-<!--                solo-->
-<!--                hide-details-->
-<!--                full-width-->
-<!--                clearable-->
-<!--                autofocus-->
+        <!--        <v-list-item  v-if="!filterTypeKey">-->
+        <!--          <v-list-item-icon>-->
+        <!--            <v-icon>mdi-magnify</v-icon>-->
+        <!--          </v-list-item-icon>-->
+        <!--          <v-list-item-title class="">-->
+        <!--            <v-text-field-->
+        <!--                flat-->
+        <!--                outlined-->
+        <!--                dense-->
+        <!--                solo-->
+        <!--                hide-details-->
+        <!--                full-width-->
+        <!--                clearable-->
+        <!--                autofocus-->
 
-<!--                v-model="filterTypeSearch"-->
-<!--                placeholder="Search for filters"-->
-<!--            />-->
-<!--          </v-list-item-title>-->
-<!--        </v-list-item>-->
+        <!--                v-model="filterTypeSearch"-->
+        <!--                placeholder="Search for filters"-->
+        <!--            />-->
+        <!--          </v-list-item-title>-->
+        <!--        </v-list-item>-->
 
       </v-list>
 
@@ -103,11 +102,11 @@
         <v-list-item class="">
           <v-list-item-icon>
 
-              <v-icon class="">mdi-chevron-down</v-icon>
+            <v-icon class="">mdi-chevron-down</v-icon>
           </v-list-item-icon>
-<!--            <v-btn icon class="mr-2" @click="filterTypeKey = null">-->
-<!--              <v-icon class="">mdi-chevron-down</v-icon>-->
-<!--            </v-btn>-->
+          <!--            <v-btn icon class="mr-2" @click="filterTypeKey = null">-->
+          <!--              <v-icon class="">mdi-chevron-down</v-icon>-->
+          <!--            </v-btn>-->
           <v-list-item-content class="font-weight-bold text-h6">
             <template v-if="myFacetConfig.isBoolean">
               {{ myFacetConfig.displayName }}
@@ -127,17 +126,17 @@
               </v-btn>
             </template>
             <v-list>
-              <v-list-item  @click="copyUrlToClipboard">
+              <v-list-item @click="copyUrlToClipboard">
                 <v-list-item-icon>
-                  <v-icon >mdi-table</v-icon>
+                  <v-icon>mdi-table</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
                   Export spreadsheet
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item  @click="copyUrlToClipboard">
+              <v-list-item @click="copyUrlToClipboard">
                 <v-list-item-icon>
-                  <v-icon >mdi-code-json</v-icon>
+                  <v-icon>mdi-code-json</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
                   Export API call
@@ -195,7 +194,7 @@
               class="ml-0"
           />
 
-<!--          <div class="my-6" v-if="filterType.filters.length"></div>-->
+          <!--          <div class="my-6" v-if="filterType.filters.length"></div>-->
           <v-divider class="mb-2 mt-4" v-if="filterType.filters.length"></v-divider>
         </template>
       </v-list>
@@ -214,7 +213,7 @@
             :show-checked="true"
             :key="filter.asStr"
         />
-<!--        <v-divider class="my-1"/>-->
+        <!--        <v-divider class="my-1"/>-->
         <facet-option
             v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"
             :filter="filter"
@@ -418,21 +417,34 @@ export default {
       await this.fetchSuggestions()
     },
     fetchSuggestions: _.debounce(
-        function () {
+        async function () {
           this.isLoading = true
           console.log("fetchSuggestions calling", this.autocompleteUrl)
-          axios.get(this.autocompleteUrl)
-              .then(resp => {
-                this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
-                  return createDisplayFilter(
-                      this.myFacetConfig.key,
-                      apiData.value,
-                      apiData.display_value,
-                      apiData.works_count,
-                  )
-                })
-                this.isLoading = false
-              })
+
+          const resp = await api.getUrl(this.autocompleteUrl)
+          this.filtersFromAutocomplete = resp.filters.map(apiData => {
+            return createDisplayFilter(
+                this.myFacetConfig.key,
+                apiData.value,
+                apiData.display_value,
+                apiData.works_count,
+            )
+          })
+          this.isLoading = false
+
+
+          // axios.get(this.autocompleteUrl)
+          //     .then(resp => {
+          //       this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
+          //         return createDisplayFilter(
+          //             this.myFacetConfig.key,
+          //             apiData.value,
+          //             apiData.display_value,
+          //             apiData.works_count,
+          //         )
+          //       })
+          //       this.isLoading = false
+          //     })
         },
         250
     )

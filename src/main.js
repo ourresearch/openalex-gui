@@ -103,7 +103,6 @@ Vue.filter("linkRemoveFilter", function (filterObject) {
 
 
 Vue.filter("addFilterLink", function (newFilter) {
-    console.log("addFilterLink", newFilter)
     if (!newFilter.key) return
 
     const query = {...router.currentRoute.query}

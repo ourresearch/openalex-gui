@@ -14,14 +14,17 @@
         class="body-1  text-capitalize"
         style="line-height: 1.5; "
     >
-      <!--      <router-link-->
-      <!--        v-if="filter.isEntity"-->
-      <!--        :to="filter.value | zoomLink"-->
-      <!--        class="text-decoration-none"-->
-      <!--      >-->
-      <!--        {{ prettyDisplayName }}-->
-      <!--      </router-link>-->
+      <router-link
+          v-if="filter.isEntity"
+          :to="filter.value | entityZoomLink"
+          color="white"
+          class="hover-underline"
+          style="color: #fff;"
+      >
+        {{ prettyDisplayName }}
+      </router-link>
       <span
+          v-else
           :class="{textCapitalize: filter.key === 'host_venue.publisher'}"
       >
         {{ prettyDisplayName }}
@@ -136,19 +139,27 @@ export default {
 </script>
 
 <style scoped lang="scss">
+a.hover-underline {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .facet-option-bar-container {
   width: 20px;
   height: 12px;
-  background: #eee;
+  background-color: rgba(255, 255, 255, 0.1);
   flex: none;
   margin-top: 4px;
 }
 
 .facet-option-bar-bar {
-  background: #555;
+  background-color: rgba(255, 255, 255, .5);
   height: 100%;
+
   &.selected {
-    background: #1976d2;
+    //background-color: rgba(255, 255, 255, 1);
   }
 }
 

@@ -3,9 +3,11 @@
     <span v-if="expand" class="mr-2 text-capitalize">
       <v-icon
           :small="small"
+          :large="large"
+          :x-large="xLarge"
           :color="color"
       >
-        {{entityConfig.icon}}
+        {{ entityConfig.icon }}
       </v-icon>
       <span
           style="color: #555;"
@@ -24,16 +26,18 @@
             <v-icon
                 :left="left"
                 :small="small"
+                :large="large"
+                :x-large="xLarge"
                 :color="color"
                 style="vertical-align: unset;"
             >
-              {{entityConfig.icon}}
+              {{ entityConfig.icon }}
             </v-icon>
           </span>
         </template>
         <span>
-          <span class="text-capitalize font-weight-bold">{{entityConfig.displayName}}: </span>
-          <span>{{entityConfig.descr}}</span>
+          <span class="text-capitalize font-weight-bold">{{ entityConfig.displayName }}: </span>
+          <span>{{ entityConfig.descr }}</span>
         </span>
       </v-tooltip>
     </span>
@@ -56,6 +60,8 @@ export default {
 
     // these are optional
     small: Boolean,
+    large: Boolean,
+    xLarge: Boolean,
     expand: Boolean,
     singular: Boolean,
     left: Boolean,
@@ -68,10 +74,10 @@ export default {
   },
   methods: {},
   computed: {
-    entityConfig(){
+    entityConfig() {
       return entityConfigs[this.entityType]
     },
-    entityType(){
+    entityType() {
       if (this.type) return this.type
       else if (this.id) return entityTypeFromId(this.id)
     },

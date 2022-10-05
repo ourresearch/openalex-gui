@@ -8,59 +8,37 @@
 
 
       <v-card flat v-if="data">
-        <div>
-          <!--      <div-->
-          <!--          class="py-2 body-1"-->
-          <!--          v-if="entityZoomHistoryData.length"-->
-          <!--          style="background: #fff;"-->
-          <!--      >-->
-          <!--        &lt;!&ndash;          {{ entityZoomHistoryData }}&ndash;&gt;-->
-          <!--        <div-->
-          <!--            v-for="zoomData in entityZoomHistoryData"-->
-          <!--            :key="zoomData.id"-->
-          <!--        >-->
-          <!--          <router-link-->
-          <!--              :to="zoomData.id | zoomLink"-->
-          <!--              class="text-decoration-none px-6 grey&#45;&#45;text"-->
-          <!--          >-->
-          <!--            <v-icon small left color="">mdi-history</v-icon>-->
-          <!--            &lt;!&ndash;              <v-icon small color="primary">{{ getEntityIconFromId(zoomData.id) }}</v-icon>&ndash;&gt;-->
-          <!--            {{ zoomData.display_name }}-->
-          <!--          </router-link>-->
-          <!--        </div>-->
-          <!--      </div>-->
-          <!--      <v-divider v-if="entityZoomHistoryData.length"/>-->
-          <div class="pt-6 px-6 pb-3 d-flex">
-            <div>
-              <div class="body-1 text-capitalize">
-                <entity-icon :type="entityType" small left/>
-                <span>{{ myEntityConfig.displayNameSingular }}</span>
+        <div class="card-header py-3 px-6 d-flex align-center">
+          <entity-icon x-large class="mr-4" :type="entityType" />
 
-                <span v-if="entityType === 'works' && data.type">
+          <div>
+            <div class="card-header-top-row text-capitalize body-2">
+
+              <span>{{ myEntityConfig.displayNameSingular }}</span>
+
+              <span v-if="entityType === 'works' && data.type">
                 ({{ data.type.replace("-", " ") }})
               </span>
-                <span v-if="entityType=== 'institutions' && data.type">
+              <span v-if="entityType=== 'institutions' && data.type">
                  ({{ data.type.replace("-", " ") }})
               </span>
-                <span v-if="entityType=== 'concepts'">
+              <span v-if="entityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-                <div class="text-h6 font-weight-medium mb-3 mt-0"
-                     style="font-weight: 450 !important; line-height: 1.5;">
-                  {{ data.display_name }}
-                </div>
-              </div>
-
-
             </div>
-            <v-spacer/>
-            <div class="pl-10">
-              <v-btn large icon :to='{name: "Serp", query:{...$route.query}}' class="no-active">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-
+            <div class="text-h6 font-weight-medium mt-0"
+                 style="font-weight: 450 !important; line-height: 1.5;">
+              {{ data.display_name }}
             </div>
+
           </div>
+
+
+          <v-spacer/>
+          <v-btn icon :to='{name: "Serp", query:{...$route.query}}' class="no-active">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+
         </div>
         <v-divider></v-divider>
         <v-card-text class="pa-6" style="font-size: 16px;">
@@ -73,7 +51,7 @@
 
         </v-card-text>
         <v-divider/>
-        <v-card-actions class="py-6 px-5">
+        <v-card-actions class="py-3 px-5">
 
           <!--        just for works-->
           <template v-if="entityType==='works'">
@@ -340,7 +318,7 @@ export default {
 
   },
   watch: {
-    "$route.params.id": function(to, from){
+    "$route.params.id": function (to, from) {
       this.getData()
     }
   }

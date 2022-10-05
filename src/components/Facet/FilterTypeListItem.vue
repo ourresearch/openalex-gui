@@ -63,15 +63,6 @@ export default {
     config() {
       return getFacetConfig(this.facetKey)
     },
-    link() {
-      return {
-        name: "filter",
-        params: {
-          filterTypeKey: this.facetKey,
-        },
-        query: {...this.$route.query}
-      }
-    }
   },
   methods: {
     ...mapMutations([]),
