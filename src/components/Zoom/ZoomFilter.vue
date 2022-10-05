@@ -81,17 +81,12 @@
             </v-chip>
             <v-icon v-else class="">mdi-filter-outline</v-icon>
           </v-list-item-icon>
-          <v-list-item-content class="font-weight-bold">
-            {{ myFacetConfig.displayName }}
+          <v-list-item-content class="text-h6" style="font-weight: normal;">
+            {{ myFacetConfig.displayName | pluralize(filtersFromServer.length) }}
           </v-list-item-content>
           <v-btn icon @click="filterTypeKey = null">
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
-
-          <!--          <v-btn icon @click="filterTypeKey = null">-->
-          <!--            <v-icon>mdi-close</v-icon>-->
-          <!--          </v-btn>-->
-
         </v-list-item>
 
         <v-list-item>
@@ -124,7 +119,7 @@
 <!--      *****************************************************************-->
       <v-list
           dense
-          v-if="!filterTypeKey"
+          v-if="!filterTypeKey && !isMini"
           style="max-height: 82vh; overflow-y: scroll"
       >
         <template
@@ -142,7 +137,7 @@
             :show-checked="true"
             :key="liveFilter.asStr"
             :hide-bar="true"
-            class="ml-10"
+            class="ml-0"
         />
 
           <v-divider class="my-2" v-if="filterType.filters.length"></v-divider>
@@ -153,7 +148,7 @@
 <!--      List of filters-->
 <!--      *****************************************************************-->
       <div
-          v-if="filterTypeKey"
+          v-if="filterTypeKey && !isMini"
           style="height: 75vh; overflow-y:scroll;"
           class="pt-3"
       >

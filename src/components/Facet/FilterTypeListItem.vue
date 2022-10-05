@@ -6,9 +6,9 @@
     <v-list-item-icon v-if="appliedFiltersCount">
       <v-chip
           color="primary"
-          small
+          x-small
           outlined
-          class="px-2"
+          class="px-1 mt-1 ml-1"
       >
         {{ appliedFiltersCount }}
       </v-chip>
