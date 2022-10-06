@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="10" class="content">
+    <v-col cols="12" md="10" class="content">
       <router-link
           class="text-decoration-none subtitle-1"
           :to="data.id | entityZoomLink"
@@ -25,16 +25,31 @@
       </div>
 <!--      <concepts-list class="d-none" :concepts="data.concepts"/>-->
 
-      <div>
+      <div class="">
         <result-citation-count
             :id="data.id"
             :cited-by-count="data.cited_by_count"
             entity-type="works"
         />
+      </div>
+      <div class="pt-1 pb-4">
+        <v-btn
+            x-small
+            color="primary"
+          :href="fulltextUrl"
+          target="_blank"
+          class="mr-3 text-decoration-none d-md-none font-weight-bold"
+          v-if="fulltextUrl"
+      >
+        <v-icon x-small left >mdi-open-in-new</v-icon>
+        Fulltext
+<!--        {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}-->
+      </v-btn>
 
       </div>
+
     </v-col>
-    <v-col cols="2" class="linkout d-flex justify-end">
+    <v-col cols="2" class="linkout d-none d-md-flex justify-end">
       <a
           :href="fulltextUrl"
           target="_blank"

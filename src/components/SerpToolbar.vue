@@ -18,7 +18,7 @@
     </div>
 
 
-    <div class="d-flex align-center pb-2">
+    <div class="d-flex align-center ">
       <!--      <v-btn-->
       <!--          fab x-small-->
       <!--          class="mr-2"-->

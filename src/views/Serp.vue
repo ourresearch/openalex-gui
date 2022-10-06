@@ -304,7 +304,7 @@ export default {
   padding: 0 !important;
 }
 .serp-container.mobile {
-  padding:  20px !important;
+  padding:  5px !important;
 }
 
 .serp-container {
