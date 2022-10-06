@@ -14,7 +14,7 @@
         id="main-search"
         style="width: 100%;"
         dense
-        rounded
+        :rounded="!$vuetify.breakpoint.mobile"
 
         v-model="select"
         :items="items"

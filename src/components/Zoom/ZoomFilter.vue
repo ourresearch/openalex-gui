@@ -263,8 +263,8 @@ export default {
   props: {},
   data() {
     return {
-      isOpen: true,
-      isMini: true,
+      isOpen: !this.$vuetify.breakpoint.mobile,
+      isMiniFlag: true,
       showSearch: false,
       search: "",
       filterTypeSearch: "",
@@ -288,6 +288,15 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
     ]),
+    isMini: {
+      get(){
+        if (this.$vuetify.breakpoint.mobile) return false
+        return this.isMiniFlag
+      },
+      set(val){
+        this.isMiniFlag = val
+      },
+    },
     searchPlaceholder() {
       const displayName = this
           .$pluralize(this.myFacetConfig.displayName, 2)

@@ -18,7 +18,6 @@
     </div>
 
 
-
     <div class="d-flex align-center pb-2">
       <!--      <v-btn-->
       <!--          fab x-small-->
@@ -31,10 +30,10 @@
       <!--      </v-btn>-->
 
       <div
-          class="subtitle-1"
+          class=""
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class="text-h6">
+        <span class="font-weight-bold">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
           <!--          {{ resultsCount | millify(3) }}-->
           {{ resultsCount.toLocaleString() }}
@@ -44,54 +43,52 @@
           {{ entityType | pluralize(results.length) }}
 
           </span>
-        <!--        <a-->
-        <!--            v-if="resultsFilters.length > 0 || textSearch"-->
-        <!--            @click="removeFiltersAndSearch"-->
-        <!--            style="font-size: 16px;"-->
-        <!--        >-->
-        <!--          (clear {{ "filter" | pluralize(resultsFilters.length + !!textSearch) }})-->
-        <!--        </a>-->
-        <!--              <span>({{ $store.state.responseTime / 1000 }} seconds)</span>-->
 
 
       </div>
       <v-spacer></v-spacer>
 
-      <!--     EXPORT results-->
 
-      <v-menu class="">
-        <template v-slot:activator="{ on: menu, attrs }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on: tooltip }">
-              <v-btn
-                  icon
-                  v-bind="attrs"
-                  v-on="{ ...tooltip, ...menu }"
-                  class="mr-1"
-              >
-                <v-icon>mdi-download-outline</v-icon>
-              </v-btn>
-            </template>
-            <span>Export results</span>
-          </v-tooltip>
+      <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn text v-on="on" class="low-key-button">
+            Tools
+            <v-icon>mdi-menu-down</v-icon>
+          </v-btn>
         </template>
-        <v-list>
-          <v-subheader class="">Export results as:</v-subheader>
-          <v-divider></v-divider>
+        <v-list dense>
+          <v-subheader>Sort by</v-subheader>
+          <v-divider/>
+          <v-list-item
+              v-for="mySortOption in $store.getters.sortObjectOptions"
+              :key="mySortOption.key"
+              @click="setSort(mySortOption.key)"
+          >
+            <v-list-item-icon>
+              <v-icon>
+                {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+              </v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ mySortOption.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-subheader>Export as:</v-subheader>
+          <v-divider/>
           <v-list-item
               target="_blank"
               :href="searchApiUrl"
           >
             <v-list-item-icon>
-              <v-icon left>mdi-code-json</v-icon>
+              <v-icon>mdi-code-json</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
                 API response
               </v-list-item-title>
-              <v-list-item-subtitle :class="(resultsCount > 100000) ? 'black--text' : ''">
-                JSON format
-              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
 
@@ -101,8 +98,6 @@
           >
             <v-list-item-icon>
               <v-icon
-                  left
-                  :color="(resultsCount > 100000) ? 'grey' : null"
               >
                 mdi-table
               </v-icon>
@@ -124,55 +119,41 @@
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-        </v-list>
-      </v-menu>
+          ¬
 
-      <!--     CREATE ALERT from results-->
-      <v-btn
-          icon
-          @click="openCreateAlertDialog"
-          class="mr-1"
-      >
-        <v-icon>mdi-bell-off-outline</v-icon>
-      </v-btn>
-
-
-      <!--     SORT results-->
-      <v-menu>
-        <template v-slot:activator="{ on: menu, attrs }">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on: tooltip }">
-              <v-btn
-                  icon
-                  v-bind="attrs"
-                  v-on="{ ...tooltip, ...menu }"
-                  class="mr-2"
-              >
-                <v-icon>mdi-sort-ascending</v-icon>
-              </v-btn>
-            </template>
-            <span>Sort results</span>
-          </v-tooltip>
-        </template>
-        <v-list>
-          <v-subheader class="">Sort results by:</v-subheader>
-          <v-divider></v-divider>
+          <v-subheader>Other actions:</v-subheader>
+          <v-divider/>
           <v-list-item
-              v-for="mySortOption in $store.getters.sortObjectOptions"
-              :key="mySortOption.key"
-              @click="setSort(mySortOption.key)"
+              @click="openCreateAlertDialog"
           >
             <v-list-item-icon>
-              <v-icon>
-                {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-              </v-icon>
+              <v-icon>mdi-bell-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
-                {{ mySortOption.displayName }}
+                Create alert
+              </v-list-item-title>
+              <v-list-item-subtitle
+                  v-if="resultsCount > 100000"
+                  class="grey--text font-weight-bold"
+              >
+                Max 100 results/week
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+              @click="openCreateAlertDialog"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-filter-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Edit filters
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
 
         </v-list>
       </v-menu>

@@ -105,9 +105,9 @@ html, body {
   align-items: center;
   //padding-left: 30px;
   .logo-icon {
-    height: 40px;
+    height: 38px;
     //margin-top: -5px;
-    opacity: .8;
+    opacity: .7;
   }
 
   .logo-text {
@@ -117,8 +117,11 @@ html, body {
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
+
+
     font-family: Dosis;
     letter-spacing: .03em;
+    opacity: .7;
     font-size: 28px;
     font-weight: 400;
   }

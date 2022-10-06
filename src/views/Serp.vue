@@ -5,30 +5,24 @@
     <v-app-bar
         app
         color="white"
-        class="px-4"
+        class="pl-0"
+        :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
         flat
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill" style="max-width: 820px;">
+        <div class="d-flex flex-fill" style="max-width: 780px;">
           <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
             <img
                 src="@/assets/openalex-logo-icon-black-and-white.png"
-                class="logo-icon"
+                class="logo-icon mr-0"
             />
             <span class="logo-text">
                 OpenAlex
               </span>
           </router-link>
-          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}"
-                       class="logo-link pr-4 d-md-none">
-            <img
-                src="@/assets/openalex-logo-icon-bolder.png"
-                class="logo-icon"
-            />
-          </router-link>
-          <search-box class="ml-4 mt-1 flex-fill"/>
+          <search-box class="ml-4 d-md-block d-none mt-1 flex-fill"/>
         </div>
 
         <div class="">
@@ -55,11 +49,16 @@
     <v-main>
 
       <router-view></router-view>
-      <div class="serp-container pt-12"
+      <search-box class="px-3 mt-3 flex-fill d-md-none"/>
+      <div
+          class="serp-container pt-12 pl-12 ml-2"
+          :class="{mobile: $vuetify.breakpoint.mobile}"
+           style="max-width: 800px;"
       >
 
 
-        <div class="search-results-meta px-8" style="max-width: 900px;">
+        <div class="search-results-meta"
+        >
           <serp-toolbar
               @toggle-filter-drawer="filterDrawerIsOpen = !filterDrawerIsOpen"
               :filter-drawer-is-open="filterDrawerIsOpen"
@@ -68,7 +67,7 @@
         </div>
 
 
-        <div class="search-results px-8" style="max-width: 900px;">
+        <div class="search-results">
           <div
               v-for="result in $store.state.results"
               class="result-container my-4"
@@ -202,7 +201,6 @@ export default {
     return {
       loading: false,
       filterDrawerIsOpen: true,
-      filterDrawerIsMini: true,
       apiResp: {},
       filterTypeKey: null,
       resultsPerPage: 25, // not editable now, but could be in future
@@ -302,6 +300,12 @@ export default {
 
 <style scoped lang="scss">
 
+.v-app-bar.mobile {
+  padding: 0 !important;
+}
+.serp-container.mobile {
+  padding:  20px !important;
+}
 
 .serp-container {
   //max-width: 1500px;
