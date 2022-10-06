@@ -139,6 +139,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
 a.hover-underline {
   text-decoration: none;
   &:hover {

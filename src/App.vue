@@ -164,6 +164,11 @@ body {
   letter-spacing: 0 !important;
 }
 
+.v-icon.mdi-checkbox-blank-outline {
+  opacity: 0.2 !important;
+}
+
+
 .site-footer {
   line-height: 1.8;
 

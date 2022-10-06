@@ -302,6 +302,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+
 .serp-container {
   //max-width: 1500px;
   //display: flex;
