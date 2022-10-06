@@ -34,7 +34,7 @@
           class="subtitle-1"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class="font-weight-bold">
+        <span class="text-h6">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
           <!--          {{ resultsCount | millify(3) }}-->
           {{ resultsCount.toLocaleString() }}

@@ -12,22 +12,23 @@
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 820px;">
-            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
-              <img
-                  src="@/assets/openalex-logo-icon.png"
-                  class="logo-icon"
-              />
-              <span class="logo-text">
+          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
+            <img
+                src="@/assets/openalex-logo-icon.png"
+                class="logo-icon"
+            />
+            <span class="logo-text">
                 OpenAlex
               </span>
-            </router-link>
-            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}"  class="logo-link pr-4 d-md-none">
-              <img
-                  src="@/assets/openalex-logo-icon.png"
-                  class="logo-icon"
-              />
-            </router-link>
-            <search-box  class="ml-2 flex-fill"/>
+          </router-link>
+          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}"
+                       class="logo-link pr-4 d-md-none">
+            <img
+                src="@/assets/openalex-logo-icon.png"
+                class="logo-icon"
+            />
+          </router-link>
+          <search-box class="ml-2 flex-fill"/>
         </div>
 
         <div class="">
@@ -48,15 +49,13 @@
       </div>
     </v-app-bar>
 
-    <zoom-filter />
-
+    <zoom-filter/>
 
 
     <v-main>
 
       <router-view></router-view>
       <div class="serp-container pt-12"
-           v-if="$store.state.resultsCount !== null"
       >
 
 
@@ -65,10 +64,8 @@
               @toggle-filter-drawer="filterDrawerIsOpen = !filterDrawerIsOpen"
               :filter-drawer-is-open="filterDrawerIsOpen"
           />
-          <v-divider />
+          <v-divider/>
         </div>
-
-
 
 
         <div class="search-results px-8" style="max-width: 900px;">
@@ -104,6 +101,7 @@
         :style="{paddingRight: 0}"
         dark
         color="#555"
+        v-if="!searchIsLoading"
     >
       <v-container>
         <v-row>
@@ -226,6 +224,7 @@ export default {
       "searchFacetConfigs",
       "inputFiltersAsString",
       "entityZoomData",
+      "searchIsLoading",
     ]),
     page: {
       get() {
