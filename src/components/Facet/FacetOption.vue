@@ -149,14 +149,15 @@ a.hover-underline {
 
 .facet-option-bar-container {
   width: 20px;
-  height: 12px;
-  background-color: rgba(255, 255, 255, 0.1);
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
   flex: none;
-  margin-top: 4px;
+  margin-top: 6px;
+  margin-left: 5px;
 }
 
 .facet-option-bar-bar {
-  background-color: rgba(255, 255, 255, .5);
+  background-color: rgba(255, 255, 255, .75);
   height: 100%;
 
   &.selected {

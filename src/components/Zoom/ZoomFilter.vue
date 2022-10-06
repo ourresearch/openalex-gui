@@ -301,6 +301,7 @@ export default {
           })
           .map(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
+            filters.sort((a, b) =>  b.count - a.count)
             return {
               ...c,
               filters
@@ -315,7 +316,6 @@ export default {
       return facetConfigs().find(c => c.key === this.filterTypeKey)
     },
     filtersToShow() {
-      // let ret = [...this.filtersFromServer]
       if (!this.filtersFromAutocomplete.length) return []
       const fromAutocomplete = this.filtersFromAutocomplete
           .filter(f => f.value !== "unknown")
@@ -334,6 +334,9 @@ export default {
       }
 
       const ret = [...this.filtersFromServer, ...fromAutocomplete]
+      ret.sort((a, b)=> {
+        return b.count - a.count
+      })
 
 
       const maxCount = Math.max(...ret.map(r => r.count))

@@ -106,19 +106,21 @@ html, body {
   //padding-left: 30px;
   .logo-icon {
     height: 40px;
+    //margin-top: -5px;
+    opacity: .8;
   }
 
   .logo-text {
     //padding: 0 14px;
 
-    margin: 5px 15px;
+    margin: 5px 15px 5px 10px;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
     font-family: Dosis;
     letter-spacing: .03em;
-    font-size: 24px;
-    font-weight: 300;
+    font-size: 28px;
+    font-weight: 400;
   }
 }
 

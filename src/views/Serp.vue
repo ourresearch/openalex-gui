@@ -14,7 +14,7 @@
         <div class="d-flex flex-fill" style="max-width: 820px;">
           <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
             <img
-                src="@/assets/openalex-logo-icon.png"
+                src="@/assets/openalex-logo-icon-black-and-white.png"
                 class="logo-icon"
             />
             <span class="logo-text">
@@ -24,11 +24,11 @@
           <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}"
                        class="logo-link pr-4 d-md-none">
             <img
-                src="@/assets/openalex-logo-icon.png"
+                src="@/assets/openalex-logo-icon-bolder.png"
                 class="logo-icon"
             />
           </router-link>
-          <search-box class="ml-2 flex-fill"/>
+          <search-box class="ml-4 mt-1 flex-fill"/>
         </div>
 
         <div class="">
