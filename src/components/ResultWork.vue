@@ -31,6 +31,17 @@
             :cited-by-count="data.cited_by_count"
             entity-type="works"
         />
+
+        <span class="ml-4" v-if="linkToRelatedWorks">
+          <v-icon color="primary" small>mdi-file-document-multiple-outline</v-icon>
+          <router-link
+              class="body-1 text-decoration-none"
+              :to="linkToRelatedWorks"
+          >
+            Related works
+          </router-link>
+
+        </span>
       </div>
       <div class="pt-1 pb-4">
         <v-btn
@@ -93,6 +104,15 @@ export default {
     },
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
+    },
+    linkToRelatedWorks(){
+      if (!this.data.related_works.length) return
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: `related_to:${shortId}`}
+      }
     },
     isOpenlyLicensed(){
       return ["gold", "bronze"].includes(this.data.open_access.oa_status)

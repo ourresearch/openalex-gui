@@ -60,8 +60,6 @@
         <div class="search-results-meta"
         >
           <serp-toolbar
-              @toggle-filter-drawer="filterDrawerIsOpen = !filterDrawerIsOpen"
-              :filter-drawer-is-open="filterDrawerIsOpen"
           />
           <v-divider/>
         </div>
@@ -223,6 +221,7 @@ export default {
       "inputFiltersAsString",
       "entityZoomData",
       "searchIsLoading",
+        "showFiltersDrawer",
     ]),
     page: {
       get() {
@@ -267,6 +266,7 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
+        "toggleFiltersDrawer",
     ]),
     ...mapActions([
       "updateTextSearch",

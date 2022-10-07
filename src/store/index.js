@@ -107,6 +107,8 @@ const stateDefaults = function () {
         snackbarIsOpen: false,
         snackbarMsg: "",
 
+        showFiltersDrawer: false,
+
         // entity stuff
         // entityZoomData: null,
         // zoomId: null,
@@ -136,6 +138,9 @@ export default new Vuex.Store({
         closeSnackbar(state) {
             state.snackbarMsg = ""
             state.snackbarIsOpen = false
+        },
+        toggleFiltersDrawer(state) {
+            state.showFiltersDrawer = !state.showFiltersDrawer
         },
         setEntityType(state, entityType) {
             state.entityType = entityType;
@@ -359,6 +364,8 @@ export default new Vuex.Store({
             return state.resultsFilters
         },
         entityType(state) { return state.entityType},
+        showFiltersDrawer(state) { return state.showFiltersDrawer},
+
         searchIsLoading(state) { return state.isLoading},
         results(state) { return state.results},
         resultsCount(state) { return state.resultsCount},

@@ -1,26 +1,34 @@
 <template>
   <v-list-item
-      @click="$emit('select')"
+      v-on="(!bold) ? {click: clickHandler} : {}"
       style="min-height: 30px; "
   >
     <v-list-item-icon class="mt-1 mb-1">
-<!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
-<!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
-<!--      <v-chip-->
-<!--          color="primary"-->
-<!--          small-->
-<!--          outlined-->
-<!--          class="px-2"-->
-<!--      >-->
-<!--        {{ appliedFiltersCount }}-->
-<!--      </v-chip>-->
+      <!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
+      <!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
+      <!--      <v-chip-->
+      <!--          color="primary"-->
+      <!--          small-->
+      <!--          outlined-->
+      <!--          class="px-2"-->
+      <!--      >-->
+      <!--        {{ appliedFiltersCount }}-->
+      <!--      </v-chip>-->
     </v-list-item-icon>
     <v-list-item-title style=" font-weight: normal; line-height: 1.2;font-size: 16px;"
-      :class="{'font-weight-light': bold, 'body-2': bold}"
+                       :class="{'font-weight-normal': bold, 'body-2': bold}"
     >
-    {{ config.displayName }}
+      {{ config.displayName }}
 
     </v-list-item-title>
+        <v-btn v-if="bold && !config.noOptions" small icon class="low-key-button mr-1" @click="$emit('select')">
+<!--          <v-icon small>mdi-plus</v-icon>-->
+          <v-icon small>mdi-plus</v-icon>
+        </v-btn>
+<!--    <v-btn v-if="bold" small text class="low-key-button">-->
+<!--      add-->
+<!--    </v-btn>-->
+
 
   </v-list-item>
 </template>
@@ -67,6 +75,10 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([]),
+    clickHandler() {
+      this.$emit('select')
+    }
+
   },
 
   created() {

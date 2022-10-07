@@ -31,6 +31,7 @@
 
       <div
           class=""
+           v-if="resultsCount"
       >
         <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
         <span class="font-weight-bold">
@@ -142,14 +143,18 @@
             </v-list-item-content>
           </v-list-item>
           <v-list-item
-              @click="openCreateAlertDialog"
+              @click="toggleFiltersDrawer"
           >
             <v-list-item-icon>
-              <v-icon>mdi-filter-outline</v-icon>
+              <v-icon v-if="showFiltersDrawer">mdi-filter-off-outline</v-icon>
+              <v-icon v-else>mdi-filter-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>
-                Edit filters
+              <v-list-item-title v-if="showFiltersDrawer">
+                Hide filters
+              </v-list-item-title>
+              <v-list-item-title v-else>
+                Show filters
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
@@ -304,7 +309,7 @@ export default {
     SerpFilterButton,
   },
   props: {
-    filterDrawerIsOpen: Boolean,
+    filtersDrawerIsOpen: Boolean,
   },
   data() {
     return {
@@ -334,7 +339,8 @@ export default {
       "resultsCount",
       "inputFiltersAsString",
       "sortObjectOptions",
-      "sortObject"
+      "sortObject",
+        "showFiltersDrawer",
     ]),
 
     sort: {
@@ -350,7 +356,9 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+        "toggleFiltersDrawer"
+    ]),
     ...mapActions([
       "removeInputFilters",
       "setSort"

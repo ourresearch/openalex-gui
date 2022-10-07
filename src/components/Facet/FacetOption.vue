@@ -1,6 +1,6 @@
 <template>
   <div
-      class="py-1 pl-4 pr-6 my-0 d-flex filter-row"
+      class="pt-0 pb-2 pl-4 pr-6 my-0 d-flex filter-row"
   >
     <div>
       <v-checkbox

@@ -3,7 +3,7 @@
 
   <v-navigation-drawer
       app
-      width="400"
+      width="425"
       v-model="isOpen"
       :mini-variant.sync="isMini"
       color="#444"
@@ -23,17 +23,17 @@
       >
         <v-list-item @click="topListItemClick">
           <v-list-item-icon>
-            <!--            <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>-->
-            <v-chip
-                v-if="resultsFilters.length"
-                small
-                color="green lighten-2"
-                light
-                class="px-2"
-                style="cursor: pointer;"
-            >
-              {{ resultsFilters.length }}
-            </v-chip>
+                        <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>
+<!--            <v-chip-->
+<!--                v-if="resultsFilters.length"-->
+<!--                small-->
+<!--                color="white"-->
+<!--                light-->
+<!--                class="px-2"-->
+<!--                style="cursor: pointer;"-->
+<!--            >-->
+<!--              {{ resultsFilters.length }}-->
+<!--            </v-chip>-->
             <v-icon v-else>mdi-filter</v-icon>
           </v-list-item-icon>
           <v-list-item-title
@@ -41,6 +41,9 @@
               :class="{'font-weight-light': !!filterTypeKey}"
           >
             Filters
+            <span v-if="resultsFilters.length" class="body-1">
+              (<span class="font-weight-bold">{{ resultsFilters.length }}</span>)
+            </span>
           </v-list-item-title>
           <v-menu
               v-if="!filterTypeKey"
@@ -104,7 +107,7 @@
         <v-list-item class="">
           <v-list-item-icon>
 
-            <v-icon class="">mdi-chevron-down</v-icon>
+<!--            <v-icon class="">mdi-chevron-down</v-icon>-->
           </v-list-item-icon>
           <!--            <v-btn icon class="mr-2" @click="filterTypeKey = null">-->
           <!--              <v-icon class="">mdi-chevron-down</v-icon>-->
@@ -265,8 +268,6 @@ export default {
   props: {},
   data() {
     return {
-      isOpen: !this.$vuetify.breakpoint.mobile,
-      isMiniFlag: true,
       showSearch: false,
       search: "",
       filterTypeSearch: "",
@@ -289,14 +290,25 @@ export default {
       "entityType",
       "zoomTypeConfig",
       "entityZoomHistoryData",
+      "showFiltersDrawer",
     ]),
     isMini: {
       get() {
         if (this.$vuetify.breakpoint.mobile) return false
-        return this.isMiniFlag
+        return !this.$store.state.showFiltersDrawer
       },
       set(val) {
-        this.isMiniFlag = val
+        this.$store.state.showFiltersDrawer = !val
+      },
+    },
+    isOpen: {
+      get() {
+        if (!this.$vuetify.breakpoint.mobile) return true
+        return this.$store.state.showFiltersDrawer
+      },
+      set(val) {
+        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
+        this.$store.state.showFiltersDrawer = val
       },
     },
     searchPlaceholder() {
@@ -318,6 +330,10 @@ export default {
               filters
             }
           })
+          .filter(c => {
+            return !(c.noOptions && !c.filters.length)
+          })
+
       ret.sort((a, b) => {
         return (b.filters.length && !a.filters.length) ? 1 : -1
       })
@@ -338,16 +354,21 @@ export default {
           })
 
 
+
       if (this.myFacetConfig.sortByValue) {
         fromAutocomplete.sort((a, b) => {
           return (a.value > b.value) ? -1 : 1
         })
       }
-
+      else {
+        fromAutocomplete.sort((a, b) => {
+          return b.count - a.count
+        })
+      }
       const ret = [...this.filtersFromServer, ...fromAutocomplete]
-      ret.sort((a, b) => {
-        return b.count - a.count
-      })
+      // ret.sort((a, b) => {
+      //   return b.count - a.count
+      // })
 
 
       const maxCount = Math.max(...ret.map(r => r.count))
@@ -404,6 +425,8 @@ export default {
       this.snackbar("Filters copied to clipboard.")
     },
     topListItemClick() {
+
+
       if (this.isMini) {
 
       } else {

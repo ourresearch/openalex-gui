@@ -1,7 +1,18 @@
 <template>
   <span class="body-1">
-<!--      <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>-->
-    Cited by{{ citedByCount.toLocaleString() }}
+      <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>
+
+
+    <router-link
+        :to="linkToCitingPapers"
+        class="text-decoration-none"
+        v-if="formatAsLink"
+    >
+      Cited by {{ citedByCount.toLocaleString() }}
+    </router-link>
+    <span class="" v-else>
+    Cited by {{ citedByCount.toLocaleString() }}
+    </span>
 
       <v-tooltip v-if="0" bottom>
           <template v-slot:activator="{ on, attrs }">
@@ -56,7 +67,7 @@ export default {
     id: String,
     entityType: String,
     linkToSearch: {
-      type:Boolean,
+      type: Boolean,
       default: false,
     }
   },
@@ -67,10 +78,10 @@ export default {
   },
   computed: {
     ...mapGetters([]),
-    formatAsLink(){
+    formatAsLink() {
       return this.id && this.entityType && this.citedByCount > 0
     },
-    iconColor(){
+    iconColor() {
       if (this.id && this.entityType && this.citedByCount > 0) return "primary"
       return "#333333"
     },
@@ -81,7 +92,7 @@ export default {
       return {
         name: "Serp",
         params: {entityType: "works"},
-        query: {filter: `referenced_works:${shortId}`}
+        query: {filter: `cites:${shortId}`}
       }
     },
   },
