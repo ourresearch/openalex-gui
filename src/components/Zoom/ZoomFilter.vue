@@ -23,10 +23,12 @@
       >
         <v-list-item @click="topListItemClick">
           <v-list-item-icon>
-            <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>
+            <!--            <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>-->
             <v-chip
-                v-else-if="resultsFilters.length"
+                v-if="resultsFilters.length"
                 small
+                color="green lighten-2"
+                light
                 class="px-2"
                 style="cursor: pointer;"
             >
@@ -195,7 +197,7 @@
           />
 
           <!--          <div class="my-6" v-if="filterType.filters.length"></div>-->
-          <v-divider class="mb-2 mt-4" v-if="filterType.filters.length"></v-divider>
+          <v-divider class="mb-1 mt-1" v-if="filterType.filters.length"></v-divider>
         </template>
       </v-list>
 
@@ -289,11 +291,11 @@ export default {
       "entityZoomHistoryData",
     ]),
     isMini: {
-      get(){
+      get() {
         if (this.$vuetify.breakpoint.mobile) return false
         return this.isMiniFlag
       },
-      set(val){
+      set(val) {
         this.isMiniFlag = val
       },
     },
@@ -310,7 +312,7 @@ export default {
           })
           .map(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
-            filters.sort((a, b) =>  b.count - a.count)
+            filters.sort((a, b) => b.count - a.count)
             return {
               ...c,
               filters
@@ -343,7 +345,7 @@ export default {
       }
 
       const ret = [...this.filtersFromServer, ...fromAutocomplete]
-      ret.sort((a, b)=> {
+      ret.sort((a, b) => {
         return b.count - a.count
       })
 

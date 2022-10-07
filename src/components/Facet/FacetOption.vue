@@ -6,26 +6,29 @@
       <v-checkbox
           dense
           hide-details
-          color="primary"
           class="pa-0 ma-0 mr-2"
+          color="green lighten-2"
+          on-icon="mdi-checkbox-marked-circle"
+          off-icon="mdi-checkbox-blank-circle-outline"
           v-model="isChecked"/>
     </div>
     <div
         class="body-1  text-capitalize"
         style="line-height: 1.5; "
+        :class="{'font-weight-bold': isChecked}"
     >
       <router-link
           v-if="filter.isEntity"
           :to="filter.value | entityZoomLink"
-          color="white"
-          class="hover-underline"
-          style="color: #fff;"
+          class="hover-underline text--lighten-2 white--text"
+          :class="{'green--text': isChecked}"
       >
         {{ prettyDisplayName }}
       </router-link>
       <span
           v-else
-          :class="{textCapitalize: filter.key === 'host_venue.publisher'}"
+          class="text--lighten-2"
+          :class="{'green--text': isChecked,}"
       >
         {{ prettyDisplayName }}
       </span>
@@ -36,8 +39,8 @@
     </div>
     <div v-if="!hideBar" class="facet-option-bar-container">
       <div
-          class="facet-option-bar-bar"
-          :class="{selected: isChecked}"
+          class="facet-option-bar-bar lighten-2"
+          :class="{selected: isChecked, 'green': isChecked}"
           :style="{width: (filter.countNormalized * 100) + '%'}"
       >
 

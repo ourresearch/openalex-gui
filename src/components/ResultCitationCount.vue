@@ -1,6 +1,9 @@
 <template>
   <span class="body-1">
-      <v-tooltip bottom>
+<!--      <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>-->
+    Cited by{{ citedByCount.toLocaleString() }}
+
+      <v-tooltip v-if="0" bottom>
           <template v-slot:activator="{ on, attrs }">
             <span
                 v-bind="attrs"

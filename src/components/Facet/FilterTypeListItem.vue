@@ -4,8 +4,8 @@
       style="min-height: 30px; "
   >
     <v-list-item-icon class="mt-1 mb-1">
-      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>
-      <v-icon v-else>mdi-chevron-right</v-icon>
+<!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
+<!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
 <!--      <v-chip-->
 <!--          color="primary"-->
 <!--          small-->
@@ -16,7 +16,7 @@
 <!--      </v-chip>-->
     </v-list-item-icon>
     <v-list-item-title style=" font-weight: normal; line-height: 1.2;font-size: 16px;"
-      :class="{'font-weight-bold': bold}"
+      :class="{'font-weight-light': bold, 'body-2': bold}"
     >
     {{ config.displayName }}
 

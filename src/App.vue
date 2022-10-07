@@ -169,7 +169,10 @@ body {
   letter-spacing: 0 !important;
 }
 
-.v-icon.mdi-checkbox-blank-outline {
+.v-icon.mdi-checkbox-blank-outline,
+.v-icon.mdi-checkbox-blank-circle-outline,
+
+{
   opacity: 0.2 !important;
 }
 
