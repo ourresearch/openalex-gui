@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col cols="12" md="10" class="content">
+    <v-col cols="12" md="9" class="content">
       <router-link
           class="text-decoration-none subtitle-1"
           :to="data.id | entityZoomLink"
@@ -33,7 +33,6 @@
         />
 
         <span class="ml-4" v-if="linkToRelatedWorks">
-          <v-icon color="primary" small>mdi-file-document-multiple-outline</v-icon>
           <router-link
               class="body-1 text-decoration-none"
               :to="linkToRelatedWorks"
@@ -53,21 +52,21 @@
           v-if="fulltextUrl"
       >
         <v-icon x-small left >mdi-open-in-new</v-icon>
-        Fulltext
+        Open access
 <!--        {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}-->
       </v-btn>
 
       </div>
 
     </v-col>
-    <v-col cols="2" class="linkout d-none d-md-flex justify-end">
+    <v-col cols="3" class="linkout d-none d-md-flex justify-end">
       <a
           :href="fulltextUrl"
           target="_blank"
           class="mx-3 text-decoration-none"
           v-if="fulltextUrl"
       >
-        Fulltext
+        Open access
 <!--        {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}-->
         <v-icon x-small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
       </a>

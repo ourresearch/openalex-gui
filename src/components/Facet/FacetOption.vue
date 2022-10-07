@@ -117,7 +117,7 @@ export default {
     ]),
     toggleIsChecked() {
       this.isChecked = !this.isChecked
-    }
+    },
   },
 
   created() {
@@ -135,6 +135,7 @@ export default {
         console.log("FacetOptions isChecked watcher", isCheckedNow)
         if (isCheckedNow) this.addInputFilters([this.filter])
         else this.removeInputFilters([this.filter])
+        this.$emit("click-checkbox")
       },
     },
   }

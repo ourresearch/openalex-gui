@@ -3,7 +3,7 @@
       v-on="(!bold) ? {click: clickHandler} : {}"
       style="min-height: 30px; "
   >
-    <v-list-item-icon class="mt-1 mb-1">
+    <v-list-item-icon >
       <!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
       <!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
       <!--      <v-chip-->
@@ -14,6 +14,7 @@
       <!--      >-->
       <!--        {{ appliedFiltersCount }}-->
       <!--      </v-chip>-->
+
     </v-list-item-icon>
     <v-list-item-title style=" font-weight: normal; line-height: 1.2;font-size: 16px;"
                        :class="{'font-weight-normal': bold, 'body-2': bold}"

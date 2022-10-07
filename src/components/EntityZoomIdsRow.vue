@@ -1,8 +1,7 @@
 <template>
       <tr>
         <td class="table-row-label pt-6">
-          <v-icon>mdi-tag-outline</v-icon>
-          Identifiers:
+          IDs:
         </td>
         <td class="pt-6">
 <!--          <concepts-list :concepts="parentConcepts" :is-clickable="true"/>-->

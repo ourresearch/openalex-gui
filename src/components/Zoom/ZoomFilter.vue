@@ -217,6 +217,7 @@
             :filter="filter"
             :show-checked="true"
             :key="filter.asStr"
+            @click-checkbox="filterTypeKey = null"
         />
         <!--        <v-divider class="my-1"/>-->
         <facet-option
@@ -224,6 +225,7 @@
             :filter="filter"
             :show-checked="false"
             :key="filter.asStr"
+            @click-checkbox="filterTypeKey = null"
         />
 
       </div>
@@ -403,7 +405,6 @@ export default {
 
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
 
-      console.log("set searchParams: ", this.search, this.search === "")
       if (this.myFacetConfig.valuesToShow === "mostCommon") {
         url.searchParams.set("q", this.search ?? "")
       }
@@ -456,7 +457,6 @@ export default {
     fetchSuggestions: _.debounce(
         async function () {
           this.isLoading = true
-          console.log("fetchSuggestions calling", this.autocompleteUrl)
 
           const resp = await api.getUrl(this.autocompleteUrl)
           this.filtersFromAutocomplete = resp.filters.map(apiData => {
@@ -469,19 +469,6 @@ export default {
           })
           this.isLoading = false
 
-
-          // axios.get(this.autocompleteUrl)
-          //     .then(resp => {
-          //       this.filtersFromAutocomplete = resp.data.filters.map(apiData => {
-          //         return createDisplayFilter(
-          //             this.myFacetConfig.key,
-          //             apiData.value,
-          //             apiData.display_value,
-          //             apiData.works_count,
-          //         )
-          //       })
-          //       this.isLoading = false
-          //     })
         },
         250
     )
@@ -495,7 +482,13 @@ export default {
   watch: {
     search(newVal, oldVal) {
       console.log("search changed", newVal)
-      this.fetchSuggestions()
+      if (!this.filterTypeKey) {
+        this.search = ""
+      }
+      else {
+        this.fetchSuggestions()
+
+      }
     },
     "$route.query": {
       immediate: true,

@@ -3,10 +3,9 @@
   <div class="">
 
 
-    <table class="mb-12">
+    <table class="">
       <tr v-if="!data.host_venue.display_name && data.publication_year">
         <td class="table-row-label">
-          <v-icon>mdi-calendar-text</v-icon>
           Publication year:
         </td>
         <td>
@@ -18,12 +17,7 @@
       <!--    venue and year-->
       <tr v-if="data.host_venue.display_name">
         <td class="table-row-label">
-          <entity-icon
-              v-if="data.host_venue.display_name"
-              type="venues"
-              expand
-              singular
-          />
+          Venue:
         </td>
         <td>
           <link-to-entity :entity="data.host_venue" />
@@ -39,10 +33,7 @@
       <!--    Author list-->
       <tr v-if="authorshipsToShow.length">
         <td class="table-row-label">
-          <entity-icon
-              type="authors"
-              expand
-          />
+          {{ "Author" | pluralize(authorshipsToShow.length)}}:
         </td>
 
         <td>
@@ -80,10 +71,7 @@
       <!--    Concepts list-->
       <tr v-if="data.concepts.length">
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-              expand
-          />
+          Concepts:
         </td>
         <td>
           <concepts-list :concepts="data.concepts" :is-clickable="true"/>
@@ -94,7 +82,6 @@
       <!--    Abstract -->
       <tr v-if="abstract">
         <td class="table-row-label">
-          <v-icon class="mr-1">mdi-text</v-icon>
           <span class="body-1" style="color:#555;">Abstract: </span>
         </td>
         <td class="body-1">
@@ -105,7 +92,6 @@
       <!--    Cited By  -->
       <tr>
         <td class="pt-6 table-row-label">
-          <v-icon class="mr-1">mdi-format-quote-close</v-icon>
           <span class="body-1" style="color:#555;">Cited by: </span>
         </td>
         <td class="pt-6">
@@ -121,8 +107,6 @@
       <!--    References  -->
       <tr>
         <td class="table-row-label">
-          <!--          <v-icon class="mr-1">mdi-code-parentheses</v-icon>-->
-          <v-icon class="mr-1">mdi-format-quote-open</v-icon>
           <span class="body-1" style="color:#555;">Cites: </span>
         </td>
         <td class="">
@@ -137,7 +121,6 @@
       <!--    Related works  -->
       <tr>
         <td class="table-row-label">
-          <v-icon class="mr-1">mdi-file-document-multiple-outline</v-icon>
           <span class="body-1" style="color:#555;">Related: </span>
         </td>
         <td class="">

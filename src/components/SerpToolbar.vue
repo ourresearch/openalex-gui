@@ -58,6 +58,44 @@
           </v-btn>
         </template>
         <v-list dense>
+          <v-list-item
+              @click="toggleFiltersDrawer"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="showFiltersDrawer">mdi-filter-off-outline</v-icon>
+              <v-icon v-else>mdi-filter-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title v-if="showFiltersDrawer">
+                Hide filters
+              </v-list-item-title>
+              <v-list-item-title v-else>
+                Filter results
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item
+              @click="openCreateAlertDialog"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-bell-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Create alert
+              </v-list-item-title>
+              <v-list-item-subtitle
+                  v-if="resultsCount > 100000"
+                  class="grey--text font-weight-bold"
+              >
+                Max 100 results/week
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+
+
           <v-subheader>Sort by</v-subheader>
           <v-divider/>
           <v-list-item
@@ -121,43 +159,6 @@
             </v-list-item-content>
           </v-list-item>
           ¬
-
-          <v-subheader>Other actions:</v-subheader>
-          <v-divider/>
-          <v-list-item
-              @click="openCreateAlertDialog"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-bell-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Create alert
-              </v-list-item-title>
-              <v-list-item-subtitle
-                  v-if="resultsCount > 100000"
-                  class="grey--text font-weight-bold"
-              >
-                Max 100 results/week
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item
-              @click="toggleFiltersDrawer"
-          >
-            <v-list-item-icon>
-              <v-icon v-if="showFiltersDrawer">mdi-filter-off-outline</v-icon>
-              <v-icon v-else>mdi-filter-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title v-if="showFiltersDrawer">
-                Hide filters
-              </v-list-item-title>
-              <v-list-item-title v-else>
-                Show filters
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
 
 
         </v-list>

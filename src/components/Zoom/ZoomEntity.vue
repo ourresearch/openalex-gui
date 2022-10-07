@@ -4,12 +4,13 @@
         v-model="zoomIsOpen"
         scrollable
         max-width="800"
+        :fullscreen="$vuetify.breakpoint.mobile"
     >
 
 
       <v-card flat v-if="data">
-        <div class="card-header py-3 px-6 d-flex align-center">
-          <entity-icon x-large class="mr-4" :type="entityType" />
+        <div class="card-header py-3 px-6 d-flex align-start">
+          <!--          <entity-icon x-large class="mr-4" :type="entityType" />-->
 
           <div>
             <div class="card-header-top-row text-capitalize body-2">
@@ -41,7 +42,7 @@
 
         </div>
         <v-divider></v-divider>
-        <v-card-text class="pa-6" style="font-size: 16px;">
+        <v-card-text class="pt-6" style="font-size: 16px;">
 
           <entity-work v-if="entityType==='works'" :data="data"/>
           <entity-author v-if="entityType==='authors'" :data="data"/>
@@ -57,60 +58,61 @@
           <template v-if="entityType==='works'">
             <div>
 
-              <!--            free to read at repository (green oa)-->
-              <v-btn
+<!--              Green open access-->
+              <v-menu
                   v-if="isGreenOa"
+              >
+                <template v-slot:activator="{on, attrs}">
+                  <v-btn
+                      color="primary"
+                      v-bind="attrs"
+                      v-on="on"
+                  >
+                    Open Access
+                    <v-icon small right>mdi-menu-down</v-icon>
+                  </v-btn>
+                </template>
+                <v-list
+                >
+                  <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">
+                    <v-list-item-title>
+                      <span class="font-weight-bold">Open Access</span> via repository
+                    </v-list-item-title>
+                    <v-icon right small>mdi-open-in-new</v-icon>
+
+                  </v-list-item>
+                  <v-list-item target="_blank" :href="data.host_venue.url">
+                    <v-list-item-title>
+                      <span class="font-weight-bold">Paywalled</span> at publisher
+                    </v-list-item-title>
+                    <v-icon right small>mdi-open-in-new</v-icon>
+
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+
+
+              <!--   Open Access at publisher -->
+              <v-btn
                   :href="oaUrl"
                   target="_blank"
                   color="primary"
-                  class="py-2 mr-3"
-                  style="height: auto; text-align: left;"
+                  v-if="isOaAtPublisher"
               >
-                <v-icon left>mdi-open-in-new</v-icon>
-                <div>
-                  <div>
-                    fulltext
-                  </div>
-                  <div
-                      class="body-2 text-lowercase"
-                      style="font-weight: normal;"
-                  >
-                    <span class="">free</span>
-                    <span style="font-weight: normal">
-                    via repository
-                  </span>
-                  </div>
-                </div>
+                Open Access
+                <v-icon right small>mdi-open-in-new</v-icon>
               </v-btn>
 
-              <!--            at the publisher (OA or not)-->
+              <!--   Paywalled at publisher-->
               <v-btn
-                  :href="oaUrl"
+                  :href="data.host_venue.url"
                   target="_blank"
                   color="primary"
-                  :outlined="!isOaAtPublisher"
-                  class="py-2 mr-3"
-                  style="height: auto; text-align: left;"
+                  outlined
+                  v-if="!isOaAtPublisher && !isGreenOa"
               >
-                <v-icon left>mdi-open-in-new</v-icon>
-                <div>
-                  <div>
-                    fulltext
-                  </div>
-                  <div
-                      class="body-2 text-lowercase"
-                      style="font-weight: normal;"
-                  >
-                  <span
-                      class=""
-                  >
-                    {{ (isOaAtPublisher) ? "free" : "paywalled" }}
-                  </span>
-                    <span style="font-weight: normal">
-                    at publisher
-                  </span>
-                  </div>
-                </div>
+                <v-icon left small>mdi-open-in-new</v-icon>
+                Paywalled
               </v-btn>
             </div>
           </template>
@@ -145,20 +147,20 @@
           <v-spacer/>
           <v-menu>
             <template v-slot:activator="{on}">
-              <v-btn text v-on="on">
+              <v-btn icon v-on="on">
                 <v-icon left>mdi-download-outline</v-icon>
-                Export
-                <v-icon>mdi-menu-down</v-icon>
               </v-btn>
             </template>
             <v-list>
-              <v-list-item :href="apiUrl" target="_blank">
-                <v-icon left>mdi-code-json</v-icon>
-                JSON (API)
-              </v-list-item>
+              <v-subheader>Export this {{entityType}} as</v-subheader>
+              <v-divider></v-divider>
               <v-list-item :href="apiUrl + '.bib'" target="_blank">
                 <v-icon left>mdi-file-download-outline</v-icon>
                 BibTeX
+              </v-list-item>
+              <v-list-item :href="apiUrl" target="_blank">
+                <v-icon left>mdi-code-json</v-icon>
+                JSON (API)
               </v-list-item>
             </v-list>
           </v-menu>
