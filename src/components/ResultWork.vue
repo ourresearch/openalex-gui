@@ -1,10 +1,11 @@
 <template>
+  <v-container fluid class="">
   <v-row>
     <v-col cols="12" md="9" class="content">
       <router-link
           class="text-decoration-none subtitle-1"
           :to="data.id | entityZoomLink"
-          v-html="data.safeTitle"
+          v-html="$prettyTitle(data.title)"
       />
       <div v-if="authorsCount" class="body-1">
         <span>{{ authorNames[0] }}</span>
@@ -73,6 +74,8 @@
     </v-col>
 
   </v-row>
+
+  </v-container>
 </template>
 
 
@@ -80,6 +83,7 @@
 import ConceptsList from "./ConceptsList";
 import ResultCitationCount from "./ResultCitationCount";
 import {unravel} from "../util";
+
 
 export default {
   components: {

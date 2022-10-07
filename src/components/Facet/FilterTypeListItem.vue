@@ -22,13 +22,24 @@
       {{ config.displayName }}
 
     </v-list-item-title>
-        <v-btn v-if="bold && !config.noOptions" small icon class="low-key-button mr-1" @click="$emit('select')">
-<!--          <v-icon small>mdi-plus</v-icon>-->
+        <v-btn
+            v-if="bold && !config.noOptions"
+            small
+            icon
+            class="low-key-button mr-1"
+            @click="$emit('select')"
+        >
           <v-icon small>mdi-plus</v-icon>
         </v-btn>
-<!--    <v-btn v-if="bold" small text class="low-key-button">-->
-<!--      add-->
-<!--    </v-btn>-->
+        <v-btn
+            v-if="bold"
+            small
+            icon
+            class="low-key-button mr-1"
+            @click.stop="clearAllFilters"
+        >
+          <v-icon small>mdi-delete-outline</v-icon>
+        </v-btn>
 
 
   </v-list-item>
@@ -74,11 +85,26 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+        "snackbar",
+    ]),
     ...mapActions([]),
     clickHandler() {
       this.$emit('select')
-    }
+    },
+    async clearAllFilters(){
+      const filters = filtersFromUrlStr(this.$route.query.filter)
+      const filtersToKeep = filters.filter(f => f.key !== this.facetKey)
+      const filterString = filtersAsUrlStr(filtersToKeep)
+      const query = {...this.$route.query}
+      query.filter = filterString || undefined
+
+      await this.$router.push({
+        name: "Serp",
+        query
+      })
+      this.snackbar("Filters removed")
+    },
 
   },
 

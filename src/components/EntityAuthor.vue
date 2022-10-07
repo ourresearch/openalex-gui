@@ -3,11 +3,7 @@
     <table>
       <tr v-if="data.last_known_institution">
         <td class="table-row-label">
-          <entity-icon
-              type="institutions"
-              expand
-              singular
-          />
+          Institution:
         </td>
         <td>
           <link-to-entity
@@ -18,10 +14,7 @@
 
       <tr>
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-              expand
-          />
+          Concepts:
         </td>
         <td>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
@@ -30,10 +23,7 @@
 
       <tr>
         <td class="table-row-label pt-6">
-          <entity-icon
-              type="works"
-              expand
-          />
+          Works:
         </td>
         <td class="pt-6">
           <link-to-search
@@ -47,7 +37,6 @@
 
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-format-quote-close</v-icon>
           Cited by:
         </td>
         <td class="">

@@ -3,20 +3,23 @@
     <table>
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-map-marker-outline</v-icon>
           Location:
         </td>
         <td>
+          <flag
+              :squared="false"
+              :iso="data.country_code"
+              style="height:12px;
+              margin-right: 3px;"
+              v-if="data.country_code"
+          />
           {{ locationStr }}
-          <a v-if="mapLink" :href="mapLink" target="_blank">(map)</a>
+          <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none">(map)</a>
         </td>
       </tr>
       <tr>
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-              expand
-          />
+          Concepts:
         </td>
         <td>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
@@ -26,9 +29,6 @@
 
       <tr  v-if="data.associated_institutions.length">
         <td class="table-row-label">
-          <entity-icon
-              type="institutions"
-          />
           Associated:
         </td>
         <td>
@@ -45,10 +45,7 @@
 
       <tr>
         <td class="table-row-label pt-6">
-          <entity-icon
-              type="works"
-              expand
-          />
+          Works:
         </td>
         <td class="pt-6">
           <link-to-search
@@ -61,7 +58,6 @@
       </tr>
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-format-quote-close</v-icon>
           Cited by:
         </td>
         <td>
@@ -87,6 +83,10 @@ import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
 import EntityZoomIdsRow from "./EntityZoomIdsRow";
 
+const countryCodeLookup = require('country-code-lookup')
+
+
+
 export default {
   name: "EntityInstitution",
   components: {
@@ -108,11 +108,13 @@ export default {
   methods: {},
   computed: {
     locationStr() {
+      const countryResult = countryCodeLookup.byIso(this.data.country_code)
+
       const locArr = [
         this.data.geo.city,
         this.data.geo.region,
-        this.data.geo.country
-      ]
+        countryResult.country,
+      ].filter(x => x)
       return locArr.join(", ")
     },
     mapLink() {

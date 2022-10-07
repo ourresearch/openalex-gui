@@ -170,10 +170,11 @@ body {
 }
 
 .v-icon.mdi-checkbox-blank-outline,
-.v-icon.mdi-checkbox-blank-circle-outline,
-
-{
+.v-icon.mdi-checkbox-blank-circle-outline  {
   opacity: 0.2 !important;
+}
+
+.v-list-item__icon {
 }
 
 

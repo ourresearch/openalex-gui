@@ -3,8 +3,7 @@
     <table>
       <tr v-if="data.description">
         <td class="table-row-label">
-          <v-icon class="mr-1">mdi-text</v-icon>
-          Description:
+          About:
         </td>
         <td class="description">
           {{ data.description }}.
@@ -13,9 +12,6 @@
 
       <tr v-if="parentConcepts.length">
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-          />
           {{"Parent" | pluralize(parentConcepts.length)}}:
         </td>
         <td>
@@ -26,9 +22,6 @@
 
       <tr v-if="data.related_concepts.length">
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-          />
           Related:
         </td>
         <td>
@@ -39,10 +32,7 @@
 
       <tr>
         <td class="table-row-label pt-6">
-          <entity-icon
-              type="works"
-              expand
-          />
+          Works
         </td>
         <td class="pt-6">
           <link-to-search
@@ -55,7 +45,6 @@
       </tr>
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-format-quote-close</v-icon>
           Cited by:
         </td>
         <td>

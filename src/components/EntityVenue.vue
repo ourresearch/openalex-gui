@@ -3,7 +3,6 @@
     <table>
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-domain</v-icon>
           Publisher:
         </td>
         <td>
@@ -13,10 +12,7 @@
 
       <tr>
         <td class="table-row-label">
-          <entity-icon
-              type="concepts"
-              expand
-          />
+          Concepts:
         </td>
         <td>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
@@ -25,8 +21,6 @@
 
       <tr>
         <td class="table-row-label">
-          <v-icon v-if="data.is_oa">mdi-lock-open-outline</v-icon>
-          <v-icon v-else>mdi-lock-outline</v-icon>
           Access:
         </td>
         <td>
@@ -42,10 +36,7 @@
 
       <tr>
         <td class="table-row-label pt-6">
-          <entity-icon
-              type="works"
-              expand
-          />
+          Works
         </td>
         <td class="pt-6">
           <link-to-search
@@ -58,7 +49,6 @@
       </tr>
       <tr>
         <td class="table-row-label">
-          <v-icon>mdi-format-quote-close</v-icon>
           Cited by:
         </td>
         <td class="">

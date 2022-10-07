@@ -1,3 +1,5 @@
+import sanitizeHtml from "sanitize-html";
+import _ from "lodash"
 async function sleep(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
@@ -77,6 +79,18 @@ const entityTypes = {
     }
 }
 
+const prettyTitle = function(title) {
+    if (title && title.toUpperCase() === title) {
+        title = _.startCase(title.toLowerCase());
+
+    }
+
+        const safeTitle = sanitizeHtml(title, {
+        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
+    })
+    return safeTitle
+}
+
 
 export {
     sleep,
@@ -87,4 +101,5 @@ export {
     unravel,
     idsAreEqual,
     setOrDelete,
+    prettyTitle,
 }

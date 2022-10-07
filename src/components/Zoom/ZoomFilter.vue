@@ -3,10 +3,10 @@
 
   <v-navigation-drawer
       app
-      width="425"
+      :width="width"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      color="#444"
+      color="#333"
       dark
   >
 
@@ -14,69 +14,106 @@
     <v-card
         flat
         tile
-        color="#444"
+        color="#333"
         dark
     >
       <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
       <v-list
           class="pb-0 pt-1"
       >
-        <v-list-item @click="topListItemClick">
+        <v-list-item
+            v-on="(isMini) ? {click: topListItemClick} : {}"
+            style=""
+        >
           <v-list-item-icon>
-                        <v-icon v-if="filterTypeKey">mdi-arrow-left</v-icon>
-<!--            <v-chip-->
-<!--                v-if="resultsFilters.length"-->
-<!--                small-->
-<!--                color="white"-->
-<!--                light-->
-<!--                class="px-2"-->
-<!--                style="cursor: pointer;"-->
-<!--            >-->
-<!--              {{ resultsFilters.length }}-->
-<!--            </v-chip>-->
-            <v-icon v-else>mdi-filter</v-icon>
+            <v-btn icon v-if="filterTypeKey" @click="filterTypeKey = null" style="margin-left: -5px;">
+              <v-icon>mdi-arrow-left</v-icon>
+
+            </v-btn>
+            <!--            <v-chip-->
+            <!--                v-if="resultsFilters.length"-->
+            <!--                small-->
+            <!--                color="white"-->
+            <!--                light-->
+            <!--                class="px-2"-->
+            <!--                style="cursor: pointer;"-->
+            <!--            >-->
+            <!--              {{ resultsFilters.length }}-->
+            <!--            </v-chip>-->
+            <template v-else>
+              <v-icon class="my-2">mdi-filter</v-icon>
+              <span
+                  v-if="resultsFilters.length"
+                  style="font-size: 10px; margin: 20px 0 0 -4px;"
+              >
+                {{ resultsFilters.length }}
+              </span>
+
+            </template>
           </v-list-item-icon>
           <v-list-item-title
-              class="text-h6"
-              :class="{'font-weight-light': !!filterTypeKey}"
+              class="text-h6 font-weight-bold"
           >
-            Filters
-            <span v-if="resultsFilters.length" class="body-1">
-              (<span class="font-weight-bold">{{ resultsFilters.length }}</span>)
-            </span>
-          </v-list-item-title>
-          <v-menu
-              v-if="!filterTypeKey"
-          >
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
+            <template v-if="!filterTypeKey">
+              Filters
             </template>
-            <v-list>
-              <v-list-item @click="copyUrlToClipboard">
-                <v-list-item-icon>
-                  <v-icon>mdi-content-copy</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Copy filter URL
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                  color="red"
-                  :to="{name: 'Serp', query:{...$route.query, filter: undefined}}"
-                  @click="snackbar('Filters cleared')"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-filter-off-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Clear all filters
+            <template v-else>
+              <template v-if="myFacetConfig.isBoolean">
+                {{ myFacetConfig.displayName }}
+              </template>
+              <template v-else>
+                {{ myFacetConfig.displayName | pluralize(2) }}
+              </template>
+            </template>
+          </v-list-item-title>
 
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+          <template v-if="!filterTypeKey">
+
+            <v-btn icon @click="toggleFiltersDrawer">
+              <v-icon>{{ ($vuetify.breakpoint.mobile) ? 'mdi-close' : 'mdi-chevron-left' }}</v-icon>
+            </v-btn>
+            <v-btn icon
+                   :disabled="!resultsFilters.length"
+                   @click="clearAllFilters"
+            >
+              <v-icon>mdi-delete-outline</v-icon>
+            </v-btn>
+          </template>
+
+
+          <template v-else>
+            <v-btn icon @click="showSearch = !showSearch" v-if="!myFacetConfig.isBoolean">
+              <v-icon>mdi-magnify</v-icon>
+            </v-btn>
+            <v-menu
+            >
+              <template v-slot:activator="{on}">
+                <v-btn icon v-on="on">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item @click="copyUrlToClipboard">
+                  <v-list-item-icon>
+                    <v-icon>mdi-table</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    Export spreadsheet
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="copyUrlToClipboard">
+                  <v-list-item-icon>
+                    <v-icon>mdi-code-json</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    Export API call
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </template>
+
+
         </v-list-item>
 
         <!--        <v-list-item  v-if="!filterTypeKey">-->
@@ -104,52 +141,6 @@
 
 
       <v-list class="pt-0 pb-0" v-if="filterTypeKey">
-        <v-list-item class="">
-          <v-list-item-icon>
-
-<!--            <v-icon class="">mdi-chevron-down</v-icon>-->
-          </v-list-item-icon>
-          <!--            <v-btn icon class="mr-2" @click="filterTypeKey = null">-->
-          <!--              <v-icon class="">mdi-chevron-down</v-icon>-->
-          <!--            </v-btn>-->
-          <v-list-item-content class="font-weight-bold text-h6">
-            <template v-if="myFacetConfig.isBoolean">
-              {{ myFacetConfig.displayName }}
-            </template>
-            <template v-else>
-              {{ myFacetConfig.displayName | pluralize(filtersFromServer.length) }}
-            </template>
-          </v-list-item-content>
-          <v-btn icon @click="showSearch = !showSearch" v-if="!myFacetConfig.isBoolean">
-            <v-icon>mdi-magnify</v-icon>
-          </v-btn>
-          <v-menu
-          >
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item @click="copyUrlToClipboard">
-                <v-list-item-icon>
-                  <v-icon>mdi-table</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Export spreadsheet
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="copyUrlToClipboard">
-                <v-list-item-icon>
-                  <v-icon>mdi-code-json</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Export API call
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-list-item>
 
         <v-list-item v-if="showSearch">
           <v-list-item-icon>
@@ -179,7 +170,7 @@
       <v-list
           dense
           v-if="!filterTypeKey && !isMini"
-          style="max-height: 82vh; overflow-y: scroll"
+          style="max-height: 87vh; overflow-y: scroll"
       >
         <template
             v-for="filterType in filterTypeSearchResults"
@@ -197,6 +188,7 @@
               :key="liveFilter.asStr"
               :hide-bar="true"
               class="ml-0"
+              @click-checkbox="clickCheckbox"
           />
 
           <!--          <div class="my-6" v-if="filterType.filters.length"></div>-->
@@ -209,7 +201,7 @@
       <!--      *****************************************************************-->
       <div
           v-if="filterTypeKey && !isMini"
-          style="height: 75vh; overflow-y:scroll;"
+          style="height: 87vh; overflow-y:scroll;"
           class="pt-3"
       >
         <facet-option
@@ -217,7 +209,7 @@
             :filter="filter"
             :show-checked="true"
             :key="filter.asStr"
-            @click-checkbox="filterTypeKey = null"
+            @click-checkbox="clickCheckbox"
         />
         <!--        <v-divider class="my-1"/>-->
         <facet-option
@@ -225,7 +217,7 @@
             :filter="filter"
             :show-checked="false"
             :key="filter.asStr"
-            @click-checkbox="filterTypeKey = null"
+            @click-checkbox="clickCheckbox"
         />
 
       </div>
@@ -240,7 +232,7 @@
 import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
-import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "../../filterConfigs";
+import {createDisplayFilter, createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
@@ -278,6 +270,8 @@ export default {
       filtersFromAutocomplete: [],
       filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
+
+      width: 300,
     }
   },
   computed: {
@@ -356,13 +350,11 @@ export default {
           })
 
 
-
       if (this.myFacetConfig.sortByValue) {
         fromAutocomplete.sort((a, b) => {
           return (a.value > b.value) ? -1 : 1
         })
-      }
-      else {
+      } else {
         fromAutocomplete.sort((a, b) => {
           return b.count - a.count
         })
@@ -416,7 +408,8 @@ export default {
 
   methods: {
     ...mapMutations([
-      "snackbar"
+      "snackbar",
+      "toggleFiltersDrawer",
     ]),
     ...mapActions([]),
     async copyUrlToClipboard() {
@@ -425,21 +418,27 @@ export default {
       console.log("copied to clipboard", url)
       this.snackbar("Filters copied to clipboard.")
     },
-    topListItemClick() {
-
-
-      if (this.isMini) {
-
-      } else {
-        if (this.filterTypeKey) {
-          this.filterTypeKey = null
-        } else {
-          this.isMini = true
-        }
+    clickCheckbox(e){
+      console.log("zoomFilter: clickCheckbox", e)
+      if (e.metaKey || e.ctrlKey){
+        // do nothing
+      }
+      else {
+        this.filterTypeKey = null
       }
     },
-    clearAllFilters() {
+    topListItemClick() {
+    },
+    async clearAllFilters() {
       console.log("clear all filters")
+      await this.$router.push({
+        name: 'Serp',
+        query: {
+          ...this.$route.query,
+          filter: undefined
+        }
+      })
+      this.snackbar('Filters cleared')
       return false
     },
 
@@ -470,7 +469,7 @@ export default {
           this.isLoading = false
 
         },
-        250
+        500
     )
 
 
@@ -484,8 +483,7 @@ export default {
       console.log("search changed", newVal)
       if (!this.filterTypeKey) {
         this.search = ""
-      }
-      else {
+      } else {
         this.fetchSuggestions()
 
       }

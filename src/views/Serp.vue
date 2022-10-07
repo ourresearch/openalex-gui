@@ -51,7 +51,7 @@
       <router-view></router-view>
       <search-box class="px-3 mt-3 flex-fill d-md-none"/>
       <div
-          class="serp-container pt-12 pl-12 ml-2"
+          class="serp-container pt-12 pl-6"
           :class="{mobile: $vuetify.breakpoint.mobile}"
            style="max-width: 800px;"
       >

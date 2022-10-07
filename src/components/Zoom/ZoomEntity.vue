@@ -28,8 +28,10 @@
               </span>
             </div>
             <div class="text-h6 font-weight-medium mt-0"
-                 style="font-weight: 450 !important; line-height: 1.5;">
-              {{ data.display_name }}
+                 style="font-weight: 450 !important; line-height: 1.5;"
+                 v-html="$prettyTitle(data.display_name)"
+
+            >
             </div>
 
           </div>

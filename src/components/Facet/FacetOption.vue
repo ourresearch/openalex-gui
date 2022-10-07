@@ -10,10 +10,12 @@
           color="green lighten-2"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
-          v-model="isChecked"/>
+          @click="click($event)"
+          :input-value="isChecked"
+      />
     </div>
     <div
-        class="body-1  text-capitalize"
+        class="body-1  "
         style="line-height: 1.5; "
         :class="{'font-weight-bold': isChecked}"
     >
@@ -22,15 +24,15 @@
           :to="filter.value | entityZoomLink"
           class="hover-underline text--lighten-2 white--text"
           :class="{'green--text': isChecked}"
+          v-html="prettyDisplayName"
       >
-        {{ prettyDisplayName }}
       </router-link>
       <span
           v-else
           class="text--lighten-2"
           :class="{'green--text': isChecked,}"
+          v-html="prettyDisplayName"
       >
-        {{ prettyDisplayName }}
       </span>
     </div>
     <v-spacer></v-spacer>
@@ -57,6 +59,7 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
+import {prettyTitle} from "../../util";
 
 export default {
   name: "FacetValueListItem",
@@ -79,6 +82,12 @@ export default {
       "searchApiUrl",
     ]),
     prettyDisplayName() {
+      if (this.filter.isBoolean){
+        const valueAsInt = (this.filter.value === "true") ? 1 : 0;
+        return this.filter.booleanValues[valueAsInt]
+      }
+
+
       let ret = this.filter.displayValue
           .replace("ieee", "IEEE")
           .replace("United States of America", "USA")
@@ -87,6 +96,8 @@ export default {
       if (this.filter.key === "type") {
         ret = ret.replace("-", " ")
       }
+      ret = prettyTitle(ret)
+
       if (this.filter.key === 'oa_status') {
         // ret = ret.replace("hybrid", "hybrid OA")
         //     .replace("gold", "gold OA")
@@ -118,6 +129,13 @@ export default {
     toggleIsChecked() {
       this.isChecked = !this.isChecked
     },
+    click(e){
+      this.isChecked = !this.isChecked
+      if (this.isChecked) this.addInputFilters([this.filter])
+      else this.removeInputFilters([this.filter])
+      this.$emit("click-checkbox", e)
+    }
+
   },
 
   created() {
@@ -129,15 +147,6 @@ export default {
 
   },
   watch: {
-    isChecked: {
-      immediate: false,
-      handler(isCheckedNow) {
-        console.log("FacetOptions isChecked watcher", isCheckedNow)
-        if (isCheckedNow) this.addInputFilters([this.filter])
-        else this.removeInputFilters([this.filter])
-        this.$emit("click-checkbox")
-      },
-    },
   }
 }
 </script>

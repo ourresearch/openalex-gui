@@ -11,6 +11,7 @@
     "axios": "^0.27.2",
     "body-scroll-lock": "^2.7.1",
     "core-js": "^3.6.5",
+    "country-code-lookup": "^0.0.20",
     "express": "^4.17.1",
     "millify": "^5.0.0",
     "sanitize-html": "^2.7.2",

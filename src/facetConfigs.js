@@ -110,9 +110,10 @@ const facetConfigs = function () {
         {
             key: "open_access.is_oa",
             entityTypes: ["works"],
-            displayName: "Free to read",
+            displayName: "Open Access",
             valuesToShow: "boolean",
             isBoolean: true,
+            booleanValues: ["Toll-access", "Open Access"]
         },
         {
             key: "host_venue.license",
@@ -169,30 +170,34 @@ const facetConfigs = function () {
         {
             key: "has_doi",
             entityTypes: ["works"],
-            displayName: "Has DOI",
+            displayName: "DOI",
             valuesToShow: "boolean",
             isBoolean: true,
+            booleanValues: ["Has no DOI", "Has DOI"],
         },
         {
             key: "has_ngrams",
             entityTypes: ["works"],
-            displayName: "Has N-grams",
+            displayName: "N-grams",
             valuesToShow: "boolean",
             isBoolean: true,
+            booleanValues: ["Has no n-grams", "Has n-grams"],
         },
         {
             key: "is_paratext",
             entityTypes: ["works"],
-            displayName: "Is paratext",
+            displayName: "Paratext",
             valuesToShow: "boolean",
             isBoolean: true,
+            booleanValues: ["Isn't paratext", "Is paratext"],
         },
         {
             key: "is_retracted",
             entityTypes: ["works"],
-            displayName: "Is retracted",
+            displayName: "Retraction",
             valuesToShow: "boolean",
             isBoolean: true,
+            booleanValues: ["Isn't retracted", "Is retracted"],
         },
 
         // works: links to other works

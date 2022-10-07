@@ -1,5 +1,5 @@
 <template>
-  <div class="subtitle-1 d-flex align-start">
+  <div class=" d-flex align-start">
 <!--    <entity-icon-->
 <!--        type="concepts"-->
 <!--        expand-->

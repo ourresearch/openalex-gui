@@ -1,6 +1,6 @@
 <template>
   <router-link
-      class="text-decoration-none subtitle-1"
+      class="text-decoration-none"
       :to="data.id | zoomLink">{{data.display_name}}{{ append }}</router-link>
 </template>
 

@@ -274,7 +274,6 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async addInputFilters({commit, getters, dispatch, state}, filters) {
-            console.log("Vuex addInputFilters", filters)
             filters.forEach(f => {
                 commit("addInputFilter", f)
             })
@@ -284,7 +283,6 @@ export default new Vuex.Store({
         },
         // eslint-disable-next-line no-unused-vars
         async removeInputFilters({commit, getters, dispatch, state}, filters) {
-            console.log("Vuex removeInputFilters", filters)
             filters.forEach(f => {
                 commit("removeInputFilter", f)
             })

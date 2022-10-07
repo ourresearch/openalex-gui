@@ -9,6 +9,8 @@ import millify from "millify";
 import {idsAreEqual, setOrDelete} from "./util";
 import {url} from "./url"
 import SearchBox from "./components/SearchBox";
+import sanitizeHtml from 'sanitize-html';
+import {prettyTitle} from "./util";
 
 import _ from 'lodash'
 
@@ -19,6 +21,7 @@ import {
 } from "./filterConfigs";
 
 Vue.config.productionTip = false
+Vue.prototype.$prettyTitle = prettyTitle
 
 // we have to globally register this or it throws errors.
 // https://stackoverflow.com/a/58875919
@@ -32,11 +35,12 @@ const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
 import FlagIcon from 'vue-flag-icon'
+
 Vue.use(FlagIcon);
 
 import VuePluralize from 'vue-pluralize'
-Vue.use(VuePluralize)
 
+Vue.use(VuePluralize)
 
 
 Vue.filter("idLink", function (fullId) {
@@ -53,7 +57,6 @@ Vue.filter("idLink", function (fullId) {
     const myEntityType = entityTypes[shortIdFirstLetter]
     return `/${myEntityType}/${shortId}`
 })
-
 
 
 Vue.filter("entityZoomLink", function (id) {
@@ -102,6 +105,8 @@ Vue.filter("linkRemoveFilter", function (filterObject) {
 });
 
 
+
+
 Vue.filter("addFilterLink", function (newFilter) {
     if (!newFilter.key) return
 
@@ -117,9 +122,6 @@ Vue.filter("addFilterLink", function (newFilter) {
     }
 
 });
-
-
-
 
 
 Vue.filter("prettyName", function (name) {

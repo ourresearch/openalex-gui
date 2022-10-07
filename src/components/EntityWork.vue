@@ -81,7 +81,7 @@
 
       <!--    Abstract -->
       <tr v-if="abstract">
-        <td class="table-row-label">
+        <td class="table-row-label abstract">
           <span class="body-1" style="color:#555;">Abstract: </span>
         </td>
         <td class="body-1">

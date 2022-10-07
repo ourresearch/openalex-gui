@@ -62,8 +62,7 @@
               @click="toggleFiltersDrawer"
           >
             <v-list-item-icon>
-              <v-icon v-if="showFiltersDrawer">mdi-filter-off-outline</v-icon>
-              <v-icon v-else>mdi-filter-outline</v-icon>
+              <v-icon>mdi-filter-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title v-if="showFiltersDrawer">

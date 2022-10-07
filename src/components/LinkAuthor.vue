@@ -2,7 +2,7 @@
   <router-link
       :to="data.id | entityZoomLink"
       style="display: inline-block; white-space: nowrap;"
-      class="text-decoration-none subtitle-1"
+      class="text-decoration-none"
   >{{data.display_name}}{{ append }}</router-link>
 
 </template>
