@@ -123,7 +123,7 @@ html, body {
     letter-spacing: .03em;
     opacity: .7;
     font-size: 28px;
-    font-weight: 400;
+    font-weight: 500;
   }
 }
 

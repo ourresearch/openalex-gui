@@ -36,7 +36,7 @@
       </span>
     </div>
     <v-spacer></v-spacer>
-    <div class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
+    <div v-if="!hideBar" class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
       {{ filter.count.toLocaleString() }}
     </div>
     <div v-if="!hideBar" class="facet-option-bar-container">
