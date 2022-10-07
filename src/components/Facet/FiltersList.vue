@@ -59,6 +59,7 @@
 
     <div
         style=" overflow-y:scroll;"
+        class="pt-4"
     >
       <facet-option
           v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"
@@ -69,7 +70,7 @@
       />
 
     </div>
-    <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    <div>
 
 </div>
 
@@ -146,6 +147,23 @@ export default {
           .toLowerCase()
       return `search ${displayName}`
     },
+    autocompleteUrl() {
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
+      console.log("calling autocomplete url", url.pathname)
+
+      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.filterTypeKey)
+      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
+
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+
+      if (this.myFacetConfig.valuesToShow === "mostCommon") {
+        url.searchParams.set("q", this.search ?? "")
+      }
+      url.searchParams.set("email", "team@ourresearch.org")
+
+      return url.toString()
+    },
     filtersToShow() {
       if (!this.filtersFromAutocomplete.length) return []
       const ret = [...this.filtersFromAutocomplete]
@@ -187,7 +205,26 @@ export default {
 
     clickCheckbox(e) {
       console.log("click checkbox", e)
-    }
+    },
+    fetchSuggestions: _.debounce(
+        async function () {
+          this.isLoading = true
+
+          const resp = await api.getUrl(this.autocompleteUrl)
+          this.filtersFromAutocomplete = resp.filters.map(apiData => {
+            return createDisplayFilter(
+                this.myFacetConfig.key,
+                apiData.value,
+                apiData.display_value,
+                apiData.works_count,
+            )
+          })
+          this.isLoading = false
+
+        },
+        500,
+        {leading: true,}
+    ),
 
   },
   created() {
@@ -208,16 +245,14 @@ export default {
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        return
-        this.setFilterOptions()
+        this.fetchSuggestions()
         this.search = ""
       }
     },
     "filterTypeKey": {
       handler(newVal, oldVal) {
-        return
         this.filtersFromAutocomplete = []
-        this.setFilterOptions()
+        this.fetchSuggestions()
         this.search = ""
       }
     },
