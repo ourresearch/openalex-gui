@@ -1,6 +1,6 @@
 <template>
   <div
-      class="pt-0 pb-2 pl-4 pr-6 my-0 d-flex filter-row align-start"
+      class="pb-2 my-0 d-flex filter-row align-start"
   >
 
 <!--      <v-btn-->
@@ -20,7 +20,7 @@
       <v-checkbox
           dense
           hide-details
-          class="pa-0 ma-0 mr-2"
+          class="pa-0 ma-0 mr-0"
           color="green lighten-2"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
@@ -28,6 +28,7 @@
           @click="click($event)"
           :input-value="isChecked"
           v-if="!isLoading"
+          :disabled="disabled"
       />
       <v-progress-circular
           v-if="isLoading"
@@ -41,7 +42,7 @@
     <div
         class="body-1 "
         style="line-height: 1.5;"
-        :class="{'font-weight-bold': isChecked}"
+        :class="{'font-weight-bold': isChecked, disabled}"
     >
       <router-link
           v-if="filter.isEntity"
@@ -60,10 +61,18 @@
       </span>
     </div>
     <v-spacer></v-spacer>
-    <div v-if="!hideNumber" class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
+    <div v-if="!hideNumber"
+         class="body-2 grey--text"
+         style="margin: 1px 5px 0 20px;"
+         :class="{disabled}"
+    >
       {{ filter.count.toLocaleString() }}
     </div>
-    <div v-if="!hideBar" class="facet-option-bar-container">
+    <div
+        v-if="!hideBar"
+        class="facet-option-bar-container"
+        :class="disabled"
+    >
       <div
           class="facet-option-bar-bar lighten-2"
           :class="{selected: isChecked, 'green': isChecked}"
@@ -94,6 +103,7 @@ export default {
     indent: Boolean,
     hideBar: Boolean,
     hideNumber: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {
@@ -185,6 +195,11 @@ a.hover-underline {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.disabled {
+  opacity: .8;
+  filter: grayscale(100%);
 }
 
 .facet-option-bar-container {

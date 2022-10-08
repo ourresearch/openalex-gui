@@ -6,25 +6,25 @@
       :width="width"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      color="#333"
+      :color="drawerColor"
       dark
+      class="pa-0"
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
-    <div class="d-flex">
+    <div class="d-flex" style="flex-wrap: wrap;" ref="navDrawerWrapper">
 
       <v-card
-          tile
-          color="#333"
+          :color="drawerColor"
           dark
           flat
           :width="filterTypesListWidth"
       >
         <v-list
             class="pb-0 pt-0 pr-0 mr-0"
+            style="height: 68px;"
         >
           <v-list-item
               v-on="(isMini || filterTypeKey) ? {click: topListItemClick} : {}"
-              style="min-height: 68px;"
               class="pr-3"
           >
             <v-list-item-icon>
@@ -58,45 +58,57 @@
         </v-list>
 
 
-        <v-divider/>
-
-
-        <!--      List of filter types-->
-        <!--      *****************************************************************-->
-        <v-list
-            dense
-            class="pt-0"
-            v-if="!isMini"
+        <div
             style="max-height: 90vh; overflow-y: scroll"
+            v-if="!isMini"
+
         >
-          <template
-              v-for="filterType in filterTypeSearchResults"
+
+          <!--      List of filter types  -->
+          <!--      *****************************************************************-->
+          <v-list
+              dense
+              class="pt-0"
           >
-            <filter-type-list-item
-                :key="filterType.key"
-                :facet-key="filterType.key"
-                :bold="filterType.filters.length > 0"
-                :has-focus="filterTypeKey === filterType.key"
-                @select="filterTypeKey = filterType.key"
-            />
+            <template
+                v-for="filterType in filterTypeSearchResults"
+            >
 
-            <v-divider class="" v-if="filterType.filters.length"></v-divider>
-          </template>
-        </v-list>
+              <filter-type-selected
+                  :key="filterType.key"
+                  :facet-key="filterType.key"
+                  :has-focus="filterTypeKey === filterType.key"
+                  @select="setFilterTypeKey(filterType.key)"
+                  v-if="filterType.filters.length"
+                  :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+              />
 
+              <filter-type-list-item
+                  :key="filterType.key"
+                  :facet-key="filterType.key"
+                  :bold="filterType.filters.length > 0"
+                  :has-focus="filterTypeKey === filterType.key"
+                  @select="setFilterTypeKey(filterType.key)"
+                  :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+                  v-else
+              />
+
+            </template>
+          </v-list>
+        </div>
 
 
       </v-card>
       <v-card
-          flat
-          tile
-          color="#3d3d3d"
+          :color="backgroundColors.light"
+          elevation="5"
           dark
           :width="filtersListWidth"
-          v-if="filterTypeKey"
-          style="border-radius: 20px !important;"
+          height="96vh"
+          v-if="filterTypeKey "
+          style="border-radius: 5px !important; margin-top: 2vh"
       >
-        <filters-list :filter-type-key="filterTypeKey" @close="filterTypeKey = null"/>
+        <filters-list :filter-type-key="filterTypeKey" @close="setFilterTypeKey(null)"/>
       </v-card>
 
 
@@ -116,6 +128,7 @@ import {url} from "../../url";
 import FilterTypeListItem from "../Facet/FilterTypeListItem";
 import _ from "lodash"
 import FiltersList from "../Facet/FiltersList";
+import FilterTypeSelected from "../Facet/FilterTypeSelected";
 
 const compareByCount = function (a, b) {
   if (a.count > b.count) {
@@ -133,6 +146,7 @@ export default {
     FacetOption,
     FilterTypeListItem,
     FiltersList,
+    FilterTypeSelected
   },
   props: {},
   data() {
@@ -141,6 +155,7 @@ export default {
       search: "",
       filterTypeSearch: "",
       filterTypeKey: null,
+      showFiltersList: false,
       isLoading: false,
       filtersFromAutocomplete: [],
       filtersFromGroupBy: [],
@@ -148,6 +163,14 @@ export default {
 
       filterTypesListWidth: 300,
       filtersListWidth: 300,
+
+      lightColor: "#555",
+      darkColor: "#222",
+      backgroundColors: {
+        dark: "#303030",
+        medium: "#3a3a3a",
+        light: "#444",
+      }
 
     }
   },
@@ -184,6 +207,9 @@ export default {
         this.$store.state.showFiltersDrawer = val
       },
     },
+    drawerColor(){
+      return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
+    },
     width() {
       if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
       else return this.filterTypesListWidth
@@ -210,75 +236,6 @@ export default {
       })
       return ret
     },
-    myFacetConfig() {
-      return facetConfigs().find(c => c.key === this.filterTypeKey)
-    },
-    filtersToShow() {
-      if (!this.filtersFromAutocomplete.length) return []
-      const fromAutocomplete = this.filtersFromAutocomplete
-          .filter(f => f.value !== "unknown")
-          .filter(f => {
-
-            // only push potential filter values if they're not already loaded as
-            // in a resultsFilter
-            return !this.filtersFromServer.map(f => f.asStr).includes(f.asStr)
-          })
-
-
-      if (this.myFacetConfig.sortByValue) {
-        fromAutocomplete.sort((a, b) => {
-          return (a.value > b.value) ? -1 : 1
-        })
-      } else {
-        fromAutocomplete.sort((a, b) => {
-          return b.count - a.count
-        })
-      }
-      const ret = [...this.filtersFromServer, ...fromAutocomplete]
-      // ret.sort((a, b) => {
-      //   return b.count - a.count
-      // })
-
-
-      const maxCount = Math.max(...ret.map(r => r.count))
-      ret.forEach(f => {
-        f.countNormalized = f.count / maxCount
-      })
-
-
-      return ret
-    },
-
-
-    filtersFromServer() {
-      // these ones are already selected by the user. we got them from the store,
-      // which refreshes them from the server every time we search.
-      // (which may have gotten from either user action or the URL)
-      return this.$store.state.resultsFilters
-          .filter(f => {
-            return f.key === this.filterTypeKey
-          })
-          .map(f => {
-            return {...f, isResultsFilter: true}
-          })
-    },
-    autocompleteUrl() {
-      const url = new URL(`https://api.openalex.org`);
-      url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      console.log("calling autocomplete url", url.pathname)
-
-      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.filterTypeKey)
-      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
-
-      if (this.textSearch) url.searchParams.set("search", this.textSearch)
-
-      if (this.myFacetConfig.valuesToShow === "mostCommon") {
-        url.searchParams.set("q", this.search ?? "")
-      }
-      url.searchParams.set("email", "team@ourresearch.org")
-
-      return url.toString()
-    },
   },
 
   methods: {
@@ -294,9 +251,12 @@ export default {
       this.snackbar("Filters copied to clipboard.")
     },
 
+    setFilterTypeKey(filterTypeKey) {
+      this.filterTypeKey = filterTypeKey
+    },
     topListItemClick() {
       if (this.isMini) return
-      if (this.filterTypeKey) this.filterTypeKey = null
+      if (this.filterTypeKey) this.setFilterTypeKey(null)
     },
     async clearAllFilters() {
       console.log("clear all filters")
@@ -311,67 +271,13 @@ export default {
       return false
     },
 
-    facetZoomLink(key) {
-      return url.addZoomToRoute(
-          this.$router,
-          "filters:" + key,
-          false
-      )
-    },
-    async setFilterOptions() {
-      if (!this.myFacetConfig || this.myFacetConfig.noOptions) return
-      await this.fetchSuggestions()
-    },
-    fetchSuggestions: _.debounce(
-        async function () {
-          this.isLoading = true
-
-          const resp = await api.getUrl(this.autocompleteUrl)
-          this.filtersFromAutocomplete = resp.filters.map(apiData => {
-            return createDisplayFilter(
-                this.myFacetConfig.key,
-                apiData.value,
-                apiData.display_value,
-                apiData.works_count,
-            )
-          })
-          this.isLoading = false
-
-        },
-        500
-    )
-
 
   },
   created() {
   },
   mounted() {
   },
-  watch: {
-    // search(newVal, oldVal) {
-    //   console.log("search changed", newVal)
-    //   if (!this.filterTypeKey) {
-    //     this.search = ""
-    //   } else {
-    //     this.fetchSuggestions()
-    //
-    //   }
-    // },
-    // "$route.query": {
-    //   immediate: true,
-    //   handler(newVal, oldVal) {
-    //     this.setFilterOptions()
-    //     this.search = ""
-    //   }
-    // },
-    // "filterTypeKey": {
-    //   handler(newVal, oldVal) {
-    //     this.filtersFromAutocomplete = []
-    //     this.setFilterOptions()
-    //     this.search = ""
-    //   }
-    // },
-  }
+  watch: {}
 }
 </script>
 

@@ -1,64 +1,25 @@
 <template>
   <v-list-item
-      v-on="(!bold) ? {click: clickHandler} : {}"
-      style="min-height: 30px;"
-      class="pl-0 pr-0 filter-type-list-item"
-      :class="{'has-focus': hasFocus}"
+      @click="clickHandler"
+      style="min-height: 10px;"
+      class="py-0 filter-type-list-item"
+      :disabled="disabled"
   >
-    <!--    <v-list-item-icon>-->
-    <!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
-    <!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
-    <!--      <v-chip-->
-    <!--          color="primary"-->
-    <!--          small-->
-    <!--          outlined-->
-    <!--          class="px-2"-->
-    <!--      >-->
-    <!--        {{ appliedFiltersCount }}-->
-    <!--      </v-chip>-->
+        <v-list-item-icon>
+          <v-icon style="opacity: 0.5;">mdi-chevron-right</v-icon>
+<!--          <v-chip-->
+<!--              color="primary"-->
+<!--              small-->
+<!--              outlined-->
+<!--              class="px-2"-->
+<!--          >-->
+<!--            {{ appliedFiltersCount }}-->
+<!--          </v-chip>-->
 
-    <!--    </v-list-item-icon>-->
+        </v-list-item-icon>
     <v-list-item-content>
-      <div
-          style="font-weight: normal; line-height: 1.2;font-size: 16px; width: 100%;"
-          :class="{'font-weight-normal': bold, 'body-2': bold}"
-          class="d-flex align-center pr-4 pl-6 pb-0"
-      >
-        <div class="">
           {{ config.displayName }}
-        </div>
-        <v-spacer></v-spacer>
-        <div>
-          <v-btn
-              v-if="bold && !config.noOptions"
-              small
-              icon
-              class="low-key-button mr-1"
-              @click="$emit('select')"
-          >
-            <v-icon small>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn
-              v-if="bold"
-              small
-              icon
-              class="low-key-button mr-1"
-              @click.stop="clearAllFilters"
-          >
-            <v-icon small>mdi-delete-outline</v-icon>
-          </v-btn>
-        </div>
-      </div>
-      <facet-option
-          v-for="liveFilter in myResultsFilters"
-          :filter="liveFilter"
-          :show-checked="true"
-          :key="liveFilter.asStr"
-          class="ml-0"
-          :hide-bar="true"
-          :hide-number="myResultsFilters.length < 2"
-          @click-checkbox="clickCheckbox"
-      />
+
 
     </v-list-item-content>
 
@@ -87,6 +48,7 @@ export default {
     facetKey: String,
     bold: Boolean,
     hasFocus: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {

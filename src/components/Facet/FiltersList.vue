@@ -69,7 +69,7 @@
     <v-divider/>
 
     <div
-        style="height: 83vh; overflow-y:scroll;"
+        style="height: 78vh; overflow-y:scroll;"
         class="pt-4"
     >
       <facet-option
