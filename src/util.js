@@ -49,7 +49,15 @@ const idsAreEqual = function(id1, id2){
 }
 
 
-
+const compareByCount = function (a, b) {
+  if (a.count > b.count) {
+    return -1;
+  }
+  if (a.count < b.count) {
+    return 1;
+  }
+  return 0;
+}
 
 const unravel = function(invertedIndex){
     if (!invertedIndex) return
@@ -102,4 +110,5 @@ export {
     idsAreEqual,
     setOrDelete,
     prettyTitle,
+    compareByCount
 }

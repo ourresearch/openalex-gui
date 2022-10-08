@@ -21,7 +21,7 @@
           dense
           hide-details
           class="pa-0 ma-0 mr-2"
-          color="green lighten-1"
+          color="green lighten-2"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
           readonly
@@ -46,26 +46,26 @@
       <router-link
           v-if="filter.isEntity"
           :to="filter.value | entityZoomLink"
-          class="hover-underline text--lighten-1 white--text"
+          class="hover-underline text--lighten-2 white--text"
           :class="{'green--text': isChecked}"
           v-html="prettyDisplayName"
       >
       </router-link>
       <span
           v-else
-          class="text--lighten-1"
+          class="text--lighten-2"
           :class="{'green--text': isChecked,}"
           v-html="prettyDisplayName"
       >
       </span>
     </div>
     <v-spacer></v-spacer>
-    <div v-if="!hideBar" class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
+    <div v-if="!hideNumber" class="body-2 grey--text" style="margin: 1px 5px 0 20px;">
       {{ filter.count.toLocaleString() }}
     </div>
     <div v-if="!hideBar" class="facet-option-bar-container">
       <div
-          class="facet-option-bar-bar lighten-1"
+          class="facet-option-bar-bar lighten-2"
           :class="{selected: isChecked, 'green': isChecked}"
           :style="{width: (filter.countNormalized * 100) + '%'}"
       >
@@ -93,6 +93,7 @@ export default {
     showChecked: Boolean,
     indent: Boolean,
     hideBar: Boolean,
+    hideNumber: Boolean,
   },
   data() {
     return {
@@ -188,10 +189,10 @@ a.hover-underline {
 
 .facet-option-bar-container {
   width: 20px;
-  height: 10px;
+  height: 9px;
   background-color: rgba(255, 255, 255, 0.05);
   flex: none;
-  margin-top: 6px;
+  margin-top: 7px;
   margin-left: 5px;
 }
 

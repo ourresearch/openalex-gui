@@ -13,10 +13,10 @@
     <div class="d-flex">
 
       <v-card
-          flat
           tile
           color="#333"
           dark
+          flat
           :width="filterTypesListWidth"
       >
         <v-list
@@ -94,6 +94,7 @@
           dark
           :width="filtersListWidth"
           v-if="filterTypeKey"
+          style="border-radius: 20px !important;"
       >
         <filters-list :filter-type-key="filterTypeKey" @close="filterTypeKey = null"/>
       </v-card>

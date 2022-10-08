@@ -22,9 +22,9 @@
       <div
           style="font-weight: normal; line-height: 1.2;font-size: 16px; width: 100%;"
           :class="{'font-weight-normal': bold, 'body-2': bold}"
-          class="d-flex align-center pr-3"
+          class="d-flex align-center pr-4 pl-6 pb-0"
       >
-        <div class="pl-12">
+        <div class="">
           {{ config.displayName }}
         </div>
         <v-spacer></v-spacer>
@@ -48,7 +48,6 @@
             <v-icon small>mdi-delete-outline</v-icon>
           </v-btn>
         </div>
-
       </div>
       <facet-option
           v-for="liveFilter in myResultsFilters"
@@ -56,6 +55,8 @@
           :show-checked="true"
           :key="liveFilter.asStr"
           class="ml-0"
+          :hide-bar="true"
+          :hide-number="myResultsFilters.length < 2"
           @click-checkbox="clickCheckbox"
       />
 
@@ -75,6 +76,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
 import {filtersAsUrlStr, filtersFromUrlStr} from "../../filterConfigs";
 import FacetOption from "./FacetOption";
+import {compareByCount} from "../../util";
 
 export default {
   name: "FilterTypeListItem",
@@ -109,9 +111,16 @@ export default {
       return getFacetConfig(this.facetKey)
     },
     myResultsFilters() {
-      return this.resultsFilters.filter(f => {
+      const ret = this.resultsFilters.filter(f => {
         return f.key === this.facetKey
       })
+      ret.sort(compareByCount)
+      const maxCount = Math.max(...ret.map(r => r.count))
+      ret.forEach(f => {
+        f.countNormalized = f.count / maxCount
+      })
+
+      return ret
     }
   },
   methods: {
