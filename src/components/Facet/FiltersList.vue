@@ -40,15 +40,26 @@
 
 
     </div>
-    <div class="px-4" v-if="!myFacetConfig.isBoolean">
+    <div class="px-4 d-flex align-end" v-if="!myFacetConfig.isBoolean">
+      <div class="d-flex align-center py-1 pr-3">
+        <v-icon v-if="!isLoading">mdi-magnify</v-icon>
+        <v-progress-circular
+            v-if="isLoading"
+            size="20"
+            width="2"
+            indeterminate
+            style="margin: 0;"
+            class="ml-1">
+
+        </v-progress-circular>
+      </div>
+
       <v-text-field
           flat
           dense
           hide-details
           full-width
           clearable
-          autofocus
-          prepend-inner-icon="mdi-magnify"
 
           v-model="search"
           :placeholder="searchPlaceholder"
@@ -58,7 +69,7 @@
     <v-divider/>
 
     <div
-        style=" overflow-y:scroll;"
+        style="height: 83vh; overflow-y:scroll;"
         class="pt-4"
     >
       <facet-option
@@ -72,7 +83,7 @@
     </div>
     <div>
 
-</div>
+    </div>
 
 
   </div>
@@ -201,10 +212,15 @@ export default {
       "snackbar",
       "toggleFiltersDrawer",
     ]),
-    ...mapActions([]),
+    ...mapActions([
+      "addInputFilters",
+      "removeInputFilters",
+    ]),
 
-    clickCheckbox(e) {
-      console.log("click checkbox", e)
+    clickCheckbox(filter, isChecked, e) {
+      console.log("click checkbox", filter, isChecked, e)
+      if (isChecked) this.addInputFilters([filter])
+      else this.removeInputFilters([filter])
     },
     fetchSuggestions: _.debounce(
         async function () {

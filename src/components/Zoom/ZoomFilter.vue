@@ -20,16 +20,17 @@
           :width="filterTypesListWidth"
       >
         <v-list
-            class="pb-0 pt-0"
+            class="pb-0 pt-0 pr-0 mr-0"
         >
           <v-list-item
               v-on="(isMini || filterTypeKey) ? {click: topListItemClick} : {}"
-              style=""
+              style="min-height: 68px;"
+              class="pr-3"
           >
             <v-list-item-icon>
               <v-icon class="">mdi-filter</v-icon>
               <span
-                  v-if="resultsFilters.length"
+                  v-if="true"
                   style="font-size: 10px; margin: 20px 0 0 -4px;"
               >
                 {{ resultsFilters.length }}
@@ -43,14 +44,14 @@
 
             <template v-if="!filterTypeKey">
 
-              <v-btn icon @click="toggleFiltersDrawer">
+              <v-btn v-if="!resultsFilters.length" icon @click="toggleFiltersDrawer">
                 <v-icon>{{ ($vuetify.breakpoint.mobile) ? 'mdi-close' : 'mdi-chevron-left' }}</v-icon>
               </v-btn>
               <v-btn icon
-                     :disabled="!resultsFilters.length"
+                     v-if="resultsFilters.length"
                      @click="clearAllFilters"
               >
-                <v-icon>mdi-delete-outline</v-icon>
+                <v-icon small>mdi-delete</v-icon>
               </v-btn>
             </template>
           </v-list-item>
@@ -64,6 +65,7 @@
         <!--      *****************************************************************-->
         <v-list
             dense
+            class="pt-0"
             v-if="!isMini"
             style="max-height: 90vh; overflow-y: scroll"
         >
@@ -74,10 +76,11 @@
                 :key="filterType.key"
                 :facet-key="filterType.key"
                 :bold="filterType.filters.length > 0"
+                :has-focus="filterTypeKey === filterType.key"
                 @select="filterTypeKey = filterType.key"
             />
 
-            <v-divider class="mb-1 mt-1" v-if="filterType.filters.length"></v-divider>
+            <v-divider class="" v-if="filterType.filters.length"></v-divider>
           </template>
         </v-list>
 
@@ -87,7 +90,7 @@
       <v-card
           flat
           tile
-          color="#444"
+          color="#3d3d3d"
           dark
           :width="filtersListWidth"
           v-if="filterTypeKey"
@@ -142,7 +145,7 @@ export default {
       filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
 
-      filterTypesListWidth: 250,
+      filterTypesListWidth: 300,
       filtersListWidth: 300,
 
     }
@@ -289,14 +292,7 @@ export default {
       console.log("copied to clipboard", url)
       this.snackbar("Filters copied to clipboard.")
     },
-    clickCheckbox(e) {
-      console.log("zoomFilter: clickCheckbox", e)
-      if (e.metaKey || e.ctrlKey) {
-        // do nothing
-      } else {
-        this.filterTypeKey = null
-      }
-    },
+
     topListItemClick() {
       if (this.isMini) return
       if (this.filterTypeKey) this.filterTypeKey = null

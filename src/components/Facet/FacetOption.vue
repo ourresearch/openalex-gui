@@ -1,35 +1,59 @@
 <template>
   <div
-      class="pt-0 pb-2 pl-4 pr-6 my-0 d-flex filter-row"
+      class="pt-0 pb-2 pl-4 pr-6 my-0 d-flex filter-row align-start"
   >
-    <div>
+
+<!--      <v-btn-->
+<!--          icon-->
+<!--          small-->
+<!--          class="pa-0 ma-0 mr-3"-->
+<!--          :color="(isChecked) ? 'green lighten-2' : null"-->
+<!--          @click="click($event)"-->
+<!--          :loading="isLoading"-->
+<!--      >-->
+<!--        <v-icon small v-if="isChecked">mdi-checkbox-marked-circle</v-icon>-->
+<!--        <v-icon v-else small style="opacity: .5">mdi-plus</v-icon>-->
+<!--      </v-btn>-->
+
+
+
       <v-checkbox
           dense
           hide-details
           class="pa-0 ma-0 mr-2"
-          color="green lighten-2"
+          color="green lighten-1"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
+          readonly
           @click="click($event)"
           :input-value="isChecked"
+          v-if="!isLoading"
       />
-    </div>
+      <v-progress-circular
+          v-if="isLoading"
+          size="15"
+          width="2"
+          indeterminate
+          style="margin: 5px 21px 5px 5px;"
+          class="ml-1">
+
+      </v-progress-circular>
     <div
-        class="body-1  "
-        style="line-height: 1.5; "
+        class="body-1 "
+        style="line-height: 1.5;"
         :class="{'font-weight-bold': isChecked}"
     >
       <router-link
           v-if="filter.isEntity"
           :to="filter.value | entityZoomLink"
-          class="hover-underline text--lighten-2 white--text"
+          class="hover-underline text--lighten-1 white--text"
           :class="{'green--text': isChecked}"
           v-html="prettyDisplayName"
       >
       </router-link>
       <span
           v-else
-          class="text--lighten-2"
+          class="text--lighten-1"
           :class="{'green--text': isChecked,}"
           v-html="prettyDisplayName"
       >
@@ -41,7 +65,7 @@
     </div>
     <div v-if="!hideBar" class="facet-option-bar-container">
       <div
-          class="facet-option-bar-bar lighten-2"
+          class="facet-option-bar-bar lighten-1"
           :class="{selected: isChecked, 'green': isChecked}"
           :style="{width: (filter.countNormalized * 100) + '%'}"
       >
@@ -75,6 +99,7 @@ export default {
       loading: false,
       apiResp: {},
       isChecked: this.showChecked,
+      isLoading: false,
     }
   },
   computed: {
@@ -130,10 +155,11 @@ export default {
       this.isChecked = !this.isChecked
     },
     click(e){
-      this.isChecked = !this.isChecked
-      if (this.isChecked) this.addInputFilters([this.filter])
-      else this.removeInputFilters([this.filter])
-      this.$emit("click-checkbox", e)
+      // this.isChecked = !this.isChecked
+      // if (this.isChecked) this.addInputFilters([this.filter])
+      // else this.removeInputFilters([this.filter])
+      this.isLoading = true
+      this.$emit("click-checkbox", this.filter, !this.isChecked, e)
     }
 
   },

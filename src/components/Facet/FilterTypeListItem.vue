@@ -1,8 +1,9 @@
 <template>
   <v-list-item
       v-on="(!bold) ? {click: clickHandler} : {}"
-      style="min-height: 30px; "
-      class="pl-0"
+      style="min-height: 30px;"
+      class="pl-0 pr-0 filter-type-list-item"
+      :class="{'has-focus': hasFocus}"
   >
     <!--    <v-list-item-icon>-->
     <!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
@@ -21,9 +22,9 @@
       <div
           style="font-weight: normal; line-height: 1.2;font-size: 16px; width: 100%;"
           :class="{'font-weight-normal': bold, 'body-2': bold}"
-          class="d-flex align-center"
+          class="d-flex align-center pr-3"
       >
-        <div class="pl-12 ml-2">
+        <div class="pl-12">
           {{ config.displayName }}
         </div>
         <v-spacer></v-spacer>
@@ -54,7 +55,6 @@
           :filter="liveFilter"
           :show-checked="true"
           :key="liveFilter.asStr"
-          :hide-bar="true"
           class="ml-0"
           @click-checkbox="clickCheckbox"
       />
@@ -84,6 +84,7 @@ export default {
   props: {
     facetKey: String,
     bold: Boolean,
+    hasFocus: Boolean,
   },
   data() {
     return {
@@ -117,12 +118,18 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
+    ...mapActions([
+        "removeInputFilters",
+        "addInputFilters",
+    ]),
     clickHandler() {
       this.$emit('select')
     },
-    clickCheckbox(e){
-      console.log("FilterTypeListItem clickCheckbox", e)
+
+    clickCheckbox(filter, isChecked, e) {
+      console.log("click checkbox", filter, isChecked, e)
+      if (isChecked) this.addInputFilters([filter])
+      else this.removeInputFilters([filter])
     },
     async clearAllFilters() {
       const filters = filtersFromUrlStr(this.$route.query.filter)
@@ -150,4 +157,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  .filter-type-list-item {
+    &.has-focus {
+      background-color: #3d3d3d !important;
+    }
+  }
 </style>
