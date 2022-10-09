@@ -1,7 +1,9 @@
 <template>
   <div>
-    <div class="text-h6 py-4 px-4 d-flex align-center">
-      <v-icon class="pr-2">mdi-playlist-plus</v-icon>
+    <div class="text-h6 py-1 px-1 d-flex align-center">
+      <v-btn icon @click="$emit('close')">
+        <v-icon class="mr-1">mdi-chevron-left</v-icon>
+      </v-btn>
       <template v-if="myFacetConfig.isBoolean">
         {{ myFacetConfig.displayName }}
       </template>
@@ -35,9 +37,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon @click="$emit('close')">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+
 
 
     </div>

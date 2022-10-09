@@ -1,7 +1,6 @@
 <template>
   <v-list-item
       @click="$emit('toggle-select')"
-      style="min-height: 10px;"
       class="py-0 filter-type-list-item"
       :disabled="disabled"
       :input-value="hasFocus"
@@ -16,17 +15,15 @@
 
 
     </v-list-item-content>
-    <v-list-item-actions>
       <v-btn
           v-if="hasFocus"
           small
           icon
           class="mr-1"
-          @click="$emit('toggle-select')"
+          @click.stop="$emit('toggle-select')"
       >
         <v-icon >mdi-chevron-left</v-icon>
       </v-btn>
-    </v-list-item-actions>
 
 
   </v-list-item>

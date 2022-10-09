@@ -1,10 +1,13 @@
 <template>
   <v-card
-      class="filter-type-list-item  my-1 pl-2 pt-2"
+      class="filter-type-list-item  my-1 pl-2 pt-2 pr-2"
       :class="{'has-focus': hasFocus, disabled}"
       :color="myColor"
       dark
       :elevation="(hasFocus) ? 4 : 0"
+      @[cardEventHandlerName]="showCollapsed = !showCollapsed"
+
+
 
   >
     <!--    <v-list-item-icon>-->
@@ -21,38 +24,64 @@
 
     <!--    </v-list-item-icon>-->
     <div class="card-header d-flex">
-      <div class="body-2 mb-2">
-        <v-icon v-if="hasFocus" class="pr-2" >mdi-playlist-plus</v-icon>
-          <v-icon v-else class="pr-2" style="opacity: 0.5;">mdi-chevron-right</v-icon>
+      <div class=" mb-2">
+        <v-btn
+            icon
+            small
+            @click.stop="showCollapsed = !showCollapsed"
+            class="mr-1"
+            :disabled="hasFocus"
+        >
+          <v-icon v-if="showCollapsed" class="" style="opacity: 0.5;">mdi-chevron-right</v-icon>
+          <v-icon v-else class="" style="opacity: 0.5;">mdi-chevron-down</v-icon>
+
+        </v-btn>
+        <!--        <v-icon v-if="hasFocus" class="pr-2" >mdi-playlist-plus</v-icon>-->
 
 
-        <span class="card-header-name">
+        <span
+            class="card-header-name"
+            :class="{'font-weight-light': !showCollapsed}"
+        >
           {{ config.displayName }}
         </span>
       </div>
       <v-spacer></v-spacer>
-      <v-btn
-          v-if="!config.noOptions && !hasFocus"
-          small
-          icon
-          class="low-key-button mr-1"
-          @click="$emit('toggle-select')"
-          :disabled="disabled"
-      >
-        <v-icon small>mdi-playlist-plus</v-icon>
-      </v-btn>
-      <v-btn
-          v-if="hasFocus"
-          small
-          icon
-          class="mr-1"
-          @click="$emit('toggle-select')"
-      >
-        <v-icon >mdi-chevron-left</v-icon>
-      </v-btn>
+      <template v-if="showCollapsed">
+        <v-chip
+            color="green lighten-2"
+            light
+            x-small
+            class="px-1 mt-1 mr-2 count-chip"
+        >
+          {{ myResultsFilters.length }}
+        </v-chip>
+<!--        <span class="font-weight-bold green&#45;&#45;text text&#45;&#45;lighten-2">{{ myResultsFilters.length }}</span>-->
+      </template>
+      <template v-else>
+        <v-btn
+            v-if="!config.noOptions && !hasFocus"
+            small
+            icon
+            class="low-key-button"
+            @click="$emit('toggle-select')"
+            :disabled="disabled"
+        >
+          <v-icon small>mdi-playlist-plus</v-icon>
+        </v-btn>
+        <v-btn
+            v-if="hasFocus"
+            small
+            icon
+            class=""
+            @click="$emit('toggle-select')"
+        >
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+      </template>
     </div>
 
-    <div class="card-body">
+    <div class="card-body" v-if="!showCollapsed">
       <facet-option
           v-for="liveFilter in myResultsFilters"
           :filter="liveFilter"
@@ -65,7 +94,6 @@
           @click-checkbox="clickCheckbox"
       />
     </div>
-
 
 
   </v-card>
@@ -99,6 +127,7 @@ export default {
       loading: false,
       apiResp: {},
       isChecked: this.showChecked,
+      showCollapsed: false,
     }
   },
   computed: {
@@ -106,6 +135,9 @@ export default {
       "searchApiUrl",
       "resultsFilters"
     ]),
+    cardEventHandlerName(){
+      return this.showCollapsed ? `click` : null
+    },
     appliedFiltersCount() {
       const allFilters = filtersFromUrlStr(this.$route.query.filter)
       const myFilters = allFilters.filter(f => {
@@ -113,7 +145,7 @@ export default {
       })
       return myFilters.length
     },
-    myColor(){
+    myColor() {
       if (this.disabled) return "transparent"
       else if (this.hasFocus) return "#444"
       else return "rgba(255,255,255,.04)"
@@ -172,7 +204,8 @@ export default {
   async mounted() {
 
   },
-  watch: {}
+  watch: {
+  }
 }
 </script>
 
@@ -182,12 +215,18 @@ export default {
   position: relative;
   z-index: 9999;
   border-radius: 5px;
+
   &.has-focus {
     //background-color: #3d3d3d !important;
   }
+
   &.disabled {
     .card-header-name {
-      opacity: .75;
+      opacity: .7;
+    }
+    .count-chip {
+      opacity: .1;
+      filter: grayscale(100%);
     }
   }
 }

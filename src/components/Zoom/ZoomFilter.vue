@@ -43,18 +43,21 @@
               Filters
             </v-list-item-title>
 
-            <template v-if="!filterTypeKey">
+            <v-fade-transition>
+              <template v-if="!filterTypeKey">
 
-              <v-btn v-if="!resultsFilters.length" icon @click="toggleFiltersDrawer">
-                <v-icon>{{ ($vuetify.breakpoint.mobile) ? 'mdi-close' : 'mdi-chevron-left' }}</v-icon>
-              </v-btn>
-              <v-btn icon
-                     v-if="resultsFilters.length"
-                     @click="clearAllFilters"
-              >
-                <v-icon small>mdi-delete</v-icon>
-              </v-btn>
-            </template>
+                <v-btn v-if="!resultsFilters.length" icon @click="toggleFiltersDrawer">
+                  <v-icon>{{ ($vuetify.breakpoint.mobile) ? 'mdi-close' : 'mdi-chevron-left' }}</v-icon>
+                </v-btn>
+                <v-btn icon
+                       v-if="resultsFilters.length"
+                       @click="clearAllFilters"
+                >
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+
+              </template>
+            </v-fade-transition>
           </v-list-item>
         </v-list>
 
@@ -165,6 +168,7 @@ export default {
       filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
 
+
       filterTypesListWidth: 300,
       filtersListWidth: 300,
 
@@ -211,7 +215,7 @@ export default {
         this.$store.state.showFiltersDrawer = val
       },
     },
-    drawerColor(){
+    drawerColor() {
       return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
     },
     width() {
