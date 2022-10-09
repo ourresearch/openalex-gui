@@ -1,20 +1,14 @@
 <template>
   <v-list-item
-      @click="clickHandler"
+      @click="$emit('toggle-select')"
       style="min-height: 10px;"
       class="py-0 filter-type-list-item"
       :disabled="disabled"
+      :input-value="hasFocus"
   >
         <v-list-item-icon>
-          <v-icon style="opacity: 0.5;">mdi-chevron-right</v-icon>
-<!--          <v-chip-->
-<!--              color="primary"-->
-<!--              small-->
-<!--              outlined-->
-<!--              class="px-2"-->
-<!--          >-->
-<!--            {{ appliedFiltersCount }}-->
-<!--          </v-chip>-->
+          <v-icon v-if="hasFocus" >mdi-playlist-plus</v-icon>
+          <v-icon v-else style="opacity: 0.5;">mdi-chevron-right</v-icon>
 
         </v-list-item-icon>
     <v-list-item-content>
@@ -22,6 +16,17 @@
 
 
     </v-list-item-content>
+    <v-list-item-actions>
+      <v-btn
+          v-if="hasFocus"
+          small
+          icon
+          class="mr-1"
+          @click="$emit('toggle-select')"
+      >
+        <v-icon >mdi-chevron-left</v-icon>
+      </v-btn>
+    </v-list-item-actions>
 
 
   </v-list-item>
@@ -93,9 +98,6 @@ export default {
         "removeInputFilters",
         "addInputFilters",
     ]),
-    clickHandler() {
-      this.$emit('select')
-    },
 
     clickCheckbox(filter, isChecked, e) {
       console.log("click checkbox", filter, isChecked, e)

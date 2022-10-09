@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="text-h6 py-4 px-4 d-flex align-center">
+      <v-icon class="pr-2">mdi-playlist-plus</v-icon>
       <template v-if="myFacetConfig.isBoolean">
         {{ myFacetConfig.displayName }}
       </template>
@@ -70,7 +71,7 @@
 
     <div
         style="height: 78vh; overflow-y:scroll;"
-        class="pt-4"
+        class="pt-4 px-2"
     >
       <facet-option
           v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"

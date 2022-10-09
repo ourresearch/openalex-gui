@@ -1,10 +1,10 @@
 <template>
   <v-card
-      class="filter-type-list-item mx-2 my-1 pl-2 pt-2"
+      class="filter-type-list-item  my-1 pl-2 pt-2"
       :class="{'has-focus': hasFocus, disabled}"
-      :color="(hasFocus) ? '#444' : 'rgba(255,255,255,.05)'"
+      :color="myColor"
       dark
-      :elevation="(hasFocus) ? 5 : 0"
+      :elevation="(hasFocus) ? 4 : 0"
 
   >
     <!--    <v-list-item-icon>-->
@@ -22,7 +22,8 @@
     <!--    </v-list-item-icon>-->
     <div class="card-header d-flex">
       <div class="body-2 mb-2">
-        <v-icon class="pr-2" style="opacity: 0.5;">mdi-chevron-down</v-icon>
+        <v-icon v-if="hasFocus" class="pr-2" >mdi-playlist-plus</v-icon>
+          <v-icon v-else class="pr-2" style="opacity: 0.5;">mdi-chevron-right</v-icon>
 
 
         <span class="card-header-name">
@@ -33,13 +34,21 @@
       <v-btn
           v-if="!config.noOptions && !hasFocus"
           small
-          text
+          icon
           class="low-key-button mr-1"
-          @click="$emit('select')"
+          @click="$emit('toggle-select')"
           :disabled="disabled"
       >
-<!--        <v-icon small>mdi-plus</v-icon>-->
-        more
+        <v-icon small>mdi-playlist-plus</v-icon>
+      </v-btn>
+      <v-btn
+          v-if="hasFocus"
+          small
+          icon
+          class="mr-1"
+          @click="$emit('toggle-select')"
+      >
+        <v-icon >mdi-chevron-left</v-icon>
       </v-btn>
     </div>
 
@@ -57,39 +66,6 @@
       />
     </div>
 
-    <div v-if="0">
-
-
-      <div
-          style="font-weight: normal; line-height: 1.2;font-size: 16px; width: 100%;"
-          :class="{'font-weight-normal': bold, 'body-2': bold}"
-          class="d-flex align-center pr-4 pl-6 pb-0"
-      >
-        <v-spacer></v-spacer>
-        <div>
-          <v-btn
-              v-if="bold && !config.noOptions"
-              small
-              icon
-              class="low-key-button mr-1"
-              @click="$emit('select')"
-          >
-            <v-icon small>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn
-              v-if="bold"
-              small
-              icon
-              class="low-key-button mr-1"
-              @click.stop="clearAllFilters"
-          >
-            <v-icon small>mdi-delete-outline</v-icon>
-          </v-btn>
-        </div>
-      </div>
-
-
-    </div>
 
 
   </v-card>
@@ -136,6 +112,11 @@ export default {
         return f.key === this.facetKey
       })
       return myFilters.length
+    },
+    myColor(){
+      if (this.disabled) return "transparent"
+      else if (this.hasFocus) return "#444"
+      else return "rgba(255,255,255,.04)"
     },
     config() {
       return getFacetConfig(this.facetKey)

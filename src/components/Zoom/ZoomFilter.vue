@@ -9,6 +9,7 @@
       :color="drawerColor"
       dark
       class="pa-0"
+
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
     <div class="d-flex" style="flex-wrap: wrap;" ref="navDrawerWrapper">
@@ -69,6 +70,7 @@
           <v-list
               dense
               class="pt-0"
+              nav
           >
             <template
                 v-for="filterType in filterTypeSearchResults"
@@ -78,7 +80,7 @@
                   :key="filterType.key"
                   :facet-key="filterType.key"
                   :has-focus="filterTypeKey === filterType.key"
-                  @select="setFilterTypeKey(filterType.key)"
+                  @toggle-select="toggleFiltersZoom(filterType.key)"
                   v-if="filterType.filters.length"
                   :disabled="filterTypeKey && filterTypeKey !== filterType.key"
               />
@@ -88,7 +90,7 @@
                   :facet-key="filterType.key"
                   :bold="filterType.filters.length > 0"
                   :has-focus="filterTypeKey === filterType.key"
-                  @select="setFilterTypeKey(filterType.key)"
+                  @toggle-select="toggleFiltersZoom(filterType.key)"
                   :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                   v-else
               />
@@ -99,14 +101,16 @@
 
 
       </v-card>
+
+      </v-card>
       <v-card
           :color="backgroundColors.light"
           elevation="5"
           dark
-          :width="filtersListWidth"
+          :width="filtersListWidth - 15"
           height="96vh"
           v-if="filterTypeKey "
-          style="border-radius: 5px !important; margin-top: 2vh"
+          style="border-radius: 5px !important; margin: 2vh 15px 2vh 0;"
       >
         <filters-list :filter-type-key="filterTypeKey" @close="setFilterTypeKey(null)"/>
       </v-card>
@@ -253,6 +257,9 @@ export default {
 
     setFilterTypeKey(filterTypeKey) {
       this.filterTypeKey = filterTypeKey
+    },
+    toggleFiltersZoom(filterTypeKey) {
+      this.filterTypeKey = (this.filterTypeKey) ? null : filterTypeKey
     },
     topListItemClick() {
       if (this.isMini) return
