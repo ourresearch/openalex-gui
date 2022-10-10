@@ -106,6 +106,7 @@ const stateDefaults = function () {
         // this really should go someplace else
         snackbarIsOpen: false,
         snackbarMsg: "",
+        snackbarIcon: null,
 
         showFiltersDrawer: false,
 
@@ -131,9 +132,14 @@ export default new Vuex.Store({
                 state[k] = v
             })
         },
-        snackbar(state, msg) {
-            state.snackbarMsg = msg
-            state.snackbarIsOpen = true
+        snackbar(state, arg, icon) {
+            state.snackbarIsOpen = true;
+            if (typeof arg === "string") {
+                state.snackbarMsg = arg
+                return
+            }
+            state.snackbarMsg = arg.msg
+             state.snackbarIcon = arg.icon
         },
         closeSnackbar(state) {
             state.snackbarMsg = ""

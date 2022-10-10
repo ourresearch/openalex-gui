@@ -23,9 +23,9 @@
           class="pa-0 ma-0 mr-0"
           :color="(colorful) ? 'green ' : '#999'"
           on-icon="mdi-checkbox-marked-circle"
-          off-icon="mdi-checkbox-blank-circle-outline"
+          off-icon="mdi-plus"
           readonly
-          @click="click($event)"
+          @click.stop="click($event)"
           :input-value="isChecked"
           v-if="!isLoading"
           :disabled="disabled"
@@ -221,7 +221,6 @@ a.hover-underline {
 }
 
 .disabled {
-  opacity: .8;
   filter: grayscale(100%);
 }
 

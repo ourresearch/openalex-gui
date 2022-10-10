@@ -1,29 +1,18 @@
 <template>
   <v-card
-      class="filter-type-list-item  my-1 pl-2 pt-2 pr-2"
-      :class="{'has-focus': hasFocus, disabled}"
+      class="filter-type-list-item  my-0 pl-2 pr-2"
+      :class="{'has-focus': hasFocus,  disabled}"
       :color="myColor"
       @[cardEventHandlerName]="showCollapsed = !showCollapsed"
-      flat
+      :elevation="hasFocus ? 0 : 0"
 
 
 
   >
-    <!--    <v-list-item-icon>-->
-    <!--      <v-icon v-if="appliedFiltersCount">mdi-chevron-down</v-icon>-->
-    <!--      <v-icon v-else>mdi-chevron-right</v-icon>-->
-    <!--      <v-chip-->
-    <!--          color="primary"-->
-    <!--          small-->
-    <!--          outlined-->
-    <!--          class="px-2"-->
-    <!--      >-->
-    <!--        {{ appliedFiltersCount }}-->
-    <!--      </v-chip>-->
 
     <!--    </v-list-item-icon>-->
-    <div class="card-header d-flex">
-      <div class=" mb-2">
+    <div class="card-header mb-1 d-flex">
+      <div class="">
         <v-btn
             icon
             small
@@ -32,7 +21,7 @@
             :disabled="hasFocus"
         >
           <v-icon v-if="showCollapsed" class="" style="opacity: 0.5;">mdi-chevron-right</v-icon>
-          <v-icon v-else class="" style="opacity: 0.5;">mdi-chevron-down</v-icon>
+          <v-icon v-else class="" style="opacity: 0.7;">mdi-chevron-down</v-icon>
 
         </v-btn>
         <!--        <v-icon v-if="hasFocus" class="pr-2" >mdi-playlist-plus</v-icon>-->
@@ -40,7 +29,7 @@
 
         <span
             class="card-header-name"
-            :class="{'': !showCollapsed}"
+            :class="{'font-weight-bold': hasFocus || myResultsFilters.length}"
         >
           {{ config.displayName }}
         </span>
@@ -50,8 +39,9 @@
         <v-chip
             color="green "
             dark
-            x-small
-            class="px-1 mt-1 mr-2 count-chip"
+            small
+            class=" mr-1 count-chip"
+            outlined
         >
           {{ myResultsFilters.length }}
         </v-chip>
@@ -66,7 +56,7 @@
             @click.stop="$emit('toggle-select')"
             :disabled="disabled"
         >
-          <v-icon small>mdi-playlist-plus</v-icon>
+          <v-icon >mdi-chevron-right</v-icon>
         </v-btn>
         <v-btn
             v-if="hasFocus"
@@ -149,8 +139,9 @@ export default {
       return myFilters.length
     },
     myColor() {
+      return "transparent"
       if (this.disabled) return "transparent"
-      else if (this.hasFocus) return "#eee"
+      else if (this.hasFocus) return "rgba(0,0,0,.05)"
       else return "rgba(0,0,0,.00)"
     },
     config() {
@@ -215,6 +206,11 @@ export default {
   position: relative;
   z-index: 9999;
   border-radius: 5px;
+  border: 1px solid #999;
+
+  .v-chip {
+    padding: 0 8px !important;
+  }
 
   &.has-focus {
     //background-color: #3d3d3d !important;
@@ -222,10 +218,10 @@ export default {
 
   &.disabled {
     .card-header-name {
-      opacity: .7;
+      opacity: .5;
     }
     .count-chip {
-      opacity: .1;
+      opacity: .7;
       filter: grayscale(100%);
     }
   }

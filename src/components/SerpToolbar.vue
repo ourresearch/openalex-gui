@@ -60,6 +60,7 @@
         <v-list dense>
           <v-list-item
               @click="toggleFiltersDrawer"
+              :disabled="$vuetify.breakpoint.mobile"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-outline</v-icon>
@@ -71,11 +72,15 @@
               <v-list-item-title v-else>
                 Filter results
               </v-list-item-title>
+              <v-list-item-subtitle class="grey--text" v-if="$vuetify.breakpoint.mobile">
+                (Desktop-only for now)
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
 
           <v-list-item
-              @click="openCreateAlertDialog"
+              @click="snackbar({msg: 'This feature is still under construction.', icon: 'mdi-wrench'})"
+              :disabled="true"
           >
             <v-list-item-icon>
               <v-icon>mdi-bell-outline</v-icon>
@@ -86,9 +91,9 @@
               </v-list-item-title>
               <v-list-item-subtitle
                   v-if="resultsCount > 100000"
-                  class="grey--text font-weight-bold"
+                  class="grey--text"
               >
-                Max 100 results/week
+                (Under construction)
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -151,7 +156,7 @@
               </v-list-item-subtitle>
               <v-list-item-subtitle
                   v-if="resultsCount > 100000"
-                  class="grey--text font-weight-bold"
+                  class="grey--text"
               >
                 Max 100k results
               </v-list-item-subtitle>
@@ -357,7 +362,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-        "toggleFiltersDrawer"
+        "toggleFiltersDrawer",
+        "snackbar",
     ]),
     ...mapActions([
       "removeInputFilters",

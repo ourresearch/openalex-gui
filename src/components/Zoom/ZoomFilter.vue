@@ -10,12 +10,13 @@
       dark
       class="pa-0 ma-0"
       floating
+      absolute
+      style="height: unset; max-height: unset"
 
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
     <div
-        class="d-flex"
-        style="flex-wrap: wrap;"
+        class="d-flex align-start"
         ref="navDrawerWrapper"
     >
       <div @click="filterTypeKey ? filterTypeKey = null: null">
@@ -39,7 +40,7 @@
                   :disabled="!!filterTypeKey"
                   :color="isMini ? 'primary' : null"
               >
-                <v-icon medium class="">mdi-filter</v-icon>
+                <v-icon medium class="">mdi-filter-outline</v-icon>
                   <span
                       v-if="resultsFilters.length"
                       style="font-size: 10px; margin: 20px 0 0 -5px;"
@@ -49,7 +50,7 @@
               </v-btn>
               <span
                   class="text-h6 font-weight-bold pl-1"
-                  :style="!!filterTypeKey ? 'opacity: .5;' : null"
+
               >
                 Filters
               </span>
@@ -90,7 +91,6 @@
 
 
           <div
-              style="height: 90vh; overflow-y: scroll"
               v-if="!isMini"
 
           >
@@ -133,17 +133,11 @@
         </v-card>
 
       </div>
-      <v-card
-          :color="'#eee'"
-          light
-          flat
-          :width="filtersListWidth"
-          height="98vh"
-          v-if="filterTypeKey "
-          style="border-radius: 5px !important; margin: 1vh 0 1vh 0px;"
-      >
-        <filters-list :filter-type-key="filterTypeKey" @close="setFilterTypeKey(null)"/>
-      </v-card>
+        <filters-list
+            :filter-type-key="filterTypeKey"
+            @close="setFilterTypeKey(null)"
+            :width="filtersListWidth"
+        />
 
 
     </div>
@@ -197,7 +191,7 @@ export default {
 
 
       filterTypesListWidth: 300,
-      filtersListWidth: 300,
+      filtersListWidth: 350,
 
       lightColor: "#555",
       darkColor: "#222",
@@ -292,7 +286,14 @@ export default {
       this.filterTypeKey = filterTypeKey
     },
     toggleFiltersZoom(filterTypeKey) {
-      this.filterTypeKey = (this.filterTypeKey) ? null : filterTypeKey
+      if (this.filterTypeKey === filterTypeKey) {
+        this.filterTypeKey = null
+      }
+      else {
+        this.filterTypeKey = filterTypeKey
+        this.$vuetify.goTo(0)
+      }
+
     },
     topListItemClick() {
       if (this.isMini) return
@@ -318,7 +319,11 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    filterTypeKey(to, from){
+      this.$emit("filter-type-key", to)
+    }
+  }
 }
 </script>
 

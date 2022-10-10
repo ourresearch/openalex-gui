@@ -20,12 +20,16 @@
                 class="logo-icon mr-0 colorizable"
                 :style="logoStyle"
             />
-            <span class="logo-text colorizable" :style="logoStyle">
+            <span
+                class="logo-text colorizable"
+                v-if="!filterTypeKey"
+                :style="logoStyle"
+            >
                 OpenAlex
               </span>
           </router-link>
 <!--          {{ logoColorRotation }}-->
-          <search-box class="ml-2 d-md-block d-none mt-1 flex-fill"/>
+          <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>
         </div>
 
         <div class="">
@@ -46,7 +50,7 @@
       </div>
     </v-app-bar>
 
-    <zoom-filter/>
+    <zoom-filter @filter-type-key="setFilterTypeKey" />
 
 
     <v-main>
@@ -133,7 +137,9 @@
 
     <v-snackbar
         bottom
-        v-model="$store.state.snackbarIsOpen">
+        v-model="$store.state.snackbarIsOpen"
+    >
+      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon}}</v-icon>
       {{ $store.state.snackbarMsg }}
 
       <template v-slot:action="{ attrs }">
@@ -196,14 +202,15 @@ export default {
     ResultConcept,
     Zoom,
     ZoomFilter,
+
   },
   props: {},
   data() {
     return {
       loading: false,
       filterDrawerIsOpen: true,
-      apiResp: {},
       filterTypeKey: null,
+      apiResp: {},
       resultsPerPage: 25, // not editable now, but could be in future
       dialogs: {
         export: false,
@@ -280,6 +287,9 @@ export default {
       "updateTextSearch",
       "setEntityZoom",
     ]),
+    setFilterTypeKey(filterTypeKey){
+      this.filterTypeKey = filterTypeKey
+    }
   },
 
   created() {

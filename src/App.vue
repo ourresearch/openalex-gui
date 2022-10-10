@@ -105,7 +105,7 @@ html, body {
   align-items: center;
   //padding-left: 30px;
   .logo-icon {
-    height: 38px;
+    height: 42px;
     //margin-top: -5px;
     opacity: .7;
   }
@@ -113,7 +113,7 @@ html, body {
   .logo-text {
     //padding: 0 14px;
 
-    margin: 5px 15px 5px 10px;
+    margin: 5px 0 5px 10px;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
@@ -173,8 +173,12 @@ body {
 }
 
 .v-icon.mdi-checkbox-blank-outline,
+
 .v-icon.mdi-checkbox-blank-circle-outline  {
   opacity: 0.2 !important;
+}
+.v-icon.mdi-plus {
+  //opacity: .7 !important;
 }
 
 .v-list-item__icon {
