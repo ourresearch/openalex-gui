@@ -18,7 +18,7 @@
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-        <v-list>
+        <v-list dark dense color="#555">
           <v-list-item @click="">
             <v-list-item-icon>
               <v-icon>mdi-table</v-icon>
@@ -41,43 +41,37 @@
 
 
     </div>
-    <div class="px-4 d-flex align-end" v-if="!myFacetConfig.isBoolean">
-      <div class="d-flex align-center py-1 pr-3">
-        <v-icon v-if="!isLoading">mdi-magnify</v-icon>
-        <v-progress-circular
-            v-if="isLoading"
-            size="20"
-            width="2"
-            indeterminate
-            style="margin: 0;"
-            class="ml-1">
-
-        </v-progress-circular>
-      </div>
 
       <v-text-field
           flat
           dense
           hide-details
           full-width
+          class="mx-2"
           clearable
+          prepend-inner-icon="mdi-magnify"
 
           v-model="search"
           :placeholder="searchPlaceholder"
       />
-    </div>
+        <v-progress-linear
+            v-if="isLoading"
+            indeterminate
+            absolute
+            style="margin: 0;"
+            color="white"
+            class="ml-1">
+        </v-progress-linear>
 
-    <v-divider/>
 
     <div
         style="height: 78vh; overflow-y:scroll;"
         class="pt-4 px-2"
     >
       <facet-option
-          v-for="filter in filtersToShow.filter(f => !f.isResultsFilter)"
-          :filter="filter"
-          :show-checked="false"
-          :key="filter.asStr"
+          v-for="f in filtersToShow"
+          :filter="f"
+          :key="f.asStr"
           @click-checkbox="clickCheckbox"
       />
 
@@ -180,12 +174,18 @@ export default {
       if (!this.filtersFromAutocomplete.length) return []
       const ret = [...this.filtersFromAutocomplete]
           .filter(f => f.value !== "unknown")
-          .filter(f => {
-
-            // only push potential filter values if they're not already loaded as
-            // in a resultsFilter
-            return !this.myResultsFilters.map(f => f.asStr).includes(f.asStr)
+          .map(f=>{
+            return {
+              ...f,
+              isResultsFilter: this.myResultsFilters.map(f => f.asStr).includes(f.asStr),
+            }
           })
+          // .filter(f => {
+          //
+          //   // only push potential filter values if they're not already loaded as
+          //   // in a resultsFilter
+          //   return !this.myResultsFilters.map(f => f.asStr).includes(f.asStr)
+          // })
       if (this.myFacetConfig.sortByValue) {
         ret.sort((a, b) => {
           return (a.value > b.value) ? -1 : 1
@@ -219,9 +219,6 @@ export default {
     ]),
 
     clickCheckbox(filter, isChecked, e) {
-      console.log("click checkbox", filter, isChecked, e)
-      if (isChecked) this.addInputFilters([filter])
-      else this.removeInputFilters([filter])
     },
     fetchSuggestions: _.debounce(
         async function () {

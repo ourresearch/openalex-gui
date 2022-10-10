@@ -41,7 +41,7 @@
 
         <span
             class="card-header-name"
-            :class="{'font-weight-light': !showCollapsed}"
+            :class="{'': !showCollapsed}"
         >
           {{ config.displayName }}
         </span>
@@ -64,7 +64,7 @@
             small
             icon
             class="low-key-button"
-            @click="$emit('toggle-select')"
+            @click.stop="$emit('toggle-select')"
             :disabled="disabled"
         >
           <v-icon small>mdi-playlist-plus</v-icon>
@@ -82,17 +82,21 @@
     </div>
 
     <div class="card-body" v-if="!showCollapsed">
+      <v-fade-transition group>
+
       <facet-option
           v-for="liveFilter in myResultsFilters"
           :filter="liveFilter"
-          :show-checked="true"
           :key="liveFilter.asStr"
           class="ml-7 mr-3"
           :hide-bar="true"
           :hide-number="true"
           :disabled="disabled"
+          :colorful="true"
           @click-checkbox="clickCheckbox"
+
       />
+      </v-fade-transition>
     </div>
 
 
@@ -147,7 +151,7 @@ export default {
     },
     myColor() {
       if (this.disabled) return "transparent"
-      else if (this.hasFocus) return "#444"
+      else if (this.hasFocus) return "#4a4a4a"
       else return "rgba(255,255,255,.04)"
     },
     config() {
@@ -179,9 +183,6 @@ export default {
     },
 
     clickCheckbox(filter, isChecked, e) {
-      console.log("click checkbox", filter, isChecked, e)
-      if (isChecked) this.addInputFilters([filter])
-      else this.removeInputFilters([filter])
     },
     async clearAllFilters() {
       const filters = filtersFromUrlStr(this.$route.query.filter)

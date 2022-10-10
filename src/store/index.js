@@ -182,7 +182,7 @@ export default new Vuex.Store({
                 name: "Serp",
                 params: {entityType: state.entityType},
             };
-            router.push(routerPushTo)
+            await router.push(routerPushTo)
                 .catch((e) => {
                     if (e.name !== "NavigationDuplicated") {
                         throw e
@@ -274,12 +274,13 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async addInputFilters({commit, getters, dispatch, state}, filters) {
+            console.log("addInputFilters", filters)
             filters.forEach(f => {
                 commit("addInputFilter", f)
             })
             commit("setPage", 1)
             // await dispatch("doSearch")
-            dispatch("pushSearchUrl")
+            await dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars
         async removeInputFilters({commit, getters, dispatch, state}, filters) {
@@ -288,7 +289,7 @@ export default new Vuex.Store({
             })
             commit("setPage", 1)
             // await dispatch("doSearch")
-            dispatch("pushSearchUrl")
+            await dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars
         async removeAllInputFilters({commit, getters, dispatch, state}) {

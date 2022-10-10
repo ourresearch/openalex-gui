@@ -22,7 +22,7 @@
                 OpenAlex
               </span>
           </router-link>
-          <search-box class="ml-4 d-md-block d-none mt-1 flex-fill"/>
+          <search-box class="ml-2 d-md-block d-none mt-1 flex-fill"/>
         </div>
 
         <div class="">

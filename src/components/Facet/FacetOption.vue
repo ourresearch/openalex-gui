@@ -21,7 +21,7 @@
           dense
           hide-details
           class="pa-0 ma-0 mr-0"
-          color="green lighten-2"
+          :color="(colorful) ? 'green lighten-2' : null"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
           readonly
@@ -35,7 +35,7 @@
           size="15"
           width="2"
           indeterminate
-          style="margin: 5px 21px 5px 5px;"
+          style="margin: 5px 13px 4px 5px;"
           class="ml-1">
 
       </v-progress-circular>
@@ -48,14 +48,14 @@
           v-if="filter.isEntity"
           :to="filter.value | entityZoomLink"
           class="hover-underline text--lighten-2 white--text"
-          :class="{'green--text': isChecked}"
+          :class="{'green--text': isChecked && colorful}"
           v-html="prettyDisplayName"
       >
       </router-link>
       <span
           v-else
           class="text--lighten-2"
-          :class="{'green--text': isChecked,}"
+          :class="{'green--text': isChecked && colorful,}"
           v-html="prettyDisplayName"
       >
       </span>
@@ -75,7 +75,7 @@
     >
       <div
           class="facet-option-bar-bar lighten-2"
-          :class="{selected: isChecked, 'green': isChecked}"
+          :class="{selected: isChecked, 'green': isChecked && colorful}"
           :style="{width: (filter.countNormalized * 100) + '%'}"
       >
 
@@ -99,24 +99,45 @@ export default {
   components: {},
   props: {
     filter: Object,
-    showChecked: Boolean,
     indent: Boolean,
     hideBar: Boolean,
     hideNumber: Boolean,
     disabled: Boolean,
+    colorful: Boolean,
   },
   data() {
     return {
       loading: false,
       apiResp: {},
-      isChecked: this.showChecked,
-      isLoading: false,
+      // isChecked: this.showChecked,
+      isClickedAndWaiting: false,
     }
   },
   computed: {
     ...mapGetters([
       "searchApiUrl",
+        "searchIsLoading",
+        "resultsFilters",
     ]),
+     isChecked: {
+      get(){
+        return this.resultsFilters.map(rf => rf.asStr).includes(this.filter.asStr)
+      },
+      async set(newVal){
+        console.log("set new value for isChecked: ", newVal)
+        if (newVal) await this.addInputFilters([this.filter])
+        else await this.removeInputFilters([this.filter])
+      },
+    },
+    myColor(){
+
+    },
+    showChecked(){
+     this.resultsFilters.map(rf => rf.asStr).includes(this.filter.asStr)
+    },
+    isLoading(){
+      return this.isClickedAndWaiting && this.searchIsLoading
+    },
     prettyDisplayName() {
       if (this.filter.isBoolean){
         const valueAsInt = (this.filter.value === "true") ? 1 : 0;
@@ -156,23 +177,21 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+
+    ]),
     ...mapActions([
-      "updateTextSearch",
       "addInputFilters",
       "removeInputFilters",
+      "updateTextSearch",
     ]),
     toggleIsChecked() {
       this.isChecked = !this.isChecked
     },
-    click(e){
-      // this.isChecked = !this.isChecked
-      // if (this.isChecked) this.addInputFilters([this.filter])
-      // else this.removeInputFilters([this.filter])
-      this.isLoading = true
-      this.$emit("click-checkbox", this.filter, !this.isChecked, e)
+    async click(e){
+      this.isClickedAndWaiting = true
+      this.isChecked = !this.isChecked
     }
-
   },
 
   created() {
@@ -184,6 +203,9 @@ export default {
 
   },
   watch: {
+    searchIsLoading(newVal){
+      if (!newVal) this.isClickedAndWaiting = false
+    }
   }
 }
 </script>

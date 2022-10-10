@@ -12,13 +12,21 @@
 
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
-    <div class="d-flex" style="flex-wrap: wrap;" ref="navDrawerWrapper">
+    <div
+        class="d-flex"
+        style="flex-wrap: wrap;"
+        ref="navDrawerWrapper"
+    >
+      <div @click="filterTypeKey ? filterTypeKey = null: null">
+
 
       <v-card
           :color="drawerColor"
           dark
           flat
           :width="filterTypesListWidth"
+
+
       >
         <v-list
             class="pb-0 pt-0 pr-0 mr-0"
@@ -105,7 +113,7 @@
 
       </v-card>
 
-      </v-card>
+        </div>
       <v-card
           :color="backgroundColors.light"
           elevation="5"
