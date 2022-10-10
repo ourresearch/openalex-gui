@@ -263,7 +263,7 @@ export default {
     },
     logoStyle(){
       return "opacity: .7;"
-      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.4) hue-rotate(${this.logoColorRotation}deg);`
+      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
     },
     roundedResultsCount() {
       const asString = millify(

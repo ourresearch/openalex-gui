@@ -6,13 +6,13 @@
       :width="width"
       v-if="filterTypeKey "
       class="mt-2"
-      style="min-height: 95vh;"
+      style="min-height: 97vh;"
       :loading="isLoading"
   >
     <div class="text-h6 pt-3 px-1 pl-4 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
-<!--      <v-btn icon @click="$emit('close')">-->
-        <v-icon class="mr-2">mdi-plus</v-icon>
-<!--      </v-btn>-->
+      <!--      <v-btn icon @click="$emit('close')">-->
+      <v-icon class="mr-2">mdi-playlist-plus</v-icon>
+      <!--      </v-btn>-->
       <template v-if="myFacetConfig.isBoolean">
         {{ myFacetConfig.displayName }}
       </template>
@@ -25,32 +25,32 @@
         <v-icon class="mr-1">mdi-close</v-icon>
       </v-btn>
 
-<!--      <v-menu-->
-<!--      >-->
-<!--        <template v-slot:activator="{on}">-->
-<!--          <v-btn icon v-on="on">-->
-<!--            <v-icon>mdi-dots-vertical</v-icon>-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <v-list dark dense color="#555">-->
-<!--          <v-list-item @click="">-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon>mdi-table</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-title>-->
-<!--              Export spreadsheet-->
-<!--            </v-list-item-title>-->
-<!--          </v-list-item>-->
-<!--          <v-list-item @click="">-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon>mdi-code-json</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-title>-->
-<!--              Export API call-->
-<!--            </v-list-item-title>-->
-<!--          </v-list-item>-->
-<!--        </v-list>-->
-<!--      </v-menu>-->
+      <!--      <v-menu-->
+      <!--      >-->
+      <!--        <template v-slot:activator="{on}">-->
+      <!--          <v-btn icon v-on="on">-->
+      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
+      <!--          </v-btn>-->
+      <!--        </template>-->
+      <!--        <v-list dark dense color="#555">-->
+      <!--          <v-list-item @click="">-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-table</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-title>-->
+      <!--              Export spreadsheet-->
+      <!--            </v-list-item-title>-->
+      <!--          </v-list-item>-->
+      <!--          <v-list-item @click="">-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-code-json</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-title>-->
+      <!--              Export API call-->
+      <!--            </v-list-item-title>-->
+      <!--          </v-list-item>-->
+      <!--        </v-list>-->
+      <!--      </v-menu>-->
 
 
     </div>
@@ -100,6 +100,7 @@
               class="mt-0"
               clearable
               prepend-inner-icon="mdi-magnify"
+              autofocus
 
               v-model="search"
               :placeholder="searchPlaceholder"
@@ -112,6 +113,7 @@
             :key="f.asStr"
             @click-checkbox="clickCheckbox"
         />
+        <div v-if="!search" class="pa-3 grey--text">Search within the filtered results set.</div>
 
       </v-tab-item>
       <v-tab-item key="2">
@@ -140,6 +142,7 @@ import axios from "axios";
 import {url} from "../../url";
 import FilterTypeListItem from "../Facet/FilterTypeListItem";
 import _ from "lodash"
+import {makeFilterList} from "../../filterConfigs";
 
 
 export default {
@@ -157,8 +160,12 @@ export default {
       search: "",
       filterTypeSearch: "",
       isLoading: false,
-      filtersFromAutocomplete: [],
-      filtersFromGroupBy: [],
+      filtersFromApi: [],
+      topFilters: [],
+      searchFilters: [],
+      filters: [],
+
+
       groupByQueryResultsCount: null,
       tab: 0,
       isExpanded: false,
@@ -194,62 +201,21 @@ export default {
           .toLowerCase()
       return `search ${displayName}`
     },
-    autocompleteUrl() {
-
+    apiUrl() {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-
-
       const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.filterTypeKey)
       url.searchParams.set("filter", filtersAsUrlStr(myFilters))
-
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
-
       if (this.myFacetConfig.valuesToShow === "mostCommon") {
         url.searchParams.set("q", this.search ?? "")
       }
       url.searchParams.set("email", "team@ourresearch.org")
-
       return url.toString()
     },
+
     filtersToShow() {
-      if (!this.filtersFromAutocomplete.length) return []
-      let ret = [...this.filtersFromAutocomplete]
-          .filter(f => f.value !== "unknown")
-          .map(f => {
-            return {
-              ...f,
-              isResultsFilter: this.myResultsFilters.map(f => f.asStr).includes(f.asStr),
-            }
-          })
-      // .filter(f => {
-      //
-      //   // only push potential filter values if they're not already loaded as
-      //   // in a resultsFilter
-      //   return !this.myResultsFilters.map(f => f.asStr).includes(f.asStr)
-      // })
-
-      ret = ret.slice(0, 20)
-
-      if (this.myFacetConfig.sortByValue) {
-        ret.sort((a, b) => {
-          return (a.value > b.value) ? -1 : 1
-        })
-      } else {
-        ret.sort((a, b) => {
-          return b.count - a.count
-        })
-      }
-
-      const maxCountSelected = Math.max(...this.myResultsFilters.map(r => r.count))
-      const maxCountUnselected = Math.max(...ret.map(r => r.count))
-
-      ret.forEach(f => {
-        f.countNormalized = f.count / maxCountUnselected
-      })
-
-
-      return ret
+      return makeFilterList(this.filtersFromApi, this.myResultsFilters)
     },
   },
 
@@ -265,13 +231,17 @@ export default {
 
     clickCheckbox(filter, isChecked, e) {
     },
-    fetchSuggestions: _.debounce(
+    fetchFilters: _.debounce(
         async function () {
           if (!this.myFacetConfig) return
+          if (this.tab===1 && !this.search) {
+            this.filtersFromApi = []
+            return
+          }
           this.isLoading = "primary"
 
-          const resp = await api.getUrl(this.autocompleteUrl)
-          this.filtersFromAutocomplete = resp.filters.map(apiData => {
+          const resp = await api.getUrl(this.apiUrl)
+          this.filtersFromApi = resp.filters.map(apiData => {
             return createDisplayFilter(
                 this.myFacetConfig.key,
                 apiData.value,
@@ -282,7 +252,7 @@ export default {
           this.isLoading = false
 
         },
-        500,
+        250,
         {leading: true,}
     ),
 
@@ -295,26 +265,33 @@ export default {
   watch: {
     search(newVal, oldVal) {
       console.log("search changed", newVal)
-      this.fetchSuggestions()
+      this.fetchFilters()
     },
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        this.fetchSuggestions()
+        this.fetchFilters()
         this.search = ""
       }
     },
     "filterTypeKey": {
       handler(newVal, oldVal) {
+        // hacky thing for tabs
         this.isExpanded = false
         setTimeout(() => {
           this.isExpanded = true
         }, 100)
-        this.filtersFromAutocomplete = []
-        this.fetchSuggestions()
+
+        this.tab = 0
         this.search = ""
+        this.fetchFilters()
       }
     },
+    tab(to, from) {
+      console.log("change tab", to)
+      this.search = ""
+      this.fetchFilters()
+    }
   }
 }
 </script>

@@ -31,7 +31,7 @@
             style="margin-right: 5px;"
 
         >
-            <div class="d-flex align-center py-2 pl-1 pr-3 mt-2">
+            <div class="d-flex align-center py-2 pl-1 pr-3 mt-2 mb-5">
               <v-btn
                   icon
                   large

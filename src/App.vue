@@ -107,7 +107,6 @@ html, body {
   .logo-icon {
     height: 42px;
     //margin-top: -5px;
-    opacity: .7;
   }
 
   .logo-text {
@@ -121,7 +120,6 @@ html, body {
 
     font-family: Dosis;
     letter-spacing: .03em;
-    opacity: .7;
     font-size: 28px;
     font-weight: 500;
   }

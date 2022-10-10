@@ -107,7 +107,6 @@ const createSimpleFilter = function (key, value) {
         value: cleanValue,
         asStr: createFilterId(key, cleanValue),
         isEntity: entityKeys.includes(key), // better to just include the whole config maybe...
-        normalizedValue: 0,
     }
 }
 
@@ -117,6 +116,42 @@ const createDisplayFilter = function (key, value, displayValue, count) {
         displayValue,
         count,
     }
+}
+
+const makeFilterList = function (filters, resultsFilters, length= 20) {
+    if (!filters.length) return []
+    const config = getFacetConfig(filters[0].key)
+
+    let ret = _.cloneDeep(filters)
+          .filter(f => f.value !== "unknown")
+          .map(f => {
+            return {
+              ...f,
+              isResultsFilter: resultsFilters.map(f => f.asStr).includes(f.asStr),
+            }
+          })
+
+      ret = ret.slice(0, length)
+
+      if (config.sortByValue) {
+        ret.sort((a, b) => {
+          return (a.value > b.value) ? -1 : 1
+        })
+      } else {
+        ret.sort((a, b) => {
+          return b.count - a.count
+        })
+      }
+
+      // const maxCountSelected = Math.max(...resultsFilters.map(r => r.count))
+      const maxCount = Math.max(...ret.map(r => r.count))
+
+      ret.forEach(f => {
+        f.countNormalized = f.count / maxCount
+      })
+
+
+      return ret
 }
 
 
@@ -130,4 +165,6 @@ export {
     createDisplayFilter,
     createFilterId,
     addDisplayNamesToFilters,
+
+    makeFilterList,
 }
