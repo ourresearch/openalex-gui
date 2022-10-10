@@ -254,7 +254,7 @@ export default {
       return `/${this.entityType}/${this.entityId}`
     },
     logoStyle(){
-      return "opacity: .8;"
+      return "opacity: .7;"
       return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.4) hue-rotate(${this.logoColorRotation}deg);`
     },
     roundedResultsCount() {

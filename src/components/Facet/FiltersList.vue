@@ -156,7 +156,7 @@ export default {
     autocompleteUrl() {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      console.log("calling autocomplete url", url.pathname)
+
 
       const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.filterTypeKey)
       url.searchParams.set("filter", filtersAsUrlStr(myFilters))
@@ -248,13 +248,7 @@ export default {
   watch: {
     search(newVal, oldVal) {
       console.log("search changed", newVal)
-      return
-      if (!this.filterTypeKey) {
-        this.search = ""
-      } else {
         this.fetchSuggestions()
-
-      }
     },
     "$route.query": {
       immediate: true,
