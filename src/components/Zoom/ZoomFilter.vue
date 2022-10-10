@@ -6,7 +6,7 @@
       :width="width"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      :color="drawerColor"
+      color="transparent"
       dark
       class="pa-0"
 
@@ -25,6 +25,8 @@
           dark
           flat
           :width="filterTypesListWidth"
+          style="height: 98vh; margin: 1vh 5px"
+          height="100vh"
 
 
       >
@@ -67,6 +69,7 @@
               </template>
             </v-fade-transition>
           </v-list-item>
+
         </v-list>
 
 
@@ -119,9 +122,9 @@
           elevation="5"
           dark
           :width="filtersListWidth - 15"
-          height="96vh"
+          height="98vh"
           v-if="filterTypeKey "
-          style="border-radius: 5px !important; margin: 2vh 15px 2vh 0;"
+          style="border-radius: 5px !important; margin: 1vh 15px 1vh 0;"
       >
         <filters-list :filter-type-key="filterTypeKey" @close="setFilterTypeKey(null)"/>
       </v-card>
@@ -227,8 +230,8 @@ export default {
       return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
     },
     width() {
-      if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
-      else return this.filterTypesListWidth
+      if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth + 20
+      else return this.filterTypesListWidth + 20
     },
     filterTypeSearchResults() {
       const ret = this.searchFacetConfigs
