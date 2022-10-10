@@ -10,7 +10,7 @@
           <v-icon v-else style="opacity: 0.5;">mdi-chevron-right</v-icon>
 
         </v-list-item-icon>
-    <v-list-item-content>
+    <v-list-item-content class="">
           {{ config.displayName }}
 
 
@@ -128,6 +128,16 @@ export default {
 
 <style scoped lang="scss">
   .filter-type-list-item {
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 4px  !important;
+    padding-bottom: 4px  !important;
+    .v-list-item__icon {
+      margin: 0 !important;
+    }
+    .v-list-item__content {
+      padding: 0 !important;
+    }
     &.has-focus {
       background-color: #3d3d3d !important;
     }

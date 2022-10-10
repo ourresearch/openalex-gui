@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h6 py-1 px-1 d-flex align-center">
+    <div class="text-h6 py-3 px-1 d-flex align-center">
       <v-btn icon @click="$emit('close')">
         <v-icon class="mr-1">mdi-chevron-left</v-icon>
       </v-btn>

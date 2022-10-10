@@ -7,7 +7,7 @@
 <!--          icon-->
 <!--          small-->
 <!--          class="pa-0 ma-0 mr-3"-->
-<!--          :color="(isChecked) ? 'green lighten-2' : null"-->
+<!--          :color="(isChecked) ? 'green ' : null"-->
 <!--          @click="click($event)"-->
 <!--          :loading="isLoading"-->
 <!--      >-->
@@ -21,7 +21,7 @@
           dense
           hide-details
           class="pa-0 ma-0 mr-0"
-          :color="(colorful) ? 'green lighten-2' : null"
+          :color="(colorful) ? 'green ' : '#999'"
           on-icon="mdi-checkbox-marked-circle"
           off-icon="mdi-checkbox-blank-circle-outline"
           readonly
@@ -42,20 +42,21 @@
     <div
         class="body-1 "
         style="line-height: 1.5;"
-        :class="{'font-weight-bold': isChecked, disabled}"
+        :class="{'font-weight-bold': isChecked && colorful, disabled}"
     >
       <router-link
           v-if="filter.isEntity"
           :to="filter.value | entityZoomLink"
-          class="hover-underline text--lighten-2 white--text"
+          class="hover-underline"
+          style="color: #333;"
           :class="{'green--text': isChecked && colorful}"
           v-html="prettyDisplayName"
       >
       </router-link>
       <span
           v-else
-          class="text--lighten-2"
-          :class="{'green--text': isChecked && colorful,}"
+          class="text--"
+          :class="{'green--text': isChecked && colorful}"
           v-html="prettyDisplayName"
       >
       </span>
@@ -74,7 +75,7 @@
         :class="disabled"
     >
       <div
-          class="facet-option-bar-bar lighten-2"
+          class="facet-option-bar-bar "
           :class="{selected: isChecked, 'green': isChecked && colorful}"
           :style="{width: (filter.countNormalized * 100) + '%'}"
       >
@@ -227,14 +228,14 @@ a.hover-underline {
 .facet-option-bar-container {
   width: 20px;
   height: 9px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(0, 0, 0, 0.05);
   flex: none;
   margin-top: 7px;
   margin-left: 5px;
 }
 
 .facet-option-bar-bar {
-  background-color: rgba(255, 255, 255, .75);
+  background-color: rgba(0, 0, 0, .5);
   height: 100%;
 
   &.selected {

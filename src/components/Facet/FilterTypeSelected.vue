@@ -3,9 +3,8 @@
       class="filter-type-list-item  my-1 pl-2 pt-2 pr-2"
       :class="{'has-focus': hasFocus, disabled}"
       :color="myColor"
-      dark
-      :elevation="(hasFocus) ? 4 : 0"
       @[cardEventHandlerName]="showCollapsed = !showCollapsed"
+      flat
 
 
 
@@ -49,14 +48,14 @@
       <v-spacer></v-spacer>
       <template v-if="showCollapsed">
         <v-chip
-            color="green lighten-2"
-            light
+            color="green "
+            dark
             x-small
             class="px-1 mt-1 mr-2 count-chip"
         >
           {{ myResultsFilters.length }}
         </v-chip>
-<!--        <span class="font-weight-bold green&#45;&#45;text text&#45;&#45;lighten-2">{{ myResultsFilters.length }}</span>-->
+<!--        <span class="font-weight-bold green&#45;&#45;text text&#45;&#45;">{{ myResultsFilters.length }}</span>-->
       </template>
       <template v-else>
         <v-btn
@@ -151,8 +150,8 @@ export default {
     },
     myColor() {
       if (this.disabled) return "transparent"
-      else if (this.hasFocus) return "#4a4a4a"
-      else return "rgba(255,255,255,.04)"
+      else if (this.hasFocus) return "#eee"
+      else return "rgba(0,0,0,.00)"
     },
     config() {
       return getFacetConfig(this.facetKey)

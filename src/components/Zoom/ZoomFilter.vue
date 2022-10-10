@@ -8,7 +8,8 @@
       :mini-variant.sync="isMini"
       color="transparent"
       dark
-      class="pa-0"
+      class="pa-0 ma-0"
+      floating
 
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
@@ -20,111 +21,126 @@
       <div @click="filterTypeKey ? filterTypeKey = null: null">
 
 
-      <v-card
-          :color="drawerColor"
-          dark
-          flat
-          :width="filterTypesListWidth"
-          style="height: 98vh; margin: 1vh 5px"
-          height="100vh"
+        <v-card
+            :color="'#fff'"
+            light
+            flat
+            :width="filterTypesListWidth"
+            tile
+            style="margin-right: 5px;"
 
-
-      >
-        <v-list
-            class="pb-0 pt-0 pr-0 mr-0"
-            style="height: 68px;"
         >
-          <v-list-item
-              v-on="(isMini || filterTypeKey) ? {click: topListItemClick} : {}"
-              class="pr-3"
-          >
-            <v-list-item-icon>
-              <v-icon class="">mdi-filter</v-icon>
-              <span
-                  v-if="true"
-                  style="font-size: 10px; margin: 20px 0 0 -4px;"
+            <div class="d-flex align-center py-2 pl-1 pr-3 mt-2">
+              <v-btn
+                  icon
+                  large
+                  class="ml-1"
+                  @click="topListItemClick"
+                  :disabled="!!filterTypeKey"
+                  :color="isMini ? 'primary' : null"
               >
-                {{ resultsFilters.length }}
+                <v-icon medium class="">mdi-filter</v-icon>
+                  <span
+                      v-if="resultsFilters.length"
+                      style="font-size: 10px; margin: 20px 0 0 -5px;"
+                  >
+                  {{ resultsFilters.length }}
+                </span>
+              </v-btn>
+              <span
+                  class="text-h6 font-weight-bold pl-1"
+                  :style="!!filterTypeKey ? 'opacity: .5;' : null"
+              >
+                Filters
               </span>
-            </v-list-item-icon>
-            <v-list-item-title
-                class="text-h6 font-weight-bold"
+
+              <v-spacer />
+              <v-fade-transition>
+                <template v-if="!filterTypeKey">
+
+                  <v-menu
+                  >
+                    <template v-slot:activator="{on}">
+                      <v-btn icon v-on="on">
+                        <v-icon>mdi-dots-vertical</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list dense>
+                      <v-list-item
+                          @click="clearAllFilters"
+                          :disabled="!resultsFilters.length"
+                          :color="resultsFilters.length ? 'error' : null"
+                          :input-value="!!resultsFilters.length"
+                      >
+                        <v-list-item-icon>
+                          <v-icon>mdi-delete</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-title>
+                          Clear all filters
+                        </v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+
+
+                </template>
+              </v-fade-transition>
+            </div>
+
+
+
+          <div
+              style="height: 90vh; overflow-y: scroll"
+              v-if="!isMini"
+
+          >
+
+            <!--      List of filter types  -->
+            <!--      *****************************************************************-->
+            <v-list
+                dense
+                class="pt-0"
+                nav
             >
-              Filters
-            </v-list-item-title>
+              <template
+                  v-for="filterType in filterTypeSearchResults"
+              >
 
-            <v-fade-transition>
-              <template v-if="!filterTypeKey">
+                <filter-type-selected
+                    :key="filterType.key"
+                    :facet-key="filterType.key"
+                    :has-focus="filterTypeKey === filterType.key"
+                    @toggle-select="toggleFiltersZoom(filterType.key)"
+                    v-if="filterType.filters.length"
+                    :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+                />
 
-                <v-btn v-if="!resultsFilters.length" icon @click="toggleFiltersDrawer">
-                  <v-icon>{{ ($vuetify.breakpoint.mobile) ? 'mdi-close' : 'mdi-chevron-left' }}</v-icon>
-                </v-btn>
-                <v-btn icon
-                       v-if="resultsFilters.length"
-                       @click="clearAllFilters"
-                >
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
+                <filter-type-list-item
+                    :key="filterType.key"
+                    :facet-key="filterType.key"
+                    :bold="filterType.filters.length > 0"
+                    :has-focus="filterTypeKey === filterType.key"
+                    @toggle-select="toggleFiltersZoom(filterType.key)"
+                    :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+                    v-else
+                />
 
               </template>
-            </v-fade-transition>
-          </v-list-item>
-
-        </v-list>
+            </v-list>
+          </div>
 
 
-        <div
-            style="max-height: 90vh; overflow-y: scroll"
-            v-if="!isMini"
+        </v-card>
 
-        >
-
-          <!--      List of filter types  -->
-          <!--      *****************************************************************-->
-          <v-list
-              dense
-              class="pt-0"
-              nav
-          >
-            <template
-                v-for="filterType in filterTypeSearchResults"
-            >
-
-              <filter-type-selected
-                  :key="filterType.key"
-                  :facet-key="filterType.key"
-                  :has-focus="filterTypeKey === filterType.key"
-                  @toggle-select="toggleFiltersZoom(filterType.key)"
-                  v-if="filterType.filters.length"
-                  :disabled="filterTypeKey && filterTypeKey !== filterType.key"
-              />
-
-              <filter-type-list-item
-                  :key="filterType.key"
-                  :facet-key="filterType.key"
-                  :bold="filterType.filters.length > 0"
-                  :has-focus="filterTypeKey === filterType.key"
-                  @toggle-select="toggleFiltersZoom(filterType.key)"
-                  :disabled="filterTypeKey && filterTypeKey !== filterType.key"
-                  v-else
-              />
-
-            </template>
-          </v-list>
-        </div>
-
-
-      </v-card>
-
-        </div>
+      </div>
       <v-card
-          :color="backgroundColors.light"
-          elevation="5"
-          dark
-          :width="filtersListWidth - 15"
+          :color="'#eee'"
+          light
+          flat
+          :width="filtersListWidth"
           height="98vh"
           v-if="filterTypeKey "
-          style="border-radius: 5px !important; margin: 1vh 15px 1vh 0;"
+          style="border-radius: 5px !important; margin: 1vh 0 1vh 0px;"
       >
         <filters-list :filter-type-key="filterTypeKey" @close="setFilterTypeKey(null)"/>
       </v-card>
@@ -186,9 +202,10 @@ export default {
       lightColor: "#555",
       darkColor: "#222",
       backgroundColors: {
-        dark: "#303030",
+        dark: "#3a3a3a",
         medium: "#3a3a3a",
-        light: "#444",
+        // light: "#4f4f4f",
+        light: "#555",
       }
 
     }
@@ -227,6 +244,7 @@ export default {
       },
     },
     drawerColor() {
+      if (this.isMini) return "transparent"
       return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
     },
     width() {
@@ -279,6 +297,7 @@ export default {
     topListItemClick() {
       if (this.isMini) return
       if (this.filterTypeKey) this.setFilterTypeKey(null)
+      this.isMini = true
     },
     async clearAllFilters() {
       console.log("clear all filters")

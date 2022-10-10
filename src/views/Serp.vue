@@ -9,11 +9,12 @@
         :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
         flat
+        height="75"
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 780px;">
-          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-2">
+          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-0">
             <img
                 src="@/assets/openalex-logo-icon-black-and-white.png"
                 class="logo-icon mr-0 colorizable"
@@ -53,13 +54,13 @@
       <router-view></router-view>
       <search-box class="px-3 mt-3 flex-fill d-md-none"/>
       <div
-          class="serp-container pt-12 pl-6"
+          class="serp-container pt-12 pl-4"
           :class="{mobile: $vuetify.breakpoint.mobile}"
            style="max-width: 800px;"
       >
 
 
-        <div class="search-results-meta"
+        <div class="search-results-meta pl-3"
         >
           <serp-toolbar
           />
