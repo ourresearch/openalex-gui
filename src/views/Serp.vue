@@ -13,15 +13,17 @@
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill" style="max-width: 780px;">
-          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link">
+          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-2">
             <img
                 src="@/assets/openalex-logo-icon-black-and-white.png"
-                class="logo-icon mr-0"
+                class="logo-icon mr-0 colorizable"
+                :style="logoStyle"
             />
-            <span class="logo-text">
+            <span class="logo-text colorizable" :style="logoStyle">
                 OpenAlex
               </span>
           </router-link>
+<!--          {{ logoColorRotation }}-->
           <search-box class="ml-2 d-md-block d-none mt-1 flex-fill"/>
         </div>
 
@@ -211,7 +213,8 @@ export default {
       exportIsInProgress: false,
       createAlert: {
         velocityIsLoading: false
-      }
+      },
+      logoColorRotation: 0,
     }
   },
   computed: {
@@ -249,6 +252,10 @@ export default {
     },
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
+    },
+    logoStyle(){
+      return "opacity: .8;"
+      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.4) hue-rotate(${this.logoColorRotation}deg);`
     },
     roundedResultsCount() {
       const asString = millify(
@@ -293,7 +300,21 @@ export default {
           window.scroll(0, scrollTop)
         }
       }
-    }
+    },
+    logoColorRotation: {
+      immediate: true,
+      handler(to, from){
+        return
+        setTimeout(()=>{
+          console.log("chaging logoColorRotation")
+          const date = new Date()
+          const seconds = date.getSeconds()
+          const rotation = seconds * 18
+          this.logoColorRotation = rotation
+
+        }, 1000)
+      }
+    },
   }
 }
 </script>

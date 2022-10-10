@@ -127,6 +127,9 @@ html, body {
   }
 }
 
+// https://stackoverflow.com/a/40444657
+//.colorizable { filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.4) hue-rotate(70deg);}
+
 
 .v-btn--active.no-active {
   //text-decoration: underline !important;
