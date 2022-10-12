@@ -124,7 +124,7 @@ const facetConfigs = function () {
         {
             key: "open_access.oa_status",
             entityTypes: ["works"],
-            displayName: "OA status",
+            displayName: "OA color",
             valuesToShow: "mostCommon",
         },
         // {
@@ -166,6 +166,7 @@ const facetConfigs = function () {
             displayName: "Year",
             valuesToShow: "mostCommon",
             sortByValue: true,
+            isRangeable: true,
         },
         {
             key: "has_doi",

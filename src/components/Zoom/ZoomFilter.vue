@@ -253,6 +253,8 @@ export default {
           .map(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
             filters.sort((a, b) => b.count - a.count)
+            filters
+
             return {
               ...c,
               filters

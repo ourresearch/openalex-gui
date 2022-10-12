@@ -9,21 +9,24 @@
       style="min-height: 97vh;"
       :loading="isLoading"
   >
-    <div class="text-h6 pt-3 px-1 pl-4 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
+    <div v-if="0" class=" pt-3 pb-0 px-1 pl-2 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
       <!--      <v-btn icon @click="$emit('close')">-->
-      <v-icon class="mr-2">mdi-playlist-plus</v-icon>
+      <v-btn icon @click="$emit('close')" class="mr-2">
+        <v-icon class="">mdi-chevron-left</v-icon>
+      </v-btn>
       <!--      </v-btn>-->
-      <template v-if="myFacetConfig.isBoolean">
-        {{ myFacetConfig.displayName }}
-      </template>
-      <template v-else>
-        {{ myFacetConfig.displayName | pluralize(2) }}
-      </template>
+      <div>
+        <div>
+          <div class="">Add filters</div>
+        </div>
+<!--          {{ myFacetConfig.displayName }}-->
+
+      </div>
       <v-spacer/>
 
-      <v-btn icon @click="$emit('close')">
-        <v-icon class="mr-1">mdi-close</v-icon>
-      </v-btn>
+<!--      <v-btn icon @click="$emit('close')">-->
+<!--        <v-icon class="mr-1">mdi-close</v-icon>-->
+<!--      </v-btn>-->
 
       <!--      <v-menu-->
       <!--      >-->
@@ -63,12 +66,12 @@
         v-if="isExpanded"
     >
       <v-tab key="0">
-        Top
+        {{ myFacetConfig.isBoolean ? 'Options' : 'Top' }}
       </v-tab>
-      <v-tab key="1">
+      <v-tab key="1" v-if="!myFacetConfig.isBoolean && !myFacetConfig.isRangeable">
         Search
       </v-tab>
-      <v-tab key="2">
+      <v-tab key="2" v-if="myFacetConfig.isRangeable">
         Range
       </v-tab>
     </v-tabs>
@@ -77,19 +80,22 @@
         class="pt-0"
 
     >
-      <v-tab-item key="0" class="pt-4 px-4">
-        <facet-option
-            v-for="f in filtersToShow"
-            :filter="f"
-            :key="f.asStr"
-            @click-checkbox="clickCheckbox"
-        />
+      <v-tab-item key="0" class="pt-4 ">
+        <v-list dense>
+          <facet-option
+              v-for="f in filtersToShow"
+              :filter="f"
+              :key="f.asStr"
+              :disable-on-selection="true"
+              @click-checkbox="clickCheckbox"
+          />
+        </v-list>
       </v-tab-item>
 
-      <v-tab-item key="1">
+      <v-tab-item key="1" v-if="!myFacetConfig.isBoolean && !myFacetConfig.isRangeable">
         <div
             style="background-color: rgba(0,0,0,.05);"
-            class="px-2 py-2"
+            class=" py-2"
         >
           <v-text-field
               flat
@@ -107,16 +113,17 @@
           />
         </div>
         <facet-option
-            class="px-4"
+            class=""
             v-for="f in filtersToShow"
             :filter="f"
             :key="f.asStr"
+            :disable-on-selection="true"
             @click-checkbox="clickCheckbox"
         />
         <div v-if="!search" class="pa-3 grey--text">Search within the filtered results set.</div>
 
       </v-tab-item>
-      <v-tab-item key="2">
+      <v-tab-item key="2" v-if="myFacetConfig.isRangeable">
         <v-card flat>tab 3</v-card>
       </v-tab-item>
     </v-tabs-items>
@@ -164,6 +171,7 @@ export default {
       topFilters: [],
       searchFilters: [],
       filters: [],
+      filtersTotalCount: null,
 
 
       groupByQueryResultsCount: null,
@@ -241,12 +249,19 @@ export default {
           this.isLoading = "primary"
 
           const resp = await api.getUrl(this.apiUrl)
-          this.filtersFromApi = resp.filters.map(apiData => {
+          const filters = resp.filters.slice(0,10)
+          const worksCounts = filters.map(f => f.works_count)
+          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a+ b)
+          console.log("work counts" , worksCounts, sumOfAllWorksCounts)
+          this.filtersTotalCount = sumOfAllWorksCounts
+
+          this.filtersFromApi = filters.map(apiData => {
             return createDisplayFilter(
                 this.myFacetConfig.key,
                 apiData.value,
                 apiData.display_value,
                 apiData.works_count,
+                this.filtersTotalCount,
             )
           })
           this.isLoading = false
@@ -284,6 +299,7 @@ export default {
 
         this.tab = 0
         this.search = ""
+        this.filtersFromApi = []
         this.fetchFilters()
       }
     },
@@ -307,7 +323,7 @@ export default {
 
 .v-tab {
   min-width: 1px !important;
-  width: 66px !important;
+  //width: 66px !important;
 
 }
 

@@ -139,7 +139,7 @@ export default {
       padding: 0 !important;
     }
     &.has-focus {
-      background-color: #3d3d3d !important;
+      //background-color: #3d3d3d !important;
     }
   }
 </style>

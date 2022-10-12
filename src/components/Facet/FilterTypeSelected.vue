@@ -1,95 +1,67 @@
 <template>
-  <v-card
-      class="filter-type-list-item  my-0 pl-2 pr-2"
+  <v-list
+      class="filter-type-list-item  my-0 py-0"
       :class="{'has-focus': hasFocus,  disabled}"
-      :color="myColor"
-      @[cardEventHandlerName]="showCollapsed = !showCollapsed"
-      :elevation="hasFocus ? 0 : 0"
-
-
-
+      :elevation="hasFocus ? 3 : 0"
   >
+    <v-slide-y-transition group>
 
-    <!--    </v-list-item-icon>-->
-    <div class="card-header mb-1 d-flex">
-      <div class="">
+      <v-list-item
+          @click.stop="clickHandler"
+          :key="config.id+'header'"
+          :input-value="hasFocus"
+      >
         <v-btn
             icon
             small
             @click.stop="showCollapsed = !showCollapsed"
             class="mr-1"
-            :disabled="hasFocus"
         >
           <v-icon v-if="showCollapsed" class="" style="opacity: 0.5;">mdi-chevron-right</v-icon>
           <v-icon v-else class="" style="opacity: 0.7;">mdi-chevron-down</v-icon>
 
         </v-btn>
-        <!--        <v-icon v-if="hasFocus" class="pr-2" >mdi-playlist-plus</v-icon>-->
 
+        <v-list-item-content>
+          <div
+              class="card-header-name"
+              :class="{'font-weight-bold': hasFocus || myResultsFilters.length}"
+          >
+            {{ config.displayName }}
+          </div>
 
-        <span
-            class="card-header-name"
-            :class="{'font-weight-bold': hasFocus || myResultsFilters.length}"
-        >
-          {{ config.displayName }}
-        </span>
-      </div>
-      <v-spacer></v-spacer>
-      <template v-if="showCollapsed">
-        <v-chip
-            color="green "
-            dark
-            small
-            class=" mr-1 count-chip"
-            outlined
-        >
-          {{ myResultsFilters.length }}
-        </v-chip>
-<!--        <span class="font-weight-bold green&#45;&#45;text text&#45;&#45;">{{ myResultsFilters.length }}</span>-->
-      </template>
-      <template v-else>
-        <v-btn
-            v-if="!config.noOptions && !hasFocus"
-            small
-            icon
-            class="low-key-button"
-            @click.stop="$emit('toggle-select')"
-            :disabled="disabled"
-        >
-          <v-icon >mdi-chevron-right</v-icon>
-        </v-btn>
-        <v-btn
-            v-if="hasFocus"
-            small
-            icon
-            class=""
-            @click="$emit('toggle-select')"
-        >
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-      </template>
-    </div>
+        </v-list-item-content>
+        <v-list-item-action>
+          <v-chip
+              color="green "
+              v-if="showCollapsed"
+              dark
+              x-small
+              class="mr-1 count-chip my-0"
+          >
+            {{ myResultsFilters.length }}
+          </v-chip>
+        </v-list-item-action>
 
-    <div class="card-body" v-if="!showCollapsed">
-      <v-fade-transition group>
+      </v-list-item>
 
       <facet-option
-          v-for="liveFilter in myResultsFilters"
+          v-for="liveFilter in filtersToShow"
           :filter="liveFilter"
           :key="liveFilter.asStr"
           class="ml-7 mr-3"
-          :hide-bar="true"
           :hide-number="true"
+          icon-check
           :disabled="disabled"
+
           :colorful="true"
           @click-checkbox="clickCheckbox"
 
       />
-      </v-fade-transition>
-    </div>
+    </v-slide-y-transition>
 
 
-  </v-card>
+  </v-list>
 </template>
 
 <script>
@@ -128,7 +100,7 @@ export default {
       "searchApiUrl",
       "resultsFilters"
     ]),
-    cardEventHandlerName(){
+    cardEventHandlerName() {
       return this.showCollapsed ? `click` : null
     },
     appliedFiltersCount() {
@@ -148,16 +120,16 @@ export default {
       return getFacetConfig(this.facetKey)
     },
     myResultsFilters() {
+
+
       const ret = this.resultsFilters.filter(f => {
         return f.key === this.facetKey
       })
       ret.sort(compareByCount)
-      const maxCount = Math.max(...ret.map(r => r.count))
-      ret.forEach(f => {
-        f.countNormalized = f.count / maxCount
-      })
-
       return ret
+    },
+    filtersToShow() {
+      return (this.showCollapsed) ? [] : this.myResultsFilters
     }
   },
   methods: {
@@ -169,7 +141,13 @@ export default {
       "addInputFilters",
     ]),
     clickHandler() {
-      this.$emit('select')
+      if (this.hasFocus) {
+        this.showCollapsed = true
+      }
+      else {
+        this.showCollapsed = false
+      }
+      this.$emit('toggle-select')
     },
 
     clickCheckbox(filter, isChecked, e) {
@@ -195,31 +173,31 @@ export default {
   async mounted() {
 
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
 <style scoped lang="scss">
 .filter-type-list-item {
   //border: 1px solid rgba(255,255,255,.1) !important;
-  position: relative;
-  z-index: 9999;
+  //position: relative;
+  //z-index: 9999;
   border-radius: 5px;
-  border: 1px solid #999;
+  //border: 1px solid #999;
 
   .v-chip {
     padding: 0 8px !important;
   }
 
   &.has-focus {
-    //background-color: #3d3d3d !important;
+    //background-color: #eee !important;
   }
 
   &.disabled {
     .card-header-name {
       opacity: .5;
     }
+
     .count-chip {
       opacity: .7;
       filter: grayscale(100%);

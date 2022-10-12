@@ -110,15 +110,16 @@ const createSimpleFilter = function (key, value) {
     }
 }
 
-const createDisplayFilter = function (key, value, displayValue, count) {
+const createDisplayFilter = function (key, value, displayValue, count, totalCount) {
     return {
         ...createSimpleFilter(key, value),
         displayValue,
         count,
+        countPercent: (count / totalCount) * 100,
     }
 }
 
-const makeFilterList = function (filters, resultsFilters, length= 20) {
+const makeFilterList = function (filters, resultsFilters) {
     if (!filters.length) return []
     const config = getFacetConfig(filters[0].key)
 
@@ -131,8 +132,6 @@ const makeFilterList = function (filters, resultsFilters, length= 20) {
             }
           })
 
-      ret = ret.slice(0, length)
-
       if (config.sortByValue) {
         ret.sort((a, b) => {
           return (a.value > b.value) ? -1 : 1
@@ -144,11 +143,11 @@ const makeFilterList = function (filters, resultsFilters, length= 20) {
       }
 
       // const maxCountSelected = Math.max(...resultsFilters.map(r => r.count))
-      const maxCount = Math.max(...ret.map(r => r.count))
+      // const maxCount = Math.max(...ret.map(r => r.count))
 
-      ret.forEach(f => {
-        f.countNormalized = f.count / maxCount
-      })
+      // ret.forEach(f => {
+      //   f.countNormalized = f.count / maxCount
+      // })
 
 
       return ret
