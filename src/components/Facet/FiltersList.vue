@@ -15,7 +15,7 @@
         <v-icon class="">mdi-chevron-left</v-icon>
       </v-btn>
       <!--      </v-btn>-->
-      <div>
+      <div>v-list-group__header__append-icon
         <div>
           <div class="">Edit filter</div>
         </div>

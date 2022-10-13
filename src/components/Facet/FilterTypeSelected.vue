@@ -3,6 +3,7 @@
   <v-list-group
       :value="isExpanded"
       color="#333"
+      append-icon="$expand"
   >
     <template v-slot:activator>
       <v-list-item-title
@@ -38,7 +39,7 @@
             v-for="liveFilter in filtersToShow"
             :filter="liveFilter"
             :key="liveFilter.asStr"
-            class="ml-3"
+            class="ml-3 mr-2"
 
             @click-checkbox="clickCheckbox"
 
@@ -164,7 +165,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
+
+.v-list-group--active > .v-list-group__header > .v-list-group__header__prepend-icon .v-icon {
+  transform: rotate(-180deg);
+}
+
 //.filter-type-list-item {
 //  border-radius: 5px;
 //

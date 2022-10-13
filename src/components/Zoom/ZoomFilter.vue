@@ -111,7 +111,6 @@
                     :facet-key="filterType.key"
                     :has-focus="filterTypeKey === filterType.key"
                     @toggle-select="toggleFiltersZoom(filterType.key)"
-                    v-if="filterType.filters.length"
                     :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                 />
 
