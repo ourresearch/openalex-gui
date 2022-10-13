@@ -203,7 +203,7 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
-            state.results = []
+            // state.results = []
             commit("setEntityType", router.currentRoute.params.entityType)
             commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
@@ -227,12 +227,7 @@ export default new Vuex.Store({
                             state.zoomDataResponses.push(resp)
                         })
                     }
-
-
                 })
-
-
-
             }
             else {
 
@@ -319,8 +314,6 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
             state.isLoading = true
-            // dispatch("pushSearchUrl")
-            // if (state.entityType !== this.state.resultsEntityType) commit("resetSearch")
 
 
             try {

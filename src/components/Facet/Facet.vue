@@ -45,6 +45,14 @@
             @click-checkbox="clickCheckbox"
 
         />
+        <v-list-item v-if="thereAreMoreResults" key="more-button">
+          <v-list-item-icon>
+            <v-icon>mdi-plus</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            More
+          </v-list-item-content>
+        </v-list-item>
       </v-slide-y-transition>
 
 
@@ -85,6 +93,7 @@ export default {
       isChecked: this.showChecked,
       showCollapsed: false,
       filtersFromApi: [],
+      maxOptionsToShow: 5,
     }
   },
   computed: {
@@ -122,6 +131,26 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
+    thereAreMoreResults(){
+      return this.apiFiltersToShow.length > this.slicedApiFiltersToShow.length
+    },
+
+    apiFiltersToShow(){
+      const resultsFilterStrings = this.myResultsFilters.map(f => f.asStr)
+      return this.filtersFromApi
+          .filter(f => {
+            return !resultsFilterStrings.includes(f.asStr)
+          })
+          .filter(f => f.value !== "unknown")
+    },
+    slicedApiFiltersToShow(){
+      const maxFiltersFromApiToShow = Math.max(
+          0,
+          (this.maxOptionsToShow  ) - this.myResultsFilters.length
+      )
+      console.log("maxFiltersFromApiToShow", maxFiltersFromApiToShow)
+      return this.apiFiltersToShow.slice(0, maxFiltersFromApiToShow)
+    },
 
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
@@ -129,13 +158,15 @@ export default {
       })
     },
     filtersToShow() {
-      const resultsFilterStrings = this.myResultsFilters.map(f => f.asStr)
-      const ret = this.filtersFromApi
-          .filter(f => {
-            return !resultsFilterStrings.includes(f.asStr)
-          })
-          .filter(f => f.value !== "unknown")
+      const ret = [...this.slicedApiFiltersToShow]
       ret.push(...this.myResultsFilters)
+      const worksCounts = ret.map(f => f.count)
+      const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
+      ret.map(f => {
+        f.countPercent = (f.count / sumOfAllWorksCounts) * 100
+      })
+
+
       ret.sort(compareByCount)
       return ret
     }
@@ -177,20 +208,18 @@ export default {
       console.log("fetch filters: ", this.facetKey)
 
       if (!this.config) return
+      if (this.config.noOptions) return
       this.isLoading = true
 
       const resp = await api.getUrl(this.apiUrl)
-      const filters = resp.group_by.slice(0, 5)
-      const worksCounts = filters.map(f => f.count)
-      const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b)
 
-      this.filtersFromApi = filters.map(apiData => {
+
+      this.filtersFromApi = resp.group_by.map(apiData => {
         return createDisplayFilter(
             this.config.key,
             apiData.key,
             apiData.key_display_name,
             apiData.count,
-            sumOfAllWorksCounts,
         )
       })
 

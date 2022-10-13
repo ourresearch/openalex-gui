@@ -102,20 +102,14 @@
                 nav
 
             >
-              <template
-                  v-for="filterType in filterTypeSearchResults"
-              >
-
                 <facet
+                    v-for="filterType in filterTypeSearchResults"
                     :key="filterType.key"
                     :facet-key="filterType.key"
                     :has-focus="filterTypeKey === filterType.key"
                     @toggle-select="toggleFiltersZoom(filterType.key)"
                     :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                 />
-
-
-              </template>
             </v-list>
           </div>
 
@@ -237,6 +231,36 @@ export default {
           .filter(c => {
             return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
           })
+          .filter(c => {
+            const filters = this.resultsFilters.filter(f => f.key === c.key)
+            // hide the noOptions facets unless they have selected filters
+            return !c.noOptions || filters.length
+          })
+
+
+
+      // const ret = this.searchFacetConfigs
+      //     .filter(c => {
+      //       return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
+      //     })
+      //     .map(c => {
+      //       const filters = this.resultsFilters.filter(f => f.key === c.key)
+      //       filters.sort((a, b) => b.count - a.count)
+      //       filters
+      //
+      //       return {
+      //         ...c,
+      //         filters
+      //       }
+      //     })
+      //     .filter(c => {
+      //       return !(c.noOptions && !c.filters.length)
+      //     })
+
+      ret.sort((a, b) => {
+        return (a.displayName > b.displayName) ? 1 : -1
+      })
+
 
       return ret
     },
