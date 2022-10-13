@@ -7,7 +7,7 @@ import Transparency from "../views/Transparency";
 import goTo from 'vuetify/es5/services/goto'
 import {entityTypeFromId} from "../util";
 import Zoom from "../components/Zoom/Zoom";
-import ZoomFilter from "../components/Zoom/ZoomFilter";
+import ZoomFilter from "../components/Facet/FacetsDrawer";
 import ZoomEntity from "../components/Zoom/ZoomEntity";
 
 Vue.use(VueRouter)

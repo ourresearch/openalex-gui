@@ -184,14 +184,14 @@ const facetConfigs = function () {
             isBoolean: true,
             booleanValues: ["Has no n-grams", "Has n-grams"],
         },
-        {
-            key: "is_paratext",
-            entityTypes: ["works"],
-            displayName: "Paratext",
-            valuesToShow: "boolean",
-            isBoolean: true,
-            booleanValues: ["Isn't paratext", "Is paratext"],
-        },
+        // {
+        //     key: "is_paratext",
+        //     entityTypes: ["works"],
+        //     displayName: "Paratext",
+        //     valuesToShow: "boolean",
+        //     isBoolean: true,
+        //     booleanValues: ["Isn't paratext", "Is paratext"],
+        // },
         {
             key: "is_retracted",
             entityTypes: ["works"],

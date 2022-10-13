@@ -147,7 +147,6 @@ import FacetOption from "../Facet/FacetOption";
 import {api} from "../../api";
 import axios from "axios";
 import {url} from "../../url";
-import FilterTypeListItem from "../Facet/FilterTypeListItem";
 import _ from "lodash"
 import {makeFilterList} from "../../filterConfigs";
 
@@ -155,7 +154,6 @@ import {makeFilterList} from "../../filterConfigs";
 export default {
   components: {
     FacetOption,
-    FilterTypeListItem,
   },
   props: {
     filterTypeKey: String,

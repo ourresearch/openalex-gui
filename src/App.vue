@@ -3,7 +3,6 @@
 </template>
 
 <script>
-import Facet from "./components/Facet/Facet";
 import EntityZoom from "./components/Zoom/ZoomEntity";
 
 
@@ -21,7 +20,6 @@ export default {
   },
   components: {
     EntityZoom,
-    Facet,
   },
 
 

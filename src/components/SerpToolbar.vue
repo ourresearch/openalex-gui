@@ -303,7 +303,6 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
 import {entityConfigs} from "../entityConfigs";
 import EntityIcon from "./EntityIcon";
-import SerpFilterButton from "./SerpFilterButton";
 import axios from "axios";
 
 
@@ -311,7 +310,6 @@ export default {
   name: "SerpToolbar",
   components: {
     EntityIcon,
-    SerpFilterButton,
   },
   props: {
     filtersDrawerIsOpen: Boolean,

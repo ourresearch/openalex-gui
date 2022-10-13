@@ -50,7 +50,7 @@
       </div>
     </v-app-bar>
 
-    <zoom-filter @filter-type-key="setFilterTypeKey" />
+    <facets-drawer @filter-type-key="setFilterTypeKey" />
 
 
     <v-main>
@@ -168,7 +168,6 @@ import _ from 'lodash';
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
-import Facet from "../components/Facet/Facet";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar";
 
@@ -178,7 +177,7 @@ import ResultVenue from "../components/ResultVenue";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
 import Zoom from "../components/Zoom/Zoom";
-import ZoomFilter from "../components/Zoom/ZoomFilter";
+import FacetsDrawer from "../components/Facet/FacetsDrawer";
 import axios from "axios";
 import ZoomEntity from "../components/Zoom/ZoomEntity";
 
@@ -192,7 +191,6 @@ export default {
   },
   components: {
     ZoomEntity,
-    Facet,
     DownloadCsvDialog,
     SerpToolbar,
     ResultWork,
@@ -201,7 +199,7 @@ export default {
     ResultInstitution,
     ResultConcept,
     Zoom,
-    ZoomFilter,
+    FacetsDrawer,
 
   },
   props: {},

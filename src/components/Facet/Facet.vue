@@ -1,110 +1,56 @@
 <template>
 
-  <!--  <v-list-item>-->
-  <v-list
-      class="pa-0 facets-panel"
-      style="border-bottom: 1px solid #ddd;"
+  <v-list-group
+      :value="isExpanded"
+      color="#333"
+      append-icon="$expand"
+      multiple
   >
-    <v-list-group
-        :value="resultsFiltersToShow.length"
-        style="padding: 0; min-height: 0; margin-left: 0;"
+    <template v-slot:activator>
+      <v-list-item-title
+      >
+
+        {{ config.displayName }}
+
+        <!--      <v-list-item-action>-->
+        <!--        <v-chip-->
+        <!--            color="green "-->
+        <!--            v-if="showCollapsed"-->
+        <!--            dark-->
+        <!--            x-small-->
+        <!--            outlined-->
+        <!--            class="mr-1 count-chip my-0"-->
+        <!--        >-->
+        <!--          {{ myResultsFilters.length }}-->
+        <!--        </v-chip>-->
+        <!--        &lt;!&ndash;          <span class="body-2 grey&#45;&#45;text font-weight-bold">&ndash;&gt;-->
+        <!--        &lt;!&ndash;            {{ myResultsFilters.length }}&ndash;&gt;-->
+        <!--        &lt;!&ndash;          </span>&ndash;&gt;-->
+        <!--      </v-list-item-action>-->
+
+      </v-list-item-title>
+
+    </template>
+
+    <v-list
+        class="filter-type-list-item  my-0 py-0"
     >
-      <template v-slot:activator>
-
-        <v-list-item-title class="facet-heading ma-0 pa-0">
-          <div class="facet-count-container">
-            <v-chip
-                x-small
-                class="mb-1 mr-1 px-1"
-                color="primary"
-                v-if="resultsFiltersToShow.length > 0"
-            >
-              {{ resultsFiltersToShow.length }}
-            </v-chip>
-          </div>
-          <strong>
-            {{ myFacetConfig.displayName }}
-          </strong>
-        </v-list-item-title>
-      </template>
-      <div>
-        <!--        <facet-option-is-oa-->
-        <!--            v-if="facetKey === 'oa_status'"-->
-        <!--            key="oa_status"-->
-        <!--        />-->
-
+      <v-slide-y-transition group>
         <facet-option
-            v-for="filter in tableItems"
-            :filter="filter"
-            :show-checked="filter.isResultsFilter"
-            :key="filter.asStr + filter.isResultsFilter"
-            :indent="facetKey === 'oa_status' && filter.value != 'closed'"
+            v-for="liveFilter in filtersToShow"
+            :filter="liveFilter"
+            :key="liveFilter.asStr"
+            class="ml-3 mr-2"
+
+            @click-checkbox="clickCheckbox"
+
         />
-        <div
-            class="more-link ml-5 mt-1"
-            v-if="myFacetConfig.valuesToShow === 'select'"
-            @click="comboboxDialogIsOpen = true"
-        >
-          <v-btn small plain>select</v-btn>
-        </div>
-        <div
-            class="more-link ml-5 mt-1"
-            v-if="showMoreOptionsButton"
-            @click="comboboxDialogIsOpen = true"
-        >
-          <v-btn small plain>more</v-btn>
-        </div>
-        <div></div>
-      </div>
+      </v-slide-y-transition>
 
 
-    </v-list-group>
+    </v-list>
 
-    <v-dialog
-        max-width="600"
-        v-model="comboboxDialogIsOpen"
-    >
-      <v-card :loading="comboboxAddFiltersIsLoading">
-        <v-card-title>
-          Add filter
-        </v-card-title>
-        <div class="pa-4">
-          <form class="main-search">
-            <v-combobox
-                v-model="comboboxSelect"
-                :items="comboboxItems"
-                :search-input.sync="comboboxSearchString"
-                class="mr-12"
-                flat
-                outlined
-                dense
-                solo
-                hide-details
-                item-text="display_name"
-                item-value="id"
-                :loading="loading"
-                @input="comboboxAddFilter"
-                autofocus
-                clearable
-            >
-              <template v-slot:item="data">
-                <v-list-item-content>
-                  <div>
-                    <div>
-                      {{ data.item.display_name }}
-                    </div>
-                  </div>
-                </v-list-item-content>
-              </template>
-            </v-combobox>
-
-          </form>
-        </div>
-      </v-card>
-    </v-dialog>
-
-  </v-list>
-
+  </v-list-group>
 </template>
 
 <script>
@@ -112,213 +58,189 @@
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
 
+
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {facetConfigs} from "../../facetConfigs";
-import {filtersAsUrlStr, createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
-
-import {api} from "../../api";
-
+import {getFacetConfig} from "../../facetConfigs";
+import {createDisplayFilter, filtersAsUrlStr, filtersFromUrlStr, makeFilterList} from "../../filterConfigs";
 import FacetOption from "./FacetOption";
-import FacetOptionIsOa from "./FacetOptionIsOa";
-import axios from "axios";
-
-
-const compareByCount = function (a, b) {
-  if (a.count > b.count) {
-    return -1;
-  }
-  if (a.count < b.count) {
-    return 1;
-  }
-  return 0;
-}
+import {compareByCount} from "../../util";
+import {api} from "../../api";
 
 export default {
   name: "Facet",
   components: {
     FacetOption,
-    FacetOptionIsOa,
   },
   props: {
     facetKey: String,
+    bold: Boolean,
+    hasFocus: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {
       loading: false,
-      comboboxDialogIsOpen: false,
-      facet: null,
-      potentialFilterValues: [],
-      groupByQueryResultsCount: null,
-
-      comboboxSelect: "",
-      comboboxItems: [],
-      comboboxSearchString: "",
-      comboboxFetchMatchesIsLoading: false,
-      comboboxAddFiltersIsLoading: false,
+      isExpanded: false,
+      apiResp: {},
+      isChecked: this.showChecked,
+      showCollapsed: false,
+      filtersFromApi: [],
     }
   },
   computed: {
     ...mapGetters([
       "searchApiUrl",
-      "sortOptions",
-      "appliedFilters",
-      "inputFiltersAsString",
+      "resultsFilters",
+      "entityType",
     ]),
-    myFacetConfig() {
-      return facetConfigs().find(c => c.key === this.facetKey)
+    cardEventHandlerName() {
+      return this.showCollapsed ? `click` : null
     },
-    showMoreOptionsButton() {
-      if (this.myFacetConfig.valuesToShow === "select") return false
-      return this.groupByQueryResultsCount > this.maxPotentialFiltersToShow
-    },
-    maxPotentialFiltersToShow() {
-      return 5
-      return this.myFacetConfig.maxPotentialFiltersToShow ?? 5
-    },
-    tableItems() {
-      let ret = [...this.resultsFiltersToShow]
-
-
-      this.potentialFilterValues
-          .filter(f => f.value !== "unknown")
-          .slice(0, this.maxPotentialFiltersToShow).forEach(f => {
-
-        // only push potential filter values if they're not already loaded as
-        // in a resultsFilter
-        if (!ret.map(f => f.asStr).includes(f.asStr)) {
-          ret.push(f)
-        }
+    appliedFiltersCount() {
+      const allFilters = filtersFromUrlStr(this.$route.query.filter)
+      const myFilters = allFilters.filter(f => {
+        return f.key === this.facetKey
       })
-      ret.sort(compareByCount)
-
-      return ret
+      return myFilters.length
     },
-    apiQuery() {
+    myColor() {
+      return "transparent"
+      if (this.disabled) return "transparent"
+      else if (this.hasFocus) return "rgba(0,0,0,.05)"
+      else return "rgba(0,0,0,.00)"
+    },
+    config() {
+      return getFacetConfig(this.facetKey)
+    },
+    apiUrl() {
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = `${this.entityType}`
       const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
-      const ret = {
-        group_by: this.facetKey,
-        filter: filtersAsUrlStr(myFilters),
-      }
-      if (this.$store.state.textSearch) ret.search = this.$store.state.textSearch
-      return ret
+      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
+      url.searchParams.set("group_by", this.facetKey)
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
     },
-    resultsFiltersToShow() {
-      // these ones are already selected by the user. we got them from the store,
-      // which refreshes them from the server every time we search.
-      // (which may have gotten from either user action or the URL)
-      return this.$store.state.resultsFilters
+
+    myResultsFilters() {
+      return this.resultsFilters.filter(f => {
+        return f.key === this.facetKey
+      })
+    },
+    filtersToShow() {
+      const resultsFilterStrings = this.myResultsFilters.map(f => f.asStr)
+      const ret = this.filtersFromApi
           .filter(f => {
-            return f.key === this.facetKey
+            return !resultsFilterStrings.includes(f.asStr)
           })
-          .map(f => {
-            return {...f, isResultsFilter: true}
-          })
-    },
+          .filter(f => f.value !== "unknown")
+      ret.push(...this.myResultsFilters)
+      ret.sort(compareByCount)
+      return ret
+    }
   },
-
-
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+      "snackbar",
+    ]),
     ...mapActions([
+      "removeInputFilters",
       "addInputFilters",
     ]),
-    async setFilterOptions() {
-      if (this.myFacetConfig.noOptions) return
+    clickHandler() {
+      if (this.hasFocus) {
+        this.showCollapsed = true
+      } else {
+        this.showCollapsed = false
+      }
+      this.$emit('toggle-select')
+    },
 
-      const resp = await api.get(
-          this.$store.state.entityType,
-          this.apiQuery,
-      )
-      this.groupByQueryResultsCount = resp.meta.count
-      this.potentialFilterValues = resp.group_by.map(group => {
+    clickCheckbox(filter, isChecked, e) {
+    },
+    async clearAllFilters() {
+      const filters = filtersFromUrlStr(this.$route.query.filter)
+      const filtersToKeep = filters.filter(f => f.key !== this.facetKey)
+      const filterString = filtersAsUrlStr(filtersToKeep)
+      const query = {...this.$route.query}
+      query.filter = filterString || undefined
+
+      await this.$router.push({
+        name: "Serp",
+        query
+      })
+      this.snackbar("Filters removed")
+    },
+
+    async fetchFilters() {
+      console.log("fetch filters: ", this.facetKey)
+
+      if (!this.config) return
+      this.isLoading = true
+
+      const resp = await api.getUrl(this.apiUrl)
+      const filters = resp.group_by.slice(0, 5)
+      const worksCounts = filters.map(f => f.count)
+      const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b)
+
+      this.filtersFromApi = filters.map(apiData => {
         return createDisplayFilter(
-            this.facetKey,
-            group.key,
-            group.key_display_name,
-            group.count
+            this.config.key,
+            apiData.key,
+            apiData.key_display_name,
+            apiData.count,
+            sumOfAllWorksCounts,
         )
       })
-    },
-    comboboxReset() {
-      this.comboboxSelect = ""
-      this.comboboxItems = []
-      this.comboboxSearchString = ""
-      this.comboboxFetchMatchesIsLoading = false
-      this.comboboxAddFiltersIsLoading = false
-    },
-    comboboxOpen() {
-      this.comboboxReset()
-      this.comboboxDialogIsOpen = true
-    },
-    comboboxClose() {
-      this.comboboxReset()
-      this.comboboxDialogIsOpen = false
-    },
-    async comboboxAddFilter() {
-      this.comboboxAddFiltersIsLoading = true
-      const myFilter = createSimpleFilter(this.facetKey, this.comboboxSelect.id)
-      await this.addInputFilters([myFilter])
-      this.comboboxClose()
-    },
-    async comboboxFetchMatches() {
-      this.comboboxFetchMatchesIsLoading = true
 
-      const urlObj = new URL("https://api.openalex.org/" + this.myFacetConfig.autocompleteEndpoint);
-      urlObj.searchParams.set("email", "team@ourresearch.org")
-      urlObj.searchParams.set("q", this.comboboxSearchString)
-      const url = urlObj.toString()
-
-      axios.get(url)
-          .then(resp => {
-            if (!this.comboboxSearchString) {
-              console.log("no search string, clearing items")
-              this.comboboxItems = []
-            } else {
-              this.comboboxItems = resp.data.results.slice(0, 5)
-            }
-            this.comboboxFetchMatchesIsLoading = false
-          })
+      this.isLoading = false
     },
+
+  },
+
+  created() {
+  },
+  async mounted() {
+
   },
   watch: {
-    "$store.getters.searchParamsAsStringToWatch": {
+    "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        // console.log(`Facet "${this.facetKey}" watcher: resultsFilters changed:`, newVal)
-        this.setFilterOptions()
+        this.fetchFilters()
       }
-      ,
     },
-    comboboxSearchString(val) {
-      if (!val) {
-        this.items = []
-        return
-      }
-      this.comboboxFetchMatches(val)
-    }
   }
 }
 </script>
 
 <style lang="scss">
-.facets-panel {
-  .v-list-item {
-    padding: 0 !important;
-  }
 
-  .facet-heading {
-    display: flex;
-    margin-left: 0;
-    padding-left: 0;
-
-    .facet-count-container {
-      //width: 30px;
-      text-align: right;
-      //padding-right: 6px;
-    }
-  }
-
+.v-list-group--active > .v-list-group__header > .v-list-group__header__prepend-icon .v-icon {
+  transform: rotate(-180deg);
 }
 
-
+//.filter-type-list-item {
+//  border-radius: 5px;
+//
+//  .v-chip {
+//    padding: 0 8px !important;
+//  }
+//
+//  &.has-focus {
+//    //background-color: #eee !important;
+//  }
+//
+//  &.disabled {
+//    .card-header-name {
+//      opacity: .5;
+//    }
+//
+//    .count-chip {
+//      opacity: .7;
+//      filter: grayscale(100%);
+//    }
+//  }
+//}
 </style>

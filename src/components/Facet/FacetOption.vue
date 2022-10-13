@@ -1,7 +1,8 @@
 <template>
   <v-list-item
       class=" my-0 filter-list-item align-start"
-      @click.stop="isSelected = !isSelected"
+      @click.stop="click($event)"
+      :ripple="false"
   >
 
     <!--      <v-btn-->
@@ -19,22 +20,22 @@
     <v-list-item-icon class="icon-area">
       <v-progress-circular
           v-if="isLoading"
-          size="16"
+          size="20"
           width="5"
           indeterminate
-          style="margin: 5px 13px 4px 5px;"
-          class="ml-1">
+          class=""
+      >
       </v-progress-circular>
 
       <v-progress-circular
           v-else
-          size="16"
-          width="5"
+          size="20"
+          width="7"
           rotate="-90"
           style="margin: 0; opacity: .9;"
           :value="filter.countPercent"
-          color="green"
-          class="ml-1">
+          :color="isSelected ? 'green' : '#555'"
+      >
       </v-progress-circular>
 
 
@@ -63,17 +64,17 @@
 
       <div v-if="!hideNumber"
            class="body-2 grey--text"
-           :class="{disabled}"
       >
+        {{ filter.count.toLocaleString() }}
       </div>
     </v-list-item-content>
-    <v-list-item-action v-if="!hideNumber" class="justify-end">
-      <v-list-item-action-text class="">
-        {{ filter.count.toLocaleString() }}
+<!--    <v-list-item-action v-if="!hideNumber" class="justify-end">-->
+<!--      <v-list-item-action-text class="">-->
+<!--        {{ filter.count.toLocaleString() }}-->
 
-      </v-list-item-action-text>
+<!--      </v-list-item-action-text>-->
 
-    </v-list-item-action>
+<!--    </v-list-item-action>-->
 
 
   </v-list-item>
@@ -122,6 +123,7 @@ export default {
       },
       async set(newVal) {
         console.log("set new value for isSelected: ", newVal)
+
         if (newVal) await this.addInputFilters([this.filter])
         else await this.removeInputFilters([this.filter])
       },

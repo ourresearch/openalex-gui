@@ -14,7 +14,7 @@
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import ZoomEntity from "./ZoomEntity";
-import ZoomFilter from "./ZoomFilter";
+import ZoomFilter from "../Facet/FacetsDrawer";
 
 
 export default {

@@ -106,7 +106,7 @@
                   v-for="filterType in filterTypeSearchResults"
               >
 
-                <filter-type-selected
+                <facet
                     :key="filterType.key"
                     :facet-key="filterType.key"
                     :has-focus="filterTypeKey === filterType.key"
@@ -123,7 +123,7 @@
         </v-card>
 
       </div>
-        <filters-list
+        <facet-zoom
             :filter-type-key="filterTypeKey"
             @close="setFilterTypeKey(null)"
             :width="filtersListWidth"
@@ -140,13 +140,12 @@ import {createDisplayFilter, createSimpleFilter, filtersFromUrlStr, filtersAsUrl
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
-import FacetOption from "../Facet/FacetOption";
+import FacetOption from "./FacetOption";
 import {api} from "../../api";
 import {url} from "../../url";
-import FilterTypeListItem from "../Facet/FilterTypeListItem";
 import _ from "lodash"
-import FiltersList from "../Facet/FiltersList";
-import FilterTypeSelected from "../Facet/FilterTypeSelected";
+import FacetZoom from "./FacetZoom";
+import Facet from "./Facet";
 
 const compareByCount = function (a, b) {
   if (a.count > b.count) {
@@ -161,10 +160,8 @@ const compareByCount = function (a, b) {
 
 export default {
   components: {
-    FacetOption,
-    FilterTypeListItem,
-    FiltersList,
-    FilterTypeSelected
+    FacetZoom,
+    Facet
   },
   props: {},
   data() {
@@ -240,23 +237,7 @@ export default {
           .filter(c => {
             return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
           })
-          .map(c => {
-            const filters = this.resultsFilters.filter(f => f.key === c.key)
-            filters.sort((a, b) => b.count - a.count)
-            filters
 
-            return {
-              ...c,
-              filters
-            }
-          })
-          .filter(c => {
-            return !(c.noOptions && !c.filters.length)
-          })
-
-      ret.sort((a, b) => {
-        return (b.filters.length && !a.filters.length) ? 1 : -1
-      })
       return ret
     },
   },
