@@ -100,6 +100,7 @@
             <v-list
                 class="pt-0"
                 nav
+                expand
 
             >
                 <facet
