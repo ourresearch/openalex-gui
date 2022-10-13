@@ -1,8 +1,7 @@
 <template>
   <v-list-item
-      class="pb-2 my-0 d-flex filter-list-item align-start"
-      @[mainEventHandler].stop="click($event)"
-      :disabled="disableOnSelection && isSelected"
+      class=" my-0 filter-list-item align-start"
+      @click.stop="isSelected = !isSelected"
   >
 
     <!--      <v-btn-->
@@ -17,65 +16,46 @@
     <!--        <v-icon v-else small style="opacity: .5">mdi-plus</v-icon>-->
     <!--      </v-btn>-->
 
-    <div class="icon-area">
+    <v-list-item-icon class="icon-area">
       <v-progress-circular
           v-if="isLoading"
-          size="20"
-          width="7"
+          size="16"
+          width="5"
           indeterminate
           style="margin: 5px 13px 4px 5px;"
           class="ml-1">
       </v-progress-circular>
 
-<!--      Not loading-->
-      <template v-else>
-        <v-checkbox
-            v-if="iconCheck"
-            dense
-            hide-details
-            class="pa-0 ma-0 mr-0"
-            :color="(colorful) ? 'green ' : '#999'"
-            on-icon="mdi-checkbox-marked-circle"
-            off-icon="mdi-plus"
-            readonly
-            @click.stop="click($event)"
-            :input-value="isSelected"
-            :disabled="disabled"
-        />
-
-        <v-progress-circular
-            v-else
-            size="20"
-            width="7"
-            rotate="-90"
-            style="margin: 5px 13px 4px 5px; opacity: .9;"
-            :value="filter.countPercent"
-            class="ml-1">
-        </v-progress-circular>
-
-      </template>
+      <v-progress-circular
+          v-else
+          size="16"
+          width="5"
+          rotate="-90"
+          style="margin: 0; opacity: .9;"
+          :value="filter.countPercent"
+          color="green"
+          class="ml-1">
+      </v-progress-circular>
 
 
-    </div>
+    </v-list-item-icon>
     <v-list-item-content>
       <div
           class="body-1 "
           style="line-height: 1.5;"
-          :class="{'font-weight-bold': isSelected && colorful, disabled}"
+          :class="{'font-weight-bold': isSelected}"
       >
-        <router-link
-            v-if="filter.isEntity"
-            :to="filter.value | entityZoomLink"
-            class="hover-underline"
-            style="color: #333;"
-            :class="{'green--text': isSelected && colorful}"
-            v-html="prettyDisplayName"
-        >
-        </router-link>
+<!--        <router-link-->
+<!--            v-if="filter.isEntity"-->
+<!--            :to="filter.value | entityZoomLink"-->
+<!--            class="hover-underline"-->
+<!--            style="color: #333;"-->
+<!--            :class="{'green&#45;&#45;text': isSelected && colorful}"-->
+<!--            v-html="prettyDisplayName"-->
+<!--        >-->
+<!--        </router-link>-->
         <span
-            v-else
-            class="text--"
-            :class="{'green--text': isSelected && colorful}"
+            :class="{'green--text': isSelected}"
             v-html="prettyDisplayName"
         >
         </span>
@@ -85,9 +65,15 @@
            class="body-2 grey--text"
            :class="{disabled}"
       >
-        {{ filter.count.toLocaleString() }}
       </div>
     </v-list-item-content>
+    <v-list-item-action v-if="!hideNumber" class="justify-end">
+      <v-list-item-action-text class="">
+        {{ filter.count.toLocaleString() }}
+
+      </v-list-item-action-text>
+
+    </v-list-item-action>
 
 
   </v-list-item>
@@ -143,7 +129,7 @@ export default {
     myColor() {
 
     },
-    mainEventHandler(){
+    mainEventHandler() {
       return (this.disableOnSelection) ? "click" : null
     },
     isLoading() {
@@ -220,17 +206,17 @@ export default {
 
 
 .filter-list-item {
-  min-height: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
+  //min-height: 0 !important;
+  //margin-bottom: 0 !important;
+  //padding-top: 4px !important;
+  //padding-bottom: 4px !important;
 
   .v-list-item__icon {
-    margin: 0 !important;
+    //margin: 0 !important;
   }
 
   .v-list-item__content {
-    padding: 0 !important;
+    //padding: 0 !important;
   }
 
   &.has-focus {

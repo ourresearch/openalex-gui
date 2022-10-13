@@ -98,9 +98,9 @@
             <!--      List of filter types  -->
             <!--      *****************************************************************-->
             <v-list
-                dense
                 class="pt-0"
                 nav
+
             >
               <template
                   v-for="filterType in filterTypeSearchResults"
@@ -115,15 +115,6 @@
                     :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                 />
 
-                <filter-type-list-item
-                    :key="filterType.key"
-                    :facet-key="filterType.key"
-                    :bold="filterType.filters.length > 0"
-                    :has-focus="filterTypeKey === filterType.key"
-                    @toggle-select="toggleFiltersZoom(filterType.key)"
-                    :disabled="filterTypeKey && filterTypeKey !== filterType.key"
-                    v-else
-                />
 
               </template>
             </v-list>

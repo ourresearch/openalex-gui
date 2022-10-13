@@ -1,71 +1,54 @@
 <template>
-  <v-list
-      class="filter-type-list-item  my-0 py-0"
-      :class="{'has-focus': hasFocus,  disabled}"
-      :elevation="hasFocus ? 3 : 0"
+
+  <v-list-group
+      :value="isExpanded"
+      color="#333"
   >
-    <v-slide-y-transition group>
-
-      <v-list-item
-          @click.stop="clickHandler"
-          :key="config.id+'header'"
-          :input-value="hasFocus"
+    <template v-slot:activator>
+      <v-list-item-title
       >
-        <v-btn
-            icon
-            small
-            @click.stop="showCollapsed = !showCollapsed"
-            class="mr-1"
-        >
-          <v-icon v-if="showCollapsed" class="" style="opacity: 0.5;">mdi-chevron-right</v-icon>
-          <v-icon v-else class="" style="opacity: 0.7;">mdi-chevron-down</v-icon>
 
-        </v-btn>
+        {{ config.displayName }}
 
-        <v-list-item-content>
-          <div
-              class="card-header-name"
-              :class="{'font-weight-bold': hasFocus || myResultsFilters.length}"
-          >
-            {{ config.displayName }}
-          </div>
+        <!--      <v-list-item-action>-->
+        <!--        <v-chip-->
+        <!--            color="green "-->
+        <!--            v-if="showCollapsed"-->
+        <!--            dark-->
+        <!--            x-small-->
+        <!--            outlined-->
+        <!--            class="mr-1 count-chip my-0"-->
+        <!--        >-->
+        <!--          {{ myResultsFilters.length }}-->
+        <!--        </v-chip>-->
+        <!--        &lt;!&ndash;          <span class="body-2 grey&#45;&#45;text font-weight-bold">&ndash;&gt;-->
+        <!--        &lt;!&ndash;            {{ myResultsFilters.length }}&ndash;&gt;-->
+        <!--        &lt;!&ndash;          </span>&ndash;&gt;-->
+        <!--      </v-list-item-action>-->
 
-        </v-list-item-content>
-        <v-list-item-action>
-          <v-chip
-              color="green "
-              v-if="showCollapsed"
-              dark
-              x-small
-              outlined
-              class="mr-1 count-chip my-0"
-          >
-            {{ myResultsFilters.length }}
-          </v-chip>
-<!--          <span class="body-2 grey&#45;&#45;text font-weight-bold">-->
-<!--            {{ myResultsFilters.length }}-->
-<!--          </span>-->
-        </v-list-item-action>
+      </v-list-item-title>
 
-      </v-list-item>
+    </template>
 
-      <facet-option
-          v-for="liveFilter in filtersToShow"
-          :filter="liveFilter"
-          :key="liveFilter.asStr"
-          class="ml-7 mr-3"
-          :hide-number="true"
-          icon-check
-          :disabled="disabled"
+    <v-list
+        class="filter-type-list-item  my-0 py-0"
+    >
+      <v-slide-y-transition group>
+        <facet-option
+            v-for="liveFilter in filtersToShow"
+            :filter="liveFilter"
+            :key="liveFilter.asStr"
+            class="ml-3"
 
-          :colorful="true"
-          @click-checkbox="clickCheckbox"
+            @click-checkbox="clickCheckbox"
 
-      />
-    </v-slide-y-transition>
+        />
+      </v-slide-y-transition>
 
 
-  </v-list>
+    </v-list>
+
+  </v-list-group>
 </template>
 
 <script>
@@ -94,6 +77,7 @@ export default {
   data() {
     return {
       loading: false,
+      isExpanded: false,
       apiResp: {},
       isChecked: this.showChecked,
       showCollapsed: false,
@@ -147,8 +131,7 @@ export default {
     clickHandler() {
       if (this.hasFocus) {
         this.showCollapsed = true
-      }
-      else {
+      } else {
         this.showCollapsed = false
       }
       this.$emit('toggle-select')
@@ -182,30 +165,26 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.filter-type-list-item {
-  //border: 1px solid rgba(255,255,255,.1) !important;
-  //position: relative;
-  //z-index: 9999;
-  border-radius: 5px;
-  //border: 1px solid #999;
-
-  .v-chip {
-    padding: 0 8px !important;
-  }
-
-  &.has-focus {
-    //background-color: #eee !important;
-  }
-
-  &.disabled {
-    .card-header-name {
-      opacity: .5;
-    }
-
-    .count-chip {
-      opacity: .7;
-      filter: grayscale(100%);
-    }
-  }
-}
+//.filter-type-list-item {
+//  border-radius: 5px;
+//
+//  .v-chip {
+//    padding: 0 8px !important;
+//  }
+//
+//  &.has-focus {
+//    //background-color: #eee !important;
+//  }
+//
+//  &.disabled {
+//    .card-header-name {
+//      opacity: .5;
+//    }
+//
+//    .count-chip {
+//      opacity: .7;
+//      filter: grayscale(100%);
+//    }
+//  }
+//}
 </style>
