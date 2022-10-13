@@ -9,7 +9,7 @@
       style="min-height: 97vh;"
       :loading="isLoading"
   >
-    <div v-if="0" class=" pt-3 pb-0 px-1 pl-2 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
+    <div class="text-h6 font-weight-light pt-3 pb-2 px-1 pl-2 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
       <!--      <v-btn icon @click="$emit('close')">-->
       <v-btn icon @click="$emit('close')" class="mr-2">
         <v-icon class="">mdi-chevron-left</v-icon>
@@ -17,7 +17,7 @@
       <!--      </v-btn>-->
       <div>
         <div>
-          <div class="">Add filters</div>
+          <div class="">Edit filter</div>
         </div>
 <!--          {{ myFacetConfig.displayName }}-->
 

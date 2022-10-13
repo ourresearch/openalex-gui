@@ -7,11 +7,11 @@
       v-model="isOpen"
       :mini-variant.sync="isMini"
       color="transparent"
-      dark
       class="pa-0 ma-0"
-      floating
       absolute
-      style="height: unset; max-height: unset"
+      floating
+      style="height: unset; max-height: unset;"
+
 
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>

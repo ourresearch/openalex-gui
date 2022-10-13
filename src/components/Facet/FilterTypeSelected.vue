@@ -37,10 +37,14 @@
               v-if="showCollapsed"
               dark
               x-small
+              outlined
               class="mr-1 count-chip my-0"
           >
             {{ myResultsFilters.length }}
           </v-chip>
+<!--          <span class="body-2 grey&#45;&#45;text font-weight-bold">-->
+<!--            {{ myResultsFilters.length }}-->
+<!--          </span>-->
         </v-list-item-action>
 
       </v-list-item>
