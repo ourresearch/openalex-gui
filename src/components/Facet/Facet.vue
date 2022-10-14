@@ -23,10 +23,9 @@
 
 
       </v-list-item-title>
-      <v-list-item-action>
+      <v-list-item-action class="justify-center">
         <v-chip
-            color="green "
-            dark
+            outlined
             x-small
             class="mr-1 px-2 count-chip my-0"
             v-if="myResultsFilters.length > 0"
@@ -52,12 +51,15 @@
         />
       </v-slide-y-transition>
         <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
-          <v-list-item-icon>
-            <v-icon>mdi-plus</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            More
-          </v-list-item-content>
+          <v-btn>
+            more
+          </v-btn>
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-plus</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            More-->
+<!--          </v-list-item-content>-->
         </v-list-item>
 
 

@@ -1,20 +1,7 @@
 <template>
   <v-list-item
       class=" my-0 filter-list-item align-start pt-2"
-      :ripple="false"
   >
-
-    <!--      <v-btn-->
-    <!--          icon-->
-    <!--          small-->
-    <!--          class="pa-0 ma-0 mr-3"-->
-    <!--          :color="(isSelected) ? 'green ' : null"-->
-    <!--          @click="click($event)"-->
-    <!--          :loading="isLoading"-->
-    <!--      >-->
-    <!--        <v-icon small v-if="isSelected">mdi-checkbox-marked-circle</v-icon>-->
-    <!--        <v-icon v-else small style="opacity: .5">mdi-plus</v-icon>-->
-    <!--      </v-btn>-->
 
     <div class="icon-area mr-1">
       <v-progress-circular
@@ -30,12 +17,12 @@
 
       <v-simple-checkbox
           v-else
-
           :value="isSelected"
           read-only
           @click="click($event)"
           :color="isSelected ? 'green' : ''"
           class="ma-0 pa-0"
+          v-ripple
       >
 
       </v-simple-checkbox>
@@ -101,7 +88,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {prettyTitle} from "../../util";
 
 export default {
-  name: "FacetValueListItem",
+  name: "FacetOption",
   components: {},
   props: {
     // required

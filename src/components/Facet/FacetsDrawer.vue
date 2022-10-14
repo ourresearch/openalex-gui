@@ -6,30 +6,19 @@
       :width="width"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      color="transparent"
+      color="#fafafa"
       class="pa-0 ma-0"
-      absolute
-      floating
-      style="height: unset; max-height: unset;"
 
 
   >
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
-    <div
-        class="d-flex align-start"
-        ref="navDrawerWrapper"
-    >
-      <div @click="filterTypeKey ? filterTypeKey = null: null">
 
 
         <v-card
-            :color="'#fff'"
-            light
             flat
+            color="transparent"
             :width="filterTypesListWidth"
             tile
-            style="margin-right: 5px;"
-
         >
             <div class="d-flex align-center py-2 pl-1 pr-3 mt-2 mb-5">
               <v-btn
@@ -117,7 +106,6 @@
 
         </v-card>
 
-      </div>
         <facet-zoom
             :filter-type-key="filterTypeKey"
             @close="setFilterTypeKey(null)"
@@ -125,7 +113,6 @@
         />
 
 
-    </div>
   </v-navigation-drawer>
 </template>
 
@@ -224,8 +211,8 @@ export default {
       return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
     },
     width() {
-      if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth + 20
-      else return this.filterTypesListWidth + 20
+      if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
+      else return this.filterTypesListWidth
     },
     filterTypeSearchResults() {
       const ret = this.searchFacetConfigs

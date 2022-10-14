@@ -60,7 +60,6 @@
         <v-list dense>
           <v-list-item
               @click="toggleFiltersDrawer"
-              :disabled="$vuetify.breakpoint.mobile"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-outline</v-icon>
@@ -72,9 +71,9 @@
               <v-list-item-title v-else>
                 Filter results
               </v-list-item-title>
-              <v-list-item-subtitle class="grey--text" v-if="$vuetify.breakpoint.mobile">
-                (Desktop-only for now)
-              </v-list-item-subtitle>
+<!--              <v-list-item-subtitle class="grey&#45;&#45;text" v-if="$vuetify.breakpoint.mobile">-->
+<!--                (Desktop-only for now)-->
+<!--              </v-list-item-subtitle>-->
             </v-list-item-content>
           </v-list-item>
 
