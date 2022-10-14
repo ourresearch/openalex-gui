@@ -3,24 +3,17 @@
   <v-list-group
       :value="isExpanded"
       color="#333"
-      append-icon="$expand"
+      append-icon=""
       multiple
   >
     <template v-slot:activator>
       <v-list-item-title
       >
+        <v-icon class="expand-indicator">mdi-chevron-down</v-icon>
 
         {{ config.displayName }}
 
         <!--      <v-list-item-action>-->
-        <!--        <v-chip-->
-        <!--            color="green "-->
-        <!--            v-if="showCollapsed"-->
-        <!--            dark-->
-        <!--            x-small-->
-        <!--            outlined-->
-        <!--            class="mr-1 count-chip my-0"-->
-        <!--        >-->
         <!--          {{ myResultsFilters.length }}-->
         <!--        </v-chip>-->
         <!--        &lt;!&ndash;          <span class="body-2 grey&#45;&#45;text font-weight-bold">&ndash;&gt;-->
@@ -28,7 +21,19 @@
         <!--        &lt;!&ndash;          </span>&ndash;&gt;-->
         <!--      </v-list-item-action>-->
 
+
       </v-list-item-title>
+      <v-list-item-action>
+        <v-chip
+            color="green "
+            dark
+            x-small
+            class="mr-1 px-2 count-chip my-0"
+            v-if="myResultsFilters.length > 0"
+        >
+          {{ myResultsFilters.length }}
+        </v-chip>
+      </v-list-item-action>
 
     </template>
 
@@ -40,12 +45,13 @@
             v-for="liveFilter in filtersToShow"
             :filter="liveFilter"
             :key="liveFilter.asStr"
-            class="ml-3 mr-2"
+            class="ml-6"
 
             @click-checkbox="clickCheckbox"
 
         />
-        <v-list-item v-if="thereAreMoreResults" key="more-button">
+      </v-slide-y-transition>
+        <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
           <v-list-item-icon>
             <v-icon>mdi-plus</v-icon>
           </v-list-item-icon>
@@ -53,7 +59,6 @@
             More
           </v-list-item-content>
         </v-list-item>
-      </v-slide-y-transition>
 
 
     </v-list>
@@ -131,11 +136,11 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
-    thereAreMoreResults(){
+    thereAreMoreResults() {
       return this.apiFiltersToShow.length > this.slicedApiFiltersToShow.length
     },
 
-    apiFiltersToShow(){
+    apiFiltersToShow() {
       const resultsFilterStrings = this.myResultsFilters.map(f => f.asStr)
       return this.filtersFromApi
           .filter(f => {
@@ -143,10 +148,10 @@ export default {
           })
           .filter(f => f.value !== "unknown")
     },
-    slicedApiFiltersToShow(){
+    slicedApiFiltersToShow() {
       const maxFiltersFromApiToShow = Math.max(
           0,
-          (this.maxOptionsToShow  ) - this.myResultsFilters.length
+          (this.maxOptionsToShow) - this.myResultsFilters.length
       )
       console.log("maxFiltersFromApiToShow", maxFiltersFromApiToShow)
       return this.apiFiltersToShow.slice(0, maxFiltersFromApiToShow)
@@ -244,10 +249,20 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .v-list-group--active > .v-list-group__header > .v-list-group__header__prepend-icon .v-icon {
-  transform: rotate(-180deg);
+}
+
+.v-list-group--active {
+  .expand-indicator {
+    transform: rotate(-180deg);
+
+  }
+}
+
+.v-list-group--active > .v-list-group__header {
+  font-weight: bold;
 }
 
 //.filter-type-list-item {

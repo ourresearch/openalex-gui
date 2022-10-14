@@ -1,7 +1,6 @@
 <template>
   <v-list-item
-      class=" my-0 filter-list-item align-start"
-      @click.stop="click($event)"
+      class=" my-0 filter-list-item align-start pt-2"
       :ripple="false"
   >
 
@@ -17,30 +16,33 @@
     <!--        <v-icon v-else small style="opacity: .5">mdi-plus</v-icon>-->
     <!--      </v-btn>-->
 
-    <v-list-item-icon class="icon-area">
+    <div class="icon-area mr-1">
       <v-progress-circular
           v-if="isLoading"
           size="20"
           width="5"
           indeterminate
-          class=""
+          style="margin: 4px 12px 0 0;"
       >
       </v-progress-circular>
 
-      <v-progress-circular
+
+
+      <v-simple-checkbox
           v-else
-          size="20"
-          width="7"
-          rotate="-90"
-          style="margin: 0; opacity: .9;"
-          :value="filter.countPercent"
-          :color="isSelected ? 'green' : '#555'"
+
+          :value="isSelected"
+          read-only
+          @click="click($event)"
+          :color="isSelected ? 'green' : ''"
+          class="ma-0 pa-0"
       >
-      </v-progress-circular>
+
+      </v-simple-checkbox>
 
 
-    </v-list-item-icon>
-    <v-list-item-content>
+    </div>
+    <div>
       <div
           class="body-1 "
           style="line-height: 1.5;"
@@ -65,9 +67,18 @@
       <div v-if="!hideNumber"
            class="body-2 grey--text"
       >
+<!--        <v-progress-circular-->
+<!--          size="12"-->
+<!--          width="3"-->
+<!--          rotate="-90"-->
+<!--          style="margin: 0; opacity: .9;"-->
+<!--          :value="filter.countPercent"-->
+<!--          :color="'#555'"-->
+<!--      >-->
+<!--      </v-progress-circular>-->
         {{ filter.count.toLocaleString() }}
       </div>
-    </v-list-item-content>
+    </div>
 <!--    <v-list-item-action v-if="!hideNumber" class="justify-end">-->
 <!--      <v-list-item-action-text class="">-->
 <!--        {{ filter.count.toLocaleString() }}-->
