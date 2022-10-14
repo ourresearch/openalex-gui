@@ -4,7 +4,7 @@
       :input-value="isSelected"
       @[eventHandlerName].stop="click($event)"
       :dark="isSelected"
-      color="green"
+      color="green lighten-1"
   >
 
     <div v-if="!hideCheckbox" class="icon-area mr-1">
@@ -24,7 +24,7 @@
           :value="isSelected"
           read-only
           @click="click($event)"
-          :color="isSelected ? 'green' : ''"
+          :color="isSelected ? 'green lighten-1' : ''"
           class="ma-0 pa-0"
           v-ripple
       >
@@ -50,6 +50,7 @@
 <!--        </router-link>-->
         <span
             :class="{'green--text': isSelected}"
+            class="text--lighten-1"
             v-html="prettyDisplayName"
         >
         </span>

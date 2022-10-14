@@ -1,15 +1,11 @@
 <template>
-  <v-dialog
-    v-model="isOpen"
-    width="300px"
-    attach="#serp-app-inside"
-    overlay-opacity="0.1"
-  >
+
 
     <v-card
         v-if="filterTypeKey "
         :loading="isLoading"
         height="98vh"
+        dark
     >
       <div class="text-h6 font-weight-light pt-3 pb-2 px-1 pl-2 d-flex align-center"
            style="background-color: rgba(0,0,0,.05)">
@@ -96,7 +92,6 @@
 
     </v-card>
 
-  </v-dialog>
 
 
 </template>
@@ -159,14 +154,14 @@ export default {
       "entityZoomHistoryData",
       "showFiltersDrawer",
     ]),
-    isOpen: {
-      get(){
-        return !!this.filterTypeKey
-      },
-      set(newVal){
-        if (!newVal) this.$emit("close")
-      }
-    },
+    // isOpen: {
+    //   get(){
+    //     return !!this.filterTypeKey
+    //   },
+    //   set(newVal){
+    //     if (!newVal) this.$emit("close")
+    //   }
+    // },
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.filterTypeKey)
     },

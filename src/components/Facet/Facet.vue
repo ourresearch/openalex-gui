@@ -2,14 +2,14 @@
 
   <v-list-group
       :value="isExpanded"
-      color="#333"
+      color="#fff"
       append-icon=""
       multiple
   >
     <template v-slot:activator>
       <v-list-item-title
       >
-        <v-icon class="expand-indicator">mdi-chevron-down</v-icon>
+<!--        <v-icon class="expand-indicator" style="opacity: .1;">mdi-chevron-down</v-icon>-->
 
         {{ config.displayName }}
 
@@ -23,10 +23,10 @@
 
 
       </v-list-item-title>
-      <v-list-item-action class="justify-center">
+      <v-list-item-action style="min-width: unset;">
         <v-chip
             outlined
-            x-small
+            small
             class="mr-1 px-2 count-chip my-0"
             v-if="myResultsFilters.length > 0"
         >
@@ -218,7 +218,6 @@ export default {
     },
 
     async fetchFilters() {
-      console.log("fetch filters: ", this.facetKey)
 
       if (!this.config) return
       if (this.config.noOptions) return

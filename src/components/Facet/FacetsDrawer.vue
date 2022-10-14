@@ -6,9 +6,10 @@
       :width="width"
       v-model="isOpen"
       :mini-variant.sync="isMini"
-      color="#fafafa"
       class="pa-0 ma-0"
       id="facets-drawer"
+      dark
+      disable-route-watcher
 
 
   >
@@ -28,12 +29,13 @@
                   class="ml-1"
                   @click="topListItemClick"
                   :disabled="!!filterTypeKey"
-                  :color="isMini ? 'primary' : null"
+                  :color="isMini ? 'green lighten-1' : null"
               >
-                <v-icon medium class="">mdi-filter-outline</v-icon>
+                <v-icon medium color="">mdi-filter-outline</v-icon>
                   <span
                       v-if="resultsFilters.length"
-                      style="font-size: 10px; margin: 20px 0 0 -5px;"
+                      class=""
+                      style="font-size: 12px; margin: 20px 0 0 -5px;"
                   >
                   {{ resultsFilters.length }}
                 </span>
@@ -107,11 +109,17 @@
 
         </v-card>
 
+    <v-dialog
+        v-model="showFacetZoomDialog"
+        fullscreen
+    >
         <facet-zoom
             :filter-type-key="filterTypeKey"
             @close="setFilterTypeKey(null)"
             :width="filtersListWidth"
         />
+    </v-dialog>
+
 
 
   </v-navigation-drawer>
@@ -204,16 +212,22 @@ export default {
       },
       set(val) {
         if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
+        console.log("facetsDrawer.isOpen.set()", val)
         this.$store.state.showFiltersDrawer = val
       },
     },
-    drawerColor() {
-      if (this.isMini) return "transparent"
-      return (this.filterTypeKey) ? this.backgroundColors.dark : this.backgroundColors.medium
+    showFacetZoomDialog: {
+      get(){
+        return this.$vuetify.breakpoint.mobile && this.filterTypeKey
+      },
+      set(newVal){
+        if (!newVal) this.filterTypeKey = null
+      }
     },
     width() {
-      if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
-      else return this.filterTypesListWidth
+       return this.filterTypesListWidth
+      // if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
+      // else return this.filterTypesListWidth
     },
     filterTypeSearchResults() {
       const ret = this.searchFacetConfigs
