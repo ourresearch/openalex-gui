@@ -1,135 +1,102 @@
 <template>
-  <v-card
-      color="#fff"
-      light
-      elevation="3"
-      :width="width"
-      v-if="filterTypeKey "
-      class="mt-2"
-      style="min-height: 97vh;"
-      :loading="isLoading"
+  <v-dialog
+    v-model="isOpen"
+    width="300px"
+    attach="#serp-app-inside"
+    overlay-opacity="0.1"
   >
-    <div class="text-h6 font-weight-light pt-3 pb-2 px-1 pl-2 d-flex align-center" style="background-color: rgba(0,0,0,.05)">
-      <!--      <v-btn icon @click="$emit('close')">-->
-      <v-btn icon @click="$emit('close')" class="mr-2">
-        <v-icon class="">mdi-chevron-left</v-icon>
-      </v-btn>
-      <!--      </v-btn>-->
-      <div>v-list-group__header__append-icon
+
+    <v-card
+        v-if="filterTypeKey "
+        :loading="isLoading"
+        height="98vh"
+    >
+      <div class="text-h6 font-weight-light pt-3 pb-2 px-1 pl-2 d-flex align-center"
+           style="background-color: rgba(0,0,0,.05)">
+        <!--      <v-btn icon @click="$emit('close')">-->
+        <v-btn icon @click="$emit('close')" class="mr-2">
+          <v-icon class="">mdi-chevron-left</v-icon>
+        </v-btn>
+        <!--      </v-btn>-->
         <div>
-          <div class="">Edit filter</div>
+          <div>
+            <div class="">Edit filter</div>
+          </div>
+          <!--          {{ myFacetConfig.displayName }}-->
+
         </div>
-<!--          {{ myFacetConfig.displayName }}-->
+        <v-spacer/>
+
+        <!--      <v-btn icon @click="$emit('close')">-->
+        <!--        <v-icon class="mr-1">mdi-close</v-icon>-->
+        <!--      </v-btn>-->
+
+        <!--      <v-menu-->
+        <!--      >-->
+        <!--        <template v-slot:activator="{on}">-->
+        <!--          <v-btn icon v-on="on">-->
+        <!--            <v-icon>mdi-dots-vertical</v-icon>-->
+        <!--          </v-btn>-->
+        <!--        </template>-->
+        <!--        <v-list dark dense color="#555">-->
+        <!--          <v-list-item @click="">-->
+        <!--            <v-list-item-icon>-->
+        <!--              <v-icon>mdi-table</v-icon>-->
+        <!--            </v-list-item-icon>-->
+        <!--            <v-list-item-title>-->
+        <!--              Export spreadsheet-->
+        <!--            </v-list-item-title>-->
+        <!--          </v-list-item>-->
+        <!--          <v-list-item @click="">-->
+        <!--            <v-list-item-icon>-->
+        <!--              <v-icon>mdi-code-json</v-icon>-->
+        <!--            </v-list-item-icon>-->
+        <!--            <v-list-item-title>-->
+        <!--              Export API call-->
+        <!--            </v-list-item-title>-->
+        <!--          </v-list-item>-->
+        <!--        </v-list>-->
+        <!--      </v-menu>-->
+
 
       </div>
-      <v-spacer/>
 
-<!--      <v-btn icon @click="$emit('close')">-->
-<!--        <v-icon class="mr-1">mdi-close</v-icon>-->
-<!--      </v-btn>-->
+      <div>
+            <v-text-field
+                flat
+                dense
+                hide-details
+                solo
+                full-width
+                class="mt-0"
+                clearable
+                prepend-inner-icon="mdi-magnify"
+                autofocus
 
-      <!--      <v-menu-->
-      <!--      >-->
-      <!--        <template v-slot:activator="{on}">-->
-      <!--          <v-btn icon v-on="on">-->
-      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
-      <!--          </v-btn>-->
-      <!--        </template>-->
-      <!--        <v-list dark dense color="#555">-->
-      <!--          <v-list-item @click="">-->
-      <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-table</v-icon>-->
-      <!--            </v-list-item-icon>-->
-      <!--            <v-list-item-title>-->
-      <!--              Export spreadsheet-->
-      <!--            </v-list-item-title>-->
-      <!--          </v-list-item>-->
-      <!--          <v-list-item @click="">-->
-      <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-code-json</v-icon>-->
-      <!--            </v-list-item-icon>-->
-      <!--            <v-list-item-title>-->
-      <!--              Export API call-->
-      <!--            </v-list-item-title>-->
-      <!--          </v-list-item>-->
-      <!--        </v-list>-->
-      <!--      </v-menu>-->
+                v-model="search"
+                :placeholder="searchPlaceholder"
+            />
+        <v-list
+        >
 
-
-    </div>
-
-
-    <v-tabs
-        background-color="rgba(0,0,0,.05)"
-        v-model="tab"
-        :show-arrows="false"
-        v-if="isExpanded"
-    >
-      <v-tab key="0">
-        {{ myFacetConfig.isBoolean ? 'Options' : 'Top' }}
-      </v-tab>
-      <v-tab key="1" v-if="!myFacetConfig.isBoolean && !myFacetConfig.isRangeable">
-        Search
-      </v-tab>
-      <v-tab key="2" v-if="myFacetConfig.isRangeable">
-        Range
-      </v-tab>
-    </v-tabs>
-    <v-tabs-items
-        v-model="tab"
-        class="pt-0"
-
-    >
-      <v-tab-item key="0" class="pt-4 ">
-        <v-list dense>
           <facet-option
+              class=""
               v-for="f in filtersToShow"
               :filter="f"
               :key="f.asStr"
-              :disable-on-selection="true"
-              @click-checkbox="clickCheckbox"
+              hide-checkbox
+
           />
         </v-list>
-      </v-tab-item>
 
-      <v-tab-item key="1" v-if="!myFacetConfig.isBoolean && !myFacetConfig.isRangeable">
-        <div
-            style="background-color: rgba(0,0,0,.05);"
-            class=" py-2"
-        >
-          <v-text-field
-              flat
-              dense
-              hide-details
-              solo
-              full-width
-              class="mt-0"
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              autofocus
-
-              v-model="search"
-              :placeholder="searchPlaceholder"
-          />
-        </div>
-        <facet-option
-            class=""
-            v-for="f in filtersToShow"
-            :filter="f"
-            :key="f.asStr"
-            :disable-on-selection="true"
-            @click-checkbox="clickCheckbox"
-        />
-        <div v-if="!search" class="pa-3 grey--text">Search within the filtered results set.</div>
-
-      </v-tab-item>
-      <v-tab-item key="2" v-if="myFacetConfig.isRangeable">
-        <v-card flat>tab 3</v-card>
-      </v-tab-item>
-    </v-tabs-items>
+      </div>
 
 
-  </v-card>
+
+
+    </v-card>
+
+  </v-dialog>
 
 
 </template>
@@ -192,7 +159,14 @@ export default {
       "entityZoomHistoryData",
       "showFiltersDrawer",
     ]),
-
+    isOpen: {
+      get(){
+        return !!this.filterTypeKey
+      },
+      set(newVal){
+        if (!newVal) this.$emit("close")
+      }
+    },
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.filterTypeKey)
     },
@@ -240,17 +214,20 @@ export default {
     fetchFilters: _.debounce(
         async function () {
           if (!this.myFacetConfig) return
-          if (this.tab===1 && !this.search) {
-            this.filtersFromApi = []
-            return
-          }
+          // if (!this.search) {
+          //   this.filtersFromApi = []
+          //   return
+          // }
           this.isLoading = "primary"
 
           const resp = await api.getUrl(this.apiUrl)
-          const filters = resp.filters.slice(0,10)
+          // if (!this.myFacetConfig) return
+
+
+          const filters = resp.filters.slice(0, 10)
           const worksCounts = filters.map(f => f.works_count)
-          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a+ b)
-          console.log("work counts" , worksCounts, sumOfAllWorksCounts)
+          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b)
+          console.log("work counts", worksCounts, sumOfAllWorksCounts)
           this.filtersTotalCount = sumOfAllWorksCounts
 
           this.filtersFromApi = filters.map(apiData => {

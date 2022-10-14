@@ -1,7 +1,9 @@
 <template>
 
 
-  <v-app>
+  <v-app id="serp-app">
+    <div id="serp-app-inside">
+
     <v-app-bar
         app
         color="white"
@@ -152,6 +154,7 @@
         </v-btn>
       </template>
     </v-snackbar>
+      </div>
   </v-app>
 
 
@@ -328,7 +331,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+
+#serp-app-inside {
+  .v-dialog__content {
+    //justify-content: left;
+    //margin-left: 310px;
+  }
+}
+
 
 .v-app-bar.mobile {
   padding: 0 !important;

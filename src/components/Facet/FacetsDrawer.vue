@@ -8,6 +8,7 @@
       :mini-variant.sync="isMini"
       color="#fafafa"
       class="pa-0 ma-0"
+      id="facets-drawer"
 
 
   >

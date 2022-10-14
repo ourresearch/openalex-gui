@@ -1,9 +1,13 @@
 <template>
   <v-list-item
       class=" my-0 filter-list-item align-start pt-2"
+      :input-value="isSelected"
+      @[eventHandlerName].stop="click($event)"
+      :dark="isSelected"
+      color="green"
   >
 
-    <div class="icon-area mr-1">
+    <div v-if="!hideCheckbox" class="icon-area mr-1">
       <v-progress-circular
           v-if="isLoading"
           size="20"
@@ -94,8 +98,7 @@ export default {
     // required
     filter: Object,
 
-    iconCheck: Boolean,
-    disableOnSelection: Boolean,
+    hideCheckbox: Boolean,
 
     disabled: Boolean,
     colorful: Boolean,
@@ -129,8 +132,8 @@ export default {
     myColor() {
 
     },
-    mainEventHandler() {
-      return (this.disableOnSelection) ? "click" : null
+    eventHandlerName() {
+      return (this.hideCheckbox) ? "click" : null
     },
     isLoading() {
       return this.isClickedAndWaiting && this.searchIsLoading
@@ -219,9 +222,10 @@ export default {
     //padding: 0 !important;
   }
 
-  &.has-focus {
-    background-color: #3d3d3d !important;
-  }
+}
+
+.v-list .v-list-item--active {
+  //background: green;
 }
 
 a.hover-underline {

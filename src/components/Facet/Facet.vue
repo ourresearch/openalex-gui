@@ -51,8 +51,15 @@
         />
       </v-slide-y-transition>
         <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
-          <v-btn>
+          <v-btn
+              small
+              class="ml-7"
+              text
+              @click.stop="$emit('toggle-select')"
+          >
+<!--            <v-icon left>mdi-plus</v-icon>-->
             more
+            <v-icon right>mdi-chevron-right</v-icon>
           </v-btn>
 <!--          <v-list-item-icon>-->
 <!--            <v-icon>mdi-plus</v-icon>-->
@@ -155,7 +162,6 @@ export default {
           0,
           (this.maxOptionsToShow) - this.myResultsFilters.length
       )
-      console.log("maxFiltersFromApiToShow", maxFiltersFromApiToShow)
       return this.apiFiltersToShow.slice(0, maxFiltersFromApiToShow)
     },
 
