@@ -13,8 +13,9 @@
         prepend-inner-icon="mdi-magnify"
         id="main-search"
         style="width: 100%;"
-        dense
+        :dense="!isAloneOnPage"
         :rounded="!$vuetify.breakpoint.mobile"
+        :color="color"
 
         v-model="select"
         :items="items"
@@ -154,6 +155,10 @@ export default {
     isAloneOnPage: {
       type: Boolean,
       default: false,
+    },
+    color: {
+      type: String,
+      default: "primary",
     }
   },
   components: {

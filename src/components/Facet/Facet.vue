@@ -55,7 +55,7 @@
               small
               class="ml-7"
               text
-              @click.stop="$emit('toggle-select')"
+              @click.stop="setFacetZoom(facetKey)"
           >
 <!--            <v-icon left>mdi-plus</v-icon>-->
             more
@@ -115,6 +115,7 @@ export default {
       "searchApiUrl",
       "resultsFilters",
       "entityType",
+      "facetZoom",
     ]),
     cardEventHandlerName() {
       return this.showCollapsed ? `click` : null
@@ -187,6 +188,7 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
+      "setFacetZoom",
     ]),
     ...mapActions([
       "removeInputFilters",

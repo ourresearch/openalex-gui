@@ -1,13 +1,12 @@
 <template>
   <v-list-item
-      class=" my-0 filter-list-item align-start pt-2"
+      class=" my-0 filter-list-item align-start pt-0"
       :input-value="isSelected"
       @[eventHandlerName].stop="click($event)"
-      :dark="isSelected"
-      color="green lighten-1"
+      color="green lighten-2"
   >
 
-    <div v-if="!hideCheckbox" class="icon-area mr-1">
+    <div class="icon-area mr-1 mt-2">
       <v-progress-circular
           v-if="isLoading"
           size="20"
@@ -17,8 +16,17 @@
       >
       </v-progress-circular>
 
+      <template v-else>
 
-
+        <v-progress-circular
+            v-if="hideCheckbox"
+          size="20"
+          width="7"
+          rotate="-90"
+          style="margin: 0px 12px 0 0; opacity: .9"
+          :value="filter.countPercent"
+          :color="isSelected ? 'green lighten-1' : ''"
+      />
       <v-simple-checkbox
           v-else
           :value="isSelected"
@@ -27,29 +35,22 @@
           :color="isSelected ? 'green lighten-1' : ''"
           class="ma-0 pa-0"
           v-ripple
-      >
+      />
+      </template>
 
-      </v-simple-checkbox>
+
 
 
     </div>
     <div>
       <div
-          class="body-1 "
+          class="body-1 mt-2"
           style="line-height: 1.5;"
           :class="{'font-weight-bold': isSelected}"
       >
-<!--        <router-link-->
-<!--            v-if="filter.isEntity"-->
-<!--            :to="filter.value | entityZoomLink"-->
-<!--            class="hover-underline"-->
-<!--            style="color: #333;"-->
-<!--            :class="{'green&#45;&#45;text': isSelected && colorful}"-->
-<!--            v-html="prettyDisplayName"-->
-<!--        >-->
-<!--        </router-link>-->
+
         <span
-            :class="{'green--text': isSelected}"
+            :class="{'white--text': isSelected && hideCheckbox}"
             class="text--lighten-1"
             v-html="prettyDisplayName"
         >
@@ -59,25 +60,26 @@
       <div v-if="!hideNumber"
            class="body-2 grey--text"
       >
-<!--        <v-progress-circular-->
-<!--          size="12"-->
-<!--          width="3"-->
-<!--          rotate="-90"-->
-<!--          style="margin: 0; opacity: .9;"-->
-<!--          :value="filter.countPercent"-->
-<!--          :color="'#555'"-->
-<!--      >-->
-<!--      </v-progress-circular>-->
+
         {{ filter.count.toLocaleString() }}
       </div>
     </div>
-<!--    <v-list-item-action v-if="!hideNumber" class="justify-end">-->
-<!--      <v-list-item-action-text class="">-->
-<!--        {{ filter.count.toLocaleString() }}-->
+    <v-spacer />
+    <div >
+      <v-btn
+            v-if="filter.isEntity"
+            :to="filter.value | entityZoomLink"
+            icon
+            :class="{'green--text': isSelected && colorful}"
+            class=""
+            style="opacity: .8;"
 
-<!--      </v-list-item-action-text>-->
+        >
+<!--          <v-icon>mdi-dots-horizontal</v-icon>-->
+          <v-icon small>mdi-open-in-app</v-icon>
+        </v-btn>
 
-<!--    </v-list-item-action>-->
+    </div>
 
 
   </v-list-item>

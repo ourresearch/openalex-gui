@@ -29,7 +29,6 @@
                   class="ml-1"
                   @click="topListItemClick"
                   :disabled="!!filterTypeKey"
-                  :color="isMini ? 'green lighten-1' : null"
               >
                 <v-icon medium color="">mdi-filter-outline</v-icon>
                   <span
@@ -100,7 +99,6 @@
                     :key="filterType.key"
                     :facet-key="filterType.key"
                     :has-focus="filterTypeKey === filterType.key"
-                    @toggle-select="toggleFiltersZoom(filterType.key)"
                     :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                 />
             </v-list>
@@ -112,13 +110,13 @@
     <v-dialog
         v-model="showFacetZoomDialog"
         fullscreen
+        dark
     >
-        <facet-zoom
-            :filter-type-key="filterTypeKey"
-            @close="setFilterTypeKey(null)"
-            :width="filtersListWidth"
-        />
+        <facet-zoom />
     </v-dialog>
+
+
+
 
 
 
@@ -195,6 +193,7 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
       "showFiltersDrawer",
+        "facetZoom"
     ]),
     isMini: {
       get() {
@@ -218,15 +217,20 @@ export default {
     },
     showFacetZoomDialog: {
       get(){
-        return this.$vuetify.breakpoint.mobile && this.filterTypeKey
+        return this.$vuetify.breakpoint.mobile && this.facetZoom
       },
       set(newVal){
-        if (!newVal) this.filterTypeKey = null
+        if (!newVal) this.setFacetZoom(null)
       }
+    },
+    showFacetZoomPanel(){
+      return !this.$vuetify.breakpoint.mobile && this.filterTypeKey
     },
     width() {
        return this.filterTypesListWidth
-      // if (this.filterTypeKey) return this.filterTypesListWidth + this.filtersListWidth
+      // if (this.showFacetZoomPanel) {
+      //   return this.filterTypesListWidth + this.filtersListWidth
+      // }
       // else return this.filterTypesListWidth
     },
     filterTypeSearchResults() {
@@ -273,6 +277,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
+        "setFacetZoom",
     ]),
     ...mapActions([]),
     async copyUrlToClipboard() {
@@ -284,16 +289,6 @@ export default {
 
     setFilterTypeKey(filterTypeKey) {
       this.filterTypeKey = filterTypeKey
-    },
-    toggleFiltersZoom(filterTypeKey) {
-      if (this.filterTypeKey === filterTypeKey) {
-        this.filterTypeKey = null
-      }
-      else {
-        this.filterTypeKey = filterTypeKey
-        this.$vuetify.goTo(0)
-      }
-
     },
     topListItemClick() {
       if (this.isMini) return
@@ -328,12 +323,12 @@ export default {
 </script>
 
 <style lang="scss">
-.entity-zoom-container {
-  //position: absolute;
-  //top: 0;
-  //right: 0;
-  //left: 0;
-  //bottom: 0;
+#facet-zoom-panel {
+  width: 340px;
+  //left: 600px;
+  right: 0;
+  position: fixed !important;
+  top: 10px;
+  bottom: 10px;
 }
-
 </style>

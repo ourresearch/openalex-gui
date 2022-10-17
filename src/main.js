@@ -114,7 +114,23 @@ Vue.filter("addFilterLink", function (newFilter) {
     const filters = filtersFromUrlStr(query.filter)
     filters.push(newFilter)
     query.filter = filtersAsUrlStr(filters)
-    delete query.zoom
+
+    return {
+        name: "Serp",
+        query,
+    }
+
+});
+
+
+Vue.filter("removeFilterLink", function (filterToRemove) {
+    if (!filterToRemove.key) return
+
+    const query = {...router.currentRoute.query}
+    const newFilters = filtersFromUrlStr(query.filter).filter(f=>{
+        return f.asStr !== filterToRemove.asStr
+    })
+    query.filter = filtersAsUrlStr(newFilters)
 
     return {
         name: "Serp",

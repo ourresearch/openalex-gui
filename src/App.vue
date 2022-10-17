@@ -95,7 +95,7 @@ html, body {
 .theme--light.v-list-item--active::before {
   opacity: 0;
 }
-
+$logo-link-height: 42px;
 
 .logo-link {
   text-decoration: none;
@@ -103,7 +103,7 @@ html, body {
   align-items: center;
   //padding-left: 30px;
   .logo-icon {
-    height: 42px;
+    height: $logo-link-height;
     //margin-top: -5px;
   }
 
@@ -118,7 +118,7 @@ html, body {
 
     font-family: Dosis;
     letter-spacing: .03em;
-    font-size: 28px;
+    font-size: $logo-link-height * 0.66666666;
     font-weight: 500;
   }
 }

@@ -38,7 +38,7 @@
 
 
           <v-spacer/>
-          <v-btn icon :to='{name: "Serp", query:{...$route.query}}' class="no-active">
+          <v-btn icon :to='{name: "Serp", query:{...$route.query}}' class="" exact>
             <v-icon>mdi-close</v-icon>
           </v-btn>
 
@@ -124,9 +124,23 @@
           <template v-else>
             <div class="">
               <v-btn
+                  v-if="filterIsApplied"
+                  :to="filterToShowWorks | removeFilterLink"
+                  class=""
+                  color="green"
+                  dark
+                  exact
+              >
+                <v-icon left>mdi-filter-minus-outline</v-icon>
+                remove filter
+              </v-btn>
+              <v-btn
+                  v-else
                   :to="filterToShowWorks | addFilterLink"
                   class=""
-                  color="primary"
+                  color="green"
+                  text
+                  exact
               >
                 <v-icon left>mdi-filter-plus-outline</v-icon>
                 add filter
@@ -255,6 +269,7 @@ export default {
   computed: {
     ...mapGetters([
       "entityZoomHistoryData",
+      "resultsFilters",
     ]),
     zoomIsOpen: {
       get() {
@@ -284,13 +299,21 @@ export default {
         query: newQuery,
       }
     },
+    filterIsApplied(){
+      return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
+    },
     filterToShowWorks() {
       if (this.entityType === "works") return
       return createSimpleFilter(
-          // this isn't right...pick up here.
           this.myEntityConfig.filterKey,
           this.myId,
       )
+    },
+    addWorksFilter(){
+
+    },
+    removeWorksFilter(){
+
     },
     greenUrl() {
       if (this.entityType !== "works") return

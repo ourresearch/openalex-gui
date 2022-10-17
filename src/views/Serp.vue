@@ -4,157 +4,167 @@
   <v-app id="serp-app">
     <div id="serp-app-inside">
 
-    <v-app-bar
-        app
-        color="white"
-        class="pl-0"
-        :class="{mobile: $vuetify.breakpoint.mobile}"
-        absolute
-        flat
-        height="75"
+      <v-app-bar
+          app
+          color="white"
+          class="pl-0"
+          :class="{mobile: $vuetify.breakpoint.mobile}"
+          absolute
+          flat
+          height="75"
 
-    >
-      <div class="d-flex flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill" style="max-width: 780px;">
-          <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-0">
-            <img
-                src="@/assets/openalex-logo-icon-black-and-white.png"
-                class="logo-icon mr-0 colorizable"
-                :style="logoStyle"
-            />
-            <span
-                class="logo-text colorizable"
-                v-if="!filterTypeKey"
-                :style="logoStyle"
-            >
+      >
+        <div class="d-flex flex-fill justify-space-between align-center">
+          <div class="d-flex flex-fill" style="max-width: 780px;">
+            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-0">
+              <img
+                  src="@/assets/openalex-logo-icon-black-and-white.png"
+                  class="logo-icon mr-0 colorizable"
+                  :style="logoStyle"
+              />
+              <span
+                  class="logo-text colorizable"
+                  v-if="!filterTypeKey"
+                  :style="logoStyle"
+              >
                 OpenAlex
               </span>
-          </router-link>
-<!--          {{ logoColorRotation }}-->
-          <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>
-        </div>
+            </router-link>
+            <!--          {{ logoColorRotation }}-->
+            <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>
+          </div>
 
-        <div class="">
-          <v-menu offset-y content-class="no-highlight" min-width="150">
-            <template v-slot:activator="{on}">
-              <v-btn icon color="" v-on="on">
-                <v-icon class="">mdi-menu</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item to="/">Home</v-list-item>
-              <v-list-item href="/about">
-                About
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </div>
-      </div>
-    </v-app-bar>
-
-    <facets-drawer @filter-type-key="setFilterTypeKey" />
-
-
-    <v-main>
-
-      <router-view></router-view>
-      <search-box class="px-3 mt-3 flex-fill d-md-none"/>
-      <div
-          class="serp-container pt-12 pl-4"
-          :class="{mobile: $vuetify.breakpoint.mobile}"
-           style="max-width: 800px;"
-      >
-
-
-        <div class="search-results-meta pl-3"
-        >
-          <serp-toolbar
-          />
-          <v-divider/>
-        </div>
-
-
-        <div class="search-results">
-          <div
-              v-for="result in $store.state.results"
-              class="result-container my-4"
-              :key="result.id"
-          >
-            <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
-            <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-            <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
-            <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
-            <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+          <div class="">
+            <v-menu offset-y content-class="no-highlight" min-width="150">
+              <template v-slot:activator="{on}">
+                <v-btn icon color="" v-on="on">
+                  <v-icon class="">mdi-menu</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item to="/">Home</v-list-item>
+                <v-list-item href="/about">
+                  About
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </div>
-        <div class="serp-bottom" v-if="$store.state.results.length">
-          <v-pagination
-              v-model="page"
-              :length="numPages"
-              :total-visible="10"
-              light
-          />
-        </div>
-      </div>
+      </v-app-bar>
 
-
-    </v-main>
-
-
-    <v-footer
-        class="py-10 site-footer"
-        style="margin-top: 150px;"
-        :style="{paddingRight: 0}"
+      <facets-drawer @filter-type-key="setFilterTypeKey"/>
+      <v-navigation-drawer
+        :value="!!facetZoom && !$vuetify.breakpoint.mobile"
+        right
+        app
         dark
-        color="#555"
-        v-if="!searchIsLoading"
-    >
-      <v-container>
-        <v-row>
-          <v-col cols="12" sm="4">
-            <div>
-              <router-link to="/">Home</router-link>
-            </div>
-            <div>
-              <a href="/about">
-                About
-              </a>
-            </div>
-          </v-col>
-          <v-col cols="12" sm="4" class="text-center">
-            <router-link to="/">
-              <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
-            </router-link>
-          </v-col>
-          <v-col cols="12" sm="4" class="body-2">
-            OurResearch is supported in part by <a
-              style="text-decoration: underline;"
-              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
-            charitable fund of Lisbet Rausing and Peter Baldwin</a>.
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-footer>
+        width="300px"
+
+      >
+        <facet-zoom />
+      </v-navigation-drawer>
 
 
-    <v-snackbar
-        bottom
-        v-model="$store.state.snackbarIsOpen"
-    >
-      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon}}</v-icon>
-      {{ $store.state.snackbarMsg }}
+      <v-main>
 
-      <template v-slot:action="{ attrs }">
-        <v-btn
-            icon
-            v-bind="attrs"
-            @click="$store.commit('closeSnackbar')"
+        <router-view></router-view>
+        <search-box class="px-3 mt-3 flex-fill d-md-none"/>
+        <div
+            class="serp-container pt-12 pl-4"
+            :class="{mobile: $vuetify.breakpoint.mobile}"
+            style="max-width: 800px;"
         >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </template>
-    </v-snackbar>
-      </div>
+
+
+          <div class="search-results-meta pl-3"
+          >
+            <serp-toolbar
+            />
+            <v-divider/>
+          </div>
+
+
+          <div class="search-results">
+            <div
+                v-for="result in $store.state.results"
+                class="result-container my-4"
+                :key="result.id"
+            >
+              <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
+              <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
+              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+              <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
+              <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
+            </div>
+          </div>
+          <div class="serp-bottom" v-if="$store.state.results.length">
+            <v-pagination
+                v-model="page"
+                :length="numPages"
+                :total-visible="10"
+                light
+            />
+          </div>
+        </div>
+
+
+      </v-main>
+
+
+      <v-footer
+          class="py-10 site-footer"
+          style="margin-top: 150px;"
+          :style="{paddingRight: 0}"
+          dark
+          color="#555"
+          v-if="!searchIsLoading"
+      >
+        <v-container>
+          <v-row>
+            <v-col cols="12" sm="4">
+              <div>
+                <router-link to="/">Home</router-link>
+              </div>
+              <div>
+                <a href="/about">
+                  About
+                </a>
+              </div>
+            </v-col>
+            <v-col cols="12" sm="4" class="text-center">
+              <router-link to="/">
+                <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
+              </router-link>
+            </v-col>
+            <v-col cols="12" sm="4" class="body-2">
+              OurResearch is supported in part by <a
+                style="text-decoration: underline;"
+                href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
+              charitable fund of Lisbet Rausing and Peter Baldwin</a>.
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-footer>
+
+
+      <v-snackbar
+          bottom
+          v-model="$store.state.snackbarIsOpen"
+      >
+        <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+        {{ $store.state.snackbarMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+              icon
+              v-bind="attrs"
+              @click="$store.commit('closeSnackbar')"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </div>
   </v-app>
 
 
@@ -183,6 +193,7 @@ import Zoom from "../components/Zoom/Zoom";
 import FacetsDrawer from "../components/Facet/FacetsDrawer";
 import axios from "axios";
 import ZoomEntity from "../components/Zoom/ZoomEntity";
+import FacetZoom from "../components/Facet/FacetZoom";
 
 export default {
   name: "Serp",
@@ -203,6 +214,7 @@ export default {
     ResultConcept,
     Zoom,
     FacetsDrawer,
+    FacetZoom
 
   },
   props: {},
@@ -233,7 +245,8 @@ export default {
       "inputFiltersAsString",
       "entityZoomData",
       "searchIsLoading",
-        "showFiltersDrawer",
+      "showFiltersDrawer",
+      "facetZoom"
     ]),
     page: {
       get() {
@@ -262,7 +275,7 @@ export default {
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
     },
-    logoStyle(){
+    logoStyle() {
       return "opacity: .7;"
       return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
     },
@@ -282,13 +295,14 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
-        "toggleFiltersDrawer",
+      "setFacetZoom",
+      "toggleFiltersDrawer",
     ]),
     ...mapActions([
       "updateTextSearch",
       "setEntityZoom",
     ]),
-    setFilterTypeKey(filterTypeKey){
+    setFilterTypeKey(filterTypeKey) {
       this.filterTypeKey = filterTypeKey
     }
   },
@@ -315,9 +329,9 @@ export default {
     },
     logoColorRotation: {
       immediate: true,
-      handler(to, from){
+      handler(to, from) {
         return
-        setTimeout(()=>{
+        setTimeout(() => {
           console.log("chaging logoColorRotation")
           const date = new Date()
           const seconds = date.getSeconds()
@@ -344,8 +358,9 @@ export default {
 .v-app-bar.mobile {
   padding: 0 !important;
 }
+
 .serp-container.mobile {
-  padding:  5px !important;
+  padding: 5px !important;
 }
 
 .serp-container {

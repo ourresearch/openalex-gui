@@ -1,27 +1,27 @@
 <template>
 
-
     <v-card
-        v-if="filterTypeKey "
+        v-if="facetZoom "
         :loading="isLoading"
-        height="98vh"
+        height="100%"
+        tile
         dark
+        color="#363636"
     >
-      <div class="text-h6 font-weight-light pt-3 pb-2 px-1 pl-2 d-flex align-center"
-           style="background-color: rgba(0,0,0,.05)">
+      <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
         <!--      <v-btn icon @click="$emit('close')">-->
-        <v-btn icon @click="$emit('close')" class="mr-2">
-          <v-icon class="">mdi-chevron-left</v-icon>
-        </v-btn>
         <!--      </v-btn>-->
         <div>
-          <div>
-            <div class="">Edit filter</div>
+          <div class="">
+<!--            <div class="">Edit filter</div>-->
+                    {{ myFacetConfig.displayName }}
           </div>
-          <!--          {{ myFacetConfig.displayName }}-->
 
         </div>
         <v-spacer/>
+        <v-btn icon @click="setFacetZoom(null)" class="mr-2">
+          <v-icon class="">mdi-close</v-icon>
+        </v-btn>
 
         <!--      <v-btn icon @click="$emit('close')">-->
         <!--        <v-icon class="mr-1">mdi-close</v-icon>-->
@@ -73,6 +73,8 @@
                 :placeholder="searchPlaceholder"
             />
         <v-list
+            color="transparent"
+            dark
         >
 
           <facet-option
@@ -118,7 +120,6 @@ export default {
     FacetOption,
   },
   props: {
-    filterTypeKey: String,
     width: Number,
   },
   data() {
@@ -153,21 +154,22 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
       "showFiltersDrawer",
+        "facetZoom",
     ]),
     // isOpen: {
     //   get(){
-    //     return !!this.filterTypeKey
+    //     return !!this.facetZoom
     //   },
     //   set(newVal){
     //     if (!newVal) this.$emit("close")
     //   }
     // },
     myFacetConfig() {
-      return facetConfigs().find(c => c.key === this.filterTypeKey)
+      return facetConfigs().find(c => c.key === this.facetZoom)
     },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
-        return f.key === this.filterTypeKey
+        return f.key === this.facetZoom
       })
     },
     searchPlaceholder() {
@@ -179,7 +181,7 @@ export default {
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.filterTypeKey)
+      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetZoom)
       url.searchParams.set("filter", filtersAsUrlStr(myFilters))
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       if (this.myFacetConfig.valuesToShow === "mostCommon") {
@@ -198,6 +200,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
+        "setFacetZoom"
     ]),
     ...mapActions([
       "addInputFilters",
@@ -259,7 +262,7 @@ export default {
         this.search = ""
       }
     },
-    "filterTypeKey": {
+    "facetZoom": {
       handler(newVal, oldVal) {
         // hacky thing for tabs
         this.isExpanded = false

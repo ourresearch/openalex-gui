@@ -109,6 +109,7 @@ const stateDefaults = function () {
         snackbarIcon: null,
 
         showFiltersDrawer: false,
+        facetZoom: null,
 
         // entity stuff
         // entityZoomData: null,
@@ -147,6 +148,10 @@ export default new Vuex.Store({
         },
         toggleFiltersDrawer(state) {
             state.showFiltersDrawer = !state.showFiltersDrawer
+        },
+        setFacetZoom(state, facetKey) {
+            console.log("setFaectzoom", facetKey)
+            state.facetZoom = facetKey
         },
         setEntityType(state, entityType) {
             state.entityType = entityType;
@@ -363,6 +368,7 @@ export default new Vuex.Store({
         },
         entityType(state) { return state.entityType},
         showFiltersDrawer(state) { return state.showFiltersDrawer},
+        facetZoom(state) { return state.facetZoom},
 
         searchIsLoading(state) { return state.isLoading},
         results(state) { return state.results},

@@ -1,50 +1,35 @@
 <template>
-  <div class="home">
+  <v-app>
 
-    <v-container style="min-height: 75vh;" class="d-flex align-center">
-      <v-row>
-        <v-col cols="2" class="hidden-xs-only"></v-col>
+    <v-container fill-height>
+      <v-row style="margin-top: -20vh;">
         <v-col>
-          <v-card flat class="">
-            <div class="text-h5 text-center mb-4">Search scholarly works, people, places, and more</div>
-            <search-box is-alone-on-page />
-            <div class="d-flex justify-center" v-if="0">
-              <v-menu offset-y content-class="no-highlight" min-width="150">
-                <template v-slot:activator="{on}">
-                  <v-btn large v-on="on">
-                    I'm feeling lucky
-                    <v-icon>mdi-menu-down</v-icon>
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-subheader>View a random entity:</v-subheader>
-                  <v-list-item
-                      v-for="(config, k) in entityConfigs"
-                      :to="`/${config.name}/random`"
-                      :key="config.name"
-                      class="text-capitalize"
-                  >
-                    <span class="mr-2">{{config.icon}}</span>
-                    {{config.name}}
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+          <v-row justify="center" class="mb-8">
+            <span class="logo-link">
+              <img
+                  src="@/assets/openalex-logo-icon-black-and-white.png"
+                  class="logo-icon"
+                  :style="logoStyle"
+              />
+              <span
+                  class="logo-text"
+                  :style="logoStyle"
+              >
+                OpenAlex
+              </span>
+            </span>
+          </v-row>
 
-            </div>
-            <div>
-            </div>
-          </v-card>
-
+          <v-row class="mx-1" justify="center">
+            <search-box color="#333" is-alone-on-page style="max-width: 600px;"/>
+          </v-row>
         </v-col>
-        <v-col cols="2" class="hidden-xs-only"></v-col>
-
       </v-row>
 
     </v-container>
 
 
-
-  </div>
+  </v-app>
 
 
 </template>
@@ -57,8 +42,7 @@ import {mapGetters} from "vuex";
 
 export default {
   name: 'home',
-  components: {
-  },
+  components: {},
   metaInfo: {
     title: "OpenAlex GUI",
     titleTemplate: undefined, // have to override this or it'll get the site title template
@@ -67,13 +51,16 @@ export default {
     return {
       results: [],
       entityConfigs,
-
+      logoColorRotation: 0,
 
     }
   },
   computed: {
-    ...mapGetters([
-    ]),
+    ...mapGetters([]),
+    logoStyle() {
+      return "opacity: 0.8"
+      // return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
+    },
   },
   methods: {
     goSearch() {
@@ -85,10 +72,35 @@ export default {
     console.log("mounting the home page")
     this.$store.commit("resetSearch")
   },
+  watch: {
+
+    logoColorRotation: {
+      immediate: true,
+      handler(to, from) {
+        setTimeout(() => {
+          const date = new Date()
+          const seconds = date.getSeconds()
+          const rotation = seconds * 18
+          this.logoColorRotation = rotation
+
+        }, 1000)
+      }
+    },
+  }
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+$logo-link-height: 90px;
+.logo-link {
+  .logo-icon {
+    height: $logo-link-height;
+  }
+
+  .logo-text {
+    font-size: $logo-link-height * 0.75;
+  }
+}
 
 .above-the-fold {
   /*background: linear-gradient(0deg, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100%);*/
