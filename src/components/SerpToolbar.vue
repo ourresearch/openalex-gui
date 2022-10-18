@@ -190,7 +190,7 @@
       <v-card :loading="exportIsLoading">
         <v-card-title class="d-flex">
           <div>
-            <v-icon left>mdi-download-outline</v-icon>
+            <v-icon left>mdi-tray-arrow-down</v-icon>
             Export results as spreadsheet
           </div>
           <v-spacer></v-spacer>

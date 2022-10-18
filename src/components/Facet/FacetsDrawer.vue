@@ -22,7 +22,11 @@
             :width="filterTypesListWidth"
             tile
         >
-            <div class="d-flex align-center py-2 pl-1 pr-3 mt-2 mb-5">
+            <div
+                class="d-flex align-center pl-1 pr-3"
+                style="height: 75px;"
+                :class="{'elevation-3': !isMini}"
+            >
               <v-btn
                   icon
                   large
@@ -81,10 +85,6 @@
 
 
 
-          <div
-              v-if="!isMini"
-
-          >
 
             <!--      List of filter types  -->
             <!--      *****************************************************************-->
@@ -92,7 +92,8 @@
                 class="pt-0"
                 nav
                 expand
-                style="height: 90vh; overflow-y: scroll;"
+                style="height: calc(100vh - 75px); overflow-y: scroll;"
+                v-if="!isMini"
             >
                 <facet
                     v-for="filterType in filterTypeSearchResults"
@@ -102,7 +103,6 @@
                     :disabled="filterTypeKey && filterTypeKey !== filterType.key"
                 />
             </v-list>
-          </div>
 
 
         </v-card>

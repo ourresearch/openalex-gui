@@ -122,7 +122,16 @@
 
           <!--        everything except for works-->
           <template v-else>
-            <div class="">
+            <div>
+              <v-btn
+                  text
+                  exact
+                  :to='{name: "Serp", query:{...$route.query}}'
+              >
+                Close
+              </v-btn>
+            </div>
+            <div class="d-none">
               <v-btn
                   v-if="filterIsApplied"
                   :to="filterToShowWorks | removeFilterLink"
@@ -164,7 +173,7 @@
           <v-menu>
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on">
-                <v-icon left>mdi-download-outline</v-icon>
+                <v-icon left>mdi-tray-arrow-down</v-icon>
               </v-btn>
             </template>
             <v-list>

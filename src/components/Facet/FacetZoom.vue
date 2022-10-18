@@ -8,21 +8,29 @@
       color="#363636"
       flat
   >
-    <div>
+    <div class="elevation-3">
 
-      <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
-        <!--      <v-btn icon @click="$emit('close')">-->
-        <!--      </v-btn>-->
-        <div>
-          <div class="">
-            {{ myFacetConfig.displayName }}
-          </div>
+      <div
+          class="text-h6 d-flex align-center"
+          style="height: 75px;"
+      >
+        <!--        <div class="">-->
+        <!--          {{ myFacetConfig.displayName }}-->
+        <!--        </div>-->
+        <v-text-field
+            flat
+            hide-details
+            solo
+            full-width
+            class="mt-0 mx-3 "
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            autofocus
 
-        </div>
-        <v-spacer/>
-        <v-btn icon @click="setFacetZoom(null)" class="mr-2">
-          <v-icon class="">mdi-close</v-icon>
-        </v-btn>
+            v-model="search"
+            :placeholder="searchPlaceholder"
+        />
+
 
         <!--      <v-menu-->
         <!--      >-->
@@ -55,24 +63,11 @@
       </div>
 
       <div>
-        <v-text-field
-            flat
-            dense
-            hide-details
-            solo
-            full-width
-            class="mt-0 mx-2 pb-2"
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            autofocus
 
-            v-model="search"
-            :placeholder="searchPlaceholder"
-        />
       </div>
     </div>
 
-    <v-card-text style="height: 90vh; overflow-y:scroll;">
+    <v-card-text class="pa-0" style="height: calc(100vh - 150px); overflow-y:scroll;">
       <div class="pt-3 px-5 body-2" style="opacity: .7;">
         <template v-if="search && filtersToShow.length">
           Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" within current results:
@@ -101,6 +96,16 @@
       </v-list>
 
     </v-card-text>
+    <v-divider/>
+    <v-card-actions style="height: 75px;">
+      <v-btn text @click="setFacetZoom(null)" class="mr-2">
+        Close
+      </v-btn>
+      <v-spacer/>
+      <v-btn icon class="mr-1">
+        <v-icon left>mdi-tray-arrow-down</v-icon>
+      </v-btn>
+    </v-card-actions>
 
 
   </v-card>
@@ -177,6 +182,9 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetZoom)
     },
+    handleClickOutside(){
+      this.setFacetZoom(null)
+    },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
         return f.key === this.facetZoom
@@ -186,7 +194,7 @@ export default {
       const displayName = this
           .$pluralize(this.myFacetConfig.displayName, 2)
           .toLowerCase()
-      return `search within results`
+      return `search ${displayName}`
     },
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);

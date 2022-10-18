@@ -9,8 +9,9 @@
           color="white"
           class="pl-0"
           :class="{mobile: $vuetify.breakpoint.mobile}"
-          absolute
-          flat
+          :elevate-on-scroll="!$vuetify.breakpoint.mobile"
+          :absolute="$vuetify.breakpoint.mobile"
+          :flat="$vuetify.breakpoint.mobile"
           height="75"
 
       >
