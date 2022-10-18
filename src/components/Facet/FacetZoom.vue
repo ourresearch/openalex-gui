@@ -3,76 +3,76 @@
   <v-card
       v-if="facetZoom "
       :loading="isLoading"
-      height="100%"
       tile
       dark
       color="#363636"
+      flat
   >
-    <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
-      <!--      <v-btn icon @click="$emit('close')">-->
-      <!--      </v-btn>-->
-      <div>
-        <div class="">
-          <!--            <div class="">Edit filter</div>-->
-          {{ myFacetConfig.displayName }}
+    <div>
+
+      <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
+        <!--      <v-btn icon @click="$emit('close')">-->
+        <!--      </v-btn>-->
+        <div>
+          <div class="">
+            {{ myFacetConfig.displayName }}
+          </div>
+
         </div>
+        <v-spacer/>
+        <v-btn icon @click="setFacetZoom(null)" class="mr-2">
+          <v-icon class="">mdi-close</v-icon>
+        </v-btn>
+
+        <!--      <v-menu-->
+        <!--      >-->
+        <!--        <template v-slot:activator="{on}">-->
+        <!--          <v-btn icon v-on="on">-->
+        <!--            <v-icon>mdi-dots-vertical</v-icon>-->
+        <!--          </v-btn>-->
+        <!--        </template>-->
+        <!--        <v-list dark dense color="#555">-->
+        <!--          <v-list-item @click="">-->
+        <!--            <v-list-item-icon>-->
+        <!--              <v-icon>mdi-table</v-icon>-->
+        <!--            </v-list-item-icon>-->
+        <!--            <v-list-item-title>-->
+        <!--              Export spreadsheet-->
+        <!--            </v-list-item-title>-->
+        <!--          </v-list-item>-->
+        <!--          <v-list-item @click="">-->
+        <!--            <v-list-item-icon>-->
+        <!--              <v-icon>mdi-code-json</v-icon>-->
+        <!--            </v-list-item-icon>-->
+        <!--            <v-list-item-title>-->
+        <!--              Export API call-->
+        <!--            </v-list-item-title>-->
+        <!--          </v-list-item>-->
+        <!--        </v-list>-->
+        <!--      </v-menu>-->
+
 
       </div>
-      <v-spacer/>
-      <v-btn icon @click="setFacetZoom(null)" class="mr-2">
-        <v-icon class="">mdi-close</v-icon>
-      </v-btn>
 
-      <!--      <v-btn icon @click="$emit('close')">-->
-      <!--        <v-icon class="mr-1">mdi-close</v-icon>-->
-      <!--      </v-btn>-->
+      <div>
+        <v-text-field
+            flat
+            dense
+            hide-details
+            solo
+            full-width
+            class="mt-0 mx-2 pb-2"
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            autofocus
 
-      <!--      <v-menu-->
-      <!--      >-->
-      <!--        <template v-slot:activator="{on}">-->
-      <!--          <v-btn icon v-on="on">-->
-      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
-      <!--          </v-btn>-->
-      <!--        </template>-->
-      <!--        <v-list dark dense color="#555">-->
-      <!--          <v-list-item @click="">-->
-      <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-table</v-icon>-->
-      <!--            </v-list-item-icon>-->
-      <!--            <v-list-item-title>-->
-      <!--              Export spreadsheet-->
-      <!--            </v-list-item-title>-->
-      <!--          </v-list-item>-->
-      <!--          <v-list-item @click="">-->
-      <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-code-json</v-icon>-->
-      <!--            </v-list-item-icon>-->
-      <!--            <v-list-item-title>-->
-      <!--              Export API call-->
-      <!--            </v-list-item-title>-->
-      <!--          </v-list-item>-->
-      <!--        </v-list>-->
-      <!--      </v-menu>-->
-
-
+            v-model="search"
+            :placeholder="searchPlaceholder"
+        />
+      </div>
     </div>
 
-    <div>
-      <v-text-field
-          flat
-          dense
-          hide-details
-          solo
-          full-width
-          class="mt-0 mx-2"
-          clearable
-          prepend-inner-icon="mdi-magnify"
-          autofocus
-
-          v-model="search"
-          :placeholder="searchPlaceholder"
-      />
-
+    <v-card-text style="height: 90vh; overflow-y:scroll;">
       <div class="pt-3 px-5 body-2" style="opacity: .7;">
         <template v-if="search && filtersToShow.length">
           Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" within current results:
@@ -88,8 +88,8 @@
       <v-list
           color="transparent"
           dark
-      >
 
+      >
         <facet-option
             class=""
             v-for="f in filtersToShow"
@@ -100,7 +100,7 @@
         />
       </v-list>
 
-    </div>
+    </v-card-text>
 
 
   </v-card>

@@ -59,6 +59,9 @@
         app
         dark
         width="300px"
+        style="height: 100vh; overflow: hidden;"
+
+
 
       >
         <facet-zoom />

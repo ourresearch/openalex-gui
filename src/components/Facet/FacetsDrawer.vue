@@ -92,7 +92,7 @@
                 class="pt-0"
                 nav
                 expand
-
+                style="height: 90vh; overflow-y: scroll;"
             >
                 <facet
                     v-for="filterType in filterTypeSearchResults"
@@ -109,8 +109,9 @@
 
     <v-dialog
         v-model="showFacetZoomDialog"
-        fullscreen
+        scrollable
         dark
+        fullscreen
     >
         <facet-zoom />
     </v-dialog>

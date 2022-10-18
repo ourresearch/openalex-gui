@@ -92,6 +92,10 @@ html, body {
   opacity: 0.00005 !important;
 }
 
+.v-navigation-drawer__content {
+  overflow-y:hidden !important;
+}
+
 .theme--light.v-list-item--active::before {
   opacity: 0;
 }
