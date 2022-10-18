@@ -1,99 +1,109 @@
 <template>
 
-    <v-card
-        v-if="facetZoom "
-        :loading="isLoading"
-        height="100%"
-        tile
-        dark
-        color="#363636"
-    >
-      <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
-        <!--      <v-btn icon @click="$emit('close')">-->
-        <!--      </v-btn>-->
-        <div>
-          <div class="">
-<!--            <div class="">Edit filter</div>-->
-                    {{ myFacetConfig.displayName }}
-          </div>
-
-        </div>
-        <v-spacer/>
-        <v-btn icon @click="setFacetZoom(null)" class="mr-2">
-          <v-icon class="">mdi-close</v-icon>
-        </v-btn>
-
-        <!--      <v-btn icon @click="$emit('close')">-->
-        <!--        <v-icon class="mr-1">mdi-close</v-icon>-->
-        <!--      </v-btn>-->
-
-        <!--      <v-menu-->
-        <!--      >-->
-        <!--        <template v-slot:activator="{on}">-->
-        <!--          <v-btn icon v-on="on">-->
-        <!--            <v-icon>mdi-dots-vertical</v-icon>-->
-        <!--          </v-btn>-->
-        <!--        </template>-->
-        <!--        <v-list dark dense color="#555">-->
-        <!--          <v-list-item @click="">-->
-        <!--            <v-list-item-icon>-->
-        <!--              <v-icon>mdi-table</v-icon>-->
-        <!--            </v-list-item-icon>-->
-        <!--            <v-list-item-title>-->
-        <!--              Export spreadsheet-->
-        <!--            </v-list-item-title>-->
-        <!--          </v-list-item>-->
-        <!--          <v-list-item @click="">-->
-        <!--            <v-list-item-icon>-->
-        <!--              <v-icon>mdi-code-json</v-icon>-->
-        <!--            </v-list-item-icon>-->
-        <!--            <v-list-item-title>-->
-        <!--              Export API call-->
-        <!--            </v-list-item-title>-->
-        <!--          </v-list-item>-->
-        <!--        </v-list>-->
-        <!--      </v-menu>-->
-
-
-      </div>
-
+  <v-card
+      v-if="facetZoom "
+      :loading="isLoading"
+      height="100%"
+      tile
+      dark
+      color="#363636"
+  >
+    <div class="text-h6 font-weight-light pt-3 pb-2  pl-4 d-flex align-center">
+      <!--      <v-btn icon @click="$emit('close')">-->
+      <!--      </v-btn>-->
       <div>
-            <v-text-field
-                flat
-                dense
-                hide-details
-                solo
-                full-width
-                class="mt-0"
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                autofocus
-
-                v-model="search"
-                :placeholder="searchPlaceholder"
-            />
-        <v-list
-            color="transparent"
-            dark
-        >
-
-          <facet-option
-              class=""
-              v-for="f in filtersToShow"
-              :filter="f"
-              :key="f.asStr"
-              hide-checkbox
-
-          />
-        </v-list>
+        <div class="">
+          <!--            <div class="">Edit filter</div>-->
+          {{ myFacetConfig.displayName }}
+        </div>
 
       </div>
+      <v-spacer/>
+      <v-btn icon @click="setFacetZoom(null)" class="mr-2">
+        <v-icon class="">mdi-close</v-icon>
+      </v-btn>
+
+      <!--      <v-btn icon @click="$emit('close')">-->
+      <!--        <v-icon class="mr-1">mdi-close</v-icon>-->
+      <!--      </v-btn>-->
+
+      <!--      <v-menu-->
+      <!--      >-->
+      <!--        <template v-slot:activator="{on}">-->
+      <!--          <v-btn icon v-on="on">-->
+      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
+      <!--          </v-btn>-->
+      <!--        </template>-->
+      <!--        <v-list dark dense color="#555">-->
+      <!--          <v-list-item @click="">-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-table</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-title>-->
+      <!--              Export spreadsheet-->
+      <!--            </v-list-item-title>-->
+      <!--          </v-list-item>-->
+      <!--          <v-list-item @click="">-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-code-json</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-title>-->
+      <!--              Export API call-->
+      <!--            </v-list-item-title>-->
+      <!--          </v-list-item>-->
+      <!--        </v-list>-->
+      <!--      </v-menu>-->
 
 
+    </div>
+
+    <div>
+      <v-text-field
+          flat
+          dense
+          hide-details
+          solo
+          full-width
+          class="mt-0 mx-2"
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          autofocus
+
+          v-model="search"
+          :placeholder="searchPlaceholder"
+      />
+
+      <div class="pt-3 px-5 body-2" style="opacity: .7;">
+        <template v-if="search && filtersToShow.length">
+          Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" within current results:
+        </template>
+        <template v-else-if="search && !filtersToShow.length">
+          No {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found with current results; try
+          broadening your search.
+        </template>
+        <template v-else>
+          Top {{ myFacetConfig.displayName | pluralize(2) }} within current results:
+        </template>
+      </div>
+      <v-list
+          color="transparent"
+          dark
+      >
+
+        <facet-option
+            class=""
+            v-for="f in filtersToShow"
+            :filter="f"
+            :key="f.asStr"
+            hide-checkbox
+
+        />
+      </v-list>
+
+    </div>
 
 
-    </v-card>
-
+  </v-card>
 
 
 </template>
@@ -154,7 +164,7 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
       "showFiltersDrawer",
-        "facetZoom",
+      "facetZoom",
     ]),
     // isOpen: {
     //   get(){
@@ -176,13 +186,13 @@ export default {
       const displayName = this
           .$pluralize(this.myFacetConfig.displayName, 2)
           .toLowerCase()
-      return `search ${displayName}`
+      return `search within results`
     },
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetZoom)
-      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
+      // const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetZoom)
+      url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       if (this.myFacetConfig.valuesToShow === "mostCommon") {
         url.searchParams.set("q", this.search ?? "")
@@ -192,7 +202,7 @@ export default {
     },
 
     filtersToShow() {
-      return makeFilterList(this.filtersFromApi, this.myResultsFilters)
+      return makeFilterList(this.filtersFromApi, this.myResultsFilters, !this.search)
     },
   },
 
@@ -200,7 +210,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-        "setFacetZoom"
+      "setFacetZoom"
     ]),
     ...mapActions([
       "addInputFilters",
@@ -224,7 +234,7 @@ export default {
 
           const filters = resp.filters.slice(0, 10)
           const worksCounts = filters.map(f => f.works_count)
-          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b)
+          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
           console.log("work counts", worksCounts, sumOfAllWorksCounts)
           this.filtersTotalCount = sumOfAllWorksCounts
 
@@ -259,7 +269,7 @@ export default {
       immediate: true,
       handler(newVal, oldVal) {
         this.fetchFilters()
-        this.search = ""
+        // this.search = ""
       }
     },
     "facetZoom": {

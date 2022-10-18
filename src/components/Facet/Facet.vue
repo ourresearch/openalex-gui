@@ -56,6 +56,7 @@
               class="ml-7"
               text
               @click.stop="setFacetZoom(facetKey)"
+              :disabled="facetZoom === facetKey"
           >
 <!--            <v-icon left>mdi-plus</v-icon>-->
             more
@@ -116,6 +117,7 @@ export default {
       "resultsFilters",
       "entityType",
       "facetZoom",
+      "textSearch",
     ]),
     cardEventHandlerName() {
       return this.showCollapsed ? `click` : null
@@ -139,8 +141,7 @@ export default {
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `${this.entityType}`
-      const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
-      url.searchParams.set("filter", filtersAsUrlStr(myFilters))
+      url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
       url.searchParams.set("group_by", this.facetKey)
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       url.searchParams.set("email", "team@ourresearch.org")

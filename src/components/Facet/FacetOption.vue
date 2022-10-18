@@ -2,9 +2,11 @@
   <v-list-item
       class=" my-0 filter-list-item align-start pt-0"
       :input-value="isSelected"
-      @[eventHandlerName].stop="click($event)"
-      color="green lighten-2"
+
+      :color="(isSelected && !hideCheckbox) ? 'green lighten-2' : ''"
   >
+<!--    removed-->
+<!--    @[eventHandlerName].stop="click($event)"-->
 
     <div class="icon-area mr-1 mt-2">
       <v-progress-circular
@@ -18,21 +20,19 @@
 
       <template v-else>
 
-        <v-progress-circular
-            v-if="hideCheckbox"
-          size="20"
-          width="7"
-          rotate="-90"
-          style="margin: 0px 12px 0 0; opacity: .9"
-          :value="filter.countPercent"
-          :color="isSelected ? 'green lighten-1' : ''"
-      />
+<!--        <v-progress-circular-->
+<!--            v-if="hideCheckbox"-->
+<!--          size="20"-->
+<!--          width="7"-->
+<!--          rotate="-90"-->
+<!--          style="margin: 0px 12px 0 0; opacity: .9"-->
+<!--          :value="filter.countPercent"-->
+<!--          :color="isSelected ? 'green lighten-1' : ''"-->
+<!--      />-->
       <v-simple-checkbox
-          v-else
           :value="isSelected"
           read-only
           @click="click($event)"
-          :color="isSelected ? 'green lighten-1' : ''"
           class="ma-0 pa-0"
           v-ripple
       />
@@ -75,8 +75,10 @@
             style="opacity: .8;"
 
         >
-<!--          <v-icon>mdi-dots-horizontal</v-icon>-->
-          <v-icon small>mdi-open-in-app</v-icon>
+<!--          <v-icon small>mdi-dots-horizontal</v-icon>-->
+<!--          <v-icon small>mdi-open-in-app</v-icon>-->
+          <v-icon small>mdi-eye-outline</v-icon>
+<!--          <v-icon small>mdi-folder-open-outline</v-icon>-->
         </v-btn>
 
     </div>
