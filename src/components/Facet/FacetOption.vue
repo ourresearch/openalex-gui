@@ -152,8 +152,8 @@ export default {
 
       let ret = this.filter.displayValue
           .replace("ieee", "IEEE")
-          .replace("United States of America", "USA")
-          .replace("United Kingdom of Great Britain and Northern Ireland", "UK")
+          .replace("United States of America", "United States")
+          .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
 
       if (this.filter.key === "type") {
         ret = ret.replace("-", " ")

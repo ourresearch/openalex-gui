@@ -5,8 +5,7 @@
       :loading="isLoading"
       tile
       dark
-      color="#363636"
-      flat
+      color="#3b3b3b"
   >
     <div class="elevation-3">
 
@@ -17,19 +16,25 @@
         <!--        <div class="">-->
         <!--          {{ myFacetConfig.displayName }}-->
         <!--        </div>-->
+
         <v-text-field
             flat
             hide-details
             solo
             full-width
-            class="mt-0 mx-3 "
+            class="mt-0 ml-4"
             clearable
-            prepend-inner-icon="mdi-magnify"
+            prepend-icon="mdi-magnify"
             autofocus
+            background-color="#484848"
+            dense
 
             v-model="search"
             :placeholder="searchPlaceholder"
         />
+        <v-btn icon @click="setFacetZoom(null)" class="ml-1 mr-2">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
 
 
         <!--      <v-menu-->
@@ -97,7 +102,7 @@
 
     </v-card-text>
     <v-divider/>
-    <v-card-actions style="height: 75px;">
+    <v-card-actions style="height: 75px;" class="">
       <v-btn text @click="setFacetZoom(null)" class="mr-2">
         Close
       </v-btn>
@@ -182,9 +187,6 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetZoom)
     },
-    handleClickOutside(){
-      this.setFacetZoom(null)
-    },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
         return f.key === this.facetZoom
@@ -234,7 +236,7 @@ export default {
           //   this.filtersFromApi = []
           //   return
           // }
-          this.isLoading = "primary"
+          this.isLoading = "#fff"
 
           const resp = await api.getUrl(this.apiUrl)
           // if (!this.myFacetConfig) return
@@ -243,7 +245,6 @@ export default {
           const filters = resp.filters.slice(0, 10)
           const worksCounts = filters.map(f => f.works_count)
           const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
-          console.log("work counts", worksCounts, sumOfAllWorksCounts)
           this.filtersTotalCount = sumOfAllWorksCounts
 
           this.filtersFromApi = filters.map(apiData => {
@@ -258,7 +259,7 @@ export default {
           this.isLoading = false
 
         },
-        250,
+        500,
         {leading: true,}
     ),
 

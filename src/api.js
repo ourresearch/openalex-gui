@@ -78,6 +78,7 @@ const api = (function () {
             throw e
         }
         cache[url] = res.data
+
         return res.data
     }
 

@@ -54,19 +54,20 @@
       </v-app-bar>
 
       <facets-drawer @filter-type-key="setFilterTypeKey"/>
-      <v-navigation-drawer
-        :value="!!facetZoom && !$vuetify.breakpoint.mobile"
-        right
-        app
-        dark
-        width="300px"
-        style="height: 100vh; overflow: hidden;"
 
 
 
-      >
-        <facet-zoom />
-      </v-navigation-drawer>
+<!--      <v-navigation-drawer-->
+<!--          :value="!!facetZoom && !$vuetify.breakpoint.mobile"-->
+<!--          right-->
+<!--          app-->
+<!--          dark-->
+<!--          width="300px"-->
+<!--          style="height: 100vh; overflow: hidden;"-->
+
+
+<!--      >-->
+<!--      </v-navigation-drawer>-->
 
 
       <v-main>
@@ -149,6 +150,16 @@
           </v-row>
         </v-container>
       </v-footer>
+
+
+      <v-dialog
+          v-model="showFacetZoomDialog"
+          scrollable
+          dark
+          fullscreen
+      >
+        <facet-zoom/>
+      </v-dialog>
 
 
       <v-snackbar
@@ -266,6 +277,15 @@ export default {
           10
       )
     },
+
+    showFacetZoomDialog: {
+      get() {
+        return this.$vuetify.breakpoint.mobile && this.facetZoom
+      },
+      set(newVal) {
+        if (!newVal) this.setFacetZoom(null)
+      }
+    },
     entityType() {
       return this.$route.params.entityType
     },
@@ -308,7 +328,12 @@ export default {
     ]),
     setFilterTypeKey(filterTypeKey) {
       this.filterTypeKey = filterTypeKey
-    }
+    },
+
+    handleClickOutside() {
+      console.log("click outside!")
+      // this.setFacetZoom(null)
+    },
   },
 
   created() {
@@ -351,12 +376,6 @@ export default {
 
 <style lang="scss">
 
-#serp-app-inside {
-  .v-dialog__content {
-    //justify-content: left;
-    //margin-left: 310px;
-  }
-}
 
 
 .v-app-bar.mobile {

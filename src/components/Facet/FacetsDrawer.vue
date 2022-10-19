@@ -16,109 +16,110 @@
     <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
 
 
-        <v-card
-            flat
-            color="transparent"
-            :width="filterTypesListWidth"
-            tile
+    <v-card
+        flat
+        color="#363636"
+        :width="facetsWidth"
+        tile
+        dark
+        style="z-index: 5;"
+        elevation="3"
+    >
+      <div
+          class="d-flex align-center pl-1 pr-3"
+          style="height: 75px; "
+          :class="{'elevation-3': !isMini}"
+      >
+        <v-btn
+            icon
+            large
+            class="ml-1"
+            @click="topListItemClick"
+            :disabled="!!filterTypeKey"
         >
-            <div
-                class="d-flex align-center pl-1 pr-3"
-                style="height: 75px;"
-                :class="{'elevation-3': !isMini}"
-            >
-              <v-btn
-                  icon
-                  large
-                  class="ml-1"
-                  @click="topListItemClick"
-                  :disabled="!!filterTypeKey"
-              >
-                <v-icon medium color="">mdi-filter-outline</v-icon>
-                  <span
-                      v-if="resultsFilters.length"
-                      class=""
-                      style="font-size: 12px; margin: 20px 0 0 -5px;"
-                  >
+          <v-icon medium color="">mdi-filter-outline</v-icon>
+          <span
+              v-if="resultsFilters.length"
+              class=""
+              style="font-size: 12px; margin: 20px 0 0 -5px;"
+          >
                   {{ resultsFilters.length }}
                 </span>
-              </v-btn>
-              <span
-                  class="text-h6 font-weight-bold pl-1"
+        </v-btn>
+        <span
+            class="text-h6 font-weight-bold pl-1"
 
-              >
+        >
                 Filters
               </span>
 
-              <v-spacer />
-              <v-fade-transition>
-                <template v-if="!filterTypeKey">
+        <v-spacer/>
+        <v-fade-transition>
+          <template v-if="!filterTypeKey">
 
-                  <v-menu
-                  >
-                    <template v-slot:activator="{on}">
-                      <v-btn icon v-on="on">
-                        <v-icon>mdi-dots-vertical</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list dense>
-                      <v-list-item
-                          @click="clearAllFilters"
-                          :disabled="!resultsFilters.length"
-                          :color="resultsFilters.length ? 'error' : null"
-                          :input-value="!!resultsFilters.length"
-                      >
-                        <v-list-item-icon>
-                          <v-icon>mdi-delete</v-icon>
-                        </v-list-item-icon>
-                        <v-list-item-title>
-                          Clear all filters
-                        </v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-
-
-                </template>
-              </v-fade-transition>
-            </div>
-
-
-
-
-            <!--      List of filter types  -->
-            <!--      *****************************************************************-->
-            <v-list
-                class="pt-0"
-                nav
-                expand
-                style="height: calc(100vh - 75px); overflow-y: scroll;"
-                v-if="!isMini"
+            <v-menu
             >
-                <facet
-                    v-for="filterType in filterTypeSearchResults"
-                    :key="filterType.key"
-                    :facet-key="filterType.key"
-                    :has-focus="filterTypeKey === filterType.key"
-                    :disabled="filterTypeKey && filterTypeKey !== filterType.key"
-                />
-            </v-list>
+              <template v-slot:activator="{on}">
+                <v-btn icon v-on="on">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
+              <v-list dense>
+                <v-list-item
+                    @click="clearAllFilters"
+                    :disabled="!resultsFilters.length"
+                    :color="resultsFilters.length ? 'error' : null"
+                    :input-value="!!resultsFilters.length"
+                >
+                  <v-list-item-icon>
+                    <v-icon>mdi-delete</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    Clear all filters
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
 
-        </v-card>
+          </template>
+        </v-fade-transition>
+      </div>
 
-    <v-dialog
-        v-model="showFacetZoomDialog"
-        scrollable
-        dark
-        fullscreen
+
+      <!--      List of filter types  -->
+      <!--      *****************************************************************-->
+      <v-card-text class="pa-0">
+
+      <v-list
+          class="pt-0"
+          nav
+          expand
+          style="height: calc(100vh - 75px); overflow-y: scroll;"
+          v-if="!isMini"
+      >
+        <facet
+            v-for="filterType in filterTypeSearchResults"
+            :key="filterType.key"
+            :facet-key="filterType.key"
+            :has-focus="filterTypeKey === filterType.key"
+            :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+        />
+      </v-list>
+      </v-card-text>
+
+
+    </v-card>
+
+    <div
+        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"
+        id="facet-zoom-drawer"
+        :style="{width: facetZoomWidth+'px'}"
+        style="border-left: 1px solid rgba(255,255,255, .25)"
     >
-        <facet-zoom />
-    </v-dialog>
+      <facet-zoom/>
 
-
-
-
+    </div>
 
 
   </v-navigation-drawer>
@@ -167,8 +168,8 @@ export default {
       groupByQueryResultsCount: null,
 
 
-      filterTypesListWidth: 300,
-      filtersListWidth: 350,
+      facetZoomWidth: 350,
+      facetsWidth: 300,
 
       lightColor: "#555",
       darkColor: "#222",
@@ -194,7 +195,7 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
       "showFiltersDrawer",
-        "facetZoom"
+      "facetZoom"
     ]),
     isMini: {
       get() {
@@ -216,21 +217,13 @@ export default {
         this.$store.state.showFiltersDrawer = val
       },
     },
-    showFacetZoomDialog: {
-      get(){
-        return this.$vuetify.breakpoint.mobile && this.facetZoom
-      },
-      set(newVal){
-        if (!newVal) this.setFacetZoom(null)
-      }
-    },
-    showFacetZoomPanel(){
+    showFacetZoomPanel() {
       return !this.$vuetify.breakpoint.mobile && this.filterTypeKey
     },
     width() {
-       return this.filterTypesListWidth
+      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth : 0)
       // if (this.showFacetZoomPanel) {
-      //   return this.filterTypesListWidth + this.filtersListWidth
+      //   return this.filterTypesListWidth + this.facetsWidth
       // }
       // else return this.filterTypesListWidth
     },
@@ -244,7 +237,6 @@ export default {
             // hide the noOptions facets unless they have selected filters
             return !c.noOptions || filters.length
           })
-
 
 
       // const ret = this.searchFacetConfigs
@@ -278,7 +270,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-        "setFacetZoom",
+      "setFacetZoom",
     ]),
     ...mapActions([]),
     async copyUrlToClipboard() {
@@ -316,7 +308,7 @@ export default {
   mounted() {
   },
   watch: {
-    filterTypeKey(to, from){
+    filterTypeKey(to, from) {
       this.$emit("filter-type-key", to)
     }
   }
@@ -324,12 +316,12 @@ export default {
 </script>
 
 <style lang="scss">
-#facet-zoom-panel {
-  width: 340px;
-  //left: 600px;
+
+#facet-zoom-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
   right: 0;
-  position: fixed !important;
-  top: 10px;
-  bottom: 10px;
+  z-index: 3;
 }
 </style>

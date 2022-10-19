@@ -143,8 +143,8 @@ Vue.filter("removeFilterLink", function (filterToRemove) {
 Vue.filter("prettyName", function (name) {
     let ret = name
         .replace("ieee", "IEEE")
-        .replace("United States of America", "USA")
-        .replace("United Kingdom of Great Britain and Northern Ireland", "UK")
+        .replace("United States of America", "United States")
+        .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
 
     // make "journal-article" into Journal Article
     const typeRe = /[a-z]+-[a-z]+/

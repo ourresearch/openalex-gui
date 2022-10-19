@@ -55,12 +55,17 @@
               small
               class="ml-7"
               text
-              @click.stop="setFacetZoom(facetKey)"
-              :disabled="facetZoom === facetKey"
+              @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
           >
 <!--            <v-icon left>mdi-plus</v-icon>-->
-            more
-            <v-icon right>mdi-chevron-right</v-icon>
+            <template v-if="facetZoom">
+              <v-icon left>mdi-chevron-left</v-icon>
+              Less
+            </template>
+            <template v-else>
+              More
+              <v-icon right>mdi-chevron-right</v-icon>
+            </template>
           </v-btn>
 <!--          <v-list-item-icon>-->
 <!--            <v-icon>mdi-plus</v-icon>-->
