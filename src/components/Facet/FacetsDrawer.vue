@@ -23,7 +23,6 @@
         tile
         dark
         style="z-index: 5;"
-        elevation="3"
     >
       <div
           class="d-flex align-center pl-1 pr-3"
@@ -47,7 +46,7 @@
                 </span>
         </v-btn>
         <span
-            class="text-h6 font-weight-bold pl-1"
+            class="text-h6  pl-1"
 
         >
                 Filters
@@ -115,7 +114,7 @@
         v-if="!!facetZoom && !$vuetify.breakpoint.mobile"
         id="facet-zoom-drawer"
         :style="{width: facetZoomWidth+'px'}"
-        style="border-left: 1px solid rgba(255,255,255, .25)"
+        style="border-left: 1px solid rgba(255,255,255, .25);"
     >
       <facet-zoom/>
 

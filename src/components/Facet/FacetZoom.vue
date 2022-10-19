@@ -32,7 +32,7 @@
             v-model="search"
             :placeholder="searchPlaceholder"
         />
-        <v-btn icon @click="setFacetZoom(null)" class="ml-1 mr-2">
+        <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
           <v-icon>mdi-close</v-icon>
         </v-btn>
 
@@ -103,12 +103,12 @@
     </v-card-text>
     <v-divider/>
     <v-card-actions style="height: 75px;" class="">
-      <v-btn text @click="setFacetZoom(null)" class="mr-2">
+      <v-btn text @click.stop="setFacetZoom(null)" class="mr-2">
         Close
       </v-btn>
       <v-spacer/>
       <v-btn icon class="mr-1">
-        <v-icon left>mdi-tray-arrow-down</v-icon>
+        <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
     </v-card-actions>
 

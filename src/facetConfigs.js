@@ -203,6 +203,12 @@ const facetConfigs = function () {
 
         // works: links to other works
         {
+            key: "cited_by_count",
+            entityTypes: ["works"],
+            displayName: "Citation count",
+            valuesToShow: "mostCommon",
+        },
+        {
             key: "cited_by",
             entityTypes: ["works"],
             displayName: "Cited by",

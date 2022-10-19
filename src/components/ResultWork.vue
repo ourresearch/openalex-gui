@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="">
   <v-row>
-    <v-col cols="12" md="9" class="content">
+    <v-col cols="12" md="12" class="content">
       <router-link
           class="text-decoration-none subtitle-1"
           :to="data.id | entityZoomLink"
@@ -49,8 +49,9 @@
             color="primary"
           :href="fulltextUrl"
           target="_blank"
-          class="mr-3 text-decoration-none d-md-none font-weight-bold"
+          class="mr-3 text-decoration-none  font-weight-bold"
           v-if="fulltextUrl"
+            outlined
       >
         <v-icon x-small left >mdi-open-in-new</v-icon>
         Open access
@@ -60,18 +61,17 @@
       </div>
 
     </v-col>
-    <v-col cols="3" class="linkout d-none d-md-flex justify-end">
-      <a
-          :href="fulltextUrl"
-          target="_blank"
-          class="mx-3 text-decoration-none"
-          v-if="fulltextUrl"
-      >
-        Open access
-<!--        {{ (workIsFreeAtPublisher) ? "via publisher" : "online" }}-->
-        <v-icon x-small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>
-      </a>
-    </v-col>
+<!--    <v-col cols="3" class="linkout d-none d-md-flex justify-end">-->
+<!--      <a-->
+<!--          :href="fulltextUrl"-->
+<!--          target="_blank"-->
+<!--          class="mx-3 text-decoration-none"-->
+<!--          v-if="fulltextUrl"-->
+<!--      >-->
+<!--        Open access-->
+<!--        <v-icon x-small color="primary" style="vertical-align: 0;">mdi-open-in-new</v-icon>-->
+<!--      </a>-->
+<!--    </v-col>-->
 
   </v-row>
 

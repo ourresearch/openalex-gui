@@ -36,6 +36,13 @@
 
     </template>
 
+<!--    <v-text-field outlined type="number" hide-details dense dark label="At least" class="ml-8 mr-4 mb-2">-->
+
+<!--    </v-text-field>-->
+<!--    <v-text-field outlined type="number" hide-details dense dark label="At most" class="ml-8 mr-4">-->
+
+<!--    </v-text-field>-->
+
     <v-list
         class="filter-type-list-item  my-0 py-0"
     >
@@ -114,6 +121,7 @@ export default {
       showCollapsed: false,
       filtersFromApi: [],
       maxOptionsToShow: 5,
+      count: 0,
     }
   },
   computed: {
