@@ -9,7 +9,7 @@
     <template v-slot:activator>
       <v-list-item-title
       >
-<!--        <v-icon class="expand-indicator" style="opacity: .1;">mdi-chevron-down</v-icon>-->
+        <!--        <v-icon class="expand-indicator" style="opacity: .1;">mdi-chevron-down</v-icon>-->
 
         {{ config.displayName }}
 
@@ -36,14 +36,22 @@
 
     </template>
 
-<!--    <v-text-field outlined type="number" hide-details dense dark label="At least" class="ml-8 mr-4 mb-2">-->
 
-<!--    </v-text-field>-->
-<!--    <v-text-field outlined type="number" hide-details dense dark label="At most" class="ml-8 mr-4">-->
+    <div v-if="config.isRange">
+      <v-range-slider
+        v-model="range"
+      >
 
-<!--    </v-text-field>-->
+      </v-range-slider>
+      <div>
+        {{ yearsSelected[0] }} - {{ yearsSelected[1] }}
+      </div>
+
+
+    </div>
 
     <v-list
+        v-else
         class="filter-type-list-item  my-0 py-0"
     >
       <v-slide-y-transition group>
@@ -57,30 +65,30 @@
 
         />
       </v-slide-y-transition>
-        <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
-          <v-btn
-              small
-              class="ml-7"
-              text
-              @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
-          >
-<!--            <v-icon left>mdi-plus</v-icon>-->
-            <template v-if="facetZoom">
-              <v-icon left>mdi-chevron-left</v-icon>
-              Less
-            </template>
-            <template v-else>
-              More
-              <v-icon right>mdi-chevron-right</v-icon>
-            </template>
-          </v-btn>
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>mdi-plus</v-icon>-->
-<!--          </v-list-item-icon>-->
-<!--          <v-list-item-content>-->
-<!--            More-->
-<!--          </v-list-item-content>-->
-        </v-list-item>
+      <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
+        <v-btn
+            small
+            class="ml-7"
+            text
+            @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
+        >
+          <!--            <v-icon left>mdi-plus</v-icon>-->
+          <template v-if="facetZoom">
+            <v-icon left>mdi-chevron-left</v-icon>
+            Less
+          </template>
+          <template v-else>
+            More
+            <v-icon right>mdi-chevron-right</v-icon>
+          </template>
+        </v-btn>
+        <!--          <v-list-item-icon>-->
+        <!--            <v-icon>mdi-plus</v-icon>-->
+        <!--          </v-list-item-icon>-->
+        <!--          <v-list-item-content>-->
+        <!--            More-->
+        <!--          </v-list-item-content>-->
+      </v-list-item>
 
 
     </v-list>
@@ -100,6 +108,20 @@ import {createDisplayFilter, filtersAsUrlStr, filtersFromUrlStr, makeFilterList}
 import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
+
+const percentToYear = function(percent){
+  if (!percent) return "anytime"
+
+  const howFarBackToGo = 100 - percent
+  const exp = Math.pow(howFarBackToGo, 3)
+  const scaled = exp / 30000
+
+
+  const year = Math.floor(2022 - scaled)
+  if (year === 2022) return "now"
+  return year
+
+}
 
 export default {
   name: "Facet",
@@ -121,7 +143,7 @@ export default {
       showCollapsed: false,
       filtersFromApi: [],
       maxOptionsToShow: 5,
-      count: 0,
+      range: [0, 100],
     }
   },
   computed: {
@@ -134,6 +156,12 @@ export default {
     ]),
     cardEventHandlerName() {
       return this.showCollapsed ? `click` : null
+    },
+    yearsSelected(){
+      return [
+          percentToYear(this.range[0]),
+          percentToYear(this.range[1]),
+      ]
     },
     appliedFiltersCount() {
       const allFilters = filtersFromUrlStr(this.$route.query.filter)
@@ -215,6 +243,9 @@ export default {
         this.showCollapsed = false
       }
       this.$emit('toggle-select')
+    },
+    changeRange(){
+      console.log("change range!")
     },
 
     clickCheckbox(filter, isChecked, e) {

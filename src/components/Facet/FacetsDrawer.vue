@@ -94,7 +94,7 @@
           class="pt-0"
           nav
           expand
-          style="height: calc(100vh - 75px); overflow-y: scroll;"
+          style="height: calc(100vh - 75px); overflow-y: scroll; padding-bottom: 100px;"
           v-if="!isMini"
       >
         <facet

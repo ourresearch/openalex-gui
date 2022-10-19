@@ -15,27 +15,6 @@ const makeFacetQueryFilters = function (facetFilters) {
 }
 
 
-const onlyReturnTheseFacets = [
-    "has_doi",
-    "has_ngrams",
-    "is_paratext",
-    "is_retracted",
-
-    "open_access.is_oa",
-    "authorships.author.id",
-    "authorships.institutions.country_code",
-    "authorships.institutions.id",
-    "authorships.institutions.type",
-    "has_abstract",
-    "host_venue.display_name",
-    "host_venue.license",
-    "host_venue.publisher",
-    "host_venue.type",
-    "open_access.oa_status",
-    "publication_year",
-    "type"
-]
-
 const facetConfigs = function () {
     const ret = [
         // shared
@@ -166,7 +145,7 @@ const facetConfigs = function () {
             displayName: "Year",
             valuesToShow: "mostCommon",
             sortByValue: true,
-            isRangeable: true,
+            isRange: true,
         },
         {
             key: "has_doi",
@@ -207,6 +186,8 @@ const facetConfigs = function () {
             entityTypes: ["works"],
             displayName: "Citation count",
             valuesToShow: "mostCommon",
+            sortByValue: true,
+            isRange: true,
         },
         {
             key: "cited_by",
