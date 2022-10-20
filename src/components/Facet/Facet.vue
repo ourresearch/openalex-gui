@@ -37,16 +37,40 @@
     </template>
 
 
-    <div v-if="config.isRange">
-      <v-range-slider
-        v-model="range"
+    <div v-if="config.isRange" class="ml-8 mr-4">
+      <v-select
+          v-model="range[0]"
+          outlined
+          dense
+          :items="[2020,2,3,4,5,6,7,8,9,10]"
+          label="On or after"
+          hide-details
+          placeholder="anytime"
+          :menu-props="{dark: true, color: 'green'}"
+          append-icon=""
+          clearable
+
       >
-
-      </v-range-slider>
-      <div>
-        {{ yearsSelected[0] }} - {{ yearsSelected[1] }}
-      </div>
-
+        <template v-slot:selection="{item, index}">
+          <span class="font-weight-bold green--text">
+            {{ item }}
+          </span>
+        </template>
+      </v-select>
+<!--      <span>-->
+<!--        <v-icon>mdi-minus</v-icon>-->
+<!--      </span>-->
+      <v-select
+          outlined
+          v-model="range[1]"
+          :items="['now', 1,2,3,4,5,6,7,8,9,10]"
+          hide-details
+          placeholder="now"
+          label="On or before"
+          dense
+          dark
+          append-icon=""
+      />
 
     </div>
 
@@ -114,7 +138,7 @@ const percentToYear = function(percent){
 
   const howFarBackToGo = 100 - percent
   const exp = Math.pow(howFarBackToGo, 3)
-  const scaled = exp / 30000
+  const scaled = exp / 40000
 
 
   const year = Math.floor(2022 - scaled)
