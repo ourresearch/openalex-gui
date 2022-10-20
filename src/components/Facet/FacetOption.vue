@@ -61,7 +61,7 @@
            class="body-2 grey--text"
       >
 
-        {{ filter.count.toLocaleString() }}
+        {{ filter.count | toPrecision }}
       </div>
     </div>
     <v-spacer />

@@ -10,7 +10,7 @@ import {idsAreEqual, setOrDelete} from "./util";
 import {url} from "./url"
 import SearchBox from "./components/SearchBox";
 import sanitizeHtml from 'sanitize-html';
-import {prettyTitle} from "./util";
+import {prettyTitle, toPrecision} from "./util";
 
 import _ from 'lodash'
 
@@ -120,6 +120,11 @@ Vue.filter("addFilterLink", function (newFilter) {
         query,
     }
 
+});
+
+
+Vue.filter("toPrecision", function (number, precision = 5) {
+    return toPrecision(number, precision)
 });
 
 

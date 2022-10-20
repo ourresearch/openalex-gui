@@ -37,7 +37,7 @@
         <span class="font-weight-bold">
 <!--          {{(resultsCount < 1000) ? "About" : "" }}-->
           <!--          {{ resultsCount | millify(3) }}-->
-          {{ resultsCount.toLocaleString() }}
+          {{ resultsCount | toPrecision }}
 
         </span>
         <span>

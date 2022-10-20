@@ -1,16 +1,16 @@
 import sanitizeHtml from "sanitize-html";
 import _ from "lodash"
+
 async function sleep(ms) {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
     });
 }
 
-const setOrDelete = function(obj, k, v){
-    if (v){
+const setOrDelete = function (obj, k, v) {
+    if (v) {
         obj[k] = v
-    }
-    else {
+    } else {
         delete obj[k]
     }
     return obj
@@ -34,6 +34,52 @@ const entityTypesDict = {
     "c": "concepts",
 };
 
+/**
+ * Format number to significant digits.
+ * https://stackoverflow.com/a/58494899
+ *
+ * @param {Number} number
+ * @param {Number} precision
+ *
+ * @return {String} formattedValue
+ */
+const toPrecision = function(number, precision) {
+    function round(precision, number) {
+        return parseFloat(number.toPrecision(precision))
+    }
+
+    if (typeof number === 'undefined' || number === null) return ''
+
+    if (number === 0) return '0'
+
+    const roundedValue = round(precision, number)
+    const floorValue = Math.floor(roundedValue)
+
+    const isInteger = Math.abs(floorValue - roundedValue) < Number.EPSILON
+
+    const numberOfFloorDigits = String(floorValue).length
+    const numberOfDigits = String(roundedValue).length
+
+    if (numberOfFloorDigits > precision) {
+        return floorValue.toLocaleString()
+    } else {
+        const padding = isInteger ? precision - numberOfFloorDigits : precision - numberOfDigits + 1
+
+        if (padding > 0) {
+            let ret
+            if (isInteger) {
+                ret = `${String(floorValue)}.${'0'.repeat(padding)}`
+            } else {
+                ret = `${String(roundedValue)}${'0'.repeat(padding)}`
+            }
+            return parseFloat(ret).toLocaleString()
+        } else {
+            return roundedValue.toLocaleString()
+        }
+    }
+}
+
+
 const shortenOpenAlexId = function (longId) {
     return longId.replace("https://openalex.org/", "").toLowerCase()
 }
@@ -43,23 +89,23 @@ const entityTypeFromId = function (id) {
     return entityTypesDict[firstLetter]
 }
 
-const idsAreEqual = function(id1, id2){
+const idsAreEqual = function (id1, id2) {
     if (!id1 || !id2) return
     return shortenOpenAlexId(id1) === shortenOpenAlexId(id2)
 }
 
 
 const compareByCount = function (a, b) {
-  if (a.count > b.count) {
-    return -1;
-  }
-  if (a.count < b.count) {
-    return 1;
-  }
-  return 0;
+    if (a.count > b.count) {
+        return -1;
+    }
+    if (a.count < b.count) {
+        return 1;
+    }
+    return 0;
 }
 
-const unravel = function(invertedIndex){
+const unravel = function (invertedIndex) {
     if (!invertedIndex) return
     const unraveled = {}
     Object.entries(invertedIndex).forEach(([k, v]) => {
@@ -87,13 +133,13 @@ const entityTypes = {
     }
 }
 
-const prettyTitle = function(title) {
+const prettyTitle = function (title) {
     if (title && title.toUpperCase() === title) {
         title = _.startCase(title.toLowerCase());
 
     }
 
-        const safeTitle = sanitizeHtml(title, {
+    const safeTitle = sanitizeHtml(title, {
         allowedTags: ['b', 'i', 'em', 'strong', 'a'],
     })
     return safeTitle
@@ -110,5 +156,6 @@ export {
     idsAreEqual,
     setOrDelete,
     prettyTitle,
-    compareByCount
+    compareByCount,
+    toPrecision,
 }
