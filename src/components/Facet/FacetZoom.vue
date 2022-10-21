@@ -6,11 +6,46 @@
       tile
       dark
       color="#3b3b3b"
+      v-click-outside="clickOutside"
   >
-    <div class="elevation-3">
+    <div class="elevation-3 px-4">
 
       <div
           class="text-h6 d-flex align-center"
+          style="height: 75px;"
+      >
+        <div>
+          {{ myFacetConfig.displayName }}
+        </div>
+        <v-spacer></v-spacer>
+        <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="mr-1">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>
+            Export as:
+            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item :href="makeApiUrl(200, true)" target="_blank">
+            <v-icon left>mdi-table</v-icon>
+            Spreadsheet
+          </v-list-item>
+          <v-list-item :href="makeApiUrl(200)" target="_blank">
+            <v-icon left>mdi-code-json</v-icon>
+            JSON (API)
+          </v-list-item>
+        </v-list>
+      </v-menu>
+        <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <div
+          class="d-flex align-center"
           style="height: 75px;"
       >
         <!--        <div class="">-->
@@ -22,9 +57,9 @@
             hide-details
             solo
             full-width
-            class="mt-0 ml-4"
+            class="mt-0 "
             clearable
-            prepend-icon="mdi-magnify"
+            prepend-inner-icon="mdi-magnify"
             autofocus
             background-color="#484848"
             dense
@@ -32,9 +67,6 @@
             v-model="search"
             :placeholder="searchPlaceholder"
         />
-        <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
 
 
         <!--      <v-menu-->
@@ -95,7 +127,7 @@
             v-for="f in filtersToShow"
             :filter="f"
             :key="f.asStr"
-            hide-checkbox
+            colorful
 
         />
       </v-list>
@@ -105,38 +137,6 @@
       </v-btn>
 
     </v-card-text>
-    <v-divider/>
-    <v-card-actions style="height: 75px;" class="">
-      <v-btn text @click.stop="setFacetZoom(null)" class="mr-2">
-        Close
-      </v-btn>
-      <v-spacer/>
-      <v-menu >
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on" class="mr-1">
-                <v-icon left>mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-subheader>
-                Export as:
-<!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-              </v-subheader>
-              <v-divider></v-divider>
-              <v-list-item :href="makeApiUrl(200, true)" target="_blank">
-                <v-icon left>mdi-table</v-icon>
-                Spreadsheet
-              </v-list-item>
-              <v-list-item :href="makeApiUrl(200)" target="_blank">
-                <v-icon left>mdi-code-json</v-icon>
-                JSON (API)
-              </v-list-item>
-            </v-list>
-          </v-menu>
-
-
-
-    </v-card-actions>
 
 
   </v-card>
@@ -219,7 +219,7 @@ export default {
         return f.key === this.facetZoom
       })
     },
-    thereAreMoreGroupsToShow(){
+    thereAreMoreGroupsToShow() {
       return this.maxFiltersFromApiToShow < 200 && this.filtersFromApi.length === this.maxFiltersFromApiToShow
     },
     searchPlaceholder() {
@@ -228,7 +228,7 @@ export default {
           .toLowerCase()
       return `search ${displayName}`
     },
-    csvUrl(){
+    csvUrl() {
       return this.makeApiUrl(200, true)
     },
 
@@ -252,9 +252,10 @@ export default {
       "removeInputFilters",
     ]),
 
-    clickCheckbox(filter, isChecked, e) {
+    clickOutside() {
+      this.setFacetZoom(null)
     },
-    makeApiUrl(perPage, formatCsv){
+    makeApiUrl(perPage, formatCsv) {
       if (!perPage) perPage = this.maxFiltersFromApiToShow
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `${this.entityType}`
@@ -267,7 +268,7 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
-    async fetchMore(){
+    async fetchMore() {
       this.maxFiltersFromApiToShow = 200
       await this.fetchFilters()
     },

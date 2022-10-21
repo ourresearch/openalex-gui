@@ -2,8 +2,8 @@
   <v-list-item
       class=" my-0 filter-list-item align-start pt-0"
       :input-value="isSelected"
-
-      :color="(isSelected && !hideCheckbox) ? 'green lighten-2' : ''"
+      :disabled="disabled"
+      :color="(isSelected && colorful) ? 'green lighten-2' : ''"
   >
 <!--    removed-->
 <!--    @[eventHandlerName].stop="click($event)"-->
@@ -70,14 +70,14 @@
             v-if="filter.isEntity"
             :to="filter.value | entityZoomLink"
             icon
-            :class="{'green--text': isSelected && colorful}"
             class=""
             style="opacity: .8;"
+            :disabled="disabled"
 
         >
 <!--          <v-icon small>mdi-dots-horizontal</v-icon>-->
 <!--          <v-icon small>mdi-open-in-app</v-icon>-->
-          <v-icon small>mdi-eye-outline</v-icon>
+          <v-icon small :color="(colorful && isSelected) ? 'green lighten-2' : '' ">mdi-eye-outline</v-icon>
 <!--          <v-icon small>mdi-folder-open-outline</v-icon>-->
         </v-btn>
 

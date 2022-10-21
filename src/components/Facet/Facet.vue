@@ -1,13 +1,15 @@
 <template>
 
   <v-list-group
-      :value="isExpanded"
       color="#fff"
       append-icon=""
       multiple
+      :disabled="isDisabled"
+      :id="htmlId"
   >
     <template v-slot:activator>
       <v-list-item-title
+          @click="clickHandler"
       >
         <!--        <v-icon class="expand-indicator" style="opacity: .1;">mdi-chevron-down</v-icon>-->
 
@@ -82,33 +84,31 @@
         v-else
         class="filter-type-list-item  my-0 py-0"
     >
-<!--      <v-slide-y-transition group>-->
-        <facet-option
-            v-for="liveFilter in filtersToShow"
-            :filter="liveFilter"
-            :key="liveFilter.asStr"
-            class="ml-2"
+      <!--      <v-slide-y-transition group>-->
+      <facet-option
+          v-for="liveFilter in filtersToShow"
+          :filter="liveFilter"
+          :key="liveFilter.asStr"
+          class="ml-2"
+          :disabled="isDisabled"
+          :colorful="!isDisabled"
+          @click-checkbox="clickCheckbox"
 
-            @click-checkbox="clickCheckbox"
 
-        />
-<!--      </v-slide-y-transition>-->
+
+      />
+      <!--      </v-slide-y-transition>-->
       <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
         <v-btn
             small
             class="ml-2"
             text
             @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
+            :disabled="isDisabled"
         >
           <!--            <v-icon left>mdi-plus</v-icon>-->
-          <template v-if="facetZoom">
-            <v-icon left>mdi-chevron-left</v-icon>
-            Less
-          </template>
-          <template v-else>
             More
             <v-icon right>mdi-chevron-right</v-icon>
-          </template>
         </v-btn>
         <!--          <v-list-item-icon>-->
         <!--            <v-icon>mdi-plus</v-icon>-->
@@ -137,7 +137,7 @@ import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
 
-const percentToYear = function(percent){
+const percentToYear = function (percent) {
   if (!percent) return "anytime"
 
   const howFarBackToGo = 100 - percent
@@ -182,8 +182,8 @@ export default {
       "facetZoom",
       "textSearch",
     ]),
-    cardEventHandlerName() {
-      return this.showCollapsed ? `click` : null
+    isDisabled() {
+      return !!this.facetZoom // && this.facetZoom !== this.facetKey
     },
     rangeStartOptions() {
       const biggestNumber = Math.min((this.range[1]), 2022)
@@ -260,7 +260,11 @@ export default {
 
       ret.sort(compareByCount)
       return ret
-    }
+    },
+    htmlId() {
+      const noPeriods = this.facetKey.replace(/\./g, "_")
+      return "facet-" + noPeriods
+    },
   },
   methods: {
     ...mapMutations([
@@ -272,14 +276,10 @@ export default {
       "addInputFilters",
     ]),
     clickHandler() {
-      if (this.hasFocus) {
-        this.showCollapsed = true
-      } else {
-        this.showCollapsed = false
-      }
-      this.$emit('toggle-select')
+      console.log("click")
+      this.setFacetZoom(null)
     },
-    changeRange(){
+    changeRange() {
       console.log("change range!")
     },
 
@@ -334,13 +334,31 @@ export default {
         this.fetchFilters()
       }
     },
+    isDisabled(isDisabled) {
+      // const elem = document.getElementById(this.htmlId)
+      const elem = document.querySelector(`#${this.htmlId} .v-list-group__header`)
+      if (isDisabled) {
+        elem.classList.add("v-list-item--disabled")
+      }
+      else {
+        elem.classList.remove("v-list-item--disabled")
+      }
+    },
+    isExpanded(isExpanded){
+      console.log("isExpanded change", isExpanded)
+      if (!isExpanded) this.setFacetZoom(null)
+    }
   }
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 
 .v-list-group--active > .v-list-group__header > .v-list-group__header__prepend-icon .v-icon {
+}
+
+.theme--dark.v-list-item--disabled.v-list-item--active {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .v-list-group--active {

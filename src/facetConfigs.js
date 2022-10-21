@@ -33,7 +33,7 @@ const facetConfigs = function () {
         {
             key: "concepts.id",
             entityTypes: ["works"],
-            displayName: "Concepts",
+            displayName: "Concept",
             isEntity: true,
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
@@ -42,7 +42,7 @@ const facetConfigs = function () {
         {
             key: "host_venue.id",
             entityTypes: ["works"],
-            displayName: "Venues",
+            displayName: "Host",
             isEntity: true,
             entityId: "venues",
             autocompleteEndpoint: "autocomplete/venues",
@@ -72,14 +72,14 @@ const facetConfigs = function () {
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],
-            displayName: "Publisher",
+            displayName: "Host publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
         },
         {
             key: "host_venue.type",
             entityTypes: ["works"],
-            displayName: "Venue type",
+            displayName: "Host type",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
         },
@@ -89,7 +89,7 @@ const facetConfigs = function () {
         {
             key: "open_access.is_oa",
             entityTypes: ["works"],
-            displayName: "Open Access",
+            displayName: "Open Access status",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Toll-access", "Open Access"]
@@ -97,13 +97,13 @@ const facetConfigs = function () {
         {
             key: "host_venue.license",
             entityTypes: ["works"],
-            displayName: "License",
+            displayName: "Open Access license",
             valuesToShow: "mostCommon",
         },
         {
             key: "open_access.oa_status",
             entityTypes: ["works"],
-            displayName: "OA color",
+            displayName: "Open Access color",
             valuesToShow: "mostCommon",
         },
         // {
@@ -118,7 +118,7 @@ const facetConfigs = function () {
         {
             key: "authorships.institutions.country_code",
             entityTypes: ["works"],
-            displayName: "Country",
+            displayName: "Institution country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
@@ -136,13 +136,13 @@ const facetConfigs = function () {
         {
             key: "type",
             entityTypes: ["works"],
-            displayName: "Type",
+            displayName: "Work type",
             valuesToShow: "mostCommon",
         },
         {
             key: "publication_year",
             entityTypes: ["works"],
-            displayName: "Year",
+            displayName: "Work year",
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
@@ -150,19 +150,19 @@ const facetConfigs = function () {
         {
             key: "has_doi",
             entityTypes: ["works"],
-            displayName: "DOI",
+            displayName: "Work IDs: DOI",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Has no DOI", "Has DOI"],
         },
-        {
-            key: "has_ngrams",
-            entityTypes: ["works"],
-            displayName: "N-grams",
-            valuesToShow: "boolean",
-            isBoolean: true,
-            booleanValues: ["Has no n-grams", "Has n-grams"],
-        },
+        // {
+        //     key: "has_ngrams",
+        //     entityTypes: ["works"],
+        //     displayName: "N-grams",
+        //     valuesToShow: "boolean",
+        //     isBoolean: true,
+        //     booleanValues: ["Has no n-grams", "Has n-grams"],
+        // },
         // {
         //     key: "is_paratext",
         //     entityTypes: ["works"],
@@ -174,7 +174,7 @@ const facetConfigs = function () {
         {
             key: "is_retracted",
             entityTypes: ["works"],
-            displayName: "Retraction",
+            displayName: "Work retraction status",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
@@ -184,7 +184,7 @@ const facetConfigs = function () {
         {
             key: "cited_by_count",
             entityTypes: ["works"],
-            displayName: "Citation count",
+            displayName: "Work citation count",
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
@@ -192,7 +192,7 @@ const facetConfigs = function () {
         {
             key: "cited_by",
             entityTypes: ["works"],
-            displayName: "Cited by",
+            displayName: "Work cited by",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
@@ -201,7 +201,7 @@ const facetConfigs = function () {
         {
             key: "cites",
             entityTypes: ["works"],
-            displayName: "Cites",
+            displayName: "Work cites",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
@@ -210,7 +210,7 @@ const facetConfigs = function () {
         {
             key: "related_to",
             entityTypes: ["works"],
-            displayName: "Related to",
+            displayName: "Work related to",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,

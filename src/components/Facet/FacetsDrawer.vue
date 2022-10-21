@@ -53,36 +53,38 @@
               </span>
 
         <v-spacer/>
-        <v-fade-transition>
-          <template v-if="!filterTypeKey">
+        <template v-if="facetZoom">
+          <v-btn icon>
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-btn>
+        </template>
 
-            <v-menu
-            >
-              <template v-slot:activator="{on}">
-                <v-btn icon v-on="on">
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-              <v-list dense>
-                <v-list-item
-                    @click="clearAllFilters"
-                    :disabled="!resultsFilters.length"
-                    :color="resultsFilters.length ? 'error' : null"
-                    :input-value="!!resultsFilters.length"
-                >
-                  <v-list-item-icon>
-                    <v-icon>mdi-delete</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>
-                    Clear all filters
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+        <template v-else>
 
-
-          </template>
-        </v-fade-transition>
+          <v-menu
+          >
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item
+                  @click="clearAllFilters"
+                  :disabled="!resultsFilters.length"
+                  :color="resultsFilters.length ? 'error' : null"
+                  :input-value="!!resultsFilters.length"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-delete</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Clear all filters
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
       </div>
 
 
@@ -90,21 +92,21 @@
       <!--      *****************************************************************-->
       <v-card-text class="pa-0">
 
-      <v-list
-          class="pt-0"
-          nav
-          expand
-          style="height: calc(100vh - 75px); overflow-y: scroll; padding-bottom: 100px;"
-          v-if="!isMini"
-      >
-        <facet
-            v-for="filterType in filterTypeSearchResults"
-            :key="filterType.key"
-            :facet-key="filterType.key"
-            :has-focus="filterTypeKey === filterType.key"
-            :disabled="filterTypeKey && filterTypeKey !== filterType.key"
-        />
-      </v-list>
+        <v-list
+            class="pt-0"
+            nav
+            expand
+            style="height: calc(100vh - 75px); overflow-y: scroll; padding-bottom: 100px;"
+            v-if="!isMini"
+        >
+          <facet
+              v-for="filterType in filterTypeSearchResults"
+              :key="filterType.key"
+              :facet-key="filterType.key"
+              :has-focus="filterTypeKey === filterType.key"
+              :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+          />
+        </v-list>
       </v-card-text>
 
 
