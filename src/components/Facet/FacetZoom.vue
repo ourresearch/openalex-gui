@@ -99,6 +99,10 @@
 
         />
       </v-list>
+      <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">
+        <v-icon left>mdi-chevron-down</v-icon>
+        even more
+      </v-btn>
 
     </v-card-text>
     <v-divider/>
@@ -114,12 +118,9 @@
               </v-btn>
             </template>
             <v-list>
-              <v-subheader v-if="thereAreMoreGroupsToShow">
-                Export top 200
-<!--                {{ myFacetConfig.displayName | pluralize(2) }} found within current results:-->
-              </v-subheader>
-              <v-subheader v-else>
-                Export these
+              <v-subheader>
+                Export as:
+<!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
               </v-subheader>
               <v-divider></v-divider>
               <v-list-item :href="makeApiUrl(200, true)" target="_blank">
@@ -178,7 +179,7 @@ export default {
       searchFilters: [],
       filters: [],
       filtersTotalCount: null,
-      maxFiltersFromApiToShow: 25,
+      maxFiltersFromApiToShow: 20,
 
 
       groupByQueryResultsCount: null,
@@ -219,7 +220,7 @@ export default {
       })
     },
     thereAreMoreGroupsToShow(){
-      return this.filtersFromApi.length === this.maxFiltersFromApiToShow
+      return this.maxFiltersFromApiToShow < 200 && this.filtersFromApi.length === this.maxFiltersFromApiToShow
     },
     searchPlaceholder() {
       const displayName = this
@@ -253,7 +254,8 @@ export default {
 
     clickCheckbox(filter, isChecked, e) {
     },
-    makeApiUrl(perPage=25, formatCsv = false){
+    makeApiUrl(perPage, formatCsv){
+      if (!perPage) perPage = this.maxFiltersFromApiToShow
       const url = new URL(`https://api.openalex.org`);
       url.pathname = `${this.entityType}`
       url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
@@ -264,6 +266,10 @@ export default {
       if (formatCsv) url.searchParams.set("format", "csv")
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
+    },
+    async fetchMore(){
+      this.maxFiltersFromApiToShow = 200
+      await this.fetchFilters()
     },
     fetchFilters: _.debounce(
         async function () {
@@ -279,7 +285,7 @@ export default {
           if (resp.meta.q && resp.meta.q !== this.search) return
 
 
-          const groups = resp.group_by.slice(0, 25)
+          const groups = resp.group_by
           const worksCounts = groups.map(f => f.count)
           const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
           this.filtersTotalCount = sumOfAllWorksCounts
