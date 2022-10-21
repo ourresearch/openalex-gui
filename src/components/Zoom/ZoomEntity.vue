@@ -4,7 +4,6 @@
         v-model="zoomIsOpen"
         scrollable
         max-width="800"
-        :fullscreen="$vuetify.breakpoint.mobile"
     >
 
 
@@ -177,7 +176,7 @@
               </v-btn>
             </template>
             <v-list>
-              <v-subheader>Export this {{entityType}} as</v-subheader>
+              <v-subheader>Export this {{entityType |pluralize(1)}} as</v-subheader>
               <v-divider></v-divider>
               <v-list-item :href="apiUrl + '.bib'" target="_blank">
                 <v-icon left>mdi-file-download-outline</v-icon>

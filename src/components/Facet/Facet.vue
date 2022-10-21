@@ -42,8 +42,8 @@
           v-model="range[0]"
           outlined
           dense
-          :items="[2020,2,3,4,5,6,7,8,9,10]"
-          label="On or after"
+          :items="rangeStartOptions"
+          label="After or on"
           hide-details
           placeholder="anytime"
           :menu-props="{dark: true, color: 'green'}"
@@ -57,20 +57,24 @@
           </span>
         </template>
       </v-select>
-<!--      <span>-->
-<!--        <v-icon>mdi-minus</v-icon>-->
-<!--      </span>-->
       <v-select
           outlined
           v-model="range[1]"
-          :items="['now', 1,2,3,4,5,6,7,8,9,10]"
+          :items="rangeFinishOptions"
           hide-details
           placeholder="now"
-          label="On or before"
+          label="Before or on"
           dense
           dark
           append-icon=""
-      />
+          class="mt-3"
+      >
+        <template v-slot:selection="{item, index}">
+          <span class="font-weight-bold green--text">
+            {{ item }}
+          </span>
+        </template>
+      </v-select>
 
     </div>
 
@@ -78,21 +82,21 @@
         v-else
         class="filter-type-list-item  my-0 py-0"
     >
-      <v-slide-y-transition group>
+<!--      <v-slide-y-transition group>-->
         <facet-option
             v-for="liveFilter in filtersToShow"
             :filter="liveFilter"
             :key="liveFilter.asStr"
-            class="ml-6"
+            class="ml-2"
 
             @click-checkbox="clickCheckbox"
 
         />
-      </v-slide-y-transition>
+<!--      </v-slide-y-transition>-->
       <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
         <v-btn
             small
-            class="ml-7"
+            class="ml-2"
             text
             @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
         >
@@ -181,11 +185,17 @@ export default {
     cardEventHandlerName() {
       return this.showCollapsed ? `click` : null
     },
-    yearsSelected(){
-      return [
-          percentToYear(this.range[0]),
-          percentToYear(this.range[1]),
-      ]
+    rangeStartOptions() {
+      const biggestNumber = Math.min((this.range[1]), 2022)
+      const ret = _.range(1972, biggestNumber + 1)
+      ret.reverse()
+      return ret
+    },
+    rangeFinishOptions() {
+      const smallestNumber = Math.max((this.range[1]), 1972)
+      const ret = _.range(1972, smallestNumber + 1)
+      ret.reverse()
+      return ret
     },
     appliedFiltersCount() {
       const allFilters = filtersFromUrlStr(this.$route.query.filter)
@@ -208,6 +218,7 @@ export default {
       url.pathname = `${this.entityType}`
       url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
       url.searchParams.set("group_by", this.facetKey)
+      url.searchParams.set("per_page", "7")
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()

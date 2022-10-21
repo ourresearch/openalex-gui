@@ -168,7 +168,7 @@ export default {
 
 
       facetZoomWidth: 350,
-      facetsWidth: 300,
+      facetsWidth: 250,
 
       lightColor: "#555",
       darkColor: "#222",

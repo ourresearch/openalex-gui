@@ -75,14 +75,14 @@
     <v-card-text class="pa-0" style="height: calc(100vh - 150px); overflow-y:scroll;">
       <div class="pt-3 px-5 body-2" style="opacity: .7;">
         <template v-if="search && filtersToShow.length">
-          Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" within current results:
+          Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
         </template>
         <template v-else-if="search && !filtersToShow.length">
-          No {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found with current results; try
+          No {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results; try
           broadening your search.
         </template>
         <template v-else>
-          Top {{ myFacetConfig.displayName | pluralize(2) }} within current results:
+          Top {{ myFacetConfig.displayName | pluralize(2) }} found within current results:
         </template>
       </div>
       <v-list
@@ -107,9 +107,34 @@
         Close
       </v-btn>
       <v-spacer/>
-      <v-btn icon class="mr-1">
-        <v-icon>mdi-tray-arrow-down</v-icon>
-      </v-btn>
+      <v-menu >
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on" class="mr-1">
+                <v-icon left>mdi-tray-arrow-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-subheader v-if="thereAreMoreGroupsToShow">
+                Export top 200
+<!--                {{ myFacetConfig.displayName | pluralize(2) }} found within current results:-->
+              </v-subheader>
+              <v-subheader v-else>
+                Export these
+              </v-subheader>
+              <v-divider></v-divider>
+              <v-list-item :href="makeApiUrl(200, true)" target="_blank">
+                <v-icon left>mdi-table</v-icon>
+                Spreadsheet
+              </v-list-item>
+              <v-list-item :href="makeApiUrl(200)" target="_blank">
+                <v-icon left>mdi-code-json</v-icon>
+                JSON (API)
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+
+
     </v-card-actions>
 
 
@@ -153,6 +178,7 @@ export default {
       searchFilters: [],
       filters: [],
       filtersTotalCount: null,
+      maxFiltersFromApiToShow: 25,
 
 
       groupByQueryResultsCount: null,
@@ -192,23 +218,21 @@ export default {
         return f.key === this.facetZoom
       })
     },
+    thereAreMoreGroupsToShow(){
+      return this.filtersFromApi.length === this.maxFiltersFromApiToShow
+    },
     searchPlaceholder() {
       const displayName = this
           .$pluralize(this.myFacetConfig.displayName, 2)
           .toLowerCase()
       return `search ${displayName}`
     },
+    csvUrl(){
+      return this.makeApiUrl(200, true)
+    },
+
     apiUrl() {
-      const url = new URL(`https://api.openalex.org`);
-      url.pathname = `autocomplete/${this.entityType}/filters/${this.myFacetConfig.key}`
-      // const myFilters = this.$store.state.inputFilters.filter(f => f.key !== this.facetZoom)
-      url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
-      if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      if (this.myFacetConfig.valuesToShow === "mostCommon") {
-        url.searchParams.set("q", this.search ?? "")
-      }
-      url.searchParams.set("email", "team@ourresearch.org")
-      return url.toString()
+      return this.makeApiUrl()
     },
 
     filtersToShow() {
@@ -229,6 +253,18 @@ export default {
 
     clickCheckbox(filter, isChecked, e) {
     },
+    makeApiUrl(perPage=25, formatCsv = false){
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = `${this.entityType}`
+      url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
+      url.searchParams.set("group_by", this.myFacetConfig.key)
+      url.searchParams.set("per_page", String(perPage))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      if (this.search) url.searchParams.set("q", this.search)
+      if (formatCsv) url.searchParams.set("format", "csv")
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
+    },
     fetchFilters: _.debounce(
         async function () {
           if (!this.myFacetConfig) return
@@ -240,19 +276,20 @@ export default {
 
           const resp = await api.getUrl(this.apiUrl)
           // if (!this.myFacetConfig) return
+          if (resp.meta.q && resp.meta.q !== this.search) return
 
 
-          const filters = resp.filters.slice(0, 10)
-          const worksCounts = filters.map(f => f.works_count)
+          const groups = resp.group_by.slice(0, 25)
+          const worksCounts = groups.map(f => f.count)
           const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
           this.filtersTotalCount = sumOfAllWorksCounts
 
-          this.filtersFromApi = filters.map(apiData => {
+          this.filtersFromApi = groups.map(apiData => {
             return createDisplayFilter(
                 this.myFacetConfig.key,
-                apiData.value,
-                apiData.display_value,
-                apiData.works_count,
+                apiData.key,
+                apiData.key_display_name,
+                apiData.count,
                 this.filtersTotalCount,
             )
           })
@@ -260,7 +297,7 @@ export default {
 
         },
         500,
-        {leading: true,}
+        {leading: true, trailing: true}
     ),
 
   },
