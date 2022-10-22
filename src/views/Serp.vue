@@ -9,9 +9,8 @@
           color="white"
           class="pl-0"
           :class="{mobile: $vuetify.breakpoint.mobile}"
-          :elevate-on-scroll="!$vuetify.breakpoint.mobile"
-          :absolute="$vuetify.breakpoint.mobile"
-          :flat="$vuetify.breakpoint.mobile"
+          absolute
+          flat
           height="75"
 
       >
@@ -121,7 +120,7 @@
           style="margin-top: 150px;"
           :style="{paddingRight: 0}"
           dark
-          color="#555"
+          color="#363636"
           v-if="!searchIsLoading"
       >
         <v-container>

@@ -3,15 +3,14 @@
   <v-card
       v-if="facetZoom "
       :loading="isLoading"
-      tile
       dark
       color="#3b3b3b"
       v-click-outside="clickOutside"
   >
-    <div class="elevation-3 px-4">
+    <div class="">
 
       <div
-          class="text-h6 d-flex align-center"
+          class="text-h6 ml-4 mr-2 d-flex align-center"
           style="height: 75px;"
       >
         <div>
@@ -45,8 +44,8 @@
         </v-btn>
       </div>
       <div
-          class="d-flex align-center"
-          style="height: 75px;"
+          class="d-flex align-start"
+          style="height: 50px;"
       >
         <!--        <div class="">-->
         <!--          {{ myFacetConfig.displayName }}-->
@@ -57,7 +56,7 @@
             hide-details
             solo
             full-width
-            class="mt-0 "
+            class="mt-0 mx-2"
             clearable
             prepend-inner-icon="mdi-magnify"
             autofocus
@@ -69,42 +68,32 @@
         />
 
 
-        <!--      <v-menu-->
-        <!--      >-->
-        <!--        <template v-slot:activator="{on}">-->
-        <!--          <v-btn icon v-on="on">-->
-        <!--            <v-icon>mdi-dots-vertical</v-icon>-->
-        <!--          </v-btn>-->
-        <!--        </template>-->
-        <!--        <v-list dark dense color="#555">-->
-        <!--          <v-list-item @click="">-->
-        <!--            <v-list-item-icon>-->
-        <!--              <v-icon>mdi-table</v-icon>-->
-        <!--            </v-list-item-icon>-->
-        <!--            <v-list-item-title>-->
-        <!--              Export spreadsheet-->
-        <!--            </v-list-item-title>-->
-        <!--          </v-list-item>-->
-        <!--          <v-list-item @click="">-->
-        <!--            <v-list-item-icon>-->
-        <!--              <v-icon>mdi-code-json</v-icon>-->
-        <!--            </v-list-item-icon>-->
-        <!--            <v-list-item-title>-->
-        <!--              Export API call-->
-        <!--            </v-list-item-title>-->
-        <!--          </v-list-item>-->
-        <!--        </v-list>-->
-        <!--      </v-menu>-->
-
-
       </div>
 
       <div>
 
       </div>
     </div>
+    <v-divider></v-divider>
 
-    <v-card-text class="pa-0" style="height: calc(100vh - 150px); overflow-y:scroll;">
+    <v-card-text class="pa-0" style="height: calc(100vh - (75px + 50px + 6px)); overflow-y:scroll;">
+
+<!--       <v-text-field-->
+<!--            flat-->
+<!--            hide-details-->
+<!--            solo-->
+<!--            full-width-->
+<!--            class="mt-0 "-->
+<!--            clearable-->
+<!--            prepend-inner-icon="mdi-magnify"-->
+<!--            autofocus-->
+<!--            background-color="#484848"-->
+<!--            dense-->
+
+<!--            v-model="search"-->
+<!--            :placeholder="searchPlaceholder"-->
+<!--        />-->
+
       <div class="pt-3 px-5 body-2" style="opacity: .7;">
         <template v-if="search && filtersToShow.length">
           Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results:

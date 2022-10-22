@@ -1,6 +1,6 @@
 <template>
   <v-list-item
-      class=" my-0 filter-list-item align-start pt-0"
+      class=" my-0 filter-list-item align-start pt-0 pr-1"
       :input-value="isSelected"
       :disabled="disabled"
       :color="(isSelected && colorful) ? 'green lighten-2' : ''"

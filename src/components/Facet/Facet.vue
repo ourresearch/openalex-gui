@@ -2,39 +2,32 @@
 
   <v-list-group
       color="#fff"
-      append-icon=""
       multiple
       :disabled="isDisabled"
       :id="htmlId"
+      append-icon=""
   >
     <template v-slot:activator>
       <v-list-item-title
           @click="clickHandler"
       >
-        <!--        <v-icon class="expand-indicator" style="opacity: .1;">mdi-chevron-down</v-icon>-->
-
+                <v-icon class="expand-indicator" style="opacity: .5;">mdi-chevron-down</v-icon>
+<!--        <span v-else style="padding-left: 33px;"></span>-->
         {{ config.displayName }}
-
-        <!--      <v-list-item-action>-->
-        <!--          {{ myResultsFilters.length }}-->
-        <!--        </v-chip>-->
-        <!--        &lt;!&ndash;          <span class="body-2 grey&#45;&#45;text font-weight-bold">&ndash;&gt;-->
-        <!--        &lt;!&ndash;            {{ myResultsFilters.length }}&ndash;&gt;-->
-        <!--        &lt;!&ndash;          </span>&ndash;&gt;-->
-        <!--      </v-list-item-action>-->
 
 
       </v-list-item-title>
-      <v-list-item-action style="min-width: unset;">
-        <v-chip
-            outlined
-            small
-            class="mr-1 px-2 count-chip my-0"
-            v-if="myResultsFilters.length > 0"
-        >
-          {{ myResultsFilters.length }}
-        </v-chip>
-      </v-list-item-action>
+            <v-list-item-action style="min-width: unset;">
+              <v-chip
+                  outlined
+                  small
+                  class="mr-1 px-2 count-chip my-0"
+                  v-if="myResultsFilters.length > 0"
+                  color="green lighten-2"
+              >
+                {{ myResultsFilters.length }}
+              </v-chip>
+            </v-list-item-action>
 
     </template>
 
@@ -89,26 +82,25 @@
           v-for="liveFilter in filtersToShow"
           :filter="liveFilter"
           :key="liveFilter.asStr"
-          class="ml-2"
+          class="ml-6"
           :disabled="isDisabled"
           :colorful="!isDisabled"
           @click-checkbox="clickCheckbox"
 
 
-
       />
       <!--      </v-slide-y-transition>-->
-      <v-list-item class="ml-6" v-if="thereAreMoreResults" key="more-button">
+      <v-list-item class="ml-6 mb-2" v-if="thereAreMoreResults" key="more-button">
         <v-btn
             small
-            class="ml-2"
+            class="ml-6"
             text
             @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
             :disabled="isDisabled"
         >
           <!--            <v-icon left>mdi-plus</v-icon>-->
-            More
-            <v-icon right>mdi-chevron-right</v-icon>
+          More
+          <v-icon right>mdi-chevron-right</v-icon>
         </v-btn>
         <!--          <v-list-item-icon>-->
         <!--            <v-icon>mdi-plus</v-icon>-->
@@ -165,7 +157,6 @@ export default {
   data() {
     return {
       loading: false,
-      isExpanded: false,
       apiResp: {},
       isChecked: this.showChecked,
       showCollapsed: false,
@@ -339,15 +330,10 @@ export default {
       const elem = document.querySelector(`#${this.htmlId} .v-list-group__header`)
       if (isDisabled) {
         elem.classList.add("v-list-item--disabled")
-      }
-      else {
+      } else {
         elem.classList.remove("v-list-item--disabled")
       }
     },
-    isExpanded(isExpanded){
-      console.log("isExpanded change", isExpanded)
-      if (!isExpanded) this.setFacetZoom(null)
-    }
   }
 }
 </script>
@@ -359,6 +345,10 @@ export default {
 
 .theme--dark.v-list-item--disabled.v-list-item--active {
   color: rgba(255, 255, 255, 0.5);
+}
+
+.v-list-group__header.v-list-item--active  .count-chip {
+  opacity: 0;
 }
 
 .v-list-group--active {

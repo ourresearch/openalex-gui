@@ -5,17 +5,14 @@
       app
       :width="width"
       v-model="isOpen"
-      :mini-variant.sync="isMini"
       class="pa-0 ma-0"
       id="facets-drawer"
       dark
       disable-route-watcher
+      color="transparent"
 
 
   >
-    <v-progress-linear absolute v-if="isLoading" indeterminate color="white"></v-progress-linear>
-
-
     <v-card
         flat
         color="#363636"
@@ -27,29 +24,35 @@
       <div
           class="d-flex align-center pl-1 pr-3"
           style="height: 75px; "
-          :class="{'elevation-3': !isMini}"
       >
+
         <v-btn
             icon
             large
             class="ml-1"
-            @click="topListItemClick"
             :disabled="!!filterTypeKey"
         >
-          <v-icon medium color="">mdi-filter-outline</v-icon>
-          <span
-              v-if="resultsFilters.length"
-              class=""
-              style="font-size: 12px; margin: 20px 0 0 -5px;"
+          <v-chip
+            v-if="resultsFilters.length"
+            color="green lighten-2"
+            light
           >
-                  {{ resultsFilters.length }}
-                </span>
+            {{ resultsFilters.length }}
+          </v-chip>
+          <v-icon v-else medium color="">mdi-filter-outline</v-icon>
+<!--          <span-->
+<!--              v-if="resultsFilters.length"-->
+<!--              class=""-->
+<!--              style="font-size: 12px; margin: 20px 0 0 -5px;"-->
+<!--          >-->
+<!--                  {{ resultsFilters.length }}-->
+<!--                </span>-->
         </v-btn>
         <span
             class="text-h6  pl-1"
 
         >
-                Filters
+                {{ 'Filters' | pluralize(resultsFilters.length) }}
               </span>
 
         <v-spacer/>
@@ -86,6 +89,33 @@
           </v-menu>
         </template>
       </div>
+      <div
+          class="d-flex align-start"
+          style="height: 50px;"
+      >
+        <!--        <div class="">-->
+        <!--          {{ myFacetConfig.displayName }}-->
+        <!--        </div>-->
+
+        <v-text-field
+            flat
+            hide-details
+            solo
+            full-width
+            class="mt-0 mx-2"
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            autofocus
+            background-color="#484848"
+            dense
+
+            v-model="facetSearch"
+            placeholder="search filters"
+        />
+
+
+      </div>
+      <v-divider></v-divider>
 
 
       <!--      List of filter types  -->
@@ -96,11 +126,10 @@
             class="pt-0"
             nav
             expand
-            style="height: calc(100vh - 75px); overflow-y: scroll; padding-bottom: 100px;"
-            v-if="!isMini"
+            style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
           <facet
-              v-for="filterType in filterTypeSearchResults"
+              v-for="filterType in facetSearchResults"
               :key="filterType.key"
               :facet-key="filterType.key"
               :has-focus="filterTypeKey === filterType.key"
@@ -160,7 +189,7 @@ export default {
     return {
       showSearch: false,
       search: "",
-      filterTypeSearch: "",
+      facetSearch: "",
       filterTypeKey: null,
       showFiltersList: false,
       isLoading: false,
@@ -170,7 +199,7 @@ export default {
 
 
       facetZoomWidth: 350,
-      facetsWidth: 250,
+      facetsWidth: 300,
 
       lightColor: "#555",
       darkColor: "#222",
@@ -198,15 +227,6 @@ export default {
       "showFiltersDrawer",
       "facetZoom"
     ]),
-    isMini: {
-      get() {
-        if (this.$vuetify.breakpoint.mobile) return false
-        return !this.$store.state.showFiltersDrawer
-      },
-      set(val) {
-        this.$store.state.showFiltersDrawer = !val
-      },
-    },
     isOpen: {
       get() {
         if (!this.$vuetify.breakpoint.mobile) return true
@@ -222,16 +242,16 @@ export default {
       return !this.$vuetify.breakpoint.mobile && this.filterTypeKey
     },
     width() {
-      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth : 0)
+      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth + 2 : 0)
       // if (this.showFacetZoomPanel) {
       //   return this.filterTypesListWidth + this.facetsWidth
       // }
       // else return this.filterTypesListWidth
     },
-    filterTypeSearchResults() {
+    facetSearchResults() {
       const ret = this.searchFacetConfigs
           .filter(c => {
-            return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
+            return c.displayName.toLowerCase().match(this.facetSearch?.toLowerCase())
           })
           .filter(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
@@ -242,7 +262,7 @@ export default {
 
       // const ret = this.searchFacetConfigs
       //     .filter(c => {
-      //       return c.displayName.toLowerCase().match(this.filterTypeSearch?.toLowerCase())
+      //       return c.displayName.toLowerCase().match(this.facetSearch?.toLowerCase())
       //     })
       //     .map(c => {
       //       const filters = this.resultsFilters.filter(f => f.key === c.key)
@@ -284,11 +304,6 @@ export default {
     setFilterTypeKey(filterTypeKey) {
       this.filterTypeKey = filterTypeKey
     },
-    topListItemClick() {
-      if (this.isMini) return
-      if (this.filterTypeKey) this.setFilterTypeKey(null)
-      this.isMini = true
-    },
     async clearAllFilters() {
       console.log("clear all filters")
       await this.$router.push({
@@ -320,8 +335,8 @@ export default {
 
 #facet-zoom-drawer {
   position: fixed;
-  top: 0;
-  bottom: 0;
+  top: 2px;
+  bottom: 2px;
   right: 0;
   z-index: 3;
 }
