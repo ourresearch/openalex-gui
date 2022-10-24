@@ -37,6 +37,10 @@
           v-ripple
       />
       </template>
+
+
+
+
     </div>
     <div>
       <div
@@ -44,6 +48,7 @@
           style="line-height: 1.5;"
           :class="{'font-weight-bold': isSelected}"
       >
+
         <span
             :class="{'white--text': isSelected && hideCheckbox}"
             class="text--lighten-1"
@@ -55,6 +60,7 @@
       <div v-if="!hideNumber"
            class="body-2 grey--text"
       >
+
         {{ filter.count | toPrecision }}
       </div>
     </div>
@@ -91,13 +97,11 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {prettyTitle} from "../../util";
 
 export default {
-  name: "FacetOption",
+  name: "FacetRangeOption",
   components: {},
   props: {
     // required
     filter: Object,
-
-    hideCheckbox: Boolean,
 
     disabled: Boolean,
     colorful: Boolean,
@@ -207,63 +211,5 @@ export default {
 <style scoped lang="scss">
 
 
-.filter-list-item {
-  //min-height: 0 !important;
-  //margin-bottom: 0 !important;
-  //padding-top: 4px !important;
-  //padding-bottom: 4px !important;
-
-  .v-list-item__icon {
-    //margin: 0 !important;
-  }
-
-  .v-list-item__content {
-    //padding: 0 !important;
-  }
-
-}
-
-.v-list .v-list-item--active {
-  //background: green;
-}
-
-a.hover-underline {
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.disabled {
-  filter: grayscale(100%);
-}
-
-.facet-option-bar-container {
-  width: 20px;
-  height: 11px;
-  margin-right: 15px;
-  background-color: rgba(0, 0, 0, 0.05);
-  flex: none;
-  display: inline-flex;
-  justify-content: flex-end;
-}
-
-.facet-option-bar-bar {
-  background-color: rgba(0, 0, 0, .5);
-  height: 100%;
-
-  &.selected {
-    //background-color: rgba(255, 255, 255, 1);
-  }
-}
-
-.filter-row {
-  //cursor: pointer;
-  //
-  //&:hover {
-  //  background: #eee;
-  //}
-}
 
 </style>

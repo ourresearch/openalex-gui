@@ -43,8 +43,6 @@ const filtersFromUrlStr = function (str) {
             filters.push(createSimpleFilter(key, value))
         })
     })
-
-
     return filters
 }
 
@@ -53,22 +51,6 @@ const filtersAsUrlStr = function (filters, keyToNegate) {
         .filter(f => typeof f.value !== "undefined")
         .map(f => f.asStr)
         .join(",")
-
-
-
-    const keys = filters.filter(f => typeof f.value !== "undefined").map(f => f.key)
-    keys.sort()
-
-
-
-    const uniqueKeys = [...new Set(keys)]
-    const facetStrings = uniqueKeys.map(k => {
-        const values = filters.filter(f => f.key === k).map(f => f.value)
-        let valueString = values.join("|")
-        if (keyToNegate === k) valueString = "!" + valueString
-        return k + ":" + valueString
-    })
-    return facetStrings.join(",")
 }
 
 

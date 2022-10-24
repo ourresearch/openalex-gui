@@ -177,6 +177,13 @@ export default new Vuex.Store({
                 return f.asStr !== filter.asStr
             })
         },
+        replaceInputFilter(state, filter) {
+            const newFilters = state.inputFilters.filter(f => {
+                return f.key !== filter.key
+            })
+            newFilters.push(filter)
+            state.inputFilters = newFilters
+        },
 
 
     },
@@ -285,9 +292,10 @@ export default new Vuex.Store({
                 commit("addInputFilter", f)
             })
             commit("setPage", 1)
-            // await dispatch("doSearch")
             await dispatch("pushSearchUrl")
         },
+
+
         // eslint-disable-next-line no-unused-vars
         async removeInputFilters({commit, getters, dispatch, state}, filters) {
             filters.forEach(f => {
@@ -309,6 +317,13 @@ export default new Vuex.Store({
             console.log("Vuex replaceInputFilters", filters)
             state.inputFilters = []
             await dispatch("addInputFilters", filters)
+        },
+
+        // eslint-disable-next-line no-unused-vars
+        async replaceInputFilter({commit, getters, dispatch, state}, filter) {
+            commit("replaceInputFilter", filter)
+            commit("setPage", 1)
+            dispatch("pushSearchUrl")
         },
 
 

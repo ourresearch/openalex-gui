@@ -59,7 +59,7 @@
           <template v-if="entityType==='works'">
             <div>
 
-<!--              Green open access-->
+              <!--              Green open access-->
               <v-menu
                   v-if="isGreenOa"
               >
@@ -122,49 +122,36 @@
           <!--        everything except for works-->
           <template v-else>
             <div>
+              <!--              <v-btn-->
+              <!--                  text-->
+              <!--                  exact-->
+              <!--                  :to='{name: "Serp", query:{...$route.query}}'-->
+              <!--              >-->
+              <!--                Close-->
+              <!--              </v-btn>-->
+              <!--            </div>-->
               <v-btn
-                  text
-                  exact
-                  :to='{name: "Serp", query:{...$route.query}}'
-              >
-                Close
-              </v-btn>
-            </div>
-            <div class="d-none">
-              <v-btn
-                  v-if="filterIsApplied"
-                  :to="filterToShowWorks | removeFilterLink"
+                  @click="replaceInputFilters([filterToShowWorks])"
                   class=""
-                  color="green"
-                  dark
+                  color="primary"
+                  outlined
                   exact
               >
-                <v-icon left>mdi-filter-minus-outline</v-icon>
-                remove filter
-              </v-btn>
-              <v-btn
-                  v-else
-                  :to="filterToShowWorks | addFilterLink"
-                  class=""
-                  color="green"
-                  text
-                  exact
-              >
-                <v-icon left>mdi-filter-plus-outline</v-icon>
-                add filter
+                <v-icon left>mdi-file-document-multiple-outline</v-icon>
+                View works
               </v-btn>
 
-              <!--            <v-btn-->
-              <!--                :href="linkoutUrl"-->
-              <!--                target="_blank"-->
-              <!--                class=""-->
-              <!--                v-if="linkoutUrl"-->
-              <!--                color="primary"-->
-              <!--                :outlined="!linkoutButtonIsGood"-->
-              <!--            >-->
-              <!--              <v-icon left>mdi-open-in-new</v-icon>-->
-              <!--              {{ linkoutButtonText }}-->
-              <!--            </v-btn>-->
+              <v-btn
+                  :href="linkoutUrl"
+                  target="_blank"
+                  class="ml-3"
+                  v-if="linkoutUrl"
+                  color="primary"
+                  text
+              >
+                <v-icon left>mdi-open-in-new</v-icon>
+                {{ linkoutButtonText }}
+              </v-btn>
             </div>
           </template>
 
@@ -176,7 +163,7 @@
               </v-btn>
             </template>
             <v-list>
-              <v-subheader>Export this {{entityType |pluralize(1)}} as</v-subheader>
+              <v-subheader>Export this {{ entityType |pluralize(1) }} as</v-subheader>
               <v-divider></v-divider>
               <v-list-item :href="apiUrl + '.bib'" target="_blank">
                 <v-icon left>mdi-file-download-outline</v-icon>
@@ -235,6 +222,10 @@ const workIsFreeAtPublisher = function (data) {
 
 
 export default {
+  name: "ZoomEntity",
+  metaInfo() {
+    return {title: this.data?.display_name}
+  },
   components: {
     EntityWork,
     EntityAuthor,
@@ -254,7 +245,9 @@ export default {
     ...mapMutations([
       "snackbar"
     ]),
-    ...mapActions([]),
+    ...mapActions([
+      "replaceInputFilters"
+    ]),
     async copyPermalinkToClipboard() {
       await navigator.clipboard.writeText(this.data.id);
       this.snackbar("URL copied to clipboard.")
@@ -298,6 +291,16 @@ export default {
     entityType() {
       return entityTypeFromId(this.myId)
     },
+    linkoutUrl(){
+      if (this.entityType === "venues") return this.data.homepage_url
+      if (this.entityType === "institutions") return this.data.homepage_url
+      if (this.entityType === "concepts") return this.data.ids.wikipedia
+    },
+    linkoutButtonText(){
+      if (this.entityType === "venues") return "Homepage"
+      if (this.entityType === "institutions") return "Homepage"
+      if (this.entityType === "concepts") return "Wikipedia"
+    },
     currentUrlWithoutZoom() {
       const newQuery = {...this.$route.query}
       newQuery.zoom = undefined
@@ -307,7 +310,7 @@ export default {
         query: newQuery,
       }
     },
-    filterIsApplied(){
+    filterIsApplied() {
       return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
     },
     filterToShowWorks() {
@@ -317,10 +320,10 @@ export default {
           this.myId,
       )
     },
-    addWorksFilter(){
+    addWorksFilter() {
 
     },
-    removeWorksFilter(){
+    removeWorksFilter() {
 
     },
     greenUrl() {

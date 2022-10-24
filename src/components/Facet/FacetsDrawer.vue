@@ -33,20 +33,20 @@
             :disabled="!!filterTypeKey"
         >
           <v-chip
-            v-if="resultsFilters.length"
-            color="green lighten-2"
-            light
+              v-if="resultsFilters.length"
+              color="green lighten-2"
+              light
           >
             {{ resultsFilters.length }}
           </v-chip>
           <v-icon v-else medium color="">mdi-filter-outline</v-icon>
-<!--          <span-->
-<!--              v-if="resultsFilters.length"-->
-<!--              class=""-->
-<!--              style="font-size: 12px; margin: 20px 0 0 -5px;"-->
-<!--          >-->
-<!--                  {{ resultsFilters.length }}-->
-<!--                </span>-->
+          <!--          <span-->
+          <!--              v-if="resultsFilters.length"-->
+          <!--              class=""-->
+          <!--              style="font-size: 12px; margin: 20px 0 0 -5px;"-->
+          <!--          >-->
+          <!--                  {{ resultsFilters.length }}-->
+          <!--                </span>-->
         </v-btn>
         <span
             class="text-h6  pl-1"
@@ -129,11 +129,11 @@
             style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
           <facet
-              v-for="filterType in facetSearchResults"
-              :key="filterType.key"
-              :facet-key="filterType.key"
-              :has-focus="filterTypeKey === filterType.key"
-              :disabled="filterTypeKey && filterTypeKey !== filterType.key"
+              v-for="facet in facetSearchResults"
+              :key="facet.key"
+              :facet-key="facet.key"
+              :has-focus="filterTypeKey === facet.key"
+              :disabled="filterTypeKey && filterTypeKey !== facet.key"
           />
         </v-list>
       </v-card-text>
@@ -167,6 +167,7 @@ import {url} from "../../url";
 import _ from "lodash"
 import FacetZoom from "./FacetZoom";
 import Facet from "./Facet";
+import FacetRange from "./FacetRange";
 
 const compareByCount = function (a, b) {
   if (a.count > b.count) {
@@ -182,7 +183,8 @@ const compareByCount = function (a, b) {
 export default {
   components: {
     FacetZoom,
-    Facet
+    Facet,
+    FacetRange,
   },
   props: {},
   data() {
