@@ -1,19 +1,19 @@
 <template>
     <v-list
-        class="filter-type-list-item  my-0 py-0"
+        class="filter-type-list-item  mt-1 py-0 mb-1"
     >
       <facet-option
           v-for="liveFilter in filtersToShow"
           :filter="liveFilter"
           :key="liveFilter.asStr"
-          class="ml-6"
+          class="ml-7"
           :disabled="isDisabled"
           :colorful="!isDisabled"
       />
-      <v-list-item class="ml-6 mb-2" v-if="thereAreMoreResults" key="more-button">
+      <v-list-item class="ml-2 mb-2" v-if="thereAreMoreResults" key="more-button">
         <v-btn
-            small
-            class="ml-6"
+            x-small
+            class="ml-12"
             text
             @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
             :disabled="isDisabled"

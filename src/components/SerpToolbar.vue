@@ -1,7 +1,7 @@
 <template>
   <v-card
       flat
-      class="serp-filters-list mt-12 pt"
+      class="serp-filters-list"
   >
 
 

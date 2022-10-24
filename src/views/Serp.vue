@@ -74,7 +74,7 @@
         <router-view></router-view>
         <search-box class="px-3 mt-3 flex-fill d-md-none"/>
         <div
-            class="serp-container pt-12 pl-4"
+            class="serp-container pt-0 mt-4 pl-4"
             :class="{mobile: $vuetify.breakpoint.mobile}"
             style="max-width: 800px;"
         >

@@ -65,6 +65,7 @@
         <template v-else>
 
           <v-menu
+              dark
           >
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on">
@@ -72,17 +73,45 @@
               </v-btn>
             </template>
             <v-list dense>
+              <v-subheader>View filters</v-subheader>
+              <v-divider></v-divider>
+              <v-list-item @click="showAdvancedFilters = !showAdvancedFilters">
+                <v-list-item-icon>
+                  <v-icon v-if="showAdvancedFilters">mdi-checkbox-marked</v-icon>
+                  <v-icon style="opacity: 1 !important;" v-else>mdi-checkbox-blank-outline</v-icon>
+
+<!--                  <v-icon v-if="showAdvancedFilters">mdi-filter-outline</v-icon>-->
+<!--                  <v-icon v-else>mdi-filter-multiple-outline</v-icon>-->
+
+
+                </v-list-item-icon>
+                <v-list-item-title>
+<!--                  {{ showAdvancedFilters ? "Hide" : "Show" }} advanced filters-->
+                  Show advanced filters
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="expandAll = !expandAll">
+                <v-list-item-icon>
+                  <v-icon v-if="expandAll">mdi-arrow-collapse-vertical</v-icon>
+                  <v-icon v-else>mdi-arrow-expand-vertical</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  {{ expandAll ? "Collapse" : "Expand" }} all
+                </v-list-item-title>
+              </v-list-item>
+
+
+              <v-subheader>Filter actions</v-subheader>
+              <v-divider></v-divider>
               <v-list-item
                   @click="clearAllFilters"
                   :disabled="!resultsFilters.length"
-                  :color="resultsFilters.length ? 'error' : null"
-                  :input-value="!!resultsFilters.length"
               >
                 <v-list-item-icon>
                   <v-icon>mdi-delete</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
-                  Clear all filters
+                  Clear all
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -122,19 +151,37 @@
       <!--      *****************************************************************-->
       <v-card-text class="pa-0">
 
+
+
+
         <v-list
             class="pt-0"
-            nav
             expand
             style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
-          <facet
-              v-for="facet in facetSearchResults"
-              :key="facet.key"
-              :facet-key="facet.key"
-              :has-focus="filterTypeKey === facet.key"
-              :disabled="filterTypeKey && filterTypeKey !== facet.key"
-          />
+          <template
+            v-for="facetCategory in facetsByCategory"
+          >
+            <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
+              <v-subheader
+                  :key="'subheader' + facetCategory.name"
+                class="pl-12 text-capitalize"
+              >
+                {{facetCategory.name}}
+              </v-subheader>
+              <v-divider :key="'divider' + facetCategory.name"></v-divider>
+            </template>
+            <facet
+                v-for="facet in facetCategory.facets"
+                :key="'facet' + facet.key"
+                :facet-key="facet.key"
+                :has-focus="filterTypeKey === facet.key"
+                :disabled="filterTypeKey && filterTypeKey !== facet.key"
+                :value="expandAll"
+            />
+          </template>
+
+
         </v-list>
       </v-card-text>
 
@@ -160,7 +207,7 @@
 import {createDisplayFilter, createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs} from "../../facetConfigs";
+import {facetCategories} from "../../facetConfigs";
 import FacetOption from "./FacetOption";
 import {api} from "../../api";
 import {url} from "../../url";
@@ -198,6 +245,8 @@ export default {
       filtersFromAutocomplete: [],
       filtersFromGroupBy: [],
       groupByQueryResultsCount: null,
+      expandAll: false,
+      showAdvancedFilters: true,
 
 
       facetZoomWidth: 350,
@@ -250,10 +299,28 @@ export default {
       // }
       // else return this.filterTypesListWidth
     },
+    facetsByCategory(){
+      return facetCategories.works.map(categoryName => {
+        return {
+          name: categoryName,
+          facets: this.facetSearchResults.filter(f => {
+            return f.category === categoryName
+          })
+        }
+      })
+      .filter(categoryObj => {
+        return categoryObj.facets.length > 0
+      })
+    },
+
     facetSearchResults() {
       const ret = this.searchFacetConfigs
           .filter(c => {
             return c.displayName.toLowerCase().match(this.facetSearch?.toLowerCase())
+          })
+          .filter(c => {
+            const filters = this.resultsFilters.filter(f => f.key === c.key)
+            return (c.isCore || this.showAdvancedFilters || filters.length)
           })
           .filter(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)

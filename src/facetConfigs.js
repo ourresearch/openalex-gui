@@ -14,6 +14,16 @@ const makeFacetQueryFilters = function (facetFilters) {
 
 }
 
+const facetCategories = {
+    works: [
+        "solo",
+        "institution",
+        "host",
+        "access",
+        "ids",
+        "citation",
+    ]
+}
 
 const facetConfigs = function () {
     const ret = [
@@ -40,6 +50,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
             category: "solo",
+            isCore: true,
         },
         {
             key: "host_venue.id",
@@ -50,6 +61,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/venues",
             valuesToShow: "mostCommon",
             category: "host",
+            isCore: true,
         },
         {
             key: "authorships.institutions.id",
@@ -60,6 +72,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/institutions",
             valuesToShow: "mostCommon",
             category: "institution",
+            isCore: true,
         },
         {
             key: "authorships.author.id",
@@ -69,7 +82,8 @@ const facetConfigs = function () {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
-            category: "author",
+            category: "solo",
+            isCore: true,
         },
 
 
@@ -80,6 +94,7 @@ const facetConfigs = function () {
             displayName: "Host publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
+            category: "host",
         },
         {
             key: "host_venue.type",
@@ -87,6 +102,7 @@ const facetConfigs = function () {
             displayName: "Host type",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
+            category: "host",
         },
 
 
@@ -94,22 +110,26 @@ const facetConfigs = function () {
         {
             key: "open_access.is_oa",
             entityTypes: ["works"],
-            displayName: "Open Access status",
+            displayName: "Access",
             valuesToShow: "boolean",
             isBoolean: true,
-            booleanValues: ["Toll-access", "Open Access"]
+            booleanValues: ["Toll-access", "Open Access"],
+            category: "access",
+            isCore: true,
         },
         {
             key: "host_venue.license",
             entityTypes: ["works"],
-            displayName: "Open Access license",
+            displayName: "OA license",
             valuesToShow: "mostCommon",
+            category: "access",
         },
         {
             key: "open_access.oa_status",
             entityTypes: ["works"],
-            displayName: "Open Access color",
+            displayName: "OA color",
             valuesToShow: "mostCommon",
+            category: "access",
         },
         // {
         //     key: "has_abstract",
@@ -127,6 +147,8 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
+            category: "institution",
+            isCore: true,
         },
         {
             key: "authorships.institutions.type",
@@ -134,6 +156,7 @@ const facetConfigs = function () {
             displayName: "Institution type",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
+            category: "institution",
         },
 
 
@@ -143,14 +166,17 @@ const facetConfigs = function () {
             entityTypes: ["works"],
             displayName: "Work type",
             valuesToShow: "mostCommon",
+            category: "solo",
         },
         {
             key: "publication_year",
             entityTypes: ["works"],
-            displayName: "Work year",
+            displayName: "Year published",
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
+            category: "solo",
+            isCore: true,
         },
         {
             key: "has_doi",
@@ -159,6 +185,7 @@ const facetConfigs = function () {
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Has no DOI", "Has DOI"],
+            category: "ids",
         },
         // {
         //     key: "has_pmid",
@@ -187,10 +214,11 @@ const facetConfigs = function () {
         {
             key: "is_retracted",
             entityTypes: ["works"],
-            displayName: "Work retraction status",
+            displayName: "Retraction status",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
+            category: "solo",
         },
 
         // works: links to other works
@@ -201,6 +229,8 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
+            category: "citation",
+            isCore: true,
         },
         {
             key: "cited_by",
@@ -210,6 +240,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
+            category: "citation",
         },
         {
             key: "cites",
@@ -219,6 +250,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
+            category: "access",
         },
         {
             key: "related_to",
@@ -228,6 +260,8 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
+            category: "solo",
+            isHidden: true,
         },
 
 
@@ -341,4 +375,5 @@ export {
     makeFacet,
     facetConfigs,
     getFacetConfig,
+    facetCategories,
 }

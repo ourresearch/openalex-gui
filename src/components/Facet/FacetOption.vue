@@ -4,6 +4,7 @@
       :input-value="isSelected"
       :disabled="disabled"
       :color="(isSelected && colorful) ? 'green lighten-2' : ''"
+      style="margin-top: -5px !important;"
   >
 <!--    removed-->
 <!--    @[eventHandlerName].stop="click($event)"-->
@@ -40,7 +41,7 @@
     </div>
     <div>
       <div
-          class="body-1 mt-2"
+          class="body-1 mt-2 "
           style="line-height: 1.5;"
           :class="{'font-weight-bold': isSelected}"
       >
