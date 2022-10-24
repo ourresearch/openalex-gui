@@ -81,27 +81,22 @@
               class="d-flex align-center"
           >
             <search-box class="px-3 flex-fill"/>
-            <serp-toolbar/>
           </div>
 
           <div
-              class="mt-10 ml-2 "
-              v-if="resultsCount"
+              class="d-flex align-center mt-6"
           >
-            <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-            <span class="font-weight-bold">
-<!--          {{(resultsCount < 1000) ? "About" : "" }}-->
-              <!--          {{ resultsCount | millify(3) }}-->
-          {{ resultsCount | toPrecision }}
-
-        </span>
-            <span>
-          {{ entityType | pluralize(resultsCount) }}
-
-          </span>
-
-
+            <div
+                class="ml-2 "
+                v-if="resultsCount"
+            >
+              <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
+              <span class="ml-1">{{ entityType | pluralize(resultsCount) }}</span>
+            </div>
+            <v-spacer></v-spacer>
+            <serp-toolbar></serp-toolbar>
           </div>
+
           <div class="search-results" style="margin-top: -10px">
             <div
                 v-for="result in $store.state.results"
