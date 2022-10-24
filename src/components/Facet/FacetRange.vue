@@ -74,7 +74,6 @@ import {
   makeFilterList
 } from "../../filterConfigs";
 import FacetOption from "./FacetOption";
-import FacetOptionRange from "./FacetRangeOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
 

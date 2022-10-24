@@ -119,8 +119,9 @@
         </template>
       </div>
       <div
-          class="d-flex align-start"
+          class="d-flex align-start "
           style="height: 50px;"
+
       >
         <!--        <div class="">-->
         <!--          {{ myFacetConfig.displayName }}-->
@@ -170,7 +171,7 @@
               >
                 {{facetCategory.name}}
               </v-subheader>
-              <v-divider :key="'divider' + facetCategory.name"></v-divider>
+<!--              <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
             </template>
             <facet
                 v-for="facet in facetCategory.facets"

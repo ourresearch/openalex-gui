@@ -14,7 +14,6 @@
         id="main-search"
         style="width: 100%;"
         :dense="!isAloneOnPage"
-        :rounded="!$vuetify.breakpoint.mobile"
         :color="color"
 
         v-model="select"

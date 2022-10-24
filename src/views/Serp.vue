@@ -31,7 +31,7 @@
               </span>
             </router-link>
             <!--          {{ logoColorRotation }}-->
-            <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>
+            <!--            <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>-->
           </div>
 
           <div class="">
@@ -55,40 +55,54 @@
       <facets-drawer @filter-type-key="setFilterTypeKey"/>
 
 
+      <!--      <v-navigation-drawer-->
+      <!--          :value="!!facetZoom && !$vuetify.breakpoint.mobile"-->
+      <!--          right-->
+      <!--          app-->
+      <!--          dark-->
+      <!--          width="300px"-->
+      <!--          style="height: 100vh; overflow: hidden;"-->
 
-<!--      <v-navigation-drawer-->
-<!--          :value="!!facetZoom && !$vuetify.breakpoint.mobile"-->
-<!--          right-->
-<!--          app-->
-<!--          dark-->
-<!--          width="300px"-->
-<!--          style="height: 100vh; overflow: hidden;"-->
 
-
-<!--      >-->
-<!--      </v-navigation-drawer>-->
+      <!--      >-->
+      <!--      </v-navigation-drawer>-->
 
 
       <v-main>
 
         <router-view></router-view>
-        <search-box class="px-3 mt-3 flex-fill d-md-none"/>
         <div
-            class="serp-container pt-0 mt-4 pl-4"
+            class="serp-container pt-0 pl-4"
             :class="{mobile: $vuetify.breakpoint.mobile}"
             style="max-width: 800px;"
         >
-
-
-          <div class="search-results-meta pl-3"
+          <div
+              style="margin-left: -15px"
+              class="d-flex align-center"
           >
-            <serp-toolbar
-            />
-            <v-divider/>
+            <search-box class="px-3 flex-fill"/>
+            <serp-toolbar/>
           </div>
 
+          <div
+              class="mt-10 ml-2 "
+              v-if="resultsCount"
+          >
+            <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
+            <span class="font-weight-bold">
+<!--          {{(resultsCount < 1000) ? "About" : "" }}-->
+              <!--          {{ resultsCount | millify(3) }}-->
+          {{ resultsCount | toPrecision }}
 
-          <div class="search-results">
+        </span>
+            <span>
+          {{ entityType | pluralize(resultsCount) }}
+
+          </span>
+
+
+          </div>
+          <div class="search-results" style="margin-top: -10px">
             <div
                 v-for="result in $store.state.results"
                 class="result-container my-4"
@@ -260,7 +274,8 @@ export default {
       "entityZoomData",
       "searchIsLoading",
       "showFiltersDrawer",
-      "facetZoom"
+      "facetZoom",
+      "resultsCount",
     ]),
     page: {
       get() {
@@ -374,7 +389,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 
 
 .v-app-bar.mobile {

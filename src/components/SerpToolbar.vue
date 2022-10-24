@@ -29,24 +29,7 @@
       <!--        <v-icon>mdi-filter</v-icon>-->
       <!--      </v-btn>-->
 
-      <div
-          class=""
-           v-if="resultsCount"
-      >
-        <!--        <v-icon color="grey" class="ml-4" v-if="resultsFilters.length">mdi-filter-outline</v-icon>-->
-        <span class="font-weight-bold">
-<!--          {{(resultsCount < 1000) ? "About" : "" }}-->
-          <!--          {{ resultsCount | millify(3) }}-->
-          {{ resultsCount | toPrecision }}
 
-        </span>
-        <span>
-          {{ entityType | pluralize(results.length) }}
-
-          </span>
-
-
-      </div>
       <v-spacer></v-spacer>
 
 
@@ -161,7 +144,7 @@
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          ¬
+
 
 
         </v-list>

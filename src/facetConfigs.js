@@ -16,7 +16,7 @@ const makeFacetQueryFilters = function (facetFilters) {
 
 const facetCategories = {
     works: [
-        "solo",
+        "general",
         "institution",
         "host",
         "access",
@@ -36,7 +36,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "solo"
+            category: "general"
         },
 
 
@@ -49,7 +49,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "solo",
+            category: "general",
             isCore: true,
         },
         {
@@ -82,7 +82,7 @@ const facetConfigs = function () {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
-            category: "solo",
+            category: "general",
             isCore: true,
         },
 
@@ -166,7 +166,7 @@ const facetConfigs = function () {
             entityTypes: ["works"],
             displayName: "Work type",
             valuesToShow: "mostCommon",
-            category: "solo",
+            category: "general",
         },
         {
             key: "publication_year",
@@ -175,13 +175,13 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
-            category: "solo",
+            category: "general",
             isCore: true,
         },
         {
             key: "has_doi",
             entityTypes: ["works"],
-            displayName: "Work IDs: DOI",
+            displayName: "ID: DOI",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Has no DOI", "Has DOI"],
@@ -218,14 +218,14 @@ const facetConfigs = function () {
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
-            category: "solo",
+            category: "general",
         },
 
         // works: links to other works
         {
             key: "cited_by_count",
             entityTypes: ["works"],
-            displayName: "Work citation count",
+            displayName: "Citation count",
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
@@ -235,7 +235,7 @@ const facetConfigs = function () {
         {
             key: "cited_by",
             entityTypes: ["works"],
-            displayName: "Work cited by",
+            displayName: "Cited by",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
@@ -245,7 +245,7 @@ const facetConfigs = function () {
         {
             key: "cites",
             entityTypes: ["works"],
-            displayName: "Work cites",
+            displayName: "Cites",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
@@ -255,12 +255,12 @@ const facetConfigs = function () {
         {
             key: "related_to",
             entityTypes: ["works"],
-            displayName: "Work related to",
+            displayName: "Related to",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
-            category: "solo",
+            category: "general",
             isHidden: true,
         },
 
