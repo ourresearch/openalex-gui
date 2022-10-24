@@ -25,6 +25,9 @@
               <span v-if="entityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
+              <span v-if="entityType=== 'venues'">
+                 ({{ data.type }})
+              </span>
             </div>
             <div class="text-h6 font-weight-medium mt-0"
                  style="font-weight: 450 !important; line-height: 1.5;"

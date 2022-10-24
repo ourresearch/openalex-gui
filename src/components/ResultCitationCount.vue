@@ -42,7 +42,7 @@
               this this person's works.
             </template>
             <template v-if="entityType=='venues'">
-              this journal's works
+              this host's works
             </template>
             <template v-if="entityType=='institutions'">
               this institution's works.

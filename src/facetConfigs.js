@@ -26,6 +26,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
+            category: "solo"
         },
 
 
@@ -38,6 +39,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
+            category: "solo",
         },
         {
             key: "host_venue.id",
@@ -47,6 +49,7 @@ const facetConfigs = function () {
             entityId: "venues",
             autocompleteEndpoint: "autocomplete/venues",
             valuesToShow: "mostCommon",
+            category: "host",
         },
         {
             key: "authorships.institutions.id",
@@ -56,6 +59,7 @@ const facetConfigs = function () {
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
             valuesToShow: "mostCommon",
+            category: "institution",
         },
         {
             key: "authorships.author.id",
@@ -65,6 +69,7 @@ const facetConfigs = function () {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
+            category: "author",
         },
 
 
@@ -155,6 +160,14 @@ const facetConfigs = function () {
             isBoolean: true,
             booleanValues: ["Has no DOI", "Has DOI"],
         },
+        // {
+        //     key: "has_pmid",
+        //     entityTypes: ["works"],
+        //     displayName: "Work IDs: PMID",
+        //     valuesToShow: "boolean",
+        //     isBoolean: true,
+        //     booleanValues: ["Has no PMID", "Has PMID"],
+        // },
         // {
         //     key: "has_ngrams",
         //     entityTypes: ["works"],

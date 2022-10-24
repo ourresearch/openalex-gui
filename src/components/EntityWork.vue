@@ -2,6 +2,20 @@
   <!--  <div class="entity-zoom-container">-->
   <div class="">
 
+    <v-alert type="error" prominent>
+      <v-row align="center">
+        <v-col class="grow">
+          This work has been <strong>retracted.</strong>
+
+        </v-col>
+        <v-col class="shrink">
+          <v-btn icon href="https://en.wikipedia.org/wiki/Retraction_in_academic_publishing" target="_blank">
+            <v-icon>mdi-information-outline</v-icon>
+          </v-btn>
+
+        </v-col>
+      </v-row>
+    </v-alert>
 
     <table class="">
       <tr v-if="!data.host_venue.display_name && data.publication_year">
@@ -17,14 +31,14 @@
       <!--    venue and year-->
       <tr v-if="data.host_venue.display_name">
         <td class="table-row-label">
-          Venue:
+          Host:
         </td>
         <td>
-          <link-to-entity :entity="data.host_venue" />
-            <span
-                class="year ml-1"
-                v-if="data.publication_year"
-            >({{ data.publication_year }})
+          <link-to-entity :entity="data.host_venue"/>
+          <span
+              class="year ml-1"
+              v-if="data.publication_year"
+          >({{ data.publication_year }})
           </span>
         </td>
       </tr>
@@ -33,7 +47,7 @@
       <!--    Author list-->
       <tr v-if="authorshipsToShow.length">
         <td class="table-row-label">
-          {{ "Author" | pluralize(authorshipsToShow.length)}}:
+          {{ "Author" | pluralize(authorshipsToShow.length) }}:
         </td>
 
         <td>
@@ -132,7 +146,7 @@
           />
         </td>
       </tr>
-      <entity-zoom-ids-row :ids="data.ids" />
+      <entity-zoom-ids-row :ids="data.ids"/>
 
 
     </table>
