@@ -157,6 +157,7 @@
         <v-list
             class="pt-0"
             expand
+            nav
             style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
           <template
@@ -165,7 +166,7 @@
             <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
               <v-subheader
                   :key="'subheader' + facetCategory.name"
-                class="pl-12 text-capitalize"
+                class="pl-10 align-end text-capitalize"
               >
                 {{facetCategory.name}}
               </v-subheader>
@@ -401,6 +402,10 @@ export default {
 </script>
 
 <style lang="scss">
+
+.v-list--nav .v-list-item:not(:last-child):not(:only-child) {
+  margin-bottom: 0;
+}
 
 #facet-zoom-drawer {
   position: fixed;

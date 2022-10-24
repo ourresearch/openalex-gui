@@ -2,7 +2,7 @@
   <!--  <div class="entity-zoom-container">-->
   <div class="">
 
-    <v-alert type="error" prominent>
+    <v-alert type="error" prominent v-if="data.is_retracted">
       <v-row align="center">
         <v-col class="grow">
           This work has been <strong>retracted.</strong>
