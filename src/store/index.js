@@ -297,12 +297,19 @@ export default new Vuex.Store({
 
 
         // eslint-disable-next-line no-unused-vars
+        async removeInputFiltersByKey({commit, getters, dispatch, state}, facetKey) {
+            state.inputFilters = state.inputFilters.filter(f => {
+                return f.key !== facetKey
+            })
+            commit("setPage", 1)
+            await dispatch("pushSearchUrl")
+        },
+        // eslint-disable-next-line no-unused-vars
         async removeInputFilters({commit, getters, dispatch, state}, filters) {
             filters.forEach(f => {
                 commit("removeInputFilter", f)
             })
             commit("setPage", 1)
-            // await dispatch("doSearch")
             await dispatch("pushSearchUrl")
         },
         // eslint-disable-next-line no-unused-vars

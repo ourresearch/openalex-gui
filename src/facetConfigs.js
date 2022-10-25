@@ -222,16 +222,16 @@ const facetConfigs = function () {
         },
 
         // works: links to other works
-        {
-            key: "cited_by_count",
-            entityTypes: ["works"],
-            displayName: "Citation count",
-            valuesToShow: "mostCommon",
-            sortByValue: true,
-            isRange: true,
-            category: "citation",
-            isCore: true,
-        },
+        // {
+        //     key: "cited_by_count",
+        //     entityTypes: ["works"],
+        //     displayName: "Citation count",
+        //     valuesToShow: "mostCommon",
+        //     sortByValue: true,
+        //     isRange: true,
+        //     category: "citation",
+        //     isCore: true,
+        // },
         {
             key: "cited_by",
             entityTypes: ["works"],

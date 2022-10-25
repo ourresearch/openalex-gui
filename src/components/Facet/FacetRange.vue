@@ -1,7 +1,8 @@
 <template>
 
   <div>
-    <div class="ml-8 mr-4">
+      <div class="body-2 ml-10">Select range:</div>
+    <div class="ml-9 mr-4 mt-3 d-flex">
       <v-select
           v-model="rangeStart"
           :items="rangeStartOptions"
@@ -20,6 +21,9 @@
           </span>
         </template>
       </v-select>
+
+      <v-icon>mdi-minus</v-icon>
+
       <v-select
           v-model="rangeEnd"
           :items="rangeEndOptions"
@@ -30,7 +34,7 @@
           :menu-props="{dark: true, color: 'green'}"
           append-icon=""
           clearable
-          class="mt-3"
+          class=""
       >
         <template v-slot:selection="{item, index}">
           <span class="font-weight-bold green--text">
@@ -103,33 +107,42 @@ export default {
     ]),
     rangeStart: {
       get() {
-        if (!this.myResultsFilter) return 1972
+        if (!this.myResultsFilter) return
         const ret = this.myResultsFilter.value.split("-")[0]
-        return (ret) ? Number(ret) : 1972
+        return (ret) ? Number(ret) : null
       },
       async set(rangeStartValue) {
         const newFilter = createSimpleFilter(
             this.facetKey,
             [rangeStartValue, this.rangeEnd].join("-")
         )
-        await this.replaceInputFilter(newFilter)
+
+        if (newFilter.value === "-") {
+          await this.removeInputFiltersByKey(this.facetKey)
+        }
+        else {
+          await this.replaceInputFilter(newFilter)
+        }
       },
     },
     rangeEnd: {
       get() {
-        if (!this.myResultsFilter) return 2022
-        console.log("getting value from rangeEnd", this.facetKey, this.myResultsFilter.value.split("-")[1])
+        if (!this.myResultsFilter) return
 
         const ret = this.myResultsFilter.value.split("-")[1]
-        return (ret) ? Number(ret) : 2022
+        return (ret) ? Number(ret) : null
       },
       async set(rangeEndValue) {
-        console.log("set new value for rangeStart: ", rangeEndValue)
         const newFilter = createSimpleFilter(
             this.facetKey,
             [this.rangeStart, rangeEndValue].join("-")
         )
-        await this.replaceInputFilter(newFilter)
+        if (newFilter.value === "-") {
+          await this.removeInputFiltersByKey(this.facetKey)
+        }
+        else {
+          await this.replaceInputFilter(newFilter)
+        }
       },
     },
     isDisabled() {
@@ -163,6 +176,8 @@ export default {
     ]),
     ...mapActions([
       "replaceInputFilter",
+        "removeInputFilters",
+        "removeInputFiltersByKey",
     ]),
 
   },
