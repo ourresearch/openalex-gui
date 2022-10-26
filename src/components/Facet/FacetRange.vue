@@ -1,8 +1,27 @@
 <template>
 
   <div>
-      <div class="body-2 ml-10">Select range:</div>
-    <div class="ml-9 mr-4 mt-3 d-flex">
+    <div class="body-2 ml-10">Select range:</div>
+    <div v-if="0" class="ml-9 mr-4 mt-3 d-flex">
+      <v-menu
+          offset-y
+    >
+      <template v-slot:activator="{on}">
+        <v-btn text v-on="on">
+          Anytime
+        </v-btn>
+      </template>
+      <v-card>
+        controls for stuff goes here!
+      </v-card>
+    </v-menu>
+
+
+    </div>
+
+
+
+    <div v-if="1" class="ml-9 mr-4 mt-3 d-flex">
       <v-select
           v-model="rangeStart"
           :items="rangeStartOptions"
@@ -84,8 +103,7 @@ import {api} from "../../api";
 
 export default {
   name: "Facet",
-  components: {
-  },
+  components: {},
   props: {
     facetKey: String,
   },
@@ -93,6 +111,7 @@ export default {
     return {
       loading: false,
       range: [0, 100],
+      rangeEnds: [1972, 2022],
       // rangeStart: null,
       // rangeEnd: null,
     }
@@ -105,6 +124,26 @@ export default {
       "facetZoom",
       "textSearch",
     ]),
+    sliderStart: {
+      get() {
+        if (!this.myResultsFilter) return
+        const ret = this.myResultsFilter.value.split("-")[0]
+        return (ret) ? Number(ret) : null
+      },
+      async set(rangeStartValue) {
+        const newFilter = createSimpleFilter(
+            this.facetKey,
+            [rangeStartValue, this.rangeEnd].join("-")
+        )
+
+        if (newFilter.value === "-") {
+          await this.removeInputFiltersByKey(this.facetKey)
+        } else {
+          await this.replaceInputFilter(newFilter)
+        }
+      },
+    },
+
     rangeStart: {
       get() {
         if (!this.myResultsFilter) return
@@ -119,8 +158,7 @@ export default {
 
         if (newFilter.value === "-") {
           await this.removeInputFiltersByKey(this.facetKey)
-        }
-        else {
+        } else {
           await this.replaceInputFilter(newFilter)
         }
       },
@@ -139,8 +177,7 @@ export default {
         )
         if (newFilter.value === "-") {
           await this.removeInputFiltersByKey(this.facetKey)
-        }
-        else {
+        } else {
           await this.replaceInputFilter(newFilter)
         }
       },
@@ -176,8 +213,8 @@ export default {
     ]),
     ...mapActions([
       "replaceInputFilter",
-        "removeInputFilters",
-        "removeInputFiltersByKey",
+      "removeInputFilters",
+      "removeInputFiltersByKey",
     ]),
 
   },

@@ -6,8 +6,8 @@
       :color="(isSelected && colorful) ? 'green lighten-2' : ''"
       style="margin-top: -5px !important;"
   >
-<!--    removed-->
-<!--    @[eventHandlerName].stop="click($event)"-->
+    <!--    removed-->
+    <!--    @[eventHandlerName].stop="click($event)"-->
 
     <div class="icon-area mr-1 mt-2">
       <v-progress-circular
@@ -21,22 +21,22 @@
 
       <template v-else>
 
-<!--        <v-progress-circular-->
-<!--            v-if="hideCheckbox"-->
-<!--          size="20"-->
-<!--          width="7"-->
-<!--          rotate="-90"-->
-<!--          style="margin: 0px 12px 0 0; opacity: .9"-->
-<!--          :value="filter.countPercent"-->
-<!--          :color="isSelected ? 'green lighten-1' : ''"-->
-<!--      />-->
-      <v-simple-checkbox
-          :value="isSelected"
-          read-only
-          @click="click($event)"
-          class="ma-0 pa-0"
-          v-ripple
-      />
+        <!--        <v-progress-circular-->
+        <!--            v-if="hideCheckbox"-->
+        <!--          size="20"-->
+        <!--          width="7"-->
+        <!--          rotate="-90"-->
+        <!--          style="margin: 0px 12px 0 0; opacity: .9"-->
+        <!--          :value="filter.countPercent"-->
+        <!--          :color="isSelected ? 'green lighten-1' : ''"-->
+        <!--      />-->
+        <v-simple-checkbox
+            :value="isSelected"
+            read-only
+            @click="click($event)"
+            class="ma-0 pa-0"
+            v-ripple
+        />
       </template>
     </div>
     <div>
@@ -59,22 +59,38 @@
         {{ filter.count | toPrecision }}
       </div>
     </div>
-    <v-spacer />
-    <div >
-      <v-btn
-            v-if="filter.isEntity"
-            :to="filter.value | entityZoomLink"
-            icon
-            class=""
-            style="opacity: .8;"
-            :disabled="disabled"
+    <v-spacer/>
+    <div>
+      <v-menu
+          v-if="filter.isEntity"
+          dark
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+              v-on="on"
+              icon
+              class=""
+              style="opacity: .8;"
+              :disabled="disabled"
 
-        >
-<!--          <v-icon small>mdi-dots-horizontal</v-icon>-->
-<!--          <v-icon small>mdi-open-in-app</v-icon>-->
-          <v-icon small :color="(colorful && isSelected) ? 'green lighten-2' : '' ">mdi-eye-outline</v-icon>
-<!--          <v-icon small>mdi-folder-open-outline</v-icon>-->
-        </v-btn>
+          >
+            <v-icon small>mdi-dots-horizontal</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item
+              :to="filter.value | entityZoomLink"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-eye-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              View details
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
 
     </div>
 
