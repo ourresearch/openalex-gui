@@ -35,7 +35,7 @@
 
       <v-menu>
         <template v-slot:activator="{on}">
-          <v-btn text v-on="on" class="low-key-button">
+          <v-btn text v-on="on" class="low-key-button" :disabled="!resultsCount">
             Tools
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
@@ -43,6 +43,7 @@
         <v-list dense>
           <v-list-item
               @click="toggleFiltersDrawer"
+              v-if="$vuetify.breakpoint.mobile"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-outline</v-icon>

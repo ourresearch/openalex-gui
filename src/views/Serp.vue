@@ -74,7 +74,7 @@
         <div
             class="serp-container pt-0 pl-4"
             :class="{mobile: $vuetify.breakpoint.mobile}"
-            style="max-width: 800px;"
+            style="max-width: 800px; min-height: calc(100vh - 250px);"
         >
           <div
               style="margin-left: -15px"
@@ -85,10 +85,11 @@
 
           <div
               class="d-flex align-center mt-6"
+              style="min-height: 50hv;"
           >
             <div
                 class="ml-2 "
-                v-if="resultsCount"
+                v-if="resultsCount >= 0"
             >
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
               <span class="ml-1">{{ entityType | pluralize(resultsCount) }}</span>
@@ -98,6 +99,11 @@
           </div>
 
           <div class="search-results" style="margin-top: -10px">
+            <div v-if="!resultsCount" class="ml-2 mt-8 grey--text">
+              Sorry, there are no results for this search.
+            </div>
+
+
             <div
                 v-for="result in $store.state.results"
                 class="result-container my-4"
