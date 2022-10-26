@@ -88,7 +88,7 @@
               style="min-height: 50hv;"
           >
             <div
-                class="ml-2 "
+                class="ml-2 mt-8"
                 v-if="resultsCount >= 0"
             >
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
