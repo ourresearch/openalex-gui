@@ -10,7 +10,7 @@
         item-text="display_name"
         item-value="id"
         clearable
-        prepend-inner-icon="mdi-magnify"
+        append-icon="mdi-magnify"
         id="main-search"
         style="width: 100%;"
         :dense="!isAloneOnPage"
@@ -30,25 +30,28 @@
         @click:clear="searchString = ''"
 
     >
-      <template v-if="false" v-slot:prepend-inner>
+      <template v-if="true" v-slot:prepend-inner>
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-                tile
-                class="ma-0 text-capitalize px-0"
-                depressed
+                text
+                :x-large="isAloneOnPage"
+                class="text-capitalize"
                 v-bind="attrs"
                 v-on="on"
                 @click="openEntityMenu"
+                id="entity-type-select-btn"
             >
               <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>
               <span class="d-none">{{ selectedEntityTypeConfig.displayName }}</span>
-              <v-icon right>mdi-menu-down</v-icon>
+              <v-icon>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list
               two-line
           >
+            <v-subheader>Search for:</v-subheader>
+            <v-divider></v-divider>
             <v-list-item
                 v-for="entityType in entityTypeOptions"
                 :key="entityType.name"
@@ -340,6 +343,16 @@ export default {
 form.main-search {
   width: 100%;
 
+  #entity-type-select-btn {
+    min-width: 0px;
+    padding-left: 10px;
+    padding-right: 0;
+    margin-left: -10px;
+
+    &.v-size--x-large {
+    }
+  }
+
   //.v-btn:not(.v-btn--round).v-size--large {
   //  height: 49px;
   //}
@@ -356,7 +369,7 @@ form.main-search {
   .v-select__slot {
     .v-input__append-inner:nth-child(3) {
       //display: none !important;
-      visibility: hidden;
+      //visibility: hidden;
     }
   }
 
@@ -364,7 +377,7 @@ form.main-search {
   .v-select__slot {
     .v-input__append-inner:nth-child(2) {
       //display: none !important;
-      margin-right: -25px;
+      //margin-right: -25px;
     }
   }
 
