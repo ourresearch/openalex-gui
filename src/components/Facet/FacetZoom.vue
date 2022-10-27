@@ -71,7 +71,6 @@
       </div>
 
       <div>
-        <v-btn>any all</v-btn>
       </div>
     </div>
     <v-divider></v-divider>
