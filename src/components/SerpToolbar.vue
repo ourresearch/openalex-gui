@@ -1,7 +1,6 @@
 <template>
-  <v-card
-      flat
-      class="serp-filters-list"
+  <div
+      class="serp-filters-list d-flex"
   >
 
 
@@ -10,15 +9,8 @@
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
 
-    <div class="d-flex align-center">
-      <!--      <v-icon class="px-2">mdi-filter-outline</v-icon>-->
-      <!--      <span class="mr-2">Search: </span>-->
-      <!--      <search-box class=""/>-->
-
-    </div>
 
 
-    <div class="d-flex align-center">
       <!--      <v-btn-->
       <!--          fab x-small-->
       <!--          class="mr-2"-->
@@ -28,12 +20,102 @@
       <!--      >-->
       <!--        <v-icon>mdi-filter</v-icon>-->
       <!--      </v-btn>-->
+      <template v-if="!$vuetify.breakpoint.mobile">
+
+        <!--        Sort-->
+        <v-menu offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn text rounded v-on="on" class="low-key-button">
+              <v-icon left class="mr-1">mdi-sort-ascending</v-icon>
+              {{ sortObject.displayName }}
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-subheader>Sort by</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item
+                v-for="mySortOption in $store.getters.sortObjectOptions"
+                :key="mySortOption.key"
+                @click="setSort(mySortOption.key)"
+            >
+              <v-list-item-icon>
+                <v-icon>
+                  {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+                </v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ mySortOption.displayName }}
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <!--        Creat alert-->
+        <v-menu v-if="0" offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on">
+              <v-icon>mdi-bell-cancel-outline</v-icon>
+            </v-btn>
+          </template>
+          <v-card>
+            Too many results
+          </v-card>
+        </v-menu>
 
 
-      <v-spacer></v-spacer>
+        <!--        Export-->
+        <v-menu offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on" class="low-key-button">
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-subheader>Export results as:</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item
+                target="_blank"
+                :href="searchApiUrl"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-code-json</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                API response
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item
+              @click="openExportToCsvDialog"
+              :disabled="resultsCount > 100000"
+            >
+              <v-list-item-icon>
+                <v-icon
+                >
+                  mdi-table
+                </v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Spreadsheet
+                </v-list-item-title>
+                <v-list-item-subtitle
+                    v-if="resultsCount > 100000"
+                    class="grey--text"
+                >
+                  Max 100k results
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+
+          </v-list>
+        </v-menu>
+
+      </template>
 
 
-      <v-menu>
+      <v-menu v-if="$vuetify.breakpoint.mobile">
         <template v-slot:activator="{on}">
           <v-btn text v-on="on" class="low-key-button" :disabled="!resultsCount">
             Tools
@@ -55,9 +137,9 @@
               <v-list-item-title v-else>
                 Filter results
               </v-list-item-title>
-<!--              <v-list-item-subtitle class="grey&#45;&#45;text" v-if="$vuetify.breakpoint.mobile">-->
-<!--                (Desktop-only for now)-->
-<!--              </v-list-item-subtitle>-->
+              <!--              <v-list-item-subtitle class="grey&#45;&#45;text" v-if="$vuetify.breakpoint.mobile">-->
+              <!--                (Desktop-only for now)-->
+              <!--              </v-list-item-subtitle>-->
             </v-list-item-content>
           </v-list-item>
 
@@ -80,7 +162,6 @@
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-
 
 
           <v-subheader>Sort by</v-subheader>
@@ -133,11 +214,6 @@
                 Spreadsheet
               </v-list-item-title>
               <v-list-item-subtitle
-                  v-if="resultsCount <= 100000"
-              >
-                CSV format
-              </v-list-item-subtitle>
-              <v-list-item-subtitle
                   v-if="resultsCount > 100000"
                   class="grey--text"
               >
@@ -147,21 +223,10 @@
           </v-list-item>
 
 
-
         </v-list>
       </v-menu>
 
 
-    </div>
-
-
-    <!--    <v-divider v-if="$store.state.resultsFilters.length" class="mt-2"></v-divider>-->
-
-
-    <!-- RESULTS TOOLBAR -->
-    <!--*****************************************************************************************-->
-    <!--*****************************************************************************************-->
-    <!--*****************************************************************************************-->
 
 
     <!--DIALOGS-->
@@ -175,14 +240,13 @@
         <v-card-title class="d-flex">
           <div>
             <v-icon left>mdi-tray-arrow-down</v-icon>
-            Export results as spreadsheet
+            Export spreadsheet
           </div>
           <v-spacer></v-spacer>
           <v-btn icon @click="dialogs.export = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        <v-divider/>
 
         <div class="card-content px-6">
 
@@ -195,7 +259,7 @@
           <template v-else>
             <div class="mt-8">
               <v-text-field
-                  label="Your email (We won't share this)"
+                  label="Your email (never shared)"
                   v-model="exportEmail"
                   type="email"
                   outlined
@@ -206,7 +270,7 @@
               ></v-text-field>
             </div>
             <div class="mt-4">
-              We'll prepare your spreadsheet and email it to you in under fifteen minutes. Don't forget to check your
+              We'll prepare your spreadsheet and email it to you in around fifteen minutes. Don't forget to check your
               spam folder!
             </div>
 
@@ -273,7 +337,7 @@
     </v-dialog>
 
 
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -326,7 +390,7 @@ export default {
       "inputFiltersAsString",
       "sortObjectOptions",
       "sortObject",
-        "showFiltersDrawer",
+      "showFiltersDrawer",
     ]),
 
     sort: {
@@ -343,8 +407,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-        "toggleFiltersDrawer",
-        "snackbar",
+      "toggleFiltersDrawer",
+      "snackbar",
     ]),
     ...mapActions([
       "removeInputFilters",

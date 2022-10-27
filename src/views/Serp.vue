@@ -84,11 +84,11 @@
           </div>
 
           <div
-              class="d-flex align-center mt-6"
+              class="d-flex align-center mt-12 pt-2"
               style="min-height: 50hv;"
           >
             <div
-                class="ml-2 mt-8"
+                class="ml-2 mt-2"
                 v-if="resultsCount >= 0"
             >
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
