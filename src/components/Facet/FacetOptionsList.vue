@@ -10,7 +10,7 @@
           :disabled="isDisabled"
           :colorful="!isDisabled"
       />
-      <v-list-item class="ml-2 mb-2" v-if="thereAreMoreResults" key="more-button">
+      <v-list-item class="ml-2 mb-0" v-if="thereAreMoreResults" key="more-button">
         <v-btn
             x-small
             class="ml-12"

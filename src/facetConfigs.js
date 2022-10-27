@@ -91,7 +91,7 @@ const facetConfigs = function () {
         {
             key: "host_venue.publisher",
             entityTypes: ["works"],
-            displayName: "Host publisher",
+            displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
             category: "host",
@@ -177,6 +177,7 @@ const facetConfigs = function () {
             isRange: true,
             category: "general",
             isCore: true,
+            sortToTop: true,
         },
         {
             key: "has_doi",

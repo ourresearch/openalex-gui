@@ -1,7 +1,11 @@
 <template>
 
   <div>
-    <div class="ml-7 mr-4  d-flex">
+    <div class="ml-2 mr-4 align-center d-flex">
+      <v-icon style="opacity: .2" class="mr-2">mdi-chevron-right</v-icon>
+      <span style="font-size: 16px;" class="mr-1">
+        Published
+      </span>
       <v-menu
           offset-y
           :close-on-content-click="false"
@@ -14,8 +18,8 @@
           <v-btn
               text
               v-on="on"
-              class="low-key-button font-weight-bold"
-              style="font-size: 15px;"
+              class="low-key-button font-weight-bold px-1"
+              style="font-size: 16px;"
               :color="myResultsFilter ? 'green lighten-2' : ''"
           >
             {{ rangeValuesToShow }}

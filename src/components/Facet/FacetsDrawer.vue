@@ -148,7 +148,7 @@
       <v-divider></v-divider>
 
 
-      <!--      List of filter types  -->
+      <!--      List of facets  -->
       <!--      *****************************************************************-->
       <v-card-text class="pa-0">
 
@@ -173,14 +173,23 @@
               </v-subheader>
 <!--              <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
             </template>
-            <facet
-                v-for="facet in facetCategory.facets"
-                :key="'facet' + facet.key"
-                :facet-key="facet.key"
-                :has-focus="filterTypeKey === facet.key"
-                :disabled="filterTypeKey && filterTypeKey !== facet.key"
-                :value="expandAll"
-            />
+            <template v-for="facet in facetCategory.facets">
+              <facet-range
+                  v-if="facet.isRange"
+                  :key="'facet' + facet.key"
+                  :facet-key="facet.key"
+              >
+              </facet-range>
+              <facet
+                  :key="'facet' + facet.key"
+                  v-else
+                  :facet-key="facet.key"
+                  :has-focus="filterTypeKey === facet.key"
+                  :disabled="filterTypeKey && filterTypeKey !== facet.key"
+                  :value="expandAll"
+              />
+
+            </template>
           </template>
 
 
@@ -350,6 +359,7 @@ export default {
       //     })
 
       ret.sort((a, b) => {
+        if (a.sortToTop) return -1
         return (a.displayName > b.displayName) ? 1 : -1
       })
 
