@@ -84,10 +84,10 @@ export default {
     },
 
     apiFiltersToShow() {
-      const resultsFilterStrings = this.myResultsFilters.map(f => f.asStr)
+      const resultsFilterStrings = this.myResultsFilters.map(f => f.kv)
       return this.filtersFromApi
           .filter(f => {
-            return !resultsFilterStrings.includes(f.asStr)
+            return !resultsFilterStrings.includes(f.kv)
           })
           .filter(f => f.value !== "unknown")
     },
@@ -137,6 +137,7 @@ export default {
         return createDisplayFilter(
             this.config.key,
             apiData.key,
+            false,
             apiData.key_display_name,
             apiData.count,
         )

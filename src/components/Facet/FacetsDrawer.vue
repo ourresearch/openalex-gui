@@ -206,7 +206,7 @@
 
 
 <script>
-import {createDisplayFilter, createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
+import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetCategories} from "../../facetConfigs";

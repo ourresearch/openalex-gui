@@ -168,13 +168,16 @@ export default new Vuex.Store({
             if (mySortConfig) state.sort = mySortConfig.key
         },
         addInputFilter(state, filter) {
-            if (!state.inputFilters.map(f => f.asStr).includes(filter.asStr)) {
-                state.inputFilters.push(filter)
-            }
+            state.inputFilters = state.inputFilters.filter(f => {
+                // check for key + value, not f.toStr becuase we want to ignore negation symbol "!"
+                return f.kv !== filter.kv
+            })
+            state.inputFilters.push(filter)
         },
         removeInputFilter(state, filter) {
             state.inputFilters = state.inputFilters.filter(f => {
-                return f.asStr !== filter.asStr
+                // check for key + value, not f.toStr becuase we want to ignore negation symbol "!"
+                return f.kv !== filter.kv
             })
         },
         replaceInputFilter(state, filter) {
@@ -328,6 +331,12 @@ export default new Vuex.Store({
 
         // eslint-disable-next-line no-unused-vars
         async replaceInputFilter({commit, getters, dispatch, state}, filter) {
+            commit("replaceInputFilter", filter)
+            commit("setPage", 1)
+            dispatch("pushSearchUrl")
+        },
+        // eslint-disable-next-line no-unused-vars
+        async setNegateFilter({commit, getters, dispatch, state}, filter) {
             commit("replaceInputFilter", filter)
             commit("setPage", 1)
             dispatch("pushSearchUrl")

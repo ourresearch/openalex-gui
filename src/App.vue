@@ -50,44 +50,13 @@ html, body {
   overflow: initial;
 }
 
-//
-//
-//#entity-zoom {
-//  position: fixed;
-//  top: 64px;
-//  right: 0;
-//  bottom: 0;
-//  z-index: 5;
-//  background: #fff;
-//  transition: width 200ms;
-//
-//
-//}
-//
-//#entity-zoom-content {
-//  position: absolute;
-//  overflow-y: scroll;
-//  top: 48px;
-//  right: 0;
-//  bottom: 0;
-//  left: 0;
-//}
-//
-//#zoom-overlay {
-//  position: fixed;
-//  top: 0;
-//  bottom: 0;
-//  left: 0;
-//  right: 0;
-//  z-index: 4;
-//  background: rgba(0, 0, 0, .5);
-//}
+.theme--dark.v-card {
+  background-color: #444;
+}
+.theme--dark.v-sheet {
+  background-color: #444;
 
-// hack to get rid of vue's active class on buttons, which makes them display different
-// when they are linking to the page you're on right now.
-// https://github.com/vuetifyjs/vuetify/issues/8172#issuecomment-596935920
-// you have to also add this to the button:
-// <v-btn active-class="no-active"></v-btn>
+}
 .v-btn--active.no-active::before {
   opacity: 0.00005 !important;
 }

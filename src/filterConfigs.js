@@ -4,13 +4,14 @@ import {api} from "./api";
 const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 
 
-const createFilterId = function (key, value) {
+const createFilterId = function (key, value, isNegated) {
     const openAlexUrlBase = "https://openalex.org/"
     if (typeof value === "string" && value.indexOf(openAlexUrlBase) === 0) {
         value = value.replace("https://openalex.org/", "").toLowerCase()
     }
     key = key.toLowerCase()
-    return key + ":" + value
+    const negateSymbol = (isNegated) ? "!" : ""
+    return `${key}:${negateSymbol}${value}`
 }
 
 
@@ -33,20 +34,17 @@ const filtersFromUrlStr = function (str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
 
-    const facetStrings = str.split(",")
-    const filters = []
-    facetStrings.forEach(facetStr => {
-        const [key, valuesStr] = facetStr.split(":")
 
-        const values = valuesStr.split("|")
-        values.forEach(value => {
-            filters.push(createSimpleFilter(key, value))
-        })
+    const filters = str.split(",").map(facetStr => {
+        let [key, value] = facetStr.split(":")
+        const isNegated = value[0] === "!"
+        value = value.replace("!", "")
+        return createSimpleFilter(key, value, isNegated)
     })
     return filters
 }
 
-const filtersAsUrlStr = function (filters, keyToNegate) {
+const filtersAsUrlStr = function (filters) {
     return filters
         .filter(f => typeof f.value !== "undefined")
         .map(f => f.asStr)
@@ -64,6 +62,7 @@ const removeFilterFromUrlStr = function (urlStr, filterToRemove) {
 }
 
 const makeResultsFiltersFromApi = function (apiFacets) {
+    console.log("makeResultsFiltersFromApi", apiFacets)
     let ret = []
     apiFacets
         .filter(f => f.key !== "search")
@@ -72,6 +71,7 @@ const makeResultsFiltersFromApi = function (apiFacets) {
                 ret.push(createDisplayFilter(
                     facet.key,
                     valueObj.value,
+                    facet.is_negated,
                     valueObj.display_name,
                     valueObj.count,
                 ))
@@ -90,21 +90,23 @@ const createFilterValue = function (rawValue) {
     return rawValue
 }
 
-const createSimpleFilter = function (key, value) {
+const createSimpleFilter = function (key, value, isNegated) {
     const cleanValue = createFilterValue(value)
     const facetConfig = getFacetConfig(key)
     return {
         ...facetConfig,
         // key,
         value: cleanValue,
-        asStr: createFilterId(key, cleanValue),
-        isEntity: entityKeys.includes(key), // better to just include the whole config maybe...
+        asStr: createFilterId(key, cleanValue, isNegated),
+        kv: createFilterId(key, cleanValue),
+        isEntity: entityKeys.includes(key),
+        isNegated: !!isNegated,
     }
 }
 
-const createDisplayFilter = function (key, value, displayValue, count, totalCount) {
+const createDisplayFilter = function (key, value, isNegated, displayValue, count, totalCount) {
     return {
-        ...createSimpleFilter(key, value),
+        ...createSimpleFilter(key, value, isNegated),
         displayValue,
         count,
         countPercent: (count / totalCount) * 100,
@@ -118,15 +120,13 @@ const makeFilterList = function (filters, resultsFilters, includeResultsFilters 
     let ret = _.cloneDeep(filters)
         .filter(f => f.value !== "unknown")
         .map(f => {
-            return {
-                ...f,
-                isResultsFilter: resultsFilters.map(f => f.asStr).includes(f.asStr),
-            }
+            const myResultsFilter = resultsFilters.find(rf => rf.kv === f.kv)
+            return myResultsFilter ?? f
         })
 
     if (includeResultsFilters) {
-        const retFilterStrings = ret.map(f=>f.asStr)
-        const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.asStr))
+        const retFilterStrings = ret.map(f=>f.kv)
+        const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.kv))
         ret.push(..._.cloneDeep(missingResultsFilters))
     }
 

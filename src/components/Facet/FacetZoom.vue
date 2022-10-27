@@ -71,7 +71,7 @@
       </div>
 
       <div>
-
+        <v-btn>any all</v-btn>
       </div>
     </div>
     <v-divider></v-divider>
@@ -284,6 +284,7 @@ export default {
             return createDisplayFilter(
                 this.myFacetConfig.key,
                 apiData.key,
+                false,
                 apiData.key_display_name,
                 apiData.count,
                 this.filtersTotalCount,

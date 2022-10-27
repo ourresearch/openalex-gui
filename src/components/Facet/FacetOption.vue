@@ -3,7 +3,7 @@
       class=" my-0 filter-list-item align-start pt-0 pr-1"
       :input-value="isSelected"
       :disabled="disabled"
-      :color="(isSelected && colorful) ? 'green lighten-2' : ''"
+      :color="myColor"
       style="margin-top: -5px !important;"
   >
     <!--    removed-->
@@ -36,6 +36,7 @@
             @click="click($event)"
             class="ma-0 pa-0"
             v-ripple
+            :on-icon="isNegated ? 'mdi-close-box' : 'mdi-checkbox-marked'"
         />
       </template>
     </div>
@@ -62,7 +63,6 @@
     <v-spacer/>
     <div>
       <v-menu
-          v-if="filter.isEntity"
           dark
       >
         <template v-slot:activator="{on}">
@@ -80,12 +80,23 @@
         <v-list dense>
           <v-list-item
               :to="filter.value | entityZoomLink"
+              v-if="filter.isEntity"
           >
             <v-list-item-icon>
               <v-icon>mdi-eye-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
               View details
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              @click="negate"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-close-box</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Negate filter
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -106,6 +117,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {prettyTitle} from "../../util";
+import {createSimpleFilter} from "../../filterConfigs";
 
 export default {
   name: "FacetOption",
@@ -126,6 +138,7 @@ export default {
       loading: false,
       apiResp: {},
       isClickedAndWaiting: false,
+      isNegated: this.filter.isNegated
     }
   },
   computed: {
@@ -141,12 +154,22 @@ export default {
       async set(newVal) {
         console.log("set new value for isSelected: ", newVal)
 
-        if (newVal) await this.addInputFilters([this.filter])
-        else await this.removeInputFilters([this.filter])
+
+        if (newVal) await this.addInputFilters([this.myFilter])
+        else await this.removeInputFilters([this.myFilter])
       },
     },
     myColor() {
-
+      if (!this.isSelected || !this.colorful) return ""
+      if (this.isNegated) return "deep-orange lighten-1"
+      return "green lighten-2"
+    },
+    myFilter(){
+      return createSimpleFilter(
+          this.filter.key,
+          this.filter.value,
+          this.isNegated
+      )
     },
     eventHandlerName() {
       return (this.hideCheckbox) ? "click" : null
@@ -202,6 +225,16 @@ export default {
     async click(e) {
       this.isClickedAndWaiting = true
       this.isSelected = !this.isSelected
+    },
+    async negate(){
+      console.log("negatory good buddy")
+      this.isNegated = true
+      const filter = createSimpleFilter(
+          this.filter.key,
+          this.filter.value,
+          true,
+      )
+      await this.addInputFilters([filter])
     }
   },
 
