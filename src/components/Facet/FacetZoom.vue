@@ -13,32 +13,12 @@
           class="text-h6 ml-4 mr-2 d-flex align-center"
           style="height: 75px;"
       >
-        <div>
-          {{ myFacetConfig.displayName }}
-        </div>
+        <v-icon left>{{ myFacetConfig.icon}}</v-icon>
+          <div>
+            {{ myFacetConfig.displayName }}
+          </div>
         <v-spacer></v-spacer>
-        <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="mr-1">
-            <v-icon>mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-subheader>
-            Export as:
-            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item :href="makeApiUrl(200, true)" target="_blank">
-            <v-icon left>mdi-table</v-icon>
-            Spreadsheet
-          </v-list-item>
-          <v-list-item :href="makeApiUrl(200)" target="_blank">
-            <v-icon left>mdi-code-json</v-icon>
-            JSON (API)
-          </v-list-item>
-        </v-list>
-      </v-menu>
+
         <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -75,23 +55,23 @@
     </div>
     <v-divider></v-divider>
 
-    <v-card-text class="pa-0" style="height: calc(100vh - (75px + 50px + 6px)); overflow-y:scroll;">
+    <v-card-text class="pa-0" style="height: calc(100vh - (75px + 50px + 50px + 6px)); overflow-y:scroll;">
 
-<!--       <v-text-field-->
-<!--            flat-->
-<!--            hide-details-->
-<!--            solo-->
-<!--            full-width-->
-<!--            class="mt-0 "-->
-<!--            clearable-->
-<!--            prepend-inner-icon="mdi-magnify"-->
-<!--            autofocus-->
-<!--            background-color="#484848"-->
-<!--            dense-->
+      <!--       <v-text-field-->
+      <!--            flat-->
+      <!--            hide-details-->
+      <!--            solo-->
+      <!--            full-width-->
+      <!--            class="mt-0 "-->
+      <!--            clearable-->
+      <!--            prepend-inner-icon="mdi-magnify"-->
+      <!--            autofocus-->
+      <!--            background-color="#484848"-->
+      <!--            dense-->
 
-<!--            v-model="search"-->
-<!--            :placeholder="searchPlaceholder"-->
-<!--        />-->
+      <!--            v-model="search"-->
+      <!--            :placeholder="searchPlaceholder"-->
+      <!--        />-->
 
       <div class="pt-3 px-5 body-2" style="opacity: .7;">
         <template v-if="search && filtersToShow.length">
@@ -121,10 +101,39 @@
       </v-list>
       <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">
         <v-icon left>mdi-chevron-down</v-icon>
-        even more
+        show more
       </v-btn>
 
     </v-card-text>
+    <v-divider></v-divider>
+    <v-card-actions style="height: 50px;" class="elevation-3">
+      <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetZoom)">
+        clear
+      </v-btn>
+      <v-spacer></v-spacer>
+      <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on" class="mr-1">
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-subheader>
+              Export as:
+              <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+            </v-subheader>
+            <v-divider></v-divider>
+            <v-list-item :href="makeApiUrl(200, true)" target="_blank">
+              <v-icon left>mdi-table</v-icon>
+              Spreadsheet
+            </v-list-item>
+            <v-list-item :href="makeApiUrl(200)" target="_blank">
+              <v-icon left>mdi-code-json</v-icon>
+              JSON (API)
+            </v-list-item>
+          </v-list>
+        </v-menu>
+    </v-card-actions>
 
 
   </v-card>
@@ -238,6 +247,7 @@ export default {
     ...mapActions([
       "addInputFilters",
       "removeInputFilters",
+      "removeInputFiltersByKey",
     ]),
 
     clickOutside() {
