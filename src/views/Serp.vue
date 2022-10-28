@@ -16,7 +16,7 @@
       >
         <div class="d-flex flex-fill justify-space-between align-center">
           <div class="d-flex flex-fill" style="max-width: 780px;">
-            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-0">
+            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-2">
               <img
                   src="@/assets/openalex-logo-icon-black-and-white.png"
                   class="logo-icon mr-0 colorizable"
@@ -28,6 +28,9 @@
                   :style="logoStyle"
               >
                 OpenAlex
+                <span class="grey--text">
+                  {{ selectedEntityTypeConfig.displayName }}
+                </span>
               </span>
             </router-link>
             <!--          {{ logoColorRotation }}-->
@@ -76,30 +79,31 @@
             :class="{mobile: $vuetify.breakpoint.mobile}"
             style="max-width: 800px; min-height: calc(100vh - 250px);"
         >
+
           <div
-              style="margin-left: -15px"
-              class="d-flex align-center"
+              class="search-box-row d-flex align-center"
+              style="margin-left: -10px"
           >
             <search-box class="px-3 flex-fill"/>
           </div>
 
           <div
-              class="d-flex align-center mt-12 pt-2"
+              class="serp-toolbar-row d-flex align-center mt-12 pt-2 ml-4"
               style="min-height: 50hv;"
           >
             <div
-                class="ml-2 mt-2"
+                class=" mt-2"
                 v-if="resultsCount >= 0"
             >
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
-              <span class="ml-1">{{ entityType | pluralize(resultsCount) }}</span>
+              <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
             </div>
             <v-spacer></v-spacer>
             <serp-toolbar></serp-toolbar>
           </div>
 
-          <div class="search-results" style="margin-top: -10px">
-            <div v-if="!resultsCount" class="ml-2 mt-8 grey--text">
+          <div class="search-results-row ml-4" style="margin-top: -10px">
+            <div v-if="!resultsCount" class="mt-8 grey--text">
               Sorry, there are no results for this search.
             </div>
 
@@ -223,6 +227,7 @@ import FacetsDrawer from "../components/Facet/FacetsDrawer";
 import axios from "axios";
 import ZoomEntity from "../components/Zoom/ZoomEntity";
 import FacetZoom from "../components/Facet/FacetZoom";
+import {entityConfigs} from "../entityConfigs";
 
 export default {
   name: "Serp",
@@ -277,6 +282,7 @@ export default {
       "showFiltersDrawer",
       "facetZoom",
       "resultsCount",
+        "entityType",
     ]),
     page: {
       get() {
@@ -291,6 +297,10 @@ export default {
           Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
           10
       )
+    },
+
+    selectedEntityTypeConfig() {
+      return entityConfigs[this.entityType]
     },
 
     showFacetZoomDialog: {
