@@ -219,7 +219,11 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
             // state.results = []
-            commit("setEntityType", router.currentRoute.params.entityType)
+            if (router.currentRoute.params.entityType !== state.entityType){
+                commit("resetSearch")
+                commit("setEntityType", router.currentRoute.params.entityType)
+            }
+
             commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
 

@@ -199,6 +199,7 @@ export default {
 
     setSelectedEntityType(value) {
       this.items = []
+      this.select = ""
       this.selectedEntityType = value
     },
     openEntityMenu() {

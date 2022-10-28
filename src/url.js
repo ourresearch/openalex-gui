@@ -27,7 +27,9 @@ const pushNewSearch = async function (router, entityType, search) {
     const newRoute = {
         name: "Serp",
         params: {entityType,},
-        query: addToQuery(router.currentRoute.query, "search", search)
+    }
+    if (entityType === router.currentRoute.params.entityType) {
+        newRoute.query = addToQuery(router.currentRoute.query, "search", search)
     }
 
     console.log("pushNewSearch", newRoute)
