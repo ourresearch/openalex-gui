@@ -36,7 +36,8 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "general"
+            category: "general",
+            icon: "mdi-lightbulb-outline",
         },
 
 
@@ -51,6 +52,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             category: "general",
             isCore: true,
+            icon: "mdi-lightbulb-outline",
         },
         {
             key: "host_venue.id",
@@ -62,6 +64,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             category: "host",
             isCore: true,
+            icon: "mdi-book-open-outline",
         },
         {
             key: "authorships.institutions.id",
@@ -73,6 +76,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             category: "institution",
             isCore: true,
+            icon: "mdi-town-hall",
         },
         {
             key: "authorships.author.id",
@@ -84,6 +88,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             category: "general",
             isCore: true,
+        icon: "mdi-account-outline",
         },
 
 
@@ -95,14 +100,16 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
             category: "host",
+        icon: "mdi-book-open-outline",
         },
         {
             key: "host_venue.type",
             entityTypes: ["works"],
-            displayName: "Host type",
+            displayName: "Type",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
             category: "host",
+        icon: "mdi-book-open-outline",
         },
 
 
@@ -116,20 +123,23 @@ const facetConfigs = function () {
             booleanValues: ["Toll-access", "Open Access"],
             category: "access",
             isCore: true,
+            icon: "mdi-lock-open-outline",
         },
         {
             key: "host_venue.license",
             entityTypes: ["works"],
-            displayName: "OA license",
+            displayName: "License",
             valuesToShow: "mostCommon",
             category: "access",
+            icon: "mdi-lock-open-outline",
         },
         {
             key: "open_access.oa_status",
             entityTypes: ["works"],
-            displayName: "OA color",
+            displayName: "Color",
             valuesToShow: "mostCommon",
             category: "access",
+            icon: "mdi-lock-open-outline",
         },
         // {
         //     key: "has_abstract",
@@ -143,20 +153,22 @@ const facetConfigs = function () {
         {
             key: "authorships.institutions.country_code",
             entityTypes: ["works"],
-            displayName: "Institution country",
+            displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
             category: "institution",
             isCore: true,
+            icon: "mdi-earth",
         },
         {
             key: "authorships.institutions.type",
             entityTypes: ["works"],
-            displayName: "Institution type",
+            displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             category: "institution",
+            icon: "mdi-town-hall",
         },
 
 
@@ -164,9 +176,10 @@ const facetConfigs = function () {
         {
             key: "type",
             entityTypes: ["works"],
-            displayName: "Work type",
+            displayName: "Type",
             valuesToShow: "mostCommon",
             category: "general",
+        icon: "mdi-file-document-outline",
         },
         {
             key: "publication_year",
@@ -178,15 +191,17 @@ const facetConfigs = function () {
             category: "general",
             isCore: true,
             sortToTop: true,
+            icon: "mdi-calendar-text"
         },
         {
             key: "has_doi",
             entityTypes: ["works"],
-            displayName: "ID: DOI",
+            displayName: "DOI",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Has no DOI", "Has DOI"],
             category: "ids",
+            icon: "mdi-label-outline",
         },
         // {
         //     key: "has_pmid",
@@ -215,11 +230,12 @@ const facetConfigs = function () {
         {
             key: "is_retracted",
             entityTypes: ["works"],
-            displayName: "Retraction status",
+            displayName: "Retracted",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
             category: "general",
+            icon: "mdi-file-document-outline"
         },
 
         // works: links to other works
@@ -242,6 +258,7 @@ const facetConfigs = function () {
             noOptions: true,
             valuesToShow: "select",
             category: "citation",
+            icon: "mdi-format-quote-close",
         },
         {
             key: "cites",
@@ -252,6 +269,7 @@ const facetConfigs = function () {
             noOptions: true,
             valuesToShow: "select",
             category: "access",
+            icon: "mdi-format-quote-close",
         },
         {
             key: "related_to",
@@ -263,6 +281,7 @@ const facetConfigs = function () {
             valuesToShow: "select",
             category: "general",
             isHidden: true,
+            icon: "mdi-file-document-multiple-outline",
         },
 
 
@@ -287,7 +306,7 @@ const facetConfigs = function () {
         {
             key: "last_known_institution.type",
             entityTypes: ["authors"],
-            displayName: "Institution type",
+            displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
         },

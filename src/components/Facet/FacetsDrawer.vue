@@ -26,100 +26,89 @@
           style="height: 75px; "
       >
 
-        <v-btn
-            icon
-            large
-            class="ml-1"
-            :disabled="!!filterTypeKey"
-        >
-          <v-chip
-              v-if="resultsFilters.length"
-              color="green lighten-2"
-              light
-          >
-            {{ resultsFilters.length }}
-          </v-chip>
-          <v-icon v-else medium color="">mdi-filter-outline</v-icon>
-          <!--          <span-->
-          <!--              v-if="resultsFilters.length"-->
-          <!--              class=""-->
-          <!--              style="font-size: 12px; margin: 20px 0 0 -5px;"-->
-          <!--          >-->
-          <!--                  {{ resultsFilters.length }}-->
-          <!--                </span>-->
-        </v-btn>
+        <!--        <v-btn-->
+        <!--            icon-->
+        <!--            large-->
+        <!--            class="ml-1"-->
+        <!--            :disabled="!!filterTypeKey"-->
+        <!--        >-->
+
+        <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
+        <!--        </v-btn>-->
         <span
-            class="text-h6  pl-1"
+            class="text-h6  pl-4"
 
         >
-                {{ 'Filters' | pluralize(resultsFilters.length) }}
+          Filters
               </span>
 
         <v-spacer/>
-        <template v-if="facetZoom">
-          <v-btn icon>
-            <v-icon>mdi-chevron-right</v-icon>
-          </v-btn>
-        </template>
-
-        <template v-else>
-
-          <v-menu
-              dark
-          >
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-subheader>View filters</v-subheader>
-              <v-divider></v-divider>
-              <v-list-item @click="showAdvancedFilters = !showAdvancedFilters">
-                <v-list-item-icon>
-                  <v-icon v-if="showAdvancedFilters">mdi-checkbox-marked</v-icon>
-                  <v-icon style="opacity: 1 !important;" v-else>mdi-checkbox-blank-outline</v-icon>
-
-<!--                  <v-icon v-if="showAdvancedFilters">mdi-filter-outline</v-icon>-->
-<!--                  <v-icon v-else>mdi-filter-multiple-outline</v-icon>-->
 
 
-                </v-list-item-icon>
-                <v-list-item-title>
-<!--                  {{ showAdvancedFilters ? "Hide" : "Show" }} advanced filters-->
-                  Show advanced filters
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="expandAll = !expandAll">
-                <v-list-item-icon>
-                  <v-icon v-if="expandAll">mdi-arrow-collapse-vertical</v-icon>
-                  <v-icon v-else>mdi-arrow-expand-vertical</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  {{ expandAll ? "Collapse" : "Expand" }} all
-                </v-list-item-title>
-              </v-list-item>
-
-
-              <v-subheader>Filter actions</v-subheader>
-              <v-divider></v-divider>
-              <v-list-item
-                  @click="clearAllFilters"
-                  :disabled="!resultsFilters.length"
+        <v-menu
+            dark
+            offset-y
+        >
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on">
+              <v-chip
+                  v-if="resultsFilters.length"
+                  color="green lighten-2"
+                  light
+                  style="cursor: pointer;"
               >
-                <v-list-item-icon>
-                  <v-icon>mdi-delete</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Clear all
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </template>
+                {{ resultsFilters.length }}
+              </v-chip>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-subheader>View filters</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item @click="showAdvancedFilters = !showAdvancedFilters">
+              <v-list-item-icon>
+                <v-icon v-if="showAdvancedFilters">mdi-checkbox-marked</v-icon>
+                <v-icon style="opacity: 1 !important;" v-else>mdi-checkbox-blank-outline</v-icon>
+
+                <!--                  <v-icon v-if="showAdvancedFilters">mdi-filter-outline</v-icon>-->
+                <!--                  <v-icon v-else>mdi-filter-multiple-outline</v-icon>-->
+
+
+              </v-list-item-icon>
+              <v-list-item-title>
+                <!--                  {{ showAdvancedFilters ? "Hide" : "Show" }} advanced filters-->
+                Show advanced filters
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="expandAll = !expandAll">
+              <v-list-item-icon>
+                <v-icon v-if="expandAll">mdi-arrow-collapse-vertical</v-icon>
+                <v-icon v-else>mdi-arrow-expand-vertical</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                {{ expandAll ? "Collapse" : "Expand" }} all
+              </v-list-item-title>
+            </v-list-item>
+
+
+            <v-subheader>Filter actions</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item
+                @click="clearAllFilters"
+                :disabled="!resultsFilters.length"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-delete</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                Clear all
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
       </div>
       <div
-          class="d-flex align-start "
+          class="d-flex align-start elevation-3"
           style="height: 50px;"
 
       >
@@ -145,14 +134,12 @@
 
 
       </div>
-      <v-divider></v-divider>
+      <!--      <v-divider></v-divider>-->
 
 
       <!--      List of facets  -->
       <!--      *****************************************************************-->
       <v-card-text class="pa-0">
-
-
 
 
         <v-list
@@ -162,16 +149,16 @@
             style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
           <template
-            v-for="facetCategory in facetsByCategory"
+              v-for="facetCategory in facetsByCategory"
           >
             <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
               <v-subheader
                   :key="'subheader' + facetCategory.name"
-                class="pl-10 align-end text-capitalize"
+                  class="pl-2 align-end text-capitalize"
               >
-                {{facetCategory.name}}
+                {{ facetCategory.name }}
               </v-subheader>
-<!--              <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
+              <v-divider :key="'divider' + facetCategory.name"></v-divider>
             </template>
             <template v-for="facet in facetCategory.facets">
               <facet-range
@@ -215,7 +202,7 @@
 
 
 <script>
-import { createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
+import {createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetCategories} from "../../facetConfigs";
@@ -260,8 +247,8 @@ export default {
       showAdvancedFilters: true,
 
 
-      facetZoomWidth: 350,
-      facetsWidth: 300,
+      facetZoomWidth: 400,
+      facetsWidth: 350,
 
       lightColor: "#555",
       darkColor: "#222",
@@ -310,7 +297,7 @@ export default {
       // }
       // else return this.filterTypesListWidth
     },
-    facetsByCategory(){
+    facetsByCategory() {
       return facetCategories.works.map(categoryName => {
         return {
           name: categoryName,
@@ -319,9 +306,9 @@ export default {
           })
         }
       })
-      .filter(categoryObj => {
-        return categoryObj.facets.length > 0
-      })
+          .filter(categoryObj => {
+            return categoryObj.facets.length > 0
+          })
     },
 
     facetSearchResults() {

@@ -1,11 +1,12 @@
 <template>
 
   <div>
-    <div class="ml-2 mr-4 align-center d-flex">
-      <v-icon style="opacity: .2" class="mr-2">mdi-chevron-right</v-icon>
+    <div class="ml-2 pt-2 mr-0 align-center d-flex">
+      <v-icon  :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
       <span style="font-size: 16px;" class="mr-1">
         Published
       </span>
+      <v-spacer></v-spacer>
       <v-menu
           offset-y
           :close-on-content-click="false"
@@ -59,6 +60,9 @@
 
         </v-card>
       </v-menu>
+      <v-btn small color="green lighten-2" icon @click="clear" v-if="myResultsFilter">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
 
 
     </div>

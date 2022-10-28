@@ -26,7 +26,7 @@ const entityConfigs = {
     venues: {
         emoji: "📚",
         // icon: "mdi-book-outline",
-        icon: "mdi-book-open-page-variant-outline",
+        icon: "mdi-book-open-outline",
         name: "venues",
         displayName: "hosts",
         displayNameSingular: "host",
