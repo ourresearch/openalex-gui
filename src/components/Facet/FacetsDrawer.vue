@@ -247,8 +247,8 @@ export default {
       showAdvancedFilters: true,
 
 
-      facetZoomWidth: 400,
-      facetsWidth: 350,
+      facetZoomWidth: 350,
+      facetsWidth: 400,
 
       lightColor: "#555",
       darkColor: "#222",

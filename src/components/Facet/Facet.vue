@@ -2,12 +2,31 @@
   <v-list-item
       @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
       :disabled="isDisabled"
+      class="d-flex align-center pr-0"
+      style="font-size: 16px; min-height: 34px;"
   >
-    <v-list-item-title class="d-flex align-center">
-      <v-icon  :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
-    {{ config.displayName }}
+    <v-row class="pa-0 ma-0">
+      <v-col cols="5" class="pa-0">
+        <v-icon :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
+        {{ config.displayName }}
+      </v-col>
+      <v-col cols="7" class="pa-0 d-flex  justify-end">
+        <div class="green--text text--lighten-2">
+          <span class="font-weight-bold" v-if="myResultsFilters.length === 1">
+            {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
+          </span>
+          <span v-if="myResultsFilters.length > 1">
+            {{ myResultsFilters.length }} filters
+          </span>
+        </div>
+        <v-btn style="margin: 2px 0 0 5px;" color="green lighten-2" :disabled="isDisabled"
+               v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
+          <v-icon small>mdi-close</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
 
-    </v-list-item-title>
+
   </v-list-item>
 </template>
 
@@ -16,18 +35,17 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
+import {prettyTitle} from "../../util";
 
 
 export default {
   name: "Facet",
-  components: {
-  },
+  components: {},
   props: {
     facetKey: String,
   },
   data() {
-    return {
-    }
+    return {}
   },
   computed: {
     ...mapGetters([
@@ -57,15 +75,16 @@ export default {
     ...mapActions([
       "removeInputFilters",
       "addInputFilters",
+      "removeInputFiltersByKey"
     ]),
+    prettyTitle,
   },
 
   created() {
   },
   async mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 

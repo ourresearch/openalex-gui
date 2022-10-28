@@ -1,88 +1,79 @@
 <template>
 
-  <div>
-    <div class="ml-2 pt-2 mr-0 align-center d-flex">
-      <v-icon  :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
-      <span style="font-size: 16px;" class="mr-1">
-        Published
-      </span>
-      <v-spacer></v-spacer>
-      <v-menu
-          offset-y
-          :close-on-content-click="false"
-          :value="showMenu"
-          dark
-          @input="checkInput"
+  <v-menu
+      offset-y
+      :close-on-content-click="false"
+      :value="showMenu"
+      dark
+      @input="checkInput"
 
+  >
+    <template v-slot:activator="{on}">
+      <v-list-item
+          v-on="on"
+          style="font-size: 16px; min-height: 34px;"
+          :color="myResultsFilter ? 'green lighten-2' : ''"
       >
-        <template v-slot:activator="{on}">
-          <v-btn
-              text
-              v-on="on"
-              class="low-key-button font-weight-bold px-1"
-              style="font-size: 16px;"
-              :color="myResultsFilter ? 'green lighten-2' : ''"
-          >
-            {{ rangeValuesToShow }}
-            <v-icon>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-card width="400" class="">
-          <v-card-title>
-            <div>
+        <v-row class="pa-0 ma-0">
+          <v-col cols="5" class="pa-0">
+            <v-icon :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
             {{ config.displayName }}
+          </v-col>
+          <v-col cols="7" class="pa-0 d-flex  justify-end">
+            <div
+                v-if="!isDirty"
+                class=" text--lighten-2"
+            >
+              Anytime
             </div>
-            <v-spacer></v-spacer>
-            <v-btn icon @click="closeMenu">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text>
-            <div>
+            <div v-else class="green--text text--lighten-2 font-weight-bold">
               {{ rangeValuesToShow }}
             </div>
-          <v-range-slider
-              @change="saveRange"
-              v-model="range"
-              max="101"
-              hide-details
-              :color="isDirty ? '' : 'green'"
-          >
-          </v-range-slider>
 
-          </v-card-text>
-          <v-card-actions>
-            <v-btn :disabled="!myResultsFilter" small text @click="clear">
-              clear
-            </v-btn>
-          </v-card-actions>
+          </v-col>
+        </v-row>
 
 
-        </v-card>
-      </v-menu>
-      <v-btn small color="green lighten-2" icon @click="clear" v-if="myResultsFilter">
-        <v-icon small>mdi-close</v-icon>
-      </v-btn>
+      </v-list-item>
+    </template>
+    <v-card width="600" class="">
+      <v-card-title>
+        <div>
+          {{ config.displayName }}
+        </div>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="closeMenu">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <div>
+          {{ rangeValuesToShow }}
+        </div>
+        <v-range-slider
+            @change="saveRange"
+            v-model="range"
+            max="101"
+            hide-details
+            :color="isDirty ? 'green' : ''"
+        >
+        </v-range-slider>
+
+      </v-card-text>
+      <v-card-actions>
+        <v-btn :disabled="!myResultsFilter" small text @click="clear">
+          clear
+        </v-btn>
+      </v-card-actions>
 
 
-    </div>
+    </v-card>
+  </v-menu>
+  <!--      <v-btn small color="green lighten-2" icon @click="clear" v-if="myResultsFilter">-->
+  <!--        <v-icon small>mdi-close</v-icon>-->
+  <!--      </v-btn>-->
 
 
-    <v-list-item v-if="0" class="ml-1 mb-2">
-      <v-btn
-          x-small
-          class="ml-6"
-          text
-          @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
-          :disabled="isDisabled"
-      >
-        More
-        <v-icon right>mdi-chevron-right</v-icon>
-      </v-btn>
-    </v-list-item>
-
-
-  </div>
 </template>
 
 <script>
@@ -111,7 +102,7 @@ const rangePointToYear = function (rangePoint, yearSpan = 20) {
   const currentYear = new Date().getFullYear()
   const year = currentYear - Math.ceil(rangePointScaled * yearSpan)
 
-  const yearExp = Math.round(currentYear - (Math.pow(10, 2 - rangePoint  / 50) -1))
+  const yearExp = Math.round(currentYear - (Math.pow(10, 2 - rangePoint / 50) - 1))
 
   return year
 }
@@ -183,8 +174,8 @@ export default {
     isDisabled() {
       return !!this.facetZoom // && this.facetZoom !== this.facetKey
     },
-    isDirty(){
-      return this.range.join() === [0,101].join()
+    isDirty() {
+      return this.range.join() !== [0, 101].join()
     },
     config() {
       return getFacetConfig(this.facetKey)
@@ -217,14 +208,14 @@ export default {
         await this.replaceInputFilter(newFilter)
       }
     },
-    async clear(){
+    async clear() {
       await this.removeInputFiltersByKey(this.facetKey)
       this.range = [0, 101]
     },
-    closeMenu(){
+    closeMenu() {
       this.showMenu = false
     },
-    checkInput(input){
+    checkInput(input) {
       this.showMenu = input
     }
   },
@@ -242,7 +233,7 @@ export default {
     },
     "myResultsFilter.value": {
       immediate: true,
-      handler(newVal){
+      handler(newVal) {
         console.log("myResultsFilter.value changed", newVal)
         if (!newVal || this.isBooted) return
         const range = yearFilterValueToRangePoints(this.myResultsFilter.value)

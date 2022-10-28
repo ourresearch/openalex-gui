@@ -16,12 +16,13 @@ const makeFacetQueryFilters = function (facetFilters) {
 
 const facetCategories = {
     works: [
-        "general",
+        "popular",
         "institution",
         "host",
         "access",
         "ids",
         "citation",
+        "other",
     ]
 }
 
@@ -36,7 +37,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "general",
+            category: "popular",
             icon: "mdi-lightbulb-outline",
         },
 
@@ -50,7 +51,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "general",
+            category: "popular",
             isCore: true,
             icon: "mdi-lightbulb-outline",
         },
@@ -86,7 +87,7 @@ const facetConfigs = function () {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
-            category: "general",
+            category: "popular",
             isCore: true,
         icon: "mdi-account-outline",
         },
@@ -159,7 +160,7 @@ const facetConfigs = function () {
             isCountry: true,
             category: "institution",
             isCore: true,
-            icon: "mdi-earth",
+            icon: "mdi-map-marker-outline",
         },
         {
             key: "authorships.institutions.type",
@@ -172,13 +173,12 @@ const facetConfigs = function () {
         },
 
 
-        // works: general
         {
             key: "type",
             entityTypes: ["works"],
             displayName: "Type",
             valuesToShow: "mostCommon",
-            category: "general",
+            category: "popular",
         icon: "mdi-file-document-outline",
         },
         {
@@ -188,7 +188,7 @@ const facetConfigs = function () {
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
-            category: "general",
+            category: "popular",
             isCore: true,
             sortToTop: true,
             icon: "mdi-calendar-text"
@@ -234,7 +234,7 @@ const facetConfigs = function () {
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
-            category: "general",
+            category: "other",
             icon: "mdi-file-document-outline"
         },
 
@@ -279,7 +279,7 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
-            category: "general",
+            category: "other",
             isHidden: true,
             icon: "mdi-file-document-multiple-outline",
         },

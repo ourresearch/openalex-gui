@@ -133,11 +133,23 @@ const entityTypes = {
     }
 }
 
-const prettyTitle = function (title) {
+const prettyTitle = function (title, facetKey) {
+    if (!title) return
     if (title && title.toUpperCase() === title) {
         title = _.startCase(title.toLowerCase());
-
     }
+    if (facetKey && facetKey === "type") {
+        title = title.replace("-", " ")
+        title = _.capitalize(title)
+    }
+    if (facetKey === "authorships.institutions.country_code") {
+        title = title
+          .replace("ieee", "IEEE")
+          .replace("United States of America", "United States")
+          .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
+    }
+
+
 
     const safeTitle = sanitizeHtml(title, {
         allowedTags: ['b', 'i', 'em', 'strong', 'a'],

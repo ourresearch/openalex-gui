@@ -7,7 +7,7 @@
         outlined
         solo
         hide-details
-        item-text="display_name"
+        item-text="displayName"
         item-value="id"
         clearable
         append-icon="mdi-magnify"
@@ -74,48 +74,16 @@
           </v-list>
         </v-menu>
       </template>
-
       <template v-slot:item="data">
-        <!--        <v-subheader v-if="data.item.isFirstShortcut">-->
-        <!--          Shortcuts-->
-        <!--        </v-subheader>-->
-        <!--        <v-subheader v-if="data.item.isFirstFilter">-->
-        <!--          Shortcuts-->
-        <!--        </v-subheader>-->
         <v-list-item-icon>
-          <entity-icon :type="data.item.entity_type + 's'"/>
+          <v-icon>mdi-magnify</v-icon>
         </v-list-item-icon>
-        <v-list-item-content class="" style="">
-          <v-list-item-title style="font-weight: normal; font-size: 16px;">
-            <!--            <v-icon small>-->
-            <!--              {{ (data.item.isShortcut) ? "mdi-subdirectory-arrow-right" : "mdi-filter"}}-->
-            <!--            </v-icon>-->
-            {{ data.item.display_name }}
-          </v-list-item-title>
-          <v-list-item-subtitle
-              style="font-weight: normal; margin-top:5px; white-space: normal;"
-          >
-            <!--            <span-->
-            <!--                style="text-transform: capitalize;"-->
-            <!--                v-if="data.item.entity_type !== 'concept'"-->
-            <!--            >-->
-            <!--              {{ data.item.entity_type }}-->
-            <!--            </span>-->
-            <span v-if="data.item.hint" class="">
-              <span v-if="data.item.entity_type === 'work'"></span>
-              <span v-if="data.item.entity_type === 'author'">Author of: </span>
-              <span v-if="data.item.entity_type === 'venue'">Publisher: </span>
-              <span v-if="data.item.entity_type === 'institution'"></span>
-              <span v-if="data.item.entity_type === 'concept'"></span>
-            </span>
-
-            <span class="hint capitalize-first-letter d-inline-block">
-              {{ data.item.hint }}
-            </span>
-
-          </v-list-item-subtitle>
-        </v-list-item-content>
+        <v-list-item-title style="font-size: 16px;">
+          {{data.item.displayName}}
+        </v-list-item-title>
       </template>
+
+
     </v-combobox>
 
   </form>
@@ -194,8 +162,13 @@ export default {
       if (!this.searchString) return ""
       return this.searchString.replace(":", " ").replace(",", " ")
     },
+
     autocompleteUrl() {
-      const url = new URL(`https://api.openalex.org/autocomplete/${this.selectedEntityType}`);
+      const url = new URL("https://api.openalex.org")
+      url.pathname = (this.selectedEntityType === "works")  ?
+          "suggest" :
+          `autocomplete/${this.selectedEntityType}`
+
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
       return url.toString()
@@ -248,24 +221,7 @@ export default {
       const pushTo = {
         name: "Serp",
       }
-
-
-      if (this.select?.id) {
-        // there's an id: this is an entity-based search
-        const shortId = this.select.id.replace("https://openalex.org/", "")
-        const idEntityType = entityTypeFromId(shortId)
-
-        // open entity zoom
-        pushTo.query = {zoom: shortId}
-        pushTo.params = {entityType: idEntityType}
-        this.select = null
-        console.log("pushing this to router", pushTo)
-        await pushSafe(this.$router, pushTo)
-
-      } else {
-        // there's no ID, this is a text search
-        await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
-      }
+      await url.pushNewSearch(this.$router, this.selectedEntityType, this.select.displayName)
 
     }, 10, {leading: false}),
     fetchSuggestions(v) {
@@ -280,26 +236,12 @@ export default {
               console.log("no search string, clearing items")
               this.items = []
             } else {
-              let items = resp.data.results.map(i => {
-                const pluralEntityType = i.entity_type + "s"
-                i.icon = entityConfigs[pluralEntityType].icon
-                i.isShortcut = pluralEntityType === this.selectedEntityType
-                i.isFilter = !i.isShortcut
-                return i
+              let items = resp.data.results.map(r => {
+                return {
+                  ...r,
+                  displayName: (this.selectedEntityType === 'works') ? r.phrase : r.display_name
+                }
               })
-
-              // items.sort((a, b) => {
-              //   if (a.isShortcut) {
-              //     return 1
-              //   }
-              //   return -1
-              // })
-              const firstShortcutIndex = items.findIndex(i => i.isShortcut)
-              if (firstShortcutIndex > -1) items[firstShortcutIndex].isFirstShortcut = true
-
-              const firstFilterIndex = items.findIndex(i => i.isFilter)
-              if (firstFilterIndex > -1) items[firstFilterIndex].isFirstFilter = true
-
               this.items = items.slice(0, 5)
             }
           })
