@@ -218,10 +218,11 @@ export default {
     doSearch: _.debounce(async function (context) {
       console.log("doSearch", context, this.select,)
       this.items = []
+      const q = this.select.displayName ?? this.select
       const pushTo = {
         name: "Serp",
       }
-      await url.pushNewSearch(this.$router, this.selectedEntityType, this.select.displayName)
+      await url.pushNewSearch(this.$router, this.selectedEntityType, q)
 
     }, 10, {leading: false}),
     fetchSuggestions(v) {
