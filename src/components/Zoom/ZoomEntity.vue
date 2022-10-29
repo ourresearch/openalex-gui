@@ -134,7 +134,7 @@
               <!--              </v-btn>-->
               <!--            </div>-->
               <v-btn
-                  @click="replaceInputFilters([filterToShowWorks])"
+                  :to="linkToWorksSearch"
                   class=""
                   color="primary"
                   outlined
@@ -322,6 +322,18 @@ export default {
           this.myEntityConfig.filterKey,
           this.myId,
       )
+    },
+    linkToWorksSearch(){
+      if (this.entityType === "works") return
+      const filter = createSimpleFilter(
+          this.myEntityConfig.filterKey,
+          this.myId,
+      )
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
     },
     addWorksFilter() {
 

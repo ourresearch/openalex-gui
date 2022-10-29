@@ -298,7 +298,7 @@ export default {
       // else return this.filterTypesListWidth
     },
     facetsByCategory() {
-      return facetCategories.works.map(categoryName => {
+      return facetCategories[this.entityType].map(categoryName => {
         return {
           name: categoryName,
           facets: this.facetSearchResults.filter(f => {

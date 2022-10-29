@@ -7,8 +7,7 @@
         outlined
         solo
         hide-details
-        item-text="displayName"
-        item-value="id"
+
         clearable
         append-icon="mdi-magnify"
         id="main-search"
@@ -79,7 +78,8 @@
           <v-icon>mdi-magnify</v-icon>
         </v-list-item-icon>
         <v-list-item-title style="font-size: 16px;">
-          {{data.item.displayName}}
+          {{data.item}}
+<!--          {{data.item.displayName}}-->
         </v-list-item-title>
       </template>
 
@@ -219,11 +219,7 @@ export default {
     doSearch: _.debounce(async function (context) {
       console.log("doSearch", context, this.select,)
       this.items = []
-      const q = this.select.displayName ?? this.select
-      const pushTo = {
-        name: "Serp",
-      }
-      await url.pushNewSearch(this.$router, this.selectedEntityType, q)
+      await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
 
     }, 10, {leading: false}),
     fetchSuggestions(v) {
@@ -239,12 +235,10 @@ export default {
               this.items = []
             } else {
               let items = resp.data.results.map(r => {
-                return {
-                  ...r,
-                  displayName: (this.selectedEntityType === 'works') ? r.phrase : r.display_name
-                }
+                return (this.selectedEntityType === 'works') ? r.phrase : r.display_name
               })
-              this.items = items.slice(0, 5)
+              const uniqueItems = [...new Set(items)]
+              this.items = uniqueItems.slice(0, 5)
             }
           })
     }

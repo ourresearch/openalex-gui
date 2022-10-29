@@ -23,7 +23,23 @@ const facetCategories = {
         "ids",
         "citation",
         "other",
-    ]
+    ],
+    authors: [
+        "popular",
+        "institution",
+        "location",
+    ],
+    venues: [
+        "popular",
+        "access",
+    ],
+    institutions: [
+        "popular",
+        "location",
+    ],
+    concepts: [
+        "popular"
+    ],
 }
 
 const facetConfigs = function () {
@@ -32,7 +48,7 @@ const facetConfigs = function () {
         {
             key: "x_concepts.id",
             entityTypes: ["authors", "institutions", "venues"],
-            displayName: "Core concepts",
+            displayName: "Concepts",
             isEntity: true,
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
@@ -160,7 +176,8 @@ const facetConfigs = function () {
             isCountry: true,
             category: "institution",
             isCore: true,
-            icon: "mdi-map-marker-outline",
+            // icon: "mdi-map-marker-outline",
+            icon: "mdi-town-hall",
         },
         {
             key: "authorships.institutions.type",
@@ -285,6 +302,12 @@ const facetConfigs = function () {
         },
 
 
+
+
+
+
+
+
         // authors
         {
             key: "last_known_institution.id",
@@ -294,6 +317,8 @@ const facetConfigs = function () {
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
             valuesToShow: "mostCommon",
+            category: "institution",
+            icon: "mdi-town-hall",
         },
         {
             key: "last_known_institution.country_code",
@@ -302,6 +327,8 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
+            category: "location",
+            icon: "mdi-map-marker-outline",
         },
         {
             key: "last_known_institution.type",
@@ -309,7 +336,16 @@ const facetConfigs = function () {
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
+            category: "institution",
+            icon: "mdi-town-hall",
         },
+
+
+
+
+
+
+
 
 
         // venues
@@ -319,19 +355,30 @@ const facetConfigs = function () {
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
+            category: "popular",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "is_oa",
             entityTypes: ["venues"],
             displayName: "Open Access",
             valuesToShow: "mostCommon",
+            category: "access",
+            icon: "mdi-lock-open-outline",
         },
         {
             key: "is_in_doaj",
             entityTypes: ["venues"],
-            displayName: "Indexed in DOAJ",
+            displayName: "In DOAJ",
             valuesToShow: "mostCommon",
+            category: "access",
+            icon: "mdi-lock-open-outline",
         },
+
+
+
+
+
 
 
         // institutions
@@ -342,6 +389,8 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
+            category: "location",
+            icon: "mdi-map-marker-outline"
         },
         {
             key: "type",
@@ -349,7 +398,14 @@ const facetConfigs = function () {
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
+            category: "popular",
+            icon: "mdi-town-hall"
         },
+
+
+
+
+
 
 
         // concepts
