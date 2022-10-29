@@ -13,10 +13,10 @@
           class="text-h6 ml-4 mr-2 d-flex align-center"
           style="height: 75px;"
       >
-        <v-icon left>{{ myFacetConfig.icon}}</v-icon>
-          <div>
-            {{ myFacetConfig.displayName }}
-          </div>
+        <v-icon left>{{ myFacetConfig.icon }}</v-icon>
+        <div>
+          {{ myFacetConfig.displayName }}
+        </div>
         <v-spacer></v-spacer>
 
         <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
@@ -26,6 +26,7 @@
       <div
           class="d-flex align-start"
           style="height: 50px;"
+          v-if="showSearch"
       >
         <!--        <div class="">-->
         <!--          {{ myFacetConfig.displayName }}-->
@@ -55,7 +56,7 @@
     </div>
     <v-divider></v-divider>
 
-    <v-card-text class="pa-0" style="height: calc(100vh - (75px + 50px + 50px + 6px)); overflow-y:scroll;">
+    <v-card-text class="pa-0" :style="cardTextStyle">
 
       <!--       <v-text-field-->
       <!--            flat-->
@@ -73,7 +74,11 @@
       <!--            :placeholder="searchPlaceholder"-->
       <!--        />-->
 
-      <div class="pt-3 px-5 body-2" style="opacity: .7;">
+      <div
+          class="pt-3 px-5 body-2"
+          style="opacity: .7;"
+          v-if="showSearch"
+      >
         <template v-if="search && filtersToShow.length">
           Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
         </template>
@@ -85,10 +90,50 @@
           Top {{ myFacetConfig.displayName | pluralize(2) }} found within current results:
         </template>
       </div>
+
+      <div class="py-1 px-2" v-if="myFacetConfig.valuesToShow === 'range'">
+        <div class="d-flex">
+          <v-text-field
+              flat
+              hide-details
+              solo
+              full-width
+              class="mt-0"
+              clearable
+              background-color="#484848"
+              dense
+              v-model="range[0]"
+              placeholder="Start"
+          />
+          <v-icon>mdi-minus</v-icon>
+          <v-text-field
+              flat
+              hide-details
+              solo
+              full-width
+              class="mt-0"
+              clearable
+              background-color="#484848"
+              dense
+              v-model="range[1]"
+              placeholder="End"
+          />
+
+
+        </div>
+        <div>
+          range  {{ range}}
+        </div>
+        <div>
+          range from url {{ inputFiltersRange}}
+        </div>
+      </div>
+
+
       <v-list
           color="transparent"
           dark
-
+          v-if="myFacetConfig.valuesToShow !== 'range'"
       >
         <facet-option
             class=""
@@ -107,47 +152,56 @@
     </v-card-text>
     <v-divider></v-divider>
     <v-card-actions style="height: 50px;" class="elevation-3">
+      <v-btn
+        v-if="true"
+        color="green lighten-2"
+        @click="applyRange"
+        :disabled="range.join() == inputFiltersRange.join()"
+      >
+        Apply
+      </v-btn>
+
       <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetZoom)">
         clear
       </v-btn>
       <v-spacer></v-spacer>
       <v-menu>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on" class="mr-1">
-              <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-subheader>
-              Export as:
-              <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-            </v-subheader>
-            <v-divider></v-divider>
-            <v-list-item
-                target="_blank"
-                :href="makeApiUrl(200, true)"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-table</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                Spreadsheet
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item
-                target="_blank"
-                :href="makeApiUrl(200)"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-api</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                JSON object
-              </v-list-item-title>
-            </v-list-item>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="mr-1">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>
+            Export as:
+            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200, true)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-table</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Spreadsheet
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
 
-          </v-list>
-        </v-menu>
+        </v-list>
+      </v-menu>
     </v-card-actions>
 
 
@@ -182,7 +236,6 @@ export default {
   },
   data() {
     return {
-      showSearch: false,
       search: "",
       filterTypeSearch: "",
       isLoading: false,
@@ -192,6 +245,7 @@ export default {
       filters: [],
       filtersTotalCount: null,
       maxFiltersFromApiToShow: 20,
+      range: [null, null],
 
 
       groupByQueryResultsCount: null,
@@ -214,6 +268,7 @@ export default {
       "entityZoomHistoryData",
       "showFiltersDrawer",
       "facetZoom",
+      "inputFilters",
     ]),
     // isOpen: {
     //   get(){
@@ -226,8 +281,36 @@ export default {
     myFacetConfig() {
       return facetConfigs().find(c => c.key === this.facetZoom)
     },
+    showSearch() {
+      return this.myFacetConfig.valuesToShow === 'mostCommon'
+    },
+    isRange(){
+      return (this.myFacetConfig.valuesToShow !== "range")
+    },
+    inputFiltersRange() {
+      if (this.isRange) return [null, null]
+      if (!this.myInputFilters.length) return [null, null]
+      return this.myInputFilters[0].value.split("-")
+    },
+    cardTextStyle() {
+      // height: calc(100vh - (75px + 50px + 50px + 6px)); overflow-y:scroll;
+
+      const toolbarsBaseHeight = 75 + 50
+      const toolbarsTotalHeight = toolbarsBaseHeight + (this.showSearch ? 50 : 0)
+      const height = toolbarsTotalHeight + 6
+
+      return {
+        'overflow-y': 'scroll',
+        height: `calc(100vh - ${height}px)`
+      }
+    },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
+        return f.key === this.facetZoom
+      })
+    },
+    myInputFilters() {
+      return this.inputFilters.filter(f => {
         return f.key === this.facetZoom
       })
     },
@@ -263,8 +346,17 @@ export default {
       "addInputFilters",
       "removeInputFilters",
       "removeInputFiltersByKey",
+      "replaceInputFilter",
     ]),
 
+    applyRange(){
+      console.log("apply range", this.range)
+      const filter = createSimpleFilter(
+          this.facetZoom,
+          this.range.join("-")
+      )
+      this.replaceInputFilter(filter)
+    },
     clickOutside() {
       this.setFacetZoom(null)
     },
@@ -325,7 +417,9 @@ export default {
   created() {
   },
   mounted() {
-
+    // this.range = this.inputFiltersRange
+    this.range[0] = this.inputFiltersRange[0]
+    this.range[1] = this.inputFiltersRange[1]
   },
   watch: {
     search(newVal, oldVal) {

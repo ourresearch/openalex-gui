@@ -161,15 +161,14 @@
               <v-divider :key="'divider' + facetCategory.name"></v-divider>
             </template>
             <template v-for="facet in facetCategory.facets">
-              <facet-range
-                  v-if="facet.isRange"
-                  :key="'facet' + facet.key"
-                  :facet-key="facet.key"
-              >
-              </facet-range>
+<!--              <facet-range-->
+<!--                  v-if="facet.isRange"-->
+<!--                  :key="'facet' + facet.key"-->
+<!--                  :facet-key="facet.key"-->
+<!--              >-->
+<!--              </facet-range>-->
               <facet
                   :key="'facet' + facet.key"
-                  v-else
                   :facet-key="facet.key"
                   :has-focus="filterTypeKey === facet.key"
                   :disabled="filterTypeKey && filterTypeKey !== facet.key"

@@ -333,7 +333,8 @@ export default {
 
 .range-bar-bar {
   background-color: rgba(255, 255, 255, 0.5);
-  width: calc(100% - 1px);
+  //width: calc(100% - 1px);
+  width: 100%;
 
 
   &.selected {

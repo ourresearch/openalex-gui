@@ -113,6 +113,7 @@ const createDisplayFilter = function (key, value, isNegated, displayValue, count
     }
 }
 
+
 const makeFilterList = function (filters, resultsFilters, includeResultsFilters = true) {
     if (!filters.length) return []
     const config = getFacetConfig(filters[0].key)

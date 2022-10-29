@@ -18,6 +18,7 @@ const facetCategories = {
     works: [
         "popular",
         "institution",
+        "location",
         "host",
         "access",
         "ids",
@@ -28,17 +29,22 @@ const facetCategories = {
         "popular",
         "institution",
         "location",
+        "ids",
+        "other",
     ],
     venues: [
         "popular",
         "access",
+        "other",
     ],
     institutions: [
         "popular",
         "location",
+        "other",
     ],
     concepts: [
-        "popular"
+        "popular",
+        "other"
     ],
 }
 
@@ -53,7 +59,7 @@ const facetConfigs = function () {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             valuesToShow: "mostCommon",
-            category: "popular",
+            category: "other",
             icon: "mdi-lightbulb-outline",
         },
 
@@ -174,11 +180,21 @@ const facetConfigs = function () {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
-            category: "institution",
+            category: "location",
             isCore: true,
-            // icon: "mdi-map-marker-outline",
-            icon: "mdi-town-hall",
+            icon: "mdi-map-marker-outline",
+            // icon: "mdi-town-hall",
         },
+        // {
+        //     key: "authorships.institutions.continent",
+        //     entityTypes: ["works"],
+        //     displayName: "Continent",
+        //     valuesToShow: "mostCommon",
+        //     category: "location",
+        //     isCore: true,
+        //     icon: "mdi-map-marker-outline",
+        //     // icon: "mdi-town-hall",
+        // },
         {
             key: "authorships.institutions.type",
             entityTypes: ["works"],
@@ -202,7 +218,7 @@ const facetConfigs = function () {
             key: "publication_year",
             entityTypes: ["works"],
             displayName: "Year published",
-            valuesToShow: "mostCommon",
+            valuesToShow: "range",
             sortByValue: true,
             isRange: true,
             category: "popular",
@@ -339,6 +355,16 @@ const facetConfigs = function () {
             category: "institution",
             icon: "mdi-town-hall",
         },
+        {
+            key: "has_orcid",
+            entityTypes: ["authors"],
+            displayName: "ORCID",
+            valuesToShow: "boolean",
+            isBoolean: true,
+            booleanValues: ["No ORCID", "Has ORCID"],
+            category: "ids",
+            icon: "mdi-label-outline",
+        },
 
 
 
@@ -415,6 +441,8 @@ const facetConfigs = function () {
             displayName: "Level",
             maxPotentialFiltersToShow: 10,
             valuesToShow: "mostCommon",
+            category: "popular",
+            icon: "mdi-lightbulb-outline"
         },
     ]
     return ret

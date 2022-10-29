@@ -405,6 +405,7 @@ export default new Vuex.Store({
         entityConfig(state) { return entityConfigs[state.entityType]},
         showFiltersDrawer(state) { return state.showFiltersDrawer},
         facetZoom(state) { return state.facetZoom},
+        inputFilters(state) {return state.inputFilters},
 
         searchIsLoading(state) { return state.isLoading},
         results(state) { return state.results},

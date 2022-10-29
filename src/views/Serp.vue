@@ -88,19 +88,27 @@
           </div>
 
           <div
-              class="serp-toolbar-row d-flex align-center mt-12 pt-2 ml-4"
+              class="serp-toolbar-row d-flex align-center mt-12 pt-2"
               style="min-height: 50hv;"
           >
             <div
-                class=" mt-2"
+                class="mt-2 d-flex"
                 v-if="resultsCount >= 0"
             >
+              <year-range height="20px" width="30px"></year-range>
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
               <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
             </div>
             <v-spacer></v-spacer>
             <serp-toolbar></serp-toolbar>
           </div>
+          <div class="year-range-panel">
+            <v-card class="mx-0 my-2 py-3 px-1">
+            <year-range></year-range>
+
+            </v-card>
+          </div>
+
 
           <div class="search-results-row ml-4" style="margin-top: -10px">
             <div v-if="!resultsCount" class="mt-8 grey--text">
@@ -228,6 +236,7 @@ import axios from "axios";
 import ZoomEntity from "../components/Zoom/ZoomEntity";
 import FacetZoom from "../components/Facet/FacetZoom";
 import {entityConfigs} from "../entityConfigs";
+import YearRange from "../components/YearRange";
 
 export default {
   name: "Serp",
@@ -248,7 +257,8 @@ export default {
     ResultConcept,
     Zoom,
     FacetsDrawer,
-    FacetZoom
+    FacetZoom,
+    YearRange,
 
   },
   props: {},
