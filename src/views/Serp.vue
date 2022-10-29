@@ -232,7 +232,7 @@ import {entityConfigs} from "../entityConfigs";
 export default {
   name: "Serp",
   metaInfo() {
-    const ret = {title: _.capitalize(this.entityType)}
+    const ret = {title: _.capitalize(this.entityConfig.displayName)}
     if (this.$store.state.textSearch) ret.title = this.$store.state.textSearch
     if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
     return ret
@@ -283,6 +283,7 @@ export default {
       "facetZoom",
       "resultsCount",
         "entityType",
+        "entityConfig",
     ]),
     page: {
       get() {

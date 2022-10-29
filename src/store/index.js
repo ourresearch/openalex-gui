@@ -402,6 +402,7 @@ export default new Vuex.Store({
             return state.resultsFilters
         },
         entityType(state) { return state.entityType},
+        entityConfig(state) { return entityConfigs[state.entityType]},
         showFiltersDrawer(state) { return state.showFiltersDrawer},
         facetZoom(state) { return state.facetZoom},
 

@@ -39,7 +39,7 @@
     <v-card width="600" class="">
       <v-card-title>
         <div>
-          {{ config.displayName }}
+          {{ rangeValuesToShow }}
         </div>
         <v-spacer></v-spacer>
         <v-btn icon @click="closeMenu">
@@ -47,8 +47,22 @@
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <div>
-          {{ rangeValuesToShow }}
+        <div class="d-flex range-bar-graph">
+          <div
+              v-for="filter in filters"
+              :key="filter.kv"
+              class="range-bar-container"
+          >
+            <div
+                class="range-bar-bar lighten-2 caption"
+                :class="{green: isWithinRange(filter.value) && isDirty}"
+                :style="{height: filter.scaledCount * 100 + '%'}"
+
+            >
+<!--              {{filter.value.substring(2, 4)}}-->
+            </div>
+          </div>
+
         </div>
         <v-range-slider
             @change="saveRange"
@@ -85,6 +99,7 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
 import {
+  createDisplayFilter,
   createSimpleFilter,
   filtersAsUrlStr,
   filtersFromUrlStr,
@@ -93,21 +108,22 @@ import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
 
+const yearRangeSpan = 25
 
 // single points
-const rangePointToYear = function (rangePoint, yearSpan = 20) {
-  if (rangePoint === 0 || rangePoint === 101) return null
+const rangePointToYear = function (rangePoint, yearSpan = yearRangeSpan) {
+  if (rangePoint === 0) return null
+  if (rangePoint === 101) return Infinity
   const rangePointScaled = 1 - (rangePoint / 100)
 
   const currentYear = new Date().getFullYear()
   const year = currentYear - Math.ceil(rangePointScaled * yearSpan)
-
-  const yearExp = Math.round(currentYear - (Math.pow(10, 2 - rangePoint / 50) - 1))
+  // const yearExp = Math.round(currentYear - (Math.pow(10, 2 - rangePoint / 50) - 1))
 
   return year
 }
 
-const yearToRangePoint = function (year, index, rangeSpan = 20) {
+const yearToRangePoint = function (year, index, rangeSpan = yearRangeSpan) {
   if (year === null) {
     return (index === 0) ? 0 : 101
   }
@@ -120,15 +136,19 @@ const yearToRangePoint = function (year, index, rangeSpan = 20) {
 // display
 const rangePointsToYearDisplayValue = function (rangePoints) {
   const rangeYears = rangePoints.map(p => rangePointToYear(p))
-  if (rangeYears.every(v => v === null)) return "Anytime"
+  if (rangeYears[0] === null && rangeYears[1] === Infinity) return "Anytime"
   else if (rangeYears[0] === null) return "Through " + rangeYears[1]
-  else if (rangeYears[1] === null) return "Since " + rangeYears[0]
+  else if (rangeYears[1] === Infinity) return "Since " + rangeYears[0]
   else return rangeYears[0] + " - " + rangeYears[1]
 }
 
 // to and from filter values
 const rangePointsToYearFilterValue = function (rangePoints) {
   const rangeYears = rangePoints.map(p => rangePointToYear(p))
+
+  // you can't handle my infinite nature
+  if (rangeYears[1] === Infinity) rangeYears[1] = null
+
   if (rangeYears.every(y => y === null)) return
   return rangeYears.join("-")
 }
@@ -154,9 +174,10 @@ export default {
     return {
       loading: false,
       range: [0, 101],
-      rangeEnds: [0, 22],
       isBooted: false,
       showMenu: false,
+      perPage: 200,
+      filters: []
     }
   },
   computed: {
@@ -184,6 +205,19 @@ export default {
       return this.resultsFilters.find(f => {
         return f.key === this.facetKey
       })
+    },
+    apiUrl() {
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = `${this.entityType}`
+
+      const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
+      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe))
+
+      url.searchParams.set("group_by", this.facetKey)
+      url.searchParams.set("per_page", String(this.perPage))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
     },
   },
   methods: {
@@ -217,7 +251,43 @@ export default {
     },
     checkInput(input) {
       this.showMenu = input
-    }
+    },
+    isWithinRange(value){
+      const yearRange = this.range.map(x => rangePointToYear(x))
+      return value >= yearRange[0] && value <= yearRange[1]
+    },
+    async fetchFilters() {
+      const maxValue = new Date().getFullYear()
+
+      const resp = await api.getUrl(this.apiUrl)
+      const filters = resp.group_by
+          .filter(g => g.key <= maxValue)
+          .map(apiData => {
+            return createDisplayFilter(
+                this.config.key,
+                apiData.key,
+                false,
+                apiData.key_display_name,
+                apiData.count,
+            )
+          })
+
+
+      filters.sort((a, b) => {
+        return b.value - a.value
+      })
+      if (filters.length >= yearRangeSpan) {
+        filters.length = yearRangeSpan + 1
+      }
+      const maxCount = Math.max(...filters.map(f => f.count))
+      const scaledFilters = filters.map(f => {
+        return {
+          ...f,
+          scaledCount: f.count / maxCount,
+        }
+      })
+      this.filters = scaledFilters
+    },
   },
 
   created() {
@@ -228,7 +298,7 @@ export default {
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        // this.fetchFilters()
+        this.fetchFilters()
       }
     },
     "myResultsFilter.value": {
@@ -247,5 +317,28 @@ export default {
 </script>
 <style scoped lang="scss">
 
+.range-bar-graph {
+  height: 50px;
+  margin: 0 10px;
+  flex-direction: row-reverse;
+}
+
+.range-bar-container {
+  height: 100%;
+  //background-color: rgba(255, 255, 255, 0.05);
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+}
+
+.range-bar-bar {
+  background-color: rgba(255, 255, 255, 0.5);
+  width: calc(100% - 1px);
+
+
+  &.selected {
+    //background-color: rgba(255, 255, 255, 1);
+  }
+}
 
 </style>

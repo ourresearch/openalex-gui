@@ -1,42 +1,16 @@
 <template>
   <span class="body-1">
-      <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <span
-                v-bind="attrs"
-                v-on="on"
-            >
-              <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">{{icon}}</v-icon>
-              <router-link
-                  :to="linkToWorks"
-                  class="text-decoration-none"
-                  v-if="formatAsLink"
-              >
-                {{ worksCount.toLocaleString() }}
-              </router-link>
-              <span class="" v-else>
-                {{ worksCount.toLocaleString() }}
-              </span>
-            </span>
-          </template>
-          <span>
-            <template v-if="entityType=='works'">
-              Related works
-            </template>
-            <template v-if="entityType=='authors'">
-              Works created by this person
-            </template>
-            <template v-if="entityType=='venues'">
-              Works published in this venue
-            </template>
-            <template v-if="entityType=='institutions'">
-              Works published by people at this institution
-            </template>
-            <template v-if="entityType=='concepts'">
-              Works tagged with this concept
-            </template>
-          </span>
-        </v-tooltip>
+    <v-icon small :color="(formatAsLink) ? 'primary' : '#333'" style="vertical-align: 0;">{{icon}}</v-icon>
+    <router-link
+        :to="linkToWorks"
+        class="text-decoration-none"
+        v-if="formatAsLink"
+    >
+      {{ worksCount | toPrecision }} works
+    </router-link>
+    <span class="" v-else>
+      {{ worksCount | toPrecision }} works
+    </span>
 
   </span>
 </template>
@@ -53,7 +27,7 @@ export default {
     id: String,
     entityType: String,
     linkToSearch: {
-      type:Boolean,
+      type: Boolean,
       default: false,
     }
   },
@@ -64,13 +38,13 @@ export default {
   },
   computed: {
     ...mapGetters([]),
-    formatAsLink(){
+    formatAsLink() {
       return this.id && this.entityType && this.worksCount > 0
     },
-    icon(){
+    icon() {
       return entityConfigs.works.icon
     },
-    iconColor(){
+    iconColor() {
       if (this.id && this.entityType && this.worksCount > 0) return "primary"
       return "#333333"
     },

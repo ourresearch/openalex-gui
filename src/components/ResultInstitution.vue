@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-      <router-link class="text-decoration-none" :to="data.id | zoomLink">
+      <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
         {{ data.display_name }}
       </router-link>
     </div>
@@ -14,9 +14,9 @@
       {{ data.last_known_institution.display_name }}
     </div>
 
-    <div>
-      <concepts-list :concepts="data.x_concepts"/>
-    </div>
+<!--    <div>-->
+<!--      <concepts-list :concepts="data.x_concepts"/>-->
+<!--    </div>-->
     <div class="body-1">
       <result-works-count
           :works-count="data.works_count"

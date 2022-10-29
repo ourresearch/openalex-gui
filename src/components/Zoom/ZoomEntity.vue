@@ -25,7 +25,7 @@
               <span v-if="entityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-              <span v-if="entityType=== 'venues'">
+              <span v-if="entityType=== 'venues' && data.type">
                  ({{ data.type }})
               </span>
             </div>
@@ -165,16 +165,28 @@
                 <v-icon left>mdi-tray-arrow-down</v-icon>
               </v-btn>
             </template>
-            <v-list>
-              <v-subheader>Export this {{ entityType |pluralize(1) }} as</v-subheader>
+            <v-list dense>
+              <v-subheader>Export data as</v-subheader>
               <v-divider></v-divider>
-              <v-list-item :href="apiUrl + '.bib'" target="_blank">
-                <v-icon left>mdi-file-download-outline</v-icon>
-                BibTeX
+              <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
+                <v-list-item-icon>
+                  <v-icon left>mdi-file-download-outline</v-icon>
+
+                </v-list-item-icon>
+                <v-list-item-title>
+
+                  BibTeX
+                </v-list-item-title>
               </v-list-item>
               <v-list-item :href="apiUrl" target="_blank">
-                <v-icon left>mdi-code-json</v-icon>
-                JSON (API)
+                <v-list-item-icon>
+
+                  <v-icon left>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+
+                  JSON object
+                </v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -200,7 +212,7 @@ import EntityIcon from "../EntityIcon";
 import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
-import {createSimpleFilter} from "../../filterConfigs";
+import {createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "../../api";
@@ -244,32 +256,6 @@ export default {
       data: null,
     }
   },
-  methods: {
-    ...mapMutations([
-      "snackbar"
-    ]),
-    ...mapActions([
-      "replaceInputFilters"
-    ]),
-    async copyPermalinkToClipboard() {
-      await navigator.clipboard.writeText(this.data.id);
-      this.snackbar("URL copied to clipboard.")
-      // alert('Copied!');
-    },
-    getEntityIconFromId(id) {
-      const type = entityTypeFromId(id)
-      return entityConfigs[type]?.icon
-    },
-    getData() {
-      const pathName = entityTypeFromId(this.myId) + "/" + this.myId
-      this.data = null
-
-      api.get(pathName).then(resp => {
-        console.log("zoomEntity resp", resp)
-        this.data = resp
-      })
-    },
-  },
   computed: {
     ...mapGetters([
       "entityZoomHistoryData",
@@ -294,12 +280,12 @@ export default {
     entityType() {
       return entityTypeFromId(this.myId)
     },
-    linkoutUrl(){
+    linkoutUrl() {
       if (this.entityType === "venues") return this.data.homepage_url
       if (this.entityType === "institutions") return this.data.homepage_url
       if (this.entityType === "concepts") return this.data.ids.wikipedia
     },
-    linkoutButtonText(){
+    linkoutButtonText() {
       if (this.entityType === "venues") return "Homepage"
       if (this.entityType === "institutions") return "Homepage"
       if (this.entityType === "concepts") return "Wikipedia"
@@ -323,7 +309,7 @@ export default {
           this.myId,
       )
     },
-    linkToWorksSearch(){
+    linkToWorksSearch() {
       if (this.entityType === "works") return
       const filter = createSimpleFilter(
           this.myEntityConfig.filterKey,
@@ -363,6 +349,33 @@ export default {
       const entityType = entityTypeFromId(shortId)
       return `https://api.openalex.org/${entityType}/${shortId}`
     },
+  },
+  methods: {
+    ...mapMutations([
+      "snackbar"
+    ]),
+    ...mapActions([
+      "replaceInputFilters"
+    ]),
+    async copyPermalinkToClipboard() {
+      await navigator.clipboard.writeText(this.data.id);
+      this.snackbar("URL copied to clipboard.")
+      // alert('Copied!');
+    },
+    getEntityIconFromId(id) {
+      const type = entityTypeFromId(id)
+      return entityConfigs[type]?.icon
+    },
+    getData() {
+      const pathName = entityTypeFromId(this.myId) + "/" + this.myId
+      this.data = null
+
+      api.get(pathName).then(resp => {
+        console.log("zoomEntity resp", resp)
+        this.data = resp
+      })
+    },
+    
   },
   created() {
   },

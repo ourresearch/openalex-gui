@@ -76,22 +76,12 @@
             <v-subheader>Export results as:</v-subheader>
             <v-divider></v-divider>
             <v-list-item
-                target="_blank"
-                :href="searchApiUrl"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-code-json</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                API response
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item
               @click="openExportToCsvDialog"
               :disabled="resultsCount > 100000"
             >
               <v-list-item-icon>
                 <v-icon
+                    :disabled="resultsCount > 100000"
                 >
                   mdi-table
                 </v-icon>
@@ -108,6 +98,18 @@
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
+            <v-list-item
+                target="_blank"
+                :href="searchApiUrl"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-api</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                JSON object
+              </v-list-item-title>
+            </v-list-item>
+
 
           </v-list>
         </v-menu>
@@ -190,11 +192,11 @@
               :href="searchApiUrl"
           >
             <v-list-item-icon>
-              <v-icon>mdi-code-json</v-icon>
+              <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
-                API response
+                JSON object
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>

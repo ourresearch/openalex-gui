@@ -117,20 +117,35 @@
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-btn>
           </template>
-          <v-list>
+          <v-list dense>
             <v-subheader>
               Export as:
               <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
             </v-subheader>
             <v-divider></v-divider>
-            <v-list-item :href="makeApiUrl(200, true)" target="_blank">
-              <v-icon left>mdi-table</v-icon>
-              Spreadsheet
+            <v-list-item
+                target="_blank"
+                :href="makeApiUrl(200, true)"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-table</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                Spreadsheet
+              </v-list-item-title>
             </v-list-item>
-            <v-list-item :href="makeApiUrl(200)" target="_blank">
-              <v-icon left>mdi-code-json</v-icon>
-              JSON (API)
+            <v-list-item
+                target="_blank"
+                :href="makeApiUrl(200)"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-api</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                JSON object
+              </v-list-item-title>
             </v-list-item>
+
           </v-list>
         </v-menu>
     </v-card-actions>
@@ -230,7 +245,7 @@ export default {
     },
 
     apiUrl() {
-      return this.makeApiUrl()
+      return this.makeApiUrl(200)
     },
 
     filtersToShow() {
