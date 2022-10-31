@@ -103,7 +103,7 @@
         <v-spacer></v-spacer>
         <v-btn text @click="openPopout">
           <v-icon left>mdi-open-in-app</v-icon>
-          Popout
+          Details
         </v-btn>
       </v-card-actions>
 
@@ -200,8 +200,16 @@ export default {
     },
     rangeValuesToShow() {
       if (this.inputFiltersRange[0] === "" && this.inputFiltersRange[1] === "") return null
+      else if (this.inputFiltersRange[0] === this.inputFiltersRange[1] ) return this.inputFiltersRange[0]
       else if (this.inputFiltersRange[0] === "") return "Through " + this.inputFiltersRange[1]
-      else if (this.inputFiltersRange[1] === "") return "Since " + this.inputFiltersRange[0]
+      else if (this.inputFiltersRange[1] === "") {
+        if (this.inputFiltersRange[0] == currentYear) {
+          return currentYear
+        }
+        else {
+          return "Since " + this.inputFiltersRange[0]
+        }
+      }
       else return this.inputFiltersRange.join("-")
     },
     apiUrl() {

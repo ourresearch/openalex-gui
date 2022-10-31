@@ -1,4 +1,5 @@
 import router from "./router";
+import {filtersAsUrlStr} from "./filterConfigs";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}

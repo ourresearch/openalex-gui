@@ -1,25 +1,139 @@
 <template>
-  <div
-      :style="{height, width}"
-      class="d-flex range-bar-graph"
+
+  <v-card
+      :outlined="big"
+      flat
+      class="ma-0 year-range-card"
+      :class="{big}"
   >
-    <div
-        v-for="filter in filters"
-        :key="filter.kv"
-        class="range-bar-container"
-    >
-      <div
-          class="range-bar-bar lighten-2 caption"
-          :class="{green: isWithinRange(filter.value) && isDirty}"
-          :style="{height: filter.scaledCount * 100 + '%'}"
+    <v-card-actions v-if="big" class="graph-toolbar">
+      Annual works
 
+      <v-spacer></v-spacer>
+      <v-menu
       >
-        <!--              {{filter.value.substring(2, 4)}}-->
+        <template v-slot:activator="{on}">
+          <v-btn
+              v-on="on"
+              text
+              class="low-key-button pl-0"
+          >
+            {{ rangeSelected }}yrs
+            <v-icon>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>Show years:</v-subheader>
+          <v-list-item
+              v-for="option in rangeOptions"
+              :key="option"
+              @click="rangeSelected = option"
+          >
+            <v-list-item-title>
+              Last {{ option }} years
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+<!--      <v-btn icon @click="$emit('close')">-->
+<!--        <v-icon>mdi-close</v-icon>-->
+<!--      </v-btn>-->
 
-      </div>
+    </v-card-actions>
+
+
+    <div
+        :style="{height, width}"
+        class="d-flex range-bar-graph"
+    >
+      <template
+          v-for="filter in filters"
+      >
+        <v-tooltip :key="filter.kv" bottom :disabled="!big">
+          <template v-slot:activator="{ on, attrs }">
+            <div
+                class="range-bar-container"
+                v-bind="attrs"
+                v-on="on"
+            >
+              <div
+                  class="range-bar-bar lighten-2 caption"
+                  :class="{green: isWithinRange(filter.value)}"
+                  :style="{height: filter.scaledCount * 100 + '%'}"
+              >
+              </div>
+            </div>
+          </template>
+          <span>
+            <span class="font-weight-bold">
+            {{ filter.value }}:
+            </span>
+            {{ filter.count | toPrecision }}
+          </span>
+        </v-tooltip>
+
+      </template>
+
+
     </div>
+    <v-card-actions v-if="big">
+      <v-btn
+        text
+        @click="$emit('close')"
+      >
+        <v-icon>mdi-chevron-up</v-icon>
+        Hide
+      </v-btn>
+      <v-btn
+        :disabled="!yearFilterIsSet"
+        text
+        color="green"
+        @click="clear"
+      >
+        <v-icon left>mdi-close</v-icon>
+        Clear
+      </v-btn>
+      <v-spacer></v-spacer>
+      <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="mr-1">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>
+            Export annual counts as:
+            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              target="_blank"
+              :href="csvUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-table</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Spreadsheet
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="apiUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
 
-  </div>
+        </v-list>
+      </v-menu>
+    </v-card-actions>
+
+  </v-card>
 
 
 </template>
@@ -47,9 +161,10 @@ export default {
   props: {
     // startYear: Number,
     // endYear: Number,
+    big: Boolean,
     height: {
       type: String,
-      default: "70px"
+      default: "100px"
     },
     width: {
       type: String,
@@ -62,9 +177,9 @@ export default {
       isBooted: false,
       perPage: 200,
       filters: [],
-      defaultRangeEnds: [
-          1922,
-          new Date().getFullYear()
+      rangeSelected: 25,
+      rangeOptions: [
+        25, 100
       ]
     }
   },
@@ -75,16 +190,25 @@ export default {
       "entityType",
       "facetZoom",
       "textSearch",
+      "inputFilters",
     ]),
-
+    yearInputFilter() {
+      const yearFilter = this.inputFilters.find(f => {
+        return f.key === "publication_year"
+      })
+      if (!yearFilter) return [null, Infinity]
+      const yearRange = yearFilter.value.split("-")
+      const yearStart = (yearRange[0] === "") ? null : yearRange[0]
+      const yearEnd = (yearRange[1] === "") ? Infinity : yearRange[1]
+      return [yearStart, yearEnd]
+    },
+    yearFilterIsSet() {
+      return this.inputFilters.find(f => {
+        return f.key === "publication_year"
+      })
+    },
     isDisabled() {
       return !!this.facetZoom // && this.facetZoom !== this.facetKey
-    },
-    rangeSpan(){
-      return this.rangeEnds[1] - this.rangeEnds[0]
-    },
-    rangeEnds(){
-      return this.defaultRangeEnds
     },
     isDirty() {
       return this.range.join() !== [0, 101].join()
@@ -93,18 +217,11 @@ export default {
       return getFacetConfig("publication_year")
     },
     apiUrl() {
-      const url = new URL(`https://api.openalex.org`);
-      url.pathname = "works"
-
-      const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== "publication_year")
-      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe))
-
-      url.searchParams.set("group_by", "publication_year")
-      url.searchParams.set("per_page", String(this.perPage))
-      if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      url.searchParams.set("email", "team@ourresearch.org")
-      return url.toString()
+      return this.makeApiUrl()
     },
+    csvUrl() {
+      return this.makeApiUrl(true)
+    }
   },
   methods: {
     ...mapMutations([
@@ -117,7 +234,26 @@ export default {
       "removeInputFiltersByKey",
     ]),
     isWithinRange(value) {
-      return value >= this.startYear && value <= this.endYear
+      return this.yearFilterIsSet && value >= this.yearInputFilter[0] && value <= this.yearInputFilter[1]
+    },
+
+    makeApiUrl(formatCsv) {
+      const url = new URL(`https://api.openalex.org`);
+      url.pathname = "works"
+
+      const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== "publication_year")
+      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe))
+
+      url.searchParams.set("group_by", "publication_year")
+      url.searchParams.set("per_page", "200")
+      if (formatCsv) url.searchParams.set("format", "csv")
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
+
+    },
+    clear(){
+      this.removeInputFiltersByKey("publication_year")
     },
     async fetchFilters() {
       const maxValue = new Date().getFullYear()
@@ -139,8 +275,8 @@ export default {
       filters.sort((a, b) => {
         return b.value - a.value
       })
-      if (filters.length >= this.rangeSpan) {
-        filters.length = this.rangeSpan + 1
+      if (filters.length >= this.rangeSelected) {
+        filters.length = this.rangeSelected + 1
       }
       const maxCount = Math.max(...filters.map(f => f.count))
       const scaledFilters = filters.map(f => {
@@ -164,6 +300,12 @@ export default {
         this.fetchFilters()
       }
     },
+    rangeSelected: {
+      immediate: false,
+      handler(newVal, oldVal) {
+        this.fetchFilters()
+      }
+    },
     // "myResultsFilter.value": {
     //   immediate: true,
     //   handler(newVal) {
@@ -180,9 +322,26 @@ export default {
 </script>
 <style scoped lang="scss">
 
+.year-range-card {
+  .graph-toolbar {
+  }
+
+  &.big {
+    .range-bar-bar {
+      width: calc(100% - 1px);
+    }
+  }
+}
+
 .range-bar-graph {
-  margin: 0 10px;
+  //margin: 0 10px;
   flex-direction: row-reverse;
+
+  &.big {
+
+  }
+
+
 }
 
 .range-bar-container {
@@ -196,7 +355,6 @@ export default {
 .range-bar-bar {
   //background-color: rgba(255, 255, 255, 0.5);
   background-color: rgba(0, 0, 0, 0.5);
-  //width: calc(100% - 1px);
   width: 100%;
 
 

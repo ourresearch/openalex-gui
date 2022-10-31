@@ -88,14 +88,22 @@
           </div>
 
           <div
-              class="serp-toolbar-row d-flex align-center mt-12 pt-2"
+              class="serp-toolbar-row d-flex align-center mt-12 pt-2 pr-2"
               style="min-height: 50hv;"
           >
             <div
                 class="mt-2 d-flex"
                 v-if="resultsCount >= 0"
             >
-              <year-range height="20px" width="30px"></year-range>
+              <div class="years-range-button" v-ripple  @click="showYearRange = !showYearRange">
+                <year-range
+                    height="20px"
+                    width="20px"
+                    v-if="!showYearRange"
+                >
+                </year-range>
+                <v-icon v-else>mdi-chevron-up</v-icon>
+              </div>
               <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
               <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
             </div>
@@ -103,10 +111,12 @@
             <serp-toolbar></serp-toolbar>
           </div>
           <div class="year-range-panel">
-            <v-card class="mx-0 my-2 py-3 px-1">
-            <year-range></year-range>
-
-            </v-card>
+            <year-range
+                class="my-3 mb-6"
+                v-if="showYearRange"
+                @click="showYearRange=false"
+                :big="true"
+            ></year-range>
           </div>
 
 
@@ -280,6 +290,7 @@ export default {
         velocityIsLoading: false
       },
       logoColorRotation: 0,
+      showYearRange: true,
     }
   },
   computed: {
@@ -292,8 +303,8 @@ export default {
       "showFiltersDrawer",
       "facetZoom",
       "resultsCount",
-        "entityType",
-        "entityConfig",
+      "entityType",
+      "entityConfig",
     ]),
     page: {
       get() {
@@ -412,7 +423,12 @@ export default {
 
 <style lang="scss">
 
-
+.years-range-button {
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
 .v-app-bar.mobile {
   padding: 0 !important;
 }
