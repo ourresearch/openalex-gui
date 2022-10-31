@@ -113,6 +113,23 @@ const createDisplayFilter = function (key, value, isNegated, displayValue, count
     }
 }
 
+const displayYearRange = function (range) {
+    range = range.map(r => {
+        return (r === null || r === Infinity) ? "" : r
+    })
+
+    const currentYear = new Date().getFullYear()
+    if (range[0] === "" && range[1] === "") return null
+    else if (range[0] === range[1]) return range[0]
+    else if (range[0] === "") return "Through " + range[1]
+    else if (range[1] === "") {
+        if (range[0] == currentYear) {
+            return currentYear
+        } else {
+            return "Since " + range[0]
+        }
+    } else return range.join("-")
+}
 
 const makeFilterList = function (filters, resultsFilters, includeResultsFilters = true) {
     if (!filters.length) return []
@@ -126,7 +143,7 @@ const makeFilterList = function (filters, resultsFilters, includeResultsFilters 
         })
 
     if (includeResultsFilters) {
-        const retFilterStrings = ret.map(f=>f.kv)
+        const retFilterStrings = ret.map(f => f.kv)
         const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.kv))
         ret.push(..._.cloneDeep(missingResultsFilters))
     }
@@ -164,6 +181,6 @@ export {
     createDisplayFilter,
     createFilterId,
     addDisplayNamesToFilters,
-
+    displayYearRange,
     makeFilterList,
 }

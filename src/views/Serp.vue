@@ -95,7 +95,7 @@
                 class="mt-2 d-flex"
                 v-if="resultsCount >= 0"
             >
-              <div class="years-range-button" v-ripple  @click="showYearRange = !showYearRange">
+              <div class="years-range-button" v-ripple  @click="$store.state.showYearRange = !$store.state.showYearRange">
                 <year-range
                     height="20px"
                     width="20px"
@@ -110,11 +110,10 @@
             <v-spacer></v-spacer>
             <serp-toolbar></serp-toolbar>
           </div>
-          <div class="year-range-panel">
+          <div class="year-range-panel" >
             <year-range
                 class="my-3 mb-6"
-                v-if="showYearRange"
-                @close="showYearRange=false"
+                v-if="$store.state.showYearRange && entityType==='works'"
                 :big="true"
             ></year-range>
           </div>

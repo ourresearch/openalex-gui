@@ -101,7 +101,7 @@
           clear
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn text @click="openPopout">
+        <v-btn text @click="showDetails" :disabled="$store.state.showYearRange">
           <v-icon left>mdi-open-in-app</v-icon>
           Details
         </v-btn>
@@ -129,6 +129,7 @@ import {
   createDisplayFilter,
   createSimpleFilter,
   filtersAsUrlStr,
+    displayYearRange,
   filtersFromUrlStr,
 } from "../../filterConfigs";
 import FacetOption from "./FacetOption";
@@ -199,18 +200,7 @@ export default {
       return this.myInputFilters[0].value.split("-")
     },
     rangeValuesToShow() {
-      if (this.inputFiltersRange[0] === "" && this.inputFiltersRange[1] === "") return null
-      else if (this.inputFiltersRange[0] === this.inputFiltersRange[1] ) return this.inputFiltersRange[0]
-      else if (this.inputFiltersRange[0] === "") return "Through " + this.inputFiltersRange[1]
-      else if (this.inputFiltersRange[1] === "") {
-        if (this.inputFiltersRange[0] == currentYear) {
-          return currentYear
-        }
-        else {
-          return "Since " + this.inputFiltersRange[0]
-        }
-      }
-      else return this.inputFiltersRange.join("-")
+      return displayYearRange(this.inputFiltersRange)
     },
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);
@@ -251,8 +241,9 @@ export default {
       this.setRangeFromInputFilters()
       this.showMenu = input
     },
-    openPopout() {
-      console.log("open popout")
+    showDetails() {
+      this.$store.state.showYearRange = true
+      this.closeMenu()
     },
     setRangeFromInputFilters() {
       console.log("setting range from input filters")

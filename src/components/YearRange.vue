@@ -9,11 +9,14 @@
     <v-card-actions v-if="big" class="graph-toolbar">
       <v-btn
           icon
-          @click="$emit('close')"
+          @click="$store.state.showYearRange = false"
       >
         <v-icon>mdi-chevron-up</v-icon>
       </v-btn>
-      Annual works
+      <div class="font-weight-bold green--text">
+
+      {{ displayYearRange }}
+      </div>
 
       <v-spacer></v-spacer>
       <v-menu
@@ -21,35 +24,27 @@
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"
-              text
-              class="low-key-button pl-0"
+              icon
           >
-            {{ rangeSelected }}yrs
-            <v-icon>mdi-menu-down</v-icon>
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list dense>
-          <v-subheader>Show years:</v-subheader>
+          <v-subheader>Show range:</v-subheader>
           <v-list-item
               v-for="option in rangeOptions"
               :key="option"
               @click="rangeSelected = option"
           >
+            <v-list-item-icon>
+              <v-icon v-if="option === rangeSelected">mdi-check</v-icon>
+            </v-list-item-icon>
             <v-list-item-title>
               Last {{ option }} years
             </v-list-item-title>
           </v-list-item>
         </v-list>
       </v-menu>
-
-      <v-btn
-          :disabled="!yearFilterIsSet"
-          icon
-          color="green"
-          @click="clear"
-      >
-        <v-icon left>mdi-close</v-icon>
-      </v-btn>
 
     </v-card-actions>
 
@@ -162,6 +157,7 @@ import {
   createSimpleFilter,
   filtersAsUrlStr,
   filtersFromUrlStr,
+    displayYearRange,
 } from "../filterConfigs";
 import {api} from "../api";
 
@@ -238,6 +234,9 @@ export default {
     },
     csvUrl() {
       return this.makeApiUrl(true)
+    },
+    displayYearRange(){
+      return displayYearRange(this.yearInputFilter)
     }
   },
   methods: {

@@ -118,6 +118,10 @@ const stateDefaults = function () {
         zoomIdsStack: [],
         zoomDataResponses: [],
 
+         // other
+        showYearRange: false,
+
+
     }
     return ret
 }
