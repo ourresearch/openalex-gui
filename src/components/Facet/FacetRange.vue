@@ -1,12 +1,11 @@
 <template>
 
   <v-menu
-      offset-y
       :close-on-content-click="false"
       :value="showMenu"
       dark
       @input="checkInput"
-
+      content-class="facet-range-menu"
   >
     <template v-slot:activator="{on}">
       <v-list-item
@@ -20,26 +19,23 @@
             {{ config.displayName }}
           </v-col>
           <v-col cols="7" class="pa-0 d-flex  justify-end">
-            <div
-                v-if="!isDirty"
-                class=" text--lighten-2"
-            >
-              Anytime
-            </div>
-            <div v-else class="green--text text--lighten-2 font-weight-bold">
+            <div class="green--text text--lighten-2 font-weight-bold">
               {{ rangeValuesToShow }}
             </div>
+            <v-btn style="margin: 2px 0 0 5px;" color="green lighten-2" :disabled="isDisabled"
+                   v-if="rangeValuesToShow" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
+              <v-icon small>mdi-close</v-icon>
+            </v-btn>
 
           </v-col>
         </v-row>
 
-
       </v-list-item>
     </template>
-    <v-card width="600" class="">
+    <v-card class="">
       <v-card-title>
         <div>
-          {{ rangeValuesToShow }}
+          {{ config.displayName }}
         </div>
         <v-spacer></v-spacer>
         <v-btn icon @click="closeMenu">
@@ -47,36 +43,67 @@
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <div class="d-flex range-bar-graph">
-          <div
-              v-for="filter in filters"
-              :key="filter.kv"
-              class="range-bar-container"
+        <div class="d-flex">
+          <v-text-field
+              flat
+              hide-details
+              solo
+              class="mt-0"
+              background-color="#484848"
+              dense
+              v-model="range[0]"
+              placeholder="Start"
+              outlined
+              @keypress.enter="applyRange"
           >
-            <div
-                class="range-bar-bar lighten-2 caption"
-                :class="{green: isWithinRange(filter.value) && isDirty}"
-                :style="{height: filter.scaledCount * 100 + '%'}"
+            <template v-slot:default>frustrating</template>
+          </v-text-field>
+          <v-icon class="mx-2">mdi-minus</v-icon>
+          <v-text-field
+              flat
+              hide-details
+              solo
+              class="mt-0"
+              background-color="#484848"
+              dense
+              v-model="range[1]"
+              placeholder="End"
+              outlined
+              @keypress.enter="applyRange"
+          />
 
-            >
-<!--              {{filter.value.substring(2, 4)}}-->
-            </div>
-          </div>
 
         </div>
-        <v-range-slider
-            @change="saveRange"
-            v-model="range"
-            max="101"
-            hide-details
-            :color="isDirty ? 'green' : ''"
-        >
-        </v-range-slider>
-
+        <div class="mt-4 mb-4">
+          <v-btn
+              v-for="preset in presets"
+              :key="preset.displayName"
+              @click="setRange(preset.range)"
+              small
+              outlined
+              rounded
+              class="mr-2 low-key-button"
+              :color="(preset.range.join() === range.join()) ? 'green lighten-2' : ''"
+          >
+            {{ preset.displayName }}
+          </v-btn>
+        </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn :disabled="!myResultsFilter" small text @click="clear">
+        <v-btn
+            color="green lighten-2"
+            @click="applyRange"
+            :disabled="range.join() == inputFiltersRange.join()"
+        >
+          Apply
+        </v-btn>
+        <v-btn :disabled="!myResultsFilter" text @click="clear">
           clear
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn text @click="openPopout">
+          <v-icon left>mdi-open-in-app</v-icon>
+          Popout
         </v-btn>
       </v-card-actions>
 
@@ -108,62 +135,8 @@ import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
 
-const yearRangeSpan = 25
 
-// single points
-const rangePointToYear = function (rangePoint, yearSpan = yearRangeSpan) {
-  if (rangePoint === 0) return null
-  if (rangePoint === 101) return Infinity
-  const rangePointScaled = 1 - (rangePoint / 100)
-
-  const currentYear = new Date().getFullYear()
-  const year = currentYear - Math.ceil(rangePointScaled * yearSpan)
-  // const yearExp = Math.round(currentYear - (Math.pow(10, 2 - rangePoint / 50) - 1))
-
-  return year
-}
-
-const yearToRangePoint = function (year, index, rangeSpan = yearRangeSpan) {
-  if (year === null) {
-    return (index === 0) ? 0 : 101
-  }
-  const currentYear = new Date().getFullYear()
-  const yearScaled = 1 - ((currentYear - year) / rangeSpan)
-  return (yearScaled * 100) + 1
-}
-
-
-// display
-const rangePointsToYearDisplayValue = function (rangePoints) {
-  const rangeYears = rangePoints.map(p => rangePointToYear(p))
-  if (rangeYears[0] === null && rangeYears[1] === Infinity) return "Anytime"
-  else if (rangeYears[0] === null) return "Through " + rangeYears[1]
-  else if (rangeYears[1] === Infinity) return "Since " + rangeYears[0]
-  else return rangeYears[0] + " - " + rangeYears[1]
-}
-
-// to and from filter values
-const rangePointsToYearFilterValue = function (rangePoints) {
-  const rangeYears = rangePoints.map(p => rangePointToYear(p))
-
-  // you can't handle my infinite nature
-  if (rangeYears[1] === Infinity) rangeYears[1] = null
-
-  if (rangeYears.every(y => y === null)) return
-  return rangeYears.join("-")
-}
-const yearFilterValueToRangePoints = function (yearFilterValue) {
-  const rangePoints = yearFilterValue.split("-")
-      .map(y => {
-        return (y === '') ? null : y
-      })
-      .map((year, index) => {
-        return yearToRangePoint(year, index)
-      })
-  return rangePoints
-
-}
-
+const currentYear = new Date().getFullYear()
 export default {
   name: "Facet",
   components: {},
@@ -173,11 +146,23 @@ export default {
   data() {
     return {
       loading: false,
-      range: [0, 101],
-      isBooted: false,
       showMenu: false,
       perPage: 200,
-      filters: []
+      range: ["", ""],
+      presets: [
+        {
+          displayName: "This year",
+          range: [currentYear, ""]
+        },
+        {
+          displayName: "Last 3yrs",
+          range: [currentYear - 2, ""]
+        },
+        {
+          displayName: "Last 5yrs",
+          range: [currentYear - 4, ""]
+        },
+      ]
     }
   },
   computed: {
@@ -187,16 +172,14 @@ export default {
       "entityType",
       "facetZoom",
       "textSearch",
+      "inputFilters",
     ]),
 
-    rangeValuesToShow() {
-      return rangePointsToYearDisplayValue(this.range)
-    },
     isDisabled() {
       return !!this.facetZoom // && this.facetZoom !== this.facetKey
     },
     isDirty() {
-      return this.range.join() !== [0, 101].join()
+      // return this.range.join() !== [0, 101].join()
     },
     config() {
       return getFacetConfig(this.facetKey)
@@ -205,6 +188,21 @@ export default {
       return this.resultsFilters.find(f => {
         return f.key === this.facetKey
       })
+    },
+    myInputFilters() {
+      return this.inputFilters.filter(f => {
+        return f.key === this.facetKey
+      })
+    },
+    inputFiltersRange() {
+      if (!this.myInputFilters.length) return ["", ""]
+      return this.myInputFilters[0].value.split("-")
+    },
+    rangeValuesToShow() {
+      if (this.inputFiltersRange[0] === "" && this.inputFiltersRange[1] === "") return null
+      else if (this.inputFiltersRange[0] === "") return "Through " + this.inputFiltersRange[1]
+      else if (this.inputFiltersRange[1] === "") return "Since " + this.inputFiltersRange[0]
+      else return this.inputFiltersRange.join("-")
     },
     apiUrl() {
       const url = new URL(`https://api.openalex.org`);
@@ -219,6 +217,9 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
+    rangeIsEmpty() {
+      return !this.range[0] && !this.range[1]
+    }
   },
   methods: {
     ...mapMutations([
@@ -230,63 +231,57 @@ export default {
       "removeInputFilters",
       "removeInputFiltersByKey",
     ]),
-    async saveRange(changeInfo) {
-      console.log("range change event fired:", changeInfo)
-      const newFilter = createSimpleFilter(
-          this.facetKey,
-          rangePointsToYearFilterValue(this.range)
-      )
-      if (newFilter.value === null) {
-        await this.removeInputFiltersByKey(this.facetKey)
-      } else {
-        await this.replaceInputFilter(newFilter)
-      }
-    },
     async clear() {
-      await this.removeInputFiltersByKey(this.facetKey)
-      this.range = [0, 101]
+      this.range = ["", ""]
+      // await this.removeInputFiltersByKey(this.facetKey)
+      // this.closeMenu()
     },
     closeMenu() {
       this.showMenu = false
     },
     checkInput(input) {
+      this.setRangeFromInputFilters()
       this.showMenu = input
     },
-    isWithinRange(value){
-      const yearRange = this.range.map(x => rangePointToYear(x))
-      return value >= yearRange[0] && value <= yearRange[1]
+    openPopout() {
+      console.log("open popout")
     },
-    async fetchFilters() {
-      const maxValue = new Date().getFullYear()
+    setRangeFromInputFilters() {
+      console.log("setting range from input filters")
+      this.range[0] = this.inputFiltersRange[0]
+      this.range[1] = this.inputFiltersRange[1]
+    },
+    setRange(range) {
+      this.range = range
+      // this.applyRange()
+    },
+    applyRange() {
+      console.log("applyRange", this.range)
+      const maxValue = String(currentYear)
+      if (this.range[0] > maxValue) this.range[0] = maxValue
+      if (this.range[1] > maxValue) this.range[1] = maxValue
 
-      const resp = await api.getUrl(this.apiUrl)
-      const filters = resp.group_by
-          .filter(g => g.key <= maxValue)
-          .map(apiData => {
-            return createDisplayFilter(
-                this.config.key,
-                apiData.key,
-                false,
-                apiData.key_display_name,
-                apiData.count,
-            )
-          })
+      if (Number(this.range[0]) < 0) this.range[0] = "0"
+      if (Number(this.range[1]) < 0) this.range[1] = "0"
 
 
-      filters.sort((a, b) => {
-        return b.value - a.value
-      })
-      if (filters.length >= yearRangeSpan) {
-        filters.length = yearRangeSpan + 1
+      // general validation
+      if (this.range[1] && Number(this.range[0]) > Number(this.range[1])) {
+        this.range[0] = this.range[1]
       }
-      const maxCount = Math.max(...filters.map(f => f.count))
-      const scaledFilters = filters.map(f => {
-        return {
-          ...f,
-          scaledCount: f.count / maxCount,
-        }
-      })
-      this.filters = scaledFilters
+
+
+      console.log("applyRange", this.range)
+      if (this.rangeIsEmpty) {
+        this.removeInputFiltersByKey(this.facetKey)
+      } else {
+        const filter = createSimpleFilter(
+            this.facetKey,
+            this.range.join("-")
+        )
+        this.replaceInputFilter(filter)
+      }
+      this.closeMenu()
     },
   },
 
@@ -298,24 +293,27 @@ export default {
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        this.fetchFilters()
       }
     },
     "myResultsFilter.value": {
       immediate: true,
       handler(newVal) {
         console.log("myResultsFilter.value changed", newVal)
-        if (!newVal || this.isBooted) return
-        const range = yearFilterValueToRangePoints(this.myResultsFilter.value)
-        this.range = range
-        this.isBooted = true
 
       }
     }
   }
 }
 </script>
-<style scoped lang="scss">
+<style lang="scss">
+
+.facet-range-menu {
+  input {
+    color: #7CC07F !important;
+    font-weight: bold;
+  }
+}
+
 
 .range-bar-graph {
   height: 50px;

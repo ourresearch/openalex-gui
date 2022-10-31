@@ -91,49 +91,12 @@
         </template>
       </div>
 
-      <div class="py-1 px-2" v-if="myFacetConfig.valuesToShow === 'range'">
-        <div class="d-flex">
-          <v-text-field
-              flat
-              hide-details
-              solo
-              full-width
-              class="mt-0"
-              clearable
-              background-color="#484848"
-              dense
-              v-model="range[0]"
-              placeholder="Start"
-          />
-          <v-icon>mdi-minus</v-icon>
-          <v-text-field
-              flat
-              hide-details
-              solo
-              full-width
-              class="mt-0"
-              clearable
-              background-color="#484848"
-              dense
-              v-model="range[1]"
-              placeholder="End"
-          />
 
-
-        </div>
-        <div>
-          range  {{ range}}
-        </div>
-        <div>
-          range from url {{ inputFiltersRange}}
-        </div>
-      </div>
 
 
       <v-list
           color="transparent"
           dark
-          v-if="myFacetConfig.valuesToShow !== 'range'"
       >
         <facet-option
             class=""
@@ -152,14 +115,7 @@
     </v-card-text>
     <v-divider></v-divider>
     <v-card-actions style="height: 50px;" class="elevation-3">
-      <v-btn
-        v-if="true"
-        color="green lighten-2"
-        @click="applyRange"
-        :disabled="range.join() == inputFiltersRange.join()"
-      >
-        Apply
-      </v-btn>
+
 
       <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetZoom)">
         clear
@@ -287,11 +243,6 @@ export default {
     isRange(){
       return (this.myFacetConfig.valuesToShow !== "range")
     },
-    inputFiltersRange() {
-      if (this.isRange) return [null, null]
-      if (!this.myInputFilters.length) return [null, null]
-      return this.myInputFilters[0].value.split("-")
-    },
     cardTextStyle() {
       // height: calc(100vh - (75px + 50px + 50px + 6px)); overflow-y:scroll;
 
@@ -349,14 +300,7 @@ export default {
       "replaceInputFilter",
     ]),
 
-    applyRange(){
-      console.log("apply range", this.range)
-      const filter = createSimpleFilter(
-          this.facetZoom,
-          this.range.join("-")
-      )
-      this.replaceInputFilter(filter)
-    },
+
     clickOutside() {
       this.setFacetZoom(null)
     },
@@ -417,9 +361,6 @@ export default {
   created() {
   },
   mounted() {
-    // this.range = this.inputFiltersRange
-    this.range[0] = this.inputFiltersRange[0]
-    this.range[1] = this.inputFiltersRange[1]
   },
   watch: {
     search(newVal, oldVal) {
