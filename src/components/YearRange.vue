@@ -7,6 +7,12 @@
       :class="{big}"
   >
     <v-card-actions v-if="big" class="graph-toolbar">
+      <v-btn
+          icon
+          @click="$emit('close')"
+      >
+        <v-icon>mdi-chevron-up</v-icon>
+      </v-btn>
       Annual works
 
       <v-spacer></v-spacer>
@@ -36,6 +42,15 @@
         </v-list>
       </v-menu>
 
+      <v-btn
+          :disabled="!yearFilterIsSet"
+          icon
+          color="green"
+          @click="clear"
+      >
+        <v-icon left>mdi-close</v-icon>
+      </v-btn>
+
     </v-card-actions>
 
 
@@ -46,57 +61,50 @@
       <template
           v-for="filter in filters"
       >
-        <v-tooltip :key="filter.kv" bottom :disabled="!big">
-          <template v-slot:activator="{ on, attrs }">
-            <div
-                class="range-bar-container"
-                v-bind="attrs"
-                v-on="on"
-                @click.exact="clickYear(filter.value)"
-                @click.shift="shiftClickYear(filter.value)"
-            >
-              <div
-                v-ripple
-                  class="range-bar-bar lighten-2 caption"
-                  :class="{green: isWithinRange(filter.value)}"
-                  :style="{height: filter.scaledCount * 100 + '%'}"
-              >
-              </div>
-            </div>
-          </template>
-          <span>
-            <span class="font-weight-bold">
-            {{ filter.value }}:
-            </span>
-            {{ filter.count | toPrecision }}
-          </span>
-        </v-tooltip>
+        <div
+            class="range-bar-container"
+            @click.exact="clickYear(filter.value)"
+            @click.shift="shiftClickYear(filter.value)"
+            @mouseenter="mouseEnterYear(filter)"
+            @mouseleave="mouseLeaveYear(filter)"
+            :key="filter.kv"
+        >
+          <div
+              v-ripple
+              class="range-bar-bar lighten-2 caption"
+              :class="{green: isWithinRange(filter.value)}"
+              :style="{height: filter.scaledCount * 100 + '%'}"
+          >
+          </div>
+        </div>
 
       </template>
 
 
     </div>
     <v-card-actions v-if="big">
-      <v-btn
-          :disabled="!yearFilterIsSet"
-          text
-          color="green"
-          @click="clear"
-          outlined
-          small
-      >
-        <v-icon left>mdi-close</v-icon>
-        Clear
-      </v-btn>
-      <v-btn
-          text
-          small
-          @click="$emit('close')"
-      >
-        <v-icon>mdi-chevron-up</v-icon>
-        Hide
-      </v-btn>
+      <div class="body-2 grey--text d-flex">
+        <v-icon left small>mdi-information-outline</v-icon>
+        <template v-if="numYearsSelected === 0">
+          Click bar to select year
+        </template>
+        <template v-else-if="numYearsSelected === 1">
+          Shift-click to select year range
+        </template>
+        <template v-else>
+          Click within range to clear selection
+        </template>
+      </div>
+
       <v-spacer></v-spacer>
+      <div v-if="hoverYearFilter" class="body-2 mr-2">
+        <span class="font-weight-bold">
+          {{ hoverYearFilter.value }}:
+        </span>
+        <span class="">
+          {{ hoverYearFilter.count | toPrecision }}
+        </span>
+      </div>
       <v-menu>
         <template v-slot:activator="{on}">
           <v-btn small icon v-on="on" class="mr-1">
@@ -180,11 +188,12 @@ export default {
       isBooted: false,
       perPage: 200,
       filters: [],
-      rangeSelected: 25,
+      rangeSelected: 50,
       rangeOptions: [
-        25, 100
+        50, 100
       ],
-      rangeSelection: [null, null]
+      rangeSelection: [null, null],
+      hoverYearFilter: null,
     }
   },
   computed: {
@@ -205,6 +214,10 @@ export default {
       const yearStart = (yearRange[0] === "") ? null : yearRange[0]
       const yearEnd = (yearRange[1] === "") ? Infinity : yearRange[1]
       return [yearStart, yearEnd]
+    },
+    numYearsSelected() {
+      if (!this.yearFilterIsSet) return 0
+      return (this.yearInputFilter[1] - this.yearInputFilter[0]) + 1
     },
     yearFilterIsSet() {
       return this.inputFilters.find(f => {
@@ -243,6 +256,12 @@ export default {
 
     clickYear(year) {
       if (!this.big) return
+      if (this.yearFilterIsSet && this.isWithinRange(year)) {
+        console.log("remove things")
+        this.removeInputFiltersByKey("publication_year")
+        return
+      }
+
       const filter = createSimpleFilter(
           "publication_year",
           [year, year].join("-")
@@ -252,6 +271,9 @@ export default {
     shiftClickYear(year) {
       if (!this.big) return
       if (this.isWithinRange(year)) return
+      if (!this.yearFilterIsSet) {
+        return this.clickYear(year)
+      }
       let range = [...this.yearInputFilter]
       if (year < range[0]) {
         range[0] = year
@@ -265,6 +287,12 @@ export default {
           range.join("-")
       )
       this.replaceInputFilter(filter)
+    },
+    mouseEnterYear(filter) {
+      this.hoverYearFilter = filter
+    },
+    mouseLeaveYear(filter) {
+      this.hoverYearFilter = null
     },
     makeApiUrl(formatCsv) {
       const url = new URL(`https://api.openalex.org`);
@@ -379,6 +407,7 @@ export default {
   flex: 1;
   display: flex;
   align-items: flex-end;
+  cursor: pointer;
 }
 
 .range-bar-bar {
