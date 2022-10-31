@@ -114,7 +114,7 @@
             <year-range
                 class="my-3 mb-6"
                 v-if="showYearRange"
-                @click="showYearRange=false"
+                @close="showYearRange=false"
                 :big="true"
             ></year-range>
           </div>

@@ -35,9 +35,6 @@
           </v-list-item>
         </v-list>
       </v-menu>
-<!--      <v-btn icon @click="$emit('close')">-->
-<!--        <v-icon>mdi-close</v-icon>-->
-<!--      </v-btn>-->
 
     </v-card-actions>
 
@@ -55,8 +52,11 @@
                 class="range-bar-container"
                 v-bind="attrs"
                 v-on="on"
+                @click.exact="clickYear(filter.value)"
+                @click.shift="shiftClickYear(filter.value)"
             >
               <div
+                v-ripple
                   class="range-bar-bar lighten-2 caption"
                   :class="{green: isWithinRange(filter.value)}"
                   :style="{height: filter.scaledCount * 100 + '%'}"
@@ -78,25 +78,28 @@
     </div>
     <v-card-actions v-if="big">
       <v-btn
-        text
-        @click="$emit('close')"
-      >
-        <v-icon>mdi-chevron-up</v-icon>
-        Hide
-      </v-btn>
-      <v-btn
-        :disabled="!yearFilterIsSet"
-        text
-        color="green"
-        @click="clear"
+          :disabled="!yearFilterIsSet"
+          text
+          color="green"
+          @click="clear"
+          outlined
+          small
       >
         <v-icon left>mdi-close</v-icon>
         Clear
       </v-btn>
+      <v-btn
+          text
+          small
+          @click="$emit('close')"
+      >
+        <v-icon>mdi-chevron-up</v-icon>
+        Hide
+      </v-btn>
       <v-spacer></v-spacer>
       <v-menu>
         <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="mr-1">
+          <v-btn small icon v-on="on" class="mr-1">
             <v-icon>mdi-tray-arrow-down</v-icon>
           </v-btn>
         </template>
@@ -180,7 +183,8 @@ export default {
       rangeSelected: 25,
       rangeOptions: [
         25, 100
-      ]
+      ],
+      rangeSelection: [null, null]
     }
   },
   computed: {
@@ -237,6 +241,31 @@ export default {
       return this.yearFilterIsSet && value >= this.yearInputFilter[0] && value <= this.yearInputFilter[1]
     },
 
+    clickYear(year) {
+      if (!this.big) return
+      const filter = createSimpleFilter(
+          "publication_year",
+          [year, year].join("-")
+      )
+      this.replaceInputFilter(filter)
+    },
+    shiftClickYear(year) {
+      if (!this.big) return
+      if (this.isWithinRange(year)) return
+      let range = [...this.yearInputFilter]
+      if (year < range[0]) {
+        range[0] = year
+      } else if (year > range[1]) {
+        range[1] = year
+      } else {
+        // it is within the range, do nothing
+      }
+      const filter = createSimpleFilter(
+          "publication_year",
+          range.join("-")
+      )
+      this.replaceInputFilter(filter)
+    },
     makeApiUrl(formatCsv) {
       const url = new URL(`https://api.openalex.org`);
       url.pathname = "works"
@@ -252,7 +281,7 @@ export default {
       return url.toString()
 
     },
-    clear(){
+    clear() {
       this.removeInputFiltersByKey("publication_year")
     },
     async fetchFilters() {
