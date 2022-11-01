@@ -7,12 +7,11 @@
       :class="{big}"
   >
     <v-card-actions v-if="big" class="graph-toolbar">
-      </v-btn>
       <facet-range
-        facet-key="publication_year"
-        button-text="Published"
-        show-placeholder-value-when-unset
-        narrow
+          facet-key="publication_year"
+          button-text="Published"
+          show-placeholder-value-when-unset
+          narrow
       ></facet-range>
 
       <v-spacer></v-spacer>
@@ -155,7 +154,7 @@ import {
   createSimpleFilter,
   filtersAsUrlStr,
   filtersFromUrlStr,
-    displayYearRange,
+  displayYearRange,
 } from "../filterConfigs";
 import {api} from "../api";
 
@@ -171,7 +170,7 @@ export default {
     big: Boolean,
     height: {
       type: String,
-      default: "100px"
+      default: "150px"
     },
     width: {
       type: String,
@@ -235,7 +234,7 @@ export default {
     csvUrl() {
       return this.makeApiUrl(true)
     },
-    displayYearRange(){
+    displayYearRange() {
       return displayYearRange(this.yearInputFilter)
     }
   },
@@ -315,22 +314,43 @@ export default {
       const maxValue = new Date().getFullYear()
 
       const resp = await api.getUrl(this.apiUrl)
-      const filters = resp.group_by
-          .filter(g => g.key <= maxValue)
-          .map(apiData => {
-            return createDisplayFilter(
-                this.config.key,
-                apiData.key,
-                false,
-                apiData.key_display_name,
-                apiData.count,
-            )
-          })
+      // const filters = resp.group_by
+      //     .filter(g => g.key <= maxValue)
+      //     .map(apiData => {
+      //       return createDisplayFilter(
+      //           this.config.key,
+      //           apiData.key, // this is the year
+      //           false,
+      //           apiData.key_display_name,
+      //           apiData.count,
+      //       )
+      //     })
 
+      const yearCountFromApiResp = function (resp, year) {
+        const ret = resp.group_by.find(group => {
+          console.log("group.key", group.key, year)
+          return group.key == year
+        })?.count ?? 0
+        console.log("ret", ret)
+        return ret
+      }
 
-      filters.sort((a, b) => {
-        return b.value - a.value
+      const filters = _.range(1800, new Date().getFullYear() + 1).map(year => {
+        return createDisplayFilter(
+            "publication_year",
+            year,
+            false,
+            year,
+            yearCountFromApiResp(resp, year),
+        )
       })
+
+      filters.reverse()
+
+      // filters.sort((a, b) => {
+      //   return b.value - a.value
+      // })
+
       if (filters.length >= this.rangeSelected) {
         filters.length = this.rangeSelected + 1
       }

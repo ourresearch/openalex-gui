@@ -99,7 +99,8 @@
                 <year-range
                     height="20px"
                     width="20px"
-                    v-if="!showYearRange"
+                    v-if="entityType==='works'"
+                    disabled
                 >
                 </year-range>
                 <v-icon v-else>mdi-chevron-up</v-icon>
