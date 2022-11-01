@@ -121,12 +121,12 @@ const displayYearRange = function (range) {
     const currentYear = new Date().getFullYear()
     if (range[0] === "" && range[1] === "") return null
     else if (range[0] === range[1]) return range[0]
-    else if (range[0] === "") return "Through " + range[1]
+    else if (range[0] === "") return "through " + range[1]
     else if (range[1] === "") {
         if (range[0] == currentYear) {
             return currentYear
         } else {
-            return "Since " + range[0]
+            return "since " + range[0]
         }
     } else return range.join("-")
 }

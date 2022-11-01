@@ -165,6 +165,8 @@
                   v-if="facet.isRange"
                   :key="'facet' + facet.key"
                   :facet-key="facet.key"
+                  dark
+                  show-details-button
               >
               </facet-range>
               <facet

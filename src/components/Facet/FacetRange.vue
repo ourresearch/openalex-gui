@@ -3,32 +3,33 @@
   <v-menu
       :close-on-content-click="false"
       :value="showMenu"
-      dark
+      :dark="dark"
       @input="checkInput"
       content-class="facet-range-menu"
   >
     <template v-slot:activator="{on}">
       <v-list-item
           v-on="on"
-          style="font-size: 16px; min-height: 34px;"
+          style="font-size: 16px; min-height: 34px; flex:unset"
           :color="myResultsFilter ? 'green lighten-2' : ''"
+          :class="{'pl-0': narrow}"
       >
-        <v-row class="pa-0 ma-0">
-          <v-col cols="5" class="pa-0">
-            <v-icon :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
-            {{ config.displayName }}
-          </v-col>
-          <v-col cols="7" class="pa-0 d-flex  justify-end">
+          <div class="pa-0 pr-2">
+            <v-icon :disabled="isDisabled" :class="narrow ? 'mr-2' : 'mr-4'" style="opacity: .7;">{{ config.icon }}</v-icon>
+            {{ myButtonText }}
+          </div>
+        <v-spacer v-if="!narrow"></v-spacer>
+          <div class="pa-0 d-flex  justify-end">
             <div class="green--text text--lighten-2 font-weight-bold">
               {{ rangeValuesToShow }}
             </div>
+            <div v-if="!rangeValuesToShow && showPlaceholderValueWhenUnset">anytime</div>
             <v-btn style="margin: 2px 0 0 5px;" color="green lighten-2" :disabled="isDisabled"
                    v-if="rangeValuesToShow" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
               <v-icon small>mdi-close</v-icon>
             </v-btn>
 
-          </v-col>
-        </v-row>
+          </div>
 
       </v-list-item>
     </template>
@@ -49,7 +50,7 @@
               hide-details
               solo
               class="mt-0"
-              background-color="#484848"
+              :background-color="textFieldBackgroundColor"
               dense
               v-model="range[0]"
               placeholder="Start"
@@ -64,7 +65,7 @@
               hide-details
               solo
               class="mt-0"
-              background-color="#484848"
+              :background-color="textFieldBackgroundColor"
               dense
               v-model="range[1]"
               placeholder="End"
@@ -101,7 +102,7 @@
           clear
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn text @click="showDetails" :disabled="$store.state.showYearRange">
+        <v-btn v-if="showDetailsButton" text @click="showDetails" :disabled="$store.state.showYearRange">
           <v-icon left>mdi-open-in-app</v-icon>
           Details
         </v-btn>
@@ -143,6 +144,11 @@ export default {
   components: {},
   props: {
     facetKey: String,
+    dark: Boolean,
+    showDetailsButton: Boolean,
+    buttonText: String,
+    showPlaceholderValueWhenUnset: Boolean,
+    narrow: Boolean,
   },
   data() {
     return {
@@ -182,6 +188,9 @@ export default {
     isDirty() {
       // return this.range.join() !== [0, 101].join()
     },
+    myButtonText(){
+      return (this.buttonText) ? this.buttonText : this.config.displayName
+    },
     config() {
       return getFacetConfig(this.facetKey)
     },
@@ -198,6 +207,9 @@ export default {
     inputFiltersRange() {
       if (!this.myInputFilters.length) return ["", ""]
       return this.myInputFilters[0].value.split("-")
+    },
+    textFieldBackgroundColor(){
+      return (this.dark) ? "#484848" : ""
     },
     rangeValuesToShow() {
       return displayYearRange(this.inputFiltersRange)

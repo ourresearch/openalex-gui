@@ -7,16 +7,13 @@
       :class="{big}"
   >
     <v-card-actions v-if="big" class="graph-toolbar">
-      <v-btn
-          icon
-          @click="$store.state.showYearRange = false"
-      >
-        <v-icon>mdi-chevron-up</v-icon>
       </v-btn>
-      <div class="font-weight-bold green--text">
-
-      {{ displayYearRange }}
-      </div>
+      <facet-range
+        facet-key="publication_year"
+        button-text="Published"
+        show-placeholder-value-when-unset
+        narrow
+      ></facet-range>
 
       <v-spacer></v-spacer>
       <v-menu
@@ -152,6 +149,7 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
+import FacetRange from "./Facet/FacetRange";
 import {
   createDisplayFilter,
   createSimpleFilter,
@@ -164,7 +162,9 @@ import {api} from "../api";
 
 export default {
   name: "Facet",
-  components: {},
+  components: {
+    FacetRange,
+  },
   props: {
     // startYear: Number,
     // endYear: Number,
