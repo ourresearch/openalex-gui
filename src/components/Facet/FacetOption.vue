@@ -1,10 +1,11 @@
 <template>
   <v-list-item
-      class=" my-0 filter-list-item align-start pt-0 pr-1"
+      class=" my-0 filter-list-item align-start py-1 pr-1"
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
       style="margin-top: -5px !important;"
+      @click="click($event)"
   >
     <!--    removed-->
     <!--    @[eventHandlerName].stop="click($event)"-->
@@ -30,14 +31,14 @@
         <!--          :value="filter.countPercent"-->
         <!--          :color="isSelected ? 'green lighten-1' : ''"-->
         <!--      />-->
-        <v-simple-checkbox
-            :value="isSelected"
-            read-only
-            @click="click($event)"
-            class="ma-0 pa-0"
-            v-ripple
-            :on-icon="isNegated ? 'mdi-close-box' : 'mdi-checkbox-marked'"
-        />
+<!--        <v-simple-checkbox-->
+<!--            :value="isSelected"-->
+<!--            read-only-->
+<!--            @click="click($event)"-->
+<!--            class="ma-0 pa-0"-->
+<!--            v-ripple-->
+<!--            :on-icon="isNegated ? 'mdi-close-box' : 'mdi-checkbox-marked'"-->
+<!--        />-->
       </template>
     </div>
     <div>

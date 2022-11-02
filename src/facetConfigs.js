@@ -1,14 +1,3 @@
-const allEntityTypes = function (hideThese) {
-    const types = ["works", "authors", "institutions", "venues", "concepts"]
-    if (hideThese) {
-        if (!Array.isArray(hideThese)) hideThese = [hideThese]
-        return types.filter(e => {
-            return hideThese.indexOf(e) > -1
-        })
-    } else {
-        return types
-    }
-}
 
 const makeFacetQueryFilters = function (facetFilters) {
 
@@ -50,24 +39,12 @@ const facetCategories = {
 
 const facetConfigs = function () {
     const ret = [
-        // shared
-        {
-            key: "x_concepts.id",
-            entityTypes: ["authors", "institutions", "venues"],
-            displayName: "Concepts",
-            isEntity: true,
-            entityId: "concepts",
-            autocompleteEndpoint: "autocomplete/concepts",
-            valuesToShow: "mostCommon",
-            category: "other",
-            icon: "mdi-lightbulb-outline",
-        },
 
 
         // works:  wavic
         {
             key: "concepts.id",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Concept",
             isEntity: true,
             entityId: "concepts",
@@ -79,7 +56,7 @@ const facetConfigs = function () {
         },
         {
             key: "host_venue.id",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Host",
             isEntity: true,
             entityId: "venues",
@@ -91,7 +68,7 @@ const facetConfigs = function () {
         },
         {
             key: "authorships.institutions.id",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Institution",
             isEntity: true,
             entityId: "institutions",
@@ -103,7 +80,7 @@ const facetConfigs = function () {
         },
         {
             key: "authorships.author.id",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Author",
             isEntity: true,
             entityId: "authors",
@@ -118,7 +95,7 @@ const facetConfigs = function () {
         // works: host venue
         {
             key: "host_venue.publisher",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
@@ -127,7 +104,7 @@ const facetConfigs = function () {
         },
         {
             key: "host_venue.type",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
@@ -139,7 +116,7 @@ const facetConfigs = function () {
         // works: open access
         {
             key: "open_access.is_oa",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Access",
             valuesToShow: "boolean",
             isBoolean: true,
@@ -150,7 +127,7 @@ const facetConfigs = function () {
         },
         {
             key: "host_venue.license",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "License",
             valuesToShow: "mostCommon",
             category: "access",
@@ -158,7 +135,7 @@ const facetConfigs = function () {
         },
         {
             key: "open_access.oa_status",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Color",
             valuesToShow: "mostCommon",
             category: "access",
@@ -166,7 +143,7 @@ const facetConfigs = function () {
         },
         // {
         //     key: "has_abstract",
-        //     entityTypes: ["works"],
+        //     entityType: "works",
         //     displayName: "Has abstract",
         //     valuesToShow: "mostCommon",
         // },
@@ -175,7 +152,7 @@ const facetConfigs = function () {
         // works: institutions:
         {
             key: "authorships.institutions.country_code",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
@@ -187,7 +164,7 @@ const facetConfigs = function () {
         },
         {
             key: "authorships.institutions.continent",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Continent",
             valuesToShow: "mostCommon",
             category: "location",
@@ -197,7 +174,7 @@ const facetConfigs = function () {
         },
         {
             key: "authorships.institutions.is_global_south",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Global South",
             category: "location",
             isBoolean: true,
@@ -207,7 +184,7 @@ const facetConfigs = function () {
         },
         {
             key: "authorships.institutions.type",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
@@ -218,7 +195,7 @@ const facetConfigs = function () {
 
         {
             key: "type",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Type",
             valuesToShow: "mostCommon",
             category: "popular",
@@ -226,7 +203,7 @@ const facetConfigs = function () {
         },
         {
             key: "publication_year",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Year published",
             valuesToShow: "range",
             sortByValue: true,
@@ -238,7 +215,7 @@ const facetConfigs = function () {
         },
         {
             key: "has_doi",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "DOI",
             valuesToShow: "boolean",
             isBoolean: true,
@@ -248,7 +225,7 @@ const facetConfigs = function () {
         },
         {
             key: "has_pmid",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "PMID",
             valuesToShow: "boolean",
             isBoolean: true,
@@ -258,7 +235,7 @@ const facetConfigs = function () {
         },
         {
             key: "has_pmcid",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "PMC ID",
             valuesToShow: "boolean",
             isBoolean: true,
@@ -266,25 +243,9 @@ const facetConfigs = function () {
             icon: "mdi-label-outline",
             booleanValues: ["No PMC ID", "Has PMC ID"],
         },
-        // {
-        //     key: "has_ngrams",
-        //     entityTypes: ["works"],
-        //     displayName: "N-grams",
-        //     valuesToShow: "boolean",
-        //     isBoolean: true,
-        //     booleanValues: ["Has no n-grams", "Has n-grams"],
-        // },
-        // {
-        //     key: "is_paratext",
-        //     entityTypes: ["works"],
-        //     displayName: "Paratext",
-        //     valuesToShow: "boolean",
-        //     isBoolean: true,
-        //     booleanValues: ["Isn't paratext", "Is paratext"],
-        // },
         {
             key: "is_retracted",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Retracted",
             valuesToShow: "boolean",
             isBoolean: true,
@@ -296,7 +257,7 @@ const facetConfigs = function () {
         // works: links to other works
         // {
         //     key: "cited_by_count",
-        //     entityTypes: ["works"],
+        //     entityType: "works",
         //     displayName: "Citation count",
         //     valuesToShow: "mostCommon",
         //     sortByValue: true,
@@ -306,7 +267,7 @@ const facetConfigs = function () {
         // },
         {
             key: "cited_by",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Cited by",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
@@ -317,7 +278,7 @@ const facetConfigs = function () {
         },
         {
             key: "cites",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Cites",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
@@ -328,7 +289,7 @@ const facetConfigs = function () {
         },
         {
             key: "related_to",
-            entityTypes: ["works"],
+            entityType: "works",
             displayName: "Related to",
             isEntity: true,
             autocompleteEndpoint: "autocomplete/works",
@@ -349,7 +310,7 @@ const facetConfigs = function () {
         // authors
         {
             key: "last_known_institution.id",
-            entityTypes: ["authors"],
+            entityType: "authors",
             displayName: "Institution",
             isEntity: true,
             entityId: "institutions",
@@ -360,7 +321,7 @@ const facetConfigs = function () {
         },
         {
             key: "last_known_institution.country_code",
-            entityTypes: ["authors"],
+            entityType: "authors",
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
@@ -370,7 +331,7 @@ const facetConfigs = function () {
         },
         {
             key: "last_known_institution.type",
-            entityTypes: ["authors"],
+            entityType: "authors",
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
@@ -379,13 +340,24 @@ const facetConfigs = function () {
         },
         {
             key: "has_orcid",
-            entityTypes: ["authors"],
+            entityType: "authors",
             displayName: "ORCID",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["No ORCID", "Has ORCID"],
             category: "ids",
             icon: "mdi-label-outline",
+        },
+        {
+            key: "x_concepts.id",
+            entityType: "authors",
+            displayName: "Concepts",
+            isEntity: true,
+            entityId: "concepts",
+            autocompleteEndpoint: "autocomplete/concepts",
+            valuesToShow: "mostCommon",
+            category: "other",
+            icon: "mdi-lightbulb-outline",
         },
 
 
@@ -399,7 +371,7 @@ const facetConfigs = function () {
         // venues
         {
             key: "publisher",
-            entityTypes: ["venues"],
+            entityType: "venues",
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/venues/publisher",
             valuesToShow: "mostCommon",
@@ -408,7 +380,7 @@ const facetConfigs = function () {
         },
         {
             key: "is_oa",
-            entityTypes: ["venues"],
+            entityType: "venues",
             displayName: "Open Access",
             valuesToShow: "mostCommon",
             category: "access",
@@ -416,11 +388,22 @@ const facetConfigs = function () {
         },
         {
             key: "is_in_doaj",
-            entityTypes: ["venues"],
+            entityType: "venues",
             displayName: "In DOAJ",
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
+        },
+        {
+            key: "x_concepts.id",
+            entityType: "venues",
+            displayName: "Concepts",
+            isEntity: true,
+            entityId: "concepts",
+            autocompleteEndpoint: "autocomplete/concepts",
+            valuesToShow: "mostCommon",
+            category: "other",
+            icon: "mdi-lightbulb-outline",
         },
 
 
@@ -432,7 +415,7 @@ const facetConfigs = function () {
         // institutions
         {
             key: "country_code",
-            entityTypes: ["institutions"],
+            entityType: "institutions",
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
@@ -442,12 +425,23 @@ const facetConfigs = function () {
         },
         {
             key: "type",
-            entityTypes: ["institutions"],
+            entityType: "institutions",
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
             category: "popular",
             icon: "mdi-town-hall"
+        },
+        {
+            key: "x_concepts.id",
+            entityType: "institutions",
+            displayName: "Concepts",
+            isEntity: true,
+            entityId: "concepts",
+            autocompleteEndpoint: "autocomplete/concepts",
+            valuesToShow: "mostCommon",
+            category: "other",
+            icon: "mdi-lightbulb-outline",
         },
 
 
@@ -459,7 +453,7 @@ const facetConfigs = function () {
         // concepts
         {
             key: "level",
-            entityTypes: ["concepts"],
+            entityType: "concepts",
             displayName: "Level",
             maxPotentialFiltersToShow: 10,
             valuesToShow: "mostCommon",

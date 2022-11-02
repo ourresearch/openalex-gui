@@ -4,7 +4,7 @@
     <v-container fill-height>
       <v-row style="margin-top: -20vh;">
         <v-col>
-          <v-row justify="center" class="mb-8">
+          <v-row justify="center" class="">
             <span class="logo-link">
               <img
                   src="@/assets/openalex-logo-icon-black-and-white.png"
@@ -18,6 +18,11 @@
                 OpenAlex
               </span>
             </span>
+          </v-row>
+          <v-row justify="center" class="text-h5 mb-10 mt-5 font-weight-light">
+            <div>
+            The free and open scholarly search engine
+            </div>
           </v-row>
 
           <v-row class="mx-1" justify="center">

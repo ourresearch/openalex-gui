@@ -497,10 +497,7 @@ export default new Vuex.Store({
         searchFacetConfigs(state) {
             return facetConfigs()
                 .filter(config => {
-                    return config.entityTypes.indexOf(state.entityType) > -1
-                })
-                .filter(config => {
-                    return config.key.indexOf(".search") === -1
+                    return config.entityType === state.entityType  //s.indexOf(state.entityType) > -1
                 })
         },
         inputFiltersAsString(state, getters) {
