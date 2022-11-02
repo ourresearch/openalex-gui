@@ -328,10 +328,8 @@ export default {
 
       const yearCountFromApiResp = function (resp, year) {
         const ret = resp.group_by.find(group => {
-          console.log("group.key", group.key, year)
           return group.key == year
         })?.count ?? 0
-        console.log("ret", ret)
         return ret
       }
 
