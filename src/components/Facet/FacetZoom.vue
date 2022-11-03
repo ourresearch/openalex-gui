@@ -17,7 +17,7 @@
         <v-btn  icon @click.stop="setFacetZoom(null)" class="">
           <v-icon>mdi-chevron-left</v-icon>
         </v-btn>
-        <v-icon left>{{ myFacetConfig.icon }}</v-icon>
+<!--        <v-icon left>{{ myFacetConfig.icon }}</v-icon>-->
         <div id="facet-zoom-header">
           {{ myFacetConfig.displayName }}
         </div>
@@ -100,9 +100,6 @@
             :key="f.asStr"
             colorful
         />
-      </v-list>
-
-      <v-list>
         <facet-option
             class=""
             v-for="f in unselectedFilters"

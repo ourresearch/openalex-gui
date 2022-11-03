@@ -1,10 +1,9 @@
 <template>
   <v-list-item
-      class=" my-0 facet-option align-start py-1 pr-1"
+      class=" my-0 facet-option align-start pr-1"
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
-      style="margin-top: -5px !important;"
       @click="click($event)"
       light
   >
@@ -22,6 +21,7 @@
       </v-progress-circular>
       <v-icon v-else-if="isNegated">mdi-minus-circle-outline</v-icon>
       <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>
+      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>
 
       <template >
 
