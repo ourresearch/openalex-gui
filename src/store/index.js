@@ -404,6 +404,12 @@ export default new Vuex.Store({
         resultsFilters(state, getters) {
             return state.resultsFilters
         },
+        resultsFiltersAny(state, getters) {
+            return state.resultsFilters.filter(f => !f.isNegated)
+        },
+        resultsFiltersNegated(state, getters) {
+            return state.resultsFilters.filter(f => f.isNegated)
+        },
         entityType(state) { return state.entityType},
         entityConfig(state) { return entityConfigs[state.entityType]},
         showFiltersDrawer(state) { return state.showFiltersDrawer},

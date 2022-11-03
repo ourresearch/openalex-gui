@@ -12,12 +12,15 @@
 
 
   >
+    <div @click="setFacetZoom(null)">
     <v-card
         flat
         color="#eee"
         :width="facetsWidth"
         tile
         style="z-index: 5;"
+        :ripple="false"
+        :disabled="facetZoom"
     >
       <div
           class="d-flex align-center pl-1 pr-3"
@@ -41,64 +44,45 @@
               </span>
 
         <v-spacer/>
+        <v-chip
+            v-if="resultsFiltersNegated.length"
+            color="red"
+            dark
+            small
+            :disabled="facetZoom"
+        >
+          {{ resultsFiltersNegated.length }}
+        </v-chip>
+        <v-chip
+            v-if="resultsFiltersAny.length"
+            color="green"
+            dark
+            small
+            class="ml-1"
+            :disabled="facetZoom"
+        >
+          {{ resultsFiltersAny.length }}
+        </v-chip>
 
 
         <v-menu
-            dark
             offset-y
         >
           <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
-              <v-chip
-                  v-if="resultsFilters.length"
-                  color="green"
-                  dark
-                  style="cursor: pointer;"
-              >
-                {{ resultsFilters.map.length }}
-              </v-chip>
+            <v-btn class="ml-1" icon v-on="on" :disabled="facetZoom">
+              <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
           <v-list dense>
-            <v-subheader>View filters</v-subheader>
-            <v-divider></v-divider>
-            <v-list-item @click="showAdvancedFilters = !showAdvancedFilters">
-              <v-list-item-icon>
-                <v-icon v-if="showAdvancedFilters">mdi-checkbox-marked</v-icon>
-                <v-icon style="opacity: 1 !important;" v-else>mdi-checkbox-blank-outline</v-icon>
-
-                <!--                  <v-icon v-if="showAdvancedFilters">mdi-filter-outline</v-icon>-->
-                <!--                  <v-icon v-else>mdi-filter-multiple-outline</v-icon>-->
-
-
-              </v-list-item-icon>
-              <v-list-item-title>
-                <!--                  {{ showAdvancedFilters ? "Hide" : "Show" }} advanced filters-->
-                Show advanced filters
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="expandAll = !expandAll">
-              <v-list-item-icon>
-                <v-icon v-if="expandAll">mdi-arrow-collapse-vertical</v-icon>
-                <v-icon v-else>mdi-arrow-expand-vertical</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                {{ expandAll ? "Collapse" : "Expand" }} all
-              </v-list-item-title>
-            </v-list-item>
-
-
-            <v-subheader>Filter actions</v-subheader>
-            <v-divider></v-divider>
             <v-list-item
                 @click="clearAllFilters"
                 :disabled="!resultsFilters.length"
             >
               <v-list-item-icon>
-                <v-icon>mdi-delete</v-icon>
+                <v-icon>mdi-close</v-icon>
               </v-list-item-icon>
               <v-list-item-title>
-                Clear all
+                Clear all filters
               </v-list-item-title>
             </v-list-item>
           </v-list>
@@ -131,19 +115,21 @@
 
 
       </div>
-            <v-divider></v-divider>
+      <v-divider></v-divider>
 
 
       <!--      List of facets  -->
       <!--      *****************************************************************-->
-      <v-card-text class="pa-0">
+      <v-card-text
+          class="pa-0"
+          style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
+      >
 
 
         <v-list
             class="pt-0"
             expand
             nav
-            style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
         >
           <template
               v-for="facetCategory in facetsByCategory"
@@ -169,8 +155,8 @@
                   v-else
                   :key="'facet' + facet.key"
                   :facet-key="facet.key"
-                  :has-focus="filterTypeKey === facet.key"
-                  :disabled="filterTypeKey && filterTypeKey !== facet.key"
+                  :has-focus="facetZoom === facet.key"
+                  :disabled="facetZoom && facetZoom !== facet.key"
                   :value="expandAll"
               />
 
@@ -183,6 +169,7 @@
 
 
     </v-card>
+    </div>
 
     <div
         v-if="!!facetZoom && !$vuetify.breakpoint.mobile"
@@ -266,6 +253,8 @@ export default {
       "entityZoomData",
       "searchFacetConfigs",
       "resultsFilters",
+      "resultsFiltersAny",
+      "resultsFiltersNegated",
       "zoomId",
       "textSearch",
       "entityType",

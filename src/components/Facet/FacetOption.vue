@@ -17,11 +17,13 @@
           size="20"
           width="5"
           indeterminate
-          style="margin: 4px 12px 0 0;"
+          style="margin: 4px 4px 0 0;"
       >
       </v-progress-circular>
+      <v-icon v-else-if="isNegated">mdi-minus-circle-outline</v-icon>
+      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>
 
-      <template v-else>
+      <template >
 
         <!--        <v-progress-circular-->
         <!--            v-if="hideCheckbox"-->
@@ -40,6 +42,7 @@
 <!--            v-ripple-->
 <!--            :on-icon="isNegated ? 'mdi-close-box' : 'mdi-checkbox-marked'"-->
 <!--        />-->
+
       </template>
     </div>
     <div>

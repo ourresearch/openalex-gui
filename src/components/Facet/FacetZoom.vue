@@ -11,18 +11,18 @@
     <div class="">
 
       <div
-          class="text-h6 ml-4 mr-2 d-flex align-center"
+          class="text-h6 ml-2 mr-2 d-flex align-center"
           style="height: 75px;"
       >
+        <v-btn  icon @click.stop="setFacetZoom(null)" class="">
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
         <v-icon left>{{ myFacetConfig.icon }}</v-icon>
         <div id="facet-zoom-header">
           {{ myFacetConfig.displayName }}
         </div>
         <v-spacer></v-spacer>
 
-        <v-btn icon @click.stop="setFacetZoom(null)" class="ml-1 mr-2">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
       </div>
       <div
           class="d-flex align-start"

@@ -6,25 +6,48 @@
       style="min-height: 34px;"
   >
     <v-row class="pa-0 ma-0">
-      <v-col cols="5" class="pa-0">
+      <v-col class="pa-0 grow">
         <v-icon :disabled="isDisabled" class="mr-4">{{ config.icon }}</v-icon>
         {{ config.displayName }}
       </v-col>
-      <v-col cols="7" class="pa-0 d-flex  justify-end">
-        <div class="green--text ">
+      <v-col class="shrink pa-0" style="white-space: nowrap">
+        <v-chip
+            v-if="myResultsFiltersNegated.length"
+            color="red"
+            dark
+            x-small
+            class="ml-1"
+            :disabled="isDisabled"
+        >
+          {{ myResultsFiltersNegated.length }}
+        </v-chip>
+        <v-chip
+            v-if="myResultsFiltersAny.length"
+            color="green"
+            dark
+            x-small
+            class="ml-1"
+            :disabled="isDisabled"
+
+        >
+          {{ myResultsFiltersAny.length }}
+        </v-chip>
+        <v-btn  style="margin: 2px 5px 0 5px;" :color="valuesColor" :disabled="isDisabled"
+               v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
+          <v-icon small>mdi-close</v-icon>
+        </v-btn>
+      </v-col>
+
+      <v-col v-if="0" class="pa-0 d-flex shrink justify-end">
+        <div :class="valuesColor + '--text'">
           <span class="font-weight-bold" v-if="myResultsFilters.length === 1">
-            <span v-if="myResultsFilters[0].isNegated" class="red--text">
               {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
-            </span>
-            <span v-else class="green--text">
-              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
-            </span>
           </span>
           <span v-if="myResultsFilters.length > 1">
             {{ myResultsFilters.length }} filters
           </span>
         </div>
-        <v-btn style="margin: 2px 0 0 5px;" color="green" :disabled="isDisabled"
+        <v-btn style="margin: 2px 0 0 5px;" :color="valuesColor" :disabled="isDisabled"
                v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
           <v-icon small>mdi-close</v-icon>
         </v-btn>
@@ -56,6 +79,8 @@ export default {
     ...mapGetters([
       "searchApiUrl",
       "resultsFilters",
+      "resultsFiltersAny",
+      "resultsFiltersNegated",
       "entityType",
       "facetZoom",
       "textSearch",
@@ -71,6 +96,21 @@ export default {
         return f.key === this.facetKey
       })
     },
+    myResultsFiltersAny() {
+      return this.resultsFiltersAny.filter(f => {
+        return f.key === this.facetKey
+      })
+    },
+    myResultsFiltersNegated() {
+      return this.resultsFiltersNegated.filter(f => {
+        return f.key === this.facetKey
+      })
+    },
+    valuesColor(){
+      if (this.myResultsFilters.every(f => f.isNegated)) return "red"
+      else if (this.myResultsFilters.every(f => !f.isNegated)) return "green"
+      else return ""
+    }
   },
   methods: {
     ...mapMutations([
