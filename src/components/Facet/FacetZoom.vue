@@ -4,15 +4,16 @@
       v-if="facetZoom "
       :loading="isLoading"
       light
-      color="#eee"
-
       outlined
+      color="#fff"
+      style="border: 1px solid rgba(0, 0, 0, .15);"
+      :style="`margin: ${height.margins[0]}px ${WidthMargins[0]}px ${height.margins[1]}px ${WidthMargins[1]}px;`"
   >
-    <div class="">
+    <div class="card-header" :class="{'elevation-3': isScrolled}">
 
       <div
           class="text-h6 ml-2 mr-2 d-flex align-center"
-          style="height: 75px;"
+          :style="`height: ${height.toolbar}px;`"
       >
         <v-btn  icon @click.stop="setFacetZoom(null)" class="">
           <v-icon>mdi-chevron-left</v-icon>
@@ -26,7 +27,7 @@
       </div>
       <div
           class="d-flex align-start"
-          style="height: 50px;"
+          :style="`height: ${height.searchbar}px;`"
           v-if="showSearch"
       >
         <!--        <div class="">-->
@@ -54,9 +55,13 @@
       <div>
       </div>
     </div>
-    <v-divider></v-divider>
 
-    <v-card-text id="facet-zoom-card-text" class="pa-0" :style="cardTextStyle">
+    <v-card-text
+        id="facet-zoom-card-text"
+        class="pa-0"
+        :style="cardTextStyle"
+        v-scroll.self="onCardTextScroll"
+    >
 
       <!--       <v-text-field-->
       <!--            flat-->
@@ -114,8 +119,7 @@
       </v-btn>
 
     </v-card-text>
-    <v-divider></v-divider>
-    <v-card-actions style="height: 50px;" class="elevation-3">
+    <v-card-actions :style="`height: ${height.footer}px;`" class="" :class="{'elevation-3': isScrolled}">
 
 
       <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetZoom)">
@@ -208,6 +212,16 @@ export default {
       groupByQueryResultsCount: null,
       tab: 0,
       isExpanded: false,
+      isScrolled: false,
+
+
+      height: {
+        toolbar: 60,
+        searchbar: 50,
+        margins: [10, 10],
+        footer: 50,
+      },
+      WidthMargins: [10, 0]
 
     }
   },
@@ -245,14 +259,12 @@ export default {
       return (this.myFacetConfig.valuesToShow !== "range")
     },
     cardTextStyle() {
-      // height: calc(100vh - (75px + 50px + 50px + 6px)); overflow-y:scroll;
-
-      const toolbarsBaseHeight = 75 + 50
-      const toolbarsTotalHeight = toolbarsBaseHeight + (this.showSearch ? 50 : 0)
-      const height = toolbarsTotalHeight + 6
+      const marginsHeight = this.height.margins[0] + this.height.margins[1]
+      const toolbarsTotalHeight = this.height.toolbar + (this.showSearch ? this.height.searchbar : 0) + this.height.footer
+      const height = toolbarsTotalHeight + marginsHeight + 2 // dividers
 
       return {
-        'overflow-y': 'scroll',
+        'overflow-y': "scroll",
         height: `calc(100vh - ${height}px)`
       }
     },
@@ -374,6 +386,9 @@ export default {
         500,
         {leading: true, trailing: true}
     ),
+    onCardTextScroll(e) {
+      this.isScrolled = e.target.scrollTop > 0
+    }
 
   },
   created() {

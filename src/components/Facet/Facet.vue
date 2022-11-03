@@ -7,7 +7,7 @@
   >
     <v-row class="pa-0 ma-0">
       <v-col class="pa-0 grow">
-        <v-icon :disabled="isDisabled" class="mr-4">{{ config.icon }}</v-icon>
+        <v-icon :disabled="isDisabled" class="mr-2">{{ config.icon }}</v-icon>
         {{ config.displayName }}
       </v-col>
       <v-col class="shrink pa-0" style="white-space: nowrap">

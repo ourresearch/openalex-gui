@@ -28,13 +28,13 @@
                   :style="logoStyle"
               >
                 OpenAlex
-                <span class="grey--text">
-                  {{ selectedEntityTypeConfig.displayName }}
-                </span>
+<!--                <span class="grey&#45;&#45;text">-->
+<!--                  {{ selectedEntityTypeConfig.displayName }}-->
+<!--                </span>-->
               </span>
             </router-link>
             <!--          {{ logoColorRotation }}-->
-            <!--            <search-box class="ml-6 d-md-block d-none mt-1 flex-fill"/>-->
+                        <search-box v-if="!$vuetify.breakpoint.mobile" class="ml-5 d-md-block d-none mt-1 flex-fill" />
           </div>
 
           <div class="">
@@ -84,7 +84,7 @@
               class="search-box-row d-flex align-center"
               style="margin-left: -10px"
           >
-            <search-box class="px-3 flex-fill"/>
+            <search-box v-if="$vuetify.breakpoint.mobile" class="px-3 flex-fill"/>
           </div>
 
           <div

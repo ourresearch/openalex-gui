@@ -7,12 +7,13 @@
         outlined
         solo
         hide-details
+        :rounded="!$vuetify.breakpoint.mobile"
 
         clearable
         append-icon="mdi-magnify"
         id="main-search"
         style="width: 100%;"
-        :dense="!isAloneOnPage"
+        :dense="!isAloneOnPage || !prominent"
         :color="color"
 
         v-model="select"
@@ -129,7 +130,8 @@ export default {
     color: {
       type: String,
       default: "primary",
-    }
+    },
+    prominent: Boolean,
   },
   components: {
     EntityIcon,

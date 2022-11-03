@@ -178,7 +178,7 @@ const facetConfigs = function (entityType) {
             displayName: "Global South",
             category: "location",
             isBoolean: true,
-            booleanValues: ["Not Global South", "Global South"],
+            booleanValues: ["Global North", "Global South"],
             icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
         },

@@ -3,172 +3,184 @@
 
   <v-navigation-drawer
       app
-      :width="width"
+      :width="totalWidth"
       v-model="isOpen"
       class="pa-0 ma-0"
       id="facets-drawer"
       disable-route-watcher
       color="transparent"
+      floating
 
 
   >
     <div @click="setFacetZoom(null)">
-    <v-card
-        flat
-        color="#eee"
-        :width="facetsWidth"
-        tile
-        style="z-index: 5;"
-        :ripple="false"
-        :disabled="facetZoom"
-    >
-      <div
-          class="d-flex align-center pl-1 pr-3"
-          style="height: 75px; "
+      <v-card
+          color="#fff"
+          :width="facetsWidth"
+          :style="`margin: ${height.margins[0]}px ${width.margins[0]}px ${height.margins[1]}px ${width.margins[1]}px;`"
+          style="border: 1px solid rgba(0, 0, 0, .15);"
+          outlined
+          :ripple="false"
+          :disabled="!!facetZoom"
       >
-
-        <!--        <v-btn-->
-        <!--            icon-->
-        <!--            large-->
-        <!--            class="ml-1"-->
-        <!--            :disabled="!!filterTypeKey"-->
-        <!--        >-->
-
-        <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
-        <!--        </v-btn>-->
-        <span
-            class="text-h6  pl-4"
-
+        <div
+            class="card-header"
+            :class="{'elevation-3': isScrolled}"
         >
+
+          <div
+              class="d-flex align-center pl-1 pr-3"
+              :style="`height: ${height.toolbar}px;`"
+          >
+
+            <!--        <v-btn-->
+            <!--            icon-->
+            <!--            large-->
+            <!--            class="ml-1"-->
+            <!--            :disabled="!!filterTypeKey"-->
+            <!--        >-->
+
+            <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
+            <!--        </v-btn>-->
+            <span
+                class="text-h6  pl-4"
+
+            >
+              <v-icon>mdi-filter-outline</v-icon>
           Filters
               </span>
 
-        <v-spacer/>
-        <v-chip
-            v-if="resultsFiltersNegated.length"
-            color="red"
-            dark
-            small
-            :disabled="facetZoom"
-        >
-          {{ resultsFiltersNegated.length }}
-        </v-chip>
-        <v-chip
-            v-if="resultsFiltersAny.length"
-            color="green"
-            dark
-            small
-            class="ml-1"
-            :disabled="facetZoom"
-        >
-          {{ resultsFiltersAny.length }}
-        </v-chip>
-
-
-        <v-menu
-            offset-y
-        >
-          <template v-slot:activator="{on}">
-            <v-btn class="ml-1" icon v-on="on" :disabled="facetZoom">
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-list-item
-                @click="clearAllFilters"
-                :disabled="!resultsFilters.length"
+            <v-spacer/>
+            <v-chip
+                v-if="resultsFiltersNegated.length"
+                color="red"
+                dark
+                small
+                :disabled="!!facetZoom"
             >
-              <v-list-item-icon>
-                <v-icon>mdi-close</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                Clear all filters
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-
-      </div>
-      <div
-          class="d-flex align-start"
-          style="height: 50px;"
-
-      >
-        <!--        <div class="">-->
-        <!--          {{ myFacetConfig.displayName }}-->
-        <!--        </div>-->
-
-        <v-text-field
-            flat
-            hide-details
-            solo
-            full-width
-            class="mt-0 mx-2"
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            autofocus
-            dense
-
-            v-model="facetSearch"
-            placeholder="search filters"
-        />
+              {{ resultsFiltersNegated.length }}
+            </v-chip>
+            <v-chip
+                v-if="resultsFiltersAny.length"
+                color="green"
+                dark
+                small
+                class="ml-1"
+                :disabled="!!facetZoom"
+            >
+              {{ resultsFiltersAny.length }}
+            </v-chip>
 
 
-      </div>
-      <v-divider></v-divider>
+            <v-btn icon class="ml-2" @click="showSearch = !showSearch">
+              <v-icon>mdi-magnify</v-icon>
+            </v-btn>
+            <v-menu
+                offset-y
+            >
+              <template v-slot:activator="{on}">
+                <v-btn class="ml-0" icon v-on="on" :disabled="!!facetZoom">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
+              <v-list dense>
+                <v-list-item
+                    @click="clearAllFilters"
+                    :disabled="!resultsFilters.length"
+                >
+                  <v-list-item-icon>
+                    <v-icon>mdi-close</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    Clear all filters
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
+          </div>
+          <div
+              class="d-flex align-start"
+              :style="`height: ${height.searchbar}px;`"
+              v-if="showSearch"
 
-      <!--      List of facets  -->
-      <!--      *****************************************************************-->
-      <v-card-text
-          class="pa-0"
-          style="height: calc(100vh - (75px + 50px)); overflow-y: scroll; padding-bottom: 100px;"
-      >
-
-
-        <v-list
-            class="pt-0"
-            expand
-            nav
-        >
-          <template
-              v-for="facetCategory in facetsByCategory"
           >
-            <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
-              <v-subheader
-                  :key="'subheader' + facetCategory.name"
-                  class="pl-2 align-end text-capitalize"
-              >
-                {{ facetCategory.name }}
-              </v-subheader>
-              <v-divider :key="'divider' + facetCategory.name"></v-divider>
+            <!--        <div class="">-->
+            <!--          {{ myFacetConfig.displayName }}-->
+            <!--        </div>-->
+
+            <v-text-field
+                flat
+                hide-details
+                solo
+                full-width
+                class="mt-0 mx-2"
+                clearable
+                prepend-inner-icon="mdi-magnify"
+                autofocus
+                dense
+
+                v-model="facetSearch"
+                placeholder="search filters"
+            />
+
+
+          </div>
+        </div>
+
+
+        <!--      List of facets  -->
+        <!--      *****************************************************************-->
+        <v-card-text
+            class="pa-0"
+            :style="cardTextStyle"
+            v-scroll.self="onCardTextScroll"
+        >
+
+
+          <v-list
+              class="pt-0"
+              expand
+              nav
+          >
+            <template
+                v-for="facetCategory in facetsByCategory"
+            >
+              <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
+                <v-subheader
+                    :key="'subheader' + facetCategory.name"
+                    class="align-end text-capitalize pl-11"
+                >
+                  {{ facetCategory.name }}
+                </v-subheader>
+                <!--                <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
+              </template>
+              <template v-for="facet in facetCategory.facets">
+                <facet-range
+                    v-if="facet.isRange"
+                    :key="'facet' + facet.key"
+                    :facet-key="facet.key"
+                    show-details-button
+                >
+                </facet-range>
+                <facet
+                    v-else
+                    :key="'facet' + facet.key"
+                    :facet-key="facet.key"
+                    :has-focus="facetZoom === facet.key"
+                    :disabled="facetZoom && facetZoom !== facet.key"
+                    :value="expandAll"
+                />
+
+              </template>
             </template>
-            <template v-for="facet in facetCategory.facets">
-              <facet-range
-                  v-if="facet.isRange"
-                  :key="'facet' + facet.key"
-                  :facet-key="facet.key"
-                  show-details-button
-              >
-              </facet-range>
-              <facet
-                  v-else
-                  :key="'facet' + facet.key"
-                  :facet-key="facet.key"
-                  :has-focus="facetZoom === facet.key"
-                  :disabled="facetZoom && facetZoom !== facet.key"
-                  :value="expandAll"
-              />
-
-            </template>
-          </template>
 
 
-        </v-list>
-      </v-card-text>
+          </v-list>
+        </v-card-text>
 
 
-    </v-card>
+      </v-card>
     </div>
 
     <div
@@ -230,6 +242,15 @@ export default {
       groupByQueryResultsCount: null,
       expandAll: false,
       showAdvancedFilters: true,
+      isScrolled: false,
+      height: {
+        toolbar: 60,
+        searchbar: 50,
+        margins: [10, 10]
+      },
+      width: {
+        margins: [10, 10]
+      },
 
 
       facetZoomWidth: 350,
@@ -277,8 +298,9 @@ export default {
     showFacetZoomPanel() {
       return !this.$vuetify.breakpoint.mobile && this.filterTypeKey
     },
-    width() {
-      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth + 2 : 0)
+    totalWidth() {
+      const widthMargins = this.width.margins[0] + this.width.margins[1]
+      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth + 2 : 0) + widthMargins
       // if (this.showFacetZoomPanel) {
       //   return this.filterTypesListWidth + this.facetsWidth
       // }
@@ -296,6 +318,16 @@ export default {
           .filter(categoryObj => {
             return categoryObj.facets.length > 0
           })
+    },
+    cardTextStyle() {
+      const marginsHeight = this.height.margins[0] + this.height.margins[1]
+      const toolbarsTotalHeight = this.height.toolbar + (this.showSearch ? this.height.searchbar : 0)
+      const height = toolbarsTotalHeight + marginsHeight
+
+      return {
+        'overflow-y': this.facetZoom ? 'hidden' : 'scroll',
+        height: `calc(100vh - ${height}px)`
+      }
     },
 
     facetSearchResults() {
@@ -371,6 +403,9 @@ export default {
       this.snackbar('Filters cleared')
       return false
     },
+    onCardTextScroll(e) {
+      this.isScrolled = e.target.scrollTop > 0
+    }
 
 
   },
