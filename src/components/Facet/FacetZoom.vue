@@ -5,7 +5,7 @@
       :loading="isLoading"
       light
       color="#eee"
-      v-click-outside="clickOutside"
+
       outlined
   >
     <div class="">

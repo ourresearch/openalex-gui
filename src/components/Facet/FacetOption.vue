@@ -64,9 +64,7 @@
     </div>
     <v-spacer/>
     <div>
-      <v-menu
-          dark
-      >
+      <v-menu offset-y :close-on-content-click="true">
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"
@@ -85,20 +83,49 @@
               v-if="filter.isEntity"
           >
             <v-list-item-icon>
-              <v-icon>mdi-eye-outline</v-icon>
+              <v-icon>mdi-format-list-bulleted</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title >
+              View <span class="text-lowercase">{{ filter.displayName }}</span> details
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider v-if="filter.isEntity"></v-divider>
+          <v-list-item
+              @click.stop="click($event)"
+              v-if="!isSelected || isNegated"
+              :input-value="true"
+              color="green"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              View details
+              Apply filter
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              @click="negate"
+              @click.stop="negate"
+              :disabled="isNegated"
+              color="red"
+              :input-value="true"
+              v-if="!isNegated"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-minus</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Negate filter
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              @click="isSelected = false"
+              v-if="isSelected"
           >
             <v-list-item-icon>
               <v-icon>mdi-close</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Negate filter
+              Clear filter
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -120,6 +147,7 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {prettyTitle} from "../../util";
 import {createSimpleFilter} from "../../filterConfigs";
+import {facetConfigs} from "../../facetConfigs";
 
 export default {
   name: "FacetOption",
@@ -173,6 +201,9 @@ export default {
           this.isNegated
       )
     },
+    // facetConfig(){
+    //   return facetConfigs()
+    // },
     eventHandlerName() {
       return (this.hideCheckbox) ? "click" : null
     },
@@ -233,6 +264,7 @@ export default {
     async negate(){
       console.log("negatory good buddy")
       this.isNegated = true
+      this.isClickedAndWaiting = true
       const filter = createSimpleFilter(
           this.filter.key,
           this.filter.value,
