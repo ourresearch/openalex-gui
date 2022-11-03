@@ -3,8 +3,7 @@
   <v-card
       v-if="facetZoom "
       :loading="isLoading"
-      light
-      outlined
+      flat
       color="#fff"
       style="border: 1px solid rgba(0, 0, 0, .15);"
       :style="`margin: ${height.margins[0]}px ${WidthMargins[0]}px ${height.margins[1]}px ${WidthMargins[1]}px;`"
@@ -42,11 +41,16 @@
             class="mt-0 mx-2"
             clearable
             prepend-inner-icon="mdi-magnify"
+            :append-outer-icon="search ? 'mdi-arrow-right' : ''"
+            :placeholder="searchPlaceholder"
+            :disabled="isLoading"
             autofocus
             dense
 
             v-model="search"
-            :placeholder="searchPlaceholder"
+            @click:append-outer="fetchFilters"
+            @click:clear="clearSearch"
+            @keypress.enter="fetchFilters"
         />
 
 
@@ -62,22 +66,6 @@
         :style="cardTextStyle"
         v-scroll.self="onCardTextScroll"
     >
-
-      <!--       <v-text-field-->
-      <!--            flat-->
-      <!--            hide-details-->
-      <!--            solo-->
-      <!--            full-width-->
-      <!--            class="mt-0 "-->
-      <!--            clearable-->
-      <!--            prepend-inner-icon="mdi-magnify"-->
-      <!--            autofocus-->
-      <!--            background-color="#484848"-->
-      <!--            dense-->
-
-      <!--            v-model="search"-->
-      <!--            :placeholder="searchPlaceholder"-->
-      <!--        />-->
 
       <div
           class="pt-3 px-5 body-2"
@@ -351,6 +339,10 @@ export default {
       this.maxFiltersFromApiToShow = 200
       await this.fetchFilters()
     },
+    async clearSearch() {
+      this.search = ""
+      await this.fetchFilters()
+    },
     fetchFilters: _.debounce(
         async function () {
           if (!this.myFacetConfig) return
@@ -358,7 +350,7 @@ export default {
           //   this.filtersFromApi = []
           //   return
           // }
-          this.isLoading = "#fff"
+          this.isLoading = "primary"
 
           const resp = await api.getUrl(this.apiUrl)
           // if (!this.myFacetConfig) return
@@ -396,10 +388,10 @@ export default {
   mounted() {
   },
   watch: {
-    search(newVal, oldVal) {
-      console.log("search changed", newVal)
-      this.fetchFilters()
-    },
+    // search(newVal, oldVal) {
+    //   console.log("search changed", newVal)
+    //   this.fetchFilters()
+    // },
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
