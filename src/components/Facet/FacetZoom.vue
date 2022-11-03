@@ -3,9 +3,10 @@
   <v-card
       v-if="facetZoom "
       :loading="isLoading"
-      dark
-      color="#3b3b3b"
+      light
+      color="#eee"
       v-click-outside="clickOutside"
+      outlined
   >
     <div class="">
 
@@ -14,7 +15,7 @@
           style="height: 75px;"
       >
         <v-icon left>{{ myFacetConfig.icon }}</v-icon>
-        <div>
+        <div id="facet-zoom-header">
           {{ myFacetConfig.displayName }}
         </div>
         <v-spacer></v-spacer>
@@ -41,7 +42,6 @@
             clearable
             prepend-inner-icon="mdi-magnify"
             autofocus
-            background-color="#484848"
             dense
 
             v-model="search"
@@ -56,7 +56,7 @@
     </div>
     <v-divider></v-divider>
 
-    <v-card-text class="pa-0" :style="cardTextStyle">
+    <v-card-text id="facet-zoom-card-text" class="pa-0" :style="cardTextStyle">
 
       <!--       <v-text-field-->
       <!--            flat-->
@@ -77,12 +77,12 @@
       <div
           class="pt-3 px-5 body-2"
           style="opacity: .7;"
-          v-if="showSearch"
+          v-if="0 && showSearch"
       >
-        <template v-if="search && filtersToShow.length">
+        <template v-if="search && searchResultFilters.length">
           Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
         </template>
-        <template v-else-if="search && !filtersToShow.length">
+        <template v-else-if="search && !searchResultFilters.length">
           No {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results; try
           broadening your search.
         </template>
@@ -92,19 +92,23 @@
       </div>
 
 
-
-
-      <v-list
-          color="transparent"
-          dark
-      >
+      <v-list>
         <facet-option
             class=""
-            v-for="f in filtersToShow"
+            v-for="f in selectedFilters"
             :filter="f"
             :key="f.asStr"
             colorful
+        />
+      </v-list>
 
+      <v-list>
+        <facet-option
+            class=""
+            v-for="f in unselectedFilters"
+            :filter="f"
+            :key="f.asStr"
+            colorful
         />
       </v-list>
       <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">
@@ -180,7 +184,7 @@ import {api} from "../../api";
 import axios from "axios";
 import {url} from "../../url";
 import _ from "lodash"
-import {makeFilterList} from "../../filterConfigs";
+import {makeFilterList, sortedFilters} from "../../filterConfigs";
 
 
 export default {
@@ -240,7 +244,7 @@ export default {
     showSearch() {
       return this.myFacetConfig.valuesToShow === 'mostCommon'
     },
-    isRange(){
+    isRange() {
       return (this.myFacetConfig.valuesToShow !== "range")
     },
     cardTextStyle() {
@@ -281,9 +285,23 @@ export default {
     apiUrl() {
       return this.makeApiUrl(200)
     },
+    searchResultFilters(){
+      const ret = this.filtersFromApi
+          .filter(f => f.value !== "unknown")
+      return sortedFilters(ret, this.myFacetConfig.sortByValue)
+    },
 
-    filtersToShow() {
-      return makeFilterList(this.filtersFromApi, this.myResultsFilters, !this.search)
+    selectedFilters(){
+      return sortedFilters(this.myResultsFilters).slice(0,30)
+    },
+    unselectedFilters() {
+      const unselectedFilters = this.filtersFromApi
+          .filter(f => f.value !== "unknown")
+          .filter(f => {
+            const myResultsFilter = this.resultsFilters.find(rf => rf.kv === f.kv)
+            return !myResultsFilter
+          })
+      return sortedFilters(unselectedFilters, this.myFacetConfig.sortByValue).slice(0,30)
     },
   },
 
@@ -306,9 +324,12 @@ export default {
     },
     makeApiUrl(perPage, formatCsv) {
       if (!perPage) perPage = this.maxFiltersFromApiToShow
-      const url = new URL(`https://api.openalex.org`);
+      const url = new URL(`https://api.openalex.org`)
       url.pathname = `${this.entityType}`
-      url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters))
+
+      const filters = this.$store.state.inputFilters.filter(f => f.key !== this.myFacetConfig.key)
+      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
+
       url.searchParams.set("group_by", this.myFacetConfig.key)
       url.searchParams.set("per_page", String(perPage))
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
@@ -371,7 +392,7 @@ export default {
       immediate: true,
       handler(newVal, oldVal) {
         this.fetchFilters()
-        // this.search = ""
+        this.search = ""
       }
     },
     "facetZoom": {

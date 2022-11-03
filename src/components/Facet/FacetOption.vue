@@ -1,11 +1,12 @@
 <template>
   <v-list-item
-      class=" my-0 filter-list-item align-start py-1 pr-1"
+      class=" my-0 facet-option align-start py-1 pr-1"
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
       style="margin-top: -5px !important;"
       @click="click($event)"
+      light
   >
     <!--    removed-->
     <!--    @[eventHandlerName].stop="click($event)"-->
@@ -94,7 +95,7 @@
               @click="negate"
           >
             <v-list-item-icon>
-              <v-icon>mdi-close-box</v-icon>
+              <v-icon>mdi-close</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
               Negate filter
@@ -162,8 +163,8 @@ export default {
     },
     myColor() {
       if (!this.isSelected || !this.colorful) return ""
-      if (this.isNegated) return "deep-orange lighten-1"
-      return "green lighten-2"
+      if (this.isNegated) return "red"
+      return "green "
     },
     myFilter(){
       return createSimpleFilter(
@@ -184,6 +185,7 @@ export default {
         return this.filter.booleanValues[valueAsInt]
       }
 
+      if (!this.filter.displayValue) return ""
 
       let ret = this.filter.displayValue
           .replace("ieee", "IEEE")
@@ -226,6 +228,7 @@ export default {
     async click(e) {
       this.isClickedAndWaiting = true
       this.isSelected = !this.isSelected
+      await this.$vuetify.goTo(".facet-option:first-child", {container: "#facet-zoom-card-text"})
     },
     async negate(){
       console.log("negatory good buddy")
@@ -258,7 +261,7 @@ export default {
 <style scoped lang="scss">
 
 
-.filter-list-item {
+.facet-option {
   //min-height: 0 !important;
   //margin-bottom: 0 !important;
   //padding-top: 4px !important;

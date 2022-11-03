@@ -3,23 +3,28 @@
       @click.stop="(facetZoom) ? setFacetZoom(null) : setFacetZoom(facetKey)"
       :disabled="isDisabled"
       class="d-flex align-center pr-0"
-      style="font-size: 16px; min-height: 34px;"
+      style="min-height: 34px;"
   >
     <v-row class="pa-0 ma-0">
       <v-col cols="5" class="pa-0">
-        <v-icon :disabled="isDisabled" class="mr-4" style="opacity: .7;">{{ config.icon }}</v-icon>
+        <v-icon :disabled="isDisabled" class="mr-4">{{ config.icon }}</v-icon>
         {{ config.displayName }}
       </v-col>
       <v-col cols="7" class="pa-0 d-flex  justify-end">
-        <div class="green--text text--lighten-2">
+        <div class="green--text ">
           <span class="font-weight-bold" v-if="myResultsFilters.length === 1">
-            {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
+            <span v-if="myResultsFilters[0].isNegated" class="red--text">
+              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
+            </span>
+            <span v-else class="green--text">
+              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
+            </span>
           </span>
           <span v-if="myResultsFilters.length > 1">
             {{ myResultsFilters.length }} filters
           </span>
         </div>
-        <v-btn style="margin: 2px 0 0 5px;" color="green lighten-2" :disabled="isDisabled"
+        <v-btn style="margin: 2px 0 0 5px;" color="green" :disabled="isDisabled"
                v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
           <v-icon small>mdi-close</v-icon>
         </v-btn>

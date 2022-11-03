@@ -30,48 +30,112 @@ const addDisplayNamesToFilters = async function (filtersList) {
 }
 
 
+// const filtersFromUrlStr = function (str) {
+//     if (!str) return []
+//     if (str.indexOf(":") === -1) return []
+//
+//
+//     const filters = str.split(",").map(facetStr => {
+//         let [key, value] = facetStr.split(":")
+//         const isNegated = value[0] === "!"
+//         value = value.replace("!", "")
+//         return createSimpleFilter(key, value, isNegated)
+//     })
+//     return filters
+// }
 const filtersFromUrlStr = function (str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
 
-
-    const filters = str.split(",").map(facetStr => {
-        let [key, value] = facetStr.split(":")
-        const isNegated = value[0] === "!"
-        value = value.replace("!", "")
-        return createSimpleFilter(key, value, isNegated)
+    const facetStrings = str.split(",")
+    const filters = []
+    facetStrings.forEach(facetStr => {
+        const [key, valuesStr] = facetStr.split(":")
+        if (valuesStr[0] === "!") {
+            const value = valuesStr.replace("!", "")
+            filters.push(createSimpleFilter(key, value, true))
+        } else {
+            const values = valuesStr.split("|")
+            values.forEach(value => {
+                filters.push(createSimpleFilter(key, value, false))
+            })
+        }
     })
     return filters
 }
 
-const filtersAsUrlStr = function (filters) {
-    return filters
-        .filter(f => typeof f.value !== "undefined")
-        .map(f => f.asStr)
-        .join(",")
-}
 
-
-const removeFilterFromUrlStr = function (urlStr, filterToRemove) {
-    if (!urlStr) return
-    const filters = filtersFromUrlStr(urlStr)
-    const newFilters = filters.filter(f => {
-        return f.asStr !== filterToRemove.asStr
+// const filtersAsUrlStr = function (filters) {
+//     return filters
+//         .filter(f => typeof f.value !== "undefined")
+//         .map(f => f.asStr)
+//         .join(",")
+// }
+const filtersAsUrlStr = function (filters, entityType) {
+    const configs = facetConfigs(entityType)
+    const mergedFiltersByFacet = configs.map(c => {
+        const myFilters = filters.filter(f => f.key === c.key)
+        return mergeFacetFilters(myFilters)
     })
-    return filtersAsUrlStr(newFilters)
+    const ret = mergedFiltersByFacet.flat().join(",")
+    return ret
 }
 
-const makeResultsFiltersFromApi = function (apiFacets) {
-    console.log("makeResultsFiltersFromApi", apiFacets)
+const mergeFacetFilters = function (filters) {
+    if (!filters.length) return []
+    const positiveFilters = filters.filter(f => !f.isNegated)
+    const positiveFiltersToString = mergePositiveFacetFilters(positiveFilters)
+
+    const negatedFilters = filters.filter(f => f.isNegated)
+    const negativeFiltersToStrings = negatedFilters.map(f => {
+        return [f.key, "!" + f.value].join(":")
+    })
+
+    const ret = [positiveFiltersToString, ...negativeFiltersToStrings].filter(x => !!x)
+    // console.log("mergeFacetFilters done", filters[0].key, ret)
+    return ret
+}
+
+const mergePositiveFacetFilters = function (filters) {
+    if (!filters.length) return
+    const key = filters[0].key
+    return [
+        key,
+        filters.map(f => f.value).join("|")
+    ].join(":")
+}
+
+
+// const filtersFromFiltersApiResponse = function (apiFacets) {
+//     console.log("filtersFromFiltersApiResponse", apiFacets)
+//     let ret = []
+//     apiFacets
+//         .filter(f => f.key !== "search")
+//         .forEach(facet => {
+//             facet.values.forEach(valueObj => {
+//                 ret.push(createDisplayFilter(
+//                     facet.key,
+//                     valueObj.value,
+//                     facet.is_negated,
+//                     valueObj.display_name,
+//                     valueObj.count,
+//                 ))
+//             })
+//         })
+//     ret = ret.filter(f => f.key !== "search")
+//     return ret
+// }
+const filtersFromFiltersApiResponse = function (apiFacets) {
     let ret = []
     apiFacets
         .filter(f => f.key !== "search")
         .forEach(facet => {
             facet.values.forEach(valueObj => {
+                const isNegated = facet.is_negated
                 ret.push(createDisplayFilter(
                     facet.key,
                     valueObj.value,
-                    facet.is_negated,
+                    isNegated,
                     valueObj.display_name,
                     valueObj.count,
                 ))
@@ -80,6 +144,7 @@ const makeResultsFiltersFromApi = function (apiFacets) {
     ret = ret.filter(f => f.key !== "search")
     return ret
 }
+
 
 
 const createFilterValue = function (rawValue) {
@@ -131,22 +196,32 @@ const displayYearRange = function (range) {
     } else return range.join("-")
 }
 
+
+const sortedFilters = function(filters, sortByValue){
+    const ret = _.cloneDeep(filters)
+
+    if (sortByValue) {
+        ret.sort((a, b) => {
+            return (a.value > b.value) ? -1 : 1
+        })
+    } else {
+        ret.sort((a, b) => {
+            return b.count - a.count
+        })
+    }
+    return ret
+}
+
 const makeFilterList = function (filters, resultsFilters, includeResultsFilters = true) {
     if (!filters.length) return []
     const config = getFacetConfig(filters[0].key)
 
     let ret = _.cloneDeep(filters)
         .filter(f => f.value !== "unknown")
-        .map(f => {
+        .filter(f => {
             const myResultsFilter = resultsFilters.find(rf => rf.kv === f.kv)
-            return myResultsFilter ?? f
+            return !myResultsFilter
         })
-
-    if (includeResultsFilters) {
-        const retFilterStrings = ret.map(f => f.kv)
-        const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.kv))
-        ret.push(..._.cloneDeep(missingResultsFilters))
-    }
 
 
     if (config.sortByValue) {
@@ -159,6 +234,14 @@ const makeFilterList = function (filters, resultsFilters, includeResultsFilters 
         })
     }
 
+    if (includeResultsFilters) {
+
+
+        const retFilterStrings = ret.map(f => f.kv)
+        const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.kv))
+        ret.push(..._.cloneDeep(missingResultsFilters))
+    }
+
     // const maxCountSelected = Math.max(...resultsFilters.map(r => r.count))
     // const maxCount = Math.max(...ret.map(r => r.count))
 
@@ -167,20 +250,21 @@ const makeFilterList = function (filters, resultsFilters, includeResultsFilters 
     // })
 
 
-    return ret
+    return ret.slice(0, 25)
 }
 
 
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
-    removeFilterFromUrlStr,
 
-    makeResultsFiltersFromApi,
+    filtersFromFiltersApiResponse,
     createSimpleFilter,
     createDisplayFilter,
     createFilterId,
     addDisplayNamesToFilters,
     displayYearRange,
     makeFilterList,
+
+    sortedFilters,
 }

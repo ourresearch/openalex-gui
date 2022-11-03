@@ -9,7 +9,7 @@ import {facetConfigs} from "../facetConfigs";
 import {
     filtersFromUrlStr,
     filtersAsUrlStr,
-    makeResultsFiltersFromApi,
+    filtersFromFiltersApiResponse,
     createSimpleFilter
 } from "../filterConfigs";
 import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
@@ -120,8 +120,7 @@ const stateDefaults = function () {
 
          // other
         showYearRange: false,
-
-
+        facetsToRequireAll: [],
     }
     return ret
 }
@@ -379,7 +378,7 @@ export default new Vuex.Store({
                     const params = (state.textSearch) ? {search: state.textSearch} : {}
                     const filtersResp = await api.get(path, params)
 
-                    state.resultsFilters = makeResultsFiltersFromApi(filtersResp.filters)
+                    state.resultsFilters = filtersFromFiltersApiResponse(filtersResp.filters)
                 } else {
                     state.resultsFilters = []
                 }
@@ -503,7 +502,7 @@ export default new Vuex.Store({
         inputFiltersAsString(state, getters) {
             const copy = [...state.inputFilters]
             copy.sort()
-            return filtersAsUrlStr(copy)
+            return filtersAsUrlStr(copy, state.entityType)
         },
         allOaStatusFiltersAreActive(state) {
             const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")

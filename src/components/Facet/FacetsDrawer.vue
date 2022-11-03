@@ -7,7 +7,6 @@
       v-model="isOpen"
       class="pa-0 ma-0"
       id="facets-drawer"
-      dark
       disable-route-watcher
       color="transparent"
 
@@ -15,10 +14,9 @@
   >
     <v-card
         flat
-        color="#363636"
+        color="#eee"
         :width="facetsWidth"
         tile
-        dark
         style="z-index: 5;"
     >
       <div
@@ -53,11 +51,11 @@
             <v-btn icon v-on="on">
               <v-chip
                   v-if="resultsFilters.length"
-                  color="green lighten-2"
-                  light
+                  color="green"
+                  dark
                   style="cursor: pointer;"
               >
-                {{ resultsFilters.length }}
+                {{ resultsFilters.map.length }}
               </v-chip>
             </v-btn>
           </template>
@@ -108,7 +106,7 @@
 
       </div>
       <div
-          class="d-flex align-start elevation-3"
+          class="d-flex align-start"
           style="height: 50px;"
 
       >
@@ -125,7 +123,6 @@
             clearable
             prepend-inner-icon="mdi-magnify"
             autofocus
-            background-color="#484848"
             dense
 
             v-model="facetSearch"
@@ -134,7 +131,7 @@
 
 
       </div>
-      <!--      <v-divider></v-divider>-->
+            <v-divider></v-divider>
 
 
       <!--      List of facets  -->
@@ -165,7 +162,6 @@
                   v-if="facet.isRange"
                   :key="'facet' + facet.key"
                   :facet-key="facet.key"
-                  dark
                   show-details-button
               >
               </facet-range>

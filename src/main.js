@@ -17,7 +17,6 @@ import _ from 'lodash'
 import {
     filtersFromUrlStr,
     filtersAsUrlStr,
-    removeFilterFromUrlStr,
 } from "./filterConfigs";
 
 Vue.config.productionTip = false
@@ -91,58 +90,13 @@ Vue.filter("zoomLink", function (fullId) {
 });
 
 
-Vue.filter("linkRemoveFilter", function (filterObject) {
-    if (!filterObject) return
-    const newFiltersStr = removeFilterFromUrlStr(router.currentRoute.query.filter, filterObject)
-    const newQuery = {...router.currentRoute.query}
-    setOrDelete(newQuery, "filter", newFiltersStr)
-    delete newQuery.page
-    const ret = {
-        name: "Serp",
-        query: newQuery,
-    }
-    return ret
-});
 
-
-
-
-Vue.filter("addFilterLink", function (newFilter) {
-    if (!newFilter.key) return
-
-    const query = {...router.currentRoute.query}
-    const filters = filtersFromUrlStr(query.filter)
-    filters.push(newFilter)
-    query.filter = filtersAsUrlStr(filters)
-
-    return {
-        name: "Serp",
-        query,
-    }
-
-});
 
 
 Vue.filter("toPrecision", function (number, precision = 5) {
     return toPrecision(number, precision)
 });
 
-
-Vue.filter("removeFilterLink", function (filterToRemove) {
-    if (!filterToRemove.key) return
-
-    const query = {...router.currentRoute.query}
-    const newFilters = filtersFromUrlStr(query.filter).filter(f=>{
-        return f.asStr !== filterToRemove.asStr
-    })
-    query.filter = filtersAsUrlStr(newFilters)
-
-    return {
-        name: "Serp",
-        query,
-    }
-
-});
 
 
 Vue.filter("prettyName", function (name) {

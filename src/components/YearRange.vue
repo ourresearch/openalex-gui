@@ -62,7 +62,7 @@
         >
           <div
               v-ripple
-              class="range-bar-bar lighten-2 caption"
+              class="range-bar-bar caption"
               :class="{green: isWithinRange(filter.value)}"
               :style="{height: filter.scaledCount * 100 + '%'}"
           >
@@ -297,7 +297,7 @@ export default {
       url.pathname = "works"
 
       const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== "publication_year")
-      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe))
+      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe, this.entityType))
 
       url.searchParams.set("group_by", "publication_year")
       url.searchParams.set("per_page", "200")

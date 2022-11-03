@@ -11,7 +11,7 @@
       <v-list-item
           v-on="on"
           style="font-size: 16px; min-height: 34px; flex:unset"
-          :color="myResultsFilter ? 'green lighten-2' : ''"
+          :color="myResultsFilter ? 'green ' : ''"
           :class="{'pl-0': narrow}"
       >
           <div class="pa-0 pr-2">
@@ -20,11 +20,11 @@
           </div>
         <v-spacer v-if="!narrow"></v-spacer>
           <div class="pa-0 d-flex  justify-end">
-            <div class="green--text text--lighten-2 font-weight-bold">
+            <div class="green--text font-weight-bold">
               {{ rangeValuesToShow }}
             </div>
             <div v-if="!rangeValuesToShow && showPlaceholderValueWhenUnset">anytime</div>
-            <v-btn style="margin: 2px 0 0 5px;" color="green lighten-2" :disabled="isDisabled"
+            <v-btn style="margin: 2px 0 0 5px;" color="green 2" :disabled="isDisabled"
                    v-if="rangeValuesToShow" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
               <v-icon small>mdi-close</v-icon>
             </v-btn>
@@ -84,7 +84,7 @@
               outlined
               rounded
               class="mr-2 low-key-button"
-              :color="(preset.range.join() === range.join()) ? 'green lighten-2' : ''"
+              :color="(preset.range.join() === range.join()) ? 'green ' : ''"
           >
             {{ preset.displayName }}
           </v-btn>
@@ -92,7 +92,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn
-            color="green lighten-2"
+            color="green"
             @click="applyRange"
             :disabled="range.join() == inputFiltersRange.join()"
         >
@@ -219,7 +219,7 @@ export default {
       url.pathname = `${this.entityType}`
 
       const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== this.facetKey)
-      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe))
+      url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe, this.entityType))
 
       url.searchParams.set("group_by", this.facetKey)
       url.searchParams.set("per_page", String(this.perPage))

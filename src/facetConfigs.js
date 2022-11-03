@@ -37,7 +37,7 @@ const facetCategories = {
     ],
 }
 
-const facetConfigs = function () {
+const facetConfigs = function (entityType) {
     const ret = [
 
 
@@ -468,6 +468,9 @@ const facetConfigs = function () {
                 ...config,
                 // values: [],
             }
+        })
+        .filter(config => {
+            return !entityType || config.entityType === entityType
         })
 }
 
