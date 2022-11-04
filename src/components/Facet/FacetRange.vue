@@ -10,12 +10,12 @@
     <template v-slot:activator="{on}">
       <v-list-item
           v-on="on"
-          style="font-size: 16px; min-height: 34px; flex:unset"
+          style="min-height: 34px; flex:unset"
           :color="myResultsFilter ? 'green ' : ''"
-          :class="{'pl-0': narrow}"
+          class="pl-2"
       >
           <div class="pa-0 pr-2">
-            <v-icon :disabled="isDisabled" :class="narrow ? 'mr-2' : 'mr-4'" style="opacity: .7;">{{ config.icon }}</v-icon>
+            <v-icon :disabled="isDisabled" class="mr-2" style="opacity: .7;">{{ config.icon }}</v-icon>
             {{ myButtonText }}
           </div>
         <v-spacer v-if="!narrow"></v-spacer>

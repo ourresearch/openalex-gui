@@ -142,6 +142,14 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
         },
         // {
+        //     key: "alternate_host_venues.version",
+        //     entityType: "works",
+        //     displayName: "Open version",
+        //     valuesToShow: "mostCommon",
+        //     category: "access",
+        //     icon: "mdi-lock-open-outline",
+        // },
+        // {
         //     key: "has_abstract",
         //     entityType: "works",
         //     displayName: "Has abstract",
@@ -208,7 +216,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "range",
             sortByValue: true,
             isRange: true,
-            category: "popular",
+            category: "other",
             isCore: true,
             sortToTop: true,
             icon: "mdi-calendar-text"
@@ -284,7 +292,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
             valuesToShow: "select",
-            category: "access",
+            category: "citation",
             icon: "mdi-format-quote-close",
         },
         {

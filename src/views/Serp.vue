@@ -24,7 +24,7 @@
               />
               <span
                   class="logo-text colorizable"
-                  v-if="!filterTypeKey"
+                  v-if="!facetZoom"
                   :style="logoStyle"
               >
                 OpenAlex

@@ -1,12 +1,10 @@
 <template>
 
   <v-card
-      v-if="facetZoom "
       :loading="isLoading"
       flat
       color="#fff"
-      style="border: 1px solid rgba(0, 0, 0, .15);"
-      :style="`margin: ${height.margins[0]}px ${WidthMargins[0]}px ${height.margins[1]}px ${WidthMargins[1]}px;`"
+      style="min-width: 350px;"
   >
     <div class="card-header" :class="{'elevation-3': isScrolled}">
 
@@ -14,12 +12,9 @@
           class="text-h6 ml-2 mr-2 d-flex align-center"
           :style="`height: ${height.toolbar}px;`"
       >
-        <v-btn  icon @click.stop="setFacetZoom(null)" class="">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-<!--        <v-icon left>{{ myFacetConfig.icon }}</v-icon>-->
+        <v-icon left>{{ config.icon }}</v-icon>
         <div id="facet-zoom-header">
-          {{ myFacetConfig.displayName }}
+          {{ config.displayName }}
         </div>
         <v-spacer></v-spacer>
 
@@ -30,7 +25,7 @@
           v-if="showSearch"
       >
         <!--        <div class="">-->
-        <!--          {{ myFacetConfig.displayName }}-->
+        <!--          {{ config.displayName }}-->
         <!--        </div>-->
 
         <v-text-field
@@ -43,7 +38,7 @@
             prepend-inner-icon="mdi-magnify"
             :append-outer-icon="search ? 'mdi-arrow-right' : ''"
             :placeholder="searchPlaceholder"
-            :disabled="isLoading"
+            :disabled="!!isLoading"
             autofocus
             dense
 
@@ -73,14 +68,14 @@
           v-if="0 && showSearch"
       >
         <template v-if="search && searchResultFilters.length">
-          Top {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
+          Top {{ config.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
         </template>
         <template v-else-if="search && !searchResultFilters.length">
-          No {{ myFacetConfig.displayName | pluralize(2) }} matching "{{ search }}" found within current results; try
+          No {{ config.displayName | pluralize(2) }} matching "{{ search }}" found within current results; try
           broadening your search.
         </template>
         <template v-else>
-          Top {{ myFacetConfig.displayName | pluralize(2) }} found within current results:
+          Top {{ config.displayName | pluralize(2) }} found within current results:
         </template>
       </div>
 
@@ -110,7 +105,7 @@
     <v-card-actions :style="`height: ${height.footer}px;`" class="" :class="{'elevation-3': isScrolled}">
 
 
-      <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetZoom)">
+      <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetKey)">
         clear
       </v-btn>
       <v-spacer></v-spacer>
@@ -123,7 +118,7 @@
         <v-list dense>
           <v-subheader>
             Export as:
-            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+            <!--                {{ config.displayName | pluralize(2) }} as:-->
           </v-subheader>
           <v-divider></v-divider>
           <v-list-item
@@ -181,7 +176,7 @@ export default {
     FacetOption,
   },
   props: {
-    width: Number,
+    facetKey: String,
   },
   data() {
     return {
@@ -203,6 +198,7 @@ export default {
       isScrolled: false,
 
 
+      // width: 300,
       height: {
         toolbar: 60,
         searchbar: 50,
@@ -226,25 +222,16 @@ export default {
       "zoomTypeConfig",
       "entityZoomHistoryData",
       "showFiltersDrawer",
-      "facetZoom",
       "inputFilters",
     ]),
-    // isOpen: {
-    //   get(){
-    //     return !!this.facetZoom
-    //   },
-    //   set(newVal){
-    //     if (!newVal) this.$emit("close")
-    //   }
-    // },
-    myFacetConfig() {
-      return facetConfigs().find(c => c.key === this.facetZoom)
+    config() {
+      return facetConfigs().find(c => c.key === this.facetKey)
     },
     showSearch() {
-      return this.myFacetConfig.valuesToShow === 'mostCommon'
+      return this.config.valuesToShow === 'mostCommon'
     },
     isRange() {
-      return (this.myFacetConfig.valuesToShow !== "range")
+      return (this.config.valuesToShow !== "range")
     },
     cardTextStyle() {
       const marginsHeight = this.height.margins[0] + this.height.margins[1]
@@ -253,17 +240,18 @@ export default {
 
       return {
         'overflow-y': "scroll",
-        height: `calc(100vh - ${height}px)`
+        'height': "50vh",
+        // height: `calc(50vh - ${height}px)`,
       }
     },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
-        return f.key === this.facetZoom
+        return f.key === this.facetKey
       })
     },
     myInputFilters() {
       return this.inputFilters.filter(f => {
-        return f.key === this.facetZoom
+        return f.key === this.facetKey
       })
     },
     thereAreMoreGroupsToShow() {
@@ -271,7 +259,7 @@ export default {
     },
     searchPlaceholder() {
       const displayName = this
-          .$pluralize(this.myFacetConfig.displayName, 2)
+          .$pluralize(this.config.displayName, 2)
           .toLowerCase()
       return `search ${displayName}`
     },
@@ -285,7 +273,7 @@ export default {
     searchResultFilters(){
       const ret = this.filtersFromApi
           .filter(f => f.value !== "unknown")
-      return sortedFilters(ret, this.myFacetConfig.sortByValue)
+      return sortedFilters(ret, this.config.sortByValue)
     },
 
     selectedFilters(){
@@ -298,7 +286,7 @@ export default {
             const myResultsFilter = this.resultsFilters.find(rf => rf.kv === f.kv)
             return !myResultsFilter
           })
-      return sortedFilters(unselectedFilters, this.myFacetConfig.sortByValue).slice(0,30)
+      return sortedFilters(unselectedFilters, this.config.sortByValue).slice(0,30)
     },
   },
 
@@ -306,7 +294,6 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-      "setFacetZoom"
     ]),
     ...mapActions([
       "addInputFilters",
@@ -316,18 +303,15 @@ export default {
     ]),
 
 
-    clickOutside() {
-      this.setFacetZoom(null)
-    },
     makeApiUrl(perPage, formatCsv) {
       if (!perPage) perPage = this.maxFiltersFromApiToShow
       const url = new URL(`https://api.openalex.org`)
       url.pathname = `${this.entityType}`
 
-      const filters = this.$store.state.inputFilters.filter(f => f.key !== this.myFacetConfig.key)
+      const filters = this.$store.state.inputFilters.filter(f => f.key !== this.config.key)
       url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
 
-      url.searchParams.set("group_by", this.myFacetConfig.key)
+      url.searchParams.set("group_by", this.config.key)
       url.searchParams.set("per_page", String(perPage))
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
       if (this.search) url.searchParams.set("q", this.search)
@@ -345,7 +329,7 @@ export default {
     },
     fetchFilters: _.debounce(
         async function () {
-          if (!this.myFacetConfig) return
+          if (!this.config) return
           // if (!this.search) {
           //   this.filtersFromApi = []
           //   return
@@ -353,7 +337,7 @@ export default {
           this.isLoading = "primary"
 
           const resp = await api.getUrl(this.apiUrl)
-          // if (!this.myFacetConfig) return
+          // if (!this.config) return
           if (resp.meta.q && resp.meta.q !== this.search) return
 
 
@@ -364,7 +348,7 @@ export default {
 
           this.filtersFromApi = groups.map(apiData => {
             return createDisplayFilter(
-                this.myFacetConfig.key,
+                this.config.key,
                 apiData.key,
                 false,
                 apiData.key_display_name,
@@ -399,20 +383,20 @@ export default {
         this.search = ""
       }
     },
-    "facetZoom": {
-      handler(newVal, oldVal) {
-        // hacky thing for tabs
-        this.isExpanded = false
-        setTimeout(() => {
-          this.isExpanded = true
-        }, 100)
-
-        this.tab = 0
-        this.search = ""
-        this.filtersFromApi = []
-        this.fetchFilters()
-      }
-    },
+    // "facetZoom": {
+    //   handler(newVal, oldVal) {
+    //     // hacky thing for tabs
+    //     this.isExpanded = false
+    //     setTimeout(() => {
+    //       this.isExpanded = true
+    //     }, 100)
+    //
+    //     this.tab = 0
+    //     this.search = ""
+    //     this.filtersFromApi = []
+    //     this.fetchFilters()
+    //   }
+    // },
     tab(to, from) {
       console.log("change tab", to)
       this.search = ""

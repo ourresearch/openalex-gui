@@ -18,7 +18,7 @@
           color="#fff"
           :width="facetsWidth"
           :style="`margin: ${height.margins[0]}px ${width.margins[0]}px ${height.margins[1]}px ${width.margins[1]}px;`"
-          style="border: 1px solid rgba(0, 0, 0, .15);"
+          style="border: 1px solid rgba(0, 0, 0, .2);"
           outlined
           :ripple="false"
           :disabled="!!facetZoom"
@@ -51,6 +51,9 @@
               </span>
 
             <v-spacer/>
+            <v-btn icon class="mr-1" @click="showSearch = !showSearch">
+              <v-icon>mdi-magnify</v-icon>
+            </v-btn>
             <v-chip
                 v-if="resultsFiltersNegated.length"
                 color="red"
@@ -72,9 +75,7 @@
             </v-chip>
 
 
-            <v-btn icon class="ml-2" @click="showSearch = !showSearch">
-              <v-icon>mdi-magnify</v-icon>
-            </v-btn>
+
             <v-menu
                 offset-y
             >
@@ -183,15 +184,15 @@
       </v-card>
     </div>
 
-    <div
-        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"
-        id="facet-zoom-drawer"
-        :style="{width: facetZoomWidth+'px'}"
-        style="border-left: 1px solid rgba(255,255,255, .25);"
-    >
-      <facet-zoom/>
+<!--    <div-->
+<!--        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"-->
+<!--        id="facet-zoom-drawer"-->
+<!--        :style="{width: facetZoomWidth+'px'}"-->
+<!--        style="border-left: 1px solid rgba(255,255,255, .25);"-->
+<!--    >-->
+<!--      <facet-zoom/>-->
 
-    </div>
+<!--    </div>-->
 
 
   </v-navigation-drawer>
@@ -254,7 +255,7 @@ export default {
 
 
       facetZoomWidth: 350,
-      facetsWidth: 350,
+      facetsWidth: 300,
 
       lightColor: "#555",
       darkColor: "#222",
@@ -300,11 +301,7 @@ export default {
     },
     totalWidth() {
       const widthMargins = this.width.margins[0] + this.width.margins[1]
-      return this.facetsWidth + ((this.facetZoom) ? this.facetZoomWidth + 2 : 0) + widthMargins
-      // if (this.showFacetZoomPanel) {
-      //   return this.filterTypesListWidth + this.facetsWidth
-      // }
-      // else return this.filterTypesListWidth
+      return this.facetsWidth + widthMargins
     },
     facetsByCategory() {
       return facetCategories[this.entityType].map(categoryName => {

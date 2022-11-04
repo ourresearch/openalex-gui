@@ -7,7 +7,6 @@
         outlined
         solo
         hide-details
-        :rounded="!$vuetify.breakpoint.mobile"
 
         clearable
         append-icon="mdi-magnify"
