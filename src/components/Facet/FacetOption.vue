@@ -4,46 +4,16 @@
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
-      @click="click($event)"
+      @click.exact="exactClickListItem"
+      @click.alt="altClickListItem"
       light
   >
-    <!--    removed-->
-    <!--    @[eventHandlerName].stop="click($event)"-->
+    <!--    @[eventHandlerName].stop="setSelected($event)"-->
 
     <div class="icon-area mr-1 mt-2">
-      <v-progress-circular
-          v-if="isLoading"
-          size="20"
-          width="5"
-          indeterminate
-          style="margin: 4px 4px 0 0;"
-      >
-      </v-progress-circular>
-      <v-icon v-else-if="isNegated">mdi-minus-circle-outline</v-icon>
+      <v-icon v-if="isNegated">mdi-minus-circle-outline</v-icon>
       <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>
       <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>
-
-      <template >
-
-        <!--        <v-progress-circular-->
-        <!--            v-if="hideCheckbox"-->
-        <!--          size="20"-->
-        <!--          width="7"-->
-        <!--          rotate="-90"-->
-        <!--          style="margin: 0px 12px 0 0; opacity: .9"-->
-        <!--          :value="filter.countPercent"-->
-        <!--          :color="isSelected ? 'green lighten-1' : ''"-->
-        <!--      />-->
-<!--        <v-simple-checkbox-->
-<!--            :value="isSelected"-->
-<!--            read-only-->
-<!--            @click="click($event)"-->
-<!--            class="ma-0 pa-0"-->
-<!--            v-ripple-->
-<!--            :on-icon="isNegated ? 'mdi-close-box' : 'mdi-checkbox-marked'"-->
-<!--        />-->
-
-      </template>
     </div>
     <div>
       <div
@@ -52,14 +22,12 @@
           :class="{'font-weight-bold': isSelected}"
       >
         <span
-            :class="{'white--text': isSelected && hideCheckbox}"
-            class="text--lighten-1"
             v-html="prettyDisplayName"
         >
         </span>
       </div>
 
-      <div v-if="!hideNumber"
+      <div
            class="body-2 grey--text"
       >
         {{ filter.count | toPrecision }}
@@ -67,7 +35,7 @@
     </div>
     <v-spacer/>
     <div>
-      <v-menu offset-y :close-on-content-click="true">
+      <v-menu v-if="!isBoolean" offset-y :close-on-content-click="true">
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"
@@ -94,7 +62,7 @@
           </v-list-item>
           <v-divider v-if="filter.isEntity"></v-divider>
           <v-list-item
-              @click.stop="click($event)"
+              @click="setSelected({select: true})"
               v-if="!isSelected || isNegated"
               :input-value="true"
               color="green"
@@ -107,7 +75,7 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              @click.stop="negate"
+              @click="setSelected({select: true, negate: true})"
               :disabled="isNegated"
               color="red"
               :input-value="true"
@@ -121,7 +89,7 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              @click="isSelected = false"
+              @click="setSelected({select: false, negate: false})"
               v-if="isSelected"
           >
             <v-list-item-icon>
@@ -133,11 +101,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-
-
     </div>
-
-
   </v-list-item>
 </template>
 
@@ -159,41 +123,23 @@ export default {
     // required
     filter: Object,
 
-    hideCheckbox: Boolean,
-
     disabled: Boolean,
-    colorful: Boolean,
+    isSelected: Boolean,
+    isNegated: Boolean,
 
-    hideNumber: Boolean,
+    isBoolean: Boolean,
   },
   data() {
     return {
-      loading: false,
-      apiResp: {},
-      isClickedAndWaiting: false,
-      isNegated: this.filter.isNegated
     }
   },
   computed: {
     ...mapGetters([
       "searchApiUrl",
-      "searchIsLoading",
       "resultsFilters",
     ]),
-    isSelected: {
-      get() {
-        return this.resultsFilters.map(rf => rf.asStr).includes(this.filter.asStr)
-      },
-      async set(newVal) {
-        console.log("set new value for isSelected: ", newVal)
-
-
-        if (newVal) await this.addInputFilters([this.myFilter])
-        else await this.removeInputFilters([this.myFilter])
-      },
-    },
     myColor() {
-      if (!this.isSelected || !this.colorful) return ""
+      if (!this.isSelected) return ""
       if (this.isNegated) return "red"
       return "green "
     },
@@ -203,15 +149,6 @@ export default {
           this.filter.value,
           this.isNegated
       )
-    },
-    // facetConfig(){
-    //   return facetConfigs()
-    // },
-    eventHandlerName() {
-      return (this.hideCheckbox) ? "click" : null
-    },
-    isLoading() {
-      return this.isClickedAndWaiting && this.searchIsLoading
     },
     prettyDisplayName() {
       if (this.filter.isBoolean) {
@@ -259,36 +196,37 @@ export default {
       "removeInputFilters",
       "updateTextSearch",
     ]),
-    async click(e) {
-      this.isClickedAndWaiting = true
-      this.isSelected = !this.isSelected
-      await this.$vuetify.goTo(".facet-option:first-child", {container: "#facet-zoom-card-text"})
+    exactClickListItem(){
+      const opts = {
+        negate: false,
+        // select: (this.isNegated) ? true : !this.isSelected
+        select:  !this.isSelected
+      }
+      return this.setSelected(opts)
     },
-    async negate(){
-      console.log("negatory good buddy")
-      this.isNegated = true
-      this.isClickedAndWaiting = true
-      const filter = createSimpleFilter(
-          this.filter.key,
-          this.filter.value,
-          true,
-      )
-      await this.addInputFilters([filter])
-    }
+    altClickListItem(){
+      if (this.isBoolean) return
+      const opts = {
+        negate: true,
+        select:  true
+      }
+      return this.setSelected(opts)
+    },
+
+    setSelected(opts) {
+      this.$emit("set-value", {
+        isSelected: !!opts.select,
+        isNegated: !!opts.negate,
+        kv: this.filter.kv
+      })
+    },
   },
 
   created() {
   },
   async mounted() {
-    this.loading = true
-    // this.apiResp = await api.get(this.apiUrl)
-    this.loading = false
-
   },
   watch: {
-    searchIsLoading(newVal) {
-      if (!newVal) this.isClickedAndWaiting = false
-    }
   }
 }
 </script>

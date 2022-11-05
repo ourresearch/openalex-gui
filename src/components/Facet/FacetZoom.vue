@@ -6,10 +6,10 @@
       color="#fff"
       style="min-width: 350px;"
   >
-    <div class="card-header" :class="{'elevation-3': isScrolled}">
+    <div class="card-header pa-2" style="position: relative;" :class="{'elevation-3': isScrolled}">
 
       <div
-          class="text-h6 ml-2 mr-2 d-flex align-center"
+          class="text-h6 px-2 d-flex align-center"
           :style="`height: ${height.toolbar}px;`"
       >
         <v-icon left>{{ config.icon }}</v-icon>
@@ -17,7 +17,9 @@
           {{ config.displayName }}
         </div>
         <v-spacer></v-spacer>
-
+        <v-btn icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </div>
       <div
           class="d-flex align-start"
@@ -31,18 +33,17 @@
         <v-text-field
             flat
             hide-details
-            solo
             full-width
             class="mt-0 mx-2"
             clearable
             prepend-inner-icon="mdi-magnify"
-            :append-outer-icon="search ? 'mdi-arrow-right' : ''"
+            :append-outer-icon="searchString ? 'mdi-arrow-right-circle-outline' : ''"
             :placeholder="searchPlaceholder"
             :disabled="!!isLoading"
             autofocus
             dense
 
-            v-model="search"
+            v-model="searchString"
             @click:append-outer="fetchFilters"
             @click:clear="clearSearch"
             @keypress.enter="fetchFilters"
@@ -62,51 +63,43 @@
         v-scroll.self="onCardTextScroll"
     >
 
-      <div
-          class="pt-3 px-5 body-2"
-          style="opacity: .7;"
-          v-if="0 && showSearch"
-      >
-        <template v-if="search && searchResultFilters.length">
-          Top {{ config.displayName | pluralize(2) }} matching "{{ search }}" found within current results:
-        </template>
-        <template v-else-if="search && !searchResultFilters.length">
-          No {{ config.displayName | pluralize(2) }} matching "{{ search }}" found within current results; try
-          broadening your search.
-        </template>
-        <template v-else>
-          Top {{ config.displayName | pluralize(2) }} found within current results:
-        </template>
-      </div>
-
 
       <v-list>
+        <template v-if="!appliedSearchString">
+          <facet-option
+              v-for="f in resultsFiltersNotInApiFilters"
+              :filter="f"
+              :key="f.asStr"
+              :is-negated="negatedFilters.includes(f.kv)"
+              :is-selected="selectedFilters.includes(f.kv)"
+              @set-value="setSelectedFilters"
+              :disabled="!!isLoading"
+              :is-boolean="config.isBoolean"
+          />
+        </template>
         <facet-option
-            class=""
-            v-for="f in selectedFilters"
+            v-for="f in apiFiltersToShow"
             :filter="f"
             :key="f.asStr"
-            colorful
-        />
-        <facet-option
-            class=""
-            v-for="f in unselectedFilters"
-            :filter="f"
-            :key="f.asStr"
-            colorful
+            :is-negated="negatedFilters.includes(f.kv)"
+            :is-selected="selectedFilters.includes(f.kv)"
+            @set-value="setSelectedFilters"
+            :disabled="!!isLoading"
+            :is-boolean="config.isBoolean"
+
         />
       </v-list>
-      <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">
-        <v-icon left>mdi-chevron-down</v-icon>
-        show more
-      </v-btn>
+      <!--      <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">-->
+      <!--        <v-icon left>mdi-chevron-down</v-icon>-->
+      <!--        show more-->
+      <!--      </v-btn>-->
 
     </v-card-text>
     <v-card-actions :style="`height: ${height.footer}px;`" class="" :class="{'elevation-3': isScrolled}">
 
 
-      <v-btn :disabled="!myResultsFilters.length" text @click="removeInputFiltersByKey(facetKey)">
-        clear
+      <v-btn :disabled="!isDirty" :loading="applyIsLoading" depressed color="primary" @click="saveSelectedFilters">
+        Apply
       </v-btn>
       <v-spacer></v-spacer>
       <v-menu>
@@ -177,19 +170,21 @@ export default {
   },
   props: {
     facetKey: String,
+    isVisible: Boolean,
   },
   data() {
     return {
-      search: "",
-      filterTypeSearch: "",
       isLoading: false,
-      filtersFromApi: [],
-      topFilters: [],
-      searchFilters: [],
-      filters: [],
+      applyIsLoading: false,
+      maxApiFiltersToShow: 20,
+
+      // this all needs to be cleared when we close the menu
+      apiFilters: [],
       filtersTotalCount: null,
-      maxFiltersFromApiToShow: 20,
-      range: [null, null],
+      selectedFilters: [],
+      negatedFilters: [],
+      searchString: "",
+      appliedSearchString: "",
 
 
       groupByQueryResultsCount: null,
@@ -216,6 +211,7 @@ export default {
       "entityZoomData",
       "searchFacetConfigs",
       "resultsFilters",
+      "resultsFiltersNegated",
       "zoomId",
       "textSearch",
       "entityType",
@@ -230,17 +226,28 @@ export default {
     showSearch() {
       return this.config.valuesToShow === 'mostCommon'
     },
-    isRange() {
-      return (this.config.valuesToShow !== "range")
+    isDirty() {
+      const negatedIsDirty = !_.isEmpty(_.xor(
+          this.negatedFilters,
+          this.myResultsFilters.filter(f => f.isNegated).map(f => f.kv)
+      ))
+      const selectedIsDirty = !_.isEmpty(_.xor(
+          this.selectedFilters,
+          this.myResultsFilters.map(f => f.kv)
+      ));
+      return (negatedIsDirty || selectedIsDirty)
+
     },
     cardTextStyle() {
       const marginsHeight = this.height.margins[0] + this.height.margins[1]
       const toolbarsTotalHeight = this.height.toolbar + (this.showSearch ? this.height.searchbar : 0) + this.height.footer
-      const height = toolbarsTotalHeight + marginsHeight + 2 // dividers
+      // const height = toolbarsTotalHeight + marginsHeight + 2 // dividers
+
+      const height = (this.config.isBoolean) ? "150px" : "50vh"
 
       return {
         'overflow-y': "scroll",
-        'height': "50vh",
+        height,
         // height: `calc(50vh - ${height}px)`,
       }
     },
@@ -249,13 +256,11 @@ export default {
         return f.key === this.facetKey
       })
     },
-    myInputFilters() {
-      return this.inputFilters.filter(f => {
-        return f.key === this.facetKey
-      })
+    allFilters() {
+      return [...this.myResultsFilters, ...this.apiFilters]
     },
     thereAreMoreGroupsToShow() {
-      return this.maxFiltersFromApiToShow < 200 && this.filtersFromApi.length === this.maxFiltersFromApiToShow
+      return this.maxApiFiltersToShow < 200 && this.apiFilters.length === this.maxApiFiltersToShow
     },
     searchPlaceholder() {
       const displayName = this
@@ -270,24 +275,31 @@ export default {
     apiUrl() {
       return this.makeApiUrl(200)
     },
-    searchResultFilters(){
-      const ret = this.filtersFromApi
-          .filter(f => f.value !== "unknown")
-      return sortedFilters(ret, this.config.sortByValue)
+    searchStringIsBlank() {
+      return !this.searchString
+    },
+    myResultsFilterIds() {
+      return this.myResultsFilters.map(f => f.kv)
+    },
+    apiFilterIds() {
+      return this.apiFilters.map(f => f.kv)
     },
 
-    selectedFilters(){
-      return sortedFilters(this.myResultsFilters).slice(0,30)
+    resultsFiltersNotInApiFilters() {
+      const ret = this.myResultsFilters.filter(f => !this.apiFilterIds.includes(f.kv))
+      return sortedFilters(ret, this.config.sortByValue)
     },
-    unselectedFilters() {
-      const unselectedFilters = this.filtersFromApi
+    apiFiltersToShow() {
+      const ret = this.apiFilters
           .filter(f => f.value !== "unknown")
-          .filter(f => {
-            const myResultsFilter = this.resultsFilters.find(rf => rf.kv === f.kv)
-            return !myResultsFilter
-          })
-      return sortedFilters(unselectedFilters, this.config.sortByValue).slice(0,30)
+      const sorted = sortedFilters(ret, this.config.sortByValue)
+      sorted.sort((a,b)=>{
+        console.log("sortfunction", this.selectedFilters, a.kv)
+        return (this.myResultsFilterIds.includes(a.kv)) ? -1 : 1
+      })
+      return sorted
     },
+
   },
 
   methods: {
@@ -300,11 +312,40 @@ export default {
       "removeInputFilters",
       "removeInputFiltersByKey",
       "replaceInputFilter",
+      "replaceInputFacet",
     ]),
+    setSelectedFilters(arg) {
+      console.log("FacetZoom setSelectedFilters", arg)
+      this.selectedFilters = this.selectedFilters.filter(kv => {
+        return kv !== arg.kv
+      });
+      if (arg.isSelected) this.selectedFilters.push(arg.kv)
+
+      this.negatedFilters = this.negatedFilters.filter(kv => {
+        return kv !== arg.kv
+      });
+      if (arg.isNegated) this.negatedFilters.push(arg.kv)
+    },
+    saveSelectedFilters() {
+      this.$emit("close")
+      const filtersToSave = this.allFilters.filter(f => {
+        return this.selectedFilters.includes(f.kv)
+      }).map(f => {
+        return createSimpleFilter(
+            f.key,
+            f.value,
+            this.negatedFilters.includes(f.kv)
+        )
+      })
+      this.replaceInputFacet({
+        facetKey: this.facetKey,
+        filters: filtersToSave,
+      })
 
 
+    },
     makeApiUrl(perPage, formatCsv) {
-      if (!perPage) perPage = this.maxFiltersFromApiToShow
+      if (!perPage) perPage = this.maxApiFiltersToShow
       const url = new URL(`https://api.openalex.org`)
       url.pathname = `${this.entityType}`
 
@@ -314,62 +355,62 @@ export default {
       url.searchParams.set("group_by", this.config.key)
       url.searchParams.set("per_page", String(perPage))
       if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      if (this.search) url.searchParams.set("q", this.search)
+      if (this.searchString) url.searchParams.set("q", this.searchString)
       if (formatCsv) url.searchParams.set("format", "csv")
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
     async fetchMore() {
-      this.maxFiltersFromApiToShow = 200
+      this.maxApiFiltersToShow = 200
       await this.fetchFilters()
     },
     async clearSearch() {
-      this.search = ""
+      this.searchString = ""
       await this.fetchFilters()
     },
-    fetchFilters: _.debounce(
-        async function () {
-          if (!this.config) return
-          // if (!this.search) {
-          //   this.filtersFromApi = []
-          //   return
-          // }
-          this.isLoading = "primary"
+    async fetchFilters() {
+      if (!this.config) return
+      this.isLoading = "primary"
 
-          const resp = await api.getUrl(this.apiUrl)
-          // if (!this.config) return
-          if (resp.meta.q && resp.meta.q !== this.search) return
+      const resp = await api.getUrl(this.apiUrl)
+      this.appliedSearchString = resp.meta.q
 
+      const groups = resp.group_by.slice(0, 20)
+      const worksCounts = groups.map(f => f.count)
+      const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
+      this.filtersTotalCount = sumOfAllWorksCounts
 
-          const groups = resp.group_by
-          const worksCounts = groups.map(f => f.count)
-          const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
-          this.filtersTotalCount = sumOfAllWorksCounts
+      this.apiFilters = groups.map(apiData => {
+        return createDisplayFilter(
+            this.config.key,
+            apiData.key,
+            false,
+            apiData.key_display_name,
+            apiData.count,
+            this.filtersTotalCount,
+        )
+      })
+      this.isLoading = false
 
-          this.filtersFromApi = groups.map(apiData => {
-            return createDisplayFilter(
-                this.config.key,
-                apiData.key,
-                false,
-                apiData.key_display_name,
-                apiData.count,
-                this.filtersTotalCount,
-            )
-          })
-          this.isLoading = false
-
-        },
-        500,
-        {leading: true, trailing: true}
-    ),
+    },
     onCardTextScroll(e) {
       this.isScrolled = e.target.scrollTop > 0
+    },
+    clear() {
+      this.apiFilters = []
+      this.filtersTotalCount = null
+      this.selectedFilters = []
+      this.negatedFilters = []
+      this.searchString = ""
+      this.appliedSearchString = ""
     }
 
   },
   created() {
   },
   mounted() {
+  },
+  destroyed() {
   },
   watch: {
     // search(newVal, oldVal) {
@@ -379,8 +420,28 @@ export default {
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
+        // this.clear()
         this.fetchFilters()
-        this.search = ""
+      }
+    },
+    isVisible: {
+      immediate: true,
+      handler(newVal) {
+        this.clear()
+        this.selectedFilters = this.myResultsFilters.map(f => f.kv)
+        this.negatedFilters = this.myResultsFilters.filter(f => f.isNegated).map(f => f.kv)
+        this.fetchFilters()
+        // if (!newVal) {
+        //   this.clear()
+        //   this.fetchFilters()
+        // }
+      }
+    },
+    "myResultsFilters": {
+      immediate: true,
+      handler(newVal, oldVal) {
+        this.selectedFilters = newVal.map(f => f.kv)
+        this.negatedFilters = newVal.filter(f => f.isNegated).map(f => f.kv)
       }
     },
     // "facetZoom": {
@@ -393,13 +454,13 @@ export default {
     //
     //     this.tab = 0
     //     this.search = ""
-    //     this.filtersFromApi = []
+    //     this.apiFilters = []
     //     this.fetchFilters()
     //   }
     // },
     tab(to, from) {
       console.log("change tab", to)
-      this.search = ""
+      this.searchString = ""
       this.fetchFilters()
     }
   }

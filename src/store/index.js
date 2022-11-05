@@ -337,6 +337,13 @@ export default new Vuex.Store({
         },
 
         // eslint-disable-next-line no-unused-vars
+        async replaceInputFacet({commit, getters, dispatch, state}, {facetKey, filters}) {
+            console.log("Vuex replaceInputFacet", facetKey, filters)
+            state.inputFilters = state.inputFilters.filter(f => f.key !== facetKey)
+            await dispatch("addInputFilters", filters)
+        },
+
+        // eslint-disable-next-line no-unused-vars
         async replaceInputFilter({commit, getters, dispatch, state}, filter) {
             commit("replaceInputFilter", filter)
             commit("setPage", 1)
