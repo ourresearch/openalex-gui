@@ -77,11 +77,11 @@
             <v-divider></v-divider>
             <v-list-item
               @click="openExportToCsvDialog"
-              :disabled="resultsCount > 100000"
+              :disabled="resultsCount > 500000"
             >
               <v-list-item-icon>
                 <v-icon
-                    :disabled="resultsCount > 100000"
+                    :disabled="resultsCount > 500000"
                 >
                   mdi-table
                 </v-icon>
@@ -91,10 +91,10 @@
                   Spreadsheet
                 </v-list-item-title>
                 <v-list-item-subtitle
-                    v-if="resultsCount > 100000"
+                    v-if="resultsCount > 500000"
                     class="grey--text"
                 >
-                  Max 100k results
+                  Max 500k results
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
@@ -146,6 +146,7 @@
           </v-list-item>
 
           <v-list-item
+              v-if="0"
               @click="snackbar({msg: 'This feature is still under construction.', icon: 'mdi-wrench'})"
               :disabled="true"
           >
@@ -203,7 +204,7 @@
 
           <v-list-item
               @click="openExportToCsvDialog"
-              :disabled="resultsCount > 100000"
+              :disabled="resultsCount > 500000"
           >
             <v-list-item-icon>
               <v-icon
@@ -216,10 +217,10 @@
                 Spreadsheet
               </v-list-item-title>
               <v-list-item-subtitle
-                  v-if="resultsCount > 100000"
+                  v-if="resultsCount > 500000"
                   class="grey--text"
               >
-                Max 100k results
+                Max 500k results
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -328,7 +329,7 @@
           <!--          <v-btn-->
           <!--              :disabled="!exportEmailIsValid"-->
           <!--              text-->
-          <!--              v-if="resultsCount <= 100000 && !exportIsInProgress"-->
+          <!--              v-if="resultsCount <= 500000 && !exportIsInProgress"-->
           <!--              color="primary"-->
           <!--              @click="exportToCsv"-->
           <!--          >-->

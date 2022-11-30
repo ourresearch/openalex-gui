@@ -1,6 +1,6 @@
 <template>
   <v-list-item
-      class=" my-0 facet-option align-start pr-1"
+      class=" my-0 facet-option align-start pr                                 -1"
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
