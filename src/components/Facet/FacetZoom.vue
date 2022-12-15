@@ -294,7 +294,6 @@ export default {
           .filter(f => f.value !== "unknown")
       const sorted = sortedFilters(ret, this.config.sortByValue)
       sorted.sort((a,b)=>{
-        console.log("sortfunction", this.selectedFilters, a.kv)
         return (this.myResultsFilterIds.includes(a.kv)) ? -1 : 1
       })
       return sorted

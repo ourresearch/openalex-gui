@@ -102,10 +102,43 @@
           clear
         </v-btn>
         <v-spacer></v-spacer>
-        <v-btn v-if="showDetailsButton" text @click="showDetails" :disabled="$store.state.showYearRange">
-          <v-icon left>mdi-open-in-app</v-icon>
-          Details
-        </v-btn>
+        <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="mr-1">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>
+            Export as:
+            <!--                {{ config.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200, true)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-table</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Spreadsheet
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
       </v-card-actions>
 
 
@@ -293,6 +326,22 @@ export default {
         this.replaceInputFilter(filter)
       }
       this.closeMenu()
+    },
+
+    makeApiUrl(perPage, formatCsv) {
+      if (!perPage) perPage = this.maxApiFiltersToShow
+      const url = new URL(`https://api.openalex.org`)
+      url.pathname = `${this.entityType}`
+
+      const filters = this.$store.state.inputFilters.filter(f => f.key !== this.config.key)
+      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
+
+      url.searchParams.set("group_by", this.config.key)
+      url.searchParams.set("per_page", String(perPage))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      if (formatCsv) url.searchParams.set("format", "csv")
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
     },
   },
 

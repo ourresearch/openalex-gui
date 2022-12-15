@@ -216,7 +216,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "range",
             sortByValue: true,
             isRange: true,
-            category: "other",
+            category: "popular",
             isCore: true,
             sortToTop: true,
             icon: "mdi-calendar-text"

@@ -29,9 +29,10 @@ const pushNewSearch = async function (router, entityType, search) {
         name: "Serp",
         params: {entityType,},
     }
-    if (entityType === router.currentRoute.params.entityType) {
-        newRoute.query = addToQuery(router.currentRoute.query, "search", search)
-    }
+    // if (entityType === router.currentRoute.params.entityType) {
+    //     newRoute.query = addToQuery(router.currentRoute.query, "search", search)
+    // }
+    newRoute.query = addToQuery(router.currentRoute.query, "search", search)
 
     console.log("pushNewSearch", newRoute)
     return await pushToRoute(router, newRoute)
@@ -47,9 +48,7 @@ const pushToRoute = async function (router, newRoute) {
 }
 
 
-
-
-const addZoomToRoute = function(router, zoom) {
+const addZoomToRoute = function (router, zoom) {
     if (!zoom) return
     const shortId = zoom.replace("https://openalex.org/", "")
 
@@ -63,7 +62,7 @@ const addZoomToRoute = function(router, zoom) {
     }
 }
 
-const goToZoom = async function(router, zoom) {
+const goToZoom = async function (router, zoom) {
     return pushToRoute(router, addZoomToRoute(router, zoom))
 }
 
