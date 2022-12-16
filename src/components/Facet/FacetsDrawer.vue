@@ -1,27 +1,16 @@
 <template>
 
 
-  <v-navigation-drawer
-      app
-      :width="totalWidth"
-      v-model="isOpen"
+  <div
       class="pa-0 ma-0"
       id="facets-drawer"
-      disable-route-watcher
-      color="transparent"
-      floating
-
 
   >
     <div @click="setFacetZoom(null)">
       <v-card
-          color="#fff"
-          :width="facetsWidth"
-          :style="`margin: ${height.margins[0]}px ${width.margins[0]}px ${height.margins[1]}px ${width.margins[1]}px;`"
-          style="border: 1px solid rgba(0, 0, 0, .2);"
-          outlined
           :ripple="false"
           :disabled="!!facetZoom"
+          flat
       >
         <div
             class="card-header"
@@ -29,8 +18,7 @@
         >
 
           <div
-              class="d-flex align-center pl-1 pr-3"
-              :style="`height: ${height.toolbar}px;`"
+              class="d-flex align-center pl-1 pr-3 mt-4"
           >
 
             <!--        <v-btn-->
@@ -42,37 +30,41 @@
 
             <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
             <!--        </v-btn>-->
-            <span
-                class="text-h6  pl-4"
+              <v-text-field
+                flat
+                hide-details
+                solo
+                full-width
+                class="mt-0 mx-2"
+                clearable
+                prepend-inner-icon="mdi-magnify"
+                autofocus
+                dense
 
-            >
-              <v-icon>mdi-filter-outline</v-icon>
-          Filters
-              </span>
+                v-model="facetSearch"
+                placeholder="search filters"
+            />
 
             <v-spacer/>
-            <v-btn icon class="mr-1" @click="showSearch = !showSearch">
-              <v-icon>mdi-magnify</v-icon>
-            </v-btn>
-            <v-chip
-                v-if="resultsFiltersNegated.length"
-                color="red"
-                dark
-                small
-                :disabled="!!facetZoom"
-            >
-              {{ resultsFiltersNegated.length }}
-            </v-chip>
-            <v-chip
-                v-if="resultsFiltersAny.length"
-                color="green"
-                dark
-                small
-                class="ml-1"
-                :disabled="!!facetZoom"
-            >
-              {{ resultsFiltersAny.length }}
-            </v-chip>
+<!--            <v-chip-->
+<!--                v-if="resultsFiltersNegated.length"-->
+<!--                color="red"-->
+<!--                dark-->
+<!--                small-->
+<!--                :disabled="!!facetZoom"-->
+<!--            >-->
+<!--              {{ resultsFiltersNegated.length }}-->
+<!--            </v-chip>-->
+<!--            <v-chip-->
+<!--                v-if="resultsFiltersAny.length"-->
+<!--                color="green"-->
+<!--                dark-->
+<!--                small-->
+<!--                class="ml-1"-->
+<!--                :disabled="!!facetZoom"-->
+<!--            >-->
+<!--              {{ resultsFiltersAny.length }}-->
+<!--            </v-chip>-->
 
 
 
@@ -135,7 +127,6 @@
         <v-card-text
             class="pa-0"
             :style="cardTextStyle"
-            v-scroll.self="onCardTextScroll"
         >
 
 
@@ -195,7 +186,7 @@
 <!--    </div>-->
 
 
-  </v-navigation-drawer>
+  </div>
 </template>
 
 
@@ -317,6 +308,7 @@ export default {
           })
     },
     cardTextStyle() {
+      return ""
       const marginsHeight = this.height.margins[0] + this.height.margins[1]
       const toolbarsTotalHeight = this.height.toolbar + (this.showSearch ? this.height.searchbar : 0)
       const height = toolbarsTotalHeight + marginsHeight
@@ -424,11 +416,4 @@ export default {
   margin-bottom: 0;
 }
 
-#facet-zoom-drawer {
-  position: fixed;
-  top: 2px;
-  bottom: 2px;
-  right: 0;
-  z-index: 3;
-}
 </style>

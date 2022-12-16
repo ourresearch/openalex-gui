@@ -1,61 +1,14 @@
 <template>
 
 
-  <v-app id="serp-app">
-    <div id="serp-app-inside">
+    <div id="serp-app-inside" class="d-flex">
 
-      <v-app-bar
-          app
-          color="white"
-          class="pl-0"
-          :class="{mobile: $vuetify.breakpoint.mobile}"
-          absolute
-          flat
-          height="75"
 
-      >
-        <div class="d-flex flex-fill justify-space-between align-center">
-          <div class="d-flex flex-fill" style="max-width: 780px;">
-            <router-link :to="{name: 'Serp', params: {entityType: $route.params.entityType}}" class="logo-link pl-2">
-              <img
-                  src="@/assets/openalex-logo-icon-black-and-white.png"
-                  class="logo-icon mr-0 colorizable"
-                  :style="logoStyle"
-              />
-              <span
-                  class="logo-text colorizable"
-                  v-if="!facetZoom"
-                  :style="logoStyle"
-              >
-                OpenAlex
-<!--                <span class="grey&#45;&#45;text">-->
-<!--                  {{ selectedEntityTypeConfig.displayName }}-->
-<!--                </span>-->
-              </span>
-            </router-link>
-            <!--          {{ logoColorRotation }}-->
-                        <search-box v-if="!$vuetify.breakpoint.mobile" class="ml-5 d-md-block d-none mt-1 flex-fill" />
-          </div>
 
-          <div class="">
-            <v-menu offset-y content-class="no-highlight" min-width="150">
-              <template v-slot:activator="{on}">
-                <v-btn icon color="" v-on="on">
-                  <v-icon class="">mdi-menu</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item to="/">Home</v-list-item>
-                <v-list-item href="/about">
-                  About
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
-      </v-app-bar>
-
-      <facets-drawer @filter-type-key="setFilterTypeKey"/>
+      <facets-drawer
+          @filter-type-key="setFilterTypeKey"
+          style="width: 300px;"
+      />
 
 
       <!--      <v-navigation-drawer-->
@@ -71,7 +24,6 @@
       <!--      </v-navigation-drawer>-->
 
 
-      <v-main>
 
         <router-view></router-view>
         <div
@@ -95,7 +47,12 @@
                 class="mt-2 d-flex"
                 v-if="resultsCount >= 0"
             >
-              <div class="years-range-button" v-ripple  @click="$store.state.showYearRange = !$store.state.showYearRange">
+              <div
+                  v-if="0"
+                  class="years-range-button"
+                  v-ripple
+                  @click="$store.state.showYearRange = !$store.state.showYearRange"
+              >
                 <year-range
                     height="20px"
                     width="20px"
@@ -105,7 +62,7 @@
                 </year-range>
                 <v-icon v-else>mdi-chevron-up</v-icon>
               </div>
-              <span class="font-weight-bold">{{ resultsCount | toPrecision }}</span>
+              <span class="font-weight-bold ml-4">{{ resultsCount | toPrecision }}</span>
               <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
             </div>
             <v-spacer></v-spacer>
@@ -149,43 +106,9 @@
         </div>
 
 
-      </v-main>
 
 
-      <v-footer
-          class="py-10 site-footer"
-          style="margin-top: 150px;"
-          :style="{paddingRight: 0}"
-          dark
-          color="#363636"
-          v-if="!searchIsLoading"
-      >
-        <v-container>
-          <v-row>
-            <v-col cols="12" sm="4">
-              <div>
-                <router-link to="/">Home</router-link>
-              </div>
-              <div>
-                <a href="/about">
-                  About
-                </a>
-              </div>
-            </v-col>
-            <v-col cols="12" sm="4" class="text-center">
-              <router-link to="/">
-                <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
-              </router-link>
-            </v-col>
-            <v-col cols="12" sm="4" class="body-2">
-              OurResearch is supported in part by <a
-                style="text-decoration: underline;"
-                href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
-              charitable fund of Lisbet Rausing and Peter Baldwin</a>.
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-footer>
+
 
 
       <v-dialog
@@ -216,7 +139,6 @@
         </template>
       </v-snackbar>
     </div>
-  </v-app>
 
 
 </template>
@@ -345,10 +267,6 @@ export default {
     },
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
-    },
-    logoStyle() {
-      return "opacity: .7;"
-      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
     },
     roundedResultsCount() {
       const asString = millify(
