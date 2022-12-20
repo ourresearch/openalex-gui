@@ -92,7 +92,8 @@ export default {
         return
       }
       this.loading = true
-      const url = `https://api.openalex.org/autocomplete?q=${v}&mailto=team@ourresearch.org`
+      this.query = encodeURIComponent(v)
+      const url = `https://api.openalex.org/autocomplete?q=${this.query}&mailto=team@ourresearch.org`
       axios.get(url)
           .then(resp => {
             if (!this.searchString) {
