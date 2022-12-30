@@ -10,7 +10,7 @@
         </td>
       </tr>
 
-      <tr>
+      <tr v-if="data.x_concepts.length">
         <td class="table-row-label">
           Concepts:
         </td>

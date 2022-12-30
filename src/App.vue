@@ -7,12 +7,17 @@
         :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
         flat
-        height="75"
+        height="90"
 
     >
       <div class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill">
-          <router-link :to="{name: 'Home'}" class="logo-link pl-2" style="width: 300px;">
+          <router-link
+              :to="{name: 'Home'}"
+              class="logo-link pl-3"
+              style="width: 350px;"
+              v-if="$route.name !== 'Home'"
+          >
             <img
                 src="@/assets/openalex-logo-icon-black-and-white.png"
                 class="logo-icon mr-0 colorizable"
@@ -30,8 +35,8 @@
           </router-link>
           <!--          {{ logoColorRotation }}-->
           <search-box
-              v-if="!$vuetify.breakpoint.mobile"
-              class="ml-5 d-md-block d-none mt-1 flex-fill"
+              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
+              class="d-md-block d-none mt-1 pl-2 flex-fill"
               style="max-width: 700px;"
           />
         </div>
@@ -44,9 +49,17 @@
               </v-btn>
             </template>
             <v-list>
-              <v-list-item to="/">Home</v-list-item>
-              <v-list-item href="/about">
+              <v-list-item to="/">
+                Home
+              </v-list-item>
+              <v-list-item to="/about">
                 About
+              </v-list-item>
+              <v-list-item to="/premium">
+                Premium
+              </v-list-item>
+              <v-list-item to="/help">
+                Help
               </v-list-item>
             </v-list>
           </v-menu>
@@ -167,7 +180,7 @@ html, body {
   opacity: 0;
 }
 
-$logo-link-height: 42px;
+$logo-link-height: 45px;
 
 .logo-link {
   text-decoration: none;
@@ -190,8 +203,8 @@ $logo-link-height: 42px;
 
     font-family: Dosis;
     letter-spacing: .03em;
-    font-size: $logo-link-height * 0.66666666;
-    font-weight: 500;
+    font-size: $logo-link-height * 0.75;
+    font-weight: 400;
   }
 }
 

@@ -2,7 +2,7 @@
 
 
   <div
-      class="pa-0 ma-0"
+      class="pl-3 ma-0"
       id="facets-drawer"
 
   >
@@ -18,7 +18,7 @@
         >
 
           <div
-              class="d-flex align-center pl-1 pr-3 mt-4"
+              class="d-flex align-center pl-1 pt-12 mt-3"
           >
 
             <!--        <v-btn-->
@@ -30,41 +30,37 @@
 
             <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
             <!--        </v-btn>-->
-              <v-text-field
-                flat
-                hide-details
-                solo
-                full-width
-                class="mt-0 mx-2"
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                autofocus
-                dense
+            <span
+                class="font-weight-bold pl-4"
 
-                v-model="facetSearch"
-                placeholder="search filters"
-            />
+            >
+              <v-icon>mdi-filter-outline</v-icon>
+          Filters
+              </span>
 
             <v-spacer/>
-<!--            <v-chip-->
-<!--                v-if="resultsFiltersNegated.length"-->
-<!--                color="red"-->
-<!--                dark-->
-<!--                small-->
-<!--                :disabled="!!facetZoom"-->
-<!--            >-->
-<!--              {{ resultsFiltersNegated.length }}-->
-<!--            </v-chip>-->
-<!--            <v-chip-->
-<!--                v-if="resultsFiltersAny.length"-->
-<!--                color="green"-->
-<!--                dark-->
-<!--                small-->
-<!--                class="ml-1"-->
-<!--                :disabled="!!facetZoom"-->
-<!--            >-->
-<!--              {{ resultsFiltersAny.length }}-->
-<!--            </v-chip>-->
+            <v-btn icon class="mr-1" @click="showSearch = !showSearch">
+              <v-icon>mdi-magnify</v-icon>
+            </v-btn>
+            <v-chip
+                v-if="resultsFiltersNegated.length"
+                color="red"
+                dark
+                small
+                :disabled="!!facetZoom"
+            >
+              {{ resultsFiltersNegated.length }}
+            </v-chip>
+            <v-chip
+                v-if="resultsFiltersAny.length"
+                color="green"
+                dark
+                small
+                class="ml-1"
+                :disabled="!!facetZoom"
+            >
+              {{ resultsFiltersAny.length }}
+            </v-chip>
 
 
 

@@ -12,8 +12,8 @@
         append-icon="mdi-magnify"
         id="main-search"
         style="width: 100%;"
-        :dense="!isAloneOnPage || !prominent"
         :color="color"
+        rounded
 
         v-model="select"
         :items="items"

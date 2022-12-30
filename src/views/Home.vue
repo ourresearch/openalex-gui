@@ -21,7 +21,7 @@
           </v-row>
           <v-row justify="center" class="text-h5 mb-10 mt-5 font-weight-light">
             <div>
-            The free and open scholarly search engine
+            The open, complete, and easy index of scholarship
             </div>
           </v-row>
 

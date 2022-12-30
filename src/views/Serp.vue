@@ -1,13 +1,13 @@
 <template>
 
 
-    <div id="serp-app-inside" class="d-flex">
+    <div id="serp-app-inside" class="d-flex mt-6">
 
 
 
       <facets-drawer
           @filter-type-key="setFilterTypeKey"
-          style="width: 300px;"
+          style="width: 360px; "
       />
 
 

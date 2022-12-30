@@ -17,7 +17,7 @@
           <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none">(map)</a>
         </td>
       </tr>
-      <tr>
+      <tr v-if="data.x_concepts.length">
         <td class="table-row-label">
           Concepts:
         </td>
@@ -50,7 +50,7 @@
         <td class="pt-6">
           <link-to-search
               :count="data.works_count"
-              filter-key="authorships.author.id"
+              filter-key="authorships.institutions.id"
               :filter-value="data.id"
               entity-type="works"
           />
