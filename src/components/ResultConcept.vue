@@ -1,29 +1,31 @@
 <template>
-  <div>
-    <div>
-      <router-link  class="text-decoration-none" :to="data.id | zoomLink">
+  <v-row>
+
+    <v-col cols="10">
+      <div>
+      <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
         {{ data.display_name }}
       </router-link>
     </div>
     <div v-if="data.description" class="capitalize-first-letter">
       {{ data.description }}
     </div>
-    <div>
-      <concepts-list :concepts="data.related_concepts"/>
-    </div>
-    <div class="body-1">
-              <result-works-count
+      <div>
+        <result-works-count
             :works-count="data.works_count"
             :id="data.id"
             entity-type="concepts"
             class="mr-4"
         />
-      <result-citation-count
+        <result-citation-count
             :cited-by-count="data.cited_by_count"
             entity-type="concepts"
         />
-    </div>
-  </div>
+      </div>
+    </v-col>
+
+
+  </v-row>
 </template>
 
 
@@ -47,8 +49,7 @@ export default {
     }
   },
   methods: {},
-  computed: {
-  },
+  computed: {},
   created() {
   },
   mounted() {
