@@ -62,7 +62,7 @@
       <v-container>
       <v-alert text outlined type="warning">
         <strong>Under construction.</strong>
-        This website officially launches September 2022.
+        A new version of the website is launching in 2023.
       </v-alert>
 
       </v-container>
