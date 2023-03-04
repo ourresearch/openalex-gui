@@ -1,6 +1,34 @@
 <template>
 
   <form class="main-search">
+<!--    <v-combobox-->
+<!--        class="mr-12"-->
+<!--        flat-->
+<!--        outlined-->
+<!--        solo-->
+<!--        hide-details-->
+
+<!--        clearable-->
+<!--        append-icon="mdi-magnify"-->
+<!--        id="main-search"-->
+<!--        style="width: 100%;"-->
+<!--        :color="color"-->
+<!--        rounded-->
+
+<!--        v-model="select"-->
+<!--        :items="items"-->
+<!--        :search-input.sync="searchString"-->
+<!--        :loading="isFetchingItems"-->
+<!--        :placeholder="selectedEntityTypeConfig.placeholder"-->
+
+
+<!--        @focus="onFocus"-->
+<!--        @keydown.enter="doSearch('keyup.enter')"-->
+<!--        @input="doSearch('input')"-->
+<!--        @click:append="doSearch"-->
+<!--        @click:clear="searchString = ''"-->
+
+<!--    >-->
     <v-combobox
         class="mr-12"
         flat
@@ -16,16 +44,11 @@
         rounded
 
         v-model="select"
-        :items="items"
-        :search-input.sync="searchString"
-        :loading="isFetchingItems"
-        :placeholder="selectedEntityTypeConfig.placeholder"
+        :items="[]"
 
 
-        @focus="onFocus"
         @keydown.enter="doSearch('keyup.enter')"
-        @input="doSearch('input')"
-        @click:append="doSearch"
+        @click:append="doSearch('click:append')"
         @click:clear="searchString = ''"
 
     >
@@ -83,9 +106,7 @@
         </v-list-item-title>
       </template>
 
-
     </v-combobox>
-
   </form>
 
 
