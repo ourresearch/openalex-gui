@@ -16,12 +16,12 @@
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
-            entity-type="venues"
+            entity-type="sources"
             class="mr-4"
         />
         <result-citation-count
             :cited-by-count="data.cited_by_count"
-            entity-type="venues"
+            entity-type="sources"
         />
       </div>
     </v-col>

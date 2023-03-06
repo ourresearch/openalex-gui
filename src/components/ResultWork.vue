@@ -14,9 +14,9 @@
         <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
         <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
         <span v-if="data.host_venue.display_name" class="font-italic"> - {{
-            data.host_venue.display_name | truncate(50)
+            data.primary_location.source.display_name | truncate(50)
           }}</span>
-        <span v-if="data.publication_year"><span v-if="data.host_venue.display_name">,</span> {{ data.publication_year }} </span>
+        <span v-if="data.publication_year"><span v-if="data.primary_location.source.display_name">,</span> {{ data.publication_year }} </span>
 
       </div>
       <div class="body-1" v-if="abstract && isOpenlyLicensed">
@@ -111,7 +111,7 @@ export default {
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
       if (this.data.open_access.oa_url) return this.data.open_access.oa_url
-      else if (this.data.open_access.is_oa) return this.data.host_venue.url
+      else if (this.data.open_access.is_oa) return this.data.primary_location.source.url
       else return null
     },
     authorsList() {

@@ -50,6 +50,7 @@ Vue.filter("idLink", function (fullId) {
         "W": "works",
         "I": "institutions",
         "V": "venues",
+        "S": "sources",
         "A": "authors",
         "C": "concepts",
     };

@@ -18,7 +18,7 @@
     </v-alert>
 
     <table class="">
-      <tr v-if="!data.host_venue.display_name && data.publication_year">
+      <tr v-if="!data.primary_location.source.display_name && data.publication_year">
         <td class="table-row-label">
           Publication year:
         </td>
@@ -29,12 +29,12 @@
 
 
       <!--    venue and year-->
-      <tr v-if="data.host_venue.display_name">
+      <tr v-if="data.primary_location.source.display_name">
         <td class="table-row-label">
           Host:
         </td>
         <td>
-          <link-to-entity :entity="data.host_venue"/>
+          <link-to-entity :entity="data.primary_location.source"/>
           <span
               class="year ml-1"
               v-if="data.publication_year"
@@ -226,7 +226,7 @@ export default {
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
       if (this.data.open_access.oa_url) return this.data.open_access.oa_url
-      else if (this.data.open_access.is_oa) return this.data.host_venue.url
+      else if (this.data.open_access.is_oa) return this.data.primary_location.source.url
       else return null
     },
     apiUrl() {

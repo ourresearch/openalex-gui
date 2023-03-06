@@ -30,6 +30,7 @@ const entityTypesDict = {
     "w": "works",
     "i": "institutions",
     "v": "venues",
+    "s": "sources",
     "a": "authors",
     "c": "concepts",
 };

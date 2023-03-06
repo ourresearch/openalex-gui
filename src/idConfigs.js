@@ -73,7 +73,7 @@ const idConfigs = {
         isUrl: true,
     },
 
-    // venues
+    // sources
     issn_l: {
         namespace: "issn_l",
         displayNamespace: "ISSN-L",

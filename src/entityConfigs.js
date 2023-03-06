@@ -23,7 +23,7 @@ const entityConfigs = {
         filterName: "author",
         filterKey: "authorships.author.id",
     },
-    venues: {
+    sources: {
         emoji: "📚",
         // icon: "mdi-book-outline",
         icon: "mdi-book-open-outline",

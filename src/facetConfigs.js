@@ -21,7 +21,7 @@ const facetCategories = {
         "ids",
         "other",
     ],
-    venues: [
+    sources: [
         "popular",
         "access",
         "other",
@@ -55,12 +55,12 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lightbulb-outline",
         },
         {
-            key: "host_venue.id",
+            key: "primary_location.source.id",
             entityType: "works",
             displayName: "Host",
             isEntity: true,
-            entityId: "venues",
-            autocompleteEndpoint: "autocomplete/venues",
+            entityId: "sources",
+            autocompleteEndpoint: "autocomplete/sources",
             valuesToShow: "mostCommon",
             category: "host",
             isCore: true,
@@ -92,21 +92,21 @@ const facetConfigs = function (entityType) {
         },
 
 
-        // works: host venue
+        // works: primary venue
         {
-            key: "host_venue.publisher",
+            key: "primary_location.source.publisher",
             entityType: "works",
             displayName: "Publisher",
-            autocompleteEndpoint: "autocomplete/venues/publisher",
+            autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
             category: "host",
         icon: "mdi-book-open-outline",
         },
         {
-            key: "host_venue.type",
+            key: "primary_location.source.type",
             entityType: "works",
             displayName: "Type",
-            autocompleteEndpoint: "autocomplete/venues/publisher",
+            autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
             category: "host",
         icon: "mdi-book-open-outline",
@@ -126,7 +126,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
         },
         {
-            key: "host_venue.license",
+            key: "best_oa_location.source.license",
             entityType: "works",
             displayName: "License",
             valuesToShow: "mostCommon",
@@ -141,14 +141,6 @@ const facetConfigs = function (entityType) {
             category: "access",
             icon: "mdi-lock-open-outline",
         },
-        // {
-        //     key: "alternate_host_venues.version",
-        //     entityType: "works",
-        //     displayName: "Open version",
-        //     valuesToShow: "mostCommon",
-        //     category: "access",
-        //     icon: "mdi-lock-open-outline",
-        // },
         // {
         //     key: "has_abstract",
         //     entityType: "works",
@@ -376,19 +368,19 @@ const facetConfigs = function (entityType) {
 
 
 
-        // venues
+        // sources
         {
             key: "publisher",
-            entityType: "venues",
+            entityType: "sources",
             displayName: "Publisher",
-            autocompleteEndpoint: "autocomplete/venues/publisher",
+            autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
             category: "popular",
             icon: "mdi-book-open-outline",
         },
         {
             key: "is_oa",
-            entityType: "venues",
+            entityType: "sources",
             displayName: "Open Access",
             valuesToShow: "mostCommon",
             category: "access",
@@ -396,7 +388,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "is_in_doaj",
-            entityType: "venues",
+            entityType: "sources",
             displayName: "In DOAJ",
             valuesToShow: "mostCommon",
             category: "access",
@@ -404,7 +396,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "x_concepts.id",
-            entityType: "venues",
+            entityType: "sources",
             displayName: "Concepts",
             isEntity: true,
             entityId: "concepts",

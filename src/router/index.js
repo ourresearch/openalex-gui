@@ -22,7 +22,7 @@ const routes = [
         component: Home
     },
     {
-        path: `/:entityType(works|authors|venues|institutions|concepts)`,
+        path: `/:entityType(works|authors|venues|sources|institutions|concepts)`,
         name: 'Serp',
         component: Serp,
         children: [

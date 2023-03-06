@@ -25,7 +25,7 @@
               <span v-if="entityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-              <span v-if="entityType=== 'venues' && data.type">
+              <span v-if="entityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
             </div>
@@ -50,7 +50,7 @@
 
           <entity-work v-if="entityType==='works'" :data="data"/>
           <entity-author v-if="entityType==='authors'" :data="data"/>
-          <entity-venue v-if="entityType==='venues'" :data="data"/>
+          <entity-venue v-if="entityType==='sources'" :data="data"/>
           <entity-institution v-if="entityType==='institutions'" :data="data"/>
           <entity-concept v-if="entityType==='concepts'" :data="data"/>
 
@@ -85,7 +85,7 @@
                     <v-icon right small>mdi-open-in-new</v-icon>
 
                   </v-list-item>
-                  <v-list-item target="_blank" :href="data.host_venue.url">
+                  <v-list-item target="_blank" :href="data.primary_location.source.url">
                     <v-list-item-title>
                       <span class="font-weight-bold">Paywalled</span> at publisher
                     </v-list-item-title>
@@ -109,7 +109,7 @@
 
               <!--   Paywalled at publisher-->
               <v-btn
-                  :href="data.host_venue.url"
+                  :href="data.primary_location.source.url"
                   target="_blank"
                   color="primary"
                   outlined
@@ -219,7 +219,7 @@ import {api} from "../../api";
 
 const getWorkFulltextUrl = function (data) {
   if (data.open_access.oa_url) return data.open_access.oa_url
-  else if (data.open_access.is_oa) return data.host_venue.url
+  else if (data.open_access.is_oa) return data.primary_location.source.url
   else return null
 }
 
@@ -281,12 +281,12 @@ export default {
       return entityTypeFromId(this.myId)
     },
     linkoutUrl() {
-      if (this.entityType === "venues") return this.data.homepage_url
+      if (this.entityType === "sources") return this.data.homepage_url
       if (this.entityType === "institutions") return this.data.homepage_url
       if (this.entityType === "concepts") return this.data.ids.wikipedia
     },
     linkoutButtonText() {
-      if (this.entityType === "venues") return "Homepage"
+      if (this.entityType === "sources") return "Homepage"
       if (this.entityType === "institutions") return "Homepage"
       if (this.entityType === "concepts") return "Wikipedia"
     },

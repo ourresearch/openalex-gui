@@ -41,7 +41,7 @@
             <template v-if="entityType=='authors'">
               this this person's works.
             </template>
-            <template v-if="entityType=='venues'">
+            <template v-if="entityType=='sources'">
               this host's works
             </template>
             <template v-if="entityType=='institutions'">

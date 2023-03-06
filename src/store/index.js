@@ -42,7 +42,7 @@ const sortDefaults = {
         textSearch: "relevance_score:desc",
         noTextSearch: "works_count:desc",
     },
-    venues: {
+    sources: {
         textSearch: "relevance_score:desc",
         noTextSearch: "works_count:desc",
     },
