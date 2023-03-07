@@ -28,7 +28,7 @@
       </tr>
 
 
-      <!--    venue and year-->
+      <!--    sourcer and year-->
       <tr v-if="data.primary_location.source.display_name">
         <td class="table-row-label">
           Host:
