@@ -11,7 +11,7 @@ import ZoomEntity from "../components/Zoom/ZoomEntity";
 Vue.use(VueRouter)
 
 
-const openAlexIdRegex = "[wWiIvVaAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
+const openAlexIdRegex = "[wWiIvVsSaAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
 
 
 

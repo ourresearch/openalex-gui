@@ -13,10 +13,10 @@
 
         <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
         <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
-        <span v-if="data.host_venue.display_name" class="font-italic"> - {{
+        <span v-if="data.primary_location.source && data.primary_location.source.display_name" class="font-italic"> - {{
             data.primary_location.source.display_name | truncate(50)
           }}</span>
-        <span v-if="data.publication_year"><span v-if="data.primary_location.source.display_name">,</span> {{ data.publication_year }} </span>
+        <span v-if="data.publication_year"><span v-if="data.primary_location.source && data.primary_location.source.display_name">,</span> {{ data.publication_year }} </span>
 
       </div>
       <div class="body-1" v-if="abstract && isOpenlyLicensed">
@@ -40,6 +40,7 @@
           </router-link>
 
         </span>
+
       </div>
       <div class="pt-1 pb-4">
         <v-btn

@@ -1,7 +1,7 @@
 <template>
 
 
-    <div id="serp-app-inside" class="d-flex mt-6">
+    <div id="serp-app-inside" class="d-flex">
 
 
 
@@ -39,8 +39,11 @@
             <search-box v-if="$vuetify.breakpoint.mobile" class="px-3 flex-fill"/>
           </div>
 
+          <div>
+            <serp-filters-list></serp-filters-list>
+          </div>
           <div
-              class="serp-toolbar-row d-flex align-center mt-12 pt-2 pr-2"
+              class="serp-toolbar-row d-flex align-center pt-2 pr-2"
               style="min-height: 50hv;"
           >
             <div
@@ -90,7 +93,7 @@
             >
               <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
               <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
-              <result-venue v-if="$store.state.entityType === 'venues'" :data="result"/>
+              <result-venue v-if="$store.state.entityType === 'sources'" :data="result"/>
               <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
               <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
             </div>
@@ -156,6 +159,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar";
+import SerpFiltersList from "../SerpFiltersList";
 
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
@@ -182,6 +186,7 @@ export default {
     ZoomEntity,
     DownloadCsvDialog,
     SerpToolbar,
+    SerpFiltersList,
     ResultWork,
     ResultAuthor,
     ResultVenue,

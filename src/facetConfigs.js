@@ -8,7 +8,7 @@ const facetCategories = {
         "popular",
         "institution",
         "location",
-        "host",
+        "source",
         "access",
         "ids",
         "citation",
@@ -57,12 +57,12 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Host",
+            displayName: "Source",
             isEntity: true,
             entityId: "sources",
             autocompleteEndpoint: "autocomplete/sources",
             valuesToShow: "mostCommon",
-            category: "host",
+            category: "source",
             isCore: true,
             icon: "mdi-book-open-outline",
         },
@@ -92,14 +92,14 @@ const facetConfigs = function (entityType) {
         },
 
 
-        // works: primary venue
+        // works: primary location source
         {
-            key: "primary_location.source.publisher",
+            key: "primary_location.source.host_organization",
             entityType: "works",
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
-            category: "host",
+            category: "source",
         icon: "mdi-book-open-outline",
         },
         {
@@ -108,7 +108,7 @@ const facetConfigs = function (entityType) {
             displayName: "Type",
             autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
-            category: "host",
+            category: "source",
         icon: "mdi-book-open-outline",
         },
 
