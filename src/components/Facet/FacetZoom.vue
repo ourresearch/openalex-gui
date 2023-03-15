@@ -291,7 +291,7 @@ export default {
     },
     apiFiltersToShow() {
       const ret = this.apiFilters
-          .filter(f => f.value !== "unknown")
+          // .filter(f => f.value !== "unknown")
       const sorted = sortedFilters(ret, this.config.sortByValue)
       sorted.sort((a,b)=>{
         return (this.myResultsFilterIds.includes(a.kv)) ? -1 : 1
