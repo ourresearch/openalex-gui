@@ -348,7 +348,8 @@ export default {
       const url = new URL(`https://api.openalex.org`)
       url.pathname = `${this.entityType}`
 
-      const filters = this.$store.state.inputFilters.filter(f => f.key !== this.config.key)
+      const filters = this.$store.state.inputFilters
+          // .filter(f => f.key !== this.config.key)
       url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
 
       url.searchParams.set("group_by", this.config.key)

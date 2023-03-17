@@ -72,6 +72,14 @@ const filtersFromUrlStr = function (str) {
 //         .join(",")
 // }
 const filtersAsUrlStr = function (filters, entityType) {
+    const filtersAsStrings = filters.map(f => {
+        const valuePrepend = (f.isNegated) ? "!" : ""
+        const value = valuePrepend + f.value
+        return [f.key, value].join(":")
+    })
+    return filtersAsStrings.join(",")
+
+    // old way allowed for OR-ing values within a facet, now unsupported.
     const configs = facetConfigs(entityType)
     const mergedFiltersByFacet = configs.map(c => {
         const myFilters = filters.filter(f => f.key === c.key)
