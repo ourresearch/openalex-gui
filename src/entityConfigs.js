@@ -15,7 +15,7 @@ const entityConfigs = {
         // icon: "mdi-account-school-outline",
         icon: "mdi-account-outline",
         name: "authors",
-        displayName: "people",
+        displayName: "authors",
         displayNameSingular: "person",
         descr: "Creators of scholarly works",
         eg: "Albert Einstein",

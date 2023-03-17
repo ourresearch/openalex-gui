@@ -18,6 +18,7 @@
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs} from "../entityConfigs";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
   name: "ResultWorksCount",
@@ -50,6 +51,18 @@ export default {
     },
     linkToWorks() {
       if (!this.id || !this.entityType) return false
+
+      const filter = createSimpleFilter(
+          entityConfigs[this.entityType].filterKey,
+          this.id,
+      )
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+
+
 
       const shortId = this.id.replace("https://openalex.org/", "")
       const filterName = entityConfigs[this.entityType].filterName + ".id"
