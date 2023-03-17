@@ -379,6 +379,14 @@ const facetConfigs = function (entityType) {
             icon: "mdi-book-open-outline",
         },
         {
+            key: "type",
+            entityType: "sources",
+            displayName: "Source type",
+            valuesToShow: "mostCommon",
+            category: "popular",
+            icon: "mdi-book-open-outline",
+        },
+        {
             key: "is_oa",
             entityType: "sources",
             displayName: "Open Access",
