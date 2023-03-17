@@ -102,15 +102,6 @@ const facetConfigs = function (entityType) {
             category: "source",
         icon: "mdi-book-open-outline",
         },
-        {
-            key: "primary_location.source.type",
-            entityType: "works",
-            displayName: "Type",
-            autocompleteEndpoint: "autocomplete/sources/publisher",
-            valuesToShow: "mostCommon",
-            category: "source",
-        icon: "mdi-book-open-outline",
-        },
 
 
         // works: open access
@@ -185,7 +176,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.type",
             entityType: "works",
-            displayName: "Type",
+            displayName: "Institution type",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             category: "institution",
@@ -332,7 +323,7 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.type",
             entityType: "authors",
-            displayName: "Type",
+            displayName: "Institution type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
             category: "institution",
@@ -434,7 +425,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "institutions",
-            displayName: "Type",
+            displayName: "Institution type",
             autocompleteEndpoint: "autocomplete/institutions/type",
             valuesToShow: "mostCommon",
             category: "popular",
