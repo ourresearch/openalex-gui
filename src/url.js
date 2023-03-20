@@ -34,7 +34,6 @@ const pushNewSearch = async function (router, entityType, search) {
     // }
     newRoute.query = addToQuery(router.currentRoute.query, "search", search)
 
-    console.log("pushNewSearch", newRoute)
     return await pushToRoute(router, newRoute)
 }
 

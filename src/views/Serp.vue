@@ -326,20 +326,20 @@ export default {
         }
       }
     },
-    logoColorRotation: {
-      immediate: true,
-      handler(to, from) {
-        return
-        setTimeout(() => {
-          console.log("chaging logoColorRotation")
-          const date = new Date()
-          const seconds = date.getSeconds()
-          const rotation = seconds * 18
-          this.logoColorRotation = rotation
-
-        }, 1000)
-      }
-    },
+    // logoColorRotation: {
+    //   immediate: true,
+    //   handler(to, from) {
+    //     return
+    //     setTimeout(() => {
+    //       console.log("chaging logoColorRotation")
+    //       const date = new Date()
+    //       const seconds = date.getSeconds()
+    //       const rotation = seconds * 18
+    //       this.logoColorRotation = rotation
+    //
+    //     }, 1000)
+    //   }
+    // },
   }
 }
 </script>

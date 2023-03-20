@@ -2,7 +2,7 @@
   <div>
     <v-btn icon small><v-icon small>mdi-close</v-icon></v-btn>
     <span class="grey--text">
-      {{ getFacetConfig(filterKey, "displayName") }}:
+<!--      this will break, the getFacetConfig signature has changed -->
     </span>
     <span>
       {{ filterDisplayValue }}

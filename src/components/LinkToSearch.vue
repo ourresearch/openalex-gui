@@ -35,7 +35,7 @@ export default {
   methods: {},
   computed: {
     link() {
-      const filter = createSimpleFilter(this.filterKey, this.filterValue)
+      const filter = createSimpleFilter(this.entityType, this.filterKey, this.filterValue)
       return {
         name: "Serp",
         params: {entityType: this.entityType},

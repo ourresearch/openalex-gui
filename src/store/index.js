@@ -265,7 +265,7 @@ export default new Vuex.Store({
                 commit("setSort", getters.defaultSort)
             }
 
-            state.inputFilters = filtersFromUrlStr(router.currentRoute.query.filter)
+            state.inputFilters = filtersFromUrlStr(state.entityType, router.currentRoute.query.filter)
 
             await dispatch("doSearch")
         },
@@ -385,7 +385,7 @@ export default new Vuex.Store({
                     const params = (state.textSearch) ? {search: state.textSearch} : {}
                     const filtersResp = await api.get(path, params)
 
-                    state.resultsFilters = filtersFromFiltersApiResponse(filtersResp.filters)
+                    state.resultsFilters = filtersFromFiltersApiResponse(state.entityType, filtersResp.filters)
                 } else {
                     state.resultsFilters = []
                 }

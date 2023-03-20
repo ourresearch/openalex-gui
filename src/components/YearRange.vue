@@ -153,7 +153,6 @@ import {
   createDisplayFilter,
   createSimpleFilter,
   filtersAsUrlStr,
-  filtersFromUrlStr,
   displayYearRange,
 } from "../filterConfigs";
 import {api} from "../api";
@@ -226,7 +225,7 @@ export default {
       return this.range.join() !== [0, 101].join()
     },
     config() {
-      return getFacetConfig("publication_year")
+      return getFacetConfig("works", "publication_year")
     },
     apiUrl() {
       return this.makeApiUrl()
@@ -261,6 +260,7 @@ export default {
       }
 
       const filter = createSimpleFilter(
+          "works",
           "publication_year",
           [year, year].join("-")
       )
@@ -281,6 +281,7 @@ export default {
         // it is within the range, do nothing
       }
       const filter = createSimpleFilter(
+          "works",
           "publication_year",
           range.join("-")
       )
@@ -335,6 +336,7 @@ export default {
 
       const filters = _.range(1800, new Date().getFullYear() + 1).map(year => {
         return createDisplayFilter(
+            "works",
             "publication_year",
             year,
             false,

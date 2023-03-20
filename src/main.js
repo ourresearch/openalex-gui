@@ -15,7 +15,6 @@ import {prettyTitle, toPrecision} from "./util";
 import _ from 'lodash'
 
 import {
-    filtersFromUrlStr,
     filtersAsUrlStr,
 } from "./filterConfigs";
 

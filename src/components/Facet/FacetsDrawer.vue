@@ -6,6 +6,10 @@
       id="facets-drawer"
 
   >
+    <pre>
+      {{ facetsByCategory }}
+    </pre>
+
     <div @click="setFacetZoom(null)">
       <v-card
           :ripple="false"
@@ -148,6 +152,7 @@
                     v-if="facet.isRange"
                     :key="'facet' + facet.key"
                     :facet-key="facet.key"
+                    :facet-entity-type="entityType"
                     show-details-button
                 >
                 </facet-range>
@@ -155,6 +160,7 @@
                     v-else
                     :key="'facet' + facet.key"
                     :facet-key="facet.key"
+                    :facet-entity-type="entityType"
                     :has-focus="facetZoom === facet.key"
                     :disabled="facetZoom && facetZoom !== facet.key"
                     :value="expandAll"
@@ -187,7 +193,7 @@
 
 
 <script>
-import {createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
+import {createSimpleFilter, filtersAsUrlStr} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetCategories} from "../../facetConfigs";

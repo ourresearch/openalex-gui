@@ -1,7 +1,4 @@
 
-const makeFacetQueryFilters = function (facetFilters) {
-
-}
 
 const facetCategories = {
     works: [
@@ -460,6 +457,9 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lightbulb-outline"
         },
     ]
+
+
+    console.log("facetConfig", entityType)
     return ret
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
@@ -473,12 +473,10 @@ const facetConfigs = function (entityType) {
         })
 }
 
-const getFacetConfig = function (key, attr) {
-    const myFacetConfig = facetConfigs().find(f => f.key === key)
-    if (!myFacetConfig) throw(`openAlex error: getFacetConfig: no such key as "${key}"`)
-
-    if (!attr) return myFacetConfig
-    if (myFacetConfig) return myFacetConfig[attr]
+const getFacetConfig = function (entityType, key) {
+    const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
+    if (!myFacetConfig) throw(`openAlex error: getFacetConfig: no facet found for ${entityType} filter "${key}"`)
+    return myFacetConfig
 }
 
 const makeFacet = function (key, isNegated, values) {

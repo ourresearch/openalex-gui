@@ -208,7 +208,7 @@ export default {
       // alert('Copied!');
     },
     viewIncomingCitations() {
-      const filter = createSimpleFilter("cites", this.data.id)
+      const filter = createSimpleFilter("works", "cites", this.data.id)
       this.$store.dispatch("replaceInputFilters", [filter])
     },
 
@@ -243,7 +243,7 @@ export default {
       })
     },
     linkToIncomingCitations() {
-      const filter = createSimpleFilter("cites", this.data.id)
+      const filter = createSimpleFilter("works", "cites", this.data.id)
       return {
         name: "Serp",
         params: {entityType: "works"},
@@ -251,7 +251,7 @@ export default {
       }
     },
     linkToReferences() {
-      const filter = createSimpleFilter("cited_by", this.data.id)
+      const filter = createSimpleFilter( "works","cited_by", this.data.id)
       return {
         name: "Serp",
         params: {entityType: "works"},
@@ -259,7 +259,7 @@ export default {
       }
     },
     linkToRelatedWorks() {
-      const filter = createSimpleFilter("related_to", this.data.id)
+      const filter = createSimpleFilter("works", "related_to", this.data.id)
       return {
         name: "Serp",
         params: {entityType: "works"},

@@ -305,6 +305,7 @@ export default {
     filterToShowWorks() {
       if (this.entityType === "works") return
       return createSimpleFilter(
+          this.entityType,
           this.myEntityConfig.filterKey,
           this.myId,
       )
@@ -312,6 +313,7 @@ export default {
     linkToWorksSearch() {
       if (this.entityType === "works") return
       const filter = createSimpleFilter(
+          this.entityType,
           this.myEntityConfig.filterKey,
           this.myId,
       )

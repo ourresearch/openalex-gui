@@ -164,7 +164,6 @@ import {
   createSimpleFilter,
   filtersAsUrlStr,
     displayYearRange,
-  filtersFromUrlStr,
 } from "../../filterConfigs";
 import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
@@ -177,11 +176,14 @@ export default {
   components: {},
   props: {
     facetKey: String,
+    facetEntityType: String,
+
     dark: Boolean,
     showDetailsButton: Boolean,
     buttonText: String,
     showPlaceholderValueWhenUnset: Boolean,
     narrow: Boolean,
+
   },
   data() {
     return {
@@ -225,7 +227,7 @@ export default {
       return (this.buttonText) ? this.buttonText : this.config.displayName
     },
     config() {
-      return getFacetConfig(this.facetKey)
+      return getFacetConfig(this.facetEntityType, this.facetKey)
     },
     myResultsFilter() {
       return this.resultsFilters.find(f => {
@@ -320,6 +322,7 @@ export default {
         this.removeInputFiltersByKey(this.facetKey)
       } else {
         const filter = createSimpleFilter(
+            this.entityType,
             this.facetKey,
             this.range.join("-")
         )

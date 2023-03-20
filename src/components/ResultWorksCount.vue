@@ -53,6 +53,7 @@ export default {
       if (!this.id || !this.entityType) return false
 
       const filter = createSimpleFilter(
+          "works",
           entityConfigs[this.entityType].filterKey,
           this.id,
       )

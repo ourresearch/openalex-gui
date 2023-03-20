@@ -145,6 +145,7 @@ export default {
     },
     myFilter(){
       return createSimpleFilter(
+          this.entityType,
           this.filter.key,
           this.filter.value,
           this.isNegated

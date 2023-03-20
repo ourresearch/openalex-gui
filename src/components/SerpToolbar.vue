@@ -424,12 +424,6 @@ export default {
         name: "Serp",
       })
     },
-    getEntityIcon(facetKey) {
-      const entityId = getFacetConfig(facetKey, "entityId")
-      if (!entityId) return
-      return entityConfigs[entityId].icon
-
-    },
     openExportToCsvDialog() {
       this.exportIsInProgress = false
       this.dialogs.export = true

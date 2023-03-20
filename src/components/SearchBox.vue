@@ -239,7 +239,6 @@ export default {
     },
 
     doSearch: _.debounce(async function (context) {
-      console.log("doSearch", context, this.select,)
       this.items = []
       await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
 

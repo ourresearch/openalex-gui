@@ -30,20 +30,7 @@ const addDisplayNamesToFilters = async function (filtersList) {
 }
 
 
-// const filtersFromUrlStr = function (str) {
-//     if (!str) return []
-//     if (str.indexOf(":") === -1) return []
-//
-//
-//     const filters = str.split(",").map(facetStr => {
-//         let [key, value] = facetStr.split(":")
-//         const isNegated = value[0] === "!"
-//         value = value.replace("!", "")
-//         return createSimpleFilter(key, value, isNegated)
-//     })
-//     return filters
-// }
-const filtersFromUrlStr = function (str) {
+const filtersFromUrlStr = function (entityType, str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
 
@@ -53,11 +40,11 @@ const filtersFromUrlStr = function (str) {
         const [key, valuesStr] = facetStr.split(":")
         if (valuesStr[0] === "!") {
             const value = valuesStr.replace("!", "")
-            filters.push(createSimpleFilter(key, value, true))
+            filters.push(createSimpleFilter(entityType, key, value, true))
         } else {
             const values = valuesStr.split("|")
             values.forEach(value => {
-                filters.push(createSimpleFilter(key, value, false))
+                filters.push(createSimpleFilter(entityType, key, value, false))
             })
         }
     })
@@ -133,7 +120,7 @@ const mergePositiveFacetFilters = function (filters) {
 //     ret = ret.filter(f => f.key !== "search")
 //     return ret
 // }
-const filtersFromFiltersApiResponse = function (apiFacets) {
+const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
     let ret = []
     apiFacets
         .filter(f => f.key !== "search")
@@ -141,6 +128,7 @@ const filtersFromFiltersApiResponse = function (apiFacets) {
             facet.values.forEach(valueObj => {
                 const isNegated = facet.is_negated
                 ret.push(createDisplayFilter(
+                    entityType,
                     facet.key,
                     valueObj.value,
                     isNegated,
@@ -163,9 +151,9 @@ const createFilterValue = function (rawValue) {
     return rawValue
 }
 
-const createSimpleFilter = function (key, value, isNegated) {
+const createSimpleFilter = function ( entityType, key, value, isNegated) {
     const cleanValue = createFilterValue(value)
-    const facetConfig = getFacetConfig(key)
+    const facetConfig = getFacetConfig(entityType, key)
     return {
         ...facetConfig,
         // key,
@@ -177,9 +165,9 @@ const createSimpleFilter = function (key, value, isNegated) {
     }
 }
 
-const createDisplayFilter = function (key, value, isNegated, displayValue, count, totalCount) {
+const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
     return {
-        ...createSimpleFilter(key, value, isNegated),
+        ...createSimpleFilter(entityType, key, value, isNegated), // @todo change!
         displayValue,
         count,
         countPercent: (count / totalCount) * 100,
@@ -220,46 +208,6 @@ const sortedFilters = function(filters, sortByValue){
     return ret
 }
 
-const makeFilterList = function (filters, resultsFilters, includeResultsFilters = true) {
-    if (!filters.length) return []
-    const config = getFacetConfig(filters[0].key)
-
-    let ret = _.cloneDeep(filters)
-        .filter(f => f.value !== "unknown")
-        .filter(f => {
-            const myResultsFilter = resultsFilters.find(rf => rf.kv === f.kv)
-            return !myResultsFilter
-        })
-
-
-    if (config.sortByValue) {
-        ret.sort((a, b) => {
-            return (a.value > b.value) ? -1 : 1
-        })
-    } else {
-        ret.sort((a, b) => {
-            return b.count - a.count
-        })
-    }
-
-    if (includeResultsFilters) {
-
-
-        const retFilterStrings = ret.map(f => f.kv)
-        const missingResultsFilters = resultsFilters.filter(f => !retFilterStrings.includes(f.kv))
-        ret.push(..._.cloneDeep(missingResultsFilters))
-    }
-
-    // const maxCountSelected = Math.max(...resultsFilters.map(r => r.count))
-    // const maxCount = Math.max(...ret.map(r => r.count))
-
-    // ret.forEach(f => {
-    //   f.countNormalized = f.count / maxCount
-    // })
-
-
-    return ret.slice(0, 25)
-}
 
 
 export {
@@ -272,7 +220,6 @@ export {
     createFilterId,
     addDisplayNamesToFilters,
     displayYearRange,
-    makeFilterList,
 
     sortedFilters,
 }

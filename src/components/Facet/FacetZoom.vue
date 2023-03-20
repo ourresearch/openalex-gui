@@ -152,7 +152,7 @@
 import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
-import {createDisplayFilter, createSimpleFilter, filtersFromUrlStr, filtersAsUrlStr} from "../../filterConfigs";
+import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
@@ -161,7 +161,6 @@ import {api} from "../../api";
 import axios from "axios";
 import {url} from "../../url";
 import _ from "lodash"
-import {makeFilterList, sortedFilters} from "../../filterConfigs";
 
 
 export default {
@@ -331,6 +330,7 @@ export default {
         return this.selectedFilters.includes(f.kv)
       }).map(f => {
         return createSimpleFilter(
+            this.entityType,
             f.key,
             f.value,
             this.negatedFilters.includes(f.kv)
@@ -382,6 +382,7 @@ export default {
 
       this.apiFilters = groups.map(apiData => {
         return createDisplayFilter(
+            this.entityType,
             this.config.key,
             apiData.key,
             false,

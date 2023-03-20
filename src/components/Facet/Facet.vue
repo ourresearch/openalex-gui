@@ -94,6 +94,7 @@ export default {
   },
   props: {
     facetKey: String,
+    facetEntityType: String,
   },
   data() {
     return {
@@ -113,7 +114,7 @@ export default {
       return false
     },
     config() {
-      return getFacetConfig(this.facetKey)
+      return getFacetConfig(this.facetEntityType, this.facetKey)
     },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
