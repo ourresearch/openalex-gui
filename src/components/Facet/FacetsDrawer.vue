@@ -6,9 +6,6 @@
       id="facets-drawer"
 
   >
-    <pre>
-      {{ facetsByCategory }}
-    </pre>
 
     <div @click="setFacetZoom(null)">
       <v-card
@@ -150,7 +147,7 @@
               <template v-for="facet in facetCategory.facets">
                 <facet-range
                     v-if="facet.isRange"
-                    :key="'facet' + facet.key"
+                    :key="facet.entityType + facet.key"
                     :facet-key="facet.key"
                     :facet-entity-type="entityType"
                     show-details-button
@@ -158,7 +155,7 @@
                 </facet-range>
                 <facet
                     v-else
-                    :key="'facet' + facet.key"
+                    :key="facet.entityType + facet.key"
                     :facet-key="facet.key"
                     :facet-entity-type="entityType"
                     :has-focus="facetZoom === facet.key"
