@@ -305,18 +305,14 @@ export default {
     filterToShowWorks() {
       if (this.entityType === "works") return
       return createSimpleFilter(
-          this.entityType,
+          "works",
           this.myEntityConfig.filterKey,
           this.myId,
       )
     },
     linkToWorksSearch() {
       if (this.entityType === "works") return
-      const filter = createSimpleFilter(
-          this.entityType,
-          this.myEntityConfig.filterKey,
-          this.myId,
-      )
+      const filter = this.filterToShowWorks
       return {
         name: "Serp",
         params: {entityType: "works"},

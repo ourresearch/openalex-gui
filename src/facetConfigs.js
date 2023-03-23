@@ -459,7 +459,6 @@ const facetConfigs = function (entityType) {
     ]
 
 
-    console.log("facetConfig", entityType)
     return ret
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
