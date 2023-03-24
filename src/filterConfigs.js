@@ -160,9 +160,30 @@ const createSimpleFilter = function ( entityType, key, value, isNegated) {
         value: cleanValue,
         asStr: createFilterId(key, cleanValue, isNegated),
         kv: createFilterId(key, cleanValue),
-        isEntity: entityKeys.includes(key),
+        // isEntity: entityKeys.includes(key),
         isNegated: !!isNegated,
     }
+}
+
+const createSimpleFilterFromPid = function(pid){
+    if (!pid) return
+    const trimmedPid = pid.trim()
+    const pidFilters = facetConfigs().map(f => {
+        const matches = trimmedPid.match(f.regex)
+        if (matches?.length === 2){
+            const value = matches[1] // first capture group
+            return createSimpleFilter(
+                f.entityType,
+                f.key,
+                value
+            )
+        }
+        else {
+            return null
+        }
+    })
+
+    return pidFilters.find(f => !!f) // shoudld be only one not null
 }
 
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
@@ -216,6 +237,7 @@ export {
 
     filtersFromFiltersApiResponse,
     createSimpleFilter,
+    createSimpleFilterFromPid,
     createDisplayFilter,
     createFilterId,
     addDisplayNamesToFilters,

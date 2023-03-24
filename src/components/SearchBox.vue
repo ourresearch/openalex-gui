@@ -1,34 +1,34 @@
 <template>
 
   <form class="main-search">
-<!--    <v-combobox-->
-<!--        class="mr-12"-->
-<!--        flat-->
-<!--        outlined-->
-<!--        solo-->
-<!--        hide-details-->
+    <!--    <v-combobox-->
+    <!--        class="mr-12"-->
+    <!--        flat-->
+    <!--        outlined-->
+    <!--        solo-->
+    <!--        hide-details-->
 
-<!--        clearable-->
-<!--        append-icon="mdi-magnify"-->
-<!--        id="main-search"-->
-<!--        style="width: 100%;"-->
-<!--        :color="color"-->
-<!--        rounded-->
+    <!--        clearable-->
+    <!--        append-icon="mdi-magnify"-->
+    <!--        id="main-search"-->
+    <!--        style="width: 100%;"-->
+    <!--        :color="color"-->
+    <!--        rounded-->
 
-<!--        v-model="select"-->
-<!--        :items="items"-->
-<!--        :search-input.sync="searchString"-->
-<!--        :loading="isFetchingItems"-->
-<!--        :placeholder="selectedEntityTypeConfig.placeholder"-->
+    <!--        v-model="select"-->
+    <!--        :items="items"-->
+    <!--        :search-input.sync="searchString"-->
+    <!--        :loading="isFetchingItems"-->
+    <!--        :placeholder="selectedEntityTypeConfig.placeholder"-->
 
 
-<!--        @focus="onFocus"-->
-<!--        @keydown.enter="doSearch('keyup.enter')"-->
-<!--        @input="doSearch('input')"-->
-<!--        @click:append="doSearch"-->
-<!--        @click:clear="searchString = ''"-->
+    <!--        @focus="onFocus"-->
+    <!--        @keydown.enter="doSearch('keyup.enter')"-->
+    <!--        @input="doSearch('input')"-->
+    <!--        @click:append="doSearch"-->
+    <!--        @click:clear="searchString = ''"-->
 
-<!--    >-->
+    <!--    >-->
     <v-combobox
         class="mr-12"
         flat
@@ -101,8 +101,8 @@
           <v-icon>mdi-magnify</v-icon>
         </v-list-item-icon>
         <v-list-item-title style="font-size: 16px;">
-          {{data.item}}
-<!--          {{data.item.displayName}}-->
+          {{ data.item }}
+          <!--          {{data.item.displayName}}-->
         </v-list-item-title>
       </template>
 
@@ -116,12 +116,13 @@
 import axios from 'axios'
 // import AbortController from 'axios'
 import {url} from "../url";
+import {createSimpleFilterFromPid} from "../filterConfigs";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
-import {entityTypeFromId} from "../util";
 import EntityIcon from "./EntityIcon";
 import _ from 'lodash'
+import {idConfigs} from "../idConfigs";
 
 
 // setTimeout(function(){
@@ -139,6 +140,7 @@ const pushSafe = async function (router, pushTo) {
         }
       })
 }
+
 
 export default {
   name: "SearchBox",
@@ -187,7 +189,7 @@ export default {
 
     autocompleteUrl() {
       const url = new URL("https://api.openalex.org")
-      url.pathname = (this.selectedEntityType === "works")  ?
+      url.pathname = (this.selectedEntityType === "works") ?
           "suggest" :
           `autocomplete/${this.selectedEntityType}`
 
@@ -198,10 +200,11 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "setEntityType"
+      "setEntityType",
     ]),
     ...mapActions([
-      "setEntityZoom",
+      "replaceInputFilters",
+      "removeAllInputFilters",
     ]),
     clickToSetSelectedEntityType(value) {
       this.setSelectedEntityType(value)
@@ -223,6 +226,7 @@ export default {
       this.items = []
       this.select = undefined
       this.selectedEntityType = value
+      this.removeAllInputFilters()
     },
     openEntityMenu() {
       this.items = []
@@ -240,7 +244,13 @@ export default {
 
     doSearch: _.debounce(async function (context) {
       this.items = []
-      await url.pushNewSearch(this.$router, this.selectedEntityType, this.select)
+      const idFilter = createSimpleFilterFromPid(this.select)
+      console.log("SearchBox idFilter", idFilter)
+      const searchTerm = (idFilter) ? "" : this.select
+      await url.pushNewSearch(this.$router, this.selectedEntityType, searchTerm)
+      if (idFilter) {
+        await this.replaceInputFilters([idFilter])
+      }
 
     }, 10, {leading: false}),
     fetchSuggestions(v) {

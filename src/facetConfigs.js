@@ -258,10 +258,11 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "OpenAlex ID",
             isEntity: true,
-            // noOptions: true,
+            noOptions: true,
             valuesToShow: "select",
             category: "other",
             icon: "mdi-file-document-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "cited_by",
@@ -481,6 +482,18 @@ const facetConfigs = function (entityType) {
             return !entityType || config.entityType === entityType
         })
 }
+
+const getFacetConfigFromPid = function(pid){
+    const trimmedPid = pid.trim()
+    const x = facetConfigs().find(f => {
+
+    })
+    return x
+
+
+
+}
+
 
 const getFacetConfig = function (entityType, key) {
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
