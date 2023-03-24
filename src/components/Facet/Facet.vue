@@ -20,9 +20,9 @@
             {{ config.displayName }}
           </v-col>
           <v-col class="shrink pa-0" style="white-space: nowrap">
-         <span class="font-weight-bold" v-if="0 && myResultsFilters.length === 1">
-              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
-          </span>
+<!--         <span class="font-weight-bold" v-if="myResultsFilters.length === 1">-->
+<!--              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}-->
+<!--          </span>-->
             <template v-if="myResultsFilters.length >= 1">
               <v-chip
                   v-if="myResultsFiltersNegated.length"
@@ -49,25 +49,11 @@
 
 
             <v-btn style="margin: 2px 5px 0 5px;" :color="valuesColor" :disabled="isDisabled"
-                   v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
+                   v-if="!!myResultsFilters.length" x-small icon @click.stop="clearAllFilters">
               <v-icon small>mdi-close</v-icon>
             </v-btn>
           </v-col>
 
-          <v-col v-if="0" class="pa-0 d-flex shrink justify-end">
-            <div :class="valuesColor + '--text'">
-          <span class="font-weight-bold" v-if="myResultsFilters.length === 1">
-              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}
-          </span>
-              <span v-if="myResultsFilters.length > 1">
-            {{ myResultsFilters.length }} filters
-          </span>
-            </div>
-            <v-btn style="margin: 2px 0 0 5px;" :color="valuesColor" :disabled="isDisabled"
-                   v-if="!!myResultsFilters.length" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
-              <v-icon small>mdi-close</v-icon>
-            </v-btn>
-          </v-col>
         </v-row>
 
 
@@ -85,7 +71,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
 import FacetZoom from "./FacetZoom";
 import {prettyTitle} from "../../util";
-
+import {url} from "../../url";
 
 export default {
   name: "Facet",
@@ -141,11 +127,7 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([
-      "removeInputFilters",
-      "addInputFilters",
-      "removeInputFiltersByKey"
-    ]),
+    ...mapActions([]),
     prettyTitle,
     closeMenu() {
       this.showMenu = false
@@ -153,6 +135,9 @@ export default {
     checkInput(input) {
       this.showMenu = input
     },
+    clearAllFilters() {
+      url.setFiltersByKey(this.facetKey, [])
+    }
   },
 
   created() {

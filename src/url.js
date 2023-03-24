@@ -1,5 +1,5 @@
 import router from "./router";
-import {filtersAsUrlStr} from "./filterConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr} from "./filterConfigs";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
@@ -46,6 +46,42 @@ const pushToRoute = async function (router, newRoute) {
         })
 }
 
+const setFiltersByKey = function (filterKey, filters) {
+    const entityType = router.currentRoute.params.entityType
+
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    const newFilters = [
+        ...oldFilters.filter(f => f.key !== filterKey),
+        ...filters
+    ]
+
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: router.currentRoute.query.sort,
+            search: router.currentRoute.query.search,
+            filter: filtersAsUrlStr(newFilters, entityType)
+        }
+    }
+    pushToRoute(router, newRoute)
+}
+
+const setFilters = function (entityType, filters, hardReset=false) {
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: (hardReset) ? undefined : router.currentRoute.query.sort,
+            search: (hardReset) ? undefined : router.currentRoute.query.search,
+            filter: filtersAsUrlStr(filters)
+        }
+    }
+    pushToRoute(router, newRoute)
+}
+
 
 const addZoomToRoute = function (router, zoom) {
     if (!zoom) return
@@ -70,12 +106,16 @@ const url = {
     pushToRoute,
     addToQuery,
 
+    setFiltersByKey,
+    setFilters,
+
     goToZoom,
     addZoomToRoute,
 
     pushNewSearch,
 }
 
+
 export {
-    url
+    url,
 }

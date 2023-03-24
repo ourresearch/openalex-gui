@@ -1,5 +1,3 @@
-
-
 const facetCategories = {
     works: [
         "popular",
@@ -50,6 +48,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             isCore: true,
             icon: "mdi-lightbulb-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
         },
         {
             key: "primary_location.source.id",
@@ -62,6 +61,7 @@ const facetConfigs = function (entityType) {
             category: "source",
             isCore: true,
             icon: "mdi-book-open-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
         },
         {
             key: "authorships.institutions.id",
@@ -74,6 +74,7 @@ const facetConfigs = function (entityType) {
             category: "institution",
             isCore: true,
             icon: "mdi-town-hall",
+            regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
         },
         {
             key: "authorships.author.id",
@@ -85,7 +86,8 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "popular",
             isCore: true,
-        icon: "mdi-account-outline",
+            icon: "mdi-account-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
         },
 
 
@@ -97,7 +99,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
             category: "source",
-        icon: "mdi-book-open-outline",
+            icon: "mdi-book-open-outline",
         },
 
 
@@ -187,7 +189,7 @@ const facetConfigs = function (entityType) {
             displayName: "Type",
             valuesToShow: "mostCommon",
             category: "popular",
-        icon: "mdi-file-document-outline",
+            icon: "mdi-file-document-outline",
         },
         {
             key: "publication_year",
@@ -300,12 +302,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
-
         // authors
         {
             key: "last_known_institution.id",
@@ -360,13 +356,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
-
-
         // sources
         {
             key: "publisher",
@@ -414,11 +403,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
         // institutions
         {
             key: "country_code",
@@ -452,11 +436,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
         // concepts
         {
             key: "level",
@@ -483,13 +462,12 @@ const facetConfigs = function (entityType) {
         })
 }
 
-const getFacetConfigFromPid = function(pid){
+const getFacetConfigFromPid = function (pid) {
     const trimmedPid = pid.trim()
     const x = facetConfigs().find(f => {
 
     })
     return x
-
 
 
 }

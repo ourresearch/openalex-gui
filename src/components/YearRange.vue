@@ -156,6 +156,7 @@ import {
   displayYearRange,
 } from "../filterConfigs";
 import {api} from "../api";
+import {url} from "../url";
 
 
 export default {
@@ -244,8 +245,6 @@ export default {
     ]),
     ...mapActions([
       "replaceInputFilter",
-      "removeInputFilters",
-      "removeInputFiltersByKey",
     ]),
     isWithinRange(value) {
       return this.yearFilterIsSet && value >= this.yearInputFilter[0] && value <= this.yearInputFilter[1]
@@ -255,7 +254,7 @@ export default {
       if (!this.big) return
       if (this.yearFilterIsSet && this.isWithinRange(year)) {
         console.log("remove things")
-        this.removeInputFiltersByKey("publication_year")
+        url.setFiltersByKey("publication_year", [])
         return
       }
 
@@ -309,7 +308,7 @@ export default {
 
     },
     clear() {
-      this.removeInputFiltersByKey("publication_year")
+      url.setFiltersByKey("publication_year", [])
     },
     async fetchFilters() {
       const maxValue = new Date().getFullYear()

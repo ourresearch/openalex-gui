@@ -193,8 +193,6 @@ export default {
   methods: {
     ...mapMutations([]),
     ...mapActions([
-      "addInputFilters",
-      "removeInputFilters",
       "updateTextSearch",
     ]),
     exactClickListItem(){

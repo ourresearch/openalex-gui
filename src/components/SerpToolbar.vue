@@ -410,7 +410,6 @@ export default {
       "snackbar",
     ]),
     ...mapActions([
-      "removeInputFilters",
       "setSort"
     ]),
     removeTextSearch() {

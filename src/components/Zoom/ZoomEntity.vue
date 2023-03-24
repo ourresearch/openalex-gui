@@ -353,7 +353,6 @@ export default {
       "snackbar"
     ]),
     ...mapActions([
-      "replaceInputFilters"
     ]),
     async copyPermalinkToClipboard() {
       await navigator.clipboard.writeText(this.data.id);

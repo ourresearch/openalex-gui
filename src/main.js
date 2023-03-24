@@ -11,6 +11,7 @@ import {url} from "./url"
 import SearchBox from "./components/SearchBox";
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision} from "./util";
+import {createSimpleFilterFromPid} from "./filterConfigs";
 
 import _ from 'lodash'
 
@@ -61,15 +62,17 @@ Vue.filter("idLink", function (fullId) {
 Vue.filter("entityZoomLink", function (id) {
     if (!id) return
     const shortId = id.replace("https://openalex.org/", "")
+    const filter = createSimpleFilterFromPid(id)
     return {
-        name: "entity-zoom",
+        name: "Serp",
         params: {
-            entityType: router.currentRoute.params.entityType,
+            entityType: "works",
             id: shortId,
         },
-        query: {...router.currentRoute.query},
+        query: {
+            filter: filtersAsUrlStr([filter])
+        },
     }
-
 });
 
 

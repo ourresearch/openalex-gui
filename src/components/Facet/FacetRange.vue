@@ -25,7 +25,7 @@
             </div>
             <div v-if="!rangeValuesToShow && showPlaceholderValueWhenUnset">anytime</div>
             <v-btn style="margin: 2px 0 0 5px;" color="green 2" :disabled="isDisabled"
-                   v-if="rangeValuesToShow" x-small icon @click.stop="removeInputFiltersByKey(facetKey)">
+                   v-if="rangeValuesToShow" x-small icon @click.stop="clearAndSave">
               <v-icon small>mdi-close</v-icon>
             </v-btn>
 
@@ -174,6 +174,7 @@ import {
 import FacetOption from "./FacetOption";
 import {compareByCount} from "../../util";
 import {api} from "../../api";
+import {url} from "../../url";
 
 
 const currentYear = new Date().getFullYear()
@@ -279,13 +280,13 @@ export default {
     ]),
     ...mapActions([
       "replaceInputFilter",
-      "removeInputFilters",
-      "removeInputFiltersByKey",
     ]),
     async clear() {
       this.range = ["", ""]
-      // await this.removeInputFiltersByKey(this.facetKey)
-      // this.closeMenu()
+    },
+    clearAndSave(){
+      this.clear()
+      url.setFiltersByKey(this.facetKey, [])
     },
     closeMenu() {
       this.showMenu = false
@@ -325,7 +326,7 @@ export default {
 
       console.log("applyRange", this.range)
       if (this.rangeIsEmpty) {
-        this.removeInputFiltersByKey(this.facetKey)
+        url.setFiltersByKey(this.facetKey, [])
       } else {
         const filter = createSimpleFilter(
             this.entityType,

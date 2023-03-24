@@ -274,17 +274,6 @@ export default new Vuex.Store({
         },
 
         // eslint-disable-next-line no-unused-vars
-        // async doTextSearch({commit, getters, dispatch, state}, {entityType, searchString}) {
-        //     if (entityType !== state.entityType) commit("resetSearch")
-        //
-        //     commit("setEntityType", entityType)
-        //     state.textSearch = searchString
-        //     commit("setSort", getters.defaultSort)
-        //
-        //     // await dispatch("doSearch")
-        //     dispatch("pushSearchUrl")
-        // },
-        // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
             commit("setSort", newSortValue)
             commit("setPage", 1)
@@ -298,8 +287,21 @@ export default new Vuex.Store({
             dispatch("pushSearchUrl")
         },
 
+
+
+        // used once
         // eslint-disable-next-line no-unused-vars
-        async addInputFilters({commit, getters, dispatch, state}, filters) {
+        async removeAllInputFilters({commit, getters, dispatch, state}) {
+            commit("removeAllInputFilters")
+            commit("setPage", 1)
+            dispatch("pushSearchUrl")
+        },
+
+        // used some
+        // eslint-disable-next-line no-unused-vars
+        async replaceInputFilters({commit, getters, dispatch, state}, filters) {
+            console.log("Vuex replaceInputFilters", filters)
+            state.inputFilters = []
             console.log("addInputFilters", filters)
             filters.forEach(f => {
                 commit("addInputFilter", f)
@@ -309,51 +311,9 @@ export default new Vuex.Store({
         },
 
 
-        // eslint-disable-next-line no-unused-vars
-        async removeInputFiltersByKey({commit, getters, dispatch, state}, facetKey) {
-            state.inputFilters = state.inputFilters.filter(f => {
-                return f.key !== facetKey
-            })
-            commit("setPage", 1)
-            await dispatch("pushSearchUrl")
-        },
-        // eslint-disable-next-line no-unused-vars
-        async removeInputFilters({commit, getters, dispatch, state}, filters) {
-            filters.forEach(f => {
-                commit("removeInputFilter", f)
-            })
-            commit("setPage", 1)
-            await dispatch("pushSearchUrl")
-        },
-        // eslint-disable-next-line no-unused-vars
-        async removeAllInputFilters({commit, getters, dispatch, state}) {
-            commit("removeAllInputFilters")
-            commit("setPage", 1)
-            dispatch("pushSearchUrl")
-        },
-
-        // eslint-disable-next-line no-unused-vars
-        async replaceInputFilters({commit, getters, dispatch, state}, filters) {
-            console.log("Vuex replaceInputFilters", filters)
-            state.inputFilters = []
-            await dispatch("addInputFilters", filters)
-        },
-
-        // eslint-disable-next-line no-unused-vars
-        async replaceInputFacet({commit, getters, dispatch, state}, {facetKey, filters}) {
-            console.log("Vuex replaceInputFacet", facetKey, filters)
-            state.inputFilters = state.inputFilters.filter(f => f.key !== facetKey)
-            await dispatch("addInputFilters", filters)
-        },
-
+        // used a lot
         // eslint-disable-next-line no-unused-vars
         async replaceInputFilter({commit, getters, dispatch, state}, filter) {
-            commit("replaceInputFilter", filter)
-            commit("setPage", 1)
-            dispatch("pushSearchUrl")
-        },
-        // eslint-disable-next-line no-unused-vars
-        async setNegateFilter({commit, getters, dispatch, state}, filter) {
             commit("replaceInputFilter", filter)
             commit("setPage", 1)
             dispatch("pushSearchUrl")

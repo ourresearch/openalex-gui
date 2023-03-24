@@ -173,6 +173,7 @@ export default {
   },
   data() {
     return {
+      url,
       isLoading: false,
       applyIsLoading: false,
       maxApiFiltersToShow: 20,
@@ -256,7 +257,12 @@ export default {
       })
     },
     allFilters() {
-      return [...this.myResultsFilters, ...this.apiFilters]
+      // combine and dedupe: https://stackoverflow.com/a/36744732
+      return [...this.myResultsFilters, ...this.apiFilters].filter((value, index, self) => {
+        return index === self.findIndex(t => {
+          return t.asStr === value.asStr
+        })
+      })
     },
     thereAreMoreGroupsToShow() {
       return this.maxApiFiltersToShow < 200 && this.apiFilters.length === this.maxApiFiltersToShow
@@ -306,11 +312,6 @@ export default {
       "toggleFiltersDrawer",
     ]),
     ...mapActions([
-      "addInputFilters",
-      "removeInputFilters",
-      "removeInputFiltersByKey",
-      "replaceInputFilter",
-      "replaceInputFacet",
     ]),
     setSelectedFilters(arg) {
       console.log("FacetZoom setSelectedFilters", arg)
@@ -336,12 +337,7 @@ export default {
             this.negatedFilters.includes(f.kv)
         )
       })
-      this.replaceInputFacet({
-        facetKey: this.facetKey,
-        filters: filtersToSave,
-      })
-
-
+      url.setFiltersByKey(this.facetKey, filtersToSave)
     },
     makeApiUrl(perPage, formatCsv) {
       if (!perPage) perPage = this.maxApiFiltersToShow
