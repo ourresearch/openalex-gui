@@ -60,6 +60,7 @@ const filtersFromUrlStr = function (entityType, str) {
 // }
 const filtersAsUrlStr = function (filters, entityType) {
     const filtersAsStrings = filters.map(f => {
+        if (!f) return ""
         const valuePrepend = (f.isNegated) ? "!" : ""
         const value = valuePrepend + f.value
         return [f.key, value].join(":")

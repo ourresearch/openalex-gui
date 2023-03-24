@@ -1,10 +1,5 @@
 <template>
-  <div>
-    <v-dialog
-        v-model="zoomIsOpen"
-        scrollable
-        max-width="800"
-    >
+  <div v-if="entityId">
 
 
       <v-card flat v-if="data">
@@ -196,7 +191,6 @@
 
 
       </v-card>
-    </v-dialog>
   </div>
 
 </template>
@@ -249,7 +243,9 @@ export default {
     EntityConcept,
     EntityIcon,
   },
-  props: {},
+  props: {
+    entityId: String,
+  },
   data() {
     return {
       foo: 42,
@@ -274,11 +270,9 @@ export default {
     myEntityConfig() {
       return entityConfigs[this.entityType]
     },
-    myId() {
-      return this.$route.params.id
-    },
     entityType() {
-      return entityTypeFromId(this.myId)
+      if (!this.entityId) return
+      return entityTypeFromId(this.entityId)
     },
     linkoutUrl() {
       if (this.entityType === "sources") return this.data.homepage_url
@@ -307,7 +301,7 @@ export default {
       return createSimpleFilter(
           "works",
           this.myEntityConfig.filterKey,
-          this.myId,
+          this.entityId,
       )
     },
     linkToWorksSearch() {
@@ -364,8 +358,10 @@ export default {
       return entityConfigs[type]?.icon
     },
     getData() {
-      const pathName = entityTypeFromId(this.myId) + "/" + this.myId
+      if (!this.entityId) return
+      const pathName = this.entityType + "/" + this.entityId
       this.data = null
+      console.log("zoomentity getting data for", this.entityId)
 
       api.get(pathName).then(resp => {
         console.log("zoomEntity resp", resp)
@@ -377,11 +373,14 @@ export default {
   created() {
   },
   mounted() {
-    this.getData()
 
   },
   watch: {
     "$route.params.id": function (to, from) {
+      // this.getData()
+    },
+    "entityId": function (to, from) {
+      this.data = null
       this.getData()
     }
   }

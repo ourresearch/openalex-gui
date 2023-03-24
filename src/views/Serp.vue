@@ -7,7 +7,7 @@
 
       <facets-drawer
           @filter-type-key="setFilterTypeKey"
-          style="width: 360px; "
+          style="width: 270px; "
       />
 
 
@@ -25,11 +25,11 @@
 
 
 
-        <router-view></router-view>
+<!--        <router-view></router-view>-->
         <div
             class="serp-container pt-0 pl-4"
             :class="{mobile: $vuetify.breakpoint.mobile}"
-            style="max-width: 800px; min-height: calc(100vh - 250px);"
+            style="min-height: calc(100vh - 250px);"
         >
 
           <div
@@ -80,7 +80,7 @@
           </div>
 
 
-          <div class="search-results-row ml-4" style="margin-top: -10px">
+          <div class="search-results-row ml-4" style="max-width: 500px;">
             <div v-if="!resultsCount" class="mt-8 grey--text">
               Sorry, there are no results for this search.
             </div>
@@ -108,20 +108,25 @@
           </div>
         </div>
 
+      <div class="entity-sidebar" style="max-width: 400px; min-width: 300px;">
+        <zoom-entity :entity-id="entitySidebarId" />
+
+      </div>
 
 
 
 
 
 
-      <v-dialog
-          v-model="showFacetZoomDialog"
-          scrollable
-          dark
-          fullscreen
-      >
-        <facet-zoom/>
-      </v-dialog>
+
+<!--      <v-dialog-->
+<!--          v-model="showFacetZoomDialog"-->
+<!--          scrollable-->
+<!--          dark-->
+<!--          fullscreen-->
+<!--      >-->
+<!--        <facet-zoom/>-->
+<!--      </v-dialog>-->
 
 
       <v-snackbar
@@ -232,6 +237,7 @@ export default {
       "resultsCount",
       "entityType",
       "entityConfig",
+        "resultsFilters",
     ]),
     page: {
       get() {
@@ -246,6 +252,14 @@ export default {
           Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
           10
       )
+    },
+    entitySidebarId(){
+      if (!this.resultsFilters.length > 0) return
+      if (this.entityType !== "works") return
+      if (this.resultsFilters[0].showInSidebar) {
+        return this.resultsFilters[0].value
+      }
+
     },
 
     selectedEntityTypeConfig() {
