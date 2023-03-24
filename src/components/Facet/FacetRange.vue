@@ -75,7 +75,13 @@
 
 
         </div>
-        <div class="mt-4 mb-4">
+        <div v-if="0" class="mt-4 mb-4">
+<!--          this looks like it works, but it's broken. there's some kind of weird bug
+              where state is leaking...when you click a button then change a date,
+              then click another button, then click the first button, the old date
+              pops back up.
+
+ -->
           <v-btn
               v-for="preset in presets"
               :key="preset.displayName"
