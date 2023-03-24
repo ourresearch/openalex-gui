@@ -254,6 +254,16 @@ const facetConfigs = function (entityType) {
         //     isCore: true,
         // },
         {
+            key: "ids.openalex",
+            entityType: "works",
+            displayName: "OpenAlex ID",
+            isEntity: true,
+            // noOptions: true,
+            valuesToShow: "select",
+            category: "other",
+            icon: "mdi-file-document-outline",
+        },
+        {
             key: "cited_by",
             entityType: "works",
             displayName: "Cited by",
