@@ -214,10 +214,12 @@ export default {
         const searchInput = document.getElementById("main-search")
         searchInput.focus()
       }, 0)
+
       if (this.isAloneOnPage) {
         this.fetchSuggestions()
       } else {
         this.doSearch()
+        this.removeAllInputFilters()
       }
 
     },
@@ -226,7 +228,6 @@ export default {
       this.items = []
       this.select = undefined
       this.selectedEntityType = value
-      this.removeAllInputFilters()
     },
     openEntityMenu() {
       this.items = []
@@ -245,11 +246,23 @@ export default {
     doSearch: _.debounce(async function (context) {
       this.items = []
       const idFilter = createSimpleFilterFromPid(this.select)
+
+      if (idFilter){
+
+      }
+
       console.log("SearchBox idFilter", idFilter)
       const searchTerm = (idFilter) ? "" : this.select
-      await url.pushNewSearch(this.$router, this.selectedEntityType, searchTerm)
+      const entityType = (idFilter) ? idFilter.entityType : this.selectedEntityType
+
+        await url.pushNewSearch(this.$router, entityType, searchTerm)
+
+
       if (idFilter) {
         await this.replaceInputFilters([idFilter])
+      }
+      else {
+        await url.pushNewSearch(this.$router, entityType, searchTerm)
       }
 
     }, 10, {leading: false}),

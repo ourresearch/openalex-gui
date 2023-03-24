@@ -183,6 +183,9 @@ export default new Vuex.Store({
                 return f.kv !== filter.kv
             })
         },
+        removeAllInputFilters(state) {
+            state.inputFilters = []
+        },
         replaceInputFilter(state, filter) {
             const newFilters = state.inputFilters.filter(f => {
                 return f.key !== filter.key
@@ -324,7 +327,7 @@ export default new Vuex.Store({
         },
         // eslint-disable-next-line no-unused-vars
         async removeAllInputFilters({commit, getters, dispatch, state}) {
-            state.inputFilters = []
+            commit("removeAllInputFilters")
             commit("setPage", 1)
             dispatch("pushSearchUrl")
         },
