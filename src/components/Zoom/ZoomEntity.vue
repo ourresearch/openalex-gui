@@ -35,9 +35,6 @@
 
 
           <v-spacer/>
-          <v-btn icon :to='{name: "Serp", query:{...$route.query}}' class="" exact>
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
 
         </div>
         <v-divider></v-divider>
@@ -118,16 +115,8 @@
 
 
           <!--        everything except for works-->
-          <template v-else>
+          <template v-if="0">
             <div>
-              <!--              <v-btn-->
-              <!--                  text-->
-              <!--                  exact-->
-              <!--                  :to='{name: "Serp", query:{...$route.query}}'-->
-              <!--              >-->
-              <!--                Close-->
-              <!--              </v-btn>-->
-              <!--            </div>-->
               <v-btn
                   :to="linkToWorksSearch"
                   class=""
