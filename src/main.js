@@ -60,6 +60,9 @@ Vue.filter("idLink", function (fullId) {
 
 
 Vue.filter("entityZoomLink", function (id) {
+    console.log("entityZoomLink", id)
+
+
     if (!id) return
     const shortId = id.replace("https://openalex.org/", "")
     const filter = createSimpleFilterFromPid(id)

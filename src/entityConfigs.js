@@ -1,3 +1,8 @@
+
+// color ideas!
+// https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
+// https://carbondesignsystem.com/data-visualization/color-palettes/
+
 const entityConfigs = {
     works: {
         emoji: "📄",

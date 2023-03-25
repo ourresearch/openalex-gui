@@ -32,6 +32,8 @@ const facetCategories = {
     ],
 }
 
+
+
 const facetConfigs = function (entityType) {
     const ret = [
 
@@ -103,7 +105,7 @@ const facetConfigs = function (entityType) {
             category: "popular",
             isCore: true,
             icon: "mdi-account-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
+            regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
         },
 
 

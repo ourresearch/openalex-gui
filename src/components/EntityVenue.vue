@@ -1,29 +1,29 @@
 <template>
   <div>
-    <table>
-      <tr>
-        <td class="table-row-label">
+    <div>
+      <div class="data-row" v-if="data.host_organization_name">
+        <span class="font-weight-bold">
           Publisher:
-        </td>
-        <td>
-          {{ data.publisher }}
-        </td>
-      </tr>
+        </span>
+        <span>
+          {{ data.host_organization_name }}
+        </span>
+      </div>
 
-      <tr v-if="data.x_concepts.length">
-        <td class="table-row-label">
+      <div class="data-row" v-if="data.x_concepts.length">
+        <span class="font-weight-bold">
           Concepts:
-        </td>
-        <td>
+        </span>
+        <span>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr>
-        <td class="table-row-label">
+      <div class="data-row">
+        <span class="font-weight-bold">
           Access:
-        </td>
-        <td>
+        </span>
+        <span>
           <span v-if="!data.is_oa">
             toll-access
           </span>
@@ -31,35 +31,35 @@
             Open Access
             <template v-if="doajLink">(indexed in <a target="_blank" :href="doajLink">DOAJ</a>)</template>
           </span>
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr>
-        <td class="table-row-label pt-6">
+      <div class="data-row">
+        <span class="font-weight-bold pt-6">
           Works
-        </td>
-        <td class="pt-6">
+        </span>
+        <span class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="primary_location.source.id"
               :filter-value="data.id"
               entity-type="works"
           />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-row-label">
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="font-weight-bold">
           Cited by:
-        </td>
-        <td class="">
+        </span>
+        <span class="">
           {{ data.cited_by_count.toLocaleString() }} works
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
       <entity-zoom-ids-row :ids="data.ids"/>
 
-    </table>
+    </div>
 
 
   </div>
@@ -110,7 +110,7 @@ export default {
 
 <style lang="scss" scoped>
 table {
-  td.table-row-label {
+  span.font-weight-bold {
     white-space: nowrap;
     vertical-align: top;
     color: #555;

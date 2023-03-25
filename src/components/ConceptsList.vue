@@ -1,10 +1,10 @@
 <template>
-  <div class=" d-flex align-start">
+  <span class="">
 <!--    <entity-icon-->
 <!--        type="concepts"-->
 <!--        expand-->
 <!--    />-->
-    <div>
+    <span>
       <template v-if="isClickable">
         <!--      <div class="">-->
         <!--        <span class="font-weight-bold">-->
@@ -32,10 +32,10 @@
 
       </template>
 
-    </div>
+    </span>
 
 
-  </div>
+  </span>
 </template>
 
 

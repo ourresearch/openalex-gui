@@ -17,40 +17,40 @@
       </v-row>
     </v-alert>
 
-    <table class="">
-      <tr v-if="!data.primary_location.source.display_name && data.publication_year">
-        <td class="table-row-label">
+    <div class="">
+      <div v-if="!data.primary_location.source.display_name && data.publication_year">
+        <span class="font-weight-bold">
           Publication year:
-        </td>
-        <td>
+        </span>
+        <span>
           {{ data.publication_year }}
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
-      <!--    sourcer and year-->
-      <tr v-if="data.primary_location.source.display_name">
-        <td class="table-row-label">
-          Host:
-        </td>
-        <td>
+      <!--    source and year-->
+      <div v-if="data.primary_location.source.display_name">
+        <span class="font-weight-bold">
+          Source:
+        </span>
+        <span>
           <link-to-entity :entity="data.primary_location.source"/>
           <span
               class="year ml-1"
               v-if="data.publication_year"
           >({{ data.publication_year }})
           </span>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
       <!--    Author list-->
-      <tr v-if="authorshipsToShow.length">
-        <td class="table-row-label">
+      <div v-if="authorshipsToShow.length">
+        <span class="font-weight-bold">
           {{ "Author" | pluralize(authorshipsToShow.length) }}:
-        </td>
+        </span>
 
-        <td>
+        <span>
           <template v-if="authorshipsToShow.length === 1">
             <authorship
                 :key="authorshipsToShow[0].author.id"
@@ -78,78 +78,78 @@
 
             <!--        </a>-->
           </template>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
       <!--    Concepts list-->
-      <tr v-if="data.concepts.length">
-        <td class="table-row-label">
+      <div v-if="data.concepts.length">
+        <span class="font-weight-bold">
           Concepts:
-        </td>
-        <td>
+        </span>
+        <span>
           <concepts-list :concepts="data.concepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
       <!--    Abstract -->
-      <tr v-if="abstract">
-        <td class="table-row-label abstract">
-          <span class="body-1" style="color:#555;">Abstract: </span>
-        </td>
-        <td class="body-1">
+      <div v-if="abstract">
+        <span class="font-weight-bold abstract">
+          <span>Abstract: </span>
+        </span>
+        <span class="body-1">
           {{ abstract }}
-        </td>
-      </tr>
+        </span>
+      </div>
 
       <!--    Cited By  -->
-      <tr>
-        <td class="pt-6 table-row-label">
-          <span class="body-1" style="color:#555;">Cited by: </span>
-        </td>
-        <td class="pt-6">
+      <div>
+        <span class="pt-6 font-weight-bold">
+          <span>Cited by: </span>
+        </span>
+        <span class="pt-6">
           <link-to-search
               :count="data.cited_by_count"
               entity-type="works"
               filter-key="cites"
               :filter-value="data.id"
           />
-        </td>
-      </tr>
+        </span>
+      </div>
 
       <!--    References  -->
-      <tr>
-        <td class="table-row-label">
-          <span class="body-1" style="color:#555;">Cites: </span>
-        </td>
-        <td class="">
+      <div>
+        <span class="font-weight-bold">
+          <span>Cites: </span>
+        </span>
+        <span class="">
           <link-to-search
               :count="data.referenced_works.length"
               entity-type="works"
               filter-key="cited_by"
               :filter-value="data.id"
           />
-        </td>
-      </tr>
+        </span>
+      </div>
       <!--    Related works  -->
-      <tr>
-        <td class="table-row-label">
-          <span class="body-1" style="color:#555;">Related: </span>
-        </td>
-        <td class="">
+      <div>
+        <span class="font-weight-bold">
+          <span>Related: </span>
+        </span>
+        <span class="">
           <link-to-search
               :count="data.related_works.length"
               entity-type="works"
               filter-key="related_to"
               :filter-value="data.id"
           />
-        </td>
-      </tr>
+        </span>
+      </div>
       <entity-zoom-ids-row :ids="data.ids"/>
 
 
-    </table>
+    </div>
 
 
     <div class="mt-5">
@@ -297,7 +297,7 @@ export default {
 }
 
 table {
-  td.table-row-label {
+  td.font-weight-bold {
     white-space: nowrap;
     vertical-align: top;
     color: #555;

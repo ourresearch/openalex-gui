@@ -1,61 +1,61 @@
 <template>
   <div>
-    <table>
-      <tr v-if="data.description">
-        <td class="table-row-label">
+    <div>
+      <div class="data-row" v-if="data.description">
+        <span class="font-weight-bold">
           About:
-        </td>
-        <td class="description">
+        </span>
+        <span class="description">
           {{ data.description }}.
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr v-if="parentConcepts.length">
-        <td class="table-row-label">
+      <div class="data-row" v-if="parentConcepts.length">
+        <span class="font-weight-bold">
           {{"Parent" | pluralize(parentConcepts.length)}}:
-        </td>
-        <td>
+        </span>
+        <span>
           <concepts-list :concepts="parentConcepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
-      <tr v-if="data.related_concepts.length">
-        <td class="table-row-label">
+      <div class="data-row" v-if="data.related_concepts.length">
+        <span class="font-weight-bold">
           Related:
-        </td>
-        <td>
+        </span>
+        <span>
           <concepts-list :concepts="data.related_concepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
-      <tr>
-        <td class="table-row-label pt-6">
+      <div class="data-row">
+        <span class="font-weight-bold pt-6">
           Works
-        </td>
-        <td class="pt-6">
+        </span>
+        <span class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="concepts.id"
               :filter-value="data.id"
               entity-type="works"
           />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-row-label">
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="font-weight-bold">
           Cited by:
-        </td>
-        <td>
+        </span>
+        <span>
           {{ data.cited_by_count.toLocaleString() }} works
-        </td>
-      </tr>
+        </span>
+      </div>
 
       <entity-zoom-ids-row :ids="data.ids" />
 
 
-    </table>
+    </div>
 
 
   </div>
@@ -127,14 +127,14 @@ export default {
   }
 }
 table {
-  td.table-row-label {
+  span.font-weight-bold {
     white-space: nowrap;
     vertical-align: top;
     color: #555;
     font-size: 15px;
     padding-right: 5px;
   }
-  td {
+  span {
     vertical-align: top;
   }
 }

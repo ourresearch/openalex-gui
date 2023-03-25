@@ -4,10 +4,18 @@
 
       <v-card flat v-if="data">
         <div class="card-header py-3 px-6 d-flex align-start">
-          <!--          <entity-icon x-large class="mr-4" :type="entityType" />-->
 
           <div>
-            <div class="card-header-top-row text-capitalize body-2">
+
+            <div class="text-h5 font-weight-medium mt-0"
+                 style=" line-height: 1.3;"
+                 v-html="$prettyTitle(data.display_name)"
+
+            >
+            </div>
+
+            <div class="card-header-top-row text-capitalize ">
+                    <entity-icon small class="mr-1" :type="entityType" />
 
               <span>{{ myEntityConfig.displayNameSingular }}</span>
 
@@ -23,12 +31,6 @@
               <span v-if="entityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
-            </div>
-            <div class="text-h6 font-weight-medium mt-0"
-                 style="font-weight: 450 !important; line-height: 1.5;"
-                 v-html="$prettyTitle(data.display_name)"
-
-            >
             </div>
 
           </div>

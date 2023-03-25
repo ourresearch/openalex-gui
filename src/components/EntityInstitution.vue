@@ -1,11 +1,11 @@
 <template>
   <div>
-    <table>
-      <tr>
-        <td class="table-row-label">
+    <div>
+      <div class="data-row">
+        <span class="font-weight-bold">
           Location:
-        </td>
-        <td>
+        </span>
+        <span>
           <flag
               :squared="false"
               :iso="data.country_code"
@@ -15,59 +15,59 @@
           />
           {{ locationStr }}
           <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none">(map)</a>
-        </td>
-      </tr>
-      <tr v-if="data.x_concepts.length">
-        <td class="table-row-label">
-          Concepts:
-        </td>
-        <td>
+        </span>
+      </div>
+      <div class="data-row" v-if="data.x_concepts.length">
+        <span class="font-weight-bold">
+          Key research areas:
+        </span>
+        <span>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
 
-      <tr  v-if="data.associated_institutions.length">
-        <td class="table-row-label">
-          Associated:
-        </td>
-        <td>
-            <div
-                v-for="institution in data.associated_institutions"
-                :key="institution.id"
-            >
-              <a :href="institution.id | idLink" class="text-decoration-none">
-                {{ institution.display_name }}
-              </a> ({{ institution.relationship }})
-            </div>
-        </td>
-      </tr>
+<!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
+<!--        <span class="font-weight-bold">-->
+<!--          Associated:-->
+<!--        </span>-->
+<!--        <span>-->
+<!--            <span-->
+<!--                v-for="institution in data.associated_institutions"-->
+<!--                :key="institution.id"-->
+<!--            >-->
+<!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
+<!--                {{ institution.display_name }}-->
+<!--              </a> ({{ institution.relationship }})-->
+<!--            </span>-->
+<!--        </span>-->
+      </div>
 
-      <tr>
-        <td class="table-row-label pt-6">
+      <div class="data-row">
+        <span class="font-weight-bold pt-6">
           Works:
-        </td>
-        <td class="pt-6">
+        </span>
+        <span class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="authorships.institutions.id"
               :filter-value="data.id"
               entity-type="works"
           />
-        </td>
-      </tr>
-      <tr>
-        <td class="table-row-label">
+        </span>
+      </div>
+      <div class="data-row">
+        <span class="font-weight-bold">
           Cited by:
-        </td>
-        <td>
+        </span>
+        <span>
           {{ data.cited_by_count.toLocaleString() }} works
-        </td>
-      </tr>
+        </span>
+      </div>
 
       <entity-zoom-ids-row :ids="data.ids" />
 
-    </table>
+    </div>
 
   </div>
 
@@ -145,7 +145,7 @@ export default {
 <style lang="scss" scoped>
 
 table {
-  td.table-row-label {
+  span.font-weight-bold {
     white-space: nowrap;
     vertical-align: top;
     color: #555;

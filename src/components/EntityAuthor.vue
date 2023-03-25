@@ -1,52 +1,52 @@
 <template>
   <div>
-    <table>
-      <tr v-if="data.last_known_institution">
-        <td class="table-row-label">
+    <div>
+      <div class="data-row" v-if="data.last_known_institution">
+        <span class="font-weight-bold">
           Institution:
-        </td>
-        <td>
+        </span>
+        <span>
           <link-to-entity
               :entity="data.last_known_institution"
           />
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr>
-        <td class="table-row-label">
-          Concepts:
-        </td>
-        <td>
+      <div class="data-row">
+        <span class="font-weight-bold">
+          Research interests:
+        </span>
+        <span>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr>
-        <td class="table-row-label pt-6">
+      <div class="data-row">
+        <span class="font-weight-bold pt-6">
           Works:
-        </td>
-        <td class="pt-6">
+        </span>
+        <span class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="authorships.author.id"
               :filter-value="data.id"
               entity-type="works"
           />
-        </td>
-      </tr>
+        </span>
+      </div>
 
-      <tr>
-        <td class="table-row-label">
+      <div class="data-row">
+        <span class="font-weight-bold">
           Cited by:
-        </td>
-        <td class="">
+        </span>
+        <span class="">
           {{ data.cited_by_count.toLocaleString() }} works
-        </td>
-      </tr>
+        </span>
+      </div>
 
       <entity-zoom-ids-row :ids="data.ids" />
 
-    </table>
+    </div>
 
 
     <!--    <id-list :data="data.ids"/>-->
@@ -95,13 +95,5 @@ export default {
 
 <style lang="scss" scoped>
 
-table {
-  td.table-row-label {
-    white-space: nowrap;
-    vertical-align: top;
-    color: #555;
-    font-size: 15px;
-  }
-}
 
 </style>
