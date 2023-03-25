@@ -39,7 +39,7 @@ const entityConfigs = {
         eg: "The New England Journal of Medicine",
         placeholder: "Search academic journals & repositories",
         filterName: "primary_location.source",
-        filterKey: "primary_location.source.id",
+        filterKey: "locations.source.id",
     },
     institutions: {
         emoji: "🏫",

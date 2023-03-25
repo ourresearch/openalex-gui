@@ -66,7 +66,7 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
         },
         {
-            key: "primary_location.source.id",
+            key: "locations.source.id",
             entityType: "works",
             displayName: "Source",
             isEntity: true,
