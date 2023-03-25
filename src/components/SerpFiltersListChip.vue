@@ -1,6 +1,7 @@
 <template>
-  <v-chip outlined class="mr-1">
-    <v-icon left>{{ filter.icon }}</v-icon>
+  <v-chip outlined close @click:close="remove" class="mr-1">
+    <v-icon>{{ filter.icon }}</v-icon>
+    <span class="ml-1 mr-1 font-weight-bold">{{ filter.displayName }}: </span>
     <span>{{ myDisplayValue | truncate(50) }}</span>
   </v-chip>
 </template>
@@ -8,6 +9,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {url} from "../url";
 
 export default {
   name: "Template",
@@ -25,6 +27,7 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
+        "entityType",
     ]),
     myDisplayValue(){
       if (this.filter.isBoolean){
@@ -40,6 +43,15 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    remove(){
+      const newFilters= this.resultsFilters.filter (f => f.asStr !== this.filter.asStr)
+      console.log("remove! new filters: ", newFilters)
+      url.setFilters(
+          this.entityType,
+          newFilters
+      )
+
+    }
 
 
   },
