@@ -58,7 +58,7 @@
                 text
                 large
                 :x-large="isAloneOnPage"
-                class="text-capitalize px-4"
+                class="text-capitalize pl-4"
                 style="margin-left: -24px;"
                 v-bind="attrs"
                 v-on="on"

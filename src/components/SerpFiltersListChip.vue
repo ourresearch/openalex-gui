@@ -1,5 +1,5 @@
 <template>
-  <v-chip outlined close @click:close="remove" class="mr-1">
+  <v-chip outlined close @click:close="remove" class="mr-1 mb-2">
     <v-icon>{{ filter.icon }}</v-icon>
     <span class="ml-1 mr-1 font-weight-bold">{{ filter.displayName }}: </span>
     <span>{{ myDisplayValue | truncate(50) }}</span>
