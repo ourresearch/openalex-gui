@@ -1,7 +1,7 @@
 <template>
 
 
-    <div id="serp-app-inside" class="d-flex">
+    <div id="serp-app-inside" class="d-flex ">
 
 
 
@@ -27,7 +27,7 @@
 
 <!--        <router-view></router-view>-->
         <div
-            class="serp-container pt-0 pl-4"
+            class="serp-container pt-0 pl-4 pt-12"
             :class="{mobile: $vuetify.breakpoint.mobile}"
             style="min-height: calc(100vh - 250px);"
         >
@@ -39,7 +39,7 @@
             <search-box v-if="$vuetify.breakpoint.mobile" class="px-3 flex-fill"/>
           </div>
 
-          <div>
+          <div class="pt-3">
             <serp-filters-list></serp-filters-list>
           </div>
           <div
