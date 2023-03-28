@@ -31,8 +31,6 @@
     <!--    >-->
     <v-combobox
         class="mr-12"
-        flat
-        outlined
         solo
         hide-details
 

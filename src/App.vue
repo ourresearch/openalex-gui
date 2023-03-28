@@ -15,7 +15,7 @@
           <router-link
               :to="{name: 'Home'}"
               class="logo-link pl-3"
-              style="width: 350px;"
+              style="width: 272px;"
               v-if="$route.name !== 'Home'"
           >
             <img
@@ -37,7 +37,7 @@
           <search-box
               v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
               class="d-md-block d-none mt-1 pl-2 flex-fill"
-              style="max-width: 700px;"
+              style="max-width: 525px;"
           />
         </div>
 

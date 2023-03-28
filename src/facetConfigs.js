@@ -154,7 +154,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
         },
         {
-            key: "best_oa_location.source.license",
+            key: "best_oa_location.license",
             entityType: "works",
             displayName: "License",
             valuesToShow: "mostCommon",
@@ -165,6 +165,14 @@ const facetConfigs = function (entityType) {
             key: "open_access.oa_status",
             entityType: "works",
             displayName: "Color",
+            valuesToShow: "mostCommon",
+            category: "access",
+            icon: "mdi-lock-open-outline",
+        },
+        {
+            key: "best_oa_location.version",
+            entityType: "works",
+            displayName: "Version",
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
