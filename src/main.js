@@ -51,6 +51,8 @@ Vue.filter("idLink", function (fullId) {
         "I": "institutions",
         "V": "venues",
         "S": "sources",
+        "P": "publishers",
+        "F": "funders",
         "A": "authors",
         "C": "concepts",
     };
@@ -60,7 +62,6 @@ Vue.filter("idLink", function (fullId) {
 
 
 Vue.filter("entityZoomLink", function (id) {
-    console.log("entityZoomLink", id)
 
 
     if (!id) return
@@ -81,7 +82,6 @@ Vue.filter("entityZoomLink", function (id) {
 
 Vue.filter("zoomLink", function (fullId) {
     if (!fullId) return
-    const shortId = fullId.replace("https://openalex.org/", "")
 
     const zoomIds = router.currentRoute.query.zoom?.split(",") ?? []
     zoomIds.push(shortId)

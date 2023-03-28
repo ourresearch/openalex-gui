@@ -31,6 +31,10 @@
               <span v-if="entityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
+              <span v-if="entityType=== 'publishers' && data.type">
+<!--                 ({{ data.type }})-->
+
+              </span>
             </div>
 
           </div>
@@ -45,6 +49,7 @@
           <entity-work v-if="entityType==='works'" :data="data"/>
           <entity-author v-if="entityType==='authors'" :data="data"/>
           <entity-venue v-if="entityType==='sources'" :data="data"/>
+          <entity-publisher v-if="entityType==='publishers'" :data="data"/>
           <entity-institution v-if="entityType==='institutions'" :data="data"/>
           <entity-concept v-if="entityType==='concepts'" :data="data"/>
 
@@ -191,6 +196,8 @@
 import EntityWork from "../EntityWork";
 import EntityAuthor from "../EntityAuthor";
 import EntityVenue from "../EntityVenue";
+import EntityPublisher from "../EntityPublisher";
+
 import EntityInstitution from "../EntityInstitution";
 import EntityConcept from "../EntityConcept";
 import EntityIcon from "../EntityIcon";
@@ -231,6 +238,7 @@ export default {
     EntityAuthor,
     EntityVenue,
     EntityInstitution,
+    EntityPublisher,
     EntityConcept,
     EntityIcon,
   },

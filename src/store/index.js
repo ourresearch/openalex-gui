@@ -46,6 +46,14 @@ const sortDefaults = {
         textSearch: "relevance_score:desc",
         noTextSearch: "works_count:desc",
     },
+    publishers: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
+    funders: {
+        textSearch: "relevance_score:desc",
+        noTextSearch: "works_count:desc",
+    },
     institutions: {
         textSearch: "relevance_score:desc",
         noTextSearch: "works_count:desc",

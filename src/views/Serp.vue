@@ -94,6 +94,7 @@
               <result-work v-if="$store.state.entityType === 'works'" :data="result"/>
               <result-author v-if="$store.state.entityType === 'authors'" :data="result"/>
               <result-venue v-if="$store.state.entityType === 'sources'" :data="result"/>
+              <result-publisher v-if="$store.state.entityType === 'publishers'" :data="result"/>
               <result-institution v-if="$store.state.entityType === 'institutions'" :data="result"/>
               <result-concept v-if="$store.state.entityType === 'concepts'" :data="result"/>
             </div>
@@ -169,6 +170,7 @@ import SerpFiltersList from "../SerpFiltersList";
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
 import ResultVenue from "../components/ResultVenue";
+import ResultPublisher from "../components/ResultPublisher";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
 import Zoom from "../components/Zoom/Zoom";
@@ -195,6 +197,7 @@ export default {
     ResultWork,
     ResultAuthor,
     ResultVenue,
+    ResultPublisher,
     ResultInstitution,
     ResultConcept,
     Zoom,

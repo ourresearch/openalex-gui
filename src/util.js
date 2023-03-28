@@ -31,6 +31,8 @@ const entityTypesDict = {
     "i": "institutions",
     "v": "venues",
     "s": "sources",
+    "p": "publishers",
+    "f": "funders",
     "a": "authors",
     "c": "concepts",
 };

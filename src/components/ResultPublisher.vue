@@ -8,9 +8,9 @@
       <!--    <div v-if="data.publisher" class="body-2">-->
       <!--      {{ data.publisher }}-->
       <!--    </div>-->
-      <div>
-        <concepts-list :concepts="data.x_concepts"/>
-      </div>
+<!--      <div>-->
+<!--        <concepts-list :concepts="data.x_concepts"/>-->
+<!--      </div>-->
       <div class="body-1">
         <result-works-count
             :works-count="data.works_count"
@@ -36,7 +36,7 @@
 
 
 <!--    </v-col>-->
-    </div>
+  </div>
 </template>
 
 

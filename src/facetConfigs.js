@@ -21,6 +21,10 @@ const facetCategories = {
         "access",
         "other",
     ],
+    publishers: [
+        "popular",
+        "other",
+    ],
     institutions: [
         "popular",
         "location",
@@ -43,7 +47,7 @@ const facetConfigs = function (entityType) {
         {
             key: "ids.openalex",
             entityType: "works",
-            displayName: "OpenAlex ID",
+            displayName: "Work",
             isEntity: true,
             noOptions: true,
             valuesToShow: "select",
@@ -80,6 +84,20 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
         },
         {
+            key: "locations.source.host_organization",
+            entityType: "works",
+            displayName: "Publisher",
+            isEntity: true,
+            showInSidebar: true,
+            entityId: "publishers",
+            autocompleteEndpoint: "autocomplete/publishers",
+            valuesToShow: "mostCommon",
+            category: "source",
+            isCore: true,
+            icon: "mdi-domain",
+            regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
+        },
+        {
             key: "authorships.institutions.id",
             entityType: "works",
             displayName: "Institution",
@@ -109,16 +127,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-        // works: primary location source
-        {
-            key: "primary_location.source.host_organization",
-            entityType: "works",
-            displayName: "Publisher",
-            autocompleteEndpoint: "autocomplete/sources/publisher",
-            valuesToShow: "mostCommon",
-            category: "source",
-            icon: "mdi-book-open-outline",
-        },
 
 
         // works: open access
