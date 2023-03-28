@@ -106,7 +106,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "select",
             category: "other",
             icon: "mdi-book-open-outline",
-            regex: /(\b\d{4}-\d{3}[\dX]\b)/,
+            regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
         },
         {
             key: "locations.source.host_organization",
@@ -163,6 +163,20 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-account-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
+        },
+
+
+        {
+            key: "authorships.author.orcid",
+            entityType: "works",
+            displayName: "ORCID",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            valuesToShow: "select",
+            category: "other",
+            icon: "mdi-account-outline",
+            regex: /https?:\/\/orcid\.org\/(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/,
         },
 
 
