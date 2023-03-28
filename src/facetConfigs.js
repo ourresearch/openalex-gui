@@ -218,12 +218,6 @@ const facetConfigs = function (entityType) {
             category: "access",
             icon: "mdi-lock-open-outline",
         },
-        // {
-        //     key: "has_abstract",
-        //     entityType: "works",
-        //     displayName: "Has abstract",
-        //     valuesToShow: "mostCommon",
-        // },
 
 
         // works: institutions:
@@ -269,6 +263,8 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
         },
 
+
+        // works: intrinsic
 
         {
             key: "type",
@@ -329,6 +325,26 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Isn't retracted", "Is retracted"],
             category: "other",
             icon: "mdi-file-document-outline"
+        },
+        {
+            key: "is_paratext",
+            entityType: "works",
+            displayName: "Paratext",
+            valuesToShow: "boolean",
+            isBoolean: true,
+            booleanValues: ["Isn't paratext", "Is paratext"],
+            category: "other",
+            icon: "mdi-file-document-outline"
+        },
+
+
+        {
+            key: "has_abstract",
+            entityType: "works",
+            displayName: "Has abstract",
+            valuesToShow: "mostCommon",
+            category: "other",
+            icon: "mdi-file-document-outline",
         },
 
         // works: links to other works

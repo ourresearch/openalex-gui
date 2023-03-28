@@ -67,14 +67,6 @@ const filtersAsUrlStr = function (filters, entityType) {
     })
     return filtersAsStrings.join(",")
 
-    // old way allowed for OR-ing values within a facet, now unsupported.
-    const configs = facetConfigs(entityType)
-    const mergedFiltersByFacet = configs.map(c => {
-        const myFilters = filters.filter(f => f.key === c.key)
-        return mergeFacetFilters(myFilters)
-    })
-    const ret = mergedFiltersByFacet.flat().join(",")
-    return ret
 }
 
 const mergeFacetFilters = function (filters) {

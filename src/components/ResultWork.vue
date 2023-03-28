@@ -2,7 +2,7 @@
     <div class="content">
       <router-link
           class="text-decoration-none subtitle-1"
-          :to="data.id | entityZoomLink"
+          :to="clickRoute"
           v-html="$prettyTitle(data.title)"
       />
       <div v-if="authorsCount" class="body-1">
@@ -68,6 +68,8 @@
 import ConceptsList from "./ConceptsList";
 import ResultCitationCount from "./ResultCitationCount";
 import {unravel} from "../util";
+import {createSimpleFilter, filtersAsUrlStr} from "../filterConfigs";
+import {mapGetters} from "vuex";
 
 
 export default {
@@ -83,12 +85,37 @@ export default {
       foo: 42,
     }
   },
-  methods: {},
+  methods: {
+
+  },
   computed: {
+    ...mapGetters([
+        "resultsFilters",
+    ]),
     oaUrlHostname() {
       if (!this.data.open_access?.oa_url) return
       const url = new URL(this.data.open_access.oa_url)
       return url.hostname
+    },
+    clickRoute(){
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      const myFilter = createSimpleFilter("works", "ids.openalex", shortId)
+
+      const filter = filtersAsUrlStr( [
+          ...this.resultsFilters,
+          myFilter
+      ], "works")
+
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {
+          filter,
+        }
+      }
+
+
+
     },
     workIsFreeAtPublisher() {
       return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
