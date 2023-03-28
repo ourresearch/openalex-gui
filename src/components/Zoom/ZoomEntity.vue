@@ -1,192 +1,190 @@
 <template>
   <div v-if="entityId">
+    <v-card flat v-if="data">
+      <div class="card-header py-3 px-6 d-flex align-start">
 
+        <div>
 
-      <v-card flat v-if="data">
-        <div class="card-header py-3 px-6 d-flex align-start">
+          <div class="text-h5 font-weight-medium mt-0"
+               style=" line-height: 1.3;"
+               v-html="$prettyTitle(data.display_name)"
 
-          <div>
+          >
+          </div>
 
-            <div class="text-h5 font-weight-medium mt-0"
-                 style=" line-height: 1.3;"
-                 v-html="$prettyTitle(data.display_name)"
+          <div class="card-header-top-row text-capitalize ">
+            <entity-icon small class="mr-1" :type="entityType"/>
 
-            >
-            </div>
+            <span>{{ myEntityConfig.displayNameSingular }}</span>
 
-            <div class="card-header-top-row text-capitalize ">
-                    <entity-icon small class="mr-1" :type="entityType" />
-
-              <span>{{ myEntityConfig.displayNameSingular }}</span>
-
-              <span v-if="entityType === 'works' && data.type">
+            <span v-if="entityType === 'works' && data.type">
                 ({{ data.type.replace("-", " ") }})
               </span>
-              <span v-if="entityType=== 'institutions' && data.type">
+            <span v-if="entityType=== 'institutions' && data.type">
                  ({{ data.type.replace("-", " ") }})
               </span>
-              <span v-if="entityType=== 'concepts'">
+            <span v-if="entityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-              <span v-if="entityType=== 'sources' && data.type">
+            <span v-if="entityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
-              <span v-if="entityType=== 'publishers' && data.type">
+            <span v-if="entityType=== 'publishers' && data.type">
 <!--                 ({{ data.type }})-->
 
               </span>
-            </div>
-
           </div>
 
-
-          <v-spacer/>
-
         </div>
-        <v-divider></v-divider>
-        <v-card-text class="pt-6" style="font-size: 16px;">
 
-          <entity-work v-if="entityType==='works'" :data="data"/>
-          <entity-author v-if="entityType==='authors'" :data="data"/>
-          <entity-venue v-if="entityType==='sources'" :data="data"/>
-          <entity-publisher v-if="entityType==='publishers'" :data="data"/>
-          <entity-institution v-if="entityType==='institutions'" :data="data"/>
-          <entity-concept v-if="entityType==='concepts'" :data="data"/>
 
-        </v-card-text>
-        <v-divider/>
-        <v-card-actions class="py-3 px-5">
+        <v-spacer/>
 
-          <!--        just for works-->
-          <template v-if="entityType==='works'">
-            <div>
+      </div>
+      <v-divider></v-divider>
+      <v-card-text class="pt-6" style="font-size: 16px;">
 
-              <!--              Green open access-->
-              <v-menu
-                  v-if="isGreenOa"
-              >
-                <template v-slot:activator="{on, attrs}">
-                  <v-btn
-                      color="primary"
-                      v-bind="attrs"
-                      v-on="on"
-                  >
-                    Open Access
-                    <v-icon small right>mdi-menu-down</v-icon>
-                  </v-btn>
-                </template>
-                <v-list
+        <entity-work v-if="entityType==='works'" :data="data"/>
+        <entity-author v-if="entityType==='authors'" :data="data"/>
+        <entity-venue v-if="entityType==='sources'" :data="data"/>
+        <entity-publisher v-if="entityType==='publishers'" :data="data"/>
+        <entity-institution v-if="entityType==='institutions'" :data="data"/>
+        <entity-concept v-if="entityType==='concepts'" :data="data"/>
+
+      </v-card-text>
+      <v-divider/>
+      <v-card-actions class="py-3 px-5">
+
+        <!--        just for works-->
+        <template v-if="entityType==='works'">
+          <div>
+
+            <!--              Green open access-->
+            <v-menu
+                v-if="isGreenOa"
+            >
+              <template v-slot:activator="{on, attrs}">
+                <v-btn
+                    color="primary"
+                    v-bind="attrs"
+                    v-on="on"
                 >
-                  <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">
-                    <v-list-item-title>
-                      <span class="font-weight-bold">Open Access</span> via repository
-                    </v-list-item-title>
-                    <v-icon right small>mdi-open-in-new</v-icon>
-
-                  </v-list-item>
-                  <v-list-item target="_blank" :href="data.primary_location.source.url">
-                    <v-list-item-title>
-                      <span class="font-weight-bold">Paywalled</span> at publisher
-                    </v-list-item-title>
-                    <v-icon right small>mdi-open-in-new</v-icon>
-
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-
-
-              <!--   Open Access at publisher -->
-              <v-btn
-                  :href="oaUrl"
-                  target="_blank"
-                  color="primary"
-                  v-if="isOaAtPublisher"
+                  Open Access
+                  <v-icon small right>mdi-menu-down</v-icon>
+                </v-btn>
+              </template>
+              <v-list
               >
-                Open Access
-                <v-icon right small>mdi-open-in-new</v-icon>
-              </v-btn>
+                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">
+                  <v-list-item-title>
+                    <span class="font-weight-bold">Open Access</span> via repository
+                  </v-list-item-title>
+                  <v-icon right small>mdi-open-in-new</v-icon>
 
-              <!--   Paywalled at publisher-->
-              <v-btn
-                  :href="data.primary_location.source.url"
-                  target="_blank"
-                  color="primary"
-                  outlined
-                  v-if="!isOaAtPublisher && !isGreenOa"
-              >
-                <v-icon left small>mdi-open-in-new</v-icon>
-                Paywalled
-              </v-btn>
-            </div>
+                </v-list-item>
+                <v-list-item target="_blank" :href="data.primary_location.source.url">
+                  <v-list-item-title>
+                    <span class="font-weight-bold">Paywalled</span> at publisher
+                  </v-list-item-title>
+                  <v-icon right small>mdi-open-in-new</v-icon>
+
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
+
+            <!--   Open Access at publisher -->
+            <v-btn
+                :href="oaUrl"
+                target="_blank"
+                color="primary"
+                v-if="isOaAtPublisher"
+            >
+              Open Access
+              <v-icon right small>mdi-open-in-new</v-icon>
+            </v-btn>
+
+            <!--   Paywalled at publisher-->
+            <v-btn
+                :href="data.primary_location.source.url"
+                target="_blank"
+                color="primary"
+                outlined
+                v-if="!isOaAtPublisher && !isGreenOa"
+            >
+              <v-icon left small>mdi-open-in-new</v-icon>
+              Paywalled
+            </v-btn>
+          </div>
+        </template>
+
+
+        <!--        everything except for works-->
+        <template v-if="0">
+          <div>
+            <v-btn
+                :to="linkToWorksSearch"
+                class=""
+                color="primary"
+                outlined
+                exact
+            >
+              <v-icon left>mdi-file-document-multiple-outline</v-icon>
+              View works
+            </v-btn>
+
+            <v-btn
+                :href="linkoutUrl"
+                target="_blank"
+                class="ml-3"
+                v-if="linkoutUrl"
+                color="primary"
+                text
+            >
+              <v-icon left>mdi-open-in-new</v-icon>
+              {{ linkoutButtonText }}
+            </v-btn>
+          </div>
+        </template>
+
+        <v-spacer/>
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on">
+              <v-icon left>mdi-tray-arrow-down</v-icon>
+            </v-btn>
           </template>
+          <v-list dense>
+            <v-subheader>Export data as</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
+              <v-list-item-icon>
+                <v-icon left>mdi-file-download-outline</v-icon>
+
+              </v-list-item-icon>
+              <v-list-item-title>
+
+                BibTeX
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item :href="apiUrl" target="_blank">
+              <v-list-item-icon>
+
+                <v-icon left>mdi-api</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+
+                JSON object
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
 
-          <!--        everything except for works-->
-          <template v-if="0">
-            <div>
-              <v-btn
-                  :to="linkToWorksSearch"
-                  class=""
-                  color="primary"
-                  outlined
-                  exact
-              >
-                <v-icon left>mdi-file-document-multiple-outline</v-icon>
-                View works
-              </v-btn>
-
-              <v-btn
-                  :href="linkoutUrl"
-                  target="_blank"
-                  class="ml-3"
-                  v-if="linkoutUrl"
-                  color="primary"
-                  text
-              >
-                <v-icon left>mdi-open-in-new</v-icon>
-                {{ linkoutButtonText }}
-              </v-btn>
-            </div>
-          </template>
-
-          <v-spacer/>
-          <v-menu>
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on">
-                <v-icon left>mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-subheader>Export data as</v-subheader>
-              <v-divider></v-divider>
-              <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
-                <v-list-item-icon>
-                  <v-icon left>mdi-file-download-outline</v-icon>
-
-                </v-list-item-icon>
-                <v-list-item-title>
-
-                  BibTeX
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item :href="apiUrl" target="_blank">
-                <v-list-item-icon>
-
-                  <v-icon left>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-
-                  JSON object
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+      </v-card-actions>
 
 
-        </v-card-actions>
-
-
-      </v-card>
+    </v-card>
   </div>
 
 </template>
@@ -345,8 +343,7 @@ export default {
     ...mapMutations([
       "snackbar"
     ]),
-    ...mapActions([
-    ]),
+    ...mapActions([]),
     async copyPermalinkToClipboard() {
       await navigator.clipboard.writeText(this.data.id);
       this.snackbar("URL copied to clipboard.")
@@ -367,12 +364,13 @@ export default {
         this.data = resp
       })
     },
-    
+
   },
   created() {
   },
   mounted() {
-
+    this.data = null
+    this.getData()
   },
   watch: {
     "$route.params.id": function (to, from) {
