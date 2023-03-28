@@ -54,9 +54,12 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on, attrs }">
             <v-btn
+                rounded
                 text
+                large
                 :x-large="isAloneOnPage"
-                class="text-capitalize"
+                class="text-capitalize px-4"
+                style="margin-left: -24px;"
                 v-bind="attrs"
                 v-on="on"
                 @click="openEntityMenu"

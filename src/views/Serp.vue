@@ -7,7 +7,7 @@
 
       <facets-drawer
           @filter-type-key="setFilterTypeKey"
-          style="width: 270px; "
+          style="width: 230px; "
       />
 
 
@@ -27,9 +27,9 @@
 
 <!--        <router-view></router-view>-->
         <div
-            class="serp-container pt-0 pl-4 pt-12"
+            class="serp-container pt-0 pl-4 mr-10 pt-12"
             :class="{mobile: $vuetify.breakpoint.mobile}"
-            style="min-height: calc(100vh - 250px);"
+            style="min-height: calc(100vh - 250px); max-width: 600px;"
         >
 
           <div
@@ -80,7 +80,7 @@
           </div>
 
 
-          <div class="search-results-row ml-4" style="max-width: 500px;">
+          <div class="search-results-row ml-4">
             <div v-if="!resultsCount" class="mt-8 grey--text">
               Sorry, there are no results for this search.
             </div>
@@ -109,7 +109,7 @@
           </div>
         </div>
 
-      <div class="entity-sidebar" style="max-width: 400px; min-width: 300px;">
+      <div class="entity-sidebar mt-10" style="max-width: 400px; min-width: 300px;">
         <zoom-entity :entity-id="entitySidebarId" />
 
       </div>
