@@ -56,6 +56,18 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
+            key: "ids.doi",
+            entityType: "works",
+            displayName: "DOI",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            valuesToShow: "select",
+            category: "other",
+            icon: "mdi-file-document-outline",
+            regex: /(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/,
+        },
+        {
             key: "concepts.id",
             entityType: "works",
             displayName: "Concept",
