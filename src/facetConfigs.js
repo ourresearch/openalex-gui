@@ -56,7 +56,7 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
-            key: "ids.doi",
+            key: "doi",
             entityType: "works",
             displayName: "DOI",
             isEntity: true,
@@ -94,6 +94,19 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-book-open-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
+        },
+
+        {
+            key: "locations.source.issn",
+            entityType: "works",
+            displayName: "ISSN",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            valuesToShow: "select",
+            category: "other",
+            icon: "mdi-book-open-outline",
+            regex: /(\b\d{4}-\d{3}[\dX]\b)/,
         },
         {
             key: "locations.source.host_organization",
