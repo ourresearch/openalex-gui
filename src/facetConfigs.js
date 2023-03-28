@@ -136,6 +136,20 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
         },
+
+        {
+            key: "authorships.institutions.ror",
+            entityType: "works",
+            displayName: "ROR",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            valuesToShow: "select",
+            category: "other",
+            icon: "mdi-town-hall",
+            regex: /https?:\/\/ror\.org\/(0[a-zA-Z0-9]{8})/,
+        },
+
         {
             key: "authorships.author.id",
             entityType: "works",
