@@ -6,7 +6,12 @@
           Publisher:
         </span>
         <span>
-          {{ data.host_organization_name }}
+          <router-link
+              :to="data.host_organization | entityZoomLink"
+              class="text-decoration-none"
+          >
+            {{ data.host_organization_name }}
+          </router-link>
         </span>
       </div>
 
