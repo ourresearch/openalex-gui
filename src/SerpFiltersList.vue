@@ -51,6 +51,62 @@
               v-model="searchString"
               placeholder="search"
           />
+
+
+
+          <v-btn icon @click="facetsDrawerIsOpen = false">
+            <v-icon icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text style="height: 70vh;">
+          <v-list
+              v-if="filtersZoom && !selectedFacetKey"
+              class="pt-0 pl-0"
+              expand
+              nav
+          >
+            <template
+                v-for="facetCategory in facetsByCategory"
+            >
+              <template>
+                <v-subheader
+                    :key="'subheader' + facetCategory.name"
+                    class="align-end text-capitalize pl-0"
+                >
+                  {{ facetCategory.name }}
+                </v-subheader>
+                <!--                <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
+              </template>
+              <facet-simple
+                  v-for="facet in facetCategory.facets"
+                  :key="facet.entityType + facet.key"
+                  :facet-key="facet.key"
+                  :facet-entity-type="entityType"
+              />
+            </template>
+          </v-list>
+
+          <facet-zoom
+              v-if="selectedFacetKey"
+              :facet-key="selectedFacetKey"
+              :api-url="makeApiUrl(50)"
+              :search-string="searchString"
+          />
+
+
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-btn outlined  @click="facetsDrawerIsOpen = false">
+            <v-icon left>mdi-close</v-icon>
+            Close
+          </v-btn>
+          <v-btn text  @click="clear"  :disabled="myResultsFilters.length === 0">
+            <v-icon left>mdi-filter-off-outline</v-icon>
+            Clear {{ (selectedFacetConfig) ? "" : "all" }}
+          </v-btn>
+          <v-spacer />
+
           <v-menu v-if="selectedFacetConfig">
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on" class="mr-1">
@@ -88,53 +144,7 @@
 
             </v-list>
           </v-menu>
-
-          <v-btn icon @click="clear" :disabled="myResultsFilters.length === 0">
-            <v-icon icon>mdi-filter-off-outline</v-icon>
-          </v-btn>
-
-
-          <v-btn icon @click="facetsDrawerIsOpen = false">
-            <v-icon icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card-text style="height: 81vh;">
-          <v-list
-              v-if="filtersZoom && !selectedFacetKey"
-              class="pt-0 pl-0"
-              expand
-              nav
-          >
-            <template
-                v-for="facetCategory in facetsByCategory"
-            >
-              <template>
-                <v-subheader
-                    :key="'subheader' + facetCategory.name"
-                    class="align-end text-capitalize pl-0"
-                >
-                  {{ facetCategory.name }}
-                </v-subheader>
-                <!--                <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
-              </template>
-              <facet-simple
-                  v-for="facet in facetCategory.facets"
-                  :key="facet.entityType + facet.key"
-                  :facet-key="facet.key"
-                  :facet-entity-type="entityType"
-              />
-            </template>
-          </v-list>
-
-          <facet-zoom
-              v-if="selectedFacetKey"
-              :facet-key="selectedFacetKey"
-              :api-url="makeApiUrl(50)"
-              :search-string="searchString"
-          />
-
-
-        </v-card-text>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
