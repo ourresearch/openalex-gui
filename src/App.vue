@@ -34,6 +34,12 @@
               </span>
           </router-link>
           <!--          {{ logoColorRotation }}-->
+
+<!--          <v-btn fab small color="primary" class=" ml-2"-->
+<!--            style="height: 46px; width: 46px; margin-top: 6px;"-->
+<!--          >-->
+<!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
+<!--          </v-btn>-->
           <search-box
               v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
               class="d-md-block d-none mt-1 pl-2 flex-fill"

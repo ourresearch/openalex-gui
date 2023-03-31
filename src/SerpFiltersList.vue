@@ -1,10 +1,18 @@
 <template>
   <div class="serp-filters-list">
+    <v-btn small rounded color="primary" class="ml-2"
+    >
+      <v-icon left>mdi-filter-menu-outline</v-icon>
+      filters
+    </v-btn>
+
     <serp-filters-list-chip
-      v-for="filter in resultsFilters"
-      :key="filter.key + filter.value"
-      :filter="filter"
+        v-for="filter in resultsFilters"
+        :key="filter.key + filter.value"
+        :filter="filter"
     />
+
+
   </div>
 </template>
 
