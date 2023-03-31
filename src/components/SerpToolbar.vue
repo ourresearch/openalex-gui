@@ -1,7 +1,12 @@
 <template>
   <div
-      class="serp-filters-list d-flex"
+      class="serp-filters-list d-flex align-center"
+      style="width: 100%;"
   >
+    <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
+        <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
+
+    <v-spacer />
 
 
 
@@ -22,8 +27,9 @@
         <v-menu offset-y>
           <template v-slot:activator="{on}">
             <v-btn text rounded v-on="on" class="low-key-button">
-              <v-icon left class="mr-1">mdi-sort-ascending</v-icon>
+              <span class="mr-1 font-weight-light">Sort by</span>
               {{ sortObject.displayName }}
+              <v-icon right class="">mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list dense>
@@ -390,6 +396,7 @@ export default {
       "sortObjectOptions",
       "sortObject",
       "showFiltersDrawer",
+      "entityConfigs",
     ]),
 
     sort: {
@@ -402,6 +409,10 @@ export default {
     },
     exportEmailIsValid() {
       return /.+@.+/.test(this.exportEmail)
+    },
+
+    selectedEntityTypeConfig() {
+      return entityConfigs[this.entityType]
     },
   },
   methods: {

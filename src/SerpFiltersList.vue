@@ -1,5 +1,5 @@
 <template>
-  <div class="serp-filters-list ml-4">
+  <div class="serp-filters-list">
     <serp-filters-list-chip
       v-for="filter in resultsFilters"
       :key="filter.key + filter.value"

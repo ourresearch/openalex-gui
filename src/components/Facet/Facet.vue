@@ -17,42 +17,48 @@
         <v-row class="pa-0 ma-0">
           <v-col class="pa-0 grow">
             <v-icon :disabled="isDisabled" class="mr-2">{{ config.icon }}</v-icon>
-            {{ config.displayName }}
+            <span v-if="myResultsFilters.length" class="font-weight-bold">
+            {{ config.displayName }} ({{ myResultsFilters.length}})
+
+            </span>
+            <span v-else>
+              {{ config.displayName }}
+            </span>
           </v-col>
-          <v-col class="shrink pa-0" style="white-space: nowrap">
+<!--          <v-col class="shrink pa-0" style="white-space: nowrap">-->
 <!--         <span class="font-weight-bold" v-if="myResultsFilters.length === 1">-->
 <!--              {{ prettyTitle(myResultsFilters[0].displayValue, facetKey) | truncate(50) }}-->
 <!--          </span>-->
-            <template v-if="myResultsFilters.length >= 1">
-              <v-chip
-                  v-if="myResultsFiltersNegated.length"
-                  color="red"
-                  dark
-                  x-small
-                  class="ml-1"
-                  :disabled="isDisabled"
-              >
-                {{ myResultsFiltersNegated.length }}
-              </v-chip>
-              <v-chip
-                  v-if="myResultsFiltersAny.length"
-                  color="green"
-                  dark
-                  x-small
-                  class="ml-1"
-                  :disabled="isDisabled"
+<!--            <template v-if="myResultsFilters.length >= 1">-->
+<!--              <v-chip-->
+<!--                  v-if="myResultsFiltersNegated.length"-->
+<!--                  color="red"-->
+<!--                  dark-->
+<!--                  x-small-->
+<!--                  class="ml-1"-->
+<!--                  :disabled="isDisabled"-->
+<!--              >-->
+<!--                {{ myResultsFiltersNegated.length }}-->
+<!--              </v-chip>-->
+<!--              <v-chip-->
+<!--                  v-if="myResultsFiltersAny.length"-->
+<!--                  color="green"-->
+<!--                  dark-->
+<!--                  x-small-->
+<!--                  class="ml-1"-->
+<!--                  :disabled="isDisabled"-->
 
-              >
-                {{ myResultsFiltersAny.length }}
-              </v-chip>
-            </template>
+<!--              >-->
+<!--                {{ myResultsFiltersAny.length }}-->
+<!--              </v-chip>-->
+<!--            </template>-->
 
 
-            <v-btn style="margin: 2px 5px 0 5px;" :color="valuesColor" :disabled="isDisabled"
-                   v-if="!!myResultsFilters.length" x-small icon @click.stop="clearAllFilters">
-              <v-icon small>mdi-close</v-icon>
-            </v-btn>
-          </v-col>
+<!--            <v-btn style="margin: 2px 5px 0 5px;" :color="valuesColor" :disabled="isDisabled"-->
+<!--                   v-if="!!myResultsFilters.length" x-small icon @click.stop="clearAllFilters">-->
+<!--              <v-icon small>mdi-close</v-icon>-->
+<!--            </v-btn>-->
+<!--          </v-col>-->
 
         </v-row>
 

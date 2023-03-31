@@ -282,7 +282,7 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Year published",
+            displayName: "Year",
             valuesToShow: "range",
             sortByValue: true,
             isRange: true,

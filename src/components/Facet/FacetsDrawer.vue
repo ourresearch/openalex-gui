@@ -2,7 +2,7 @@
 
 
   <div
-      class="pl-3 ma-0"
+      class=" ma-0"
       id="facets-drawer"
 
   >
@@ -12,6 +12,7 @@
           :ripple="false"
           :disabled="!!facetZoom"
           flat
+          class="pa-0 ma-0"
       >
         <div
             class="card-header"
@@ -19,7 +20,7 @@
         >
 
           <div
-              class="d-flex align-center pl-1 pt-12 mt-3"
+              class="d-flex align-center "
           >
 
             <!--        <v-btn-->
@@ -31,41 +32,38 @@
 
             <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
             <!--        </v-btn>-->
-            <span
-                class="font-weight-bold pl-4"
+<!--            <span-->
+<!--                class="font-weight-bold "-->
 
-            >
-              <v-icon>mdi-filter-outline</v-icon>
-          Filters
-              </span>
+<!--            >-->
+<!--&lt;!&ndash;              <v-icon>mdi-filter-outline</v-icon>&ndash;&gt;-->
+<!--          Filters-->
+<!--              <span v-if="resultsFilters.length" class="font-weight-light">({{resultsFilters.length}})</span>-->
+<!--              </span>-->
 
-            <v-spacer/>
-            <v-btn icon class="mr-1" @click="showSearch = !showSearch">
-              <v-icon>mdi-magnify</v-icon>
-            </v-btn>
-            <v-chip
-                v-if="resultsFiltersNegated.length"
-                color="red"
-                dark
-                small
-                :disabled="!!facetZoom"
-            >
-              {{ resultsFiltersNegated.length }}
-            </v-chip>
-            <v-chip
-                v-if="resultsFiltersAny.length"
-                color="green"
-                dark
-                small
-                class="ml-1"
-                :disabled="!!facetZoom"
-            >
-              {{ resultsFiltersAny.length }}
-            </v-chip>
+<!--            <v-spacer/>-->
+<!--            <v-btn icon class="mr-1" @click="showSearch = !showSearch">-->
+<!--              <v-icon>mdi-magnify</v-icon>-->
+<!--            </v-btn>-->
 
 
+            <v-text-field
+                flat
+                hide-details
+                solo
+                full-width
+                class="mt-0"
+                clearable
+                prepend-inner-icon="mdi-magnify"
+                autofocus
+                dense
+
+                v-model="facetSearch"
+                placeholder="search filters"
+            />
 
             <v-menu
+                v-if="0"
                 offset-y
             >
               <template v-slot:activator="{on}">
@@ -91,28 +89,13 @@
           </div>
           <div
               class="d-flex align-start"
-              :style="`height: ${height.searchbar}px;`"
-              v-if="showSearch"
 
           >
             <!--        <div class="">-->
             <!--          {{ myFacetConfig.displayName }}-->
             <!--        </div>-->
 
-            <v-text-field
-                flat
-                hide-details
-                solo
-                full-width
-                class="mt-0 mx-2"
-                clearable
-                prepend-inner-icon="mdi-magnify"
-                autofocus
-                dense
 
-                v-model="facetSearch"
-                placeholder="search filters"
-            />
 
 
           </div>
@@ -128,7 +111,7 @@
 
 
           <v-list
-              class="pt-0"
+              class="pt-0 pl-0"
               expand
               nav
           >
@@ -138,7 +121,7 @@
               <template v-if="showAdvancedFilters && facetCategory.name !== 'solo'">
                 <v-subheader
                     :key="'subheader' + facetCategory.name"
-                    class="align-end text-capitalize pl-11"
+                    class="align-end text-capitalize pl-0"
                 >
                   {{ facetCategory.name }}
                 </v-subheader>
@@ -174,15 +157,15 @@
       </v-card>
     </div>
 
-<!--    <div-->
-<!--        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"-->
-<!--        id="facet-zoom-drawer"-->
-<!--        :style="{width: facetZoomWidth+'px'}"-->
-<!--        style="border-left: 1px solid rgba(255,255,255, .25);"-->
-<!--    >-->
-<!--      <facet-zoom/>-->
+    <!--    <div-->
+    <!--        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"-->
+    <!--        id="facet-zoom-drawer"-->
+    <!--        :style="{width: facetZoomWidth+'px'}"-->
+    <!--        style="border-left: 1px solid rgba(255,255,255, .25);"-->
+    <!--    >-->
+    <!--      <facet-zoom/>-->
 
-<!--    </div>-->
+    <!--    </div>-->
 
 
   </div>

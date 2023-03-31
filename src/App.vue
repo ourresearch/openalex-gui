@@ -15,7 +15,7 @@
           <router-link
               :to="{name: 'Home'}"
               class="logo-link pl-3"
-              style="width: 230px;"
+              style="width: 180px;"
               v-if="$route.name !== 'Home'"
           >
             <img
@@ -180,7 +180,7 @@ html, body {
   opacity: 0;
 }
 
-$logo-link-height: 45px;
+$logo-link-height: 35px;
 
 .logo-link {
   text-decoration: none;
@@ -204,7 +204,7 @@ $logo-link-height: 45px;
     font-family: Dosis;
     letter-spacing: .03em;
     font-size: $logo-link-height * 0.75;
-    font-weight: 400;
+    font-weight: 500;
   }
 }
 
