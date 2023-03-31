@@ -18,7 +18,7 @@
       <v-divider class="mb-6"/>
       <v-row class="results-row">
         <v-col cols="2">
-          <facets-drawer/>
+<!--          <facets-drawer/>-->
         </v-col>
         <v-col cols="10">
           <v-row v-if="!singleWorkIdToShow">

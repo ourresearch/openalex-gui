@@ -17,6 +17,7 @@
         :filter="filter"
     />
 
+
     <v-dialog
         v-model="facetsDrawerIsOpen"
         scrollable
@@ -24,9 +25,15 @@
       <v-card>
         <v-toolbar>
           <v-toolbar-title>
-            <v-icon>mdi-filter-outline</v-icon>
-            <span v-if="!selectedFacetKey">Filters</span>
-            <span v-else>{{ selectedFacetConfig.displayName }}</span>
+            <v-btn icon @click="setFiltersZoom(true)">
+              <v-icon>{{ (selectedFacetConfig) ? "mdi-arrow-left" : "mdi-filter-outline" }}</v-icon>
+            </v-btn>
+            <span v-if="selectedFacetConfig">
+              <v-icon>{{ selectedFacetConfig.icon }}</v-icon>
+              {{ selectedFacetConfig.displayName }}
+            </span>
+            <span v-else>Filters</span>
+
           </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-text-field
@@ -41,15 +48,57 @@
               autofocus
               dense
 
-              v-model="searchQuery"
+              v-model="searchString"
               placeholder="search"
           />
-          <v-spacer/>
+          <v-menu v-if="selectedFacetConfig">
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on" class="mr-1">
+                <v-icon>mdi-tray-arrow-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-subheader>
+                Export as:
+                <!--                {{ config.displayName | pluralize(2) }} as:-->
+              </v-subheader>
+              <v-divider></v-divider>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200, true)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-table</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Spreadsheet
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  JSON object
+                </v-list-item-title>
+              </v-list-item>
+
+            </v-list>
+          </v-menu>
+
+          <v-btn icon @click="clear" :disabled="myResultsFilters.length === 0">
+            <v-icon icon>mdi-filter-off-outline</v-icon>
+          </v-btn>
+
+
           <v-btn icon @click="facetsDrawerIsOpen = false">
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-card-text>
+        <v-card-text style="height: 81vh;">
           <v-list
               v-if="filtersZoom && !selectedFacetKey"
               class="pt-0 pl-0"
@@ -76,6 +125,15 @@
               />
             </template>
           </v-list>
+
+          <facet-zoom
+              v-if="selectedFacetKey"
+              :facet-key="selectedFacetKey"
+              :api-url="makeApiUrl(50)"
+              :search-string="searchString"
+          />
+
+
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -90,17 +148,22 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import SerpFiltersListChip from "./components/SerpFiltersListChip";
 import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
 import FacetSimple from "@/components/Facet/FacetSimple.vue";
+import FacetZoom from "./components/Facet/FacetZoom";
+import {filtersAsUrlStr, sortedFilters} from "./filterConfigs";
+import {url} from "./url";
 
 export default {
   name: "SerpFiltersList",
   components: {
     SerpFiltersListChip,
     FacetSimple,
+    FacetZoom,
   },
   props: {},
   data() {
     return {
-      searchQuery: "",
+      searchString: "",
+      selectedFilters: [],
       dialogs: {
         facetsDrawer: false,
       }
@@ -127,7 +190,7 @@ export default {
       return facetCategories[this.entityType].map(categoryName => {
         return {
           name: categoryName,
-          facets: this.searchQueryResults.filter(f => {
+          facets: this.searchStringResults.filter(f => {
             return f.category === categoryName
           })
         }
@@ -138,10 +201,10 @@ export default {
     },
 
 
-    searchQueryResults() {
+    searchStringResults() {
       const ret = this.searchFacetConfigs
           .filter(c => {
-            return c.displayName.toLowerCase().match(this.searchQuery?.toLowerCase())
+            return c.displayName.toLowerCase().match(this.searchString?.toLowerCase())
           })
           .filter(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
@@ -163,11 +226,14 @@ export default {
         return this.filtersZoom
       }
     },
-
     selectedFacetConfig() {
       if (!this.selectedFacetKey) return
       return getFacetConfig(this.entityType, this.selectedFacetKey)
     },
+    myResultsFilters() {
+      if (!this.selectedFacetKey) return this.resultsFilters
+      return this.resultsFilters.filter(f => f.key === this.selectedFacetKey);
+    }
 
 
   },
@@ -178,7 +244,34 @@ export default {
       "setFiltersZoom",
     ]),
     ...mapActions([]),
+    makeApiUrl(perPage, formatCsv) {
+      if (!perPage) perPage = this.maxApiFiltersToShow
+      const url = new URL(`https://api.openalex.org`)
+      url.pathname = `${this.entityType}`
 
+      const filters = this.$store.state.inputFilters
+      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
+
+      url.searchParams.set("group_by", this.selectedFacetConfig.key)
+      url.searchParams.set("per_page", String(perPage))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      if (this.searchString) url.searchParams.set("q", this.searchString)
+      if (formatCsv) url.searchParams.set("format", "csv")
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
+    },
+    clear(){
+      console.log("close!")
+      const newFilters = (this.selectedFacetKey) ?
+          this.resultsFilters.filter(f => f.key !== this.selectedFacetKey) :
+          []
+      url.setFilters(this.entityType, newFilters)
+
+      const myFacetName = (this.selectedFacetConfig) ? this.selectedFacetConfig.displayName : ""
+      this.snackbar(myFacetName + " filters cleared")
+
+      this.facetsDrawerIsOpen = !!this.selectedFacetKey
+    }
 
   },
   created() {
@@ -186,7 +279,8 @@ export default {
   mounted() {
   },
   watch: {
-    isOpen(to, from) {
+    selectedFacetKey(to, from) {
+      this.searchString = ""
     }
   }
 }

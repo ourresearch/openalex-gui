@@ -3,69 +3,17 @@
   <v-card
       :loading="isLoading"
       flat
-      color="#fff"
-      style="min-width: 350px;"
+      class="mt-1"
   >
-    <div class="card-header pa-2" style="position: relative;" :class="{'elevation-3': isScrolled}">
-
-      <div
-          class="text-h6 px-2 d-flex align-center"
-          :style="`height: ${height.toolbar}px;`"
-      >
-        <v-icon left>{{ config.icon }}</v-icon>
-        <div id="facet-zoom-header">
-          {{ config.displayName }}
-        </div>
-        <v-spacer></v-spacer>
-        <v-btn icon @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-      <div
-          class="d-flex align-start"
-          :style="`height: ${height.searchbar}px;`"
-          v-if="showSearch"
-      >
-        <!--        <div class="">-->
-        <!--          {{ config.displayName }}-->
-        <!--        </div>-->
-
-        <v-text-field
-            flat
-            hide-details
-            full-width
-            class="mt-0 mx-2"
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            :append-outer-icon="searchString ? 'mdi-arrow-right-circle-outline' : ''"
-            :placeholder="searchPlaceholder"
-            :disabled="!!isLoading"
-            autofocus
-            dense
-
-            v-model="searchString"
-            @click:append-outer="fetchFilters"
-            @click:clear="clearSearch"
-            @keypress.enter="fetchFilters"
-        />
-
-
-      </div>
-
-      <div>
-      </div>
-    </div>
 
     <v-card-text
         id="facet-zoom-card-text"
         class="pa-0"
-        :style="cardTextStyle"
-        v-scroll.self="onCardTextScroll"
     >
 
 
       <v-list>
-        <template v-if="!appliedSearchString">
+        <template v-if="!searchString">
           <facet-option
               v-for="f in resultsFiltersNotInApiFilters"
               :filter="f"
@@ -89,57 +37,8 @@
 
         />
       </v-list>
-      <!--      <v-btn v-if="thereAreMoreGroupsToShow" text small class="ml-10 mt-2 mb-12" @click="fetchMore">-->
-      <!--        <v-icon left>mdi-chevron-down</v-icon>-->
-      <!--        show more-->
-      <!--      </v-btn>-->
 
     </v-card-text>
-    <v-card-actions :style="`height: ${height.footer}px;`" class="" :class="{'elevation-3': isScrolled}">
-
-
-      <v-btn :disabled="!isDirty" :loading="applyIsLoading" depressed color="primary" @click="saveSelectedFilters">
-        Apply
-      </v-btn>
-      <v-spacer></v-spacer>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="mr-1">
-            <v-icon>mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-subheader>
-            Export as:
-            <!--                {{ config.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item
-              target="_blank"
-              :href="makeApiUrl(200, true)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-table</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Spreadsheet
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-              target="_blank"
-              :href="makeApiUrl(200)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              JSON object
-            </v-list-item-title>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
-    </v-card-actions>
 
 
   </v-card>
@@ -169,7 +68,8 @@ export default {
   },
   props: {
     facetKey: String,
-    isVisible: Boolean,
+    apiUrl: String,
+    searchString: String,
   },
   data() {
     return {
@@ -183,8 +83,6 @@ export default {
       filtersTotalCount: null,
       selectedFilters: [],
       negatedFilters: [],
-      searchString: "",
-      appliedSearchString: "",
 
 
       groupByQueryResultsCount: null,
@@ -277,9 +175,6 @@ export default {
       return this.makeApiUrl(200, true)
     },
 
-    apiUrl() {
-      return this.makeApiUrl(200)
-    },
     searchStringIsBlank() {
       return !this.searchString
     },
@@ -324,6 +219,8 @@ export default {
         return kv !== arg.kv
       });
       if (arg.isNegated) this.negatedFilters.push(arg.kv)
+      this.saveSelectedFilters()
+
     },
     saveSelectedFilters() {
       this.$emit("close")
@@ -339,37 +236,11 @@ export default {
       })
       url.setFiltersByKey(this.facetKey, filtersToSave)
     },
-    makeApiUrl(perPage, formatCsv) {
-      if (!perPage) perPage = this.maxApiFiltersToShow
-      const url = new URL(`https://api.openalex.org`)
-      url.pathname = `${this.entityType}`
-
-      const filters = this.$store.state.inputFilters
-          // .filter(f => f.key !== this.config.key)
-      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
-
-      url.searchParams.set("group_by", this.config.key)
-      url.searchParams.set("per_page", String(perPage))
-      if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      if (this.searchString) url.searchParams.set("q", this.searchString)
-      if (formatCsv) url.searchParams.set("format", "csv")
-      url.searchParams.set("email", "team@ourresearch.org")
-      return url.toString()
-    },
-    async fetchMore() {
-      this.maxApiFiltersToShow = 200
-      await this.fetchFilters()
-    },
-    async clearSearch() {
-      this.searchString = ""
-      await this.fetchFilters()
-    },
     async fetchFilters() {
       if (!this.config) return
       this.isLoading = "primary"
 
       const resp = await api.getUrl(this.apiUrl)
-      this.appliedSearchString = resp.meta.q
 
       const groups = resp.group_by.slice(0, 20)
       const worksCounts = groups.map(f => f.count)
@@ -393,14 +264,6 @@ export default {
     onCardTextScroll(e) {
       this.isScrolled = e.target.scrollTop > 0
     },
-    clear() {
-      this.apiFilters = []
-      this.filtersTotalCount = null
-      this.selectedFilters = []
-      this.negatedFilters = []
-      this.searchString = ""
-      this.appliedSearchString = ""
-    }
 
   },
   created() {
@@ -410,28 +273,10 @@ export default {
   destroyed() {
   },
   watch: {
-    // search(newVal, oldVal) {
-    //   console.log("search changed", newVal)
-    //   this.fetchFilters()
-    // },
     "$route.query": {
       immediate: true,
       handler(newVal, oldVal) {
-        // this.clear()
         this.fetchFilters()
-      }
-    },
-    isVisible: {
-      immediate: true,
-      handler(newVal) {
-        this.clear()
-        this.selectedFilters = this.myResultsFilters.map(f => f.kv)
-        this.negatedFilters = this.myResultsFilters.filter(f => f.isNegated).map(f => f.kv)
-        this.fetchFilters()
-        // if (!newVal) {
-        //   this.clear()
-        //   this.fetchFilters()
-        // }
       }
     },
     "myResultsFilters": {
@@ -441,23 +286,7 @@ export default {
         this.negatedFilters = newVal.filter(f => f.isNegated).map(f => f.kv)
       }
     },
-    // "facetZoom": {
-    //   handler(newVal, oldVal) {
-    //     // hacky thing for tabs
-    //     this.isExpanded = false
-    //     setTimeout(() => {
-    //       this.isExpanded = true
-    //     }, 100)
-    //
-    //     this.tab = 0
-    //     this.search = ""
-    //     this.apiFilters = []
-    //     this.fetchFilters()
-    //   }
-    // },
-    tab(to, from) {
-      console.log("change tab", to)
-      this.searchString = ""
+    searchString(newVal, oldVal){
       this.fetchFilters()
     }
   }
