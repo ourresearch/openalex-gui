@@ -117,7 +117,8 @@ const stateDefaults = function () {
         snackbarIcon: null,
 
         showFiltersDrawer: false,
-        facetZoom: null,
+        facetZoom: null, // @todo remove this from code
+        filtersZoom: null,
 
         // entity stuff
         // entityZoomData: null,
@@ -200,6 +201,15 @@ export default new Vuex.Store({
             })
             newFilters.push(filter)
             state.inputFilters = newFilters
+        },
+        setFiltersZoom(state, arg){
+            const filterKeys = facetConfigs().map(f => f.key)
+            if (filterKeys.includes(arg)){
+                state.filtersZoom = arg
+            }
+            else {
+                state.filtersZoom = !!arg
+            }
         },
 
 
@@ -490,7 +500,9 @@ export default new Vuex.Store({
         },
         allOaStatusFiltersAreActive(state) {
             const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")
-
+        },
+        filtersZoom(state){
+            return state.filtersZoom
         },
 
     },

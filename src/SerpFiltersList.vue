@@ -5,7 +5,7 @@
         rounded
         color="primary"
         class="ml-2"
-        @click="dialogs.facetsDrawer = true"
+        @click="facetsDrawerIsOpen = true"
     >
       <v-icon left>mdi-filter-menu-outline</v-icon>
       filters
@@ -18,14 +18,15 @@
     />
 
     <v-dialog
-        v-model="dialogs.facetsDrawer"
+        v-model="facetsDrawerIsOpen"
         scrollable
     >
       <v-card>
-        <v-toolbars>
+        <v-toolbar>
           <v-toolbar-title>
             <v-icon>mdi-filter-outline</v-icon>
-            Filters
+            <span v-if="!selectedFacetKey">Filters</span>
+            <span v-else>{{ selectedFacetConfig.displayName }}</span>
           </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-text-field
@@ -40,17 +41,17 @@
               autofocus
               dense
 
-              v-model="facetSearch"
-              placeholder="search filters"
+              v-model="searchQuery"
+              placeholder="search"
           />
           <v-spacer/>
-          <v-btn icon @click="dialogs.facetsDrawer = false">
+          <v-btn icon @click="facetsDrawerIsOpen = false">
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
-        </v-toolbars>
+        </v-toolbar>
         <v-card-text>
-          <!--          <facets-drawer/>-->
           <v-list
+              v-if="filtersZoom && !selectedFacetKey"
               class="pt-0 pl-0"
               expand
               nav
@@ -67,33 +68,16 @@
                 </v-subheader>
                 <!--                <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
               </template>
-              <template v-for="facet in facetCategory.facets">
-                <facet-range
-                    v-if="facet.isRange"
-                    :key="facet.entityType + facet.key"
-                    :facet-key="facet.key"
-                    :facet-entity-type="entityType"
-                    show-details-button
-                >
-                </facet-range>
-                <facet
-                    v-else
-                    :key="facet.entityType + facet.key"
-                    :facet-key="facet.key"
-                    :facet-entity-type="entityType"
-                />
-
-              </template>
+              <facet-simple
+                  v-for="facet in facetCategory.facets"
+                  :key="facet.entityType + facet.key"
+                  :facet-key="facet.key"
+                  :facet-entity-type="entityType"
+              />
             </template>
-
-
           </v-list>
-
-
         </v-card-text>
-
       </v-card>
-
     </v-dialog>
 
 
@@ -104,22 +88,19 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import SerpFiltersListChip from "./components/SerpFiltersListChip";
-import FacetsDrawer from "@/components/Facet/FacetsDrawer.vue";
-import {facetCategories} from "@/facetConfigs";
-import Facet from "@/components/Facet/Facet.vue";
-import FacetRange from "@/components/Facet/FacetRange.vue";
+import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
+import FacetSimple from "@/components/Facet/FacetSimple.vue";
 
 export default {
   name: "SerpFiltersList",
   components: {
     SerpFiltersListChip,
-    Facet,
-    FacetRange,
+    FacetSimple,
   },
   props: {},
   data() {
     return {
-      facetSearch: "",
+      searchQuery: "",
       dialogs: {
         facetsDrawer: false,
       }
@@ -130,15 +111,15 @@ export default {
       "resultsFilters",
       "entityType",
       "searchFacetConfigs",
+      "filtersZoom",
+
     ]),
-    isOpen: {
+    facetsDrawerIsOpen: {
       get() {
-        if (!this.$vuetify.breakpoint.mobile) return true
-        return this.$store.state.showFiltersDrawer
+        return !!this.filtersZoom
       },
       set(val) {
-        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
-        this.$store.state.showFiltersDrawer = val
+        this.setFiltersZoom(val)
       },
     },
 
@@ -146,7 +127,7 @@ export default {
       return facetCategories[this.entityType].map(categoryName => {
         return {
           name: categoryName,
-          facets: this.facetSearchResults.filter(f => {
+          facets: this.searchQueryResults.filter(f => {
             return f.category === categoryName
           })
         }
@@ -157,10 +138,10 @@ export default {
     },
 
 
-    facetSearchResults() {
+    searchQueryResults() {
       const ret = this.searchFacetConfigs
           .filter(c => {
-            return c.displayName.toLowerCase().match(this.facetSearch?.toLowerCase())
+            return c.displayName.toLowerCase().match(this.searchQuery?.toLowerCase())
           })
           .filter(c => {
             const filters = this.resultsFilters.filter(f => f.key === c.key)
@@ -176,12 +157,25 @@ export default {
 
       return ret
     },
+    selectedFacetKey() {
+      const filterKeys = facetConfigs().map(f => f.key)
+      if (filterKeys.includes(this.filtersZoom)) {
+        return this.filtersZoom
+      }
+    },
+
+    selectedFacetConfig() {
+      if (!this.selectedFacetKey) return
+      return getFacetConfig(this.entityType, this.selectedFacetKey)
+    },
+
 
   },
 
   methods: {
     ...mapMutations([
       "snackbar",
+      "setFiltersZoom",
     ]),
     ...mapActions([]),
 
