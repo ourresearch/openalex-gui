@@ -23,7 +23,7 @@
         scrollable
     >
       <v-card>
-        <v-toolbar>
+        <v-toolbar flat class="">
           <v-toolbar-title>
             <v-btn icon @click="setFiltersZoom(true)">
               <v-icon>{{ (selectedFacetConfig) ? "mdi-arrow-left" : "mdi-filter-outline" }}</v-icon>
@@ -53,38 +53,51 @@
           />
 
 
-
           <v-btn icon @click="facetsDrawerIsOpen = false">
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
+        <v-divider class="mb-4" />
         <v-card-text style="height: 70vh;">
-          <v-list
+          <v-row
               v-if="filtersZoom && !selectedFacetKey"
-              class="pt-0 pl-0"
+              class="pt-0 mt-3 pl-0"
               expand
               nav
           >
-            <template
+            <v-col
+                cols="3"
                 v-for="facetCategory in facetsByCategory"
+                :key="'card' + facetCategory.name"
             >
-              <template>
-                <v-subheader
-                    :key="'subheader' + facetCategory.name"
-                    class="align-end text-capitalize pl-0"
-                >
+              <v-card outlined>
+                <v-card-title class="text-capitalize pb-0">
                   {{ facetCategory.name }}
-                </v-subheader>
-                <!--                <v-divider :key="'divider' + facetCategory.name"></v-divider>-->
-              </template>
-              <facet-simple
-                  v-for="facet in facetCategory.facets"
-                  :key="facet.entityType + facet.key"
-                  :facet-key="facet.key"
-                  :facet-entity-type="entityType"
-              />
-            </template>
-          </v-list>
+
+                </v-card-title>
+                <v-list>
+                  <facet-simple
+                      v-for="facet in facetCategory.facets"
+                      :key="facet.entityType + facet.key"
+                      :facet-key="facet.key"
+                      :facet-entity-type="entityType"
+                  />
+                </v-list>
+
+              </v-card>
+
+              <!--              <template>-->
+              <!--                <v-subheader-->
+              <!--                    :key="'subheader' + facetCategory.name"-->
+              <!--                    class="align-end text-capitalize pl-0"-->
+              <!--                >-->
+              <!--                  {{ facetCategory.name }}-->
+              <!--                </v-subheader>-->
+              <!--                &lt;!&ndash;                <v-divider :key="'divider' + facetCategory.name"></v-divider>&ndash;&gt;-->
+              <!--              </template>-->
+
+            </v-col>
+          </v-row>
 
           <facet-zoom
               v-if="selectedFacetKey"
@@ -95,17 +108,17 @@
 
 
         </v-card-text>
-        <v-divider />
+        <v-divider/>
         <v-card-actions>
-          <v-btn outlined  @click="facetsDrawerIsOpen = false">
+          <v-btn outlined @click="facetsDrawerIsOpen = false">
             <v-icon left>mdi-close</v-icon>
             Close
           </v-btn>
-          <v-btn text  @click="clear"  :disabled="myResultsFilters.length === 0">
+          <v-btn text @click="clear" :disabled="myResultsFilters.length === 0">
             <v-icon left>mdi-filter-off-outline</v-icon>
             Clear {{ (selectedFacetConfig) ? "" : "all" }}
           </v-btn>
-          <v-spacer />
+          <v-spacer/>
 
           <v-menu v-if="selectedFacetConfig">
             <template v-slot:activator="{on}">
@@ -270,7 +283,7 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       return url.toString()
     },
-    clear(){
+    clear() {
       console.log("close!")
       const newFilters = (this.selectedFacetKey) ?
           this.resultsFilters.filter(f => f.key !== this.selectedFacetKey) :
