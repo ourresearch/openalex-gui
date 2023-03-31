@@ -491,7 +491,7 @@ export default new Vuex.Store({
         allOaStatusFiltersAreActive(state) {
             const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")
 
-        }
+        },
 
     },
     modules: {}

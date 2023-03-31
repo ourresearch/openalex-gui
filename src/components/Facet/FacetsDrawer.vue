@@ -23,29 +23,6 @@
               class="d-flex align-center "
           >
 
-            <!--        <v-btn-->
-            <!--            icon-->
-            <!--            large-->
-            <!--            class="ml-1"-->
-            <!--            :disabled="!!filterTypeKey"-->
-            <!--        >-->
-
-            <!--          <v-icon medium color="">mdi-filter-outline</v-icon>-->
-            <!--        </v-btn>-->
-<!--            <span-->
-<!--                class="font-weight-bold "-->
-
-<!--            >-->
-<!--&lt;!&ndash;              <v-icon>mdi-filter-outline</v-icon>&ndash;&gt;-->
-<!--          Filters-->
-<!--              <span v-if="resultsFilters.length" class="font-weight-light">({{resultsFilters.length}})</span>-->
-<!--              </span>-->
-
-<!--            <v-spacer/>-->
-<!--            <v-btn icon class="mr-1" @click="showSearch = !showSearch">-->
-<!--              <v-icon>mdi-magnify</v-icon>-->
-<!--            </v-btn>-->
-
 
             <v-text-field
                 flat
@@ -61,41 +38,6 @@
                 v-model="facetSearch"
                 placeholder="search filters"
             />
-
-            <v-menu
-                v-if="0"
-                offset-y
-            >
-              <template v-slot:activator="{on}">
-                <v-btn class="ml-0" icon v-on="on" :disabled="!!facetZoom">
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-              <v-list dense>
-                <v-list-item
-                    @click="clearAllFilters"
-                    :disabled="!resultsFilters.length"
-                >
-                  <v-list-item-icon>
-                    <v-icon>mdi-close</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>
-                    Clear all filters
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-
-          </div>
-          <div
-              class="d-flex align-start"
-
-          >
-            <!--        <div class="">-->
-            <!--          {{ myFacetConfig.displayName }}-->
-            <!--        </div>-->
-
-
 
 
           </div>
@@ -156,16 +98,6 @@
 
       </v-card>
     </div>
-
-    <!--    <div-->
-    <!--        v-if="!!facetZoom && !$vuetify.breakpoint.mobile"-->
-    <!--        id="facet-zoom-drawer"-->
-    <!--        :style="{width: facetZoomWidth+'px'}"-->
-    <!--        style="border-left: 1px solid rgba(255,255,255, .25);"-->
-    <!--    >-->
-    <!--      <facet-zoom/>-->
-
-    <!--    </div>-->
 
 
   </div>

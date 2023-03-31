@@ -21,9 +21,6 @@
           <facets-drawer/>
         </v-col>
         <v-col cols="10">
-          <!--          <v-row class="mt-0">-->
-          <!--            <serp-filters-list/>-->
-          <!--          </v-row>-->
           <v-row v-if="!singleWorkIdToShow">
             <v-col :cols="(entitySidebarId) ? 7 : 12">
               <div v-if="!resultsCount" class="mt-8 grey--text">
