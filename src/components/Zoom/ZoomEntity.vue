@@ -1,7 +1,7 @@
 <template>
   <div v-if="entityId">
     <v-card flat v-if="data">
-      <div class="card-header py-3 px-6 d-flex align-start">
+      <div class="card-header px-4 py-3 d-flex align-start">
 
         <div>
 
@@ -41,6 +41,125 @@
         <v-spacer/>
 
       </div>
+      <div class="px-4 pb-3 d-flex">
+        <!--        just for works-->
+        <template v-if="entityType==='works'">
+          <div>
+
+            <!--              Green open access-->
+<!--            <v-menu-->
+<!--                v-if="isGreenOa"-->
+<!--            >-->
+<!--              <template v-slot:activator="{on, attrs}">-->
+<!--                <v-btn-->
+<!--                    color="primary"-->
+<!--                    v-bind="attrs"-->
+<!--                    v-on="on"-->
+<!--                >-->
+<!--                  Open Access-->
+<!--                  <v-icon small right>mdi-menu-down</v-icon>-->
+<!--                </v-btn>-->
+<!--              </template>-->
+<!--              <v-list-->
+<!--              >-->
+<!--                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">-->
+<!--                  <v-list-item-title>-->
+<!--                    <span class="font-weight-bold">Open Access</span> via repository-->
+<!--                  </v-list-item-title>-->
+<!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
+
+<!--                </v-list-item>-->
+<!--                <v-list-item target="_blank" :href="data.primary_location.source.url">-->
+<!--                  <v-list-item-title>-->
+<!--                    <span class="font-weight-bold">Paywalled</span> at publisher-->
+<!--                  </v-list-item-title>-->
+<!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
+
+<!--                </v-list-item>-->
+<!--              </v-list>-->
+<!--            </v-menu>-->
+
+
+            <!--   Open Access at repository, toll-access at publisher -->
+            <v-btn
+                :href="oaUrl"
+                target="_blank"
+                color="primary"
+                class="mr-3"
+                small
+                rounded
+                v-if="isGreenOa"
+            >
+              Read
+              <v-icon right small>mdi-open-in-new</v-icon>
+            </v-btn>
+
+            <!--   Open Access at publisher -->
+            <v-btn
+                :href="oaUrl"
+                target="_blank"
+                color="primary"
+                small
+                rounded
+                v-if="isOaAtPublisher"
+            >
+              Read
+              <v-icon right small>mdi-open-in-new</v-icon>
+            </v-btn>
+
+            <!--   Paywalled at publisher-->
+            <v-btn
+                :href="data.primary_location.source.url"
+                target="_blank"
+                color="primary"
+                outlined
+                small
+                rounded
+                v-if="!isOaAtPublisher"
+            >
+              <v-icon left small>mdi-open-in-new</v-icon>
+              View
+            </v-btn>
+          </div>
+        </template>
+
+
+
+
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn icon v-on="on" class="ml-2">
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-subheader>Export data as</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
+              <v-list-item-icon>
+                <v-icon left>mdi-file-download-outline</v-icon>
+
+              </v-list-item-icon>
+              <v-list-item-title>
+
+                BibTeX
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item :href="apiUrl" target="_blank">
+              <v-list-item-icon>
+
+                <v-icon left>mdi-api</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+
+                JSON object
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+
+
       <v-divider></v-divider>
       <v-card-text class="pt-6" style="font-size: 16px;">
 
@@ -52,71 +171,9 @@
         <entity-concept v-if="entityType==='concepts'" :data="data"/>
 
       </v-card-text>
-      <v-divider/>
       <v-card-actions class="py-3 px-5">
 
-        <!--        just for works-->
-        <template v-if="entityType==='works'">
-          <div>
 
-            <!--              Green open access-->
-            <v-menu
-                v-if="isGreenOa"
-            >
-              <template v-slot:activator="{on, attrs}">
-                <v-btn
-                    color="primary"
-                    v-bind="attrs"
-                    v-on="on"
-                >
-                  Open Access
-                  <v-icon small right>mdi-menu-down</v-icon>
-                </v-btn>
-              </template>
-              <v-list
-              >
-                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">
-                  <v-list-item-title>
-                    <span class="font-weight-bold">Open Access</span> via repository
-                  </v-list-item-title>
-                  <v-icon right small>mdi-open-in-new</v-icon>
-
-                </v-list-item>
-                <v-list-item target="_blank" :href="data.primary_location.source.url">
-                  <v-list-item-title>
-                    <span class="font-weight-bold">Paywalled</span> at publisher
-                  </v-list-item-title>
-                  <v-icon right small>mdi-open-in-new</v-icon>
-
-                </v-list-item>
-              </v-list>
-            </v-menu>
-
-
-            <!--   Open Access at publisher -->
-            <v-btn
-                :href="oaUrl"
-                target="_blank"
-                color="primary"
-                v-if="isOaAtPublisher"
-            >
-              Open Access
-              <v-icon right small>mdi-open-in-new</v-icon>
-            </v-btn>
-
-            <!--   Paywalled at publisher-->
-            <v-btn
-                :href="data.primary_location.source.url"
-                target="_blank"
-                color="primary"
-                outlined
-                v-if="!isOaAtPublisher && !isGreenOa"
-            >
-              <v-icon left small>mdi-open-in-new</v-icon>
-              Paywalled
-            </v-btn>
-          </div>
-        </template>
 
 
         <!--        everything except for works-->
@@ -148,37 +205,7 @@
         </template>
 
         <v-spacer/>
-        <v-menu>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
-              <v-icon left>mdi-tray-arrow-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-subheader>Export data as</v-subheader>
-            <v-divider></v-divider>
-            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
-              <v-list-item-icon>
-                <v-icon left>mdi-file-download-outline</v-icon>
 
-              </v-list-item-icon>
-              <v-list-item-title>
-
-                BibTeX
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item :href="apiUrl" target="_blank">
-              <v-list-item-icon>
-
-                <v-icon left>mdi-api</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-
-                JSON object
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
 
 
       </v-card-actions>
