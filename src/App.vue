@@ -35,16 +35,33 @@
           </router-link>
           <!--          {{ logoColorRotation }}-->
 
-<!--          <v-btn fab small color="primary" class=" ml-2"-->
-<!--            style="height: 46px; width: 46px; margin-top: 6px;"-->
-<!--          >-->
-<!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
-<!--          </v-btn>-->
+          <!--          <v-btn-->
+          <!--              fab-->
+          <!--              small-->
+          <!--              color="primary"-->
+          <!--              class="ml-4 mr-2 mb-2 mt-3"-->
+          <!--              @click="setFiltersZoom(true)"-->
+          <!--              v-if="resultsFilters.length === 0"-->
+          <!--          >-->
+          <!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
+          <!--          </v-btn>-->
           <search-box
               v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
               class="d-md-block d-none mt-1 pl-2 flex-fill"
               style="max-width: 600px;"
           />
+<!--          <v-btn-->
+<!--              color="primary"-->
+<!--              rounded-->
+<!--              large-->
+<!--              class="ml-1 mr-2 mb-2 mt-2"-->
+<!--              @click="facetsDrawerIsOpen = true"-->
+<!--          >-->
+<!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
+<!--            new filter-->
+<!--          </v-btn>-->
+
+
         </div>
 
         <div class="">
@@ -139,6 +156,7 @@ export default {
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
+      "resultsFilters",
     ]),
 
     logoStyle() {
@@ -147,7 +165,9 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([]),
+    ...mapMutations([
+      "setFiltersZoom"
+    ]),
     ...mapActions([]),
   },
   async mounted() {

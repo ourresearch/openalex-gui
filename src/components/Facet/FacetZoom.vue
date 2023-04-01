@@ -205,6 +205,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
+        "setFiltersZoom"
     ]),
     ...mapActions([
     ]),
@@ -220,6 +221,7 @@ export default {
       });
       if (arg.isNegated) this.negatedFilters.push(arg.kv)
       this.saveSelectedFilters()
+      this.setFiltersZoom(false)
 
     },
     saveSelectedFilters() {

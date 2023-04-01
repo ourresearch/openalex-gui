@@ -1,21 +1,59 @@
 <template>
   <div class="serp-filters-list">
+
     <v-btn
-        small
-        rounded
         color="primary"
-        class="ml-2"
+        large
+        rounded
+        v-if="resultsFilters.length === 0"
+        class="ml-2 mr-2 mb-2"
         @click="facetsDrawerIsOpen = true"
     >
-      <v-icon left>mdi-filter-menu-outline</v-icon>
-      filters
+      <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>
+      Add filter
     </v-btn>
+    <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" color="#fafafa">
+      <div class="text-h5 pl-3 pb-2 d-flex">
+        Filters
+        <v-spacer></v-spacer>
+        <v-btn @click="clear" icon>
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <div class="d-flex">
+        <div>
+          <serp-filters-list-chip
+              v-for="filter in resultsFilters"
+              :key="filter.key + filter.value"
+              :filter="filter"
+          />
 
-    <serp-filters-list-chip
-        v-for="filter in resultsFilters"
-        :key="filter.key + filter.value"
-        :filter="filter"
-    />
+        </div>
+
+      </div>
+      <div style="margin-bottom: -25px;">
+        <v-btn
+            color="primary"
+            dark
+            rounded
+
+            class="ml-2 mt-2 mr-2 mb-2"
+            @click="facetsDrawerIsOpen = true"
+        >
+          <v-icon left>mdi-filter-plus-outline</v-icon>
+          add
+        </v-btn>
+      </div>
+    </v-card>
+    <!--    <v-btn-->
+    <!--        icon-->
+    <!--        large outlined-->
+    <!--        class="ml-2 mr-2 mb-2"-->
+    <!--        @click="clear"-->
+    <!--        v-if="resultsFilters.length > 0"-->
+    <!--    >-->
+    <!--      <v-icon >mdi-filter-off-outline</v-icon>-->
+    <!--    </v-btn>-->
 
 
     <v-dialog
@@ -57,7 +95,7 @@
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider class="mb-4" />
+        <v-divider class="mb-4"/>
         <v-card-text style="height: 70vh;">
           <v-row
               v-if="filtersZoom && !selectedFacetKey"
@@ -110,13 +148,13 @@
         </v-card-text>
         <v-divider/>
         <v-card-actions>
-          <v-btn outlined @click="facetsDrawerIsOpen = false">
-            <v-icon left>mdi-close</v-icon>
-            Close
-          </v-btn>
-          <v-btn text @click="clear" :disabled="myResultsFilters.length === 0">
+          <v-btn flat rounded dark color="primary" @click="clear" v-if="myResultsFilters.length > 0">
             <v-icon left>mdi-filter-off-outline</v-icon>
             Clear {{ (selectedFacetConfig) ? "" : "all" }}
+          </v-btn>
+          <v-btn text @click="facetsDrawerIsOpen = false">
+            <v-icon left>mdi-close</v-icon>
+            Close
           </v-btn>
           <v-spacer/>
 
