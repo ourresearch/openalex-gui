@@ -5,11 +5,43 @@
       flat
       class="mt-1"
   >
+    <v-card-text v-if="config.isRange" class="pa-4">
+      {{range }}
+      <div class="d-flex">
+          <v-text-field
+              flat
+              hide-details
+              solo
+              class="mt-0"
+              v-model="range[0]"
+              placeholder="Start"
+              outlined
+              @keypress.enter="applyRange"
+          >
+            <template v-slot:default>frustrating</template>
+          </v-text-field>
+          <v-icon class="mx-2">mdi-minus</v-icon>
+          <v-text-field
+              flat
+              hide-details
+              solo
+              class="mt-0"
+              v-model="range[1]"
+              placeholder="End"
+              outlined
+              @keypress.enter="applyRange"
+          />
+
+
+        </div>
+
+    </v-card-text>
 
     <v-card-text
         id="facet-zoom-card-text"
         class="pa-0"
         style="font-size: unset;"
+        v-else
     >
 
 
@@ -84,6 +116,8 @@ export default {
       filtersTotalCount: null,
       selectedFilters: [],
       negatedFilters: [],
+
+      range: ["", ""],
 
 
       groupByQueryResultsCount: null,
@@ -200,6 +234,13 @@ export default {
       return sorted
     },
 
+
+    // range stuff
+
+    rangeIsEmpty() {
+      return !this.range[0] && !this.range[1]
+    },
+
   },
 
   methods: {
@@ -272,6 +313,42 @@ export default {
     },
     onCardTextScroll(e) {
       this.isScrolled = e.target.scrollTop > 0
+    },
+
+
+
+
+    // range stuff
+
+
+    applyRange() {
+      console.log("applyRange", this.range)
+      const currentYear = new Date().getFullYear()
+      const maxValue = String(currentYear)
+      if (this.range[0] > maxValue) this.range[0] = maxValue
+      if (this.range[1] > maxValue) this.range[1] = maxValue
+
+      if (Number(this.range[0]) < 0) this.range[0] = "0"
+      if (Number(this.range[1]) < 0) this.range[1] = "0"
+
+      // general validation
+      if (this.range[1] && Number(this.range[0]) > Number(this.range[1])) {
+        this.range[0] = this.range[1]
+      }
+
+      if (this.rangeIsEmpty) {
+        console.log("range is empty, saving null")
+        url.setFiltersByKey(this.facetKey, [])
+      } else {
+        const filter = createSimpleFilter(
+            this.entityType,
+            this.facetKey,
+            this.range.join("-")
+        )
+        console.log("range is full, saving filter", filter)
+        url.setFiltersByKey(this.facetKey, [filter])
+      }
+      this.setFiltersZoom(false)
     },
 
   },
