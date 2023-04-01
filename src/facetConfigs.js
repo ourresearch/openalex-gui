@@ -251,7 +251,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.is_global_south",
             entityType: "works",
-            displayName: "Global South",
+            displayName: "Hemisphere",
             category: "location",
             isBoolean: true,
             booleanValues: ["Global North", "Global South"],

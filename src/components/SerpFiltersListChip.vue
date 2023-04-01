@@ -14,7 +14,7 @@
     <v-icon class="" style="font-size: 24px;">{{ filter.icon }}</v-icon>
     <div class="mx-3">
       <div class="caption">
-        <span class="font-weight-bold">NOT</span>
+        <span class="font-weight-bold" v-if="isNegated">NOT</span>
         {{ filter.displayName }}
       </div>
       <div class="filter-value" :class="{isNegated}">{{ myDisplayValue | truncate(50) }}</div>

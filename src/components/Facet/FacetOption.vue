@@ -40,7 +40,7 @@
       <v-btn
           icon
           @click="setSelected({select: true, negate: true})"
-          v-if="!isNegated && !isSelected"
+          v-if="!isNegated && !isSelected && !filter.isBoolean"
       >
         <v-icon>mdi-minus</v-icon>
       </v-btn>
