@@ -13,8 +13,11 @@
 
     <v-icon class="" style="font-size: 24px;">{{ filter.icon }}</v-icon>
     <div class="mx-3">
-      <div class="caption">{{ filter.displayName }}</div>
-      <div>{{ myDisplayValue | truncate(50) }}</div>
+      <div class="caption">
+        <span class="font-weight-bold">NOT</span>
+        {{ filter.displayName }}
+      </div>
+      <div class="filter-value" :class="{isNegated}">{{ myDisplayValue | truncate(50) }}</div>
     </div>
 
 
@@ -46,13 +49,16 @@ export default {
     ]),
     myDisplayValue() {
       if (this.filter.isBoolean) {
-        const booleanInt = (this.filter.value) ? 1 : 0
+        const booleanInt = (this.filter.value) ? 0 : 1
         return this.filter.booleanValues[booleanInt]
       }
       return this.filter.displayValue
     },
     enableClick() {
-      return (!this.filter.isBoolean && !this.filter.noOptions)
+      return ( !this.filter.noOptions)
+    },
+    isNegated(){
+      return this.filter.isNegated
     }
   },
 
@@ -86,5 +92,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+  .filter-value.isNegated {
+    text-decoration: line-through;
+  }
 </style>

@@ -1,12 +1,13 @@
 <template>
   <v-list-item
-      class=" my-0 facet-option align-start pr                                 -1"
+      class="py-1 my-0 facet-option align-start"
       :input-value="isSelected"
       :disabled="disabled"
       :color="myColor"
+      :dark="isSelected"
       @click.exact="exactClickListItem"
       @click.alt="altClickListItem"
-      light
+      :class="{isNegated,}"
   >
     <!--    @[eventHandlerName].stop="setSelected($event)"-->
 
@@ -17,90 +18,38 @@
     </div>
     <div>
       <div
-          class="body-1 mt-2 "
-          style="line-height: 1.5;"
+          class=" mt-2 "
+          style="line-height: 1.5; font-size: 16px;"
           :class="{'font-weight-bold': isSelected}"
       >
         <span
+            class="facet-option-text"
             v-html="prettyDisplayName"
         >
         </span>
       </div>
 
       <div
-           class="body-2 grey--text"
+           class=" grey--text"
       >
         {{ filter.count | toPrecision }}
       </div>
     </div>
     <v-spacer/>
     <div>
-      <v-menu v-if="!isBoolean" offset-y :close-on-content-click="true">
-        <template v-slot:activator="{on}">
-          <v-btn
-              v-on="on"
-              icon
-              class=""
-              style="opacity: .8;"
-              :disabled="disabled"
-
-          >
-            <v-icon small>mdi-dots-horizontal</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-list-item
-              :to="filter.value | entityZoomLink"
-              v-if="filter.isEntity"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-format-list-bulleted</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title >
-              View <span class="text-lowercase">{{ filter.displayName }}</span> details
-            </v-list-item-title>
-          </v-list-item>
-          <v-divider v-if="filter.isEntity"></v-divider>
-          <v-list-item
-              @click="setSelected({select: true})"
-              v-if="!isSelected || isNegated"
-              :input-value="true"
-              color="green"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-check</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Apply filter
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-              @click="setSelected({select: true, negate: true})"
-              :disabled="isNegated"
-              color="red"
-              :input-value="true"
-              v-if="!isNegated"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-minus</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Negate filter
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-              @click="setSelected({select: false, negate: false})"
-              v-if="isSelected"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-close</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Clear filter
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <v-btn
+          icon
+          @click="setSelected({select: true, negate: true})"
+          v-if="!isNegated && !isSelected"
+      >
+        <v-icon>mdi-minus</v-icon>
+      </v-btn>
+      <div class="pt-2" v-if="isNegated && isSelected">
+        Must NOT match
+      </div>
+      <div class="pt-2" v-if="!isNegated && isSelected">
+        Must match
+      </div>
     </div>
   </v-list-item>
 </template>
@@ -123,7 +72,6 @@ export default {
     // required
     filter: Object,
 
-    disabled: Boolean,
     isSelected: Boolean,
     isNegated: Boolean,
 
@@ -140,8 +88,13 @@ export default {
     ]),
     myColor() {
       if (!this.isSelected) return ""
+      return "primary"
+
       if (this.isNegated) return "red"
       return "green "
+    },
+    disabled(){
+        return this.filter.count === 0;
     },
     myFilter(){
       return createSimpleFilter(
@@ -238,6 +191,13 @@ export default {
   //margin-bottom: 0 !important;
   //padding-top: 4px !important;
   //padding-bottom: 4px !important;
+
+  &.isNegated {
+    .facet-option-text {
+    text-decoration: line-through;
+
+    }
+  }
 
   .v-list-item__icon {
     //margin: 0 !important;

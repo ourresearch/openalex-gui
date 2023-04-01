@@ -3,7 +3,6 @@
 
     <v-btn
         color="primary"
-        large
         rounded
         v-if="resultsFilters.length === 0"
         class="ml-2 mr-2 mb-2"
@@ -63,14 +62,15 @@
       <v-card>
         <v-toolbar flat class="">
           <v-toolbar-title>
-            <v-btn icon @click="setFiltersZoom(true)">
-              <v-icon>{{ (selectedFacetConfig) ? "mdi-arrow-left" : "mdi-filter-outline" }}</v-icon>
+            <v-btn text @click="setFiltersZoom(true)" class="text-capitalize text-h5 px-1">
+              <v-icon class="pr-1">mdi-filter-outline</v-icon>
+              Filter
             </v-btn>
-            <span v-if="selectedFacetConfig">
+            <span v-if="selectedFacetConfig" class="text-h5 font-weight-bold">
+              <v-icon>mdi-chevron-right</v-icon>
               <v-icon>{{ selectedFacetConfig.icon }}</v-icon>
               {{ selectedFacetConfig.displayName }}
             </span>
-            <span v-else>Filters</span>
 
           </v-toolbar-title>
           <v-spacer></v-spacer>
@@ -95,11 +95,11 @@
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider class="mb-4"/>
-        <v-card-text style="height: 70vh;">
+        <v-divider class=""/>
+        <v-card-text style="height: 70vh;" class="pa-0">
           <v-row
               v-if="filtersZoom && !selectedFacetKey"
-              class="pt-0 mt-3 pl-0"
+              class="pt-0 mt-3 px-4"
               expand
               nav
           >
@@ -148,10 +148,10 @@
         </v-card-text>
         <v-divider/>
         <v-card-actions>
-          <v-btn flat rounded dark color="primary" @click="clear" v-if="myResultsFilters.length > 0">
-            <v-icon left>mdi-filter-off-outline</v-icon>
-            Clear {{ (selectedFacetConfig) ? "" : "all" }}
-          </v-btn>
+<!--          <v-btn text @click="clear" v-if="myResultsFilters.length > 0">-->
+<!--            <v-icon left>mdi-filter-off-outline</v-icon>-->
+<!--            Clear {{ (selectedFacetConfig) ? "" : "all" }}-->
+<!--          </v-btn>-->
           <v-btn text @click="facetsDrawerIsOpen = false">
             <v-icon left>mdi-close</v-icon>
             Close

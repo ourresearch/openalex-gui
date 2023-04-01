@@ -9,10 +9,11 @@
     <v-card-text
         id="facet-zoom-card-text"
         class="pa-0"
+        style="font-size: unset;"
     >
 
 
-      <v-list>
+      <v-list :dense="false">
         <template v-if="!searchString">
           <facet-option
               v-for="f in resultsFiltersNotInApiFilters"
@@ -191,9 +192,9 @@ export default {
     },
     apiFiltersToShow() {
       const ret = this.apiFilters
-          // .filter(f => f.value !== "unknown")
+      // .filter(f => f.value !== "unknown")
       const sorted = sortedFilters(ret, this.config.sortByValue)
-      sorted.sort((a,b)=>{
+      sorted.sort((a, b) => {
         return (this.myResultsFilterIds.includes(a.kv)) ? -1 : 1
       })
       return sorted
@@ -205,11 +206,11 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-        "setFiltersZoom"
+      "setFiltersZoom"
     ]),
-    ...mapActions([
-    ]),
+    ...mapActions([]),
     setSelectedFilters(arg) {
+      const filterCountStart = this.selectedFilters.length
       console.log("FacetZoom setSelectedFilters", arg)
       this.selectedFilters = this.selectedFilters.filter(kv => {
         return kv !== arg.kv
@@ -221,7 +222,13 @@ export default {
       });
       if (arg.isNegated) this.negatedFilters.push(arg.kv)
       this.saveSelectedFilters()
-      this.setFiltersZoom(false)
+      const filterCountEnd = this.selectedFilters.length
+      if (filterCountStart < filterCountEnd) {
+        // we added a filter
+        this.setFiltersZoom(false)
+
+      }
+
 
     },
     saveSelectedFilters() {
@@ -288,7 +295,7 @@ export default {
         this.negatedFilters = newVal.filter(f => f.isNegated).map(f => f.kv)
       }
     },
-    searchString(newVal, oldVal){
+    searchString(newVal, oldVal) {
       this.fetchFilters()
     }
   }
