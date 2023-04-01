@@ -11,7 +11,7 @@
       <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>
       Add filter
     </v-btn>
-    <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" color="#fafafa">
+    <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" style="border: 1px solid #fff" color="#fafafa">
       <div class="text-h5 pl-3 pb-2 d-flex">
         Filters
         <v-spacer></v-spacer>
