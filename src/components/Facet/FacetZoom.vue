@@ -6,34 +6,36 @@
       class="mt-1"
   >
     <v-card-text v-if="config.isRange" class="pa-4">
-      {{range }}
+      {{ range }}
       <div class="d-flex">
-          <v-text-field
-              flat
-              hide-details
-              solo
-              class="mt-0"
-              v-model="range[0]"
-              placeholder="Start"
-              outlined
-              @keypress.enter="applyRange"
-          >
-            <template v-slot:default>frustrating</template>
-          </v-text-field>
-          <v-icon class="mx-2">mdi-minus</v-icon>
-          <v-text-field
-              flat
-              hide-details
-              solo
-              class="mt-0"
-              v-model="range[1]"
-              placeholder="End"
-              outlined
-              @keypress.enter="applyRange"
-          />
+        <v-text-field
+            flat
+            hide-details
+            solo
+            class="mt-0"
+            v-model="range[0]"
+            placeholder="Start"
+            outlined
+            @keypress.enter="applyRange"
+        >
+          <template v-slot:default>frustrating</template>
+        </v-text-field>
+        <v-icon class="mx-2">mdi-minus</v-icon>
+        <v-text-field
+            flat
+            hide-details
+            solo
+            class="mt-0"
+            v-model="range[1]"
+            placeholder="End"
+            outlined
+            @keypress.enter="applyRange"
+        />
+        <v-btn x-large class="ml-5" color="primary" @click="applyRange">
+          Save
+        </v-btn>
 
-
-        </div>
+      </div>
 
     </v-card-text>
 
@@ -290,6 +292,20 @@ export default {
       if (!this.config) return
       this.isLoading = "primary"
 
+      if (this.config.isRange) {
+        if (!this.myResultsFilters.length) {
+          this.resetRange()
+        }
+        else {
+          const myRangeValues = this.myResultsFilters[0].value.split("-")
+          console.log("we've got a range here", myRangeValues)
+          this.range = myRangeValues
+
+        }
+
+      }
+
+
       const resp = await api.getUrl(this.apiUrl)
 
       const groups = resp.group_by.slice(0, 20)
@@ -316,11 +332,12 @@ export default {
     },
 
 
-
-
     // range stuff
 
 
+    resetRange(){
+      this.range = ["", ""]
+    },
     applyRange() {
       console.log("applyRange", this.range)
       const currentYear = new Date().getFullYear()
