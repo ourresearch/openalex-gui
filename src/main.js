@@ -34,12 +34,13 @@ const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
 import FlagIcon from 'vue-flag-icon'
-
 Vue.use(FlagIcon);
 
 import VuePluralize from 'vue-pluralize'
-
 Vue.use(VuePluralize)
+
+import VueShortkey from 'vue-shortkey'
+Vue.use(VueShortkey)
 
 
 Vue.filter("idLink", function (fullId) {

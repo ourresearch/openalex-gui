@@ -1,7 +1,7 @@
 <template>
-  <div v-if="entityId">
+  <div v-if="entityId" style="margin-right: -15px">
     <v-card flat v-if="data">
-      <div class="card-header px-4 py-3 d-flex align-start">
+      <div class="card-header px-4 pl-3 d-flex align-start">
 
         <div>
 
@@ -46,7 +46,7 @@
         </div>
 
       </div>
-      <div class="px-4 pb-3 d-flex">
+      <div class="px-4 pt-3 pb-1 d-flex">
         <!--        just for works-->
         <template v-if="myEntityType==='works'">
           <div>
@@ -129,8 +129,27 @@
         </template>
 
 
+        <template v-else>
+          <div>
+            <v-btn
+                :href="linkoutUrl"
+                target="_blank"
+                v-if="linkoutUrl"
+                color="primary"
+                rounded
+                outlined
+                small
+            >
+              {{ linkoutButtonText }}
+              <v-icon right small>mdi-open-in-new</v-icon>
+            </v-btn>
+          </div>
+        </template>
 
 
+
+
+        <v-spacer />
         <v-menu>
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on" class="ml-2">
@@ -176,44 +195,6 @@
         <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
       </v-card-text>
-      <v-card-actions class="py-3 px-5">
-
-
-
-
-        <!--        everything except for works-->
-        <template v-if="0">
-          <div>
-            <v-btn
-                :to="linkToWorksSearch"
-                class=""
-                color="primary"
-                outlined
-                exact
-            >
-              <v-icon left>mdi-file-document-multiple-outline</v-icon>
-              View works
-            </v-btn>
-
-            <v-btn
-                :href="linkoutUrl"
-                target="_blank"
-                class="ml-3"
-                v-if="linkoutUrl"
-                color="primary"
-                text
-            >
-              <v-icon left>mdi-open-in-new</v-icon>
-              {{ linkoutButtonText }}
-            </v-btn>
-          </div>
-        </template>
-
-        <v-spacer/>
-
-
-
-      </v-card-actions>
 
 
     </v-card>
@@ -299,6 +280,11 @@ export default {
       if (this.myEntityType === "sources") return "Homepage"
       if (this.myEntityType === "institutions") return "Homepage"
       if (this.myEntityType === "concepts") return "Wikipedia"
+    },
+    linkoutUrl() {
+      if (this.myEntityType === "sources") return this.data.homepage_url
+      if (this.myEntityType === "institutions") return this.data.homepage_url
+      if (this.myEntityType === "concepts") return this.data.ids.wikipedia
     },
     filterIsApplied() {
       return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)

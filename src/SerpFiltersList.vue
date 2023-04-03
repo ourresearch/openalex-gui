@@ -1,6 +1,14 @@
 <template>
   <div class="serp-filters-list">
 
+    <div
+        v-shortkey="['meta', 'f']"
+        @shortkey="facetsDrawerIsOpen = true"
+    ></div>
+    <div
+        v-shortkey="['ctrl', 'f']"
+        @shortkey="facetsDrawerIsOpen = true"
+    ></div>
     <v-btn
         color="primary"
         rounded
@@ -10,15 +18,17 @@
     >
       <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>
       Add filter
+      <span class="caption ml-2" style="opacity: .7;">⌘F</span>
     </v-btn>
     <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" style="border: 1px solid #fff" color="#fafafa">
       <div class="text-h5 pl-3 pb-2 d-flex align-baseline">
         <v-icon>mdi-filter-outline</v-icon>
         Filters
-        <span class="body-2 ml-1" v-if="resultsFilters.length">({{resultsFilters.length}})</span>
+        <span class="body-2 ml-1" v-if="resultsFilters.length">({{ resultsFilters.length }})</span>
         <v-spacer></v-spacer>
-        <v-btn @click="clear"  text class="low-key-button">
-          <v-icon small>mdi-filter-off-outline</v-icon> Clear
+        <v-btn @click="clear" text class="low-key-button">
+          <v-icon small>mdi-filter-off-outline</v-icon>
+          Clear
         </v-btn>
       </div>
       <div class="d-flex">
@@ -43,6 +53,7 @@
         >
           <v-icon left>mdi-filter-plus-outline</v-icon>
           add
+          <span class="caption ml-2" style="opacity: .7;">⌘F</span>
         </v-btn>
       </div>
     </v-card>
@@ -150,10 +161,10 @@
         </v-card-text>
         <v-divider/>
         <v-card-actions>
-<!--          <v-btn text @click="clear" v-if="myResultsFilters.length > 0">-->
-<!--            <v-icon left>mdi-filter-off-outline</v-icon>-->
-<!--            Clear {{ (selectedFacetConfig) ? "" : "all" }}-->
-<!--          </v-btn>-->
+          <!--          <v-btn text @click="clear" v-if="myResultsFilters.length > 0">-->
+          <!--            <v-icon left>mdi-filter-off-outline</v-icon>-->
+          <!--            Clear {{ (selectedFacetConfig) ? "" : "all" }}-->
+          <!--          </v-btn>-->
           <v-btn text @click="facetsDrawerIsOpen = false">
             <v-icon left>mdi-close</v-icon>
             Close
