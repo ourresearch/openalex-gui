@@ -15,6 +15,7 @@ const entityConfigs = {
         eg: "On the Electrodynamics of Moving Bodies",
         placeholder: "Search scholarly papers, books, and more",
         filterName: "work",
+        filterKey: "ids.openalex"
     },
     authors: {
         emoji: "🧑",

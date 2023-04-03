@@ -43,12 +43,14 @@
               </div>
             </v-col>
             <v-col :cols="(entitySidebarId) ? 5 : 0">
-              <zoom-entity :entity-id="entitySidebarId"/>
+<!--              <zoom-entity :entity-id="entitySidebarId"/>-->
+              <entity :entity-id="entitySidebarId" />
             </v-col>
           </v-row>
 
           <v-row v-if="!!singleWorkIdToShow">
-            <zoom-entity :entity-id="singleWorkIdToShow"/>
+<!--            <zoom-entity :entity-id="singleWorkIdToShow"/>-->
+              <entity :entity-id="singleWorkIdToShow" />
           </v-row>
 
 
@@ -111,11 +113,12 @@ import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
 import Zoom from "../components/Zoom/Zoom";
 import FacetsDrawer from "../components/Facet/FacetsDrawer";
-import axios from "axios";
-import ZoomEntity from "../components/Zoom/ZoomEntity";
+// import ZoomEntity from "../components/ZoomEntity";
 import FacetZoom from "../components/Facet/FacetZoom";
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
+
+import Entity from "../components/Entity";
 
 export default {
   name: "Serp",
@@ -126,7 +129,7 @@ export default {
     return ret
   },
   components: {
-    ZoomEntity,
+    Entity,
     DownloadCsvDialog,
     SerpToolbar,
     SerpFiltersList,

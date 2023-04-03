@@ -130,7 +130,6 @@
 </template>
 
 <script>
-import EntityZoom from "./components/Zoom/ZoomEntity";
 
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -146,7 +145,6 @@ export default {
     meta: []
   },
   components: {
-    EntityZoom,
   },
 
 

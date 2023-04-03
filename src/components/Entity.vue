@@ -13,23 +13,23 @@
           </div>
 
           <div class="card-header-top-row text-capitalize ">
-            <entity-icon small class="mr-1" :type="entityType"/>
+            <entity-icon small class="mr-1" :type="myEntityType"/>
 
             <span>{{ myEntityConfig.displayNameSingular }}</span>
 
-            <span v-if="entityType === 'works' && data.type">
+            <span v-if="myEntityType === 'works' && data.type">
                 ({{ data.type.replace("-", " ") }})
               </span>
-            <span v-if="entityType=== 'institutions' && data.type">
+            <span v-if="myEntityType=== 'institutions' && data.type">
                  ({{ data.type.replace("-", " ") }})
               </span>
-            <span v-if="entityType=== 'concepts'">
+            <span v-if="myEntityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-            <span v-if="entityType=== 'sources' && data.type">
+            <span v-if="myEntityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
-            <span v-if="entityType=== 'publishers' && data.type">
+            <span v-if="myEntityType=== 'publishers' && data.type">
 <!--                 ({{ data.type }})-->
 
               </span>
@@ -39,11 +39,16 @@
 
 
         <v-spacer/>
+        <div>
+          <v-btn icon @click="close">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
 
       </div>
       <div class="px-4 pb-3 d-flex">
         <!--        just for works-->
-        <template v-if="entityType==='works'">
+        <template v-if="myEntityType==='works'">
           <div>
 
             <!--              Green open access-->
@@ -135,7 +140,7 @@
           <v-list dense>
             <v-subheader>Export data as</v-subheader>
             <v-divider></v-divider>
-            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="entityType==='works'">
+            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="myEntityType==='works'">
               <v-list-item-icon>
                 <v-icon left>mdi-file-download-outline</v-icon>
 
@@ -163,12 +168,12 @@
       <v-divider></v-divider>
       <v-card-text class="pt-6" style="font-size: 16px;">
 
-        <entity-work v-if="entityType==='works'" :data="data"/>
-        <entity-author v-if="entityType==='authors'" :data="data"/>
-        <entity-venue v-if="entityType==='sources'" :data="data"/>
-        <entity-publisher v-if="entityType==='publishers'" :data="data"/>
-        <entity-institution v-if="entityType==='institutions'" :data="data"/>
-        <entity-concept v-if="entityType==='concepts'" :data="data"/>
+        <entity-work v-if="myEntityType==='works'" :data="data"/>
+        <entity-author v-if="myEntityType==='authors'" :data="data"/>
+        <entity-venue v-if="myEntityType==='sources'" :data="data"/>
+        <entity-publisher v-if="myEntityType==='publishers'" :data="data"/>
+        <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
+        <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
       </v-card-text>
       <v-card-actions class="py-3 px-5">
@@ -218,21 +223,23 @@
 
 
 <script>
-import EntityWork from "../EntityWork";
-import EntityAuthor from "../EntityAuthor";
-import EntityVenue from "../EntityVenue";
-import EntityPublisher from "../EntityPublisher";
+import {url} from "../url";
 
-import EntityInstitution from "../EntityInstitution";
-import EntityConcept from "../EntityConcept";
-import EntityIcon from "../EntityIcon";
-import {entityConfigs} from "../../entityConfigs";
+import EntityWork from "./EntityWork";
+import EntityAuthor from "./EntityAuthor";
+import EntityVenue from "./EntityVenue";
+import EntityPublisher from "./EntityPublisher";
 
-import {entityTypeFromId} from "../../util";
-import {createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
+import EntityInstitution from "./EntityInstitution";
+import EntityConcept from "./EntityConcept";
+import EntityIcon from "./EntityIcon";
+import {entityConfigs} from "../entityConfigs";
+
+import {entityTypeFromId} from "../util";
+import {createDisplayFilter, createSimpleFilter} from "../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {api} from "../../api";
+import {api} from "../api";
 
 const getWorkFulltextUrl = function (data) {
   if (data.open_access.oa_url) return data.open_access.oa_url
@@ -254,7 +261,7 @@ const workIsFreeAtPublisher = function (data) {
 
 
 export default {
-  name: "ZoomEntity",
+  name: "Entity",
   metaInfo() {
     return {title: this.data?.display_name}
   },
@@ -281,47 +288,31 @@ export default {
       "entityZoomHistoryData",
       "resultsFilters",
     ]),
-    zoomIsOpen: {
-      get() {
-        return true
-      },
-      set(newVal) {
-        // this.$router.push(this.currentUrlWithoutZoom)
-        console.log("close entity zoom")
-        this.$router.push({name: "Serp", query: {...this.$route.query}})
-      }
-    },
     myEntityConfig() {
-      return entityConfigs[this.entityType]
+      return entityConfigs[this.myEntityType]
     },
-    entityType() {
+    myEntityType() {
       if (!this.entityId) return
       return entityTypeFromId(this.entityId)
     },
-    linkoutUrl() {
-      if (this.entityType === "sources") return this.data.homepage_url
-      if (this.entityType === "institutions") return this.data.homepage_url
-      if (this.entityType === "concepts") return this.data.ids.wikipedia
-    },
     linkoutButtonText() {
-      if (this.entityType === "sources") return "Homepage"
-      if (this.entityType === "institutions") return "Homepage"
-      if (this.entityType === "concepts") return "Wikipedia"
-    },
-    currentUrlWithoutZoom() {
-      const newQuery = {...this.$route.query}
-      newQuery.zoom = undefined
-      return {
-        name: this.$route.name,
-        params: this.$route.params,
-        query: newQuery,
-      }
+      if (this.myEntityType === "sources") return "Homepage"
+      if (this.myEntityType === "institutions") return "Homepage"
+      if (this.myEntityType === "concepts") return "Wikipedia"
     },
     filterIsApplied() {
       return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
     },
+    myFilter(){
+
+      return createSimpleFilter(
+          "works",
+          this.myEntityConfig.filterKey,
+          this.entityId,
+      )
+    },
     filterToShowWorks() {
-      if (this.entityType === "works") return
+      if (this.myEntityType === "works") return
       return createSimpleFilter(
           "works",
           this.myEntityConfig.filterKey,
@@ -329,7 +320,7 @@ export default {
       )
     },
     linkToWorksSearch() {
-      if (this.entityType === "works") return
+      if (this.myEntityType === "works") return
       const filter = this.filterToShowWorks
       return {
         name: "Serp",
@@ -337,27 +328,21 @@ export default {
         query: {filter: filter.asStr},
       }
     },
-    addWorksFilter() {
-
-    },
-    removeWorksFilter() {
-
-    },
     greenUrl() {
-      if (this.entityType !== "works") return
+      if (this.myEntityType !== "works") return
       if (this.data.open_access.oa_status !== "green") return
       return this.data.open_access.oa_url
     },
     oaUrl() {
-      if (this.entityType !== "works") return
+      if (this.myEntityType !== "works") return
       return this.data.open_access.oa_url
     },
     isGreenOa() {
-      if (this.entityType !== "works") return
+      if (this.myEntityType !== "works") return
       return this.data.open_access?.oa_status === 'green'
     },
     isOaAtPublisher() {
-      if (this.entityType !== "works") return
+      if (this.myEntityType !== "works") return
       return this.data.open_access?.is_oa && this.data.open_access?.oa_status !== 'green'
     },
     apiUrl() {
@@ -382,7 +367,7 @@ export default {
     },
     getData() {
       if (!this.entityId) return
-      const pathName = this.entityType + "/" + this.entityId
+      const pathName = this.myEntityType + "/" + this.entityId
       this.data = null
       console.log("zoomentity getting data for", this.entityId)
 
@@ -391,6 +376,14 @@ export default {
         this.data = resp
       })
     },
+    close(){
+      console.log("remove! new filters: ", this.myFilter)
+      const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
+      url.setFilters(
+          "works",
+          newFilters
+      )
+    }
 
   },
   created() {
@@ -400,9 +393,6 @@ export default {
     this.getData()
   },
   watch: {
-    "$route.params.id": function (to, from) {
-      // this.getData()
-    },
     "entityId": function (to, from) {
       this.data = null
       this.getData()

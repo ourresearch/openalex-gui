@@ -5,7 +5,6 @@ import Serp from "../views/Serp";
 import About from "../views/About";
 
 import goTo from 'vuetify/es5/services/goto'
-import ZoomEntity from "../components/Zoom/ZoomEntity";
 
 
 Vue.use(VueRouter)
@@ -26,11 +25,11 @@ const routes = [
         name: 'Serp',
         component: Serp,
         children: [
-            {
-                path: `:id(${openAlexIdRegex})`,
-                name: "entity-zoom",
-                component: ZoomEntity
-            },
+            // {
+            //     path: `:id(${openAlexIdRegex})`,
+            //     name: "entity-zoom",
+            //     component: ZoomEntity
+            // },
             // {
             //     path: "filters",
             //     name: "filter-types",

@@ -1,6 +1,6 @@
 <template>
   <v-chip large close color="#fff"
-          @[(enableClick)&&`click`]="setFiltersZoom(filter.key)"
+          @[dynamicAttribute]="setFiltersZoom(filter.key)"
           @click:close="remove"
           class="mr-1 mb-2 inline-flex py-1"
           style="height: unset; border-radius: 3px; border: 1px solid #999"
@@ -54,8 +54,8 @@ export default {
       }
       return this.filter.displayValue
     },
-    enableClick() {
-      return ( !this.filter.noOptions)
+    dynamicAttribute(){
+      return (this.filter.noOptions) ? null : "click"
     },
     isNegated(){
       return this.filter.isNegated
@@ -70,7 +70,6 @@ export default {
     ...mapActions([]),
     remove() {
       const newFilters = this.resultsFilters.filter(f => f.asStr !== this.filter.asStr)
-      console.log("remove! new filters: ", newFilters)
       url.setFilters(
           this.entityType,
           newFilters
