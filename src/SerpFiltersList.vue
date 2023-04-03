@@ -12,11 +12,13 @@
       Add filter
     </v-btn>
     <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" style="border: 1px solid #fff" color="#fafafa">
-      <div class="text-h5 pl-3 pb-2 d-flex">
+      <div class="text-h5 pl-3 pb-2 d-flex align-baseline">
+        <v-icon>mdi-filter-outline</v-icon>
         Filters
+        <span class="body-2 ml-1" v-if="resultsFilters.length">({{resultsFilters.length}})</span>
         <v-spacer></v-spacer>
-        <v-btn @click="clear" icon>
-          <v-icon>mdi-close</v-icon>
+        <v-btn @click="clear"  text class="low-key-button">
+          <v-icon small>mdi-filter-off-outline</v-icon> Clear
         </v-btn>
       </div>
       <div class="d-flex">

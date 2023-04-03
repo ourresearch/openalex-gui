@@ -26,7 +26,7 @@
         <!--        Sort-->
         <v-menu offset-y>
           <template v-slot:activator="{on}">
-            <v-btn text rounded v-on="on" class="low-key-button">
+            <v-btn text rounded v-on="on" class="low-key-button" :disabled="disabled">
               <span class="mr-1 font-weight-light">Sort by</span>
               {{ sortObject.displayName }}
               <v-icon right class="">mdi-menu-down</v-icon>
@@ -57,7 +57,7 @@
         <!--        Creat alert-->
         <v-menu v-if="0" offset-y>
           <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
+            <v-btn icon v-on="on" :disabled="disabled">
               <v-icon>mdi-bell-cancel-outline</v-icon>
             </v-btn>
           </template>
@@ -70,7 +70,7 @@
         <!--        Export-->
         <v-menu offset-y>
           <template v-slot:activator="{on}">
-            <v-btn icon v-on="on" class="low-key-button">
+            <v-btn icon v-on="on" class="low-key-button" :disabled="disabled">
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-btn>
           </template>
@@ -121,7 +121,7 @@
 
       <v-menu v-if="$vuetify.breakpoint.mobile">
         <template v-slot:activator="{on}">
-          <v-btn text v-on="on" class="low-key-button" :disabled="!resultsCount">
+          <v-btn text  v-on="on" class="low-key-button" :disabled="disabled || !resultsCount">
             Tools
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
@@ -365,6 +365,7 @@ export default {
   },
   props: {
     filtersDrawerIsOpen: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {

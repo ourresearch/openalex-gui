@@ -12,7 +12,7 @@
       <v-row class="serp-toolbar-row">
         <v-col cols="2"></v-col>
         <v-col cols="10">
-          <serp-toolbar/>
+          <serp-toolbar :disabled="!!singleWorkIdToShow" />
         </v-col>
       </v-row>
       <v-divider class="mb-6"/>
