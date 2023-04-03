@@ -277,11 +277,13 @@ export default {
       return entityTypeFromId(this.entityId)
     },
     linkoutButtonText() {
+      if (this.myEntityType === "authors") return "ORCID"
       if (this.myEntityType === "sources") return "Homepage"
       if (this.myEntityType === "institutions") return "Homepage"
       if (this.myEntityType === "concepts") return "Wikipedia"
     },
     linkoutUrl() {
+      if (this.myEntityType === "authors") return this.data.orcid
       if (this.myEntityType === "sources") return this.data.homepage_url
       if (this.myEntityType === "institutions") return this.data.homepage_url
       if (this.myEntityType === "concepts") return this.data.ids.wikipedia
