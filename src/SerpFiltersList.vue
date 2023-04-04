@@ -77,23 +77,21 @@
           <v-toolbar-title>
             <v-btn text @click="setFiltersZoom(true)" class="text-capitalize text-h5 px-1">
               <v-icon class="pr-1">mdi-filter-outline</v-icon>
-              Filter
+              <v-icon v-if="selectedFacetConfig">mdi-chevron-right</v-icon>
             </v-btn>
-            <span v-if="selectedFacetConfig" class="text-h5 font-weight-bold">
-              <v-icon>mdi-chevron-right</v-icon>
+            <span v-if="selectedFacetConfig" class="text-h5  font-weight-bold">
               <v-icon>{{ selectedFacetConfig.icon }}</v-icon>
               {{ selectedFacetConfig.displayName }}
             </span>
 
           </v-toolbar-title>
-          <v-spacer></v-spacer>
           <v-text-field
               flat
               outlined
               rounded
               hide-details
               full-width
-              class="mt-0"
+              class="mt-0 mx-5"
               clearable
               prepend-inner-icon="mdi-magnify"
               autofocus
@@ -102,6 +100,43 @@
               v-model="searchString"
               placeholder="search"
           />
+          <v-menu v-if="selectedFacetConfig">
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on" class="mr-1">
+                <v-icon>mdi-tray-arrow-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-subheader>
+                Export as:
+                <!--                {{ config.displayName | pluralize(2) }} as:-->
+              </v-subheader>
+              <v-divider></v-divider>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200, true)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-table</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Spreadsheet
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  JSON object
+                </v-list-item-title>
+              </v-list-item>
+
+            </v-list>
+          </v-menu>
 
 
           <v-btn icon @click="facetsDrawerIsOpen = false">
@@ -159,56 +194,6 @@
 
 
         </v-card-text>
-        <v-divider/>
-        <v-card-actions>
-          <!--          <v-btn text @click="clear" v-if="myResultsFilters.length > 0">-->
-          <!--            <v-icon left>mdi-filter-off-outline</v-icon>-->
-          <!--            Clear {{ (selectedFacetConfig) ? "" : "all" }}-->
-          <!--          </v-btn>-->
-          <v-btn text @click="facetsDrawerIsOpen = false">
-            <v-icon left>mdi-close</v-icon>
-            Close
-          </v-btn>
-          <v-spacer/>
-
-          <v-menu v-if="selectedFacetConfig">
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on" class="mr-1">
-                <v-icon>mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-subheader>
-                Export as:
-                <!--                {{ config.displayName | pluralize(2) }} as:-->
-              </v-subheader>
-              <v-divider></v-divider>
-              <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200, true)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-table</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Spreadsheet
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  JSON object
-                </v-list-item-title>
-              </v-list-item>
-
-            </v-list>
-          </v-menu>
-        </v-card-actions>
       </v-card>
     </v-dialog>
 
