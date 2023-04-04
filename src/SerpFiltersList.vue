@@ -73,11 +73,12 @@
         scrollable
     >
       <v-card>
-        <v-toolbar flat class="">
+        <v-toolbar flat class="" extended>
           <v-toolbar-title>
             <v-btn text @click="setFiltersZoom(true)" class="text-capitalize text-h5 px-1">
               <v-icon class="pr-1">mdi-filter-outline</v-icon>
               <v-icon v-if="selectedFacetConfig">mdi-chevron-right</v-icon>
+              <span v-else>Filters</span>
             </v-btn>
             <span v-if="selectedFacetConfig" class="text-h5  font-weight-bold">
               <v-icon>{{ selectedFacetConfig.icon }}</v-icon>
@@ -85,21 +86,7 @@
             </span>
 
           </v-toolbar-title>
-          <v-text-field
-              flat
-              outlined
-              rounded
-              hide-details
-              full-width
-              class="mt-0 mx-5"
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              autofocus
-              dense
-
-              v-model="searchString"
-              placeholder="search"
-          />
+          <v-spacer />
           <v-menu v-if="selectedFacetConfig">
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on" class="mr-1">
@@ -142,6 +129,27 @@
           <v-btn icon @click="facetsDrawerIsOpen = false">
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
+
+          <template v-slot:extension>
+            <v-text-field
+              flat
+              outlined
+              rounded
+              hide-details
+              full-width
+              clearable
+              prepend-inner-icon="mdi-magnify"
+              autofocus
+              dense
+
+              v-model="searchString"
+              :disabled="!searchPlaceholderText"
+              :placeholder="searchPlaceholderText"
+          />
+
+          </template>
+
+
         </v-toolbar>
         <v-divider class=""/>
         <v-card-text style="height: 70vh;" class="pa-0">
@@ -243,6 +251,17 @@ export default {
       set(val) {
         this.setFiltersZoom(val)
       },
+    },
+    searchPlaceholderText(){
+      if (this.selectedFacetConfig){
+        if (this.selectedFacetConfig.valuesToShow !== "mostCommon") return ""
+
+        const thingToSearch = this.$pluralize(this.selectedFacetConfig.displayName, 2);
+        return `Search ${thingToSearch}`
+      }
+      else {
+        return "Search filter types"
+      }
     },
 
     facetsByCategory() {
