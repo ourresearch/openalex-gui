@@ -41,6 +41,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
 const makeUrl = function (pathName, searchParams, includeEmail = true) {
     const params = new URLSearchParams(searchParams);
     (includeEmail) && params.set("mailto", "team@ourresearch.org");
+    params.set("per-page", 10)
 
     if (pathName.indexOf("/") !== 0) {
         pathName = "/" + pathName

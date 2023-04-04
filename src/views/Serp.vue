@@ -9,61 +9,56 @@
           <serp-filters-list/>
         </v-col>
       </v-row>
-      <v-row class="serp-toolbar-row">
-        <v-col cols="2"></v-col>
-        <v-col cols="10">
-          <serp-toolbar :disabled="!!singleWorkIdToShow" />
-        </v-col>
-      </v-row>
-      <v-divider class="mb-6"/>
-      <v-row class="results-row">
+
+      <v-row class="main-row">
         <v-col cols="2">
-<!--          <facets-drawer/>-->
+          <!--          <facets-drawer/>-->
         </v-col>
-        <v-col cols="10">
-          <v-row v-if="!singleWorkIdToShow">
-            <v-col :cols="(entitySidebarId) ? 7 : 12">
-              <div v-if="!resultsCount" class="mt-8 grey--text">
-                Sorry, there are no results for this search.
-              </div>
-              <div
-                  v-for="result in $store.state.results"
-                  class="result-container my-4"
-                  :key="result.id"
-              >
-                <component :is="resultComponentName" :data="result"/>
-              </div>
-              <div class="serp-bottom" v-if="$store.state.results.length">
-                <v-pagination
-                    v-model="page"
-                    :length="numPages"
-                    :total-visible="10"
-                    light
-                />
-              </div>
-            </v-col>
-            <v-col :cols="(entitySidebarId) ? 5 : 0">
-<!--              <zoom-entity :entity-id="entitySidebarId"/>-->
-              <entity :entity-id="entitySidebarId" />
-            </v-col>
-          </v-row>
-
-          <v-row v-if="!!singleWorkIdToShow">
-<!--            <zoom-entity :entity-id="singleWorkIdToShow"/>-->
-              <entity :entity-id="singleWorkIdToShow" />
-          </v-row>
+        <v-col class="results-col" :cols="(entitySidebarId) ? 6 : 10">
 
 
+          <serp-toolbar :disabled="!!singleWorkIdToShow"/>
+          <v-divider class="mb-6"  />
+
+
+          <entity v-if="singleWorkIdToShow" :entity-id="singleWorkIdToShow"/>
+
+          <div v-else class="results-list">
+            <div v-if="!resultsCount" class="mt-8 grey--text">
+              Sorry, there are no results for this search.
+            </div>
+            <div
+                v-for="result in $store.state.results"
+                class="result-container my-4"
+                :key="result.id"
+            >
+              <component :is="resultComponentName" :data="result"/>
+            </div>
+            <div class="serp-bottom" v-if="$store.state.results.length">
+              <v-pagination
+                  v-model="page"
+                  :length="numPages"
+                  :total-visible="10"
+                  light
+              />
+            </div>
+          </div>
+
+
+        </v-col>
+        <v-col class="results-col" :cols="(entitySidebarId) ? 4 : 0">
+          <entity :entity-id="entitySidebarId"/>
         </v-col>
       </v-row>
+
+
+
 
 
     </v-container>
 
 
-    <div  id="serp-app-inside" class="d-flex ">
-
-
+    <div id="serp-app-inside" class="d-flex ">
 
 
       <v-snackbar

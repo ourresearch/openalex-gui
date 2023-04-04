@@ -1,7 +1,7 @@
 <template>
-  <div v-if="entityId" style="margin-right: -15px">
-    <v-card flat v-if="data">
-      <div class="card-header px-4 pl-3 d-flex align-start">
+  <div v-if="entityId">
+    <v-card outlined v-if="data">
+      <div class="card-header px-4 pl-3 pt-2 d-flex align-start">
 
         <div>
 
