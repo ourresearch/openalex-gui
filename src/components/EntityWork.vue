@@ -17,30 +17,24 @@
       </v-row>
     </v-alert>
 
-    <div class="">
-      <div v-if="!data.primary_location.source.display_name && data.publication_year">
-        <span class="font-weight-bold">
-          Publication year:
+    <div v-if="data.publication_year">
+      <span class="font-weight-bold">
+          Published:
         </span>
-        <span>
+      <span>
           {{ data.publication_year }}
         </span>
-      </div>
+    </div>
 
-
-      <!--    source and year-->
-      <div v-if="data.primary_location.source.display_name">
+    <div class="">
+      <div v-if="data.primary_location.source && data.primary_location.source.display_name">
+        <!--    source and year-->
+        <div v-if="data.primary_location.source.display_name">
         <span class="font-weight-bold">
           Source:
         </span>
-        <span>
           <link-to-entity :entity="data.primary_location.source"/>
-          <span
-              class="year ml-1"
-              v-if="data.publication_year"
-          >({{ data.publication_year }})
-          </span>
-        </span>
+        </div>
       </div>
 
 
@@ -252,7 +246,7 @@ export default {
       }
     },
     linkToReferences() {
-      const filter = createSimpleFilter( "works","cited_by", this.data.id)
+      const filter = createSimpleFilter("works", "cited_by", this.data.id)
       return {
         name: "Serp",
         params: {entityType: "works"},

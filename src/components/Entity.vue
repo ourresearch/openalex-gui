@@ -1,5 +1,4 @@
 <template>
-  <div v-if="entityId">
     <v-card outlined v-if="data">
       <div class="card-header px-4 pl-3 pt-2 d-flex align-start">
 
@@ -114,7 +113,7 @@
 
             <!--   Paywalled at publisher-->
             <v-btn
-                :href="data.primary_location.source.url"
+                :href="data.primary_location.landing_page_url"
                 target="_blank"
                 color="primary"
                 outlined
@@ -198,7 +197,6 @@
 
 
     </v-card>
-  </div>
 
 </template>
 
@@ -256,12 +254,11 @@ export default {
     EntityIcon,
   },
   props: {
-    entityId: String,
+    data: Object,
   },
   data() {
     return {
       foo: 42,
-      data: null,
     }
   },
   computed: {
@@ -269,6 +266,9 @@ export default {
       "entityZoomHistoryData",
       "resultsFilters",
     ]),
+    entityId(){
+      return this.data.id
+    },
     myEntityConfig() {
       return entityConfigs[this.myEntityType]
     },
@@ -353,17 +353,6 @@ export default {
       const type = entityTypeFromId(id)
       return entityConfigs[type]?.icon
     },
-    getData() {
-      if (!this.entityId) return
-      const pathName = this.myEntityType + "/" + this.entityId
-      this.data = null
-      console.log("zoomentity getting data for", this.entityId)
-
-      api.get(pathName).then(resp => {
-        console.log("zoomEntity resp", resp)
-        this.data = resp
-      })
-    },
     close(){
       console.log("remove! new filters: ", this.myFilter)
       const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
@@ -377,14 +366,8 @@ export default {
   created() {
   },
   mounted() {
-    this.data = null
-    this.getData()
   },
   watch: {
-    "entityId": function (to, from) {
-      this.data = null
-      this.getData()
-    }
   }
 }
 </script>

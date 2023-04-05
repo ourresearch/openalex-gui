@@ -21,7 +21,7 @@
           <v-divider class="mb-6"  />
 
 
-          <entity v-if="singleWorkIdToShow" :entity-id="singleWorkIdToShow"/>
+          <entity v-if="singleWorkIdToShow" :data="$store.state.results[0]"/>
 
           <div v-else class="results-list">
             <div v-if="!resultsCount" class="mt-8 grey--text">
@@ -47,7 +47,7 @@
 
         </v-col>
         <v-col class="results-col" :cols="(entitySidebarId) ? 4 : 0">
-          <entity :entity-id="entitySidebarId"/>
+<!--          <entity :entity-id="entitySidebarId"/>-->
         </v-col>
       </v-row>
 
