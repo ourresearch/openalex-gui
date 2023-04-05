@@ -23,7 +23,7 @@
           :class="{'font-weight-bold': isSelected}"
       >
         <span
-            class="facet-option-text"
+            class="facet-option-text subtitle-1"
             v-html="prettyDisplayName"
         >
         </span>
@@ -87,8 +87,6 @@ export default {
       "resultsFilters",
     ]),
     myColor() {
-      if (!this.isSelected) return ""
-      return "primary"
 
       if (this.isNegated) return "red"
       return "green "

@@ -1,9 +1,11 @@
 <template>
-  <v-chip large close color="#fff"
+  <v-chip large close
+          :text-color="myColor"
+          color="white"
           @[dynamicAttribute]="setFiltersZoom(filter.key)"
           @click:close="remove"
           class="mr-1 mb-2 inline-flex py-1"
-          style="height: unset; border-radius: 3px; border: 1px solid #999"
+          style="height: unset; border-radius: 3px; border: 1px solid !important;"
   >
 
 <!--    <v-icon>{{ filter.icon }}</v-icon>-->
@@ -49,7 +51,7 @@ export default {
     ]),
     myDisplayValue() {
       if (this.filter.isBoolean) {
-        const booleanInt = (this.filter.value) ? 0 : 1
+        const booleanInt = (this.filter.value) ? 1 : 0;
         return this.filter.booleanValues[booleanInt]
       }
       return this.filter.displayValue
@@ -59,6 +61,10 @@ export default {
     },
     isNegated(){
       return this.filter.isNegated
+    },
+    myColor(){
+      return (this.filter.isNegated) ? "red" : "green"
+
     }
   },
 
@@ -92,6 +98,6 @@ export default {
 
 <style scoped lang="scss">
   .filter-value.isNegated {
-    text-decoration: line-through;
+    //text-decoration: line-through;
   }
 </style>

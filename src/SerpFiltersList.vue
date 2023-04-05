@@ -10,7 +10,8 @@
         @shortkey="facetsDrawerIsOpen = true"
     ></div>
     <v-btn
-        color="primary"
+        color="green"
+        dark
         rounded
         v-if="resultsFilters.length === 0"
         class="ml-2 mr-2 mb-2"
@@ -44,7 +45,7 @@
       </div>
       <div style="margin-bottom: -25px;">
         <v-btn
-            color="primary"
+            color="green"
             dark
             rounded
 
@@ -73,7 +74,7 @@
         scrollable
     >
       <v-card>
-        <v-toolbar flat class="" extended>
+        <v-toolbar flat class="" extended color="green" dark>
           <v-toolbar-title>
             <v-btn text @click="setFiltersZoom(true)" class="text-capitalize text-h5 px-1">
               <v-icon class="pr-1">mdi-filter-outline</v-icon>
@@ -141,6 +142,8 @@
               prepend-inner-icon="mdi-magnify"
               autofocus
               dense
+              light
+              background-color="white"
 
               v-model="searchString"
               :disabled="!searchPlaceholderText"

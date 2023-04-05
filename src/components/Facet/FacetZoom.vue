@@ -3,10 +3,8 @@
   <v-card
       :loading="isLoading"
       flat
-      class="mt-1"
   >
     <v-card-text v-if="config.isRange" class="pa-4">
-      {{ range }}
       <div class="d-flex">
         <v-text-field
             flat
@@ -31,8 +29,8 @@
             outlined
             @keypress.enter="applyRange"
         />
-        <v-btn x-large class="ml-5" color="primary" @click="applyRange">
-          Save
+        <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
+          Apply
         </v-btn>
 
       </div>
