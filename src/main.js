@@ -42,6 +42,9 @@ Vue.use(VuePluralize)
 import VueShortkey from 'vue-shortkey'
 Vue.use(VueShortkey)
 
+import AsyncComputed from 'vue-async-computed'
+Vue.use(AsyncComputed)
+
 
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return

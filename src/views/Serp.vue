@@ -14,11 +14,11 @@
         <v-col cols="2">
           <!--          <facets-drawer/>-->
         </v-col>
-        <v-col class="results-col" :cols="(entitySidebarId) ? 6 : 10">
+        <v-col class="results-col" :cols="(entitySidebarFilter) ? 6 : 10">
 
 
           <serp-toolbar :disabled="!!singleWorkIdToShow"/>
-          <v-divider class="mb-6"  />
+          <v-divider class="mb-6"/>
 
 
           <entity v-if="singleWorkIdToShow" :data="$store.state.results[0]"/>
@@ -46,13 +46,10 @@
 
 
         </v-col>
-        <v-col class="results-col" :cols="(entitySidebarId) ? 4 : 0">
-<!--          <entity :entity-id="entitySidebarId"/>-->
+        <v-col class="results-col" :cols="(entitySidebarFilter) ? 4 : 0">
+          <entity :data="entitySidebarData"/>
         </v-col>
       </v-row>
-
-
-
 
 
     </v-container>
@@ -112,6 +109,7 @@ import FacetsDrawer from "../components/Facet/FacetsDrawer";
 import FacetZoom from "../components/Facet/FacetZoom";
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
+import {api} from "@/api";
 
 import Entity from "../components/Entity";
 
@@ -161,6 +159,21 @@ export default {
       showYearRange: true,
     }
   },
+  asyncComputed: {
+    async entitySidebarData(){
+      if (!this.entitySidebarFilter) return
+      const pathName = [
+          this.entitySidebarFilter.entityId,
+          this.entitySidebarFilter.value
+          ].join("/")
+
+      console.log("entitySidebarData getting data for", pathName)
+
+      const resp = await api.get(pathName)
+      console.log("entitySidebarData got data", resp)
+      return resp
+    },
+  },
   computed: {
     ...mapGetters([
       "searchApiUrl",
@@ -189,7 +202,7 @@ export default {
           10
       )
     },
-    entitySidebarId() {
+    entitySidebarFilter() {
       if (this.resultsFilters.length === 0) return
       if (this.entityType !== "works") return
       if (this.singleWorkIdToShow) return
@@ -197,7 +210,7 @@ export default {
       const sidebarFilters = this.resultsFilters.filter(f => f.showInSidebar)
       if (sidebarFilters.length !== 1) return
 
-      return sidebarFilters[0].value
+      return sidebarFilters[0]
     },
     singleWorkIdToShow() {
       if (this.entityType !== "works") return
@@ -260,10 +273,16 @@ export default {
       "updateTextSearch",
       "setEntityZoom",
     ]),
+    getEntityData() {
+      if (!this.entityId) return
+      const pathName = this.myEntityType + "/" + this.entityId
+      this.data = null
+      console.log("zoomentity getting data for", this.entityId)
 
-    handleClickOutside() {
-      console.log("click outside!")
-      // this.setFacetZoom(null)
+      api.get(pathName).then(resp => {
+        console.log("zoomEntity resp", resp)
+        this.data = resp
+      })
     },
   },
 
@@ -287,20 +306,6 @@ export default {
         }
       }
     },
-    // logoColorRotation: {
-    //   immediate: true,
-    //   handler(to, from) {
-    //     return
-    //     setTimeout(() => {
-    //       console.log("chaging logoColorRotation")
-    //       const date = new Date()
-    //       const seconds = date.getSeconds()
-    //       const rotation = seconds * 18
-    //       this.logoColorRotation = rotation
-    //
-    //     }, 1000)
-    //   }
-    // },
   }
 }
 </script>
