@@ -22,22 +22,12 @@
       </div>
 
 
-      <div class="data-row mt-3">
-        <span class="font-weight-bold">
-          Cited by:
-        </span>
-        <span class="">
-          {{ data.cited_by_count.toLocaleString() }} works
-        </span>
-      </div>
-      <div class="data-row mt-3">
-        <span class="font-weight-bold">
-          h-index:
-        </span>
-        <span class="">
-          {{ (data.summary_stats.h_index ) ? data.summary_stats.h_index : 0 }}
-        </span>
-      </div>
+
+
+      <entity-summary-stats
+          :data="data.summary_stats"
+          :cited-by-count="data.cited_by_count"
+      />
 
       <entity-zoom-ids-row :ids="data.ids" />
 
@@ -59,6 +49,7 @@ import ConceptsList from "./ConceptsList";
 import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
 import EntityZoomIdsRow from "./EntityZoomIdsRow";
+import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 
 export default {
   name: "EntityAuthor",
@@ -67,6 +58,7 @@ export default {
     ConceptsList,
     LinkToEntity,
     LinkToSearch,
+    EntitySummaryStats,
     EntityZoomIdsRow,
   },
   props: {

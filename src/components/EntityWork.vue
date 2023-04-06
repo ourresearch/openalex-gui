@@ -98,7 +98,7 @@
       </div>
 
       <!--    Cited By  -->
-      <div>
+      <div class="mt-3">
         <span class="pt-6 font-weight-bold">
           <span>Cited by: </span>
         </span>
