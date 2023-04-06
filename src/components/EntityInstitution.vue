@@ -27,27 +27,27 @@
       </div>
 
 
-<!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Associated:-->
-<!--        </span>-->
-<!--        <span>-->
-<!--            <span-->
-<!--                v-for="institution in data.associated_institutions"-->
-<!--                :key="institution.id"-->
-<!--            >-->
-<!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
-<!--                {{ institution.display_name }}-->
-<!--              </a> ({{ institution.relationship }})-->
-<!--            </span>-->
-<!--        </span>-->
-      </div>
+      <!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
+      <!--        <span class="font-weight-bold">-->
+      <!--          Associated:-->
+      <!--        </span>-->
+      <!--        <span>-->
+      <!--            <span-->
+      <!--                v-for="institution in data.associated_institutions"-->
+      <!--                :key="institution.id"-->
+      <!--            >-->
+      <!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
+      <!--                {{ institution.display_name }}-->
+      <!--              </a> ({{ institution.relationship }})-->
+      <!--            </span>-->
+      <!--        </span>-->
+    </div>
 
-      <div class="data-row">
+    <div class="data-row">
         <span class="font-weight-bold pt-6">
           Works:
         </span>
-        <span class="pt-6">
+      <span class="pt-6">
           <link-to-search
               :count="data.works_count"
               filter-key="authorships.institutions.id"
@@ -55,19 +55,15 @@
               entity-type="works"
           />
         </span>
-      </div>
-      <div class="data-row">
-        <span class="font-weight-bold">
-          Cited by:
-        </span>
-        <span>
-          {{ data.cited_by_count.toLocaleString() }} works
-        </span>
-      </div>
-
-      <entity-zoom-ids-row :ids="data.ids" />
-
     </div>
+
+    <entity-summary-stats
+        :data="data.summary_stats"
+        :cited-by-count="data.cited_by_count"
+        include-impact-factor
+    />
+
+    <entity-zoom-ids-row :ids="data.ids"/>
 
   </div>
 
@@ -82,9 +78,9 @@ import ConceptsList from "./ConceptsList";
 import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
 import EntityZoomIdsRow from "./EntityZoomIdsRow";
+import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 
 const countryCodeLookup = require('country-code-lookup')
-
 
 
 export default {
@@ -96,6 +92,7 @@ export default {
     LinkToEntity,
     LinkToSearch,
     EntityZoomIdsRow,
+    EntitySummaryStats,
   },
   props: {
     data: Object,

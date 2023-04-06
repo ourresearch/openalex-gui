@@ -13,7 +13,7 @@
           H-index:
         </span>
       <span class="">
-          {{ (data.h_index) ? data.h_index : 0 }}
+          {{ (data.h_index) ? data.h_index.toLocaleString() : 0 }}
         </span>
     </div>
     <div class="data-row">
@@ -21,7 +21,7 @@
           i10 index:
         </span>
       <span class="">
-          {{ (data.i10_index) ? data.i10_index : 0 }}
+          {{ (data.i10_index) ? data.i10_index.toLocaleString() : 0 }}
         </span>
     </div>
     <div v-if="includeImpactFactor" class="data-row">

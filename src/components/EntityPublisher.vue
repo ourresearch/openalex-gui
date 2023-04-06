@@ -58,6 +58,12 @@
       </div>
 
 
+      <entity-summary-stats
+          :data="data.summary_stats"
+          :cited-by-count="data.cited_by_count"
+          include-impact-factor
+      />
+
       <entity-zoom-ids-row :ids="data.ids"/>
 
     </div>
@@ -75,6 +81,7 @@ import LinkToEntity from "./LinkToEntity";
 import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
 import EntityZoomIdsRow from "./EntityZoomIdsRow";
+import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 
 export default {
   name: "EntityPublisher",
@@ -84,6 +91,7 @@ export default {
     EntityIcon,
     ConceptsList,
     EntityZoomIdsRow,
+    EntitySummaryStats,
   },
   props: {
     data: Object,
