@@ -21,26 +21,21 @@
         </span>
       </div>
 
-      <div class="data-row">
-        <span class="font-weight-bold pt-6">
-          Works:
-        </span>
-        <span class="pt-6">
-          <link-to-search
-              :count="data.works_count"
-              filter-key="authorships.author.id"
-              :filter-value="data.id"
-              entity-type="works"
-          />
-        </span>
-      </div>
 
-      <div class="data-row">
+      <div class="data-row mt-3">
         <span class="font-weight-bold">
           Cited by:
         </span>
         <span class="">
           {{ data.cited_by_count.toLocaleString() }} works
+        </span>
+      </div>
+      <div class="data-row mt-3">
+        <span class="font-weight-bold">
+          h-index:
+        </span>
+        <span class="">
+          {{ (data.summary_stats.h_index ) ? data.summary_stats.h_index : 0 }}
         </span>
       </div>
 

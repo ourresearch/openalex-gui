@@ -1,6 +1,6 @@
 <template>
       <tr>
-        <td class="table-row-label pt-6">
+        <td class="table-row-label pt-6 caption">
           IDs:
         </td>
         <td class="pt-6">

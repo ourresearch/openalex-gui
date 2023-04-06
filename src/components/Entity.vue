@@ -20,7 +20,7 @@
                 ({{ data.type.replace("-", " ") }})
               </span>
             <span v-if="myEntityType=== 'institutions' && data.type">
-                 ({{ data.type.replace("-", " ") }})
+                 ({{ data.type.replace("-", " ") }})h
               </span>
             <span v-if="myEntityType=== 'concepts'">
                  (Level {{ data.level }})

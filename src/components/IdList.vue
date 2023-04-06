@@ -5,9 +5,10 @@
     <v-menu
         v-for="(idObj, i) in liveIds"
         :key="idObj.namespace + idObj.url"
+        dense
     >
       <template v-slot:activator="{on}">
-        <a v-on="on">
+        <a v-on="on" class="caption">
           {{ idObj.displayNamespace }}{{ (i < liveIds.length-1) ? "," : "" }}
         </a>
       </template>
