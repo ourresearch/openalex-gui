@@ -11,7 +11,7 @@
         >
         </div>
 
-        <div class="card-header-top-row text-capitalize ">
+        <div class="card-header-top-row text-capitalize">
           <entity-icon small class="mr-1" :type="myEntityType"/>
 
           <span>{{ myEntityConfig.displayNameSingular }}</span>
@@ -20,7 +20,7 @@
                 ({{ data.type.replace("-", " ") }})
               </span>
           <span v-if="myEntityType=== 'institutions' && data.type">
-                 ({{ data.type.replace("-", " ") }})h
+                 ({{ data.type.replace("-", " ") }})
               </span>
           <span v-if="myEntityType=== 'concepts'">
                  (Level {{ data.level }})
@@ -38,6 +38,9 @@
 
 
       <v-spacer/>
+      <div class="d-flex align-center justify-end" style="height: 50px; width: 50px;">
+        <v-img max-height="100%"  :src="data.image_thumbnail_url" contain />
+      </div>
       <div>
         <v-btn icon @click="close">
           <v-icon>mdi-close</v-icon>
