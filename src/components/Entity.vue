@@ -1,202 +1,181 @@
 <template>
-    <v-card outlined v-if="data">
-      <div class="card-header px-4 pl-3 pt-2 d-flex align-start">
+  <v-card outlined v-if="data">
+    <div class="card-header px-4 pl-3 pt-2 d-flex align-start">
 
-        <div>
+      <div>
 
-          <div class="text-h5 font-weight-medium mt-0"
-               style=" line-height: 1.3;"
-               v-html="$prettyTitle(data.display_name)"
+        <div class="text-h5 font-weight-medium mt-0"
+             style=" line-height: 1.3;"
+             v-html="$prettyTitle(data.display_name)"
 
-          >
-          </div>
+        >
+        </div>
 
-          <div class="card-header-top-row text-capitalize ">
-            <entity-icon small class="mr-1" :type="myEntityType"/>
+        <div class="card-header-top-row text-capitalize ">
+          <entity-icon small class="mr-1" :type="myEntityType"/>
 
-            <span>{{ myEntityConfig.displayNameSingular }}</span>
+          <span>{{ myEntityConfig.displayNameSingular }}</span>
 
-            <span v-if="myEntityType === 'works' && data.type">
+          <span v-if="myEntityType === 'works' && data.type">
                 ({{ data.type.replace("-", " ") }})
               </span>
-            <span v-if="myEntityType=== 'institutions' && data.type">
+          <span v-if="myEntityType=== 'institutions' && data.type">
                  ({{ data.type.replace("-", " ") }})h
               </span>
-            <span v-if="myEntityType=== 'concepts'">
+          <span v-if="myEntityType=== 'concepts'">
                  (Level {{ data.level }})
               </span>
-            <span v-if="myEntityType=== 'sources' && data.type">
+          <span v-if="myEntityType=== 'sources' && data.type">
                  ({{ data.type }})
               </span>
-            <span v-if="myEntityType=== 'publishers' && data.type">
+          <span v-if="myEntityType=== 'publishers' && data.type">
 <!--                 ({{ data.type }})-->
 
               </span>
-          </div>
-
         </div>
 
+      </div>
 
-        <v-spacer/>
+
+      <v-spacer/>
+      <div>
+        <v-btn icon @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+
+    </div>
+    <div class="px-4 pt-3 pb-1 d-flex">
+      <!--        just for works-->
+      <template v-if="myEntityType==='works'">
         <div>
-          <v-btn icon @click="close">
-            <v-icon>mdi-close</v-icon>
+
+          <!--              Green open access-->
+          <!--            <v-menu-->
+          <!--                v-if="isGreenOa"-->
+          <!--            >-->
+          <!--              <template v-slot:activator="{on, attrs}">-->
+          <!--                <v-btn-->
+          <!--                    color="primary"-->
+          <!--                    v-bind="attrs"-->
+          <!--                    v-on="on"-->
+          <!--                >-->
+          <!--                  Open Access-->
+          <!--                  <v-icon small right>mdi-menu-down</v-icon>-->
+          <!--                </v-btn>-->
+          <!--              </template>-->
+          <!--              <v-list-->
+          <!--              >-->
+          <!--                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">-->
+          <!--                  <v-list-item-title>-->
+          <!--                    <span class="font-weight-bold">Open Access</span> via repository-->
+          <!--                  </v-list-item-title>-->
+          <!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
+
+          <!--                </v-list-item>-->
+          <!--                <v-list-item target="_blank" :href="data.primary_location.source.url">-->
+          <!--                  <v-list-item-title>-->
+          <!--                    <span class="font-weight-bold">Paywalled</span> at publisher-->
+          <!--                  </v-list-item-title>-->
+          <!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
+
+          <!--                </v-list-item>-->
+          <!--              </v-list>-->
+          <!--            </v-menu>-->
+
+
+          <!--   Open Access at repository, toll-access at publisher -->
+          <v-btn
+              :href="oaUrl"
+              target="_blank"
+              color="primary"
+              class="mr-3"
+              small
+              rounded
+              v-if="isGreenOa"
+          >
+            Read
+            <v-icon right small>mdi-open-in-new</v-icon>
+          </v-btn>
+
+          <!--   Open Access at publisher -->
+          <v-btn
+              :href="oaUrl"
+              target="_blank"
+              color="primary"
+              small
+              rounded
+              v-if="isOaAtPublisher"
+          >
+            Read
+            <v-icon right small>mdi-open-in-new</v-icon>
+          </v-btn>
+
+          <!--   Paywalled at publisher-->
+          <v-btn
+              :href="data.primary_location.landing_page_url"
+              target="_blank"
+              color="primary"
+              outlined
+              small
+              rounded
+              v-if="!isOaAtPublisher"
+          >
+            <v-icon left small>mdi-open-in-new</v-icon>
+            View
           </v-btn>
         </div>
-
-      </div>
-      <div class="px-4 pt-3 pb-1 d-flex">
-        <!--        just for works-->
-        <template v-if="myEntityType==='works'">
-          <div>
-
-            <!--              Green open access-->
-<!--            <v-menu-->
-<!--                v-if="isGreenOa"-->
-<!--            >-->
-<!--              <template v-slot:activator="{on, attrs}">-->
-<!--                <v-btn-->
-<!--                    color="primary"-->
-<!--                    v-bind="attrs"-->
-<!--                    v-on="on"-->
-<!--                >-->
-<!--                  Open Access-->
-<!--                  <v-icon small right>mdi-menu-down</v-icon>-->
-<!--                </v-btn>-->
-<!--              </template>-->
-<!--              <v-list-->
-<!--              >-->
-<!--                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">-->
-<!--                  <v-list-item-title>-->
-<!--                    <span class="font-weight-bold">Open Access</span> via repository-->
-<!--                  </v-list-item-title>-->
-<!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
-
-<!--                </v-list-item>-->
-<!--                <v-list-item target="_blank" :href="data.primary_location.source.url">-->
-<!--                  <v-list-item-title>-->
-<!--                    <span class="font-weight-bold">Paywalled</span> at publisher-->
-<!--                  </v-list-item-title>-->
-<!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
-
-<!--                </v-list-item>-->
-<!--              </v-list>-->
-<!--            </v-menu>-->
+      </template>
 
 
-            <!--   Open Access at repository, toll-access at publisher -->
-            <v-btn
-                :href="oaUrl"
-                target="_blank"
-                color="primary"
-                class="mr-3"
-                small
-                rounded
-                v-if="isGreenOa"
-            >
-              Read
-              <v-icon right small>mdi-open-in-new</v-icon>
-            </v-btn>
-
-            <!--   Open Access at publisher -->
-            <v-btn
-                :href="oaUrl"
-                target="_blank"
-                color="primary"
-                small
-                rounded
-                v-if="isOaAtPublisher"
-            >
-              Read
-              <v-icon right small>mdi-open-in-new</v-icon>
-            </v-btn>
-
-            <!--   Paywalled at publisher-->
-            <v-btn
-                :href="data.primary_location.landing_page_url"
-                target="_blank"
-                color="primary"
-                outlined
-                small
-                rounded
-                v-if="!isOaAtPublisher"
-            >
-              <v-icon left small>mdi-open-in-new</v-icon>
-              View
-            </v-btn>
-          </div>
-        </template>
+      <template v-else>
+        <div>
+          <v-btn
+              :href="linkoutUrl"
+              target="_blank"
+              v-if="linkoutUrl"
+              color="primary"
+              rounded
+              outlined
+              small
+          >
+            {{ linkoutButtonText }}
+            <v-icon right small>mdi-open-in-new</v-icon>
+          </v-btn>
+        </div>
+      </template>
 
 
-        <template v-else>
-          <div>
-            <v-btn
-                :href="linkoutUrl"
-                target="_blank"
-                v-if="linkoutUrl"
-                color="primary"
-                rounded
-                outlined
-                small
-            >
-              {{ linkoutButtonText }}
-              <v-icon right small>mdi-open-in-new</v-icon>
-            </v-btn>
-          </div>
-        </template>
+      <v-spacer/>
+      <v-btn icon :href="apiUrl" target="_blank">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
+      <v-btn
+          class="mt-1 low-key-button" text small
+          :href="apiUrl + '.bib'" target="_blank"
+          v-if="myEntityType==='works'"
+      >
+        BibTeX
+      </v-btn>
 
 
+    </div>
 
 
-        <v-spacer />
-        <v-menu>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on" class="ml-2">
-              <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-subheader>Export data as</v-subheader>
-            <v-divider></v-divider>
-            <v-list-item :href="apiUrl + '.bib'" target="_blank" v-if="myEntityType==='works'">
-              <v-list-item-icon>
-                <v-icon left>mdi-file-download-outline</v-icon>
+    <v-divider></v-divider>
+    <v-card-text class="pt-6" style="font-size: 16px;">
 
-              </v-list-item-icon>
-              <v-list-item-title>
+      <entity-work v-if="myEntityType==='works'" :data="data"/>
+      <entity-author v-if="myEntityType==='authors'" :data="data"/>
+      <entity-venue v-if="myEntityType==='sources'" :data="data"/>
+      <entity-publisher v-if="myEntityType==='publishers'" :data="data"/>
+      <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
+      <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
-                BibTeX
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item :href="apiUrl" target="_blank">
-              <v-list-item-icon>
-
-                <v-icon left>mdi-api</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-
-                JSON object
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </div>
+    </v-card-text>
 
 
-      <v-divider></v-divider>
-      <v-card-text class="pt-6" style="font-size: 16px;">
-
-        <entity-work v-if="myEntityType==='works'" :data="data"/>
-        <entity-author v-if="myEntityType==='authors'" :data="data"/>
-        <entity-venue v-if="myEntityType==='sources'" :data="data"/>
-        <entity-publisher v-if="myEntityType==='publishers'" :data="data"/>
-        <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
-        <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
-
-      </v-card-text>
-
-
-    </v-card>
+  </v-card>
 
 </template>
 
@@ -266,7 +245,7 @@ export default {
       "entityZoomHistoryData",
       "resultsFilters",
     ]),
-    entityId(){
+    entityId() {
       return this.data.id
     },
     myEntityConfig() {
@@ -291,7 +270,7 @@ export default {
     filterIsApplied() {
       return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
     },
-    myFilter(){
+    myFilter() {
 
       return createSimpleFilter(
           "works",
@@ -353,7 +332,7 @@ export default {
       const type = entityTypeFromId(id)
       return entityConfigs[type]?.icon
     },
-    close(){
+    close() {
       console.log("remove! new filters: ", this.myFilter)
       const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
       url.setFilters(
@@ -367,8 +346,7 @@ export default {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
