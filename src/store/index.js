@@ -251,32 +251,7 @@ export default new Vuex.Store({
             commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
 
-            if (router.currentRoute.query.zoom) {
-                state.zoomDataResponses = []
 
-                state.zoomIdsStack = router.currentRoute.query.zoom.split(",")
-                state.zoomIdsStack.forEach(zoomId => {
-                    if (zoomId.indexOf("filters") === 0){
-                        state.zoomDataResponses.push({
-                            display_name: zoomId
-                        })
-                    }
-                    else {
-                        const pathName = entityTypeFromId(zoomId) + "/" + zoomId
-                        // console.log("bootFromUrl calling pathName", pathName)
-
-                        // do this async to save time, and to keep results from jerky scroll behavior
-                        api.get(pathName).then(resp => {
-                            state.zoomDataResponses.push(resp)
-                        })
-                    }
-                })
-            }
-            else {
-
-                state.zoomDataResponses = []
-                state.zoomIdsStack = []
-            }
 
 
             // this must be after setting the text search, because it affects the defaults
@@ -348,6 +323,7 @@ export default new Vuex.Store({
 
 
             try {
+                // @todo make this happen at the same time as the filters call
                 const resp = await api.get(state.entityType, getters.searchQueryBase)
                 state.results = resp.results.map(r => {
                     return {

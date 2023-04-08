@@ -14,7 +14,7 @@
         <v-col cols="2">
           <!--          <facets-drawer/>-->
         </v-col>
-        <v-col class="results-col" :cols="(entitySidebarFilter) ? 6 : 10">
+        <v-col class="results-col" :cols="(showSidebar) ? 6 : 10">
 
 
           <serp-toolbar :disabled="!!singleWorkIdToShow"/>
@@ -43,15 +43,16 @@
               />
             </div>
           </div>
-
-
         </v-col>
-        <v-col class="results-col" :cols="(entitySidebarFilter) ? 4 : 0">
-          <entity :data="entitySidebarData"/>
+        <v-col class="results-col" v-if="showSidebar" cols="4">
+          <entity
+              v-for="entity in entitySidebarDataList"
+              :key="entity.id"
+              :data="entity"
+              class="mb-4"
+          />
         </v-col>
       </v-row>
-
-
     </v-container>
 
 
@@ -160,18 +161,18 @@ export default {
     }
   },
   asyncComputed: {
-    async entitySidebarData(){
-      if (!this.entitySidebarFilter) return
-      const pathName = [
-          this.entitySidebarFilter.entityId,
-          this.entitySidebarFilter.value
-          ].join("/")
+    async entitySidebarDataList() {
+      return await Promise.all(
+          this.entitySidebarFiltersList.map(f => {
+            const pathName = [
+              f.entityId,
+              f.value
+            ].join("/")
+            console.log("entitySidebarData getting data for", pathName)
 
-      console.log("entitySidebarData getting data for", pathName)
-
-      const resp = await api.get(pathName)
-      console.log("entitySidebarData got data", resp)
-      return resp
+            return api.get(pathName)
+          })
+      )
     },
   },
   computed: {
@@ -211,6 +212,13 @@ export default {
       if (sidebarFilters.length !== 1) return
 
       return sidebarFilters[0]
+    },
+    entitySidebarFiltersList() {
+      if (this.entityType !== "works") return []
+      return this.resultsFilters.filter(f => f.showInSidebar )
+    },
+    showSidebar(){
+      return this.entitySidebarFiltersList.length > 0 && !this.singleWorkIdToShow
     },
     singleWorkIdToShow() {
       if (this.entityType !== "works") return
