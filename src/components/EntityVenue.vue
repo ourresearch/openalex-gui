@@ -38,6 +38,14 @@
           </span>
         </span>
       </div>
+      <div class="data-row" v-if="data.apc_usd > 0 || data.apc_usd === 0">
+        <span class="font-weight-bold">
+          APC:
+        </span>
+        <span>
+          ${{data.apc_usd.toLocaleString()}} <span class="caption">(USD)</span>
+        </span>
+      </div>
 
 
       <entity-summary-stats
