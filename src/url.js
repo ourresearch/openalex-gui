@@ -84,6 +84,17 @@ const setFilters = function (entityType, filters, hardReset=false) {
     pushToRoute(router, newRoute)
 }
 
+const setSearch = function (entityType, searchString) {
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            search: searchString,
+        }
+    }
+    pushToRoute(router, newRoute)
+}
+
 
 const addZoomToRoute = function (router, zoom) {
     if (!zoom) return
@@ -110,6 +121,7 @@ const url = {
 
     setFiltersByKey,
     setFilters,
+    setSearch,
 
     goToZoom,
     addZoomToRoute,

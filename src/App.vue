@@ -45,7 +45,12 @@
           <!--          >-->
           <!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
           <!--          </v-btn>-->
-          <search-box
+<!--          <search-box-->
+<!--              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
+<!--              class="d-md-block d-none mt-1 pl-2 flex-fill"-->
+<!--              style="max-width: 600px;"-->
+<!--          />-->
+          <search-box-new
               v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
               class="d-md-block d-none mt-1 pl-2 flex-fill"
               style="max-width: 600px;"
@@ -134,6 +139,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
+import SearchBoxNew from "@/components/SearchBoxNew.vue";
 
 
 export default {
@@ -145,6 +151,7 @@ export default {
     meta: []
   },
   components: {
+    SearchBoxNew,
   },
 
 
