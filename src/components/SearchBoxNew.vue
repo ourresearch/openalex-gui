@@ -12,6 +12,7 @@
             append-icon="mdi-magnify"
             rounded
             style="width: 100%;"
+            @keyup.enter="setSearch"
         />
       </template>
       <v-list v-if="!!searchString">
