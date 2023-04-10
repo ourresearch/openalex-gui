@@ -16,7 +16,7 @@
             rounded
             style="width: 100%;"
             placeholder="Search filters"
-            @change="setSearch"
+            @keypress.enter.stop.prevent="setSearch"
         />
       </template>
       <v-list v-if="!!searchString">
@@ -42,6 +42,7 @@
 
         <v-list-item
             @click.stop="setFilter(suggestion)"
+            @keydown.enter.prevent="setFilter(suggestion)"
             v-for="suggestion in filterSuggestions"
             :key="suggestion.id"
         >
@@ -114,8 +115,6 @@ export default {
       if (!this.searchString) return []
 
       const resp = await axios.get(this.autocompleteUrl)
-      console.log("filterSuggestsion() results", resp)
-      // return resp.data.results
 
       return resp.data.results.map(r => {
         const pluralEntityName = this.$pluralize(r.entity_type, 2)
@@ -139,12 +138,13 @@ export default {
     ]),
     ...mapActions([]),
     setFilter(filter) {
-      console.log("setFilter")
+      console.log("setFilter", filter)
 
       url.setFilters("works", [...this.resultsFilters, filter], false)
       this.searchString = ""
     },
     setSearch() {
+      console.log("setSearch", this.searchString)
       if (!this.searchString) return
       const filter = createSimpleFilter(
           "works",
