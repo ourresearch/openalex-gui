@@ -10,9 +10,11 @@
             hide-details
             clearable
             append-icon="mdi-magnify"
+            prepend-inner-icon="mdi-filter-plus-outline"
             rounded
             style="width: 100%;"
             @keyup.enter="setSearch"
+            placeholder="Add filters"
         />
       </template>
       <v-list v-if="!!searchString">
@@ -33,6 +35,7 @@
         <v-list-item
             @click="setFilter(suggestion)"
             v-for="suggestion in filterSuggestions"
+            :key="suggestion.id"
         >
           <v-list-item-icon>
             <v-icon>{{ suggestion.icon }}</v-icon>
@@ -129,12 +132,20 @@ export default {
     ...mapActions([]),
     setFilter(filter) {
       console.log("setFilter")
-      url.setFilters("works", [filter], true)
+
+      url.setFilters("works", [...this.resultsFilters, filter], false)
       this.searchString = ""
     },
     setSearch() {
-      console.log("setSearch")
-      url.setSearch(this.entityType, this.searchString)
+      const filter = createSimpleFilter(
+          "works",
+          "title.search",
+          this.searchString
+      )
+      url.setFilters("works", [...this.resultsFilters, filter], false)
+
+      // console.log("setSearch")
+      // url.setSearch(this.entityType, this.searchString)
     }
 
 

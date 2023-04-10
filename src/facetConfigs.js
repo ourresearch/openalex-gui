@@ -144,6 +144,21 @@ const facetConfigs = function (entityType) {
 
 
 
+        // works: search
+
+        {
+            key: "title.search",
+            entityType: "works",
+            displayName: "Title search",
+            valuesToShow: "search",
+            category: "popular",
+            isCore: true,
+            icon: "mdi-magnify",
+            regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
+        },
+
+
+
 
         // works: open access
         {
