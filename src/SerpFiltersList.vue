@@ -11,17 +11,19 @@
     ></div>
 
 
-    <v-card outlined class=" pb-0" style="border-radius: 10px; border: 1px solid #fff" color="#fafafa">
-      <v-toolbar dense  flat color="#fafafa">
-          <v-btn
-              text
+    <v-card outlined class=" pb-0"  color="#fff">
+      <v-toolbar   flat color="#fafafa">
+
+          <search-box-new class="my-2 mr-2" />
+        <v-spacer />
+        <v-btn
+              icon
               @click="facetsDrawerIsOpen = true"
           >
-            <v-icon class="mr-1">mdi-filter-menu-outline</v-icon>filters
-            <span class="caption ml-2" style="opacity: .7;">⌘F</span>
+            <v-icon class="">mdi-filter-menu-outline</v-icon>
+<!--            filters-->
+<!--            <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
           </v-btn>
-          <search-box-new class="my-2 mx-2" />
-        <v-spacer />
           <v-btn
               icon
               @click="clear()"

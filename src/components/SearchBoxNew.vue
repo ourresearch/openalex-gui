@@ -12,7 +12,7 @@
             outlined
             hide-details
             clearable
-            append-icon="mdi-magnify"
+            prepend-inner-icon="mdi-magnify"
             rounded
             style="width: 100%;"
             placeholder="Search filters"
@@ -20,7 +20,7 @@
         />
       </template>
       <v-list v-if="!!searchString">
-        <v-list-item @click="setSearch">
+        <v-list-item key="set-search" @click.stop="setSearch">
           <v-list-item-icon>
             <v-icon>mdi-magnify</v-icon>
           </v-list-item-icon>
@@ -41,7 +41,7 @@
         <v-divider></v-divider>
 
         <v-list-item
-            @click="setFilter(suggestion)"
+            @click.stop="setFilter(suggestion)"
             v-for="suggestion in filterSuggestions"
             :key="suggestion.id"
         >
@@ -128,7 +128,7 @@ export default {
             false,
             r.display_name,
         )
-      })
+      }).slice(0, 4)
 
     },
   },
@@ -145,6 +145,7 @@ export default {
       this.searchString = ""
     },
     setSearch() {
+      if (!this.searchString) return
       const filter = createSimpleFilter(
           "works",
           "title.search",
@@ -152,6 +153,7 @@ export default {
       )
       url.setFilters("works", [...this.resultsFilters, filter], false)
 
+      this.searchString = ""
       // console.log("setSearch")
       // url.setSearch(this.entityType, this.searchString)
     }

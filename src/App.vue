@@ -10,11 +10,11 @@
         height="90"
 
     >
-      <div class="d-flex flex-fill justify-space-between align-center">
+      <v-container class="d-flex flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill">
           <router-link
               :to="{name: 'Home'}"
-              class="logo-link pl-3"
+              class="logo-link pl-1"
               style="width: 180px;"
               v-if="$route.name !== 'Home'"
           >
@@ -65,7 +65,7 @@
             </v-list>
           </v-menu>
         </div>
-      </div>
+      </v-container>
     </v-app-bar>
     <v-main>
       <router-view></router-view>
@@ -184,7 +184,7 @@ html, body {
   opacity: 0;
 }
 
-$logo-link-height: 35px;
+$logo-link-height: 40px;
 
 .logo-link {
   text-decoration: none;

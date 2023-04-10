@@ -65,7 +65,8 @@ const filtersAsUrlStr = function (filters, entityType) {
         const value = valuePrepend + f.value
         return [f.key, value].join(":")
     })
-    return filtersAsStrings.join(",")
+    const dedupedFilterStrings = new Set([...filtersAsStrings])
+    return [...dedupedFilterStrings].join(",")
 
 }
 
