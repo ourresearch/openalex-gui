@@ -12,9 +12,8 @@
 
 
     <v-card outlined class=" pb-0" style="border-radius: 10px; border: 1px solid #fff" color="#fafafa">
-      <v-toolbar dense  flat color="#555">
+      <v-toolbar dense  flat color="#fafafa">
           <v-btn
-              dark
               text
               @click="facetsDrawerIsOpen = true"
           >
@@ -25,7 +24,6 @@
         <v-spacer />
           <v-btn
               icon
-              dark
               @click="clear()"
           >
             <v-icon>mdi-filter-off-outline</v-icon>

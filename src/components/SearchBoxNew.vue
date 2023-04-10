@@ -8,6 +8,8 @@
             class="mr-12"
             solo
             dense
+            flat
+            outlined
             hide-details
             clearable
             append-icon="mdi-magnify"
