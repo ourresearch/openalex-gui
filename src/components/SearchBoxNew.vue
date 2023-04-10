@@ -7,13 +7,14 @@
             v-model="searchString"
             class="mr-12"
             solo
+            dense
             hide-details
             clearable
             append-icon="mdi-magnify"
             rounded
             style="width: 100%;"
-            @keyup.enter="setSearch"
             placeholder="Search filters"
+            @change="setSearch"
         />
       </template>
       <v-list v-if="!!searchString">
@@ -23,13 +24,19 @@
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
-              {{ searchString }}
+              "{{ searchString }}"
             </v-list-item-title>
             <v-list-item-subtitle>
-              Fulltext search
+              Title search
             </v-list-item-subtitle>
           </v-list-item-content>
+          <v-list-item-action>
+            <v-chip sm outlined style="border-radius: 5px">
+              ⏎ Enter
+            </v-chip>
+          </v-list-item-action>
         </v-list-item>
+        <v-divider></v-divider>
 
         <v-list-item
             @click="setFilter(suggestion)"
