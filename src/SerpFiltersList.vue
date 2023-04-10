@@ -9,80 +9,43 @@
         v-shortkey="['ctrl', 'f']"
         @shortkey="facetsDrawerIsOpen = true"
     ></div>
-    <!--    <v-btn-->
-    <!--        color="green"-->
-    <!--        dark-->
-    <!--        rounded-->
-    <!--        v-if="resultsFilters.length === 0"-->
-    <!--        class="ml-2 mr-2 mb-2"-->
-    <!--        @click="facetsDrawerIsOpen = true"-->
-    <!--    >-->
-    <!--      <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>-->
-    <!--      Add filter-->
-    <!--      <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
-    <!--    </v-btn>-->
 
 
     <v-card outlined class=" pb-0" style="border: 1px solid #fff" color="#fafafa">
+      <v-toolbar  flat color="#fafafa">
+          <v-btn
+              color="green"
+              large
+              dark
+              rounded
+              @click="facetsDrawerIsOpen = true"
+          >
+            <v-icon class="mr-1">mdi-filter-menu-outline</v-icon>filters
+            <span class="caption ml-2" style="opacity: .7;">⌘F</span>
+          </v-btn>
+          <search-box-new class="my-2 mx-2" />
+          <v-btn
+              color="green"
+              icon
+              large
+              @click="clear()"
+          >
+            <v-icon>mdi-filter-off-outline</v-icon>
+          </v-btn>
+      </v-toolbar>
+      <v-divider />
 
 
-      <div>
-        <v-card-title>
-          <v-row>
-            <v-col cols="8" class="d-flex">
-              <v-icon>mdi-filter-outline</v-icon>
-              Filters
-              <span class="body-2 mr-4 ml-1">({{ resultsFilters.length }})</span>
-              <v-spacer/>
-              <v-btn
-                  color="green"
-                  outlined
-                  rounded
-                  @click="clear()"
-              >
-                <v-icon small>mdi-filter-off-outline</v-icon>
-                Clear
-              </v-btn>
-              <v-btn
-                  color="green"
-                  dark
-                  rounded
-                  @click="facetsDrawerIsOpen = true"
-              >
-                <v-icon left>mdi-filter-outline</v-icon>
-                explore
-                <span class="caption ml-2" style="opacity: .7;">⌘F</span>
-              </v-btn>
 
-            </v-col>
-            <v-col cols="4"></v-col>
-          </v-row>
-
-
-          <div class="d-flex">
-
-          </div>
-
-        </v-card-title>
-
-        <search-box-new
-            class="d-md-block d-none mt-1 pl-2 flex-fill"
-            style="max-width: 600px;"
-        />
-
-
-      </div>
-
-      <div class="d-flex">
-        <div>
+      <div class="d-flex pa-3">
           <serp-filters-list-chip
               v-for="filter in resultsFilters"
               :key="filter.key + filter.value"
               :filter="filter"
           />
-
-        </div>
-
+      </div>
+      <div class="pa-3 pt-0 grey--text" v-if="resultsFilters.length === 0">
+        No filters applied; showing all {{ entityType | pluralize(2)}}
       </div>
 
     </v-card>

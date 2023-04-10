@@ -10,11 +10,10 @@
             hide-details
             clearable
             append-icon="mdi-magnify"
-            prepend-inner-icon="mdi-filter-plus-outline"
             rounded
             style="width: 100%;"
             @keyup.enter="setSearch"
-            placeholder="Add filters"
+            placeholder="Search filters"
         />
       </template>
       <v-list v-if="!!searchString">
