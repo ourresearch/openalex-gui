@@ -33,38 +33,11 @@
               <!--                </span>-->
               </span>
           </router-link>
-          <!--          {{ logoColorRotation }}-->
-
-          <!--          <v-btn-->
-          <!--              fab-->
-          <!--              small-->
-          <!--              color="primary"-->
-          <!--              class="ml-4 mr-2 mb-2 mt-3"-->
-          <!--              @click="setFiltersZoom(true)"-->
-          <!--              v-if="resultsFilters.length === 0"-->
-          <!--          >-->
-          <!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
-          <!--          </v-btn>-->
-<!--          <search-box-->
+<!--          <search-box-new-->
 <!--              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
 <!--              class="d-md-block d-none mt-1 pl-2 flex-fill"-->
 <!--              style="max-width: 600px;"-->
 <!--          />-->
-          <search-box-new
-              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
-              class="d-md-block d-none mt-1 pl-2 flex-fill"
-              style="max-width: 600px;"
-          />
-<!--          <v-btn-->
-<!--              color="primary"-->
-<!--              rounded-->
-<!--              large-->
-<!--              class="ml-1 mr-2 mb-2 mt-2"-->
-<!--              @click="facetsDrawerIsOpen = true"-->
-<!--          >-->
-<!--            <v-icon>mdi-filter-menu-outline</v-icon>-->
-<!--            new filter-->
-<!--          </v-btn>-->
 
 
         </div>
@@ -139,7 +112,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
-import SearchBoxNew from "@/components/SearchBoxNew.vue";
+// import SearchBoxNew from "@/components/SearchBoxNew.vue";
 
 
 export default {
@@ -151,7 +124,7 @@ export default {
     meta: []
   },
   components: {
-    SearchBoxNew,
+    // SearchBoxNew,
   },
 
 

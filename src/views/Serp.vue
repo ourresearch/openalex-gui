@@ -2,19 +2,19 @@
 
   <div>
 
-    <v-container style="margin-left: 0;">
+    <v-container >
       <v-row class="results-filters-row mb-10">
-        <v-col cols="2"></v-col>
-        <v-col cols="10" class="pa-0">
+<!--        <v-col cols="2"></v-col>-->
+        <v-col cols="12" class="pa-0">
           <serp-filters-list/>
         </v-col>
       </v-row>
 
       <v-row class="main-row">
-        <v-col cols="2">
-          <!--          <facets-drawer/>-->
-        </v-col>
-        <v-col class="results-col" :cols="(showSidebar) ? 6 : 10">
+<!--        <v-col cols="2">-->
+<!--                    <facets-drawer/>-->
+<!--        </v-col>-->
+        <v-col class="results-col" :cols="(showSidebar) ? 8 : 12">
 
 
           <serp-toolbar :disabled="!!singleWorkIdToShow"/>

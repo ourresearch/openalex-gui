@@ -9,29 +9,70 @@
         v-shortkey="['ctrl', 'f']"
         @shortkey="facetsDrawerIsOpen = true"
     ></div>
-    <v-btn
-        color="green"
-        dark
-        rounded
-        v-if="resultsFilters.length === 0"
-        class="ml-2 mr-2 mb-2"
-        @click="facetsDrawerIsOpen = true"
-    >
-      <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>
-      Add filter
-      <span class="caption ml-2" style="opacity: .7;">⌘F</span>
-    </v-btn>
-    <v-card v-if="resultsFilters.length > 0" outlined class="pa-2 pb-0" style="border: 1px solid #fff" color="#fafafa">
-      <div class="text-h5 pl-3 pb-2 d-flex align-baseline">
-        <v-icon>mdi-filter-outline</v-icon>
-        Filters
-        <span class="body-2 ml-1" v-if="resultsFilters.length">({{ resultsFilters.length }})</span>
-        <v-spacer></v-spacer>
-        <v-btn @click="clear" text class="low-key-button">
-          <v-icon small>mdi-filter-off-outline</v-icon>
-          Clear
-        </v-btn>
+    <!--    <v-btn-->
+    <!--        color="green"-->
+    <!--        dark-->
+    <!--        rounded-->
+    <!--        v-if="resultsFilters.length === 0"-->
+    <!--        class="ml-2 mr-2 mb-2"-->
+    <!--        @click="facetsDrawerIsOpen = true"-->
+    <!--    >-->
+    <!--      <v-icon class="mr-1">mdi-filter-plus-outline</v-icon>-->
+    <!--      Add filter-->
+    <!--      <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
+    <!--    </v-btn>-->
+
+
+    <v-card outlined class=" pb-0" style="border: 1px solid #fff" color="#fafafa">
+
+
+      <div>
+        <v-card-title>
+          <v-row>
+            <v-col cols="8" class="d-flex">
+              <v-icon>mdi-filter-outline</v-icon>
+              Filters
+              <span class="body-2 mr-4 ml-1">({{ resultsFilters.length }})</span>
+              <v-spacer/>
+              <v-btn
+                  color="green"
+                  outlined
+                  rounded
+                  @click="clear()"
+              >
+                <v-icon small>mdi-filter-off-outline</v-icon>
+                Clear
+              </v-btn>
+              <v-btn
+                  color="green"
+                  dark
+                  rounded
+                  @click="facetsDrawerIsOpen = true"
+              >
+                <v-icon left>mdi-filter-outline</v-icon>
+                explore
+                <span class="caption ml-2" style="opacity: .7;">⌘F</span>
+              </v-btn>
+
+            </v-col>
+            <v-col cols="4"></v-col>
+          </v-row>
+
+
+          <div class="d-flex">
+
+          </div>
+
+        </v-card-title>
+
+        <search-box-new
+            class="d-md-block d-none mt-1 pl-2 flex-fill"
+            style="max-width: 600px;"
+        />
+
+
       </div>
+
       <div class="d-flex">
         <div>
           <serp-filters-list-chip
@@ -43,20 +84,7 @@
         </div>
 
       </div>
-      <div style="margin-bottom: -25px;">
-        <v-btn
-            color="green"
-            dark
-            rounded
 
-            class="ml-2 mt-2 mr-2 mb-2"
-            @click="facetsDrawerIsOpen = true"
-        >
-          <v-icon left>mdi-filter-plus-outline</v-icon>
-          add
-          <span class="caption ml-2" style="opacity: .7;">⌘F</span>
-        </v-btn>
-      </div>
     </v-card>
     <!--    <v-btn-->
     <!--        icon-->
@@ -87,7 +115,7 @@
             </span>
 
           </v-toolbar-title>
-          <v-spacer />
+          <v-spacer/>
           <v-menu v-if="selectedFacetConfig">
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on" class="mr-1">
@@ -133,22 +161,22 @@
 
           <template v-slot:extension>
             <v-text-field
-              flat
-              outlined
-              rounded
-              hide-details
-              full-width
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              autofocus
-              dense
-              light
-              background-color="white"
+                flat
+                outlined
+                rounded
+                hide-details
+                full-width
+                clearable
+                prepend-inner-icon="mdi-magnify"
+                autofocus
+                dense
+                light
+                background-color="white"
 
-              v-model="searchString"
-              :disabled="!searchPlaceholderText"
-              :placeholder="searchPlaceholderText"
-          />
+                v-model="searchString"
+                :disabled="!searchPlaceholderText"
+                :placeholder="searchPlaceholderText"
+            />
 
           </template>
 
@@ -221,10 +249,12 @@ import FacetSimple from "@/components/Facet/FacetSimple.vue";
 import FacetZoom from "./components/Facet/FacetZoom";
 import {filtersAsUrlStr, sortedFilters} from "./filterConfigs";
 import {url} from "./url";
+import SearchBoxNew from "./components/SearchBoxNew.vue";
 
 export default {
   name: "SerpFiltersList",
   components: {
+    SearchBoxNew,
     SerpFiltersListChip,
     FacetSimple,
     FacetZoom,
@@ -255,14 +285,13 @@ export default {
         this.setFiltersZoom(val)
       },
     },
-    searchPlaceholderText(){
-      if (this.selectedFacetConfig){
+    searchPlaceholderText() {
+      if (this.selectedFacetConfig) {
         if (this.selectedFacetConfig.valuesToShow !== "mostCommon") return ""
 
         const thingToSearch = this.$pluralize(this.selectedFacetConfig.displayName, 2);
         return `Search ${thingToSearch}`
-      }
-      else {
+      } else {
         return "Search filter types"
       }
     },
