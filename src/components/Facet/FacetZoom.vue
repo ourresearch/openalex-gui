@@ -37,11 +37,28 @@
 
     </v-card-text>
 
+    <v-card-text v-if="config.isSearch">
+      <v-alert type="warning">
+        This doesn't work yet...
+      </v-alert>
+      <v-text-field
+            flat
+            v-model="searchFilterString"
+            :placeholder="config.displayName"
+            :label="config.displayName"
+            outlined
+            @keypress.enter="applySearchFilter"
+        />
+        <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
+          Apply
+        </v-btn>
+    </v-card-text>
+
     <v-card-text
         id="facet-zoom-card-text"
         class="pa-0"
         style="font-size: unset;"
-        v-else
+        v-if="!config.isSearch && !config.isRange"
     >
 
 
@@ -118,6 +135,7 @@ export default {
       negatedFilters: [],
 
       range: ["", ""],
+      searchFilterString: "",
 
 
       groupByQueryResultsCount: null,
@@ -288,6 +306,8 @@ export default {
     },
     async fetchFilters() {
       if (!this.config) return
+      if (this.config.isSearch) return
+
       this.isLoading = "green"
 
       if (this.config.isRange) {
@@ -298,9 +318,7 @@ export default {
           const myRangeValues = this.myResultsFilters[0].value.split("-")
           console.log("we've got a range here", myRangeValues)
           this.range = myRangeValues
-
         }
-
       }
 
 
@@ -364,6 +382,10 @@ export default {
         url.setFiltersByKey(this.facetKey, [filter])
       }
       this.setFiltersZoom(false)
+    },
+
+    applySearchFilter(){
+      console.log("apply search filter", this.searchFilterString)
     },
 
   },

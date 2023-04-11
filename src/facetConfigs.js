@@ -153,6 +153,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "search",
             category: "popular",
             isCore: true,
+            isSearch: true,
             icon: "mdi-magnify",
             regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
         },
