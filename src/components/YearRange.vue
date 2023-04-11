@@ -7,13 +7,9 @@
       :class="{big}"
   >
     <v-card-actions v-if="big" class="graph-toolbar">
-      <facet-range
-          facet-key="publication_year"
-          button-text="Published"
-          show-placeholder-value-when-unset
-          narrow
-      ></facet-range>
-
+      <v-card-title class="py-0">
+        Works published by year
+      </v-card-title>
       <v-spacer></v-spacer>
       <v-menu
       >
@@ -54,18 +50,18 @@
       >
         <div
             class="range-bar-container"
-            @click.exact="clickYear(filter.value)"
-            @click.shift="shiftClickYear(filter.value)"
+            :key="filter.kv"
             @mouseenter="mouseEnterYear(filter)"
             @mouseleave="mouseLeaveYear(filter)"
-            :key="filter.kv"
         >
+<!--            @click.exact="clickYear(filter.value)"-->
+<!--            @click.shift="shiftClickYear(filter.value)"-->
           <div
-              v-ripple
               class="range-bar-bar caption"
               :class="{green: isWithinRange(filter.value)}"
               :style="{height: filter.scaledCount * 100 + '%'}"
           >
+<!--              v-ripple-->
           </div>
         </div>
 
@@ -77,7 +73,7 @@
       <div class="body-2 grey--text d-flex">
         <v-icon left small>mdi-information-outline</v-icon>
         <template v-if="numYearsSelected === 0">
-          Click bar to select year
+          Hover over bar to see year
         </template>
         <template v-else-if="numYearsSelected === 1">
           Shift-click to select year range
@@ -96,43 +92,6 @@
           {{ hoverYearFilter.count | toPrecision }}
         </span>
       </div>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn small icon v-on="on" class="mr-1">
-            <v-icon>mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-subheader>
-            Export annual counts as:
-            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item
-              target="_blank"
-              :href="csvUrl"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-table</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Spreadsheet
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-              target="_blank"
-              :href="apiUrl"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              JSON object
-            </v-list-item-title>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
     </v-card-actions>
 
   </v-card>
@@ -425,7 +384,7 @@ export default {
   flex: 1;
   display: flex;
   align-items: flex-end;
-  cursor: pointer;
+  //cursor: pointer;
 }
 
 .range-bar-bar {

@@ -33,11 +33,13 @@
           Apply
         </v-btn>
       </div>
-      <div>
-        <div>bar chart!</div>
-        <years-bar-chart
-          :year-filters="apiFilters"
+      <div class="mt-8">
+        <year-range
+          big
         />
+<!--        <years-bar-chart-->
+<!--          :year-filters="apiFilters"-->
+<!--        />-->
       </div>
 
     </v-card-text>
@@ -107,6 +109,7 @@ import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
 import YearsBarChart from "@/components/YearsBarChart.vue";
+import YearRange from "../YearRange";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -122,6 +125,7 @@ export default {
   components: {
     FacetOption,
     YearsBarChart,
+    YearRange,
   },
   props: {
     facetKey: String,
