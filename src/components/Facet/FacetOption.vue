@@ -11,15 +11,14 @@
   >
     <!--    @[eventHandlerName].stop="setSelected($event)"-->
 
-    <div class="icon-area mr-1 mt-2">
-      <v-icon v-if="isNegated">mdi-minus-circle-outline</v-icon>
-      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>
-      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>
-    </div>
+<!--    <div class="icon-area mr-1 mt-2">-->
+<!--      <v-icon v-if="isNegated">mdi-minus-circle-outline</v-icon>-->
+<!--      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>-->
+<!--      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>-->
+<!--    </div>-->
     <div>
       <div
-          class=" mt-2 "
-          style="line-height: 1.5; font-size: 16px;"
+          style="line-height: 1.3; font-size: 16px;"
           :class="{'font-weight-bold': isSelected}"
       >
         <span

@@ -21,7 +21,7 @@
         {{ filter.displayName }}
       </div>
       <div class="filter-value" :class="{isNegated}">
-        <span v-if="filter.valuesToShow==='search'">
+        <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
           "{{ myDisplayValue | truncate(50) }}"
         </span>
         <span v-else>

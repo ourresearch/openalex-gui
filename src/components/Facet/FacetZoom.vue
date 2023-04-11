@@ -288,7 +288,7 @@ export default {
     },
     async fetchFilters() {
       if (!this.config) return
-      this.isLoading = "primary"
+      this.isLoading = "green"
 
       if (this.config.isRange) {
         if (!this.myResultsFilters.length) {

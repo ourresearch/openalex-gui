@@ -12,7 +12,7 @@
 
 
     <v-card outlined class=" pb-0" color="#fff">
-      <v-toolbar flat color="#fafafa">
+      <v-toolbar flat color="transparent">
 
         <v-btn
             fab
@@ -70,11 +70,18 @@
       <v-card>
         <v-toolbar flat class="" extended color="green" dark>
           <v-toolbar-title>
-            <v-btn text @click="setFiltersZoom(true)" class="text-capitalize text-h5 px-1">
+            <v-btn
+                text
+                v-if="!selectedFacetConfig"
+                @click="setFiltersZoom(true)"
+                class="text-capitalize text-h5 px-0"
+            >
               <v-icon class="pr-1">mdi-filter-outline</v-icon>
-              <v-icon v-if="selectedFacetConfig">mdi-chevron-right</v-icon>
-              <span v-else>Filters</span>
+              Filters
             </v-btn>
+
+
+
             <span v-if="selectedFacetConfig" class="text-h5  font-weight-bold">
               <v-icon>{{ selectedFacetConfig.icon }}</v-icon>
               {{ selectedFacetConfig.displayName }}
@@ -82,43 +89,7 @@
 
           </v-toolbar-title>
           <v-spacer/>
-          <v-menu v-if="selectedFacetConfig">
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on" class="mr-1">
-                <v-icon>mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-subheader>
-                Export as:
-                <!--                {{ config.displayName | pluralize(2) }} as:-->
-              </v-subheader>
-              <v-divider></v-divider>
-              <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200, true)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-table</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Spreadsheet
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  JSON object
-                </v-list-item-title>
-              </v-list-item>
 
-            </v-list>
-          </v-menu>
 
 
           <v-btn icon @click="facetsDrawerIsOpen = false">
@@ -143,6 +114,7 @@
                 :disabled="!searchPlaceholderText"
                 :placeholder="searchPlaceholderText"
             />
+
 
           </template>
 
@@ -201,6 +173,50 @@
 
 
         </v-card-text>
+        <v-card-actions v-if="selectedFacetConfig">
+          <v-btn rounded  outlined class="low-key-button" @click="setFiltersZoom(true)">
+            <v-icon>mdi-arrow-left</v-icon>
+            Filters menu
+          </v-btn>
+          <v-spacer />
+          <v-menu v-if="selectedFacetConfig">
+            <template v-slot:activator="{on}">
+              <v-btn icon v-on="on" class="mr-1">
+                <v-icon>mdi-tray-arrow-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-subheader>
+                Export as:
+                <!--                {{ config.displayName | pluralize(2) }} as:-->
+              </v-subheader>
+              <v-divider></v-divider>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200, true)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-table</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Spreadsheet
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                  target="_blank"
+                  :href="makeApiUrl(200)"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  JSON object
+                </v-list-item-title>
+              </v-list-item>
+
+            </v-list>
+          </v-menu>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
