@@ -32,7 +32,12 @@
         <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
           Apply
         </v-btn>
-
+      </div>
+      <div>
+        <div>bar chart!</div>
+        <years-bar-chart
+          :year-filters="apiFilters"
+        />
       </div>
 
     </v-card-text>
@@ -101,6 +106,7 @@
 import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
+import YearsBarChart from "@/components/YearsBarChart.vue";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -115,6 +121,7 @@ import _ from "lodash"
 export default {
   components: {
     FacetOption,
+    YearsBarChart,
   },
   props: {
     facetKey: String,

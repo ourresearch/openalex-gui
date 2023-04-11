@@ -24,7 +24,12 @@ function hashCode(str) {
 const toHexHash = function (str) {
     return "0x" + hashCode(str).toString(16)
 }
-
+function sortByKey(array, key) {
+    return array.sort(function(a, b) {
+        var x = a[key]; var y = b[key];
+        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+    });
+}
 
 const entityTypesDict = {
     "w": "works",
@@ -162,6 +167,7 @@ const prettyTitle = function (title, facetKey) {
 
 
 export {
+    sortByKey,
     sleep,
     toHexHash,
     shortenOpenAlexId,
