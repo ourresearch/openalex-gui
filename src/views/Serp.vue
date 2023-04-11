@@ -14,7 +14,7 @@
 <!--        <v-col cols="2">-->
 <!--                    <facets-drawer/>-->
 <!--        </v-col>-->
-        <v-col class="results-col" :cols="(showSidebar) ? 8 : 12">
+        <v-col class="results-col" :cols="resultsCols">
 
 
           <serp-toolbar :disabled="!!singleWorkIdToShow"/>
@@ -44,7 +44,8 @@
             </div>
           </div>
         </v-col>
-        <v-col class="results-col" v-if="showSidebar" cols="4">
+        <v-col class="results-col" v-if="showSidebar" :cols="entityCols">
+          <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
           <entity
               v-for="entity in entitySidebarDataList"
               :key="entity.id"
@@ -202,6 +203,13 @@ export default {
           Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
           10
       )
+    },
+    resultsCols(){
+      if (this.$vuetify.breakpoint.mobile) return 12
+      return  (this.showSidebar) ? 8 : 12
+    },
+    entityCols(){
+      return (this.$vuetify.breakpoint.mobile) ? 12 : 4
     },
     entitySidebarFilter() {
       if (this.resultsFilters.length === 0) return

@@ -11,39 +11,42 @@
     ></div>
 
 
-    <v-card outlined class=" pb-0"  color="#fff">
-      <v-toolbar   flat color="#fafafa">
+    <v-card outlined class=" pb-0" color="#fff">
+      <v-toolbar flat color="#fafafa">
 
-          <search-box-new class="my-2 mr-2" />
-        <v-spacer />
         <v-btn
-              icon
-              @click="facetsDrawerIsOpen = true"
-          >
-            <v-icon class="">mdi-filter-menu-outline</v-icon>
-<!--            filters-->
-<!--            <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
-          </v-btn>
-          <v-btn
-              icon
-              @click="clear()"
-          >
-            <v-icon>mdi-filter-off-outline</v-icon>
-          </v-btn>
+            fab
+            small
+            dark
+            color="green"
+            class="mr-2"
+            @click="facetsDrawerIsOpen = true"
+        >
+          <v-icon class="">mdi-filter-menu-outline</v-icon>
+          <!--            filters-->
+          <!--            <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
+        </v-btn>
+        <search-box-new class="my-2 mr-2"/>
+        <v-spacer/>
+        <v-btn
+            icon
+            @click="clear()"
+        >
+          <v-icon>mdi-filter-off-outline</v-icon>
+        </v-btn>
       </v-toolbar>
-      <v-divider />
+      <v-divider/>
 
 
-
-      <div class="d-flex pa-3">
-          <serp-filters-list-chip
-              v-for="filter in resultsFilters"
-              :key="filter.key + filter.value"
-              :filter="filter"
-          />
+      <div class="d-flex flex-wrap pa-3">
+        <serp-filters-list-chip
+            v-for="filter in resultsFilters"
+            :key="filter.key + filter.value"
+            :filter="filter"
+        />
       </div>
       <div class="pa-3 pt-0 grey--text" v-if="resultsFilters.length === 0">
-        No filters applied; showing all {{ entityType | pluralize(2)}}
+        No filters applied; showing all {{ entityType | pluralize(2) }}
       </div>
 
     </v-card>
@@ -61,6 +64,8 @@
     <v-dialog
         v-model="facetsDrawerIsOpen"
         scrollable
+        max-width="1100px"
+        :fullscreen="$vuetify.breakpoint.mobile"
     >
       <v-card>
         <v-toolbar flat class="" extended color="green" dark>
@@ -152,7 +157,9 @@
               nav
           >
             <v-col
-                cols="3"
+                cols="12"
+                sm="6"
+                md="3"
                 v-for="facetCategory in facetsByCategory"
                 :key="'card' + facetCategory.name"
             >

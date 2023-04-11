@@ -5,8 +5,9 @@
           @[dynamicAttribute]="setFiltersZoom(filter.key)"
           @click:close="remove"
           class="mr-1 mb-2 inline-flex py-1"
-          style="height: unset; border-radius: 3px; border: 1px solid !important;"
+          style="height: unset;  border: 1px solid !important;"
   >
+<!--          style="height: unset; border-radius: 3px; border: 1px solid !important;"-->
 
 <!--    <v-icon>{{ filter.icon }}</v-icon>-->
 <!--    <span class="ml-1 mr-1 font-weight-bold">{{ filter.displayName }}: </span>-->
