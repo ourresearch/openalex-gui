@@ -199,7 +199,6 @@ export {
     createSimpleFilterFromPid,
     createDisplayFilter,
     createFilterId,
-    addDisplayNamesToFilters,
     displayYearRange,
 
     sortedFilters,
