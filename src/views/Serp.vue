@@ -57,8 +57,8 @@
     </v-container>
 
 
-    <div id="serp-app-inside" class="d-flex ">
-
+    <div id="serp-hidden" >
+      <facets-list-dialog />
 
       <v-snackbar
           bottom
@@ -105,7 +105,6 @@ import ResultVenue from "../components/ResultVenue";
 import ResultPublisher from "../components/ResultPublisher";
 import ResultInstitution from "../components/ResultInstitution";
 import ResultConcept from "../components/ResultConcept";
-import Zoom from "../components/Zoom/Zoom";
 import FacetsDrawer from "../components/Facet/FacetsDrawer";
 // import ZoomEntity from "../components/ZoomEntity";
 import FacetZoom from "../components/Facet/FacetZoom";
@@ -114,6 +113,7 @@ import YearRange from "../components/YearRange";
 import {api} from "@/api";
 
 import Entity from "../components/Entity";
+import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
 
 export default {
   name: "Serp",
@@ -134,10 +134,10 @@ export default {
     ResultPublisher,
     ResultInstitution,
     ResultConcept,
-    Zoom,
     FacetsDrawer,
     FacetZoom,
     YearRange,
+    FacetsListDialog,
 
   },
   props: {},

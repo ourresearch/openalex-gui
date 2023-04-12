@@ -118,7 +118,8 @@ const stateDefaults = function () {
 
         showFiltersDrawer: false,
         facetZoom: null, // @todo remove this from code
-        filtersZoom: null,
+
+        facetsListDialogIsOpen: true,
 
         // entity stuff
         // entityZoomData: null,
