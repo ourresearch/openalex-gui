@@ -108,7 +108,6 @@
 import {entityConfigs} from "../../entityConfigs";
 
 import {entityTypeFromId} from "../../util";
-import YearsBarChart from "@/components/YearsBarChart.vue";
 import YearRange from "../YearRange";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
 
@@ -124,7 +123,6 @@ import _ from "lodash"
 export default {
   components: {
     FacetOption,
-    YearsBarChart,
     YearRange,
   },
   props: {

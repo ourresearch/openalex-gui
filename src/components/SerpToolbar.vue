@@ -3,7 +3,11 @@
       class="serp-filters-list d-flex align-center"
       style="width: 100%;"
   >
-    <year-range />
+    <year-range
+        height="20px"
+        width="40px"
+        v-if="0"
+    />
     <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
         <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
 

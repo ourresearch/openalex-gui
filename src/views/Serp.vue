@@ -223,7 +223,9 @@ export default {
     },
     entitySidebarFiltersList() {
       if (this.entityType !== "works") return []
-      return this.resultsFilters.filter(f => f.showInSidebar )
+      return this.resultsFilters
+          .filter(f => f.showInSidebar )
+          .filter(f => !f.isNullValue)
     },
     showSidebar(){
       return this.entitySidebarFiltersList.length > 0 && !this.singleWorkIdToShow

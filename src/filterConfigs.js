@@ -5,29 +5,16 @@ const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 
 
 const createFilterId = function (key, value, isNegated) {
+    key = key.toLowerCase()
+    const negateSymbol = (isNegated) ? "!" : ""
+
     const openAlexUrlBase = "https://openalex.org/"
     if (typeof value === "string" && value.indexOf(openAlexUrlBase) === 0) {
         value = value.replace("https://openalex.org/", "").toLowerCase()
     }
-    key = key.toLowerCase()
-    const negateSymbol = (isNegated) ? "!" : ""
     return `${key}:${negateSymbol}${value}`
 }
 
-
-const addDisplayNamesToFilters = async function (filtersList) {
-    const openAlexIdFilterValues = filtersList.filter(f => f.isEntity).map(f => f.value)
-
-
-    const displayNamesDict = await api.getEntityDisplayNames(openAlexIdFilterValues)
-    console.log("displayNamesDict", displayNamesDict)
-    return filtersList.map(f => {
-        return {
-            ...f,
-            displayName: displayNamesDict[f.value]
-        }
-    })
-}
 
 
 const filtersFromUrlStr = function (entityType, str) {
@@ -59,15 +46,9 @@ const filtersFromUrlStr = function (entityType, str) {
 //         .join(",")
 // }
 const filtersAsUrlStr = function (filters, entityType) {
-    const filtersAsStrings = filters.map(f => {
-        if (!f) return ""
-        const valuePrepend = (f.isNegated) ? "!" : ""
-        const value = valuePrepend + f.value
-        return [f.key, value].join(":")
-    })
+    const filtersAsStrings = filters.map((f => f.asStr))
     const dedupedFilterStrings = new Set([...filtersAsStrings])
     return [...dedupedFilterStrings].join(",")
-
 }
 
 const mergeFacetFilters = function (filters) {
@@ -94,26 +75,6 @@ const mergePositiveFacetFilters = function (filters) {
     ].join(":")
 }
 
-
-// const filtersFromFiltersApiResponse = function (apiFacets) {
-//     console.log("filtersFromFiltersApiResponse", apiFacets)
-//     let ret = []
-//     apiFacets
-//         .filter(f => f.key !== "search")
-//         .forEach(facet => {
-//             facet.values.forEach(valueObj => {
-//                 ret.push(createDisplayFilter(
-//                     facet.key,
-//                     valueObj.value,
-//                     facet.is_negated,
-//                     valueObj.display_name,
-//                     valueObj.count,
-//                 ))
-//             })
-//         })
-//     ret = ret.filter(f => f.key !== "search")
-//     return ret
-// }
 const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
     let ret = []
     apiFacets
@@ -146,16 +107,20 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function ( entityType, key, value, isNegated) {
-    const cleanValue = createFilterValue(value)
+    const displayValue = createFilterValue(value)
+    const nullValues = ["unknown", "null"]
+    const apiValue = (nullValues.includes(displayValue)) ? null : displayValue
+
     const facetConfig = getFacetConfig(entityType, key)
     return {
         ...facetConfig,
         // key,
-        value: cleanValue,
-        asStr: createFilterId(key, cleanValue, isNegated),
-        kv: createFilterId(key, cleanValue),
+        value: displayValue,
+        asStr: createFilterId(key, apiValue, isNegated),
+        kv: createFilterId(key, apiValue),
         // isEntity: entityKeys.includes(key),
         isNegated: !!isNegated,
+        isNullValue: (apiValue === null),
     }
 }
 
