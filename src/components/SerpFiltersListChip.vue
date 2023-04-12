@@ -1,11 +1,13 @@
 <template>
   <v-chip large close
-          :text-color="myColor"
-          color="white"
+          :text-color="'white'"
+
+          color="green"
           @[dynamicAttribute]="setFiltersZoom(filter.key)"
           @click:close="remove"
           class="mr-1 mb-2 inline-flex py-1"
           style="height: unset;  border: 1px solid !important;"
+          close-icon="mdi-close"
   >
 <!--          style="height: unset; border-radius: 3px; border: 1px solid !important;"-->
 

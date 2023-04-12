@@ -3,6 +3,7 @@
       class="serp-filters-list d-flex align-center"
       style="width: 100%;"
   >
+    <year-range />
     <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
         <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
 
@@ -350,7 +351,7 @@
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
 
-
+import YearRange from "./YearRange"
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../facetConfigs";
 import {entityConfigs} from "../entityConfigs";
@@ -362,6 +363,7 @@ export default {
   name: "SerpToolbar",
   components: {
     EntityIcon,
+    YearRange,
   },
   props: {
     filtersDrawerIsOpen: Boolean,
