@@ -24,7 +24,11 @@
             Filters
           </v-btn>
           <v-spacer/>
-          <v-btn icon @click="$store.state.facetsListDialogIsOpen = false">
+          <v-btn
+              icon
+              @click="$store.state.facetsListDialogIsOpen = false"
+              v-if="!facetZoom"
+          >
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
 
@@ -106,9 +110,6 @@
 
           <facet-zoom
                   v-if="facetZoom"
-                  :facet-key="facetZoom"
-                  :api-url="makeApiUrl(50)"
-                  :search-string="searchString"
           />
 
 
@@ -119,43 +120,7 @@
             Filters menu
           </v-btn>
           <v-spacer/>
-          <v-menu v-if="selectedFacetConfig">
-            <template v-slot:activator="{on}">
-              <v-btn icon v-on="on" class="mr-1">
-                <v-icon>mdi-tray-arrow-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list dense>
-              <v-subheader>
-                Export as:
-                <!--                {{ config.displayName | pluralize(2) }} as:-->
-              </v-subheader>
-              <v-divider></v-divider>
-              <v-list-item
-                      target="_blank"
-                      :href="makeApiUrl(200, true)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-table</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Spreadsheet
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                      target="_blank"
-                      :href="makeApiUrl(200)"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  JSON object
-                </v-list-item-title>
-              </v-list-item>
 
-            </v-list>
-          </v-menu>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -274,22 +239,6 @@ export default {
             "setFacetZoom",
         ]),
         ...mapActions([]),
-        makeApiUrl(perPage, formatCsv) {
-            if (!perPage) perPage = this.maxApiFiltersToShow
-            const url = new URL(`https://api.openalex.org`)
-            url.pathname = `${this.entityType}`
-
-            const filters = this.$store.state.inputFilters
-            url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
-
-            url.searchParams.set("group_by", this.selectedFacetConfig.key)
-            url.searchParams.set("per_page", String(perPage))
-            if (this.textSearch) url.searchParams.set("search", this.textSearch)
-            if (this.searchString) url.searchParams.set("q", this.searchString)
-            if (formatCsv) url.searchParams.set("format", "csv")
-            url.searchParams.set("email", "team@ourresearch.org")
-            return url.toString()
-        },
         clear() {
             console.log("close!")
             const newFilters = (this.facetZoom) ?

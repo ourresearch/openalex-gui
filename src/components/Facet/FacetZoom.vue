@@ -4,34 +4,75 @@
       :loading="isLoading"
       flat
   >
-    <v-toolbar flat tile dark color="green">
+    <v-toolbar flat class="facet-zoom-toolbar" tile dark color="green">
       <v-toolbar-title>
         <v-icon left>{{ config.icon }}</v-icon>
-      {{ config.displayName }}
+        {{ config.displayName }}
 
       </v-toolbar-title>
+      <v-spacer/>
+      <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>
+            Export as:
+            <!--                {{ config.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200, true)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-table</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Spreadsheet
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="makeApiUrl(200)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
 
-          <template v-slot:extension>
-            <v-text-field
-                    flat
-                    outlined
-                    rounded
-                    hide-details
-                    full-width
-                    clearable
-                    prepend-inner-icon="mdi-magnify"
-                    autofocus
-                    dense
-                    light
-                    background-color="white"
+        </v-list>
+      </v-menu>
 
-                    v-model="searchString"
-                    placeholder="Search filters"
-            />
-          </template>
+      <template
+          v-slot:extension
+          v-if="!config.isSearch && !config.isRange && !config.isBoolean"
+      >
+        <v-text-field
+            flat
+            outlined
+            rounded
+            hide-details
+            full-width
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            autofocus
+            dense
+            light
+            background-color="white"
+
+            v-model="searchString"
+            :placeholder="searchPlaceholder"
+        />
+      </template>
 
     </v-toolbar>
-    <v-card-text v-if="config.isRange" class="pa-4">
+    <v-card-text v-if="config.isRange" class="facet-zoom-content">
       <div class="d-flex">
         <v-text-field
             flat
@@ -62,35 +103,35 @@
       </div>
       <div class="mt-8">
         <year-range
-          big
+            big
         />
-<!--        <years-bar-chart-->
-<!--          :year-filters="apiFilters"-->
-<!--        />-->
+        <!--        <years-bar-chart-->
+        <!--          :year-filters="apiFilters"-->
+        <!--        />-->
       </div>
 
     </v-card-text>
 
-    <v-card-text v-if="config.isSearch">
+    <v-card-text v-if="config.isSearch" class="facet-zoom-content">
       <v-alert type="warning">
         This doesn't work yet...
       </v-alert>
       <v-text-field
-            flat
-            v-model="searchFilterString"
-            :placeholder="config.displayName"
-            :label="config.displayName"
-            outlined
-            @keypress.enter="applySearchFilter"
-        />
-        <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
-          Apply
-        </v-btn>
+          flat
+          v-model="searchFilterString"
+          :placeholder="config.displayName"
+          :label="config.displayName"
+          outlined
+          @keypress.enter="applySearchFilter"
+      />
+      <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
+        Apply
+      </v-btn>
     </v-card-text>
 
     <v-card-text
         id="facet-zoom-card-text"
-        class="pa-0"
+        class="facet-zoom-content"
         style="font-size: unset;"
         v-if="!config.isSearch && !config.isRange"
     >
@@ -152,11 +193,7 @@ export default {
     FacetOption,
     YearRange,
   },
-  props: {
-    facetKey: String,
-    apiUrl: String,
-    searchString: String,
-  },
+  props: {},
   data() {
     return {
       url,
@@ -172,6 +209,7 @@ export default {
 
       range: ["", ""],
       searchFilterString: "",
+      searchString: "",
 
 
       groupByQueryResultsCount: null,
@@ -206,9 +244,10 @@ export default {
       "entityZoomHistoryData",
       "showFiltersDrawer",
       "inputFilters",
+      "facetZoom",
     ]),
     config() {
-      return facetConfigs().find(c => c.key === this.facetKey)
+      return facetConfigs().find(c => c.key === this.facetZoom)
     },
     showSearch() {
       return this.config.valuesToShow === 'mostCommon'
@@ -225,22 +264,9 @@ export default {
       return (negatedIsDirty || selectedIsDirty)
 
     },
-    cardTextStyle() {
-      const marginsHeight = this.height.margins[0] + this.height.margins[1]
-      const toolbarsTotalHeight = this.height.toolbar + (this.showSearch ? this.height.searchbar : 0) + this.height.footer
-      // const height = toolbarsTotalHeight + marginsHeight + 2 // dividers
-
-      const height = (this.config.isBoolean) ? "150px" : "50vh"
-
-      return {
-        'overflow-y': "scroll",
-        height,
-        // height: `calc(50vh - ${height}px)`,
-      }
-    },
     myResultsFilters() {
       return this.resultsFilters.filter(f => {
-        return f.key === this.facetKey
+        return f.key === this.facetZoom
       })
     },
     allFilters() {
@@ -262,6 +288,10 @@ export default {
     },
     csvUrl() {
       return this.makeApiUrl(200, true)
+    },
+    apiUrl() {
+      return this.makeApiUrl(this.maxApiFiltersToShow)
+
     },
 
     searchStringIsBlank() {
@@ -304,6 +334,25 @@ export default {
       "setFiltersZoom"
     ]),
     ...mapActions([]),
+
+    makeApiUrl(perPage, formatCsv) {
+      if (!perPage) perPage = this.maxApiFiltersToShow
+      const url = new URL(`https://api.openalex.org`)
+      url.pathname = `${this.entityType}`
+
+      const filters = this.$store.state.inputFilters
+      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
+
+
+      url.searchParams.set("group_by", this.config.key)
+      url.searchParams.set("per_page", String(perPage))
+      if (this.textSearch) url.searchParams.set("search", this.textSearch)
+      if (this.searchString) url.searchParams.set("q", this.searchString)
+      if (formatCsv) url.searchParams.set("format", "csv")
+      url.searchParams.set("email", "team@ourresearch.org")
+      return url.toString()
+    },
+
     setSelectedFilters(arg) {
       const filterCountStart = this.selectedFilters.length
       console.log("FacetZoom setSelectedFilters", arg)
@@ -338,26 +387,22 @@ export default {
             this.negatedFilters.includes(f.kv)
         )
       })
-      url.setFiltersByKey(this.facetKey, filtersToSave)
+      url.setFiltersByKey(this.facetZoom, filtersToSave)
     },
     async fetchFilters() {
       if (!this.config) return
-      if (this.config.isSearch) return
 
       this.isLoading = "green"
 
       if (this.config.isRange) {
         if (!this.myResultsFilters.length) {
           this.resetRange()
-        }
-        else {
+        } else {
           const myRangeValues = this.myResultsFilters[0].value.split("-")
           console.log("we've got a range here", myRangeValues)
           this.range = myRangeValues
         }
       }
-
-
       const resp = await api.getUrl(this.apiUrl)
 
       const groups = resp.group_by.slice(0, 20)
@@ -376,6 +421,8 @@ export default {
             this.filtersTotalCount,
         )
       })
+
+
       this.isLoading = false
 
     },
@@ -387,7 +434,7 @@ export default {
     // range stuff
 
 
-    resetRange(){
+    resetRange() {
       this.range = ["", ""]
     },
     applyRange() {
@@ -407,20 +454,20 @@ export default {
 
       if (this.rangeIsEmpty) {
         console.log("range is empty, saving null")
-        url.setFiltersByKey(this.facetKey, [])
+        url.setFiltersByKey(this.facetZoom, [])
       } else {
         const filter = createSimpleFilter(
             this.entityType,
-            this.facetKey,
+            this.facetZoom,
             this.range.join("-")
         )
         console.log("range is full, saving filter", filter)
-        url.setFiltersByKey(this.facetKey, [filter])
+        url.setFiltersByKey(this.facetZoom, [filter])
       }
       this.setFiltersZoom(false)
     },
 
-    applySearchFilter(){
+    applySearchFilter() {
       console.log("apply search filter", this.searchFilterString)
     },
 
@@ -446,6 +493,7 @@ export default {
       }
     },
     searchString(newVal, oldVal) {
+      console.log("searchString changed", newVal)
       this.fetchFilters()
     }
   }
@@ -453,26 +501,15 @@ export default {
 </script>
 
 <style lang="scss">
-.entity-zoom-container {
-  //position: absolute;
-  //top: 0;
-  //right: 0;
-  //left: 0;
-  //bottom: 0;
+.facet-zoom-toolbar {
+  position: fixed;
+  z-index: 99;
+  width: 100%;
+  max-width: 1100px; // width of the FacetsListDialog
 }
 
-.v-tab {
-  min-width: 1px !important;
-  //width: 66px !important;
-
-}
-
-.v-tabs {
-  border-bottom: 1px solid #ccc;
-}
-
-.v-tabs-items {
-  background-color: transparent !important;
+.facet-zoom-content {
+  padding: 120px 0 0 0;
 }
 
 </style>
