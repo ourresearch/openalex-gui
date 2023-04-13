@@ -2,6 +2,15 @@
 
   <div>
 
+    <div
+        v-shortkey="['meta', 'f']"
+        @shortkey="openFacetsDialog"
+    ></div>
+    <div
+        v-shortkey="['ctrl', 'f']"
+        @shortkey="openFacetsDialog"
+    ></div>
+
     <v-container >
       <v-row class="results-filters-row mb-10">
 <!--        <v-col cols="2"></v-col>-->
@@ -286,6 +295,7 @@ export default {
       "snackbar",
       "setFacetZoom",
       "toggleFiltersDrawer",
+      "openFacetsDialog",
     ]),
     ...mapActions([
       "updateTextSearch",

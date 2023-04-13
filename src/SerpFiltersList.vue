@@ -1,14 +1,6 @@
 <template>
   <div class="serp-filters-list">
 
-    <div
-        v-shortkey="['meta', 'f']"
-        @shortkey="facetsDrawerIsOpen = true"
-    ></div>
-    <div
-        v-shortkey="['ctrl', 'f']"
-        @shortkey="facetsDrawerIsOpen = true"
-    ></div>
 
 
     <v-card outlined class=" pb-0" color="#fff">

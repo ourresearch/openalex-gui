@@ -211,6 +211,9 @@ export default new Vuex.Store({
                 state.filtersZoom = !!arg
             }
         },
+        openFacetsDialog(state){
+            state.facetsListDialogIsOpen = true
+        },
 
 
     },

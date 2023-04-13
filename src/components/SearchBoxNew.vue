@@ -1,5 +1,6 @@
 <template>
   <div>
+
     <v-menu :value="!!searchString" offset-y content-class="no-highlight" min-width="150">
       <template v-slot:activator="{on}">
         <v-text-field
@@ -25,7 +26,7 @@
             <v-icon>mdi-magnify</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>
+            <v-list-item-title class="font-weight-bold">
               "{{ searchString }}"
             </v-list-item-title>
             <v-list-item-subtitle>
@@ -33,11 +34,14 @@
             </v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
-            <v-chip sm outlined style="border-radius: 5px">
+            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">
               ⏎ Enter
             </v-chip>
           </v-list-item-action>
         </v-list-item>
+        <v-subheader>
+          Filter values
+        </v-subheader>
         <v-divider></v-divider>
 
         <v-list-item
@@ -60,6 +64,26 @@
               {{ suggestion.displayName }}
             </v-list-item-subtitle>
           </v-list-item-content>
+        </v-list-item>
+        <v-divider />
+        <v-list-item
+            @click.stop="clickViewAllFilters"
+            @keydown.enter.prevent="clickViewAllFilters"
+            key="view-all-filters"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-filter-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              View all filters
+            </v-list-item-title>
+          </v-list-item-content>
+          <v-list-item-action>
+            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">
+              ⌘F
+            </v-chip>
+          </v-list-item-action>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -135,6 +159,8 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
+        "setFacetZoom",
+        "openFacetsDialog",
     ]),
     ...mapActions([]),
     setFilter(filter) {
@@ -156,7 +182,11 @@ export default {
       this.searchString = ""
       // console.log("setSearch")
       // url.setSearch(this.entityType, this.searchString)
-    }
+    },
+      clickViewAllFilters(){
+        this.openFacetsDialog()
+          this.searchString = ""
+      }
 
 
   },
@@ -165,7 +195,8 @@ export default {
   mounted() {
   },
   watch: {
-    isOpen(to, from) {
+    '$store.state.facetsListDialogIsOpen'(to, from) {
+        this.searchString = ""
     }
   }
 }
