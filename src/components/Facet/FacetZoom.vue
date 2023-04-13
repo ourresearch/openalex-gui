@@ -4,6 +4,33 @@
       :loading="isLoading"
       flat
   >
+    <v-toolbar flat tile dark color="green">
+      <v-toolbar-title>
+        <v-icon left>{{ config.icon }}</v-icon>
+      {{ config.displayName }}
+
+      </v-toolbar-title>
+
+          <template v-slot:extension>
+            <v-text-field
+                    flat
+                    outlined
+                    rounded
+                    hide-details
+                    full-width
+                    clearable
+                    prepend-inner-icon="mdi-magnify"
+                    autofocus
+                    dense
+                    light
+                    background-color="white"
+
+                    v-model="searchString"
+                    placeholder="Search filters"
+            />
+          </template>
+
+    </v-toolbar>
     <v-card-text v-if="config.isRange" class="pa-4">
       <div class="d-flex">
         <v-text-field
