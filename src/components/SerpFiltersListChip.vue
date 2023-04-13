@@ -3,8 +3,8 @@
           :text-color="'white'"
 
           color="green"
-          @[dynamicAttribute]="setFiltersZoom(filter.key)"
           @click:close="remove"
+          @click="clickHandler"
           class="mr-1 mb-2 inline-flex py-1"
           style="height: unset;  border: 1px solid !important;"
           close-icon="mdi-close"
@@ -83,6 +83,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "setFiltersZoom",
+        "setFacetZoom",
     ]),
     ...mapActions([]),
     remove() {
@@ -91,8 +92,10 @@ export default {
           this.entityType,
           newFilters
       )
-
-    }
+    },
+      clickHandler(){
+        this.setFacetZoom(this.filter.key)
+      }
 
 
   },

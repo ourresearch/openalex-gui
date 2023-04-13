@@ -259,7 +259,7 @@ body {
 
 .v-icon.mdi-checkbox-blank-outline,
 .v-icon.mdi-checkbox-blank-circle-outline {
-  opacity: 0.2 !important;
+  //opacity: 0.2 !important;
 }
 
 .v-icon.mdi-plus {

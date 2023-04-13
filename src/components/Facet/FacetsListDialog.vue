@@ -1,8 +1,7 @@
 <template>
   <div>
-
     <v-dialog
-            v-model="$store.state.facetsListDialogIsOpen"
+            v-model="isOpen"
             scrollable
             max-width="1100px"
             :fullscreen="$vuetify.breakpoint.mobile"
@@ -166,12 +165,17 @@ export default {
             "facetZoom",
 
         ]),
-        facetsDrawerIsOpen: {
+        isOpen: {
             get() {
-                return !!this.filtersZoom
+                return !!this.$store.state.facetsListDialogIsOpen
             },
             set(val) {
-                this.setFiltersZoom(val)
+                if (val) {
+                    this.openFacetsDialog()
+                }
+                else{
+                    this.closeFacetsDialog()
+                }
             },
         },
         searchPlaceholderText() {
@@ -236,20 +240,10 @@ export default {
             "snackbar",
             "setFiltersZoom",
             "setFacetZoom",
+            "openFacetsDialog",
+            "closeFacetsDialog",
         ]),
         ...mapActions([]),
-        clear() {
-            console.log("close!")
-            const newFilters = (this.facetZoom) ?
-                this.resultsFilters.filter(f => f.key !== this.facetZoom) :
-                []
-            url.setFilters(this.entityType, newFilters)
-
-            const myFacetName = (this.selectedFacetConfig) ? this.selectedFacetConfig.displayName : ""
-            this.snackbar(myFacetName + " filters cleared")
-
-            this.facetsDrawerIsOpen = !!this.facetZoom
-        }
 
     },
     created() {

@@ -162,7 +162,8 @@ export default new Vuex.Store({
             state.showFiltersDrawer = !state.showFiltersDrawer
         },
         setFacetZoom(state, facetKey) {
-            console.log("setFaectzoom", facetKey)
+            console.log("setFacetZoom", facetKey)
+            state.facetsListDialogIsOpen = true
             state.facetZoom = facetKey
         },
         setEntityType(state, entityType) {
@@ -212,7 +213,14 @@ export default new Vuex.Store({
             }
         },
         openFacetsDialog(state){
+            state.facetZoom = null
             state.facetsListDialogIsOpen = true
+        },
+
+        closeFacetsDialog(state){
+            console.log("closeFacetsDialog")
+            state.facetZoom = null
+            state.facetsListDialogIsOpen = false
         },
 
 
