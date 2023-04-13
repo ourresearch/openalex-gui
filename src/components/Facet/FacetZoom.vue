@@ -3,8 +3,18 @@
   <v-card
       :loading="isLoading"
       flat
+      tile
   >
-    <v-toolbar flat class="facet-zoom-toolbar" tile dark color="green">
+    <v-toolbar
+        flat
+        class="facet-zoom-toolbar"
+        tile
+        dark
+        color="green"
+        :extended="showSearch"
+    >
+
+
       <v-toolbar-title>
         <v-icon left>{{ config.icon }}</v-icon>
         {{ config.displayName }}
@@ -49,9 +59,17 @@
         </v-list>
       </v-menu>
 
+        <v-progress-linear
+            v-if="isLoading"
+              absolute
+              indeterminate
+              color="green"
+              style="bottom: -4px;"
+          />
+
       <template
           v-slot:extension
-          v-if="!config.isSearch && !config.isRange && !config.isBoolean"
+          v-if="showSearch"
       >
         <v-text-field
             flat
@@ -69,6 +87,13 @@
             v-model="searchString"
             :placeholder="searchPlaceholder"
         />
+        <v-progress-linear
+            v-if="isLoading"
+              absolute
+              indeterminate
+              color="green"
+              style="bottom: -4px;"
+          />
       </template>
 
     </v-toolbar>

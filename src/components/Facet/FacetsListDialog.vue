@@ -62,7 +62,6 @@
 
 
         </v-toolbar>
-        <v-divider class=""/>
 
 
         <v-card-text style="height: 70vh" class="pa-0 flex-grow-1">

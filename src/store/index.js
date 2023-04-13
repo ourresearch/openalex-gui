@@ -117,9 +117,8 @@ const stateDefaults = function () {
         snackbarIcon: null,
 
         showFiltersDrawer: false,
-        facetZoom: null, // @todo remove this from code
-
-        facetsListDialogIsOpen: true,
+        facetZoom: null,
+        facetsListDialogIsOpen: false,
 
         // entity stuff
         // entityZoomData: null,

@@ -20,7 +20,7 @@
             dark
             color="green"
             class="mr-2"
-            @click="facetsDrawerIsOpen = true"
+            @click="$store.state.facetsListDialogIsOpen = true"
         >
           <v-icon class="">mdi-filter-menu-outline</v-icon>
           <!--            filters-->
