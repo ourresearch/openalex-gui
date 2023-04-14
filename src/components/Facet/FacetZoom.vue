@@ -297,6 +297,9 @@ import {api} from "../../api";
 import axios from "axios";
 import {url} from "../../url";
 import _ from "lodash"
+import {sleep} from "../../util";
+
+const axiosCancelTokenSource = axios.CancelToken.source()
 
 
 export default {
@@ -522,37 +525,39 @@ export default {
 
             this.isLoading = "green"
             this.resetRange()
+            // const resp = await api.getUrl(this.apiUrl)
 
-            // if (this.config.isRange) {
-            //     if (!this.myResultsFilters.length) {
-            //         this.resetRange()
-            //     } else {
-            //         const myRangeValues = this.myResultsFilters[0].value.split("-")
-            //         console.log("we've got a range here", myRangeValues)
-            //         this.range = myRangeValues
-            //     }
-            // }
-            const resp = await api.getUrl(this.apiUrl)
-
-            const groups = resp.group_by.slice(0, 20)
-            const worksCounts = groups.map(f => f.count)
-            const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
-            this.filtersTotalCount = sumOfAllWorksCounts
-
-            this.apiFilters = groups.map(apiData => {
-                return createDisplayFilter(
-                    this.entityType,
-                    this.config.key,
-                    apiData.key,
-                    false,
-                    apiData.key_display_name,
-                    apiData.count,
-                    this.filtersTotalCount,
+            try {
+                const resp = await axios.get(
+                    this.apiUrl,
                 )
-            })
+                if (resp.data.meta.q && resp.data.meta.q !== this.searchString) {
+                    throw new Error(`response with q="${resp.data.meta.q}" no longer matches current searchString "${this.searchString}"`)
+                }
 
+                const groups = resp.data.group_by.slice(0, 20)
+                const worksCounts = groups.map(f => f.count)
+                const sumOfAllWorksCounts = worksCounts.reduce((a, b) => a + b, 0)
+                this.filtersTotalCount = sumOfAllWorksCounts
 
-            this.isLoading = false
+                this.apiFilters = groups.map(apiData => {
+                    return createDisplayFilter(
+                        this.entityType,
+                        this.config.key,
+                        apiData.key,
+                        false,
+                        apiData.key_display_name,
+                        apiData.count,
+                        this.filtersTotalCount,
+                    )
+                })
+            } catch (e) {
+                console.log("fetchFilters() error:", e.message)
+            } finally {
+                this.isLoading = false
+
+            }
+
 
         },
         onCardTextScroll(e) {
@@ -636,8 +641,7 @@ export default {
                 this.negatedFilters = newVal.filter(f => f.isNegated).map(f => f.kv)
             }
         },
-        searchString(newVal, oldVal) {
-            console.log("searchString changed", newVal)
+        searchString: async function (newVal, oldVal) {
             this.fetchFilters()
         },
     }
