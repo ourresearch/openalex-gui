@@ -165,7 +165,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.is_oa",
             entityType: "works",
-            displayName: "Access",
+            displayName: "Open Access",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Toll-access", "Open Access"],
@@ -184,7 +184,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.oa_status",
             entityType: "works",
-            displayName: "Color",
+            displayName: "OA Color",
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
@@ -192,7 +192,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.version",
             entityType: "works",
-            displayName: "Version",
+            displayName: "Open Access version",
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
