@@ -2,8 +2,8 @@
   <div class="serp-filters-list">
     <v-card flat style="border-radius: 3px;" class="mt-12">
       <v-toolbar dense flat>
-        <v-icon left>mdi-filter-outline</v-icon>
-        <v-toolbar-title>
+        <v-icon color="green" left>mdi-filter-outline</v-icon>
+        <v-toolbar-title class="green--text">
           Filters
           <span class="caption">
             ({{ resultsFilters.length }})
@@ -46,10 +46,10 @@
 
         </v-fab-transition>
       </v-toolbar>
-      <v-divider/>
+      <v-divider color="#4CAF50" style="opacity: .5;" />
 
 
-      <div class="d-flex flex-wrap pa-3 pt-0" v-if="resultsFilters.length">
+      <div class="d-flex flex-wrap pa-3 pt-2" v-if="resultsFilters.length">
         <serp-filters-list-chip
                 v-for="filter in resultsFilters"
                 :key="filter.key + filter.value"
@@ -57,11 +57,12 @@
         />
         <v-btn
                 icon
-                v-if="resultsFilters.length"
+                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
                 @click="openFacetsDialog"
                 color="green"
                 dark
-                class="px-0 mr-2"
+                large
+                class="px-0 mr-2 mt-1"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>

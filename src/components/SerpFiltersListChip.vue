@@ -1,12 +1,12 @@
 <template>
   <v-chip large close
-          :text-color="'white'"
+          :text-color="'green darken-3'"
 
-          color="green"
+          color="green lighten-5"
           @click:close="remove"
           @click="clickHandler"
-          class="mr-1 mb-2 inline-flex py-1"
-          style="height: unset;  border: 1px solid !important;"
+          class="mr-1 mb-2 inline-flex py-2"
+          style="height: unset;  border: 1px solid !important; border-radius: 3px;"
           close-icon="mdi-close"
   >
 <!--          style="height: unset; border-radius: 3px; border: 1px solid !important;"-->
@@ -17,7 +17,7 @@
 
 
     <v-icon class="" style="font-size: 24px;">{{ filter.icon }}</v-icon>
-    <div class="mx-3" style="line-height: .8;">
+    <div class="mx-3" style="line-height: 1;">
       <div class="caption">
         <span class="font-weight-bold" v-if="isNegated">NOT</span>
         {{ filter.displayName }}
