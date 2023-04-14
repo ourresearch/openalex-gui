@@ -87,8 +87,7 @@
 
           <v-container v-if="!facetZoom" class="pa-0">
             <v-row
-
-                    class="pt-0 mt-3 px-4 align-start"
+                    class="pt-0 mt-3 px-4"
                     no-gutters
             >
               <v-col
@@ -97,15 +96,17 @@
                       md="3"
                       v-for="facetCategory in facetsByCategory"
                       :key="'card' + facetCategory.name"
+                      class="my-1"
 
 
               >
-                <v-card class="mx-1 my-2">
-                  <v-subheader class="text-capitalize">
+                <v-card class="mx-1 fill-height d-flex flex-column">
+                  <v-card-title class="text-capitalize">
                     {{ facetCategory.name }}
-
-                  </v-subheader>
-                  <v-list>
+                  </v-card-title>
+                  <v-divider />
+                  <v-card-text class="pa-0 flex-grow-1">
+                  <v-list style="font-size: 16px;">
                     <facet-simple
                             v-for="facet in facetCategory.facets"
                             :key="facet.entityType + facet.key"
@@ -113,6 +114,8 @@
                             :facet-entity-type="entityType"
                     />
                   </v-list>
+
+                  </v-card-text>
 
                 </v-card>
 
