@@ -1,8 +1,8 @@
 <template>
   <v-chip large close
-          :text-color="'green darken-3'"
+          :text-color="myTextColor"
 
-          color="green lighten-5"
+          :color="myColor"
           @click:close="remove"
           @click="clickHandler"
           class="mr-1 mb-2 inline-flex py-2"
@@ -73,9 +73,11 @@ export default {
     isNegated(){
       return this.filter.isNegated
     },
+    myTextColor(){
+      return (this.filter.isNegated) ? "red darken-2" : "green darken-3"
+    },
     myColor(){
-      return (this.filter.isNegated) ? "red" : "green"
-
+      return (this.filter.isNegated) ? "red lighten-5" : "green lighten-5"
     }
   },
 

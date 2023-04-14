@@ -35,23 +35,7 @@
 
 
           <v-spacer/>
-          <v-text-field
-                  v-if="!facetZoom"
-                  flat
-                  outlined
-                  rounded
-                  hide-details
-                  clearable
-                  style="max-width: 400px;"
-                  prepend-inner-icon="mdi-magnify"
-                  autofocus
-                  dense
-                  light
-                  background-color="white"
 
-                  v-model="searchString"
-                  placeholder="Search filters"
-          />
           <v-btn
                   icon
                   @click="$store.state.facetsListDialogIsOpen = false"
@@ -65,13 +49,40 @@
 
 
         <v-card-text style="height: calc(100vh - 60px)" class="pa-0 flex-grow-1">
-          <v-container v-if="!facetZoom" class="">
-            <div class="d-flex mt-12">
-              <v-icon large>mdi-filter-outline</v-icon>
-              <div class="text-h4  black--text">Filter results by:</div>
+          <v-container v-if="!facetZoom" class="pt-12 ">
+            <v-row class="pb-2">
+              <v-col cols="12" sm="2" class="d-flex">
+                <v-icon large>mdi-filter-outline</v-icon>
+                <div class="text-h4  black--text">Filters</div>
 
-            </div>
+              </v-col>
+              <v-spacer></v-spacer>
+              <v-col cols="12" sm="4">
+                <v-text-field
+                        v-if="!facetZoom"
+                        flat
+                        outlined
+                        rounded
+                        hide-details
+                        clearable
+                        style="max-width: 400px;"
+                        prepend-inner-icon="mdi-magnify"
+                        autofocus
+                        dense
+                        light
+                        background-color="white"
+
+                        v-model="searchString"
+                        placeholder="Search filters"
+                />
+
+              </v-col>
+
+            </v-row>
+            <v-row>
+
             <v-divider />
+            </v-row>
           </v-container>
 
           <v-container v-if="!facetZoom" class="pa-0">
