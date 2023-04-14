@@ -7,11 +7,10 @@
         :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
         flat
-        height="90"
         :extended="$vuetify.breakpoint.mobile"
 
     >
-      <v-container class="d-flex flex-fill justify-space-between align-center">
+      <v-container class="d-flex pa-0 flex-fill justify-space-between align-center">
         <div class="d-flex flex-fill">
           <router-link
               :to="{name: 'Home'}"
@@ -34,11 +33,11 @@
               <!--                </span>-->
               </span>
           </router-link>
-<!--          <search-box-new-->
-<!--              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
-<!--              class="d-md-block d-none mt-1 pl-2 flex-fill"-->
-<!--              style="max-width: 600px;"-->
-<!--          />-->
+          <search-box-new
+              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
+              class="d-md-block d-none mt-1 pl-2 flex-fill"
+              style="max-width: 600px;"
+          />
 
 
         </div>
@@ -67,9 +66,9 @@
           </v-menu>
         </div>
       </v-container>
-<!--      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">-->
-<!--        <search-box-new />-->
-<!--      </template>-->
+      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
+        <search-box-new class="pt-3" style="width: 100%;" />
+      </template>
     </v-app-bar>
     <v-main>
       <router-view></router-view>
@@ -116,7 +115,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
-// import SearchBoxNew from "@/components/SearchBoxNew.vue";
+import SearchBoxNew from "@/components/SearchBoxNew.vue";
 
 
 export default {
@@ -128,7 +127,7 @@ export default {
     meta: []
   },
   components: {
-    // SearchBoxNew,
+    SearchBoxNew,
   },
 
 

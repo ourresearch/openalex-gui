@@ -8,13 +8,12 @@
             v-model="searchString"
             class="mr-12"
             solo
-            dense
             flat
             outlined
             hide-details
             clearable
+            dense
             prepend-inner-icon="mdi-magnify"
-            rounded
             style="width: 100%;"
             placeholder="Search filters"
             @keypress.enter.stop.prevent="setSearch"

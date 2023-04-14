@@ -8,8 +8,15 @@
         width="40px"
         v-if="0"
     />
+    <v-icon left>
+      mdi-file-document-outline
+    </v-icon>
+    <v-toolbar-title>
     <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
-        <span class="ml-1">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
+        <span class="ml-1 font-weight-light">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
+
+    </v-toolbar-title>
+
 
     <v-spacer />
 
