@@ -8,6 +8,7 @@
         absolute
         flat
         height="90"
+        :extended="$vuetify.breakpoint.mobile"
 
     >
       <v-container class="d-flex flex-fill justify-space-between align-center">
@@ -66,6 +67,9 @@
           </v-menu>
         </div>
       </v-container>
+<!--      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">-->
+<!--        <search-box-new />-->
+<!--      </template>-->
     </v-app-bar>
     <v-main>
       <router-view></router-view>

@@ -2,22 +2,27 @@
   <div class="serp-filters-list">
 
 
-    <v-card outlined class=" pb-0" color="#fff">
-      <v-toolbar flat color="transparent">
+    <v-card outlined class="">
+      <v-toolbar flat short color="#eee">
+        <v-icon left>mdi-filter-outline</v-icon>
+        <v-toolbar-title>
+          Filters
+          <span class="caption">
+            ({{ resultsFilters.length }})
+          </span>
+        </v-toolbar-title>
 
-        <v-btn
-                fab
-                small
-                dark
-                color="green"
-                class="mr-2"
-                @click="openFacetsDialog"
-        >
-          <v-icon class="">mdi-filter-menu-outline</v-icon>
-          <!--            filters-->
-          <!--            <span class="caption ml-2" style="opacity: .7;">⌘F</span>-->
-        </v-btn>
-        <search-box-new class="my-2 mr-2"/>
+<!--        <v-btn-->
+<!--                fab-->
+<!--                small-->
+<!--                dark-->
+<!--                color="green"-->
+<!--                class="mr-2"-->
+<!--                @click="openFacetsDialog"-->
+<!--        >-->
+<!--          <v-icon class="">mdi-filter-menu-outline</v-icon>-->
+<!--        </v-btn>-->
+        <search-box-new class="my-2 mx-3"/>
         <v-spacer/>
         <v-btn
                 icon
