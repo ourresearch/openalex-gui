@@ -357,7 +357,7 @@ export default new Vuex.Store({
         async doSearch({commit, getters, dispatch, state}) {
             state.isLoading = true
             try {
-                Promise.all([
+                await Promise.all([
                  this.dispatch("getResults"),
                  this.dispatch("getResultsFilters")
 
