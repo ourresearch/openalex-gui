@@ -17,6 +17,12 @@
       </v-row>
     </v-alert>
 
+                <v-alert type="warning" dense text>
+
+              <strong>More than 100 authors.</strong> Only the top 100 are shown below.
+            </v-alert>
+
+
     <div v-if="data.publication_year">
       <span class="font-weight-bold">
           Published:
@@ -40,10 +46,10 @@
 
       <!--    Author list-->
       <div v-if="authorshipsToShow.length">
+
         <span class="font-weight-bold">
           {{ "Author" | pluralize(authorshipsToShow.length) }}:
         </span>
-
         <span>
           <template v-if="authorshipsToShow.length === 1">
             <authorship
@@ -64,13 +70,13 @@
                 class="mr-1"
             />
 
-            <!--        <a-->
-            <!--            v-if="truncatedAuthorshipsCount"-->
-            <!--            @click="showAuthorDetails = !showAuthorDetails"-->
-            <!--            class="font-weight-bold"-->
-            <!--        >+ {{truncatedAuthorshipsCount}} more-->
+<!--                    <a-->
+<!--                        v-if="truncatedAuthorshipsCount"-->
+<!--                        @click="showAuthorDetails = !showAuthorDetails"-->
+<!--                        class="font-weight-bold"-->
+<!--                    >+ {{truncatedAuthorshipsCount}} more-->
 
-            <!--        </a>-->
+<!--                    </a>-->
           </template>
         </span>
       </div>
@@ -266,9 +272,11 @@ export default {
       return Math.max(this.data.authorships.length - this.maxAuthorshipsToShowAtFirst, 0)
     },
     authorshipsToShow() {
-      if (!this.authorshipsCount) return []
-      const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
-      return this.data.authorships.slice(0, sliceAt)
+      return this.data.authorships.slice(0, 100)
+
+      // if (!this.authorshipsCount) return []
+      // const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
+      // return this.data.authorships.slice(0, sliceAt)
     },
   },
   created() {
