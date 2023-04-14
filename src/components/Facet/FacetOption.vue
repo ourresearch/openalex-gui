@@ -38,7 +38,7 @@
     <div>
       <v-btn
           icon
-          @click="setSelected({select: true, negate: true})"
+          @click.stop="setSelected({select: true, negate: true})"
           v-if="!isNegated && !isSelected && !filter.isBoolean"
       >
         <v-icon>mdi-minus</v-icon>
@@ -163,6 +163,7 @@ export default {
     },
 
     setSelected(opts) {
+        console.log("set selected!", opts)
       this.$emit("set-value", {
         isSelected: !!opts.select,
         isNegated: !!opts.negate,
