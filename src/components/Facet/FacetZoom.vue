@@ -1,247 +1,274 @@
 <template>
 
   <v-card
-          :loading="isLoading"
           flat
           tile
+          color="#fafafa"
   >
-    <v-toolbar
-            flat
-            class="facet-zoom-toolbar"
-            tile
-            dark
-            color="green"
-    >
+    <v-container class="pa-0">
+      <div class="d-flex px-3 pt-12 align-end">
+
+        <div class="d-flex align-end">
+          <v-icon large left>{{ config.icon }}</v-icon>
+          <div>
+            <div class="caption">Filter results by</div>
+            <div class="text-h4 font-weight-bold" style="line-height: 1">
+              {{ config.displayName }}
+
+            </div>
+          </div>
+        </div>
+
+        <v-spacer/>
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn :icon="$vuetify.breakpoint.mobile" text v-on="on" class="">
+              <v-icon>mdi-tray-arrow-down</v-icon>
+              {{ ($vuetify.breakpoint.mobile) ? "" : "Export" }}
+            </v-btn>
+          </template>
+          <v-list dense>
+            <v-subheader>
+              Export as:
+              <!--                {{ config.displayName | pluralize(2) }} as:-->
+            </v-subheader>
+            <v-divider></v-divider>
+            <v-list-item
+                    target="_blank"
+                    :href="makeApiUrl(200, true)"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-table</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                Spreadsheet
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item
+                    target="_blank"
+                    :href="makeApiUrl(200)"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-api</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                JSON object
+              </v-list-item-title>
+            </v-list-item>
+
+          </v-list>
+        </v-menu>
 
 
-      <v-toolbar-title>
-        <v-icon left>{{ config.icon }}</v-icon>
-        {{ config.displayName }}
+      </div>
+      <v-divider class="mt-3 mb-6"/>
 
-      </v-toolbar-title>
-      <v-spacer/>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="">
-            <v-icon>mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-subheader>
-            Export as:
-            <!--                {{ config.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200, true)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-table</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Spreadsheet
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-                  target="_blank"
-                  :href="makeApiUrl(200)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              JSON object
-            </v-list-item-title>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
-
-      <v-progress-linear
-              v-if="isLoading"
-              absolute
-              indeterminate
-              color="green"
-              style="bottom: -4px;"
-      />
-
-
-    </v-toolbar>
-
-
-    <div class="facet-zoom-content">
-      <v-row class="px-3">
-        <v-col cols="12" sm="6">
-          <v-card flat outlined>
-            <v-toolbar flat>
+      <div class="facet-zoom-content">
+        <v-row class="px-3">
+          <v-col cols="12" sm="6">
+            <v-card flat outlined :loading="(searchIsLoading) ? 'green' : false">
+              <v-toolbar flat>
                 <v-icon left>mdi-filter-check-outline</v-icon>
-              <v-toolbar-title>
-                Applied filters
-                <span class="caption">
+                <v-toolbar-title>
+                  Applied filters
+                  <span class="caption">
                 ({{ myResultsFilters.length }})
 
                 </span>
-              </v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-btn icon @click="clearMyFilters" :disabled="myResultsFilters.length === 0">
-                <v-icon>mdi-filter-off-outline</v-icon>
-              </v-btn>
-            </v-toolbar>
-            <v-divider />
-            <v-card-text>
-              <serp-filters-list-chip
-                      v-for="f in myResultsFilters"
-                      :filter="f"
-                      :key="f.asStr"
-              />
-              <div class="ml-8" v-if="myResultsFilters.length === 0">
-                No filters applied.
+                </v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn icon @click="clearMyFilters" :disabled="myResultsFilters.length === 0">
+                  <v-icon>mdi-filter-off-outline</v-icon>
+                </v-btn>
+              </v-toolbar>
+              <v-divider/>
+              <v-card-text>
+                <serp-filters-list-chip
+                        v-for="f in myResultsFilters"
+                        :filter="f"
+                        :key="f.asStr"
+                        @click="clearInput"
+                />
+                <div class="ml-8" v-if="myResultsFilters.length === 0">
+                  No filters applied.
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" sm="6">
+
+
+            <!--          ************* -->
+            <!--          RANGE values -->
+            <!--          ************* -->
+            <div v-if="config.isRange" class="">
+              <v-card flat outlined>
+
+                <v-toolbar flat>
+                  <v-icon left>mdi-filter-plus-outline</v-icon>
+                  <v-toolbar-title>
+                    {{ (myResultsFilters.length) ? "Edit" : "Add" }}
+                    {{ config.displayName }} range
+                  </v-toolbar-title>
+                </v-toolbar>
+                <v-divider/>
+                <v-card-text>
+                  <div class="d-flex">
+                    <v-text-field
+                            flat
+                            hide-details
+                            solo
+                            class="mt-0"
+                            v-model="range[0]"
+                            placeholder="Start"
+                            outlined
+                            @keypress.enter="applyRange"
+                    >
+                    </v-text-field>
+                    <v-icon class="mx-2">mdi-minus</v-icon>
+                    <v-text-field
+                            flat
+                            hide-details
+                            solo
+                            class="mt-0"
+                            v-model="range[1]"
+                            placeholder="End"
+                            outlined
+                            @keypress.enter="applyRange"
+                    />
+                  </div>
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                          :disabled="rangeIsEmpty || searchIsLoading"
+                          color="green"
+                          :dark="!rangeIsEmpty"
+                          @click="applyRange"
+                  >
+                    {{ (myResultsFilters.length) ? "Edit" : "Add" }}
+                    filter
+                  </v-btn>
+
+                </v-card-actions>
+
+              </v-card>
+              <div class="mt-8">
+                <year-range
+                        big
+                />
               </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" sm="6">
-
-
-          <!--          ************* -->
-          <!--          RANGE values -->
-          <!--          ************* -->
-          <div v-if="config.isRange" class="">
-            <div class="d-flex">
-              <v-text-field
-                      flat
-                      hide-details
-                      solo
-                      class="mt-0"
-                      v-model="range[0]"
-                      placeholder="Start"
-                      outlined
-                      @keypress.enter="applyRange"
-              >
-                <template v-slot:default>frustrating</template>
-              </v-text-field>
-              <v-icon class="mx-2">mdi-minus</v-icon>
-              <v-text-field
-                      flat
-                      hide-details
-                      solo
-                      class="mt-0"
-                      v-model="range[1]"
-                      placeholder="End"
-                      outlined
-                      @keypress.enter="applyRange"
-              />
-              <v-btn x-large class="ml-5" color="green" dark @click="applyRange">
-                Apply
-              </v-btn>
             </div>
-            <div class="mt-8">
-              <year-range
-                      big
-              />
+
+
+            <!--          ************* -->
+            <!--          SEARCH values -->
+            <!--          ************* -->
+            <div v-if="config.isSearch" class="">
+              <v-card flat outlined>
+
+                <v-toolbar flat>
+                  <v-icon left>mdi-filter-plus-outline</v-icon>
+                  <v-toolbar-title>
+                    Add {{ config.displayName }} filter
+                  </v-toolbar-title>
+                </v-toolbar>
+                <v-divider/>
+                <v-card-text>
+                  <v-text-field
+                          autofocus
+                          prepend-inner-icon="mdi-magnify"
+                          flat
+                          hide-details
+                          v-model="searchFilterString"
+                          :placeholder="config.displayName"
+                          :label="config.displayName"
+                          outlined
+                          @keypress.enter="applySearchFilter"
+                  />
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                          color="green"
+                          :disabled="!searchFilterString"
+                          :dark="!!searchFilterString"
+                          @click="applySearchFilter"
+                  >
+                    Add Filter
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
             </div>
-          </div>
 
 
-          <!--          ************* -->
-          <!--          SEARCH values -->
-          <!--          ************* -->
-          <div v-if="config.isSearch" class="">
-            <v-text-field
-                    autofocus
+            <!--          ************* -->
+            <!--          LIST values -->
+            <!--          ************* -->
+            <v-card
                     flat
-                    v-model="searchFilterString"
-                    :placeholder="config.displayName"
-                    :label="config.displayName"
                     outlined
-                    @keypress.enter="applySearchFilter"
-            />
-            <v-btn
-                    x-large
-                    class="ml-5"
-                    color="green"
-                    dark
-                    @click="applySearchFilter"
+                    class=""
+                    style="font-size: unset;"
+                    v-if="!config.isSearch && !config.isRange"
+                    :loading="isLoading"
             >
-              Apply
-            </v-btn>
-          </div>
-
-
-          <!--          ************* -->
-          <!--          LIST values -->
-          <!--          ************* -->
-          <v-card
-                  flat
-                  outlined
-                  class=""
-                  style="font-size: unset;"
-                  v-if="!config.isSearch && !config.isRange"
-          >
-            <v-toolbar flat :extended="showSearch">
+              <v-toolbar flat :extended="showSearch">
                 <v-icon left>mdi-filter-plus-outline</v-icon>
-              <v-toolbar-title>
-                Available filters
-                <span class="caption">({{ apiFiltersToShow.length }}{{ (apiFiltersToShow.length > 19) ? "+" : "" }})</span>
-              </v-toolbar-title>
-              <template
-                      v-slot:extension
-                      v-if="showSearch"
-              >
-                <v-text-field
-                        flat
-                        outlined
-                        rounded
-                        hide-details
-                        full-width
-                        clearable
-                        prepend-inner-icon="mdi-magnify"
-                        autofocus
-                        dense
-                        light
-                        background-color="white"
+                <v-toolbar-title>
+                  Available filters
+                  <span class="caption">({{ apiFiltersToShow.length }}{{
+                      (apiFiltersToShow.length > 19) ? "+" : ""
+                    }})</span>
+                </v-toolbar-title>
+                <template
+                        v-slot:extension
+                        v-if="showSearch"
+                >
+                  <v-text-field
+                          flat
+                          outlined
+                          rounded
+                          hide-details
+                          full-width
+                          clearable
+                          prepend-inner-icon="mdi-magnify"
+                          autofocus
+                          dense
+                          light
+                          background-color="white"
 
-                        v-model="searchString"
-                        :placeholder="searchPlaceholder"
+                          v-model="searchString"
+                          :placeholder="searchPlaceholder"
+                  />
+                </template>
+              </v-toolbar>
+              <v-divider/>
+              <v-card-text>
+                <div class="ml-0" v-if="apiFiltersToShow.length === 0">
+                  No filters available for this search set.
+                </div>
+              </v-card-text>
+
+
+              <v-list :dense="false">
+                <facet-option
+                        v-for="f in apiFiltersToShow"
+                        :filter="f"
+                        :key="f.asStr"
+                        @set-value="setSelectedFilters"
+
                 />
-                <v-progress-linear
-                        v-if="isLoading"
-                        absolute
-                        indeterminate
-                        color="green"
-                        style="bottom: -4px;"
-                />
-              </template>
-            </v-toolbar>
-            <v-divider />
-            <v-card-text>
-              <div class="ml-0" v-if="apiFiltersToShow.length === 0">
-                No filters available for this search set.
-              </div>
-            </v-card-text>
+              </v-list>
+
+            </v-card>
 
 
-            <v-list :dense="false">
-              <facet-option
-                      v-for="f in apiFiltersToShow"
-                      :filter="f"
-                      :key="f.asStr"
-                      @set-value="setSelectedFilters"
+          </v-col>
 
-              />
-            </v-list>
+        </v-row>
+      </div>
 
-          </v-card>
-
-
-        </v-col>
-
-      </v-row>
-    </div>
-
-
+    </v-container>
   </v-card>
 
 
@@ -329,6 +356,7 @@ export default {
             "showFiltersDrawer",
             "inputFilters",
             "facetZoom",
+            "searchIsLoading",
         ]),
         config() {
             return facetConfigs().find(c => c.key === this.facetZoom)
@@ -423,6 +451,10 @@ export default {
         ]),
         ...mapActions([]),
 
+        clearInput() {
+            this.range = ["", ""]
+            this.searchFilterString
+        },
         makeApiUrl(perPage, formatCsv) {
             if (!perPage) perPage = this.maxApiFiltersToShow
             const url = new URL(`https://api.openalex.org`)
@@ -477,29 +509,13 @@ export default {
             })
             url.setFiltersByKey(this.facetZoom, filtersToSave)
         },
-        clearMyFilters(){
+        clearMyFilters() {
             url.setFiltersByKey(this.facetZoom, [])
-        },
-        async fetchSearchFilter() {
-            console.log("fetchSearchFilter")
-            const urlFilters = filtersFromUrlStr("works", this.$route.query.filter)
-
-
-            const myUrlFilter = urlFilters.find(f => {
-                return f.key === this.facetZoom
-            })
-            console.log("urlFilters", urlFilters)
-
-            if (!this.config) return
-            if (this.config.isSearch) {
-                this.searchFilterString = this.myResultsFilters[0]?.value
-                return // no need to fetch anything.
-            }
         },
 
         async fetchFilters() {
             if (this.config.isSearch) {
-                return await this.fetchSearchFilter()
+                return
             }
 
 
@@ -576,6 +592,7 @@ export default {
                 url.setFiltersByKey(this.facetZoom, [filter])
             }
             this.setFiltersZoom(false)
+            this.resetRange()
         },
 
         applySearchFilter() {
@@ -585,7 +602,13 @@ export default {
                 this.facetZoom,
                 this.searchFilterString,
             )
-            url.setFiltersByKey(this.facetZoom, [filter])
+            const newFilters = [...this.resultsFilters, filter]
+            this.isLoading = "green"
+            this.searchFilterString = ""
+            url.setFilters(
+                this.entityType,
+                newFilters
+            )
         },
 
     },
@@ -620,15 +643,5 @@ export default {
 </script>
 
 <style lang="scss">
-.facet-zoom-toolbar {
-  position: fixed;
-  z-index: 99;
-  width: 100%;
-  max-width: 1100px; // width of the FacetsListDialog
-}
-
-.facet-zoom-content {
-  padding: 120px 0 0 0;
-}
 
 </style>

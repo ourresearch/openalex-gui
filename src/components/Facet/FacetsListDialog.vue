@@ -3,108 +3,121 @@
     <v-dialog
             v-model="isOpen"
             scrollable
-            max-width="1100px"
-            :fullscreen="$vuetify.breakpoint.mobile"
+            fullscreen
     >
-      <v-card>
+      <!--      $vuetify.breakpoint.mobile-->
+      <v-card tile color="#fafafa">
         <v-toolbar
-                :extended="!facetZoom"
                 class="flex-grow-0"
                 color="green"
                 dark
+                flat
+                height="60"
         >
           <v-btn
                   text
                   @click="setFacetZoom(null)"
-                  class="text-capitalize text-h5 px-0"
+                  class="text-capitalize text-h6 pl-0"
+                  v-if="!!facetZoom"
           >
-            <v-icon v-if="!!facetZoom" class="pr-1">mdi-arrow-left</v-icon>
-            <v-icon v-else class="pr-1">mdi-filter-outline</v-icon>
+            <v-icon class="pr-1">mdi-arrow-left</v-icon>
             Filters
           </v-btn>
-          <v-spacer/>
           <v-btn
-              icon
-              @click="$store.state.facetsListDialogIsOpen = false"
-              v-if="!facetZoom"
+                  text
+                  @click="closeFacetsDialog"
+                  class="text-capitalize pl-0"
+                  v-else
+          >
+            <v-icon class="pr-1">mdi-arrow-left</v-icon>
+            Back
+          </v-btn>
+
+
+          <v-spacer/>
+          <v-text-field
+                  v-if="!facetZoom"
+                  flat
+                  outlined
+                  rounded
+                  hide-details
+                  clearable
+                  style="max-width: 400px;"
+                  prepend-inner-icon="mdi-magnify"
+                  autofocus
+                  dense
+                  light
+                  background-color="white"
+
+                  v-model="searchString"
+                  placeholder="Search filters"
+          />
+          <v-btn
+                  icon
+                  @click="$store.state.facetsListDialogIsOpen = false"
           >
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
 
 
-          <!--            <span v-if="selectedFacetConfig" class="text-h5  font-weight-bold">-->
-          <!--              <v-icon>{{ selectedFacetConfig.icon }}</v-icon>-->
-          <!--              {{ selectedFacetConfig.displayName }}-->
-          <!--            </span>-->
-
-          <!--          <v-spacer/>-->
-
-
-          <template v-if="!facetZoom" v-slot:extension>
-            <v-text-field
-                    flat
-                    outlined
-                    rounded
-                    hide-details
-                    full-width
-                    clearable
-                    prepend-inner-icon="mdi-magnify"
-                    autofocus
-                    dense
-                    light
-                    background-color="white"
-
-                    v-model="searchString"
-                    placeholder="Search filters"
-            />
-          </template>
-
 
         </v-toolbar>
 
 
-        <v-card-text style="height: 70vh" class="pa-0 flex-grow-1">
-          <v-row
-                  v-if="!facetZoom"
-                  class="pt-0 mt-3 px-4 align-start"
-                  expand
-                  nav
-          >
-            <v-col
-                    cols="12"
-                    sm="6"
-                    md="3"
-                    v-for="facetCategory in facetsByCategory"
-                    :key="'card' + facetCategory.name"
+        <v-card-text style="height: calc(100vh - 60px)" class="pa-0 flex-grow-1">
+          <v-container v-if="!facetZoom" class="">
+            <div class="d-flex mt-12">
+              <v-icon large>mdi-filter-outline</v-icon>
+              <div class="text-h4  black--text">Filter results by:</div>
+
+            </div>
+            <v-divider />
+          </v-container>
+
+          <v-container v-if="!facetZoom" class="pa-0">
+            <v-row
+
+                    class="pt-0 mt-3 px-4 align-start"
+                    no-gutters
             >
-              <v-card outlined>
-                <v-subheader class="text-capitalize">
-                  {{ facetCategory.name }}
+              <v-col
+                      cols="12"
+                      sm="6"
+                      md="3"
+                      v-for="facetCategory in facetsByCategory"
+                      :key="'card' + facetCategory.name"
 
-                </v-subheader>
-                <v-list>
-                  <facet-simple
-                          v-for="facet in facetCategory.facets"
-                          :key="facet.entityType + facet.key"
-                          :facet-key="facet.key"
-                          :facet-entity-type="entityType"
-                  />
-                </v-list>
 
-              </v-card>
+              >
+                <v-card class="mx-1 my-2">
+                  <v-subheader class="text-capitalize">
+                    {{ facetCategory.name }}
 
-              <!--              <template>-->
-              <!--                <v-subheader-->
-              <!--                    :key="'subheader' + facetCategory.name"-->
-              <!--                    class="align-end text-capitalize pl-0"-->
-              <!--                >-->
-              <!--                  {{ facetCategory.name }}-->
-              <!--                </v-subheader>-->
-              <!--                &lt;!&ndash;                <v-divider :key="'divider' + facetCategory.name"></v-divider>&ndash;&gt;-->
-              <!--              </template>-->
+                  </v-subheader>
+                  <v-list>
+                    <facet-simple
+                            v-for="facet in facetCategory.facets"
+                            :key="facet.entityType + facet.key"
+                            :facet-key="facet.key"
+                            :facet-entity-type="entityType"
+                    />
+                  </v-list>
 
-            </v-col>
-          </v-row>
+                </v-card>
+
+                <!--              <template>-->
+                <!--                <v-subheader-->
+                <!--                    :key="'subheader' + facetCategory.name"-->
+                <!--                    class="align-end text-capitalize pl-0"-->
+                <!--                >-->
+                <!--                  {{ facetCategory.name }}-->
+                <!--                </v-subheader>-->
+                <!--                &lt;!&ndash;                <v-divider :key="'divider' + facetCategory.name"></v-divider>&ndash;&gt;-->
+                <!--              </template>-->
+
+              </v-col>
+            </v-row>
+          </v-container>
 
           <facet-zoom
                   v-if="facetZoom"
@@ -112,14 +125,6 @@
 
 
         </v-card-text>
-        <v-card-actions v-if="0 && selectedFacetConfig">
-          <v-btn rounded outlined class="low-key-button" @click="setFiltersZoom(true)">
-            <v-icon>mdi-arrow-left</v-icon>
-            Filters menu
-          </v-btn>
-          <v-spacer/>
-
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -135,6 +140,7 @@ import FacetZoom from "./FacetZoom.vue";
 import {filtersAsUrlStr} from "../../filterConfigs";
 import {url} from "../../url";
 import facetZoom from "./FacetZoom.vue";
+import facet from "./Facet.vue";
 
 export default {
     name: "FacetsListDialog",
@@ -146,7 +152,7 @@ export default {
     data() {
         return {
             searchString: "",
-            facetZoomSearchString:"",
+            facetZoomSearchString: "",
             selectedFilters: [],
             dialogs: {
                 facetsDrawer: false,
@@ -154,6 +160,9 @@ export default {
         }
     },
     computed: {
+        facet() {
+            return facet
+        },
         facetZoom() {
             return facetZoom
         },
@@ -172,8 +181,7 @@ export default {
             set(val) {
                 if (val) {
                     this.openFacetsDialog()
-                }
-                else{
+                } else {
                     this.closeFacetsDialog()
                 }
             },

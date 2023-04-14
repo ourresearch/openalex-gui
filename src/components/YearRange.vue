@@ -6,10 +6,10 @@
       class="ma-0 year-range-card"
       :class="{big}"
   >
-    <v-card-actions v-if="big" class="graph-toolbar">
-      <v-card-title class="py-0">
+    <v-toolbar flat v-if="big" class="graph-toolbar">
+      <v-toolbar-title>
         Works published by year
-      </v-card-title>
+      </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu
       >
@@ -38,7 +38,7 @@
         </v-list>
       </v-menu>
 
-    </v-card-actions>
+    </v-toolbar>
 
 
     <div
