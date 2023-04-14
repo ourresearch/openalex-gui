@@ -1,6 +1,7 @@
 const facetCategories = {
     works: [
         "popular",
+        "author",
         "institution",
         "location",
         "source",
@@ -122,7 +123,7 @@ const facetConfigs = function (entityType) {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             valuesToShow: "mostCommon",
-            category: "popular",
+            category: "author",
             isCore: true,
             icon: "mdi-account-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
@@ -144,6 +145,8 @@ const facetConfigs = function (entityType) {
 
 
 
+
+
         // works: search
 
         {
@@ -158,6 +161,22 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
         },
 
+
+
+
+
+        // works: authors
+
+        {
+            key: "authors_count",
+            entityType: "works",
+            displayName: "Authors Count",
+            valuesToShow: "range",
+            sortByValue: true,
+            isRange: true,
+            category: "author",
+            icon: "mdi-account-outline",
+        },
 
 
 
@@ -245,24 +264,24 @@ const facetConfigs = function (entityType) {
 
         // works: sources
 
-        {
-            key: "locations.source.id",
-            entityType: "works",
-            displayName: "Source",
-            isEntity: true,
-            showInSidebar: true,
-            entityId: "sources",
-            autocompleteEndpoint: "autocomplete/sources",
-            valuesToShow: "mostCommon",
-            category: "source",
-            isCore: true,
-            icon: "mdi-book-open-outline",
-        },
+        // {
+        //     key: "locations.source.id",
+        //     entityType: "works",
+        //     displayName: "Source",
+        //     isEntity: true,
+        //     showInSidebar: true,
+        //     entityId: "sources",
+        //     autocompleteEndpoint: "autocomplete/sources",
+        //     valuesToShow: "mostCommon",
+        //     category: "source",
+        //     isCore: true,
+        //     icon: "mdi-book-open-outline",
+        // },
 
         {
             key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Primary source",
+            displayName: "Source", // actually Primary Location Source!
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
@@ -302,7 +321,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.host_organization",
             entityType: "works",
-            displayName: "Primary publisher",
+            displayName: "Publisher", // actually Primary Location Source Publisher!
             isEntity: true,
             showInSidebar: true,
             entityId: "publishers",
@@ -321,7 +340,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "works",
-            displayName: "Type",
+            displayName: "Work Type",
             valuesToShow: "mostCommon",
             category: "popular",
             icon: "mdi-file-document-outline",

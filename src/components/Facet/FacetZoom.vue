@@ -156,6 +156,7 @@
               <div class="mt-8">
                 <year-range
                         big
+                        v-if="config.key==='publication_year'"
                 />
               </div>
             </div>
@@ -520,16 +521,17 @@ export default {
 
 
             this.isLoading = "green"
+            this.resetRange()
 
-            if (this.config.isRange) {
-                if (!this.myResultsFilters.length) {
-                    this.resetRange()
-                } else {
-                    const myRangeValues = this.myResultsFilters[0].value.split("-")
-                    console.log("we've got a range here", myRangeValues)
-                    this.range = myRangeValues
-                }
-            }
+            // if (this.config.isRange) {
+            //     if (!this.myResultsFilters.length) {
+            //         this.resetRange()
+            //     } else {
+            //         const myRangeValues = this.myResultsFilters[0].value.split("-")
+            //         console.log("we've got a range here", myRangeValues)
+            //         this.range = myRangeValues
+            //     }
+            // }
             const resp = await api.getUrl(this.apiUrl)
 
             const groups = resp.group_by.slice(0, 20)
@@ -566,10 +568,10 @@ export default {
         },
         applyRange() {
             console.log("applyRange", this.range)
-            const currentYear = new Date().getFullYear()
-            const maxValue = String(currentYear)
-            if (this.range[0] > maxValue) this.range[0] = maxValue
-            if (this.range[1] > maxValue) this.range[1] = maxValue
+            // const currentYear = new Date().getFullYear()
+            // const maxValue = String(currentYear)
+            // if (this.range[0] > maxValue) this.range[0] = maxValue
+            // if (this.range[1] > maxValue) this.range[1] = maxValue
 
             if (Number(this.range[0]) < 0) this.range[0] = "0"
             if (Number(this.range[1]) < 0) this.range[1] = "0"
