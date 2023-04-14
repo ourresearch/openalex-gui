@@ -3,7 +3,7 @@
     <v-card flat style="border-radius: 3px;" class="mt-12">
       <v-toolbar dense flat>
         <v-icon color="green" left>mdi-filter-outline</v-icon>
-        <v-toolbar-title class="green--text">
+        <v-toolbar-title class="green--text font-weight-bold">
           Filters
           <span class="caption">
             ({{ resultsFilters.length }})
