@@ -48,7 +48,7 @@
             style="height: 40px; width: 40px; min-width: unset;"
             class="px-0 mr-2"
         >
-          <v-icon>mdi-filter-plus-outline</v-icon>
+          <v-icon>mdi-plus</v-icon>
         </v-btn>
         <v-btn
             icon
@@ -57,7 +57,7 @@
             color="green"
             @click="clear()"
         >
-          <v-icon>mdi-filter-off-outline</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
       <div  class="d-none pa-3 pt-0 grey--text" v-if="resultsFilters.length === 0">
