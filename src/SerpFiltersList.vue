@@ -34,6 +34,8 @@
       <v-divider/>
 
 
+
+
       <div class="d-flex flex-wrap pa-3">
         <serp-filters-list-chip
                 v-for="filter in resultsFilters"
