@@ -127,7 +127,7 @@ const stateDefaults = function () {
         zoomIdsStack: [],
         zoomDataResponses: [],
 
-         // other
+        // other
         showYearRange: false,
         facetsToRequireAll: [],
     }
@@ -152,7 +152,7 @@ export default new Vuex.Store({
                 return
             }
             state.snackbarMsg = arg.msg
-             state.snackbarIcon = arg.icon
+            state.snackbarIcon = arg.icon
         },
         closeSnackbar(state) {
             state.snackbarMsg = ""
@@ -203,21 +203,20 @@ export default new Vuex.Store({
             newFilters.push(filter)
             state.inputFilters = newFilters
         },
-        setFiltersZoom(state, arg){
+        setFiltersZoom(state, arg) {
             const filterKeys = facetConfigs().map(f => f.key)
-            if (filterKeys.includes(arg)){
+            if (filterKeys.includes(arg)) {
                 state.filtersZoom = arg
-            }
-            else {
+            } else {
                 state.filtersZoom = !!arg
             }
         },
-        openFacetsDialog(state){
+        openFacetsDialog(state) {
             state.facetZoom = null
             state.facetsListDialogIsOpen = true
         },
 
-        closeFacetsDialog(state){
+        closeFacetsDialog(state) {
             console.log("closeFacetsDialog")
             state.facetZoom = null
             state.facetsListDialogIsOpen = false
@@ -254,15 +253,13 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async bootFromUrl({commit, getters, dispatch, state}) {
             // state.results = []
-            if (router.currentRoute.params.entityType !== state.entityType){
+            if (router.currentRoute.params.entityType !== state.entityType) {
                 commit("resetSearch")
                 commit("setEntityType", router.currentRoute.params.entityType)
             }
 
             commit("setTextSearch", router.currentRoute.query.search)
             commit("setPage", router.currentRoute.query.page)
-
-
 
 
             // this must be after setting the text search, because it affects the defaults
@@ -290,7 +287,6 @@ export default new Vuex.Store({
             // await dispatch("doSearch")
             dispatch("pushSearchUrl")
         },
-
 
 
         // used once
@@ -329,34 +325,44 @@ export default new Vuex.Store({
         // *****************************************
 
         // eslint-disable-next-line no-unused-vars
-        async doSearch({commit, getters, dispatch, state}, loadFromRoute) {
-            state.isLoading = true
-
-
-            try {
-                // @todo make this happen at the same time as the filters call
-                const resp = await api.get(state.entityType, getters.searchQueryBase)
-                state.results = resp.results.map(r => {
-                    return {
-                        ...r,
-                        safeTitle: sanitizeHtml(r.display_name, {
-                            allowedTags: [ 'b', 'i', 'em', 'strong', 'a' ],
-                        }),
-                    }
-                })
-                // state.resultsEntityType = state.entityType
-                state.responseTime = resp.meta.db_response_time_ms
-                state.resultsCount = resp.meta.count
-
-                if (getters.inputFiltersAsString) {
-                    const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
-                    const params = (state.textSearch) ? {search: state.textSearch} : {}
-                    const filtersResp = await api.get(path, params)
-
-                    state.resultsFilters = filtersFromFiltersApiResponse(state.entityType, filtersResp.filters)
-                } else {
-                    state.resultsFilters = []
+        async getResults({commit, getters, dispatch, state}) {
+            const resp = await api.get(state.entityType, getters.searchQueryBase)
+            state.results = resp.results.map(r => {
+                return {
+                    ...r,
+                    safeTitle: sanitizeHtml(r.display_name, {
+                        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
+                    }),
                 }
+            })
+            // state.resultsEntityType = state.entityType
+            state.responseTime = resp.meta.db_response_time_ms
+            state.resultsCount = resp.meta.count
+
+        },
+        // eslint-disable-next-line no-unused-vars
+        async getResultsFilters({commit, getters, dispatch, state}) {
+            if (getters.inputFiltersAsString) {
+                const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
+                const params = (state.textSearch) ? {search: state.textSearch} : {}
+                const filtersResp = await api.get(path, params)
+
+                state.resultsFilters = filtersFromFiltersApiResponse(state.entityType, filtersResp.filters)
+            } else {
+                state.resultsFilters = []
+            }
+
+        },
+        // eslint-disable-next-line no-unused-vars
+        async doSearch({commit, getters, dispatch, state}) {
+            state.isLoading = true
+            try {
+                Promise.all([
+                 this.dispatch("getResults"),
+                 this.dispatch("getResultsFilters")
+
+                ])
+
             } finally {
                 state.isLoading = false
             }
@@ -385,15 +391,31 @@ export default new Vuex.Store({
         resultsFiltersNegated(state, getters) {
             return state.resultsFilters.filter(f => f.isNegated)
         },
-        entityType(state) { return state.entityType},
-        entityConfig(state) { return entityConfigs[state.entityType]},
-        showFiltersDrawer(state) { return state.showFiltersDrawer},
-        facetZoom(state) { return state.facetZoom},
-        inputFilters(state) {return state.inputFilters},
+        entityType(state) {
+            return state.entityType
+        },
+        entityConfig(state) {
+            return entityConfigs[state.entityType]
+        },
+        showFiltersDrawer(state) {
+            return state.showFiltersDrawer
+        },
+        facetZoom(state) {
+            return state.facetZoom
+        },
+        inputFilters(state) {
+            return state.inputFilters
+        },
 
-        searchIsLoading(state) { return state.isLoading},
-        results(state) { return state.results},
-        resultsCount(state) { return state.resultsCount},
+        searchIsLoading(state) {
+            return state.isLoading
+        },
+        results(state) {
+            return state.results
+        },
+        resultsCount(state) {
+            return state.resultsCount
+        },
         sortObjectOptions(state, getters) {
             if (!state.results.length) return
             return sortConfigs.filter(sortConfig => {
@@ -488,7 +510,7 @@ export default new Vuex.Store({
         allOaStatusFiltersAreActive(state) {
             const oaStatusFilter = state.resultsFilters.find(f => f.key === "oa_status")
         },
-        filtersZoom(state){
+        filtersZoom(state) {
             return state.filtersZoom
         },
 

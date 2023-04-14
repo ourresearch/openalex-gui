@@ -24,10 +24,10 @@
       </div>
       <div class="filter-value" :class="{isNegated}">
         <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
-          "{{ myDisplayValue | truncate(50) }}"
+          "{{ myDisplayValue | truncate(30) }}"
         </span>
         <span v-else>
-        {{ myDisplayValue | truncate(50) }}
+        {{ myDisplayValue | truncate(30) }}
 
         </span>
       </div>

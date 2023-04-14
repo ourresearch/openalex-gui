@@ -215,10 +215,10 @@ export default {
     },
     resultsCols(){
       if (this.$vuetify.breakpoint.mobile) return 12
-      return  (this.showSidebar) ? 8 : 12
+      return  (this.showSidebar) ? 7 : 12
     },
     entityCols(){
-      return (this.$vuetify.breakpoint.mobile) ? 12 : 4
+      return (this.$vuetify.breakpoint.mobile) ? 12 : 5
     },
     entitySidebarFilter() {
       if (this.resultsFilters.length === 0) return

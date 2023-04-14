@@ -10,6 +10,7 @@
             solo
             flat
             outlined
+            rounded
             hide-details
             clearable
             dense

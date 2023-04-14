@@ -1,6 +1,6 @@
 <template>
   <v-card outlined v-if="data">
-    <div class="card-header px-4 pl-3 pt-2 d-flex align-start">
+    <div class="d-flex pa-3">
 
       <div>
 
@@ -38,9 +38,9 @@
 
 
       <v-spacer/>
-      <div class="d-flex align-center justify-end" style="height: 50px; width: 50px;">
-        <v-img max-height="100%"  :src="data.image_thumbnail_url" contain />
-      </div>
+<!--      <div class="d-flex align-center justify-end" style="height: 50px; width: 50px;">-->
+<!--        <v-img max-height="100%"  :src="data.image_thumbnail_url" contain />-->
+<!--      </div>-->
       <div>
         <v-btn icon @click="close">
           <v-icon>mdi-close</v-icon>

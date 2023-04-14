@@ -1,7 +1,8 @@
 <template>
-  <div
-      class="serp-filters-list d-flex align-center"
-      style="width: 100%;"
+  <v-toolbar
+      class=""
+      flat
+      dense
   >
     <year-range
         height="20px"
@@ -354,7 +355,7 @@
     </v-dialog>
 
 
-  </div>
+  </v-toolbar>
 </template>
 
 <script>
