@@ -8,7 +8,7 @@
   >
     <v-toolbar flat v-if="big" class="graph-toolbar">
       <v-toolbar-title>
-        Works published by year
+        By year
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu

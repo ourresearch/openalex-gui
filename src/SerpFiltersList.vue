@@ -1,6 +1,6 @@
 <template>
   <div class="serp-filters-list">
-    <v-card flat style="border-radius: 3px;" class="mt-12">
+    <v-card flat style="border-radius: 3px;" class="">
       <v-toolbar dense flat>
         <v-icon color="green" left>mdi-filter-outline</v-icon>
         <v-toolbar-title class="green--text font-weight-bold">
