@@ -1,6 +1,6 @@
 <template>
   <div class="serp-filters-list">
-    <v-card flat style="border-radius: 3px;" class="">
+    <v-card flat class="">
       <v-toolbar dense flat>
         <v-icon color="green" left>mdi-filter-outline</v-icon>
         <v-toolbar-title class="green--text font-weight-bold">
@@ -25,61 +25,65 @@
         <v-btn
                 icon
                 class="px-0"
-                color="green"
                 @click="clear()"
                 v-if="resultsFilters.length"
+                :disabled="singleWork"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-fab-transition>
+
+      </v-toolbar>
+<!--      <v-divider color="#4CAF50" style="opacity: .5;" />-->
+      <v-divider />
+
+
+      <div class="d-flex flex-wrap pa-2 pb-0" v-if="resultsFilters.length">
+        <serp-filters-list-chip
+                v-for="filter in resultsFilters"
+                :key="filter.key + filter.value"
+                :filter="filter"
+                :disabled="singleWork && !filter.showAsSingleEntity"
+        />
+<!--        <v-btn-->
+<!--                icon-->
+<!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
+<!--                @click="openFacetsDialog"-->
+<!--                color="green"-->
+<!--                dark-->
+<!--                large-->
+<!--                class="px-0 mr-2 mt-1"-->
+<!--        >-->
+<!--          <v-icon>mdi-plus</v-icon>-->
+<!--        </v-btn>-->
+      </div>
+      <div class="pa-3 grey--text" v-if="resultsFilters.length === 0">
+        There are no filters applied.
+
+<!--        <v-btn-->
+<!--                text-->
+<!--                @click="openFacetsDialog"-->
+<!--                class="px-2"-->
+<!--                color="green"-->
+<!--                small-->
+<!--        >-->
+<!--          Add one-->
+<!--        </v-btn>-->
+      </div>
+      <v-fab-transition>
           <v-btn
                   rounded
                   @click="openFacetsDialog"
                   color="green"
                   dark
-                  style="height: 40px; width: 40px; min-width: unset;"
+                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"
                   class="px-0 "
                   v-if="showAddFilterButton"
+                  :disabled="singleWork"
           >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
 
         </v-fab-transition>
-      </v-toolbar>
-      <v-divider color="#4CAF50" style="opacity: .5;" />
-
-
-      <div class="d-flex flex-wrap pa-3 pt-2" v-if="resultsFilters.length">
-        <serp-filters-list-chip
-                v-for="filter in resultsFilters"
-                :key="filter.key + filter.value"
-                :filter="filter"
-        />
-        <v-btn
-                icon
-                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
-                @click="openFacetsDialog"
-                color="green"
-                dark
-                large
-                class="px-0 mr-2 mt-1"
-        >
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-      </div>
-      <div class="pa-3 grey--text" v-if="resultsFilters.length === 0">
-        There are no filters applied.
-
-        <v-btn
-                text
-                @click="openFacetsDialog"
-                class="px-2"
-                color="green"
-                small
-        >
-          Add one
-        </v-btn>
-      </div>
 
 
     </v-card>
@@ -112,7 +116,9 @@ export default {
         SearchBoxNew,
         SerpFiltersListChip,
     },
-    props: {},
+    props: {
+        singleWork: Boolean,
+    },
     data() {
         return {
             searchString: "",

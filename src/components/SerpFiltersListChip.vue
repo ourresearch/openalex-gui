@@ -1,6 +1,7 @@
 <template>
   <v-chip large close
           :text-color="myTextColor"
+          :disabled="disabled"
 
           :color="myColor"
           @click:close="remove"
@@ -48,6 +49,7 @@ export default {
   components: {},
   props: {
     filter: Object,
+      disabled: Boolean,
 
   },
   data() {

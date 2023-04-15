@@ -15,8 +15,8 @@
     <v-container>
       <v-row>
         <v-col cols="12" sm="8">
-          <v-card outlined>
-            <serp-filters-list/>
+          <v-card outlined class="mb-12">
+            <serp-filters-list :single-work="singleWorkIdToShow" />
           </v-card>
           <v-card flat v-if="!singleWorkIdToShow">
             <serp-toolbar class="mt-4" :disabled="!!singleWorkIdToShow"/>
