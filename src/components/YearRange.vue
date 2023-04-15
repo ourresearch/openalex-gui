@@ -6,37 +6,84 @@
       class="ma-0 year-range-card"
       :class="{big}"
   >
-    <v-toolbar flat v-if="big" class="graph-toolbar">
+    <v-toolbar dense flat v-if="big" class="graph-toolbar">
       <v-toolbar-title>
-        By year
+        Works by year
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-menu
-      >
+      <v-btn icon small  @click="setFacetZoom('publication_year')">
+        <v-icon small>mdi-filter-outline</v-icon>
+      </v-btn>
+
+
+      <v-menu>
         <template v-slot:activator="{on}">
-          <v-btn
-              v-on="on"
-              icon
-          >
-            <v-icon>mdi-dots-vertical</v-icon>
+          <v-btn small icon v-on="on" class="mr-1">
+            <v-icon small>mdi-tray-arrow-down</v-icon>
           </v-btn>
         </template>
         <v-list dense>
-          <v-subheader>Show range:</v-subheader>
+          <v-subheader>
+            Export annual counts as:
+            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
           <v-list-item
-              v-for="option in rangeOptions"
-              :key="option"
-              @click="rangeSelected = option"
+              target="_blank"
+              :href="csvUrl"
           >
             <v-list-item-icon>
-              <v-icon v-if="option === rangeSelected">mdi-check</v-icon>
+              <v-icon>mdi-table</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Last {{ option }} years
+              Spreadsheet
             </v-list-item-title>
           </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="apiUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
+
         </v-list>
       </v-menu>
+
+
+
+
+<!--      <v-menu-->
+<!--              -->
+<!--      >-->
+<!--        <template v-slot:activator="{on}">-->
+<!--          <v-btn-->
+<!--              v-on="on"-->
+<!--              icon-->
+<!--          >-->
+<!--            <v-icon>mdi-dots-vertical</v-icon>-->
+<!--          </v-btn>-->
+<!--        </template>-->
+<!--        <v-list dense>-->
+<!--          <v-subheader>Show range:</v-subheader>-->
+<!--          <v-list-item-->
+<!--              v-for="option in rangeOptions"-->
+<!--              :key="option"-->
+<!--              @click="rangeSelected = option"-->
+<!--          >-->
+<!--            <v-list-item-icon>-->
+<!--              <v-icon v-if="option === rangeSelected">mdi-check</v-icon>-->
+<!--            </v-list-item-icon>-->
+<!--            <v-list-item-title>-->
+<!--              Last {{ option }} years-->
+<!--            </v-list-item-title>-->
+<!--          </v-list-item>-->
+<!--        </v-list>-->
+<!--      </v-menu>-->
 
     </v-toolbar>
 
