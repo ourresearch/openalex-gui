@@ -19,10 +19,10 @@
 
     <v-icon class="" style="font-size: 24px;">{{ filter.icon }}</v-icon>
     <div class="mx-3" style="line-height: 1;">
-      <div class="caption">
-        <span class="font-weight-bold" v-if="isNegated">NOT</span>
-        {{ filter.displayName }}
-      </div>
+<!--      <div class="caption">-->
+<!--        <span class="font-weight-bold" v-if="isNegated">NOT</span>-->
+<!--        {{ filter.displayName }}-->
+<!--      </div>-->
       <div class="filter-value" :class="{isNegated}">
         <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
           "{{ myDisplayValue | truncate(30) }}"

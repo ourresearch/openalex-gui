@@ -3,7 +3,7 @@
     <v-dialog
             v-model="isOpen"
             scrollable
-            fullscreen
+            :fullscreen="$vuetify.breakpoint.mobile"
     >
       <!--      $vuetify.breakpoint.mobile-->
       <v-card tile color="#fafafa">
@@ -139,6 +139,22 @@
 
 
         </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+                  @click="closeFacetsDialog"
+                  large
+                  class="low-key-button"
+                  color="green"
+                  dark
+                  style="font-size: 16px;"
+          >
+            <span>View</span>
+            <span class="font-weight-bold mx-1">{{ resultsCount.toLocaleString() }}</span>
+            <span class="">results</span>
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -186,6 +202,7 @@ export default {
             "searchFacetConfigs",
             "filtersZoom",
             "facetZoom",
+            "resultsCount",
 
         ]),
         isOpen: {

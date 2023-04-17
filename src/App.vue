@@ -34,14 +34,13 @@
               </span>
           </router-link>
           <v-btn
-                  rounded
                   @click="openFacetsDialog"
                   color="green"
                   dark
                   large
                   :disabled="singleWork"
                    v-if="!$vuetify.breakpoint.mobile"
-                  style="height: 40px; margin-top: 3px; border-radius: 50px 0 0 50px;"
+                  style="height: 40px; margin-top: 3px; "
           >
             <v-icon class="mr-2">mdi-filter-menu-outline</v-icon>
             filters
@@ -255,6 +254,7 @@ body {
   font-size: 16px;
 
   .v-application {
+    background: #F7F9FC !important;
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }

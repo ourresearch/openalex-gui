@@ -10,12 +10,10 @@
             solo
             flat
             outlined
-            rounded
             hide-details
             clearable
             dense
             prepend-inner-icon="mdi-magnify"
-            style="width: 100%; border-radius: 0 50px 50px 0;"
             placeholder="Search filters"
             @keypress.enter.stop.prevent="setSearch"
         />

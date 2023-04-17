@@ -24,7 +24,7 @@
 <!--            <serp-filters-list :single-work="singleWorkIdToShow" />-->
 <!--          </v-card>-->
           <v-card flat v-if="!singleWorkIdToShow">
-            <serp-toolbar class="mt-4" :disabled="!!singleWorkIdToShow"/>
+            <serp-toolbar  :disabled="!!singleWorkIdToShow"/>
             <serp-results-list/>
           </v-card>
         </v-col>
