@@ -14,8 +14,8 @@
 
 
     <v-container>
-      <serp-filters-list :single-work="singleWorkIdToShow" />
-      <v-row class="mt-12">
+      <serp-filters-list class="mb-3 mt-12" :single-work="singleWorkIdToShow" />
+      <v-row class="">
 <!--        <v-col cols="2">-->
 <!--          -->
 <!--        </v-col>-->

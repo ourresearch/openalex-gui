@@ -1,104 +1,105 @@
 <template>
-  <div class="serp-filters-list">
-    <v-card flat class="">
-      <v-toolbar v-if="0" dense flat>
-        <v-icon color="green" left>mdi-filter-outline</v-icon>
-        <v-toolbar-title class="green--text font-weight-bold">
-          Filters
-          <span class="caption">
+  <v-card flat class="">
+    <v-toolbar v-if="0" dense flat>
+      <v-icon color="green" left>mdi-filter-outline</v-icon>
+      <v-toolbar-title class="green--text font-weight-bold">
+        Filters
+        <span class="caption">
             ({{ resultsFilters.length }})
           </span>
-        </v-toolbar-title>
+      </v-toolbar-title>
 
-        <!--        <v-btn-->
-        <!--                fab-->
-        <!--                small-->
-        <!--                dark-->
-        <!--                color="green"-->
-        <!--                class="mr-2"-->
-        <!--                @click="openFacetsDialog"-->
-        <!--        >-->
-        <!--          <v-icon class="">mdi-filter-menu-outline</v-icon>-->
-        <!--        </v-btn>-->
-        <!--        <search-box-new class="my-2 mx-3"/>-->
-        <v-spacer/>
-        <v-btn
-                icon
-                class="px-0"
-                @click="clear()"
-                v-if="resultsFilters.length"
-                :disabled="singleWork"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+      <!--        <v-btn-->
+      <!--                fab-->
+      <!--                small-->
+      <!--                dark-->
+      <!--                color="green"-->
+      <!--                class="mr-2"-->
+      <!--                @click="openFacetsDialog"-->
+      <!--        >-->
+      <!--          <v-icon class="">mdi-filter-menu-outline</v-icon>-->
+      <!--        </v-btn>-->
+      <!--        <search-box-new class="my-2 mx-3"/>-->
+      <v-spacer/>
+      <v-btn
+              icon
+              class="px-0"
+              @click="clear()"
+              v-if="resultsFilters.length"
+              :disabled="singleWork"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
 
-      </v-toolbar>
-<!--      <v-divider color="#4CAF50" style="opacity: .5;" />-->
-<!--      <v-divider />-->
+    </v-toolbar>
+    <!--      <v-divider color="#4CAF50" style="opacity: .5;" />-->
+    <!--      <v-divider />-->
 
-
-      <div class="d-flex flex-wrap pa-2 pb-0" v-if="resultsFilters.length">
+    <div class="d-flex justify-space-between pa-2">
+      <div class="d-flex flex-wrap" v-if="resultsFilters.length">
         <serp-filters-list-chip
                 v-for="filter in resultsFilters"
                 :key="filter.key + filter.value"
                 :filter="filter"
                 :disabled="singleWork && !filter.showAsSingleEntity"
         />
-<!--        <v-btn-->
-<!--                icon-->
-<!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
-<!--                @click="openFacetsDialog"-->
-<!--                color="green"-->
-<!--                dark-->
-<!--                large-->
-<!--                class="px-0 mr-2 mt-1"-->
-<!--        >-->
-<!--          <v-icon>mdi-plus</v-icon>-->
-<!--        </v-btn>-->
+        <v-btn
+                icon
+                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
+                @click="openFacetsDialog"
+                color="green"
+                dark
+                class="px-0 mr-2 mt-1"
+        >
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
       </div>
-<!--      <div class="pa-3 grey&#45;&#45;text" v-if="resultsFilters.length === 0">-->
-<!--        There are no filters applied.-->
+      <div>
+        <v-btn
+                icon
+                class="ml-2 mr-2 mb-2"
+                @click="clear"
+                v-if="resultsFilters.length > 0"
+        >
+          <v-icon>mdi-filter-off-outline</v-icon>
+        </v-btn>
+      </div>
 
-<!--        <v-btn-->
-<!--                text-->
-<!--                @click="openFacetsDialog"-->
-<!--                class="px-2"-->
-<!--                color="green"-->
-<!--                small-->
-<!--        >-->
-<!--          Add one-->
-<!--        </v-btn>-->
-<!--      </div>-->
-<!--      <v-fab-transition>-->
-<!--          <v-btn-->
-<!--                  rounded-->
-<!--                  @click="openFacetsDialog"-->
-<!--                  color="green"-->
-<!--                  dark-->
-<!--                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"-->
-<!--                  class="px-0 "-->
-<!--                  v-if="showAddFilterButton"-->
-<!--                  :disabled="singleWork"-->
-<!--          >-->
-<!--            <v-icon>mdi-plus</v-icon>-->
-<!--          </v-btn>-->
+    </div>
 
-<!--        </v-fab-transition>-->
+    <!--      <div class="pa-3 grey&#45;&#45;text" v-if="resultsFilters.length === 0">-->
+    <!--        There are no filters applied.-->
 
+    <!--        <v-btn-->
+    <!--                text-->
+    <!--                @click="openFacetsDialog"-->
+    <!--                class="px-2"-->
+    <!--                color="green"-->
+    <!--                small-->
+    <!--        >-->
+    <!--          Add one-->
+    <!--        </v-btn>-->
+    <!--      </div>-->
+    <!--      <v-fab-transition>-->
+    <!--          <v-btn-->
+    <!--                  rounded-->
+    <!--                  @click="openFacetsDialog"-->
+    <!--                  color="green"-->
+    <!--                  dark-->
+    <!--                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"-->
+    <!--                  class="px-0 "-->
+    <!--                  v-if="showAddFilterButton"-->
+    <!--                  :disabled="singleWork"-->
+    <!--          >-->
+    <!--            <v-icon>mdi-plus</v-icon>-->
+    <!--          </v-btn>-->
 
-    </v-card>
-    <!--    <v-btn-->
-    <!--        icon-->
-    <!--        large outlined-->
-    <!--        class="ml-2 mr-2 mb-2"-->
-    <!--        @click="clear"-->
-    <!--        v-if="resultsFilters.length > 0"-->
-    <!--    >-->
-    <!--      <v-icon >mdi-filter-off-outline</v-icon>-->
-    <!--    </v-btn>-->
+    <!--        </v-fab-transition>-->
 
 
-  </div>
+  </v-card>
+
+
 </template>
 
 <script>
@@ -258,10 +259,10 @@ export default {
             this.searchString = ""
         },
         searchIsLoading(to) {
-          //   console.log("searchIsLoading change", to)
-          // if (!to){
-          //     this.showAddFilterButton = true
-          // }
+            //   console.log("searchIsLoading change", to)
+            // if (!to){
+            //     this.showAddFilterButton = true
+            // }
         },
     }
 }

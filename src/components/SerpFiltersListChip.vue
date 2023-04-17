@@ -6,7 +6,7 @@
           :color="myColor"
           @click:close="remove"
           @click="clickHandler"
-          class="mr-1 mb-2 inline-flex py-2"
+          class="ma-1 inline-flex py-2"
           style="height: unset;  border: 1px solid !important; border-radius: 3px;"
           close-icon="mdi-close"
   >
