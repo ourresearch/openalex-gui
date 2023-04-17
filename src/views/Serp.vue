@@ -1,6 +1,7 @@
 <template>
 
-  <div class="mt-12">
+  <div class="">
+
 
     <div
             v-shortkey="['meta', 'f']"
@@ -13,14 +14,15 @@
 
 
     <v-container>
-      <v-row>
+      <serp-filters-list :single-work="singleWorkIdToShow" />
+      <v-row class="mt-12">
 <!--        <v-col cols="2">-->
 <!--          -->
 <!--        </v-col>-->
         <v-col cols="12" sm="8">
-          <v-card outlined class="mb-12">
-            <serp-filters-list :single-work="singleWorkIdToShow" />
-          </v-card>
+<!--          <v-card outlined class="mb-12">-->
+<!--            <serp-filters-list :single-work="singleWorkIdToShow" />-->
+<!--          </v-card>-->
           <v-card flat v-if="!singleWorkIdToShow">
             <serp-toolbar class="mt-4" :disabled="!!singleWorkIdToShow"/>
             <serp-results-list/>

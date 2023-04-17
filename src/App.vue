@@ -11,7 +11,7 @@
 
     >
       <v-container class="d-flex pa-0 flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill">
+        <div class="d-flex flex-fill align-center">
           <router-link
               :to="{name: 'Home'}"
               class="logo-link pl-1"
@@ -33,6 +33,21 @@
               <!--                </span>-->
               </span>
           </router-link>
+          <v-btn
+                  rounded
+                  @click="openFacetsDialog"
+                  color="green"
+                  dark
+                  large
+                  :disabled="singleWork"
+                   v-if="!$vuetify.breakpoint.mobile"
+                  style="height: 40px; margin-top: 3px; border-radius: 50px 0 0 50px;"
+          >
+            <v-icon class="mr-2">mdi-filter-menu-outline</v-icon>
+            filters
+          </v-btn>
+
+
           <search-box-new
               v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
               class="d-md-block d-none mt-1 pl-2 flex-fill"
@@ -67,6 +82,17 @@
         </div>
       </v-container>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
+        <v-btn
+                  fab
+                  @click="openFacetsDialog"
+                  color="green"
+                  dark
+                  small
+                  :disabled="singleWork"
+                  class="mt-3 mr-3"
+          >
+            <v-icon class="">mdi-filter-menu-outline</v-icon>
+          </v-btn>
         <search-box-new class="pt-3" style="width: 100%;" />
       </template>
     </v-app-bar>
@@ -147,7 +173,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "setFiltersZoom"
+      "setFiltersZoom",
+        "openFacetsDialog",
     ]),
     ...mapActions([]),
   },

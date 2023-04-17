@@ -1,7 +1,7 @@
 <template>
   <div class="serp-filters-list">
     <v-card flat class="">
-      <v-toolbar dense flat>
+      <v-toolbar v-if="0" dense flat>
         <v-icon color="green" left>mdi-filter-outline</v-icon>
         <v-toolbar-title class="green--text font-weight-bold">
           Filters
@@ -34,7 +34,7 @@
 
       </v-toolbar>
 <!--      <v-divider color="#4CAF50" style="opacity: .5;" />-->
-      <v-divider />
+<!--      <v-divider />-->
 
 
       <div class="d-flex flex-wrap pa-2 pb-0" v-if="resultsFilters.length">
@@ -56,8 +56,8 @@
 <!--          <v-icon>mdi-plus</v-icon>-->
 <!--        </v-btn>-->
       </div>
-      <div class="pa-3 grey--text" v-if="resultsFilters.length === 0">
-        There are no filters applied.
+<!--      <div class="pa-3 grey&#45;&#45;text" v-if="resultsFilters.length === 0">-->
+<!--        There are no filters applied.-->
 
 <!--        <v-btn-->
 <!--                text-->
@@ -68,22 +68,22 @@
 <!--        >-->
 <!--          Add one-->
 <!--        </v-btn>-->
-      </div>
-      <v-fab-transition>
-          <v-btn
-                  rounded
-                  @click="openFacetsDialog"
-                  color="green"
-                  dark
-                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"
-                  class="px-0 "
-                  v-if="showAddFilterButton"
-                  :disabled="singleWork"
-          >
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
+<!--      </div>-->
+<!--      <v-fab-transition>-->
+<!--          <v-btn-->
+<!--                  rounded-->
+<!--                  @click="openFacetsDialog"-->
+<!--                  color="green"-->
+<!--                  dark-->
+<!--                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"-->
+<!--                  class="px-0 "-->
+<!--                  v-if="showAddFilterButton"-->
+<!--                  :disabled="singleWork"-->
+<!--          >-->
+<!--            <v-icon>mdi-plus</v-icon>-->
+<!--          </v-btn>-->
 
-        </v-fab-transition>
+<!--        </v-fab-transition>-->
 
 
     </v-card>
