@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="">
+  <v-card v-if="resultsFilters.length" flat class="">
     <v-toolbar v-if="0" dense flat>
       <v-icon color="green" left>mdi-filter-outline</v-icon>
       <v-toolbar-title class="green--text font-weight-bold">

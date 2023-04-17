@@ -19,9 +19,9 @@
         <span v-if="data.publication_year"><span v-if="data.primary_location && data.primary_location.source && data.primary_location.source.display_name">,</span> {{ data.publication_year }} </span>
 
       </div>
-      <div class="body-1" v-if="abstract && isOpenlyLicensed">
-        {{ abstract | truncate(200) }}
-      </div>
+<!--      <div class="body-1" v-if="abstract && isOpenlyLicensed">-->
+<!--        {{ abstract | truncate(200) }}-->
+<!--      </div>-->
 <!--      <concepts-list class="d-none" :concepts="data.concepts"/>-->
 
       <div class="">

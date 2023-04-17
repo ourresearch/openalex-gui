@@ -13,18 +13,19 @@
     ></div>
 
 
-    <v-container>
-      <serp-filters-list class="mb-3 mt-12" :single-work="singleWorkIdToShow" />
+    <v-container class="mt-12">
+      <serp-filters-list class="mb-3" :single-work="singleWorkIdToShow"/>
       <v-row class="">
-<!--        <v-col cols="2">-->
-<!--          -->
+<!--        <v-col cols="3">-->
+<!--          <facet-zoom-->
+<!--          />-->
 <!--        </v-col>-->
         <v-col cols="12" sm="8">
-<!--          <v-card outlined class="mb-12">-->
-<!--            <serp-filters-list :single-work="singleWorkIdToShow" />-->
-<!--          </v-card>-->
+          <!--          <v-card outlined class="mb-12">-->
+          <!--            <serp-filters-list :single-work="singleWorkIdToShow" />-->
+          <!--          </v-card>-->
           <v-card flat v-if="!singleWorkIdToShow">
-            <serp-toolbar  :disabled="!!singleWorkIdToShow"/>
+            <serp-toolbar :disabled="!!singleWorkIdToShow"/>
             <serp-results-list/>
           </v-card>
         </v-col>
@@ -44,7 +45,6 @@
 
       </div>
     </v-container>
-
 
 
     <div id="serp-hidden">

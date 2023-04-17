@@ -3,7 +3,7 @@ const facetCategories = {
         "popular",
         "author",
         "institution",
-        "location",
+        "geo",
         "source",
         "access",
         "indexed by",
@@ -13,7 +13,7 @@ const facetCategories = {
     authors: [
         "popular",
         "institution",
-        "location",
+        "geo",
         "indexed by",
         "other",
     ],
@@ -28,7 +28,7 @@ const facetCategories = {
     ],
     institutions: [
         "popular",
-        "location",
+        "geo",
         "other",
     ],
     concepts: [
@@ -227,7 +227,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
-            category: "location",
+            category: "geo",
             isCore: true,
             icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
@@ -237,7 +237,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Continent",
             valuesToShow: "mostCommon",
-            category: "location",
+            category: "geo",
             isCore: true,
             icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
@@ -246,7 +246,7 @@ const facetConfigs = function (entityType) {
             key: "authorships.institutions.is_global_south",
             entityType: "works",
             displayName: "Hemisphere",
-            category: "location",
+            category: "geo",
             isBoolean: true,
             booleanValues: ["Global North", "Global South"],
             icon: "mdi-map-marker-outline",
@@ -280,9 +280,9 @@ const facetConfigs = function (entityType) {
         // },
 
         {
-            key: "primary_location.source.id",
+            key: "locations.source.id",
             entityType: "works",
-            displayName: "Source", // actually Primary Location Source!
+            displayName: "Source",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
@@ -295,7 +295,7 @@ const facetConfigs = function (entityType) {
         },
 
         {
-            key: "primary_location.source.issn",
+            key: "locations.source.issn",
             entityType: "works",
             displayName: "ISSN",
             isEntity: true,
@@ -320,9 +320,9 @@ const facetConfigs = function (entityType) {
             icon: "mdi-book-open-outline",
         },
         {
-            key: "primary_location.source.host_organization",
+            key: "location.source.host_organization",
             entityType: "works",
-            displayName: "Publisher", // actually Primary Location Source Publisher!
+            displayName: "Publisher",
             isEntity: true,
             showInSidebar: true,
             entityId: "publishers",
@@ -488,7 +488,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
-            category: "location",
+            category: "geo",
             icon: "mdi-map-marker-outline",
         },
         {
@@ -578,7 +578,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
-            category: "location",
+            category: "geo",
             icon: "mdi-map-marker-outline"
         },
         {
