@@ -38,12 +38,11 @@
                   color="green"
                   dark
                   large
-                  :disabled="singleWork"
                    v-if="!$vuetify.breakpoint.mobile"
                   style="height: 40px; margin-top: 3px; "
           >
-            <v-icon class="mr-2">mdi-filter-menu-outline</v-icon>
-            filters
+<!--                  :disabled="singleWork"-->
+            <v-icon class="">mdi-filter-menu-outline</v-icon>
           </v-btn>
 
 

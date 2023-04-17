@@ -1,7 +1,7 @@
 <template>
   <v-list-item
           @click="setFacetZoom(config.key)"
-          style="font-size: 16px;"
+          style="font-size: 14px;"
   >
     <v-icon :color="myColor" class="mr-2">{{ config.icon }}</v-icon>
     <span v-if="myResultsFilters.length" class="font-weight-black" :class="myTextColor">

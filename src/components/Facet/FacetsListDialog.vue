@@ -149,6 +149,7 @@
                   color="green"
                   dark
                   style="font-size: 16px;"
+                  v-if="resultsCount !== null"
           >
             <span>View</span>
             <span class="font-weight-bold mx-1">{{ resultsCount.toLocaleString() }}</span>
@@ -171,6 +172,7 @@ import {filtersAsUrlStr} from "../../filterConfigs";
 import {url} from "../../url";
 import facetZoom from "./FacetZoom.vue";
 import facet from "./Facet.vue";
+import {facetsByCategory} from "../../facetConfigs";
 
 export default {
     name: "FacetsListDialog",
@@ -229,38 +231,8 @@ export default {
         },
 
         facetsByCategory() {
-            return facetCategories[this.entityType].map(categoryName => {
-                return {
-                    name: categoryName,
-                    facets: this.searchStringResults.filter(f => {
-                        return f.category === categoryName
-                    })
-                }
-            })
-                .filter(categoryObj => {
-                    return categoryObj.facets.length > 0
-                })
-        },
+            return facetsByCategory(this.entityType, this.searchString)
 
-
-        searchStringResults() {
-            const ret = this.searchFacetConfigs
-                .filter(c => {
-                    return c.displayName.toLowerCase().match(this.searchString?.toLowerCase())
-                })
-                .filter(c => {
-                    const filters = this.resultsFilters.filter(f => f.key === c.key)
-                    // hide the noOptions facets unless they have selected filters
-                    return !c.noOptions || filters.length
-                })
-
-            ret.sort((a, b) => {
-                if (a.sortToTop) return -1
-                return (a.displayName > b.displayName) ? 1 : -1
-            })
-
-
-            return ret
         },
         selectedFacetConfig() {
             if (!this.facetZoom) return

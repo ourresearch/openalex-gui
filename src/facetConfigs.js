@@ -38,7 +38,6 @@ const facetCategories = {
 }
 
 
-
 const facetConfigs = function (entityType) {
     const ret = [
 
@@ -145,9 +144,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
         // works: search
 
         {
@@ -163,9 +159,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
         // works: authors
 
         {
@@ -178,7 +171,6 @@ const facetConfigs = function (entityType) {
             category: "author",
             icon: "mdi-account-outline",
         },
-
 
 
         // works: open access
@@ -333,7 +325,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-domain",
             regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
-
 
 
         // works: intrinsic
@@ -654,6 +645,42 @@ const makeFacet = function (key, isNegated, values) {
         config: facetConfigs()[key]
 
     }
+}
+
+
+const facetsByCategory = function (entityType, searchString) {
+    const filtered = facetConfigs(entityType)
+        .filter(c => {
+            return c.entityType === entityType
+        })
+        .filter(c => {
+            return c.displayName.toLowerCase().match(searchString?.toLowerCase())
+        })
+        // .filter(c => {
+        //     const filters = this.resultsFilters.filter(f => f.key === c.key)
+        //     // hide the noOptions facets unless they have selected filters
+        //     return !c.noOptions || filters.length
+        // })
+
+    filtered.sort((a, b) => {
+        if (a.sortToTop) return -1
+        return (a.displayName > b.displayName) ? 1 : -1
+    })
+
+    return facetCategories[entityType].map(categoryName => {
+                return {
+                    name: categoryName,
+                    facets: filtered.filter(f => {
+                        return f.category === categoryName
+                    })
+                }
+            })
+                .filter(categoryObj => {
+                    return categoryObj.facets.length > 0
+                })
+
+
+
 
 }
 
@@ -663,4 +690,11 @@ export {
     facetConfigs,
     getFacetConfig,
     facetCategories,
+    facetsByCategory,
 }
+
+
+
+
+
+

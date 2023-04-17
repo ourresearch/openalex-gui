@@ -16,11 +16,10 @@
     <v-container class="mt-12">
       <serp-filters-list class="mb-3" :single-work="singleWorkIdToShow"/>
       <v-row class="">
-<!--        <v-col cols="3">-->
-<!--          <facet-zoom-->
-<!--          />-->
-<!--        </v-col>-->
-        <v-col cols="12" sm="8">
+        <v-col v-if="!$vuetify.breakpoint.mobile" sm="2">
+          <serp-facets-column />
+        </v-col>
+        <v-col cols="12" sm="6">
           <!--          <v-card outlined class="mb-12">-->
           <!--            <serp-filters-list :single-work="singleWorkIdToShow" />-->
           <!--          </v-card>-->
@@ -105,6 +104,7 @@ import SerpResultsList from "../components/Facet/SerpResultsList.vue";
 
 import Entity from "../components/Entity";
 import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
+import SerpFacetsColumn from "../components/SerpFacetsColumn.vue";
 
 export default {
     name: "Serp",
@@ -130,6 +130,7 @@ export default {
         FacetZoom,
         YearRange,
         FacetsListDialog,
+        SerpFacetsColumn,
 
     },
     props: {},
