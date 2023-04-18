@@ -10,88 +10,94 @@
         :extended="$vuetify.breakpoint.mobile"
 
     >
-      <v-container class="d-flex pa-0 flex-fill justify-space-between align-center">
-        <div class="d-flex flex-fill align-center">
-          <router-link
-              :to="{name: 'Home'}"
-              class="logo-link pl-1"
-              style="width: 180px;"
-              v-if="$route.name !== 'Home'"
-          >
-            <img
-                src="@/assets/openalex-logo-icon-black-and-white.png"
-                class="logo-icon mr-0 colorizable"
-                :style="logoStyle"
-            />
-            <span
-                class="logo-text colorizable"
-                :style="logoStyle"
+      <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
+        <v-row>
+
+          <v-col cols="8" sm="2">
+            <router-link
+                :to="{name: 'Home'}"
+                class="logo-link pl-1"
+                style="width: 180px;"
+                v-if="$route.name !== 'Home'"
             >
+              <img
+                  src="@/assets/openalex-logo-icon-black-and-white.png"
+                  class="logo-icon mr-0 colorizable"
+                  :style="logoStyle"
+              />
+              <span
+                  class="logo-text colorizable"
+                  :style="logoStyle"
+              >
                 OpenAlex
-              <!--                <span class="grey&#45;&#45;text">-->
-              <!--                  {{ selectedEntityTypeConfig.displayName }}-->
-              <!--                </span>-->
+                <!--                <span class="grey&#45;&#45;text">-->
+                <!--                  {{ selectedEntityTypeConfig.displayName }}-->
+                <!--                </span>-->
               </span>
-          </router-link>
-          <v-btn
-                  @click="openFacetsDialog"
-                  color="green"
-                  dark
-                  large
-                   v-if="!$vuetify.breakpoint.mobile"
-                  style="height: 40px; margin-top: 3px; "
-          >
-<!--                  :disabled="singleWork"-->
-            <v-icon class="">mdi-filter-menu-outline</v-icon>
-          </v-btn>
+            </router-link>
+
+          </v-col>
+          <v-col cols="6" v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'" class="d-flex">
+            <v-btn
+                @click="openFacetsDialog"
+                color="green"
+                dark
+                large
+                style="height: 39px;"
+            >
+              <!--                  :disabled="singleWork"-->
+              <v-icon class="">mdi-filter-menu-outline</v-icon>
+            </v-btn>
 
 
-          <search-box-new
-              v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
-              class="d-md-block d-none mt-1 pl-2 flex-fill"
-              style="max-width: 600px;"
-          />
+            <search-box-new
 
+                class="flex-grow-1 ml-3"
+                style="max-width: 600px;"
+            />
 
-        </div>
+          </v-col>
+          <v-col cols="4" class="d-flex">
+            <v-spacer></v-spacer>
+            <v-menu offset-y content-class="no-highlight" min-width="150">
+              <template v-slot:activator="{on}">
+                <v-btn icon color="" v-on="on">
+                  <v-icon class="">mdi-menu</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item to="/">
+                  Home
+                </v-list-item>
+                <v-list-item to="/about">
+                  About
+                </v-list-item>
+                <v-list-item to="/premium">
+                  Premium
+                </v-list-item>
+                <v-list-item to="/help">
+                  Help
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
-        <div class="">
-          <v-menu offset-y content-class="no-highlight" min-width="150">
-            <template v-slot:activator="{on}">
-              <v-btn icon color="" v-on="on">
-                <v-icon class="">mdi-menu</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item to="/">
-                Home
-              </v-list-item>
-              <v-list-item to="/about">
-                About
-              </v-list-item>
-              <v-list-item to="/premium">
-                Premium
-              </v-list-item>
-              <v-list-item to="/help">
-                Help
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </div>
+          </v-col>
+        </v-row>
+
       </v-container>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
         <v-btn
-                  fab
-                  @click="openFacetsDialog"
-                  color="green"
-                  dark
-                  small
-                  :disabled="singleWork"
-                  class="mt-3 mr-3"
-          >
-            <v-icon class="">mdi-filter-menu-outline</v-icon>
-          </v-btn>
-        <search-box-new class="pt-3" style="width: 100%;" />
+            fab
+            @click="openFacetsDialog"
+            color="green"
+            dark
+            small
+            class="mt-3 mr-3"
+        >
+<!--            :disabled="singleWork"-->
+          <v-icon class="">mdi-filter-menu-outline</v-icon>
+        </v-btn>
+        <search-box-new class="pt-3" style="width: 100%;"/>
       </template>
     </v-app-bar>
     <v-main>
@@ -172,7 +178,7 @@ export default {
   methods: {
     ...mapMutations([
       "setFiltersZoom",
-        "openFacetsDialog",
+      "openFacetsDialog",
     ]),
     ...mapActions([]),
   },
@@ -212,7 +218,7 @@ html, body {
   opacity: 0;
 }
 
-$logo-link-height: 32px;
+$logo-link-height: 38px;
 
 .logo-link {
   text-decoration: none;
@@ -254,6 +260,7 @@ body {
 
   .v-application {
     background: #F7F9FC !important;
+
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }

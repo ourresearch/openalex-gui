@@ -25,7 +25,7 @@
           <!--          </v-card>-->
           <v-card flat v-if="!singleWorkIdToShow">
             <serp-toolbar :disabled="!!singleWorkIdToShow"/>
-            <serp-results-list/>
+            <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
         <v-col cols="12" sm="4" v-if="!singleWorkIdToShow">

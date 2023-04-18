@@ -6,7 +6,6 @@
         <v-text-field
             v-on="on"
             v-model="searchString"
-            class="mr-12"
             solo
             flat
             outlined
