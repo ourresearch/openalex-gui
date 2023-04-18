@@ -358,6 +358,9 @@ export default {
             console.log("minYear", yearsToShow, minYear)
 
 
+            if (!yearsToShow.length){
+                return []
+            }
             const filters = _.range(minYear, new Date().getFullYear() + 1).map(year => {
                 return createDisplayFilter(
                     "works",
