@@ -648,7 +648,7 @@ const makeFacet = function (key, isNegated, values) {
 }
 
 
-const facetsByCategory = function (entityType, searchString) {
+const facetsByCategory = function (entityType, resultsFilters, searchString) {
     const filtered = facetConfigs(entityType)
         .filter(c => {
             return c.entityType === entityType
@@ -656,11 +656,11 @@ const facetsByCategory = function (entityType, searchString) {
         .filter(c => {
             return c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
-        // .filter(c => {
-        //     const filters = this.resultsFilters.filter(f => f.key === c.key)
-        //     // hide the noOptions facets unless they have selected filters
-        //     return !c.noOptions || filters.length
-        // })
+        .filter(c => {
+            const filters = resultsFilters.filter(f => f.key === c.key)
+            // hide the noOptions facets unless they have selected filters
+            return !c.noOptions || filters.length
+        })
 
     filtered.sort((a, b) => {
         if (a.sortToTop) return -1

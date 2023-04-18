@@ -14,7 +14,7 @@ import {
 } from "../filterConfigs";
 import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
 import {entityConfigs} from "../entityConfigs";
-
+import {facetsByCategory} from "../facetConfigs";
 
 Vue.use(Vuex)
 
@@ -512,6 +512,21 @@ export default new Vuex.Store({
         },
         filtersZoom(state) {
             return state.filtersZoom
+        },
+        facetsByCategory(state) {
+
+        // .filter(c => {
+        //     const filters = this.resultsFilters.filter(f => f.key === c.key)
+        //     // hide the noOptions facets unless they have selected filters
+        //     return !c.noOptions || filters.length
+        // })
+
+
+            return function(searchString) {
+                return facetsByCategory(state.entityType, this.resultsFilters, searchString)
+
+            }
+
         },
 
     },

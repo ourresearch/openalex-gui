@@ -12,7 +12,7 @@
     </v-toolbar>
     <v-list dense nav>
       <template
-              v-for="facetCategory in facetsByCategory"
+              v-for="facetCategory in facetsByCategory()"
       >
         <v-subheader :key="'subheader'+facetCategory.name">
           {{ facetCategory.name }}
@@ -52,6 +52,7 @@ export default {
         ...mapGetters([
             "resultsFilters",
             "entityType",
+            "facetsByCategory",
         ]),
         isOpen: {
             get() {
@@ -62,9 +63,6 @@ export default {
                 if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
                 this.$store.state.showFiltersDrawer = val
             },
-        },
-        facetsByCategory() {
-            return facetsByCategory(this.entityType, "")
         },
     },
 

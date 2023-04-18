@@ -94,7 +94,7 @@
                       cols="12"
                       sm="6"
                       md="3"
-                      v-for="facetCategory in facetsByCategory"
+                      v-for="facetCategory in facetsByCategory(searchString)"
                       :key="'card' + facetCategory.name"
                       class="my-1"
 
@@ -184,7 +184,6 @@ export default {
     data() {
         return {
             searchString: "",
-            facetZoomSearchString: "",
             selectedFilters: [],
             dialogs: {
                 facetsDrawer: false,
@@ -205,6 +204,7 @@ export default {
             "filtersZoom",
             "facetZoom",
             "resultsCount",
+            "facetsByCategory",
 
         ]),
         isOpen: {
@@ -228,11 +228,6 @@ export default {
             } else {
                 return "Search filter types"
             }
-        },
-
-        facetsByCategory() {
-            return facetsByCategory(this.entityType, this.searchString)
-
         },
         selectedFacetConfig() {
             if (!this.facetZoom) return
