@@ -17,8 +17,9 @@ const openAlexIdRegex = "[wWiIvVsSaPpFfAcC]\\d+" // double-backslash to escape i
 const routes = [
     {
         path: '/',
+        redirect: {name: "Serp", params: {entityType: "works"}},
         name: 'Home',
-        component: Home
+        // component: Home
     },
     {
         path: `/:entityType(works|authors|sources|publishers|funders|institutions|concepts)`,
