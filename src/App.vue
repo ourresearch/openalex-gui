@@ -212,7 +212,7 @@ html, body {
   opacity: 0;
 }
 
-$logo-link-height: 40px;
+$logo-link-height: 32px;
 
 .logo-link {
   text-decoration: none;
