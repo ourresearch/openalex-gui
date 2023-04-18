@@ -151,13 +151,9 @@
 
     </div>
 
-
-    <div class="mt-5">
-      <!--        <a @click="viewIncomingCitations">view</a>-->
-      <!--      <div><span class="font-weight-bold">{{ data.referenced_works.length }}</span> outgoing references</div>-->
-      <!--      <div><span class="font-weight-bold">{{ data.related_works.length }}</span> related works</div>-->
-
-    </div>
+  <pre>
+    {{ data.locations }}
+  </pre>
 
   </div>
 

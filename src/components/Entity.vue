@@ -186,8 +186,9 @@
       <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
       <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
-    </v-card-text>
+      <entity-zoom-ids-row :ids="data.ids" />
 
+    </v-card-text>
 
   </v-card>
 
@@ -196,6 +197,7 @@
 
 <script>
 import {url} from "../url";
+import EntityZoomIdsRow from "./EntityZoomIdsRow.vue";
 
 import EntityWork from "./EntityWork";
 import EntityAuthor from "./EntityAuthor";
@@ -245,6 +247,8 @@ export default {
         EntityPublisher,
         EntityConcept,
         EntityIcon,
+
+        EntityZoomIdsRow,
     },
     props: {
         data: Object,
