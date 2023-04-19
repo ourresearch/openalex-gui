@@ -154,19 +154,6 @@
 <!--      <v-expansion-panel>-->
 <!--      <v-divider />-->
 <!--        <v-expansion-panel-header>-->
-<!--          External IDs-->
-<!--        </v-expansion-panel-header>-->
-<!--        <v-expansion-panel-content>-->
-<!--          list of IDs goes here.-->
-<!--        </v-expansion-panel-content>-->
-<!--      <v-divider />-->
-<!--      </v-expansion-panel>-->
-
-<!--    </v-expansion-panels>-->
-<!--    <v-expansion-panels flat accordion multiple>-->
-<!--      <v-expansion-panel>-->
-<!--      <v-divider />-->
-<!--        <v-expansion-panel-header>-->
 <!--         Second set of panels-->
 <!--        </v-expansion-panel-header>-->
 <!--        <v-expansion-panel-content>-->
@@ -198,7 +185,6 @@ import {unravel, sleep} from "../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
 import LinkToEntity from "./LinkToEntity";
-import EntityZoomIdsRow from "./EntityZoomIdsRow";
 // import {url} from "../url";
 
 export default {
@@ -209,7 +195,6 @@ export default {
         Authorship,
         EntityIcon,
         LinkToSearch,
-        EntityZoomIdsRow,
     },
     props: {
         data: Object,

@@ -53,7 +53,6 @@
           :cited-by-count="data.cited_by_count"
           include-impact-factor
       />
-      <entity-zoom-ids-row :ids="data.ids"/>
     </div>
 
 
@@ -68,7 +67,6 @@ import LinkToSearch from "./LinkToSearch";
 import LinkToEntity from "./LinkToEntity";
 import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
-import EntityZoomIdsRow from "./EntityZoomIdsRow";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 
 export default {
@@ -78,7 +76,6 @@ export default {
     LinkToEntity,
     EntityIcon,
     ConceptsList,
-    EntityZoomIdsRow,
     EntitySummaryStats,
   },
   props: {

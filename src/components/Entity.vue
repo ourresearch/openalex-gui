@@ -186,9 +186,13 @@
       <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
       <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
-<!--      <entity-zoom-ids-row :ids="data.ids" />-->
 
     </v-card-text>
+
+    <v-expansion-panels flat accordion multiple>
+            <id-list :data="data.ids"></id-list>
+
+    </v-expansion-panels>
 
   </v-card>
 
@@ -197,7 +201,6 @@
 
 <script>
 import {url} from "../url";
-import EntityZoomIdsRow from "./EntityZoomIdsRow.vue";
 
 import EntityWork from "./EntityWork";
 import EntityAuthor from "./EntityAuthor";
@@ -214,6 +217,7 @@ import {createDisplayFilter, createSimpleFilter} from "../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "../api";
+import IdList from "./IdList.vue";
 
 const getWorkFulltextUrl = function (data) {
     if (data.open_access.oa_url) return data.open_access.oa_url
@@ -240,6 +244,7 @@ export default {
         return {title: this.data?.display_name}
     },
     components: {
+        IdList,
         EntityWork,
         EntityAuthor,
         EntityVenue,
@@ -248,7 +253,6 @@ export default {
         EntityConcept,
         EntityIcon,
 
-        EntityZoomIdsRow,
     },
     props: {
         data: Object,

@@ -304,6 +304,9 @@ body {
 
 .v-list-item__icon {
 }
+.v-list--two-line.v-list--dense .v-list-item {
+  min-height: unset;
+}
 
 
 .site-footer {

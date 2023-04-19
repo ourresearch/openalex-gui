@@ -355,7 +355,6 @@ export default {
 
 
             const minYear = (this.minYearFilter) ? this.minYearFilter : Math.min(...yearsToShow)
-            console.log("minYear", yearsToShow, minYear)
 
 
             if (!yearsToShow.length){
