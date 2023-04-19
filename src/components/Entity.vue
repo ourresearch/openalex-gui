@@ -186,7 +186,7 @@
       <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
       <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
-      <entity-zoom-ids-row :ids="data.ids" />
+<!--      <entity-zoom-ids-row :ids="data.ids" />-->
 
     </v-card-text>
 

@@ -146,14 +146,40 @@
           />
         </span>
       </div>
-      <entity-zoom-ids-row :ids="data.ids"/>
 
 
     </div>
 
-  <pre>
-    {{ data.locations }}
-  </pre>
+<!--    <v-expansion-panels flat accordion multiple>-->
+<!--      <v-expansion-panel>-->
+<!--      <v-divider />-->
+<!--        <v-expansion-panel-header>-->
+<!--          External IDs-->
+<!--        </v-expansion-panel-header>-->
+<!--        <v-expansion-panel-content>-->
+<!--          list of IDs goes here.-->
+<!--        </v-expansion-panel-content>-->
+<!--      <v-divider />-->
+<!--      </v-expansion-panel>-->
+
+<!--    </v-expansion-panels>-->
+<!--    <v-expansion-panels flat accordion multiple>-->
+<!--      <v-expansion-panel>-->
+<!--      <v-divider />-->
+<!--        <v-expansion-panel-header>-->
+<!--         Second set of panels-->
+<!--        </v-expansion-panel-header>-->
+<!--        <v-expansion-panel-content>-->
+<!--          other stuff goes here-->
+<!--        </v-expansion-panel-content>-->
+<!--      <v-divider />-->
+<!--      </v-expansion-panel>-->
+
+<!--    </v-expansion-panels>-->
+
+<!--  <pre>-->
+<!--    {{ data.locations }}-->
+<!--  </pre>-->
 
   </div>
 
