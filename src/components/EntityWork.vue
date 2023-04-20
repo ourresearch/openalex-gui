@@ -93,15 +93,6 @@
         </div>
 
 
-        <!--    Abstract -->
-        <div v-if="abstract">
-        <span class="font-weight-bold abstract">
-          <span>Abstract: </span>
-        </span>
-          <span class="body-1">
-          {{ abstract }}
-        </span>
-        </div>
 
         <!--    Cited By  -->
         <div class="mt-3">
@@ -153,6 +144,17 @@
 
 
     <v-expansion-panels flat accordion multiple>
+      <v-expansion-panel v-if="abstract">
+        <v-divider />
+        <v-expansion-panel-header>
+          Abstract
+        </v-expansion-panel-header>
+        <v-expansion-panel-content class="body-1">
+          {{ abstract }}
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+
+
       <v-expansion-panel>
         <v-divider/>
         <v-expansion-panel-header>
@@ -165,6 +167,7 @@
                     :key="i"
                     three-line
                     :href="loc.landing_page_url" target="_blank"
+                    class="pl-0"
             >
 
               <v-list-item-icon>

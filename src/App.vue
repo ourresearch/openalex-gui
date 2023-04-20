@@ -322,7 +322,7 @@ body {
   }
 }
 .v-expansion-panel-content__wrap {
-    padding: 0 16px 16px;
+    //padding: 0 16px 16px;
 }
 
 .capitalize-first-letter:first-letter {

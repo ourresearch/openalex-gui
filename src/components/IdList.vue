@@ -14,6 +14,7 @@
                 v-for="(idObj, i) in liveIds"
                 :key="idObj.namespace + idObj.url"
                 @click="copyToClipboard(idObj.id)"
+                class="pl-0"
         >
           <v-list-item-content>
             <v-list-item-title>
