@@ -59,7 +59,7 @@
       </div>
 
     </div>
-    <div class="px-4 pt-3 pb-1 d-flex">
+    <div class="px-2 pt-3 pb-1 d-flex">
       <!--        just for works-->
       <template v-if="myEntityType==='works'">
         <div>
@@ -161,16 +161,43 @@
 
 
       <v-spacer/>
-      <v-btn icon :href="apiUrl" target="_blank">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
-      <v-btn
-          class="mt-1 low-key-button" text small
-          :href="apiUrl + '.bib'" target="_blank"
-          v-if="myEntityType==='works'"
-      >
-        BibTeX
-      </v-btn>
+      <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn  icon v-on="on" class="mr-1">
+            <v-icon >mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-subheader>
+            Export as:
+            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
+          </v-subheader>
+          <v-divider></v-divider>
+          <v-list-item
+              :href="apiUrl + '.bib'" target="_blank"
+              v-if="myEntityType==='works'"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-file-document-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              BibTeX (for reference managers)
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              target="_blank"
+              :href="apiUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
 
 
     </div>
@@ -202,7 +229,7 @@
               :cited-by-count="data.cited_by_count"
               include-impact-factor
           />
-<!--              :include-impact-factor="['sources', 'publishers'].includes(myEntityType)"-->
+          <!--              :include-impact-factor="['sources', 'publishers'].includes(myEntityType)"-->
         </v-expansion-panel-content>
       </v-expansion-panel>
       <id-list :data="data.ids"></id-list>
