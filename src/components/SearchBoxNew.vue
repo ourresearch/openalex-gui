@@ -53,7 +53,7 @@
           <v-list-item-content>
             <v-list-item-title>
               <div class="text-wrap">
-              {{ suggestion.displayValue }}
+                {{ suggestion.displayValue }}
 
               </div>
             </v-list-item-title>
@@ -62,7 +62,7 @@
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <v-divider />
+        <v-divider/>
         <v-list-item
             @click.stop="clickViewAllFilters"
             @keydown.enter.prevent="clickViewAllFilters"
@@ -93,7 +93,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import axios from "axios";
 import {createSimpleFilter, createDisplayFilter} from "@/filterConfigs";
-import {entityConfigs} from "@/entityConfigs";
+import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {url} from "@/url";
 
 export default {
@@ -136,19 +136,24 @@ export default {
       if (!this.searchString) return []
 
       const resp = await axios.get(this.autocompleteUrl)
+      return resp.data.results
+          .filter(r => r.entity_type !== 'funder')
+          .map(r => {
 
-      return resp.data.results.map(r => {
-        const pluralEntityName = this.$pluralize(r.entity_type, 2)
-        const myEntityConfig = entityConfigs[pluralEntityName]
+            const filterKey = (r.filter_key) ?
+                r.filter_key :
+                getEntityConfig(r.entity_type)?.filterKey
 
-        return createDisplayFilter(
-            "works",
-            myEntityConfig.filterKey,
-            r.id,
-            false,
-            r.display_name,
-        )
-      }).slice(0, 4)
+            const ret = createDisplayFilter(
+                "works",
+                filterKey,
+                r.id,
+                false,
+                r.display_name,
+            )
+
+            return ret
+          }).slice(0, 4)
 
     },
   },
@@ -156,8 +161,8 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
-        "setFacetZoom",
-        "openFacetsDialog",
+      "setFacetZoom",
+      "openFacetsDialog",
     ]),
     ...mapActions([]),
     setFilter(filter) {
@@ -180,10 +185,10 @@ export default {
       // console.log("setSearch")
       // url.setSearch(this.entityType, this.searchString)
     },
-      clickViewAllFilters(){
-        this.openFacetsDialog()
-          this.searchString = ""
-      }
+    clickViewAllFilters() {
+      this.openFacetsDialog()
+      this.searchString = ""
+    }
 
 
   },
@@ -193,7 +198,7 @@ export default {
   },
   watch: {
     '$store.state.facetsListDialogIsOpen'(to, from) {
-        this.searchString = ""
+      this.searchString = ""
     }
   }
 }

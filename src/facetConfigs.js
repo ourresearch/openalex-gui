@@ -633,7 +633,12 @@ const getFacetConfigFromPid = function (pid) {
 
 const getFacetConfig = function (entityType, key) {
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
-    if (!myFacetConfig) throw(`openAlex error: getFacetConfig: no facet found for ${entityType} filter "${key}"`)
+    if (!myFacetConfig) {
+        const msg = `openAlex error: getFacetConfig: no facet found for ${entityType} filter "${key}"`
+        console.log(msg)
+        throw new Error(msg)
+
+    }
     return myFacetConfig
 }
 
@@ -654,6 +659,7 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
             return c.entityType === entityType
         })
         .filter(c => {
+
             return c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
         .filter(c => {

@@ -645,6 +645,10 @@ export default {
         searchString: async function (newVal, oldVal) {
             this.fetchFilters()
         },
+      facetZoom: function(){
+            this.fetchFilters()
+
+      }
     }
 }
 </script>

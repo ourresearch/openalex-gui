@@ -62,7 +62,6 @@ const mergeFacetFilters = function (filters) {
     })
 
     const ret = [positiveFiltersToString, ...negativeFiltersToStrings].filter(x => !!x)
-    // console.log("mergeFacetFilters done", filters[0].key, ret)
     return ret
 }
 
@@ -107,6 +106,7 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function ( entityType, key, value, isNegated) {
+
     const displayValue = createFilterValue(value)
     const nullValues = ["unknown", "null"]
     const apiValue = (nullValues.includes(displayValue)) ? null : displayValue

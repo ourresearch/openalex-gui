@@ -64,38 +64,6 @@
       <template v-if="myEntityType==='works'">
         <div>
 
-          <!--              Green open access-->
-          <!--            <v-menu-->
-          <!--                v-if="isGreenOa"-->
-          <!--            >-->
-          <!--              <template v-slot:activator="{on, attrs}">-->
-          <!--                <v-btn-->
-          <!--                    color="primary"-->
-          <!--                    v-bind="attrs"-->
-          <!--                    v-on="on"-->
-          <!--                >-->
-          <!--                  Open Access-->
-          <!--                  <v-icon small right>mdi-menu-down</v-icon>-->
-          <!--                </v-btn>-->
-          <!--              </template>-->
-          <!--              <v-list-->
-          <!--              >-->
-          <!--                <v-list-item :href="oaUrl" target="_blank" color="primary" :input-value="true">-->
-          <!--                  <v-list-item-title>-->
-          <!--                    <span class="font-weight-bold">Open Access</span> via repository-->
-          <!--                  </v-list-item-title>-->
-          <!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
-
-          <!--                </v-list-item>-->
-          <!--                <v-list-item target="_blank" :href="data.primary_location.source.url">-->
-          <!--                  <v-list-item-title>-->
-          <!--                    <span class="font-weight-bold">Paywalled</span> at publisher-->
-          <!--                  </v-list-item-title>-->
-          <!--                  <v-icon right small>mdi-open-in-new</v-icon>-->
-
-          <!--                </v-list-item>-->
-          <!--              </v-list>-->
-          <!--            </v-menu>-->
 
 
 
@@ -172,11 +140,11 @@
                   v-if="linkoutUrl"
                   color="primary"
                   rounded
-                  outlined
                   small
+                  text
           >
+            <v-icon left small>mdi-open-in-new</v-icon>
             {{ linkoutButtonText }}
-            <v-icon right small>mdi-open-in-new</v-icon>
           </v-btn>
         </div>
       </template>

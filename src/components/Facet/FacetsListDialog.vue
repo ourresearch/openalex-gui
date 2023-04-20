@@ -6,6 +6,7 @@
             :fullscreen="$vuetify.breakpoint.mobile"
     >
       <!--      $vuetify.breakpoint.mobile-->
+
       <v-card tile color="#fafafa">
         <v-toolbar
                 class="flex-grow-0"
@@ -36,9 +37,10 @@
 
           <v-spacer/>
 
+
           <v-btn
                   icon
-                  @click="$store.state.facetsListDialogIsOpen = false"
+                  @click="isOpen = false"
           >
             <v-icon icon>mdi-close</v-icon>
           </v-btn>
@@ -215,6 +217,7 @@ export default {
                 if (val) {
                     this.openFacetsDialog()
                 } else {
+                  console.log("closeFacetsDialog")
                     this.closeFacetsDialog()
                 }
             },

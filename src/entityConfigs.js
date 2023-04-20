@@ -42,8 +42,8 @@ const entityConfigs = {
         descr: "Journals, conferences, and repositories",
         eg: "The New England Journal of Medicine",
         placeholder: "Search academic journals & repositories",
-        filterName: "primary_location.source",
-        filterKey: "primary_location.source.id",
+        filterName: "locations.source",
+        filterKey: "locations.source.id",
     },
     publishers: {
         emoji: "📚",
@@ -56,8 +56,8 @@ const entityConfigs = {
         descr: "Company hosting journals",
         eg: "Elsevier",
         placeholder: "Search academic publishers",
-        filterName: "primary_location.source.host_organization",
-        filterKey: "primary_location.source.host_organization",
+        filterName: "locations.source.host_organization",
+        filterKey: "locations.source.host_organization",
     },
     institutions: {
         emoji: "🏫",
@@ -85,10 +85,15 @@ const entityConfigs = {
         filterName: "concepts",
         filterKey: "concepts.id",
     },
+}
 
-
+const getEntityConfig = function(name) {
+    return Object.values(entityConfigs).find(c => {
+        return c.nameSingular === name || c.displayName === name
+    })
 }
 
 export {
     entityConfigs,
+    getEntityConfig,
 }
