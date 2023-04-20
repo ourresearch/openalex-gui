@@ -1,13 +1,13 @@
 <template>
   <v-app>
     <v-app-bar
-        app
-        color="white"
-        class="pl-0"
-        :class="{mobile: $vuetify.breakpoint.mobile}"
-        absolute
-        flat
-        :extended="$vuetify.breakpoint.mobile"
+            app
+            color="white"
+            class="pl-0"
+            :class="{mobile: $vuetify.breakpoint.mobile}"
+            absolute
+            flat
+            :extended="$vuetify.breakpoint.mobile"
 
     >
       <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
@@ -15,19 +15,19 @@
 
           <v-col cols="8" sm="2">
             <router-link
-                :to="{name: 'Home'}"
-                class="logo-link pl-1"
-                style="width: 180px;"
-                v-if="$route.name !== 'Home'"
+                    :to="{name: 'Home'}"
+                    class="logo-link pl-1"
+                    style="width: 180px;"
+                    v-if="$route.name !== 'Home'"
             >
               <img
-                  src="@/assets/openalex-logo-icon-black-and-white.png"
-                  class="logo-icon mr-0 colorizable"
-                  :style="logoStyle"
+                      src="@/assets/openalex-logo-icon-black-and-white.png"
+                      class="logo-icon mr-0 colorizable"
+                      :style="logoStyle"
               />
               <span
-                  class="logo-text colorizable"
-                  :style="logoStyle"
+                      class="logo-text colorizable"
+                      :style="logoStyle"
               >
                 OpenAlex
                 <!--                <span class="grey&#45;&#45;text">-->
@@ -38,12 +38,13 @@
 
           </v-col>
           <v-col cols="6" v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'" class="d-flex">
+
             <v-btn
-                @click="openFacetsDialog"
-                color="green"
-                dark
-                large
-                style="height: 39px;"
+                    @click="openFacetsDialog"
+                    color="green"
+                    dark
+                    large
+                    style="height: 39px;"
             >
               <!--                  :disabled="singleWork"-->
               <v-icon class="">mdi-filter-menu-outline</v-icon>
@@ -52,13 +53,21 @@
 
             <search-box-new
 
-                class="flex-grow-1 ml-3"
-                style="max-width: 600px;"
+                    class="flex-grow-1 ml-3"
+                    style="max-width: 600px;"
             />
 
           </v-col>
           <v-col cols="4" class="d-flex">
             <v-spacer></v-spacer>
+            <v-btn
+                    icon
+                    target="_blank"
+                    @click="copyToClipboard('https://staging.openalex.org' + $route.fullPath)"
+                    v-if="isLocalHost"
+            >
+              <v-icon color="primary">mdi-share-variant-outline</v-icon>
+            </v-btn>
             <v-menu offset-y content-class="no-highlight" min-width="150">
               <template v-slot:activator="{on}">
                 <v-btn icon color="" v-on="on">
@@ -87,14 +96,14 @@
       </v-container>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
         <v-btn
-            fab
-            @click="openFacetsDialog"
-            color="green"
-            dark
-            small
-            class="mt-3 mr-3"
+                fab
+                @click="openFacetsDialog"
+                color="green"
+                dark
+                small
+                class="mt-3 mr-3"
         >
-<!--            :disabled="singleWork"-->
+          <!--            :disabled="singleWork"-->
           <v-icon class="">mdi-filter-menu-outline</v-icon>
         </v-btn>
         <search-box-new class="pt-3" style="width: 100%;"/>
@@ -104,11 +113,11 @@
       <router-view></router-view>
     </v-main>
     <v-footer
-        class="py-10 site-footer"
-        style="margin-top: 150px;"
-        :style="{paddingRight: 0}"
-        dark
-        color="#363636"
+            class="py-10 site-footer"
+            style="margin-top: 150px;"
+            :style="{paddingRight: 0}"
+            dark
+            color="#363636"
     >
       <v-container>
         <v-row>
@@ -129,8 +138,8 @@
           </v-col>
           <v-col cols="12" sm="4" class="body-2">
             OurResearch is supported in part by <a
-              style="text-decoration: underline;"
-              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
+                  style="text-decoration: underline;"
+                  href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
             charitable fund of Lisbet Rausing and Peter Baldwin</a>.
           </v-col>
         </v-row>
@@ -149,44 +158,52 @@ import SearchBoxNew from "@/components/SearchBoxNew.vue";
 
 
 export default {
-  name: 'App',
-  metaInfo: {
-    titleTemplate: '%s | OpenAlex',
-    link: [],
+    name: 'App',
+    metaInfo: {
+        titleTemplate: '%s | OpenAlex',
+        link: [],
 
-    meta: []
-  },
-  components: {
-    SearchBoxNew,
-  },
-
-
-  data: function () {
-    return {}
-  },
-  computed: {
-    ...mapGetters([
-      "searchFacetConfigs",
-      "resultsFilters",
-    ]),
-
-    logoStyle() {
-      return "opacity: .7;"
-      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
+        meta: []
     },
-  },
-  methods: {
-    ...mapMutations([
-      "setFiltersZoom",
-      "openFacetsDialog",
-    ]),
-    ...mapActions([]),
-  },
-  async mounted() {
-    // await sleep(2000)
-    // console.log("disable body scroll")
-    // bodyScrollLock.disableBodyScroll()
-  }
+    components: {
+        SearchBoxNew,
+    },
+
+
+    data: function () {
+        return {}
+    },
+    computed: {
+        ...mapGetters([
+            "searchFacetConfigs",
+            "resultsFilters",
+        ]),
+
+        logoStyle() {
+            return "opacity: .7;"
+            return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
+        },
+        isLocalHost() {
+            return window.location.hostname === "localhost"
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "setFiltersZoom",
+            "openFacetsDialog",
+            "snackbar",
+        ]),
+        ...mapActions([]),
+        async copyToClipboard(content) {
+            await navigator.clipboard.writeText(content);
+            this.snackbar("Copied to clipboard.")
+        },
+    },
+    async mounted() {
+        // await sleep(2000)
+        // console.log("disable body scroll")
+        // bodyScrollLock.disableBodyScroll()
+    }
 };
 </script>
 <style lang="scss">
@@ -304,6 +321,7 @@ body {
 
 .v-list-item__icon {
 }
+
 .v-list--two-line.v-list--dense .v-list-item {
   min-height: unset;
 }
@@ -321,8 +339,9 @@ body {
     }
   }
 }
+
 .v-expansion-panel-content__wrap {
-    //padding: 0 16px 16px;
+  //padding: 0 16px 16px;
 }
 
 .capitalize-first-letter:first-letter {
