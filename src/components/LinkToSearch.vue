@@ -5,7 +5,7 @@
         style="display: inline-block; white-space: nowrap;"
         class="text-decoration-none"
         v-if="count"
-    ><strong>{{ count.toLocaleString() }}</strong> {{ entityType }}</router-link>
+    ><span>{{ count | millify }}</span> <!--{{ entityType }}--></router-link>
     <span
         style="display: inline-block; white-space: nowrap;"
         class="grey--text"

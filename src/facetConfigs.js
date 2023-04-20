@@ -312,7 +312,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-book-open-outline",
         },
         {
-            key: "location.source.host_organization",
+            key: "locations.source.host_organization",
             entityType: "works",
             displayName: "Publisher",
             isEntity: true,

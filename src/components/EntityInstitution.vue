@@ -1,11 +1,10 @@
 <template>
-  <div>
-    <div>
-      <div class="data-row">
+  <div class="pa-3">
+    <div class="data-row">
         <span class="font-weight-bold">
           Location:
         </span>
-        <span>
+      <span>
           <flag
               :squared="false"
               :iso="data.country_code"
@@ -16,52 +15,45 @@
           {{ locationStr }}
           <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none">(map)</a>
         </span>
-      </div>
-      <div class="data-row" v-if="data.x_concepts.length">
+    </div>
+    <div class="data-row" v-if="data.x_concepts.length">
         <span class="font-weight-bold">
           Key research areas:
         </span>
-        <span>
+      <span>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
         </span>
-      </div>
-
-
-      <!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
-      <!--        <span class="font-weight-bold">-->
-      <!--          Associated:-->
-      <!--        </span>-->
-      <!--        <span>-->
-      <!--            <span-->
-      <!--                v-for="institution in data.associated_institutions"-->
-      <!--                :key="institution.id"-->
-      <!--            >-->
-      <!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
-      <!--                {{ institution.display_name }}-->
-      <!--              </a> ({{ institution.relationship }})-->
-      <!--            </span>-->
-      <!--        </span>-->
     </div>
 
-    <div class="data-row">
-        <span class="font-weight-bold pt-6">
-          Works:
-        </span>
-      <span class="pt-6">
-          <link-to-search
-              :count="data.works_count"
-              filter-key="authorships.institutions.id"
-              :filter-value="data.id"
-              entity-type="works"
-          />
-        </span>
-    </div>
 
-    <entity-summary-stats
-        :data="data.summary_stats"
-        :cited-by-count="data.cited_by_count"
-        include-impact-factor
-    />
+    <!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
+    <!--        <span class="font-weight-bold">-->
+    <!--          Associated:-->
+    <!--        </span>-->
+    <!--        <span>-->
+    <!--            <span-->
+    <!--                v-for="institution in data.associated_institutions"-->
+    <!--                :key="institution.id"-->
+    <!--            >-->
+    <!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
+    <!--                {{ institution.display_name }}-->
+    <!--              </a> ({{ institution.relationship }})-->
+    <!--            </span>-->
+    <!--        </span>-->
+
+<!--    <div class="data-row">-->
+<!--        <span class="font-weight-bold pt-6">-->
+<!--          Works:-->
+<!--        </span>-->
+<!--      <span class="pt-6">-->
+<!--          <link-to-search-->
+<!--              :count="data.works_count"-->
+<!--              filter-key="authorships.institutions.id"-->
+<!--              :filter-value="data.id"-->
+<!--              entity-type="works"-->
+<!--          />-->
+<!--        </span>-->
+<!--    </div>-->
 
 
   </div>

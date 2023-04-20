@@ -1,6 +1,8 @@
 <template>
-  <div>
-    <div class="data-row mt-3">
+  <v-card flat>
+
+  <v-card-text class="pa-0" style="font-size: 16px;">
+    <div class="data-row">
         <span class="font-weight-bold">
           Cited by:
         </span>
@@ -32,7 +34,8 @@
           {{ ((data["2yr_mean_citedness"]) ? data["2yr_mean_citedness"] : 0) | toPrecision(2) }}
         </span>
     </div>
-  </div>
+  </v-card-text>
+  </v-card>
 </template>
 
 <script>

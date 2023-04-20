@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <div>
+  <div class="pa-3">
 
 <!--      <div class="data-row" v-if="data.host_organization_name">-->
 <!--        <span class="font-weight-bold">-->
@@ -37,14 +36,7 @@
 
 
 
-      <entity-summary-stats
-          :data="data.summary_stats"
-          :cited-by-count="data.cited_by_count"
-          include-impact-factor
-      />
 
-
-    </div>
 
 
   </div>

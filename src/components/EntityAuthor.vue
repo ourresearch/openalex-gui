@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <div>
+    <div class="pa-3">
       <div class="data-row" v-if="data.last_known_institution">
         <span class="font-weight-bold">
           Institution:
@@ -12,7 +11,7 @@
         </span>
       </div>
 
-      <div class="data-row">
+      <div class="data-row" v-if="data.x_concepts.length">
         <span class="font-weight-bold">
           Research interests:
         </span>
@@ -20,24 +19,7 @@
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
         </span>
       </div>
-
-
-
-
-      <entity-summary-stats
-          :data="data.summary_stats"
-          :cited-by-count="data.cited_by_count"
-      />
-
     </div>
-
-
-    <!--    <id-list :data="data.ids"/>-->
-
-
-  </div>
-
-
 </template>
 
 

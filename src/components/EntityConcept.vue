@@ -1,45 +1,33 @@
 <template>
-  <div>
-    <div>
-      <div class="data-row" v-if="data.description">
+  <div class="pa-3">
+    <div class="data-row" v-if="data.description">
         <span class="font-weight-bold">
           About:
         </span>
-        <span class="description">
+      <span class="description">
           {{ data.description }}.
         </span>
-      </div>
+    </div>
 
-      <div class="data-row" v-if="parentConcepts.length">
+    <div class="data-row" v-if="parentConcepts.length">
         <span class="font-weight-bold">
-          {{"Parent" | pluralize(parentConcepts.length)}}:
+          {{ "Parent" | pluralize(parentConcepts.length) }}:
         </span>
-        <span>
+      <span>
           <concepts-list :concepts="parentConcepts" :is-clickable="true"/>
         </span>
-      </div>
+    </div>
 
 
-      <div class="data-row" v-if="data.related_concepts.length">
+    <div class="data-row" v-if="data.related_concepts.length">
         <span class="font-weight-bold">
           Related:
         </span>
-        <span>
+      <span>
           <concepts-list :concepts="data.related_concepts" :is-clickable="true"/>
         </span>
-      </div>
-
-
-
-      <entity-summary-stats
-          :data="data.summary_stats"
-          :cited-by-count="data.cited_by_count"
-          include-impact-factor
-      />
-
-
-
     </div>
+
 
 
   </div>
@@ -87,7 +75,7 @@ export default {
       ]
       return chars[this.data.level]
     },
-    parentConcepts(){
+    parentConcepts() {
       if (!this.data.ancestors.length) return []
       return this.data.ancestors.filter(c => {
         return c.level === this.data.level - 1
@@ -110,6 +98,7 @@ export default {
     text-transform: capitalize;
   }
 }
+
 table {
   span.font-weight-bold {
     white-space: nowrap;
@@ -118,6 +107,7 @@ table {
     font-size: 15px;
     padding-right: 5px;
   }
+
   span {
     vertical-align: top;
   }

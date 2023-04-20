@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <div>
+    <div class="pa-3">
       <div class="data-row" v-if="data.host_organization_name">
         <span class="font-weight-bold">
           Publisher:
@@ -30,7 +29,7 @@
         </span>
         <span>
           <span v-if="!data.is_oa">
-            toll-access
+            Paywalled
           </span>
           <span v-else>
             Open Access
@@ -46,17 +45,9 @@
           ${{data.apc_usd.toLocaleString()}} <span class="caption">(USD)</span>
         </span>
       </div>
-
-
-      <entity-summary-stats
-          :data="data.summary_stats"
-          :cited-by-count="data.cited_by_count"
-          include-impact-factor
-      />
     </div>
 
 
-  </div>
 
 
 </template>

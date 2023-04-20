@@ -103,7 +103,7 @@ Vue.filter("zoomLink", function (fullId) {
 
 
 
-Vue.filter("toPrecision", function (number, precision = 5) {
+Vue.filter("toPrecision", function (number, precision = 4) {
     return toPrecision(number, precision)
 });
 
