@@ -177,7 +177,7 @@
 
 
     <v-divider></v-divider>
-    <v-card-text class="pt-6" style="font-size: 16px;">
+    <v-card-text class="pa-0" style="font-size: 16px;">
 
       <entity-work v-if="myEntityType==='works'" :data="data"/>
       <entity-author v-if="myEntityType==='authors'" :data="data"/>
