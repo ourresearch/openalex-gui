@@ -167,7 +167,6 @@
                     :key="i"
                     three-line
                     :href="loc.landing_page_url" target="_blank"
-                    class="pl-0"
             >
 
               <v-list-item-icon>
