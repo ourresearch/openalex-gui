@@ -169,19 +169,18 @@
                     :href="loc.landing_page_url" target="_blank"
             >
 
-              <v-list-item-icon>
-                <v-icon v-if="loc.is_oa">mdi-lock-open-variant-outline</v-icon>
-                <v-icon v-if="!loc.is_oa">mdi-lock-outline</v-icon>
-              </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
                   {{ (loc.source) ? loc.source.display_name : "Unknown source" }}
                 </v-list-item-title>
                 <v-list-item-subtitle class="grey--text " style="" >
-                  <span class="text-capitalize" v-if="loc.source">{{ loc.source.type }}</span>
+                  <span class="text-capitalize" v-if="loc.source && loc.source.host_organization_name">{{ loc.source.host_organization_name }}</span>
                   <span v-else>We don't recognize this location's source</span>
                 </v-list-item-subtitle>
                 <v-list-item-subtitle class="grey--text font-weight-normal" style="">
+                  <span v-if="!loc.is_oa">
+                    <v-icon small>mdi-lock-outline</v-icon> Paywalled
+                  </span>
                   <span small outlined v-if="loc.version" class="">
                     <span class="text-capitalize">{{ loc.version.replace("Version", "") }}</span>
                   </span>
@@ -189,11 +188,7 @@
                   <span small outlined class="" v-if="loc.license && loc.license !== 'implied-oa'">{{ loc.license }}</span>
                 </v-list-item-subtitle>
               </v-list-item-content>
-              <v-list-item-action v-if="loc.pdf_url">
-                <v-btn small icon :href="loc.pdf_url" target="_blank">
-                  <v-icon small>mdi-file-pdf-box</v-icon>
-                </v-btn>
-              </v-list-item-action>
+<!--              </v-list-item-action>-->
 <!--              <v-list-item-action>-->
 <!--                <v-btn small icon :href="loc.landing_page_url" target="_blank">-->
 <!--                  <v-icon small>mdi-open-in-new</v-icon>-->
