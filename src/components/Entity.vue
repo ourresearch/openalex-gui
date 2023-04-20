@@ -218,7 +218,7 @@
 
     <v-expansion-panels flat accordion multiple>
 
-      <v-expansion-panel>
+      <v-expansion-panel  v-if="myEntityType !== 'works'">
         <v-divider/>
         <v-expansion-panel-header>
           Summary statistics
