@@ -53,21 +53,21 @@
           <span>
           <template v-if="authorshipsToShow.length === 1">
             <authorship
-                    :key="authorshipsToShow[0].author.id"
-                    :authorship="authorshipsToShow[0]"
-                    :show-institutions="true"
+                :key="authorshipsToShow[0].author.id"
+                :authorship="authorshipsToShow[0]"
+                :show-institutions="true"
             />
           </template>
 
             <!--      Multiple authors-->
           <template v-else>
             <authorship
-                    v-for="(authorship, i) in authorshipsToShow"
-                    :key="authorship.author.id"
-                    :authorship="authorship"
-                    :append-comma="i < authorshipsToShow.length - 1"
-                    :show-institutions="showAuthorDetails"
-                    class="mr-1"
+                v-for="(authorship, i) in authorshipsToShow"
+                :key="authorship.author.id"
+                :authorship="authorship"
+                :append-comma="i < authorshipsToShow.length - 1"
+                :show-institutions="showAuthorDetails"
+                class="mr-1"
             />
 
             <!--                    <a-->
@@ -93,7 +93,6 @@
         </div>
 
 
-
         <!--    Cited By  -->
         <div class="mt-3">
         <span class="pt-6 font-weight-bold">
@@ -101,10 +100,10 @@
         </span>
           <span class="pt-6">
           <link-to-search
-                  :count="data.cited_by_count"
-                  entity-type="works"
-                  filter-key="cites"
-                  :filter-value="data.id"
+              :count="data.cited_by_count"
+              entity-type="works"
+              filter-key="cites"
+              :filter-value="data.id"
           />
         </span>
         </div>
@@ -116,10 +115,10 @@
         </span>
           <span class="">
           <link-to-search
-                  :count="data.referenced_works.length"
-                  entity-type="works"
-                  filter-key="cited_by"
-                  :filter-value="data.id"
+              :count="data.referenced_works.length"
+              entity-type="works"
+              filter-key="cited_by"
+              :filter-value="data.id"
           />
         </span>
         </div>
@@ -130,10 +129,10 @@
         </span>
           <span class="">
           <link-to-search
-                  :count="data.related_works.length"
-                  entity-type="works"
-                  filter-key="related_to"
-                  :filter-value="data.id"
+              :count="data.related_works.length"
+              entity-type="works"
+              filter-key="related_to"
+              :filter-value="data.id"
           />
         </span>
         </div>
@@ -145,7 +144,7 @@
 
     <v-expansion-panels flat accordion multiple>
       <v-expansion-panel v-if="abstract">
-        <v-divider />
+        <v-divider/>
         <v-expansion-panel-header>
           Abstract
         </v-expansion-panel-header>
@@ -161,21 +160,23 @@
           Locations <span class="caption ml-1">({{ data.locations.length }})</span>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <v-list nav dense  class="pa-0">
+          <v-list nav dense class="pa-0">
             <v-list-item
-                    v-for="(loc, i) in data.locations"
-                    :key="i"
-                    three-line
-                    :href="loc.landing_page_url" target="_blank"
+                v-for="(loc, i) in data.locations"
+                :key="i"
+                three-line
             >
+              <!--                :href="loc.landing_page_url" target="_blank"-->
 
               <v-list-item-content>
                 <v-list-item-title>
-                  {{ (loc.source) ? loc.source.display_name : "Unknown source" }}
+                  {{ (loc.source && loc.source.display_name) ? loc.source.display_name.replace(/\(.+?\)/, "") : "Unknown source" }}
                 </v-list-item-title>
-                <v-list-item-subtitle class="grey--text " style="" >
-                  <span class="text-capitalize" v-if="loc.source && loc.source.host_organization_name">{{ loc.source.host_organization_name }}</span>
-                  <span v-else>We don't recognize this location's source</span>
+                <v-list-item-subtitle class="grey--text " style="">
+                  <span class="text-capitalize" v-if="loc.source && loc.source.host_organization_name">{{
+                      loc.source.host_organization_name
+                    }}</span>
+                  <span v-else>Unknown publisher</span>
                 </v-list-item-subtitle>
                 <v-list-item-subtitle class="grey--text font-weight-normal" style="">
                   <span v-if="!loc.is_oa">
@@ -185,15 +186,37 @@
                     <span class="text-capitalize">{{ loc.version.replace("Version", "") }}</span>
                   </span>
                   <span v-if="loc.version && loc.license">・</span>
-                  <span small outlined class="" v-if="loc.license && loc.license !== 'implied-oa'">{{ loc.license }}</span>
+                  <span small outlined class="" v-if="loc.license && loc.license !== 'implied-oa'">{{
+                      loc.license
+                    }}</span>
                 </v-list-item-subtitle>
               </v-list-item-content>
-<!--              </v-list-item-action>-->
-<!--              <v-list-item-action>-->
-<!--                <v-btn small icon :href="loc.landing_page_url" target="_blank">-->
-<!--                  <v-icon small>mdi-open-in-new</v-icon>-->
-<!--                </v-btn>-->
-<!--              </v-list-item-action>-->
+              <v-list-item-action>
+                <v-menu>
+                  <template v-slot:activator="{on}">
+                    <v-btn v-on="on" small icon>
+                      <v-icon small>mdi-dots-horizontal</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list dense>
+                    <v-subheader>View</v-subheader>
+                    <v-divider />
+                    <v-list-item :href="loc.landing_page_url" target="_blank">
+                      <v-list-item-title>
+                        <v-icon left small>mdi-open-in-new</v-icon>
+                        Webpage
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item v-if="loc.pdf_page_url" :href="loc.pdf_page_url" target="_blank">
+                      <v-list-item-title>
+                        <v-icon left small>mdi-file-pdf-box</v-icon>
+                        PDF
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+
+                </v-menu>
+              </v-list-item-action>
             </v-list-item>
           </v-list>
         </v-expansion-panel-content>
@@ -225,115 +248,115 @@ import LinkToEntity from "./LinkToEntity";
 // import {url} from "../url";
 
 export default {
-    name: "EntityWork",
-    components: {
-        LinkToEntity,
-        ConceptsList,
-        Authorship,
-        EntityIcon,
-        LinkToSearch,
-    },
-    props: {
-        data: Object,
-    },
-    data() {
-        return {
-            showAuthorDetails: false,
-            maxAuthorshipsToShowAtFirst: 10,
-        }
-    },
-    methods: {
-        ...mapMutations([
-            "snackbar"
-        ]),
-        ...mapActions([]),
-        async copyPermalinkToClipboard() {
-            await navigator.clipboard.writeText(this.data.id);
-            this.snackbar("Permalink copied to clipboard.")
-            // alert('Copied!');
-        },
-        viewIncomingCitations() {
-            const filter = createSimpleFilter("works", "cites", this.data.id)
-            this.$store.dispatch("replaceInputFilters", [filter])
-        },
-
-
-    },
-    computed: {
-        ...mapGetters([]),
-        workIsFreeAtPublisher() {
-            return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
-        },
-        abstract() {
-            if (!this.data.open_access.is_oa) return
-            return unravel(this.data.abstract_inverted_index)
-        },
-        fulltextUrl() {
-            // this is kind of hacky because the oa data we get back from the api has weird holes.
-            if (this.data.open_access.oa_url) return this.data.open_access.oa_url
-            else if (this.data.open_access.is_oa) return this.data.primary_location.source.url
-            else return null
-        },
-        apiUrl() {
-            const shortId = this.data.id.replace("https://openalex.org/", "")
-            return `https://api.openalex.org/works/${shortId}`
-        },
-        authorshipsCount() {
-            return this.data.authorships.length
-        },
-
-        authorshipsHaveAtLeastOneInstitution() {
-            return this.data.authorships.some(a => {
-                return a.institutions.length
-            })
-        },
-        linkToIncomingCitations() {
-            const filter = createSimpleFilter("works", "cites", this.data.id)
-            return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {filter: filter.asStr},
-            }
-        },
-        linkToReferences() {
-            const filter = createSimpleFilter("works", "cited_by", this.data.id)
-            return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {filter: filter.asStr},
-            }
-        },
-        linkToRelatedWorks() {
-            const filter = createSimpleFilter("works", "related_to", this.data.id)
-            return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {filter: filter.asStr},
-            }
-        },
-
-        truncatedAuthorshipsCount() {
-            return Math.max(this.data.authorships.length - this.maxAuthorshipsToShowAtFirst, 0)
-        },
-        authorshipsToShow() {
-            return this.data.authorships.slice(0, 100)
-
-            // if (!this.authorshipsCount) return []
-            // const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
-            // return this.data.authorships.slice(0, sliceAt)
-        },
-    },
-    created() {
-    },
-    mounted() {
-
-    },
-    watch: {
-        "data.id": function (to, from) {
-            console.log("EntityWork new ID", to)
-            this.showAuthorDetails = false
-        }
+  name: "EntityWork",
+  components: {
+    LinkToEntity,
+    ConceptsList,
+    Authorship,
+    EntityIcon,
+    LinkToSearch,
+  },
+  props: {
+    data: Object,
+  },
+  data() {
+    return {
+      showAuthorDetails: false,
+      maxAuthorshipsToShowAtFirst: 10,
     }
+  },
+  methods: {
+    ...mapMutations([
+      "snackbar"
+    ]),
+    ...mapActions([]),
+    async copyPermalinkToClipboard() {
+      await navigator.clipboard.writeText(this.data.id);
+      this.snackbar("Permalink copied to clipboard.")
+      // alert('Copied!');
+    },
+    viewIncomingCitations() {
+      const filter = createSimpleFilter("works", "cites", this.data.id)
+      this.$store.dispatch("replaceInputFilters", [filter])
+    },
+
+
+  },
+  computed: {
+    ...mapGetters([]),
+    workIsFreeAtPublisher() {
+      return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
+    },
+    abstract() {
+      if (!this.data.open_access.is_oa) return
+      return unravel(this.data.abstract_inverted_index)
+    },
+    fulltextUrl() {
+      // this is kind of hacky because the oa data we get back from the api has weird holes.
+      if (this.data.open_access.oa_url) return this.data.open_access.oa_url
+      else if (this.data.open_access.is_oa) return this.data.primary_location.source.url
+      else return null
+    },
+    apiUrl() {
+      const shortId = this.data.id.replace("https://openalex.org/", "")
+      return `https://api.openalex.org/works/${shortId}`
+    },
+    authorshipsCount() {
+      return this.data.authorships.length
+    },
+
+    authorshipsHaveAtLeastOneInstitution() {
+      return this.data.authorships.some(a => {
+        return a.institutions.length
+      })
+    },
+    linkToIncomingCitations() {
+      const filter = createSimpleFilter("works", "cites", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+    },
+    linkToReferences() {
+      const filter = createSimpleFilter("works", "cited_by", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+    },
+    linkToRelatedWorks() {
+      const filter = createSimpleFilter("works", "related_to", this.data.id)
+      return {
+        name: "Serp",
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+    },
+
+    truncatedAuthorshipsCount() {
+      return Math.max(this.data.authorships.length - this.maxAuthorshipsToShowAtFirst, 0)
+    },
+    authorshipsToShow() {
+      return this.data.authorships.slice(0, 100)
+
+      // if (!this.authorshipsCount) return []
+      // const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
+      // return this.data.authorships.slice(0, sliceAt)
+    },
+  },
+  created() {
+  },
+  mounted() {
+
+  },
+  watch: {
+    "data.id": function (to, from) {
+      console.log("EntityWork new ID", to)
+      this.showAuthorDetails = false
+    }
+  }
 }
 </script>
 

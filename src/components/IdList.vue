@@ -8,13 +8,13 @@
 
     </v-expansion-panel-header>
     <v-expansion-panel-content class="pa-0">
-      <v-list nav dense  class="pa-0">
+      <v-list nav dense class="pa-0">
         <v-list-item
-                two-line
-                v-for="(idObj, i) in liveIds"
-                :key="idObj.namespace + idObj.url"
-                @click="copyToClipboard(idObj.id)"
+            two-line
+            v-for="(idObj, i) in liveIds"
+            :key="idObj.namespace + idObj.url"
         >
+<!--            @click="copyToClipboard(idObj.id)"-->
           <v-list-item-content>
             <v-list-item-title>
               {{ idObj.displayNamespace }}
@@ -23,15 +23,35 @@
               {{ idObj.simpleId }}
             </v-list-item-subtitle>
           </v-list-item-content>
+          <!--          <v-list-item-action>-->
+          <!--            <v-btn small icon @click="copyToClipboard(idObj.id)">-->
+          <!--              <v-icon small>mdi-content-copy</v-icon>-->
+          <!--            </v-btn>-->
+          <!--          </v-list-item-action>-->
           <v-list-item-action>
-            <v-btn small icon @click="copyToClipboard(idObj.id)">
-              <v-icon small>mdi-content-copy</v-icon>
-            </v-btn>
-          </v-list-item-action>
-          <v-list-item-action>
-            <v-btn small icon :href="idObj.url" target="_blank">
-              <v-icon small>mdi-open-in-new</v-icon>
-            </v-btn>
+            <v-menu>
+              <template v-slot:activator="{on}">
+                <v-btn v-on="on" small icon >
+                  <v-icon small>mdi-dots-horizontal</v-icon>
+                </v-btn>
+              </template>
+                <v-list dense>
+                  <v-list-item @click="copyToClipboard(idObj.id)">
+                    <v-list-item-title>
+                      <v-icon left small>mdi-content-copy</v-icon>
+                      Copy to clipboard
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item :href="idObj.url" target="_blank">
+                    <v-list-item-title>
+                      <v-icon left small>mdi-open-in-new</v-icon>
+                      View on {{ idObj.provider }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+
+            </v-menu>
+
           </v-list-item-action>
         </v-list-item>
       </v-list>
@@ -48,65 +68,65 @@ import {idConfigs} from "../idConfigs";
 import {mapActions, mapMutations} from "vuex";
 
 const makeIdObject = function (k, v) {
-    const ret = {...idConfigs[k]}
-    ret.id = v
-    ret.simpleId = v.replace(ret.prefix, "")
-    ret.url = ret.urlPattern + ret.simpleId
-    return ret
+  const ret = {...idConfigs[k]}
+  ret.id = v
+  ret.simpleId = v.replace(ret.prefix, "")
+  ret.url = ret.urlPattern + ret.simpleId
+  return ret
 }
 
 export default {
-    components: {},
-    props: {
-        data: Object,
+  components: {},
+  props: {
+    data: Object,
+  },
+  data() {
+    return {
+      foo: 42,
+    }
+  },
+  methods: {
+    ...mapMutations([
+      "snackbar"
+    ]),
+    ...mapActions([]),
+    async copyToClipboard(content) {
+      await navigator.clipboard.writeText(content);
+      this.snackbar("Copied to clipboard.")
     },
-    data() {
-        return {
-            foo: 42,
+  },
+  computed: {
+    liveIds() {
+      const ids = []
+      let issnL
+      Object.entries(this.data).forEach(([idKey, idValue]) => {
+        if (idKey === "issn_l") issnL = idValue
+
+        if (!idValue) return false
+        if (!idConfigs[idKey]) return false
+
+        if (Array.isArray(idValue)) { // "id" is actually an array of ids
+          idValue.forEach(idString => {
+            ids.push(makeIdObject(idKey, idString))
+          })
+        } else { // id is a simple string
+          ids.push(makeIdObject(idKey, idValue))
         }
-    },
-    methods: {
-        ...mapMutations([
-            "snackbar"
-        ]),
-        ...mapActions([]),
-        async copyToClipboard(content) {
-            await navigator.clipboard.writeText(content);
-            this.snackbar("Copied to clipboard.")
-        },
-    },
-    computed: {
-        liveIds() {
-            const ids = []
-            let issnL
-            Object.entries(this.data).forEach(([idKey, idValue]) => {
-                if (idKey === "issn_l") issnL = idValue
+      })
 
-                if (!idValue) return false
-                if (!idConfigs[idKey]) return false
-
-                if (Array.isArray(idValue)) { // "id" is actually an array of ids
-                    idValue.forEach(idString => {
-                        ids.push(makeIdObject(idKey, idString))
-                    })
-                } else { // id is a simple string
-                    ids.push(makeIdObject(idKey, idValue))
-                }
-            })
-
-            if (issnL) {
-                return ids.filter(i => {
-                    return !(i.namespace === "issn" && i.id === issnL)
-                })
-            }
-            return ids
-        }
-    },
-    created() {
-    },
-    mounted() {
-    },
-    watch: {}
+      if (issnL) {
+        return ids.filter(i => {
+          return !(i.namespace === "issn" && i.id === issnL)
+        })
+      }
+      return ids
+    }
+  },
+  created() {
+  },
+  mounted() {
+  },
+  watch: {}
 }
 </script>
 
