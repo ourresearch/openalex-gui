@@ -1,12 +1,12 @@
 <template>
   <v-card outlined v-if="data">
     <v-btn
-        v-if="solo"
-        @click="close"
-        text
-        rounded
-        color="primary"
-        class="mt-3 ml-1"
+            v-if="solo"
+            @click="close"
+            text
+            rounded
+            color="primary"
+            class="mt-3 ml-1"
     >
       <v-icon>mdi-arrow-left</v-icon>
       back
@@ -98,46 +98,68 @@
           <!--            </v-menu>-->
 
 
-          <!--   Open Access at repository, toll-access at publisher -->
+
+          <!--   HTML at repository, paywalled at publisher -->
           <v-btn
-              :href="oaUrl"
-              target="_blank"
-              color="primary"
-              class="mr-3"
-              small
-              rounded
-              v-if="isGreenOa"
+                  :href="htmlUrl"
+                  target="_blank"
+                  color="primary"
+                  class="mr-3"
+                  small
+                  rounded
+                  text
+                  v-if="isGreenOa && !pdfUrl"
           >
-            Read
-            <v-icon right small>mdi-open-in-new</v-icon>
+            <v-icon left small>mdi-lock-open-variant</v-icon>
+            HTML
           </v-btn>
 
-          <!--   Open Access at publisher -->
+
+          <!--   PDF anywhere -->
           <v-btn
-              :href="oaUrl"
-              target="_blank"
-              color="primary"
-              small
-              rounded
-              v-if="isOaAtPublisher"
+                  :href="pdfUrl"
+                  target="_blank"
+                  color="primary"
+                  class="mr-3"
+                  small
+                  rounded
+                  text
+                  v-if="pdfUrl"
           >
-            Read
-            <v-icon right small>mdi-open-in-new</v-icon>
+            <v-icon left small>mdi-lock-open-variant</v-icon>
+            PDF
           </v-btn>
+
+          <!--   HTML  at publisher -->
+          <v-btn
+                  :href="htmlUrl"
+                  target="_blank"
+                  color="primary"
+                  small
+                  rounded
+                  text
+                  v-if="isOaAtPublisher"
+          >
+            <v-icon left small>mdi-lock-open-variant</v-icon>
+            HTML
+          </v-btn>
+
+
+
 
           <!--   Paywalled at publisher-->
           <v-btn
-              :href="data.primary_location.landing_page_url"
-              target="_blank"
-              color="primary"
-              outlined
-              small
-              rounded
-              v-if="!isOaAtPublisher"
+                  :href="data.primary_location.landing_page_url"
+                  target="_blank"
+                  text
+                  small
+                  rounded
+                  v-if="!isOaAtPublisher"
           >
-            <v-icon left small>mdi-open-in-new</v-icon>
-            View
+            <v-icon left small>mdi-lock-outline</v-icon>
+            HTML
           </v-btn>
+
         </div>
       </template>
 
@@ -145,13 +167,13 @@
       <template v-else>
         <div>
           <v-btn
-              :href="linkoutUrl"
-              target="_blank"
-              v-if="linkoutUrl"
-              color="primary"
-              rounded
-              outlined
-              small
+                  :href="linkoutUrl"
+                  target="_blank"
+                  v-if="linkoutUrl"
+                  color="primary"
+                  rounded
+                  outlined
+                  small
           >
             {{ linkoutButtonText }}
             <v-icon right small>mdi-open-in-new</v-icon>
@@ -163,8 +185,8 @@
       <v-spacer/>
       <v-menu>
         <template v-slot:activator="{on}">
-          <v-btn  icon v-on="on" class="mr-1">
-            <v-icon >mdi-tray-arrow-down</v-icon>
+          <v-btn icon v-on="on" class="mr-1">
+            <v-icon>mdi-tray-arrow-down</v-icon>
           </v-btn>
         </template>
         <v-list dense>
@@ -174,8 +196,8 @@
           </v-subheader>
           <v-divider></v-divider>
           <v-list-item
-              :href="apiUrl + '.bib'" target="_blank"
-              v-if="myEntityType==='works'"
+                  :href="apiUrl + '.bib'" target="_blank"
+                  v-if="myEntityType==='works'"
           >
             <v-list-item-icon>
               <v-icon>mdi-file-document-outline</v-icon>
@@ -185,8 +207,8 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              target="_blank"
-              :href="apiUrl"
+                  target="_blank"
+                  :href="apiUrl"
           >
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
@@ -218,16 +240,16 @@
 
     <v-expansion-panels flat accordion multiple>
 
-      <v-expansion-panel  v-if="myEntityType !== 'works'">
+      <v-expansion-panel v-if="myEntityType !== 'works'">
         <v-divider/>
         <v-expansion-panel-header>
           Summary statistics
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <entity-summary-stats
-              :data="data.summary_stats"
-              :cited-by-count="data.cited_by_count"
-              include-impact-factor
+                  :data="data.summary_stats"
+                  :cited-by-count="data.cited_by_count"
+                  include-impact-factor
           />
           <!--              :include-impact-factor="['sources', 'publishers'].includes(myEntityType)"-->
         </v-expansion-panel-content>
@@ -263,157 +285,165 @@ import IdList from "./IdList.vue";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 
 const getWorkFulltextUrl = function (data) {
-  if (data.open_access.oa_url) return data.open_access.oa_url
-  else if (data.open_access.is_oa) return data.primary_location.source.url
-  else return null
+    if (data.open_access.oa_url) return data.open_access.oa_url
+    else if (data.open_access.is_oa) return data.primary_location.source.url
+    else return null
 }
 
 const getGreenUrl = function (data) {
-  if (data.open_access.oa_status === "green") {
-    return data.open_access.oa_url
-  }
+    if (data.open_access.oa_status === "green") {
+        return data.open_access.oa_url
+    }
 }
 
 
 const workIsFreeAtPublisher = function (data) {
-  return ["gold", "bronze", "hybrid"].includes(data.open_access.oa_status)
+    return ["gold", "bronze", "hybrid"].includes(data.open_access.oa_status)
 
 }
 
 
 export default {
-  name: "Entity",
-  metaInfo() {
-    return {title: this.data?.display_name}
-  },
-  components: {
-    IdList,
-    EntityWork,
-    EntityAuthor,
-    EntityVenue,
-    EntityInstitution,
-    EntityPublisher,
-    EntityConcept,
-    EntityIcon,
-    EntitySummaryStats,
+    name: "Entity",
+    metaInfo() {
+        return {title: this.data?.display_name}
+    },
+    components: {
+        IdList,
+        EntityWork,
+        EntityAuthor,
+        EntityVenue,
+        EntityInstitution,
+        EntityPublisher,
+        EntityConcept,
+        EntityIcon,
+        EntitySummaryStats,
 
-  },
-  props: {
-    data: Object,
-    solo: Boolean,
-  },
-  data() {
-    return {
-      foo: 42,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityZoomHistoryData",
-      "resultsFilters",
-    ]),
-    entityId() {
-      return this.data.id
     },
-    myEntityConfig() {
-      return entityConfigs[this.myEntityType]
+    props: {
+        data: Object,
+        solo: Boolean,
     },
-    myEntityType() {
-      if (!this.entityId) return
-      return entityTypeFromId(this.entityId)
+    data() {
+        return {
+            foo: 42,
+        }
     },
-    linkoutButtonText() {
-      if (this.myEntityType === "authors") return "ORCID"
-      if (this.myEntityType === "sources") return "Homepage"
-      if (this.myEntityType === "institutions") return "Homepage"
-      if (this.myEntityType === "concepts") return "Wikipedia"
-    },
-    linkoutUrl() {
-      if (this.myEntityType === "authors") return this.data.orcid
-      if (this.myEntityType === "sources") return this.data.homepage_url
-      if (this.myEntityType === "institutions") return this.data.homepage_url
-      if (this.myEntityType === "concepts") return this.data.ids.wikipedia
-    },
-    filterIsApplied() {
-      return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
-    },
-    myFilter() {
+    computed: {
+        ...mapGetters([
+            "entityZoomHistoryData",
+            "resultsFilters",
+        ]),
+        entityId() {
+            return this.data.id
+        },
+        myEntityConfig() {
+            return entityConfigs[this.myEntityType]
+        },
+        myEntityType() {
+            if (!this.entityId) return
+            return entityTypeFromId(this.entityId)
+        },
+        linkoutButtonText() {
+            if (this.myEntityType === "authors") return "ORCID"
+            if (this.myEntityType === "sources") return "Homepage"
+            if (this.myEntityType === "institutions") return "Homepage"
+            if (this.myEntityType === "concepts") return "Wikipedia"
+        },
+        linkoutUrl() {
+            if (this.myEntityType === "authors") return this.data.orcid
+            if (this.myEntityType === "sources") return this.data.homepage_url
+            if (this.myEntityType === "institutions") return this.data.homepage_url
+            if (this.myEntityType === "concepts") return this.data.ids.wikipedia
+        },
+        filterIsApplied() {
+            return this.resultsFilters.map(f => f.asStr).includes(this.filterToShowWorks.asStr)
+        },
+        myFilter() {
 
-      return createSimpleFilter(
-          "works",
-          this.myEntityConfig.filterKey,
-          this.entityId,
-      )
+            return createSimpleFilter(
+                "works",
+                this.myEntityConfig.filterKey,
+                this.entityId,
+            )
+        },
+        filterToShowWorks() {
+            if (this.myEntityType === "works") return
+            return createSimpleFilter(
+                "works",
+                this.myEntityConfig.filterKey,
+                this.entityId,
+            )
+        },
+        linkToWorksSearch() {
+            if (this.myEntityType === "works") return
+            const filter = this.filterToShowWorks
+            return {
+                name: "Serp",
+                params: {entityType: "works"},
+                query: {filter: filter.asStr},
+            }
+        },
+        greenUrl() {
+            if (this.myEntityType !== "works") return
+            if (this.data.open_access.oa_status !== "green") return
+            return this.data.open_access.oa_url
+        },
+        oaUrl() {
+            if (this.myEntityType !== "works") return
+            return this.data.open_access.oa_url
+        },
+        pdfUrl() {
+            if (this.myEntityType !== "works") return
+            return this.data.best_oa_location?.pdf_url
+        },
+        htmlUrl() {
+            if (this.myEntityType !== "works") return
+            return this.data.best_oa_location.landing_page_url
+        },
+        isGreenOa() {
+            if (this.myEntityType !== "works") return
+            return this.data.open_access?.oa_status === 'green'
+        },
+        isOaAtPublisher() {
+            if (this.myEntityType !== "works") return
+            return this.data.open_access?.is_oa && this.data.open_access?.oa_status !== 'green'
+        },
+        apiUrl() {
+            const shortId = this.data.id.replace("https://openalex.org/", "")
+            const entityType = entityTypeFromId(shortId)
+            return `https://api.openalex.org/${entityType}/${shortId}`
+        },
     },
-    filterToShowWorks() {
-      if (this.myEntityType === "works") return
-      return createSimpleFilter(
-          "works",
-          this.myEntityConfig.filterKey,
-          this.entityId,
-      )
-    },
-    linkToWorksSearch() {
-      if (this.myEntityType === "works") return
-      const filter = this.filterToShowWorks
-      return {
-        name: "Serp",
-        params: {entityType: "works"},
-        query: {filter: filter.asStr},
-      }
-    },
-    greenUrl() {
-      if (this.myEntityType !== "works") return
-      if (this.data.open_access.oa_status !== "green") return
-      return this.data.open_access.oa_url
-    },
-    oaUrl() {
-      if (this.myEntityType !== "works") return
-      return this.data.open_access.oa_url
-    },
-    isGreenOa() {
-      if (this.myEntityType !== "works") return
-      return this.data.open_access?.oa_status === 'green'
-    },
-    isOaAtPublisher() {
-      if (this.myEntityType !== "works") return
-      return this.data.open_access?.is_oa && this.data.open_access?.oa_status !== 'green'
-    },
-    apiUrl() {
-      const shortId = this.data.id.replace("https://openalex.org/", "")
-      const entityType = entityTypeFromId(shortId)
-      return `https://api.openalex.org/${entityType}/${shortId}`
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar"
-    ]),
-    ...mapActions([]),
-    async copyPermalinkToClipboard() {
-      await navigator.clipboard.writeText(this.data.id);
-      this.snackbar("URL copied to clipboard.")
-      // alert('Copied!');
-    },
-    getEntityIconFromId(id) {
-      const type = entityTypeFromId(id)
-      return entityConfigs[type]?.icon
-    },
-    close() {
-      console.log("remove! new filters: ", this.myFilter)
-      const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
-      url.setFilters(
-          "works",
-          newFilters
-      )
-    }
+    methods: {
+        ...mapMutations([
+            "snackbar"
+        ]),
+        ...mapActions([]),
+        async copyPermalinkToClipboard() {
+            await navigator.clipboard.writeText(this.data.id);
+            this.snackbar("URL copied to clipboard.")
+            // alert('Copied!');
+        },
+        getEntityIconFromId(id) {
+            const type = entityTypeFromId(id)
+            return entityConfigs[type]?.icon
+        },
+        close() {
+            console.log("remove! new filters: ", this.myFilter)
+            const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
+            url.setFilters(
+                "works",
+                newFilters
+            )
+        }
 
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
+    },
+    created() {
+    },
+    mounted() {
+    },
+    watch: {}
 }
 </script>
 

@@ -54,11 +54,11 @@
                   small
                   text
                   color="primary"
-                  class="px-0 mr-2 low-key-button"
+                  class="px-1 mr-2 low-key-button"
                   :href="fulltextLinkObj.href"
                    target="_blank"
           >
-            <v-icon small>{{fulltextLinkObj.icon}}</v-icon>
+            <v-icon small left>{{fulltextLinkObj.icon}}</v-icon>
             {{ fulltextLinkObj.text }}
           </v-btn>
           <v-btn
@@ -66,12 +66,12 @@
                   small
                   text
                   color="grey"
-                  class="px-0 low-key-button"
+                  class="px-1 low-key-button"
                   :href="data.primary_location.landing_page_url"
                   target="_blank"
           >
-            <v-icon small>mdi-lock-outline</v-icon>
-            Paywalled
+            <v-icon small left>mdi-lock-outline</v-icon>
+            HTML
           </v-btn>
 
         </div>
@@ -176,13 +176,15 @@ export default {
             if (!this.data.best_oa_location) return
             if (this.data.best_oa_location.pdf_url) {
                 return {
-                    icon: "mdi-file-pdf-box",
+                    // icon: "mdi-file-pdf-box",
+                    icon: "mdi-lock-open-variant",
                     text: "PDF",
                     href: this.data.best_oa_location.pdf_url
                 }
             } else {
                 return {
-                    icon: "mdi-file-document",
+                    // icon: "mdi-file-document",
+                    icon: "mdi-lock-open-variant",
                     text: "HTML",
                     href: this.data.best_oa_location.landing_page_url
                 }
