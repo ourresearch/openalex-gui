@@ -169,7 +169,7 @@
       </v-toolbar>
       <v-card-text  v-if="apiFiltersToShow.length === 0">
         <div class="ml-0">
-          No filters available for this search set.
+          No more values to show
         </div>
       </v-card-text>
 

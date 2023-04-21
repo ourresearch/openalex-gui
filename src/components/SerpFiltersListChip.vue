@@ -1,7 +1,6 @@
 <template>
   <v-menu
       offset-y
-      :close-on-content-click="false"
       ref="menu"
   >
     <template v-slot:activator="{on}">
@@ -37,6 +36,8 @@
           <!--              {{ filter.displayName }}-->
           <!--            </div>-->
           <div class="filter-value" :class="{isNegated}">
+                                    <span class="font-weight-bold" v-if="isNegated">NOT</span>
+
         <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
           "{{ myDisplayValue | truncate(30) }}"
         </span>
@@ -51,32 +52,76 @@
       </v-chip>
     </template>
     <v-card max-width="300">
-      <v-toolbar dense flat>
-        <v-toolbar-title>
-          <v-icon left>
-            {{ filter.icon }}
-          </v-icon>
-          <span class="">{{ filter.displayName }}</span>
-        </v-toolbar-title>
-          <v-spacer />
-          <v-btn icon @click="$refs.menu.save()">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-      </v-toolbar>
-      <div class="px-3">
-        <div>
-          {{ filter.displayValue }}
-        </div>
-        <div class="caption grey--text">
-          {{ filter.value }}
-        </div>
+      <div class="px-3 pt-2 pb-1">
+        <div class="body-2">{{ filter.displayName }}:</div>
+        <div class="font-weight-bold">{{ filter.displayValue }}</div>
+        <div v-if="filter.isEntity" class="caption grey--text">{{ filter.value }}</div>
+
       </div>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text small @click="remove">
-          Remove
-        </v-btn>
-      </v-card-actions>
+      <v-divider/>
+      <v-list >
+
+        <v-list-item
+            @click="setFacetZoom(filter.key)"
+            v-if="filter.isSearch"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-magnify</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            Add search
+          </v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+            @click="setFacetZoom(filter.key)"
+            v-if="filter.isRange"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-filter-cog-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            Edit filter
+          </v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+            @click="setFacetZoom(filter.key)"
+            v-if="filter.valuesToShow==='mostCommon'"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-filter-settings-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            See all
+          </v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="remove">
+          <v-list-item-icon>
+            <v-icon>mdi-filter-remove-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            Remove filter
+          </v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+            @click="toggleNegation"
+            v-if="!filter.isBoolean"
+        >
+          <v-list-item-icon>
+            <v-icon v-if="isNegated">mdi-filter-check-outline</v-icon>
+            <v-icon v-else>mdi-filter-minus-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            <span v-if="isNegated">Un-negate filter</span>
+            <span v-else>Negate filter</span>
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+
+
     </v-card>
   </v-menu>
 </template>
@@ -85,6 +130,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "../url";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
   name: "Template",
@@ -118,9 +164,11 @@ export default {
       return this.filter.isNegated
     },
     myTextColor() {
+      return "green darken-3"
       return (this.filter.isNegated) ? "red darken-2" : "green darken-3"
     },
     myColor() {
+      return "green lighten-5"
       return (this.filter.isNegated) ? "red lighten-5" : "green lighten-5"
     }
   },
@@ -139,6 +187,22 @@ export default {
           newFilters
       )
     },
+    toggleNegation() {
+      const newFilter = createSimpleFilter(
+          this.filter.entityType,
+          this.filter.key,
+          this.filter.value,
+          !this.isNegated
+      )
+
+      const newFiltersList = this.resultsFilters.filter(f => f.kv !== this.filter.kv)
+      newFiltersList.push(newFilter)
+      url.setFilters(
+          this.entityType,
+          newFiltersList
+      )
+    },
+
     clickHandler() {
       this.setFacetZoom(this.filter.key)
     }

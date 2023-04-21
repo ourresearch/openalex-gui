@@ -36,13 +36,13 @@
     </div>
     <v-spacer/>
     <div>
-      <v-btn
-          icon
-          @click.stop="setSelected({select: true, negate: true})"
-          v-if="!isNegated && !isSelected && !filter.isBoolean"
-      >
-        <v-icon>mdi-minus</v-icon>
-      </v-btn>
+<!--      <v-btn-->
+<!--          icon-->
+<!--          @click.stop="setSelected({select: true, negate: true})"-->
+<!--          v-if="!isNegated && !isSelected && !filter.isBoolean"-->
+<!--      >-->
+<!--        <v-icon>mdi-minus</v-icon>-->
+<!--      </v-btn>-->
       <div class="pt-2" v-if="isNegated && isSelected">
         Must NOT match
       </div>

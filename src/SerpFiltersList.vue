@@ -43,16 +43,16 @@
                 :filter="filter"
                 :disabled="singleWork && !filter.showAsSingleEntity"
         />
-        <v-btn
-                icon
-                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
-                @click="openFacetsDialog"
-                color="green"
-                dark
-                class="px-0 mr-2 mt-1"
-        >
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
+<!--        <v-btn-->
+<!--                icon-->
+<!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
+<!--                @click="openFacetsDialog"-->
+<!--                color="green"-->
+<!--                dark-->
+<!--                class="px-0 mr-2 mt-1"-->
+<!--        >-->
+<!--          <v-icon>mdi-plus</v-icon>-->
+<!--        </v-btn>-->
       </div>
       <div>
         <v-btn
