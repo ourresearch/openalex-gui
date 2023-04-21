@@ -4,6 +4,7 @@
       flat
       tile
       color="#fafafa"
+      :loading="isLoading"
   >
     <v-toolbar flat dense>
       <v-icon left>{{ config.icon }}</v-icon>
@@ -150,7 +151,6 @@
         class=""
         style="font-size: unset;"
         v-if="!config.isSearch && !config.isRange"
-        :loading="isLoading"
     >
       <v-toolbar flat dense>
           <v-text-field
@@ -161,12 +161,14 @@
               clearable
               prepend-inner-icon="mdi-magnify"
               autofocus
+              color="green"
               dense
               v-model="searchString"
               :placeholder="searchPlaceholder"
           />
 
       </v-toolbar>
+<!--      <v-progress-linear v-if="isLoading" absolute indeterminate color="green" />-->
       <v-card-text  v-if="apiFiltersToShow.length === 0">
         <div class="ml-0">
           No more values to show
