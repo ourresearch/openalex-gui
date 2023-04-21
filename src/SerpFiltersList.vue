@@ -1,5 +1,11 @@
 <template>
-  <v-card v-if="resultsFilters.length" flat class="">
+  <v-card
+          flat
+          class=""
+          min-height="60"
+          :color="(resultsFilters.length) ? 'white' : 'transparent' "
+          style="transition: background-color .5s"
+  >
     <v-toolbar v-if="0" dense flat>
       <v-icon color="green" left>mdi-filter-outline</v-icon>
       <v-toolbar-title class="green--text font-weight-bold">
@@ -36,23 +42,28 @@
     <!--      <v-divider />-->
 
     <div class="d-flex justify-space-between pa-2">
-      <div class="d-flex flex-wrap" v-if="resultsFilters.length">
-        <serp-filters-list-chip
-                v-for="filter in resultsFilters"
-                :key="filter.key + filter.value"
-                :filter="filter"
-                :disabled="singleWork && !filter.showAsSingleEntity"
-        />
-<!--        <v-btn-->
-<!--                icon-->
-<!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
-<!--                @click="openFacetsDialog"-->
-<!--                color="green"-->
-<!--                dark-->
-<!--                class="px-0 mr-2 mt-1"-->
-<!--        >-->
-<!--          <v-icon>mdi-plus</v-icon>-->
-<!--        </v-btn>-->
+      <div class="d-flex flex-wrap">
+        <v-slide-y-reverse-transition group class="d-flex">
+          <serp-filters-list-chip
+                  v-for="filter in resultsFilters"
+                  :key="filter.key + filter.value"
+                  :filter="filter"
+                  :disabled="singleWork && !filter.showAsSingleEntity"
+
+          />
+
+        </v-slide-y-reverse-transition>
+
+        <!--        <v-btn-->
+        <!--                icon-->
+        <!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
+        <!--                @click="openFacetsDialog"-->
+        <!--                color="green"-->
+        <!--                dark-->
+        <!--                class="px-0 mr-2 mt-1"-->
+        <!--        >-->
+        <!--          <v-icon>mdi-plus</v-icon>-->
+        <!--        </v-btn>-->
       </div>
       <div>
         <v-btn

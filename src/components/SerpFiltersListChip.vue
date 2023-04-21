@@ -1,4 +1,6 @@
 <template>
+  <div>
+
   <v-menu
       offset-y
       ref="menu"
@@ -124,6 +126,7 @@
 
     </v-card>
   </v-menu>
+  </div>
 </template>
 
 <script>

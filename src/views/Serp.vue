@@ -21,25 +21,30 @@
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="2">
             <serp-facets-column/>
           </v-col>
-          <v-col sm="4" v-if="!!facetZoom">
-            <facet-zoom-new/>
-          </v-col>
+          <v-slide-x-transition hide-on-leave>
+            <v-col sm="4" v-if="!!facetZoom">
+              <facet-zoom-new/>
+            </v-col>
+          </v-slide-x-transition>
           <v-col cols="12" sm="6">
             <v-card flat>
               <serp-toolbar/>
               <serp-results-list class="pb-8"/>
             </v-card>
           </v-col>
-          <v-col cols="12" sm="4" v-if="!facetZoom">
-            <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
-            <year-range height="50px" big class="mb-3" show-filter-link></year-range>
-            <entity
-                v-for="entity in entitySidebarDataList"
-                :key="entity.id"
-                :data="entity"
-                class="mb-4"
-            />
-          </v-col>
+          <v-slide-x-reverse-transition>
+            <v-col cols="12" sm="4" v-if="!facetZoom">
+              <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
+              <year-range height="50px" big class="mb-3" show-filter-link></year-range>
+              <entity
+                  v-for="entity in entitySidebarDataList"
+                  :key="entity.id"
+                  :data="entity"
+                  class="mb-4"
+              />
+            </v-col>
+
+          </v-slide-x-reverse-transition>
         </template>
         <template v-else>
           <v-col cols="12">
