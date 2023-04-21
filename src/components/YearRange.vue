@@ -14,7 +14,7 @@
         </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon small @click="setFacetZoom('publication_year')">
+      <v-btn v-if="showFilterLink" icon small @click="setFacetZoom('publication_year')">
         <v-icon small>mdi-filter-outline</v-icon>
       </v-btn>
 
@@ -93,54 +93,67 @@
             :style="{height, width}"
             class="d-flex range-bar-graph"
     >
-      <template
+      <v-tooltip
               v-for="filter in filters"
+              :key="filter.kv"
+              bottom
+              transition="none"
       >
-        <div
-                class="range-bar-container"
-                :key="filter.kv"
-                @mouseenter="mouseEnterYear(filter)"
-                @mouseleave="mouseLeaveYear(filter)"
-        >
-          <!--            @click.exact="clickYear(filter.value)"-->
-          <!--            @click.shift="shiftClickYear(filter.value)"-->
+        <template v-slot:activator="{on}">
           <div
-                  class="range-bar-bar caption"
-                  :class="{green: isWithinRange(filter.value)}"
-                  :style="{height: filter.scaledCount * 100 + '%'}"
+                  v-on="on"
+                  class="range-bar-container"
+                  @mouseenter="mouseEnterYear(filter)"
+                  @mouseleave="mouseLeaveYear(filter)"
           >
-            <!--              v-ripple-->
+            <!--            @click.exact="clickYear(filter.value)"-->
+            <!--            @click.shift="shiftClickYear(filter.value)"-->
+            <div
+                    class="range-bar-bar caption"
+                    :style="{height: filter.scaledCount * 100 + '%'}"
+            >
+<!--                    :class="{green: isWithinRange(filter.value)}"-->
+              <!--              v-ripple-->
+            </div>
           </div>
+        </template>
+        <div>
+          <span class="font-weight-bold">
+          {{ filter.value }}:
+        </span>
+          <span class="">
+          {{ filter.count | toPrecision }}
+        </span>
         </div>
 
-      </template>
+      </v-tooltip>
 
 
     </div>
-    <v-card-actions v-if="big">
-      <div class="body-2 grey--text d-flex">
-        <v-icon left small>mdi-information-outline</v-icon>
-        <template v-if="numYearsSelected === 0">
-          Hover over bar to see year
-        </template>
-        <template v-else-if="numYearsSelected === 1">
-          Shift-click to select year range
-        </template>
-        <template v-else>
-          Click within range to clear selection
-        </template>
-      </div>
+<!--    <v-card-actions v-if="big">-->
+<!--      <div class="body-2 grey&#45;&#45;text d-flex">-->
+<!--        <v-icon left small>mdi-information-outline</v-icon>-->
+<!--        <template v-if="numYearsSelected === 0">-->
+<!--          Hover over bar to see year-->
+<!--        </template>-->
+<!--        <template v-else-if="numYearsSelected === 1">-->
+<!--          Shift-click to select year range-->
+<!--        </template>-->
+<!--        <template v-else>-->
+<!--          Click within range to clear selection-->
+<!--        </template>-->
+<!--      </div>-->
 
-      <v-spacer></v-spacer>
-      <div v-if="hoverYearFilter" class="body-2 mr-2">
-        <span class="font-weight-bold">
-          {{ hoverYearFilter.value }}:
-        </span>
-        <span class="">
-          {{ hoverYearFilter.count | toPrecision }}
-        </span>
-      </div>
-    </v-card-actions>
+<!--      <v-spacer></v-spacer>-->
+<!--      <div v-if="hoverYearFilter" class="body-2 mr-2">-->
+<!--        <span class="font-weight-bold">-->
+<!--          {{ hoverYearFilter.value }}:-->
+<!--        </span>-->
+<!--        <span class="">-->
+<!--          {{ hoverYearFilter.count | toPrecision }}-->
+<!--        </span>-->
+<!--      </div>-->
+<!--    </v-card-actions>-->
 
   </v-card>
 
@@ -175,6 +188,7 @@ export default {
         // startYear: Number,
         // endYear: Number,
         big: Boolean,
+        showFilterLink: Boolean,
         height: {
             type: String,
             default: "150px"
@@ -248,7 +262,7 @@ export default {
         minYear() {
             return Math.min(...this.filters.map(f => Number(f.value)))
         },
-        minYearFilter(){
+        minYearFilter() {
             const yearResultsFilter = this.resultsFilters.find(f => f.key === "publication_year")
             if (!yearResultsFilter) return
             return yearResultsFilter.value.split("-")[0]
@@ -357,7 +371,7 @@ export default {
             const minYear = (this.minYearFilter) ? this.minYearFilter : Math.min(...yearsToShow)
 
 
-            if (!yearsToShow.length){
+            if (!yearsToShow.length) {
                 return []
             }
             const filters = _.range(minYear, new Date().getFullYear() + 1).map(year => {
@@ -436,6 +450,7 @@ export default {
   }
 
   &.big {
+    padding-bottom: 6px;
     .range-bar-bar {
       width: calc(100% - 1px);
     }

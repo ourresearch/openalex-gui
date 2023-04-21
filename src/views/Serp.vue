@@ -32,7 +32,7 @@
           </v-col>
           <v-col cols="12" sm="4" v-if="!facetZoom">
             <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
-            <year-range height="50px" big class="mb-3"></year-range>
+            <year-range height="50px" big class="mb-3" show-filter-link></year-range>
             <entity
                 v-for="entity in entitySidebarDataList"
                 :key="entity.id"
