@@ -39,21 +39,21 @@
           </v-col>
           <v-col cols="6" v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'" class="d-flex">
 
-            <v-btn
-                    @click="openFacetsDialog"
-                    color="green"
-                    dark
-                    large
-                    style="height: 39px;"
-            >
-              <!--                  :disabled="singleWork"-->
-              <v-icon class="">mdi-filter-menu-outline</v-icon>
-            </v-btn>
+<!--            <v-btn-->
+<!--                    @click="openFacetsDialog"-->
+<!--                    color="green"-->
+<!--                    dark-->
+<!--                    large-->
+<!--                    style="height: 39px;"-->
+<!--            >-->
+<!--              &lt;!&ndash;                  :disabled="singleWork"&ndash;&gt;-->
+<!--              <v-icon class="">mdi-filter-menu-outline</v-icon>-->
+<!--            </v-btn>-->
 
 
             <search-box-new
 
-                    class="flex-grow-1 ml-3"
+                    class="flex-grow-1"
                     style="max-width: 600px;"
             />
 
