@@ -121,16 +121,6 @@
 
                 </v-card>
 
-                <!--              <template>-->
-                <!--                <v-subheader-->
-                <!--                    :key="'subheader' + facetCategory.name"-->
-                <!--                    class="align-end text-capitalize pl-0"-->
-                <!--                >-->
-                <!--                  {{ facetCategory.name }}-->
-                <!--                </v-subheader>-->
-                <!--                &lt;!&ndash;                <v-divider :key="'divider' + facetCategory.name"></v-divider>&ndash;&gt;-->
-                <!--              </template>-->
-
               </v-col>
             </v-row>
           </v-container>
@@ -166,15 +156,11 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
 import FacetSimple from "./FacetSimple.vue";
 import FacetZoom from "./FacetZoom.vue";
 
-import {filtersAsUrlStr} from "../../filterConfigs";
-import {url} from "../../url";
 import facetZoom from "./FacetZoom.vue";
 import facet from "./Facet.vue";
-import {facetsByCategory} from "../../facetConfigs";
 
 export default {
     name: "FacetsListDialog",
@@ -222,24 +208,6 @@ export default {
                 }
             },
         },
-        searchPlaceholderText() {
-            if (this.selectedFacetConfig) {
-                if (this.selectedFacetConfig.valuesToShow !== "mostCommon") return ""
-
-                const thingToSearch = this.$pluralize(this.selectedFacetConfig.displayName, 2);
-                return `Search ${thingToSearch}`
-            } else {
-                return "Search filter types"
-            }
-        },
-        selectedFacetConfig() {
-            if (!this.facetZoom) return
-            return getFacetConfig(this.entityType, this.facetZoom)
-        },
-        myResultsFilters() {
-            if (!this.facetZoom) return this.resultsFilters
-            return this.resultsFilters.filter(f => f.key === this.facetZoom);
-        }
 
 
     },
