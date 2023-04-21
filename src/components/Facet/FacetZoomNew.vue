@@ -1,9 +1,6 @@
 <template>
 
   <v-card
-      flat
-      tile
-      color="#fafafa"
       :loading="isLoading"
   >
     <v-toolbar flat dense>

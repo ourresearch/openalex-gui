@@ -28,6 +28,7 @@
             clearable
             prepend-inner-icon="mdi-magnify"
             dense
+            color="green"
 
             v-model="searchString"
             placeholder=""
