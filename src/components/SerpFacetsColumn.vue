@@ -1,28 +1,7 @@
 <template>
-  <v-card flat>
+  <v-card flat class="facets-column">
     <v-toolbar flat dense>
-      <v-text-field
-            flat
-            hide-details
-            full-width
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            dense
-
-            v-model="searchString"
-            placeholder="Filters"
-        />
-
-<!--      <v-toolbar-title>-->
-<!--        Filters-->
-<!--      </v-toolbar-title>-->
-<!--      <v-spacer></v-spacer>-->
-      <!--      <v-btn icon @click="openFacetsDialog">-->
-      <!--        <v-icon>mdi-magnify</v-icon>-->
-      <!--      </v-btn>-->
-
-<!--      <template v-slot:extension>-->
-<!--        <v-text-field-->
+<!--      <v-text-field-->
 <!--            flat-->
 <!--            hide-details-->
 <!--            full-width-->
@@ -31,9 +10,29 @@
 <!--            dense-->
 
 <!--            v-model="searchString"-->
-<!--            placeholder=""-->
+<!--            placeholder="Filters"-->
 <!--        />-->
-<!--      </template>-->
+
+      <v-toolbar-title>
+        <v-icon>mdi-filter-outline</v-icon>
+        Filters
+      </v-toolbar-title>
+      <v-spacer></v-spacer>
+
+      <template v-slot:extension class="pa-0 ">
+        <v-text-field
+            flat
+            outlined
+            hide-details
+            full-width
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            dense
+
+            v-model="searchString"
+            placeholder=""
+        />
+      </template>
     </v-toolbar>
     <v-list dense nav>
       <template
@@ -112,6 +111,10 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
+.facets-column .v-toolbar__extension {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
 
 </style>

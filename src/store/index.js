@@ -163,7 +163,7 @@ export default new Vuex.Store({
         },
         setFacetZoom(state, facetKey) {
             console.log("setFacetZoom", facetKey)
-            state.facetsListDialogIsOpen = true
+            // state.facetsListDialogIsOpen = true
             state.facetZoom = facetKey
         },
         setEntityType(state, entityType) {
