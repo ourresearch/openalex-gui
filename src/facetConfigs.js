@@ -314,16 +314,16 @@ const facetConfigs = function (entityType) {
         {
             key: "locations.source.host_organization",
             entityType: "works",
-            displayName: "Publisher",
+            displayName: "Host org",
             isEntity: true,
             showInSidebar: true,
-            entityId: "publishers",
+            // entityId: "publishers",
             autocompleteEndpoint: "autocomplete/publishers",
             valuesToShow: "mostCommon",
             category: "source",
             isCore: true,
             icon: "mdi-domain",
-            regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
+            // regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
 
 
