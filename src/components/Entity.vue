@@ -22,8 +22,8 @@
         >
         </div>
 
-        <div class="card-header-top-row text-capitalize">
-          <entity-icon small class="mr-1" :type="myEntityType"/>
+        <div class="card-header-top-row text-capitalize body-1">
+<!--          <entity-icon small class="mr-1" :type="myEntityType"/>-->
 
           <span>{{ myEntityConfig.displayNameSingular }}</span>
 
@@ -392,10 +392,6 @@ export default {
             await navigator.clipboard.writeText(this.data.id);
             this.snackbar("URL copied to clipboard.")
             // alert('Copied!');
-        },
-        getEntityIconFromId(id) {
-            const type = entityTypeFromId(id)
-            return entityConfigs[type]?.icon
         },
         close() {
             console.log("remove! new filters: ", this.myFilter)

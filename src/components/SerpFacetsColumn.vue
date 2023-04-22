@@ -39,7 +39,8 @@
       <template
           v-for="facetCategory in facetsByCategory(this.searchString)"
       >
-        <v-subheader :key="'subheader'+facetCategory.name">
+        <v-subheader :key="'subheader'+facetCategory.name" class="mt-6">
+          <v-icon small left>{{ facetCategory.icon }}</v-icon>
           {{ facetCategory.name }}
         </v-subheader>
         <v-divider :key="'subheader-divider'+facetCategory.name"/>
@@ -61,6 +62,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetsByCategory} from "../facetConfigs";
 import FacetSimple from "./Facet/FacetSimple.vue";
+import facet from "./Facet/Facet.vue";
 
 export default {
   name: "SerpFacetsColumn",
@@ -74,6 +76,9 @@ export default {
     }
   },
   computed: {
+      facet() {
+          return facet
+      },
     ...mapGetters([
       "resultsFilters",
       "entityType",

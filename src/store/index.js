@@ -165,6 +165,10 @@ export default new Vuex.Store({
             console.log("setFacetZoom", facetKey)
             // state.facetsListDialogIsOpen = true
             state.facetZoom = facetKey
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            })
         },
         setEntityType(state, entityType) {
             state.entityType = entityType;

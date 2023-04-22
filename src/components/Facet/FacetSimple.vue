@@ -1,15 +1,21 @@
 <template>
   <v-list-item
           @click="setFacetZoom(config.key)"
-          style="font-size: 14px;"
+          style="min-height: 35px;"
   >
-    <v-icon :color="myColor" class="mr-2">{{ config.icon }}</v-icon>
-    <span v-if="myResultsFilters.length" class="font-weight-black" :class="myTextColor">
-      {{ config.displayName }} ({{ myResultsFilters.length }})
-    </span>
-    <span v-else :class="myTextColor">
-      {{ config.displayName }}
-    </span>
+<!--    <v-icon :color="myColor" class="mr-2">{{ config.icon }}</v-icon>-->
+    <v-list-item-content>
+      <v-list-item-title>
+      <span v-if="myResultsFilters.length" class="font-weight-black" :class="myTextColor">
+        {{ config.displayName }} ({{ myResultsFilters.length }})
+      </span>
+      <span v-else :class="myTextColor">
+        {{ config.displayName }}
+      </span>
+
+      </v-list-item-title>
+
+    </v-list-item-content>
   </v-list-item>
 </template>
 

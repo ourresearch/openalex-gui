@@ -4,7 +4,8 @@
           :loading="isLoading"
   >
     <v-toolbar flat dense>
-      <v-icon left>{{ config.icon }}</v-icon>
+<!--      <v-icon left>{{ config.icon }}</v-icon>-->
+      <v-icon left>mdi-filter-plus-outline</v-icon>
       <v-toolbar-title>
         {{ config.displayName }}
       </v-toolbar-title>

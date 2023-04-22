@@ -37,6 +37,18 @@ const facetCategories = {
     ],
 }
 
+const facetCategoriesIcons = {
+    popular: "mdi-star-outline",
+    author: "mdi-account-outline",
+    institution: "mdi-town-hall",
+    geo: "mdi-map-marker-outline",
+    source: "mdi-book-multiple-outline",
+    access: "mdi-lock-open-outline",
+    "indexed by": "mdi-database-outline",
+    citation: "mdi-format-quote-close",
+    other: "mdi-dots-horizontal",
+}
+
 
 const facetConfigs = function (entityType) {
     const ret = [
@@ -268,7 +280,7 @@ const facetConfigs = function (entityType) {
         //     valuesToShow: "mostCommon",
         //     category: "source",
         //     isCore: true,
-        //     icon: "mdi-book-open-outline",
+        //     icon: "mdi-file-document-multiple-outline",
         // },
 
         {
@@ -282,7 +294,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "source",
             isCore: true,
-            icon: "mdi-book-open-outline",
+            icon: "mdi-file-document-multiple-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
         },
 
@@ -296,7 +308,7 @@ const facetConfigs = function (entityType) {
             noOptions: true,
             valuesToShow: "select",
             category: "other",
-            icon: "mdi-book-open-outline",
+            icon: "mdi-file-document-multiple-outline",
             regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
         },
         {
@@ -309,7 +321,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "source",
             isCore: true,
-            icon: "mdi-book-open-outline",
+            icon: "mdi-file-document-multiple-outline",
         },
         {
             key: "locations.source.host_organization",
@@ -322,7 +334,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "source",
             isCore: true,
-            icon: "mdi-domain",
+            icon: "mdi-home-city-outline",
             // regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
 
@@ -525,7 +537,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/sources/publisher",
             valuesToShow: "mostCommon",
             category: "popular",
-            icon: "mdi-book-open-outline",
+            icon: "mdi-file-document-multiple-outline",
         },
         {
             key: "type",
@@ -533,7 +545,7 @@ const facetConfigs = function (entityType) {
             displayName: "Source type",
             valuesToShow: "mostCommon",
             category: "popular",
-            icon: "mdi-book-open-outline",
+            icon: "mdi-file-document-multiple-outline",
         },
         {
             key: "is_oa",
@@ -679,6 +691,7 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
     return facetCategories[entityType].map(categoryName => {
                 return {
                     name: categoryName,
+                    icon: facetCategoriesIcons[categoryName],
                     facets: filtered.filter(f => {
                         return f.category === categoryName
                     })

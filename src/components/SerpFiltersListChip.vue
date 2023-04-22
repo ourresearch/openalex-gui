@@ -17,28 +17,21 @@
               style="height: unset;  border: 1px solid !important; border-radius: 3px;"
               close-icon="mdi-close"
       >
-        <!--              @click="clickHandler"-->
-        <!--          style="height: unset; border-radius: 3px; border: 1px solid !important;"-->
-
-        <!--    <v-icon>{{ filter.icon }}</v-icon>-->
-        <!--    <span class="ml-1 mr-1 font-weight-bold">{{ filter.displayName }}: </span>-->
-        <!--    <span>{{ myDisplayValue | truncate(50) }}</span>-->
 
 
-        <v-icon
-            class=""
-            style="font-size: 22px;"
-        >
-          {{ filter.icon }}
-        </v-icon>
-        <div class="display-name ml-2 font-weight-bold" v-if="filter.showNameInChip">{{ filter.displayName }}:</div>
+<!--        <v-icon-->
+<!--            class=""-->
+<!--            style="font-size: 22px;"-->
+<!--        >-->
+<!--          {{ filter.icon }}-->
+<!--        </v-icon>-->
         <div class="mx-3" style="line-height: 1;">
-          <!--            <div class="caption">-->
-          <!--              <span class="font-weight-bold" v-if="isNegated">NOT</span>-->
-          <!--              {{ filter.displayName }}-->
-          <!--            </div>-->
+                      <div class="caption">
+                        <span class="font-weight-bold" v-if="isNegated">NOT</span>
+                        {{ filter.displayName }}
+                      </div>
           <div class="filter-value" :class="{isNegated}">
-                                    <span class="font-weight-bold" v-if="isNegated">NOT</span>
+<!--                                    <span class="font-weight-bold" v-if="isNegated">NOT</span>-->
 
         <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
           "{{ myDisplayValue | truncate(30) }}"
@@ -89,13 +82,13 @@
 
         <v-list-item
             @click="setFacetZoom(filter.key)"
-            v-if="filter.valuesToShow==='mostCommon'"
+            v-if="filter.valuesToShow==='mostCommon' && facetZoom !== filter.key"
         >
           <v-list-item-icon>
-            <v-icon>mdi-filter-settings-outline</v-icon>
+            <v-icon>mdi-filter-plus-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-title>
-            See all
+            Add filter
           </v-list-item-title>
         </v-list-item>
 
@@ -152,6 +145,7 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "entityType",
+      "facetZoom",
     ]),
     myDisplayValue() {
       if (this.filter.isBoolean) {
@@ -225,6 +219,6 @@ export default {
 
 <style scoped lang="scss">
 .filter-value.isNegated {
-  //text-decoration: line-through;
+  text-decoration: line-through;
 }
 </style>
