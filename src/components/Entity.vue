@@ -420,7 +420,7 @@ export default {
   //bottom: 0;
 }
 .data-row {
-  margin-top: 20px;
+  //margin-top: 20px;
 }
 
 </style>
