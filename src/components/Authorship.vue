@@ -1,22 +1,22 @@
 <template>
   <span class="authorship" :class="{showInstitutions}">
     <span class="author">
-      <link-author :data="authorship.author" :append="appendToAuthorLink" />
+      <link-author :data="authorship.author" :append="appendToAuthorLink"/>
     </span>
 
-    <span v-if="showInstitutions && authorship.institutions.length">
+
+    <span v-if="showInstitutions && institutionsToShow.length" class="primary--text">
       (<span
-          v-for="(institution, i) in authorship.institutions"
-          :key="institution.id"
-          class=""
-      >
+            v-for="(institution, i) in institutionsToShow"
+            :key="institution.id"
+            class=""
+    >
         <link-institution
-            v-if="institution.id"
-            :data="institution"
-            :append="(i<authorship.institutions.length - 1) ? ', ' : ''"
+                :data="institution"
+                :append="(i<authorship.institutions.length - 1) ? ', ' : ''"
         />
-        <span v-else>{{ institution.display_name }}</span>
-      </span>){{ (appendComma) ? ";": ""}}
+      <!--        <span v-else>{{ institution.display_name }}</span>-->
+      </span>){{ (appendComma) ? ";" : "" }}
     </span>
   </span>
 </template>
@@ -27,56 +27,60 @@ import LinkAuthor from "./LinkAuthor";
 import LinkInstitution from "./LinkInstitution";
 
 export default {
-  name: "Authorship",
-  components: {
-    LinkAuthor,
-    LinkInstitution,
-  },
-  props: {
-    authorship: Object,
-    appendComma: Boolean,
-    showInstitutions: Boolean
-  },
-  data() {
-    return {
-      foo: 42,
-    }
-  },
-  methods: {},
-  computed: {
-    symbolToAppend(){
-      if (!this.appendComma) return ""
-      return (this.showInstitutions) ? ";" : ","
+    name: "Authorship",
+    components: {
+        LinkAuthor,
+        LinkInstitution,
     },
-    appendToAuthorLink(){
-        return (!this.institutionsToShow.length) ?  this.symbolToAppend : ""
+    props: {
+        authorship: Object,
+        appendComma: Boolean,
+        showInstitutions: Boolean
     },
-    appendToAuthorship(){
+    data() {
+        return {
+            foo: 42,
+        }
+    },
+    methods: {},
+    computed: {
+        symbolToAppend() {
+            if (!this.appendComma) return ""
+            return (this.showInstitutions) ? ";" : ","
+        },
+        appendToAuthorLink() {
+            return (!this.institutionsToShow.length) ? this.symbolToAppend : ""
+        },
+        appendToAuthorship() {
 
+        },
+        institutionsWithIds() {
+            if (!this.authorship.institutions) return []
+            return this.authorship.institutions.filter(i => !!i.id)
+        },
+        institutionsToShow() {
+            return (this.showInstitutions) ? this.institutionsWithIds : []
+        },
+        appendCommaComputed() {
+            return this.appendComma && !this.showInstitutions
+        },
+        appendSemicolonComputed() {
+            return this.appendComma && this.showInstitutions
+        },
     },
-    institutionsToShow(){
-      return (this.showInstitutions) ? this.authorship.institutions : []
+    created() {
     },
-    appendCommaComputed(){
-      return this.appendComma && !this.showInstitutions
+    mounted() {
     },
-    appendSemicolonComputed(){
-      return this.appendComma && this.showInstitutions
-    },
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
+    watch: {}
 }
 </script>
 
 <style lang="scss" scoped>
-  span.authorship.showInstitutions {
-    //display: block;
-    //margin-bottom: 10px;
-  }
+span.authorship.showInstitutions {
+  //display: block;
+  //margin-bottom: 10px;
+}
 
 
 </style>

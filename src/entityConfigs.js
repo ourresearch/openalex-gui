@@ -24,7 +24,7 @@ const entityConfigs = {
         name: "authors",
         nameSingular: "author",
         displayName: "authors",
-        displayNameSingular: "person",
+        displayNameSingular: "author",
         descr: "Creators of scholarly works",
         eg: "Albert Einstein",
         placeholder: "Search scholarly authors",

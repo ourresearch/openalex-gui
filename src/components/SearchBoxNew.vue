@@ -62,26 +62,26 @@
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <v-divider/>
-        <v-list-item
-            @click.stop="clickViewAllFilters"
-            @keydown.enter.prevent="clickViewAllFilters"
-            key="view-all-filters"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-filter-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              View all filters
-            </v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-action>
-            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">
-              ⌘F
-            </v-chip>
-          </v-list-item-action>
-        </v-list-item>
+<!--        <v-divider/>-->
+<!--        <v-list-item-->
+<!--            @click.stop="clickViewAllFilters"-->
+<!--            @keydown.enter.prevent="clickViewAllFilters"-->
+<!--            key="view-all-filters"-->
+<!--        >-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-filter-outline</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            <v-list-item-title>-->
+<!--              View all filters-->
+<!--            </v-list-item-title>-->
+<!--          </v-list-item-content>-->
+<!--          <v-list-item-action>-->
+<!--            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">-->
+<!--              ⌘F-->
+<!--            </v-chip>-->
+<!--          </v-list-item-action>-->
+<!--        </v-list-item>-->
       </v-list>
     </v-menu>
   </div>

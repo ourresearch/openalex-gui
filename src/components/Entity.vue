@@ -52,11 +52,11 @@
       <!--      <div class="d-flex align-center justify-end" style="height: 50px; width: 50px;">-->
       <!--        <v-img max-height="100%"  :src="data.image_thumbnail_url" contain />-->
       <!--      </div>-->
-      <div>
-        <v-btn icon @click="close">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
+<!--      <div>-->
+<!--        <v-btn icon @click="close">-->
+<!--          <v-icon>mdi-close</v-icon>-->
+<!--        </v-btn>-->
+<!--      </div>-->
 
     </div>
     <div class="px-2 pt-3 pb-1 d-flex">

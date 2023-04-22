@@ -51,22 +51,14 @@
           {{ "Author" | pluralize(authorshipsToShow.length) }}:
         </span>
           <span>
-          <template v-if="authorshipsToShow.length === 1">
-            <authorship
-                :key="authorshipsToShow[0].author.id"
-                :authorship="authorshipsToShow[0]"
-                :show-institutions="true"
-            />
-          </template>
 
             <!--      Multiple authors-->
-          <template v-else>
             <authorship
                 v-for="(authorship, i) in authorshipsToShow"
                 :key="authorship.author.id"
                 :authorship="authorship"
                 :append-comma="i < authorshipsToShow.length - 1"
-                :show-institutions="showAuthorDetails"
+                :show-institutions="true"
                 class="mr-1"
             />
 
@@ -77,7 +69,6 @@
             <!--                    >+ {{truncatedAuthorshipsCount}} more-->
 
             <!--                    </a>-->
-          </template>
         </span>
         </div>
 
