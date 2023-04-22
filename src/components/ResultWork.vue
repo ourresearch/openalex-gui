@@ -36,61 +36,83 @@
               :id="data.id"
               :cited-by-count="data.cited_by_count"
               entity-type="works"
+              class="mr-3"
       />
 
-      <span class="ml-4 mr-4" v-if="linkToRelatedWorks">
-          <router-link
-                  class="body-1 text-decoration-none"
-                  :to="linkToRelatedWorks"
-          >
-            Related works
-          </router-link>
+      <!--      <span class="ml-4 mr-4" v-if="linkToRelatedWorks">-->
+      <!--          <router-link-->
+      <!--                  class="body-1 text-decoration-none"-->
+      <!--                  :to="linkToRelatedWorks"-->
+      <!--          >-->
+      <!--            Related works-->
+      <!--          </router-link>-->
 
-        </span>
+      <!--        </span>-->
 
-      <div class="">
-          <v-btn
-                   v-if="fulltextLinkObj"
-                  small
-                  text
-                  color="primary"
-                  class="px-1 mr-2 low-key-button"
-                  :href="fulltextLinkObj.href"
-                   target="_blank"
-          >
-            <v-icon small left>{{fulltextLinkObj.icon}}</v-icon>
-            {{ fulltextLinkObj.text }}
-          </v-btn>
-          <v-btn
-                  v-if="!data.primary_location.is_oa"
-                  small
-                  text
-                  color="grey"
-                  class="px-1 low-key-button"
-                  :href="data.primary_location.landing_page_url"
-                  target="_blank"
-          >
-            <v-icon small left>mdi-lock-outline</v-icon>
-            HTML
-          </v-btn>
+      <a
+              v-if="fulltextLinkObj"
+              :href="fulltextLinkObj.href"
+              target="_blank"
+              class="text-decoration-none mr-3 body-1"
+      >
+        <v-icon color="primary" small >
+          {{ fulltextLinkObj.icon }}
+        </v-icon>
+        {{ fulltextLinkObj.text }}
+      </a>
+      <a
+              v-if="!data.primary_location.is_oa"
+              :href="data.primary_location.landing_page_url"
+              target="_blank"
+              class="text-decoration-none mr-3 body-1 grey--text"
+      >
+        <v-icon color="grey" small >mdi-lock-outline</v-icon>
+        HTML
+      </a>
 
-        </div>
+<!--      <div class="">-->
+<!--        <v-btn-->
+<!--                v-if="fulltextLinkObj"-->
+<!--                small-->
+<!--                text-->
+<!--                color="primary"-->
+<!--                class="px-1 mr-2 low-key-button"-->
+<!--                :href="fulltextLinkObj.href"-->
+<!--                target="_blank"-->
+<!--        >-->
+<!--          <v-icon small left>{{ fulltextLinkObj.icon }}</v-icon>-->
+<!--          {{ fulltextLinkObj.text }}-->
+<!--        </v-btn>-->
+<!--        <v-btn-->
+<!--                v-if="!data.primary_location.is_oa"-->
+<!--                small-->
+<!--                text-->
+<!--                color="grey"-->
+<!--                class="px-1 low-key-button"-->
+<!--                :href="data.primary_location.landing_page_url"-->
+<!--                target="_blank"-->
+<!--        >-->
+<!--          <v-icon small left>mdi-lock-outline</v-icon>-->
+<!--          HTML-->
+<!--        </v-btn>-->
+
+<!--      </div>-->
 
     </div>
-<!--    <div class="pt-1 pb-4">-->
-<!--      <v-btn-->
-<!--              x-small-->
-<!--              color="primary"-->
-<!--              :href="fulltextUrl"-->
-<!--              target="_blank"-->
-<!--              class="mr-3 text-decoration-none  font-weight-bold"-->
-<!--              v-if="fulltextUrl"-->
-<!--              outlined-->
-<!--      >-->
-<!--        <v-icon x-small left>mdi-open-in-new</v-icon>-->
-<!--        Open access-->
-<!--      </v-btn>-->
-<!--    </div>-->
+    <!--    <div class="pt-1 pb-4">-->
+    <!--      <v-btn-->
+    <!--              x-small-->
+    <!--              color="primary"-->
+    <!--              :href="fulltextUrl"-->
+    <!--              target="_blank"-->
+    <!--              class="mr-3 text-decoration-none  font-weight-bold"-->
+    <!--              v-if="fulltextUrl"-->
+    <!--              outlined-->
+    <!--      >-->
+    <!--        <v-icon x-small left>mdi-open-in-new</v-icon>-->
+    <!--        Open access-->
+    <!--      </v-btn>-->
+    <!--    </div>-->
 
   </div>
 
@@ -176,15 +198,15 @@ export default {
             if (!this.data.best_oa_location) return
             if (this.data.best_oa_location.pdf_url) {
                 return {
-                    // icon: "mdi-file-pdf-box",
-                    icon: "mdi-lock-open-variant",
+                    icon: "mdi-file-pdf-box",
+                    // icon: "mdi-lock-open-variant",
                     text: "PDF",
                     href: this.data.best_oa_location.pdf_url
                 }
             } else {
                 return {
-                    // icon: "mdi-file-document",
-                    icon: "mdi-lock-open-variant",
+                    icon: "mdi-file-document",
+                    // icon: "mdi-lock-open-variant",
                     text: "HTML",
                     href: this.data.best_oa_location.landing_page_url
                 }

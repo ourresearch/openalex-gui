@@ -180,7 +180,10 @@
                 </v-list-item-subtitle>
                 <v-list-item-subtitle class="grey--text font-weight-normal" style="">
                   <span v-if="!loc.is_oa">
-                    <v-icon small>mdi-lock-outline</v-icon> Paywalled
+                    <v-icon small class="mr-1">mdi-lock-outline</v-icon> Paywalled
+                  </span>
+                  <span v-if="loc.is_oa">
+                    <v-icon small class="mr-1">mdi-lock-open-variant-outline</v-icon>
                   </span>
                   <span small outlined v-if="loc.version" class="">
                     <span class="text-capitalize">{{ loc.version.replace("Version", "") }}</span>
@@ -199,15 +202,21 @@
                     </v-btn>
                   </template>
                   <v-list dense>
-                    <v-subheader>View</v-subheader>
+                    <v-subheader>
+                      View
+                      <span v-if="!loc.is_oa" class="ml-2">(paywalled)</span>
+                    </v-subheader>
                     <v-divider />
                     <v-list-item :href="loc.landing_page_url" target="_blank">
                       <v-list-item-title>
-                        <v-icon left small>mdi-open-in-new</v-icon>
-                        Webpage
+                        <v-icon left small>
+                          {{ (loc.is_oa) ? "mdi-file-document" : "mdi-lock-outline" }}
+                        </v-icon>
+                        HTML
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item v-if="loc.pdf_page_url" :href="loc.pdf_page_url" target="_blank">
+
+                    <v-list-item v-if="loc.pdf_url" :href="loc.pdf_url" target="_blank">
                       <v-list-item-title>
                         <v-icon left small>mdi-file-pdf-box</v-icon>
                         PDF

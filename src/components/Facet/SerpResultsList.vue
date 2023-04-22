@@ -5,7 +5,7 @@
     </div>
     <div
             v-for="result in $store.state.results"
-            class="result-container mb-4"
+            class="result-container mb-5"
             :key="result.id"
     >
       <component :is="resultComponentName" :data="result"/>

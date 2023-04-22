@@ -78,7 +78,7 @@
                   text
                   v-if="isGreenOa && !pdfUrl"
           >
-            <v-icon left small>mdi-lock-open-variant</v-icon>
+            <v-icon left small>mdi-file-document</v-icon>
             HTML
           </v-btn>
 
@@ -94,7 +94,7 @@
                   text
                   v-if="pdfUrl"
           >
-            <v-icon left small>mdi-lock-open-variant</v-icon>
+            <v-icon left small>mdi-file-pdf-box</v-icon>
             PDF
           </v-btn>
 
@@ -108,7 +108,7 @@
                   text
                   v-if="isOaAtPublisher"
           >
-            <v-icon left small>mdi-lock-open-variant</v-icon>
+            <v-icon left small>mdi-file-document</v-icon>
             HTML
           </v-btn>
 

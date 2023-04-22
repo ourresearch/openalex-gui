@@ -26,9 +26,9 @@
 <!--          {{ filter.icon }}-->
 <!--        </v-icon>-->
         <div class="mx-3" style="line-height: 1;">
-                      <div class="caption">
+                      <div class="caption font-weight-bold">
                         <span class="font-weight-bold" v-if="isNegated">NOT</span>
-                        {{ filter.displayName }}
+                        {{ filter.displayName }}:
                       </div>
           <div class="filter-value" :class="{isNegated}">
 <!--                                    <span class="font-weight-bold" v-if="isNegated">NOT</span>-->

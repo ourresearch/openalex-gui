@@ -44,6 +44,7 @@
           {{ facetCategory.name }}
         </v-subheader>
         <v-divider :key="'subheader-divider'+facetCategory.name"/>
+
         <facet-simple
             v-for="facet in facetCategory.facets"
             :key="facet.entityType + facet.key"
