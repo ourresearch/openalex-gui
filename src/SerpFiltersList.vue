@@ -2,7 +2,7 @@
   <v-card
           flat
           class=""
-          min-height="60"
+          min-height="78"
           :color="(resultsFilters.length) ? 'white' : 'transparent' "
           style="transition: background-color .5s"
   >
