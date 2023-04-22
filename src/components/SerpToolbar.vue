@@ -2,16 +2,15 @@
   <v-toolbar
       class=""
       flat
-      dense
   >
     <year-range
         height="20px"
         width="40px"
         v-if="0"
     />
-    <v-icon left>
-      mdi-file-document-outline
-    </v-icon>
+<!--    <v-icon left>-->
+<!--      mdi-file-document-outline-->
+<!--    </v-icon>-->
     <v-toolbar-title>
     <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
         <span class="ml-1 font-weight-light">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>

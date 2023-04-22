@@ -6,7 +6,7 @@
           class="ma-0 year-range-card"
           :class="{big}"
   >
-    <v-toolbar height="70" dense flat v-if="big" class="graph-toolbar">
+    <v-toolbar height="80"  flat v-if="big" class="graph-toolbar">
       <v-toolbar-title>
         <div style="line-height: 1">
           Works by year<br>

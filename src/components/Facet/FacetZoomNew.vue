@@ -3,7 +3,7 @@
   <v-card
           :loading="isLoading"
   >
-    <v-toolbar flat dense>
+    <v-toolbar flat >
 <!--      <v-icon left>{{ config.icon }}</v-icon>-->
       <v-icon left>mdi-filter-plus-outline</v-icon>
       <v-toolbar-title>

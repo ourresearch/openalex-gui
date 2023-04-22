@@ -8,10 +8,10 @@
         class="text-decoration-none"
         v-if="formatAsLink"
     >
-      Cited by {{ citedByCount.toLocaleString() }}
+      Cited by {{ citedByCount | toPrecision }}
     </router-link>
     <span class="" v-else>
-    Cited by {{ citedByCount.toLocaleString() }}
+    Cited by {{ citedByCount | toPrecision }}
     </span>
 
       <v-tooltip v-if="0" bottom>

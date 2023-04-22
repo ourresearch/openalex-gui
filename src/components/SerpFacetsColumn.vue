@@ -1,6 +1,6 @@
 <template>
   <v-card flat class="facets-column">
-    <v-toolbar flat dense>
+    <v-toolbar flat >
 <!--      <v-text-field-->
 <!--            flat-->
 <!--            hide-details-->
