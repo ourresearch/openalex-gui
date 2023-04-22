@@ -1,8 +1,8 @@
 <template>
   <span v-if="entity">
+<!--        style="display: inline-block; white-space: nowrap;"-->
     <router-link
         :to="entity.id | entityZoomLink"
-        style="display: inline-block; white-space: nowrap;"
         class="text-decoration-none"
         v-if="entity.id"
     >{{ entity.display_name }}</router-link>
