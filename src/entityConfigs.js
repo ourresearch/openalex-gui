@@ -56,8 +56,8 @@ const entityConfigs = {
         descr: "Company hosting journals",
         eg: "Elsevier",
         placeholder: "Search academic publishers",
-        filterName: "locations.source.host_organization",
-        filterKey: "locations.source.host_organization",
+        filterName: "locations.source.host_organization_lineage",
+        filterKey: "locations.source.host_organization_lineage",
     },
     institutions: {
         emoji: "🏫",

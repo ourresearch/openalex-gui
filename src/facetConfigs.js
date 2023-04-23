@@ -324,7 +324,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-document-multiple-outline",
         },
         {
-            key: "locations.source.host_organization",
+            key: "locations.source.host_organization_lineage",
             entityType: "works",
             displayName: "Host organization",
             isEntity: true,
@@ -335,7 +335,7 @@ const facetConfigs = function (entityType) {
             category: "source",
             isCore: true,
             icon: "mdi-home-city-outline",
-            // regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
+            regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
 
 

@@ -25,7 +25,7 @@
 <!--        >-->
 <!--          {{ filter.icon }}-->
 <!--        </v-icon>-->
-        <div class="mx-3" style="line-height: 1;">
+        <div class="mr-1" style="line-height: 1;">
                       <div class="caption font-weight-bold">
                         <span class="font-weight-bold" v-if="isNegated">NOT</span>
                         {{ filter.displayName }}:
