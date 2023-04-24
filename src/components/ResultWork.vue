@@ -70,49 +70,7 @@
         HTML
       </a>
 
-<!--      <div class="">-->
-<!--        <v-btn-->
-<!--                v-if="fulltextLinkObj"-->
-<!--                small-->
-<!--                text-->
-<!--                color="primary"-->
-<!--                class="px-1 mr-2 low-key-button"-->
-<!--                :href="fulltextLinkObj.href"-->
-<!--                target="_blank"-->
-<!--        >-->
-<!--          <v-icon small left>{{ fulltextLinkObj.icon }}</v-icon>-->
-<!--          {{ fulltextLinkObj.text }}-->
-<!--        </v-btn>-->
-<!--        <v-btn-->
-<!--                v-if="!data.primary_location.is_oa"-->
-<!--                small-->
-<!--                text-->
-<!--                color="grey"-->
-<!--                class="px-1 low-key-button"-->
-<!--                :href="data.primary_location.landing_page_url"-->
-<!--                target="_blank"-->
-<!--        >-->
-<!--          <v-icon small left>mdi-lock-outline</v-icon>-->
-<!--          HTML-->
-<!--        </v-btn>-->
-
-<!--      </div>-->
-
     </div>
-    <!--    <div class="pt-1 pb-4">-->
-    <!--      <v-btn-->
-    <!--              x-small-->
-    <!--              color="primary"-->
-    <!--              :href="fulltextUrl"-->
-    <!--              target="_blank"-->
-    <!--              class="mr-3 text-decoration-none  font-weight-bold"-->
-    <!--              v-if="fulltextUrl"-->
-    <!--              outlined-->
-    <!--      >-->
-    <!--        <v-icon x-small left>mdi-open-in-new</v-icon>-->
-    <!--        Open access-->
-    <!--      </v-btn>-->
-    <!--    </div>-->
 
   </div>
 

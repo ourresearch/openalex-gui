@@ -124,6 +124,16 @@ const createSimpleFilter = function ( entityType, key, value, isNegated) {
     }
 }
 
+const copySimpleFilter = function(filter, overwriteWith){
+
+    return createSimpleFilter(
+        overwriteWith?.entityType ?? filter.entityType,
+        overwriteWith?.key ?? filter.key,
+        overwriteWith?.value ?? filter.value,
+        overwriteWith?.isNegated ?? filter.isNegated
+    )
+}
+
 const createSimpleFilterFromPid = function(pid){
     if (!pid) return
     const trimmedPid = pid.trim()
@@ -196,6 +206,7 @@ export {
 
     filtersFromFiltersApiResponse,
     createSimpleFilter,
+    copySimpleFilter,
     createSimpleFilterFromPid,
     createDisplayFilter,
     createFilterId,

@@ -1,48 +1,47 @@
 <template>
   <v-list-item
-      class="py-1 my-0 facet-option align-start"
-      :input-value="isSelected"
-      :disabled="disabled"
-      :color="myColor"
-      :dark="isSelected"
-      @click.exact="exactClickListItem"
-      @click.alt="altClickListItem"
-      :class="{isNegated,}"
+          class="py-1 my-0 facet-option align-start"
+          :input-value="isSelected"
+          :disabled="disabled"
+          :color="myColor"
+          :dark="isSelected"
+          @click.exact="exactClickListItem"
+          @click.alt="altClickListItem"
+          @click.meta="metaClickListItem"
+          @click.ctrl="metaClickListItem"
+          :class="{isNegated,}"
   >
-    <!--    @[eventHandlerName].stop="setSelected($event)"-->
+    <!--    @[eventHandlerName].stop="exactClickListItem($event)"-->
 
-<!--    <div class="icon-area mr-1 mt-2">-->
-<!--      <v-icon v-if="isNegated">mdi-minus-circle-outline</v-icon>-->
-<!--      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>-->
-<!--      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>-->
-<!--    </div>-->
+    <!--    <div class="icon-area mr-1 mt-2">-->
+    <!--      <v-icon v-if="isNegated">mdi-minus-circle-outline</v-icon>-->
+    <!--      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>-->
+    <!--      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>-->
+    <!--    </div>-->
     <div>
-      <div
-          style="line-height: 1.3; font-size: 16px;"
-          :class="{'font-weight-bold': isSelected}"
-      >
+      <div>
         <span
-            class="facet-option-text subtitle-1"
-            v-html="prettyDisplayName"
+                class="facet-option-text subtitle-1"
+                v-html="prettyDisplayName"
         >
         </span>
       </div>
 
       <div
-           class=" grey--text"
+              class=" grey--text"
       >
         {{ filter.count | toPrecision }}
       </div>
     </div>
     <v-spacer/>
     <div>
-<!--      <v-btn-->
-<!--          icon-->
-<!--          @click.stop="setSelected({select: true, negate: true})"-->
-<!--          v-if="!isNegated && !isSelected && !filter.isBoolean"-->
-<!--      >-->
-<!--        <v-icon>mdi-minus</v-icon>-->
-<!--      </v-btn>-->
+      <!--      <v-btn-->
+      <!--          icon-->
+      <!--          @click.stop="exactClickListItem({select: true, negate: true})"-->
+      <!--          v-if="!isNegated && !isSelected && !filter.isBoolean"-->
+      <!--      >-->
+      <!--        <v-icon>mdi-minus</v-icon>-->
+      <!--      </v-btn>-->
       <div class="pt-2" v-if="isNegated && isSelected">
         Must NOT match
       </div>
@@ -61,123 +60,108 @@
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {prettyTitle} from "../../util";
-import {createSimpleFilter} from "../../filterConfigs";
+import {createSimpleFilter, copySimpleFilter} from "../../filterConfigs";
 import {facetConfigs} from "../../facetConfigs";
 
 export default {
-  name: "FacetOption",
-  components: {},
-  props: {
-    // required
-    filter: Object,
+    name: "FacetOption",
+    components: {},
+    props: {
+        // required
+        filter: Object,
 
-    isSelected: Boolean,
-    isNegated: Boolean,
+        isSelected: Boolean,
+        isNegated: Boolean,
 
-    isBoolean: Boolean,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "searchApiUrl",
-      "resultsFilters",
-    ]),
-    myColor() {
-
-      if (this.isNegated) return "red"
-      return "green "
+        isBoolean: Boolean,
     },
-    disabled(){
-        return this.filter.count === 0;
+    data() {
+        return {}
     },
-    myFilter(){
-      return createSimpleFilter(
-          this.entityType,
-          this.filter.key,
-          this.filter.value,
-          this.isNegated
-      )
-    },
-    prettyDisplayName() {
-      if (this.filter.isBoolean) {
-        const valueAsInt = (this.filter.value === "true") ? 1 : 0;
-        return this.filter.booleanValues[valueAsInt]
-      }
+    computed: {
+        ...mapGetters([
+            "searchApiUrl",
+            "resultsFilters",
+        ]),
+        myColor() {
 
-      if (!this.filter.displayValue) return ""
+            if (this.isNegated) return "red"
+            return "green "
+        },
+        disabled() {
+            return this.filter.count === 0;
+        },
+        myFilter() {
+            return createSimpleFilter(
+                this.entityType,
+                this.filter.key,
+                this.filter.value,
+                this.isNegated
+            )
+        },
+        prettyDisplayName() {
+            if (this.filter.isBoolean) {
+                const valueAsInt = (this.filter.value === "true") ? 1 : 0;
+                return this.filter.booleanValues[valueAsInt]
+            }
 
-      let ret = this.filter.displayValue
-          .replace("ieee", "IEEE")
-          .replace("United States of America", "United States")
-          .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
+            if (!this.filter.displayValue) return ""
 
-      if (this.filter.key === "type") {
-        ret = ret.replace("-", " ")
-      }
-      ret = prettyTitle(ret)
+            let ret = this.filter.displayValue
+                .replace("ieee", "IEEE")
+                .replace("United States of America", "United States")
+                .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
 
-      if (this.filter.key === 'oa_status') {
-        // ret = ret.replace("hybrid", "hybrid OA")
-        //     .replace("gold", "gold OA")
-        //     .replace("green", "gold OA")
-        //     .replace("bronze", "gold OA")
-        //     .replace("closed", "paywalled")
-      }
+            if (this.filter.key === "type") {
+                ret = ret.replace("-", " ")
+            }
+            ret = prettyTitle(ret)
+
+            if (this.filter.key === 'oa_status') {
+                // ret = ret.replace("hybrid", "hybrid OA")
+                //     .replace("gold", "gold OA")
+                //     .replace("green", "gold OA")
+                //     .replace("bronze", "gold OA")
+                //     .replace("closed", "paywalled")
+            }
 
 
-      return ret
+            return ret
+        },
+        entityType() {
+            return this.$route.params.entityType
+        },
+        entityId() {
+            return this.$route.params.id
+        },
+        apiUrl() {
+            return `/${this.entityType}/${this.entityId}`
+        },
     },
-    entityType() {
-      return this.$route.params.entityType
-    },
-    entityId() {
-      return this.$route.params.id
-    },
-    apiUrl() {
-      return `/${this.entityType}/${this.entityId}`
-    },
-  },
-  methods: {
-    ...mapMutations([]),
-    ...mapActions([
-      "updateTextSearch",
-    ]),
-    exactClickListItem(){
-      const opts = {
-        negate: false,
-        // select: (this.isNegated) ? true : !this.isSelected
-        select:  !this.isSelected
-      }
-      return this.setSelected(opts)
-    },
-    altClickListItem(){
-      if (this.isBoolean) return
-      const opts = {
-        negate: true,
-        select:  true
-      }
-      return this.setSelected(opts)
+    methods: {
+        ...mapMutations([]),
+        ...mapActions([
+            "updateTextSearch",
+        ]),
+        exactClickListItem() {
+            this.$emit("add-filter", this.filter)
+        },
+        altClickListItem() {
+            const newFilter = copySimpleFilter(this.filter, {isNegated: true})
+            newFilter.isNegated = true
+            this.$emit("add-filter", newFilter)
+        },
+
+        metaClickListItem() {
+            this.$emit("add-filter-persistent", this.filter)
+        },
     },
 
-    setSelected(opts) {
-        console.log("set selected!", opts)
-      this.$emit("set-value", {
-        isSelected: !!opts.select,
-        isNegated: !!opts.negate,
-        kv: this.filter.kv
-      })
+    created() {
     },
-  },
-
-  created() {
-  },
-  async mounted() {
-  },
-  watch: {
-  }
+    async mounted() {
+    },
+    watch: {}
 }
 </script>
 
@@ -192,7 +176,7 @@ export default {
 
   &.isNegated {
     .facet-option-text {
-    text-decoration: line-through;
+      text-decoration: line-through;
 
     }
   }

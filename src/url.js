@@ -83,7 +83,6 @@ const setFilters = function (entityType, filters, hardReset=false) {
     }
     pushToRoute(router, newRoute)
 }
-
 const setSearch = function (entityType, searchString) {
     const newRoute = {
         name: "Serp",

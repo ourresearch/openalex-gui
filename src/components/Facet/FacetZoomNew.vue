@@ -180,7 +180,8 @@
                 v-for="f in apiFiltersToShow"
                 :filter="f"
                 :key="f.asStr"
-                @set-value="setSelectedFilters"
+                @add-filter="addFilter"
+                @add-filter-persistent="addFilterPersistent"
 
         />
       </v-list>
@@ -201,6 +202,7 @@ import YearRange from "../YearRange";
 import {
     createDisplayFilter,
     createSimpleFilter,
+    copySimpleFilter,
     filtersAsUrlStr,
     filtersFromUrlStr,
     sortedFilters
@@ -414,6 +416,24 @@ export default {
 
 
         },
+        addFilter(filter){
+          console.log("addFilter", filter)
+          url.setFilters(
+              "works",
+              [...this.resultsFilters, filter]
+          )
+                this.setFacetZoom(false)
+        },
+
+        addFilterPersistent(filter){
+          console.log("addFilter persistent", filter)
+          url.setFilters(
+              "works",
+              [...this.resultsFilters, filter]
+          )
+        },
+
+
         saveSelectedFilters() {
             this.$emit("close")
             const filtersToSave = this.allFilters.filter(f => {

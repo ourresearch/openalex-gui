@@ -3,14 +3,14 @@
   <div class="">
 
 
-    <div
-        v-shortkey="['meta', 'f']"
-        @shortkey="openFacetsDialog"
-    ></div>
-    <div
-        v-shortkey="['ctrl', 'f']"
-        @shortkey="openFacetsDialog"
-    ></div>
+<!--    <div-->
+<!--        v-shortkey="['meta', 'f']"-->
+<!--        @shortkey="openFacetsDialog"-->
+<!--    ></div>-->
+<!--    <div-->
+<!--        v-shortkey="['ctrl', 'f']"-->
+<!--        @shortkey="openFacetsDialog"-->
+<!--    ></div>-->
 
 
     <v-container class="mt-12">
@@ -175,7 +175,6 @@ export default {
               f.entityId,
               f.value
             ].join("/")
-            console.log("entitySidebarData getting data for", pathName)
 
             return api.get(pathName)
           })
