@@ -68,27 +68,27 @@
             >
               <v-icon color="primary">mdi-share-variant-outline</v-icon>
             </v-btn>
-            <v-menu offset-y content-class="no-highlight" min-width="150">
-              <template v-slot:activator="{on}">
-                <v-btn icon color="" v-on="on">
-                  <v-icon class="">mdi-menu</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item to="/">
-                  Home
-                </v-list-item>
-                <v-list-item to="/about">
-                  About
-                </v-list-item>
-                <v-list-item to="/premium">
-                  Premium
-                </v-list-item>
-                <v-list-item to="/help">
-                  Help
-                </v-list-item>
-              </v-list>
-            </v-menu>
+<!--            <v-menu offset-y content-class="no-highlight" min-width="150">-->
+<!--              <template v-slot:activator="{on}">-->
+<!--                <v-btn icon color="" v-on="on">-->
+<!--                  <v-icon class="">mdi-menu</v-icon>-->
+<!--                </v-btn>-->
+<!--              </template>-->
+<!--              <v-list>-->
+<!--                <v-list-item to="/">-->
+<!--                  Home-->
+<!--                </v-list-item>-->
+<!--                <v-list-item to="/about">-->
+<!--                  About-->
+<!--                </v-list-item>-->
+<!--                <v-list-item to="/premium">-->
+<!--                  Premium-->
+<!--                </v-list-item>-->
+<!--                <v-list-item to="/help">-->
+<!--                  Help-->
+<!--                </v-list-item>-->
+<!--              </v-list>-->
+<!--            </v-menu>-->
 
           </v-col>
         </v-row>
