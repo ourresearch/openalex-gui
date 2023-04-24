@@ -1,7 +1,7 @@
 <template>
     <div class="pa-3">
       <div class="data-row" v-if="data.host_organization_name">
-        <span v-if="data.type='repository'" class="font-weight-bold">
+        <span v-if="data.type==='repository'" class="font-weight-bold">
           Institution:
         </span>
         <span v-else class="font-weight-bold">

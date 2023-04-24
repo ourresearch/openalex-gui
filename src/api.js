@@ -80,6 +80,12 @@ const api = (function () {
         }
         cache[url] = res.data
 
+        console.log("api.getUrl", res.data)
+
+        // if (res.data.type === "repository") {
+        //     console.log("getUrl type is repository", res.data)
+        // }
+
         return res.data
     }
 
@@ -102,7 +108,8 @@ const api = (function () {
         getUrl,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
-            return await getUrl(url)
+            const resp = await getUrl(url)
+            return resp
         }
 
     }
