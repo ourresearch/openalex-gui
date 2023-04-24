@@ -1,6 +1,7 @@
 <template>
   <v-list-item
-          class="py-1 my-0 facet-option align-start"
+          two-line
+          class=""
           :input-value="isSelected"
           :disabled="disabled"
           :color="myColor"
@@ -18,37 +19,28 @@
     <!--      <v-icon v-else-if="isSelected">mdi-check-circle-outline</v-icon>-->
     <!--      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>-->
     <!--    </div>-->
-    <div>
-      <div>
+
+    <v-list-item-avatar>
+      <v-progress-circular
+              :value="filter.countPercent"
+              width="10"
+
+      />
+    </v-list-item-avatar>
+    <v-list-item-content class="pa-0">
+      <v-list-item-title>
         <span
-                class="facet-option-text subtitle-1"
+                class="facet-option-text"
                 v-html="prettyDisplayName"
         >
         </span>
-      </div>
 
-      <div
-              class=" grey--text"
-      >
+      </v-list-item-title>
+      <v-list-item-subtitle>
         {{ filter.count | toPrecision }}
-      </div>
-    </div>
-    <v-spacer/>
-    <div>
-      <!--      <v-btn-->
-      <!--          icon-->
-      <!--          @click.stop="exactClickListItem({select: true, negate: true})"-->
-      <!--          v-if="!isNegated && !isSelected && !filter.isBoolean"-->
-      <!--      >-->
-      <!--        <v-icon>mdi-minus</v-icon>-->
-      <!--      </v-btn>-->
-      <div class="pt-2" v-if="isNegated && isSelected">
-        Must NOT match
-      </div>
-      <div class="pt-2" v-if="!isNegated && isSelected">
-        Must match
-      </div>
-    </div>
+
+      </v-list-item-subtitle>
+    </v-list-item-content>
   </v-list-item>
 </template>
 
