@@ -126,9 +126,9 @@
               <router-link to="/">Home</router-link>
             </div>
             <div>
-              <a href="/about">
-                About
-              </a>
+<!--              <a href="/about">-->
+<!--                About-->
+<!--              </a>-->
             </div>
           </v-col>
           <v-col cols="12" sm="4" class="text-center">
