@@ -2,15 +2,14 @@
 
   <div class="">
 
-
-    <div
-        v-shortkey="['meta', 'f']"
-        @shortkey="openFacetsDialog"
-    ></div>
-    <div
-        v-shortkey="['ctrl', 'f']"
-        @shortkey="openFacetsDialog"
-    ></div>
+<!--    <div-->
+<!--        v-shortkey="['meta', 'f']"-->
+<!--        @shortkey="openFacetsDialog"-->
+<!--    ></div>-->
+<!--    <div-->
+<!--        v-shortkey="['ctrl', 'f']"-->
+<!--        @shortkey="openFacetsDialog"-->
+<!--    ></div>-->
 
 
     <v-container class="mt-12">
@@ -169,6 +168,7 @@ export default {
   },
   asyncComputed: {
     async entitySidebarDataList() {
+
       return await Promise.all(
           this.entitySidebarFiltersList.map(f => {
             const pathName = [
@@ -177,7 +177,9 @@ export default {
             ].join("/")
             console.log("entitySidebarData getting data for", pathName)
 
-            return api.get(pathName)
+            const resp = api.get(pathName)
+            console.log("entitySidebarDataList", resp)
+            return resp
           })
       )
     },

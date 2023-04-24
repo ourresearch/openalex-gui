@@ -37,7 +37,7 @@
                  (Level {{ data.level }})
               </span>
           <span v-if="myEntityType=== 'sources' && data.type">
-                 ({{ data.type }})
+                ({{ data.type }})
               </span>
           <span v-if="myEntityType=== 'publishers' && data.type">
 <!--                 ({{ data.type }})-->

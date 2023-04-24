@@ -324,6 +324,18 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-document-multiple-outline",
         },
         // {
+        //     key: "journal.id",
+        //     entityType: "works",
+        //     displayName: "Journal",
+        //     isEntity: true,
+        //     showInSidebar: true,
+        //     entityId: "sources",
+        //     valuesToShow: "mostCommon",
+        //     category: "source",
+        //     isCore: true,
+        //     icon: "mdi-file-document-multiple-outline",
+        // },
+        // {
         //     key: "locations.source.host_organization_lineage",
         //     entityType: "works",
         //     displayName: "Publisher",
