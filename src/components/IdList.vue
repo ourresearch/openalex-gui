@@ -10,7 +10,6 @@
     <v-expansion-panel-content class="pa-0">
       <v-list nav dense class="pa-0">
         <v-list-item
-            two-line
             v-for="(idObj, i) in liveIds"
             :key="idObj.namespace + idObj.url"
         >

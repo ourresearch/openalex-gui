@@ -48,7 +48,8 @@
             :key="suggestion.id"
         >
           <v-list-item-icon>
-            <v-icon>{{ suggestion.icon }}</v-icon>
+<!--            <v-icon>{{ suggestion.icon }}</v-icon>-->
+            <v-icon>mdi-filter-plus-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>

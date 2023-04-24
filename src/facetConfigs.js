@@ -326,7 +326,7 @@ const facetConfigs = function (entityType) {
         {
             key: "locations.source.host_organization_lineage",
             entityType: "works",
-            displayName: "Host organization",
+            displayName: "Publisher",
             isEntity: true,
             showInSidebar: true,
             // entityId: "publishers",
