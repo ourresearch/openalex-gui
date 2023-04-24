@@ -6,11 +6,12 @@
           class="ma-0 year-range-card"
           :class="{big}"
   >
-    <v-toolbar height="80"  flat v-if="big" class="graph-toolbar">
+    <v-toolbar  flat v-if="big" class="graph-toolbar">
+<!--      height="80" -->
       <v-toolbar-title>
         <div style="line-height: 1">
-          Works by year<br>
-          <span class="caption grey--text">Since {{ minYear }}</span>
+          Works by year
+<!--          <span class="caption grey&#45;&#45;text">Since {{ minYear }}</span>-->
         </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
