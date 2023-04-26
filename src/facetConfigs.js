@@ -56,7 +56,7 @@ const facetConfigs = function (entityType) {
     const ret = [
 
 
-        // works:  WASPFIC
+        // works:  WASPFIC. test
 
         {
             key: "ids.openalex",
