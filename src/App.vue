@@ -146,7 +146,7 @@
       </v-container>
     </v-footer>
 
-    <v-dialog persistent max-width="500" v-model="dialogs.showAlpha">
+    <v-dialog v-if="!isLocalHost" persistent max-width="500" v-model="dialogs.showAlpha">
       <v-card>
         <v-toolbar dark color="error">
           <v-icon left>mdi-alert</v-icon>
