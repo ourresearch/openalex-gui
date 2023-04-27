@@ -39,16 +39,16 @@
           </v-col>
           <v-col cols="6" v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'" class="d-flex">
 
-<!--            <v-btn-->
-<!--                    @click="openFacetsDialog"-->
-<!--                    color="green"-->
-<!--                    dark-->
-<!--                    large-->
-<!--                    style="height: 39px;"-->
-<!--            >-->
-<!--              &lt;!&ndash;                  :disabled="singleWork"&ndash;&gt;-->
-<!--              <v-icon class="">mdi-filter-menu-outline</v-icon>-->
-<!--            </v-btn>-->
+            <!--            <v-btn-->
+            <!--                    @click="openFacetsDialog"-->
+            <!--                    color="green"-->
+            <!--                    dark-->
+            <!--                    large-->
+            <!--                    style="height: 39px;"-->
+            <!--            >-->
+            <!--              &lt;!&ndash;                  :disabled="singleWork"&ndash;&gt;-->
+            <!--              <v-icon class="">mdi-filter-menu-outline</v-icon>-->
+            <!--            </v-btn>-->
 
 
             <search-box-new
@@ -68,27 +68,27 @@
             >
               <v-icon color="primary">mdi-share-variant-outline</v-icon>
             </v-btn>
-<!--            <v-menu offset-y content-class="no-highlight" min-width="150">-->
-<!--              <template v-slot:activator="{on}">-->
-<!--                <v-btn icon color="" v-on="on">-->
-<!--                  <v-icon class="">mdi-menu</v-icon>-->
-<!--                </v-btn>-->
-<!--              </template>-->
-<!--              <v-list>-->
-<!--                <v-list-item to="/">-->
-<!--                  Home-->
-<!--                </v-list-item>-->
-<!--                <v-list-item to="/about">-->
-<!--                  About-->
-<!--                </v-list-item>-->
-<!--                <v-list-item to="/premium">-->
-<!--                  Premium-->
-<!--                </v-list-item>-->
-<!--                <v-list-item to="/help">-->
-<!--                  Help-->
-<!--                </v-list-item>-->
-<!--              </v-list>-->
-<!--            </v-menu>-->
+            <!--            <v-menu offset-y content-class="no-highlight" min-width="150">-->
+            <!--              <template v-slot:activator="{on}">-->
+            <!--                <v-btn icon color="" v-on="on">-->
+            <!--                  <v-icon class="">mdi-menu</v-icon>-->
+            <!--                </v-btn>-->
+            <!--              </template>-->
+            <!--              <v-list>-->
+            <!--                <v-list-item to="/">-->
+            <!--                  Home-->
+            <!--                </v-list-item>-->
+            <!--                <v-list-item to="/about">-->
+            <!--                  About-->
+            <!--                </v-list-item>-->
+            <!--                <v-list-item to="/premium">-->
+            <!--                  Premium-->
+            <!--                </v-list-item>-->
+            <!--                <v-list-item to="/help">-->
+            <!--                  Help-->
+            <!--                </v-list-item>-->
+            <!--              </v-list>-->
+            <!--            </v-menu>-->
 
           </v-col>
         </v-row>
@@ -126,9 +126,9 @@
               <router-link to="/">Home</router-link>
             </div>
             <div>
-<!--              <a href="/about">-->
-<!--                About-->
-<!--              </a>-->
+              <!--              <a href="/about">-->
+              <!--                About-->
+              <!--              </a>-->
             </div>
           </v-col>
           <v-col cols="12" sm="4" class="text-center">
@@ -145,6 +145,45 @@
         </v-row>
       </v-container>
     </v-footer>
+
+    <v-dialog persistent max-width="500" v-model="dialogs.showAlpha">
+      <v-card>
+        <v-toolbar dark color="error">
+          <v-icon left>mdi-alert</v-icon>
+          <v-toolbar-title>
+            This is unfinished software
+          </v-toolbar-title>
+        </v-toolbar>
+        <v-card>
+          <v-card-text>
+            <p>
+              You're looking at our <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha" target="_blank">alpha
+              version:</a> that means it's <strong>buggy, incomplete, undocumented, and changing daily.</strong>
+            </p>
+            <p>
+              We release our beta version (which will be ready for real-world use) in July; <a href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank">sign up here to be notified</a> when that
+              happens.
+            </p>
+            <p>
+              You can <a href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.hi1b6plrfcd6" target="_blank">read our release notes here</a>, and subscribe to detailed updated on our
+              <a href="https://groups.google.com/g/openalex-web" target="_blank">Google group here.</a>
+            </p>
+
+          </v-card-text>
+          <v-card-actions>
+            <v-btn
+                    outlined
+                    color="error"
+                    @click="dialogs.showAlpha = false"
+            >
+<!--              <v-icon left>mdi-alert-outline</v-icon>-->
+              try the alpha
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-card>
+    </v-dialog>
+
 
   </v-app>
 </template>
@@ -171,7 +210,11 @@ export default {
 
 
     data: function () {
-        return {}
+        return {
+            dialogs: {
+                showAlpha: true
+            }
+        }
     },
     computed: {
         ...mapGetters([
