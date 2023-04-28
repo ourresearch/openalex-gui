@@ -144,6 +144,32 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
 
+      <v-expansion-panel v-if="data.grants.length">
+        <v-divider/>
+        <v-expansion-panel-header>
+          Funders <span class="caption ml-1">({{ data.grants.length }})</span>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content class="body-1">
+          <v-list nav dense class="pa-0">
+            <v-list-item
+                v-for="(grant, i) in data.grants"
+                :key="i"
+                two-line
+            >
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ grant.funder_display_name}}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ grant.award_id }}
+                </v-list-item-subtitle>
+              </v-list-item-content>
+
+            </v-list-item>
+          </v-list>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+
 
       <v-expansion-panel>
         <v-divider/>
@@ -161,9 +187,11 @@
 
               <v-list-item-content>
                 <v-list-item-title>
-                  {{ (loc.source && loc.source.display_name) ? loc.source.display_name.replace(/\(.+?\)/, "") : "Unknown source" }}
+                  {{
+                    (loc.source && loc.source.display_name) ? loc.source.display_name.replace(/\(.+?\)/, "") : "Unknown source"
+                  }}
                 </v-list-item-title>
-                <v-list-item-subtitle class="grey--text " style="">
+                <v-list-item-subtitle style="">
                   <span class="text-capitalize" v-if="loc.source && loc.source.host_organization_name">{{
                       loc.source.host_organization_name
                     }}</span>
@@ -197,7 +225,7 @@
                       View
                       <span v-if="!loc.is_oa" class="ml-2">(paywalled)</span>
                     </v-subheader>
-                    <v-divider />
+                    <v-divider/>
                     <v-list-item :href="loc.landing_page_url" target="_blank">
                       <v-list-item-title>
                         <v-icon left small>

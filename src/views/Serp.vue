@@ -13,7 +13,24 @@
 <!--    ></div>-->
 
 
-    <v-container class="mt-12">
+    <v-container class="">
+      <v-alert type="warning" class="">
+        <v-row class="align-center">
+        <div class="">
+          <span class="font-weight-bold">Alpha version:</span>
+          buggy, incomplete, and changing daily.
+        </div>
+        <v-spacer v-if="!$vuetify.breakpoint.mobile" />
+        <v-btn small text href="https://openalex.org/help" target="_blank">
+          Feedback
+        </v-btn>
+        <v-btn small text target="_blank" href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
+          Learn more
+        </v-btn>
+
+        </v-row>
+      </v-alert>
+
       <serp-filters-list class="mb-3" :single-work="!!singleWorkIdToShow"/>
       <v-row class="">
 
