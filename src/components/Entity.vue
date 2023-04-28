@@ -59,7 +59,7 @@
       <!--      </div>-->
 
     </div>
-    <div class="px-2 pt-3 pb-1 d-flex">
+    <div class="px-2 pt-1 pb-1 d-flex">
       <!--        just for works-->
       <template v-if="myEntityType==='works'">
         <div>
@@ -135,7 +135,6 @@
               target="_blank"
               v-if="linkoutUrl"
               color="primary"
-              rounded
               small
               text
           >
@@ -149,8 +148,8 @@
       <v-spacer/>
       <v-menu>
         <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="mr-1">
-            <v-icon>mdi-tray-arrow-down</v-icon>
+          <v-btn small icon v-on="on" class="mr-1">
+            <v-icon small>mdi-tray-arrow-down</v-icon>
           </v-btn>
         </template>
         <v-list dense>
@@ -196,6 +195,7 @@
       <entity-author v-if="myEntityType==='authors'" :data="data"/>
       <entity-venue v-if="myEntityType==='sources'" :data="data"/>
       <entity-publisher v-if="myEntityType==='publishers'" :data="data"/>
+      <entity-funder v-if="myEntityType==='funders'" :data="data"/>
       <entity-institution v-if="myEntityType==='institutions'" :data="data"/>
       <entity-concept v-if="myEntityType==='concepts'" :data="data"/>
 
@@ -234,6 +234,7 @@ import EntityWork from "./EntityWork";
 import EntityAuthor from "./EntityAuthor";
 import EntityVenue from "./EntityVenue";
 import EntityPublisher from "./EntityPublisher";
+import EntityFunder from "@/components/EntityFunder.vue";
 
 import EntityInstitution from "./EntityInstitution";
 import EntityConcept from "./EntityConcept";
@@ -279,6 +280,7 @@ export default {
     EntityVenue,
     EntityInstitution,
     EntityPublisher,
+    EntityFunder,
     EntityConcept,
     EntityIcon,
     EntitySummaryStats,
@@ -311,12 +313,14 @@ export default {
     linkoutButtonText() {
       if (this.myEntityType === "authors") return "ORCID"
       if (this.myEntityType === "sources") return "Homepage"
+      if (this.myEntityType === "funders") return "Homepage"
       if (this.myEntityType === "institutions") return "Homepage"
       if (this.myEntityType === "concepts") return "Wikipedia"
     },
     linkoutUrl() {
       if (this.myEntityType === "authors") return this.data.orcid
       if (this.myEntityType === "sources") return this.data.homepage_url
+      if (this.myEntityType === "funders") return this.data.homepage_url
       if (this.myEntityType === "institutions") return this.data.homepage_url
       if (this.myEntityType === "concepts") return this.data.ids.wikipedia
     },

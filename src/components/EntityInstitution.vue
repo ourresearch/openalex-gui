@@ -5,20 +5,21 @@
           Location:
         </span>
       <span>
-          <flag
-              :squared="false"
-              :iso="data.country_code"
-              style="height:12px;
-              margin-right: 3px;"
-              v-if="data.country_code"
-          />
+<!--          <flag-->
+<!--              :squared="false"-->
+<!--              :iso="data.country_code"-->
+<!--              style="height:12px;-->
+<!--              vertical-align: -2px;-->
+<!--              margin-right: 1px;"-->
+<!--              v-if="data.country_code"-->
+<!--          />-->
           {{ locationStr }}
-          <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none">(map)</a>
+          <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none caption">(map)</a>
         </span>
     </div>
     <div class="data-row" v-if="data.x_concepts.length">
         <span class="font-weight-bold">
-          Key research areas:
+          Key topics:
         </span>
       <span>
           <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>

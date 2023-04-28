@@ -195,16 +195,16 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
 
-        {
-            key: "fulltext.search",
-            entityType: "works",
-            displayName: "Fulltext search",
-            valuesToShow: "search",
-            category: "popular",
-            isCore: true,
-            isSearch: true,
-            icon: "mdi-magnify",
-        },
+        // {
+        //     key: "fulltext.search",
+        //     entityType: "works",
+        //     displayName: "Fulltext search",
+        //     valuesToShow: "search",
+        //     category: "popular",
+        //     isCore: true,
+        //     isSearch: true,
+        //     icon: "mdi-magnify",
+        // },
 
 
         // works: authors

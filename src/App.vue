@@ -395,7 +395,7 @@ body {
   //padding: 0 16px 16px;
 }
 
-.capitalize-first-letter:first-letter {
+.capitalize-first-letter::first-letter {
   text-transform: uppercase !important;
 }
 
