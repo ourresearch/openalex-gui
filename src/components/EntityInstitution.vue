@@ -30,13 +30,12 @@
           Repositories:
         </span>
       <span>
-          <template
-
-
-          >
-            <router-link  v-for="(repo, i) in data.repositories" :key="repo.id" class="text-decoration-none"
-                  to="/">{{ repo.display_name.replace(/\(.+?\)/, "") }}{{(true) ? ", " : ""}}</router-link>
-          </template>
+          <link-repository
+              v-for="(repo, i) in data.repositories"
+              :key="repo.id" class="text-decoration-none"
+              :repository="repo"
+              :append-comma="i < data.repositories.length - 1 "
+          />
         </span>
     </div>
 
@@ -84,6 +83,7 @@ import ConceptsList from "./ConceptsList";
 import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
+import LinkRepository from "@/components/LinkRepository.vue";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -97,6 +97,7 @@ export default {
     LinkToEntity,
     LinkToSearch,
     EntitySummaryStats,
+    LinkRepository,
   },
   props: {
     data: Object,
@@ -106,7 +107,8 @@ export default {
       foo: 42,
     }
   },
-  methods: {},
+  methods: {
+  },
   computed: {
     locationStr() {
       const countryResult = countryCodeLookup.byIso(this.data.country_code)

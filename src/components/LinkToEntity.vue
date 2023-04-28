@@ -23,6 +23,7 @@ export default {
   components: {},
   props: {
     entity: Object,
+    appendComma: Boolean,
   },
   data() {
     return {
