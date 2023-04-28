@@ -14,11 +14,9 @@
             <router-link
                 :to="data.host_organization | entityZoomLink"
                 class="text-decoration-none"
-                v-if="data.type==='repository'"
             >
               {{ data.host_organization_name }}
             </router-link>
-            <span v-else>  {{ data.host_organization_name }}</span>
           </span>
 
         </template>

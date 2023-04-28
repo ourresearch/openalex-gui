@@ -138,8 +138,8 @@ export default {
 
       const resp = await axios.get(this.autocompleteUrl)
       return resp.data.results
-          .filter(r => r.entity_type !== 'funder')
-          .filter(r => r.entity_type !== 'publisher')
+          // .filter(r => r.entity_type !== 'funder')
+          // .filter(r => r.entity_type !== 'publisher')
           .map(r => {
 
             const filterKey = (r.filter_key) ?

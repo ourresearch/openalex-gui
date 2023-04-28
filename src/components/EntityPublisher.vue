@@ -1,14 +1,16 @@
 <template>
   <div class="pa-3">
 
-<!--      <div class="data-row" v-if="data.host_organization_name">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Publisher:-->
-<!--        </span>-->
-<!--        <span>-->
-<!--          {{ data.host_organization_name }}-->
-<!--        </span>-->
-<!--      </div>-->
+
+      <div class="data-row">
+        <span class="font-weight-bold">
+          Location{{(data.country_codes.length > 1) ? "s" : ""}}:
+        </span>
+        <span v-if="data.country_codes.length">
+          {{ countryNamesString }}
+        </span>
+        <span v-else>Unknown</span>
+      </div>
 
 <!--      <div class="data-row" v-if="data.x_concepts.length">-->
 <!--        <span class="font-weight-bold">-->
@@ -51,15 +53,11 @@ import LinkToEntity from "./LinkToEntity";
 import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
+import countryCodeLookup from "country-code-lookup";
 
 export default {
   name: "EntityPublisher",
   components: {
-    LinkToSearch,
-    LinkToEntity,
-    EntityIcon,
-    ConceptsList,
-    EntitySummaryStats,
   },
   props: {
     data: Object,
@@ -71,6 +69,14 @@ export default {
   },
   methods: {},
   computed: {
+    countryNamesString() {
+      return this.data.country_codes.map(code => {
+        return countryCodeLookup.byIso(code)?.country
+      }).join(", ")
+
+      // const countryResult = countryCodeLookup.byIso(this.data.country_code)
+      // return countryResult.country
+    },
   },
   created() {
   },
