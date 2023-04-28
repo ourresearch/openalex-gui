@@ -63,7 +63,7 @@
             <v-btn
                     icon
                     target="_blank"
-                    @click="copyToClipboard('https://staging.openalex.org' + $route.fullPath)"
+                    @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
                     v-if="isLocalHost"
             >
               <v-icon color="primary">mdi-share-variant-outline</v-icon>
