@@ -25,6 +25,21 @@
         </span>
     </div>
 
+    <div class="data-row" v-if="data.repositories.length">
+        <span class="font-weight-bold">
+          Repositories:
+        </span>
+      <span>
+          <template
+
+
+          >
+            <router-link  v-for="(repo, i) in data.repositories" :key="repo.id" class="text-decoration-none"
+                  to="/">{{ repo.display_name.replace(/\(.+?\)/, "") }}{{(true) ? ", " : ""}}</router-link>
+          </template>
+        </span>
+    </div>
+
 
     <!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
     <!--        <span class="font-weight-bold">-->
