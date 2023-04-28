@@ -158,15 +158,14 @@
           <v-card-text>
             <p>
               You're looking at our <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha" target="_blank">alpha
-              version:</a> that means it's <strong>buggy, incomplete, undocumented, and changing daily.</strong>
+              version:</a> that means it's <strong>buggy, incomplete, and changing daily.</strong>
             </p>
             <p>
-              We release our beta version (which will be ready for real-world use) in July; <a href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank">sign up here to be notified</a> when that
-              happens.
+              If you like adventure and providing feedback, this is the version for you! <a
+                    href="https://openalex.org/help">Share your thoughts here.</a>
             </p>
             <p>
-              You can <a href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.hi1b6plrfcd6" target="_blank">read our release notes here</a>, and subscribe to detailed updated on our
-              <a href="https://groups.google.com/g/openalex-web" target="_blank">Google group here.</a>
+              If you'd like to <em>evaluate</em> OpenAlex, we recommend you wait for the beta version, which launches in July.
             </p>
 
           </v-card-text>
@@ -177,7 +176,16 @@
                     @click="dialogs.showAlpha = false"
             >
 <!--              <v-icon left>mdi-alert-outline</v-icon>-->
-              try the alpha
+              try alpha
+            </v-btn>
+            <v-btn
+                    text
+                    color="error"
+                    @click="dialogs.showAlpha = false"
+                    href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank"
+            >
+<!--              <v-icon left>mdi-alert-outline</v-icon>-->
+              wait for beta
             </v-btn>
           </v-card-actions>
         </v-card>
