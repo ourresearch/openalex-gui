@@ -1,7 +1,11 @@
 <template>
   <span class="authorship" :class="{showInstitutions}">
     <span class="author">
-      <link-author :data="authorship.author" :append="appendToAuthorLink"/>
+      <link-author
+              :data="authorship.author"
+              :append="appendToAuthorLink"
+              :is-corresponding="authorship.is_corresponding"
+      />
     </span>
 
 

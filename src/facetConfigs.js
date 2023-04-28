@@ -209,6 +209,14 @@ const facetConfigs = function (entityType) {
             category: "author",
             icon: "mdi-account-outline",
         },
+        {
+            key: "corresponding_author_ids",
+            entityType: "works",
+            displayName: "Corresponding author",
+            valuesToShow: "mostCommon",
+            category: "author",
+            icon: "mdi-account-outline",
+        },
 
 
         // works: open access

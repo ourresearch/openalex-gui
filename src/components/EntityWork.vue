@@ -144,7 +144,7 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
 
-      <v-expansion-panel v-if="data.grants.length">
+      <v-expansion-panel v-if="data.grants && data.grants.length">
         <v-divider/>
         <v-expansion-panel-header>
           Funders <span class="caption ml-1">({{ data.grants.length }})</span>
