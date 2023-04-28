@@ -1,20 +1,27 @@
 <template>
     <div class="pa-3">
       <div class="data-row" v-if="data.host_organization_name">
-        <span v-if="data.type==='repository'" class="font-weight-bold">
-          Institution:
-        </span>
-        <span v-else class="font-weight-bold">
-          Publisher:
-        </span>
-        <span>
-<!--          <router-link-->
-<!--              :to="data.host_organization | entityZoomLink"-->
-<!--              class="text-decoration-none"-->
-<!--          >-->
-            {{ data.host_organization_name }}
-<!--          </router-link>-->
-        </span>
+        <template>
+          <span v-if="data.type==='repository'" class="font-weight-bold">
+            Institution:
+          </span>
+          <span v-else class="font-weight-bold">
+            Publisher:
+          </span>
+        </template>
+        <template>
+          <span>
+            <router-link
+                :to="data.host_organization | entityZoomLink"
+                class="text-decoration-none"
+                v-if="data.type==='repository'"
+            >
+              {{ data.host_organization_name }}
+            </router-link>
+            <span v-else>  {{ data.host_organization_name }}</span>
+          </span>
+
+        </template>
       </div>
 
       <div class="data-row" v-if="data.x_concepts.length">
