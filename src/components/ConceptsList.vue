@@ -25,7 +25,7 @@
             :data="concept"
             :append-comma="i < conceptsToShow.length - 1"
             class="mr-1"
-        />link
+        />
       </template>
       <template v-else>
         <span class="">{{ conceptNamesString }}</span>
