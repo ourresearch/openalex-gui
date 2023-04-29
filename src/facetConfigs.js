@@ -422,7 +422,6 @@ const facetConfigs = function (entityType) {
             isRange: true,
             category: "popular",
             isCore: true,
-            sortToTop: true,
             icon: "mdi-calendar-text"
         },
         {
@@ -747,10 +746,9 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
             return !c.noOptions || filters.length
         })
 
-    filtered.sort((a, b) => {
-        if (a.sortToTop) return -1
-        return (a.displayName > b.displayName) ? 1 : -1
-    })
+    // filtered.sort((a, b) => {
+    //     return (a.displayName > b.displayName) ? 1 : -1
+    // })
 
     return facetCategories[entityType].map(categoryName => {
                 return {

@@ -35,7 +35,7 @@
       <v-row class="">
 
         <template v-if="!singleWorkIdToShow">
-          <v-col v-if="!$vuetify.breakpoint.mobile" sm="2">
+          <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
             <serp-facets-column/>
           </v-col>
           <v-slide-x-transition hide-on-leave>
@@ -43,7 +43,7 @@
               <facet-zoom-new/>
             </v-col>
           </v-slide-x-transition>
-          <v-col cols="12" sm="6">
+          <v-col cols="12" sm="5">
             <v-card flat>
               <serp-toolbar/>
               <serp-results-list class="pb-8"/>
