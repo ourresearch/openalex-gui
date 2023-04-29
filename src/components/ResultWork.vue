@@ -32,6 +32,8 @@
     <!--      <concepts-list class="d-none" :concepts="data.concepts"/>-->
 
     <div class="">
+          <v-chip v-if="data.is_retracted" class="mr-2" x-small color="error">retracted</v-chip>
+
       <result-citation-count
               :id="data.id"
               :cited-by-count="data.cited_by_count"
