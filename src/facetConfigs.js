@@ -745,25 +745,35 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
             // hide the noOptions facets unless they have selected filters
             return !c.noOptions || filters.length
         })
+        .map(c => {
+            return {
+                ...c,
+                resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
+            }
+        })
 
     // filtered.sort((a, b) => {
     //     return (a.displayName > b.displayName) ? 1 : -1
     // })
 
     return facetCategories[entityType].map(categoryName => {
-                return {
-                    name: categoryName,
-                    icon: facetCategoriesIcons[categoryName],
-                    facets: filtered.filter(f => {
-                        return f.category === categoryName
-                    })
-                }
-            })
-                .filter(categoryObj => {
-                    return categoryObj.facets.length > 0
-                })
+        const myFacets = filtered.filter(f => {
+            return f.category === categoryName
+        })
+        const myResultsFiltersCount = myFacets
+            .map(f => f.resultsFiltersCount)
+            .reduce((a,b) => a + b, 0)
 
-
+        return {
+            name: categoryName,
+            icon: facetCategoriesIcons[categoryName],
+            facets: myFacets,
+            resultsFiltersCount: myResultsFiltersCount,
+        }
+    })
+        .filter(categoryObj => {
+            return categoryObj.facets.length > 0
+        })
 
 
 }

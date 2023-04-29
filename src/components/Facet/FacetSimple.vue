@@ -5,8 +5,8 @@
   >
 <!--    <v-icon :color="myColor" class="mr-2">{{ config.icon }}</v-icon>-->
     <v-list-item-content>
-      <v-list-item-title>
-      <span v-if="myResultsFilters.length" class="font-weight-black" :class="myTextColor">
+      <v-list-item-title style="font-size: 15px;">
+      <span v-if="myResultsFilters.length" class="font-weight-bold" :class="myTextColor">
         {{ config.displayName }} ({{ myResultsFilters.length }})
       </span>
       <span v-else :class="myTextColor">

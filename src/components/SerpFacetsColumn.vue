@@ -18,7 +18,7 @@
         Filters
       </v-toolbar-title>
       <v-spacer></v-spacer>
-<!--      {{ openPanels }}-->
+      <!--      {{ openPanels }}-->
 
       <template v-slot:extension class="pa-0 ">
         <v-text-field
@@ -32,7 +32,7 @@
             color="green"
 
             v-model="searchString"
-            placeholder=""
+            placeholder="Search filter types"
         />
       </template>
     </v-toolbar>
@@ -48,10 +48,21 @@
           :key="i"
       >
         <!--        <v-divider />-->
-        <v-expansion-panel-header>
-          <!--          <v-icon small left>{{ facetCategory.icon }}</v-icon>-->
-          {{ facetCategory.name }}
+        <v-expansion-panel-header
+            :class="{'font-weight-bold': facetCategory.resultsFiltersCount > 0, 'green--text': facetCategory.resultsFiltersCount > 0}"
+            class="d-flex pl-4"
+        >
+          <div class="capitalize-first-letter d-flex align-center">
 
+            <v-icon small left :color="(facetCategory.resultsFiltersCount > 0) ? 'green' : undefined">{{ facetCategory.icon }}</v-icon>
+            <span class="d-block capitalize-first-letter">
+                {{ facetCategory.name }}
+            </span>
+            <span v-if="facetCategory.resultsFiltersCount > 0" class=" ml-1">
+            ({{ facetCategory.resultsFiltersCount }})
+          </span>
+
+          </div>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-list>

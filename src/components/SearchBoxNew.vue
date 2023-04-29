@@ -13,7 +13,7 @@
             clearable
             dense
             prepend-inner-icon="mdi-magnify"
-            placeholder="Search filters"
+            placeholder="Add filters"
             @keypress.enter.stop.prevent="setSearch"
         />
       </template>
