@@ -168,7 +168,8 @@ export default {
         ]),
         myDisplayValue() {
             if (this.filter.isBoolean) {
-                const booleanInt = (this.filter.value) ? 1 : 0;
+                const booleanInt = (this.filter.value === "true") ? 1 : 0;
+                console.log("this.filter.isBoolean", this.filter, booleanInt)
                 return this.filter.booleanValues[booleanInt]
             }
             return this.filter.displayValue
