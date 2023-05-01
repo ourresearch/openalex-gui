@@ -159,7 +159,7 @@ const convertYearRangeToPrettyWords = function (yearRange) {
         // return "Before " + (Number(yearRange[1]) + 1)
         return  "Before or in " + (Number(yearRange[1]) )
     } else if (!yearRange[1]) {
-        return "Since " + yearRange[0]
+        return  yearRange[0] + " and later"
     }
 }
 
