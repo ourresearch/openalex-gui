@@ -14,17 +14,17 @@
 
 
     <v-container class="">
-      <v-alert type="warning" class="">
+      <v-alert dense text type="warning" class="">
         <v-row class="align-center">
         <div class="">
           <span class="font-weight-bold">Alpha version:</span>
           buggy, incomplete, and changing daily.
         </div>
         <v-spacer v-if="!$vuetify.breakpoint.mobile" />
-        <v-btn small text href="https://openalex.org/help" target="_blank">
+        <v-btn small text light href="https://openalex.org/help" target="_blank">
           Feedback
         </v-btn>
-        <v-btn small text target="_blank" href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
+        <v-btn small text light target="_blank" href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
           Learn more
         </v-btn>
 

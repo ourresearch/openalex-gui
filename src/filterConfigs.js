@@ -156,8 +156,14 @@ const createSimpleFilterFromPid = function(pid){
 }
 
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
+
+    const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
+    console.log("createDisplayFilter", simpleFilter)
+    // if ()
+
+
     return {
-        ...createSimpleFilter(entityType, key, value, isNegated), // @todo change!
+        ...simpleFilter,
         displayValue,
         count,
         countPercent: (count / totalCount) * 100,

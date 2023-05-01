@@ -366,7 +366,7 @@ const facetConfigs = function (entityType) {
         {
             key: "repository",
             entityType: "works",
-            displayName: "Repository",
+            displayName: "Repository Source",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
@@ -378,7 +378,7 @@ const facetConfigs = function (entityType) {
         {
             key: "journal",
             entityType: "works",
-            displayName: "Journal",
+            displayName: "Journal Source",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
