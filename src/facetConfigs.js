@@ -485,17 +485,16 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-document-outline",
         },
 
-        // works: links to other works
-        // {
-        //     key: "cited_by_count",
-        //     entityType: "works",
-        //     displayName: "Citation count",
-        //     valuesToShow: "mostCommon",
-        //     sortByValue: true,
-        //     isRange: true,
-        //     category: "citation",
-        //     isCore: true,
-        // },
+        {
+            key: "cited_by_count",
+            entityType: "works",
+            displayName: "Citation count",
+            valuesToShow: "mostCommon",
+            sortByValue: true,
+            isRange: true,
+            category: "citation",
+            isCore: true,
+        },
         {
             key: "cited_by",
             entityType: "works",
