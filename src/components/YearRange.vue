@@ -6,12 +6,12 @@
           class="ma-0 year-range-card"
           :class="{big}"
   >
-    <v-toolbar  flat v-if="big" class="graph-toolbar">
-<!--      height="80" -->
+    <v-toolbar flat v-if="big" class="graph-toolbar">
+      <!--      height="80" -->
       <v-toolbar-title>
         <div style="line-height: 1">
           Works by year
-<!--          <span class="caption grey&#45;&#45;text">Since {{ minYear }}</span>-->
+          <!--          <span class="caption grey&#45;&#45;text">Since {{ minYear }}</span>-->
         </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -113,7 +113,7 @@
                     class="range-bar-bar caption"
                     :style="{height: filter.scaledCount * 100 + '%'}"
             >
-<!--                    :class="{green: isWithinRange(filter.value)}"-->
+              <!--                    :class="{green: isWithinRange(filter.value)}"-->
               <!--              v-ripple-->
             </div>
           </div>
@@ -131,30 +131,30 @@
 
 
     </div>
-<!--    <v-card-actions v-if="big">-->
-<!--      <div class="body-2 grey&#45;&#45;text d-flex">-->
-<!--        <v-icon left small>mdi-information-outline</v-icon>-->
-<!--        <template v-if="numYearsSelected === 0">-->
-<!--          Hover over bar to see year-->
-<!--        </template>-->
-<!--        <template v-else-if="numYearsSelected === 1">-->
-<!--          Shift-click to select year range-->
-<!--        </template>-->
-<!--        <template v-else>-->
-<!--          Click within range to clear selection-->
-<!--        </template>-->
-<!--      </div>-->
+    <!--    <v-card-actions v-if="big">-->
+    <!--      <div class="body-2 grey&#45;&#45;text d-flex">-->
+    <!--        <v-icon left small>mdi-information-outline</v-icon>-->
+    <!--        <template v-if="numYearsSelected === 0">-->
+    <!--          Hover over bar to see year-->
+    <!--        </template>-->
+    <!--        <template v-else-if="numYearsSelected === 1">-->
+    <!--          Shift-click to select year range-->
+    <!--        </template>-->
+    <!--        <template v-else>-->
+    <!--          Click within range to clear selection-->
+    <!--        </template>-->
+    <!--      </div>-->
 
-<!--      <v-spacer></v-spacer>-->
-<!--      <div v-if="hoverYearFilter" class="body-2 mr-2">-->
-<!--        <span class="font-weight-bold">-->
-<!--          {{ hoverYearFilter.value }}:-->
-<!--        </span>-->
-<!--        <span class="">-->
-<!--          {{ hoverYearFilter.count | toPrecision }}-->
-<!--        </span>-->
-<!--      </div>-->
-<!--    </v-card-actions>-->
+    <!--      <v-spacer></v-spacer>-->
+    <!--      <div v-if="hoverYearFilter" class="body-2 mr-2">-->
+    <!--        <span class="font-weight-bold">-->
+    <!--          {{ hoverYearFilter.value }}:-->
+    <!--        </span>-->
+    <!--        <span class="">-->
+    <!--          {{ hoverYearFilter.count | toPrecision }}-->
+    <!--        </span>-->
+    <!--      </div>-->
+    <!--    </v-card-actions>-->
 
   </v-card>
 
@@ -266,7 +266,14 @@ export default {
         minYearFilter() {
             const yearResultsFilter = this.resultsFilters.find(f => f.key === "publication_year")
             if (!yearResultsFilter) return
-            return yearResultsFilter.value.split("-")[0]
+            return Number(yearResultsFilter.value.split("-")[0])
+        },
+        maxYearFilter() {
+            const yearResultsFilter = this.resultsFilters.find(f => f.key === "publication_year")
+            if (!yearResultsFilter) return
+            const maxRange = yearResultsFilter.value.split("-")[1]
+            if (!maxRange) return
+            return Number(maxRange)
         },
     },
     methods: {
@@ -327,8 +334,8 @@ export default {
             const url = new URL(`https://api.openalex.org`);
             url.pathname = "works"
 
-            const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== "publication_year")
-            url.searchParams.set("filter", filtersAsUrlStr(filtersWithoutMe, this.entityType))
+            // const filtersWithoutMe = this.$store.state.inputFilters.filter(f => f.key !== "publication_year")
+            url.searchParams.set("filter", filtersAsUrlStr(this.$store.state.inputFilters, this.entityType))
 
             url.searchParams.set("group_by", "publication_year")
             url.searchParams.set("per_page", "200")
@@ -342,20 +349,9 @@ export default {
             url.setFiltersByKey("publication_year", [])
         },
         async fetchFilters() {
-            const maxValue = new Date().getFullYear()
+            const minYearToShow = new Date().getFullYear() - 50
 
             const resp = await api.getUrl(this.apiUrl)
-            // const filters = resp.group_by
-            //     .filter(g => g.key <= maxValue)
-            //     .map(apiData => {
-            //       return createDisplayFilter(
-            //           this.config.key,
-            //           apiData.key, // this is the year
-            //           false,
-            //           apiData.key_display_name,
-            //           apiData.count,
-            //       )
-            //     })
 
             const yearCountFromApiResp = function (resp, year) {
                 const ret = resp.group_by.find(group => {
@@ -366,16 +362,20 @@ export default {
 
             const yearsToShow = resp.group_by
                 .map(g => Number(g.key))
-                .filter(year => year > new Date().getFullYear() - 50)
+                .filter(year => year > minYearToShow)
 
 
-            const minYear = (this.minYearFilter) ? this.minYearFilter : Math.min(...yearsToShow)
-
+            const minYear = Math.max(
+                this.minYearFilter ?? 0,
+                minYearToShow
+            )
+            const maxYear = this.maxYearFilter ?? new Date().getFullYear()
+            console.log("minYear, maxYear", minYear, maxYear)
 
             if (!yearsToShow.length) {
                 return []
             }
-            const filters = _.range(minYear, new Date().getFullYear() + 1).map(year => {
+            const filters = _.range(minYear, maxYear+1).map(year => {
                 return createDisplayFilter(
                     "works",
                     "publication_year",
@@ -384,7 +384,8 @@ export default {
                     year,
                     yearCountFromApiResp(resp, year),
                 )
-            })
+            });
+            console.log("year filters", filters)
 
             filters.reverse()
 
@@ -452,6 +453,7 @@ export default {
 
   &.big {
     padding-bottom: 6px;
+
     .range-bar-bar {
       width: calc(100% - 1px);
     }

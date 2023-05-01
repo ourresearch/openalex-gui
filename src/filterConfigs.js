@@ -158,7 +158,7 @@ const createSimpleFilterFromPid = function(pid){
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
 
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
-    console.log("createDisplayFilter", simpleFilter)
+    // console.log("createDisplayFilter", simpleFilter)
     // if ()
 
 
