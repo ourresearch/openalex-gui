@@ -7,8 +7,8 @@
   >
     <v-toolbar flat >
 <!--      <v-icon left>{{ config.icon }}</v-icon>-->
-      <v-icon left>mdi-filter-plus-outline</v-icon>
-      <v-toolbar-title>
+
+      <v-toolbar-title class="ml-0 pl-0">
         {{ config.displayName }}
       </v-toolbar-title>
       <v-spacer/>
@@ -50,9 +50,9 @@
 
         </v-list>
       </v-menu>
-      <v-btn icon @click="setFacetZoom(null)">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+<!--      <v-btn icon @click="setFacetZoom(null)">-->
+<!--        <v-icon>mdi-close</v-icon>-->
+<!--      </v-btn>-->
 
     </v-toolbar>
 

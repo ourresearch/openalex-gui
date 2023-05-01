@@ -1,6 +1,6 @@
 <template>
-  <v-card class="facets-column">
-    <v-toolbar flat>
+  <v-card flat tile class="facets-column">
+    <v-toolbar flat tile class="pa-0">
       <!--      <v-text-field-->
       <!--            flat-->
       <!--            hide-details-->
@@ -13,14 +13,13 @@
       <!--            placeholder="Filters"-->
       <!--        />-->
 
-      <v-toolbar-title>
-        <v-icon>mdi-filter-outline</v-icon>
-        Filters
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
+<!--      <v-toolbar-title>-->
+<!--        <v-icon>mdi-filter-outline</v-icon>-->
+<!--        Filters-->
+<!--      </v-toolbar-title>-->
+<!--      <v-spacer></v-spacer>-->
       <!--      {{ openPanels }}-->
 
-      <template v-slot:extension class="pa-0 ">
         <v-text-field
             flat
             outlined
@@ -34,7 +33,6 @@
             v-model="searchString"
             placeholder="Search filter types"
         />
-      </template>
     </v-toolbar>
     <v-expansion-panels
         :multiple="allowMultipleOpenPanels"
