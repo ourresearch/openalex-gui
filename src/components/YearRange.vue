@@ -370,7 +370,6 @@ export default {
                 minYearToShow
             )
             const maxYear = this.maxYearFilter ?? new Date().getFullYear()
-            console.log("minYear, maxYear", minYear, maxYear)
 
             if (!yearsToShow.length) {
                 return []
@@ -385,7 +384,6 @@ export default {
                     yearCountFromApiResp(resp, year),
                 )
             });
-            console.log("year filters", filters)
 
             filters.reverse()
 

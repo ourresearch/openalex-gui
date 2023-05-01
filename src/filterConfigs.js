@@ -159,7 +159,21 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
 
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
     // console.log("createDisplayFilter", simpleFilter)
-    // if ()
+    if (key === "publication_year" && /\d*-\d*/.test(value)) {
+        const range = value.split("-")
+        console.log("createDisplayFilter publication_year", range)
+        if (range[0] === range[1]) {
+            displayValue = range[0]
+        }
+        else if (!range[0]) {
+            // displayValue = range[1] + " and older"
+            displayValue = "Before " + (Number(range[1]) + 1)
+        }
+        else if (!range[1]) {
+            // displayValue =  range[0] + " and newer"
+            displayValue = "Since " + range[1]
+        }
+    }
 
 
     return {
