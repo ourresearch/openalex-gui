@@ -16,7 +16,6 @@ const createFilterId = function (key, value, isNegated) {
 }
 
 
-
 const filtersFromUrlStr = function (entityType, str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
@@ -96,7 +95,6 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 }
 
 
-
 const createFilterValue = function (rawValue) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
@@ -105,7 +103,7 @@ const createFilterValue = function (rawValue) {
     return rawValue
 }
 
-const createSimpleFilter = function ( entityType, key, value, isNegated) {
+const createSimpleFilter = function (entityType, key, value, isNegated) {
 
     const displayValue = createFilterValue(value)
     const nullValues = ["unknown", "null"]
@@ -124,7 +122,7 @@ const createSimpleFilter = function ( entityType, key, value, isNegated) {
     }
 }
 
-const copySimpleFilter = function(filter, overwriteWith){
+const copySimpleFilter = function (filter, overwriteWith) {
 
     return createSimpleFilter(
         overwriteWith?.entityType ?? filter.entityType,
@@ -134,20 +132,19 @@ const copySimpleFilter = function(filter, overwriteWith){
     )
 }
 
-const createSimpleFilterFromPid = function(pid){
+const createSimpleFilterFromPid = function (pid) {
     if (!pid) return
     const trimmedPid = pid.trim()
     const pidFilters = facetConfigs().map(f => {
         const matches = trimmedPid.match(f.regex)
-        if (matches?.length === 2){
+        if (matches?.length === 2) {
             const value = matches[1] // first capture group
             return createSimpleFilter(
                 f.entityType,
                 f.key,
                 value
             )
-        }
-        else {
+        } else {
             return null
         }
     })
@@ -155,25 +152,41 @@ const createSimpleFilterFromPid = function(pid){
     return pidFilters.find(f => !!f) // shoudld be only one not null
 }
 
+const convertYearRangeToPrettyWords = function (yearRange) {
+    if (yearRange[0] === yearRange[1]) {
+        return yearRange[0]
+    } else if (!yearRange[0]) {
+        // return "Before " + (Number(yearRange[1]) + 1)
+        return  "Before or in " + (Number(yearRange[1]) )
+    } else if (!yearRange[1]) {
+        return "Since " + yearRange[0]
+    }
+}
+
+const convertRangeToPrettyWords = function (range) {
+    if (range[0] === range[1]) {
+        return range[0] + " exactly"
+    } else if (!range[0]) {
+        // return (Number(range[1]).toLocaleString() ) + " or fewer"
+        return "At most " + (Number(range[1]).toLocaleString() )
+    } else if (!range[1]) {
+        return  Number(range[0]).toLocaleString() + " or more"
+    }
+}
+
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
 
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
-    // console.log("createDisplayFilter", simpleFilter)
-    if (key === "publication_year" && /\d*-\d*/.test(value)) {
-        const range = value.split("-")
-        console.log("createDisplayFilter publication_year", range)
-        if (range[0] === range[1]) {
-            displayValue = range[0]
+    if (simpleFilter.isRange && /\d*-\d*/.test(value)) {
+        if (key === "publication_year") {
+            displayValue = convertYearRangeToPrettyWords(value.split("-"))
         }
-        else if (!range[0]) {
-            // displayValue = range[1] + " and older"
-            displayValue = "Before " + (Number(range[1]) + 1)
+        else {
+            displayValue = convertRangeToPrettyWords(value.split("-"))
         }
-        else if (!range[1]) {
-            // displayValue =  range[0] + " and newer"
-            displayValue = "Since " + range[1]
-        }
+
     }
+
 
 
     return {
@@ -203,7 +216,7 @@ const displayYearRange = function (range) {
 }
 
 
-const sortedFilters = function(filters, sortByValue){
+const sortedFilters = function (filters, sortByValue) {
     const ret = _.cloneDeep(filters)
 
     if (sortByValue) {
@@ -217,7 +230,6 @@ const sortedFilters = function(filters, sortByValue){
     }
     return ret
 }
-
 
 
 export {
