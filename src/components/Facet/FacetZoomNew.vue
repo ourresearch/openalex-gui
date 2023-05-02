@@ -3,6 +3,7 @@
 
 
   <v-card
+          flat tile
           :loading="isLoading"
   >
     <v-toolbar flat >

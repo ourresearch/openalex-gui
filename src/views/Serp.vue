@@ -50,8 +50,11 @@
                 <div v-if="!!facetZoom" class="pl-0">Back to filters</div>
                 <v-toolbar-title v-else class="pl-0">Filters</v-toolbar-title>
               </v-toolbar>
-              <facet-zoom-new v-if="!!facetZoom"/>
-              <serp-facets-column v-else/>
+              <v-slide-x-transition hide-on-leave group class="d-flex">
+                <facet-zoom-new v-if="!!facetZoom" key="0"/>
+                <serp-facets-column v-else key="1" />
+
+              </v-slide-x-transition>
             </v-card>
           </v-col>
           <v-slide-x-transition hide-on-leave>
