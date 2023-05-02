@@ -37,25 +37,27 @@
 
         <template v-if="!singleWorkIdToShow">
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-            <v-card>
-              <v-toolbar tile flat>
-                <v-btn
-                        v-if="!!facetZoom"
-                        icon
-                        @click="setFacetZoom(null)"
-                >
-                  <v-icon>mdi-arrow-left</v-icon>
-                </v-btn>
-                <v-icon v-else class="mr-3">mdi-filter-outline</v-icon>
-                <div v-if="!!facetZoom" class="pl-0">Back to filters</div>
-                <v-toolbar-title v-else class="pl-0">Filters</v-toolbar-title>
-              </v-toolbar>
-              <v-slide-x-transition hide-on-leave group class="d-flex">
-                <facet-zoom-new v-if="!!facetZoom" key="0"/>
-                <serp-facets-column v-else key="1" />
-
-              </v-slide-x-transition>
-            </v-card>
+            <v-slide-x-transition hide-on-leave group class="d-flex">
+              <v-card v-if="!facetZoom"  key="filter-menu">
+                <v-toolbar tile flat>
+                  <v-icon class="mr-3">mdi-filter-outline</v-icon>
+                  <v-toolbar-title class="pl-0">Filters</v-toolbar-title>
+                </v-toolbar>
+                <serp-facets-column  />
+              </v-card>
+              <v-card v-else key="filter-zoom">
+                <v-toolbar tile flat>
+                  <v-btn
+                          icon
+                          @click="setFacetZoom(null)"
+                  >
+                    <v-icon>mdi-arrow-left</v-icon>
+                  </v-btn>
+                  <div class="pl-0">Back to filters</div>
+                </v-toolbar>
+                <facet-zoom-new />
+              </v-card>
+            </v-slide-x-transition>
           </v-col>
           <v-slide-x-transition hide-on-leave>
           </v-slide-x-transition>
