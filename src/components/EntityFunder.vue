@@ -1,5 +1,15 @@
 <template>
   <div class="pa-3">
+    <div class="data-row" v-if="data.roles.length">
+        <span class="font-weight-bold">
+          Other roles:
+        </span>
+      <link-entity-roles-list
+          :roles="data.roles"
+          hide-role="funder"
+      />
+    </div>
+
     <div class="data-row" v-if="data.description">
         <span class="font-weight-bold">
           About:
@@ -40,13 +50,8 @@
 
 
 <script>
-import IdList from "./IdList";
-import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
-import LinkToEntity from "./LinkToEntity";
-import LinkToSearch from "./LinkToSearch";
-import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
-import LinkRepository from "@/components/LinkRepository.vue";
+import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -55,6 +60,7 @@ export default {
   name: "EntityFunder",
   components: {
     ConceptsList,
+    LinkEntityRolesList
   },
   props: {
     data: Object,

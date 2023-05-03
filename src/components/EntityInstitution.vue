@@ -1,18 +1,29 @@
 <template>
   <div class="pa-3">
+
+    <div class="data-row" v-if="data.roles.length">
+        <span class="font-weight-bold">
+          Other roles:
+        </span>
+      <link-entity-roles-list
+          :roles="data.roles"
+          hide-role="institution"
+      />
+    </div>
+
     <div class="data-row">
         <span class="font-weight-bold">
           Location:
         </span>
       <span>
 <!--          <flag-->
-<!--              :squared="false"-->
-<!--              :iso="data.country_code"-->
-<!--              style="height:12px;-->
-<!--              vertical-align: -2px;-->
-<!--              margin-right: 1px;"-->
-<!--              v-if="data.country_code"-->
-<!--          />-->
+        <!--              :squared="false"-->
+        <!--              :iso="data.country_code"-->
+        <!--              style="height:12px;-->
+        <!--              vertical-align: -2px;-->
+        <!--              margin-right: 1px;"-->
+        <!--              v-if="data.country_code"-->
+        <!--          />-->
           {{ locationStr }}
           <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none caption">(map)</a>
         </span>
@@ -56,19 +67,19 @@
     <!--            </span>-->
     <!--        </span>-->
 
-<!--    <div class="data-row">-->
-<!--        <span class="font-weight-bold pt-6">-->
-<!--          Works:-->
-<!--        </span>-->
-<!--      <span class="pt-6">-->
-<!--          <link-to-search-->
-<!--              :count="data.works_count"-->
-<!--              filter-key="authorships.institutions.id"-->
-<!--              :filter-value="data.id"-->
-<!--              entity-type="works"-->
-<!--          />-->
-<!--        </span>-->
-<!--    </div>-->
+    <!--    <div class="data-row">-->
+    <!--        <span class="font-weight-bold pt-6">-->
+    <!--          Works:-->
+    <!--        </span>-->
+    <!--      <span class="pt-6">-->
+    <!--          <link-to-search-->
+    <!--              :count="data.works_count"-->
+    <!--              filter-key="authorships.institutions.id"-->
+    <!--              :filter-value="data.id"-->
+    <!--              entity-type="works"-->
+    <!--          />-->
+    <!--        </span>-->
+    <!--    </div>-->
 
 
   </div>
@@ -85,6 +96,7 @@ import LinkToEntity from "./LinkToEntity";
 import LinkToSearch from "./LinkToSearch";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 import LinkRepository from "@/components/LinkRepository.vue";
+import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -99,6 +111,7 @@ export default {
     LinkToSearch,
     EntitySummaryStats,
     LinkRepository,
+    LinkEntityRolesList,
   },
   props: {
     data: Object,
@@ -108,8 +121,7 @@ export default {
       foo: 42,
     }
   },
-  methods: {
-  },
+  methods: {},
   computed: {
     locationStr() {
       const countryResult = countryCodeLookup.byIso(this.data.country_code)

@@ -1,6 +1,15 @@
 <template>
   <div class="pa-3">
 
+    <div class="data-row" v-if="data.roles.length">
+        <span class="font-weight-bold">
+          Other roles:
+        </span>
+      <link-entity-roles-list
+          :roles="data.roles"
+          hide-role="publisher"
+      />
+    </div>
 
       <div class="data-row">
         <span class="font-weight-bold">
@@ -54,10 +63,12 @@ import EntityIcon from "./EntityIcon";
 import ConceptsList from "./ConceptsList";
 import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
 import countryCodeLookup from "country-code-lookup";
+import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 
 export default {
   name: "EntityPublisher",
   components: {
+    LinkEntityRolesList,
   },
   props: {
     data: Object,
