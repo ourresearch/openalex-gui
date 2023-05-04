@@ -71,7 +71,7 @@
                     solo
                     class="mt-0"
                     v-model="range[0]"
-                    placeholder="Start"
+                    :placeholder="config.placeholders[0]"
                     outlined
                     @keypress.enter="applyRange"
             >
@@ -83,7 +83,7 @@
                     solo
                     class="mt-0"
                     v-model="range[1]"
-                    placeholder="End"
+                    :placeholder="config.placeholders[1]"
                     outlined
                     @keypress.enter="applyRange"
             />

@@ -112,7 +112,7 @@ const facetConfigs = function (entityType) {
         {
             key: "grants.funder",
             entityType: "works",
-            displayName: "Funder",
+            displayName: "Funder name",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -169,7 +169,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.author.id",
             entityType: "works",
-            displayName: "Author",
+            displayName: "Author name",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -204,9 +204,9 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Search all text",
+            displayName: "Fulltext search",
             valuesToShow: "search",
-            category: "search",
+            category: "popular",
             isCore: true,
             isSearch: true,
             icon: "mdi-magnify",
@@ -231,6 +231,28 @@ const facetConfigs = function (entityType) {
             isSearch: true,
             icon: "mdi-magnify",
         },
+
+        {
+            key: "has_abstract",
+            entityType: "works",
+            displayName: "Indexing status (abstract)",
+            isBoolean: true,
+            booleanValues: ["No indexed abstract", "Has indexed abstract"],
+            valuesToShow: "mostCommon",
+            category: "search",
+            icon: "mdi-file-document-outline",
+        },
+        {
+            key: "has_ngrams",
+            entityType: "works",
+            isBoolean: true,
+            displayName: "Indexing status (fulltext)",
+            booleanValues: ["No indexed fulltext", "Has indexed fulltext"],
+            valuesToShow: "mostCommon",
+            category: "search",
+            icon: "mdi-file-document-outline",
+        },
+
         // {
         //     key: "fulltext.search",
         //     entityType: "works",
@@ -253,6 +275,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "range",
             sortByValue: true,
             isRange: true,
+            placeholders: ["min", "max"],
             category: "author",
             icon: "mdi-account-outline",
         },
@@ -274,7 +297,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Toll-access", "Open Access"],
-            category: "access",
+            category: "popular",
             isCore: true,
             icon: "mdi-lock-open-outline",
         },
@@ -451,7 +474,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "works",
-            displayName: "Work Type",
+            displayName: "Work type",
             valuesToShow: "mostCommon",
             category: "popular",
             icon: "mdi-file-document-outline",
@@ -459,10 +482,11 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Year",
+            displayName: "Publication year",
             valuesToShow: "range",
             sortByValue: true,
             isRange: true,
+            placeholders: ["earliest", "latest"],
             category: "popular",
             isCore: true,
             icon: "mdi-calendar-text"
@@ -510,7 +534,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_retracted",
             entityType: "works",
-            displayName: "Retracted",
+            displayName: "Retraction status",
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't retracted", "Is retracted"],
@@ -529,14 +553,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-        {
-            key: "has_abstract",
-            entityType: "works",
-            displayName: "Has abstract",
-            valuesToShow: "mostCommon",
-            category: "other",
-            icon: "mdi-file-document-outline",
-        },
 
         {
             key: "cited_by_count",
@@ -545,6 +561,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             sortByValue: true,
             isRange: true,
+            placeholders: ["min", "max"],
             category: "citation",
             isCore: true,
         },
@@ -594,7 +611,7 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.id",
             entityType: "authors",
-            displayName: "Institution",
+            displayName: "Institution name",
             isEntity: true,
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
