@@ -9,7 +9,7 @@ const entityConfigs = {
         icon: "mdi-file-document-outline",
         name: "works",
         nameSingular: "work",
-        displayName: "work",
+        displayName: "works",
         displayNameSingular: "work",
         descr: "Scholarly papers, books, datasets, etc.",
         eg: "On the Electrodynamics of Moving Bodies",

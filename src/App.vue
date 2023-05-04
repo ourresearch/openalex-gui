@@ -207,7 +207,7 @@ import SearchBoxNew from "@/components/SearchBoxNew.vue";
 export default {
     name: 'App',
     metaInfo: {
-        titleTemplate: '%s | OpenAlex',
+        titleTemplate: 'OpenAlex | %s',
         link: [],
 
         meta: []

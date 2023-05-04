@@ -155,8 +155,7 @@ import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";
 export default {
     name: "Serp",
     metaInfo() {
-        const ret = {title: _.capitalize(this.entityConfig.displayName)}
-        if (this.$store.state.textSearch) ret.title = this.$store.state.textSearch
+        const ret = {title: _.capitalize(this.entityConfig.displayName) + " search"}
         if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
         return ret
     },
