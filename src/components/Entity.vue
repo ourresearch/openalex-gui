@@ -403,7 +403,7 @@ export default {
     },
     close() {
       console.log("remove! new filters: ", this.myFilter)
-      const newFilters = this.resultsFilters.filter(f => f.asStr !== this.myFilter.asStr)
+      const newFilters = this.resultsFilters.filter(f => !f.isSingleWork)
       url.setFilters(
           "works",
           newFilters

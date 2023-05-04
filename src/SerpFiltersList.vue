@@ -48,7 +48,7 @@
                   v-for="filter in resultsFilters"
                   :key="filter.key + filter.value"
                   :filter="filter"
-                  :disabled="singleWork && !filter.showAsSingleEntity"
+                  :disabled="singleWork && !filter.isSingleWork"
 
           />
 

@@ -66,7 +66,6 @@ const facetConfigs = function (entityType) {
             displayName: "Work",
             isEntity: true,
             isSingleWork: true,
-            showAsSingleEntity: true,
             isId: true,
             showInSidebar: true,
             noOptions: true,
