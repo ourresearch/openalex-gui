@@ -167,7 +167,7 @@ export default {
         searchFilter() {
             return createSimpleFilter(
                 "works",
-                "title.search",
+                "default.search",
                 this.searchString,
             )
         },

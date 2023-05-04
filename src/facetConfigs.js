@@ -6,6 +6,7 @@ const facetCategories = {
         "access",
         "main source",
         "repository",
+        "search",
         "geo",
         "funder",
         "ids",
@@ -47,6 +48,7 @@ const facetCategoriesIcons = {
     funder: "mdi-cash-multiple",
     "main source": "mdi-book-multiple-outline",
     repository: "mdi-package-variant",
+    search: "mdi-magnify",
     access: "mdi-lock-open-outline",
     ids: "mdi-tag-outline",
     citation: "mdi-format-quote-close",
@@ -200,26 +202,46 @@ const facetConfigs = function (entityType) {
         // works: search
 
         {
-            key: "title.search",
+            key: "default.search",
             entityType: "works",
-            displayName: "Title search",
+            displayName: "Search all text",
             valuesToShow: "search",
-            category: "popular",
+            category: "search",
             isCore: true,
             isSearch: true,
             icon: "mdi-magnify",
         },
-
+        {
+            key: "title.search",
+            entityType: "works",
+            displayName: "Search title only",
+            valuesToShow: "search",
+            category: "search",
+            isCore: true,
+            isSearch: true,
+            icon: "mdi-magnify",
+        },
+        {
+            key: "abstract.search",
+            entityType: "works",
+            displayName: "Search abstract only",
+            valuesToShow: "search",
+            category: "search",
+            isCore: true,
+            isSearch: true,
+            icon: "mdi-magnify",
+        },
         // {
         //     key: "fulltext.search",
         //     entityType: "works",
-        //     displayName: "Fulltext search",
+        //     displayName: "Search fulltext",
         //     valuesToShow: "search",
-        //     category: "popular",
+        //     category: "search",
         //     isCore: true,
         //     isSearch: true,
         //     icon: "mdi-magnify",
         // },
+
 
 
         // works: authors
