@@ -205,9 +205,13 @@ export default {
         async entitySidebarDataList() {
             return await Promise.all(
                 this.entitySidebarFiltersList.map(f => {
+                  const fullyQualifiedId = (f.pidPrefix) ?
+                      [f.pidPrefix, f.value].join(":") :
+                      f.value
+
                     const pathName = [
                         f.entityId,
-                        [f.pidPrefix, f.value].join(":")
+                        fullyQualifiedId
                     ].join("/")
 
                     return api.get(pathName)
