@@ -331,7 +331,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.country_code",
             entityType: "works",
-            displayName: "Country",
+            displayName: "Institution country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
@@ -343,7 +343,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.continent",
             entityType: "works",
-            displayName: "Continent",
+            displayName: "Institution continent",
             valuesToShow: "mostCommon",
             category: "geo",
             isCore: true,
@@ -353,7 +353,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.is_global_south",
             entityType: "works",
-            displayName: "Hemisphere",
+            displayName: "Institution hemisphere",
             category: "geo",
             isBoolean: true,
             booleanValues: ["Global North", "Global South"],
