@@ -42,8 +42,8 @@ const entityConfigs = {
         descr: "Journals, conferences, and repositories",
         eg: "The New England Journal of Medicine",
         placeholder: "Search academic journals & repositories",
-        filterName: "locations.source",
-        filterKey: "locations.source.id",
+        filterName: "primary_location.source",
+        filterKey: "primary_location.source.id",
     },
     publishers: {
         emoji: "📚",

@@ -14,20 +14,29 @@
             dense
             prepend-inner-icon="mdi-magnify"
             placeholder="Add filters"
-            @keypress.enter.stop.prevent="setSearch"
+            @keypress.enter.stop.prevent="setTopFilter"
         />
       </template>
       <v-list v-if="!!searchString">
-        <v-list-item key="set-search" @click.stop="setSearch">
+
+        <v-list-item
+            @click.stop="setTopFilter"
+            @keydown.enter.prevent="setTopFilter"
+            key="top-filter-slot"
+        >
           <v-list-item-icon>
-            <v-icon>mdi-magnify</v-icon>
+            <v-icon v-if="topFilterSlot.isSearch">mdi-magnify</v-icon>
+            <v-icon v-else>mdi-filter-plus-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title class="font-weight-bold">
-              "{{ searchString }}"
+              <q v-if="topFilterSlot.isSearch">{{ topFilterSlot.value }}</q>
+              <div v-else class="text-wrap">
+                {{ topFilterSlot.value }}
+              </div>
             </v-list-item-title>
             <v-list-item-subtitle>
-              Title search
+              {{ topFilterSlot.displayName }}
             </v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
@@ -36,10 +45,14 @@
             </v-chip>
           </v-list-item-action>
         </v-list-item>
-        <v-subheader>
-          Filter values
-        </v-subheader>
-        <v-divider></v-divider>
+
+
+        <template v-if="filterSuggestions.length">
+          <v-subheader>
+            Filter values
+          </v-subheader>
+          <v-divider></v-divider>
+        </template>
 
         <v-list-item
             @click.stop="setFilter(suggestion)"
@@ -48,7 +61,7 @@
             :key="suggestion.id"
         >
           <v-list-item-icon>
-<!--            <v-icon>{{ suggestion.icon }}</v-icon>-->
+            <!--            <v-icon>{{ suggestion.icon }}</v-icon>-->
             <v-icon>mdi-filter-plus-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
@@ -63,26 +76,6 @@
             </v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-<!--        <v-divider/>-->
-<!--        <v-list-item-->
-<!--            @click.stop="clickViewAllFilters"-->
-<!--            @keydown.enter.prevent="clickViewAllFilters"-->
-<!--            key="view-all-filters"-->
-<!--        >-->
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>mdi-filter-outline</v-icon>-->
-<!--          </v-list-item-icon>-->
-<!--          <v-list-item-content>-->
-<!--            <v-list-item-title>-->
-<!--              View all filters-->
-<!--            </v-list-item-title>-->
-<!--          </v-list-item-content>-->
-<!--          <v-list-item-action>-->
-<!--            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">-->
-<!--              ⌘F-->
-<!--            </v-chip>-->
-<!--          </v-list-item-action>-->
-<!--        </v-list-item>-->
       </v-list>
     </v-menu>
   </div>
@@ -93,7 +86,12 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import axios from "axios";
-import {createSimpleFilter, createDisplayFilter} from "@/filterConfigs";
+import {
+  createSimpleFilter,
+  createDisplayFilter,
+  createSimpleFilterFromPid,
+  createDisplayFilterFromPid
+} from "@/filterConfigs";
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {url} from "@/url";
 
@@ -113,6 +111,18 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    topFilterSlot() {
+      const filterFromValue = createSimpleFilterFromPid(this.searchString)
+      console.log("filterFromValue", filterFromValue)
+      const searchFilter = createSimpleFilter(
+          "works",
+          "title.search",
+          this.searchString,
+      )
+      return filterFromValue ?? searchFilter
+
+    },
+
     autocompleteUrl() {
       const url = new URL("https://api.openalex.org")
       url.pathname = "autocomplete"
@@ -173,6 +183,10 @@ export default {
       url.setFilters("works", [...this.resultsFilters, filter], false)
       this.searchString = ""
     },
+    setTopFilter() {
+      this.setFilter(this.topFilterSlot)
+    },
+
     setSearch() {
       console.log("setSearch", this.searchString)
       if (!this.searchString) return

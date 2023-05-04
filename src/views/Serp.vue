@@ -34,7 +34,6 @@
 
       <serp-filters-list class="mb-3" :single-work="!!singleWorkIdToShow"/>
       <v-row class="">
-
         <template v-if="!singleWorkIdToShow">
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
             <v-slide-x-transition hide-on-leave group class="d-flex">
@@ -208,7 +207,7 @@ export default {
                 this.entitySidebarFiltersList.map(f => {
                     const pathName = [
                         f.entityId,
-                        f.value
+                        [f.pidPrefix, f.value].join(":")
                     ].join("/")
 
                     return api.get(pathName)
@@ -273,7 +272,7 @@ export default {
         singleWorkIdToShow() {
             if (this.entityType !== "works") return
             const workId = this.resultsFilters.find(f => {
-                return f.isId && f.entityType === "works"
+                return f.isSingleWork
             })?.value
             return workId
 

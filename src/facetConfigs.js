@@ -4,7 +4,8 @@ const facetCategories = {
         "institution",
         "author",
         "access",
-        "source",
+        "main source",
+        "repository",
         "geo",
         "funder",
         "indexed by",
@@ -44,7 +45,8 @@ const facetCategoriesIcons = {
     institution: "mdi-town-hall",
     geo: "mdi-map-marker-outline",
     funder: "mdi-cash-multiple",
-    source: "mdi-book-multiple-outline",
+    "main source": "mdi-book-multiple-outline",
+    repository: "mdi-package-variant",
     access: "mdi-lock-open-outline",
     "indexed by": "mdi-database-outline",
     citation: "mdi-format-quote-close",
@@ -63,6 +65,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Work",
             isEntity: true,
+            isSingleWork: true,
             showAsSingleEntity: true,
             isId: true,
             showInSidebar: true,
@@ -75,9 +78,12 @@ const facetConfigs = function (entityType) {
         {
             key: "doi",
             entityType: "works",
+            entityId: "works",
             displayName: "DOI",
             isEntity: true,
+            isSingleWork: true,
             isId: true,
+            pidPrefix: "doi",
             showInSidebar: true,
             noOptions: true,
             valuesToShow: "select",
@@ -319,43 +325,31 @@ const facetConfigs = function (entityType) {
         },
 
 
-        // works: sources
-
-        // {
-        //     key: "locations.source.id",
-        //     entityType: "works",
-        //     displayName: "Source",
-        //     isEntity: true,
-        //     showInSidebar: true,
-        //     entityId: "sources",
-        //     autocompleteEndpoint: "autocomplete/sources",
-        //     valuesToShow: "mostCommon",
-        //     category: "source",
-        //     isCore: true,
-        //     icon: "mdi-file-document-multiple-outline",
-        // },
+        // works: primary source
 
         {
-            key: "locations.source.id",
+            key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Source",
+            displayName: "Main source name",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
             autocompleteEndpoint: "autocomplete/sources",
             valuesToShow: "mostCommon",
-            category: "source",
+            category: "main source",
             isCore: true,
             icon: "mdi-file-document-multiple-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
         },
 
         {
-            key: "locations.source.issn",
+            key: "primary_location.source.issn",
             entityType: "works",
-            displayName: "ISSN",
+            entityId: "sources",
+            displayName: "Main source ISSN",
             isEntity: true,
             isId: true,
+            pidPrefix: "issn",
             showInSidebar: true,
             noOptions: true,
             valuesToShow: "select",
@@ -364,43 +358,58 @@ const facetConfigs = function (entityType) {
             regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
         },
         {
-            key: "repository",
+            key: "primary_location.source.type",
             entityType: "works",
-            displayName: "Repository Source",
-            isEntity: true,
-            showInSidebar: true,
-            entityId: "sources",
+            displayName: "Main source type",
             valuesToShow: "mostCommon",
-            category: "source",
-            isCore: true,
+            category: "main source",
             icon: "mdi-file-document-multiple-outline",
         },
+
         {
-            key: "journal",
+            key: "primary_location.source.publisher_lineage",
             entityType: "works",
-            displayName: "Journal Source",
-            isEntity: true,
-            showInSidebar: true,
-            entityId: "sources",
-            valuesToShow: "mostCommon",
-            category: "source",
-            isCore: true,
-            icon: "mdi-file-document-multiple-outline",
-        },
-        {
-            key: "locations.source.publisher_lineage",
-            entityType: "works",
-            displayName: "Publisher",
+            displayName: "Main source publisher",
             isEntity: true,
             showInSidebar: true,
             // entityId: "publishers",
             autocompleteEndpoint: "autocomplete/publishers",
             valuesToShow: "mostCommon",
-            category: "source",
+            category: "main source",
             isCore: true,
             icon: "mdi-home-city-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
+
+
+
+
+        // works: repository
+
+        {
+            key: "repository",
+            entityType: "works",
+            displayName: "Repository name",
+            isEntity: true,
+            showInSidebar: true,
+            entityId: "sources",
+            valuesToShow: "mostCommon",
+            category: "repository",
+            isCore: true,
+            icon: "mdi-file-document-multiple-outline",
+        },
+        {
+            key: "open_access.any_repository_has_fulltext",
+            entityType: "works",
+            displayName: "Repository availability",
+            valuesToShow: "boolean",
+            isBoolean: true,
+            booleanValues: ["Not in any repository", "In a repository"],
+            category: "repository",
+            icon: "mdi-database-outline",
+        },
+
+
 
 
         // works: intrinsic
@@ -718,6 +727,7 @@ const getFacetConfig = function (entityType, key) {
     }
     return myFacetConfig
 }
+
 
 const makeFacet = function (key, isNegated, values) {
     return {

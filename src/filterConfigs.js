@@ -148,9 +148,30 @@ const createSimpleFilterFromPid = function (pid) {
             return null
         }
     })
-
     return pidFilters.find(f => !!f) // shoudld be only one not null
 }
+
+const createDisplayFilterFromPid = function (pid) {
+    if (!pid) return
+    const trimmedPid = pid.trim()
+    const pidFilters = facetConfigs().map(f => {
+        const matches = trimmedPid.match(f.regex)
+        if (matches?.length === 2) {
+            const value = matches[1] // first capture group
+            return createDisplayFilter(
+                f.entityType,
+                f.key,
+                value,
+                false,
+                value
+            )
+        } else {
+            return null
+        }
+    })
+    return pidFilters.find(f => !!f) // shoudld be only one not null
+}
+
 
 const convertYearRangeToPrettyWords = function (yearRange) {
     if (yearRange[0] === yearRange[1]) {
@@ -186,9 +207,6 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
         }
 
     }
-
-
-
     return {
         ...simpleFilter,
         displayValue,
@@ -196,6 +214,8 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
         countPercent: (count / totalCount) * 100,
     }
 }
+
+
 
 const displayYearRange = function (range) {
     range = range.map(r => {
@@ -240,6 +260,7 @@ export {
     createSimpleFilter,
     copySimpleFilter,
     createSimpleFilterFromPid,
+    createDisplayFilterFromPid,
     createDisplayFilter,
     createFilterId,
     displayYearRange,
