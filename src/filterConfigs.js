@@ -181,6 +181,8 @@ const convertYearRangeToPrettyWords = function (yearRange) {
         return  "Before or in " + (Number(yearRange[1]) )
     } else if (!yearRange[1]) {
         return  yearRange[0] + " and later"
+    } else {
+        return yearRange.join("-")
     }
 }
 
@@ -192,6 +194,8 @@ const convertRangeToPrettyWords = function (range) {
         return "At most " + (Number(range[1]).toLocaleString() )
     } else if (!range[1]) {
         return  Number(range[0]).toLocaleString() + " or more"
+    } else {
+        return range.join("-")
     }
 }
 
