@@ -308,6 +308,7 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
+            displayNullAs: "All rights reserved",
         },
         {
             key: "open_access.oa_status",
