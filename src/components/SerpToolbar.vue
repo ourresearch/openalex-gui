@@ -114,7 +114,7 @@
             </v-list-item>
             <v-list-item
                 target="_blank"
-                :href="searchApiUrl"
+                :href="searchApiUrlForDisplay"
             >
               <v-list-item-icon>
                 <v-icon>mdi-api</v-icon>
@@ -204,7 +204,7 @@
           <v-divider/>
           <v-list-item
               target="_blank"
-              :href="searchApiUrl"
+              :href="searchApiUrlForDisplay"
           >
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
@@ -400,7 +400,7 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
-      "searchApiUrl",
+      "searchApiUrlForDisplay",
       "searchQuery",
       "textSearch",
       "entityType",

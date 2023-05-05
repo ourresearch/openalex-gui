@@ -35,7 +35,7 @@
             <v-divider></v-divider>
             <v-list-item
                     target="_blank"
-                    :href="makeApiUrl(200, true)"
+                    :href="makeApiUrl(200, true, false)"
             >
               <v-list-item-icon>
                 <v-icon>mdi-table</v-icon>
@@ -46,7 +46,7 @@
             </v-list-item>
             <v-list-item
                     target="_blank"
-                    :href="makeApiUrl(200)"
+                    :href="makeApiUrl(200, false, false)"
             >
               <v-list-item-icon>
                 <v-icon>mdi-api</v-icon>
@@ -460,7 +460,7 @@ export default {
             this.range = ["", ""]
             this.searchFilterString
         },
-        makeApiUrl(perPage, formatCsv) {
+        makeApiUrl(perPage, formatCsv = false, includeEmail = true) {
             if (!perPage) perPage = this.maxApiFiltersToShow
             const url = new URL(`https://api.openalex.org`)
             url.pathname = `${this.entityType}`
@@ -473,8 +473,8 @@ export default {
             url.searchParams.set("per_page", String(perPage))
             if (this.textSearch) url.searchParams.set("search", this.textSearch)
             if (this.searchString) url.searchParams.set("q", this.searchString)
-            if (formatCsv) url.searchParams.set("format", "csv")
-            url.searchParams.set("email", "team@ourresearch.org")
+            if (formatCsv) url.searchParams.set("format", "csv");
+            (includeEmail) && url.searchParams.set("mailto", "team@ourresearch.org")
             return url.toString()
         },
 

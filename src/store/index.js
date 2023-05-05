@@ -493,7 +493,10 @@ export default new Vuex.Store({
             return sortDefaults[state.entityType][(state.textSearch) ? "textSearch" : "noTextSearch"]
         },
         searchApiUrl(state, getters) {
-            return api.createUrl(state.entityType, getters.searchQuery)
+            return api.createUrl(state.entityType, getters.searchQuery, true)
+        },
+        searchApiUrlForDisplay(state, getters) {
+            return api.createUrl(state.entityType, getters.searchQuery, false)
         },
         searchParamsAsStringToWatch(state, getters) {
             const copy = [...state.resultsFilters, state.textSearch]

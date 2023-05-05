@@ -84,7 +84,7 @@ const api = (function () {
     }
 
     return {
-        createUrl: function (pathName, searchParams) {
+        createUrl: function (pathName, searchParams, includeEmail) {
             return makeUrl(pathName, searchParams, false)
         },
         async getEntityDisplayNames(openAlexIds) {
