@@ -81,7 +81,6 @@ export default {
         "reqeustSignupEmail",
     ]),
     async submit(){
-      console.log("submit", this.email, this.name)
       this.isLoading = true
       await this.reqeustSignupEmail({
         email: this.email,
