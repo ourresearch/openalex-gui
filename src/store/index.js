@@ -15,6 +15,7 @@ import {
 import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
+import {user} from "@/store/user.store";
 
 Vue.use(Vuex)
 
@@ -138,6 +139,9 @@ const stateDefaults = function () {
 export default new Vuex.Store({
     // state: stateDefaults(),
     state: stateDefaults(),
+    modules: {
+        user,
+    },
     mutations: {
         resetSearch(state, entityType) {
             stateDefaults()
@@ -362,8 +366,8 @@ export default new Vuex.Store({
             state.isLoading = true
             try {
                 await Promise.all([
-                 this.dispatch("getResults"),
-                 this.dispatch("getResultsFilters")
+                    this.dispatch("getResults"),
+                    this.dispatch("getResultsFilters")
 
                 ])
 
@@ -522,14 +526,14 @@ export default new Vuex.Store({
         },
         facetsByCategory(state) {
 
-        // .filter(c => {
-        //     const filters = this.resultsFilters.filter(f => f.key === c.key)
-        //     // hide the noOptions facets unless they have selected filters
-        //     return !c.noOptions || filters.length
-        // })
+            // .filter(c => {
+            //     const filters = this.resultsFilters.filter(f => f.key === c.key)
+            //     // hide the noOptions facets unless they have selected filters
+            //     return !c.noOptions || filters.length
+            // })
 
 
-            return function(searchString) {
+            return function (searchString) {
                 return facetsByCategory(state.entityType, this.resultsFilters, searchString)
 
             }
@@ -537,5 +541,4 @@ export default new Vuex.Store({
         },
 
     },
-    modules: {}
 })

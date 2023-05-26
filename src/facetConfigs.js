@@ -204,7 +204,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Fulltext search",
+            displayName: "Search",
             valuesToShow: "search",
             category: "popular",
             isCore: true,
@@ -549,6 +549,15 @@ const facetConfigs = function (entityType) {
             valuesToShow: "boolean",
             isBoolean: true,
             booleanValues: ["Isn't paratext", "Is paratext"],
+            category: "other",
+            icon: "mdi-file-document-outline"
+        },
+        {
+            key: "language",
+            entityType: "works",
+            displayName: "Language",
+            valuesToShow: "mostCommon",
+            displayNullAs: "Unknown",
             category: "other",
             icon: "mdi-file-document-outline"
         },

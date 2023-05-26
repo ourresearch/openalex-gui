@@ -3,6 +3,8 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Serp from "../views/Serp";
 import About from "../views/About";
+import store from "@/store";
+import UserSignup from "@/components/user/UserSignup.vue";
 
 import goTo from 'vuetify/es5/services/goto'
 
@@ -10,7 +12,6 @@ import goTo from 'vuetify/es5/services/goto'
 Vue.use(VueRouter)
 
 
-const openAlexIdRegex = "[wWiIvVsSaPpFfAcC]\\d+" // double-backslash to escape it: https://router.vuejs.org/guide/essentials/route-matching-syntax.html#custom-regex-in-params
 
 
 
@@ -25,34 +26,16 @@ const routes = [
         path: `/:entityType(works|authors|sources|publishers|funders|institutions|concepts)`,
         name: 'Serp',
         component: Serp,
-        children: [
-            // {
-            //     path: `:id(${openAlexIdRegex})`,
-            //     name: "entity-zoom",
-            //     component: ZoomEntity
-            // },
-            // {
-            //     path: "filters",
-            //     name: "filter-types",
-            //     component: ZoomFilter,
-            //     children: [
-            //         {
-            //             path: ":filterTypeKey",
-            //             name: "filter",
-            //
-            //         }
-            //     ]
-            // }
-        ]
     },
-    { path: '/about', name: 'About', component: About}
+    { path: '/about', name: 'About', component: About},
+    { path: '/signup', name: 'Signup', component: UserSignup},
+
 ]
 
 const router = new VueRouter({
     routes,
     mode: "history",
     scrollBehavior: (to, from, savedPosition) => {
-
         if (to.hash) {
             return goTo(to.hash, {
                 offset: 75,
@@ -69,6 +52,40 @@ const router = new VueRouter({
 
     },
 })
+
+// router.beforeEach(async (to, from, next) => {
+//     if (localStorage.getItem("token")) {
+//         try {
+//             await store.dispatch("fetchUser")
+//         } catch (e) {
+//             store.commit("logout")
+//         }
+//     }
+//
+//     if (to.matched.some(record => record.meta.requiresAuth)) {
+//         // this page requires authentication
+//         if (store.getters.isLoggedIn) {  // you're logged in great. proceed.
+//             // if route /admin
+//             if (to.matched.some(record => record.path === '/admin')) {
+//                 // is logged in user email allowed to see /admin
+//                 if (to.matched.some(record => store.getters.userEmail.endsWith(record.meta.domain))) {
+//                     // allowed to see admin dashboard
+//                     next()
+//                 } else {
+//                     // not allowed, go back to user home page: /u
+//                     next("/u")
+//                 }
+//             } else {
+//                 // not /admin route
+//                 next()
+//             }
+//         } else { // sorry, you can't view this page. go log in.
+//             next("/login")
+//         }
+//     } else { //  no auth required. proceed.
+//         next()
+//     }
+
 
 
 export default router

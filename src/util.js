@@ -142,7 +142,7 @@ const entityTypes = {
 }
 
 const prettyTitle = function (title, facetKey) {
-    if (!title) return
+    if (!title) return "No title"
     if (title && title.toUpperCase() === title) {
         title = _.startCase(title.toLowerCase());
     }

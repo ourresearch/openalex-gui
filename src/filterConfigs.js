@@ -211,7 +211,7 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
         }
 
     }
-    if (simpleFilter.displayNullAs  && value === "unknown") {
+    if (simpleFilter.displayNullAs  && ["unknown", "null", null].includes(value)) {
         displayValue = simpleFilter.displayNullAs
 
     }
