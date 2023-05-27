@@ -22,7 +22,7 @@
     "vue": "^2.6.11",
     "vue-async-computed": "^3.9.0",
     "vue-flag-icon": "^2.1.0",
-    "vue-json-pretty": "^1.8.2",
+    "vue-json-pretty": "^1.9.4",
     "vue-meta": "^2.4.0",
     "vue-pluralize": "^0.0.2",
     "vue-router": "^3.2.0",

@@ -93,6 +93,7 @@
 
     <div id="serp-hidden">
       <facets-list-dialog/>
+      <api-dialog />
 
       <v-snackbar
               bottom
@@ -151,6 +152,7 @@ import Entity from "../components/Entity";
 import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
 import SerpFacetsColumn from "../components/SerpFacetsColumn.vue";
 import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";
+import ApiDialog from "../components/ApiDialog.vue";
 
 export default {
     name: "Serp",
@@ -177,6 +179,7 @@ export default {
         YearRange,
         FacetsListDialog,
         SerpFacetsColumn,
+        ApiDialog,
 
     },
     props: {},

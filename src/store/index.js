@@ -116,6 +116,8 @@ const stateDefaults = function () {
         snackbarIsOpen: false,
         snackbarMsg: "",
         snackbarIcon: null,
+        apiDialogIsOpen: true,
+        apiDialogUrl: "",
 
         showFiltersDrawer: false,
         facetZoom: null,
@@ -148,6 +150,9 @@ export default new Vuex.Store({
             Object.entries(stateDefaults()).forEach(([k, v]) => {
                 state[k] = v
             })
+        },
+        setApiDialogUrl(state, url) {
+            state.apiDialogUrl = url
         },
         snackbar(state, arg, icon) {
             state.snackbarIsOpen = true;
@@ -390,6 +395,9 @@ export default new Vuex.Store({
         // },
     },
     getters: {
+        apiDialogUrl(state) {
+            return state.apiDialogUrl
+        },
         resultsFilters(state, getters) {
             return state.resultsFilters
         },

@@ -83,12 +83,12 @@
         <v-menu offset-y>
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on" class="low-key-button" :disabled="disabled">
-              <v-icon>mdi-tray-arrow-down</v-icon>
+              <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
           <v-list dense>
-            <v-subheader>Export results as:</v-subheader>
-            <v-divider></v-divider>
+<!--            <v-subheader>Export results as:</v-subheader>-->
+<!--            <v-divider></v-divider>-->
             <v-list-item
               @click="openExportToCsvDialog"
               :disabled="resultsCount > 100000"
@@ -97,12 +97,12 @@
                 <v-icon
                     :disabled="resultsCount > 100000"
                 >
-                  mdi-table
+                  mdi-tray-arrow-down
                 </v-icon>
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
-                  Spreadsheet
+                  Export as spreadsheet
                 </v-list-item-title>
                 <v-list-item-subtitle
                     v-if="resultsCount > 100000"
@@ -113,14 +113,13 @@
               </v-list-item-content>
             </v-list-item>
             <v-list-item
-                target="_blank"
-                :href="searchApiUrlForDisplay"
+                    @click="setApiDialogUrl(searchApiUrlForDisplay)"
             >
               <v-list-item-icon>
                 <v-icon>mdi-api</v-icon>
               </v-list-item-icon>
               <v-list-item-title>
-                JSON object
+                View in API
               </v-list-item-title>
             </v-list-item>
 
@@ -433,6 +432,7 @@ export default {
     ...mapMutations([
       "toggleFiltersDrawer",
       "snackbar",
+      "setApiDialogUrl",
     ]),
     ...mapActions([
       "setSort"
