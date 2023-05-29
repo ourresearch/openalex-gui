@@ -6,7 +6,7 @@
       class="ma-0 year-range-card"
       :class="{big}"
   >
-    <v-toolbar flat v-if="big" class="graph-toolbar">
+    <v-toolbar  flat v-if="big" class="graph-toolbar pr-0">
       <!--      height="80" -->
       <v-toolbar-title>
         <div style="line-height: 1">
@@ -15,43 +15,35 @@
         </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn v-if="showFilterLink" icon small @click="setFacetZoom('publication_year')">
-        <v-icon small>mdi-filter-outline</v-icon>
-      </v-btn>
 
 
-      <v-menu>
+      <v-menu offset-y>
         <template v-slot:activator="{on}">
-          <v-btn small icon v-on="on" class="mr-1">
-            <v-icon small>mdi-tray-arrow-down</v-icon>
+          <v-btn  icon v-on="on" class="">
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list dense>
-          <v-subheader>
-            Export annual counts as:
-            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-          </v-subheader>
           <v-divider></v-divider>
           <v-list-item
               target="_blank"
               :href="csvUrl"
           >
             <v-list-item-icon>
-              <v-icon>mdi-table</v-icon>
+              <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Spreadsheet
+              Export spreadsheet
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              target="_blank"
-              :href="apiUrlForDisplay"
+              @click="setApiDialogUrl(apiUrlForDisplay)"
           >
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              JSON object
+              View in API
             </v-list-item-title>
           </v-list-item>
 
@@ -283,6 +275,7 @@ export default {
     ...mapMutations([
       "snackbar",
       "setFacetZoom",
+        "setApiDialogUrl",
     ]),
     ...mapActions([
       "replaceInputFilter",

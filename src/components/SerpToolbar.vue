@@ -72,7 +72,7 @@
       <!--        Export-->
       <v-menu offset-y>
         <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="low-key-button" :disabled="disabled">
+          <v-btn icon v-on="on" class="" :disabled="disabled">
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>

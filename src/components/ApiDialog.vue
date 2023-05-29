@@ -15,16 +15,22 @@
             <v-card-title>
               About
             </v-card-title>
-            <div class="px-4 pb-4" v-if="apiDialogUrl.indexOf('group_by=') > -1">
+            <div class="px-4 pb-4" v-if="apiDialogUrl.indexOf('group_by=publication_year') > -1">
               This API call starts by <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">getting a list</a> of all
               <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> that satisfy the <a href="https://docs.openalex.org/api-entities/works/filter-works">filters applied.</a> Then it
-              <a href="https://docs.openalex.org/api-entities/works/group-works">groups and counts</a> those works, based on the supplied <code>group_by</code> parameter. We display those in the left-hand filter panel.
+              <a href="https://docs.openalex.org/api-entities/works/group-works">groups and counts</a> those works by publication year using the <code>group_by=publication_year</code> parameter.
+            </div>
+
+            <div class="px-4 pb-4" v-else-if="apiDialogUrl.indexOf('group_by=') > -1">
+              This API call starts by <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">getting a list</a> of all
+              <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> that satisfy the <a href="https://docs.openalex.org/api-entities/works/filter-works">filters applied.</a> Then it
+              <a href="https://docs.openalex.org/api-entities/works/group-works">groups and counts</a> those works, based on the supplied <code>group_by</code> parameter.
             </div>
 
             <div class="px-4 pb-4" v-else>
               This API call <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">gets a list</a> of
               <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> with
-              <a href="https://docs.openalex.org/api-entities/works/filter-works">your selected filters applied.</a> We display that list of returned works in the center pane.
+              <a href="https://docs.openalex.org/api-entities/works/filter-works">your selected filters applied.</a>
             </div>
           </v-card>
 

@@ -103,13 +103,6 @@
         </v-card-actions>
 
       </v-card>
-      <div class="mt-8">
-        <year-range
-            height="50px"
-            big
-            v-if="config.key==='publication_year'"
-        />
-      </div>
     </div>
 
 
