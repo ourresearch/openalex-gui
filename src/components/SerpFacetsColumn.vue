@@ -72,7 +72,7 @@
           v-for="(facetCategory, i) in myFacetsByCategory"
           :key="i"
       >
-        <!--        <v-divider />-->
+                <v-divider />
         <v-expansion-panel-header
             :class="{'font-weight-bold': facetCategory.resultsFiltersCount > 0, 'green--text': facetCategory.resultsFiltersCount > 0}"
             class="d-flex pl-4"
@@ -209,6 +209,13 @@ export default {
 .facets-column .v-toolbar__extension {
   padding-left: 7px !important;
   padding-right: 7px !important;
+}
+.facets-column .v-sheet {
+  padding: 0 !important;
+}
+.facets-column .v-expansion-panel--active > .v-expansion-panel-header {
+  min-height: 0 !important;
+  font-weight: bold !important;
 }
 
 </style>
