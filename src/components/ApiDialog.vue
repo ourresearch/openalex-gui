@@ -27,6 +27,11 @@
               <a href="https://docs.openalex.org/api-entities/works/group-works">groups and counts</a> those works, based on the supplied <code>group_by</code> parameter.
             </div>
 
+            <div class="px-4 pb-4" v-else-if="isSingletonApiCall">
+              This API call gets information <a href="https://docs.openalex.org/how-to-use-the-api/get-single-entities">about a single entity,</a> based on its
+              <a href="https://docs.openalex.org/how-to-use-the-api/get-single-entities#the-openalex-id">OpenAlex ID.</a>
+            </div>
+
             <div class="px-4 pb-4" v-else>
               This API call <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">gets a list</a> of
               <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> with
@@ -95,6 +100,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import axios from "axios";
 import VueJsonPretty from 'vue-json-pretty'
 import 'vue-json-pretty/lib/styles.css';
+import {entityConfigs} from "@/entityConfigs";
 
 
 export default {
@@ -114,6 +120,12 @@ export default {
       "resultsFilters",
       "apiDialogUrl",
     ]),
+    isSingletonApiCall(){
+      return Object.keys(entityConfigs).some(k => {
+        const searchString = `openalex.org/${k}/`
+        return this.apiDialogUrl.indexOf(searchString) > -1
+      })
+    },
     isOpen: {
       get() {
         return !!this.$store.state.apiDialogUrl

@@ -49,6 +49,37 @@
 
 
       <v-spacer/>
+      <v-menu offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item
+              :href="apiUrl + '.bib'" target="_blank"
+              v-if="myEntityType==='works'"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-file-document-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              BibTeX (for reference managers)
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+              @click="setApiDialogUrl(apiUrl)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              View in API
+            </v-list-item-title>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
       <!--      <div class="d-flex align-center justify-end" style="height: 50px; width: 50px;">-->
       <!--        <v-img max-height="100%"  :src="data.image_thumbnail_url" contain />-->
       <!--      </div>-->
@@ -146,43 +177,6 @@
 
 
       <v-spacer/>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn small icon v-on="on" class="mr-1">
-            <v-icon small>mdi-tray-arrow-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list dense>
-          <v-subheader>
-            Export as:
-            <!--                {{ myFacetConfig.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item
-              :href="apiUrl + '.bib'" target="_blank"
-              v-if="myEntityType==='works'"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-file-document-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              BibTeX (for reference managers)
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
-              target="_blank"
-              :href="apiUrl"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              JSON object
-            </v-list-item-title>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
 
 
     </div>
@@ -330,8 +324,7 @@ export default {
     entityDisplayName() {
       if (this.data.type === "repository") {
         return this.data.display_name.replace(/\(.+?\)/, "")
-      }
-      else {
+      } else {
         return this.data.display_name
       }
     },
@@ -393,7 +386,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "snackbar"
+      "snackbar",
+      "setApiDialogUrl"
     ]),
     ...mapActions([]),
     async copyPermalinkToClipboard() {

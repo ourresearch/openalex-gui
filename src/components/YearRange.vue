@@ -24,6 +24,16 @@
           </v-btn>
         </template>
         <v-list dense>
+          <v-list-item
+              @click="setFacetZoom('publication_year')"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-filter-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Filter years
+            </v-list-item-title>
+          </v-list-item>
           <v-divider></v-divider>
           <v-list-item
               target="_blank"
