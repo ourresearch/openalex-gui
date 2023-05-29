@@ -5,7 +5,7 @@
       flat tile
       :loading="isLoading"
   >
-    <v-toolbar tile flat dense>
+    <v-toolbar tile flat >
       <v-btn
           text
           @click="setFacetZoom(null)"
@@ -23,7 +23,7 @@
         {{ config.displayName }}
       </v-toolbar-title>
       <v-spacer/>
-      <v-menu>
+      <v-menu offset-y>
 
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="">
@@ -31,31 +31,25 @@
           </v-btn>
         </template>
         <v-list dense>
-          <v-subheader>
-            Export as:
-            <!--                {{ config.displayName | pluralize(2) }} as:-->
-          </v-subheader>
-          <v-divider></v-divider>
           <v-list-item
               target="_blank"
               :href="makeApiUrl(200, true, false)"
           >
             <v-list-item-icon>
-              <v-icon>mdi-table</v-icon>
+              <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Spreadsheet
+              Export as spreadsheet
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-              target="_blank"
-              :href="makeApiUrl(200, false, false)"
+              @click="setApiDialogUrl(makeApiUrl(200, false, false))"
           >
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              JSON object
+              View in API
             </v-list-item-title>
           </v-list-item>
 
@@ -379,6 +373,7 @@ export default {
       "toggleFiltersDrawer",
       "setFiltersZoom",
       "setFacetZoom",
+      "setApiDialogUrl",
     ]),
     ...mapActions([]),
 

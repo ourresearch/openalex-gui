@@ -9,13 +9,19 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-card-text style="min-height: calc(100vh - 64px)" class="pa-4">
+        <v-card-text style="min-height:50vh" class="pa-4">
 
           <v-card class="mb-6">
             <v-card-title>
               About
             </v-card-title>
-            <div class="px-4 pb-4">
+            <div class="px-4 pb-4" v-if="apiDialogUrl.indexOf('group_by=') > -1">
+              This API call starts by <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">getting a list</a> of all
+              <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> that satisfy the <a href="https://docs.openalex.org/api-entities/works/filter-works">filters applied.</a> Then it
+              <a href="https://docs.openalex.org/api-entities/works/group-works">groups and counts</a> those works, based on the supplied <code>group_by</code> parameter. We display those in the left-hand filter panel.
+            </div>
+
+            <div class="px-4 pb-4" v-else>
               This API call <a href="https://docs.openalex.org/api-entities/works/get-lists-of-works">gets a list</a> of
               <a href="https://docs.openalex.org/api-entities/works/work-object">Work objects</a> with
               <a href="https://docs.openalex.org/api-entities/works/filter-works">your selected filters applied.</a> We display that list of returned works in the center pane.
@@ -39,7 +45,7 @@
             </div>
           </v-card>
 
-          <v-card outlined :loading="isLoading">
+          <v-card outlined class="mb-12" :loading="isLoading">
             <v-card-title>
               Response
               <v-spacer />
