@@ -245,16 +245,18 @@ export default {
             return url.toString()
         },
         clear() {
-            console.log("close!")
-            const newFilters = (this.selectedFacetKey) ?
-                this.resultsFilters.filter(f => f.key !== this.selectedFacetKey) :
-                []
-            url.setFilters(this.entityType, newFilters)
+          url.setFilters(this.entityType, [])
+          this.snackbar("All filters cleared")
 
-            const myFacetName = (this.selectedFacetConfig) ? this.selectedFacetConfig.displayName : ""
-            this.snackbar(myFacetName + " filters cleared")
-
-            this.facetsDrawerIsOpen = !!this.selectedFacetKey
+            // const newFilters = (this.selectedFacetKey) ?
+            //     this.resultsFilters.filter(f => f.key !== this.selectedFacetKey) :
+            //     []
+            // url.setFilters(this.entityType, newFilters)
+            //
+            // const myFacetName = (this.selectedFacetConfig) ? this.selectedFacetConfig.displayName : ""
+            // this.snackbar(myFacetName + " filters cleared")
+            //
+            // this.facetsDrawerIsOpen = !!this.selectedFacetKey
         }
 
     },

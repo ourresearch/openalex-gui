@@ -2,186 +2,41 @@
   <v-toolbar
       class=""
       flat
+      extended
   >
-    <year-range
-        height="20px"
-        width="40px"
-        v-if="0"
-    />
-<!--    <v-icon left>-->
-<!--      mdi-file-document-outline-->
-<!--    </v-icon>-->
+    <!--    <v-icon left>-->
+    <!--      mdi-file-document-outline-->
+    <!--    </v-icon>-->
     <v-toolbar-title>
-    <span class="font-weight-bold ">{{ resultsCount | toPrecision }}</span>
-        <span class="ml-1 font-weight-light">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
-
+      <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>
+      <span class="ml-1 text-capitalize">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
     </v-toolbar-title>
+    <v-spacer/>
 
 
-    <v-spacer />
+    <!--      <v-btn-->
+    <!--          fab x-small-->
+    <!--          class="mr-2"-->
+    <!--          color="primary"-->
+    <!--          :outlined="filterDrawerIsOpen"-->
+    <!--          @click="$emit('toggle-filter-drawer')"-->
+    <!--      >-->
+    <!--        <v-icon>mdi-filter</v-icon>-->
+    <!--      </v-btn>-->
+    <template v-if="!$vuetify.breakpoint.mobile">
 
-
-
-
-
-      <!--      <v-btn-->
-      <!--          fab x-small-->
-      <!--          class="mr-2"-->
-      <!--          color="primary"-->
-      <!--          :outlined="filterDrawerIsOpen"-->
-      <!--          @click="$emit('toggle-filter-drawer')"-->
-      <!--      >-->
-      <!--        <v-icon>mdi-filter</v-icon>-->
-      <!--      </v-btn>-->
-      <template v-if="!$vuetify.breakpoint.mobile">
-
-        <!--        Sort-->
-        <v-menu offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn text rounded v-on="on" class="low-key-button" :disabled="disabled">
-              <span class="mr-1 font-weight-light">Sort by</span>
-              {{ sortObject.displayName }}
-              <v-icon right class="">mdi-menu-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-            <v-subheader>Sort by</v-subheader>
-            <v-divider></v-divider>
-            <v-list-item
-                v-for="mySortOption in $store.getters.sortObjectOptions"
-                :key="mySortOption.key"
-                @click="setSort(mySortOption.key)"
-            >
-              <v-list-item-icon>
-                <v-icon>
-                  {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-                </v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ mySortOption.displayName }}
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-
-        <!--        Creat alert-->
-        <v-menu v-if="0" offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on" :disabled="disabled">
-              <v-icon>mdi-bell-cancel-outline</v-icon>
-            </v-btn>
-          </template>
-          <v-card>
-            Too many results
-          </v-card>
-        </v-menu>
-
-
-        <!--        Export-->
-        <v-menu offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on" class="low-key-button" :disabled="disabled">
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
-          <v-list dense>
-<!--            <v-subheader>Export results as:</v-subheader>-->
-<!--            <v-divider></v-divider>-->
-            <v-list-item
-              @click="openExportToCsvDialog"
-              :disabled="resultsCount > 100000"
-            >
-              <v-list-item-icon>
-                <v-icon
-                    :disabled="resultsCount > 100000"
-                >
-                  mdi-tray-arrow-down
-                </v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Export as spreadsheet
-                </v-list-item-title>
-                <v-list-item-subtitle
-                    v-if="resultsCount > 100000"
-                    class="grey--text"
-                >
-                  Max 100k results
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-                    @click="setApiDialogUrl(searchApiUrlForDisplay)"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-api</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                View in API
-              </v-list-item-title>
-            </v-list-item>
-
-
-          </v-list>
-        </v-menu>
-
-      </template>
-
-
-      <v-menu v-if="$vuetify.breakpoint.mobile">
+      <!--        Sort-->
+      <v-menu offset-y>
         <template v-slot:activator="{on}">
-          <v-btn text  v-on="on" class="low-key-button" :disabled="disabled || !resultsCount">
-            Tools
-            <v-icon>mdi-menu-down</v-icon>
+          <v-btn text rounded v-on="on" class="low-key-button" :disabled="disabled">
+            <span class="mr-1">Sort by</span>
+            {{ sortObject.displayName }}
+            <v-icon right class="">mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-list dense>
-          <v-list-item
-              @click="toggleFiltersDrawer"
-              v-if="$vuetify.breakpoint.mobile"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-filter-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title v-if="showFiltersDrawer">
-                Hide filters
-              </v-list-item-title>
-              <v-list-item-title v-else>
-                Filter results
-              </v-list-item-title>
-              <!--              <v-list-item-subtitle class="grey&#45;&#45;text" v-if="$vuetify.breakpoint.mobile">-->
-              <!--                (Desktop-only for now)-->
-              <!--              </v-list-item-subtitle>-->
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item
-              v-if="0"
-              @click="snackbar({msg: 'This feature is still under construction.', icon: 'mdi-wrench'})"
-              :disabled="true"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-bell-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Create alert
-              </v-list-item-title>
-              <v-list-item-subtitle
-                  v-if="resultsCount > 100000"
-                  class="grey--text"
-              >
-                (Under construction)
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
-
           <v-subheader>Sort by</v-subheader>
-          <v-divider/>
+          <v-divider></v-divider>
           <v-list-item
               v-for="mySortOption in $store.getters.sortObjectOptions"
               :key="mySortOption.key"
@@ -198,36 +53,46 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+        </v-list>
+      </v-menu>
 
-          <v-subheader>Export as:</v-subheader>
-          <v-divider/>
-          <v-list-item
-              target="_blank"
-              :href="searchApiUrlForDisplay"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                JSON object
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+      <!--        Creat alert-->
+      <v-menu v-if="0" offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" :disabled="disabled">
+            <v-icon>mdi-bell-cancel-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          Too many results
+        </v-card>
+      </v-menu>
 
+
+      <!--        Export-->
+      <v-menu offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="low-key-button" :disabled="disabled">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <!--            <v-subheader>Export results as:</v-subheader>-->
+          <!--            <v-divider></v-divider>-->
           <v-list-item
               @click="openExportToCsvDialog"
               :disabled="resultsCount > 100000"
           >
             <v-list-item-icon>
               <v-icon
+                  :disabled="resultsCount > 100000"
               >
-                mdi-table
+                mdi-tray-arrow-down
               </v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
-                Spreadsheet
+                Export as spreadsheet
               </v-list-item-title>
               <v-list-item-subtitle
                   v-if="resultsCount > 100000"
@@ -237,12 +102,135 @@
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item
+              @click="setApiDialogUrl(searchApiUrlForDisplay)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              View in API
+            </v-list-item-title>
+          </v-list-item>
 
 
         </v-list>
       </v-menu>
 
+    </template>
 
+
+    <v-menu v-if="$vuetify.breakpoint.mobile">
+      <template v-slot:activator="{on}">
+        <v-btn text v-on="on" class="low-key-button" :disabled="disabled || !resultsCount">
+          Tools
+          <v-icon>mdi-menu-down</v-icon>
+        </v-btn>
+      </template>
+      <v-list dense>
+        <v-list-item
+            @click="toggleFiltersDrawer"
+            v-if="$vuetify.breakpoint.mobile"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-filter-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title v-if="showFiltersDrawer">
+              Hide filters
+            </v-list-item-title>
+            <v-list-item-title v-else>
+              Filter results
+            </v-list-item-title>
+            <!--              <v-list-item-subtitle class="grey&#45;&#45;text" v-if="$vuetify.breakpoint.mobile">-->
+            <!--                (Desktop-only for now)-->
+            <!--              </v-list-item-subtitle>-->
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item
+            v-if="0"
+            @click="snackbar({msg: 'This feature is still under construction.', icon: 'mdi-wrench'})"
+            :disabled="true"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-bell-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Create alert
+            </v-list-item-title>
+            <v-list-item-subtitle
+                v-if="resultsCount > 100000"
+                class="grey--text"
+            >
+              (Under construction)
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+
+        <v-subheader>Sort by</v-subheader>
+        <v-divider/>
+        <v-list-item
+            v-for="mySortOption in $store.getters.sortObjectOptions"
+            :key="mySortOption.key"
+            @click="setSort(mySortOption.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>
+              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ mySortOption.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-subheader>Export as:</v-subheader>
+        <v-divider/>
+        <v-list-item
+            target="_blank"
+            :href="searchApiUrlForDisplay"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-api</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              JSON object
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item
+            @click="openExportToCsvDialog"
+            :disabled="resultsCount > 100000"
+        >
+          <v-list-item-icon>
+            <v-icon
+            >
+              mdi-table
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Spreadsheet
+            </v-list-item-title>
+            <v-list-item-subtitle
+                v-if="resultsCount > 100000"
+                class="grey--text"
+            >
+              Max 100k results
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+
+      </v-list>
+    </v-menu>
 
 
     <!--DIALOGS-->
@@ -351,6 +339,13 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <template v-slot:extension>
+      <div class="grey--text">
+        <span class="">{{ resultsCount | toPrecision }}</span> results
+
+      </div>
+
+    </template>
 
 
   </v-toolbar>

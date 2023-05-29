@@ -1,6 +1,33 @@
 <template>
   <v-card flat tile class="facets-column">
-    <v-toolbar flat tile class="pa-0">
+    <v-toolbar tile flat>
+      <v-icon class="mr-3">mdi-filter-outline</v-icon>
+      <v-toolbar-title class="pl-0">Filters</v-toolbar-title>
+      <v-spacer/>
+      <v-menu offset-y>
+
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on" class="">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list dense>
+          <v-list-item
+            @click="clearAll"
+            :disabled="resultsFilters.length === 0"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-filter-off-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Clear all
+            </v-list-item-title>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
+    </v-toolbar>
+    <v-toolbar flat tile dense class="pa-0">
       <!--      <v-text-field-->
       <!--            flat-->
       <!--            hide-details-->
@@ -13,26 +40,26 @@
       <!--            placeholder="Filters"-->
       <!--        />-->
 
-<!--      <v-toolbar-title>-->
-<!--        <v-icon>mdi-filter-outline</v-icon>-->
-<!--        Filters-->
-<!--      </v-toolbar-title>-->
-<!--      <v-spacer></v-spacer>-->
+      <!--      <v-toolbar-title>-->
+      <!--        <v-icon>mdi-filter-outline</v-icon>-->
+      <!--        Filters-->
+      <!--      </v-toolbar-title>-->
+      <!--      <v-spacer></v-spacer>-->
       <!--      {{ openPanels }}-->
 
-        <v-text-field
-            flat
-            outlined
-            hide-details
-            full-width
-            clearable
-            prepend-inner-icon="mdi-magnify"
-            dense
-            color="green"
+      <v-text-field
+          flat
+          outlined
+          hide-details
+          full-width
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          dense
+          color="green"
 
-            v-model="searchString"
-            placeholder="Search filter types"
-        />
+          v-model="searchString"
+          placeholder="Search filter types"
+      />
     </v-toolbar>
     <v-expansion-panels
         :multiple="allowMultipleOpenPanels"
@@ -52,7 +79,9 @@
         >
           <div class="capitalize-first-letter d-flex align-center">
 
-            <v-icon small left :color="(facetCategory.resultsFiltersCount > 0) ? 'green' : undefined">{{ facetCategory.icon }}</v-icon>
+            <v-icon small left :color="(facetCategory.resultsFiltersCount > 0) ? 'green' : undefined">
+              {{ facetCategory.icon }}
+            </v-icon>
             <span class="d-block capitalize-first-letter">
                 {{ facetCategory.name }}
             </span>
@@ -88,6 +117,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetsByCategory} from "../facetConfigs";
 import FacetSimple from "./Facet/FacetSimple.vue";
 import facet from "./Facet/Facet.vue";
+import {url} from "@/url";
 
 export default {
   name: "SerpFacetsColumn",
@@ -136,6 +166,10 @@ export default {
       "openFacetsDialog",
     ]),
     ...mapActions([]),
+    clearAll() {
+      url.setFilters(this.entityType, [])
+      this.snackbar("All filters cleared")
+    },
 
 
   },

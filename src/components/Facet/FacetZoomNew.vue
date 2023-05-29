@@ -5,9 +5,20 @@
       flat tile
       :loading="isLoading"
   >
-    <v-toolbar flat>
-      <!--      <v-icon left>{{ config.icon }}</v-icon>-->
+    <v-toolbar tile flat dense>
+      <v-btn
+          text
+          @click="setFacetZoom(null)"
+          class="low-key-button"
+      >
+        <v-icon left>mdi-arrow-left</v-icon>
+      <div class="pl-0">Back</div>
+      </v-btn>
+      <v-spacer />
 
+
+    </v-toolbar>
+    <v-toolbar tile flat dense>
       <v-toolbar-title class="ml-0 pl-0">
         {{ config.displayName }}
       </v-toolbar-title>
@@ -16,7 +27,7 @@
 
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="">
-            <v-icon>mdi-tray-arrow-down</v-icon>
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list dense>
@@ -50,10 +61,6 @@
 
         </v-list>
       </v-menu>
-      <!--      <v-btn icon @click="setFacetZoom(null)">-->
-      <!--        <v-icon>mdi-close</v-icon>-->
-      <!--      </v-btn>-->
-
     </v-toolbar>
 
 

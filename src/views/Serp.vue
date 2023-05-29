@@ -37,25 +37,8 @@
         <template v-if="!singleWorkIdToShow">
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
             <v-slide-x-transition hide-on-leave group class="d-flex">
-              <v-card v-if="!facetZoom"  key="filter-menu">
-                <v-toolbar tile flat>
-                  <v-icon class="mr-3">mdi-filter-outline</v-icon>
-                  <v-toolbar-title class="pl-0">Filters</v-toolbar-title>
-                </v-toolbar>
-                <serp-facets-column  />
-              </v-card>
-              <v-card v-else key="filter-zoom">
-                <v-toolbar tile flat>
-                  <v-btn
-                          icon
-                          @click="setFacetZoom(null)"
-                  >
-                    <v-icon>mdi-arrow-left</v-icon>
-                  </v-btn>
-                  <div class="pl-0">Back to filters</div>
-                </v-toolbar>
-                <facet-zoom-new />
-              </v-card>
+                <serp-facets-column  v-if="!facetZoom"  key="filter-menu"  />
+                <facet-zoom-new v-else key="filter-zoom" />
             </v-slide-x-transition>
           </v-col>
           <v-slide-x-transition hide-on-leave>
