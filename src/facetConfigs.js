@@ -617,6 +617,21 @@ const facetConfigs = function (entityType) {
         },
 
 
+        // works: other
+
+        {
+            key: "locations_count",
+            entityType: "works",
+            displayName: "Locations count",
+            valuesToShow: "range",
+            sortByValue: true,
+            isRange: true,
+            placeholders: ["min", "max"],
+            category: "other",
+            icon: "mdi-account-outline",
+        },
+
+
         // authors
         {
             key: "last_known_institution.id",
