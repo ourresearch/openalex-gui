@@ -14,7 +14,7 @@ const apiBaseUrl = "https://user.openalex.org"
 
 export const user = {
     state: {
-        userId: "",
+        userId: "dude",
         userNamed: "",
         userEmail: "",
     },
@@ -23,13 +23,13 @@ export const user = {
             localStorage.setItem("token", token)
         },
         logout(state) {
-            state.userId = ""
+            state.id = ""
             state.userName = ""
             state.userEmail = ""
             localStorage.removeItem("token")
         },
         setFromApiResp(state, apiResp) {
-            state.userId = apiResp.id
+            state.id = apiResp.id
             state.userName = apiResp.name
             state.userEmail = apiResp.email
         },
@@ -44,13 +44,16 @@ export const user = {
             await dispatch("fetchUser")
         },
         async fetchUser({commit, dispatch, getters}) {
+            console.log("fetching user")
             const resp = await axios.get(
                 apiBaseUrl + "/user/me",
                 axiosConfig()
             )
+            console.log("got a user api response", resp)
+
             commit("setFromApiResp", resp.data)
         },
-        async reqeustSignupEmail({commit, dispatch, getters}, signupObj) {
+        async requestSignupEmail({commit, dispatch, getters}, signupObj) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {

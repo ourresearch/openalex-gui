@@ -1,6 +1,11 @@
 <template>
 
   <div class="">
+    <div>
+      hey dude
+      {{ $store.state.user.id }}
+
+    </div>
 
 
     <!--    <div-->

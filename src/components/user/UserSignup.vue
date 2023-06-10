@@ -1,10 +1,5 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-title>
-        Sign up
-      </v-card-title>
-      <div class="pa-4">
+      <div class="">
         <v-text-field
             flat
             hide-details
@@ -38,8 +33,6 @@
           Create account
         </v-btn>
       </div>
-    </v-card>
-  </v-container>
 </template>
 
 <script>
@@ -73,16 +66,17 @@ export default {
     },
   },
 
+
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([
-        "reqeustSignupEmail",
+        "requestSignupEmail",
     ]),
     async submit(){
       this.isLoading = true
-      await this.reqeustSignupEmail({
+      await this.requestSignupEmail({
         email: this.email,
         displayName: this.name
       })

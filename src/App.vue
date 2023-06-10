@@ -60,6 +60,10 @@
           </v-col>
           <v-col cols="4" class="d-flex">
             <v-spacer></v-spacer>
+
+
+            <user-toolbar-menu />
+
             <v-btn
                     icon
                     target="_blank"
@@ -68,6 +72,8 @@
             >
               <v-icon color="primary">mdi-share-variant-outline</v-icon>
             </v-btn>
+
+
             <!--            <v-menu offset-y content-class="no-highlight" min-width="150">-->
             <!--              <template v-slot:activator="{on}">-->
             <!--                <v-btn icon color="" v-on="on">-->
@@ -202,6 +208,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
+import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
 
 
 export default {
@@ -214,6 +221,7 @@ export default {
     },
     components: {
         SearchBoxNew,
+        UserToolbarMenu,
     },
 
 
