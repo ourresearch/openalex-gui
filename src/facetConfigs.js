@@ -4,6 +4,7 @@ const facetCategories = {
         "institution",
         "author",
         "access",
+        "apc",
         "main source",
         "repository",
         "search",
@@ -50,6 +51,7 @@ const facetCategoriesIcons = {
     repository: "mdi-package-variant",
     search: "mdi-magnify",
     access: "mdi-lock-open-outline",
+    apc: "mdi-cash",
     ids: "mdi-tag-outline",
     citation: "mdi-format-quote-close",
     other: "mdi-dots-horizontal",
@@ -325,6 +327,43 @@ const facetConfigs = function (entityType) {
             valuesToShow: "mostCommon",
             category: "access",
             icon: "mdi-lock-open-outline",
+        },
+
+
+
+        // works: APC
+        {
+            key: "apc_list.value_usd",
+            entityType: "works",
+            displayName: "APC list price",
+            valuesToShow: "range",
+            sortByValue: true,
+            isRange: true,
+            placeholders: ["min", "max"],
+            category: "apc",
+            isCore: true,
+            icon: "mdi-cash"
+        },
+        {
+            key: "apc_paid.value_usd",
+            entityType: "works",
+            displayName: "APC paid",
+            valuesToShow: "range",
+            sortByValue: true,
+            isRange: true,
+            placeholders: ["min", "max"],
+            category: "apc",
+            isCore: true,
+            icon: "mdi-cash"
+        },
+        {
+            key: "apc_paid.provenance",
+            entityType: "works",
+            displayName: "APC paid: provenance",
+            valuesToShow: "mostCommon",
+            category: "apc",
+            isCore: true,
+            icon: "mdi-cash"
         },
 
 
