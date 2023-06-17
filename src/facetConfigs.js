@@ -460,6 +460,14 @@ const facetConfigs = function (entityType) {
             category: "main source",
             icon: "mdi-file-document-multiple-outline",
         },
+        {
+            key: "primary_location.source.is_in_doaj",
+            entityType: "works",
+            displayName: "Main source is in DOAJ",
+            valuesToShow: "mostCommon",
+            category: "main source",
+            icon: "mdi-file-document-multiple-outline",
+        },
 
         {
             key: "primary_location.source.publisher_lineage",
