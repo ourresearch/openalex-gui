@@ -228,7 +228,7 @@ export default {
     data: function () {
         return {
             dialogs: {
-                showAlpha: true
+                showAlpha: false
             }
         }
     },
