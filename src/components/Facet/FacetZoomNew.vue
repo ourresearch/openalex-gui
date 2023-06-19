@@ -5,21 +5,22 @@
       flat tile
       :loading="isLoading"
   >
-    <v-toolbar tile flat >
-      <v-btn
-          text
-          @click="setFacetZoom(null)"
-          class="low-key-button"
-      >
-        <v-icon left>mdi-arrow-left</v-icon>
-      <div class="pl-0">Back</div>
-      </v-btn>
-      <v-spacer />
+<!--    <v-toolbar tile flat >-->
+<!--      <v-btn-->
+<!--          text-->
+<!--          @click="setFacetZoom(null)"-->
+<!--          class="low-key-button"-->
+<!--      >-->
+<!--        <v-icon left>mdi-arrow-left</v-icon>-->
+<!--      <div class="pl-0">Back</div>-->
+<!--      </v-btn>-->
+<!--      <v-spacer />-->
 
 
-    </v-toolbar>
-    <v-toolbar tile flat dense>
+<!--    </v-toolbar>-->
+    <v-toolbar tile flat>
       <v-toolbar-title class="ml-0 pl-0">
+        <v-icon>mdi-filter-plus-outline</v-icon>
         {{ config.displayName }}
       </v-toolbar-title>
       <v-spacer/>
@@ -55,6 +56,9 @@
 
         </v-list>
       </v-menu>
+      <v-btn icon @click="setFacetZoom(null)">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
 
 

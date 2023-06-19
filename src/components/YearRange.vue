@@ -5,6 +5,7 @@
       flat
       class="ma-0 year-range-card"
       :class="{big}"
+      :disabled="disabled"
   >
     <v-toolbar  flat v-if="big" class="graph-toolbar pr-0">
       <!--      height="80" -->
@@ -199,7 +200,8 @@ export default {
     width: {
       type: String,
       default: "unset"
-    }
+    },
+    disabled: Boolean,
   },
   data() {
     return {
