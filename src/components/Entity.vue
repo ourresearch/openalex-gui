@@ -1,5 +1,5 @@
 <template>
-  <v-card outlined v-if="data">
+  <v-card :disabled="disabled" outlined v-if="data">
     <v-btn
         v-if="solo"
         @click="close"
@@ -283,6 +283,7 @@ export default {
   props: {
     data: Object,
     solo: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {

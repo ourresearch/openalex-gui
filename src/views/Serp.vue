@@ -36,15 +36,13 @@
       <v-row class="">
         <template v-if="!singleWorkIdToShow">
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-            <v-slide-x-transition hide-on-leave group class="d-flex">
-                <serp-facets-column  v-if="!facetZoom"  key="filter-menu"  />
-                <facet-zoom-new v-else key="filter-zoom" />
-            </v-slide-x-transition>
+            <serp-facets-column :disabled="!!facetZoom" key="filter-menu"  />
           </v-col>
           <v-slide-x-transition hide-on-leave>
           </v-slide-x-transition>
           <v-col cols="12" sm="5">
-            <v-card flat>
+            <facet-zoom-new v-if="facetZoom" key="filter-zoom" />
+            <v-card flat v-else key="serp-results">
               <serp-toolbar/>
               <serp-results-list class="pb-8"/>
             </v-card>
@@ -52,11 +50,16 @@
           <v-slide-x-reverse-transition>
             <v-col cols="12" sm="4">
               <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
-              <year-range height="50px" big class="mb-3" show-filter-link></year-range>
+              <year-range
+                  height="50px"
+                  big class="mb-3"
+                  :disabled="!!facetZoom"
+                  show-filter-link />
               <entity
                       v-for="entity in entitySidebarDataList"
                       :key="entity.id"
                       :data="entity"
+                      :disabled="!!facetZoom"
                       class="mb-4"
               />
             </v-col>

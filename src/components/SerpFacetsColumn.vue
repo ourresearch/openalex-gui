@@ -1,10 +1,13 @@
 <template>
-  <v-card flat tile class="facets-column">
+  <v-card :disabled="disabled" flat tile class="facets-column">
     <v-toolbar tile flat>
       <v-icon class="mr-3">mdi-filter-outline</v-icon>
       <v-toolbar-title class="pl-0">Filters</v-toolbar-title>
       <v-spacer/>
-      <v-menu offset-y>
+      <v-btn icon disabled v-if="disabled">
+        <v-icon>mdi-chevron-right</v-icon>
+      </v-btn>
+      <v-menu offset-y v-if="!disabled">
 
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="">
@@ -124,7 +127,9 @@ export default {
   components: {
     FacetSimple,
   },
-  props: {},
+  props: {
+    disabled: Boolean,
+  },
   data() {
     return {
       searchString: "",
