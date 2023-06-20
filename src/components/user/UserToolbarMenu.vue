@@ -19,7 +19,7 @@
           </div>
         </v-list-item>
         <v-divider></v-divider>
-        <v-list-item to="/u">
+        <v-list-item to="/me">
           Your account
         </v-list-item>
         <v-list-item @click="localLogout">

@@ -6,6 +6,7 @@ import About from "../views/About";
 import store from "@/store";
 import UserSignup from "@/components/user/UserSignup.vue";
 import UserMagicToken from "../components/user/UserMagicToken.vue";
+import Me from "../views/Me.vue"
 
 import goTo from 'vuetify/es5/services/goto'
 
@@ -31,6 +32,7 @@ const routes = [
     { path: '/about', name: 'About', component: About},
     { path: '/signup', name: 'Signup', component: UserSignup},
     { path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    { path: '/me', name: 'Me', component: Me},
 
 ]
 
