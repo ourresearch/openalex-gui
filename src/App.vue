@@ -1,13 +1,13 @@
 <template>
   <v-app>
     <v-app-bar
-            app
-            color="white"
-            class="pl-0"
-            :class="{mobile: $vuetify.breakpoint.mobile}"
-            absolute
-            flat
-            :extended="$vuetify.breakpoint.mobile"
+        app
+        color="white"
+        class="pl-0"
+        :class="{mobile: $vuetify.breakpoint.mobile}"
+        absolute
+        flat
+        :extended="$vuetify.breakpoint.mobile"
 
     >
       <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
@@ -15,19 +15,19 @@
 
           <v-col cols="8" sm="2">
             <router-link
-                    :to="{name: 'Home'}"
-                    class="logo-link pl-1"
-                    style="width: 180px;"
-                    v-if="$route.name !== 'Home'"
+                :to="{name: 'Home'}"
+                class="logo-link pl-1"
+                style="width: 180px;"
+                v-if="$route.name !== 'Home'"
             >
               <img
-                      src="@/assets/openalex-logo-icon-black-and-white.png"
-                      class="logo-icon mr-0 colorizable"
-                      :style="logoStyle"
+                  src="@/assets/openalex-logo-icon-black-and-white.png"
+                  class="logo-icon mr-0 colorizable"
+                  :style="logoStyle"
               />
               <span
-                      class="logo-text colorizable"
-                      :style="logoStyle"
+                  class="logo-text colorizable"
+                  :style="logoStyle"
               >
                 OpenAlex
                 <!--                <span class="grey&#45;&#45;text">-->
@@ -37,7 +37,7 @@
             </router-link>
 
           </v-col>
-          <v-col cols="6" v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'" class="d-flex">
+          <v-col cols="6" class="d-flex">
 
             <!--            <v-btn-->
             <!--                    @click="openFacetsDialog"-->
@@ -52,10 +52,11 @@
 
 
             <search-box-new
-
-                    class="flex-grow-1"
-                    style="max-width: 600px;"
+                v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
+                class="flex-grow-1"
+                style="max-width: 600px;"
             />
+
 
           </v-col>
           <v-col cols="4" class="d-flex">
@@ -65,10 +66,10 @@
             <user-toolbar-menu/>
 
             <v-btn
-                    icon
-                    target="_blank"
-                    @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-                    v-if="isLocalHost"
+                icon
+                target="_blank"
+                @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+                v-if="isLocalHost"
             >
               <v-icon color="primary">mdi-share-variant-outline</v-icon>
             </v-btn>
@@ -102,12 +103,12 @@
       </v-container>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
         <v-btn
-                fab
-                @click="openFacetsDialog"
-                color="green"
-                dark
-                small
-                class="mt-3 mr-3"
+            fab
+            @click="openFacetsDialog"
+            color="green"
+            dark
+            small
+            class="mt-3 mr-3"
         >
           <!--            :disabled="singleWork"-->
           <v-icon class="">mdi-filter-menu-outline</v-icon>
@@ -119,11 +120,11 @@
       <router-view></router-view>
     </v-main>
     <v-footer
-            class="py-10 site-footer"
-            style="margin-top: 150px;"
-            :style="{paddingRight: 0}"
-            dark
-            color="#363636"
+        class="py-10 site-footer"
+        style="margin-top: 150px;"
+        :style="{paddingRight: 0}"
+        dark
+        color="#363636"
     >
       <v-container>
         <v-row>
@@ -144,8 +145,8 @@
           </v-col>
           <v-col cols="12" sm="4" class="body-2">
             OurResearch is supported in part by <a
-                  style="text-decoration: underline;"
-                  href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
+              style="text-decoration: underline;"
+              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
             charitable fund of Lisbet Rausing and Peter Baldwin</a>.
           </v-col>
         </v-row>
@@ -169,7 +170,7 @@
             </p>
             <p>
               If you like adventure and providing feedback, this is the version for you! <a
-                    href="https://openalex.org/help">Share your thoughts here.</a>
+                href="https://openalex.org/help">Share your thoughts here.</a>
             </p>
             <p>
               If you'd like to <em>evaluate</em> OpenAlex, we recommend you wait for the beta version, which launches in
@@ -179,18 +180,18 @@
           </v-card-text>
           <v-card-actions>
             <v-btn
-                    outlined
-                    color="error"
-                    @click="dialogs.showAlpha = false"
+                outlined
+                color="error"
+                @click="dialogs.showAlpha = false"
             >
               <!--              <v-icon left>mdi-alert-outline</v-icon>-->
               try alpha
             </v-btn>
             <v-btn
-                    text
-                    color="error"
-                    @click="dialogs.showAlpha = false"
-                    href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank"
+                text
+                color="error"
+                @click="dialogs.showAlpha = false"
+                href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank"
             >
               <!--              <v-icon left>mdi-alert-outline</v-icon>-->
               wait for beta
@@ -214,57 +215,57 @@ import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
 
 
 export default {
-    name: 'App',
-    metaInfo: {
-        titleTemplate: 'OpenAlex | %s',
-        link: [],
+  name: 'App',
+  metaInfo: {
+    titleTemplate: 'OpenAlex | %s',
+    link: [],
 
-        meta: []
-    },
-    components: {
-        SearchBoxNew,
-        UserToolbarMenu,
-    },
+    meta: []
+  },
+  components: {
+    SearchBoxNew,
+    UserToolbarMenu,
+  },
 
 
-    data: function () {
-        return {
-            dialogs: {
-                showAlpha: false
-            }
-        }
-    },
-    computed: {
-        ...mapGetters([
-            "searchFacetConfigs",
-            "resultsFilters",
-        ]),
-
-        logoStyle() {
-            return "opacity: .7;"
-            return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
-        },
-        isLocalHost() {
-            return window.location.hostname === "localhost"
-        },
-    },
-    methods: {
-        ...mapMutations([
-            "setFiltersZoom",
-            "openFacetsDialog",
-            "snackbar",
-        ]),
-        ...mapActions([]),
-        async copyToClipboard(content) {
-            await navigator.clipboard.writeText(content);
-            this.snackbar("Copied to clipboard.")
-        },
-    },
-    async mounted() {
-        // await sleep(2000)
-        // console.log("disable body scroll")
-        // bodyScrollLock.disableBodyScroll()
+  data: function () {
+    return {
+      dialogs: {
+        showAlpha: false
+      }
     }
+  },
+  computed: {
+    ...mapGetters([
+      "searchFacetConfigs",
+      "resultsFilters",
+    ]),
+
+    logoStyle() {
+      return "opacity: .7;"
+      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
+    },
+    isLocalHost() {
+      return window.location.hostname === "localhost"
+    },
+  },
+  methods: {
+    ...mapMutations([
+      "setFiltersZoom",
+      "openFacetsDialog",
+      "snackbar",
+    ]),
+    ...mapActions([]),
+    async copyToClipboard(content) {
+      await navigator.clipboard.writeText(content);
+      this.snackbar("Copied to clipboard.")
+    },
+  },
+  async mounted() {
+    // await sleep(2000)
+    // console.log("disable body scroll")
+    // bodyScrollLock.disableBodyScroll()
+  }
 };
 </script>
 <style lang="scss">

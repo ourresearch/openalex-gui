@@ -56,20 +56,8 @@
         </v-list>
       </v-menu>
 
-      <!--        Creat alert-->
-      <v-menu v-if="0" offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" :disabled="disabled">
-            <v-icon>mdi-bell-cancel-outline</v-icon>
-          </v-btn>
-        </template>
-        <v-card>
-          Too many results
-        </v-card>
-      </v-menu>
 
 
-      <!--        Export-->
       <v-menu offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="" :disabled="disabled">
@@ -112,6 +100,29 @@
               View in API
             </v-list-item-title>
           </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item
+              @click="dialogs.createSavedSearch = true"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-content-save-plus-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Save search
+            </v-list-item-title>
+          </v-list-item>
+
+          <v-list-item
+              @click="dialogs.createEmailAlert = true"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-email-plus-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Create alert for search
+            </v-list-item-title>
+          </v-list-item>
+
 
 
         </v-list>
@@ -148,26 +159,6 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item
-            v-if="0"
-            @click="snackbar({msg: 'This feature is still under construction.', icon: 'mdi-wrench'})"
-            :disabled="true"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-bell-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Create alert
-            </v-list-item-title>
-            <v-list-item-subtitle
-                v-if="resultsCount > 100000"
-                class="grey--text"
-            >
-              (Under construction)
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
 
 
         <v-subheader>Sort by</v-subheader>
@@ -306,39 +297,15 @@
     </v-dialog>
 
 
-    <v-dialog max-width="600" v-model="dialogs.createAlert">
-      <v-card>
-        <v-card-title>
-          <v-icon left>mdi-bell-outline</v-icon>
-          Create email alert
-        </v-card-title>
-
-        <div class="card-content px-6">
-          <template v-if="createAlert.velocityIsLoading">
-            Building alert...
-          </template>
-          <template v-else>
-
-            the alert she is done.
-
-          </template>
-        </div>
-
-        <v-card-actions class="py-6">
-          <v-spacer></v-spacer>
-          <v-btn text @click="dialogs.export = false">Close</v-btn>
-          <!--          <v-btn-->
-          <!--              :disabled="!exportEmailIsValid"-->
-          <!--              text-->
-          <!--              v-if="resultsCount <= 100000 && !exportIsInProgress"-->
-          <!--              color="primary"-->
-          <!--              @click="exportToCsv"-->
-          <!--          >-->
-          <!--            Create Alert-->
-          <!--          </v-btn>-->
-        </v-card-actions>
-      </v-card>
+    <v-dialog max-width="600" v-model="dialogs.createSavedSearch">
+      <serp-toolbar-saved-search @close="dialogs.createSavedSearch = false"  />
     </v-dialog>
+
+    <v-dialog max-width="600" v-model="dialogs.createEmailAlert">
+      <serp-toolbar-email-alert @close="dialogs.createEmailAlert = false"  />
+    </v-dialog>
+
+
     <template v-slot:extension>
       <div class="grey--text">
         <span class="">{{ resultsCount | toPrecision }}</span> results
@@ -356,19 +323,22 @@
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
 
-import YearRange from "./YearRange"
+import YearRange from "../YearRange.vue"
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {getFacetConfig} from "../facetConfigs";
-import {entityConfigs} from "../entityConfigs";
-import EntityIcon from "./EntityIcon";
+import {getFacetConfig} from "../../facetConfigs";
+import {entityConfigs} from "../../entityConfigs";
+import EntityIcon from "../EntityIcon.vue";
 import axios from "axios";
-
+import SerpToolbarSavedSearch from "@/components/SerpToolbar/SerpToolbarSavedSearch.vue";
+import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
 
 export default {
   name: "SerpToolbar",
   components: {
     EntityIcon,
     YearRange,
+    SerpToolbarSavedSearch,
+    SerpToolbarEmailAlert,
   },
   props: {
     filtersDrawerIsOpen: Boolean,
@@ -381,7 +351,8 @@ export default {
       filterResultsTooltip: false,
       dialogs: {
         export: false,
-        createAlert: false,
+        createEmailAlert: false,
+        createSavedSearch: false,
       },
       exportEmail: "",
       exportIsLoading: false,

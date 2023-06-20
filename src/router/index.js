@@ -32,7 +32,8 @@ const routes = [
     { path: '/about', name: 'About', component: About},
     { path: '/signup', name: 'Signup', component: UserSignup},
     { path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    { path: '/me', name: 'Me', component: Me},
+    { path: '/me',redirect: {name: "Me", params: {tab: "details"}}},
+    { path: '/me/:tab?', name: 'Me', component: Me},
 
 ]
 

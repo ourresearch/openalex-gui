@@ -117,7 +117,7 @@ import _ from 'lodash';
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
-import SerpToolbar from "../components/SerpToolbar";
+import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import SerpFiltersList from "../SerpFiltersList";
 
 import ResultWork from "../components/ResultWork";
