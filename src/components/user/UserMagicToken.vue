@@ -32,6 +32,9 @@ export default {
       "userName",
       "userEmail",
     ]),
+    ...mapGetters("user", [
+      "userId",
+    ]),
     isOpen: {
       get() {
         if (!this.$vuetify.breakpoint.mobile) return true
@@ -48,7 +51,7 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([
+    ...mapActions("user", [
         "loginWithMagicToken"
     ]),
 

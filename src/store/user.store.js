@@ -13,10 +13,12 @@ const axiosConfig = function () {
 const apiBaseUrl = "https://user.openalex.org"
 
 export const user = {
+    namespaced: true,
+
     state: {
-        userId: "dude",
-        userNamed: "",
-        userEmail: "",
+        id: "",
+        name: "",
+        email: "",
     },
     mutations: {
         setToken(state, token) {
@@ -24,18 +26,20 @@ export const user = {
         },
         logout(state) {
             state.id = ""
-            state.userName = ""
-            state.userEmail = ""
+            state.name = ""
+            state.email = ""
             localStorage.removeItem("token")
+
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id
-            state.userName = apiResp.name
-            state.userEmail = apiResp.email
+            state.name = apiResp.name
+            state.email = apiResp.email
         },
     },
     actions: {
         async loginWithMagicToken({commit, dispatch, getters}, magicToken) {
+            console.log("user.store loginWithMagicToken", magicToken)
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login",
                 {token: magicToken}
@@ -63,7 +67,7 @@ export const user = {
             )
             return resp
         },
-        async reqeustLoginEmail({commit, dispatch, getters}, email) {
+        async requestLoginEmail({commit, dispatch, getters}, email) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {

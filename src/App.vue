@@ -62,7 +62,7 @@
             <v-spacer></v-spacer>
 
 
-            <user-toolbar-menu />
+            <user-toolbar-menu/>
 
             <v-btn
                     icon
@@ -74,27 +74,27 @@
             </v-btn>
 
 
-            <!--            <v-menu offset-y content-class="no-highlight" min-width="150">-->
-            <!--              <template v-slot:activator="{on}">-->
-            <!--                <v-btn icon color="" v-on="on">-->
-            <!--                  <v-icon class="">mdi-menu</v-icon>-->
-            <!--                </v-btn>-->
-            <!--              </template>-->
-            <!--              <v-list>-->
-            <!--                <v-list-item to="/">-->
-            <!--                  Home-->
-            <!--                </v-list-item>-->
-            <!--                <v-list-item to="/about">-->
-            <!--                  About-->
-            <!--                </v-list-item>-->
-            <!--                <v-list-item to="/premium">-->
-            <!--                  Premium-->
-            <!--                </v-list-item>-->
-            <!--                <v-list-item to="/help">-->
-            <!--                  Help-->
-            <!--                </v-list-item>-->
-            <!--              </v-list>-->
-            <!--            </v-menu>-->
+            <v-menu offset-y content-class="no-highlight" min-width="150">
+              <template v-slot:activator="{on}">
+                <v-btn icon color="" v-on="on">
+                  <v-icon class="">mdi-menu</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item to="/">
+                  Home
+                </v-list-item>
+                <v-list-item to="/about">
+                  About
+                </v-list-item>
+                <v-list-item to="/premium">
+                  Premium
+                </v-list-item>
+                <v-list-item to="/help">
+                  Help
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
           </v-col>
         </v-row>
@@ -163,7 +163,8 @@
         <v-card>
           <v-card-text>
             <p>
-              You're looking at our <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha" target="_blank">alpha
+              You're looking at our <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha"
+                                       target="_blank">alpha
               version:</a> that means it's <strong>buggy, incomplete, and changing daily.</strong>
             </p>
             <p>
@@ -171,7 +172,8 @@
                     href="https://openalex.org/help">Share your thoughts here.</a>
             </p>
             <p>
-              If you'd like to <em>evaluate</em> OpenAlex, we recommend you wait for the beta version, which launches in July.
+              If you'd like to <em>evaluate</em> OpenAlex, we recommend you wait for the beta version, which launches in
+              July.
             </p>
 
           </v-card-text>
@@ -181,7 +183,7 @@
                     color="error"
                     @click="dialogs.showAlpha = false"
             >
-<!--              <v-icon left>mdi-alert-outline</v-icon>-->
+              <!--              <v-icon left>mdi-alert-outline</v-icon>-->
               try alpha
             </v-btn>
             <v-btn
@@ -190,7 +192,7 @@
                     @click="dialogs.showAlpha = false"
                     href="https://forms.gle/NDoXAQVKGQLpkF5U8" target="_blank"
             >
-<!--              <v-icon left>mdi-alert-outline</v-icon>-->
+              <!--              <v-icon left>mdi-alert-outline</v-icon>-->
               wait for beta
             </v-btn>
           </v-card-actions>

@@ -59,7 +59,7 @@ router.beforeEach(async (to, from, next) => {
     if (localStorage.getItem("token")) {
         console.log("in router, we found a user token")
         try {
-            await store.dispatch("fetchUser")
+            await store.dispatch("user/fetchUser")
         } catch (e) {
             store.commit("logout")
         }
