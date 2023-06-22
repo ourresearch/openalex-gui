@@ -32,12 +32,14 @@
     <div class="pt-2" v-else>
       <v-btn
               text
+              :disabled="$route.name==='Signup'"
               @click="dialogs.userSignup = true"
       >
         Sign up
       </v-btn>
       <v-btn
               text
+              :disabled="$route.name==='Login'"
               @click="dialogs.userLogin = true"
       >
         Log in
@@ -64,21 +66,7 @@
     </v-dialog>
 
     <v-dialog v-model="dialogs.userLogin" max-width="400">
-      <v-card>
-        <v-toolbar flat>
-          <v-toolbar-title>
-            Log in
-          </v-toolbar-title>
-          <v-spacer/>
-          <v-btn icon @click="dialogs.userSignup = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <div class="pa-4">
-          <user-login />
-        </div>
-      </v-card>
-
+      <user-login show-close-button @close="dialogs.userLogin = false" />
     </v-dialog>
   </div>
 </template>

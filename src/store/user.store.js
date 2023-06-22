@@ -76,8 +76,9 @@ export const user = {
                 axiosConfig()
             )
             console.log("got a user api response", resp)
-
             commit("setFromApiResp", resp.data)
+            dispatch("fetchSavedSearches")
+            dispatch("fetchEmailAlerts")
         },
         async requestSignupEmail({commit, dispatch, getters}, signupObj) {
             const resp = await axios.post(
