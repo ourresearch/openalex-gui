@@ -1,5 +1,11 @@
 <template>
   <v-app>
+    <v-progress-linear
+            indeterminate
+            fixed color="primary"
+            style="z-index: 9999"
+            v-if="globalIsLoading"
+    />
     <v-app-bar
         app
         color="white"
@@ -239,6 +245,7 @@ export default {
     ...mapGetters([
       "searchFacetConfigs",
       "resultsFilters",
+        "globalIsLoading",
     ]),
 
     logoStyle() {

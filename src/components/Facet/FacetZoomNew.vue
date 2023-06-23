@@ -95,7 +95,7 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
-              :disabled="rangeIsEmpty || searchIsLoading"
+              :disabled="rangeIsEmpty"
               color="green"
               :dark="!rangeIsEmpty"
               @click="applyRange"
@@ -277,7 +277,6 @@ export default {
       "showFiltersDrawer",
       "inputFilters",
       "facetZoom",
-      "searchIsLoading",
     ]),
     config() {
       return facetConfigs().find(c => c.key === this.facetZoom)

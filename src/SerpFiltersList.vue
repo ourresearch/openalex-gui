@@ -148,7 +148,6 @@ export default {
             "entityType",
             "searchFacetConfigs",
             "filtersZoom",
-            "searchIsLoading",
 
         ]),
         facetsDrawerIsOpen: {
@@ -271,12 +270,6 @@ export default {
     watch: {
         selectedFacetKey(to, from) {
             this.searchString = ""
-        },
-        searchIsLoading(to) {
-            //   console.log("searchIsLoading change", to)
-            // if (!to){
-            //     this.showAddFilterButton = true
-            // }
         },
     }
 }

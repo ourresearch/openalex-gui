@@ -66,7 +66,7 @@
       <div class="facet-zoom-content">
         <v-row class="px-3">
           <v-col cols="12" sm="6">
-            <v-card flat outlined :loading="(searchIsLoading) ? 'green' : false">
+            <v-card flat outlined :loading="(globalIsLoading) ? 'green' : false">
               <v-toolbar flat>
                 <v-icon left>mdi-filter-check-outline</v-icon>
                 <v-toolbar-title>
@@ -141,7 +141,7 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-btn
-                          :disabled="rangeIsEmpty || searchIsLoading"
+                          :disabled="rangeIsEmpty || globalIsLoading"
                           color="green"
                           :dark="!rangeIsEmpty"
                           @click="applyRange"
@@ -361,7 +361,7 @@ export default {
             "showFiltersDrawer",
             "inputFilters",
             "facetZoom",
-            "searchIsLoading",
+            "globalIsLoading",
         ]),
         config() {
             return facetConfigs().find(c => c.key === this.facetZoom)

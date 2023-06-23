@@ -170,6 +170,9 @@ export default new Vuex.Store({
         toggleFiltersDrawer(state) {
             state.showFiltersDrawer = !state.showFiltersDrawer
         },
+        setGlobalIsLoading(state, isLoading) {
+            state.isLoading = !!isLoading
+        },
         setFacetZoom(state, facetKey) {
             console.log("setFacetZoom", facetKey)
             // state.facetsListDialogIsOpen = true
@@ -423,7 +426,7 @@ export default new Vuex.Store({
             return state.inputFilters
         },
 
-        searchIsLoading(state) {
+        globalIsLoading(state) {
             return state.isLoading
         },
         results(state) {

@@ -1,8 +1,8 @@
 <template>
   <v-toolbar
-      class=""
-      flat
-      extended
+          class=""
+          flat
+          extended
   >
     <!--    <v-icon left>-->
     <!--      mdi-file-document-outline-->
@@ -38,9 +38,9 @@
           <v-subheader>Sort by</v-subheader>
           <v-divider></v-divider>
           <v-list-item
-              v-for="mySortOption in $store.getters.sortObjectOptions"
-              :key="mySortOption.key"
-              @click="setSort(mySortOption.key)"
+                  v-for="mySortOption in $store.getters.sortObjectOptions"
+                  :key="mySortOption.key"
+                  @click="setSort(mySortOption.key)"
           >
             <v-list-item-icon>
               <v-icon>
@@ -57,7 +57,6 @@
       </v-menu>
 
 
-
       <v-menu offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="" :disabled="disabled">
@@ -68,12 +67,12 @@
           <!--            <v-subheader>Export results as:</v-subheader>-->
           <!--            <v-divider></v-divider>-->
           <v-list-item
-              @click="openExportToCsvDialog"
-              :disabled="resultsCount > 100000"
+                  @click="openExportToCsvDialog"
+                  :disabled="resultsCount > 100000"
           >
             <v-list-item-icon>
               <v-icon
-                  :disabled="resultsCount > 100000"
+                      :disabled="resultsCount > 100000"
               >
                 mdi-tray-arrow-down
               </v-icon>
@@ -83,15 +82,15 @@
                 Export as spreadsheet
               </v-list-item-title>
               <v-list-item-subtitle
-                  v-if="resultsCount > 100000"
-                  class="grey--text"
+                      v-if="resultsCount > 100000"
+                      class="grey--text"
               >
                 Max 100k results
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
-              @click="setApiDialogUrl(searchApiUrlForDisplay)"
+                  @click="setApiDialogUrl(searchApiUrlForDisplay)"
           >
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
@@ -102,7 +101,7 @@
           </v-list-item>
           <v-divider></v-divider>
           <v-list-item
-              @click="saveSearch"
+                  @click="saveSearch"
           >
             <v-list-item-icon>
               <v-icon>mdi-content-save-plus-outline</v-icon>
@@ -113,7 +112,7 @@
           </v-list-item>
 
           <v-list-item
-              @click="dialogs.createEmailAlert = true"
+                  @click="dialogs.createEmailAlert = true"
           >
             <v-list-item-icon>
               <v-icon>mdi-email-plus-outline</v-icon>
@@ -122,7 +121,6 @@
               Create alert for search
             </v-list-item-title>
           </v-list-item>
-
 
 
         </v-list>
@@ -140,8 +138,8 @@
       </template>
       <v-list dense>
         <v-list-item
-            @click="toggleFiltersDrawer"
-            v-if="$vuetify.breakpoint.mobile"
+                @click="toggleFiltersDrawer"
+                v-if="$vuetify.breakpoint.mobile"
         >
           <v-list-item-icon>
             <v-icon>mdi-filter-outline</v-icon>
@@ -160,13 +158,12 @@
         </v-list-item>
 
 
-
         <v-subheader>Sort by</v-subheader>
         <v-divider/>
         <v-list-item
-            v-for="mySortOption in $store.getters.sortObjectOptions"
-            :key="mySortOption.key"
-            @click="setSort(mySortOption.key)"
+                v-for="mySortOption in $store.getters.sortObjectOptions"
+                :key="mySortOption.key"
+                @click="setSort(mySortOption.key)"
         >
           <v-list-item-icon>
             <v-icon>
@@ -183,8 +180,8 @@
         <v-subheader>Export as:</v-subheader>
         <v-divider/>
         <v-list-item
-            target="_blank"
-            :href="searchApiUrlForDisplay"
+                target="_blank"
+                :href="searchApiUrlForDisplay"
         >
           <v-list-item-icon>
             <v-icon>mdi-api</v-icon>
@@ -197,8 +194,8 @@
         </v-list-item>
 
         <v-list-item
-            @click="openExportToCsvDialog"
-            :disabled="resultsCount > 100000"
+                @click="openExportToCsvDialog"
+                :disabled="resultsCount > 100000"
         >
           <v-list-item-icon>
             <v-icon
@@ -211,8 +208,8 @@
               Spreadsheet
             </v-list-item-title>
             <v-list-item-subtitle
-                v-if="resultsCount > 100000"
-                class="grey--text"
+                    v-if="resultsCount > 100000"
+                    class="grey--text"
             >
               Max 100k results
             </v-list-item-subtitle>
@@ -254,14 +251,14 @@
           <template v-else>
             <div class="mt-8">
               <v-text-field
-                  label="Your email (never shared)"
-                  v-model="exportEmail"
-                  type="email"
-                  outlined
-                  hide-details
-                  prepend-inner-icon="mdi-email-outline"
-                  @keypress.enter="exportToCsv"
-                  :disabled="exportIsLoading"
+                      label="Your email (never shared)"
+                      v-model="exportEmail"
+                      type="email"
+                      outlined
+                      hide-details
+                      prepend-inner-icon="mdi-email-outline"
+                      @keypress.enter="exportToCsv"
+                      :disabled="exportIsLoading"
               ></v-text-field>
             </div>
             <div class="mt-4">
@@ -276,19 +273,19 @@
         <v-card-actions class="py-6">
           <v-spacer></v-spacer>
           <v-btn
-              :disabled="!exportEmailIsValid || exportIsLoading"
-              text
-              v-if="!exportIsInProgress"
-              color="primary"
-              @click="exportToCsv"
+                  :disabled="!exportEmailIsValid || exportIsLoading"
+                  text
+                  v-if="!exportIsInProgress"
+                  color="primary"
+                  @click="exportToCsv"
           >
             Begin Export
           </v-btn>
           <v-btn
-              v-if="exportIsInProgress"
-              text
-              color="primary"
-              @click="dialogs.export = false"
+                  v-if="exportIsInProgress"
+                  text
+                  color="primary"
+                  @click="dialogs.export = false"
           >
             Close
           </v-btn>
@@ -298,11 +295,11 @@
 
 
     <v-dialog max-width="600" v-model="dialogs.createSavedSearch">
-      <serp-toolbar-saved-search @close="dialogs.createSavedSearch = false"  />
+      <serp-toolbar-saved-search @close="dialogs.createSavedSearch = false"/>
     </v-dialog>
 
     <v-dialog max-width="600" v-model="dialogs.createEmailAlert">
-      <serp-toolbar-email-alert @close="dialogs.createEmailAlert = false"  />
+      <serp-toolbar-email-alert @close="dialogs.createEmailAlert = false"/>
     </v-dialog>
 
 
@@ -333,148 +330,150 @@ import SerpToolbarSavedSearch from "@/components/SerpToolbar/SerpToolbarSavedSea
 import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
 
 export default {
-  name: "SerpToolbar",
-  components: {
-    EntityIcon,
-    YearRange,
-    SerpToolbarSavedSearch,
-    SerpToolbarEmailAlert,
-  },
-  props: {
-    filtersDrawerIsOpen: Boolean,
-    disabled: Boolean,
-  },
-  data() {
-    return {
-      loading: false,
-      getFacetConfig,
-      filterResultsTooltip: false,
-      dialogs: {
-        export: false,
-        createEmailAlert: false,
-        createSavedSearch: false,
-      },
-      exportEmail: "",
-      exportIsLoading: false,
-      exportIsInProgress: false,
-      createAlert: {
-        velocityIsLoading: false
-      }
+    name: "SerpToolbar",
+    components: {
+        EntityIcon,
+        YearRange,
+        SerpToolbarSavedSearch,
+        SerpToolbarEmailAlert,
+    },
+    props: {
+        filtersDrawerIsOpen: Boolean,
+        disabled: Boolean,
+    },
+    data() {
+        return {
+            loading: false,
+            getFacetConfig,
+            filterResultsTooltip: false,
+            dialogs: {
+                export: false,
+                createEmailAlert: false,
+                createSavedSearch: false,
+            },
+            exportEmail: "",
+            exportIsLoading: false,
+            exportIsInProgress: false,
+            createAlert: {
+                velocityIsLoading: false
+            }
+        }
+    },
+    computed: {
+        ...mapGetters([
+            "resultsFilters",
+            "searchApiUrlForDisplay",
+            "searchQuery",
+            "textSearch",
+            "entityType",
+            "results",
+            "resultsCount",
+            "inputFiltersAsString",
+            "sortObjectOptions",
+            "sortObject",
+            "showFiltersDrawer",
+            "entityConfigs",
+        ]),
+
+        sort: {
+            get() {
+                return this.$store.getters.sortObject
+            },
+            set(val) {
+                this.$store.dispatch("setSort", val)
+            }
+        },
+        exportEmailIsValid() {
+            return /.+@.+/.test(this.exportEmail)
+        },
+
+        selectedEntityTypeConfig() {
+            return entityConfigs[this.entityType]
+        },
+    },
+    methods: {
+        ...mapMutations([
+            "toggleFiltersDrawer",
+            "snackbar",
+            "setApiDialogUrl",
+            "setGlobalIsLoading",
+        ]),
+        ...mapActions([
+            "setSort",
+        ]),
+        async saveSearch() {
+            this.setGlobalIsLoading(true)
+            const args = {
+                search_url: 'https://alpha.openalex.org' + this.$route.fullPath
+            }
+            await this.$store.dispatch("user/createSavedSearch", args)
+            this.snackbar("Search saved")
+            this.setGlobalIsLoading(false)
+        },
+        removeTextSearch() {
+            this.$router.push({
+                name: "Serp",
+                query: {filter: this.$route.query.filter}
+            })
+        },
+        removeFiltersAndSearch() {
+            this.$router.push({
+                name: "Serp",
+            })
+        },
+        openExportToCsvDialog() {
+            this.exportIsInProgress = false
+            this.dialogs.export = true
+        },
+        async openCreateAlertDialog() {
+            this.dialogs.createAlert = true
+            this.createAlert.velocityIsLoading = true
+
+            // check the velocity endpoint
+            const url = `https://api.openalex.org/alert/work/${this.inputFiltersAsString}/velocity`
+            const resp = await axios.get(url)
+            console.log("openCreateAlertDialog velocity:", resp.data)
+
+        },
+        async exportToCsv() {
+            const params = [
+                `filter=${this.inputFiltersAsString}`,
+                `email=${this.exportEmail}`,
+                "format=csv",
+            ]
+            const url = `https://api.openalex.org/works?` + params.join("&")
+            this.exportIsLoading = true
+            try {
+                const resp = await axios.get(url)
+                console.log("exportToCsv submitted", resp.data)
+                // this.snackbar("Export job submitted.")
+            } catch (e) {
+                console.log("exportToCsv error", e)
+            } finally {
+                this.exportIsInProgress = true
+                this.exportIsLoading = false
+                // this.dialogs.export = false
+                // this.exportEmail = ""
+            }
+        },
+    },
+
+    created() {
+    },
+    async mounted() {
+    },
+    watch: {
+        "$route": function (to, from) {
+            // hack.
+            // otherwise the tooltip on the "filter results" button returns when you close the zoom, for some reason.
+            if (!to.query.zoom) {
+                const that = this
+                setTimeout(function () {
+                    that.filterResultsTooltip = false
+                }, 10)
+            }
+        }
     }
-  },
-  computed: {
-    ...mapGetters([
-      "resultsFilters",
-      "searchApiUrlForDisplay",
-      "searchQuery",
-      "textSearch",
-      "entityType",
-      "results",
-      "resultsCount",
-      "inputFiltersAsString",
-      "sortObjectOptions",
-      "sortObject",
-      "showFiltersDrawer",
-      "entityConfigs",
-    ]),
-
-    sort: {
-      get() {
-        return this.$store.getters.sortObject
-      },
-      set(val) {
-        this.$store.dispatch("setSort", val)
-      }
-    },
-    exportEmailIsValid() {
-      return /.+@.+/.test(this.exportEmail)
-    },
-
-    selectedEntityTypeConfig() {
-      return entityConfigs[this.entityType]
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "toggleFiltersDrawer",
-      "snackbar",
-      "setApiDialogUrl",
-    ]),
-    ...mapActions([
-      "setSort"
-    ]),
-      async saveSearch() {
-      const args = {
-        search_url: 'https://alpha.openalex.org' + this.$route.fullPath
-      }
-      await this.$store.dispatch("user/createSavedSearch", args)
-      this.snackbar("Search saved")
-      this.$emit("close")
-    },
-    removeTextSearch() {
-      this.$router.push({
-        name: "Serp",
-        query: {filter: this.$route.query.filter}
-      })
-    },
-    removeFiltersAndSearch() {
-      this.$router.push({
-        name: "Serp",
-      })
-    },
-    openExportToCsvDialog() {
-      this.exportIsInProgress = false
-      this.dialogs.export = true
-    },
-    async openCreateAlertDialog() {
-      this.dialogs.createAlert = true
-      this.createAlert.velocityIsLoading = true
-
-      // check the velocity endpoint
-      const url = `https://api.openalex.org/alert/work/${this.inputFiltersAsString}/velocity`
-      const resp = await axios.get(url)
-      console.log("openCreateAlertDialog velocity:", resp.data)
-
-    },
-    async exportToCsv() {
-      const params = [
-        `filter=${this.inputFiltersAsString}`,
-        `email=${this.exportEmail}`,
-        "format=csv",
-      ]
-      const url = `https://api.openalex.org/works?` + params.join("&")
-      this.exportIsLoading = true
-      try {
-        const resp = await axios.get(url)
-        console.log("exportToCsv submitted", resp.data)
-        // this.snackbar("Export job submitted.")
-      } catch (e) {
-        console.log("exportToCsv error", e)
-      } finally {
-        this.exportIsInProgress = true
-        this.exportIsLoading = false
-        // this.dialogs.export = false
-        // this.exportEmail = ""
-      }
-    },
-  },
-
-  created() {
-  },
-  async mounted() {
-  },
-  watch: {
-    "$route": function (to, from) {
-      // hack.
-      // otherwise the tooltip on the "filter results" button returns when you close the zoom, for some reason.
-      if (!to.query.zoom) {
-        const that = this
-        setTimeout(function () {
-          that.filterResultsTooltip = false
-        }, 10)
-      }
-    }
-  }
 }
 </script>
 
