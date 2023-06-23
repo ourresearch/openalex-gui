@@ -1,5 +1,6 @@
 <template>
   <v-container>
+    <div class="text-h4 py-4 px-2">My Account</div>
 
       <v-row>
         <v-col sm="3">
@@ -40,9 +41,12 @@
         <v-col sm="9">
           <v-card>
             <v-card-title>
+              <span  class="font-weight-regular">
               My Account
+
+              </span>
               <v-icon>mdi-chevron-right</v-icon>
-              <span class="font-weight-regular">{{ tabName }}</span>
+              <span class="text-capitalize">{{ tabName }}</span>
             </v-card-title>
 
             <template v-if="$route.params.tab==='details'">

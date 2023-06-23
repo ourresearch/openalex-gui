@@ -13,7 +13,7 @@
                 clearable
                 dense
                 prepend-inner-icon="mdi-magnify"
-                placeholder="Add filters"
+                placeholder="Search fulltext, abstract, author, and more"
                 @keypress.enter.stop.prevent="setTopFilter"
                 :loading="isLoading"
         />

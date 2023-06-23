@@ -30,7 +30,7 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <v-toolbar flat tile dense class="pa-0">
+    <v-toolbar v-if="0" flat tile dense class="pa-0">
       <!--      <v-text-field-->
       <!--            flat-->
       <!--            hide-details-->

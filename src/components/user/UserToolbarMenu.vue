@@ -8,22 +8,49 @@
         </v-btn>
       </template>
       <v-list>
-        <v-list-item class="">
-          <div class="body-2">
-            <span>
-              Hello,
-            </span>
-            <span class="font-weight-bold">
-              {{ userName }}
-            </span>!
-          </div>
+<!--        <v-list-item class="">-->
+<!--          <div class="body-2">-->
+<!--            <span>-->
+<!--              Hello,-->
+<!--            </span>-->
+<!--            <span class="font-weight-bold">-->
+<!--              {{ userName }}-->
+<!--            </span>!-->
+<!--          </div>-->
+<!--        </v-list-item>-->
+<!--        <v-divider></v-divider>-->
+        <v-list-item to="/me/details">
+          <v-list-item-icon>
+            <v-icon>mdi-account-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Account
+          </v-list-item-content>
         </v-list-item>
-        <v-divider></v-divider>
-        <v-list-item to="/me">
-          Your account
+        <v-list-item to="/me/email-alerts">
+          <v-list-item-icon>
+            <v-icon>mdi-email-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Email alerts
+          </v-list-item-content>
         </v-list-item>
-        <v-list-item @click="localLogout">
-          Log out
+        <v-list-item to="/me/saved-searches">
+          <v-list-item-icon>
+            <v-icon>mdi-content-save-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Saved searches
+          </v-list-item-content>
+        </v-list-item>
+        <v-divider />
+        <v-list-item  @click="localLogout">
+          <v-list-item-icon>
+            <v-icon>mdi-logout</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Log out
+          </v-list-item-content>
         </v-list-item>
       </v-list>
     </v-menu>

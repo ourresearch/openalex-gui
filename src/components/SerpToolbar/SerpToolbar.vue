@@ -102,7 +102,7 @@
           </v-list-item>
           <v-divider></v-divider>
           <v-list-item
-              @click="dialogs.createSavedSearch = true"
+              @click="saveSearch"
           >
             <v-list-item-icon>
               <v-icon>mdi-content-save-plus-outline</v-icon>
@@ -403,6 +403,14 @@ export default {
     ...mapActions([
       "setSort"
     ]),
+      async saveSearch() {
+      const args = {
+        search_url: 'https://alpha.openalex.org' + this.$route.fullPath
+      }
+      await this.$store.dispatch("user/createSavedSearch", args)
+      this.snackbar("Search saved")
+      this.$emit("close")
+    },
     removeTextSearch() {
       this.$router.push({
         name: "Serp",
