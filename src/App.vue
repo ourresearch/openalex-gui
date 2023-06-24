@@ -207,6 +207,24 @@
       </v-card>
     </v-dialog>
 
+    <v-snackbar
+              bottom
+              v-model="$store.state.snackbarIsOpen"
+      >
+        <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+        {{ $store.state.snackbarMsg }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn
+                  icon
+                  v-bind="attrs"
+                  @click="$store.commit('closeSnackbar')"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-snackbar>
+
 
   </v-app>
 </template>
