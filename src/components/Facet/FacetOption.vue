@@ -1,6 +1,5 @@
 <template>
   <v-list-item
-          two-line
           class=""
           :input-value="isSelected"
           :disabled="disabled"
@@ -20,13 +19,14 @@
     <!--      <v-icon v-else style="opacity: .3">mdi-circle-outline</v-icon>-->
     <!--    </div>-->
 
-    <v-list-item-avatar>
-      <v-progress-circular
+    <v-list-item-icon>
+      <v-progress-linear
               :value="filter.countPercent"
-              width="10"
-
+              reverse
+              height="10"
+              class="mt-2"
       />
-    </v-list-item-avatar>
+    </v-list-item-icon>
     <v-list-item-content class="pa-0">
       <v-list-item-title>
         <span
@@ -36,11 +36,11 @@
         </span>
 
       </v-list-item-title>
-      <v-list-item-subtitle>
+    </v-list-item-content>
+      <v-list-item-action-text>
         {{ filter.count | toPrecision }}
 
-      </v-list-item-subtitle>
-    </v-list-item-content>
+      </v-list-item-action-text>
   </v-list-item>
 </template>
 

@@ -294,10 +294,6 @@
     </v-dialog>
 
 
-    <v-dialog max-width="600" v-model="dialogs.createSavedSearch">
-      <serp-toolbar-saved-search @close="dialogs.createSavedSearch = false"/>
-    </v-dialog>
-
     <v-dialog max-width="600" v-model="dialogs.createEmailAlert">
       <serp-toolbar-email-alert @close="dialogs.createEmailAlert = false"/>
     </v-dialog>
@@ -326,7 +322,6 @@ import {getFacetConfig} from "../../facetConfigs";
 import {entityConfigs} from "../../entityConfigs";
 import EntityIcon from "../EntityIcon.vue";
 import axios from "axios";
-import SerpToolbarSavedSearch from "@/components/SerpToolbar/SerpToolbarSavedSearch.vue";
 import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
 
 export default {
@@ -334,7 +329,6 @@ export default {
     components: {
         EntityIcon,
         YearRange,
-        SerpToolbarSavedSearch,
         SerpToolbarEmailAlert,
     },
     props: {
@@ -349,7 +343,6 @@ export default {
             dialogs: {
                 export: false,
                 createEmailAlert: false,
-                createSavedSearch: false,
             },
             exportEmail: "",
             exportIsLoading: false,

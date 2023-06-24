@@ -95,24 +95,13 @@
             </template>
             <template v-if="$route.params.tab==='saved-searches'">
               <v-list nav>
-                <v-list-item
+                <user-saved-search
                     v-for="savedSearch in userSavedSearches"
                     :key="savedSearch.id"
-                    :href="savedSearch.search_url"
+                    :data="savedSearch"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-content-save-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ savedSearch.search_url }}</v-list-item-title>
-                    <v-list-item-subtitle>URL</v-list-item-subtitle>
-                  </v-list-item-content>
-                  <v-list-item-action>
-                    <v-btn icon>
-                      <v-icon>mdi-trash-outline</v-icon>
-                    </v-btn>
-                  </v-list-item-action>
-                </v-list-item>
+
+                </user-saved-search>
               </v-list>
             </template>
           </v-card>
@@ -125,13 +114,16 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import UserSavedSearch from "../components/user/UserSavedSearch.vue";
 
 export default {
   name: "Me",
     metaInfo() {
         return {title: ["Account", this.tabName].join(" ") }
     },
-  components: {},
+  components: {
+      UserSavedSearch,
+  },
   props: {},
   data() {
     return {

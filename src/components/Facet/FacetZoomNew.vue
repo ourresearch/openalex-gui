@@ -176,7 +176,7 @@
       </v-card-text>
 
 
-      <v-list :dense="false">
+      <v-list dense>
         <facet-option
             v-for="f in apiFiltersToShow"
             :filter="f"
