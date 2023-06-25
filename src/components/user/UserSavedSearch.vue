@@ -1,15 +1,15 @@
 <template>
-  <v-list-item>
+  <v-list-item :disabled="disabled">
     <v-list-item-icon>
       <v-icon>mdi-content-save-outline</v-icon>
     </v-list-item-icon>
     <v-list-item-content>
       <div>
-        {{ filters }}
+        {{ filters }} {{ data }}
       </div>
     </v-list-item-content>
     <v-list-item-action>
-      <v-btn icon>
+      <v-btn icon @click="deleteSavedSearch(data.id)" :disabled="disabled">
         <v-icon>mdi-delete-outline</v-icon>
       </v-btn>
     </v-list-item-action>
@@ -25,6 +25,7 @@ export default {
     components: {},
     props: {
         data: Object,
+        disabled: Boolean,
     },
     data() {
         return {
@@ -46,6 +47,9 @@ export default {
     methods: {
         ...mapMutations([
             "snackbar",
+        ]),
+        ...mapActions("user", [
+            "deleteSavedSearch",
         ]),
         ...mapActions([]),
 

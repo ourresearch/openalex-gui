@@ -41,12 +41,7 @@
         <v-col sm="9">
           <v-card>
             <v-card-title>
-              <span  class="font-weight-regular">
-              My Account
-
-              </span>
-              <v-icon>mdi-chevron-right</v-icon>
-              <span class="text-capitalize">{{ tabName }}</span>
+              <span class="">My {{ tabName }}</span>
             </v-card-title>
 
             <template v-if="$route.params.tab==='details'">
@@ -96,9 +91,11 @@
             <template v-if="$route.params.tab==='saved-searches'">
               <v-list nav>
                 <user-saved-search
-                    v-for="savedSearch in userSavedSearches"
+                    v-for="(savedSearch, i) in userSavedSearches"
                     :key="savedSearch.id"
                     :data="savedSearch"
+                    :disabled="globalIsLoading"
+
                 >
 
                 </user-saved-search>
@@ -133,6 +130,7 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "globalIsLoading",
     ]),
     ...mapGetters("user", [
       "userId",

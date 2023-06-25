@@ -69,6 +69,18 @@ export const user = {
             console.log("user.store createSavedSearch done", resp)
             await dispatch("fetchSavedSearches") // have to update the list
         },
+        async deleteSavedSearch({commit, dispatch, state, rootState}, id) {
+            console.log("user.store deleteSavedSearch", id)
+            rootState.isLoading = true
+            const url = apiBaseUrl + `/saved-search/${id}/delete`
+            const resp = await axios.get(
+                url,
+                axiosConfig(),
+            )
+            console.log("user.store deleteSavedSearch done", resp)
+            await dispatch("fetchSavedSearches") // have to update the list
+            rootState.isLoading = false
+        },
         async fetchUser({commit, dispatch, getters}) {
             console.log("fetching user")
             const resp = await axios.get(
