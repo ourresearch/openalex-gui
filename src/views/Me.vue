@@ -67,6 +67,8 @@
                 </v-list-item>
               </v-list>
             </template>
+
+
             <template v-if="$route.params.tab==='email-alerts'">
               <v-list nav>
                 <v-list-item
@@ -88,8 +90,13 @@
                 </v-list-item>
               </v-list>
             </template>
+
+
             <template v-if="$route.params.tab==='saved-searches'">
-              <v-list nav>
+              <div v-if="userSavedSearches.length === 0" class="pa-4 grey--text">
+                You have no saved searches.
+              </div>
+              <v-list nav v-else>
                 <user-saved-search
                     v-for="(savedSearch, i) in userSavedSearches"
                     :key="savedSearch.id"
@@ -97,7 +104,6 @@
                     :disabled="globalIsLoading"
 
                 >
-
                 </user-saved-search>
               </v-list>
             </template>

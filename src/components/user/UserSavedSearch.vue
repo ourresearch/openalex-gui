@@ -5,7 +5,7 @@
     </v-list-item-icon>
     <v-list-item-content>
       <div>
-        {{ filters }} {{ data }}
+        {{ filters }}
       </div>
     </v-list-item-content>
     <v-list-item-action>

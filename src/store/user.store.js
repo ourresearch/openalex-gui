@@ -79,7 +79,9 @@ export const user = {
             )
             console.log("user.store deleteSavedSearch done", resp)
             await dispatch("fetchSavedSearches") // have to update the list
+            commit("snackbar", "Saved search deleted", {root: true})
             rootState.isLoading = false
+
         },
         async fetchUser({commit, dispatch, getters}) {
             console.log("fetching user")

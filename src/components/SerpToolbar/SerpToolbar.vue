@@ -277,7 +277,19 @@
 
 
     <v-dialog max-width="600" v-model="dialogs.createEmailAlert">
-      <serp-toolbar-email-alert @close="dialogs.createEmailAlert = false"/>
+      <serp-toolbar-email-alert v-if="userId" @close="dialogs.createEmailAlert = false"/>
+      <v-card v-else>
+        <v-card-title>
+          Login required
+        </v-card-title>
+        <v-card-text>
+          You can only create alerts if you're logged to your account.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer/>
+          <v-btn text @click="dialogs.createEmailAlert = false">OK</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
 
 
@@ -285,7 +297,6 @@
       <v-card>
         <v-card-title>
           Too many records to export
-
         </v-card-title>
         <v-card-text>
           You can only export 100,000 records to CSV at one time. Try adding some more filters to narrow your search.
@@ -296,6 +307,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
 
 
     <template v-slot:extension>
@@ -357,6 +369,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters("user", [
+      "userId",
+    ]),
     ...mapGetters([
       "resultsFilters",
       "searchApiUrlForDisplay",
