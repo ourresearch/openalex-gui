@@ -16,6 +16,7 @@ import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
+import axios from "axios";
 
 Vue.use(Vuex)
 
@@ -107,6 +108,7 @@ const stateDefaults = function () {
         textSearch: "",
         page: 1,
         results: [],
+        velocity: null,
         sort: null,
         responseTime: null,
         resultsCount: null,
@@ -357,6 +359,14 @@ export default new Vuex.Store({
 
         },
         // eslint-disable-next-line no-unused-vars
+        async getVelocity({commit, getters, dispatch, state}) {
+            const filterStr = (getters.inputFiltersAsString) || "is_paratext:true|false|null"
+            const userApiBaseUrl = "https://user.openalex.org"
+            const url = userApiBaseUrl + `/alert/work/${filterStr}/velocity`;
+            const resp = await axios.get(url)
+            state.velocity = resp.data
+        },
+        // eslint-disable-next-line no-unused-vars
         async getResultsFilters({commit, getters, dispatch, state}) {
             if (getters.inputFiltersAsString) {
                 const path = `${state.entityType}/filters/${getters.inputFiltersAsString}`
@@ -375,8 +385,8 @@ export default new Vuex.Store({
             try {
                 await Promise.all([
                     this.dispatch("getResults"),
-                    this.dispatch("getResultsFilters")
-
+                    this.dispatch("getResultsFilters"),
+                    this.dispatch("getVelocity")
                 ])
 
             } finally {
@@ -431,6 +441,12 @@ export default new Vuex.Store({
         },
         results(state) {
             return state.results
+        },
+        velocity(state) {
+            return state.velocity
+        },
+        velocityPermitsAlerts(state) {
+            return state.velocity?.week < 100
         },
         resultsCount(state) {
             return state.resultsCount

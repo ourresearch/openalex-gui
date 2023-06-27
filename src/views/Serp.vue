@@ -81,7 +81,6 @@
 
 // import VueJsonPretty from 'vue-json-pretty';
 // import 'vue-json-pretty/lib/styles.css';
-import FilterChip from "../components/FilterChip";
 import millify from "millify";
 import _ from 'lodash';
 

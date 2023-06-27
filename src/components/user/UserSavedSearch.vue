@@ -7,6 +7,9 @@
       <div>
         {{ filters }}
       </div>
+      <div>
+        <chip-list />
+      </div>
     </v-list-item-content>
     <v-list-item-action>
       <v-btn icon @click="deleteSavedSearch(data.id)" :disabled="disabled">
@@ -19,10 +22,13 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import ChipList from "../Chip/ChipList.vue";
 
 export default {
     name: "UserSavedSearch",
-    components: {},
+    components: {
+        ChipList,
+    },
     props: {
         data: Object,
         disabled: Boolean,

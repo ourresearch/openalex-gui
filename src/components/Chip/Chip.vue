@@ -18,7 +18,7 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {getFacetConfig} from "../facetConfigs";
+import {getFacetConfig} from "../../facetConfigs";
 
 
 export default {
