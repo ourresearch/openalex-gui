@@ -93,6 +93,7 @@ export default {
         },
         prettyDisplayName() {
             if (this.filter.isBoolean) {
+                if (this.filter.value === "unknown") return "unknown"
                 const valueAsInt = (this.filter.value === "true") ? 1 : 0;
                 return this.filter.booleanValues[valueAsInt]
             }

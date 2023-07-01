@@ -65,7 +65,7 @@
 
           <v-list-item
                   @click="setFacetZoom(filter.key)"
-                  v-if="filter.isSearch"
+                  v-if="filter.valuesToShow === 'search'"
           >
             <v-list-item-icon>
               <v-icon>mdi-magnify</v-icon>
@@ -77,7 +77,7 @@
 
           <v-list-item
                   @click="setFacetZoom(filter.key)"
-                  v-if="filter.isRange"
+                  v-if="filter.valuesToShow === 'range'"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-cog-outline</v-icon>
@@ -116,7 +116,7 @@
 
           <v-list-item
                   @click="toggleNegation"
-                  v-if="!filter.isBoolean"
+                  v-if="!filter.valuesToShow === 'boolean'"
           >
             <v-list-item-icon>
               <v-icon v-if="isNegated">mdi-filter-check-outline</v-icon>
@@ -167,7 +167,7 @@ export default {
             "facetZoom",
         ]),
         myDisplayValue() {
-            if (this.filter.isBoolean) {
+            if (this.filter.valuesToShow === "boolean") {
                 const booleanInt = (this.filter.value === "true") ? 1 : 0;
                 console.log("this.filter.isBoolean", this.filter, booleanInt)
                 return this.filter.booleanValues[booleanInt]

@@ -62,12 +62,43 @@
     </v-toolbar>
 
 
+
+
+    <!--          ************* -->
+    <!--          BOOLEAN values -->
+    <!--          ************* -->
+    <v-card
+        flat
+        class=""
+        style="font-size: unset;"
+        v-if="config.valuesToShow === 'boolean'"
+    >
+      <v-card-text v-if="apiFiltersToShow.length === 0">
+        <div class="ml-0">
+          No more values to show
+        </div>
+      </v-card-text>
+
+
+      <v-list dense>
+        <facet-option
+            v-for="f in apiFiltersToShow"
+            :filter="f"
+            :key="f.asStr"
+            @add-filter="addFilter"
+            @add-filter-persistent="addFilterPersistent"
+
+        />
+      </v-list>
+    </v-card>
+
+
     <!--          ************* -->
     <!--          RANGE values -->
     <!--          ************* -->
-    <div v-if="config.isRange" class="">
+    <div v-if="config.valuesToShow === 'range'" class="">
       <v-card flat>
-        <v-card-text v-if="config.isRange">
+        <v-card-text>
           <div class="d-flex">
             <v-text-field
                 flat
@@ -113,7 +144,7 @@
     <!--          ************* -->
     <!--          SEARCH values -->
     <!--          ************* -->
-    <div v-if="config.isSearch" class="">
+    <div v-if="config.valuesToShow === 'search'" class="">
       <v-card flat>
         <v-card-text>
           <v-text-field
@@ -150,7 +181,7 @@
         flat
         class=""
         style="font-size: unset;"
-        v-if="!config.isSearch && !config.isRange"
+        v-if="config.valuesToShow === 'mostCommon'"
     >
       <v-toolbar flat dense>
         <v-text-field
@@ -454,7 +485,7 @@ export default {
     },
 
     async fetchFilters() {
-      if (this.config.isSearch) {
+      if (this.config.valuesToShow === 'search') {
         return
       }
 

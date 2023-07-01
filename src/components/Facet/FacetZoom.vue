@@ -102,7 +102,7 @@
             <!--          ************* -->
             <!--          RANGE values -->
             <!--          ************* -->
-            <div v-if="config.isRange" class="">
+            <div v-if="config.valuesToShow === 'range'" class="">
               <v-card flat outlined>
 
                 <v-toolbar flat>
@@ -165,7 +165,7 @@
             <!--          ************* -->
             <!--          SEARCH values -->
             <!--          ************* -->
-            <div v-if="config.isSearch" class="">
+            <div v-if="config.valuesToShow === 'search'" class="">
               <v-card flat outlined>
 
                 <v-toolbar flat>
@@ -210,7 +210,7 @@
                     outlined
                     class=""
                     style="font-size: unset;"
-                    v-if="!config.isSearch && !config.isRange"
+                    v-if="config.valuesToShow === 'mostCommon'"
                     :loading="isLoading"
             >
               <v-toolbar flat :extended="showSearch">
@@ -519,7 +519,7 @@ export default {
         },
 
         async fetchFilters() {
-            if (this.config.isSearch) {
+            if (this.config.valuesToShow === 'search') {
                 return
             }
 

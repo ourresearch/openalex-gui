@@ -71,7 +71,7 @@
               </template>
               <template v-for="facet in facetCategory.facets">
                 <facet-range
-                    v-if="facet.isRange"
+                    v-if="facet.valuesToShow === 'range'"
                     :key="facet.entityType + facet.key"
                     :facet-key="facet.key"
                     :facet-entity-type="entityType"

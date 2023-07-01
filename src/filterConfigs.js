@@ -202,7 +202,7 @@ const convertRangeToPrettyWords = function (range) {
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
 
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
-    if (simpleFilter.isRange && /\d*-\d*/.test(value)) {
+    if (simpleFilter.valuesToShow === 'range' && /\d*-\d*/.test(value)) {
         if (key === "publication_year") {
             displayValue = convertYearRangeToPrettyWords(value.split("-"))
         }
