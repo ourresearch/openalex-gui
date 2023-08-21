@@ -31,7 +31,7 @@
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-        <v-list dense>
+        <v-list dense nav>
           <v-list-item
               target="_blank"
               :href="makeApiUrl(200, true, false)"
@@ -80,7 +80,7 @@
       </v-card-text>
 
 
-      <v-list dense>
+      <v-list dense nav>
         <facet-option
             v-for="f in apiFiltersToShow"
             :filter="f"
@@ -207,7 +207,7 @@
       </v-card-text>
 
 
-      <v-list dense>
+      <v-list dense nav>
         <facet-option
             v-for="f in apiFiltersToShow"
             :filter="f"
