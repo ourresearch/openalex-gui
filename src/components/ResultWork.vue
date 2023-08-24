@@ -112,22 +112,10 @@ export default {
         },
         clickRoute() {
             const shortId = this.data.id.replace("https://openalex.org/", "")
-            const myFilter = createSimpleFilter("works", "ids.openalex", shortId)
-
-            const filter = filtersAsUrlStr([
-                ...this.resultsFilters,
-                myFilter
-            ], "works")
-
             return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {
-                    filter,
-                }
+                name: "EntityPage",
+                params: {entityType: "works", entityId: shortId},
             }
-
-
         },
         workIsFreeAtPublisher() {
             return ["gold", "bronze", "hybrid"].includes(this.data.open_access.oa_status)
