@@ -50,7 +50,7 @@
 
 
 <script>
-import ConceptsList from "./ConceptsList";
+import ConceptsList from "../ConceptsList.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 
 const countryCodeLookup = require('country-code-lookup')

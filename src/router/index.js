@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Serp from "../views/Serp";
+import EntityPage from "@/views/EntityPage.vue";
 import About from "../views/About";
 import store from "@/store";
 import UserSignup from "@/components/user/UserSignup.vue";
@@ -17,7 +18,7 @@ Vue.use(VueRouter)
 
 
 
-
+const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
 const routes = [
     {
         path: '/',
@@ -26,9 +27,14 @@ const routes = [
         // component: Home
     },
     {
-        path: `/:entityType(works|authors|sources|publishers|funders|institutions|concepts)`,
+        path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: Serp,
+    },
+    {
+        path: `/:entityType(${entityNames})/:entityId`,
+        name: 'EntityPage',
+        component: EntityPage,
     },
     { path: '/about', name: 'About', component: About},
     { path: '/signup', name: 'Signup', component: UserSignup},

@@ -263,16 +263,16 @@
 
 
 <script>
-import ConceptsList from "./ConceptsList";
-import Authorship from "./Authorship";
-import EntityIcon from "./EntityIcon";
+import ConceptsList from "../ConceptsList.vue";
+import Authorship from "../Authorship.vue";
+import EntityIcon from "./EntityIcon.vue";
 
-import {createSimpleFilter} from "../filterConfigs";
-import LinkToSearch from "./LinkToSearch";
-import {unravel, sleep} from "../util";
+import {createSimpleFilter} from "../../filterConfigs";
+import LinkToSearch from "../LinkToSearch.vue";
+import {unravel, sleep} from "../../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
-import LinkToEntity from "./LinkToEntity";
+import LinkToEntity from "../LinkToEntity.vue";
 // import {url} from "../url";
 
 export default {

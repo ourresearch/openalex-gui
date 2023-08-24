@@ -48,8 +48,8 @@
 
 
 <script>
-import {entityConfigs} from "../entityConfigs";
-import {entityTypeFromId} from "../util";
+import {entityConfigs} from "../../entityConfigs";
+import {entityTypeFromId} from "../../util";
 
 export default {
   components: {},

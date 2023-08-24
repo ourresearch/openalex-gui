@@ -41,7 +41,7 @@
 
 <script>
 import LinkConcept from "./LinkConcept";
-import EntityIcon from "./EntityIcon";
+import EntityIcon from "./Entity/EntityIcon.vue";
 
 export default {
   components: {

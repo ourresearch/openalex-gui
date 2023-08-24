@@ -13,7 +13,7 @@
 
 
 <script>
-import IdList from "./IdList";
+import IdList from "../IdList.vue";
 
 export default {
   name: "EntityConcept",

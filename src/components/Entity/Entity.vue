@@ -222,26 +222,26 @@
 
 
 <script>
-import {url} from "../url";
+import {url} from "../../url";
 
-import EntityWork from "./EntityWork";
-import EntityAuthor from "./EntityAuthor";
-import EntityVenue from "./EntityVenue";
-import EntityPublisher from "./EntityPublisher";
-import EntityFunder from "@/components/EntityFunder.vue";
+import EntityWork from "./EntityWork.vue";
+import EntityAuthor from "./EntityAuthor.vue";
+import EntityVenue from "./EntityVenue.vue";
+import EntityPublisher from "./EntityPublisher.vue";
+import EntityFunder from "@/components/Entity/EntityFunder.vue";
 
-import EntityInstitution from "./EntityInstitution";
-import EntityConcept from "./EntityConcept";
-import EntityIcon from "./EntityIcon";
-import {entityConfigs} from "../entityConfigs";
+import EntityInstitution from "./EntityInstitution.vue";
+import EntityConcept from "./EntityConcept.vue";
+import EntityIcon from "./EntityIcon.vue";
+import {entityConfigs} from "../../entityConfigs";
 
-import {entityTypeFromId} from "../util";
-import {createDisplayFilter, createSimpleFilter} from "../filterConfigs";
+import {entityTypeFromId} from "../../util";
+import {createDisplayFilter, createSimpleFilter} from "../../filterConfigs";
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {api} from "../api";
-import IdList from "./IdList.vue";
-import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
+import {api} from "../../api";
+import IdList from "../IdList.vue";
+import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 
 const getWorkFulltextUrl = function (data) {
   if (data.open_access.oa_url) return data.open_access.oa_url

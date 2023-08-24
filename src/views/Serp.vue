@@ -90,7 +90,7 @@ import YearRange from "../components/YearRange";
 import {api} from "@/api";
 import SerpResultsList from "../components/SerpResultsList.vue";
 
-import Entity from "../components/Entity";
+import Entity from "../components/Entity/Entity.vue";
 import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
 import SerpFacetsColumn from "../components/SerpFacetsColumn.vue";
 import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";

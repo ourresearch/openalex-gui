@@ -331,7 +331,7 @@ import YearRange from "../YearRange.vue"
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
 import {entityConfigs} from "../../entityConfigs";
-import EntityIcon from "../EntityIcon.vue";
+import EntityIcon from "../Entity/EntityIcon.vue";
 import axios from "axios";
 import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
 

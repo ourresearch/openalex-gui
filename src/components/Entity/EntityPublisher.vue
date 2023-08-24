@@ -57,11 +57,11 @@
 
 
 <script>
-import LinkToSearch from "./LinkToSearch";
-import LinkToEntity from "./LinkToEntity";
-import EntityIcon from "./EntityIcon";
-import ConceptsList from "./ConceptsList";
-import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
+import LinkToSearch from "../LinkToSearch.vue";
+import LinkToEntity from "../LinkToEntity.vue";
+import EntityIcon from "./EntityIcon.vue";
+import ConceptsList from "../ConceptsList.vue";
+import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 import countryCodeLookup from "country-code-lookup";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 

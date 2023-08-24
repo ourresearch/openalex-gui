@@ -24,11 +24,11 @@
 
 
 <script>
-import EntityIcon from "./EntityIcon";
-import ConceptsList from "./ConceptsList";
-import LinkToEntity from "./LinkToEntity";
-import LinkToSearch from "./LinkToSearch";
-import EntitySummaryStats from "@/components/EntitySummaryStats.vue";
+import EntityIcon from "./EntityIcon.vue";
+import ConceptsList from "../ConceptsList.vue";
+import LinkToEntity from "../LinkToEntity.vue";
+import LinkToSearch from "../LinkToSearch.vue";
+import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 
 export default {
   name: "EntityAuthor",

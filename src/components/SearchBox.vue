@@ -121,7 +121,7 @@ import {createSimpleFilterFromPid} from "../filterConfigs";
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {entityConfigs} from "../entityConfigs";
-import EntityIcon from "./EntityIcon";
+import EntityIcon from "./Entity/EntityIcon.vue";
 import _ from 'lodash'
 import {idConfigs} from "../idConfigs";
 
