@@ -264,9 +264,6 @@ const workIsFreeAtPublisher = function (data) {
 
 export default {
   name: "Entity",
-  metaInfo() {
-    return {title: this.data?.display_name}
-  },
   components: {
     IdList,
     EntityWork,

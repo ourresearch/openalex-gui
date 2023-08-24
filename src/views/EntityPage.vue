@@ -13,8 +13,7 @@ import {api} from "@/api";
 export default {
   name: "EntityPage",
   metaInfo() {
-    return "EntityPage"
-    // return {title: ["Account", this.tabName].join(" ") }
+    return {title: this.entityData?.display_name}
   },
   components: {
     Entity,
