@@ -1,7 +1,8 @@
 <template>
   <v-list-item
-          @click="setFacetZoom(config.key)"
+
           style="min-height: 35px;"
+          @click="url.setGroupBy(config.key)"
   >
 <!--    <v-icon :color="myColor" class="mr-2">{{ config.icon }}</v-icon>-->
     <v-list-item-content>
@@ -25,6 +26,7 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {getFacetConfig} from "../../facetConfigs";
 import {prettyTitle} from "../../util";
+import {url} from "@/url";
 
 export default {
     name: "Facet",
@@ -36,6 +38,7 @@ export default {
     data() {
         return {
             foo: 42,
+          url,
         }
     },
     computed: {
@@ -65,7 +68,6 @@ export default {
     methods: {
         ...mapMutations([
             "snackbar",
-            "setFacetZoom",
         ]),
         ...mapActions([]),
         prettyTitle,

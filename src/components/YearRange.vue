@@ -26,7 +26,7 @@
         </template>
         <v-list dense>
           <v-list-item
-              @click="setFacetZoom('publication_year')"
+              @click="url.setGroupBy('publication_year')"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-outline</v-icon>
@@ -171,6 +171,7 @@
 
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
+
 import {getFacetConfig} from "../facetConfigs";
 import FacetRange from "./Facet/FacetRange";
 import {
@@ -205,6 +206,7 @@ export default {
   },
   data() {
     return {
+      url,
       loading: false,
       isBooted: false,
       perPage: 200,
@@ -286,7 +288,6 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
-      "setFacetZoom",
         "setApiDialogUrl",
     ]),
     ...mapActions([

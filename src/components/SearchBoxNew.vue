@@ -215,7 +215,6 @@ export default {
     methods: {
         ...mapMutations([
             "snackbar",
-            "setFacetZoom",
             "openFacetsDialog",
         ]),
         ...mapActions([]),

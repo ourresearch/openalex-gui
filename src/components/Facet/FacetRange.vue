@@ -276,7 +276,6 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
-      "setFacetZoom",
     ]),
     ...mapActions([
       "replaceInputFilter",

@@ -24,12 +24,12 @@
       <v-row class="">
         <template v-if="!singleWorkIdToShow">
           <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-            <serp-facets-column :disabled="!!facetZoom" key="filter-menu"  />
+            <serp-facets-column :disabled="!!facetZoom" key="filter-menu"/>
           </v-col>
           <v-slide-x-transition hide-on-leave>
           </v-slide-x-transition>
           <v-col cols="12" sm="5">
-            <facet-zoom-new v-if="facetZoom" key="filter-zoom" />
+            <facet-zoom-new v-if="facetZoom" key="filter-zoom"/>
             <v-card flat v-else key="serp-results">
               <serp-toolbar/>
               <serp-results-list class="pb-8"/>
@@ -42,13 +42,13 @@
                   height="50px"
                   big class="mb-3"
                   :disabled="!!facetZoom"
-                  show-filter-link />
+                  show-filter-link/>
               <entity
-                      v-for="entity in entitySidebarDataList"
-                      :key="entity.id"
-                      :data="entity"
-                      :disabled="!!facetZoom"
-                      class="mb-4"
+                  v-for="entity in entitySidebarDataList"
+                  :key="entity.id"
+                  :data="entity"
+                  :disabled="!!facetZoom"
+                  class="mb-4"
               />
             </v-col>
 
@@ -67,7 +67,14 @@
 
     <div id="serp-hidden">
       <facets-list-dialog/>
-      <api-dialog />
+      <api-dialog/>
+      <v-dialog v-model="groupByDialogIsOpen">
+          <facet-zoom-new
+              v-if="facetZoom"
+              :facet-zoom="facetZoom"
+              @close="groupByDialogIsOpen = false"
+          />
+      </v-dialog>
 
 
     </div>
@@ -87,6 +94,7 @@ import _ from 'lodash';
 
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
+import {url} from "@/url";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import SerpFiltersList from "../SerpFiltersList";
@@ -112,222 +120,227 @@ import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";
 import ApiDialog from "../components/ApiDialog.vue";
 
 export default {
-    name: "Serp",
-    metaInfo() {
-        const ret = {title: _.capitalize(this.entityConfig.displayName) + " search"}
-        if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
-        return ret
-    },
-    components: {
-        Entity,
-        DownloadCsvDialog,
-        SerpToolbar,
-        SerpFiltersList,
-        SerpResultsList,
-        ResultWork,
-        ResultAuthor,
-        ResultVenue,
-        ResultPublisher,
-        ResultInstitution,
-        ResultConcept,
-        FacetsDrawer,
-        FacetZoom,
-        FacetZoomNew,
-        YearRange,
-        FacetsListDialog,
-        SerpFacetsColumn,
-        ApiDialog,
+  name: "Serp",
+  metaInfo() {
+    const ret = {title: _.capitalize(this.entityConfig.displayName) + " search"}
+    if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
+    return ret
+  },
+  components: {
+    Entity,
+    DownloadCsvDialog,
+    SerpToolbar,
+    SerpFiltersList,
+    SerpResultsList,
+    ResultWork,
+    ResultAuthor,
+    ResultVenue,
+    ResultPublisher,
+    ResultInstitution,
+    ResultConcept,
+    FacetsDrawer,
+    FacetZoom,
+    FacetZoomNew,
+    YearRange,
+    FacetsListDialog,
+    SerpFacetsColumn,
+    ApiDialog,
 
-    },
-    props: {},
-    data() {
-        return {
-            loading: false,
-            filterDrawerIsOpen: true,
-            apiResp: {},
-            resultsPerPage: 25, // not editable now, but could be in future
-            dialogs: {
-                export: false,
-                createAlert: false,
-            },
-            exportEmail: "",
-            exportIsLoading: false,
-            exportIsInProgress: false,
-            createAlert: {
-                velocityIsLoading: false
-            },
-            logoColorRotation: 0,
-            showYearRange: true,
-        }
-    },
-    asyncComputed: {
-        async entitySidebarDataList() {
-            return await Promise.all(
-                this.entitySidebarFiltersList.map(f => {
-                  const fullyQualifiedId = (f.pidPrefix) ?
-                      [f.pidPrefix, f.value].join(":") :
-                      f.value
-
-                    const pathName = [
-                        f.entityId,
-                        fullyQualifiedId
-                    ].join("/")
-
-                    return api.get(pathName)
-                })
-            )
-        },
-    },
-    computed: {
-        ...mapGetters([
-            "searchApiUrl",
-            "searchFacetConfigs",
-            "inputFiltersAsString",
-            "entityZoomData",
-            "searchIsLoading",
-            "showFiltersDrawer",
-            "facetZoom",
-            "resultsCount",
-            "entityType",
-            "entityConfig",
-            "resultsFilters",
-        ]),
-        page: {
-            get() {
-                return this.$store.state.page
-            },
-            set(val) {
-                this.$store.dispatch("setPage", val)
-            }
-        },
-        numPages() {
-            return Math.min(
-                Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
-                10
-            )
-        },
-        resultsCols() {
-            if (this.$vuetify.breakpoint.mobile) return 12
-            return (this.showSidebar) ? 7 : 12
-        },
-        entityCols() {
-            return (this.$vuetify.breakpoint.mobile) ? 12 : 5
-        },
-        entitySidebarFilter() {
-            if (this.resultsFilters.length === 0) return
-            if (this.entityType !== "works") return
-            if (this.singleWorkIdToShow) return
-
-            const sidebarFilters = this.resultsFilters.filter(f => f.showInSidebar)
-            if (sidebarFilters.length !== 1) return
-
-            return sidebarFilters[0]
-        },
-        entitySidebarFiltersList() {
-            if (this.entityType !== "works") return []
-            return this.resultsFilters
-                .filter(f => f.showInSidebar)
-                .filter(f => !f.isNullValue)
-        },
-        showSidebar() {
-            return this.entitySidebarFiltersList.length > 0 && !this.singleWorkIdToShow
-        },
-        singleWorkIdToShow() {
-            if (this.entityType !== "works") return
-            const workId = this.resultsFilters.find(f => {
-                return f.isSingleWork
-            })?.value
-            return workId
-
-        },
-        resultComponentName() {
-            return "result-" + this.entityConfig.nameSingular
-
-        },
-
-        selectedEntityTypeConfig() {
-            return entityConfigs[this.entityType]
-        },
-
-        showFacetZoomDialog: {
-            get() {
-                return this.$vuetify.breakpoint.mobile && this.facetZoom
-            },
-            set(newVal) {
-                if (!newVal) this.setFacetZoom(null)
-            }
-        },
-        entityType() {
-            return this.$route.params.entityType
-        },
-        facetsWithoutOptions() {
-            return this.searchFacetConfigs.filter(f => f.noOptions)
-        },
-
-        entityId() {
-            return this.$route.params.id
-        },
-        apiUrl() {
-            return `/${this.entityType}/${this.entityId}`
-        },
-        roundedResultsCount() {
-            const asString = millify(
-                this.$store.state.resultsCount,
-                {precision: 0}
-            )
-            const asNumber = Number(
-                asString
-                    .replace("K", "000")
-                    .replace("M", "000000")
-            )
-            return asNumber.toLocaleString()
-        },
-    },
-    methods: {
-        ...mapMutations([
-            "snackbar",
-            "setFacetZoom",
-            "toggleFiltersDrawer",
-            "openFacetsDialog",
-        ]),
-        ...mapActions([
-            "updateTextSearch",
-            "setEntityZoom",
-        ]),
-        getEntityData() {
-            if (!this.entityId) return
-            const pathName = this.myEntityType + "/" + this.entityId
-            this.data = null
-            console.log("zoomentity getting data for", this.entityId)
-
-            api.get(pathName).then(resp => {
-                console.log("zoomEntity resp", resp)
-                this.data = resp
-            })
-        },
-    },
-
-    created() {
-    },
-    async mounted() {
-        this.loading = true
-        // this.apiResp = await api.get(this.apiUrl)
-        this.loading = false
-
-    },
-    watch: {
-        "$route": {
-            immediate: true,
-            async handler(to, from) {
-                const scrollTop = window.scrollY
-
-                await this.$store.dispatch("bootFromUrl")
-                if (to?.query?.zoom || from?.query?.qoom) {
-                    window.scroll(0, scrollTop)
-                }
-            }
-        },
+  },
+  props: {},
+  data() {
+    return {
+      loading: false,
+      facetZoom: null,
+      filterDrawerIsOpen: true,
+      apiResp: {},
+      resultsPerPage: 25, // not editable now, but could be in future
+      dialogs: {
+        export: false,
+        createAlert: false,
+      },
+      exportEmail: "",
+      exportIsLoading: false,
+      exportIsInProgress: false,
+      createAlert: {
+        velocityIsLoading: false
+      },
+      logoColorRotation: 0,
+      showYearRange: true,
     }
+  },
+  asyncComputed: {
+    async entitySidebarDataList() {
+      return await Promise.all(
+          this.entitySidebarFiltersList.map(f => {
+            const fullyQualifiedId = (f.pidPrefix) ?
+                [f.pidPrefix, f.value].join(":") :
+                f.value
+
+            const pathName = [
+              f.entityId,
+              fullyQualifiedId
+            ].join("/")
+
+            return api.get(pathName)
+          })
+      )
+    },
+  },
+  computed: {
+    ...mapGetters([
+      "searchApiUrl",
+      "searchFacetConfigs",
+      "inputFiltersAsString",
+      "entityZoomData",
+      "searchIsLoading",
+      "showFiltersDrawer",
+      // "facetZoom",
+      "resultsCount",
+      "entityType",
+      "entityConfig",
+      "resultsFilters",
+    ]),
+    page: {
+      get() {
+        return this.$store.state.page
+      },
+      set(val) {
+        this.$store.dispatch("setPage", val)
+      }
+    },
+    groupByDialogIsOpen: {
+      get() {
+        return !!this.facetZoom
+      },
+      set(val) {
+        url.setGroupBy( !!val)
+      }
+    },
+
+    numPages() {
+      return Math.min(
+          Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
+          10
+      )
+    },
+    resultsCols() {
+      if (this.$vuetify.breakpoint.mobile) return 12
+      return (this.showSidebar) ? 7 : 12
+    },
+    entityCols() {
+      return (this.$vuetify.breakpoint.mobile) ? 12 : 5
+    },
+    entitySidebarFilter() {
+      if (this.resultsFilters.length === 0) return
+      if (this.entityType !== "works") return
+      if (this.singleWorkIdToShow) return
+
+      const sidebarFilters = this.resultsFilters.filter(f => f.showInSidebar)
+      if (sidebarFilters.length !== 1) return
+
+      return sidebarFilters[0]
+    },
+    entitySidebarFiltersList() {
+      if (this.entityType !== "works") return []
+      return this.resultsFilters
+          .filter(f => f.showInSidebar)
+          .filter(f => !f.isNullValue)
+    },
+    showSidebar() {
+      return this.entitySidebarFiltersList.length > 0 && !this.singleWorkIdToShow
+    },
+    singleWorkIdToShow() {
+      if (this.entityType !== "works") return
+      const workId = this.resultsFilters.find(f => {
+        return f.isSingleWork
+      })?.value
+      return workId
+
+    },
+    resultComponentName() {
+      return "result-" + this.entityConfig.nameSingular
+
+    },
+
+    selectedEntityTypeConfig() {
+      return entityConfigs[this.entityType]
+    },
+
+    entityType() {
+      return this.$route.params.entityType
+    },
+    facetsWithoutOptions() {
+      return this.searchFacetConfigs.filter(f => f.noOptions)
+    },
+
+    entityId() {
+      return this.$route.params.id
+    },
+    apiUrl() {
+      return `/${this.entityType}/${this.entityId}`
+    },
+    roundedResultsCount() {
+      const asString = millify(
+          this.$store.state.resultsCount,
+          {precision: 0}
+      )
+      const asNumber = Number(
+          asString
+              .replace("K", "000")
+              .replace("M", "000000")
+      )
+      return asNumber.toLocaleString()
+    },
+  },
+  methods: {
+    ...mapMutations([
+      "snackbar",
+      "toggleFiltersDrawer",
+      "openFacetsDialog",
+    ]),
+    ...mapActions([
+      "updateTextSearch",
+      "setEntityZoom",
+    ]),
+    getEntityData() {
+      if (!this.entityId) return
+      const pathName = this.myEntityType + "/" + this.entityId
+      this.data = null
+      console.log("zoomentity getting data for", this.entityId)
+
+      api.get(pathName).then(resp => {
+        console.log("zoomEntity resp", resp)
+        this.data = resp
+      })
+    },
+  },
+
+  created() {
+  },
+  async mounted() {
+    this.loading = true
+    // this.apiResp = await api.get(this.apiUrl)
+    this.loading = false
+
+  },
+  watch: {
+    "$route": {
+      immediate: true,
+      async handler(to, from) {
+        const scrollTop = window.scrollY
+
+        console.log("serp $route change")
+        this.facetZoom = to?.query?.group_by
+
+        await this.$store.dispatch("bootFromUrl")
+        if (to?.query?.zoom || from?.query?.qoom) {
+          window.scroll(0, scrollTop)
+        }
+      }
+    },
+
+  }
 }
 </script>
 

@@ -7,7 +7,8 @@
 
   >
 
-    <div @click="setFacetZoom(null)">
+
+    <div >
       <v-card
           :ripple="false"
           :disabled="!!facetZoom"
@@ -281,7 +282,6 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-      "setFacetZoom",
     ]),
     ...mapActions([]),
     async copyUrlToClipboard() {

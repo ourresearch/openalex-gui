@@ -1,5 +1,6 @@
 import router from "./router";
 import {filtersAsUrlStr, filtersFromUrlStr} from "./filterConfigs";
+import {entityConfigs} from "@/entityConfigs";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
@@ -94,6 +95,21 @@ const setSearch = function (entityType, searchString) {
     pushToRoute(router, newRoute)
 }
 
+const setGroupBy = function(facetKey){
+    // if (!Object.keys(entityConfigs).includes(entityType)) {
+    //     throw new Error("OpenAlex error: url.setGroupBy called with invalid entityType")
+    // }
+    if (!facetKey) facetKey = undefined
+
+    const newRoute = {
+        name: "Serp",
+        // params: {entityType},
+    }
+    newRoute.query = addToQuery(router.currentRoute.query, "group_by", facetKey)
+
+    return pushToRoute(router, newRoute)
+}
+
 
 const addZoomToRoute = function (router, zoom) {
     if (!zoom) return
@@ -121,6 +137,8 @@ const url = {
     setFiltersByKey,
     setFilters,
     setSearch,
+
+    setGroupBy,
 
     goToZoom,
     addZoomToRoute,

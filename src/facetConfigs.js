@@ -842,7 +842,7 @@ const getFacetConfigFromPid = function (pid) {
 const getFacetConfig = function (entityType, key) {
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
     if (!myFacetConfig) {
-        const msg = `openAlex error: getFacetConfig: no facet found for ${entityType} filter "${key}"`
+        const msg = `openAlex error: getFacetConfig: no facet found for '${entityType}' filter "${key}"`
         console.log(msg)
         throw new Error(msg)
 

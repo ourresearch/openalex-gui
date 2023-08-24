@@ -4,17 +4,8 @@
   <v-card
       flat tile
       :loading="isLoading"
+      v-if="config"
   >
-<!--    <v-toolbar tile flat >-->
-<!--      <v-btn-->
-<!--          text-->
-<!--          @click="setFacetZoom(null)"-->
-<!--          class="low-key-button"-->
-<!--      >-->
-<!--        <v-icon left>mdi-arrow-left</v-icon>-->
-<!--      <div class="pl-0">Back</div>-->
-<!--      </v-btn>-->
-<!--      <v-spacer />-->
 
 
 <!--    </v-toolbar>-->
@@ -56,7 +47,7 @@
 
         </v-list>
       </v-menu>
-      <v-btn icon @click="setFacetZoom(null)">
+      <v-btn icon @click="$emit('close')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>
@@ -256,7 +247,9 @@ export default {
     YearRange,
     SerpFiltersListChip,
   },
-  props: {},
+  props: {
+    facetZoom: String,
+  },
   data() {
     return {
       url,
@@ -307,7 +300,7 @@ export default {
       "entityZoomHistoryData",
       "showFiltersDrawer",
       "inputFilters",
-      "facetZoom",
+      // "facetZoom",
     ]),
     config() {
       return facetConfigs().find(c => c.key === this.facetZoom)
@@ -399,7 +392,6 @@ export default {
       "snackbar",
       "toggleFiltersDrawer",
       "setFiltersZoom",
-      "setFacetZoom",
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
@@ -454,7 +446,6 @@ export default {
           "works",
           [...this.resultsFilters, filter]
       )
-      this.setFacetZoom(false)
     },
 
     addFilterPersistent(filter) {
@@ -485,6 +476,7 @@ export default {
     },
 
     async fetchFilters() {
+      if (!this.config) return
       if (this.config.valuesToShow === 'search') {
         return
       }
