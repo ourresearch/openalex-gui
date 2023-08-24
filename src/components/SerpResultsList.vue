@@ -24,12 +24,12 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import ResultWork from "../ResultWork.vue";
-import ResultAuthor from "../ResultAuthor.vue";
-import ResultVenue from "../ResultVenue.vue";
-import ResultPublisher from "../ResultPublisher.vue";
-import ResultInstitution from "../ResultInstitution.vue";
-import ResultConcept from "../ResultConcept.vue";
+import ResultWork from "./ResultWork.vue";
+import ResultAuthor from "./ResultAuthor.vue";
+import ResultVenue from "./ResultVenue.vue";
+import ResultPublisher from "./ResultPublisher.vue";
+import ResultInstitution from "./ResultInstitution.vue";
+import ResultConcept from "./ResultConcept.vue";
 
 export default {
     name: "SerpResultsList",

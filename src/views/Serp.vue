@@ -16,51 +16,28 @@
                  href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
             Learn more
           </v-btn>
-
         </v-row>
       </v-alert>
-
       <serp-filters-list class="mb-3" :single-work="!!singleWorkIdToShow"/>
       <v-row class="">
-        <template v-if="!singleWorkIdToShow">
-          <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-            <serp-facets-column :disabled="!!facetZoom" key="filter-menu"/>
-          </v-col>
-          <v-slide-x-transition hide-on-leave>
-          </v-slide-x-transition>
-          <v-col cols="12" sm="5">
-            <facet-zoom-new v-if="facetZoom" key="filter-zoom"/>
-            <v-card flat v-else key="serp-results">
-              <serp-toolbar/>
-              <serp-results-list class="pb-8"/>
-            </v-card>
-          </v-col>
-          <v-slide-x-reverse-transition>
-            <v-col cols="12" sm="4">
-              <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
-              <year-range
-                  height="50px"
-                  big class="mb-3"
-                  :disabled="!!facetZoom"
-                  show-filter-link/>
-              <entity
-                  v-for="entity in entitySidebarDataList"
-                  :key="entity.id"
-                  :data="entity"
-                  :disabled="!!facetZoom"
-                  class="mb-4"
-              />
-            </v-col>
+        <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
+          <serp-facets-column/>
+        </v-col>
+        <v-col cols="12" sm="5">
+          <v-card flat key="serp-results">
+            <serp-toolbar/>
+            <serp-results-list class="pb-8"/>
+          </v-card>
+        </v-col>
 
-          </v-slide-x-reverse-transition>
-        </template>
-        <template v-else>
-          <v-col cols="12">
-            <entity solo :data="$store.state.results[0]"/>
-          </v-col>
-
-        </template>
-
+        <v-col cols="12" sm="4">
+          <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
+          <year-range
+              height="50px"
+              big class="mb-3"
+              :disabled="!!facetZoom"
+              show-filter-link/>
+        </v-col>
       </v-row>
     </v-container>
 
@@ -69,11 +46,11 @@
       <facets-list-dialog/>
       <api-dialog/>
       <v-dialog v-model="groupByDialogIsOpen">
-          <facet-zoom-new
-              v-if="facetZoom"
-              :facet-zoom="facetZoom"
-              @close="groupByDialogIsOpen = false"
-          />
+        <facet-zoom-new
+            v-if="facetZoom"
+            :facet-zoom="facetZoom"
+            @close="groupByDialogIsOpen = false"
+        />
       </v-dialog>
 
 
@@ -111,7 +88,7 @@ import FacetZoom from "../components/Facet/FacetZoom";
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
 import {api} from "@/api";
-import SerpResultsList from "../components/Facet/SerpResultsList.vue";
+import SerpResultsList from "../components/SerpResultsList.vue";
 
 import Entity from "../components/Entity";
 import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
@@ -214,7 +191,7 @@ export default {
         return !!this.facetZoom
       },
       set(val) {
-        url.setGroupBy( !!val)
+        url.setGroupBy(!!val)
       }
     },
 
