@@ -41,9 +41,9 @@
 
 
 <script>
-import ConceptsList from "./ConceptsList";
-import ResultCitationCount from "./ResultCitationCount";
-import ResultWorksCount from "./ResultWorksCount";
+import ConceptsList from "../ConceptsList.vue";
+import ResultCitationCount from "./ResultCitationCount.vue";
+import ResultWorksCount from "./ResultWorksCount.vue";
 
 export default {
   components: {

@@ -17,7 +17,7 @@
 
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {entityConfigs} from "../entityConfigs";
+import {entityConfigs} from "../../entityConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 
 export default {

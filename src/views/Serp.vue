@@ -76,12 +76,12 @@ import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import AppliedFilters from "../components/AppliedFilters/AppliedFilters.vue";
 
-import ResultWork from "../components/ResultWork";
-import ResultAuthor from "../components/ResultAuthor";
-import ResultVenue from "../components/ResultVenue";
-import ResultPublisher from "../components/ResultPublisher";
-import ResultInstitution from "../components/ResultInstitution";
-import ResultConcept from "../components/ResultConcept";
+import ResultWork from "../components/Result/ResultWork.vue";
+import ResultAuthor from "../components/Result/ResultAuthor.vue";
+import ResultVenue from "../components/Result/ResultVenue.vue";
+import ResultPublisher from "../components/Result/ResultPublisher.vue";
+import ResultInstitution from "../components/Result/ResultInstitution.vue";
+import ResultConcept from "../components/Result/ResultConcept.vue";
 import FacetsDrawer from "../components/Facet/FacetsDrawer";
 // import ZoomEntity from "../components/ZoomEntity";
 import FacetZoom from "../components/Facet/FacetZoom";

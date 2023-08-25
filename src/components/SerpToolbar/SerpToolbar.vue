@@ -2,15 +2,19 @@
   <v-toolbar
       class=""
       flat
-      extended
   >
     <!--    <v-icon left>-->
     <!--      mdi-file-document-outline-->
     <!--    </v-icon>-->
-    <v-toolbar-title>
-      <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>
-      <span class="ml-1 text-capitalize">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>
-    </v-toolbar-title>
+    <div>
+<!--      <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
+<!--      <span class="ml-1 text-capitalize">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>-->
+
+      <div class="grey--text">
+        <span class="">{{ resultsCount | toPrecision }}</span> results
+
+      </div>
+    </div>
     <v-spacer/>
 
 
@@ -310,13 +314,13 @@
 
 
 
-    <template v-slot:extension>
-      <div class="grey--text">
-        <span class="">{{ resultsCount | toPrecision }}</span> results
+<!--    <template v-slot:extension>-->
+<!--      <div class="grey&#45;&#45;text">-->
+<!--        <span class="">{{ resultsCount | toPrecision }}</span> results-->
 
-      </div>
+<!--      </div>-->
 
-    </template>
+<!--    </template>-->
 
 
   </v-toolbar>

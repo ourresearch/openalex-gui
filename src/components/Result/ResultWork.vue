@@ -1,89 +1,94 @@
 <template>
-  <div class="content">
-    <router-link
-            class="text-decoration-none subtitle-1"
-            :to="clickRoute"
+  <v-list-item class="content ">
+    <v-list-content class="">
+      <v-list-item-title class="text-wrap">
+          <router-link
+                  class="text-decoration-none "
+                  :to="clickRoute"
 
-    >
+          >
 
-      <span v-html="$prettyTitle(data.title)"></span>
-    </router-link>
-    <div v-if="authorsCount" class="body-1">
-      <span>{{ authorNames[0] }}</span>
-      <span v-if="authorNames.length > 1">, {{ authorNames[1] }}</span>
-      <span v-if="authorNames.length > 2">, et al.</span>
+            <span v-html="$prettyTitle(data.title)"></span>
+          </router-link>
 
 
-      <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
-      <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
-      <span v-if="data.primary_location && data.primary_location.source && data.primary_location.source.display_name"
-            class="font-italic"> - {{
-          data.primary_location.source.display_name | truncate(50)
-        }}</span>
-      <span v-if="data.publication_year"><span
-              v-if="data.primary_location && data.primary_location.source && data.primary_location.source.display_name">,</span> {{
-          data.publication_year
-        }} </span>
+      </v-list-item-title>
 
-    </div>
-    <!--      <div class="body-1" v-if="abstract && isOpenlyLicensed">-->
-    <!--        {{ abstract | truncate(200) }}-->
-    <!--      </div>-->
-    <!--      <concepts-list class="d-none" :concepts="data.concepts"/>-->
+      <v-list-item-subtitle class="text-wrap">
 
-    <div class="">
-          <v-chip v-if="data.is_retracted" class="mr-2" x-small color="error">retracted</v-chip>
+      <div v-if="authorsCount" class="">
+        <span>{{ authorNames[0] }}</span>
+        <span v-if="authorNames.length > 1">, {{ authorNames[1] }}</span>
+        <span v-if="authorNames.length > 2">, et al.</span>
 
-      <result-citation-count
-              :id="data.id"
-              :cited-by-count="data.cited_by_count"
-              entity-type="works"
-              class="mr-3"
-      />
 
-      <!--      <span class="ml-4 mr-4" v-if="linkToRelatedWorks">-->
-      <!--          <router-link-->
-      <!--                  class="body-1 text-decoration-none"-->
-      <!--                  :to="linkToRelatedWorks"-->
-      <!--          >-->
-      <!--            Related works-->
-      <!--          </router-link>-->
+        <!--      <span class="font-italic" v-if="authorNames.length > 3">, ...</span>-->
+        <!--      <span v-if="authorNames.length > 2">, {{ authorNames[lastAuthorIndex] }}</span>-->
+        <span v-if="data.primary_location && data.primary_location.source && data.primary_location.source.display_name"
+              class="font-italic"> - {{
+            data.primary_location.source.display_name | truncate(50)
+          }}</span>
+        <span v-if="data.publication_year"><span
+                v-if="data.primary_location && data.primary_location.source && data.primary_location.source.display_name">,</span> {{
+            data.publication_year
+          }} </span>
 
-      <!--        </span>-->
+      </div>
+      </v-list-item-subtitle>
 
+      <v-list-item-subtitle class="text-wrap">
+
+        <div class="">
+              <v-chip v-if="data.is_retracted" class="mr-2" x-small color="error">retracted</v-chip>
+
+          <result-citation-count
+                  :id="data.id"
+                  :cited-by-count="data.cited_by_count"
+                  entity-type="works"
+                  class="mr-3"
+          />
+<!--          <a-->
+<!--                  v-if="fulltextLinkObj"-->
+<!--                  :href="fulltextLinkObj.href"-->
+<!--                  target="_blank"-->
+<!--                  class="text-decoration-none mr-3 body-1"-->
+<!--          >-->
+<!--            <v-icon color="primary" small >-->
+<!--              {{ fulltextLinkObj.icon }}-->
+<!--            </v-icon>-->
+<!--            {{ fulltextLinkObj.text }}-->
+<!--          </a>-->
+
+        </div>
+
+      </v-list-item-subtitle>
+
+
+    </v-list-content>
+    <div class="align-self-start">
       <a
-              v-if="fulltextLinkObj"
-              :href="fulltextLinkObj.href"
-              target="_blank"
-              class="text-decoration-none mr-3 body-1"
-      >
-        <v-icon color="primary" small >
-          {{ fulltextLinkObj.icon }}
-        </v-icon>
-        {{ fulltextLinkObj.text }}
-      </a>
-      <a
-              v-if="!data.primary_location.is_oa"
-              :href="data.primary_location.landing_page_url"
-              target="_blank"
-              class="text-decoration-none mr-3 body-1 grey--text"
-      >
-        <v-icon color="grey" small >mdi-lock-outline</v-icon>
-        HTML
-      </a>
-
+                  v-if="fulltextLinkObj"
+                  :href="fulltextLinkObj.href"
+                  target="_blank"
+                  class="text-decoration-none"
+          >
+            <v-icon color="primary"  >
+              {{ fulltextLinkObj.icon }}
+            </v-icon>
+<!--            [{{ fulltextLinkObj.text }}]-->
+          </a>
     </div>
 
-  </div>
+  </v-list-item>
 
 </template>
 
 
 <script>
-import ConceptsList from "./ConceptsList";
-import ResultCitationCount from "./ResultCitationCount";
-import {unravel} from "../util";
-import {createSimpleFilter, filtersAsUrlStr} from "../filterConfigs";
+import ConceptsList from "../ConceptsList.vue";
+import ResultCitationCount from "./ResultCitationCount.vue";
+import {unravel} from "../../util";
+import {createSimpleFilter, filtersAsUrlStr} from "../../filterConfigs";
 import {mapGetters} from "vuex";
 
 
