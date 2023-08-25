@@ -1,16 +1,16 @@
 <template>
-  <v-row>
+  <v-list-item>
+    <v-list-item-content>
 
-    <v-col cols="10">
-      <div>
-      <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
-        {{ data.display_name }}
-      </router-link>
-    </div>
-    <div v-if="data.description" class="capitalize-first-letter">
-      {{ data.description }}
-    </div>
-      <div>
+      <v-list-item-title>
+        <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
+          {{ data.display_name }}
+        </router-link>
+      </v-list-item-title>
+      <v-list-item-subtitle v-if="data.description" class="capitalize-first-letter">
+        {{ data.description }}
+      </v-list-item-subtitle>
+      <v-list-item-subtitle>
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
@@ -21,11 +21,10 @@
             :cited-by-count="data.cited_by_count"
             entity-type="concepts"
         />
-      </div>
-    </v-col>
+      </v-list-item-subtitle>
 
-
-  </v-row>
+    </v-list-item-content>
+  </v-list-item>
 </template>
 
 
