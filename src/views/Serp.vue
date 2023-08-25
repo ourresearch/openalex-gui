@@ -78,7 +78,7 @@ import AppliedFilters from "../components/AppliedFilters/AppliedFilters.vue";
 
 import ResultWork from "../components/Result/ResultWork.vue";
 import ResultAuthor from "../components/Result/ResultAuthor.vue";
-import ResultVenue from "../components/Result/ResultVenue.vue";
+import ResultVenue from "../components/Result/ResultSource.vue";
 import ResultPublisher from "../components/Result/ResultPublisher.vue";
 import ResultInstitution from "../components/Result/ResultInstitution.vue";
 import ResultConcept from "../components/Result/ResultConcept.vue";

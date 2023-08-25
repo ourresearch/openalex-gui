@@ -1,17 +1,18 @@
 <template>
-  <div>
-      <div>
+  <v-list-item>
+    <v-list-item-content>
+      <v-list-item-title>
         <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
           {{ data.display_name }}
         </router-link>
-      </div>
-      <!--    <div v-if="data.publisher" class="body-2">-->
-      <!--      {{ data.publisher }}-->
-      <!--    </div>-->
-      <div>
-        <concepts-list :concepts="data.x_concepts"/>
-      </div>
-      <div class="body-1">
+      </v-list-item-title>
+          <v-list-item-subtitle v-if="data.host_organization_name" class="">
+            {{ data.host_organization_name }}
+          </v-list-item-subtitle>
+<!--      <v-list-item-subtitle>-->
+<!--        <concepts-list :concepts="data.x_concepts"/>-->
+<!--      </v-list-item-subtitle>-->
+      <v-list-item-subtitle >
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
@@ -22,7 +23,7 @@
             :cited-by-count="data.cited_by_count"
             entity-type="sources"
         />
-      </div>
+      </v-list-item-subtitle>
 <!--    <v-col cols="3" class="justify-end d-flex">-->
 <!--      <a-->
 <!--          :href="data.homepage_url"-->
@@ -36,7 +37,23 @@
 
 
 <!--    </v-col>-->
-    </div>
+
+    </v-list-item-content>
+<!--    <div class="align-self-start mt-3">-->
+<!--      <a-->
+<!--                  v-if="fulltextLinkObj"-->
+<!--                  :href="fulltextLinkObj.href"-->
+<!--                  target="_blank"-->
+<!--                  class="text-decoration-none"-->
+<!--          >-->
+<!--            <v-icon color="primary"  >-->
+<!--              {{ fulltextLinkObj.icon }}-->
+<!--            </v-icon>-->
+<!--&lt;!&ndash;            [{{ fulltextLinkObj.text }}]&ndash;&gt;-->
+<!--          </a>-->
+<!--    </div>-->
+
+    </v-list-item>
 </template>
 
 

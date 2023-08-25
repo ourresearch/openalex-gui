@@ -1,7 +1,7 @@
 <template>
   <v-list-item class="content ">
-    <v-list-content class="">
-      <v-list-item-title class="text-wrap">
+    <v-list-item-content class="">
+      <v-list-item-title class=""  >
           <router-link
                   class="text-decoration-none "
                   :to="clickRoute"
@@ -14,7 +14,7 @@
 
       </v-list-item-title>
 
-      <v-list-item-subtitle class="text-wrap">
+      <v-list-item-subtitle class="">
 
       <div v-if="authorsCount" class="">
         <span>{{ authorNames[0] }}</span>
@@ -36,7 +36,7 @@
       </div>
       </v-list-item-subtitle>
 
-      <v-list-item-subtitle class="text-wrap">
+      <v-list-item-subtitle class="">
 
         <div class="">
               <v-chip v-if="data.is_retracted" class="mr-2" x-small color="error">retracted</v-chip>
@@ -64,10 +64,9 @@
       </v-list-item-subtitle>
 
 
-    </v-list-content>
-    <div class="align-self-start">
+    </v-list-item-content>
+    <div v-if="fulltextLinkObj" class="align-self-start mt-3">
       <a
-                  v-if="fulltextLinkObj"
                   :href="fulltextLinkObj.href"
                   target="_blank"
                   class="text-decoration-none"
