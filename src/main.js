@@ -10,7 +10,7 @@ import {idsAreEqual, setOrDelete} from "./util";
 import {url} from "./url"
 import SearchBox from "./components/SearchBox";
 import sanitizeHtml from 'sanitize-html';
-import {prettyTitle, toPrecision} from "./util";
+import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilterFromPid} from "./filterConfigs";
 
 
@@ -50,36 +50,19 @@ Vue.use(AsyncComputed)
 Vue.filter("idLink", function (fullId) {
     if (!fullId) return
     const shortId = fullId.replace("https://openalex.org/", "")
-    const shortIdFirstLetter = shortId.substr(0, 1).toUpperCase()
-    const entityTypes = {
-        "W": "works",
-        "I": "institutions",
-        "V": "venues",
-        "S": "sources",
-        "P": "publishers",
-        "F": "funders",
-        "A": "authors",
-        "C": "concepts",
-    };
-    const myEntityType = entityTypes[shortIdFirstLetter]
+    const myEntityType = entityTypeFromId(shortId)
     return `/${myEntityType}/${shortId}`
 })
 
 
 Vue.filter("entityZoomLink", function (id) {
-
-
     if (!id) return
     const shortId = id.replace("https://openalex.org/", "")
-    const filter = createSimpleFilterFromPid(id)
     return {
-        name: "Serp",
+        name: "EntityPage",
         params: {
-            entityType: "works",
-            id: shortId,
-        },
-        query: {
-            filter: filtersAsUrlStr([filter])
+            entityType: entityTypeFromId(shortId),
+            entityId: shortId,
         },
     }
 });
