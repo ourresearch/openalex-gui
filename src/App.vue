@@ -19,7 +19,7 @@
       <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
         <v-row>
 
-          <v-col cols="8" sm="8" class="d-flex align-center">
+          <v-col cols="6" sm="6" class="d-flex align-center">
             <router-link
                     :to="{name: 'Home'}"
                     class="logo-link pl-1"
@@ -43,7 +43,7 @@
 
 
           </v-col>
-          <v-col cols="4" class="d-flex">
+          <v-col cols="6" class="d-flex">
             <v-spacer></v-spacer>
 
             <entity-type-selector/>

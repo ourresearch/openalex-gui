@@ -1,5 +1,5 @@
 <template>
-  <span class="body-1">
+  <span class="">
     <v-icon small :color="(formatAsLink) ? 'primary' : '#333'" style="vertical-align: 0;">{{icon}}</v-icon>
     <router-link
         :to="linkToWorks"

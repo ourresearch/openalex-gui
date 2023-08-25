@@ -1,17 +1,19 @@
 <template>
-  <div>
-      <div>
+  <v-list-item>
+    <v-list-item-content>
+
+      <v-list-item-title>
         <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
           {{ data.display_name }}
         </router-link>
-      </div>
+      </v-list-item-title>
       <!--    <div v-if="data.publisher" class="body-2">-->
       <!--      {{ data.publisher }}-->
       <!--    </div>-->
-<!--      <div>-->
-<!--        <concepts-list :concepts="data.x_concepts"/>-->
-<!--      </div>-->
-      <div class="body-1">
+      <!--      <div>-->
+      <!--        <concepts-list :concepts="data.x_concepts"/>-->
+      <!--      </div>-->
+      <v-list-item-subtitle class="">
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
@@ -22,21 +24,24 @@
             :cited-by-count="data.cited_by_count"
             entity-type="sources"
         />
-      </div>
-<!--    <v-col cols="3" class="justify-end d-flex">-->
-<!--      <a-->
-<!--          :href="data.homepage_url"-->
-<!--          target="_blank"-->
-<!--          class="mx-3 text-decoration-none"-->
-<!--          v-if="data.homepage_url && data.is_oa"-->
-<!--      >-->
-<!--        <v-icon small color="primary">mdi-lock-open-variant-outline</v-icon>-->
-<!--        Open Access-->
-<!--      </a>-->
+      </v-list-item-subtitle>
+      <!--    <v-col cols="3" class="justify-end d-flex">-->
+      <!--      <a-->
+      <!--          :href="data.homepage_url"-->
+      <!--          target="_blank"-->
+      <!--          class="mx-3 text-decoration-none"-->
+      <!--          v-if="data.homepage_url && data.is_oa"-->
+      <!--      >-->
+      <!--        <v-icon small color="primary">mdi-lock-open-variant-outline</v-icon>-->
+      <!--        Open Access-->
+      <!--      </a>-->
 
 
-<!--    </v-col>-->
-  </div>
+      <!--    </v-col>-->
+    </v-list-item-content>
+
+  </v-list-item>
+
 </template>
 
 

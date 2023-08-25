@@ -1,6 +1,6 @@
 <template>
-  <span class="body-1">
-      <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>
+  <span class="">
+      <v-icon small :color="(formatAsLink) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
 
 
     <router-link
