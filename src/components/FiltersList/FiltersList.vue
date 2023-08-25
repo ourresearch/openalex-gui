@@ -1,6 +1,6 @@
 <template>
   <v-card :disabled="disabled" flat tile class="facets-column">
-    <v-toolbar tile flat>
+    <v-toolbar v-if="0" tile flat>
       <v-icon class="mr-3">mdi-filter-outline</v-icon>
       <v-toolbar-title class="pl-0">Filters</v-toolbar-title>
       <v-spacer/>
@@ -30,18 +30,18 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <v-toolbar v-if="0" flat tile dense class="pa-0">
-      <!--      <v-text-field-->
-      <!--            flat-->
-      <!--            hide-details-->
-      <!--            full-width-->
-      <!--            clearable-->
-      <!--            prepend-inner-icon="mdi-magnify"-->
-      <!--            dense-->
+    <v-toolbar  flat tile dense class="pa-0">
+            <v-text-field
+                  flat
+                  hide-details
+                  full-width
+                  clearable
+                  prepend-inner-icon="mdi-magnify"
+                  dense
 
-      <!--            v-model="searchString"-->
-      <!--            placeholder="Filters"-->
-      <!--        />-->
+                  v-model="searchString"
+                  placeholder="Find filter"
+              />
 
       <!--      <v-toolbar-title>-->
       <!--        <v-icon>mdi-filter-outline</v-icon>-->
@@ -50,19 +50,19 @@
       <!--      <v-spacer></v-spacer>-->
       <!--      {{ openPanels }}-->
 
-      <v-text-field
-              flat
-              outlined
-              hide-details
-              full-width
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              dense
-              color="green"
+<!--      <v-text-field-->
+<!--              flat-->
+<!--              outlined-->
+<!--              hide-details-->
+<!--              full-width-->
+<!--              clearable-->
+<!--              prepend-inner-icon="mdi-magnify"-->
+<!--              dense-->
+<!--              color="green"-->
 
-              v-model="searchString"
-              placeholder="Search filter types"
-      />
+<!--              v-model="searchString"-->
+<!--              placeholder="Search filter types"-->
+<!--      />-->
     </v-toolbar>
     <v-list>
       <facet-simple
@@ -127,9 +127,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetsByCategory, filtersList} from "../facetConfigs";
-import FacetSimple from "./Facet/FacetSimple.vue";
-import facet from "./Facet/Facet.vue";
+import {facetsByCategory, filtersList} from "../../facetConfigs";
+import FacetSimple from "../Facet/FacetSimple.vue";
+import facet from "../Facet/Facet.vue";
 import {url} from "@/url";
 
 export default {

@@ -21,7 +21,7 @@
       <applied-filters class="mb-3" />
       <v-row class="">
         <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-          <serp-facets-column/>
+          <filters-list />
         </v-col>
         <v-col cols="12" sm="5">
           <v-card flat key="serp-results">
@@ -92,7 +92,7 @@ import SerpResultsList from "../components/SerpResultsList.vue";
 
 import Entity from "../components/Entity/Entity.vue";
 import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
-import SerpFacetsColumn from "../components/SerpFacetsColumn.vue";
+import FiltersList from "../components/FiltersList/FiltersList.vue";
 import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";
 import ApiDialog from "../components/ApiDialog.vue";
 
@@ -105,22 +105,13 @@ export default {
   },
   components: {
     Entity,
-    DownloadCsvDialog,
     SerpToolbar,
     AppliedFilters,
     SerpResultsList,
-    ResultWork,
-    ResultAuthor,
-    ResultVenue,
-    ResultPublisher,
-    ResultInstitution,
-    ResultConcept,
-    FacetsDrawer,
-    FacetZoom,
     FacetZoomNew,
     YearRange,
     FacetsListDialog,
-    SerpFacetsColumn,
+    FiltersList,
     ApiDialog,
 
   },
