@@ -5,18 +5,18 @@
     </div>
     <v-list v-if="resultsCount" class="serp-results-list">
       <component
-              v-for="result in $store.state.results"
-              :key="result.id"
-              :is="resultComponentName"
-              :data="result"
+          v-for="result in $store.state.results"
+          :key="result.id"
+          :is="resultComponentName"
+          :data="result"
       />
     </v-list>
     <div class="serp-bottom" v-if="$store.state.results.length">
       <v-pagination
-              v-model="page"
-              :length="numPages"
-              :total-visible="10"
-              light
+          v-model="page"
+          :length="numPages"
+          :total-visible="10"
+          light
       />
     </div>
   </div>
@@ -29,75 +29,77 @@ import ResultWork from "./Result/ResultWork.vue";
 import ResultAuthor from "./Result/ResultAuthor.vue";
 import ResultSource from "./Result/ResultSource.vue";
 import ResultPublisher from "./Result/ResultPublisher.vue";
+import ResultFunder from "@/components/Result/ResultFunder.vue";
 import ResultInstitution from "./Result/ResultInstitution.vue";
 import ResultConcept from "./Result/ResultConcept.vue";
 
 export default {
-    name: "SerpResultsList",
-    components: {
-        ResultWork,
-        ResultAuthor,
-        ResultSource,
-        ResultPublisher,
-        ResultInstitution,
-        ResultConcept,
-    },
-    props: {},
-    data() {
-        return {
-            resultsPerPage: 25, // not editable now, but could be in future
-        }
-    },
-    computed: {
-        ...mapGetters([
-            "resultsFilters",
-            "resultsCount",
-            "entityConfig",
-        ]),
-        resultComponentName() {
-            return "result-" + this.entityConfig.nameSingular
-
-        },
-        page: {
-            get() {
-                return this.$store.state.page
-            },
-            set(val) {
-                this.$store.dispatch("setPage", val)
-            }
-        },
-        numPages() {
-            return Math.min(
-                Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
-                10
-            )
-        },
-    },
-
-    methods: {
-        ...mapMutations([
-            "snackbar",
-        ]),
-        ...mapActions([]),
-
-
-    },
-    created() {
-    },
-    mounted() {
-    },
-    watch: {
-        isOpen(to, from) {
-        }
+  name: "SerpResultsList",
+  components: {
+    ResultWork,
+    ResultAuthor,
+    ResultSource,
+    ResultPublisher,
+    ResultFunder,
+    ResultInstitution,
+    ResultConcept,
+  },
+  props: {},
+  data() {
+    return {
+      resultsPerPage: 25, // not editable now, but could be in future
     }
+  },
+  computed: {
+    ...mapGetters([
+      "resultsFilters",
+      "resultsCount",
+      "entityConfig",
+    ]),
+    resultComponentName() {
+      return "result-" + this.entityConfig.nameSingular
+
+    },
+    page: {
+      get() {
+        return this.$store.state.page
+      },
+      set(val) {
+        this.$store.dispatch("setPage", val)
+      }
+    },
+    numPages() {
+      return Math.min(
+          Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
+          10
+      )
+    },
+  },
+
+  methods: {
+    ...mapMutations([
+      "snackbar",
+    ]),
+    ...mapActions([]),
+
+
+  },
+  created() {
+  },
+  mounted() {
+  },
+  watch: {
+    isOpen(to, from) {
+    }
+  }
 }
 </script>
 
 <style lang="scss">
- div.serp-results-list {
-   .v-list-item__title, .v-list-item__subtitle {
-     white-space: normal !important;
-     line-height: 1.4 !important;
-   }
- }
+div.serp-results-list {
+  .v-list-item__title, .v-list-item__subtitle {
+    white-space: normal !important;
+    line-height: 1.4 !important;
+  }
+}
 </style>
