@@ -27,44 +27,38 @@
 
     </v-toolbar>
 
-    <div class=" pa-2">
-      <div class="">
-        <v-slide-y-reverse-transition group class="">
-          <applied-filters-filter
-                  v-for="filter in resultsFilters"
-                  :key="filter.key + filter.value"
-                  :filter="filter"
+    <v-list dense class="">
+      <applied-filters-filter
+              v-for="filter in resultsFilters"
+              :key="filter.key + filter.value"
+              :filter="filter"
 
-          />
+      />
+    </v-list>
+    <v-card-actions>
+      <v-btn
+              v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
+              @click="openFacetsDialog"
+              color="primary"
+              dark
+      >
+        <v-icon left>mdi-plus</v-icon>
+        Add filter
+      </v-btn>
+      <v-btn
+              text
+              @click="clear"
+              v-if="resultsFilters.length > 0"
+              class="ml-3"
+      >
+        <v-icon left>mdi-filter-off-outline</v-icon>
+        Clear all
+      </v-btn>
 
-        </v-slide-y-reverse-transition>
-
-        <div>
-          <v-btn
-                  v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
-                  @click="openFacetsDialog"
-                  color="primary"
-                  dark
-          >
-            <v-icon left>mdi-plus</v-icon>
-            Add filter
-          </v-btn>
-          <v-btn
-                  text
-                  @click="clear"
-                  v-if="resultsFilters.length > 0"
-                  class="ml-3"
-          >
-            <v-icon left>mdi-filter-off-outline</v-icon>
-            Clear all
-          </v-btn>
-
-        </div>
-      </div>
-      <div>
-      </div>
-
+    </v-card-actions>
+    <div>
     </div>
+
 
     <!--      <div class="pa-3 grey&#45;&#45;text" v-if="resultsFilters.length === 0">-->
     <!--        There are no filters applied.-->

@@ -1,144 +1,33 @@
 <template>
-  <div
 
-
-  >
-
-    <v-menu
-            offset-y
-            ref="menu"
-
+    <v-list-item large close
+                 :disabled="disabled"
+                 color="primary"
+                 @click="toggleFacetZoom"
     >
-      <template v-slot:activator="{on}">
-        <v-chip large close
-                :text-color="myTextColor"
-                :disabled="disabled"
-                v-on="on"
+      <v-list-item-content>
+        <div  class="d-flex align-center">
+        <v-btn icon @click="remove">
+        <v-icon>mdi-close</v-icon>
 
-                :color="myColor"
-                @click:close="remove"
-                @click.meta.native.prevent.stop.capture="toggleFacetZoom"
-                @click.ctrl.native.prevent.stop.capture="toggleFacetZoom"
-                @click.alt.native.prevent.stop.capture="toggleNegation"
-                class="ma-1 inline-flex py-2"
-                style="height: unset;  border: 1px solid !important; border-radius: 3px;"
-                close-icon="mdi-close"
-        >
+        </v-btn>
 
 
-          <!--        <v-icon-->
-          <!--            class=""-->
-          <!--            style="font-size: 22px;"-->
-          <!--        >-->
-          <!--          {{ filter.icon }}-->
-          <!--        </v-icon>-->
-          <div class="mr-1" style="line-height: 1;">
-            <div class="caption font-weight-bold">
-              <span class="font-weight-bold" v-if="isNegated">NOT</span>
-              {{ filter.displayName }}:
-            </div>
-            <div class="filter-value" :class="{isNegated}">
-              <!--                                    <span class="font-weight-bold" v-if="isNegated">NOT</span>-->
-
-              <span v-if="filter.valuesToShow==='search'" class="font-weight-bold">
-          "{{ myDisplayValue | truncate(30) }}"
-        </span>
-              <span v-else class="">
-        {{ myDisplayValue | truncate(30) }}
-
-        </span>
-            </div>
+          <div class="">
+            <span class="font-weight-bold" v-if="isNegated">NOT</span>
+            {{ filter.displayName }}:
+          </div>
+          <div class="font-weight-bold ml-2">
+            {{ myDisplayValue | truncate(80) }}
           </div>
 
-
-        </v-chip>
-      </template>
-      <v-card max-width="300">
-        <div class="px-3 pt-2 pb-1">
-          <div class="body-2">{{ filter.displayName }}:</div>
-          <div class="font-weight-bold">{{ filter.displayValue }}</div>
-          <div v-if="filter.isEntity" class="caption grey--text">{{ filter.value }}</div>
-
         </div>
-        <v-divider/>
-        <v-list>
 
-          <v-list-item
-                  @click="setFacetZoom(filter.key)"
-                  v-if="filter.valuesToShow === 'search'"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-magnify</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Add search
-            </v-list-item-title>
-          </v-list-item>
-
-          <v-list-item
-                  @click="setFacetZoom(filter.key)"
-                  v-if="filter.valuesToShow === 'range'"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-filter-cog-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Edit filter
-            </v-list-item-title>
-          </v-list-item>
-
-          <v-list-item
-                  @click="setFacetZoom(filter.key)"
-                  v-if="filter.valuesToShow==='mostCommon' && facetZoom !== filter.key"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-filter-settings-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                View filter menu
-              </v-list-item-title>
-
-            </v-list-item-content>
-            <v-list-item-action>
-              <v-list-item-action-text>⌘+click</v-list-item-action-text>
-            </v-list-item-action>
-          </v-list-item>
-
-          <v-list-item @click="remove">
-            <v-list-item-icon>
-              <v-icon>mdi-filter-remove-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Remove filter
-            </v-list-item-title>
-          </v-list-item>
-
-          <v-list-item
-                  @click="toggleNegation"
-                  v-if="!filter.valuesToShow === 'boolean'"
-          >
-            <v-list-item-icon>
-              <v-icon v-if="isNegated">mdi-filter-check-outline</v-icon>
-              <v-icon v-else>mdi-filter-minus-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                <span v-if="isNegated">Un-negate filter</span>
-                <span v-else>Negate filter</span>
-              </v-list-item-title>
-            </v-list-item-content>
-
-            <v-list-item-action>
-              <v-list-item-action-text>Alt+click</v-list-item-action-text>
-            </v-list-item-action>
-          </v-list-item>
-        </v-list>
+      </v-list-item-content>
 
 
-      </v-card>
-    </v-menu>
-  </div>
+
+    </v-list-item>
 </template>
 
 <script>
