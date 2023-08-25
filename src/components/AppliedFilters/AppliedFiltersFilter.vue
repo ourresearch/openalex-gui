@@ -18,7 +18,7 @@
             {{ filter.displayName }}:
           </div>
           <div class="font-weight-bold ml-2">
-            {{ myDisplayValue | truncate(80) }}
+            {{ myDisplayValue | truncate(200) }}
           </div>
 
         </div>
