@@ -443,7 +443,7 @@ export default {
     addFilter(filter) {
       console.log("addFilter", filter)
       url.setFilters(
-          "works",
+          this.entityType,
           [...this.resultsFilters, filter]
       )
     },

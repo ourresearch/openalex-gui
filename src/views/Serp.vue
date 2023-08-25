@@ -138,22 +138,6 @@ export default {
     }
   },
   asyncComputed: {
-    async entitySidebarDataList() {
-      return await Promise.all(
-          this.entitySidebarFiltersList.map(f => {
-            const fullyQualifiedId = (f.pidPrefix) ?
-                [f.pidPrefix, f.value].join(":") :
-                f.value
-
-            const pathName = [
-              f.entityId,
-              fullyQualifiedId
-            ].join("/")
-
-            return api.get(pathName)
-          })
-      )
-    },
   },
   computed: {
     ...mapGetters([
@@ -192,44 +176,6 @@ export default {
           10
       )
     },
-    resultsCols() {
-      if (this.$vuetify.breakpoint.mobile) return 12
-      return (this.showSidebar) ? 7 : 12
-    },
-    entityCols() {
-      return (this.$vuetify.breakpoint.mobile) ? 12 : 5
-    },
-    entitySidebarFilter() {
-      if (this.resultsFilters.length === 0) return
-      if (this.entityType !== "works") return
-      if (this.singleWorkIdToShow) return
-
-      const sidebarFilters = this.resultsFilters.filter(f => f.showInSidebar)
-      if (sidebarFilters.length !== 1) return
-
-      return sidebarFilters[0]
-    },
-    entitySidebarFiltersList() {
-      if (this.entityType !== "works") return []
-      return this.resultsFilters
-          .filter(f => f.showInSidebar)
-          .filter(f => !f.isNullValue)
-    },
-    showSidebar() {
-      return this.entitySidebarFiltersList.length > 0 && !this.singleWorkIdToShow
-    },
-    singleWorkIdToShow() {
-      if (this.entityType !== "works") return
-      const workId = this.resultsFilters.find(f => {
-        return f.isSingleWork
-      })?.value
-      return workId
-
-    },
-    resultComponentName() {
-      return "result-" + this.entityConfig.nameSingular
-
-    },
 
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
@@ -238,27 +184,12 @@ export default {
     entityType() {
       return this.$route.params.entityType
     },
-    facetsWithoutOptions() {
-      return this.searchFacetConfigs.filter(f => f.noOptions)
-    },
 
     entityId() {
       return this.$route.params.id
     },
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
-    },
-    roundedResultsCount() {
-      const asString = millify(
-          this.$store.state.resultsCount,
-          {precision: 0}
-      )
-      const asNumber = Number(
-          asString
-              .replace("K", "000")
-              .replace("M", "000000")
-      )
-      return asNumber.toLocaleString()
     },
   },
   methods: {
