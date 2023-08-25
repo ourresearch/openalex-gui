@@ -35,7 +35,7 @@
 
       />
     </v-list>
-    <v-card-actions>
+    <v-card-actions v-if="0">
       <v-btn
               v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
               @click="openFacetsDialog"

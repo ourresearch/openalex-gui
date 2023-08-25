@@ -3,7 +3,6 @@
     <v-list-item large close
                  :disabled="disabled"
                  color="primary"
-                 @click="toggleFacetZoom"
     >
       <v-list-item-content>
         <div  class="d-flex align-center">
