@@ -279,7 +279,7 @@
 
 <script>
 import {entityConfigs} from "../../entityConfigs";
-import SerpFiltersListChip from "../SerpFiltersListChip.vue";
+import SerpFiltersListChip from "../AppliedFilters/AppliedFiltersFilter.vue";
 
 import {entityTypeFromId} from "../../util";
 import YearRange from "../YearRange";

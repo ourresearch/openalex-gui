@@ -144,11 +144,11 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "../url";
+import {url} from "../../url";
 import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
-    name: "Template",
+    name: "AppliedFiltersFilter",
     components: {},
     props: {
         filter: Object,

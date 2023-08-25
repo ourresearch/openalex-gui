@@ -18,7 +18,7 @@
           </v-btn>
         </v-row>
       </v-alert>
-      <serp-filters-list class="mb-3" :single-work="!!singleWorkIdToShow"/>
+      <applied-filters class="mb-3" />
       <v-row class="">
         <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
           <serp-facets-column/>
@@ -74,7 +74,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {url} from "@/url";
 import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
-import SerpFiltersList from "../SerpFiltersList";
+import AppliedFilters from "../components/AppliedFilters/AppliedFilters.vue";
 
 import ResultWork from "../components/ResultWork";
 import ResultAuthor from "../components/ResultAuthor";
@@ -107,7 +107,7 @@ export default {
     Entity,
     DownloadCsvDialog,
     SerpToolbar,
-    SerpFiltersList,
+    AppliedFilters,
     SerpResultsList,
     ResultWork,
     ResultAuthor,

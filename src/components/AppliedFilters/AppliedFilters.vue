@@ -15,19 +15,6 @@
           </span>
       </v-toolbar-title>
 
-
-      <!--        <v-btn-->
-      <!--                fab-->
-      <!--                small-->
-      <!--                dark-->
-      <!--                color="green"-->
-      <!--                class="mr-2"-->
-      <!--                @click="openFacetsDialog"-->
-      <!--        >-->
-      <!--          <v-icon class="">mdi-filter-menu-outline</v-icon>-->
-      <!--        </v-btn>-->
-      <!--        <search-box-new class="my-2 mx-3"/>-->
-      <v-spacer/>
       <v-btn
               icon
               class="px-0"
@@ -39,42 +26,42 @@
       </v-btn>
 
     </v-toolbar>
-    <!--      <v-divider color="#4CAF50" style="opacity: .5;" />-->
-    <!--      <v-divider />-->
 
-    <div class="d-flex justify-space-between pa-2">
-      <div class="d-flex flex-wrap">
-        <v-slide-y-reverse-transition group class="d-flex">
-          <serp-filters-list-chip
+    <div class=" pa-2">
+      <div class="">
+        <v-slide-y-reverse-transition group class="">
+          <applied-filters-filter
                   v-for="filter in resultsFilters"
                   :key="filter.key + filter.value"
                   :filter="filter"
-                  :disabled="singleWork && !filter.isSingleWork"
 
           />
 
         </v-slide-y-reverse-transition>
 
-        <!--        <v-btn-->
-        <!--                icon-->
-        <!--                v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"-->
-        <!--                @click="openFacetsDialog"-->
-        <!--                color="green"-->
-        <!--                dark-->
-        <!--                class="px-0 mr-2 mt-1"-->
-        <!--        >-->
-        <!--          <v-icon>mdi-plus</v-icon>-->
-        <!--        </v-btn>-->
+        <div>
+          <v-btn
+                  v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
+                  @click="openFacetsDialog"
+                  color="primary"
+                  dark
+          >
+            <v-icon left>mdi-plus</v-icon>
+            Add filter
+          </v-btn>
+          <v-btn
+                  text
+                  @click="clear"
+                  v-if="resultsFilters.length > 0"
+                  class="ml-3"
+          >
+            <v-icon left>mdi-filter-off-outline</v-icon>
+            Clear all
+          </v-btn>
+
+        </div>
       </div>
       <div>
-        <v-btn
-                icon
-                class="ml-2 mr-2 mb-2"
-                @click="clear"
-                v-if="resultsFilters.length > 0"
-        >
-          <v-icon>mdi-filter-off-outline</v-icon>
-        </v-btn>
       </div>
 
     </div>
@@ -115,19 +102,17 @@
 </template>
 
 <script>
-import {sleep} from "./util";
+import {sleep} from "../../util";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import SerpFiltersListChip from "./components/SerpFiltersListChip";
+import AppliedFiltersFilter from "./AppliedFiltersFilter.vue";
 import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {filtersAsUrlStr, sortedFilters} from "./filterConfigs";
-import {url} from "./url";
-import SearchBoxNew from "./components/SearchBoxNew.vue";
+import {filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
+import {url} from "../../url";
 
 export default {
-    name: "SerpFiltersList",
+    name: "AppliedFilters",
     components: {
-        SearchBoxNew,
-        SerpFiltersListChip,
+        AppliedFiltersFilter,
     },
     props: {
         singleWork: Boolean,
@@ -245,8 +230,8 @@ export default {
             return url.toString()
         },
         clear() {
-          url.setFilters(this.entityType, [])
-          this.snackbar("All filters cleared")
+            url.setFilters(this.entityType, [])
+            this.snackbar("All filters cleared")
 
             // const newFilters = (this.selectedFacetKey) ?
             //     this.resultsFilters.filter(f => f.key !== this.selectedFacetKey) :
