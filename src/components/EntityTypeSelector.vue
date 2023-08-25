@@ -6,7 +6,7 @@
               rounded
               large
                color="primary"
-              class="text-capitalize low-key-button"
+              class=""
               style="margin-left: -10px;"
               v-bind="attrs"
               v-on="on"
