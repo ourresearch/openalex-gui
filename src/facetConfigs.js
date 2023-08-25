@@ -1,3 +1,5 @@
+import {sortByKey} from "./util";
+
 const facetCategories = {
     works: [
         "popular",
@@ -261,7 +263,6 @@ const facetConfigs = function (entityType) {
         // },
 
 
-
         // works: authors
 
         {
@@ -320,7 +321,6 @@ const facetConfigs = function (entityType) {
             category: "access",
             icon: "mdi-lock-open-outline",
         },
-
 
 
         // works: APC
@@ -487,8 +487,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
         // works: repository
 
         {
@@ -512,8 +510,6 @@ const facetConfigs = function (entityType) {
             category: "repository",
             icon: "mdi-database-outline",
         },
-
-
 
 
         // works: intrinsic
@@ -540,7 +536,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_doi",
             entityType: "works",
-            displayName: "DOI",
+            displayName: "Indexed by Crossref",
             valuesToShow: "boolean",
             booleanValues: ["Has a DOI", "No DOI"],
             category: "ids",
@@ -549,16 +545,16 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityType: "works",
-            displayName: "ORCID",
+            displayName: "Indexed by ORCID",
             valuesToShow: "boolean",
-            booleanValues: ["No ORCID", "At least one ORCID", ],
+            booleanValues: ["No ORCID", "At least one ORCID",],
             category: "ids",
             icon: "mdi-database-outline",
         },
         {
             key: "has_pmid",
             entityType: "works",
-            displayName: "PubMed",
+            displayName: "Indexed by PubMed",
             valuesToShow: "boolean",
             category: "ids",
             icon: "mdi-database-outline",
@@ -567,7 +563,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_pmcid",
             entityType: "works",
-            displayName: "PubMed Central",
+            displayName: "Indexed by PubMed Central",
             valuesToShow: "boolean",
             category: "ids",
             icon: "mdi-database-outline",
@@ -600,7 +596,6 @@ const facetConfigs = function (entityType) {
             category: "other",
             icon: "mdi-file-document-outline"
         },
-
 
 
         {
@@ -861,6 +856,30 @@ const makeFacet = function (key, isNegated, values) {
     }
 }
 
+const filtersList = function (entityType, resultsFilters, searchString) {
+    const ret = facetConfigs(entityType)
+        .filter(c => {
+            return c.entityType === entityType
+        })
+        .filter(c => {
+
+            return c.displayName.toLowerCase().match(searchString?.toLowerCase())
+        })
+        .filter(c => {
+            const filters = resultsFilters.filter(f => f.key === c.key)
+            // hide the noOptions facets unless they have selected filters
+            return !c.noOptions || filters.length
+        })
+        .map(c => {
+            return {
+                ...c,
+                resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
+            }
+        })
+    const sorted = sortByKey(ret, "displayName")
+    return sorted
+}
+
 
 const facetsByCategory = function (entityType, resultsFilters, searchString) {
     const filtered = facetConfigs(entityType)
@@ -883,6 +902,8 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
             }
         })
 
+    // return filtered
+
     // filtered.sort((a, b) => {
     //     return (a.displayName > b.displayName) ? 1 : -1
     // })
@@ -893,7 +914,7 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
         })
         const myResultsFiltersCount = myFacets
             .map(f => f.resultsFiltersCount)
-            .reduce((a,b) => a + b, 0)
+            .reduce((a, b) => a + b, 0)
 
         return {
             name: categoryName,
@@ -916,6 +937,7 @@ export {
     getFacetConfig,
     facetCategories,
     facetsByCategory,
+    filtersList,
 }
 
 

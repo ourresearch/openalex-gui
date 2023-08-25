@@ -7,7 +7,6 @@
 
   >
 
-
     <div >
       <v-card
           :ripple="false"

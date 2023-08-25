@@ -16,8 +16,8 @@
         </template>
         <v-list dense>
           <v-list-item
-            @click="clearAll"
-            :disabled="resultsFilters.length === 0"
+                  @click="clearAll"
+                  :disabled="resultsFilters.length === 0"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-off-outline</v-icon>
@@ -51,34 +51,44 @@
       <!--      {{ openPanels }}-->
 
       <v-text-field
-          flat
-          outlined
-          hide-details
-          full-width
-          clearable
-          prepend-inner-icon="mdi-magnify"
-          dense
-          color="green"
+              flat
+              outlined
+              hide-details
+              full-width
+              clearable
+              prepend-inner-icon="mdi-magnify"
+              dense
+              color="green"
 
-          v-model="searchString"
-          placeholder="Search filter types"
+              v-model="searchString"
+              placeholder="Search filter types"
       />
     </v-toolbar>
+    <v-list>
+      <facet-simple
+              v-for="filter in myFiltersList"
+              :key="filter.entityType + filter.key"
+              :facet-key="filter.key"
+              :facet-entity-type="entityType"
+      />
+    </v-list>
+
     <v-expansion-panels
-        :multiple="allowMultipleOpenPanels"
-        flat
-        accordion
-        v-model="openPanels"
+            v-if="0"
+            :multiple="allowMultipleOpenPanels"
+            flat
+            accordion
+            v-model="openPanels"
     >
 
       <v-expansion-panel
-          v-for="(facetCategory, i) in myFacetsByCategory"
-          :key="i"
+              v-for="(facetCategory, i) in myFacetsByCategory"
+              :key="i"
       >
-                <v-divider />
+        <v-divider/>
         <v-expansion-panel-header
-            :class="{'font-weight-bold': facetCategory.resultsFiltersCount > 0, 'green--text': facetCategory.resultsFiltersCount > 0}"
-            class="d-flex pl-4"
+                :class="{'font-weight-bold': facetCategory.resultsFiltersCount > 0, 'green--text': facetCategory.resultsFiltersCount > 0}"
+                class="d-flex pl-4"
         >
           <div class="capitalize-first-letter d-flex align-center">
 
@@ -97,10 +107,10 @@
         <v-expansion-panel-content>
           <v-list>
             <facet-simple
-                v-for="facet in facetCategory.facets"
-                :key="facet.entityType + facet.key"
-                :facet-key="facet.key"
-                :facet-entity-type="entityType"
+                    v-for="facet in facetCategory.facets"
+                    :key="facet.entityType + facet.key"
+                    :facet-key="facet.key"
+                    :facet-entity-type="entityType"
             />
 
           </v-list>
@@ -117,96 +127,103 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetsByCategory} from "../facetConfigs";
+import {facetsByCategory, filtersList} from "../facetConfigs";
 import FacetSimple from "./Facet/FacetSimple.vue";
 import facet from "./Facet/Facet.vue";
 import {url} from "@/url";
 
 export default {
-  name: "SerpFacetsColumn",
-  components: {
-    FacetSimple,
-  },
-  props: {
-    disabled: Boolean,
-  },
-  data() {
-    return {
-      searchString: "",
-      openPanels: [0],
-      allowMultipleOpenPanels: true,
-    }
-  },
-  computed: {
-    facet() {
-      return facet
+    name: "SerpFacetsColumn",
+    components: {
+        FacetSimple,
     },
-    ...mapGetters([
-      "resultsFilters",
-      "entityType",
-    ]),
-    myFacetsByCategory() {
-      return facetsByCategory(
-          "works",
-          this.resultsFilters,
-          this.searchString,
-      )
+    props: {
+        disabled: Boolean,
     },
-    isOpen: {
-      get() {
-        if (!this.$vuetify.breakpoint.mobile) return true
-        return this.$store.state.showFiltersDrawer
-      },
-      set(val) {
-        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
-        this.$store.state.showFiltersDrawer = val
-      },
-    },
-  },
-
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-      "openFacetsDialog",
-    ]),
-    ...mapActions([]),
-    clearAll() {
-      url.setFilters(this.entityType, [])
-      this.snackbar("All filters cleared")
-    },
-
-
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen(to, from) {
-    },
-    "$route.query": {
-      immediate: true,
-      handler(newVal, oldVal) {
-        this.searchString = ""
-      }
-    },
-    searchString: {
-      immediate: true,
-      handler(newVal, oldVal) {
-        const allPanelIndexes = _.range(0, this.myFacetsByCategory.length)
-        if (newVal) {
-          console.log("open expansion panels: ", allPanelIndexes)
-          this.allowMultipleOpenPanels = true
-          this.openPanels = allPanelIndexes
-          console.log("this.openPanels: ", this.openPanels)
-        } else {
-          this.allowMultipleOpenPanels = false
-          this.openPanels = 0
+    data() {
+        return {
+            searchString: "",
+            openPanels: [0],
+            allowMultipleOpenPanels: true,
         }
-      }
     },
-  }
+    computed: {
+        facet() {
+            return facet
+        },
+        ...mapGetters([
+            "resultsFilters",
+            "entityType",
+        ]),
+        myFiltersList() {
+            return filtersList(
+                this.$route.params.entityType,
+                this.resultsFilters,
+                this.searchString,
+            )
+        },
+        myFacetsByCategory() {
+            return facetsByCategory(
+                "works",
+                this.resultsFilters,
+                this.searchString,
+            )
+        },
+        isOpen: {
+            get() {
+                if (!this.$vuetify.breakpoint.mobile) return true
+                return this.$store.state.showFiltersDrawer
+            },
+            set(val) {
+                if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
+                this.$store.state.showFiltersDrawer = val
+            },
+        },
+    },
+
+
+    methods: {
+        ...mapMutations([
+            "snackbar",
+            "openFacetsDialog",
+        ]),
+        ...mapActions([]),
+        clearAll() {
+            url.setFilters(this.entityType, [])
+            this.snackbar("All filters cleared")
+        },
+
+
+    },
+    created() {
+    },
+    mounted() {
+    },
+    watch: {
+        isOpen(to, from) {
+        },
+        "$route.query": {
+            immediate: true,
+            handler(newVal, oldVal) {
+                this.searchString = ""
+            }
+        },
+        searchString: {
+            immediate: true,
+            handler(newVal, oldVal) {
+                const allPanelIndexes = _.range(0, this.myFacetsByCategory.length)
+                if (newVal) {
+                    console.log("open expansion panels: ", allPanelIndexes)
+                    this.allowMultipleOpenPanels = true
+                    this.openPanels = allPanelIndexes
+                    console.log("this.openPanels: ", this.openPanels)
+                } else {
+                    this.allowMultipleOpenPanels = false
+                    this.openPanels = 0
+                }
+            }
+        },
+    }
 }
 </script>
 
@@ -215,9 +232,11 @@ export default {
   padding-left: 7px !important;
   padding-right: 7px !important;
 }
+
 .facets-column .v-sheet {
   padding: 0 !important;
 }
+
 .facets-column .v-expansion-panel--active > .v-expansion-panel-header {
   min-height: 0 !important;
   font-weight: bold !important;
