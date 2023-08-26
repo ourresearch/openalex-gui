@@ -1,6 +1,6 @@
 <template>
   <div>
-    filter value
+    filter value {{filterKey}}:{{displayValue}} ({{value}})
   </div>
 </template>
 
@@ -12,7 +12,12 @@ export default {
   name: "FilterValue",
   components: {
   },
-  props: {},
+  props: {
+    readonly: Boolean,
+    filterKey: String,
+    value: String,
+    displayValue: String,
+  },
   data() {
     return {
       foo: 42,

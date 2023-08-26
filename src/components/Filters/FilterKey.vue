@@ -1,27 +1,41 @@
 <template>
   <div>
-    filter key
+    <v-autocomplete
+        :items="filters"
+        item-text="displayName"
+        item-value="key"
+        class="mr-3"
+        v-model="selectedFilterKey"
+    />
   </div>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {filtersList} from "@/facetConfigs";
 
 export default {
   name: "FilterKey",
-  components: {
+  components: {},
+  props: {
+    readonly: Boolean,
+    filterKey: String,
   },
-  props: {},
   data() {
     return {
       foo: 42,
+      selectedFilterKey: this.filterKey,
     }
   },
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "entityType",
     ]),
+    filters() {
+      return filtersList(this.entityType, [], "")
+    },
   },
 
   methods: {
@@ -37,6 +51,9 @@ export default {
   mounted() {
   },
   watch: {
+    selectedFilterKey(to, from){
+      this.$emit("change", to)
+    }
   }
 }
 </script>
