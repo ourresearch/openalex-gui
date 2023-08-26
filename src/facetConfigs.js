@@ -679,7 +679,7 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.country_code",
             entityType: "authors",
-            displayName: "Country",
+            displayName: "Institution country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             valuesToShow: "mostCommon",
             isCountry: true,
@@ -698,9 +698,9 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityType: "authors",
-            displayName: "ORCID",
+            displayName: "Indexed by ORCID",
             valuesToShow: "boolean",
-            booleanValues: ["Has ORCID", "No ORCID"],
+            booleanValues: ["No ORCID", "Has ORCID"],
             category: "ids",
             icon: "mdi-database-outline",
         },
@@ -890,17 +890,18 @@ const facetsByCategory = function (entityType, resultsFilters, searchString) {
 
             return c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
-        .filter(c => {
-            const filters = resultsFilters.filter(f => f.key === c.key)
-            // hide the noOptions facets unless they have selected filters
-            return !c.noOptions || filters.length
-        })
-        .map(c => {
-            return {
-                ...c,
-                resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
-            }
-        })
+        // .filter(c => {
+        //     if (!resultsFilters) return true
+        //     const filters = resultsFilters.filter(f => f.key === c.key)
+        //     // hide the noOptions facets unless they have selected filters
+        //     return !c.noOptions || filters.length
+        // })
+        // .map(c => {
+        //     return {
+        //         ...c,
+        //         resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
+        //     }
+        // })
 
     // return filtered
 

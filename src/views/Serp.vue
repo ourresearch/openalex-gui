@@ -33,6 +33,7 @@
         <v-col cols="12" sm="4">
           <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
           <year-range
+                  v-if="entityType === 'works'"
               height="50px"
               big class="mb-3"
               :disabled="!!facetZoom"

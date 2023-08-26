@@ -34,6 +34,9 @@
               :filter="filter"
 
       />
+      <applied-filters-new-filter
+        key="new-filter"
+      />
     </v-list>
     <v-card-actions v-if="0">
       <v-btn
@@ -99,6 +102,7 @@
 import {sleep} from "../../util";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import AppliedFiltersFilter from "./AppliedFiltersFilter.vue";
+import AppliedFiltersNewFilter from "./AppliedFiltersNewFilter.vue";
 import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
 import {url} from "../../url";
@@ -107,6 +111,7 @@ export default {
     name: "AppliedFilters",
     components: {
         AppliedFiltersFilter,
+        AppliedFiltersNewFilter,
     },
     props: {
         singleWork: Boolean,
