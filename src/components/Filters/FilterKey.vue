@@ -1,6 +1,6 @@
 <template>
   <div>
-    stuff goes here
+    filter key
   </div>
 </template>
 
@@ -9,7 +9,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "FilterKey",
   components: {
   },
   props: {},

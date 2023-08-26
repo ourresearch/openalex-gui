@@ -2,116 +2,36 @@
   <v-card
           flat
           class=""
-          min-height="78"
-          :color="(resultsFilters.length) ? 'white' : 'transparent' "
-          style="transition: background-color .5s"
   >
-    <v-toolbar v-if="0" dense flat>
-      <v-icon color="green" left>mdi-filter-outline</v-icon>
-      <v-toolbar-title class="green--text font-weight-bold">
-        Filters
-        <span class="caption">
-            ({{ resultsFilters.length }})
-          </span>
-      </v-toolbar-title>
-
-      <v-btn
-              icon
-              class="px-0"
-              @click="clear()"
-              v-if="resultsFilters.length"
-              :disabled="singleWork"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-
-    </v-toolbar>
-
     <v-list dense class="">
-      <applied-filters-filter
+      <o-filter
               v-for="filter in resultsFilters"
               :key="filter.key + filter.value"
               :filter="filter"
 
       />
-      <applied-filters-new-filter
+      <o-filter
         key="new-filter"
       />
     </v-list>
-    <v-card-actions v-if="0">
-      <v-btn
-              v-if="resultsFilters.length && !$vuetify.breakpoint.mobile"
-              @click="openFacetsDialog"
-              color="primary"
-              dark
-      >
-        <v-icon left>mdi-plus</v-icon>
-        Add filter
-      </v-btn>
-      <v-btn
-              text
-              @click="clear"
-              v-if="resultsFilters.length > 0"
-              class="ml-3"
-      >
-        <v-icon left>mdi-filter-off-outline</v-icon>
-        Clear all
-      </v-btn>
-
-    </v-card-actions>
-    <div>
-    </div>
-
-
-    <!--      <div class="pa-3 grey&#45;&#45;text" v-if="resultsFilters.length === 0">-->
-    <!--        There are no filters applied.-->
-
-    <!--        <v-btn-->
-    <!--                text-->
-    <!--                @click="openFacetsDialog"-->
-    <!--                class="px-2"-->
-    <!--                color="green"-->
-    <!--                small-->
-    <!--        >-->
-    <!--          Add one-->
-    <!--        </v-btn>-->
-    <!--      </div>-->
-    <!--      <v-fab-transition>-->
-    <!--          <v-btn-->
-    <!--                  rounded-->
-    <!--                  @click="openFacetsDialog"-->
-    <!--                  color="green"-->
-    <!--                  dark-->
-    <!--                  style="height: 40px; width: 40px; min-width: unset; margin: 0 0 -20px 10px;"-->
-    <!--                  class="px-0 "-->
-    <!--                  v-if="showAddFilterButton"-->
-    <!--                  :disabled="singleWork"-->
-    <!--          >-->
-    <!--            <v-icon>mdi-plus</v-icon>-->
-    <!--          </v-btn>-->
-
-    <!--        </v-fab-transition>-->
-
-
   </v-card>
 
 
 </template>
 
 <script>
-import {sleep} from "../../util";
+import {sleep} from "../util";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import AppliedFiltersFilter from "./AppliedFiltersFilter.vue";
-import AppliedFiltersNewFilter from "./AppliedFiltersNewFilter.vue";
 import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {filtersAsUrlStr, sortedFilters} from "../../filterConfigs";
-import {url} from "../../url";
+import {filtersAsUrlStr, sortedFilters} from "../filterConfigs";
+
+import OFilter from "./Filters/OFilter.vue";
+import {url} from "../url";
 
 export default {
     name: "AppliedFilters",
     components: {
-        AppliedFiltersFilter,
-        AppliedFiltersNewFilter,
+        OFilter,
     },
     props: {
         singleWork: Boolean,

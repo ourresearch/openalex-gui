@@ -2,7 +2,7 @@
 
   <div class="">
     <v-container class="">
-      <v-alert dense text type="warning" class="">
+      <v-alert v-if="0" dense text type="warning" class="">
         <v-row class="align-center">
           <div class="">
             <span class="font-weight-bold">Alpha version:</span>
@@ -18,19 +18,16 @@
           </v-btn>
         </v-row>
       </v-alert>
-      <applied-filters class="mb-3" />
+      <serp-applied-filters class="mb-3" />
       <v-row class="">
-        <v-col v-if="!$vuetify.breakpoint.mobile" sm="3">
-          <filters-list />
-        </v-col>
-        <v-col cols="12" sm="5">
+        <v-col cols="12" sm="6">
           <v-card flat key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
 
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="3">
           <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
           <year-range
                   v-if="entityType === 'works'"
@@ -44,7 +41,6 @@
 
 
     <div id="serp-hidden">
-      <facets-list-dialog/>
       <api-dialog/>
       <v-dialog v-model="groupByDialogIsOpen">
         <facet-zoom-new
@@ -64,37 +60,18 @@
 
 <script>
 
-// import VueJsonPretty from 'vue-json-pretty';
-// import 'vue-json-pretty/lib/styles.css';
-import millify from "millify";
 import _ from 'lodash';
-
-
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
-import DownloadCsvDialog from "../components/DownloadCsvDialog";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
-import AppliedFilters from "../components/AppliedFilters/AppliedFilters.vue";
+import SerpAppliedFilters from "../components/SerpAppliedFilters.vue";
 
-import ResultWork from "../components/Result/ResultWork.vue";
-import ResultAuthor from "../components/Result/ResultAuthor.vue";
-import ResultVenue from "../components/Result/ResultSource.vue";
-import ResultPublisher from "../components/Result/ResultPublisher.vue";
-import ResultInstitution from "../components/Result/ResultInstitution.vue";
-import ResultConcept from "../components/Result/ResultConcept.vue";
-import FacetsDrawer from "../components/Facet/FacetsDrawer";
-// import ZoomEntity from "../components/ZoomEntity";
-import FacetZoom from "../components/Facet/FacetZoom";
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
 import {api} from "@/api";
 import SerpResultsList from "../components/SerpResultsList.vue";
 
-import Entity from "../components/Entity/Entity.vue";
-import FacetsListDialog from "@/components/Facet/FacetsListDialog.vue";
-import FiltersList from "../components/FiltersList/FiltersList.vue";
-import FacetZoomNew from "@/components/Facet/FacetZoomNew.vue";
 import ApiDialog from "../components/ApiDialog.vue";
 
 export default {
@@ -105,14 +82,10 @@ export default {
     return ret
   },
   components: {
-    Entity,
     SerpToolbar,
-    AppliedFilters,
+    SerpAppliedFilters,
     SerpResultsList,
-    FacetZoomNew,
     YearRange,
-    FacetsListDialog,
-    FiltersList,
     ApiDialog,
 
   },
