@@ -52,7 +52,7 @@ export default {
   },
   watch: {
     selectedFilterKey(to, from){
-      this.$emit("change", to)
+      this.$emit("input", to)
     }
   }
 }

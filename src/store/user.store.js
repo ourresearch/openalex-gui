@@ -84,7 +84,6 @@ export const user = {
 
         },
         async fetchUser({commit, dispatch, getters}) {
-            console.log("fetching user")
             const resp = await axios.get(
                 apiBaseUrl + "/user/me",
                 axiosConfig()
@@ -115,22 +114,18 @@ export const user = {
         },
 
         async fetchEmailAlerts({commit, state}) {
-            console.log("fetchEmailAlerts go")
             const resp = await axios.get(
                 apiBaseUrl + "/alert/work",
                 axiosConfig()
             )
-            console.log("fetchEmailAlerts response", resp.data)
             state.emailAlerts = resp.data.alerts
         },
 
         async fetchSavedSearches({commit, state}) {
-            console.log("fetchSavedSearches go")
             const resp = await axios.get(
                 apiBaseUrl + "/saved-search",
                 axiosConfig()
             )
-            console.log("fetchSavedSearches response", resp.data)
             state.savedSearches = resp.data.saved_searches
         },
 

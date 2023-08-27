@@ -37,6 +37,12 @@ const filtersFromUrlStr = function (entityType, str) {
     return filters
 }
 
+const filtersAreEqual = function(f1, f2){
+    const sameKey = f1.key === f2.key
+    const sameValue = f1.value === f2.value
+    const sameNegation = f1.isNegated === f2.isNegated
+    return sameKey && sameValue && sameNegation
+}
 
 // const filtersAsUrlStr = function (filters) {
 //     return filters
@@ -264,6 +270,7 @@ const sortedFilters = function (filters, sortByValue) {
 export {
     filtersAsUrlStr,
     filtersFromUrlStr,
+    filtersAreEqual,
 
     filtersFromFiltersApiResponse,
     createSimpleFilter,

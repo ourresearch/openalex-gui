@@ -9,18 +9,24 @@
         <filter-key
                 :readonly="keyReadonly"
                 :filter-key="myFilterKey"
-                @change="setMyFilterKey"
+                @input="setMyFilterKey"
         />
         <component
                 :is="filterValueComponentName"
                 :filter-key="myFilterKey"
                 :value="value"
                 :display-value="displayValue"
-                @change="setMyFilterValue"
+                @input="setMyFilterValue"
+                @submit="apply"
         />
 
       </div>
     </v-list-item-content>
+    <div>
+      <v-btn color="primary" dark rounded @click="apply">
+         <v-icon>mdi-check</v-icon>
+      </v-btn>
+    </div>
 
 
   </v-list-item>
@@ -57,6 +63,7 @@ export default {
     props: {
         keyReadonly: Boolean,
         filterKey: String,
+        isNegated: Boolean,
         valueReadonly: Boolean,
         value: String,
         displayValue: String,
@@ -65,6 +72,8 @@ export default {
         return {
             foo: 42,
             myFilterKey: this.filterKey,
+            myFilterValue: this.filterValue,
+            myIsNegated: this.isNegated,
         }
     },
     computed: {
@@ -73,15 +82,28 @@ export default {
             "entityType",
             "facetZoom",
         ]),
-        isNegated() {
-            return this.filter.isNegated
-        },
         myFilterConfig(){
             return facetConfigs().find(c => c.key === this.myFilterKey)
         },
         filterValueComponentName(){
           return "filter-value-" + this.myFilterConfig.type
         },
+        originalFilter(){
+            return createSimpleFilter(
+                this.entityType,
+                this.filterKey,
+                this.filterValue,
+                this.isNegated
+            )
+        },
+        newFilter(){
+            return createSimpleFilter(
+                this.entityType,
+                this.myFilterKey,
+                this.myFilterValue,
+                this.myIsNegated
+            )
+        }
     },
 
     methods: {
@@ -91,11 +113,16 @@ export default {
             "setFacetZoom",
         ]),
         ...mapActions([]),
+        async apply(){
+            console.log("filter.apply()", this.originalFilter, this.newFilter)
+            await url.replaceFilter(this.originalFilter, this.newFilter)
+        },
         setMyFilterKey(newKey) {
             this.myFilterKey = newKey
         },
         setMyFilterValue(newValue) {
             console.log("setMyFilterValue", newValue)
+            this.myFilterValue = newValue
         },
         remove() {
             const newFilters = this.resultsFilters.filter(f => f.asStr !== this.filter.asStr)

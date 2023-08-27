@@ -1,5 +1,5 @@
 import router from "./router";
-import {filtersAsUrlStr, filtersFromUrlStr} from "./filterConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 
 const makeRoute = function (router, newRoute) {
@@ -71,6 +71,31 @@ const setFiltersByKey = function (filterKey, filters) {
     pushToRoute(router, newRoute)
 }
 
+const replaceFilter = async function(oldFilter, newFilter){
+    const entityType = router.currentRoute.params.entityType
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+
+    // remove the old filter
+    const oldFiltersToKeep = oldFilters.filter(f => {
+        return !filtersAreEqual(f, oldFilter)
+    })
+
+    // add the new filter
+    const newFilters = [...oldFiltersToKeep, newFilter]
+
+    // set and push
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: router.currentRoute.query.sort,
+            filter: filtersAsUrlStr(newFilters, entityType)
+        }
+    }
+    pushToRoute(router, newRoute)
+}
+
 const setFilters = function (entityType, filters, hardReset=false) {
     const newRoute = {
         name: "Serp",
@@ -136,6 +161,7 @@ const url = {
 
     setFiltersByKey,
     setFilters,
+    replaceFilter,
     setSearch,
 
     setGroupBy,

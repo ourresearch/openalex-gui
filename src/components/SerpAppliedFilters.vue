@@ -5,18 +5,13 @@
   >
     <v-list dense class="">
       <o-filter
-          v-for="filter in resultsFilters"
+          v-for="filter in filtersToShow"
           :key="filter.key + filter.value"
 
-          key-readonly
+          :key-readonly="true"
           :filter-key="filter.key"
           :value="filter.value"
           :display-value="filter.displayValue"
-      />
-      <o-filter
-          key="new-filter"
-          key-readonly
-          filter-key="title.search"
       />
     </v-list>
   </v-card>

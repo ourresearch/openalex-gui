@@ -9,7 +9,8 @@
             :placeholder="myFilterConfig.displayName"
             :label="myFilterConfig.displayName"
             outlined
-            @keypress.enter="$emit('change', myValue)"
+            @keypress.enter="$emit('submit')"
+            @input="$emit('input', myValue)"
     />
   </div>
 </template>
