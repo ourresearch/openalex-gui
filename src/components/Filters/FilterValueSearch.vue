@@ -1,14 +1,11 @@
 <template>
   <div>
     <v-text-field
-            autofocus
-            prepend-inner-icon="mdi-magnify"
-            flat
+            dense
             hide-details
             v-model="myValue"
             :placeholder="myFilterConfig.displayName"
             :label="myFilterConfig.displayName"
-            outlined
             @keypress.enter="$emit('submit')"
             @input="$emit('input', myValue)"
     />
@@ -19,6 +16,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
     name: "FilterValueSearch",
@@ -28,6 +26,7 @@ export default {
         filterKey: String,
         value: String,
         displayValue: String,
+
     },
     data() {
         return {
@@ -57,7 +56,14 @@ export default {
     },
     mounted() {
     },
-    watch: {}
+    watch: {
+      '$route': {
+      immediate: true,
+      handler: function (to, from) {
+        console.log("FilterValueSearch $route change", to)
+      }
+    }
+    }
 }
 </script>
 

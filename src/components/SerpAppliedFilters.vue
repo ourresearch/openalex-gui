@@ -5,13 +5,17 @@
   >
     <v-list dense class="">
       <o-filter
-          v-for="filter in filtersToShow"
+          v-for="(filter, i) in resultsFilters"
           :key="filter.key + filter.value"
 
           :key-readonly="true"
           :filter-key="filter.key"
           :value="filter.value"
           :display-value="filter.displayValue"
+      />
+      <o-filter
+          :key="'new-filter' + $route.fullPath"
+          filter-key="title.search"
       />
     </v-list>
   </v-card>
@@ -22,12 +26,11 @@
 <script>
 import {sleep} from "../util";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetCategories, facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {filtersAsUrlStr, sortedFilters} from "../filterConfigs";
 
 // change name to "o-filter" because "filter" is a native HTML element name.
 import OFilter from "./Filters/Filter.vue";
 import {url} from "../url";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
   name: "AppliedFilters",
@@ -44,7 +47,7 @@ export default {
       selectedFilters: [],
       dialogs: {
         facetsDrawer: false,
-      }
+      },
     }
   },
   computed: {
@@ -55,74 +58,15 @@ export default {
       "filtersZoom",
 
     ]),
-    facetsDrawerIsOpen: {
-      get() {
-        return !!this.filtersZoom
-      },
-      set(val) {
-        this.setFiltersZoom(val)
-      },
+    filtersToShow() {
+      const newFilter = createSimpleFilter(
+          this.entityType,
+          "title.search",
+          "",
+          false,
+      )
+      return [...this.resultsFilters, newFilter]
     },
-    searchPlaceholderText() {
-      if (this.selectedFacetConfig) {
-        if (this.selectedFacetConfig.valuesToShow !== "mostCommon") return ""
-
-        const thingToSearch = this.$pluralize(this.selectedFacetConfig.displayName, 2);
-        return `Search ${thingToSearch}`
-      } else {
-        return "Search filter types"
-      }
-    },
-
-    facetsByCategory() {
-      return facetCategories[this.entityType].map(categoryName => {
-        return {
-          name: categoryName,
-          facets: this.searchStringResults.filter(f => {
-            return f.category === categoryName
-          })
-        }
-      })
-          .filter(categoryObj => {
-            return categoryObj.facets.length > 0
-          })
-    },
-
-
-    searchStringResults() {
-      const ret = this.searchFacetConfigs
-          .filter(c => {
-            return c.displayName.toLowerCase().match(this.searchString?.toLowerCase())
-          })
-          .filter(c => {
-            const filters = this.resultsFilters.filter(f => f.key === c.key)
-            // hide the noOptions facets unless they have selected filters
-            return !c.noOptions || filters.length
-          })
-
-      ret.sort((a, b) => {
-        if (a.sortToTop) return -1
-        return (a.displayName > b.displayName) ? 1 : -1
-      })
-
-
-      return ret
-    },
-    selectedFacetKey() {
-      const filterKeys = facetConfigs().map(f => f.key)
-      if (filterKeys.includes(this.filtersZoom)) {
-        return this.filtersZoom
-      }
-    },
-    selectedFacetConfig() {
-      if (!this.selectedFacetKey) return
-      return getFacetConfig(this.entityType, this.selectedFacetKey)
-    },
-    myResultsFilters() {
-      if (!this.selectedFacetKey) return this.resultsFilters
-      return this.resultsFilters.filter(f => f.key === this.selectedFacetKey);
-    }
-
 
   },
 
@@ -133,22 +77,6 @@ export default {
       "openFacetsDialog",
     ]),
     ...mapActions([]),
-    makeApiUrl(perPage, formatCsv) {
-      if (!perPage) perPage = this.maxApiFiltersToShow
-      const url = new URL(`https://api.openalex.org`)
-      url.pathname = `${this.entityType}`
-
-      const filters = this.$store.state.inputFilters
-      url.searchParams.set("filter", filtersAsUrlStr(filters, this.entityType))
-
-      url.searchParams.set("group_by", this.selectedFacetConfig.key)
-      url.searchParams.set("per_page", String(perPage))
-      if (this.textSearch) url.searchParams.set("search", this.textSearch)
-      if (this.searchString) url.searchParams.set("q", this.searchString)
-      if (formatCsv) url.searchParams.set("format", "csv")
-      url.searchParams.set("email", "team@ourresearch.org")
-      return url.toString()
-    },
     clear() {
       url.setFilters(this.entityType, [])
       this.snackbar("All filters cleared")
@@ -173,9 +101,12 @@ export default {
     this.showAddFilterButton = true
   },
   watch: {
-    selectedFacetKey(to, from) {
-      this.searchString = ""
-    },
+    '$route': {
+      immediate: true,
+      handler: function (to, from) {
+        console.log("SerpAppliedFilters $route change", to)
+      }
+    }
   }
 }
 </script>
