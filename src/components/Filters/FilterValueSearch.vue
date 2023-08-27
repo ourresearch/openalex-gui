@@ -3,7 +3,7 @@
     <v-text-field
             dense
             hide-details
-            v-model="myValue"
+            v-model="myFilterValue"
             :placeholder="myFilterConfig.displayName"
             :label="myFilterConfig.displayName"
             @keypress.enter="$emit('submit')"
@@ -31,7 +31,7 @@ export default {
     data() {
         return {
             foo: 42,
-            myValue: this.value,
+            myFilterValue: this.filterValue,
             myFilterKey: this.filterKey,
         }
     },

@@ -15,7 +15,7 @@
         <component
             :is="filterValueComponentName"
             :filter-key="myFilterKey"
-            :filterValue="filterValue"
+            :filter-value="filterValue"
             :display-value="displayValue"
             @input="setMyFilterValue"
             @submit="apply"
