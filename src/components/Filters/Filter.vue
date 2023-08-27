@@ -15,7 +15,7 @@
         <component
             :is="filterValueComponentName"
             :filter-key="myFilterKey"
-            :value="value"
+            :value="filterValue"
             :display-value="displayValue"
             @input="setMyFilterValue"
             @submit="apply"
@@ -24,9 +24,23 @@
       </div>
     </v-list-item-content>
     <div>
-      <v-btn color="primary" dark rounded @click="apply">
-        <v-icon>mdi-check</v-icon>
-      </v-btn>
+      <div v-if="myIsEditing">
+        <v-btn icon @click="myIsEditing = false" v-if="keyReadonly">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <v-btn icon color="primary" @click="apply" :disabled="!myFilterValue">
+          <v-icon>mdi-check</v-icon>
+        </v-btn>
+
+      </div>
+      <div v-else>
+        <v-btn icon  @click="myIsEditing = true">
+          <v-icon>mdi-pencil-outline</v-icon>
+        </v-btn>
+        <v-btn icon @click="remove">
+          <v-icon>mdi-delete-outline</v-icon>
+        </v-btn>
+      </div>
     </div>
 
 
@@ -66,9 +80,9 @@ export default {
     filterKey: String,
     isNegated: Boolean,
     valueReadonly: Boolean,
-    value: String,
+    filterValue: String,
     displayValue: String,
-    resetOnRouteChange: Boolean,
+    isEditing: Boolean,
   },
   data() {
     return {
@@ -76,6 +90,7 @@ export default {
       myFilterKey: this.filterKey,
       myFilterValue: this.filterValue,
       myIsNegated: this.isNegated,
+      myIsEditing: this.isEditing
     }
   },
   computed: {
@@ -116,22 +131,18 @@ export default {
     ]),
     ...mapActions([]),
     async apply() {
-      console.log("filter.apply()", this.originalFilter, this.newFilter)
       await url.replaceFilter(this.originalFilter, this.newFilter)
     },
+    async remove() {
+      await url.replaceFilter(this.originalFilter, null)
+    },
+
     setMyFilterKey(newKey) {
       this.myFilterKey = newKey
     },
     setMyFilterValue(newValue) {
       console.log("setMyFilterValue", newValue)
       this.myFilterValue = newValue
-    },
-    remove() {
-      const newFilters = this.resultsFilters.filter(f => f.asStr !== this.filter.asStr)
-      url.setFilters(
-          this.entityType,
-          newFilters
-      )
     },
     toggleNegation() {
       const newFilter = createSimpleFilter(

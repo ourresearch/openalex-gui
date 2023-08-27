@@ -10,12 +10,13 @@
 
           :key-readonly="true"
           :filter-key="filter.key"
-          :value="filter.value"
+          :filter-value="filter.value"
           :display-value="filter.displayValue"
       />
       <o-filter
           :key="'new-filter' + $route.fullPath"
           filter-key="title.search"
+          is-editing
       />
     </v-list>
   </v-card>
