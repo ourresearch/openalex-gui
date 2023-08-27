@@ -1,6 +1,20 @@
 <template>
-  <div>
-    filter value RANGE {{filterKey}}: value
+  <div class="d-flex">
+    <v-text-field
+            dense
+            hide-details
+            v-model="start"
+            label="Start"
+            @keypress.enter="$emit('submit')"
+    />
+    <span class="mx-3">&mdash;</span>
+    <v-text-field
+            dense
+            hide-details
+            v-model="end"
+            label="End"
+            @keypress.enter="$emit('submit')"
+    />
   </div>
 </template>
 
@@ -15,18 +29,25 @@ export default {
   props: {
     readonly: Boolean,
     filterKey: String,
-    value: String,
+    filterValue: String,
     displayValue: String,
   },
   data() {
+    const splitValue = (this.filterValue) ? this.filterValue.split("-") : ["", ""]
     return {
       foo: 42,
+      start: String(splitValue[0]),
+      end: String(splitValue[1]),
     }
   },
   computed: {
     ...mapGetters([
       "resultsFilters",
     ]),
+    asStr(){
+      return this.start + "-" + this.end
+    }
+
   },
 
   methods: {
@@ -42,6 +63,9 @@ export default {
   mounted() {
   },
   watch: {
+    asStr: function(to, from){
+      this.$emit("input", to)
+    }
   }
 }
 </script>

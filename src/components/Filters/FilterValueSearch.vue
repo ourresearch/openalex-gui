@@ -24,7 +24,7 @@ export default {
     props: {
         readonly: Boolean,
         filterKey: String,
-        value: String,
+        filterValue: String,
         displayValue: String,
 
     },
