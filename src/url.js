@@ -156,26 +156,37 @@ const goToZoom = async function (router, zoom) {
 }
 
 
-const makeGroupByUrl = function (
-    groupByKey,
-    perPage = 100,
-    formatCsv = false,
-    includeEmail = true
-) {
+const makeGroupByUrl = function (groupByKey, options) {
+
+    // set options from defaults and args
+    const defaults = {
+        searchString: null,
+        perPage: 100,
+        formatCsv: false,
+        includeEmail: true,
+    }
+    options = Object.assign({}, defaults, options);
+
+    // gather state from the current URL
     const entityType = router.currentRoute.params.entityType
     const filters = filtersFromUrlStr(
         entityType,
         router.currentRoute.query.filter
     )
 
+    // set required params
     const url = new URL(`https://api.openalex.org`)
     url.pathname = entityType
     url.searchParams.set("filter", filtersAsUrlStr(filters, entityType))
     url.searchParams.set("group_by", groupByKey)
-    url.searchParams.set("per_page", String(perPage))
-    if (this.searchString) url.searchParams.set("q", this.searchString)
-    if (formatCsv) url.searchParams.set("format", "csv");
-    if (includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+
+    // set optional params
+    url.searchParams.set("per_page", String(options.perPage))
+    if (options.searchString) url.searchParams.set("q", options.searchString)
+    if (options.formatCsv) url.searchParams.set("format", "csv");
+    if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+
+    // all done
     return url.toString()
 }
 

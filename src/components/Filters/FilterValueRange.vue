@@ -5,7 +5,7 @@
             hide-details
             v-model="start"
             label="Start"
-            @keypress.enter="$emit('submit')"
+            @keypress.enter="$emit('submit', asStr)"
     />
     <span class="mx-3">&mdash;</span>
     <v-text-field
@@ -13,7 +13,7 @@
             hide-details
             v-model="end"
             label="End"
-            @keypress.enter="$emit('submit')"
+            @keypress.enter="$emit('submit', asStr)"
     />
   </div>
 </template>
@@ -63,9 +63,6 @@ export default {
   mounted() {
   },
   watch: {
-    asStr: function(to, from){
-      this.$emit("input", to)
-    }
   }
 }
 </script>

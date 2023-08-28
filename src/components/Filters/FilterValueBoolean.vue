@@ -7,7 +7,7 @@
       item-value="value"
       v-model="selectedValue"
 
-      @input="onInput"
+      @change="$emit('submit', selectedValue)"
     />
   </div>
 </template>
@@ -48,10 +48,6 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    onInput(){
-      this.$emit("input", this.selectedValue)
-      this.$emit("submit")
-    }
 
 
   },
@@ -61,10 +57,6 @@ export default {
     const resp = await axios.get(
             url.makeGroupByUrl(this.filterKey)
         )
-
-    this.options = resp
-    console.log("FilterValueBoolean resp", this.entityType, this.filterKey, resp.data)
-
     this.options = resp.data.group_by.map(group => {
       return createDisplayFilter(
               this.entityType,

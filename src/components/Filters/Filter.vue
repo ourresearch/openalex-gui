@@ -17,7 +17,6 @@
             :filter-key="myFilterKey"
             :filter-value="filterValue"
             :display-value="displayValue"
-            @input="setMyFilterValue"
             @submit="apply"
         />
 
@@ -116,7 +115,8 @@ export default {
       "setFacetZoom",
     ]),
     ...mapActions([]),
-    async apply() {
+    async apply(newValue) {
+      this.myFilterValue = newValue
       await url.replaceFilter(this.originalFilter, this.newFilter)
     },
     async remove() {
@@ -125,10 +125,6 @@ export default {
 
     setMyFilterKey(newKey) {
       this.myFilterKey = newKey
-    },
-    setMyFilterValue(newValue) {
-      console.log("setMyFilterValue", newValue)
-      this.myFilterValue = newValue
     },
     toggleNegation() {
       const newFilter = createSimpleFilter(

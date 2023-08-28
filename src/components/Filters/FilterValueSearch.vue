@@ -6,8 +6,7 @@
             v-model="myFilterValue"
             :placeholder="myFilterConfig.displayName"
             :label="myFilterConfig.displayName"
-            @keypress.enter="$emit('submit')"
-            @input="$emit('input', myFilterValue)"
+            @keypress.enter="$emit('submit', myFilterValue)"
     />
   </div>
 </template>
