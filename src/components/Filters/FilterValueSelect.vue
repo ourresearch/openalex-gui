@@ -2,6 +2,7 @@
   <div>
     <v-autocomplete
         dense
+        :loading="isLoading"
         :items="options"
         item-text="displayValue"
         v-model="selectedValue"
@@ -30,6 +31,7 @@ export default {
   data() {
     return {
       foo: 42,
+      isLoading: false,
       selectedValue: this.filterValue,
       options: [],
       searchString: "",
@@ -48,21 +50,33 @@ export default {
     ]),
     ...mapActions([]),
     async fetchOptions() {
+      this.isLoading = true
       const myUrl = url.makeGroupByUrl(
           this.filterKey,
           {searchString: this.searchString},
       )
-      const resp = await axios.get(myUrl)
-      this.options = resp.data.group_by.map(group => {
-        return createDisplayFilter(
-            this.entityType,
-            this.filterKey,
-            group.key,
-            false,
-            group.key_display_name,
-            group.count,
-        )
-      })
+      try {
+        const resp = await axios.get(myUrl)
+        if (resp.data.meta.q && resp.data.meta.q !== this.searchString) {
+          throw new Error(`response with q="${resp.data.meta.q}" no longer matches current searchString "${this.searchString}"`)
+        }
+        this.options = resp.data.group_by.map(group => {
+          return createDisplayFilter(
+              this.entityType,
+              this.filterKey,
+              group.key,
+              false,
+              group.key_display_name,
+              group.count,
+          )
+        })
+      }
+      catch(e){
+        console.log("fetchFilters() error:", e.message)
+      }
+      finally {
+        this.isLoading = false
+      }
     }
 
 
