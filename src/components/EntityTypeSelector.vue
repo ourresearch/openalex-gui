@@ -4,16 +4,15 @@
       <v-btn
               text
               rounded
-              large
                color="primary"
-              class=""
+              class="low-key-button"
               style="margin-left: -10px;"
               v-bind="attrs"
               v-on="on"
               @click="openEntityMenu"
               id="entity-type-select-btn"
       >
-        <v-icon  class="mr-2">{{ selectedEntityTypeConfig.icon }}</v-icon>
+        <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>
         <span
                 class=""
         >

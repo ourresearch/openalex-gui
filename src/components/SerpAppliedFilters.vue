@@ -5,9 +5,9 @@
   >
     <v-toolbar flat>
       <entity-type-selector />
-      <v-toolbar-title>
+      <div>
         {{ resultsFilters.length }} filters applied
-      </v-toolbar-title>
+      </div>
       <v-spacer/>
       <!--      <v-btn icon><v-icon>mdi-delete-circle-outline</v-icon></v-btn>-->
     </v-toolbar>
