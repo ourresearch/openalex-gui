@@ -216,8 +216,9 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "title.search",
+            isDefault: true,
             entityType: "works",
-            displayName: "Search titles",
+            displayName: "Search title",
             type: "search",
             category: "search",
             isCore: true,
@@ -666,6 +667,15 @@ const facetConfigs = function (entityType) {
 
         // authors
         {
+            key: "display_name.search",
+            entityType: "authors",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
+        {
             key: "last_known_institution.id",
             entityType: "authors",
             displayName: "Institution name",
@@ -719,6 +729,15 @@ const facetConfigs = function (entityType) {
 
         // sources
         {
+            key: "display_name.search",
+            entityType: "sources",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
+        {
             key: "publisher",
             entityType: "sources",
             displayName: "Publisher",
@@ -764,7 +783,40 @@ const facetConfigs = function (entityType) {
         },
 
 
+        // publishers
+        {
+            key: "display_name.search",
+            entityType: "publishers",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
+
+        // publishers
+        {
+            key: "display_name.search",
+            entityType: "funders",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
+
+
+
         // institutions
+        {
+            key: "display_name.search",
+            entityType: "institutions",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
         {
             key: "country_code",
             entityType: "institutions",
@@ -798,6 +850,15 @@ const facetConfigs = function (entityType) {
 
 
         // concepts
+        {
+            key: "display_name.search",
+            entityType: "concepts",
+            isDefault: true,
+            displayName: "Search by name",
+            type: "search",
+            category: "search",
+            icon: "mdi-magnify",
+        },
         {
             key: "level",
             entityType: "concepts",

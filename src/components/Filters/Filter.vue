@@ -85,7 +85,8 @@ export default {
       "facetZoom",
     ]),
     myFilterConfig() {
-      return facetConfigs().find(c => c.key === this.myFilterKey)
+        console.log("myfilterconfig", this.myFilterKey)
+      return facetConfigs(this.entityType).find(c => c.key === this.myFilterKey)
     },
     filterValueComponentName() {
       return "filter-value-" + this.myFilterConfig.type
