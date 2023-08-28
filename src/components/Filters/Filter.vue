@@ -24,7 +24,7 @@
       </div>
     </v-list-item-content>
     <div>
-        <v-btn icon @click="remove">
+        <v-btn v-if="keyReadonly" icon @click="remove">
           <v-icon>mdi-delete-outline</v-icon>
         </v-btn>
     </div>

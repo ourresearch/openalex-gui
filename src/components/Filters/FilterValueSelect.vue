@@ -1,6 +1,10 @@
 <template>
   <div>
-    filter value SELECT {{filterKey}}: value
+    <v-autocomplete
+                :items="filterValueOptions"
+                item-text="displayValue"
+                :search-input.sync="filterValueOptionsSearchString"
+        />
   </div>
 </template>
 
@@ -15,12 +19,14 @@ export default {
   props: {
     readonly: Boolean,
     filterKey: String,
-    value: String,
+    filterValue: String,
     displayValue: String,
   },
   data() {
     return {
       foo: 42,
+      value: this.filterValue,
+      options: [],
     }
   },
   computed: {
