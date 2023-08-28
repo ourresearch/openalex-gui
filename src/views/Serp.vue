@@ -28,6 +28,7 @@
         </v-col>
 
         <v-col cols="12" sm="3">
+          <pinboard />
           <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>
           <year-range
                   v-if="entityType === 'works'"
@@ -71,6 +72,7 @@ import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
 import {api} from "@/api";
 import SerpResultsList from "../components/SerpResultsList.vue";
+import Pinboard from "../components/Pinboard/Pinboard.vue";
 
 import ApiDialog from "../components/ApiDialog.vue";
 
@@ -87,6 +89,7 @@ export default {
     SerpResultsList,
     YearRange,
     ApiDialog,
+      Pinboard,
 
   },
   props: {},

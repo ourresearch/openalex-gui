@@ -46,7 +46,6 @@
           <v-col cols="6" class="d-flex">
             <v-spacer></v-spacer>
 
-            <entity-type-selector/>
 
             <user-toolbar-menu/>
 

@@ -4,6 +4,7 @@
           class=""
   >
     <v-toolbar flat>
+      <entity-type-selector />
       <v-toolbar-title>
         {{ resultsFilters.length }} filters applied
       </v-toolbar-title>
@@ -40,11 +41,13 @@ import OFilter from "./Filters/Filter.vue";
 import {url} from "../url";
 import {createSimpleFilter} from "@/filterConfigs";
 import {facetConfigs} from "../facetConfigs";
+import EntityTypeSelector from "./EntityTypeSelector.vue";
 
 export default {
     name: "AppliedFilters",
     components: {
         OFilter,
+        EntityTypeSelector,
     },
     props: {
         singleWork: Boolean,

@@ -59,6 +59,7 @@ export default {
     FilterValueRange,
     FilterValueSelect,
     FilterValueSearch,
+
   },
   props: {
     keyReadonly: Boolean,
@@ -68,6 +69,8 @@ export default {
     filterValue: String,
     displayValue: String,
     isEditing: Boolean,
+
+
   },
   data() {
     return {
