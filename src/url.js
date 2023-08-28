@@ -71,7 +71,7 @@ const setFiltersByKey = function (filterKey, filters) {
     pushToRoute(router, newRoute)
 }
 
-const replaceFilter = async function(oldFilter, newFilter){
+const replaceFilter = async function (oldFilter, newFilter) {
     const entityType = router.currentRoute.params.entityType
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
@@ -97,7 +97,7 @@ const replaceFilter = async function(oldFilter, newFilter){
     pushToRoute(router, newRoute)
 }
 
-const setFilters = function (entityType, filters, hardReset=false) {
+const setFilters = function (entityType, filters, hardReset = false) {
     const newRoute = {
         name: "Serp",
         params: {entityType},
@@ -121,7 +121,7 @@ const setSearch = function (entityType, searchString) {
     pushToRoute(router, newRoute)
 }
 
-const setGroupBy = function(facetKey){
+const setGroupBy = function (facetKey) {
     // if (!Object.keys(entityConfigs).includes(entityType)) {
     //     throw new Error("OpenAlex error: url.setGroupBy called with invalid entityType")
     // }
@@ -155,6 +155,30 @@ const goToZoom = async function (router, zoom) {
     return pushToRoute(router, addZoomToRoute(router, zoom))
 }
 
+
+const makeGroupByUrl = function (
+    groupByKey,
+    perPage = 100,
+    formatCsv = false,
+    includeEmail = true
+) {
+    const entityType = router.currentRoute.params.entityType
+    const filters = filtersFromUrlStr(
+        entityType,
+        router.currentRoute.query.filter
+    )
+
+    const url = new URL(`https://api.openalex.org`)
+    url.pathname = entityType
+    url.searchParams.set("filter", filtersAsUrlStr(filters, entityType))
+    url.searchParams.set("group_by", groupByKey)
+    url.searchParams.set("per_page", String(perPage))
+    if (this.searchString) url.searchParams.set("q", this.searchString)
+    if (formatCsv) url.searchParams.set("format", "csv");
+    if (includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+    return url.toString()
+}
+
 const url = {
     makeRoute,
     pushToRoute,
@@ -171,6 +195,7 @@ const url = {
     addZoomToRoute,
 
     pushNewSearch,
+    makeGroupByUrl
 }
 
 

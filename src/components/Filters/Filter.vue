@@ -24,23 +24,9 @@
       </div>
     </v-list-item-content>
     <div>
-      <div v-if="myIsEditing">
-        <v-btn icon @click="myIsEditing = false" v-if="keyReadonly">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-        <v-btn icon color="primary" @click="apply" :disabled="!myFilterValue">
-          <v-icon>mdi-check</v-icon>
-        </v-btn>
-
-      </div>
-      <div v-else>
-        <v-btn icon  @click="myIsEditing = true">
-          <v-icon>mdi-pencil-outline</v-icon>
-        </v-btn>
         <v-btn icon @click="remove">
           <v-icon>mdi-delete-outline</v-icon>
         </v-btn>
-      </div>
     </div>
 
 

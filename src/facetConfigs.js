@@ -208,7 +208,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Search",
+            displayName: "Search title, abstract, & fulltext",
             type: "search",
             category: "popular",
             isCore: true,
@@ -217,7 +217,7 @@ const facetConfigs = function (entityType) {
         {
             key: "title.search",
             entityType: "works",
-            displayName: "Search title only",
+            displayName: "Search titles",
             type: "search",
             category: "search",
             isCore: true,
@@ -226,7 +226,7 @@ const facetConfigs = function (entityType) {
         {
             key: "abstract.search",
             entityType: "works",
-            displayName: "Search abstract only",
+            displayName: "Search abstracts",
             type: "search",
             category: "search",
             isCore: true,

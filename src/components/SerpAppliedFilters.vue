@@ -3,6 +3,13 @@
       flat
       class=""
   >
+    <v-toolbar flat>
+      <v-toolbar-title>
+      {{ resultsFilters.length }} filters applied
+      </v-toolbar-title>
+      <v-spacer />
+<!--      <v-btn icon><v-icon>mdi-delete-circle-outline</v-icon></v-btn>-->
+    </v-toolbar>
     <v-list dense class="">
       <o-filter
           v-for="(filter, i) in resultsFilters"

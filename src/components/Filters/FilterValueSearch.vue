@@ -7,7 +7,7 @@
             :placeholder="myFilterConfig.displayName"
             :label="myFilterConfig.displayName"
             @keypress.enter="$emit('submit')"
-            @input="$emit('input', myValue)"
+            @input="$emit('input', myFilterValue)"
     />
   </div>
 </template>
