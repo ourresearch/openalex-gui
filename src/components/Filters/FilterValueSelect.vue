@@ -18,6 +18,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
+import {api} from "@/api";
 
 export default {
   name: "FilterValueSelect",
@@ -51,25 +52,8 @@ export default {
     ...mapActions([]),
     async fetchOptions() {
       this.isLoading = true
-      const myUrl = url.makeGroupByUrl(
-          this.filterKey,
-          {searchString: this.searchString},
-      )
       try {
-        const resp = await axios.get(myUrl)
-        if (resp.data.meta.q && resp.data.meta.q !== this.searchString) {
-          throw new Error(`response with q="${resp.data.meta.q}" no longer matches current searchString "${this.searchString}"`)
-        }
-        this.options = resp.data.group_by.map(group => {
-          return createDisplayFilter(
-              this.entityType,
-              this.filterKey,
-              group.key,
-              false,
-              group.key_display_name,
-              group.count,
-          )
-        })
+        this.options = await api.getGroups(this.entityType, this.filterKey, {})
       }
       catch(e){
         console.log("fetchFilters() error:", e.message)

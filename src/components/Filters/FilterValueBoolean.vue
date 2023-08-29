@@ -16,6 +16,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
+import {api} from "@/api";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
 
@@ -54,19 +55,7 @@ export default {
   created() {
   },
   async mounted() {
-    const resp = await axios.get(
-            url.makeGroupByUrl(this.filterKey)
-        )
-    this.options = resp.data.group_by.map(group => {
-      return createDisplayFilter(
-              this.entityType,
-              this.filterKey,
-              group.key,
-              false,
-              group.key_display_name,
-              group.count,
-          )
-    })
+    this.options = await api.getGroups(this.entityType, this.filterKey, {})
   },
   watch: {
   }

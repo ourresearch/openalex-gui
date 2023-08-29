@@ -1,5 +1,7 @@
 import axios from 'axios'
 import _ from 'lodash'
+import {url} from "@/url";
+import {createDisplayFilter} from "@/filterConfigs";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -104,6 +106,29 @@ const api = (function () {
             const url = makeUrl(pathName, searchParams)
             const resp = await getUrl(url)
             return resp
+        },
+        getGroups: async function (entityType, filterKey, options) {
+            const myUrl = url.makeGroupByUrl(
+                entityType,
+                filterKey,
+                options,
+            )
+            const resp = await axios.get(myUrl)
+            const groupDisplayFilters = resp.data.group_by
+                .filter(g => {
+                    return !(g.key == "unknown" && options.hideUnknown)
+                })
+                .map(group => {
+                return createDisplayFilter(
+                    entityType,
+                    filterKey,
+                    group.key,
+                    false,
+                    group.key_display_name,
+                    group.count,
+                )
+            })
+            return groupDisplayFilters
         }
 
     }

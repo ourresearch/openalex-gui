@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card class="fill-height">
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon>mdi-pin-outline</v-icon>
@@ -27,7 +27,7 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <v-list dense>
+    <v-list dense class="flex-grow-1">
       <v-list-item
         v-for="group in groups"
         :key="group.value"
@@ -48,7 +48,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
+import {api} from "@/api";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
 import {facetConfigs} from "@/facetConfigs";
@@ -87,24 +87,17 @@ export default {
     ...mapActions([]),
     async fetchOptions() {
       this.isLoading = true
-      const myUrl = url.makeGroupByUrl(
-          this.filterKey,
-          {},
-      )
       try {
-        const resp = await axios.get(myUrl)
-        this.groups = resp.data.group_by.map(group => {
-          return createDisplayFilter(
-              this.entityType,
-              this.filterKey,
-              group.key,
-              false,
-              group.key_display_name,
-              group.count,
-          )
-        })
+        this.groups = await api.getGroups(
+            this.entityType,
+            this.filterKey,
+            {
+              perPage: 6,
+              hideUnknown: true,
+            }
+        )
       } catch (e) {
-        console.log("fetchFilters() error:", e.message)
+        console.log("PinboardView fetchOptions() error:", e.message)
       } finally {
         this.isLoading = false
       }

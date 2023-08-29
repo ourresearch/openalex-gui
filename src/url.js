@@ -155,7 +155,7 @@ const goToZoom = async function (router, zoom) {
 }
 
 
-const makeGroupByUrl = function (groupByKey, options) {
+const makeGroupByUrl = function (entityType, groupByKey, options) {
 
     // set options from defaults and args
     const defaults = {
@@ -167,7 +167,6 @@ const makeGroupByUrl = function (groupByKey, options) {
     options = Object.assign({}, defaults, options);
 
     // gather state from the current URL
-    const entityType = router.currentRoute.params.entityType
     const filters = filtersFromUrlStr(
         entityType,
         router.currentRoute.query.filter

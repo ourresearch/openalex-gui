@@ -1,9 +1,6 @@
 <template>
   <div>
     <v-toolbar dense flat tile color="transparent">
-      <v-toolbar-title flat>
-        Analytic views
-      </v-toolbar-title>
       <v-spacer/>
       <v-menu
           max-height="90vh"
