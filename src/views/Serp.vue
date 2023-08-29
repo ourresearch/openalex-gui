@@ -74,6 +74,7 @@ import SerpAppliedFilters from "../components/SerpAppliedFilters.vue";
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
 import {api} from "@/api";
+import {pinboard} from "@/pinboard";
 import SerpResultsList from "../components/SerpResultsList.vue";
 import Pinboard from "../components/Pinboard/Pinboard.vue";
 
@@ -198,9 +199,8 @@ export default {
   created() {
   },
   async mounted() {
-    this.loading = true
-    // this.apiResp = await api.get(this.apiUrl)
-    this.loading = false
+    const views = pinboard.init(this.entityType)
+    console.log("serp pinboard.views", views)
 
   },
   watch: {
@@ -209,7 +209,6 @@ export default {
       async handler(to, from) {
         const scrollTop = window.scrollY
 
-        console.log("serp $route change")
         this.facetZoom = to?.query?.group_by
 
         await this.$store.dispatch("bootFromUrl")

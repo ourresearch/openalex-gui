@@ -43,7 +43,7 @@ export default {
       return filtersList(this.entityType, [], "")
     },
     myFilterConfig() {
-      return facetConfigs().find(c => c.key === this.selectedFilterKey)
+      return facetConfigs(this.entityType).find(c => c.key === this.selectedFilterKey)
     },
   },
 

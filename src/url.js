@@ -79,7 +79,6 @@ const replaceFilter = async function (oldFilter, newFilter) {
     const oldFiltersToKeep = oldFilters.filter(f => {
         return !filtersAreEqual(f, oldFilter)
     })
-    console.log("replacefilter oldFiltersToKeep", oldFiltersToKeep, oldFilter)
 
     // add the new filter
     const newFilters = [...oldFiltersToKeep, newFilter].filter(f => !!f)

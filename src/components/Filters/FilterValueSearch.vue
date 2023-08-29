@@ -59,7 +59,6 @@ export default {
       '$route': {
       immediate: true,
       handler: function (to, from) {
-        console.log("FilterValueSearch $route change", to)
       }
     }
     }
