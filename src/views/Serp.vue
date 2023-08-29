@@ -20,13 +20,13 @@
       </v-alert>
       <serp-applied-filters class="mb-3" />
       <v-row class="">
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="4">
           <v-card flat key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="8">
           <pinboard />
 
         </v-col>

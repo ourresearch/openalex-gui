@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-toolbar dense flat tile color="transparent">
-      <v-toolbar-title>
+      <v-toolbar-title flat>
         Analytic views
       </v-toolbar-title>
       <v-spacer/>
@@ -14,14 +14,13 @@
               small
               v-on="on"
           >
-            Add view
+            Add
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-card max-height="90vh">
           <v-text-field
               v-model="searchString"
-              @click.stop="doIt"
               autofocus
               clearable
               hide-details
@@ -31,7 +30,7 @@
               <v-list-item
                   v-for="filter in filterOptions"
                   :key="filter.key"
-                  @click="doIt"
+                  @click="addView(filter.key)"
               >
                 {{ filter.displayName }}
               </v-list-item>
@@ -42,6 +41,14 @@
         </v-card>
 
       </v-menu>
+
+      <v-btn
+          text
+          small
+          @click="pinboard.setDefault(entityType)"
+      >
+        Clear
+      </v-btn>
     </v-toolbar>
     <v-divider class="mb-3"/>
     <v-row>
@@ -54,26 +61,21 @@
         />
 
       </v-col>
-      <v-col cols="6">
-        <year-range
-            height="50px"
-            big
-            class="mb-3"
-            show-filter-link
+      <v-col
+          v-for="viewKey in viewKeys"
+          :key="viewKey"
+          cols="12"
+          sm="6"
+      >
+        <pinboard-view
+            :filter-key="viewKey"
+            @remove="removeView(viewKey)"
         />
 
       </v-col>
+
     </v-row>
     <div>
-      {{ entityType}}
-      {{ pinboard.getViews(entityType) }}
-    </div>
-    <div>
-      <pinboard-view
-        v-for="filterKey in pinboard.getViews(entityType)"
-        :key="filterKey"
-        :filter-key="filterKey"
-      />
     </div>
   </div>
 </template>
@@ -98,6 +100,7 @@ export default {
     return {
       foo: 42,
       searchString: "",
+      viewKeys: [],
       pinboard,
     }
   },
@@ -119,8 +122,13 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    doIt() {
-
+    removeView(keyToRemove) {
+      this.viewKeys = this.viewKeys.filter(vk => vk !== keyToRemove)
+      pinboard.removeView(this.entityType, keyToRemove)
+    },
+    addView(keyToAdd) {
+      this.viewKeys.push(keyToAdd)
+      pinboard.addView(this.entityType, keyToAdd)
     }
 
 
@@ -128,6 +136,7 @@ export default {
   created() {
   },
   mounted() {
+    this.viewKeys = pinboard.getViews(this.entityType)
   },
   watch: {}
 }

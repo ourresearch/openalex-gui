@@ -35,7 +35,11 @@ const addView = function (type, viewKey) {
     const storageKey = "pinboard." + type
     localStorage.setItem(storageKey, JSON.stringify(myViews))
 }
-const removeView = function () {
+const removeView = function (type, viewKey) {
+    const myViews = getViews(type)
+    const newViews = myViews.filter(v => v !== viewKey)
+    const storageKey = "pinboard." + type
+    localStorage.setItem(storageKey, JSON.stringify(newViews))
 
 }
 
