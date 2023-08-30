@@ -114,10 +114,16 @@ const api = (function () {
                 options,
             )
             const resp = await axios.get(myUrl)
-            const groupDisplayFilters = resp.data.group_by
-                .filter(g => {
-                    return !(g.key == "unknown" && options.hideUnknown)
+            const groupsToUse = resp.data.group_by.filter(g => {
+                    return !(g.key === "unknown" && options.hideUnknown)
                 })
+            if (options.perPage){
+                groupsToUse.length = options.perPage - 1
+            }
+
+            const groupCounts = groupsToUse.map(g => g.count)
+            const maxCount = Math.max(...groupCounts)
+            const groupDisplayFilters = groupsToUse
                 .map(group => {
                 return createDisplayFilter(
                     entityType,
@@ -126,8 +132,10 @@ const api = (function () {
                     false,
                     group.key_display_name,
                     group.count,
+                    group.count / maxCount
                 )
             })
+
             return groupDisplayFilters
         }
 

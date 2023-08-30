@@ -205,7 +205,7 @@ const convertRangeToPrettyWords = function (range) {
     }
 }
 
-const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, totalCount) {
+const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, countScaled) {
 
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
     if (simpleFilter.valuesToShow === 'range' && /\d*-\d*/.test(value)) {
@@ -226,7 +226,7 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
         ...simpleFilter,
         displayValue,
         count,
-        countPercent: (count / totalCount) * 100,
+        countScaled,
     }
 }
 
