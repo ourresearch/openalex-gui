@@ -1,15 +1,13 @@
 <template>
-  <div>
-    <v-select
-      dense
-      :items="options"
-      item-text="displayValue"
-      item-value="value"
+    <v-switch
+        class="pt-0 mt-0"
       v-model="selectedValue"
-
+      :label="String(selectedValue)"
+      color="success"
+      hide-details
       @change="$emit('submit', selectedValue)"
     />
-  </div>
+
 </template>
 
 <script>
@@ -34,7 +32,7 @@ export default {
     return {
       foo: 42,
       options: [],
-      selectedValue: this.filterValue,
+      selectedValue: this.filterValue == "true",
     }
   },
   computed: {

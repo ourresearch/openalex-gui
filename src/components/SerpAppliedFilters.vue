@@ -25,28 +25,9 @@
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
         </template>
-        <v-card max-height="90vh">
-          <v-text-field
-              v-model="addWidgetSearchString"
-              autofocus
-              clearable
-              hide-details
-          />
-          <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">
-            <v-list>
-              <v-list-item
-                  v-for="filter in filterOptions"
-                  :key="filter.key"
-                  @click="$emit('add-widget', filter.key)"
-              >
-                {{ filter.displayName }}
-              </v-list-item>
-            </v-list>
-
-          </div>
-
-        </v-card>
-
+        <filter-key-selector
+          @select="(filterKey) => $emit('add-widget', filterKey)"
+        />
       </v-menu>
       <v-btn
           icon
@@ -76,12 +57,27 @@
           is-editing
       />
     </v-list>
-    <v-btn
-        rounded
-        color="primary"
-    >
-      <v-icon>mdi-filter-plus-outline</v-icon>
-    </v-btn>
+    <v-card-actions class="pl-4" v-if="resultsFilters.length > 0">
+      <v-btn
+          rounded
+          text
+          class="mr-2"
+          color="primary"
+      >
+        <v-icon left>mdi-filter-plus-outline</v-icon>
+        Add filter
+        <v-icon right>mdi-menu-down</v-icon>
+      </v-btn>
+      <v-btn
+          rounded
+          text
+          class="mr-2"
+      >
+        <v-icon left>mdi-filter-off-outline</v-icon>
+        Clear filters
+      </v-btn>
+
+    </v-card-actions>
   </v-card>
 
 
@@ -90,19 +86,21 @@
 <script>
 import {sleep} from "../util";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-
-// change name to "o-filter" because "filter" is a native HTML element name.
-import OFilter from "./Filters/Filter.vue";
 import {url} from "../url";
 import {createSimpleFilter} from "@/filterConfigs";
 import {facetConfigs, filtersList} from "../facetConfigs";
 import EntityTypeSelector from "./EntityTypeSelector.vue";
+import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
+
+// change name to "o-filter" because "filter" is a native HTML element name.
+import OFilter from "./Filters/Filter.vue";
 
 export default {
   name: "AppliedFilters",
   components: {
     OFilter,
     EntityTypeSelector,
+    FilterKeySelector,
   },
   props: {
     singleWork: Boolean,

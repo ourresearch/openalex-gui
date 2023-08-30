@@ -3,49 +3,40 @@
   <v-list-item
       color="primary"
   >
-    <v-list-item-icon>
+    <div class="pa-2">
       <v-icon>mdi-filter-outline</v-icon>
-    </v-list-item-icon>
+    </div>
 
     <v-list-item-content>
-      <div class="d-flex">
-        <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn
-              text
-              rounded
-              v-on="on"
-          >
-            {{ (myIsNegated) ? "Not" : "And" }}
-            <v-icon right>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-          <v-list>
-            <v-list-item @click="setIsNegated(false)">
-              <v-list-item-icon>
-                <v-icon>mdi-plus</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                And
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="setIsNegated(true)">
-              <v-list-item-icon>
-                <v-icon>mdi-close</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                Not
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
+      <div class="d-flex align-center">
+
+
+        <v-menu max-height="90vh">
+          <template v-slot:activator="{on}">
+            <v-btn
+                text
+                rounded
+                v-on="on"
+            >
+              {{ myFilterConfig.displayName }}
+              <v-icon>mdi-menu-down</v-icon>
+            </v-btn>
+          </template>
+          <filter-key-selector
+              @select="setMyFilterKey"
+          />
         </v-menu>
 
-        <filter-key
-            :key-readonly="keyReadonly"
-            :filter-key="myFilterKey"
-            @input="setMyFilterKey"
 
-        />
+
+
+
+
+
+
+
+
+
         <component
             :is="filterValueComponentName"
             :filter-key="myFilterKey"
@@ -57,9 +48,9 @@
       </div>
     </v-list-item-content>
     <div>
-        <v-btn v-if="keyReadonly" icon @click="remove">
-          <v-icon>mdi-delete-outline</v-icon>
-        </v-btn>
+      <v-btn v-if="keyReadonly" icon @click="remove">
+        <v-icon>mdi-delete-outline</v-icon>
+      </v-btn>
     </div>
 
 
@@ -79,15 +70,14 @@ import FilterValueBoolean from "./FilterValueBoolean.vue";
 import FilterValueRange from "./FilterValueRange.vue";
 import FilterValueSelect from "./FilterValueSelect.vue";
 import FilterValueSearch from "./FilterValueSearch.vue";
-
-
-import filterKey from "@/components/Filters/FilterKey.vue";
+import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 
 export default {
   name: "AppliedFiltersFilter",
   components: {
     FilterKey,
+    FilterKeySelector,
     FilterValue,
     FilterValueBoolean,
     FilterValueRange,
@@ -152,19 +142,13 @@ export default {
       "setFacetZoom",
     ]),
     ...mapActions([]),
-    async apply(newValue) {
+    async apply(newValue, isNegated) {
       this.myFilterValue = newValue
+      this.myIsNegated = isNegated
       await url.replaceFilter(this.originalFilter, this.newFilter)
     },
     async remove() {
       await url.replaceFilter(this.originalFilter, null)
-    },
-    async setIsNegated(newValue){
-      this.myIsNegated = !!newValue
-      await url.replaceFilter(this.originalFilter, this.newFilter)
-
-
-      // await url.negateFilter(this.myFilterKey, this.myFilterValue)
     },
 
     setMyFilterKey(newKey) {
