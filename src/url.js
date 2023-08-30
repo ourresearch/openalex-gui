@@ -71,6 +71,10 @@ const setFiltersByKey = function (filterKey, filters) {
     pushToRoute(router, newRoute)
 }
 
+const negateFilter = async function (key, value){
+
+}
+
 const replaceFilter = async function (oldFilter, newFilter) {
     const entityType = router.currentRoute.params.entityType
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -196,6 +200,7 @@ const url = {
     setFiltersByKey,
     setFilters,
     replaceFilter,
+    negateFilter,
     setSearch,
 
     setGroupBy,

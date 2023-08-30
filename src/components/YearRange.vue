@@ -1,13 +1,12 @@
 <template>
 
   <v-card
-      :outlined="big"
       flat
       class="ma-0 year-range-card"
       :class="{big}"
       :disabled="disabled"
   >
-    <v-toolbar  flat v-if="big" class="graph-toolbar pr-0">
+    <v-toolbar dense flat v-if="big" class="graph-toolbar pr-0">
       <!--      height="80" -->
       <v-toolbar-title>
         <div style="line-height: 1">

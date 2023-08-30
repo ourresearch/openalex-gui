@@ -47,16 +47,9 @@
             <v-spacer></v-spacer>
 
 
-            <user-toolbar-menu/>
+<!--            <user-toolbar-menu/>-->
 
-            <v-btn
-                    icon
-                    target="_blank"
-                    @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-                    v-if="isLocalHost"
-            >
-              <v-icon>mdi-share-variant-outline</v-icon>
-            </v-btn>
+
 
 
             <v-menu offset-y content-class="no-highlight" min-width="150">
@@ -243,6 +236,15 @@ html, body {
 .v-btn--active.no-active::before {
   opacity: 0.00005 !important;
 }
+.v-btn.v-size--default {
+  //opacity: 0.00005 !important;
+  font-size: 1rem;
+}
+.v-btn {
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
 
 .v-navigation-drawer__content {
   overflow-y: hidden !important;
@@ -290,7 +292,7 @@ $logo-link-height: 38px;
 }
 
 body {
-  font-size: 16px;
+  //font-size: 16px;
 
   .v-application {
     background: #F7F9FC !important;

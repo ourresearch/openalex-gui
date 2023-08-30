@@ -1,5 +1,5 @@
 <template>
-  <v-card class="fill-height">
+  <v-card flat class="fill-height">
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon>mdi-pin-outline</v-icon>
@@ -70,7 +70,7 @@ import {facetConfigs} from "@/facetConfigs";
 import {pinboard} from "@/pinboard";
 
 export default {
-    name: "FilterValueSelect",
+    name: "PinboardWidget",
     components: {},
     props: {
         filterKey: String,
