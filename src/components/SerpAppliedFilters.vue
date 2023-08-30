@@ -4,14 +4,53 @@
           class=""
   >
     <v-toolbar flat>
-      <entity-type-selector />
+      <entity-type-selector/>
       <div>
         {{ resultsFilters.length }} filters applied
       </div>
       <v-spacer/>
       <!--      <v-btn icon><v-icon>mdi-delete-circle-outline</v-icon></v-btn>-->
+
+      <v-menu
+              max-height="90vh"
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+                  text
+                  rounded
+                  v-on="on"
+          >
+            <v-icon>mdi-pin-outline</v-icon>
+            <v-icon>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-card max-height="90vh">
+          <v-text-field
+                  v-model="addWidgetSearchString"
+                  autofocus
+                  clearable
+                  hide-details
+          />
+          <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">
+            <v-list>
+              <v-list-item
+                      v-for="filter in filterOptions"
+                      :key="filter.key"
+                      @click="$emit('add-widget', filter.key)"
+              >
+                {{ filter.displayName }}
+              </v-list-item>
+            </v-list>
+
+          </div>
+
+        </v-card>
+
+      </v-menu>
+
+
     </v-toolbar>
-    <v-list dense class="" >
+    <v-list dense class="">
       <o-filter
               v-for="(filter, i) in resultsFilters"
               :key="filter.key + filter.value"
@@ -40,7 +79,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import OFilter from "./Filters/Filter.vue";
 import {url} from "../url";
 import {createSimpleFilter} from "@/filterConfigs";
-import {facetConfigs} from "../facetConfigs";
+import {facetConfigs, filtersList} from "../facetConfigs";
 import EntityTypeSelector from "./EntityTypeSelector.vue";
 
 export default {
@@ -54,7 +93,7 @@ export default {
     },
     data() {
         return {
-            searchString: "",
+            addWidgetSearchString: "",
             showAddFilterButton: false,
             selectedFilters: [],
             dialogs: {
@@ -71,7 +110,10 @@ export default {
 
         ]),
         defaultFilterKey() {
-          return facetConfigs(this.entityType).find(f => f.isDefault).key
+            return facetConfigs(this.entityType).find(f => f.isDefault).key
+        },
+        filterOptions() {
+            return filtersList(this.entityType, [], this.addWidgetSearchString)
         }
 
     },

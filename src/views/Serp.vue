@@ -18,7 +18,10 @@
           </v-btn>
         </v-row>
       </v-alert>
-      <serp-applied-filters class="mb-3" />
+      <serp-applied-filters
+              class="mb-3"
+              @add-widget="addWidget"
+      />
       <v-row class="">
         <v-col cols="12" sm="4">
           <v-card flat key="serp-results">
@@ -27,7 +30,10 @@
           </v-card>
         </v-col>
         <v-col cols="12" sm="8">
-          <pinboard />
+          <pinboard
+            :widget-filter-keys="widgetFilterKeys"
+            @remove="removeWidget"
+          />
 
         </v-col>
 
@@ -116,6 +122,7 @@ export default {
       },
       logoColorRotation: 0,
       showYearRange: true,
+        widgetFilterKeys: [],
     }
   },
   asyncComputed: {
@@ -194,6 +201,14 @@ export default {
         this.data = resp
       })
     },
+      addWidget(filterKey){
+        console.log("serp adWidget", filterKey)
+          this.widgetFilterKeys.push(filterKey)
+      },
+      removeWidget(filterKey){
+        console.log("serp adWidget", filterKey)
+          this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
+      }
   },
 
   created() {

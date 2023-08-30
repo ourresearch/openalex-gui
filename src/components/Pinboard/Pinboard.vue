@@ -59,7 +59,7 @@
 
       </v-col>
       <v-col
-          v-for="viewKey in viewKeys"
+          v-for="viewKey in widgetFilterKeys"
           :key="viewKey"
           cols="12"
           sm="6"
@@ -92,7 +92,9 @@ export default {
     YearRange,
     PinboardView,
   },
-  props: {},
+  props: {
+      widgetFilterKeys: Array
+  },
   data() {
     return {
       foo: 42,
@@ -120,8 +122,9 @@ export default {
     ]),
     ...mapActions([]),
     removeView(keyToRemove) {
-      this.viewKeys = this.viewKeys.filter(vk => vk !== keyToRemove)
-      pinboard.removeView(this.entityType, keyToRemove)
+        this.$emit("remove", keyToRemove)
+      // this.viewKeys = this.viewKeys.filter(vk => vk !== keyToRemove)
+      // pinboard.removeView(this.entityType, keyToRemove)
     },
     addView(keyToAdd) {
       this.viewKeys.push(keyToAdd)
