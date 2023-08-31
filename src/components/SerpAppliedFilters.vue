@@ -3,42 +3,25 @@
       flat
       class=""
   >
-    <v-toolbar flat>
-      <entity-type-selector/>
-      <div class="grey--text">
-        {{ resultsFilters.length }} {{ 'filters' | pluralize(resultsFilters.length) }} applied
-        <span>(clear all)</span>
-      </div>
-      <v-spacer/>
-      <!--      <v-btn icon><v-icon>mdi-delete-circle-outline</v-icon></v-btn>-->
-
-      <v-menu
-          max-height="90vh"
-      >
+    <v-toolbar flat  dense class="elevation-0">
+      <v-icon left>mdi-filter-outline</v-icon>
+      <v-toolbar-title>
+        Filters
+        <span class="body-2">
+          ({{ resultsFilters.length }})
+        </span>
+      </v-toolbar-title>
+      <v-spacer />
+      <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn
-              text
-              rounded
-              v-on="on"
-          >
-            <v-icon>mdi-pin-outline</v-icon>
-            <v-icon>mdi-menu-down</v-icon>
+          <v-btn v-on="on" icon>
+            <v-icon>mdi-filter-off-outline</v-icon>
           </v-btn>
         </template>
-        <filter-key-selector
-          @select="(filterKey) => $emit('add-widget', filterKey)"
-        />
-      </v-menu>
-      <v-btn
-          icon
-          target="_blank"
-          @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-      >
-        <v-icon>mdi-share-variant-outline</v-icon>
-      </v-btn>
-
-
+        <div>Clear all filters</div>
+      </v-tooltip>
     </v-toolbar>
+<!--    <v-divider />-->
     <v-list dense class="">
       <o-filter
           v-for="(filter, i) in resultsFilters"
@@ -51,33 +34,10 @@
           :is-negated="filter.isNegated"
       />
       <o-filter
-          v-if="!resultsFilters.length"
           :key="'new-filter' + $route.fullPath"
-          :filter-key="defaultFilterKey"
           is-editing
       />
     </v-list>
-    <v-card-actions class="pl-4" v-if="resultsFilters.length > 0">
-      <v-btn
-          rounded
-          text
-          class="mr-2"
-          color="primary"
-      >
-        <v-icon left>mdi-filter-plus-outline</v-icon>
-        Add filter
-        <v-icon right>mdi-menu-down</v-icon>
-      </v-btn>
-      <v-btn
-          rounded
-          text
-          class="mr-2"
-      >
-        <v-icon left>mdi-filter-off-outline</v-icon>
-        Clear filters
-      </v-btn>
-
-    </v-card-actions>
   </v-card>
 
 
@@ -139,10 +99,6 @@ export default {
       "openFacetsDialog",
     ]),
     ...mapActions([]),
-    async copyToClipboard(content) {
-      await navigator.clipboard.writeText(content);
-      this.snackbar("URL copied to clipboard.")
-    },
     clear() {
       url.setFilters(this.entityType, [])
       this.snackbar("All filters cleared")

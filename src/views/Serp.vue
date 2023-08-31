@@ -1,6 +1,38 @@
 <template>
 
   <div class="">
+    <v-toolbar dense color="grey darken-1" dark flat>
+      <v-container class="d-flex align-center">
+        <entity-type-selector/>
+        <v-spacer></v-spacer>
+
+        <v-menu
+            max-height="90vh"
+        >
+          <template v-slot:activator="{on}">
+            <v-btn
+                text
+                rounded
+                v-on="on"
+            >
+              <v-icon>mdi-pin-outline</v-icon>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-btn>
+          </template>
+          <filter-key-selector
+              dark
+              @select="addWidget"
+          />
+        </v-menu>
+        <v-btn
+            icon
+            target="_blank"
+            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+        >
+          <v-icon>mdi-share-variant-outline</v-icon>
+        </v-btn>
+      </v-container>
+    </v-toolbar>
     <v-container class="">
       <v-alert v-if="0" dense text type="warning" class="">
         <v-row class="align-center">
@@ -19,8 +51,7 @@
         </v-row>
       </v-alert>
       <serp-applied-filters
-              class="mb-3"
-              @add-widget="addWidget"
+          class="mb-3"
       />
       <v-row class="">
         <v-col cols="12" sm="4">
@@ -31,21 +62,21 @@
         </v-col>
         <v-col cols="12" sm="8">
           <pinboard
-            :widget-filter-keys="widgetFilterKeys"
-            @remove="removeWidget"
+              :widget-filter-keys="widgetFilterKeys"
+              @remove="removeWidget"
           />
 
         </v-col>
 
-<!--        <v-col cols="12" sm="3">-->
-<!--          <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>-->
-<!--          <year-range-->
-<!--                  v-if="entityType === 'works'"-->
-<!--              height="50px"-->
-<!--              big class="mb-3"-->
-<!--              :disabled="!!facetZoom"-->
-<!--              show-filter-link/>-->
-<!--        </v-col>-->
+        <!--        <v-col cols="12" sm="3">-->
+        <!--          <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>-->
+        <!--          <year-range-->
+        <!--                  v-if="entityType === 'works'"-->
+        <!--              height="50px"-->
+        <!--              big class="mb-3"-->
+        <!--              :disabled="!!facetZoom"-->
+        <!--              show-filter-link/>-->
+        <!--        </v-col>-->
       </v-row>
     </v-container>
 
@@ -85,6 +116,8 @@ import SerpResultsList from "../components/SerpResultsList.vue";
 import Pinboard from "../components/Pinboard/Pinboard.vue";
 
 import ApiDialog from "../components/ApiDialog.vue";
+import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
+import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 export default {
   name: "Serp",
@@ -97,9 +130,10 @@ export default {
     SerpToolbar,
     SerpAppliedFilters,
     SerpResultsList,
-    YearRange,
     ApiDialog,
-      Pinboard,
+    Pinboard,
+    EntityTypeSelector,
+    FilterKeySelector,
 
   },
   props: {},
@@ -122,11 +156,10 @@ export default {
       },
       logoColorRotation: 0,
       showYearRange: true,
-        widgetFilterKeys: [],
+      widgetFilterKeys: [],
     }
   },
-  asyncComputed: {
-  },
+  asyncComputed: {},
   computed: {
     ...mapGetters([
       "searchApiUrl",
@@ -190,6 +223,10 @@ export default {
       "updateTextSearch",
       "setEntityZoom",
     ]),
+    async copyToClipboard(content) {
+      await navigator.clipboard.writeText(content);
+      this.snackbar("URL copied to clipboard.")
+    },
     getEntityData() {
       if (!this.entityId) return
       const pathName = this.myEntityType + "/" + this.entityId
@@ -201,14 +238,14 @@ export default {
         this.data = resp
       })
     },
-      addWidget(filterKey){
-        console.log("serp adWidget", filterKey)
-          this.widgetFilterKeys.push(filterKey)
-      },
-      removeWidget(filterKey){
-        console.log("serp adWidget", filterKey)
-          this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
-      }
+    addWidget(filterKey) {
+      console.log("serp adWidget", filterKey)
+      this.widgetFilterKeys.push(filterKey)
+    },
+    removeWidget(filterKey) {
+      console.log("serp adWidget", filterKey)
+      this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
+    }
   },
 
   created() {

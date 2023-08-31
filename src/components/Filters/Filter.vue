@@ -2,9 +2,12 @@
 
   <v-list-item
       color="primary"
+      class="pl-3"
   >
-    <div class="pa-2">
-      <v-icon>mdi-filter-outline</v-icon>
+    <div class="">
+      <v-btn :disabled="!keyReadonly" icon @click="remove">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </div>
 
     <v-list-item-content>
@@ -18,8 +21,8 @@
                 rounded
                 v-on="on"
             >
-              {{ myFilterConfig.displayName }}
-              <v-icon>mdi-menu-down</v-icon>
+              {{ keyButtonText }}
+              <v-icon right>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <filter-key-selector
@@ -27,20 +30,15 @@
           />
         </v-menu>
         <component
+            v-if="myFilterKey"
             :is="filterValueComponentName"
             :filter-key="myFilterKey"
-            :filter-value="filterValue"
-            :display-value="displayValue"
+            :filter-value="myFilterValue"
             @submit="apply"
         />
 
       </div>
     </v-list-item-content>
-    <div>
-      <v-btn v-if="keyReadonly" icon @click="remove">
-        <v-icon>mdi-delete-outline</v-icon>
-      </v-btn>
-    </div>
 
 
   </v-list-item>
@@ -102,6 +100,11 @@ export default {
     ]),
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.myFilterKey)
+    },
+    keyButtonText(){
+      return (this.myFilterKey) ?
+          this.myFilterConfig.displayName :
+          "Add filter"
     },
     filterValueComponentName() {
       return "filter-value-" + this.myFilterConfig.type

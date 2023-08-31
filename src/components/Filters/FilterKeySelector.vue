@@ -1,5 +1,5 @@
 <template>
-  <v-card max-height="90vh">
+  <v-card :dark="dark" max-height="90vh">
     <v-text-field
         v-model="searchString"
         autofocus
@@ -32,7 +32,9 @@ import {filtersList} from "@/facetConfigs";
 export default {
   name: "Template",
   components: {},
-  props: {},
+  props: {
+    dark: Boolean,
+  },
   data() {
     return {
       foo: 42,

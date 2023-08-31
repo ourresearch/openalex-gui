@@ -3,8 +3,8 @@
     <template v-slot:activator="{ on, attrs }">
       <v-btn
               text
+              dark
               rounded
-               color="primary"
               class="text-capitalize"
               v-bind="attrs"
               v-on="on"
@@ -22,6 +22,7 @@
     </template>
     <v-list
             two-line
+            dark
     >
       <v-subheader>Search for:</v-subheader>
       <v-divider></v-divider>
