@@ -2,21 +2,33 @@
 
   <div class="">
     <v-toolbar dense color="grey darken-1" dark flat>
+
       <v-container class="d-flex align-center">
         <entity-type-selector/>
+        <div class="ml-2">
+          <span class="font-weight-bold">
+            {{ resultsCount | toPrecision }}
+          </span>
+          results
+        </div>
+
         <v-spacer></v-spacer>
 
+        <v-btn
+            icon
+            @click="setApiDialogUrl(searchApiUrlForDisplay)"
+        >
+          <v-icon>mdi-api</v-icon>
+        </v-btn>
         <v-menu
             max-height="90vh"
         >
           <template v-slot:activator="{on}">
             <v-btn
-                text
-                rounded
+                icon
                 v-on="on"
             >
               <v-icon>mdi-pin-outline</v-icon>
-              <v-icon>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <filter-key-selector
@@ -31,6 +43,10 @@
         >
           <v-icon>mdi-share-variant-outline</v-icon>
         </v-btn>
+
+
+
+
       </v-container>
     </v-toolbar>
     <v-container class="">
@@ -165,6 +181,7 @@ export default {
       "searchApiUrl",
       "searchFacetConfigs",
       "inputFiltersAsString",
+      "searchApiUrlForDisplay",
       "entityZoomData",
       "searchIsLoading",
       "showFiltersDrawer",
@@ -218,6 +235,7 @@ export default {
       "snackbar",
       "toggleFiltersDrawer",
       "openFacetsDialog",
+        "setApiDialogUrl",
     ]),
     ...mapActions([
       "updateTextSearch",

@@ -21,12 +21,13 @@
           <template v-slot:activator="{on}">
             <v-btn
                 text
+                color="primary"
                 rounded
                 v-on="on"
             >
                     <v-icon left class="">mdi-plus</v-icon>
 
-              <template v-if="isKeyEditable">Add</template>
+<!--              <template v-if="isKeyEditable">Add</template>-->
               {{ keyButtonText }}
               <v-icon right>mdi-menu-down</v-icon>
             </v-btn>
@@ -113,7 +114,7 @@ export default {
     keyButtonText(){
       return (this.myFilterKey) ?
           this.myFilterConfig.displayName :
-          "Filter"
+          "Add filter"
     },
     filterValueComponentName() {
       return "filter-value-" + this.myFilterConfig.type

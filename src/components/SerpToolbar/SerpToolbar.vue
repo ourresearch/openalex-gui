@@ -2,18 +2,14 @@
   <v-toolbar
       class=""
       flat
+      dense
   >
-    <!--    <v-icon left>-->
-    <!--      mdi-file-document-outline-->
-    <!--    </v-icon>-->
+<!--        <v-icon left>-->
+<!--          mdi-format-list-bulleted-->
+<!--        </v-icon>-->
     <div>
-<!--      <v-icon left>{{ selectedEntityTypeConfig.icon }}</v-icon>-->
-<!--      <span class="ml-1 text-capitalize">{{ selectedEntityTypeConfig.displayName | pluralize(resultsCount) }}</span>-->
+    <v-toolbar-title>Results</v-toolbar-title>
 
-      <div class="grey--text">
-        <span class="">{{ resultsCount | toPrecision }}</span> results
-
-      </div>
     </div>
     <v-spacer/>
 
@@ -32,10 +28,8 @@
       <!--        Sort-->
       <v-menu offset-y>
         <template v-slot:activator="{on}">
-          <v-btn text rounded v-on="on" class="low-key-button" :disabled="disabled">
-            <span class="mr-1">Sort by</span>
-            {{ sortObject.displayName }}
-            <v-icon right class="">mdi-menu-down</v-icon>
+          <v-btn icon v-on="on" class="" :disabled="disabled">
+            <v-icon class="">mdi-sort-ascending</v-icon>
           </v-btn>
         </template>
         <v-list dense>
@@ -61,7 +55,7 @@
       </v-menu>
 
 
-      <v-menu offset-y>
+      <v-menu v-if="0" offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on" class="" :disabled="disabled">
             <v-icon>mdi-dots-vertical</v-icon>
@@ -81,16 +75,6 @@
                 Export as spreadsheet
               </v-list-item-title>
             </v-list-item-content>
-          </v-list-item>
-          <v-list-item
-              @click="setApiDialogUrl(searchApiUrlForDisplay)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              View in API
-            </v-list-item-title>
           </v-list-item>
           <v-divider></v-divider>
           <v-list-item

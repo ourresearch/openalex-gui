@@ -1,35 +1,27 @@
 <template>
-  <div>
-    <!--    <v-autocomplete-->
-    <!--            dense-->
-    <!--            :loading="isLoading"-->
-    <!--            :items="options"-->
-    <!--            item-text="displayValue"-->
-    <!--            v-model="selectedValue"-->
-    <!--            :search-input.sync="searchString"-->
-    <!--            @change="$emit('submit', selectedValue)"-->
-    <!--    />-->
-    <!--    <v-chip-->
-    <!--      v-for-->
-    <!--    >-->
-    <!--      -->
-    <!--    </v-chip>-->
-    <filter-value-chip
-      v-for="value in mySelectedValues"
-      :key="value"
-      :filter-key="filterKey"
-      :filter-value="value"
-      @remove="removeSelectedValue(value)"
-    />
+  <div class="d-flex flex-wrap">
+      <filter-value-chip
+              v-for="value in mySelectedValues"
+              :key="value"
+              :filter-key="filterKey"
+              :filter-value="value"
+              @remove="removeSelectedValue(value)"
+      />
+    <span style="visibility: hidden;">|</span>
     <v-menu max-height="90vh">
       <template v-slot:activator="{on}">
         <v-btn
                 text
+                color="primary"
                 rounded
                 v-on="on"
+                :icon="mySelectedValues.length > 0"
         >
-          <v-icon>mdi-plus</v-icon>
-          <v-icon>mdi-menu-down</v-icon>
+          <template v-if="mySelectedValues.length === 0">
+            Select
+            <v-icon right>mdi-menu-down</v-icon>
+          </template>
+          <v-icon v-else>mdi-plus</v-icon>
         </v-btn>
       </template>
       <v-card max-height="90vh">
@@ -114,9 +106,9 @@ export default {
             this.mySelectedValues.push(filterValue)
         },
         async removeSelectedValue(filterValue) {
-          console.log("removeSelectedValue", filterValue)
+            console.log("removeSelectedValue", filterValue)
             this.mySelectedValues = this.mySelectedValues.filter(v => {
-              return v !== filterValue
+                return v !== filterValue
             })
         },
         async submit(filterKey) {
@@ -144,9 +136,9 @@ export default {
     created() {
     },
     mounted() {
-      if (this.filterValue) {
-          this.mySelectedValues.push(this.filterValue)
-      }
+        if (this.filterValue) {
+            this.mySelectedValues.push(this.filterValue)
+        }
     },
     watch: {
         searchString: {

@@ -2,8 +2,8 @@
   <v-menu offset-y>
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-              text
               dark
+              text
               rounded
               class="text-capitalize"
               v-bind="attrs"
