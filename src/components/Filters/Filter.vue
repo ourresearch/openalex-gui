@@ -26,17 +26,6 @@
               @select="setMyFilterKey"
           />
         </v-menu>
-
-
-
-
-
-
-
-
-
-
-
         <component
             :is="filterValueComponentName"
             :filter-key="myFilterKey"
