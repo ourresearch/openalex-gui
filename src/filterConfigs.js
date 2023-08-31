@@ -110,6 +110,11 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function (entityType, key, value, isNegated) {
+    if (!key){
+        throw Error(
+            `OpenAlex: createSimpleFilter(): no key provided.`
+        )
+    }
 
     const displayValue = createFilterValue(value)
     const nullValues = ["unknown", "null"]

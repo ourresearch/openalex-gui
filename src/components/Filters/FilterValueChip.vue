@@ -1,7 +1,7 @@
 <template>
   <v-chip
       close
-      @click:close="$emit('close')"
+      @click:close="$emit('remove')"
   >
     <v-progress-circular v-if="isLoading" size="18" indeterminate class="mr-2" />
     <template v-if="filterDisplayValue">

@@ -27,10 +27,8 @@ export default {
   components: {
   },
   props: {
-    readonly: Boolean,
     filterKey: String,
     filterValue: String,
-    displayValue: String,
   },
   data() {
     const splitValue = (this.filterValue) ? this.filterValue.split("-") : ["", ""]

@@ -22,20 +22,17 @@
       </v-tooltip>
     </v-toolbar>
 <!--    <v-divider />-->
-    <v-list dense class="">
+    <v-list  class="">
       <o-filter
           v-for="(filter, i) in resultsFilters"
           :key="filter.key + filter.value"
 
-          :key-readonly="true"
           :filter-key="filter.key"
           :filter-value="filter.value"
-          :display-value="filter.displayValue"
           :is-negated="filter.isNegated"
       />
       <o-filter
           :key="'new-filter' + $route.fullPath"
-          is-editing
       />
     </v-list>
   </v-card>

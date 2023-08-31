@@ -19,6 +19,7 @@
       :key="value"
       :filter-key="filterKey"
       :filter-value="value"
+      @remove="removeSelectedValue(value)"
     />
     <v-menu max-height="90vh">
       <template v-slot:activator="{on}">
@@ -109,8 +110,14 @@ export default {
             "snackbar",
         ]),
         ...mapActions([]),
-        async addSelectedValue(filterKey) {
-            this.mySelectedValues.push(filterKey)
+        async addSelectedValue(filterValue) {
+            this.mySelectedValues.push(filterValue)
+        },
+        async removeSelectedValue(filterValue) {
+          console.log("removeSelectedValue", filterValue)
+            this.mySelectedValues = this.mySelectedValues.filter(v => {
+              return v !== filterValue
+            })
         },
         async submit(filterKey) {
             this.$emit("submit", this.mySelectedValueString)

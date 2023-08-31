@@ -5,7 +5,7 @@
       class="pl-3"
   >
     <div class="">
-      <v-btn :disabled="!keyReadonly" icon @click="remove">
+      <v-btn v-if="!isKeyEditable" icon @click="remove">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </div>
@@ -13,14 +13,20 @@
     <v-list-item-content>
       <div class="d-flex align-center">
 
+        <div v-if="!isKeyEditable" class="mr-4 ml-1">
+          {{ keyButtonText }}
+        </div>
 
-        <v-menu max-height="90vh">
+        <v-menu v-if="isKeyEditable" max-height="90vh">
           <template v-slot:activator="{on}">
             <v-btn
                 text
                 rounded
                 v-on="on"
             >
+                    <v-icon left class="">mdi-plus</v-icon>
+
+              <template v-if="isKeyEditable">Add</template>
               {{ keyButtonText }}
               <v-icon right>mdi-menu-down</v-icon>
             </v-btn>
@@ -73,7 +79,6 @@ export default {
 
   },
   props: {
-    keyReadonly: Boolean,
     filterKey: String,
     isNegated: Boolean,
     valueReadonly: Boolean,
@@ -98,18 +103,23 @@ export default {
       "entityType",
       "facetZoom",
     ]),
+    isKeyEditable(){
+      console.log("isKeyEditabel", this.myFilterKey)
+      return this.filterKey === undefined
+    },
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.myFilterKey)
     },
     keyButtonText(){
       return (this.myFilterKey) ?
           this.myFilterConfig.displayName :
-          "Add filter"
+          "Filter"
     },
     filterValueComponentName() {
       return "filter-value-" + this.myFilterConfig.type
     },
     originalFilter() {
+      if (!this.filterKey) return
       return createSimpleFilter(
           this.entityType,
           this.filterKey,
