@@ -1,49 +1,72 @@
 <template>
-  <v-chip>
-    {{ filterValue }}
+  <v-chip
+      close
+      @click:close="$emit('close')"
+  >
+    <v-progress-circular v-if="isLoading" size="18" indeterminate class="mr-2" />
+    <template v-if="filterDisplayValue">
+      {{ filterDisplayValue }}
+    </template>
+    <template v-else>
+      Loading...
+    </template>
   </v-chip>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {api} from "@/api";
+import {isOpenAlexId} from "@/util";
 
 export default {
-    name: "FilterValueChip",
-    components: {},
-    props: {
-        filterValue: String,
-        filterKey: String,
-    },
-    data() {
-        return {
-            foo: 42,
-        }
-    },
-    computed: {
-        ...mapGetters([
-            "resultsFilters",
-        ]),
-    },
-    asyncComputed: {
-        displayValue: async function(){
+  name: "FilterValueChip",
+  components: {},
+  props: {
+    filterValue: String,
+    filterKey: String,
+  },
+  data() {
+    return {
+      foo: 42,
+      displayValue: "",
+      isLoading: false,
+    }
+  },
+  computed: {
+    ...mapGetters([
+      "resultsFilters",
+    ]),
+    isEntity(){
+      return isOpenAlexId(this.filterValue)
+    }
+  },
+  asyncComputed: {
+    filterDisplayValue: async function () {
+      if (!this.isEntity) return this.filterValue
 
-        }
-    },
+      this.isLoading = true
+      const resp = await api.getEntityDisplayName(this.filterValue)
+      this.isLoading = false
+      return resp.display_name
+    }
+  },
 
-    methods: {
-        ...mapMutations([
-            "snackbar",
-        ]),
-        ...mapActions([]),
+  methods: {
+    ...mapMutations([
+      "snackbar",
+    ]),
+    ...mapActions([]),
 
 
-    },
-    created() {
-    },
-    mounted() {
-    },
-    watch: {}
+  },
+  created() {
+  },
+  async mounted() {
+
+
+  },
+  watch: {}
 }
 </script>
 

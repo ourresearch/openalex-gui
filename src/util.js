@@ -96,6 +96,11 @@ const entityTypeFromId = function (id) {
     const firstLetter = shortenOpenAlexId(id).substr(0, 1)
     return entityTypesDict[firstLetter]
 }
+const isOpenAlexId = function(str){
+    const regex = /^(?:https:\/\/openalex\.org\/)?([WwAaSsPpFfIiCc]\d+)$/
+    return regex.test(str)
+}
+
 
 const idsAreEqual = function (id1, id2) {
     if (!id1 || !id2) return
@@ -172,6 +177,7 @@ export {
     toHexHash,
     shortenOpenAlexId,
     entityTypeFromId,
+    isOpenAlexId,
     entityTypes,
     unravel,
     idsAreEqual,
