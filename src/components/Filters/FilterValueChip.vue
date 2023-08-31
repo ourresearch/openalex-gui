@@ -1,6 +1,5 @@
 <template>
   <v-chip>
-    {{ filterKey }}:
     {{ filterValue }}
   </v-chip>
 </template>
@@ -10,38 +9,41 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "FilterValueChip",
-  components: {
-  },
-  props: {
-      filterValue: String,
-      filterKey: String,
-  },
-  data() {
-    return {
-      foo: 42,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "resultsFilters",
-    ]),
-  },
+    name: "FilterValueChip",
+    components: {},
+    props: {
+        filterValue: String,
+        filterKey: String,
+    },
+    data() {
+        return {
+            foo: 42,
+        }
+    },
+    computed: {
+        ...mapGetters([
+            "resultsFilters",
+        ]),
+    },
+    asyncComputed: {
+        displayValue: async function(){
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
+        }
+    },
+
+    methods: {
+        ...mapMutations([
+            "snackbar",
+        ]),
+        ...mapActions([]),
 
 
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-  }
+    },
+    created() {
+    },
+    mounted() {
+    },
+    watch: {}
 }
 </script>
 
