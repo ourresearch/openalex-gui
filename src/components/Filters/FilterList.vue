@@ -60,6 +60,7 @@
             <component
                 :is="'filter-value-' + filterToCreate.type"
                 :filter-key="filterToCreate.key"
+                :filter-value="filterToCreate.value"
                 @update="createFilter"
             />
           </div>
@@ -129,7 +130,13 @@ export default {
     ]),
     ...mapActions([]),
     setFilterToCreate(filterKey) {
-        this.filterToCreate = createSimpleFilter(this.entityType, filterKey)
+      const filterToCreate =  createSimpleFilter(this.entityType, filterKey)
+      if (filterToCreate.type === "boolean"){
+        this.$emit("create", filterKey, filterToCreate.value)
+      }
+      else {
+        this.filterToCreate = filterToCreate
+      }
     },
     createFilter(newValue){
       this.$emit("create", this.filterToCreate.key, newValue)

@@ -1,5 +1,6 @@
 import {facetConfigs, getFacetConfig} from "./facetConfigs";
 import {api} from "./api";
+import facet from "./components/Facet/Facet.vue";
 
 const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 
@@ -104,10 +105,17 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 }
 
 
-const createFilterValue = function (rawValue) {
+const createFilterValue = function (rawValue, filterType) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
         // rawValue = rawValue.replace("unknown", null)
+    }
+    if (filterType === "boolean") {
+        if (rawValue === undefined){
+            rawValue = true //boolean filters default to true
+        }
+        if (rawValue == "true") rawValue = true
+        if (rawValue == "false") rawValue = false
     }
     return rawValue
 }
@@ -118,12 +126,13 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
             `OpenAlex: createSimpleFilter(): no key provided.`
         )
     }
+    const facetConfig = getFacetConfig(entityType, key)
 
-    const displayValue = createFilterValue(value)
+
+    const displayValue = createFilterValue(value, facetConfig.type)
     const nullValues = ["unknown", "null"]
     const apiValue = (nullValues.includes(displayValue)) ? null : displayValue
 
-    const facetConfig = getFacetConfig(entityType, key)
     return {
         ...facetConfig,
         // key,

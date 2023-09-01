@@ -25,14 +25,14 @@ export default {
   props: {
     readonly: Boolean,
     filterKey: String,
-    filterValue: String,
+    filterValue: Boolean,
     displayValue: String,
   },
   data() {
     return {
       foo: 42,
       options: [],
-      selectedValue: this.filterValue == "true",
+      selectedValue: this.filterValue,
     }
   },
   computed: {
