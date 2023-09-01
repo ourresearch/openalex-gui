@@ -5,7 +5,7 @@
       class="pl-3"
   >
     <div class="">
-      <v-btn v-if="!isKeyEditable" icon @click="remove">
+      <v-btn v-if="!isKeyEditable" icon @click="$emit('delete')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </div>
@@ -20,8 +20,10 @@
         <v-menu v-if="isKeyEditable" max-height="90vh">
           <template v-slot:activator="{on}">
             <v-btn
-                text
-                color="primary"
+
+                :color="(myFilterKey) ? null : 'primary'"
+                autofocus
+                class="elevation-0"
                 rounded
                 v-on="on"
             >
@@ -146,12 +148,16 @@ export default {
     ]),
     ...mapActions([]),
     async apply(newValue, isNegated) {
+        // if (newValue === "" || newValue === undefined) {
+        //     this.$emit("delete")
+        //     return
+        // }
+
       this.myFilterValue = newValue
       this.myIsNegated = isNegated
+
+        console.log("Filter.apply()", this.originalFilter, this.newFilter)
       await url.replaceFilter(this.originalFilter, this.newFilter)
-    },
-    async remove() {
-      await url.replaceFilter(this.originalFilter, null)
     },
 
     setMyFilterKey(newKey) {

@@ -192,6 +192,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     return url.toString()
 }
 
+
 const url = {
     makeRoute,
     pushToRoute,

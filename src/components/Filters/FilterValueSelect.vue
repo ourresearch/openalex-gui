@@ -5,6 +5,7 @@
               :key="value"
               :filter-key="filterKey"
               :filter-value="value"
+              :close="mySelectedValues.length > 1"
               @remove="removeSelectedValue(value)"
       />
     <span style="visibility: hidden;">|</span>
@@ -104,12 +105,14 @@ export default {
         ...mapActions([]),
         async addSelectedValue(filterValue) {
             this.mySelectedValues.push(filterValue)
+            await this.$emit("submit", this.mySelectedValueString)
         },
         async removeSelectedValue(filterValue) {
             console.log("removeSelectedValue", filterValue)
             this.mySelectedValues = this.mySelectedValues.filter(v => {
                 return v !== filterValue
             })
+             await this.$emit("submit", this.mySelectedValueString)
         },
         async submit(filterKey) {
             this.$emit("submit", this.mySelectedValueString)
@@ -137,7 +140,8 @@ export default {
     },
     mounted() {
         if (this.filterValue) {
-            this.mySelectedValues.push(this.filterValue)
+            const newValues = this.filterValue.split("|")
+            this.mySelectedValues = [...this.mySelectedValues, ...newValues]
         }
     },
     watch: {
@@ -146,7 +150,13 @@ export default {
             handler: async function (newVal, oldVal) {
                 await this.fetchOptions()
             },
-        }
+        },
+        // mySelectedValueString: {
+        //     immediate: false,
+        //     handler: async function (newVal, oldVal) {
+        //         await this.$emit("submit", newVal)
+        //     },
+        // },
 
     }
 }

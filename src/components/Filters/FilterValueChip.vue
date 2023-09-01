@@ -1,6 +1,6 @@
 <template>
   <v-chip
-      close
+      :close="close"
       @click:close="$emit('remove')"
   >
     <v-progress-circular v-if="isLoading" size="18" indeterminate class="mr-2" />
@@ -25,6 +25,7 @@ export default {
   props: {
     filterValue: String,
     filterKey: String,
+      close: Boolean,
   },
   data() {
     return {

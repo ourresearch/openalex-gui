@@ -28,16 +28,19 @@ const filtersFromUrlStr = function (entityType, str) {
             const value = valuesStr.replace("!", "")
             filters.push(createSimpleFilter(entityType, key, value, true))
         } else {
-            const values = valuesStr.split("|")
-            values.forEach(value => {
-                filters.push(createSimpleFilter(entityType, key, value, false))
-            })
+            filters.push(createSimpleFilter(entityType, key, valuesStr, false))
+
+
+            // const values = valuesStr.split("|")
+            // values.forEach(value => {
+            //     filters.push(createSimpleFilter(entityType, key, value, false))
+            // })
         }
     })
     return filters
 }
 
-const filtersAreEqual = function(f1, f2){
+const filtersAreEqual = function (f1, f2) {
     const sameKey = f1.key === f2.key
     const sameValue = f1.value === f2.value
     const sameNegation = f1.isNegated === f2.isNegated
@@ -110,7 +113,7 @@ const createFilterValue = function (rawValue) {
 }
 
 const createSimpleFilter = function (entityType, key, value, isNegated) {
-    if (!key){
+    if (!key) {
         throw Error(
             `OpenAlex: createSimpleFilter(): no key provided.`
         )
@@ -189,9 +192,9 @@ const convertYearRangeToPrettyWords = function (yearRange) {
         return yearRange[0]
     } else if (!yearRange[0]) {
         // return "Before " + (Number(yearRange[1]) + 1)
-        return  "Before or in " + (Number(yearRange[1]) )
+        return "Before or in " + (Number(yearRange[1]))
     } else if (!yearRange[1]) {
-        return  yearRange[0] + " and later"
+        return yearRange[0] + " and later"
     } else {
         return yearRange.join("-")
     }
@@ -202,9 +205,9 @@ const convertRangeToPrettyWords = function (range) {
         return range[0] + " exactly"
     } else if (!range[0]) {
         // return (Number(range[1]).toLocaleString() ) + " or fewer"
-        return "At most " + (Number(range[1]).toLocaleString() )
+        return "At most " + (Number(range[1]).toLocaleString())
     } else if (!range[1]) {
-        return  Number(range[0]).toLocaleString() + " or more"
+        return Number(range[0]).toLocaleString() + " or more"
     } else {
         return range.join("-")
     }
@@ -216,13 +219,12 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
     if (simpleFilter.valuesToShow === 'range' && /\d*-\d*/.test(value)) {
         if (key === "publication_year") {
             displayValue = convertYearRangeToPrettyWords(value.split("-"))
-        }
-        else {
+        } else {
             displayValue = convertRangeToPrettyWords(value.split("-"))
         }
 
     }
-    if (simpleFilter.displayNullAs  && ["unknown", "null", null].includes(value)) {
+    if (simpleFilter.displayNullAs && ["unknown", "null", null].includes(value)) {
         displayValue = simpleFilter.displayNullAs
 
     }
@@ -234,7 +236,6 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
         countScaled,
     }
 }
-
 
 
 const displayYearRange = function (range) {
