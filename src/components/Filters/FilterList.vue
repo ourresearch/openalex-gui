@@ -22,7 +22,6 @@
       </v-tooltip>
     </v-toolbar>
 
-
     <v-list class="pt-0">
       <v-list-item
           v-for="(filter, i) in filters"

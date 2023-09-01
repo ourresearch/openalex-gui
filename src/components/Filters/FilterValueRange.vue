@@ -5,7 +5,7 @@
             hide-details
             v-model="start"
             label="Start"
-            @keypress.enter="$emit('submit', asStr)"
+            @keypress.enter="$emit('update', asStr)"
     />
     <span class="mx-3">&mdash;</span>
     <v-text-field
@@ -13,7 +13,7 @@
             hide-details
             v-model="end"
             label="End"
-            @keypress.enter="$emit('submit', asStr)"
+            @keypress.enter="$emit('update', asStr)"
     />
   </div>
 </template>
