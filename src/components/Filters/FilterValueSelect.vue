@@ -125,7 +125,7 @@ export default {
       this.isLoading = true
       try {
         this.options = await api.getAutocompleteResponses(
-            this.myFilterConfig.entityId,
+            this.entityType,
             this.filterKey,
             this.searchString,
         )

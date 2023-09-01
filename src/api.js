@@ -2,6 +2,9 @@ import axios from 'axios'
 import _ from 'lodash'
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter} from "@/filterConfigs";
+import {openAlexCountries} from "@/countries";
+import countryCodeLookup from "country-code-lookup";
+import {getFacetConfig} from "@/facetConfigs";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -33,6 +36,13 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
 }
 
+// hack to get around the lack of an autocomplete endpoint for countries
+const autocompleteCountry = function (searchString) {
+    return openAlexCountries
+        .filter(c => {
+            return c.display_name.toLowerCase().includes(searchString.toLowerCase())
+        })
+}
 
 // @pathName is the path, like /works
 // @searchParams can be in these formats:
@@ -101,11 +111,25 @@ const api = (function () {
             return resp
         },
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
-            if (!searchString) return []
+            const myConfig = getFacetConfig(entityType, filterKey)
+            if (myConfig.entityId) {
+                if (!searchString) return []
+                const myUrl = url.makeAutocompleteUrl(entityType, filterKey, searchString)
+                const resp = await getUrl(myUrl)
+                return resp.results
 
-            const myUrl = url.makeAutocompleteUrl(entityType, filterKey, searchString)
-            const resp = await getUrl(myUrl)
-            return resp.results
+            } else {
+                const myUrl = url.makeGroupByUrl(entityType, filterKey, {
+                    searchString
+                })
+                const resp = await getUrl(myUrl)
+                return resp.group_by.map(group => {
+                    return {
+                        id: group.key,
+                        display_name: group.key_display_name
+                    }
+                })
+            }
         },
 
         getGroups: async function (entityType, filterKey, options) {

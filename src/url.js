@@ -248,23 +248,27 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         perPage: 100,
         formatCsv: false,
         includeEmail: true,
+        filters: [],
     }
     options = Object.assign({}, defaults, options);
 
     // gather state from the current URL
-    const filters = filtersFromUrlStr(
-        entityType,
-        router.currentRoute.query.filter
-    )
+    // const filters = filtersFromUrlStr(
+    //     entityType,
+    //     router.currentRoute.query.filter
+    // )
 
     // set required params
     const url = new URL(`https://api.openalex.org`)
     url.pathname = entityType
-    url.searchParams.set("filter", filtersAsUrlStr(filters, entityType))
     url.searchParams.set("group_by", groupByKey)
 
     // set optional params
     url.searchParams.set("per_page", String(options.perPage))
+    if (options.filters.length > 0) url.searchParams.set(
+        "filter",
+        filtersAsUrlStr(options.filters, entityType)
+    )
     if (options.searchString) url.searchParams.set("q", options.searchString)
     if (options.formatCsv) url.searchParams.set("format", "csv");
     if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
