@@ -1,5 +1,5 @@
 import router from "./router";
-import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual} from "./filterConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual, createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 
 const makeRoute = function (router, newRoute) {
@@ -71,7 +71,7 @@ const setFiltersByKey = function (filterKey, filters) {
     pushToRoute(router, newRoute)
 }
 
-const negateFilter = async function (key, value){
+const negateFilter = async function (key, value) {
 
 }
 
@@ -98,6 +98,36 @@ const replaceFilter = async function (oldFilter, newFilter) {
         }
     }
     pushToRoute(router, newRoute)
+}
+
+const updateFilter = async function (entityType, key, newValue) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+
+    // add the new filter
+    const newFilters = oldFilters.map(oldFilter => {
+        const updatedValue = (oldFilter.key === key) ?
+            newValue :
+            oldFilter.value
+
+        return createSimpleFilter(
+            entityType,
+            key,
+            updatedValue
+        )
+    })
+    console.log("updateFilter", filtersAsUrlStr(newFilters))
+
+    // set and push
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: router.currentRoute.query.sort,
+            filter: filtersAsUrlStr(newFilters, entityType)
+        }
+    }
+    return await pushToRoute(router, newRoute)
 }
 
 const setFilters = function (entityType, filters, hardReset = false) {
@@ -199,6 +229,7 @@ const url = {
     addToQuery,
 
     setFiltersByKey,
+    updateFilter,
     setFilters,
     replaceFilter,
     negateFilter,

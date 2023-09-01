@@ -77,7 +77,7 @@ export default {
         FilterKeySelector,
     },
     props: {
-        singleWork: Boolean,
+        filters: Array,
     },
     data() {
         return {

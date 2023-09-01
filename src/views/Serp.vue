@@ -45,8 +45,6 @@
         </v-btn>
 
 
-
-
       </v-container>
     </v-toolbar>
     <v-container class="">
@@ -66,9 +64,19 @@
           </v-btn>
         </v-row>
       </v-alert>
-      <serp-applied-filters
+      <!--      <serp-applied-filters-->
+      <!--          :filters="resultsFilters"-->
+      <!--          class="mb-3"-->
+      <!--      />-->
+
+      <filter-list
+          :filters="resultsFilters"
+          @create="createFilter"
+          @update="updateFilter"
+          @delete="deleteFilter"
           class="mb-3"
       />
+
       <v-row class="">
         <v-col cols="12" sm="4">
           <v-card flat key="serp-results">
@@ -121,8 +129,10 @@ import _ from 'lodash';
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
+import {filtersFromUrlStr} from "@/filterConfigs";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import SerpAppliedFilters from "../components/SerpAppliedFilters.vue";
+import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
 import YearRange from "../components/YearRange";
@@ -130,6 +140,7 @@ import {api} from "@/api";
 import {pinboard} from "@/pinboard";
 import SerpResultsList from "../components/SerpResultsList.vue";
 import Pinboard from "../components/Pinboard/Pinboard.vue";
+
 
 import ApiDialog from "../components/ApiDialog.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
@@ -145,6 +156,7 @@ export default {
   components: {
     SerpToolbar,
     SerpAppliedFilters,
+    FilterList,
     SerpResultsList,
     ApiDialog,
     Pinboard,
@@ -173,6 +185,7 @@ export default {
       logoColorRotation: 0,
       showYearRange: true,
       widgetFilterKeys: [],
+      resultsFilters: []
     }
   },
   asyncComputed: {},
@@ -189,7 +202,6 @@ export default {
       "resultsCount",
       "entityType",
       "entityConfig",
-      "resultsFilters",
     ]),
     page: {
       get() {
@@ -229,13 +241,14 @@ export default {
     apiUrl() {
       return `/${this.entityType}/${this.entityId}`
     },
+
   },
   methods: {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
       "openFacetsDialog",
-        "setApiDialogUrl",
+      "setApiDialogUrl",
     ]),
     ...mapActions([
       "updateTextSearch",
@@ -263,7 +276,17 @@ export default {
     removeWidget(filterKey) {
       console.log("serp adWidget", filterKey)
       this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
-    }
+    },
+    createFilter(key, value){
+      console.log("Serp.createFilter", key, value)
+    },
+    updateFilter(key, value){
+      // console.log("Serp.updateFilter", key, value)
+      url.updateFilter(this.entityType, key, value)
+    },
+    deleteFilter(key){
+      console.log("Serp.deleteFilter", key)
+    },
   },
 
   created() {
@@ -281,6 +304,11 @@ export default {
 
         this.facetZoom = to?.query?.group_by
 
+        this.resultsFilters = filtersFromUrlStr(
+            this.entityType,
+            to?.query?.filter
+        )
+
         await this.$store.dispatch("bootFromUrl")
         if (to?.query?.zoom || from?.query?.qoom) {
           window.scroll(0, scrollTop)
@@ -294,12 +322,6 @@ export default {
 
 <style lang="scss">
 
-.years-range-button {
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  cursor: pointer;
-}
 
 .v-app-bar.mobile {
   padding: 0 !important;
@@ -307,23 +329,6 @@ export default {
 
 .serp-container.mobile {
   padding: 5px !important;
-}
-
-.serp-container {
-  //max-width: 1500px;
-  //display: flex;
-
-  .facets-panel-container {
-    //min-width: 353px;
-    //max-width: 353px;
-    //width: 350px;
-    padding: 0px 40px 0 20px;
-  }
-
-  .results-panel-container {
-    //max-width: 900px;
-  }
-
 }
 
 </style>

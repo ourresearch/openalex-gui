@@ -5,7 +5,7 @@
       :label="String(selectedValue)"
       color="success"
       hide-details
-      @change="$emit('submit', selectedValue)"
+      @change="$emit('update', selectedValue)"
     />
 
 </template>
