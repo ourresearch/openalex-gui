@@ -60,7 +60,7 @@
             <component
                 :is="'filter-value-' + filterToCreate.type"
                 :filter-key="filterToCreate.key"
-                @update="(newValue) => $emit('create', filterToCreate.key, newValue)"
+                @update="createFilter"
             />
           </div>
         </v-list-item-content>
@@ -130,7 +130,11 @@ export default {
     ...mapActions([]),
     setFilterToCreate(filterKey) {
         this.filterToCreate = createSimpleFilter(this.entityType, filterKey)
-    }
+    },
+    createFilter(newValue){
+      this.$emit("create", this.filterToCreate.key, newValue)
+      this.filterToCreate = null
+    },
 
 
   },

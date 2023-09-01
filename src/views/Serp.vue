@@ -278,14 +278,14 @@ export default {
       this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
     },
     createFilter(key, value){
-      console.log("Serp.createFilter", key, value)
+      url.createFilter(this.entityType, key, value)
     },
     updateFilter(key, value){
       // console.log("Serp.updateFilter", key, value)
       url.updateFilter(this.entityType, key, value)
     },
     deleteFilter(key){
-      console.log("Serp.deleteFilter", key)
+      url.deleteFilter(this.entityType, key)
     },
   },
 

@@ -100,6 +100,26 @@ const replaceFilter = async function (oldFilter, newFilter) {
     pushToRoute(router, newRoute)
 }
 
+const createFilter = async function (entityType, key, newValue) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    if (oldFilters.map(f => f.key).includes(key)) {
+        throw Error("OpenAlex: url.createFilter trying to create a filter with a key that's already in URL")
+    }
+    const newFilters = [...oldFilters, createSimpleFilter(entityType, key, newValue)]
+
+    // set and push
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: router.currentRoute.query.sort,
+            filter: filtersAsUrlStr(newFilters, entityType)
+        }
+    }
+    return await pushToRoute(router, newRoute)
+}
+
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
@@ -129,25 +149,14 @@ const updateFilter = async function (entityType, key, newValue) {
     }
     return await pushToRoute(router, newRoute)
 }
-const createFilter = async function (entityType, key, newValue) {
+
+const deleteFilter = async function (entityType, key) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    if (oldFilters.map(f => f.key).includes(key)) {
-        throw Error("OpenAlex: url.createFilter trying to create a filter with a key that's already in URL" )
-    }
 
     // add the new filter
-    const newFilters = oldFilters.map(oldFilter => {
-        const updatedValue = (oldFilter.key === key) ?
-            newValue :
-            oldFilter.value
-
-        return createSimpleFilter(
-            entityType,
-            key,
-            updatedValue
-        )
+    const newFilters = oldFilters.filter(oldFilter => {
+        return oldFilter.key !== key
     })
-    console.log("updateFilter", filtersAsUrlStr(newFilters))
 
     // set and push
     const newRoute = {
@@ -161,6 +170,7 @@ const createFilter = async function (entityType, key, newValue) {
     }
     return await pushToRoute(router, newRoute)
 }
+
 
 const setFilters = function (entityType, filters, hardReset = false) {
     const newRoute = {
@@ -260,8 +270,11 @@ const url = {
     pushToRoute,
     addToQuery,
 
-    setFiltersByKey,
+    createFilter,
     updateFilter,
+    deleteFilter,
+
+    setFiltersByKey,
     setFilters,
     replaceFilter,
     negateFilter,
