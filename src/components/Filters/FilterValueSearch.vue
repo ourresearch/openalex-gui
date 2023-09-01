@@ -1,35 +1,5 @@
 <template>
   <div class="d-flex align-center" >
-    <v-menu v-if="0">
-      <template v-slot:activator="{on}">
-        <v-btn
-            text
-            rounded
-            v-on="on"
-        >
-          {{ (myIsNegated) ? "Doesn't include" : "Includes" }}
-          <v-icon right>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item @click="setIsNegated(false)">
-          <v-list-item-icon>
-            <v-icon color="success">mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-title>
-            Includes
-          </v-list-item-title>
-        </v-list-item>
-        <v-list-item @click="setIsNegated(true)">
-          <v-list-item-icon>
-            <v-icon color="error">mdi-close</v-icon>
-          </v-list-item-icon>
-          <v-list-item-title>
-            Doesn't include
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
     <v-text-field
         dense
         hide-details
@@ -39,7 +9,7 @@
         v-model="myFilterValue"
         :placeholder="myFilterConfig.displayName"
         :label="myFilterConfig.displayName"
-        @keypress.enter="$emit('submit', myFilterValue, myIsNegated)"
+        @keypress.enter="$emit('update', myFilterValue)"
     />
   </div>
 </template>
@@ -54,18 +24,14 @@ export default {
   name: "FilterValueSearch",
   components: {},
   props: {
-    readonly: Boolean,
     filterKey: String,
     filterValue: String,
-    displayValue: String,
-    isNegated: Boolean,
   },
   data() {
     return {
       foo: 42,
       myFilterValue: this.filterValue,
       myFilterKey: this.filterKey,
-      myIsNegated: this.isNegated,
     }
   },
   computed: {

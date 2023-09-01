@@ -45,6 +45,26 @@
           </div>
         </v-list-item-content>
       </v-list-item>
+      <v-list-item
+          key="filter-to-create"
+          v-if="filterToCreate"
+      >
+        <div class="">
+          <v-btn icon @click="filterToCreate = null">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+        <v-list-item-content>
+          <div class="d-flex align-center">
+            <div>{{ filterToCreate.displayName }}</div>
+            <component
+                :is="'filter-value-' + filterToCreate.type"
+                :filter-key="filterToCreate.key"
+                @update="(newValue) => $emit('create', filterToCreate.key, newValue)"
+            />
+          </div>
+        </v-list-item-content>
+      </v-list-item>
     </v-list>
 
 
@@ -61,7 +81,7 @@
           </v-btn>
         </template>
         <filter-key-selector
-            @select="setNewFilter"
+            @select="setFilterToCreate"
         />
       </v-menu>
 
@@ -72,6 +92,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {createSimpleFilter} from "../../filterConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 import FilterValueBoolean from "./FilterValueBoolean.vue";
 import FilterValueRange from "./FilterValueRange.vue";
@@ -93,11 +114,13 @@ export default {
   data() {
     return {
       foo: 42,
-      newFilter: null,
+      filterToCreate: null,
     }
   },
   computed: {
-    ...mapGetters([]),
+    ...mapGetters([
+        "entityType",
+    ]),
   },
 
   methods: {
@@ -105,8 +128,8 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    setNewFilter(filterKey) {
-      console.log("setNewFilter", filterKey)
+    setFilterToCreate(filterKey) {
+        this.filterToCreate = createSimpleFilter(this.entityType, filterKey)
     }
 
 

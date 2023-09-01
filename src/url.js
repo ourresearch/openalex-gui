@@ -129,6 +129,38 @@ const updateFilter = async function (entityType, key, newValue) {
     }
     return await pushToRoute(router, newRoute)
 }
+const createFilter = async function (entityType, key, newValue) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    if (oldFilters.map(f => f.key).includes(key)) {
+        throw Error("OpenAlex: url.createFilter trying to create a filter with a key that's already in URL" )
+    }
+
+    // add the new filter
+    const newFilters = oldFilters.map(oldFilter => {
+        const updatedValue = (oldFilter.key === key) ?
+            newValue :
+            oldFilter.value
+
+        return createSimpleFilter(
+            entityType,
+            key,
+            updatedValue
+        )
+    })
+    console.log("updateFilter", filtersAsUrlStr(newFilters))
+
+    // set and push
+    const newRoute = {
+        name: "Serp",
+        params: {entityType},
+        query: {
+            page: 1,
+            sort: router.currentRoute.query.sort,
+            filter: filtersAsUrlStr(newFilters, entityType)
+        }
+    }
+    return await pushToRoute(router, newRoute)
+}
 
 const setFilters = function (entityType, filters, hardReset = false) {
     const newRoute = {
