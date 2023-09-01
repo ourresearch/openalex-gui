@@ -8,7 +8,10 @@
 <!--          mdi-format-list-bulleted-->
 <!--        </v-icon>-->
     <div>
-    <v-toolbar-title>Results</v-toolbar-title>
+    <v-toolbar-title>
+      Results
+      <span class="body-2">({{resultsCount | toPrecision }})</span>
+    </v-toolbar-title>
 
     </div>
     <v-spacer/>
