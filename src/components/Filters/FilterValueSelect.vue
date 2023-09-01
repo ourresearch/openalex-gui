@@ -105,17 +105,17 @@ export default {
         ...mapActions([]),
         async addSelectedValue(filterValue) {
             this.mySelectedValues.push(filterValue)
-            await this.$emit("submit", this.mySelectedValueString)
+            await this.$emit("update", this.mySelectedValueString)
         },
         async removeSelectedValue(filterValue) {
             console.log("removeSelectedValue", filterValue)
             this.mySelectedValues = this.mySelectedValues.filter(v => {
                 return v !== filterValue
             })
-             await this.$emit("submit", this.mySelectedValueString)
+             await this.$emit("update", this.mySelectedValueString)
         },
         async submit(filterKey) {
-            this.$emit("submit", this.mySelectedValueString)
+            this.$emit("update", this.mySelectedValueString)
         },
         async fetchOptions() {
             this.isLoading = true
@@ -151,12 +151,6 @@ export default {
                 await this.fetchOptions()
             },
         },
-        // mySelectedValueString: {
-        //     immediate: false,
-        //     handler: async function (newVal, oldVal) {
-        //         await this.$emit("submit", newVal)
-        //     },
-        // },
 
     }
 }
