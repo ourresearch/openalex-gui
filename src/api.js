@@ -1,7 +1,7 @@
 import axios from 'axios'
 import _ from 'lodash'
 import {url} from "@/url";
-import {createDisplayFilter} from "@/filterConfigs";
+import {createDisplayFilter, createSimpleFilter} from "@/filterConfigs";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -89,7 +89,7 @@ const api = (function () {
         createUrl: function (pathName, searchParams, includeEmail) {
             return makeUrl(pathName, searchParams, false)
         },
-        getEntityDisplayName: async function(id) {
+        getEntityDisplayName: async function (id) {
             const myUrl = makeUrl(id, {select: "display_name"})
             const resp = await getUrl(myUrl)
             return resp
@@ -100,6 +100,14 @@ const api = (function () {
             const resp = await getUrl(url)
             return resp
         },
+        getAutocompleteResponses: async function (entityType, filterKey, searchString) {
+            if (!searchString) return []
+
+            const myUrl = url.makeAutocompleteUrl(entityType, filterKey, searchString)
+            const resp = await getUrl(myUrl)
+            return resp.results
+        },
+
         getGroups: async function (entityType, filterKey, options) {
             const myUrl = url.makeGroupByUrl(
                 entityType,
@@ -109,8 +117,8 @@ const api = (function () {
             const resp = await axios.get(myUrl)
             const filteredGroups = resp.data.group_by.filter(g => {
                 const keyIsNullish = g.key === "unknown" || g.key === null
-                    return !(keyIsNullish && options.hideUnknown)
-                })
+                return !(keyIsNullish && options.hideUnknown)
+            })
 
             const maxGroups = (options.perPage) ? options.perPage - 1 : 300
             const truncatedGroups = filteredGroups.splice(0, maxGroups)
@@ -119,16 +127,16 @@ const api = (function () {
             const maxCount = Math.max(...groupCounts)
             const groupDisplayFilters = truncatedGroups
                 .map(group => {
-                return createDisplayFilter(
-                    entityType,
-                    filterKey,
-                    group.key,
-                    false,
-                    group.key_display_name,
-                    group.count,
-                    group.count / maxCount
-                )
-            })
+                    return createDisplayFilter(
+                        entityType,
+                        filterKey,
+                        group.key,
+                        false,
+                        group.key_display_name,
+                        group.count,
+                        group.count / maxCount
+                    )
+                })
 
             return groupDisplayFilters
         }

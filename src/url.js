@@ -1,6 +1,7 @@
 import router from "./router";
 import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual, createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
+import entity from "@/components/Entity/Entity.vue";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
@@ -231,6 +232,14 @@ const goToZoom = async function (router, zoom) {
 }
 
 
+const makeAutocompleteUrl = function(entityType, filterKey, searchString){
+    const url = new URL(`https://api.openalex.org`)
+    url.pathname = `autocomplete/${entityType}`
+    url.searchParams.set("q", searchString)
+    url.searchParams.set("mailto", "team@ourresearch.org")
+    return url.toString()
+}
+
 const makeGroupByUrl = function (entityType, groupByKey, options) {
 
     // set options from defaults and args
@@ -286,7 +295,8 @@ const url = {
     addZoomToRoute,
 
     pushNewSearch,
-    makeGroupByUrl
+    makeGroupByUrl,
+    makeAutocompleteUrl,
 }
 
 
