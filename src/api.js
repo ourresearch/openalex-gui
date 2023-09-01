@@ -112,9 +112,11 @@ const api = (function () {
         },
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
             const myConfig = getFacetConfig(entityType, filterKey)
+            console.log("getAutocompleteResponses()", myConfig)
+
             if (myConfig.entityId) {
                 if (!searchString) return []
-                const myUrl = url.makeAutocompleteUrl(entityType, filterKey, searchString)
+                const myUrl = url.makeAutocompleteUrl(myConfig.entityId, filterKey, searchString)
                 const resp = await getUrl(myUrl)
                 return resp.results
 

@@ -1,18 +1,21 @@
 <template>
-  <div class="d-flex">
+  <div class="ml-3 d-flex align-center" style="max-width: 200px;">
     <v-text-field
             dense
             hide-details
+
+            outlined
             v-model="start"
-            label="Start"
+            placeholder="Min"
             @keypress.enter="$emit('update', asStr)"
     />
     <span class="mx-3">&mdash;</span>
     <v-text-field
             dense
             hide-details
+            outlined
             v-model="end"
-            label="End"
+            placeholder="Max"
             @keypress.enter="$emit('update', asStr)"
     />
   </div>

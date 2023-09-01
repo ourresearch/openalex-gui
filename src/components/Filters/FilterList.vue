@@ -21,7 +21,6 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
-
     <v-list class="pt-0">
       <v-list-item
           v-for="(filter, i) in filters"
@@ -81,6 +80,7 @@
           </v-btn>
         </template>
         <filter-key-selector
+            :disabled-keys="filters.map(f=>f.key)"
             @select="setFilterToCreate"
         />
       </v-menu>

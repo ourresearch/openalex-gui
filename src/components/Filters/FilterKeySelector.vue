@@ -1,5 +1,7 @@
 <template>
   <v-card :dark="dark" max-height="90vh">
+    <div>Select filter</div>
+    <div>{{ disabledKeys }}</div>
     <v-text-field
         v-model="searchString"
         autofocus
@@ -34,6 +36,7 @@ export default {
   components: {},
   props: {
     dark: Boolean,
+    disabledKeys: Array,
   },
   data() {
     return {
