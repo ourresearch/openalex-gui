@@ -114,6 +114,7 @@
               :key="viewKey"
               class="mt-3"
               :filter-key="viewKey"
+              :filters="resultsFilters"
               @remove="removeWidget"
           />
 

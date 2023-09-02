@@ -75,6 +75,7 @@ export default {
   components: {},
   props: {
     filterKey: String,
+    filters: Array,
   },
   data() {
     return {
@@ -120,6 +121,7 @@ export default {
             {
               perPage: 6,
               hideUnknown: true,
+              filters: this.filters,
             }
         )
       } catch (e) {
@@ -137,7 +139,7 @@ export default {
 
   },
   watch: {
-    searchString: {
+    filters: {
       immediate: true,
       handler: async function (newVal, oldVal) {
         await this.fetchOptions()
