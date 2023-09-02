@@ -4,7 +4,7 @@
       class="mb-8"
   >
     <v-toolbar flat dense class="">
-      <v-icon left>mdi-filter-multiple-outline</v-icon>
+<!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
       <v-toolbar-title>
         Filters
         <span class="body-2">
