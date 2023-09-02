@@ -33,7 +33,7 @@
           <filter-key-selector
               dark
               hide-unpinnable
-              @select="pinFilter"
+              @select="createWidget"
           />
         </v-menu>
         <v-btn
@@ -102,7 +102,9 @@
           </v-container>
         </v-col>
         <v-col cols="12" sm="4">
-
+          <div>
+            {{ widgetFilterKeys}}
+          </div>
           <year-range
               height="50px"
               big
@@ -111,12 +113,12 @@
               v-if="entityType === 'works'"
           />
           <pinboard-widget
-              v-for="viewKey in widgetFilterKeys"
-              :key="viewKey"
+              v-for="filterKey in widgetFilterKeys"
+              :key="filterKey"
               class="mt-3"
-              :filter-key="viewKey"
+              :filter-key="filterKey"
               :filters="resultsFilters"
-              @remove="removeWidget"
+              @delete="deleteWidget(filterKey)"
           />
 
         </v-col>
@@ -167,6 +169,7 @@ import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 import PinboardWidget from "../components/Pinboard/PinboardWidget.vue";
+import pinboardWidget from "../components/Pinboard/PinboardWidget.vue";
 
 export default {
   name: "Serp",
@@ -294,9 +297,10 @@ export default {
       })
     },
     removeWidget(filterKey) {
-      console.log("serp adWidget", filterKey)
-      this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
+
     },
+
+
     createFilter(key, value) {
       url.createFilter(this.entityType, key, value)
     },
@@ -307,17 +311,23 @@ export default {
     deleteFilter(key) {
       url.deleteFilter(this.entityType, key)
     },
-    pinFilter(filterKey) {
-      console.log("serp pinFilter", filterKey)
+    createWidget(filterKey) {
+      console.log("serp createWidget", filterKey)
       this.widgetFilterKeys.push(filterKey)
+      pinboard.addWidget(this.entityType, filterKey)
+    },
+    deleteWidget(filterKey) {
+       console.log("serp deleteWidget", filterKey)
+      this.widgetFilterKeys = this.widgetFilterKeys.filter(k => k !== filterKey)
+      pinboard.deleteWidget(this.entityType, filterKey)
     },
   },
 
   created() {
   },
   async mounted() {
-    const views = pinboard.init(this.entityType)
-    console.log("serp pinboard.views", views)
+    pinboard.init(this.entityType)
+    this.widgetFilterKeys = pinboard.getWidgets(this.entityType)
 
   },
   watch: {

@@ -16,7 +16,7 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="$emit('remove')">
+          <v-list-item @click="$emit('delete')">
             <v-list-item-icon>
               <v-icon>mdi-pin-off-outline</v-icon>
             </v-list-item-icon>
