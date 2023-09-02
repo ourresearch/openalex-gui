@@ -1,6 +1,7 @@
 <template>
-  <div class="d-flex flex-wrap">
+  <div class="d-flex flex-wrap ml-3">
     <filter-value-chip
+        :disabled="disabled"
         v-for="value in mySelectedValues"
         :key="value"
         :filter-key="filterKey"
@@ -22,7 +23,7 @@
             Select
             <v-icon right>mdi-menu-down</v-icon>
           </template>
-          <v-icon v-else>mdi-plus</v-icon>
+          <v-icon :disabled="disabled" v-else>mdi-plus</v-icon>
         </v-btn>
       </template>
       <v-card max-height="90vh">
@@ -71,7 +72,7 @@ export default {
     FilterValueChip,
   },
   props: {
-    readonly: Boolean,
+    disabled: Boolean,
     filterKey: String,
     filterValue: String,
     displayValue: String,

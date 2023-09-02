@@ -1,7 +1,6 @@
 <template>
   <v-card :dark="dark" max-height="90vh">
-    <div>Select filter</div>
-    <div>{{ disabledKeys }}</div>
+    <div class="pl-3 pt-2">Select filter:</div>
     <v-text-field
         v-model="searchString"
         autofocus
@@ -13,11 +12,24 @@
     <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">
       <v-list>
         <v-list-item
+            :disabled="disabledKeys.includes(filter.key)"
             v-for="filter in filterOptions"
             :key="filter.key"
             @click="$emit('select', filter.key)"
         >
-          {{ filter.displayName }}
+          <v-list-item-icon>
+            <v-icon>{{ filter.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ filter.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+<!--          <v-list-item-action>-->
+<!--            <v-btn :disabled="filter.type.includes('boolean', 'select')" icon @click.stop="$emit('pin', filter.key)">-->
+<!--              <v-icon>mdi-pin-outline</v-icon>-->
+<!--            </v-btn>-->
+<!--          </v-list-item-action>-->
         </v-list-item>
       </v-list>
 
@@ -36,7 +48,13 @@ export default {
   components: {},
   props: {
     dark: Boolean,
-    disabledKeys: Array,
+    hideUnpinnable: Boolean,
+    disabledKeys: {
+      type: Array,
+      default() {
+        return []
+      },
+    },
   },
   data() {
     return {
@@ -50,7 +68,10 @@ export default {
       "entityType",
     ]),
     filterOptions() {
-      return filtersList(this.entityType, [], this.searchString)
+      return filtersList(this.entityType, [], this.searchString).filter(f => {
+        const thisFilterIsUnpinnable = !["boolean", "select"].includes(f.type);
+        return !(this.hideUnpinnable && thisFilterIsUnpinnable)
+      })
     }
   },
 

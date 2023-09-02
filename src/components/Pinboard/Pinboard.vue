@@ -2,12 +2,7 @@
   <div>
     <v-row dense>
       <v-col cols="6">
-        <year-range
-            height="50px"
-            big
-            class="mb-3"
-            show-filter-link
-        />
+
 
       </v-col>
       <v-col

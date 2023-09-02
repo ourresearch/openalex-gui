@@ -33,7 +33,8 @@
           </template>
           <filter-key-selector
               dark
-              @select="addWidget"
+              hide-unpinnable
+              @select="pinFilter"
           />
         </v-menu>
         <v-btn
@@ -69,13 +70,25 @@
       <!--          class="mb-3"-->
       <!--      />-->
 
-      <filter-list
-          :filters="resultsFilters"
-          @create="createFilter"
-          @update="updateFilter"
-          @delete="deleteFilter"
-          class="mb-3"
-      />
+      <v-row>
+        <v-col cols="12" sm="8">
+          <filter-list
+              :filters="resultsFilters"
+              @create="createFilter"
+              @update="updateFilter"
+              @delete="deleteFilter"
+              class="mb-3"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <year-range
+              height="50px"
+              big
+              class="mb-3"
+              show-filter-link
+          />
+        </v-col>
+      </v-row>
 
       <v-row class="">
         <v-col cols="12" sm="4">
@@ -85,10 +98,21 @@
           </v-card>
         </v-col>
         <v-col cols="12" sm="8">
-          <pinboard
-              :widget-filter-keys="widgetFilterKeys"
-              @remove="removeWidget"
-          />
+          <v-row dense>
+            <v-col
+                v-for="viewKey in widgetFilterKeys"
+                :key="viewKey"
+                cols="12"
+                sm="6"
+            >
+              <pinboard-widget
+                  :filter-key="viewKey"
+                  @remove="removeWidget"
+              />
+
+            </v-col>
+          </v-row>
+
 
         </v-col>
 
@@ -146,6 +170,8 @@ import ApiDialog from "../components/ApiDialog.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
+import PinboardWidget from "../components/Pinboard/PinboardWidget.vue";
+
 export default {
   name: "Serp",
   metaInfo() {
@@ -160,8 +186,10 @@ export default {
     SerpResultsList,
     ApiDialog,
     Pinboard,
+    PinboardWidget,
     EntityTypeSelector,
     FilterKeySelector,
+    YearRange,
 
   },
   props: {},
@@ -269,23 +297,23 @@ export default {
         this.data = resp
       })
     },
-    addWidget(filterKey) {
-      console.log("serp adWidget", filterKey)
-      this.widgetFilterKeys.push(filterKey)
-    },
     removeWidget(filterKey) {
       console.log("serp adWidget", filterKey)
       this.widgetFilterKeys = this.widgetFilterKeys.filter(vk => vk !== filterKey)
     },
-    createFilter(key, value){
+    createFilter(key, value) {
       url.createFilter(this.entityType, key, value)
     },
-    updateFilter(key, value){
+    updateFilter(key, value) {
       // console.log("Serp.updateFilter", key, value)
       url.updateFilter(this.entityType, key, value)
     },
-    deleteFilter(key){
+    deleteFilter(key) {
       url.deleteFilter(this.entityType, key)
+    },
+    pinFilter(filterKey) {
+      console.log("serp pinFilter", filterKey)
+      this.widgetFilterKeys.push(filterKey)
     },
   },
 

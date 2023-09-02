@@ -1,6 +1,6 @@
 <template>
     <v-switch
-        class="pt-0 mt-0"
+        class="pt-0 mt-0 ml-5"
       v-model="selectedValue"
       :label="String(selectedValue)"
       color="success"

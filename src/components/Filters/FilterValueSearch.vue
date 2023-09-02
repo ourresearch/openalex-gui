@@ -10,6 +10,8 @@
         :placeholder="myFilterConfig.displayName"
         :label="myFilterConfig.displayName"
         @keypress.enter="$emit('update', myFilterValue)"
+        class="ml-3"
+        :disabled="disabled"
     />
   </div>
 </template>
@@ -26,6 +28,7 @@ export default {
   props: {
     filterKey: String,
     filterValue: String,
+    disabled: Boolean,
   },
   data() {
     return {

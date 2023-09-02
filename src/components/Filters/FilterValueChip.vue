@@ -1,6 +1,8 @@
 <template>
   <v-chip
       :close="close"
+      :disabled="disabled"
+      outlined
       @click:close="$emit('remove')"
   >
     <v-progress-circular v-if="isLoading" size="18" indeterminate class="mr-2" />
@@ -23,6 +25,7 @@ export default {
   name: "FilterValueChip",
   components: {},
   props: {
+    disabled: Boolean,
     filterValue: String,
     filterKey: String,
       close: Boolean,

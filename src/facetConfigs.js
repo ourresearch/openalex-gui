@@ -47,7 +47,7 @@ const facetCategoriesIcons = {
     popular: "mdi-star-outline",
     author: "mdi-account-outline",
     institution: "mdi-town-hall",
-    geo: "mdi-map-marker-outline",
+    geo: "mdi-town-hall",
     funder: "mdi-cash-multiple",
     "main source": "mdi-book-multiple-outline",
     repository: "mdi-package-variant",
@@ -116,7 +116,7 @@ const facetConfigs = function (entityType) {
         {
             key: "grants.funder",
             entityType: "works",
-            displayName: "Funder name",
+            displayName: "Funder",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -173,7 +173,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.author.id",
             entityType: "works",
-            displayName: "Author name",
+            displayName: "Author",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -368,7 +368,7 @@ const facetConfigs = function (entityType) {
             isCountry: true,
             category: "geo",
             isCore: true,
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-town-hall",
             // icon: "mdi-town-hall",
         },
         {
@@ -378,7 +378,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             category: "geo",
             isCore: true,
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-town-hall",
             // icon: "mdi-town-hall",
         },
         {
@@ -388,7 +388,7 @@ const facetConfigs = function (entityType) {
             type: "range",
             category: "geo",
             booleanValues: ["Global North", "Global South"],
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-town-hall",
             // icon: "mdi-town-hall",
         },
         {
@@ -415,7 +415,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Main source name",
+            displayName: "Main source",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -424,7 +424,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             category: "main source",
             isCore: true,
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
         },
 
@@ -440,7 +440,7 @@ const facetConfigs = function (entityType) {
             noOptions: true,
             type: "entity",
             category: "other",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
             regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
         },
         {
@@ -449,7 +449,7 @@ const facetConfigs = function (entityType) {
             displayName: "Main source type",
             type: "select",
             category: "main source",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "primary_location.source.is_in_doaj",
@@ -458,7 +458,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             category: "main source",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "primary_location.source.is_oa",
@@ -467,7 +467,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             category: "main source",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
 
         {
@@ -483,7 +483,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             category: "main source",
             isCore: true,
-            icon: "mdi-home-city-outline",
+            icon: "mdi-domain",
             regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
         },
 
@@ -493,14 +493,14 @@ const facetConfigs = function (entityType) {
         {
             key: "repository",
             entityType: "works",
-            displayName: "Repository name",
+            displayName: "Repository",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
             type: "select",
             category: "repository",
             isCore: true,
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "open_access.any_repository_has_fulltext",
@@ -509,7 +509,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["Not in any repository", "In a repository"],
             category: "repository",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
         },
 
 
@@ -541,7 +541,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["Has a DOI", "No DOI"],
             category: "ids",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
         },
         {
             key: "has_orcid",
@@ -550,7 +550,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["No ORCID", "At least one ORCID",],
             category: "ids",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
         },
         {
             key: "has_pmid",
@@ -558,7 +558,7 @@ const facetConfigs = function (entityType) {
             displayName: "Indexed by PubMed",
             type: "boolean",
             category: "ids",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
             booleanValues: ["No PubMed ID", "Has PubMed ID"],
         },
         {
@@ -567,7 +567,7 @@ const facetConfigs = function (entityType) {
             displayName: "Indexed by PubMed Central",
             type: "boolean",
             category: "ids",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
             booleanValues: ["No PMC ID", "Has PMC ID"],
         },
         {
@@ -608,6 +608,7 @@ const facetConfigs = function (entityType) {
             placeholders: ["min", "max"],
             category: "citation",
             isCore: true,
+            icon: "mdi-file-document-outline",
         },
         {
             key: "cited_by",
@@ -647,7 +648,7 @@ const facetConfigs = function (entityType) {
             type: "entity",
             category: "other",
             isHidden: true,
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
 
 
@@ -678,7 +679,7 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.id",
             entityType: "authors",
-            displayName: "Institution name",
+            displayName: "Institution",
             isEntity: true,
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
@@ -694,7 +695,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isCountry: true,
             category: "geo",
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-town-hall",
         },
         {
             key: "last_known_institution.type",
@@ -712,7 +713,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["No ORCID", "Has ORCID"],
             category: "ids",
-            icon: "mdi-database-outline",
+            icon: "mdi-tag-outline",
         },
         {
             key: "x_concepts.id",
@@ -744,7 +745,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/sources/publisher",
             type: "select",
             category: "popular",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "type",
@@ -752,7 +753,7 @@ const facetConfigs = function (entityType) {
             displayName: "Source type",
             type: "select",
             category: "popular",
-            icon: "mdi-file-document-multiple-outline",
+            icon: "mdi-book-open-outline",
         },
         {
             key: "is_oa",
@@ -825,7 +826,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isCountry: true,
             category: "geo",
-            icon: "mdi-map-marker-outline"
+            icon: "mdi-town-hall"
         },
         {
             key: "type",

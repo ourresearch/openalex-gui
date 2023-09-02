@@ -3,8 +3,8 @@
       flat
       class="mb-8"
   >
-    <v-toolbar flat dense class="elevation-0">
-      <v-icon left>mdi-filter-outline</v-icon>
+    <v-toolbar flat dense class="">
+      <v-icon left>mdi-filter-multiple-outline</v-icon>
       <v-toolbar-title>
         Filters
         <span class="body-2">
@@ -22,39 +22,51 @@
       </v-tooltip>
     </v-toolbar>
     <v-list class="pt-0">
-      <v-list-item
+<!--      <v-divider />-->
+      <template
           v-for="(filter, i) in filters"
-          :key="filter.key"
       >
-        <div class="">
-          <v-btn icon @click="$emit('delete', filter.key)">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
-        <v-list-item-content>
-          <div class="d-flex align-center">
-            <div>{{ filter.displayName }}</div>
-            <component
-                :is="'filter-value-' + filter.type"
-                :filter-key="filter.key"
-                :filter-value="filter.value"
-                @update="(newValue) => $emit('update', filter.key, newValue)"
-            />
+        <v-list-item
+            :key="filter.key"
+            :disabled="!!filterToCreate"
+        >
+          <div class="mr-2">
+            <v-icon :disabled="!!filterToCreate">mdi-filter-outline</v-icon>
+
           </div>
-        </v-list-item-content>
-      </v-list-item>
+          <v-list-item-content>
+            <div class="d-flex align-center">
+              <div class="">{{ filter.displayName }}:</div>
+              <component
+                  :is="'filter-value-' + filter.type"
+                  :disabled="!!filterToCreate"
+                  :filter-key="filter.key"
+                  :filter-value="filter.value"
+                  @update="(newValue) => $emit('update', filter.key, newValue)"
+              />
+            </div>
+          </v-list-item-content>
+          <v-list-item-action>
+            <v-btn :disabled="!!filterToCreate" icon @click="$emit('delete', filter.key)">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-list-item-action>
+        </v-list-item>
+<!--        <v-divider />-->
+      </template>
       <v-list-item
           key="filter-to-create"
           v-if="filterToCreate"
+          class=""
+
       >
-        <div class="">
-          <v-btn icon @click="filterToCreate = null">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
+        <div class="mr-3">
+            <v-icon>mdi-filter-plus-outline</v-icon>
+
         </div>
         <v-list-item-content>
-          <div class="d-flex align-center">
-            <div>{{ filterToCreate.displayName }}</div>
+          <div class="d-flex align-center ">
+            <div class="font-weight-bold ">{{ filterToCreate.displayName }}: </div>
             <component
                 :is="'filter-value-' + filterToCreate.type"
                 :filter-key="filterToCreate.key"
@@ -63,7 +75,13 @@
             />
           </div>
         </v-list-item-content>
+        <v-list-item-action>
+          <v-btn text @click="filterToCreate = null">
+            Cancel
+          </v-btn>
+        </v-list-item-action>
       </v-list-item>
+<!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </v-list>
 
 
@@ -72,6 +90,7 @@
         <template v-slot:activator="{on}">
           <v-btn
               fab
+              :disabled="!!filterToCreate"
               color="primary"
               v-on="on"
               style="margin-bottom: -33px"
@@ -119,7 +138,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-        "entityType",
+      "entityType",
     ]),
   },
 
@@ -129,15 +148,14 @@ export default {
     ]),
     ...mapActions([]),
     setFilterToCreate(filterKey) {
-      const filterToCreate =  createSimpleFilter(this.entityType, filterKey)
-      if (filterToCreate.type === "boolean"){
+      const filterToCreate = createSimpleFilter(this.entityType, filterKey)
+      if (filterToCreate.type === "boolean") {
         this.$emit("create", filterKey, filterToCreate.value)
-      }
-      else {
+      } else {
         this.filterToCreate = filterToCreate
       }
     },
-    createFilter(newValue){
+    createFilter(newValue) {
       this.$emit("create", this.filterToCreate.key, newValue)
       this.filterToCreate = null
     },
