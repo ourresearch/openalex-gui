@@ -123,6 +123,7 @@ const createFilter = async function (entityType, key, newValue) {
 
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    console.log("updateFilter() oldFilters", oldFilters)
 
     // add the new filter
     const newFilters = oldFilters.map(oldFilter => {
@@ -132,11 +133,12 @@ const updateFilter = async function (entityType, key, newValue) {
 
         return createSimpleFilter(
             entityType,
-            key,
+            oldFilter.key,
             updatedValue
         )
     })
-    console.log("updateFilter", filtersAsUrlStr(newFilters))
+    console.log("updateFilter() newFilters", newFilters)
+    console.log("updateFilter() newFilters string", filtersAsUrlStr(newFilters))
 
     // set and push
     const newRoute = {

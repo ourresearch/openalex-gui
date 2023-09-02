@@ -1,5 +1,6 @@
 <template>
     <v-switch
+        :disabled="disabled"
         class="pt-0 mt-0 ml-5"
       v-model="selectedValue"
       :label="String(selectedValue)"
@@ -23,10 +24,9 @@ export default {
   components: {
   },
   props: {
-    readonly: Boolean,
+    disabled: Boolean,
     filterKey: String,
     filterValue: Boolean,
-    displayValue: String,
   },
   data() {
     return {

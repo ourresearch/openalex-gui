@@ -300,7 +300,7 @@ export default {
       url.createFilter(this.entityType, key, value)
     },
     updateFilter(key, value) {
-      // console.log("Serp.updateFilter", key, value)
+      console.log("Serp.updateFilter", key, value)
       url.updateFilter(this.entityType, key, value)
     },
     deleteFilter(key) {
