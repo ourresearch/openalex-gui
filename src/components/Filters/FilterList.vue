@@ -4,7 +4,7 @@
       class="mb-8"
   >
     <v-toolbar flat dense class="">
-<!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
+      <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
       <v-toolbar-title>
         Filters
         <span class="body-2">
@@ -25,7 +25,7 @@
       There are no filters applied.
     </div>
     <v-list class="pt-0">
-<!--      <v-divider />-->
+      <!--      <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
@@ -55,9 +55,8 @@
             </v-btn>
           </v-list-item-action>
         </v-list-item>
-<!--        <v-divider />-->
+        <!--        <v-divider />-->
       </template>
-
 
 
       <v-list-item
@@ -67,12 +66,12 @@
 
       >
         <div class="mr-3">
-            <v-icon>mdi-filter-plus-outline</v-icon>
+          <v-icon>mdi-filter-plus-outline</v-icon>
 
         </div>
         <v-list-item-content>
           <div class="d-flex align-center ">
-            <div class="font-weight-bold ">{{ filterToCreate.displayName }}: </div>
+            <div class="font-weight-bold ">{{ filterToCreate.displayName }}:</div>
             <component
                 :is="'filter-value-' + filterToCreate.type"
                 :filter-key="filterToCreate.key"
@@ -87,22 +86,27 @@
           </v-btn>
         </v-list-item-action>
       </v-list-item>
-<!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
+      <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </v-list>
 
 
     <v-card-actions>
       <v-menu max-height="90vh">
         <template v-slot:activator="{on}">
-          <v-btn
-              fab
-              :disabled="!!filterToCreate"
-              color="primary"
-              v-on="on"
-              style="margin-bottom: -33px"
-          >
-            <v-icon left class="">mdi-filter-plus-outline</v-icon>
-          </v-btn>
+          <v-fab-transition>
+            <v-btn
+                fab
+                :disabled="!!filterToCreate"
+                color="primary"
+                v-on="on"
+                style="margin-bottom: -33px"
+                                v-if="fabIsVisible"
+
+            >
+              <v-icon left class="">mdi-filter-plus-outline</v-icon>
+            </v-btn>
+
+          </v-fab-transition>
         </template>
         <filter-key-selector
             :disabled-keys="filters.map(f=>f.key)"
@@ -140,6 +144,7 @@ export default {
     return {
       foo: 42,
       filterToCreate: null,
+      fabIsVisible: false,
     }
   },
   computed: {
@@ -171,6 +176,7 @@ export default {
   created() {
   },
   mounted() {
+    this.fabIsVisible = true
   },
   watch: {}
 }
