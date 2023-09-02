@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="fill-height">
+  <v-card flat class="">
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon>mdi-pin-outline</v-icon>

@@ -1,5 +1,4 @@
 <template>
-
   <div class="">
     <v-toolbar dense color="grey darken-1" dark flat>
 
@@ -72,60 +71,55 @@
 
       <v-row>
         <v-col cols="12" sm="8">
-          <filter-list
-              :filters="resultsFilters"
-              @create="createFilter"
-              @update="updateFilter"
-              @delete="deleteFilter"
-              class="mb-3"
-          />
+          <div>
+            <filter-list
+                :filters="resultsFilters"
+                @create="createFilter"
+                @update="updateFilter"
+                @delete="deleteFilter"
+                class="mb-3"
+            />
+
+          </div>
+          <v-card flat key="serp-results">
+            <serp-toolbar/>
+            <serp-results-list class="pb-8"/>
+          </v-card>
+          <v-container>
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <year-range
+                    height="50px"
+                    big
+                    class="mb-3"
+                    show-filter-link
+                />
+              </v-col>
+
+
+            </v-row>
+
+          </v-container>
         </v-col>
         <v-col cols="12" sm="4">
+
           <year-range
               height="50px"
               big
               class="mb-3"
               show-filter-link
           />
+          <pinboard-widget
+              v-for="viewKey in widgetFilterKeys"
+              :key="viewKey"
+              class="mt-3"
+              :filter-key="viewKey"
+              @remove="removeWidget"
+          />
+
         </v-col>
       </v-row>
 
-      <v-row class="">
-        <v-col cols="12" sm="4">
-          <v-card flat key="serp-results">
-            <serp-toolbar/>
-            <serp-results-list class="pb-8"/>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="8">
-          <v-row dense>
-            <v-col
-                v-for="viewKey in widgetFilterKeys"
-                :key="viewKey"
-                cols="12"
-                sm="6"
-            >
-              <pinboard-widget
-                  :filter-key="viewKey"
-                  @remove="removeWidget"
-              />
-
-            </v-col>
-          </v-row>
-
-
-        </v-col>
-
-        <!--        <v-col cols="12" sm="3">-->
-        <!--          <div v-if="$vuetify.breakpoint.mobile" class="text-h4 mt-12 mb-6">Filter details</div>-->
-        <!--          <year-range-->
-        <!--                  v-if="entityType === 'works'"-->
-        <!--              height="50px"-->
-        <!--              big class="mb-3"-->
-        <!--              :disabled="!!facetZoom"-->
-        <!--              show-filter-link/>-->
-        <!--        </v-col>-->
-      </v-row>
     </v-container>
 
 
