@@ -1,10 +1,11 @@
 <template>
-  <v-list-item>
+  <v-list-item  :to="data.id | entityZoomLink">
+    <v-list-item-icon>
+      <v-icon>mdi-account-outline</v-icon>
+    </v-list-item-icon>
     <v-list-item-content>
-      <v-list-item-title class="">
-        <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
+      <v-list-item-title class="primary--text">
           {{ data.display_name }}
-        </router-link>
       </v-list-item-title>
       <v-list-item-subtitle v-if="data.last_known_institution" class="text-wrap">
         <!--          <flag :squared="false" :iso="data.last_known_institution.country_code" style="height:12px; margin-right: 3px;" />-->
@@ -25,6 +26,20 @@
         />
       </v-list-item-subtitle>
     </v-list-item-content>
+    <v-list-item-action>
+      <v-btn
+          text
+          small
+          color="primary"
+          v-if="data.orcid"
+          :href="data.orcid"
+          target="_blank"
+          @click.stop="$emit('click')"
+      >
+        ORCID
+        <v-icon small right>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-list-item-action>
   </v-list-item>
 </template>
 

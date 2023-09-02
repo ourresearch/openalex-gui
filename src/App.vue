@@ -341,6 +341,11 @@ body {
 .v-list-item__icon {
 }
 
+.v-list-item__action, {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
 .v-list--two-line.v-list--dense .v-list-item {
   min-height: unset;
 }

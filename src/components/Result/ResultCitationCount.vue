@@ -1,22 +1,20 @@
 <template>
   <v-btn
       text
-      color="primary"
       :disabled="!formatAsLink"
-      rounded
-      class="font-weight-medium"
+      class="px-1"
       style="font-weight: normal !important;"
-        :to="linkToCitingPapers"
+      :to="linkToCitingPapers"
       @click.stop="$emit('click')"
+      color="primary"
   >
-      <v-icon left  :color="(formatAsLink) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
-
-      Cited by {{ citedByCount | toPrecision }}
-
-<!--    <span class="" v-else>-->
-<!--    Cited by {{ citedByCount | toPrecision }}-->
-<!--    </span>-->
-
+    <v-icon
+        left
+        :color="(formatAsLink) ? null : 'grey'"
+    >
+      mdi-format-quote-close
+    </v-icon>
+    Cited by {{ citedByCount | toPrecision }}
   </v-btn>
 </template>
 
@@ -50,7 +48,7 @@ export default {
       return "#333333"
     },
     linkToCitingPapers() {
-      if (!this.id || !this.entityType) return false
+      if (!this.id || !this.entityType) return ""
 
       const shortId = this.id.replace("https://openalex.org/", "")
       return {

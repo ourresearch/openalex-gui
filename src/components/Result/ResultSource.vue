@@ -1,18 +1,19 @@
 <template>
-  <v-list-item>
+  <v-list-item :to="data.id | entityZoomLink">
+    <v-list-item-icon>
+      <v-icon>mdi-book-open-outline</v-icon>
+    </v-list-item-icon>
     <v-list-item-content>
-      <v-list-item-title>
-        <router-link class="text-decoration-none" :to="data.id | entityZoomLink">
-          {{ data.display_name }}
-        </router-link>
+      <v-list-item-title class="primary--text">
+        {{ data.display_name }}
       </v-list-item-title>
-          <v-list-item-subtitle v-if="data.host_organization_name" class="">
-            {{ data.host_organization_name }}
-          </v-list-item-subtitle>
-<!--      <v-list-item-subtitle>-->
-<!--        <concepts-list :concepts="data.x_concepts"/>-->
-<!--      </v-list-item-subtitle>-->
-      <v-list-item-subtitle >
+      <v-list-item-subtitle v-if="data.host_organization_name" class="">
+        {{ data.host_organization_name }}
+      </v-list-item-subtitle>
+      <!--      <v-list-item-subtitle>-->
+      <!--        <concepts-list :concepts="data.x_concepts"/>-->
+      <!--      </v-list-item-subtitle>-->
+      <v-list-item-subtitle>
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
@@ -24,36 +25,51 @@
             entity-type="sources"
         />
       </v-list-item-subtitle>
-<!--    <v-col cols="3" class="justify-end d-flex">-->
-<!--      <a-->
-<!--          :href="data.homepage_url"-->
-<!--          target="_blank"-->
-<!--          class="mx-3 text-decoration-none"-->
-<!--          v-if="data.homepage_url && data.is_oa"-->
-<!--      >-->
-<!--        <v-icon small color="primary">mdi-lock-open-variant-outline</v-icon>-->
-<!--        Open Access-->
-<!--      </a>-->
+      <!--    <v-col cols="3" class="justify-end d-flex">-->
+      <!--      <a-->
+      <!--          :href="data.homepage_url"-->
+      <!--          target="_blank"-->
+      <!--          class="mx-3 text-decoration-none"-->
+      <!--          v-if="data.homepage_url && data.is_oa"-->
+      <!--      >-->
+      <!--        <v-icon small color="primary">mdi-lock-open-variant-outline</v-icon>-->
+      <!--        Open Access-->
+      <!--      </a>-->
 
 
-<!--    </v-col>-->
+      <!--    </v-col>-->
 
     </v-list-item-content>
-<!--    <div class="align-self-start mt-3">-->
-<!--      <a-->
-<!--                  v-if="fulltextLinkObj"-->
-<!--                  :href="fulltextLinkObj.href"-->
-<!--                  target="_blank"-->
-<!--                  class="text-decoration-none"-->
-<!--          >-->
-<!--            <v-icon color="primary"  >-->
-<!--              {{ fulltextLinkObj.icon }}-->
-<!--            </v-icon>-->
-<!--&lt;!&ndash;            [{{ fulltextLinkObj.text }}]&ndash;&gt;-->
-<!--          </a>-->
-<!--    </div>-->
 
-    </v-list-item>
+    <v-list-item-action>
+      <v-btn
+          text
+          small
+          color="primary"
+          v-if="data.homepage_url"
+          :href="data.homepage_url"
+          target="_blank"
+          @click.stop="$emit('click')"
+      >
+        Homepage
+        <v-icon right small>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-list-item-action>
+    <!--    <div class="align-self-start mt-3">-->
+    <!--      <a-->
+    <!--                  v-if="fulltextLinkObj"-->
+    <!--                  :href="fulltextLinkObj.href"-->
+    <!--                  target="_blank"-->
+    <!--                  class="text-decoration-none"-->
+    <!--          >-->
+    <!--            <v-icon color="primary"  >-->
+    <!--              {{ fulltextLinkObj.icon }}-->
+    <!--            </v-icon>-->
+    <!--&lt;!&ndash;            [{{ fulltextLinkObj.text }}]&ndash;&gt;-->
+    <!--          </a>-->
+    <!--    </div>-->
+
+  </v-list-item>
 </template>
 
 

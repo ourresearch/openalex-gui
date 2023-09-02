@@ -1,18 +1,22 @@
 <template>
-  <span class="">
-    <v-icon small :color="(formatAsLink) ? 'primary' : '#333'" style="vertical-align: 0;">{{icon}}</v-icon>
-    <router-link
-        :to="linkToWorks"
-        class="text-decoration-none"
-        v-if="formatAsLink"
+  <v-btn
+      text
+      :disabled="!formatAsLink"
+      class="px-1"
+      style="font-weight: normal !important;"
+      :to="linkToWorks"
+      @click.stop="$emit('click')"
+      color="primary"
+  >
+    <v-icon
+        left
+        :color="(formatAsLink) ? 'primary' : '#333'" style="vertical-align: 0;"
     >
-      {{ worksCount | toPrecision }} works
-    </router-link>
-    <span class="" v-else>
-      {{ worksCount | toPrecision }} works
-    </span>
+      {{ icon }}
+    </v-icon>
+    {{ worksCount | toPrecision }} works
 
-  </span>
+  </v-btn>
 </template>
 
 <script>
@@ -62,7 +66,6 @@ export default {
         params: {entityType: "works"},
         query: {filter: filter.asStr},
       }
-
 
 
       const shortId = this.id.replace("https://openalex.org/", "")

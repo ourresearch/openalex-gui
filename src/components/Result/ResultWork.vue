@@ -1,20 +1,14 @@
 <template>
   <v-list-item class="content " :to="clickRoute">
     <v-list-item-icon>
-<!--      <v-icon v-if="fulltextLinkObj">mdi-lock-open-variant-outline</v-icon>-->
-<!--      <v-icon color="grey lighten-2" v-else>mdi-lock-outline</v-icon>-->
+      <!--      <v-icon v-if="fulltextLinkObj">mdi-lock-open-variant-outline</v-icon>-->
+      <!--      <v-icon color="grey lighten-2" v-else>mdi-lock-outline</v-icon>-->
       <v-icon>mdi-file-document-outline</v-icon>
     </v-list-item-icon>
     <v-list-item-content class="">
-      <v-list-item-title class="">
-        <router-link
-            class="text-decoration-none "
-            :to="clickRoute"
+      <v-list-item-title class="primary--text">
 
-        >
-
-          <span v-html="$prettyTitle(data.title)"></span>
-        </router-link>
+        <span v-html="$prettyTitle(data.title)"></span>
 
 
       </v-list-item-title>
@@ -71,20 +65,27 @@
 
 
     </v-list-item-content>
-    <div style="width: 35px;" class="align-self-start mt-1 mr-1">
+    <v-list-item-action style="min-width: 100px;">
       <v-btn
-           v-if="fulltextLinkObj"
-          icon
+          v-if="fulltextLinkObj"
+          text
+          small
           :href="fulltextLinkObj.href"
+          color="primary"
           target="_blank"
-           @click.stop="$emit('click')"
+          @click.stop="$emit('click')"
       >
-        <v-icon color="primary">
-          {{ fulltextLinkObj.icon }}
-        </v-icon>
-        <!--            [{{ fulltextLinkObj.text }}]-->
+        <!--          <v-icon color="primary">-->
+        <!--            {{ fulltextLinkObj.icon }}-->
+        <!--          </v-icon>-->
+        {{ fulltextLinkObj.text }}
+        <v-icon small right>mdi-open-in-new</v-icon>
       </v-btn>
-    </div>
+
+    </v-list-item-action>
+
+    <!--    <div style="width: 35px;" class="align-self-start mt-1 mr-1">-->
+    <!--    </div>-->
 
   </v-list-item>
 
