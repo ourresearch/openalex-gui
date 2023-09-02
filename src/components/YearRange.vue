@@ -10,7 +10,7 @@
       <!--      height="80" -->
       <v-toolbar-title>
         <div style="line-height: 1">
-          <v-icon>mdi-pin-outline</v-icon>
+          <v-icon>mdi-calendar-text</v-icon>
           Works by year
           <!--          <span class="caption grey&#45;&#45;text">Since {{ minYear }}</span>-->
         </div>

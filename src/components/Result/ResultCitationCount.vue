@@ -1,59 +1,23 @@
 <template>
-  <span class="">
-      <v-icon small :color="(formatAsLink) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
-
-
-    <router-link
+  <v-btn
+      text
+      color="primary"
+      :disabled="!formatAsLink"
+      rounded
+      class="font-weight-medium"
+      style="font-weight: normal !important;"
         :to="linkToCitingPapers"
-        class="text-decoration-none"
-        v-if="formatAsLink"
-    >
-      Cited by {{ citedByCount | toPrecision }}
-    </router-link>
-    <span class="" v-else>
-    Cited by {{ citedByCount | toPrecision }}
-    </span>
+      @click.stop="$emit('click')"
+  >
+      <v-icon left  :color="(formatAsLink) ? 'primary' : 'grey'">mdi-format-quote-close</v-icon>
 
-      <v-tooltip v-if="0" bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <span
-                v-bind="attrs"
-                v-on="on"
-            >
-              <v-icon small :color="(formatAsLink) ? 'primary' : '#333'">mdi-format-quote-close</v-icon>
-              <router-link
-                  :to="linkToCitingPapers"
-                  class="text-decoration-none"
-                  v-if="formatAsLink"
-              >
-                {{ citedByCount.toLocaleString() }}
-              </router-link>
-              <span class="" v-else>
-                {{ citedByCount.toLocaleString() }}
-              </span>
-            </span>
-          </template>
-          <span>
-            Incoming citations to
-            <template v-if="entityType=='works'">
-              this work
-            </template>
-            <template v-if="entityType=='authors'">
-              this this person's works.
-            </template>
-            <template v-if="entityType=='sources'">
-              this host's works
-            </template>
-            <template v-if="entityType=='institutions'">
-              this institution's works.
-            </template>
-            <template v-if="entityType=='concepts'">
-              works tagged with this concept
-            </template>
-          </span>
-        </v-tooltip>
-    
-  </span>
+      Cited by {{ citedByCount | toPrecision }}
+
+<!--    <span class="" v-else>-->
+<!--    Cited by {{ citedByCount | toPrecision }}-->
+<!--    </span>-->
+
+  </v-btn>
 </template>
 
 <script>

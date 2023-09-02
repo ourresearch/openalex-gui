@@ -2,7 +2,7 @@
   <v-card flat class="">
     <v-toolbar dense flat>
       <v-toolbar-title>
-        <v-icon>mdi-pin-outline</v-icon>
+        <v-icon left>{{ myFilterConfig.icon }}</v-icon>
         {{ myFilterConfig.displayName }}
       </v-toolbar-title>
       <v-spacer/>

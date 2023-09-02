@@ -102,9 +102,6 @@
           </v-container>
         </v-col>
         <v-col cols="12" sm="4">
-          <div>
-            {{ widgetFilterKeys}}
-          </div>
           <year-range
               height="50px"
               big

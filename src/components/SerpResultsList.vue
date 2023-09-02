@@ -3,7 +3,7 @@
     <div v-if="!resultsCount" class="mt-8 grey--text">
       Sorry, there are no results for this search.
     </div>
-    <v-list v-if="resultsCount" class="serp-results-list">
+    <v-list v-if="resultsCount" class="serp-results-list" nav>
       <component
           v-for="result in $store.state.results"
           :key="result.id"
