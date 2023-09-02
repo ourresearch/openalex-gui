@@ -21,6 +21,9 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
+    <div class="grey--text ml-4">
+      There are no filters applied.
+    </div>
     <v-list class="pt-0">
 <!--      <v-divider />-->
       <template

@@ -108,6 +108,7 @@
               big
               class="mb-3"
               show-filter-link
+              v-if="entityType === 'works'"
           />
           <pinboard-widget
               v-for="viewKey in widgetFilterKeys"
