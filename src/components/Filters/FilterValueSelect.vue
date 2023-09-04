@@ -1,10 +1,9 @@
 <template>
   <div class="d-flex flex-wrap ml-3">
-    <div>{{ selectedOptions}}</div>
     <v-autocomplete
+        :label="myFilterConfig.displayName"
         chips
         multiple
-        full-width
         outlined
         hide-details
         :items="options"
@@ -13,7 +12,6 @@
         item-text="display_name"
         item-value="id"
         @input="input"
-
     />
   </div>
 </template>
