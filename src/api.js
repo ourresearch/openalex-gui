@@ -102,7 +102,7 @@ const api = (function () {
         getEntityDisplayName: async function (id) {
             const myUrl = makeUrl(id, {select: "display_name"})
             const resp = await getUrl(myUrl)
-            return resp
+            return resp.display_name
         },
         getUrl,
         get: async function (pathName, searchParams) {

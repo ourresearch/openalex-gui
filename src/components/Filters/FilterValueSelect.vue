@@ -1,5 +1,6 @@
 <template>
   <div class="d-flex flex-wrap ml-3">
+    <div>{{ selectedOptions}}</div>
     <v-autocomplete
         chips
         multiple
@@ -11,6 +12,8 @@
         :search-input.sync="searchString"
         item-text="display_name"
         item-value="id"
+        @input="input"
+
     />
   </div>
 </template>
@@ -21,6 +24,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
+import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
 import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
@@ -58,7 +62,11 @@ export default {
       "entityType",
     ]),
     mySelectedValueString() {
-      return this.mySelectedValues.join("|")
+      return this.selectedOptions
+          .map(optionId => {
+            return shortenOpenAlexId(optionId)
+          })
+          .join("|")
     },
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
@@ -70,18 +78,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    async addSelectedValue(filterValue) {
-      this.mySelectedValues.push(filterValue)
-      await this.$emit("update", this.mySelectedValueString)
-    },
-    async removeSelectedValue(filterValue) {
-      console.log("removeSelectedValue", filterValue)
-      this.mySelectedValues = this.mySelectedValues.filter(v => {
-        return v !== filterValue
-      })
-      await this.$emit("update", this.mySelectedValueString)
-    },
-    async submit(filterKey) {
+    input() {
       this.$emit("update", this.mySelectedValueString)
     },
     async fetchOptions() {
@@ -98,8 +95,8 @@ export default {
           return !oldOptionIds.includes(myNewOption.id)
         })
         this.options = [
-            ...this.options,
-            ...newOptions
+          ...this.options,
+          ...newOptions
         ]
 
 
@@ -114,10 +111,23 @@ export default {
   },
   created() {
   },
-  mounted() {
-    if (this.filterValue) {
-      const newValues = this.filterValue.split("|")
-      this.mySelectedValues = [...this.mySelectedValues, ...newValues]
+  async mounted() {
+    if (this.filterValue && this.myFilterConfig.isEntity) {
+      const newIds = this.filterValue.split("|")
+      this.selectedOptions = newIds
+
+      const makeAutocompleteResponseFromId = async function (id) {
+        const displayName = await api.getEntityDisplayName(id)
+        return {
+          id,
+          display_name: displayName,
+        }
+      }
+      const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
+      this.options = await Promise.all(
+          autocompletePromises
+      )
+      console.log("FilterValueSelect Promise.all() responses", this.selectedOptions)
     }
   },
   watch: {

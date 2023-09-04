@@ -14,7 +14,6 @@ const clear = function () {
 
 }
 const setDefault = function (entityType) {
-    console.log("pinboard.setDefault", entityType)
     const key = "pinboard." + entityType
     localStorage.setItem(key, JSON.stringify(defaultWidgets[entityType]))
     return defaultWidgets
@@ -24,7 +23,6 @@ const setDefault = function (entityType) {
 const getWidgets = function(entityType){
     const key = "pinboard." + entityType
     const resp = localStorage.getItem(key)
-    console.log("getWidgets", key, resp)
     return (resp && JSON.parse(resp)) ?
         JSON.parse(resp) :
         []
