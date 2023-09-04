@@ -112,7 +112,6 @@ const api = (function () {
         },
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
             const myConfig = getFacetConfig(entityType, filterKey)
-            console.log("getAutocompleteResponses()", myConfig)
 
             if (myConfig.entityId) {
                 if (!searchString) return []

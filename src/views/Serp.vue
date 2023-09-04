@@ -1,52 +1,5 @@
 <template>
   <div class="">
-    <v-toolbar dense color="grey darken-1" dark flat>
-
-      <v-container class="d-flex align-center">
-        <entity-type-selector/>
-        <div class="ml-2">
-          <span class="font-weight-bold">
-            {{ resultsCount | toPrecision }}
-          </span>
-          results
-        </div>
-
-        <v-spacer></v-spacer>
-
-        <v-btn
-            icon
-            @click="setApiDialogUrl(searchApiUrlForDisplay)"
-        >
-          <v-icon>mdi-api</v-icon>
-        </v-btn>
-        <v-menu
-            max-height="90vh"
-        >
-          <template v-slot:activator="{on}">
-            <v-btn
-                icon
-                v-on="on"
-            >
-              <v-icon>mdi-pin-outline</v-icon>
-            </v-btn>
-          </template>
-          <filter-key-selector
-              dark
-              hide-unpinnable
-              @select="createWidget"
-          />
-        </v-menu>
-        <v-btn
-            icon
-            target="_blank"
-            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-        >
-          <v-icon>mdi-share-variant-outline</v-icon>
-        </v-btn>
-
-
-      </v-container>
-    </v-toolbar>
     <v-container class="">
       <v-alert v-if="0" dense text type="warning" class="">
         <v-row class="align-center">
@@ -69,8 +22,8 @@
       <!--          class="mb-3"-->
       <!--      />-->
 
-      <v-row>
-        <v-col cols="12" sm="8">
+      <v-row dense>
+        <v-col cols="12" sm="4">
           <div>
             <filter-list
                 :filters="resultsFilters"
@@ -81,42 +34,65 @@
             />
 
           </div>
-          <v-card flat key="serp-results">
+        </v-col>
+        <v-col cols="12" sm="4">
+          <v-card key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
-          <v-container>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <year-range
-                    height="50px"
-                    big
-                    class="mb-3"
-                    show-filter-link
-                />
-              </v-col>
-
-
-            </v-row>
-
-          </v-container>
         </v-col>
         <v-col cols="12" sm="4">
-          <year-range
-              height="50px"
-              big
-              class="mb-3"
-              show-filter-link
-              v-if="entityType === 'works'"
-          />
-          <pinboard-widget
-              v-for="filterKey in widgetFilterKeys"
-              :key="filterKey"
-              class="mt-3"
-              :filter-key="filterKey"
-              :filters="resultsFilters"
-              @delete="deleteWidget(filterKey)"
-          />
+          <v-card>
+            <v-toolbar dark >
+              <v-toolbar-title>
+                Summaries
+              </v-toolbar-title>
+              <v-spacer/>
+
+              <v-menu
+                  max-height="90vh"
+              >
+                <template v-slot:activator="{on}">
+                  <v-btn
+                      icon
+                      v-on="on"
+                  >
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
+                </template>
+                <filter-key-selector
+                    dark
+                    hide-unpinnable
+                    @select="createWidget"
+                />
+              </v-menu>
+              <v-btn icon @click="$emit('click')">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+
+
+            </v-toolbar>
+            <year-range
+                height="50px"
+                big
+                class="mb-3"
+                show-filter-link
+                v-if="entityType === 'works'"
+            />
+            <v-divider/>
+            <template
+                v-for="filterKey in widgetFilterKeys"
+            >
+              <pinboard-widget
+                  :key="filterKey"
+                  :filter-key="filterKey"
+                  :filters="resultsFilters"
+                  @delete="deleteWidget(filterKey)"
+              />
+              <v-divider/>
+            </template>
+
+          </v-card>
 
         </v-col>
       </v-row>
@@ -314,7 +290,7 @@ export default {
       pinboard.addWidget(this.entityType, filterKey)
     },
     deleteWidget(filterKey) {
-       console.log("serp deleteWidget", filterKey)
+      console.log("serp deleteWidget", filterKey)
       this.widgetFilterKeys = this.widgetFilterKeys.filter(k => k !== filterKey)
       pinboard.deleteWidget(this.entityType, filterKey)
     },

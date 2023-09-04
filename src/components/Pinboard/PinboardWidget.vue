@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="">
+  <v-card flat tile class="">
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon left>{{ myFilterConfig.icon }}</v-icon>
@@ -23,10 +23,22 @@
         <v-list>
           <v-list-item @click="$emit('delete')">
             <v-list-item-icon>
-              <v-icon>mdi-pin-off-outline</v-icon>
+              <v-icon>mdi-delete-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Unpin
+              Remove
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item
+              target="_blank"
+              :href="csvUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Export spreadsheet
             </v-list-item-title>
           </v-list-item>
           <v-list-item
@@ -117,6 +129,16 @@ export default {
           this.filterKey,
           {
             includeEmail: false,
+          }
+      )
+    },
+    csvUrl(){
+      return url.makeGroupByUrl(
+          this.entityType,
+          this.filterKey,
+          {
+            includeEmail: false,
+            formatCsv: true,
           }
       )
     }

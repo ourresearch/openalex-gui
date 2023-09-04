@@ -12,7 +12,6 @@
             class="pl-0"
             :class="{mobile: $vuetify.breakpoint.mobile}"
             absolute
-            flat
             :extended="$vuetify.breakpoint.mobile"
 
     >
@@ -43,13 +42,19 @@
 
 
           </v-col>
-          <v-col cols="6" class="d-flex">
+          <v-col cols="6" class="d-flex align-center">
             <v-spacer></v-spacer>
 
 
-<!--            <user-toolbar-menu/>-->
+            <entity-type-selector/>
 
-
+<v-btn
+            icon
+            target="_blank"
+            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+        >
+          <v-icon>mdi-share-variant-outline</v-icon>
+        </v-btn>
 
 
             <v-menu offset-y content-class="no-highlight" min-width="150">
@@ -78,20 +83,6 @@
         </v-row>
 
       </v-container>
-      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
-        <v-btn
-                fab
-                @click="openFacetsDialog"
-                color="green"
-                dark
-                small
-                class="mt-3 mr-3"
-        >
-          <!--            :disabled="singleWork"-->
-          <v-icon class="">mdi-filter-menu-outline</v-icon>
-        </v-btn>
-        <search-box-new class="pt-3" style="width: 100%;"/>
-      </template>
     </v-app-bar>
     <v-main>
       <router-view></router-view>

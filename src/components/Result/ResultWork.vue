@@ -1,10 +1,8 @@
 <template>
   <v-list-item class="content " :to="clickRoute">
-    <v-list-item-icon>
-      <!--      <v-icon v-if="fulltextLinkObj">mdi-lock-open-variant-outline</v-icon>-->
-      <!--      <v-icon color="grey lighten-2" v-else>mdi-lock-outline</v-icon>-->
-      <v-icon>mdi-file-document-outline</v-icon>
-    </v-list-item-icon>
+<!--    <v-list-item-icon>-->
+<!--      <v-icon>mdi-file-document-outline</v-icon>-->
+<!--    </v-list-item-icon>-->
     <v-list-item-content class="">
       <v-list-item-title class="primary--text">
 
@@ -65,21 +63,20 @@
 
 
     </v-list-item-content>
-    <v-list-item-action style="min-width: 100px;">
+    <v-list-item-action >
       <v-btn
           v-if="fulltextLinkObj"
-          text
-          small
+          icon
           :href="fulltextLinkObj.href"
           color="primary"
           target="_blank"
           @click.stop="$emit('click')"
       >
-        <!--          <v-icon color="primary">-->
-        <!--            {{ fulltextLinkObj.icon }}-->
-        <!--          </v-icon>-->
-        {{ fulltextLinkObj.text }}
-        <v-icon small right>mdi-open-in-new</v-icon>
+                  <v-icon color="primary">
+                    {{ fulltextLinkObj.icon }}
+                  </v-icon>
+<!--        {{ fulltextLinkObj.text }}-->
+<!--        <v-icon small right>mdi-open-in-new</v-icon>-->
       </v-btn>
 
     </v-list-item-action>

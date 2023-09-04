@@ -1,8 +1,10 @@
 <template>
-  <div class="d-flex flex-wrap ml-3">
+  <div class="">
     <v-autocomplete
         :label="myFilterConfig.displayName"
         chips
+        dense
+        small-chips
         multiple
         outlined
         hide-details
@@ -12,7 +14,21 @@
         item-text="display_name"
         item-value="id"
         @input="input"
-    />
+    >
+      <template v-slot:selection="data">
+        <v-chip
+            small
+            v-bind="data.attrs"
+            :input-value="data.selected"
+            close
+            @click="data.select"
+            class="mt-2"
+            @click:close="remove(data.item.id)"
+        >
+          {{ data.item.display_name | truncate(30)}}
+        </v-chip>
+      </template>
+    </v-autocomplete>
   </div>
 </template>
 
@@ -77,7 +93,18 @@ export default {
     ]),
     ...mapActions([]),
     input() {
-      this.$emit("update", this.mySelectedValueString)
+        this.$emit("update", this.mySelectedValueString)
+      // if (this.mySelectedValueString){
+      //   console.log("this.mySelectedValueString", this.mySelectedValueString)
+      // }
+      // else {
+      //   this.$emit("delete")
+      // }
+    },
+    remove(id){
+      console.log("remove()", id)
+      this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
+      return this.input()
     },
     async fetchOptions() {
       this.isLoading = true
@@ -125,7 +152,6 @@ export default {
       this.options = await Promise.all(
           autocompletePromises
       )
-      console.log("FilterValueSelect Promise.all() responses", this.selectedOptions)
     }
   },
   watch: {
