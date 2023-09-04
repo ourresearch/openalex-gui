@@ -5,6 +5,7 @@
         multiple
         full-width
         outlined
+        hide-details
         :items="options"
         v-model="selectedOptions"
         :search-input.sync="searchString"

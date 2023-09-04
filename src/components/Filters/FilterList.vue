@@ -21,37 +21,40 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
-    <div class="grey--text ml-4">
+    <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4">
       There are no filters applied.
     </div>
-    <v-list class="pt-0">
+    <v-list  class="pt-0">
       <!--      <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
         <v-list-item
             :key="filter.key"
-            :disabled="!!filterToCreate"
         >
-          <div class="mr-2">
-            <v-icon :disabled="!!filterToCreate">mdi-filter-outline</v-icon>
-
-          </div>
+          <v-list-item-icon class="">
+            <v-icon>{{ filter.icon }}</v-icon>
+          </v-list-item-icon>
           <v-list-item-content>
-            <div class="d-flex align-center">
-              <div class="">{{ filter.displayName }}:</div>
-              <component
-                  :is="'filter-value-' + filter.type"
-                  :disabled="!!filterToCreate"
-                  :filter-key="filter.key"
-                  :filter-value="filter.value"
-                  @update="(newValue) => $emit('update', filter.key, newValue)"
-              />
-            </div>
+            <v-row>
+              <v-col cols="3" class=" d-flex align-center">
+                <div class="">{{ filter.displayName }}:</div>
+              </v-col>
+              <v-col cols="9" class="py-0 align-center d-flex">
+                  <component
+                      class="flex-grow-1"
+                      :is="'filter-value-' + filter.type"
+                      :filter-key="filter.key"
+                      :filter-value="filter.value"
+                      @update="(newValue) => $emit('update', filter.key, newValue)"
+                  />
+              </v-col>
+            </v-row>
           </v-list-item-content>
+
           <v-list-item-action>
-            <v-btn :disabled="!!filterToCreate" icon @click="$emit('delete', filter.key)">
-              <v-icon>mdi-close</v-icon>
+            <v-btn icon @click="$emit('delete', filter.key)">
+              <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
           </v-list-item-action>
         </v-list-item>
@@ -60,32 +63,34 @@
 
 
       <v-list-item
-          key="filter-to-create"
-          v-if="filterToCreate"
-          class=""
+            key="filter-to-create"
+            v-if="!!filterToCreate"
+        >
+          <v-list-item-icon class="">
+            <v-icon>{{ filterToCreate.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-row>
+              <v-col cols="3" class="py-0 d-flex align-center">
+                <div class="">{{ filterToCreate.displayName }}:</div>
+              </v-col>
+              <v-col cols="9" class="py-0">
+                  <component
+                      :is="'filter-value-' + filterToCreate.type"
+                      :filter-key="filterToCreate.key"
+                      :filter-value="filterToCreate.value"
+                      @update="createFilter"
+                  />
+              </v-col>
+            </v-row>
+          </v-list-item-content>
 
-      >
-        <div class="mr-3">
-          <v-icon>mdi-filter-plus-outline</v-icon>
-
-        </div>
-        <v-list-item-content>
-          <div class="d-flex align-center ">
-            <div class="font-weight-bold ">{{ filterToCreate.displayName }}:</div>
-            <component
-                :is="'filter-value-' + filterToCreate.type"
-                :filter-key="filterToCreate.key"
-                :filter-value="filterToCreate.value"
-                @update="createFilter"
-            />
-          </div>
-        </v-list-item-content>
-        <v-list-item-action>
-          <v-btn text @click="filterToCreate = null">
-            Cancel
-          </v-btn>
-        </v-list-item-action>
-      </v-list-item>
+          <v-list-item-action>
+            <v-btn icon @click="filterToCreate = null">
+              <v-icon>mdi-delete-outline</v-icon>
+            </v-btn>
+          </v-list-item-action>
+        </v-list-item>
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </v-list>
 
@@ -100,7 +105,7 @@
                 color="primary"
                 v-on="on"
                 style="margin-bottom: -33px"
-                                v-if="fabIsVisible"
+                v-if="fabIsVisible"
 
             >
               <v-icon left class="">mdi-filter-plus-outline</v-icon>
