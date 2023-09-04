@@ -1,16 +1,58 @@
 <template>
   <div class="d-flex flex-wrap ml-3">
-    <v-autocomplete
-        chips
-        multiple
-        full-width
-        outlined
-        :items="options"
-        v-model="selectedOptions"
-        :search-input.sync="searchString"
-        item-text="display_name"
-        item-value="id"
+    <filter-value-chip
+        :disabled="disabled"
+        v-for="value in mySelectedValues"
+        :key="value"
+        :filter-key="filterKey"
+        :filter-value="value"
+        :close="mySelectedValues.length > 1"
+        @remove="removeSelectedValue(value)"
     />
+    <span style="visibility: hidden;">|</span>
+    <v-menu max-height="90vh">
+      <template v-slot:activator="{on}">
+        <v-btn
+            text
+            color="primary"
+            rounded
+            v-on="on"
+            :icon="mySelectedValues.length > 0"
+        >
+          <template v-if="mySelectedValues.length === 0">
+            Select
+            <v-icon right>mdi-menu-down</v-icon>
+          </template>
+          <v-icon :disabled="disabled" v-else>mdi-plus</v-icon>
+        </v-btn>
+      </template>
+      <v-card max-height="90vh">
+        <v-text-field
+            v-model="searchString"
+            autofocus
+            clearable
+            hide-details
+            class="mx-2"
+            prepend-inner-icon="mdi-magnify"
+        />
+        <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">
+          <v-list>
+            <v-list-item
+                v-for="option in options"
+                :key="option.id"
+                @click="addSelectedValue(option.id)"
+            >
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ option.display_name }}
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </div>
+
+      </v-card>
+    </v-menu>
   </div>
 </template>
 
@@ -41,9 +83,6 @@ export default {
       isLoading: false,
       selectedValue: this.filterValue,
       options: [],
-      selectedOptions: [],
-
-
       searchString: "",
       mySelectedValues: [],
       mySelectedDisplayValues: [
@@ -86,22 +125,11 @@ export default {
     async fetchOptions() {
       this.isLoading = true
       try {
-        const apiOptions = await api.getAutocompleteResponses(
+        this.options = await api.getAutocompleteResponses(
             this.entityType,
             this.filterKey,
             this.searchString,
         )
-
-        const newOptions = apiOptions.filter(myNewOption => {
-          const oldOptionIds = this.options.map(o => o.id)
-          return !oldOptionIds.includes(myNewOption.id)
-        })
-        this.options = [
-            ...this.options,
-            ...newOptions
-        ]
-
-
       } catch (e) {
         console.log("fetchOptions() error:", e.message)
       } finally {

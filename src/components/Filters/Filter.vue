@@ -64,7 +64,7 @@ import FilterValue from "@/components/Filters/FilterValue.vue";
 
 import FilterValueBoolean from "./FilterValueBoolean.vue";
 import FilterValueRange from "./FilterValueRange.vue";
-import FilterValueSelect from "./FilterValueSelect.vue";
+import FilterValueSelect from "./FilterValueSelectOld.vue";
 import FilterValueSearch from "./FilterValueSearch.vue";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
