@@ -5,8 +5,11 @@
       class="px-1"
       style="font-weight: normal !important;"
       :to="linkToCitingPapers"
+      @click="goToCitingPapers"
       @click.stop="$emit('click')"
       color="primary"
+      :exact="true"
+
   >
     <v-icon
         left
