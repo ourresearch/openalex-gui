@@ -3,7 +3,12 @@
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon left>{{ myFilterConfig.icon }}</v-icon>
-        {{ myFilterConfig.displayName }}
+        <span v-if="groups.length >= 5">
+          Top {{ myFilterConfig.displayName | pluralize(2) }}
+        </span>
+        <span v-else>
+          {{ myFilterConfig.displayName }}
+        </span>
       </v-toolbar-title>
       <v-spacer/>
       <v-menu>
@@ -43,15 +48,26 @@
           :key="group.value"
           style="min-height: unset;"
       >
-        <div class="flex-grow-1">
-          <div style="font-size: 13px">
-            {{ group.displayValue }} ({{group.count | millify }})
-          </div>
-        </div>
-        <div class="d-flex" style="background: #eee; height: 20px;  min-width: 150px;">
-          <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-          <v-spacer/>
-        </div>
+        <v-list-item-icon>
+<!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
+<!--            <v-spacer/>-->
+<!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+<!--          </div>-->
+          <v-progress-circular
+            width="9"
+            :value="group.countScaled * 100"
+            rotate="-90"
+          />
+
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title >
+            {{ group.displayValue }}
+          </v-list-item-title>
+          <v-list-item-subtitle>
+             {{group.count | toPrecision }}
+          </v-list-item-subtitle>
+        </v-list-item-content>
 <!--        <v-list-item-action-text>-->
 <!--          <span>-->
 <!--            {{ group.count | millify }}-->
