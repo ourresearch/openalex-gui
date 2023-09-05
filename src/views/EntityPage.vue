@@ -5,12 +5,12 @@
         rounded
         class="my-2"
         text
-      @click="$router.back()"
+        @click="$router.back()"
     >
       <v-icon left>mdi-arrow-left</v-icon>
       back
     </v-btn>
-    <entity :data="entityData" />
+    <entity :data="entityData"/>
   </v-container>
 </template>
 
@@ -47,6 +47,12 @@ export default {
       "userEmailAlerts",
       "userSavedSearches",
     ]),
+    apiPath(){
+      return [
+          this.$route.params.entityType,
+          this.$route.params.entityId
+        ].join("/")
+    }
   },
 
   methods: {
@@ -60,13 +66,21 @@ export default {
   created() {
   },
   async mounted() {
-    const path = [
-        this.$route.params.entityType,
-        this.$route.params.entityId
-    ].join("/")
-    this.entityData = await api.get(path)
+    // const path = [
+    //   this.$route.params.entityType,
+    //   this.$route.params.entityId
+    // ].join("/")
+    // this.entityData = await api.get(path)
   },
-  watch: {}
+  watch: {
+    'apiPath': {
+      immediate: true,
+      async handler(to, from) {
+        console.log("entityid change", this.apiPath)
+        this.entityData = await api.get(this.apiPath)
+      }
+    }
+  }
 }
 </script>
 

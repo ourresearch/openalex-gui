@@ -25,7 +25,7 @@
             class="mt-2"
             @click:close="remove(data.item.id)"
         >
-          {{ data.item.display_name | truncate(30)}}
+          {{ data.item.display_name | truncate(30) }}
         </v-chip>
       </template>
     </v-autocomplete>
@@ -42,6 +42,7 @@ import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
 import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
+import {openAlexCountries} from "@/countries";
 
 export default {
   name: "FilterValueSelect",
@@ -93,7 +94,7 @@ export default {
     ]),
     ...mapActions([]),
     input() {
-        this.$emit("update", this.mySelectedValueString)
+      this.$emit("update", this.mySelectedValueString)
       // if (this.mySelectedValueString){
       //   console.log("this.mySelectedValueString", this.mySelectedValueString)
       // }
@@ -101,7 +102,7 @@ export default {
       //   this.$emit("delete")
       // }
     },
-    remove(id){
+    remove(id) {
       console.log("remove()", id)
       this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
       return this.input()
@@ -137,12 +138,26 @@ export default {
   created() {
   },
   async mounted() {
-    if (this.filterValue && this.myFilterConfig.isEntity) {
+    if (this.filterValue) {
       const newIds = this.filterValue.split("|")
       this.selectedOptions = newIds
+      const that = this
+
 
       const makeAutocompleteResponseFromId = async function (id) {
-        const displayName = await api.getEntityDisplayName(id)
+        const config = that.myFilterConfig
+        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
+
+        console.log("countryConfig", openAlexCountries, id, countryConfig)
+        let displayName
+        if (countryConfig) {
+          displayName = countryConfig.display_name
+        } else if (config.isEntity) {
+          displayName = await api.getEntityDisplayName(id)
+        }
+        else {
+          displayName = id
+        }
         return {
           id,
           display_name: displayName,

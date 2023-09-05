@@ -59,6 +59,7 @@
           v-for="group in groups"
           :key="group.value"
           style="min-height: unset;"
+          @click="url.createFilter(entityType, filterKey, group.value)"
       >
         <v-list-item-icon>
 <!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
@@ -107,6 +108,7 @@ export default {
   },
   data() {
     return {
+      url,
       foo: 42,
       isLoading: false,
       selectedValue: this.filterValue,

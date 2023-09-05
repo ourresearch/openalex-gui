@@ -15,7 +15,7 @@
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
-            entity-type="sources"
+            entity-type="funders"
             class="mr-4"
         />
 <!--        <result-citation-count-->
