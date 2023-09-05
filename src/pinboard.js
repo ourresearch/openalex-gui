@@ -1,7 +1,32 @@
 const defaultWidgets = {
     works: [
         "type",
-    ]
+        "open_access.is_oa",
+        "authorships.institutions.id",
+        "authorships.institutions.country_code",
+        "primary_location.source.id",
+    ],
+    authors:[
+        "last_known_institution.id",
+        "last_known_institution.country_code",
+        "has_orcid",
+    ],
+    sources:[
+        "type",
+        "publisher",
+        "is_oa",
+    ],
+    publishers:[
+    ],
+    funders:[
+    ],
+    institutions:[
+        "type",
+        "country_code",
+    ],
+    concepts:[
+        "level",
+    ],
 }
 
 const init = function(entityType){
@@ -23,6 +48,7 @@ const setDefault = function (entityType) {
 const getWidgets = function(entityType){
     const key = "pinboard." + entityType
     const resp = localStorage.getItem(key)
+    console.log("getWidgets", resp)
     return (resp && JSON.parse(resp)) ?
         JSON.parse(resp) :
         []

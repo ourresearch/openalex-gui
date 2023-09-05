@@ -238,7 +238,7 @@ const facetConfigs = function (entityType) {
             key: "has_abstract",
             entityType: "works",
             displayName: "Indexing status (abstract)",
-            booleanValues: ["No indexed abstract", "Has indexed abstract"],
+            booleanValues: ["Abstract NOT indexed", "Abstract indexed"],
             type: "boolean",
             category: "search",
             icon: "mdi-file-document-outline",
@@ -247,7 +247,7 @@ const facetConfigs = function (entityType) {
             key: "has_ngrams",
             entityType: "works",
             displayName: "Indexing status (fulltext)",
-            booleanValues: ["No indexed fulltext", "Has indexed fulltext"],
+            booleanValues: ["fulltext NOT indexed", "fulltext indexed"],
             type: "boolean",
             category: "search",
             icon: "mdi-file-document-outline",
@@ -292,7 +292,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Open Access",
             type: "boolean",
-            booleanValues: ["Toll-access", "Open Access"],
+            booleanValues: ["NOT Open Access", "Open Access"],
             category: "popular",
             isCore: true,
             icon: "mdi-lock-open-outline",
@@ -415,7 +415,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Main source",
+            displayName: "Source",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -446,7 +446,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.type",
             entityType: "works",
-            displayName: "Main source type",
+            displayName: "Source type",
             type: "select",
             category: "main source",
             icon: "mdi-book-open-outline",
@@ -454,7 +454,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_in_doaj",
             entityType: "works",
-            displayName: "Main source is in DOAJ",
+            displayName: "Indexed by DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             category: "main source",
@@ -463,7 +463,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_oa",
             entityType: "works",
-            displayName: "Main source is OA",
+            displayName: "Source is OA",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             category: "main source",
@@ -474,7 +474,7 @@ const facetConfigs = function (entityType) {
             key: "primary_location.source.publisher_lineage",
             entityType: "works",
             entityId: "publishers",
-            displayName: "Main source publisher",
+            displayName: "Publisher",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -795,7 +795,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
 
-        // publishers
+        // funders
         {
             key: "display_name.search",
             entityType: "funders",

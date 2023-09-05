@@ -47,7 +47,7 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
-    <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4 pt-6">
+    <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4 pt-8">
       There are no filters applied.
     </div>
     <v-list nav  class="pt-6">

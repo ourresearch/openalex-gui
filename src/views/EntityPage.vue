@@ -1,5 +1,15 @@
 <template>
   <v-container>
+    <v-btn
+        color="primary"
+        rounded
+        class="my-2"
+        text
+      @click="$router.back()"
+    >
+      <v-icon left>mdi-arrow-left</v-icon>
+      back
+    </v-btn>
     <entity :data="entityData" />
   </v-container>
 </template>
