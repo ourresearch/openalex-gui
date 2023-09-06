@@ -7,35 +7,12 @@
         class=""
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
-      <v-menu max-height="90vh">
-        <template v-slot:activator="{on}">
-          <v-fab-transition>
-            <v-btn
-                fab
-                :disabled="!!filterToCreate"
-                color="primary lighten-1"
-                v-on="on"
-                style="margin: 0 0 -63px -8px;"
-                v-if="fabIsVisible"
-                small
 
-            >
-<!--              <v-icon class="">mdi-filter-plus-outline</v-icon>-->
-              <v-icon class="">mdi-plus</v-icon>
-            </v-btn>
-
-          </v-fab-transition>
-        </template>
-        <filter-key-selector
-            :disabled-keys="filters.map(f=>f.key)"
-            @select="setFilterToCreate"
-        />
-      </v-menu>
       <v-toolbar-title>
         Filters
-<!--        <span class="body-2">-->
-<!--          ({{ filters.length }})-->
-<!--        </span>-->
+        <!--        <span class="body-2">-->
+        <!--          ({{ filters.length }})-->
+        <!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
       <v-tooltip bottom>
@@ -50,7 +27,7 @@
     <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4 pt-8">
       There are no filters applied.
     </div>
-    <v-list nav  class="pt-6">
+    <v-list nav class="pt-6">
       <!--      <v-divider />-->
       <template
           v-for="(filter, i) in filters"
@@ -62,20 +39,20 @@
             <v-icon>{{ filter.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-<!--            <v-row>-->
-<!--              <v-col cols="3" class="">-->
-<!--                <div class="pt-2">{{ filter.displayName }}</div>-->
-<!--              </v-col>-->
-<!--              <v-col cols="9" class="">-->
-                  <component
-                      class="flex-grow-1"
-                      :is="'filter-value-' + filter.type"
-                      :filter-key="filter.key"
-                      :filter-value="filter.value"
-                      @update="(newValue) => updateFilter(filter.key, newValue)"
-                  />
-<!--              </v-col>-->
-<!--            </v-row>-->
+            <!--            <v-row>-->
+            <!--              <v-col cols="3" class="">-->
+            <!--                <div class="pt-2">{{ filter.displayName }}</div>-->
+            <!--              </v-col>-->
+            <!--              <v-col cols="9" class="">-->
+            <component
+                class="flex-grow-1"
+                :is="'filter-value-' + filter.type"
+                :filter-key="filter.key"
+                :filter-value="filter.value"
+                @update="(newValue) => updateFilter(filter.key, newValue)"
+            />
+            <!--              </v-col>-->
+            <!--            </v-row>-->
           </v-list-item-content>
 
           <v-list-item-action>
@@ -89,27 +66,50 @@
 
 
       <v-list-item
-            key="filter-to-create"
-            v-if="!!filterToCreate"
-        >
-          <v-list-item-icon class="">
-            <v-icon>{{ filterToCreate.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-                  <component
-                      :is="'filter-value-' + filterToCreate.type"
-                      :filter-key="filterToCreate.key"
-                      :filter-value="filterToCreate.value"
-                      @update="createFilter"
-                  />
-          </v-list-item-content>
+          key="filter-to-create"
+          v-if="!!filterToCreate"
+      >
+        <v-list-item-icon class="">
+          <v-icon>{{ filterToCreate.icon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <component
+              :is="'filter-value-' + filterToCreate.type"
+              :filter-key="filterToCreate.key"
+              :filter-value="filterToCreate.value"
+              @update="createFilter"
+          />
+        </v-list-item-content>
 
-          <v-list-item-action>
-            <v-btn icon @click="filterToCreate = null">
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-btn>
-          </v-list-item-action>
-        </v-list-item>
+        <v-list-item-action>
+          <v-btn icon @click="filterToCreate = null">
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-btn>
+        </v-list-item-action>
+      </v-list-item>
+
+
+      <v-list-item
+          key="new-filter-button"
+          v-if="!filterToCreate"
+          color="primary"
+          :input-value="true"
+          @click="isFilterKeySelectorVisible = true"
+      >
+        <v-list-item-icon>
+          <v-icon>mdi-plus</v-icon>
+        </v-list-item-icon>
+        <v-list-item-title>
+          Add Filter
+        </v-list-item-title>
+      </v-list-item>
+      <filter-key-selector
+          :disabled-keys="filters.map(f=>f.key)"
+          v-model="isFilterKeySelectorVisible"
+          @close="isFilterKeySelectorVisible = false"
+          @select="setFilterToCreate"
+      />
+
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </v-list>
 
@@ -143,6 +143,7 @@ export default {
       foo: 42,
       filterToCreate: null,
       fabIsVisible: false,
+      isFilterKeySelectorVisible: false,
     }
   },
   computed: {
@@ -170,10 +171,9 @@ export default {
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
-      if (newValue === "" || newValue === "-"){
+      if (newValue === "" || newValue === "-") {
         this.$emit("delete", filterKey)
-      }
-      else {
+      } else {
         this.$emit("update", filterKey, newValue)
 
       }

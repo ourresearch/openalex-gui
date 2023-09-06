@@ -11,6 +11,7 @@
         </span>
       </v-toolbar-title>
       <v-spacer/>
+
       <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
@@ -53,6 +54,12 @@
           </v-list-item>
         </v-list>
       </v-menu>
+      <v-btn
+        icon
+        @click="$emit('delete')"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
     <v-list dense class="flex-grow-1">
       <v-list-item
@@ -67,7 +74,8 @@
 <!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
 <!--          </div>-->
           <v-progress-circular
-            width="9"
+            width="7"
+            size="22"
             :value="group.countScaled * 100"
             rotate="-90"
           />
@@ -77,15 +85,15 @@
           <v-list-item-title >
             {{ group.displayValue }}
           </v-list-item-title>
-          <v-list-item-subtitle>
-             {{group.count | toPrecision }}
-          </v-list-item-subtitle>
+<!--          <v-list-item-subtitle>-->
+<!--             {{group.count | toPrecision }}-->
+<!--          </v-list-item-subtitle>-->
         </v-list-item-content>
-<!--        <v-list-item-action-text>-->
-<!--          <span>-->
-<!--            {{ group.count | millify }}-->
-<!--          </span>-->
-<!--        </v-list-item-action-text>-->
+        <v-list-item-action-text>
+          <span>
+            {{ group.count | toPrecision }}
+          </span>
+        </v-list-item-action-text>
       </v-list-item>
     </v-list>
   </v-card>

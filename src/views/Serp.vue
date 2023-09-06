@@ -49,6 +49,9 @@
               </v-toolbar-title>
               <v-spacer/>
 
+              <v-btn icon @click="$emit('click')">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
               <v-menu
                   max-height="90vh"
               >
@@ -66,9 +69,6 @@
                     @select="createWidget"
                 />
               </v-menu>
-              <v-btn icon @click="$emit('click')">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
 
 
             </v-toolbar>
