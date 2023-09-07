@@ -242,7 +242,7 @@ html, body {
 }
 
 .theme--light.v-list-item--active::before {
-  opacity: 0;
+  //opacity: 0;
 }
 
 $logo-link-height: 38px;

@@ -22,7 +22,7 @@ const facetCategories = {
     ],
     sources: [
         "popular",
-        "access",
+        "open access",
         "other",
     ],
     publishers: [
@@ -46,7 +46,7 @@ const facetCategoriesIcons = {
     institution: "mdi-town-hall",
     geo: "mdi-town-hall",
     funder: "mdi-cash-multiple",
-    "main source": "mdi-book-multiple-outline",
+    "source": "mdi-book-multiple-outline",
     repository: "mdi-package-variant",
     search: "mdi-magnify",
     access: "mdi-lock-open-outline",
@@ -290,7 +290,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "License",
             type: "select",
-            categories: ["access"],
+            categories: ["open access"],
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
         },
@@ -299,7 +299,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "OA Color",
             type: "select",
-            categories: ["access"],
+            categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
         {
@@ -307,7 +307,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Open Access version",
             type: "select",
-            categories: ["access"],
+            categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
 
@@ -410,7 +410,7 @@ const facetConfigs = function (entityType) {
             entityId: "sources",
             autocompleteEndpoint: "autocomplete/sources",
             type: "select",
-            categories: ["main source"],
+            categories: ["source"],
             isCore: true,
             icon: "mdi-book-open-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
@@ -436,7 +436,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Source type",
             type: "select",
-            categories: ["main source"],
+            categories: ["source"],
             icon: "mdi-book-open-outline",
         },
         {
@@ -445,7 +445,7 @@ const facetConfigs = function (entityType) {
             displayName: "Indexed by DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
-            categories: ["main source"],
+            categories: ["source"],
             icon: "mdi-book-open-outline",
         },
         {
@@ -454,7 +454,7 @@ const facetConfigs = function (entityType) {
             displayName: "Source is OA",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
-            categories: ["main source"],
+            categories: ["source"],
             icon: "mdi-book-open-outline",
         },
 
@@ -469,7 +469,7 @@ const facetConfigs = function (entityType) {
             // entityId: "publishers",
             autocompleteEndpoint: "autocomplete/publishers",
             type: "select",
-            categories: ["main source"],
+            categories: ["source"],
             isCore: true,
             icon: "mdi-domain",
             regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
@@ -748,7 +748,7 @@ const facetConfigs = function (entityType) {
             entityType: "sources",
             displayName: "Open Access",
             type: "select",
-            categories: ["access"],
+            categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
         {
@@ -756,7 +756,7 @@ const facetConfigs = function (entityType) {
             entityType: "sources",
             displayName: "In DOAJ",
             type: "select",
-            categories: ["access"],
+            categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
         {

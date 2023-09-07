@@ -24,9 +24,9 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
-    <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4 pt-8">
-      There are no filters applied.
-    </div>
+<!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
+<!--      There are no filters applied.-->
+<!--    </div>-->
     <v-list nav class="pt-6">
       <!--      <v-divider />-->
       <template
@@ -91,15 +91,13 @@
 
       <v-list-item
           key="new-filter-button"
-          v-if="!filterToCreate"
           color="primary"
-          :input-value="true"
           @click="isFilterKeySelectorVisible = true"
       >
         <v-list-item-icon>
-          <v-icon>mdi-plus</v-icon>
+          <v-icon color="primary">mdi-plus</v-icon>
         </v-list-item-icon>
-        <v-list-item-title>
+        <v-list-item-title class="primary--text font-weight-bold">
           Add Filter
         </v-list-item-title>
       </v-list-item>

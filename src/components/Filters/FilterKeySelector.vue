@@ -2,7 +2,7 @@
   <v-dialog scrollable v-model="isOpen" max-width="800px">
 
     <v-card>
-      <v-toolbar>
+      <v-toolbar style="z-index: 1;">
         <v-toolbar-title>
           <v-icon left>mdi-filter-plus-outline</v-icon>
           Add Filter
@@ -23,37 +23,37 @@
         </v-btn>
 
       </v-toolbar>
-      <v-navigation-drawer style="top:64px;" absolute>
-        <v-list-item-group v-model="selectedCategory">
+      <div
+          style="top:64px; width: 200px; position: absolute;
+          z-index: 0;"
+      >
+        <v-list-item-group nav v-model="selectedCategory" mandatory>
           <v-list-item
+
               v-for="(categoryName, i) in categoryNames"
               :key="categoryName"
           >
             <v-list-item-icon>
-              <v-icon>mdi-check</v-icon>
+<!--              <v-icon>mdi-check</v-icon>-->
             </v-list-item-icon>
             <v-list-item-title>
               {{ categoryName }}
             </v-list-item-title>
           </v-list-item>
         </v-list-item-group>
-      </v-navigation-drawer>
+      </div>
       <!--    <div class="pl-3 pt-2">Select filter:</div>-->
       <!--    <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">-->
-      <v-card-text style="height: 90vh;">
-
-        <v-row>
-          <v-col cols="6">
-
-          </v-col>
-          <v-col cols="6">
+      <v-card-text
+          style="height: 80vh; padding-left: 200px;"
+      >
 
             <v-list>
               <v-list-item
                   :disabled="disabledKeys.includes(filter.key)"
                   v-for="filter in filterOptions"
                   :key="filter.key"
-                  @click="$emit('select', filter.key)"
+                  @click="select(filter.key)"
               >
                 <v-list-item-icon>
                   <v-icon>{{ filter.icon }}</v-icon>
@@ -70,9 +70,6 @@
                 <!--          </v-list-item-action>-->
               </v-list-item>
             </v-list>
-          </v-col>
-
-        </v-row>
       </v-card-text>
 
     </v-card>
@@ -102,7 +99,7 @@ export default {
     return {
       foo: 42,
       searchString: "",
-      selectedCategory: 0,
+      selectedCategory: 1,
     }
   },
   computed: {
@@ -147,6 +144,10 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    select(filterKey){
+      this.$emit('select', filterKey)
+      this.$emit('close')
+    }
 
 
   },
