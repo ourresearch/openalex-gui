@@ -43,7 +43,7 @@
         </v-col>
         <v-col cols="12" sm="4">
           <v-card>
-            <v-toolbar dark >
+            <v-toolbar dark>
               <v-toolbar-title>
                 Summaries
               </v-toolbar-title>
@@ -52,23 +52,18 @@
               <v-btn icon @click="$emit('click')">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
-              <v-menu
-                  max-height="90vh"
-              >
-                <template v-slot:activator="{on}">
                   <v-btn
                       icon
-                      v-on="on"
+                      @click="isCreateWidgetDialogOpen = true"
                   >
                     <v-icon>mdi-plus</v-icon>
                   </v-btn>
-                </template>
                 <filter-key-selector
-                    dark
+                    v-model="isCreateWidgetDialogOpen"
+                    @close="isCreateWidgetDialogOpen = false"
                     hide-unpinnable
                     @select="createWidget"
                 />
-              </v-menu>
 
 
             </v-toolbar>
@@ -172,6 +167,7 @@ export default {
       filterDrawerIsOpen: true,
       apiResp: {},
       resultsPerPage: 25, // not editable now, but could be in future
+      isCreateWidgetDialogOpen: false,
       dialogs: {
         export: false,
         createAlert: false,

@@ -161,7 +161,11 @@ export default {
     isOpen(to, from){
       this.searchString = ""
       this.selectedCategory = 1
-
+    },
+    searchString(to, from){
+      if (to) {
+        this.selectedCategory = 0
+      }
     }
   }
 }
