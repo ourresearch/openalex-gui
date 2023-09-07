@@ -24,7 +24,8 @@ const filtersFromUrlStr = function (entityType, str) {
     const facetStrings = str.split(",")
     const filters = []
     facetStrings.forEach(facetStr => {
-        const [key, valuesStr] = facetStr.split(":")
+        const regex = /(?<!http|https):/
+        const [key, valuesStr] = facetStr.split(regex)
         if (valuesStr[0] === "!") {
             const value = valuesStr.replace("!", "")
             filters.push(createSimpleFilter(entityType, key, value, true))

@@ -2,7 +2,7 @@
   <v-dialog scrollable v-model="isOpen" max-width="800px">
 
     <v-card>
-      <v-toolbar style="z-index: 1;">
+      <v-toolbar dark color="primary" style="z-index: 1;">
         <v-toolbar-title>
           <v-icon left>mdi-filter-plus-outline</v-icon>
           Add Filter
@@ -116,27 +116,29 @@ export default {
       }
     },
     categoryNames() {
-      return _.cloneDeep(facetCategories)[this.entityType]
+      const categoryNames = _.cloneDeep(facetCategories)[this.entityType]
+      return ["all", ...categoryNames]
     },
     selectedCategoryName() {
       return this.categoryNames[this.selectedCategory]
     },
     filterOptions() {
       return filtersList(this.entityType, [], this.searchString)
+          .map(f => {
+            return {
+              ...f,
+              categories: [...f.categories, "all"]
+            }
+          })
           .filter(f => {
             const thisFilterIsUnpinnable = !["boolean", "select"].includes(f.type);
             return !(this.hideUnpinnable && thisFilterIsUnpinnable)
           })
           .filter(f => {
-            if (!this.selectedCategory) return true
+            // if (!this.selectedCategory) return true
             return f.categories.includes(this.selectedCategoryName)
           })
     },
-    topFilters() {
-      return filtersList(this.entityType, [], "").filter(f => {
-        return f.category === "popular"
-      })
-    }
   },
 
   methods: {
@@ -155,7 +157,13 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    isOpen(to, from){
+      this.searchString = ""
+      this.selectedCategory = 1
+
+    }
+  }
 }
 </script>
 

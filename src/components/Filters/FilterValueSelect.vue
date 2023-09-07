@@ -3,6 +3,7 @@
     <v-autocomplete
         :label="myFilterConfig.displayName"
         chips
+        autofocus
         dense
         small-chips
         multiple
@@ -43,6 +44,7 @@ import {api} from "@/api";
 import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
+import {openAlexSdgs} from "@/sdgs";
 
 export default {
   name: "FilterValueSelect",
@@ -147,11 +149,15 @@ export default {
       const makeAutocompleteResponseFromId = async function (id) {
         const config = that.myFilterConfig
         const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
+        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
+        // const sdgConfig =
 
-        console.log("countryConfig", openAlexCountries, id, countryConfig)
+        // console.log("countryConfig", openAlexCountries, id, countryConfig)
         let displayName
         if (countryConfig) {
           displayName = countryConfig.display_name
+        } else if (sdgConfig) {
+          displayName = sdgConfig.display_name
         } else if (config.isEntity) {
           displayName = await api.getEntityDisplayName(id)
         }

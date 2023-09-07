@@ -3,7 +3,7 @@
     <v-text-field
             dense
             hide-details
-
+            autofocus
             outlined
             v-model="start"
             placeholder="Min"
