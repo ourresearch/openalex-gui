@@ -86,7 +86,14 @@ export default {
   },
   async mounted() {
   },
-  watch: {}
+  watch: {
+    '$route': {
+      immediate: true,
+      handler: function(to, from){
+
+      }
+    }
+  }
 }
 </script>
 

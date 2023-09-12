@@ -7,6 +7,7 @@
       :to="linkToCitingPapers"
       @click.stop="$emit('click')"
       color="primary"
+      :exact="true"
   >
     <v-icon
         left

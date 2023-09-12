@@ -65,21 +65,20 @@
 
 
     </v-list-item-content>
-    <v-list-item-action style="min-width: 100px;">
+    <v-list-item-action >
       <v-btn
           v-if="fulltextLinkObj"
-          text
-          small
+          icon
           :href="fulltextLinkObj.href"
           color="primary"
           target="_blank"
           @click.stop="$emit('click')"
       >
-        <!--          <v-icon color="primary">-->
-        <!--            {{ fulltextLinkObj.icon }}-->
-        <!--          </v-icon>-->
-        {{ fulltextLinkObj.text }}
-        <v-icon small right>mdi-open-in-new</v-icon>
+                  <v-icon color="primary">
+                    {{ fulltextLinkObj.icon }}
+                  </v-icon>
+<!--        {{ fulltextLinkObj.text }}-->
+<!--        <v-icon small right>mdi-open-in-new</v-icon>-->
       </v-btn>
 
     </v-list-item-action>

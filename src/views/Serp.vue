@@ -70,7 +70,7 @@
       <!--      />-->
 
       <v-row>
-        <v-col cols="12" sm="8">
+        <v-col cols="12" sm="4">
           <div>
             <filter-list
                 :filters="resultsFilters"
@@ -81,26 +81,15 @@
             />
 
           </div>
+        </v-col>
+        <v-col cols="12" sm="4">
           <v-card flat key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
-          <v-container>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <year-range
-                    height="50px"
-                    big
-                    class="mb-3"
-                    show-filter-link
-                />
-              </v-col>
 
-
-            </v-row>
-
-          </v-container>
         </v-col>
+
         <v-col cols="12" sm="4">
           <year-range
               height="50px"
