@@ -30,6 +30,44 @@
         </v-chip>
       </template>
     </v-autocomplete>
+    <div class="d-flex">
+      <v-spacer />
+      <v-menu
+            v-if="selectedOptions && selectedOptions.length > 1"
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+              small
+              rounded
+              text
+              class="mt-2"
+              v-on="on"
+          >
+            Match {{ matchModeSelected }}
+            <v-icon small >mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>Match mode:</v-subheader>
+          <v-list-item
+            v-for="modeName in matchModes"
+            :key="modeName"
+            @click="matchModeSelected = modeName"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="modeName === matchModeSelected">mdi-check</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              {{ modeName }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+      </v-menu>
+
+
+
+    </div>
   </div>
 </template>
 
@@ -49,13 +87,11 @@ import {openAlexSdgs} from "@/sdgs";
 export default {
   name: "FilterValueSelect",
   components: {
-    FilterValueChip,
   },
   props: {
     disabled: Boolean,
     filterKey: String,
     filterValue: String,
-    displayValue: String,
   },
   data() {
     return {
@@ -64,13 +100,14 @@ export default {
       selectedValue: this.filterValue,
       options: [],
       selectedOptions: [],
-
-
+      matchModes: [
+        "any",
+        "all",
+        "none",
+      ],
+      matchModeSelected: "any",
       searchString: "",
       mySelectedValues: [],
-      mySelectedDisplayValues: [
-        this.displayValue
-      ]
     }
   },
   computed: {

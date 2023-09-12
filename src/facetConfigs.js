@@ -350,7 +350,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.country_code",
             entityType: "works",
-            displayName: "Institution country",
+            displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isCountry: true,
