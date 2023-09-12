@@ -26,20 +26,42 @@ const filtersFromUrlStr = function (entityType, str) {
     facetStrings.forEach(facetStr => {
         const regex = /(?<!http|https):/
         const [key, valuesStr] = facetStr.split(regex)
-        if (valuesStr[0] === "!") {
-            const value = valuesStr.replace("!", "")
-            filters.push(createSimpleFilter(entityType, key, value, true))
-        } else {
-            filters.push(createSimpleFilter(entityType, key, valuesStr, false))
+        filters.push(createSimpleFilter(entityType, key, valuesStr))
+        // if (valuesStr[0] === "!") {
+        //     const value = valuesStr.replace("!", "")
+        //     filters.push(createSimpleFilter(entityType, key, value, true))
+        // } else {
+        //     filters.push(createSimpleFilter(entityType, key, valuesStr, false))
 
 
             // const values = valuesStr.split("|")
             // values.forEach(value => {
             //     filters.push(createSimpleFilter(entityType, key, value, false))
             // })
-        }
+        // }
     })
     return filters
+}
+
+const getMatchModeFromSelectFilterValue = function(valueStr){
+    if (valueStr[0] === "!") return "none"
+    else if (valueStr.indexOf("+") > -1) return "all"
+    return "any"
+}
+const getItemsFromSelectFilterValue = function(valueStr){
+    const valueStrWithoutBang = valueStr.replace("!", "")
+    const regex = /[+|]/
+    return valueStrWithoutBang.split(regex)
+}
+
+const makeSelectFilterValue = function(items, matchMode){
+    const sep = {
+        any: "|",
+        all: "+",
+        none: "|"
+    }
+    const prepend = (matchMode === "none") ? "!" : ""
+    return prepend + items.join(sep[matchMode])
 }
 
 const filtersAreEqual = function (f1, f2) {
@@ -298,4 +320,8 @@ export {
     displayYearRange,
 
     sortedFilters,
+
+    getMatchModeFromSelectFilterValue,
+    getItemsFromSelectFilterValue,
+    makeSelectFilterValue,
 }

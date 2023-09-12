@@ -31,9 +31,9 @@
       </template>
     </v-autocomplete>
     <div class="d-flex">
-      <v-spacer />
+      <v-spacer/>
       <v-menu
-            v-if="selectedOptions && selectedOptions.length > 1"
+          v-if="selectedOptions && selectedOptions.length > 1"
       >
         <template v-slot:activator="{on}">
           <v-btn
@@ -43,19 +43,19 @@
               class="mt-2"
               v-on="on"
           >
-            Match {{ matchModeSelected }}
-            <v-icon small >mdi-menu-down</v-icon>
+            Match {{ selectedMatchMode }}
+            <v-icon small>mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-subheader>Match mode:</v-subheader>
           <v-list-item
-            v-for="modeName in matchModes"
-            :key="modeName"
-            @click="matchModeSelected = modeName"
+              v-for="modeName in matchModes"
+              :key="modeName"
+              @click="setSelectedMatchMode(modeName)"
           >
             <v-list-item-icon>
-              <v-icon v-if="modeName === matchModeSelected">mdi-check</v-icon>
+              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
               {{ modeName }}
@@ -64,7 +64,6 @@
         </v-list>
 
       </v-menu>
-
 
 
     </div>
@@ -83,11 +82,11 @@ import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
+import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
 
 export default {
   name: "FilterValueSelect",
-  components: {
-  },
+  components: {},
   props: {
     disabled: Boolean,
     filterKey: String,
@@ -105,7 +104,7 @@ export default {
         "all",
         "none",
       ],
-      matchModeSelected: "any",
+      selectedMatchMode: "any",
       searchString: "",
       mySelectedValues: [],
     }
@@ -116,11 +115,11 @@ export default {
       "entityType",
     ]),
     mySelectedValueString() {
-      return this.selectedOptions
+      const items = this.selectedOptions
           .map(optionId => {
             return shortenOpenAlexId(optionId)
           })
-          .join("|")
+      return makeSelectFilterValue(items, this.selectedMatchMode)
     },
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
@@ -140,6 +139,10 @@ export default {
       // else {
       //   this.$emit("delete")
       // }
+    },
+    setSelectedMatchMode(newMode){
+      this.selectedMatchMode = newMode
+      this.$emit("update", this.mySelectedValueString)
     },
     remove(id) {
       console.log("remove()", id)
@@ -178,8 +181,11 @@ export default {
   },
   async mounted() {
     if (this.filterValue) {
-      const newIds = this.filterValue.split("|")
+      // const newIds = this.filterValue.split("|")
+      const newIds = getItemsFromSelectFilterValue(this.filterValue)
       this.selectedOptions = newIds
+      this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
+
       const that = this
 
 
@@ -197,8 +203,7 @@ export default {
           displayName = sdgConfig.display_name
         } else if (config.isEntity) {
           displayName = await api.getEntityDisplayName(id)
-        }
-        else {
+        } else {
           displayName = id
         }
         return {
