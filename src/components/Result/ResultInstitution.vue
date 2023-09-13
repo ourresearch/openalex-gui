@@ -1,8 +1,8 @@
 <template>
   <v-list-item :to="data.id | entityZoomLink">
-    <v-list-item-icon>
-      <v-icon>mdi-town-hall</v-icon>
-    </v-list-item-icon>
+<!--    <v-list-item-icon>-->
+<!--      <v-icon>mdi-town-hall</v-icon>-->
+<!--    </v-list-item-icon>-->
     <v-list-item-content>
       <v-list-item-title class="primary--text">
           {{ data.display_name }}
@@ -24,24 +24,22 @@
             entity-type="institutions"
             class="mr-4"
         />
-        <result-citation-count
-            :cited-by-count="data.cited_by_count"
-            entity-type="institutions"
-        />
+<!--        <result-citation-count-->
+<!--            :cited-by-count="data.cited_by_count"-->
+<!--            entity-type="institutions"-->
+<!--        />-->
       </v-list-item-subtitle>
     </v-list-item-content>
     <v-list-item-action>
       <v-btn
-          text
-          small
+          icon
           color="primary"
           v-if="data.homepage_url"
           :href="data.homepage_url"
           target="_blank"
           @click.stop="$emit('click')"
       >
-        Homepage
-        <v-icon right small>mdi-open-in-new</v-icon>
+        <v-icon small>mdi-open-in-new</v-icon>
       </v-btn>
     </v-list-item-action>
 

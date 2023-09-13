@@ -1,6 +1,7 @@
 <template>
   <v-btn
       text
+      small
       :disabled="!formatAsLink"
       class="px-1"
       style="font-weight: normal !important;"

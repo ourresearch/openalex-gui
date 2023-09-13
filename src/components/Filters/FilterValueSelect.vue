@@ -1,58 +1,72 @@
 <template>
-  <div class="d-flex flex-wrap ml-3">
-    <filter-value-chip
-        :disabled="disabled"
-        v-for="value in mySelectedValues"
-        :key="value"
-        :filter-key="filterKey"
-        :filter-value="value"
-        :close="mySelectedValues.length > 1"
-        @remove="removeSelectedValue(value)"
-    />
-    <span style="visibility: hidden;">|</span>
-    <v-menu max-height="90vh">
-      <template v-slot:activator="{on}">
-        <v-btn
-            text
-            color="primary"
-            rounded
-            v-on="on"
-            :icon="mySelectedValues.length > 0"
+  <div class="">
+    <v-autocomplete
+        :label="myFilterConfig.displayName"
+        chips
+        autofocus
+        dense
+        small-chips
+        multiple
+        outlined
+        hide-details
+        :items="options"
+        v-model="selectedOptions"
+        :search-input.sync="searchString"
+        item-text="display_name"
+        item-value="id"
+        @input="input"
+    >
+      <template v-slot:selection="data">
+        <v-chip
+            small
+            v-bind="data.attrs"
+            :input-value="data.selected"
+            close
+            @click="data.select"
+            class="mt-2"
+            @click:close="remove(data.item.id)"
         >
-          <template v-if="mySelectedValues.length === 0">
-            Select
-            <v-icon right>mdi-menu-down</v-icon>
-          </template>
-          <v-icon :disabled="disabled" v-else>mdi-plus</v-icon>
-        </v-btn>
+          {{ data.item.display_name | truncate(30) }}
+        </v-chip>
       </template>
-      <v-card max-height="90vh">
-        <v-text-field
-            v-model="searchString"
-            autofocus
-            clearable
-            hide-details
-            class="mx-2"
-            prepend-inner-icon="mdi-magnify"
-        />
-        <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">
-          <v-list>
-            <v-list-item
-                v-for="option in options"
-                :key="option.id"
-                @click="addSelectedValue(option.id)"
-            >
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ option.display_name }}
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </div>
+    </v-autocomplete>
+    <div class="d-flex">
+      <v-spacer/>
+      <v-menu
+          v-if="selectedOptions && selectedOptions.length > 1"
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+              small
+              rounded
+              text
+              class="mt-2"
+              v-on="on"
+          >
+            Match {{ selectedMatchMode }}
+            <v-icon small>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>Match mode:</v-subheader>
+          <v-list-item
+              v-for="modeName in matchModes"
+              :key="modeName"
+              @click="setSelectedMatchMode(modeName)"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              {{ modeName }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
 
-      </v-card>
-    </v-menu>
+      </v-menu>
+
+
+    </div>
   </div>
 </template>
 
@@ -62,20 +76,21 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
+import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
 import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
+import {openAlexCountries} from "@/countries";
+import {openAlexSdgs} from "@/sdgs";
+import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
 
 export default {
   name: "FilterValueSelect",
-  components: {
-    FilterValueChip,
-  },
+  components: {},
   props: {
     disabled: Boolean,
     filterKey: String,
     filterValue: String,
-    displayValue: String,
   },
   data() {
     return {
@@ -83,11 +98,15 @@ export default {
       isLoading: false,
       selectedValue: this.filterValue,
       options: [],
+      selectedOptions: [],
+      matchModes: [
+        "any",
+        "all",
+        "none",
+      ],
+      selectedMatchMode: "any",
       searchString: "",
       mySelectedValues: [],
-      mySelectedDisplayValues: [
-        this.displayValue
-      ]
     }
   },
   computed: {
@@ -96,7 +115,11 @@ export default {
       "entityType",
     ]),
     mySelectedValueString() {
-      return this.mySelectedValues.join("|")
+      const items = this.selectedOptions
+          .map(optionId => {
+            return shortenOpenAlexId(optionId)
+          })
+      return makeSelectFilterValue(items, this.selectedMatchMode)
     },
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
@@ -108,28 +131,43 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    async addSelectedValue(filterValue) {
-      this.mySelectedValues.push(filterValue)
-      await this.$emit("update", this.mySelectedValueString)
-    },
-    async removeSelectedValue(filterValue) {
-      console.log("removeSelectedValue", filterValue)
-      this.mySelectedValues = this.mySelectedValues.filter(v => {
-        return v !== filterValue
-      })
-      await this.$emit("update", this.mySelectedValueString)
-    },
-    async submit(filterKey) {
+    input() {
       this.$emit("update", this.mySelectedValueString)
+      // if (this.mySelectedValueString){
+      //   console.log("this.mySelectedValueString", this.mySelectedValueString)
+      // }
+      // else {
+      //   this.$emit("delete")
+      // }
+    },
+    setSelectedMatchMode(newMode){
+      this.selectedMatchMode = newMode
+      this.$emit("update", this.mySelectedValueString)
+    },
+    remove(id) {
+      console.log("remove()", id)
+      this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
+      return this.input()
     },
     async fetchOptions() {
       this.isLoading = true
       try {
-        this.options = await api.getAutocompleteResponses(
+        const apiOptions = await api.getAutocompleteResponses(
             this.entityType,
             this.filterKey,
             this.searchString,
         )
+
+        const newOptions = apiOptions.filter(myNewOption => {
+          const oldOptionIds = this.options.map(o => o.id)
+          return !oldOptionIds.includes(myNewOption.id)
+        })
+        this.options = [
+          ...this.options,
+          ...newOptions
+        ]
+
+
       } catch (e) {
         console.log("fetchOptions() error:", e.message)
       } finally {
@@ -141,10 +179,42 @@ export default {
   },
   created() {
   },
-  mounted() {
+  async mounted() {
     if (this.filterValue) {
-      const newValues = this.filterValue.split("|")
-      this.mySelectedValues = [...this.mySelectedValues, ...newValues]
+      // const newIds = this.filterValue.split("|")
+      const newIds = getItemsFromSelectFilterValue(this.filterValue)
+      this.selectedOptions = newIds
+      this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
+
+      const that = this
+
+
+      const makeAutocompleteResponseFromId = async function (id) {
+        const config = that.myFilterConfig
+        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
+        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
+        // const sdgConfig =
+
+        // console.log("countryConfig", openAlexCountries, id, countryConfig)
+        let displayName
+        if (countryConfig) {
+          displayName = countryConfig.display_name
+        } else if (sdgConfig) {
+          displayName = sdgConfig.display_name
+        } else if (config.isEntity) {
+          displayName = await api.getEntityDisplayName(id)
+        } else {
+          displayName = id
+        }
+        return {
+          id,
+          display_name: displayName,
+        }
+      }
+      const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
+      this.options = await Promise.all(
+          autocompletePromises
+      )
     }
   },
   watch: {

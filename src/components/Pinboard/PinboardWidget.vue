@@ -1,11 +1,17 @@
 <template>
-  <v-card flat class="">
+  <v-card flat tile class="">
     <v-toolbar dense flat>
       <v-toolbar-title>
         <v-icon left>{{ myFilterConfig.icon }}</v-icon>
-        {{ myFilterConfig.displayName }}
+        <span v-if="groups.length >= 5">
+          Top {{ myFilterConfig.displayName | pluralize(2) }}
+        </span>
+        <span v-else>
+          {{ myFilterConfig.displayName }}
+        </span>
       </v-toolbar-title>
       <v-spacer/>
+
       <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
@@ -18,10 +24,22 @@
         <v-list>
           <v-list-item @click="$emit('delete')">
             <v-list-item-icon>
-              <v-icon>mdi-pin-off-outline</v-icon>
+              <v-icon>mdi-delete-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              Unpin
+              Remove
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item
+              target="_blank"
+              :href="csvUrl"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Export spreadsheet
             </v-list-item-title>
           </v-list-item>
           <v-list-item
@@ -36,27 +54,46 @@
           </v-list-item>
         </v-list>
       </v-menu>
+      <v-btn
+        icon
+        @click="$emit('delete')"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
     <v-list dense class="flex-grow-1">
       <v-list-item
           v-for="group in groups"
           :key="group.value"
           style="min-height: unset;"
+          @click="url.createFilter(entityType, filterKey, group.value)"
       >
-        <div class="flex-grow-1">
-          <div style="font-size: 13px">
-            {{ group.displayValue }} ({{group.count | millify }})
-          </div>
-        </div>
-        <div class="d-flex" style="background: #eee; height: 20px;  min-width: 150px;">
-          <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-          <v-spacer/>
-        </div>
-<!--        <v-list-item-action-text>-->
-<!--          <span>-->
-<!--            {{ group.count | millify }}-->
-<!--          </span>-->
-<!--        </v-list-item-action-text>-->
+        <v-list-item-icon>
+<!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
+<!--            <v-spacer/>-->
+<!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+<!--          </div>-->
+          <v-progress-circular
+            width="7"
+            size="22"
+            :value="group.countScaled * 100"
+            rotate="-90"
+          />
+
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title >
+            {{ group.displayValue }}
+          </v-list-item-title>
+<!--          <v-list-item-subtitle>-->
+<!--             {{group.count | toPrecision }}-->
+<!--          </v-list-item-subtitle>-->
+        </v-list-item-content>
+        <v-list-item-action-text>
+          <span>
+            {{ group.count | toPrecision }}
+          </span>
+        </v-list-item-action-text>
       </v-list-item>
     </v-list>
   </v-card>
@@ -79,6 +116,7 @@ export default {
   },
   data() {
     return {
+      url,
       foo: 42,
       isLoading: false,
       selectedValue: this.filterValue,
@@ -101,6 +139,16 @@ export default {
           this.filterKey,
           {
             includeEmail: false,
+          }
+      )
+    },
+    csvUrl(){
+      return url.makeGroupByUrl(
+          this.entityType,
+          this.filterKey,
+          {
+            includeEmail: false,
+            formatCsv: true,
           }
       )
     }

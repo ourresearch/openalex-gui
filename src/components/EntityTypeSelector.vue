@@ -2,8 +2,8 @@
   <v-menu offset-y>
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-              dark
               text
+              color="primary"
               rounded
               class="text-capitalize"
               v-bind="attrs"
@@ -22,7 +22,6 @@
     </template>
     <v-list
             two-line
-            dark
     >
       <v-subheader>Search for:</v-subheader>
       <v-divider></v-divider>

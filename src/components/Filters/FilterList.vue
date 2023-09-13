@@ -1,15 +1,18 @@
 <template>
   <v-card
-      flat
       class="mb-8"
   >
-    <v-toolbar flat dense class="">
+    <v-toolbar
+        dark
+        class=""
+    >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
+
       <v-toolbar-title>
         Filters
-        <span class="body-2">
-          ({{ filters.length }})
-        </span>
+        <!--        <span class="body-2">-->
+        <!--          ({{ filters.length }})-->
+        <!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
       <v-tooltip bottom>
@@ -21,37 +24,40 @@
         <div>Clear all filters</div>
       </v-tooltip>
     </v-toolbar>
-    <div v-if="!filters.length && !filterToCreate" class="grey--text ml-4">
-      There are no filters applied.
-    </div>
-    <v-list class="pt-0">
+<!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
+<!--      There are no filters applied.-->
+<!--    </div>-->
+    <v-list nav class="pt-6">
       <!--      <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
         <v-list-item
             :key="filter.key"
-            :disabled="!!filterToCreate"
         >
-          <div class="mr-2">
-            <v-icon :disabled="!!filterToCreate">mdi-filter-outline</v-icon>
-
-          </div>
+          <v-list-item-icon class="">
+            <v-icon>{{ filter.icon }}</v-icon>
+          </v-list-item-icon>
           <v-list-item-content>
-            <div class="d-flex align-center">
-              <div class="">{{ filter.displayName }}:</div>
-              <component
-                  :is="'filter-value-' + filter.type"
-                  :disabled="!!filterToCreate"
-                  :filter-key="filter.key"
-                  :filter-value="filter.value"
-                  @update="(newValue) => $emit('update', filter.key, newValue)"
-              />
-            </div>
+            <!--            <v-row>-->
+            <!--              <v-col cols="3" class="">-->
+            <!--                <div class="pt-2">{{ filter.displayName }}</div>-->
+            <!--              </v-col>-->
+            <!--              <v-col cols="9" class="">-->
+            <component
+                class="flex-grow-1"
+                :is="'filter-value-' + filter.type"
+                :filter-key="filter.key"
+                :filter-value="filter.value"
+                @update="(newValue) => updateFilter(filter.key, newValue)"
+            />
+            <!--              </v-col>-->
+            <!--            </v-row>-->
           </v-list-item-content>
+
           <v-list-item-action>
-            <v-btn :disabled="!!filterToCreate" icon @click="$emit('delete', filter.key)">
-              <v-icon>mdi-close</v-icon>
+            <v-btn icon @click="$emit('delete', filter.key)">
+              <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
           </v-list-item-action>
         </v-list-item>
@@ -61,60 +67,50 @@
 
       <v-list-item
           key="filter-to-create"
-          v-if="filterToCreate"
-          class=""
-
+          v-if="!!filterToCreate"
       >
-        <div class="mr-3">
-          <v-icon>mdi-filter-plus-outline</v-icon>
-
-        </div>
+        <v-list-item-icon class="">
+          <v-icon>{{ filterToCreate.icon }}</v-icon>
+        </v-list-item-icon>
         <v-list-item-content>
-          <div class="d-flex align-center ">
-            <div class="font-weight-bold ">{{ filterToCreate.displayName }}:</div>
-            <component
-                :is="'filter-value-' + filterToCreate.type"
-                :filter-key="filterToCreate.key"
-                :filter-value="filterToCreate.value"
-                @update="createFilter"
-            />
-          </div>
+          <component
+              :is="'filter-value-' + filterToCreate.type"
+              :filter-key="filterToCreate.key"
+              :filter-value="filterToCreate.value"
+              @update="createFilter"
+          />
         </v-list-item-content>
+
         <v-list-item-action>
-          <v-btn text @click="filterToCreate = null">
-            Cancel
+          <v-btn icon @click="filterToCreate = null">
+            <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
         </v-list-item-action>
       </v-list-item>
+
+
+      <v-list-item
+          key="new-filter-button"
+          color="primary"
+          @click="isFilterKeySelectorVisible = true"
+      >
+        <v-list-item-icon>
+          <v-icon color="primary">mdi-plus</v-icon>
+        </v-list-item-icon>
+        <v-list-item-title class="primary--text font-weight-bold">
+          Add Filter
+        </v-list-item-title>
+      </v-list-item>
+      <filter-key-selector
+          :disabled-keys="filters.map(f=>f.key)"
+          v-model="isFilterKeySelectorVisible"
+          @close="isFilterKeySelectorVisible = false"
+          @select="setFilterToCreate"
+      />
+
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </v-list>
 
-
-    <v-card-actions>
-      <v-menu max-height="90vh">
-        <template v-slot:activator="{on}">
-          <v-fab-transition>
-            <v-btn
-                fab
-                :disabled="!!filterToCreate"
-                color="primary"
-                v-on="on"
-                style="margin-bottom: -33px"
-                                v-if="fabIsVisible"
-
-            >
-              <v-icon left class="">mdi-filter-plus-outline</v-icon>
-            </v-btn>
-
-          </v-fab-transition>
-        </template>
-        <filter-key-selector
-            :disabled-keys="filters.map(f=>f.key)"
-            @select="setFilterToCreate"
-        />
-      </v-menu>
-
-    </v-card-actions>
   </v-card>
 </template>
 
@@ -145,6 +141,7 @@ export default {
       foo: 42,
       filterToCreate: null,
       fabIsVisible: false,
+      isFilterKeySelectorVisible: false,
     }
   },
   computed: {
@@ -169,6 +166,15 @@ export default {
     createFilter(newValue) {
       this.$emit("create", this.filterToCreate.key, newValue)
       this.filterToCreate = null
+    },
+    updateFilter(filterKey, newValue) {
+      console.log("updateFilter", filterKey, newValue)
+      if (newValue === "" || newValue === "-") {
+        this.$emit("delete", filterKey)
+      } else {
+        this.$emit("update", filterKey, newValue)
+
+      }
     },
 
 

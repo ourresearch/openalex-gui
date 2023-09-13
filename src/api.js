@@ -102,7 +102,7 @@ const api = (function () {
         getEntityDisplayName: async function (id) {
             const myUrl = makeUrl(id, {select: "display_name"})
             const resp = await getUrl(myUrl)
-            return resp
+            return resp.display_name
         },
         getUrl,
         get: async function (pathName, searchParams) {
@@ -112,7 +112,6 @@ const api = (function () {
         },
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
             const myConfig = getFacetConfig(entityType, filterKey)
-            console.log("getAutocompleteResponses()", myConfig)
 
             if (myConfig.entityId) {
                 if (!searchString) return []
@@ -151,6 +150,7 @@ const api = (function () {
 
             const groupCounts = truncatedGroups.map(g => g.count)
             const maxCount = Math.max(...groupCounts)
+            const countSum = groupCounts.reduce((a, b)=> a + b, 0)
             const groupDisplayFilters = truncatedGroups
                 .map(group => {
                     return createDisplayFilter(
@@ -160,7 +160,7 @@ const api = (function () {
                         false,
                         group.key_display_name,
                         group.count,
-                        group.count / maxCount
+                        group.count / countSum,
                     )
                 })
 

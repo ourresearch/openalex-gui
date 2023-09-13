@@ -1,10 +1,9 @@
 <template>
     <v-switch
         :disabled="disabled"
-        class="pt-0 mt-0 ml-5"
+        class="pt-0 mt-0"
       v-model="selectedValue"
-      :label="String(selectedValue)"
-      color="success"
+      :label="label"
       hide-details
       @change="$emit('update', selectedValue)"
     />
@@ -18,6 +17,7 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterValueBoolean",
@@ -40,6 +40,13 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    myFilterConfig() {
+      return getFacetConfig(this.entityType, this.filterKey)
+    },
+    label(){
+      const negationString = (this.selectedValue) ? "" : "NOT"
+      return `${negationString} ${this.myFilterConfig.displayName}`
+    }
   },
 
   methods: {

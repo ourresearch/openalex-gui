@@ -1,8 +1,8 @@
 <template>
   <v-list-item  :to="data.id | entityZoomLink">
-    <v-list-item-icon>
-      <v-icon>mdi-cash-multiple</v-icon>
-    </v-list-item-icon>
+<!--    <v-list-item-icon>-->
+<!--      <v-icon>mdi-cash-multiple</v-icon>-->
+<!--    </v-list-item-icon>-->
     <v-list-item-content>
 
       <v-list-item-title class="primary--text">
@@ -15,13 +15,13 @@
         <result-works-count
             :works-count="data.works_count"
             :id="data.id"
-            entity-type="sources"
+            entity-type="funders"
             class="mr-4"
         />
-        <result-citation-count
-            :cited-by-count="data.cited_by_count"
-            entity-type="sources"
-        />
+<!--        <result-citation-count-->
+<!--            :cited-by-count="data.cited_by_count"-->
+<!--            entity-type="sources"-->
+<!--        />-->
       </v-list-item-subtitle>
       <!--    <v-col cols="3" class="justify-end d-flex">-->
       <!--      <a-->
@@ -39,16 +39,14 @@
     </v-list-item-content>
     <v-list-item-action>
       <v-btn
-          text
-          small
+          icon
           color="primary"
           v-if="data.homepage_url"
           :href="data.homepage_url"
           target="_blank"
           @click.stop="$emit('click')"
       >
-        Homepage
-        <v-icon right small>mdi-open-in-new</v-icon>
+        <v-icon small>mdi-open-in-new</v-icon>
       </v-btn>
     </v-list-item-action>
 

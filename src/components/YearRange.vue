@@ -18,24 +18,13 @@
       <v-spacer></v-spacer>
 
 
-      <v-menu offset-y>
+      <v-menu>
         <template v-slot:activator="{on}">
           <v-btn  icon v-on="on" class="">
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-        <v-list dense>
-          <v-list-item
-              @click="url.setGroupBy('publication_year')"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-filter-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Filter years
-            </v-list-item-title>
-          </v-list-item>
-          <v-divider></v-divider>
+        <v-list >
           <v-list-item
               target="_blank"
               :href="csvUrl"

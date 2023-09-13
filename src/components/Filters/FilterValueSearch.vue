@@ -2,12 +2,10 @@
   <div class="d-flex align-center" >
     <v-text-field
         dense
-        hide-details
+        autofocus
         outlined
-        full-width
         prepend-inner-icon="mdi-magnify"
         v-model="myFilterValue"
-        :placeholder="myFilterConfig.displayName"
         :label="myFilterConfig.displayName"
         @keypress.enter="$emit('update', myFilterValue)"
         class="ml-3"
