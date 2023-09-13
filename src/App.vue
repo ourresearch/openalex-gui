@@ -45,7 +45,7 @@
           <v-col cols="6" class="d-flex align-center">
             <v-spacer></v-spacer>
 
-
+<div>{{ Math.round(exportProgress * 100) }}%</div>
             <entity-type-selector/>
 
 <v-btn
@@ -151,6 +151,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
 import EntityTypeSelector from "./components/EntityTypeSelector.vue";
+import axios from "axios";
 
 export default {
     name: 'App',
@@ -168,6 +169,7 @@ export default {
 
     data: function () {
         return {
+          exportProgress: 0,
             dialogs: {
                 showAlpha: false
             }
@@ -201,6 +203,13 @@ export default {
         },
     },
     async mounted() {
+      setInterval(async () => {
+        console.log("tick", this.$store.state.exportProgressUrl)
+        if (!this.$store.state.exportProgressUrl) return
+        const resp = await axios.get(this.$store.state.exportProgressUrl)
+        console.log(resp)
+        this.exportProgress = resp.data.progress
+      }, 1000)
         // await sleep(2000)
         // console.log("disable body scroll")
         // bodyScrollLock.disableBodyScroll()

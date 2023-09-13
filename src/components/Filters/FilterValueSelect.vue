@@ -32,9 +32,7 @@
     </v-autocomplete>
     <div class="d-flex">
       <v-spacer/>
-      <v-menu
-          v-if="selectedOptions && selectedOptions.length > 1"
-      >
+      <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
               small

@@ -56,14 +56,14 @@
           >
             Continue
           </v-btn>
-<!--          <v-btn-->
-<!--              v-if="exportIsInProgress"-->
-<!--              text-->
-<!--              color="primary"-->
-<!--              @click="dialogs.export = false"-->
-<!--          >-->
-<!--            Close-->
-<!--          </v-btn>-->
+          <!--          <v-btn-->
+          <!--              v-if="exportIsInProgress"-->
+          <!--              text-->
+          <!--              color="primary"-->
+          <!--              @click="dialogs.export = false"-->
+          <!--          >-->
+          <!--            Close-->
+          <!--          </v-btn>-->
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -81,22 +81,6 @@
         <v-card-actions>
           <v-spacer/>
           <v-btn text @click="dialogs.createEmailAlert = false">OK</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-
-    <v-dialog max-width="600" v-model="dialogs.error.exportCsvTooManyRecords">
-      <v-card>
-        <v-card-title>
-          Too many records to export
-        </v-card-title>
-        <v-card-text>
-          You can only export 100,000 records to CSV at one time. Try adding some more filters to narrow your search.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn text @click="dialogs.error.exportCsvTooManyRecords = false">OK</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -138,7 +122,7 @@
     </v-menu>
 
 
-    <v-menu>
+    <v-menu offset-y>
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on" class="" :disabled="disabled">
           <v-icon>mdi-dots-vertical</v-icon>
@@ -149,9 +133,10 @@
           <template v-slot:activator="{on}">
             <v-list-item
                 v-on="on"
+                :disabled="resultsCount > 1000000"
             >
               <v-list-item-icon>
-                <v-icon>
+                <v-icon :disabled="resultsCount > 1000000">
                   mdi-tray-arrow-down
                 </v-icon>
               </v-list-item-icon>
@@ -159,19 +144,22 @@
                 <v-list-item-title>
                   Download results
                 </v-list-item-title>
-                <v-list-item-subtitle>
+                <v-list-item-subtitle :class="{'grey--text': resultsCount > 1000000}">
                   Max 100k
                 </v-list-item-subtitle>
               </v-list-item-content>
+              <v-list-item-action>
+                <v-icon :disabled="resultsCount > 1000000">mdi-menu-right</v-icon>
+              </v-list-item-action>
             </v-list-item>
           </template>
           <v-list>
-            <v-list-item @click="openExportToCsvDialog('csv')">
+            <v-list-item @click="setExport('csv')">
               <v-list-item-title>
                 Spreadsheet (.csv)
               </v-list-item-title>
             </v-list-item>
-            <v-list-item  @click="openExportToCsvDialog('wos')">
+            <v-list-item @click="setExport('wos')">
               <v-list-item-title>
                 Web of Science (.txt)
               </v-list-item-title>
@@ -262,7 +250,6 @@ export default {
         error: {
           savedSearchRequiresLogin: false,
           createAlertRequiresLogin: false,
-          exportCsvTooManyRecords: false,
         }
       },
       exportEmail: "",
@@ -317,6 +304,7 @@ export default {
     ]),
     ...mapActions([
       "setSort",
+      "setExport",
     ]),
     async saveSearch() {
       this.setGlobalIsLoading(true)
@@ -339,10 +327,6 @@ export default {
       })
     },
     openExportToCsvDialog(type) {
-      if (this.resultsCount > 100000) {
-        this.dialogs.error.exportCsvTooManyRecords = true
-        return
-      }
       this.exportIsInProgress = false
       this.dialogs.export = true
       this.dialogs.exportType = type

@@ -135,6 +135,7 @@ const stateDefaults = function () {
         // other
         showYearRange: false,
         facetsToRequireAll: [],
+        exportProgressUrl: null,
     }
     return ret
 }
@@ -292,6 +293,19 @@ export default new Vuex.Store({
             await dispatch("doSearch")
         },
 
+        // eslint-disable-next-line no-unused-vars
+        async setExport({commit, getters, dispatch, state}, format) {
+            const filterStr = router.currentRoute.query.filter
+            const params = [
+                `filter=${filterStr}`,
+                `format=${format}`,
+            ]
+            const url = `https://api.openalex.org/works?` + params.join("&")
+            const resp = await axios.get(url)
+            console.log("startExport resp:", resp)
+            state.exportProgressUrl = resp.data.progress_url
+            return state.exportProgressUrl
+        },
         // eslint-disable-next-line no-unused-vars
         async setSort({commit, getters, dispatch, state}, newSortValue) {
             commit("setSort", newSortValue)
