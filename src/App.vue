@@ -1,18 +1,18 @@
 <template>
   <v-app>
     <v-progress-linear
-            indeterminate
-            fixed color="primary"
-            style="z-index: 9999"
-            v-if="globalIsLoading"
+        indeterminate
+        fixed color="primary"
+        style="z-index: 9999"
+        v-if="globalIsLoading"
     />
     <v-app-bar
-            app
-            color="white"
-            class="pl-0"
-            :class="{mobile: $vuetify.breakpoint.mobile}"
-            absolute
-            :extended="$vuetify.breakpoint.mobile"
+        app
+        color="white"
+        class="pl-0"
+        :class="{mobile: $vuetify.breakpoint.mobile}"
+        absolute
+        :extended="$vuetify.breakpoint.mobile"
 
     >
       <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
@@ -20,18 +20,18 @@
 
           <v-col cols="6" sm="6" class="d-flex align-center">
             <router-link
-                    :to="{name: 'Home'}"
-                    class="logo-link pl-1"
-                    v-if="$route.name !== 'Home'"
+                :to="{name: 'Home'}"
+                class="logo-link pl-1"
+                v-if="$route.name !== 'Home'"
             >
               <img
-                      src="@/assets/openalex-logo-icon-black-and-white.png"
-                      class="logo-icon mr-0 colorizable"
-                      :style="logoStyle"
+                  src="@/assets/openalex-logo-icon-black-and-white.png"
+                  class="logo-icon mr-0 colorizable"
+                  :style="logoStyle"
               />
               <span
-                      class="logo-text colorizable"
-                      :style="logoStyle"
+                  class="logo-text colorizable"
+                  :style="logoStyle"
               >
                 OpenAlex
                 <!--                <span class="grey&#45;&#45;text">-->
@@ -45,16 +45,44 @@
           <v-col cols="6" class="d-flex align-center">
             <v-spacer></v-spacer>
 
-<div>{{ Math.round(exportProgress * 100) }}%</div>
+            <v-menu offset-y>
+              <template v-slot:activator="{on}">
+                <v-btn
+                    rounded
+
+                    color="primary"
+                    dark
+                    v-on="on"
+                >
+                  <v-icon left>mdi-tray-arrow-down</v-icon>
+                  {{ Math.round(exportProgress * 100) }}%
+                  <v-icon right>mdi-menu-down</v-icon>
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>Export {{ 'in progress' }}</v-card-title>
+                <v-card-text>
+                  Your requested export is <strong>{{ Math.round(exportProgress * 100) }}%</strong> complete.
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn text>Cancel</v-btn>
+                  <v-btn text color="primary">
+                    <v-icon left>mdi-tray-arrow-down</v-icon>
+                    Download
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-menu>
             <entity-type-selector/>
 
-<v-btn
-            icon
-            target="_blank"
-            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-        >
-          <v-icon>mdi-share-variant-outline</v-icon>
-        </v-btn>
+            <v-btn
+                icon
+                target="_blank"
+                @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+            >
+              <v-icon>mdi-share-variant-outline</v-icon>
+            </v-btn>
 
 
             <v-menu offset-y content-class="no-highlight" min-width="150">
@@ -88,11 +116,11 @@
       <router-view></router-view>
     </v-main>
     <v-footer
-            class="py-10 site-footer"
-            style="margin-top: 150px;"
-            :style="{paddingRight: 0}"
-            dark
-            color="#363636"
+        class="py-10 site-footer"
+        style="margin-top: 150px;"
+        :style="{paddingRight: 0}"
+        dark
+        color="#363636"
     >
       <v-container>
         <v-row>
@@ -113,8 +141,8 @@
           </v-col>
           <v-col cols="12" sm="4" class="body-2">
             OurResearch is supported in part by <a
-                  style="text-decoration: underline;"
-                  href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
+              style="text-decoration: underline;"
+              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
             charitable fund of Lisbet Rausing and Peter Baldwin</a>.
           </v-col>
         </v-row>
@@ -123,17 +151,17 @@
 
 
     <v-snackbar
-            bottom
-            v-model="$store.state.snackbarIsOpen"
+        bottom
+        v-model="$store.state.snackbarIsOpen"
     >
       <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
       {{ $store.state.snackbarMsg }}
 
       <template v-slot:action="{ attrs }">
         <v-btn
-                icon
-                v-bind="attrs"
-                @click="$store.commit('closeSnackbar')"
+            icon
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -154,66 +182,69 @@ import EntityTypeSelector from "./components/EntityTypeSelector.vue";
 import axios from "axios";
 
 export default {
-    name: 'App',
-    metaInfo: {
-        titleTemplate: 'OpenAlex | %s',
-        link: [],
+  name: 'App',
+  metaInfo: {
+    titleTemplate: 'OpenAlex | %s',
+    link: [],
 
-        meta: []
-    },
-    components: {
-        EntityTypeSelector,
-        UserToolbarMenu,
-    },
+    meta: []
+  },
+  components: {
+    EntityTypeSelector,
+    UserToolbarMenu,
+  },
 
 
-    data: function () {
-        return {
-          exportProgress: 0,
-            dialogs: {
-                showAlpha: false
-            }
-        }
-    },
-    computed: {
-        ...mapGetters([
-            "searchFacetConfigs",
-            "resultsFilters",
-            "globalIsLoading",
-        ]),
-
-        logoStyle() {
-            return "opacity: .7;"
-            return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
-        },
-        isLocalHost() {
-            return window.location.hostname === "localhost"
-        },
-    },
-    methods: {
-        ...mapMutations([
-            "setFiltersZoom",
-            "openFacetsDialog",
-            "snackbar",
-        ]),
-        ...mapActions([]),
-        async copyToClipboard(content) {
-            await navigator.clipboard.writeText(content);
-            this.snackbar("Copied to clipboard.")
-        },
-    },
-    async mounted() {
-      setInterval(async () => {
-        console.log("tick", this.$store.state.exportProgressUrl)
-        if (!this.$store.state.exportProgressUrl) return
-        const resp = await axios.get(this.$store.state.exportProgressUrl)
-        console.log(resp)
-        this.exportProgress = resp.data.progress
-      }, 1000)
-        // await sleep(2000)
-        // console.log("disable body scroll")
-        // bodyScrollLock.disableBodyScroll()
+  data: function () {
+    return {
+      exportProgress: 0,
+      dialogs: {
+        showAlpha: false
+      }
     }
+  },
+  computed: {
+    ...mapGetters([
+      "searchFacetConfigs",
+      "resultsFilters",
+      "globalIsLoading",
+    ]),
+
+    logoStyle() {
+      return "opacity: .7;"
+      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
+    },
+    isLocalHost() {
+      return window.location.hostname === "localhost"
+    },
+  },
+  methods: {
+    ...mapMutations([
+      "setFiltersZoom",
+      "openFacetsDialog",
+      "snackbar",
+    ]),
+    ...mapActions([]),
+    async copyToClipboard(content) {
+      await navigator.clipboard.writeText(content);
+      this.snackbar("Copied to clipboard.")
+    },
+  },
+  async mounted() {
+    setInterval(async () => {
+      console.log("tick", this.$store.state.exportProgressUrl)
+      if (!this.$store.state.exportProgressUrl) return
+      const resp = await axios.get(this.$store.state.exportProgressUrl)
+      console.log(resp)
+      this.exportProgress = resp.data.progress
+      if (this.exportProgress === 1) {
+        this.$store.state.exportProgressUrl = null
+      }
+    }, 1000)
+    // await sleep(2000)
+    // console.log("disable body scroll")
+    // bodyScrollLock.disableBodyScroll()
+  }
 };
 </script>
 <style lang="scss">
@@ -236,10 +267,12 @@ html, body {
 .v-btn--active.no-active::before {
   opacity: 0.00005 !important;
 }
+
 .v-btn.v-size--default {
   //opacity: 0.00005 !important;
   font-size: 1rem;
 }
+
 .v-btn {
   font-weight: 500;
   letter-spacing: normal;
