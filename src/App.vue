@@ -49,7 +49,7 @@
               <template v-slot:activator="{on}">
                 <v-btn
                     rounded
-
+                    outlined
                     color="primary"
                     dark
                     v-on="on"
