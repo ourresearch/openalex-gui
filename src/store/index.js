@@ -300,7 +300,7 @@ export default new Vuex.Store({
                 `filter=${filterStr}`,
                 `format=${format}`,
             ]
-            const url = `https://api.openalex.org/works?` + params.join("&")
+            const url = `https://export.openalex.org/works?` + params.join("&")
             const resp = await axios.get(url)
             console.log("startExport resp:", resp)
             state.exportProgressUrl = resp.data.progress_url

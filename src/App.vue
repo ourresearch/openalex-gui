@@ -45,29 +45,38 @@
           <v-col cols="6" class="d-flex align-center">
             <v-spacer></v-spacer>
 
-            <v-menu offset-y>
+            <v-menu offset-y v-if="$store.state.exportProgressUrl">
               <template v-slot:activator="{on}">
                 <v-btn
-                    rounded
-                    outlined
+                    icon
+                    class="elevation-0"
                     color="primary"
                     dark
                     v-on="on"
+                    style="position: relative;"
                 >
-                  <v-icon left>mdi-tray-arrow-down</v-icon>
-                  {{ Math.round(exportProgress * 100) }}%
-                  <v-icon right>mdi-menu-down</v-icon>
+                  <v-icon x-small v-if="!exportIsFinished">mdi-arrow-down</v-icon>
+                  <v-icon v-if="exportIsFinished">mdi-tray-arrow-down</v-icon>
+                  <v-progress-circular
+                      style="position: absolute;"
+                      rotate="-90"
+                      :value="exportObj.progress * 100" size="25"
+                      v-if="!exportIsFinished"
+                  />
+                  <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
+                  <!--                  <v-icon right>mdi-menu-down</v-icon>-->
                 </v-btn>
               </template>
               <v-card>
-                <v-card-title>Export {{ 'in progress' }}</v-card-title>
+                <v-card-title>Export {{ (exportIsFinished) ? 'complete' : 'in progress' }}</v-card-title>
                 <v-card-text>
-                  Your requested export is <strong>{{ Math.round(exportProgress * 100) }}%</strong> complete.
+                  Your requested export is <strong>{{ exportObj.progress * 100 | toPrecision }}%</strong> complete.
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn text>Cancel</v-btn>
-                  <v-btn text color="primary">
+                  <v-btn text @click="cancelExport">Cancel</v-btn>
+                  <v-btn text color="primary" :disabled="!exportIsFinished" :href="exportObj.result_url"
+                         target="_blank">
                     <v-icon left>mdi-tray-arrow-down</v-icon>
                     Download
                   </v-btn>
@@ -198,6 +207,9 @@ export default {
   data: function () {
     return {
       exportProgress: 0,
+      exportObj: {
+        progress: 0,
+      },
       dialogs: {
         showAlpha: false
       }
@@ -217,6 +229,9 @@ export default {
     isLocalHost() {
       return window.location.hostname === "localhost"
     },
+    exportIsFinished() {
+      return this.exportObj.progress === 1
+    },
   },
   methods: {
     ...mapMutations([
@@ -229,15 +244,20 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("Copied to clipboard.")
     },
+    cancelExport() {
+      this.exportObj = null
+      this.$store.state.exportProgressUrl = null
+      this.snackbar("Export cancelled.")
+    }
   },
   async mounted() {
     setInterval(async () => {
-      console.log("tick", this.$store.state.exportProgressUrl)
       if (!this.$store.state.exportProgressUrl) return
       const resp = await axios.get(this.$store.state.exportProgressUrl)
-      console.log(resp)
-      this.exportProgress = resp.data.progress
-      if (this.exportProgress === 1) {
+      console.log(resp.data)
+      this.exportObj = resp.data
+      if (this.exportObj === 1) {
+        this.exportObj = null
         this.$store.state.exportProgressUrl = null
       }
     }, 1000)

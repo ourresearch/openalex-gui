@@ -129,7 +129,7 @@
         </v-btn>
       </template>
       <v-list>
-        <v-menu offset-x open-on-hover>
+        <v-menu offset-x open-on-hover max-width="200">
           <template v-slot:activator="{on}">
             <v-list-item
                 v-on="on"
@@ -142,7 +142,7 @@
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
-                  Download results
+                  Download results as ...
                 </v-list-item-title>
                 <v-list-item-subtitle :class="{'grey--text': resultsCount > 1000000}">
                   Max 100k
@@ -154,15 +154,22 @@
             </v-list-item>
           </template>
           <v-list>
+<!--            <v-subheader>Download format:</v-subheader>-->
             <v-list-item @click="setExport('csv')">
               <v-list-item-title>
-                Spreadsheet (.csv)
+                Spreadsheet
               </v-list-item-title>
+              <v-list-item-action-text>
+                .CSV
+              </v-list-item-action-text>
             </v-list-item>
-            <v-list-item @click="setExport('wos')">
+            <v-list-item @click="setExport('wos-plaintext')">
               <v-list-item-title>
-                Web of Science (.txt)
+                Web of Science
               </v-list-item-title>
+              <v-list-item-action-text>
+                .TXT
+              </v-list-item-action-text>
             </v-list-item>
           </v-list>
         </v-menu>
