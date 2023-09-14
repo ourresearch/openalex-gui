@@ -15,10 +15,10 @@
         :extended="$vuetify.breakpoint.mobile"
 
     >
-      <v-container :class="{'px-0': $vuetify.breakpoint.mobile}">
+      <v-container style="margin-left:0;" class="pl-0" :class="{'pr-0': $vuetify.breakpoint.mobile}">
         <v-row>
 
-          <v-col cols="6" sm="6" class="d-flex align-center">
+          <v-col cols="3" sm="3" class="d-flex align-center">
             <router-link
                 :to="{name: 'Home'}"
                 class="logo-link pl-1"
@@ -34,15 +34,21 @@
                   :style="logoStyle"
               >
                 OpenAlex
-                <!--                <span class="grey&#45;&#45;text">-->
-                <!--                  {{ selectedEntityTypeConfig.displayName }}-->
-                <!--                </span>-->
               </span>
+
             </router-link>
+            <v-spacer />
 
 
           </v-col>
-          <v-col cols="6" class="d-flex align-center">
+          <v-col cols="6" class="pl-0 d-flex align-center">
+              <entity-type-selector  />
+            <div class="flex-grow-1">
+            <search-box-new />
+
+            </div>
+          </v-col>
+          <v-col cols="3" class="d-flex align-center">
             <v-spacer></v-spacer>
 
             <v-menu offset-y v-if="$store.state.exportProgressUrl">
@@ -83,7 +89,6 @@
                 </v-card-actions>
               </v-card>
             </v-menu>
-            <entity-type-selector/>
 
             <v-btn
                 icon
@@ -189,6 +194,7 @@ import {sleep} from "./util";
 import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
 import EntityTypeSelector from "./components/EntityTypeSelector.vue";
 import axios from "axios";
+import SearchBoxNew from "./components/SearchBoxNew.vue";
 
 export default {
   name: 'App',
@@ -199,6 +205,7 @@ export default {
     meta: []
   },
   components: {
+    SearchBoxNew,
     EntityTypeSelector,
     UserToolbarMenu,
   },

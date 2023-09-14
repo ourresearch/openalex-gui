@@ -6,13 +6,14 @@
         <v-text-field
                 v-on="on"
                 v-model="searchString"
+dense
                 solo
                 flat
                 outlined
                 hide-details
                 clearable
-                dense
-                prepend-inner-icon="mdi-magnify"
+                rounded
+                prepend-inner-icon="mdi-filter-plus-outline"
                 placeholder="Search fulltext, abstract, author, and more"
                 @keypress.enter.stop.prevent="setTopFilter"
                 :loading="isLoading"

@@ -6,6 +6,8 @@
   >
     <v-toolbar
         color="transparent"
+        height="90"
+        class="align-center"
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
@@ -19,11 +21,19 @@
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
           <v-btn v-on="on" icon>
-            <v-icon>mdi-filter-off-outline</v-icon>
+            <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
         </template>
         <div>Clear all filters</div>
       </v-tooltip>
+      <v-btn
+          fab
+          color="primary lighten-1"
+          small
+          @click="isFilterKeySelectorVisible = true"
+      >
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
     </v-toolbar>
 <!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
 <!--      There are no filters applied.-->
@@ -85,18 +95,6 @@
       </v-list-item>
 
 
-      <v-list-item
-          key="new-filter-button"
-          color="primary"
-          @click="isFilterKeySelectorVisible = true"
-      >
-        <v-list-item-icon>
-          <v-icon color="primary">mdi-plus</v-icon>
-        </v-list-item-icon>
-        <v-list-item-title class="primary--text font-weight-bold">
-          Add Filter
-        </v-list-item-title>
-      </v-list-item>
       <filter-key-selector
           :disabled-keys="filters.map(f=>f.key)"
           v-model="isFilterKeySelectorVisible"

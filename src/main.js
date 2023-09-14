@@ -13,7 +13,6 @@ import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilterFromPid} from "./filterConfigs";
 
-
 import _ from 'lodash'
 
 import {
@@ -121,6 +120,8 @@ Vue.filter("millify", function (number) {
         }
     )
 })
+
+Vue.use(vuetify)
 
 new Vue({
     router,

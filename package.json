@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.16.7",
+    "@mdi/font": "^7.2.96",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
