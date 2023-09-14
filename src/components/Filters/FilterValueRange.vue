@@ -1,5 +1,8 @@
 <template>
-  <div class="ml-3 d-flex align-center" style="max-width: 200px;">
+  <v-list-item-content class="ml-3 d-flex align-center" style="max-width: 200px;">
+    <v-list-item-title>
+      {{ myFilterConfig.displayName }}
+    </v-list-item-title>
     <v-text-field
             dense
             hide-details
@@ -18,12 +21,13 @@
             placeholder="Max"
             @keypress.enter="$emit('update', asStr)"
     />
-  </div>
+  </v-list-item-content>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {facetConfigs} from "@/facetConfigs";
 
 export default {
   name: "FilterValueRange",
@@ -47,7 +51,10 @@ export default {
     ]),
     asStr(){
       return this.start + "-" + this.end
-    }
+    },
+    myFilterConfig() {
+      return facetConfigs().find(c => c.key === this.filterKey)
+    },
 
   },
 

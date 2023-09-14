@@ -1,21 +1,19 @@
 <template>
-  <div class="">
-    <div class="d-flex">
-      <div>
-        {{ myFilterConfig.displayName }}
-      </div>
+  <v-list-item-content class="">
+    <v-list-item-title style="" class="d-flex align-center ">
+      {{ myFilterConfig.displayName }}
       <v-spacer/>
       <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
-              small
               rounded
               text
               class=""
               v-on="on"
+              small
           >
-            Match {{ selectedMatchMode }}
-            <v-icon small>mdi-menu-down</v-icon>
+            {{ selectedMatchMode }}
+            <v-icon right>mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-list>
@@ -33,46 +31,45 @@
             </v-list-item-title>
           </v-list-item>
         </v-list>
-
       </v-menu>
+<!--      <v-btn icon @click="$emit('delete', filter.key)">-->
+<!--        <v-icon>mdi-delete-outline</v-icon>-->
+<!--      </v-btn>-->
+    </v-list-item-title>
 
 
-    </div>
-
-
-<!--        :label="myFilterConfig.displayName"-->
-    <v-autocomplete
-        chips
-
-        autofocus
-        dense
-        small-chips
-        multiple
-        outlined
-        hide-details
-        :items="options"
-        v-model="selectedOptions"
-        :search-input.sync="searchString"
-        item-text="display_name"
-        item-value="id"
-        @input="input"
-    >
-      <template v-slot:selection="data">
-        <v-chip
-            small
-            v-bind="data.attrs"
-            :input-value="data.selected"
-            close
-            @click="data.select"
-            class="mt-2"
-            @click:close="remove(data.item.id)"
+    <!--        :label="myFilterConfig.displayName"-->
+        <v-autocomplete
+            chips
+            autofocus
+            dense
+            small-chips
+            multiple
+            outlined
+            hide-details
+            :items="options"
+            v-model="selectedOptions"
+            :search-input.sync="searchString"
+            item-text="display_name"
+            item-value="id"
+            @input="input"
         >
-          {{ data.item.display_name | truncate(30) }}
-        </v-chip>
-      </template>
-    </v-autocomplete>
+          <template v-slot:selection="data">
+            <v-chip
+                small
+                v-bind="data.attrs"
+                :input-value="data.selected"
+                close
+                @click="data.select"
+                class="mt-2"
+                @click:close="remove(data.item.id)"
+            >
+              {{ data.item.display_name | truncate(30) }}
+            </v-chip>
+          </template>
+        </v-autocomplete>
 
-  </div>
+  </v-list-item-content>
 </template>
 
 <script>
@@ -145,7 +142,7 @@ export default {
       //   this.$emit("delete")
       // }
     },
-    setSelectedMatchMode(newMode){
+    setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
       this.$emit("update", this.mySelectedValueString)
     },

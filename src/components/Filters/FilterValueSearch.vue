@@ -1,17 +1,18 @@
 <template>
-  <div class="d-flex align-center" >
+  <v-list-item-content class="">
+    <v-list-item-title class="pt-1 pb-2">
+      {{ myFilterConfig.displayName }}
+    </v-list-item-title>
     <v-text-field
         dense
         autofocus
         outlined
-        prepend-inner-icon="mdi-magnify"
         v-model="myFilterValue"
-        :label="myFilterConfig.displayName"
         @keypress.enter="$emit('update', myFilterValue)"
-        class="ml-3"
+        class=""
         :disabled="disabled"
     />
-  </div>
+  </v-list-item-content>
 </template>
 
 <script>
@@ -49,11 +50,11 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    setIsNegated(val){
+    setIsNegated(val) {
       this.myIsNegated = !!val
       this.submit()
     },
-    submit(){
+    submit() {
       this.$emit("submit", this.myFilterValue, this.myIsNegated)
     }
 

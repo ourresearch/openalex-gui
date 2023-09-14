@@ -1,12 +1,18 @@
 <template>
-    <v-switch
-        :disabled="disabled"
-        class="pt-0 mt-0"
-      v-model="selectedValue"
-      :label="label"
-      hide-details
-      @change="$emit('update', selectedValue)"
-    />
+  <v-list-item-content class="">
+    <v-list-item-title style="height: 40px; margin-top:-5px;" class="d-flex align-center">
+      {{ myFilterConfig.displayName }}
+      <v-spacer/>
+      <v-switch
+
+          :disabled="disabled"
+          class="ma-0 pa-0"
+          v-model="selectedValue"
+          hide-details
+          @change="$emit('update', selectedValue)"
+      />
+    </v-list-item-title>
+  </v-list-item-content>
 
 </template>
 
@@ -21,8 +27,7 @@ import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterValueBoolean",
-  components: {
-  },
+  components: {},
   props: {
     disabled: Boolean,
     filterKey: String,
@@ -43,7 +48,7 @@ export default {
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
-    label(){
+    label() {
       const negationString = (this.selectedValue) ? "" : "NOT"
       return `${negationString} ${this.myFilterConfig.displayName}`
     }
@@ -62,8 +67,7 @@ export default {
   async mounted() {
     this.options = await api.getGroups(this.entityType, this.filterKey, {})
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
