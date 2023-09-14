@@ -1,8 +1,49 @@
 <template>
   <div class="">
+    <div class="d-flex">
+      <div>
+        {{ myFilterConfig.displayName }}
+      </div>
+      <v-spacer/>
+      <v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn
+              small
+              rounded
+              text
+              class=""
+              v-on="on"
+          >
+            Match {{ selectedMatchMode }}
+            <v-icon small>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>Match mode:</v-subheader>
+          <v-list-item
+              v-for="modeName in matchModes"
+              :key="modeName"
+              @click="setSelectedMatchMode(modeName)"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              {{ modeName }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+      </v-menu>
+
+
+    </div>
+
+
+<!--        :label="myFilterConfig.displayName"-->
     <v-autocomplete
-        :label="myFilterConfig.displayName"
         chips
+
         autofocus
         dense
         small-chips
@@ -30,41 +71,7 @@
         </v-chip>
       </template>
     </v-autocomplete>
-    <div class="d-flex">
-      <v-spacer/>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-btn
-              small
-              rounded
-              text
-              class="mt-2"
-              v-on="on"
-          >
-            Match {{ selectedMatchMode }}
-            <v-icon small>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-subheader>Match mode:</v-subheader>
-          <v-list-item
-              v-for="modeName in matchModes"
-              :key="modeName"
-              @click="setSelectedMatchMode(modeName)"
-          >
-            <v-list-item-icon>
-              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              {{ modeName }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
 
-      </v-menu>
-
-
-    </div>
   </div>
 </template>
 
