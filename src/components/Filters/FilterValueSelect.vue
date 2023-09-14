@@ -1,5 +1,5 @@
 <template>
-  <v-card dark tile flat class="">
+  <v-card @click="$emit('click')"  dark flat class="">
     <v-toolbar  color="transparent"  flat dense>
       <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}

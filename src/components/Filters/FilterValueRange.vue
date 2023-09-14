@@ -1,5 +1,5 @@
 <template>
-  <v-card dark tile flat>
+  <v-card  dark flat>
     <v-toolbar  color="transparent"  flat dense>
       <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}

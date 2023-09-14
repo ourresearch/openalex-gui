@@ -1,5 +1,5 @@
 <template>
-  <v-card dark tile flat>
+  <v-card  dark flat>
     <v-toolbar  color="transparent" dense flat>
       <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
@@ -11,10 +11,11 @@
     <v-card-text class="pt-0">
     <v-text-field
         dense
+        hide-details
         outlined
         v-model="myFilterValue"
         @keypress.enter="$emit('update', myFilterValue)"
-        class=""
+        class="pb-0 mb-0"
         :disabled="disabled"
     />
 

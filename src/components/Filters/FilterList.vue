@@ -1,17 +1,19 @@
 <template>
   <v-card
       class="mb-8"
-      dark
       flat
+      dark
   >
     <v-toolbar
         color="transparent"
-        height="90"
+        dark
         class="align-center"
+        flat
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
       <v-toolbar-title>
+        <v-icon left>mdi-filter-outline</v-icon>
         Filters
         <!--        <span class="body-2">-->
         <!--          ({{ filters.length }})-->
@@ -38,8 +40,8 @@
 <!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
 <!--      There are no filters applied.-->
 <!--    </div>-->
-    <div dark tile class="pt-6">
-      <!--      <v-divider />-->
+    <div class="pt-6">
+<!--            <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
@@ -51,7 +53,7 @@
             <!--              <v-col cols="9" class="">-->
             <component
             :key="filter.key"
-                class="flex-grow-1 "
+                class="flex-grow-1 pb-2 pt-1"
                 :is="'filter-value-' + filter.type"
                 :filter-key="filter.key"
                 :filter-value="filter.value"
