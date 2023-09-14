@@ -1,18 +1,25 @@
 <template>
-  <v-list-item-content class="">
-    <v-list-item-title class="pt-1 pb-2">
+  <v-card dark tile flat>
+    <v-toolbar  color="transparent" dense flat>
+      <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
-    </v-list-item-title>
+      <v-spacer></v-spacer>
+      <v-btn icon small @click="$emit('delete', filter.key)">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+    <v-card-text class="pt-0">
     <v-text-field
         dense
-        autofocus
         outlined
         v-model="myFilterValue"
         @keypress.enter="$emit('update', myFilterValue)"
         class=""
         :disabled="disabled"
     />
-  </v-list-item-content>
+
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>

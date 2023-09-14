@@ -1,6 +1,6 @@
 <template>
   <v-toolbar
-      dark
+      flat
   >
     <v-toolbar-title>
       Results

@@ -1,6 +1,7 @@
 <template>
-  <v-list-item-content class="">
-    <v-list-item-title style="" class="d-flex align-center ">
+  <v-card dark tile flat class="">
+    <v-toolbar  color="transparent"  flat dense>
+      <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
       <v-spacer/>
       <v-menu>
@@ -32,16 +33,13 @@
           </v-list-item>
         </v-list>
       </v-menu>
-<!--      <v-btn icon @click="$emit('delete', filter.key)">-->
-<!--        <v-icon>mdi-delete-outline</v-icon>-->
-<!--      </v-btn>-->
-    </v-list-item-title>
-
-
-    <!--        :label="myFilterConfig.displayName"-->
+      <v-btn icon small @click="$emit('delete', filter.key)">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+    <v-card-text class="pt-0">
         <v-autocomplete
             chips
-            autofocus
             dense
             small-chips
             multiple
@@ -64,12 +62,17 @@
                 class="mt-2"
                 @click:close="remove(data.item.id)"
             >
-              {{ data.item.display_name | truncate(30) }}
+              {{ data.item.display_name | truncate(50) }}
             </v-chip>
           </template>
         </v-autocomplete>
 
-  </v-list-item-content>
+    </v-card-text>
+
+
+    <!--        :label="myFilterConfig.displayName"-->
+
+  </v-card>
 </template>
 
 <script>

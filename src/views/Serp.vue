@@ -1,6 +1,15 @@
 <template>
   <div class="">
-    <v-container class="">
+    <v-navigation-drawer absolute permanent dark width="292" color="#444">
+      <filter-list
+                :filters="resultsFilters"
+                @create="createFilter"
+                @update="updateFilter"
+                @delete="deleteFilter"
+                class="mb-3"
+            />
+    </v-navigation-drawer>
+    <v-container style="margin-left: 0;" class="">
       <v-alert v-if="0" dense text type="warning" class="">
         <v-row class="align-center">
           <div class="">
@@ -23,27 +32,17 @@
       <!--      />-->
 
       <v-row dense>
-        <v-col cols="12" sm="4">
-          <div>
-            <filter-list
-                :filters="resultsFilters"
-                @create="createFilter"
-                @update="updateFilter"
-                @delete="deleteFilter"
-                class="mb-3"
-            />
-
-          </div>
+        <v-col cols="12" sm="3">
         </v-col>
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="6">
           <v-card key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="3">
           <v-card>
-            <v-toolbar dark>
+            <v-toolbar flat>
               <v-toolbar-title>
                 Summaries
               </v-toolbar-title>

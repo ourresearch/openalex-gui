@@ -1,18 +1,40 @@
 <template>
-  <v-list-item-content class="">
-    <v-list-item-title style="height: 40px; margin-top:-5px;" class="d-flex align-center">
+  <v-card dark flat tile class="">
+    <v-toolbar color="transparent" flat dense>
+      <v-icon left small>{{ myFilterConfig.icon}}</v-icon>
       {{ myFilterConfig.displayName }}
-      <v-spacer/>
-      <v-switch
+      <v-spacer></v-spacer>
+      <v-btn icon small @click="$emit('delete', filter.key)">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+    <v-card-text class="pt-0">
+      <div class="d-flex align-center">
+        <span>
+        <span class="text-capitalize">
+        {{ entityType | pluralize(1)}}
+        </span>
+          <span>is</span>
+          <span v-if="!selectedValue" class="font-weight-bold"> NOT</span>
+        {{ myFilterConfig.displayName }}
 
-          :disabled="disabled"
-          class="ma-0 pa-0"
-          v-model="selectedValue"
-          hide-details
-          @change="$emit('update', selectedValue)"
-      />
-    </v-list-item-title>
-  </v-list-item-content>
+        </span>
+        <v-spacer/>
+        <v-switch
+
+            :disabled="disabled"
+            class="ma-0 pa-0"
+            v-model="selectedValue"
+            hide-details
+            @change="$emit('update', selectedValue)"
+        />
+      </div>
+
+
+    </v-card-text>
+
+
+  </v-card>
 
 </template>
 

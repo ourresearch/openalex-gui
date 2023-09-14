@@ -1,12 +1,17 @@
 <template>
-  <v-list-item-content class="ml-3 d-flex align-center" style="max-width: 200px;">
-    <v-list-item-title>
+  <v-card dark tile flat>
+    <v-toolbar  color="transparent"  flat dense>
+      <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
-    </v-list-item-title>
+      <v-spacer></v-spacer>
+      <v-btn icon small @click="$emit('delete', filter.key)">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+  <v-card-text  class="pt-0 d-flex align-center">
     <v-text-field
             dense
             hide-details
-            autofocus
             outlined
             v-model="start"
             placeholder="Min"
@@ -21,7 +26,9 @@
             placeholder="Max"
             @keypress.enter="$emit('update', asStr)"
     />
-  </v-list-item-content>
+
+  </v-card-text>
+  </v-card>
 </template>
 
 <script>

@@ -1,10 +1,11 @@
 <template>
   <v-card
       class="mb-8"
+      dark
+      flat
   >
     <v-toolbar
-        dark
-        class=""
+        color="transparent"
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
@@ -27,17 +28,11 @@
 <!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
 <!--      There are no filters applied.-->
 <!--    </div>-->
-    <v-list nav class="pt-6">
+    <div dark tile class="pt-6">
       <!--      <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
-        <v-list-item
-            :key="filter.key"
-        >
-          <v-list-item-icon class="">
-            <v-icon>{{ filter.icon }}</v-icon>
-          </v-list-item-icon>
 <!--          <v-list-item-content>-->
             <!--            <v-row>-->
             <!--              <v-col cols="3" class="">-->
@@ -45,6 +40,7 @@
             <!--              </v-col>-->
             <!--              <v-col cols="9" class="">-->
             <component
+            :key="filter.key"
                 class="flex-grow-1 "
                 :is="'filter-value-' + filter.type"
                 :filter-key="filter.key"
@@ -56,13 +52,12 @@
             <!--            </v-row>-->
 <!--          </v-list-item-content>-->
 
-          <v-list-item-action>
-            <v-btn icon @click="$emit('delete', filter.key)">
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-btn>
-          </v-list-item-action>
-        </v-list-item>
-        <!--        <v-divider />-->
+<!--          <v-list-item-action>-->
+<!--            <v-btn icon @click="$emit('delete', filter.key)">-->
+<!--              <v-icon>mdi-delete-outline</v-icon>-->
+<!--            </v-btn>-->
+<!--          </v-list-item-action>-->
+                <v-divider />
       </template>
 
 
@@ -110,7 +105,7 @@
       />
 
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
-    </v-list>
+    </div>
 
   </v-card>
 </template>
