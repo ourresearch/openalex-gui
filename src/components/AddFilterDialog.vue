@@ -21,30 +21,58 @@
               outlined
               hide-details
           />
-          <v-list max-height="70vh" style="overflow-y: scroll;">
-            <v-list-item
-                v-for="(option, i) in options"
-                :key="i"
-                @click="select(option)"
-            >
-              <v-list-item-icon>
-                <v-icon>
-                  {{ getEntityConfig(option.entity_type).icon }}
-                </v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ option. display_name}}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  <span class="text-capitalize">{{ option.entity_type }}</span><span v-if="option.hint">: {{ option.hint | truncate(50) }}</span>
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action-text>
-                {{ option.works_count | toPrecision }} works
-              </v-list-item-action-text>
-            </v-list-item>
-          </v-list>
+          <v-card flat tile max-height="70vh" style="overflow-y: scroll;">
+            <v-list>
+              <v-subheader>Filter options</v-subheader>
+              <v-list-item
+                  v-for="(option, i) in filterOptions"
+                  :key="'filterOption-'+i"
+                  @click="select(option)"
+              >
+                <v-list-item-icon>
+                  <v-icon>
+                    {{ option.icon }}
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ option.displayName }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ option.type }} filter
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+
+            <v-list>
+              <v-subheader>Filter shortcuts</v-subheader>
+              <v-list-item
+                  v-for="(option, i) in shortcutOptions"
+                  :key="'shortcutOption-'+i"
+                  @click="select(option)"
+              >
+                <v-list-item-icon>
+                  <v-icon>
+                    {{ getEntityConfig(option.entity_type).icon }}
+                  </v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    <span class="text-capitalize">{{ option.entity_type }}: </span>
+                    {{ option.display_name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+                <v-list-item-action-text>
+                  {{ option.works_count | toPrecision }} works
+                </v-list-item-action-text>
+              </v-list-item>
+            </v-list>
+
+          </v-card>
         </v-tab-item>
         <v-tab-item>
           tab two
@@ -59,6 +87,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import filterKeySelector from "./Filters/FilterKeySelector.vue";
 import {getEntityConfig} from "../entityConfigs";
+import {facetConfigs} from "../facetConfigs";
 import axios from "axios";
 
 export default {
@@ -72,7 +101,7 @@ export default {
       foo: 42,
       tab: 0,
       searchString: "",
-      options: [],
+      shortcutOptions: [],
       getEntityConfig,
     }
   },
@@ -98,6 +127,15 @@ export default {
       url.searchParams.set("email", "team@ourresearch.org")
       url.searchParams.set("q", this.searchString)
       return url.toString()
+    },
+    filterOptions() {
+      return facetConfigs(this.entityType).filter(config => {
+        const configNameLc = config.displayName.toLowerCase()
+        const searchNameLc = this.searchString.toLowerCase()
+        const nameMatch = configNameLc.includes(searchNameLc)
+
+        return nameMatch
+      })
     }
   },
 
@@ -111,20 +149,20 @@ export default {
     },
     async fetchSuggestions() {
       if (!this.searchString) {
-        this.options = []
+        this.shortcutOptions = []
         return
       }
       // this.isFetchingItems = true
       const resp = await axios.get(this.autocompleteUrl)
       if (!this.searchString) {
         console.log("no search string, clearing items")
-        this.options = []
+        this.shortcutOptions = []
       } else {
-        this.options = resp.data.results.filter(o => {
+        this.shortcutOptions = resp.data.results.filter(o => {
           return !!o.entity_type
         })
         //
-        // let options = resp.data.results.map(r => {
+        // let shortcutOptions = resp.data.results.map(r => {
         //   return (this.selectedEntityType === 'works') ? r.phrase : r.display_name
         // })
         // const uniqueItems = [...new Set(items)]
