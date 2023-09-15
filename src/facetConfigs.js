@@ -517,7 +517,7 @@ const facetConfigs = function (entityType) {
             displayName: "Publication year",
             type: "range",
             sortByValue: true,
-            placeholders: ["earliest", "latest"],
+            examples: ["1999", "1999-", "1999-2020"],
             categories: ["popular", "other"],
             isCore: true,
             icon: "mdi-calendar-text"

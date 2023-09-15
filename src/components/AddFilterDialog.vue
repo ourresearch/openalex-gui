@@ -1,18 +1,38 @@
 <template>
   <v-dialog v-model="isOpen" max-width="600" scrollable>
     <v-card>
-      <v-toolbar>
-        <v-icon class="pr-3">mdi-filter-plus-outline</v-icon>
-        <v-tabs
-            v-model="tab"
-        >
-          <v-tab>
-            Search
-          </v-tab>
-          <v-tab>
-            Browse
-          </v-tab>
-        </v-tabs>
+      <v-toolbar extended dense>
+            <v-icon class="mr-3">mdi-filter-plus-outline</v-icon>
+        <v-toolbar-title>
+          Add Filter
+        </v-toolbar-title>
+        <template v-slot:extension>
+          <v-tabs
+              v-model="tab"
+              v-if="!selectedFilterKey"
+          >
+            <v-tab>
+              Search
+            </v-tab>
+            <v-tab>
+              Browse
+            </v-tab>
+          </v-tabs>
+          <div v-else>
+            <v-toolbar-title >
+            <v-btn
+                icon
+                @click="selectedFilterKey = null"
+              style="margin-left:-10px;"
+            >
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
+
+            {{ selectedFilterConfig.displayName}}
+            </v-toolbar-title>
+          </div>
+
+        </template>
       </v-toolbar>
       <v-tabs-items v-model="tab">
         <v-tab-item>
@@ -27,7 +47,7 @@
               <v-list-item
                   v-for="(option, i) in filterOptions"
                   :key="'filterOption-'+i"
-                  @click="selectKey(option.key)"
+                  @click="selectedFilterKey = option.key"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -50,7 +70,7 @@
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
                   :key="'shortcutOption-'+i"
-                  @click="selectKeyValue(option.entity_type, option.id)"
+                  @click="selectKeyValue(option.filter_key, option.id)"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -78,6 +98,10 @@
           tab two
         </v-tab-item>
       </v-tabs-items>
+      <v-card-actions v-if="selectedFilterKey">
+        <v-spacer />
+        <v-btn text primary>Create</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -94,7 +118,8 @@ export default {
   name: "Template",
   components: {},
   props: {
-    value: Boolean,
+    value: Boolean, // this is the magic Vue "value" property, NOT a filter value
+    filterKey: String,
   },
   data() {
     return {
@@ -103,6 +128,7 @@ export default {
       searchString: "",
       shortcutOptions: [],
       getEntityConfig,
+      selectedFilterKey: this.filterKey,
     }
   },
   computed: {
@@ -117,6 +143,9 @@ export default {
       set(newVal) {
         this.$emit("close")
       }
+    },
+    selectedFilterConfig(){
+      return facetConfigs().find(c => c.key === this.selectedFilterKey)
     },
     autocompleteUrl() {
       const url = new URL("https://api.openalex.org")
@@ -149,6 +178,7 @@ export default {
     },
     selectKeyValue(key, value) {
       console.log("AddFilterDialog selectKey", key, value)
+      this.$emit("select-key-value", key, value)
     },
     async fetchSuggestions() {
       if (!this.searchString) {
@@ -161,9 +191,19 @@ export default {
         console.log("no search string, clearing items")
         this.shortcutOptions = []
       } else {
-        this.shortcutOptions = resp.data.results.filter(o => {
-          return !!o.entity_type
-        })
+        this.shortcutOptions = resp.data.results
+            .filter(o => {
+              return !!o.entity_type
+            })
+            .map(option => {
+              if (option.filter_key) return option
+              const myFilterKey = getEntityConfig(option.entity_type)?.filterKey
+              return {
+                ...option,
+                filter_key: myFilterKey,
+              }
+
+            })
         //
         // let shortcutOptions = resp.data.results.map(r => {
         //   return (this.selectedEntityType === 'works') ? r.phrase : r.display_name

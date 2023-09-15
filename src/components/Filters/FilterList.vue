@@ -49,7 +49,7 @@
             :filter-key="filter.key"
             :filter-value="filter.value"
             @update="(newValue) => updateFilter(filter.key, newValue)"
-            @delete="$emit('delete', filter.key)"
+            @delete="deleteFilter(filter.key)"
         />
         <v-divider/>
       </template>
@@ -73,6 +73,7 @@
       <add-filter-dialog
           v-model="isAddFilterDialogVisible"
           @close="isAddFilterDialogVisible = false"
+          @select-key-value="createFilter"
       />
 
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
@@ -137,9 +138,16 @@ export default {
         this.filterToCreate = filterToCreate
       }
     },
-    createFilter(newValue) {
-      url.createFilter(this.filterToCreate.key, newValue)
-      this.filterToCreate = null
+    createFilter(key, value) {
+      this.isAddFilterDialogVisible = false
+      url.createFilter(this.entityType, key, value)
+      // this.filterToCreate = null
+    },
+    deleteFilter(key) {
+      console.log("FilterList deleteFilter", key)
+      this.isAddFilterDialogVisible = false
+      url.deleteFilter(this.entityType, key)
+      // this.filterToCreate = null
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
