@@ -104,12 +104,26 @@
               outlined
               hide-details
           />
+          <div>{{ filters }}</div>
         </v-tab-item>
       </v-tabs-items>
       <v-card-actions v-if="selectedFilterKey">
         <v-spacer />
         <v-btn text @click="selectedFilterKey = null">Cancel</v-btn>
-        <v-btn text color="primary" @click="selectKeyValue(selectedFilterKey, filterValueString)">Create</v-btn>
+        <v-btn
+            v-if="selectedFilterIsAlreadyApplied"
+            text
+            color="primary"
+            @click="$emit('update', selectedFilterKey, filterValueString)">
+          Update
+        </v-btn>
+        <v-btn
+            v-else
+            text
+            color="primary"
+            @click="$emit('create', selectedFilterKey, filterValueString)">
+          Create
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -129,6 +143,7 @@ export default {
   props: {
     value: Boolean, // this is the magic Vue "value" property, NOT a filter value
     filterKey: String,
+    filters: Array,
   },
   data() {
     return {
@@ -151,6 +166,7 @@ export default {
         return this.value
       },
       set(newVal) {
+
         this.$emit("close")
       }
     },
@@ -175,7 +191,11 @@ export default {
 
         return nameMatch
       })
-    }
+    },
+    selectedFilterIsAlreadyApplied(){
+      return !!this.filters.find(f => f.key === this.selectedFilterKey)
+
+    },
   },
 
   methods: {
@@ -237,11 +257,21 @@ export default {
     selectedFilterKey(val){
       if (val){
         this.tab = 2
+        const myAppliedFilterValue = this.filters.find(f => f.key === this.selectedFilterKey)?.value
+        this.filterValueString = myAppliedFilterValue
       }
       else {
         this.tab = 0
+        this.filterValueString = ""
       }
-
+    },
+    value(newVal){
+      console.log("addFilterDialog value change", newVal)
+        this.searchString = ""
+        this.filterValueString = ""
+        this.shortcutOptions = []
+        this.tab = 0
+        this.selectedFilterKey = null
     }
   }
 }

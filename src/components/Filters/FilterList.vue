@@ -43,7 +43,7 @@
           v-for="(filter, i) in filters"
       >
         <component
-            :key="filter.key"
+            :key="filter.key + $route.query.filter"
             class="flex-grow-1 pb-2 pt-1"
             :is="'filter-value-' + filter.type"
             :filter-key="filter.key"
@@ -72,8 +72,10 @@
 
       <add-filter-dialog
           v-model="isAddFilterDialogVisible"
+          :filters="filters"
           @close="isAddFilterDialogVisible = false"
-          @select-key-value="createFilter"
+          @create="createFilter"
+          @update="updateFilter"
       />
 
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
@@ -155,8 +157,8 @@ export default {
         url.deleteFilter(filterKey)
       } else {
         url.updateFilter(this.entityType, filterKey, newValue)
-
       }
+      this.isAddFilterDialogVisible = false
     },
 
 

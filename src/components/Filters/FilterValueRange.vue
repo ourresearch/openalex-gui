@@ -16,7 +16,6 @@
         v-model="myFilterValue"
         @keypress.enter="$emit('update', myFilterValue)"
         class="pb-0 mb-0"
-        :disabled="disabled"
     />
 
 <!--    <v-text-field-->
