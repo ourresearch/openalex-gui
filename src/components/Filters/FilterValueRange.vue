@@ -10,22 +10,32 @@
     </v-toolbar>
   <v-card-text  class="pt-0 d-flex align-center">
     <v-text-field
-            dense
-            hide-details
-            outlined
-            v-model="start"
-            placeholder="Min"
-            @keypress.enter="$emit('update', asStr)"
+        dense
+        hide-details
+        outlined
+        v-model="myFilterValue"
+        @keypress.enter="$emit('update', myFilterValue)"
+        class="pb-0 mb-0"
+        :disabled="disabled"
     />
-    <span class="mx-3">&mdash;</span>
-    <v-text-field
-            dense
-            hide-details
-            outlined
-            v-model="end"
-            placeholder="Max"
-            @keypress.enter="$emit('update', asStr)"
-    />
+
+<!--    <v-text-field-->
+<!--            dense-->
+<!--            hide-details-->
+<!--            outlined-->
+<!--            v-model="start"-->
+<!--            placeholder="Min"-->
+<!--            @keypress.enter="$emit('update', asStr)"-->
+<!--    />-->
+<!--    <span class="mx-3">&mdash;</span>-->
+<!--    <v-text-field-->
+<!--            dense-->
+<!--            hide-details-->
+<!--            outlined-->
+<!--            v-model="end"-->
+<!--            placeholder="Max"-->
+<!--            @keypress.enter="$emit('update', asStr)"-->
+<!--    />-->
 
   </v-card-text>
   </v-card>
@@ -45,11 +55,14 @@ export default {
     filterValue: String,
   },
   data() {
-    const splitValue = (this.filterValue) ? this.filterValue.split("-") : ["", ""]
+    // const splitValue = (this.filterValue) ? this.filterValue.split("-") : ["", ""]
     return {
       foo: 42,
-      start: String(splitValue[0]),
-      end: String(splitValue[1]),
+      // start: String(splitValue[0]),
+      // end: String(splitValue[1]),
+
+      myFilterValue: this.filterValue,
+      myFilterKey: this.filterKey,
     }
   },
   computed: {

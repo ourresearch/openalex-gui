@@ -97,10 +97,19 @@
         <v-tab-item>
           tab two
         </v-tab-item>
+        <v-tab-item>
+          <v-text-field
+              v-model="filterValueString"
+              placeholder="Enter filter value"
+              outlined
+              hide-details
+          />
+        </v-tab-item>
       </v-tabs-items>
       <v-card-actions v-if="selectedFilterKey">
         <v-spacer />
-        <v-btn text primary>Create</v-btn>
+        <v-btn text @click="selectedFilterKey = null">Cancel</v-btn>
+        <v-btn text color="primary" @click="selectKeyValue(selectedFilterKey, filterValueString)">Create</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -126,6 +135,7 @@ export default {
       foo: 42,
       tab: 0,
       searchString: "",
+      filterValueString: "",
       shortcutOptions: [],
       getEntityConfig,
       selectedFilterKey: this.filterKey,
@@ -224,6 +234,15 @@ export default {
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
+    selectedFilterKey(val){
+      if (val){
+        this.tab = 2
+      }
+      else {
+        this.tab = 0
+      }
+
+    }
   }
 }
 </script>

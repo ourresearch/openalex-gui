@@ -16,7 +16,6 @@
         v-model="myFilterValue"
         @keypress.enter="$emit('update', myFilterValue)"
         class="pb-0 mb-0"
-        :disabled="disabled"
     />
 
     </v-card-text>
@@ -35,7 +34,6 @@ export default {
   props: {
     filterKey: String,
     filterValue: String,
-    disabled: Boolean,
   },
   data() {
     return {
