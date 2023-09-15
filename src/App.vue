@@ -18,7 +18,7 @@
       <v-container style="margin-left:0;" class="pl-0" :class="{'pr-0': $vuetify.breakpoint.mobile}">
         <v-row>
 
-          <v-col cols="3" sm="3" class="d-flex align-center">
+          <v-col cols="4" sm="4" class="d-flex align-center">
             <router-link
                 :to="{name: 'Home'}"
                 class="logo-link pl-1"
@@ -41,15 +41,14 @@
 
 
           </v-col>
-          <v-col cols="6" class="pl-0 d-flex align-center">
-              <entity-type-selector  />
+          <v-col cols="5" class="pl-0 d-flex align-center">
             <div class="flex-grow-1">
-            <search-box-new />
 
             </div>
           </v-col>
           <v-col cols="3" class="d-flex align-center">
             <v-spacer></v-spacer>
+              <entity-type-selector  />
 
             <v-menu offset-y v-if="$store.state.exportProgressUrl">
               <template v-slot:activator="{on}">

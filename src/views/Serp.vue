@@ -23,7 +23,7 @@
       <!--      />-->
 
       <v-row dense>
-        <v-col cols="12" sm="3">
+        <v-col cols="12" sm="4">
           <filter-list
                 :filters="resultsFilters"
                 @create="createFilter"
@@ -32,7 +32,7 @@
                 class="mb-3"
             />
         </v-col>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="5">
           <v-card flat key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>

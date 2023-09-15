@@ -162,7 +162,6 @@
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {getFacetConfig} from "../facetConfigs";
-import FacetRange from "./Facet/FacetRange";
 import {
   createDisplayFilter,
   createSimpleFilter,
@@ -176,7 +175,6 @@ import {url} from "../url";
 export default {
   name: "Facet",
   components: {
-    FacetRange,
   },
   props: {
     // startYear: Number,

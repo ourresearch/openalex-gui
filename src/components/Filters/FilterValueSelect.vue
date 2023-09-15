@@ -1,5 +1,5 @@
 <template>
-  <v-card @click="$emit('click')"  dark flat class="">
+  <v-card @click="$emit('click')"  flat class="">
     <v-toolbar  color="transparent"  flat dense>
       <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
@@ -33,7 +33,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon small @click="$emit('delete', filter.key)">
+      <v-btn icon small @click="$emit('delete', myFilterConfig.id)">
         <v-icon small>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>

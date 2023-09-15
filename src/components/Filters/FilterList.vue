@@ -2,11 +2,8 @@
   <v-card
       class="mb-8"
       flat
-      dark
   >
     <v-toolbar
-        color="transparent"
-        dark
         class="align-center"
         flat
     >
@@ -32,76 +29,50 @@
           fab
           color="primary lighten-1"
           small
-          @click="isFilterKeySelectorVisible = true"
+          @click="isAddFilterDialogVisible = true"
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-toolbar>
-<!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
-<!--      There are no filters applied.-->
-<!--    </div>-->
-    <div class="pt-6">
-<!--            <v-divider />-->
+    <!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
+    <!--      There are no filters applied.-->
+    <!--    </div>-->
+    <div class="pt-1">
+      <!--            <v-divider />-->
       <template
           v-for="(filter, i) in filters"
       >
-<!--          <v-list-item-content>-->
-            <!--            <v-row>-->
-            <!--              <v-col cols="3" class="">-->
-            <!--                <div class="pt-2">{{ filter.displayName }}</div>-->
-            <!--              </v-col>-->
-            <!--              <v-col cols="9" class="">-->
-            <component
+        <component
             :key="filter.key"
-                class="flex-grow-1 pb-2 pt-1"
-                :is="'filter-value-' + filter.type"
-                :filter-key="filter.key"
-                :filter-value="filter.value"
-                @update="(newValue) => updateFilter(filter.key, newValue)"
-                @delete="$emit('delete', filter.key)"
-            />
-            <!--              </v-col>-->
-            <!--            </v-row>-->
-<!--          </v-list-item-content>-->
-
-<!--          <v-list-item-action>-->
-<!--            <v-btn icon @click="$emit('delete', filter.key)">-->
-<!--              <v-icon>mdi-delete-outline</v-icon>-->
-<!--            </v-btn>-->
-<!--          </v-list-item-action>-->
-                <v-divider />
+            class="flex-grow-1 pb-2 pt-1"
+            :is="'filter-value-' + filter.type"
+            :filter-key="filter.key"
+            :filter-value="filter.value"
+            @update="(newValue) => updateFilter(filter.key, newValue)"
+            @delete="$emit('delete', filter.key)"
+        />
+        <v-divider/>
       </template>
-
-
-      <v-list-item
-          key="filter-to-create"
+      <component
           v-if="!!filterToCreate"
-      >
-        <v-list-item-icon class="">
-          <v-icon>{{ filterToCreate.icon }}</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <component
-              :is="'filter-value-' + filterToCreate.type"
-              :filter-key="filterToCreate.key"
-              :filter-value="filterToCreate.value"
-              @update="createFilter"
-          />
-        </v-list-item-content>
-
-        <v-list-item-action>
-          <v-btn icon @click="filterToCreate = null">
-            <v-icon>mdi-delete-outline</v-icon>
-          </v-btn>
-        </v-list-item-action>
-      </v-list-item>
-
+          key="filter-to-create"
+          class="flex-grow-1 pb-2 pt-1"
+          :is="'filter-value-' + filterToCreate.type"
+          :filter-key="filterToCreate.key"
+          :filter-value="filterToCreate.value"
+          @update="createFilter"
+      />
 
       <filter-key-selector
           :disabled-keys="filters.map(f=>f.key)"
           v-model="isFilterKeySelectorVisible"
           @close="isFilterKeySelectorVisible = false"
           @select="setFilterToCreate"
+      />
+
+      <add-filter-dialog
+          v-model="isAddFilterDialogVisible"
+          @close="isAddFilterDialogVisible = false"
       />
 
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
@@ -120,6 +91,10 @@ import FilterValueRange from "./FilterValueRange.vue";
 import FilterValueSelect from "./FilterValueSelect.vue";
 import FilterValueSearch from "./FilterValueSearch.vue";
 
+import AddFilterDialog from "../AddFilterDialog.vue";
+
+
+
 export default {
   name: "Template",
   components: {
@@ -128,6 +103,7 @@ export default {
     FilterValueRange,
     FilterValueSelect,
     FilterValueSearch,
+    AddFilterDialog,
   },
   props: {
     filters: Array,
@@ -138,6 +114,7 @@ export default {
       filterToCreate: null,
       fabIsVisible: false,
       isFilterKeySelectorVisible: false,
+      isAddFilterDialogVisible: false,
     }
   },
   computed: {

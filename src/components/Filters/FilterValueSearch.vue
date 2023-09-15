@@ -1,10 +1,10 @@
 <template>
-  <v-card  dark flat>
+  <v-card  flat>
     <v-toolbar  color="transparent" dense flat>
       <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
       {{ myFilterConfig.displayName }}
       <v-spacer></v-spacer>
-      <v-btn icon small @click="$emit('delete', filter.key)">
+      <v-btn icon small @click="$emit('delete', myFilterKey)">
         <v-icon small>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>

@@ -1,6 +1,5 @@
 import {facetConfigs, getFacetConfig} from "./facetConfigs";
 import {api} from "./api";
-import facet from "./components/Facet/Facet.vue";
 
 const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 

@@ -267,7 +267,7 @@ export default {
       }
 
     }, 10, {leading: false}),
-    fetchSuggestions(v) {
+    fetchSuggestions() {
       if (!this.searchString) {
         this.items = []
         return
