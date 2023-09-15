@@ -27,7 +27,7 @@
               <v-list-item
                   v-for="(option, i) in filterOptions"
                   :key="'filterOption-'+i"
-                  @click="select(option)"
+                  @click="selectKey(option.key)"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -50,7 +50,7 @@
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
                   :key="'shortcutOption-'+i"
-                  @click="select(option)"
+                  @click="selectKeyValue(option.entity_type, option.id)"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -144,8 +144,11 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    select(option) {
-      console.log("AddFilterDialog select", option)
+    selectKey(key) {
+      console.log("AddFilterDialog selectKey", key)
+    },
+    selectKeyValue(key, value) {
+      console.log("AddFilterDialog selectKey", key, value)
     },
     async fetchSuggestions() {
       if (!this.searchString) {
