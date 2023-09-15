@@ -1,12 +1,15 @@
 <template>
   <v-dialog v-model="isOpen" max-width="600" scrollable>
     <v-card>
-      <v-toolbar extended dense>
-            <v-icon class="mr-3">mdi-filter-plus-outline</v-icon>
-        <v-toolbar-title>
+      <v-toolbar  dense>
+        <v-btn icon v-if="selectedFilterKey" @click="selectedFilterKey = null">
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-toolbar-title v-else>
+          <v-icon left>mdi-filter-plus-outline</v-icon>
           Add Filter
         </v-toolbar-title>
-        <template v-slot:extension>
+        <template v-slot:extension v-if="!selectedFilterKey">
           <v-tabs
               v-model="tab"
               v-if="!selectedFilterKey"
@@ -97,14 +100,21 @@
         <v-tab-item>
           tab two
         </v-tab-item>
-        <v-tab-item>
-          <v-text-field
-              v-model="filterValueString"
-              placeholder="Enter filter value"
-              outlined
-              hide-details
+        <v-tab-item v-if="!!selectedFilterKey">
+          <add-filter-dialog-select-value
+              v-if="selectedFilterConfig.type === 'select'"
+              :filter-key="selectedFilterKey"
+              :filter-value="selectedFilterValue"
           />
-          <div>{{ filters }}</div>
+          <div v-else>
+            <v-text-field
+                v-model="filterValueString"
+                placeholder="Enter filter value"
+                outlined
+                hide-details
+            />
+
+          </div>
         </v-tab-item>
       </v-tabs-items>
       <v-card-actions v-if="selectedFilterKey">
@@ -136,10 +146,13 @@ import filterKeySelector from "./Filters/FilterKeySelector.vue";
 import {getEntityConfig} from "../entityConfigs";
 import {facetConfigs} from "../facetConfigs";
 import axios from "axios";
+import AddFilterDialogSelectValue from "@/AddFilterDialogSelectValue.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    AddFilterDialogSelectValue,
+  },
   props: {
     value: Boolean, // this is the magic Vue "value" property, NOT a filter value
     filterKey: String,
@@ -154,6 +167,7 @@ export default {
       shortcutOptions: [],
       getEntityConfig,
       selectedFilterKey: this.filterKey,
+      selectedFilterValue: "",
     }
   },
   computed: {
@@ -259,6 +273,7 @@ export default {
         this.tab = 2
         const myAppliedFilterValue = this.filters.find(f => f.key === this.selectedFilterKey)?.value
         this.filterValueString = myAppliedFilterValue
+        this.selectedFilterValue = myAppliedFilterValue
       }
       else {
         this.tab = 0

@@ -1,8 +1,11 @@
 <template>
-  <v-card @click="$emit('click')"  flat class="">
+  <v-card flat class="">
     <v-toolbar  color="transparent"  flat dense>
-      <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
+      <v-icon left>{{ myFilterConfig.icon }}</v-icon>
+      <v-toolbar-title>
       {{ myFilterConfig.displayName }}
+
+      </v-toolbar-title>
       <v-spacer/>
       <v-menu>
         <template v-slot:activator="{on}">
@@ -11,7 +14,6 @@
               text
               class=""
               v-on="on"
-              small
           >
             {{ selectedMatchMode }}
             <v-icon right>mdi-menu-down</v-icon>
@@ -33,14 +35,10 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon small @click="$emit('delete', myFilterConfig.id)">
-        <v-icon small>mdi-close</v-icon>
-      </v-btn>
     </v-toolbar>
     <v-card-text class="pt-0">
         <v-autocomplete
             chips
-            dense
             small-chips
             multiple
             outlined
@@ -54,7 +52,6 @@
         >
           <template v-slot:selection="data">
             <v-chip
-                small
                 v-bind="data.attrs"
                 :input-value="data.selected"
                 close
@@ -78,12 +75,8 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {createDisplayFilter} from "@/filterConfigs";
-import axios from "axios";
 import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
-import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
@@ -93,7 +86,6 @@ export default {
   name: "FilterValueSelect",
   components: {},
   props: {
-    disabled: Boolean,
     filterKey: String,
     filterValue: String,
   },
@@ -189,33 +181,7 @@ export default {
       const newIds = getItemsFromSelectFilterValue(this.filterValue)
       this.selectedOptions = newIds
       this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
-
-      const that = this
-
-
-      const makeAutocompleteResponseFromId = async function (id) {
-        const config = that.myFilterConfig
-        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
-        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
-        // const sdgConfig =
-
-        // console.log("countryConfig", openAlexCountries, id, countryConfig)
-        let displayName
-        if (countryConfig) {
-          displayName = countryConfig.display_name
-        } else if (sdgConfig) {
-          displayName = sdgConfig.display_name
-        } else if (config.isEntity) {
-          displayName = await api.getEntityDisplayName(id)
-        } else {
-          displayName = id
-        }
-        return {
-          id,
-          display_name: displayName,
-        }
-      }
-      const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
+      const autocompletePromises = newIds.map(api.makeAutocompleteResponseFromId)
       this.options = await Promise.all(
           autocompletePromises
       )

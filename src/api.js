@@ -5,6 +5,8 @@ import {createDisplayFilter, createSimpleFilter} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
 import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
+import {openAlexSdgs} from "@/sdgs";
+import { entityTypeFromId} from "@/util";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -94,16 +96,40 @@ const api = (function () {
 
         return res.data
     }
+    const getEntityDisplayName = async function (id) {
+        const myUrl = makeUrl(id, {select: "display_name"})
+        const resp = await getUrl(myUrl)
+        return resp.display_name
+    }
+    const makeAutocompleteResponseFromId = async function (id) {
+        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
+        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
+        // const sdgConfig =
+
+        // console.log("countryConfig", openAlexCountries, id, countryConfig)
+        let displayName
+        if (countryConfig) {
+            displayName = countryConfig.display_name
+        } else if (sdgConfig) {
+            displayName = sdgConfig.display_name
+        } else if (entityTypeFromId(id)) {
+            displayName = await getEntityDisplayName(id)
+        } else {
+            displayName = id
+        }
+        return {
+            id,
+            display_name: displayName,
+        }
+    }
+
 
     return {
         createUrl: function (pathName, searchParams, includeEmail) {
             return makeUrl(pathName, searchParams, false)
         },
-        getEntityDisplayName: async function (id) {
-            const myUrl = makeUrl(id, {select: "display_name"})
-            const resp = await getUrl(myUrl)
-            return resp.display_name
-        },
+        getEntityDisplayName,
+        makeAutocompleteResponseFromId,
         getUrl,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
@@ -150,7 +176,7 @@ const api = (function () {
 
             const groupCounts = truncatedGroups.map(g => g.count)
             const maxCount = Math.max(...groupCounts)
-            const countSum = groupCounts.reduce((a, b)=> a + b, 0)
+            const countSum = groupCounts.reduce((a, b) => a + b, 0)
             const groupDisplayFilters = truncatedGroups
                 .map(group => {
                     return createDisplayFilter(
