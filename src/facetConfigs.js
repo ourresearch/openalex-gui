@@ -44,7 +44,7 @@ const facetCategoriesIcons = {
     popular: "mdi-star-outline",
     author: "mdi-account-outline",
     institution: "mdi-town-hall",
-    geo: "mdi-town-hall",
+    geo: "mdi-map-marker-outline",
     funder: "mdi-cash-multiple",
     "source": "mdi-book-multiple-outline",
     repository: "mdi-package-variant",
@@ -155,7 +155,7 @@ const facetConfigs = function (entityType) {
             key: "authorships.institutions.ror",
             entityType: "works",
             entityId: "institutions",
-            displayName: "ROR (institution)",
+            displayName: "ROR ID",
             pidPrefix: "ror",
             isEntity: true,
             isId: true,
@@ -348,7 +348,7 @@ const facetConfigs = function (entityType) {
 
         // works: institutions:
         {
-            key: "authorships.institutions.country_code",
+            key: "institutions.country_code",
             entityType: "works",
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
@@ -356,27 +356,26 @@ const facetConfigs = function (entityType) {
             isCountry: true,
             categories: ["geo", "institution"],
             isCore: true,
-            icon: "mdi-town-hall",
-            // icon: "mdi-town-hall",
+            icon: "mdi-map-marker-outline",
         },
         {
-            key: "authorships.institutions.continent",
+            key: "institutions.continent",
             entityType: "works",
-            displayName: "Institution continent",
+            displayName: "Continent",
             type: "select",
             categories: ["geo", "institution"],
             isCore: true,
-            icon: "mdi-town-hall",
+            icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
         },
         {
-            key: "authorships.institutions.is_global_south",
+            key: "institutions.is_global_south",
             entityType: "works",
-            displayName: "Institution is in Global South",
+            displayName: "From Global South",
             type: "boolean",
             categories: ["geo", "institution"],
             booleanValues: ["Global North", "Global South"],
-            icon: "mdi-town-hall",
+            icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
         },
         {
@@ -823,7 +822,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isCountry: true,
             categories: ["geo"],
-            icon: "mdi-town-hall"
+            icon: "mdi-map-marker-outline"
         },
         {
             key: "type",

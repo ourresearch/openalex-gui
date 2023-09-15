@@ -43,10 +43,11 @@
               v-model="searchString"
               outlined
               hide-details
+              autofocus
           />
           <v-card flat tile max-height="70vh" style="overflow-y: scroll;">
             <v-list>
-              <v-subheader>Filter options</v-subheader>
+              <v-subheader v-if="filterOptions.length">Filter options</v-subheader>
               <v-list-item
                   v-for="(option, i) in filterOptions"
                   :key="'filterOption-'+i"
@@ -69,7 +70,7 @@
             </v-list>
 
             <v-list>
-              <v-subheader>Filter shortcuts</v-subheader>
+              <v-subheader v-if="shortcutOptions.length">Filter shortcuts</v-subheader>
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
                   :key="'shortcutOption-'+i"
@@ -146,7 +147,7 @@ import filterKeySelector from "./Filters/FilterKeySelector.vue";
 import {getEntityConfig} from "../entityConfigs";
 import {facetConfigs} from "../facetConfigs";
 import axios from "axios";
-import AddFilterDialogSelectValue from "@/AddFilterDialogSelectValue.vue";
+import AddFilterDialogSelectValue from "./AddFilterDialogSelectValue.vue";
 
 export default {
   name: "Template",
@@ -198,12 +199,14 @@ export default {
       return url.toString()
     },
     filterOptions() {
+      const searchStringIsLongEnough = this.searchString.length >= 3
       return facetConfigs(this.entityType).filter(config => {
+
         const configNameLc = config.displayName.toLowerCase()
         const searchNameLc = this.searchString.toLowerCase()
         const nameMatch = configNameLc.includes(searchNameLc)
 
-        return nameMatch
+        return nameMatch && searchStringIsLongEnough
       })
     },
     selectedFilterIsAlreadyApplied(){
