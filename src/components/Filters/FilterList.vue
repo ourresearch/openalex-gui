@@ -84,6 +84,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {url} from "@/url";
 import {createSimpleFilter} from "../../filterConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 import FilterValueBoolean from "./FilterValueBoolean.vue";
@@ -137,15 +138,15 @@ export default {
       }
     },
     createFilter(newValue) {
-      this.$emit("create", this.filterToCreate.key, newValue)
+      url.createFilter(this.filterToCreate.key, newValue)
       this.filterToCreate = null
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
       if (newValue === "" || newValue === "-") {
-        this.$emit("delete", filterKey)
+        url.deleteFilter(filterKey)
       } else {
-        this.$emit("update", filterKey, newValue)
+        url.updateFilter(this.entityType, filterKey, newValue)
 
       }
     },

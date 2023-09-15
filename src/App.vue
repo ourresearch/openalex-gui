@@ -1,5 +1,8 @@
 <template>
   <v-app>
+<v-navigation-drawer app absolute dark width="320" height="100%">
+      <filter-list :filters="resultsFilters" />
+    </v-navigation-drawer>
     <v-progress-linear
         indeterminate
         fixed color="primary"
@@ -194,6 +197,8 @@ import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
 import EntityTypeSelector from "./components/EntityTypeSelector.vue";
 import axios from "axios";
 import SearchBoxNew from "./components/SearchBoxNew.vue";
+import FilterList from "@/components/Filters/FilterList.vue";
+import {filtersFromUrlStr} from "@/filterConfigs";
 
 export default {
   name: 'App',
@@ -207,6 +212,7 @@ export default {
     SearchBoxNew,
     EntityTypeSelector,
     UserToolbarMenu,
+    FilterList,
   },
 
 
@@ -218,14 +224,15 @@ export default {
       },
       dialogs: {
         showAlpha: false
-      }
+      },
+      resultsFilters: [],
     }
   },
   computed: {
     ...mapGetters([
       "searchFacetConfigs",
-      "resultsFilters",
       "globalIsLoading",
+      "entityType",
     ]),
 
     logoStyle() {
@@ -270,6 +277,17 @@ export default {
     // await sleep(2000)
     // console.log("disable body scroll")
     // bodyScrollLock.disableBodyScroll()
+  },
+  watch: {
+    '$route': {
+      immediate: true,
+      handler(to, from){
+        this.resultsFilters = filtersFromUrlStr(
+            this.entityType,
+            to?.query?.filter
+        )
+      }
+    }
   }
 };
 </script>
