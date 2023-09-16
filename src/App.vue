@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <v-navigation-drawer app dark absolute clipped width="320">
-      <filter-list :filters="resultsFilters" />
-    </v-navigation-drawer>
+<!--    <v-navigation-drawer app dark absolute clipped width="320" style="height: 100%;">-->
+<!--      <filter-list :filters="resultsFilters" />-->
+<!--    </v-navigation-drawer>-->
     <v-progress-linear
         indeterminate
         fixed color="primary"
@@ -12,6 +12,8 @@
     <v-app-bar
         app
         clipped-left
+        flat
+        dense
         color="white"
         class="pl-0"
         :class="{mobile: $vuetify.breakpoint.mobile}"
@@ -52,7 +54,7 @@
           </v-col>
           <v-col cols="3" class="d-flex align-center">
             <v-spacer></v-spacer>
-              <entity-type-selector  />
+
 
             <v-menu offset-y v-if="$store.state.exportProgressUrl">
               <template v-slot:activator="{on}">
@@ -332,7 +334,7 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 38px;
+$logo-link-height: 32px;
 
 .logo-link {
   text-decoration: none;
@@ -374,7 +376,7 @@ body {
 
   .v-application {
     background: #F7F9FC !important;
-    //background: #444 !important;
+    background: #444 !important;
 
     .body-1, .body-2 {
       letter-spacing: normal !important;

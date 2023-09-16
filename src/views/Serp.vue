@@ -1,5 +1,8 @@
 <template>
   <div class="">
+    <v-toolbar dense flat>
+      <entity-type-selector  />
+    </v-toolbar>
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
       <v-alert v-if="0" dense text type="warning" class="">
@@ -24,22 +27,22 @@
       <!--      />-->
 
       <v-row dense>
-<!--        <v-col cols="12" sm="4">-->
-<!--          <filter-list-->
-<!--                :filters="resultsFilters"-->
-<!--                @create="createFilter"-->
-<!--                @update="updateFilter"-->
-<!--                @delete="deleteFilter"-->
-<!--                class="mb-3"-->
-<!--            />-->
-<!--        </v-col>-->
-        <v-col cols="12" sm="8">
+        <v-col cols="12" sm="4">
+          <filter-list
+                :filters="resultsFilters"
+                @create="createFilter"
+                @update="updateFilter"
+                @delete="deleteFilter"
+                class="mb-3"
+            />
+        </v-col>
+        <v-col cols="12" sm="5">
           <v-card flat key="serp-results">
             <serp-toolbar/>
             <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="3">
           <v-card flat>
             <v-toolbar flat>
               <v-toolbar-title>
@@ -82,7 +85,7 @@
                   :filters="resultsFilters"
                   @delete="deleteWidget(filterKey)"
               />
-              <v-divider/>
+              <v-divider :key="filterKey + 'divider'"></v-divider>
             </template>
 
           </v-card>

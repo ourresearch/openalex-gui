@@ -2,10 +2,12 @@
   <v-card
       class="mb-8"
       flat
+      dark
   >
     <v-toolbar
         class="align-center"
         flat
+        color="transparent"
 
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
