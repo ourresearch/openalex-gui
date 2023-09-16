@@ -1,9 +1,10 @@
 <template>
-  <v-card >
-    <v-list  style="height: 80vh; overflow-y: scroll;">
+  <v-card flat tile>
+    <v-list expand :dense="dense" style="height: 80vh; overflow-y: scroll;">
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"
+          :value="!!searchString"
       >
         <template v-slot:activator>
           <v-list-item-icon>
@@ -107,6 +108,7 @@ export default {
     value: Boolean,
     dark: Boolean,
     hideUnpinnable: Boolean,
+    dense: Boolean,
 
     searchString: {
       type: String,

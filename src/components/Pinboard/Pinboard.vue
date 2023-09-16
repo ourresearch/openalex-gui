@@ -22,8 +22,18 @@
           </v-btn>
         </template>
         <v-card>
+          <v-text-field
+            hide-details
+            outlined
+            class="ma-1"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            v-model="searchString"
+          />
           <filter-key-selector
               :include-only-types="['select','boolean']"
+              :search-string="searchString"
+              dense
           />
         </v-card>
       </v-menu>
