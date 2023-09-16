@@ -136,6 +136,13 @@ const stateDefaults = function () {
         showYearRange: false,
         facetsToRequireAll: [],
         exportProgressUrl: null,
+
+        tabs: [
+            {
+                name: "First tab",
+                url: ""
+            }
+        ]
     }
     return ret
 }

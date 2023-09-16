@@ -6,6 +6,12 @@
 
       </v-toolbar-items>
     </v-toolbar>
+    <v-toolbar dense flat>
+<!--      <v-toolbar-items style="margin-left:-7px;" >-->
+<!--        <entity-type-selector  />-->
+
+<!--      </v-toolbar-items>-->
+    </v-toolbar>
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
       <v-alert v-if="0" dense text type="warning" class="">
