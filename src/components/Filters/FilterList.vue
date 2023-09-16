@@ -2,7 +2,6 @@
   <v-card
       class="mb-8"
       flat
-      dark
   >
     <v-toolbar
         class="align-center"

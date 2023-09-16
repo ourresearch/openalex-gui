@@ -1,7 +1,10 @@
 <template>
   <div class="">
     <v-toolbar dense flat>
-      <entity-type-selector  />
+      <v-toolbar-items style="margin-left:-7px;" >
+        <entity-type-selector  />
+
+      </v-toolbar-items>
     </v-toolbar>
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
@@ -45,51 +48,6 @@
         <v-col cols="12" sm="3">
           <v-card flat>
             <pinboard />
-
-            <v-toolbar flat>
-              <v-toolbar-title>
-                Summaries
-              </v-toolbar-title>
-              <v-spacer/>
-
-              <v-btn icon @click="$emit('click')">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-                  <v-btn
-                      icon
-                      @click="isCreateWidgetDialogOpen = true"
-                  >
-                    <v-icon>mdi-plus</v-icon>
-                  </v-btn>
-<!--                <filter-key-selector-->
-<!--                    v-model="isCreateWidgetDialogOpen"-->
-<!--                    @close="isCreateWidgetDialogOpen = false"-->
-<!--                    hide-unpinnable-->
-<!--                    @select="createWidget"-->
-<!--                />-->
-
-
-            </v-toolbar>
-            <year-range
-                height="50px"
-                big
-                class="mb-3"
-                show-filter-link
-                v-if="entityType === 'works'"
-            />
-            <v-divider/>
-            <template
-                v-for="filterKey in widgetFilterKeys"
-            >
-              <pinboard-widget
-                  :key="filterKey"
-                  :filter-key="filterKey"
-                  :filters="resultsFilters"
-                  @delete="deleteWidget(filterKey)"
-              />
-              <v-divider :key="filterKey + 'divider'"></v-divider>
-            </template>
-
           </v-card>
 
         </v-col>

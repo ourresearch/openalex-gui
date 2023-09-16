@@ -376,7 +376,7 @@ body {
 
   .v-application {
     background: #F7F9FC !important;
-    background: #444 !important;
+    //background: #444 !important;
 
     .body-1, .body-2 {
       letter-spacing: normal !important;
