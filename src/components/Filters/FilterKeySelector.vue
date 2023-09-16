@@ -34,7 +34,7 @@
       <!--    <div class="pl-3 pt-2">Select filter:</div>-->
       <!--    <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">-->
       <v-card-text
-          style="height: 80vh; padding-left: 210px; overflow-y: scroll;"
+          style="height: 80vh; padding-left: 190px; overflow-y: scroll;"
       >
 
             <v-list class="mt-0 pt-0">
