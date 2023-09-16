@@ -7,32 +7,33 @@
           :value="!!searchString"
       >
         <template v-slot:activator>
-          <v-list-item-icon>
-            <v-icon>{{ category.icon }}</v-icon>
-          </v-list-item-icon>
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>{{ category.icon }}</v-icon>-->
+<!--          </v-list-item-icon>-->
           <v-list-item-content>
             <v-list-item-title>{{ category.displayName }}</v-list-item-title>
           </v-list-item-content>
         </template>
         <v-list-item
-            class="pl-12"
+            class="pl-6"
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
             @click="select(filterConfig.key)"
+            :disabled="disabledKeys.includes(filterConfig.key)"
         >
           <v-list-item-icon>
-            <v-icon>{{ filterConfig.icon }}</v-icon>
+            <v-icon :disabled="disabledKeys.includes(filterConfig.key)">{{ filterConfig.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
               {{ filterConfig.displayName }}
             </v-list-item-title>
-            <v-list-item-subtitle>
+            <v-list-item-subtitle :class="{'grey--text': disabledKeys.includes(filterConfig.key)}">
               {{ filterConfig.type }}
             </v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
-            <v-icon>mdi-chevron-right</v-icon>
+            <v-icon :disabled="disabledKeys.includes(filterConfig.key)">mdi-chevron-right</v-icon>
           </v-list-item-action>
         </v-list-item>
 

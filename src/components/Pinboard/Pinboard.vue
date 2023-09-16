@@ -23,7 +23,7 @@
           </v-btn>
         </template>
         <v-card>
-          <div class="pa-1">Add summary:</div>
+          <v-subheader class="pl-1">Add summary:</v-subheader>
           <v-text-field
               autofocus
               hide-details
@@ -37,6 +37,7 @@
           <filter-key-selector
               :include-only-types="['select','boolean']"
               :search-string="searchString"
+              :disabled-keys="summaries"
               dense
               @select="createSummary"
           />
