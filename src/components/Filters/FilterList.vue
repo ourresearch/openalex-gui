@@ -6,6 +6,7 @@
     <v-toolbar
         class="align-center"
         flat
+
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 

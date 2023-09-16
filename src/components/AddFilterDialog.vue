@@ -2,6 +2,7 @@
   <v-dialog v-model="isOpen" max-width="800" scrollable>
     <v-card
     >
+
       <v-toolbar extension-height="60">
         <v-btn icon v-if="selectedFilterKey" @click="selectedFilterKey = null">
           <v-icon>mdi-arrow-left</v-icon>
@@ -109,9 +110,18 @@
 
           </v-card>
         </v-tab-item>
+
+
+
+
         <v-tab-item>
           <filter-key-selector />
         </v-tab-item>
+
+
+
+
+
         <v-tab-item v-if="!!selectedFilterKey">
           <add-filter-dialog-select-value
               v-if="selectedFilterConfig.type === 'select'"

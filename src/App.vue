@@ -1,6 +1,6 @@
 <template>
   <v-app>
-<v-navigation-drawer app absolute dark width="320" height="100%">
+    <v-navigation-drawer app dark absolute clipped width="320">
       <filter-list :filters="resultsFilters" />
     </v-navigation-drawer>
     <v-progress-linear
@@ -11,6 +11,7 @@
     />
     <v-app-bar
         app
+        clipped-left
         color="white"
         class="pl-0"
         :class="{mobile: $vuetify.breakpoint.mobile}"
