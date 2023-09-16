@@ -63,17 +63,12 @@
           @update="createFilter"
       />
 
-      <filter-key-selector
-          :disabled-keys="filters.map(f=>f.key)"
-          v-model="isFilterKeySelectorVisible"
-          @close="isFilterKeySelectorVisible = false"
-          @select="setFilterToCreate"
-      />
 
       <add-filter-dialog
           v-model="isAddFilterDialogVisible"
           :filters="filters"
           @close="isAddFilterDialogVisible = false"
+          @select-key-value="createOrUpdateFilter"
           @create="createFilter"
           @update="updateFilter"
       />
@@ -145,9 +140,15 @@ export default {
       url.createFilter(this.entityType, key, value)
       // this.filterToCreate = null
     },
+    createOrUpdateFilter(key, value){
+      const existingFilter = url.readFilter(this.entityType, key);
+      console.log("createOrUpdateFilter existing filter", existingFilter);
+      (existingFilter) ?
+          this.updateFilter(key, value) :
+          this.createFilter(key, value)
+    },
     deleteFilter(key) {
       console.log("FilterList deleteFilter", key)
-      this.isAddFilterDialogVisible = false
       url.deleteFilter(this.entityType, key)
       // this.filterToCreate = null
     },
@@ -158,7 +159,6 @@ export default {
       } else {
         url.updateFilter(this.entityType, filterKey, newValue)
       }
-      this.isAddFilterDialogVisible = false
     },
 
 

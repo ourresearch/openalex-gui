@@ -1,7 +1,8 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="600" scrollable>
-    <v-card>
-      <v-toolbar  dense>
+  <v-dialog v-model="isOpen" max-width="800" scrollable>
+    <v-card
+    >
+      <v-toolbar extension-height="60">
         <v-btn icon v-if="selectedFilterKey" @click="selectedFilterKey = null">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
@@ -9,7 +10,8 @@
           <v-icon left>mdi-filter-plus-outline</v-icon>
           Add Filter
         </v-toolbar-title>
-        <template v-slot:extension v-if="!selectedFilterKey">
+        <v-spacer></v-spacer>
+        <v-toolbar-items>
           <v-tabs
               v-model="tab"
               v-if="!selectedFilterKey"
@@ -21,37 +23,43 @@
               Browse
             </v-tab>
           </v-tabs>
-          <div v-else>
-            <v-toolbar-title >
-            <v-btn
-                icon
-                @click="selectedFilterKey = null"
-              style="margin-left:-10px;"
-            >
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
 
-            {{ selectedFilterConfig.displayName}}
-            </v-toolbar-title>
-          </div>
+        </v-toolbar-items>
+        <template v-slot:extension v-if="!selectedFilterKey && tab !== 1">
 
-        </template>
-      </v-toolbar>
-      <v-tabs-items v-model="tab">
-        <v-tab-item>
+          <!--          <div v-else>-->
+          <!--            <v-toolbar-title>-->
+          <!--              <v-btn-->
+          <!--                  icon-->
+          <!--                  @click="selectedFilterKey = null"-->
+          <!--                  style="margin-left:-10px;"-->
+          <!--              >-->
+          <!--                <v-icon>mdi-arrow-left</v-icon>-->
+          <!--              </v-btn>-->
+
+          <!--              {{ selectedFilterConfig.displayName }}-->
+          <!--            </v-toolbar-title>-->
+          <!--          </div>-->
           <v-text-field
               v-model="searchString"
               outlined
               hide-details
               autofocus
           />
+
+        </template>
+      </v-toolbar>
+      <v-tabs-items v-model="tab">
+        <v-tab-item>
+
           <v-card flat tile max-height="70vh" style="overflow-y: scroll;">
             <v-list>
-              <v-subheader v-if="filterOptions.length">Filter options</v-subheader>
+              <!--              <v-subheader v-if="filterOptions.length">Filter options</v-subheader>-->
+
               <v-list-item
                   v-for="(option, i) in filterOptions"
                   :key="'filterOption-'+i"
-                  @click="selectedFilterKey = option.key"
+                  @click.stop="selectedFilterKey = option.key"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -66,15 +74,18 @@
                     {{ option.type }} filter
                   </v-list-item-subtitle>
                 </v-list-item-content>
+                <v-list-item-icon>
+                  <v-icon>mdi-chevron-right</v-icon>
+                </v-list-item-icon>
               </v-list-item>
             </v-list>
 
             <v-list>
-              <v-subheader v-if="shortcutOptions.length">Filter shortcuts</v-subheader>
+              <!--              <v-subheader v-if="shortcutOptions.length">Filter shortcuts</v-subheader>-->
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
                   :key="'shortcutOption-'+i"
-                  @click="selectKeyValue(option.filter_key, option.id)"
+                  @click.prevent="selectKeyValue(option.filter_key, option.id)"
               >
                 <v-list-item-icon>
                   <v-icon>
@@ -99,7 +110,7 @@
           </v-card>
         </v-tab-item>
         <v-tab-item>
-          tab two
+          <filter-key-selector />
         </v-tab-item>
         <v-tab-item v-if="!!selectedFilterKey">
           <add-filter-dialog-select-value
@@ -107,33 +118,37 @@
               :filter-key="selectedFilterKey"
               :filter-value="selectedFilterValue"
           />
-          <div v-else>
-            <v-text-field
-                v-model="filterValueString"
-                placeholder="Enter filter value"
-                outlined
-                hide-details
-            />
+          <v-card v-else>
+            <v-toolbar color="transparent" flat dense>
+              <v-icon left>{{ selectedFilterConfig.icon }}</v-icon>
+              <v-toolbar-title>
+                {{ selectedFilterConfig.displayName }}
+              </v-toolbar-title>
+            </v-toolbar>
+            <v-card-text>
+              <v-text-field
+                  autofocus
+                  v-model="filterValueString"
+                  placeholder="Enter filter value"
+                  outlined
+                  hide-details
+                  @keydown.enter="selectKeyValue(selectedFilterKey, filterValueString)"
+              />
 
-          </div>
+            </v-card-text>
+
+          </v-card>
         </v-tab-item>
       </v-tabs-items>
       <v-card-actions v-if="selectedFilterKey">
-        <v-spacer />
+        <v-spacer/>
         <v-btn text @click="selectedFilterKey = null">Cancel</v-btn>
         <v-btn
-            v-if="selectedFilterIsAlreadyApplied"
             text
             color="primary"
-            @click="$emit('update', selectedFilterKey, filterValueString)">
-          Update
-        </v-btn>
-        <v-btn
-            v-else
-            text
-            color="primary"
-            @click="$emit('create', selectedFilterKey, filterValueString)">
-          Create
+            :disabled="!filterValueString"
+            @click="selectKeyValue(selectedFilterKey, filterValueString)">
+          Apply filter
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -153,6 +168,7 @@ export default {
   name: "Template",
   components: {
     AddFilterDialogSelectValue,
+    filterKeySelector,
   },
   props: {
     value: Boolean, // this is the magic Vue "value" property, NOT a filter value
@@ -185,7 +201,7 @@ export default {
         this.$emit("close")
       }
     },
-    selectedFilterConfig(){
+    selectedFilterConfig() {
       return facetConfigs().find(c => c.key === this.selectedFilterKey)
     },
     autocompleteUrl() {
@@ -209,7 +225,7 @@ export default {
         return nameMatch && searchStringIsLongEnough
       })
     },
-    selectedFilterIsAlreadyApplied(){
+    selectedFilterIsAlreadyApplied() {
       return !!this.filters.find(f => f.key === this.selectedFilterKey)
 
     },
@@ -220,11 +236,8 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    selectKey(key) {
-      console.log("AddFilterDialog selectKey", key)
-    },
     selectKeyValue(key, value) {
-      console.log("AddFilterDialog selectKey", key, value)
+      this.isOpen = false
       this.$emit("select-key-value", key, value)
     },
     async fetchSuggestions() {
@@ -271,25 +284,24 @@ export default {
       if (!val) this.items = []
       this.fetchSuggestions(val)
     },
-    selectedFilterKey(val){
-      if (val){
+    selectedFilterKey(val) {
+      if (val) {
         this.tab = 2
         const myAppliedFilterValue = this.filters.find(f => f.key === this.selectedFilterKey)?.value
         this.filterValueString = myAppliedFilterValue
         this.selectedFilterValue = myAppliedFilterValue
-      }
-      else {
+      } else {
         this.tab = 0
         this.filterValueString = ""
       }
     },
-    value(newVal){
+    value(newVal) {
       console.log("addFilterDialog value change", newVal)
-        this.searchString = ""
-        this.filterValueString = ""
-        this.shortcutOptions = []
-        this.tab = 0
-        this.selectedFilterKey = null
+      this.searchString = ""
+      this.filterValueString = ""
+      this.shortcutOptions = []
+      this.tab = 0
+      this.selectedFilterKey = null
     }
   }
 }

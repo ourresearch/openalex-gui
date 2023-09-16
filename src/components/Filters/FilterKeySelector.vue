@@ -1,54 +1,43 @@
 <template>
-  <v-dialog scrollable v-model="isOpen" max-width="800px">
-
     <v-card>
-      <v-toolbar dark color="primary" style="z-index: 1;">
-        <v-toolbar-title>
-          <v-icon left>mdi-filter-plus-outline</v-icon>
-          Add Filter
-        </v-toolbar-title>
-        <v-spacer/>
-        <v-text-field
-            v-model="searchString"
-            clearable
-            dense
-            outlined
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            label="Search all filters"
-        />
+      <v-divider />
+<!--      <div-->
+<!--          style="top:64px; width: 200px; position: absolute;-->
+<!--          z-index: 0;"-->
+<!--      >-->
+      <v-navigation-drawer absolute width="180" >
+        <v-divider></v-divider>
+        <v-list nav dense class="pt-6">
+          <v-list-item-group nav v-model="selectedCategory" mandatory>
+            <v-list-item
 
-        <v-btn icon @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+                v-for="(categoryName, i) in categoryNames"
+                :key="categoryName"
+            >
+              <v-list-item-icon>
+  <!--              <v-icon>mdi-check</v-icon>-->
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ categoryName }}
+                </v-list-item-title>
 
-      </v-toolbar>
-      <div
-          style="top:64px; width: 200px; position: absolute;
-          z-index: 0;"
-      >
-        <v-list-item-group nav v-model="selectedCategory" mandatory>
-          <v-list-item
 
-              v-for="(categoryName, i) in categoryNames"
-              :key="categoryName"
-          >
-            <v-list-item-icon>
-<!--              <v-icon>mdi-check</v-icon>-->
-            </v-list-item-icon>
-            <v-list-item-title>
-              {{ categoryName }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list-item-group>
-      </div>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+
+        </v-list>
+
+      </v-navigation-drawer>
+<!--      </div>-->
       <!--    <div class="pl-3 pt-2">Select filter:</div>-->
       <!--    <div style="overflow-y: scroll; max-height: calc(90vh - 120px)">-->
       <v-card-text
-          style="height: 80vh; padding-left: 200px;"
+          style="height: 80vh; padding-left: 210px; overflow-y: scroll;"
       >
 
-            <v-list>
+            <v-list class="mt-0 pt-0">
               <v-list-item
                   :disabled="disabledKeys.includes(filter.key)"
                   v-for="filter in filterOptions"
@@ -62,7 +51,13 @@
                   <v-list-item-title>
                     {{ filter.displayName }}
                   </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ filter.type }}
+                  </v-list-item-subtitle>
                 </v-list-item-content>
+                <v-list-item-action>
+                  <v-icon>mdi-chevron-right</v-icon>
+                </v-list-item-action>
                 <!--          <v-list-item-action>-->
                 <!--            <v-btn :disabled="filter.type.includes('boolean', 'select')" icon @click.stop="$emit('pin', filter.key)">-->
                 <!--              <v-icon>mdi-pin-outline</v-icon>-->
@@ -73,7 +68,6 @@
       </v-card-text>
 
     </v-card>
-  </v-dialog>
 </template>
 
 <script>

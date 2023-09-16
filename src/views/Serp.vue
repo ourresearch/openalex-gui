@@ -56,12 +56,12 @@
                   >
                     <v-icon>mdi-plus</v-icon>
                   </v-btn>
-                <filter-key-selector
-                    v-model="isCreateWidgetDialogOpen"
-                    @close="isCreateWidgetDialogOpen = false"
-                    hide-unpinnable
-                    @select="createWidget"
-                />
+<!--                <filter-key-selector-->
+<!--                    v-model="isCreateWidgetDialogOpen"-->
+<!--                    @close="isCreateWidgetDialogOpen = false"-->
+<!--                    hide-unpinnable-->
+<!--                    @select="createWidget"-->
+<!--                />-->
 
 
             </v-toolbar>

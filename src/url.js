@@ -120,6 +120,11 @@ const createFilter = async function (entityType, key, newValue) {
     }
     return await pushToRoute(router, newRoute)
 }
+const readFilter =  function (entityType, key) {
+    return filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
+        return f.key === key
+    })
+}
 
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -283,6 +288,7 @@ const url = {
     addToQuery,
 
     createFilter,
+    readFilter,
     updateFilter,
     deleteFilter,
 
