@@ -1,11 +1,45 @@
 <template>
-  <v-card>
-    <v-divider/>
-    <!--      <div-->
-    <!--          style="top:64px; width: 200px; position: absolute;-->
-    <!--          z-index: 0;"-->
-    <!--      >-->
-    <v-row style="height: 80vh; overflow-y: scroll;">
+  <v-card >
+    <v-list  style="height: 80vh; overflow-y: scroll;">
+      <v-list-group
+          v-for="category in facetsByCategory"
+          :key="category.displayName"
+      >
+        <template v-slot:activator>
+          <v-list-item-icon>
+            <v-icon>{{ category.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ category.displayName }}</v-list-item-title>
+          </v-list-item-content>
+        </template>
+        <v-list-item
+            class="pl-12"
+            v-for="filterConfig in category.filterConfigs"
+            :key="category.displayName + filterConfig.key"
+            @click="select(filterConfig.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ filterConfig.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ filterConfig.displayName }}
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              {{ filterConfig.type }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
+          <v-list-item-action>
+            <v-icon>mdi-chevron-right</v-icon>
+          </v-list-item-action>
+        </v-list-item>
+
+      </v-list-group>
+    </v-list>
+
+
+    <v-row v-if="0" style="height: 80vh; overflow-y: scroll;">
       <v-col cols="4">
         <v-list nav dense class="pt-6">
           <v-list-item-group nav v-model="selectedCategory" mandatory>
@@ -52,11 +86,6 @@
             <v-list-item-action>
               <v-icon>mdi-chevron-right</v-icon>
             </v-list-item-action>
-            <!--          <v-list-item-action>-->
-            <!--            <v-btn :disabled="filter.type.includes('boolean', 'select')" icon @click.stop="$emit('pin', filter.key)">-->
-            <!--              <v-icon>mdi-pin-outline</v-icon>-->
-            <!--            </v-btn>-->
-            <!--          </v-list-item-action>-->
           </v-list-item>
         </v-list>
       </v-col>
@@ -69,7 +98,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetCategories, filtersList} from "@/facetConfigs";
+import {facetCategories, facetConfigs, facetsByCategory, filtersList} from "@/facetConfigs";
 
 export default {
   name: "Template",
@@ -78,6 +107,19 @@ export default {
     value: Boolean,
     dark: Boolean,
     hideUnpinnable: Boolean,
+
+    searchString: {
+      type: String,
+      default() {
+        return ""
+      },
+    },
+    includeOnlyTypes: {
+      type: Array,
+      default() {
+        return []
+      },
+    },
     disabledKeys: {
       type: Array,
       default() {
@@ -88,7 +130,6 @@ export default {
   data() {
     return {
       foo: 42,
-      searchString: "",
       selectedCategory: 1,
     }
   },
@@ -104,6 +145,9 @@ export default {
       set(value) {
         this.$emit('close')
       }
+    },
+    facetsByCategory() {
+      return facetsByCategory(this.entityType, this.searchString, this.includeOnlyTypes)
     },
     categoryNames() {
       const categoryNames = _.cloneDeep(facetCategories)[this.entityType]
@@ -132,6 +176,7 @@ export default {
   },
 
   methods: {
+    facetConfigs,
     ...mapMutations([
       "snackbar",
     ]),
@@ -149,14 +194,8 @@ export default {
   },
   watch: {
     isOpen(to, from) {
-      this.searchString = ""
       this.selectedCategory = 1
     },
-    searchString(to, from) {
-      if (to) {
-        this.selectedCategory = 0
-      }
-    }
   }
 }
 </script>

@@ -575,7 +575,7 @@ export default new Vuex.Store({
 
 
             return function (searchString) {
-                return facetsByCategory(state.entityType, this.resultsFilters, searchString)
+                return facetsByCategory(state.entityType, searchString)
 
             }
 

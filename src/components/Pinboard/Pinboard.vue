@@ -1,29 +1,44 @@
 <template>
   <div>
     <v-toolbar flat>
-              <v-toolbar-title>
-                Summaries
-              </v-toolbar-title>
-              <v-spacer/>
+      <v-toolbar-title>
+        Summaries
+      </v-toolbar-title>
+      <v-spacer/>
 
-              <v-btn icon @click="$emit('click')">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-                  <v-btn
-                      icon
-                      @click="isCreateWidgetDialogOpen = true"
-                  >
-                    <v-icon>mdi-plus</v-icon>
-                  </v-btn>
-<!--                <filter-key-selector-->
-<!--                    v-model="isCreateWidgetDialogOpen"-->
-<!--                    @close="isCreateWidgetDialogOpen = false"-->
-<!--                    hide-unpinnable-->
-<!--                    @select="createWidget"-->
-<!--                />-->
+      <v-btn icon @click="$emit('click')">
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>
+      <v-menu
+          :close-on-content-click="false"
+          v-model="isCreateMenuOpen"
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              v-on="on"
+          >
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          <filter-key-selector
+              :include-only-types="['select','boolean']"
+          />
+        </v-card>
+      </v-menu>
 
 
-            </v-toolbar>
+      <!--                <filter-key-selector-->
+      <!--                    v-model="isCreateWidgetDialogOpen"-->
+      <!--                    @close="isCreateWidgetDialogOpen = false"-->
+      <!--                    hide-unpinnable-->
+      <!--                    @select="createWidget"-->
+      <!--                />-->
+
+
+    </v-toolbar>
+
   </div>
 </template>
 
@@ -35,15 +50,17 @@ import {filtersList} from "../../facetConfigs";
 import {pinboard} from "../../pinboard";
 import PinboardWidget from "@/components/Pinboard/PinboardWidget.vue";
 import entity from "@/components/Entity/Entity.vue";
+import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 export default {
   name: "Pinboard",
   components: {
     YearRange,
     PinboardWidget,
+    FilterKeySelector,
   },
   props: {
-      widgetFilterKeys: Array
+    widgetFilterKeys: Array
   },
   data() {
     return {
@@ -51,6 +68,7 @@ export default {
       searchString: "",
       viewKeys: [],
       summaries: [],
+      isCreateMenuOpen: false,
     }
   },
   computed: {
@@ -72,7 +90,7 @@ export default {
     ]),
     ...mapActions([]),
     removeView(keyToRemove) {
-        this.$emit("remove", keyToRemove)
+      this.$emit("remove", keyToRemove)
       // this.viewKeys = this.viewKeys.filter(vk => vk !== keyToRemove)
       // pinboard.removeView(this.entityType, keyToRemove)
     },
@@ -80,13 +98,12 @@ export default {
       this.viewKeys.push(keyToAdd)
       pinboard.addView(this.entityType, keyToAdd)
     },
-    createSummary(key){
+    createSummary(key) {
 
     },
-    deleteSummary(key){
+    deleteSummary(key) {
 
     },
-
 
 
   },
@@ -98,8 +115,9 @@ export default {
   watch: {
     "$route.query.summaries": {
       immediate: true,
-      handler(to, from){
-        this.summaries = to.split(",")
+      handler(to, from) {
+        const urlStr = (to) ? to : ""
+        this.summaries = urlStr.split(",")
       }
     }
   }

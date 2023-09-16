@@ -939,51 +939,29 @@ const filtersList = function (entityType, resultsFilters, searchString) {
 }
 
 
-const facetsByCategory = function (entityType, resultsFilters, searchString) {
+const facetsByCategory = function (entityType, searchString = "", includeOnlyTypes = []) {
     const filtered = facetConfigs(entityType)
         .filter(c => {
-            return c.entityType === entityType
+            return !searchString || c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
         .filter(c => {
-
-            return c.displayName.toLowerCase().match(searchString?.toLowerCase())
+            return !includeOnlyTypes.length || includeOnlyTypes.includes(c.type)
         })
-        // .filter(c => {
-        //     if (!resultsFilters) return true
-        //     const filters = resultsFilters.filter(f => f.key === c.key)
-        //     // hide the noOptions facets unless they have selected filters
-        //     return !c.noOptions || filters.length
-        // })
-        // .map(c => {
-        //     return {
-        //         ...c,
-        //         resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
-        //     }
-        // })
 
-    // return filtered
-
-    // filtered.sort((a, b) => {
-    //     return (a.displayName > b.displayName) ? 1 : -1
-    // })
 
     return facetCategories[entityType].map(categoryName => {
         const myFacets = filtered.filter(f => {
-            return f.category === categoryName
+            return f.categories.includes(categoryName)
         })
-        const myResultsFiltersCount = myFacets
-            .map(f => f.resultsFiltersCount)
-            .reduce((a, b) => a + b, 0)
 
         return {
-            name: categoryName,
+            displayName: categoryName,
             icon: facetCategoriesIcons[categoryName],
-            facets: myFacets,
-            resultsFiltersCount: myResultsFiltersCount,
+            filterConfigs: myFacets,
         }
     })
         .filter(categoryObj => {
-            return categoryObj.facets.length > 0
+            return categoryObj.filterConfigs.length > 0
         })
 
 
