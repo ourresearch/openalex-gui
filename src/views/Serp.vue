@@ -6,12 +6,13 @@
 
       </v-toolbar-items>
     </v-toolbar>
-    <v-toolbar dense flat>
-<!--      <v-toolbar-items style="margin-left:-7px;" >-->
-<!--        <entity-type-selector  />-->
+<!--    <v-toolbar dense flat color="transparent">-->
+<!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
+<!--&lt;!&ndash;        <entity-type-selector  />&ndash;&gt;-->
 
-<!--      </v-toolbar-items>-->
-    </v-toolbar>
+<!--&lt;!&ndash;      </v-toolbar-items>&ndash;&gt;-->
+<!--      <serp-tabs />-->
+<!--    </v-toolbar>-->
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
       <v-alert v-if="0" dense text type="warning" class="">
@@ -106,7 +107,7 @@ import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 import PinboardWidget from "../components/Pinboard/PinboardWidget.vue";
-import pinboardWidget from "../components/Pinboard/PinboardWidget.vue";
+import SerpTabs from "@/SerpTabs.vue";
 
 export default {
   name: "Serp",
@@ -126,6 +127,7 @@ export default {
     EntityTypeSelector,
     FilterKeySelector,
     YearRange,
+    SerpTabs,
 
   },
   props: {},
