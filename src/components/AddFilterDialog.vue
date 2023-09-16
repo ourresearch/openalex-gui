@@ -112,45 +112,47 @@
         </v-tab-item>
 
 
+        <v-tab-item>
+          <filter-key-selector
+              @select="(newKey) => selectedFilterKey = newKey"
+          />
+        </v-tab-item>
 
 
         <v-tab-item>
-          <filter-key-selector />
-        </v-tab-item>
+          <template v-if="selectedFilterConfig">
+            <add-filter-dialog-select-value
+                v-if="selectedFilterConfig.type === 'select'"
+                :filter-key="selectedFilterKey"
+                :filter-value="filterValueString"
+                @select="(newValueStr) => filterValueString = newValueStr"
+            />
+            <v-card v-else>
+              <v-toolbar color="transparent" flat dense>
+                <v-icon left>{{ selectedFilterConfig.icon }}</v-icon>
+                <v-toolbar-title>
+                  {{ selectedFilterConfig.displayName }}
+                </v-toolbar-title>
+              </v-toolbar>
+              <v-card-text>
+                <v-text-field
+                    autofocus
+                    v-model="filterValueString"
+                    placeholder="Enter filter value"
+                    outlined
+                    hide-details
+                    @keydown.enter="selectKeyValue(selectedFilterKey, filterValueString)"
+                />
 
+              </v-card-text>
 
+            </v-card>
+          </template>
 
-
-
-        <v-tab-item v-if="!!selectedFilterKey">
-          <add-filter-dialog-select-value
-              v-if="selectedFilterConfig.type === 'select'"
-              :filter-key="selectedFilterKey"
-              :filter-value="selectedFilterValue"
-          />
-          <v-card v-else>
-            <v-toolbar color="transparent" flat dense>
-              <v-icon left>{{ selectedFilterConfig.icon }}</v-icon>
-              <v-toolbar-title>
-                {{ selectedFilterConfig.displayName }}
-              </v-toolbar-title>
-            </v-toolbar>
-            <v-card-text>
-              <v-text-field
-                  autofocus
-                  v-model="filterValueString"
-                  placeholder="Enter filter value"
-                  outlined
-                  hide-details
-                  @keydown.enter="selectKeyValue(selectedFilterKey, filterValueString)"
-              />
-
-            </v-card-text>
-
-          </v-card>
         </v-tab-item>
       </v-tabs-items>
       <v-card-actions v-if="selectedFilterKey">
+        {{ filterValueString }}
         <v-spacer/>
         <v-btn text @click="selectedFilterKey = null">Cancel</v-btn>
         <v-btn

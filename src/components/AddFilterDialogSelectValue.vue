@@ -39,6 +39,7 @@
     <v-card-text class="pt-0">
         <v-autocomplete
             chips
+            autofocus
             small-chips
             multiple
             outlined
@@ -129,7 +130,7 @@ export default {
     ]),
     ...mapActions([]),
     input() {
-      this.$emit("update", this.mySelectedValueString)
+      this.$emit("select", this.mySelectedValueString)
       // if (this.mySelectedValueString){
       //   console.log("this.mySelectedValueString", this.mySelectedValueString)
       // }
@@ -139,7 +140,7 @@ export default {
     },
     setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
-      this.$emit("update", this.mySelectedValueString)
+      this.$emit("select", this.mySelectedValueString)
     },
     remove(id) {
       console.log("remove()", id)

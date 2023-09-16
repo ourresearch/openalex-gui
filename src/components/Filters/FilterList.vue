@@ -20,14 +20,19 @@
         <!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
-      <v-tooltip bottom>
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon>
-            <v-icon>mdi-delete-outline</v-icon>
-          </v-btn>
-        </template>
-        <div>Clear all filters</div>
-      </v-tooltip>
+      <v-btn icon>
+        <v-icon>mdi-dots-vertical</v-icon>
+
+      </v-btn>
+
+<!--      <v-tooltip bottom>-->
+<!--        <template v-slot:activator="{on}">-->
+<!--          <v-btn v-on="on" icon>-->
+<!--            <v-icon>mdi-delete-outline</v-icon>-->
+<!--          </v-btn>-->
+<!--        </template>-->
+<!--        <div>Clear all filters</div>-->
+<!--      </v-tooltip>-->
       <v-btn
           fab
           color="primary lighten-1"
@@ -158,7 +163,7 @@ export default {
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
       if (newValue === "" || newValue === "-") {
-        url.deleteFilter(filterKey)
+        url.deleteFilter(this.entityType, filterKey)
       } else {
         url.updateFilter(this.entityType, filterKey, newValue)
       }
