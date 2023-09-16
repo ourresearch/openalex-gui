@@ -1,26 +1,29 @@
 <template>
   <div>
-    <v-row dense>
-      <v-col cols="6">
+    <v-toolbar flat>
+              <v-toolbar-title>
+                Summaries
+              </v-toolbar-title>
+              <v-spacer/>
+
+              <v-btn icon @click="$emit('click')">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+                  <v-btn
+                      icon
+                      @click="isCreateWidgetDialogOpen = true"
+                  >
+                    <v-icon>mdi-plus</v-icon>
+                  </v-btn>
+<!--                <filter-key-selector-->
+<!--                    v-model="isCreateWidgetDialogOpen"-->
+<!--                    @close="isCreateWidgetDialogOpen = false"-->
+<!--                    hide-unpinnable-->
+<!--                    @select="createWidget"-->
+<!--                />-->
 
 
-      </v-col>
-      <v-col
-          v-for="viewKey in widgetFilterKeys"
-          :key="viewKey"
-          cols="12"
-          sm="6"
-      >
-        <pinboard-widget
-            :filter-key="viewKey"
-            @remove="removeView(viewKey)"
-        />
-
-      </v-col>
-
-    </v-row>
-    <div>
-    </div>
+            </v-toolbar>
   </div>
 </template>
 
@@ -47,7 +50,7 @@ export default {
       foo: 42,
       searchString: "",
       viewKeys: [],
-      pinboard,
+      summaries: [],
     }
   },
   computed: {
@@ -76,16 +79,30 @@ export default {
     addView(keyToAdd) {
       this.viewKeys.push(keyToAdd)
       pinboard.addView(this.entityType, keyToAdd)
-    }
+    },
+    createSummary(key){
+
+    },
+    deleteSummary(key){
+
+    },
+
 
 
   },
   created() {
   },
   mounted() {
-    this.viewKeys = pinboard.getViews(this.entityType)
+    // this.viewKeys = pinboard.getViews(this.entityType)
   },
-  watch: {}
+  watch: {
+    "$route.query.summaries": {
+      immediate: true,
+      handler(to, from){
+        this.summaries = to.split(",")
+      }
+    }
+  }
 }
 </script>
 

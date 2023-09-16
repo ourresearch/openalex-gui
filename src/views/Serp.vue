@@ -44,6 +44,8 @@
         </v-col>
         <v-col cols="12" sm="3">
           <v-card flat>
+            <pinboard />
+
             <v-toolbar flat>
               <v-toolbar-title>
                 Summaries

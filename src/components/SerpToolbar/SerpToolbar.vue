@@ -93,34 +93,6 @@
     <!--*****************************************************************************************-->
 
 
-    <v-menu>
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on" class="" :disabled="disabled">
-          <v-icon class="">mdi-sort-ascending</v-icon>
-        </v-btn>
-      </template>
-      <v-list dense>
-        <v-subheader>Sort by</v-subheader>
-        <v-divider></v-divider>
-        <v-list-item
-            v-for="mySortOption in $store.getters.sortObjectOptions"
-            :key="mySortOption.key"
-            @click="setSort(mySortOption.key)"
-        >
-          <v-list-item-icon>
-            <v-icon>
-              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-            </v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ mySortOption.displayName }}
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
@@ -214,6 +186,36 @@
         <!--          </v-list-item>-->
 
 
+      </v-list>
+    </v-menu>
+
+
+
+    <v-menu>
+      <template v-slot:activator="{on}">
+        <v-btn icon v-on="on" class="" :disabled="disabled">
+          <v-icon class="">mdi-sort-ascending</v-icon>
+        </v-btn>
+      </template>
+      <v-list dense>
+        <v-subheader>Sort by</v-subheader>
+        <v-divider></v-divider>
+        <v-list-item
+            v-for="mySortOption in $store.getters.sortObjectOptions"
+            :key="mySortOption.key"
+            @click="setSort(mySortOption.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>
+              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ mySortOption.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-list>
     </v-menu>
 
