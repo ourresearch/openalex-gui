@@ -12,6 +12,7 @@
       <v-menu
           :close-on-content-click="false"
           v-model="isCreateMenuOpen"
+          min-width="400"
       >
         <template v-slot:activator="{on}">
           <v-btn
@@ -22,32 +23,36 @@
           </v-btn>
         </template>
         <v-card>
+          <div class="pa-1">Add summary:</div>
           <v-text-field
-            hide-details
-            outlined
-            class="ma-1"
-            prepend-inner-icon="mdi-magnify"
-            clearable
-            v-model="searchString"
+              autofocus
+              hide-details
+              outlined
+              dense
+              class="ma-1"
+              prepend-inner-icon="mdi-magnify"
+              clearable
+              v-model="searchString"
           />
           <filter-key-selector
               :include-only-types="['select','boolean']"
               :search-string="searchString"
               dense
+              @select="createSummary"
           />
         </v-card>
       </v-menu>
-
-
-      <!--                <filter-key-selector-->
-      <!--                    v-model="isCreateWidgetDialogOpen"-->
-      <!--                    @close="isCreateWidgetDialogOpen = false"-->
-      <!--                    hide-unpinnable-->
-      <!--                    @select="createWidget"-->
-      <!--                />-->
-
-
     </v-toolbar>
+    <div>
+      <pinboard-widget
+        v-for="summaryFilterKey in summaries"
+        :key="summaryFilterKey"
+        :filter-key="summaryFilterKey"
+        :filters="filters"
+        class="mt-4"
+      />
+
+    </div>
 
   </div>
 </template>
@@ -57,10 +62,10 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import YearRange from "../YearRange.vue";
 import {filtersList} from "../../facetConfigs";
-import {pinboard} from "../../pinboard";
 import PinboardWidget from "@/components/Pinboard/PinboardWidget.vue";
 import entity from "@/components/Entity/Entity.vue";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
+import {url} from "../../url";
 
 export default {
   name: "Pinboard",
@@ -70,15 +75,15 @@ export default {
     FilterKeySelector,
   },
   props: {
-    widgetFilterKeys: Array
+    filters: Array,
   },
   data() {
     return {
       foo: 42,
       searchString: "",
-      viewKeys: [],
       summaries: [],
       isCreateMenuOpen: false,
+
     }
   },
   computed: {
@@ -91,7 +96,8 @@ export default {
     ]),
     filterOptions() {
       return filtersList(this.entityType, [], this.searchString)
-    }
+    },
+
   },
 
   methods: {
@@ -99,17 +105,19 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    removeView(keyToRemove) {
-      this.$emit("remove", keyToRemove)
-      // this.viewKeys = this.viewKeys.filter(vk => vk !== keyToRemove)
-      // pinboard.removeView(this.entityType, keyToRemove)
-    },
-    addView(keyToAdd) {
-      this.viewKeys.push(keyToAdd)
-      pinboard.addView(this.entityType, keyToAdd)
-    },
     createSummary(key) {
+      this.isCreateMenuOpen = false
+      const newRoute = {
+        name: "Serp",
+        params: {entityType: this.entityType},
+        query: {
+          ...this.$route.query,
+          summaries: [...this.summaries, key].join(",")
 
+        }
+      }
+      console.log("push new summary", key, newRoute)
+      url.pushToRoute(this.$router, newRoute)
     },
     deleteSummary(key) {
 
@@ -126,8 +134,9 @@ export default {
     "$route.query.summaries": {
       immediate: true,
       handler(to, from) {
-        const urlStr = (to) ? to : ""
-        this.summaries = urlStr.split(",")
+        this.summaries = (to) ?
+            to.split(",") :
+            []
       }
     }
   }

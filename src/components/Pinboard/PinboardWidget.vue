@@ -1,24 +1,26 @@
 <template>
   <v-card flat tile class="">
+
     <v-toolbar dense flat>
-      <v-toolbar-title>
-        <v-icon left>{{ myFilterConfig.icon }}</v-icon>
+      <div>
+        <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
         <span v-if="groups.length >= 5">
           Top {{ myFilterConfig.displayName | pluralize(2) }}
         </span>
         <span v-else>
           {{ myFilterConfig.displayName }}
         </span>
-      </v-toolbar-title>
+      </div>
       <v-spacer/>
 
       <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
               icon
+              small
               v-on="on"
           >
-            <v-icon>mdi-dots-vertical</v-icon>
+            <v-icon small>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
@@ -56,11 +58,15 @@
       </v-menu>
       <v-btn
         icon
+        small
         @click="$emit('delete')"
       >
-        <v-icon>mdi-close</v-icon>
+        <v-icon small>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>
+
+    <v-divider />
+
     <v-list dense class="flex-grow-1">
       <v-list-item
           v-for="group in groups"
@@ -82,7 +88,7 @@
 
         </v-list-item-icon>
         <v-list-item-content>
-          <v-list-item-title >
+          <v-list-item-title class="font-weight-regular">
             {{ group.displayValue }}
           </v-list-item-title>
 <!--          <v-list-item-subtitle>-->
@@ -91,7 +97,7 @@
         </v-list-item-content>
         <v-list-item-action-text>
           <span>
-            {{ group.count | toPrecision }}
+            {{ group.count | millify }}
           </span>
         </v-list-item-action-text>
       </v-list-item>

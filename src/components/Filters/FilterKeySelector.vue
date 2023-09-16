@@ -1,6 +1,6 @@
 <template>
   <v-card flat tile>
-    <v-list expand :dense="dense" style="height: 80vh; overflow-y: scroll;">
+    <v-list expand :dense="dense" style="max-height: 80vh; overflow-y: scroll;">
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"

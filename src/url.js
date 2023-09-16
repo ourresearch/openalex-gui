@@ -101,6 +101,8 @@ const replaceFilter = async function (oldFilter, newFilter) {
     pushToRoute(router, newRoute)
 }
 
+
+
 const createFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     if (oldFilters.map(f => f.key).includes(key)) {

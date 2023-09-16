@@ -47,7 +47,9 @@
         </v-col>
         <v-col cols="12" sm="3">
           <v-card flat>
-            <pinboard />
+            <pinboard
+              :filters="resultsFilters"
+            />
           </v-card>
 
         </v-col>

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="800" scrollable>
+  <v-dialog v-model="isOpen" max-width="600" scrollable>
     <v-card
     >
 
@@ -46,6 +46,7 @@
               outlined
               hide-details
               autofocus
+
           />
 
         </template>
