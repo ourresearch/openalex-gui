@@ -45,11 +45,12 @@
     </v-toolbar>
     <div>
       <pinboard-widget
-        v-for="summaryFilterKey in summaries"
-        :key="summaryFilterKey"
-        :filter-key="summaryFilterKey"
-        :filters="filters"
-        class="mt-4"
+          v-for="summaryFilterKey in summaries"
+          :key="summaryFilterKey"
+          :filter-key="summaryFilterKey"
+          :filters="filters"
+          class="mt-4"
+          @delete="deleteSummary(summaryFilterKey)"
       />
 
     </div>
@@ -120,7 +121,17 @@ export default {
       url.pushToRoute(this.$router, newRoute)
     },
     deleteSummary(key) {
+      const newRoute = {
+        name: "Serp",
+        params: {entityType: this.entityType},
+        query: {
+          ...this.$route.query,
+          summaries: this.summaries.filter(k => k !== key).join(",")
 
+        }
+      }
+      console.log("push new summary", key, newRoute)
+      url.pushToRoute(this.$router, newRoute)
     },
 
 
@@ -134,6 +145,7 @@ export default {
     "$route.query.summaries": {
       immediate: true,
       handler(to, from) {
+        console.log("summaries just changed",to)
         this.summaries = (to) ?
             to.split(",") :
             []

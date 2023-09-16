@@ -24,15 +24,6 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="$emit('delete')">
-            <v-list-item-icon>
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Remove
-            </v-list-item-title>
-          </v-list-item>
-          <v-divider />
           <v-list-item
               target="_blank"
               :href="csvUrl"
@@ -101,7 +92,19 @@
           </span>
         </v-list-item-action-text>
       </v-list-item>
+      <v-list-item v-if="groups.length >= 5" key="viewmore">
+        <v-list-item-icon>
+          <v-icon>mdi-dots-horizontal</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title class="font-weight-regular">
+            view more
+          </v-list-item-title>
+        </v-list-item-content>
+
+      </v-list-item>
     </v-list>
+
   </v-card>
 </template>
 
