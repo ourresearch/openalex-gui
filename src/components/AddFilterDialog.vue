@@ -58,6 +58,7 @@
             <v-list>
               <!--              <v-subheader v-if="filterOptions.length">Filter options</v-subheader>-->
 
+
               <v-list-item
                   v-for="(option, i) in filterOptions"
                   :key="'filterOption-'+i"
@@ -72,9 +73,9 @@
                   <v-list-item-title>
                     {{ option.displayName }}
                   </v-list-item-title>
-                  <v-list-item-subtitle>
-                    {{ option.type }} filter
-                  </v-list-item-subtitle>
+                  <!--                  <v-list-item-subtitle>-->
+                  <!--                    {{ option.type }} filter-->
+                  <!--                  </v-list-item-subtitle>-->
                 </v-list-item-content>
                 <v-list-item-icon>
                   <v-icon>mdi-chevron-right</v-icon>
@@ -99,9 +100,9 @@
                     <span class="text-capitalize">{{ option.entity_type }}: </span>
                     {{ option.display_name }}
                   </v-list-item-title>
-                  <v-list-item-subtitle>
-                    <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>
-                  </v-list-item-subtitle>
+                  <!--                  <v-list-item-subtitle>-->
+                  <!--                    <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>-->
+                  <!--                  </v-list-item-subtitle>-->
                 </v-list-item-content>
                 <v-list-item-action-text>
                   {{ option.works_count | toPrecision }} works
