@@ -49,7 +49,7 @@ const facetCategoriesIcons = {
     "source": "mdi-book-multiple-outline",
     repository: "mdi-package-variant",
     search: "mdi-magnify",
-    access: "mdi-lock-open-outline",
+    "open access": "mdi-lock-open-outline",
     apc: "mdi-cash",
     ids: "mdi-tag-outline",
     citation: "mdi-format-quote-close",
@@ -310,6 +310,26 @@ const facetConfigs = function (entityType) {
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
+        {
+            key: "best_oa_location.is_accepted",
+            entityType: "works",
+            displayName: "Open accepted",
+            type: "boolean",
+            booleanValues: ["NOT Open Access", "Open Access"],
+            categories: ["popular", "open access"],
+            isCore: true,
+            icon: "mdi-lock-open-outline",
+        },
+        {
+            key: "best_oa_location.is_published",
+            entityType: "works",
+            displayName: "Open published",
+            type: "boolean",
+            booleanValues: ["NOT Open Access", "Open Access"],
+            categories: ["popular", "open access"],
+            isCore: true,
+            icon: "mdi-lock-open-outline",
+        },
 
 
         // works: APC
@@ -357,6 +377,16 @@ const facetConfigs = function (entityType) {
             categories: ["geo", "institution"],
             isCore: true,
             icon: "mdi-map-marker-outline",
+        },
+        {
+            key: "countries_distinct_count",
+            entityType: "works",
+            displayName: "Countries count",
+            type: "range",
+            sortByValue: true,
+            examples: ["1", "2-", "2-10"],
+            categories: ["geo"],
+            icon: "mdi-map-marker-outline"
         },
         {
             key: "institutions.continent",
