@@ -1,13 +1,13 @@
 <template>
   <v-chip
-      :close="close"
       :disabled="disabled"
+      small
       outlined
       @click:close="$emit('remove')"
   >
-    <v-progress-circular v-if="isLoading" size="18" indeterminate class="mr-2" />
+<!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
     <template v-if="filterDisplayValue">
-      {{ filterDisplayValue }}
+      {{ filterDisplayValue | truncate(30) }}
     </template>
     <template v-else>
       Loading...
@@ -50,7 +50,8 @@ export default {
       if (!this.isEntity) return this.filterValue
 
       this.isLoading = true
-      const resp = await api.getEntityDisplayName(this.filterValue)
+      const resp = await api.makeAutocompleteResponseFromId(this.filterValue)
+      console.log("resp from filterDisplayValue",resp)
       this.isLoading = false
       return resp.display_name
     }

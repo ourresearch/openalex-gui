@@ -1,6 +1,6 @@
 <template>
 
-    <v-card @click="$emit('click')" flat class="">
+    <v-card flat class="">
       <v-toolbar flat dense>
       <v-icon left>{{ myConfig.icon }}</v-icon>
       <v-toolbar-title>
@@ -20,7 +20,6 @@
             :search-input.sync="searchString"
             item-text="display_name"
             item-value="id"
-            @input="input"
         >
           <template v-slot:selection="data">
             <v-chip
@@ -38,6 +37,10 @@
         </v-autocomplete>
 
       </v-card-text>
+      <v-card-actions>
+      <v-spacer />
+      <v-btn text primary @click="update">Update</v-btn>
+    </v-card-actions>
     </v-card>
 </template>
 
@@ -103,7 +106,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    input() {
+    update() {
       this.$emit("update", this.mySelectedValueString)
       // if (this.mySelectedValueString){
       //   console.log("this.mySelectedValueString", this.mySelectedValueString)
@@ -114,12 +117,10 @@ export default {
     },
     setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
-      this.$emit("update", this.mySelectedValueString)
     },
     remove(id) {
       console.log("remove()", id)
       this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
-      return this.input()
     },
     async fetchOptions() {
       this.isLoading = true
