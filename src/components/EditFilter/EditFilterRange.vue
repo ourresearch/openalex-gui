@@ -1,26 +1,25 @@
 <template>
-
-  <v-list-item>
-    <v-list-item-icon>
-      <v-icon>{{ myFilterConfig.icon }}</v-icon>
-    </v-list-item-icon>
-    <v-list-item-content>
-      <v-text-field
-          dense
-          hide-details
-          outlined
-          v-model="myFilterValue"
-          @keypress.enter="$emit('update', myFilterValue)"
-          class="pb-0 mb-0"
-          :label="myFilterConfig.displayName"
-      />
-    </v-list-item-content>
-    <v-list-item-action>
-      <v-btn icon @click="$emit('delete', filterKey)">
-        <v-icon>mdi-close</v-icon>
+  <v-card  flat>
+    <v-toolbar  color="transparent"  flat dense>
+      <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
+      {{ myFilterConfig.displayName }}
+      <v-spacer></v-spacer>
+      <v-btn icon small @click="$emit('delete', filterKey)">
+        <v-icon small>mdi-close</v-icon>
       </v-btn>
-    </v-list-item-action>
-  </v-list-item>
+    </v-toolbar>
+  <v-card-text  class="pt-0 d-flex align-center">
+    <v-text-field
+        dense
+        hide-details
+        outlined
+        v-model="myFilterValue"
+        @keypress.enter="$emit('update', myFilterValue)"
+        class="pb-0 mb-0"
+    />
+
+  </v-card-text>
+  </v-card>
 </template>
 
 <script>
@@ -30,7 +29,8 @@ import {facetConfigs} from "@/facetConfigs";
 
 export default {
   name: "FilterValueRange",
-  components: {},
+  components: {
+  },
   props: {
     filterKey: String,
     filterValue: String,
@@ -50,7 +50,7 @@ export default {
     ...mapGetters([
       "resultsFilters",
     ]),
-    asStr() {
+    asStr(){
       return this.start + "-" + this.end
     },
     myFilterConfig() {
@@ -71,7 +71,8 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+  }
 }
 </script>
 

@@ -63,13 +63,11 @@ import {url} from "@/url";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
 import {api} from "@/api";
-import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterValueSelect",
   components: {
-    FilterValueChip,
   },
   props: {
     disabled: Boolean,

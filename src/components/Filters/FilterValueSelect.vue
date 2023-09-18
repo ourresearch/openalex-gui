@@ -1,10 +1,14 @@
 <template>
-  <v-card @click="$emit('click')"  flat class="">
-    <v-toolbar  color="transparent"  flat dense>
-      <v-icon left small>{{ myFilterConfig.icon }}</v-icon>
-      {{ myFilterConfig.displayName }}
-      <v-spacer/>
-      <v-menu>
+
+    <v-list-group>
+      <template v-slot:activator>
+        <v-list-item-icon>
+          <v-icon>{{ myFilterConfig.icon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>{{ myFilterConfig.displayName }}</v-list-item-title>
+        </v-list-item-content>
+        <v-menu>
         <template v-slot:activator="{on}">
           <v-btn
               rounded
@@ -33,46 +37,66 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon small @click="$emit('delete', myFilterConfig.id)">
-        <v-icon small>mdi-close</v-icon>
-      </v-btn>
-    </v-toolbar>
-    <v-card-text class="pt-0">
-        <v-autocomplete
-            chips
-            dense
-            small-chips
-            multiple
-            outlined
-            hide-details
-            :items="options"
-            v-model="selectedOptions"
-            :search-input.sync="searchString"
-            item-text="display_name"
-            item-value="id"
-            @input="input"
-        >
-          <template v-slot:selection="data">
-            <v-chip
-                small
-                v-bind="data.attrs"
-                :input-value="data.selected"
-                close
-                @click="data.select"
-                class="mt-2"
-                @click:close="remove(data.item.id)"
-            >
-              {{ data.item.display_name | truncate(50) }}
-            </v-chip>
-          </template>
-        </v-autocomplete>
 
-    </v-card-text>
+      </template>
+      <v-list-item>
+        hey
+      </v-list-item>
+      <v-list-item>
+        hey
+      </v-list-item>
+      <v-list-item>
+        hey
+      </v-list-item>
+      <v-list-item>
+        hey
+      </v-list-item>
 
 
-    <!--        :label="myFilterConfig.displayName"-->
+    </v-list-group>
 
-  </v-card>
+  <!--  <v-card @click="$emit('click')" flat class="">-->
+  <!--    <v-toolbar color="transparent" flat dense>-->
+  <!--      <v-icon left small>{{ myFilterConfig.icon }}</v-icon>-->
+  <!--      {{ myFilterConfig.displayName }}-->
+  <!--      <v-spacer/>-->
+
+  <!--      <v-btn icon small @click="$emit('delete', myFilterConfig.id)">-->
+  <!--        <v-icon small>mdi-close</v-icon>-->
+  <!--      </v-btn>-->
+  <!--    </v-toolbar>-->
+  <!--    <v-card-text class="pt-0">-->
+  <!--      <v-autocomplete-->
+  <!--          chips-->
+  <!--          dense-->
+  <!--          small-chips-->
+  <!--          multiple-->
+  <!--          outlined-->
+  <!--          hide-details-->
+  <!--          :items="options"-->
+  <!--          v-model="selectedOptions"-->
+  <!--          :search-input.sync="searchString"-->
+  <!--          item-text="display_name"-->
+  <!--          item-value="id"-->
+  <!--          @input="input"-->
+  <!--      >-->
+  <!--        <template v-slot:selection="data">-->
+  <!--          <v-chip-->
+  <!--              small-->
+  <!--              v-bind="data.attrs"-->
+  <!--              :input-value="data.selected"-->
+  <!--              close-->
+  <!--              @click="data.select"-->
+  <!--              class="mt-2"-->
+  <!--              @click:close="remove(data.item.id)"-->
+  <!--          >-->
+  <!--            {{ data.item.display_name | truncate(50) }}-->
+  <!--          </v-chip>-->
+  <!--        </template>-->
+  <!--      </v-autocomplete>-->
+
+  <!--    </v-card-text>-->
+  <!--  </v-card>-->
 </template>
 
 <script>
@@ -88,10 +112,11 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
 import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
+import Template from "@/components/Filters/FilterKeySelector.vue";
 
 export default {
   name: "FilterValueSelect",
-  components: {},
+  components: {Template},
   props: {
     disabled: Boolean,
     filterKey: String,

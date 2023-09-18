@@ -14,49 +14,75 @@
       <v-toolbar-title>
         <v-icon left>mdi-filter-outline</v-icon>
         Filters
-        <!--        <span class="body-2">-->
-        <!--          ({{ filters.length }})-->
-        <!--        </span>-->
+        <span class="body-2">
+                  ({{ filters.length }})
+                </span>
       </v-toolbar-title>
       <v-spacer/>
       <v-btn
-          fab
-          color="primary lighten-1"
-          small
+          icon
           @click="isAddFilterDialogVisible = true"
       >
-        <v-icon>mdi-plus</v-icon>
+        <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </v-toolbar>
-    <!--    <div v-if="!filters.length && !filterToCreate" class="grey&#45;&#45;text ml-4 pt-8">-->
-    <!--      There are no filters applied.-->
-    <!--    </div>-->
-    <div class="pt-1">
-      <!--            <v-divider />-->
-      <v-subheader>Active filters</v-subheader>
-      <component
-          v-if="stagedFilterKey"
-          key="filter-to-create"
-          class="flex-grow-1 pb-2 pt-1"
-          :is="'filter-value-' + stagedFilterConfig.type"
-          :filter-key="stagedFilterKey"
-          @update="(newValue) => createOrUpdateFilter(stagedFilterKey, newValue)"
-      />
+    <v-list expand dense class="pt-1">
       <template
           v-for="(filter, i) in filters"
       >
+
+
         <component
             :key="filter.key + $route.query.filter"
-            class="flex-grow-1 pb-2 pt-1"
+            class=""
             :is="'filter-value-' + filter.type"
             :filter-key="filter.key"
             :filter-value="filter.value"
             @update="(newValue) => updateFilter(filter.key, newValue)"
             @delete="deleteFilter(filter.key)"
         />
-        <v-divider :key="filter.key + 'divider'" />
       </template>
 
+
+      <v-list-group
+          v-for="category in facetsByCategory"
+          :key="category.displayName"
+      >
+        <template v-slot:activator>
+          <v-list-item-icon>
+            <v-icon>{{ category.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ category.displayName }}</v-list-item-title>
+          </v-list-item-content>
+        </template>
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-list-item
+                class="pl-12"
+                v-for="filterConfig in category.filterConfigs"
+                :key="category.displayName + filterConfig.key"
+                v-on="on"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ filterConfig.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ filterConfig.displayName }}
+                </v-list-item-title>
+                <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
+                <!--              {{ filterConfig.type }}-->
+                <!--            </v-list-item-subtitle>-->
+              </v-list-item-content>
+            </v-list-item>
+          </template>
+          <div>
+            dude
+          </div>
+        </v-menu>
+
+      </v-list-group>
 
 
       <add-filter-dialog
@@ -68,13 +94,13 @@
           @update="updateFilter"
       />
 
-      <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
-    </div>
-    <v-subheader>Filter options</v-subheader>
-    <filter-key-selector
-        dense
-        @select="setStagedFilter"
-    />
+
+    </v-list>
+    <!--    <v-subheader>Filter options</v-subheader>-->
+    <!--    <filter-key-selector-->
+    <!--        dense-->
+    <!--        @select="setStagedFilter"-->
+    <!--    />-->
 
   </v-card>
 </template>
@@ -91,8 +117,7 @@ import FilterValueSelect from "./FilterValueSelect.vue";
 import FilterValueSearch from "./FilterValueSearch.vue";
 
 import AddFilterDialog from "../AddFilterDialog.vue";
-import {getFacetConfig} from "@/facetConfigs";
-
+import {facetsByCategory, getFacetConfig} from "@/facetConfigs";
 
 
 export default {
@@ -122,10 +147,14 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
-    stagedFilterConfig(){
+    stagedFilterConfig() {
       if (!this.stagedFilterKey) return
       return getFacetConfig(this.entityType, this.stagedFilterKey)
-    }
+    },
+
+    facetsByCategory() {
+      return facetsByCategory(this.entityType, this.searchString, this.includeOnlyTypes)
+    },
   },
 
   methods: {
@@ -141,7 +170,7 @@ export default {
         this.filterToCreate = filterToCreate
       }
     },
-    setStagedFilter(key){
+    setStagedFilter(key) {
       this.stagedFilterKey = key
     },
     createFilter(key, value) {
@@ -149,7 +178,7 @@ export default {
       url.createFilter(this.entityType, key, value)
       // this.filterToCreate = null
     },
-    createOrUpdateFilter(key, value){
+    createOrUpdateFilter(key, value) {
       const existingFilter = url.readFilter(this.entityType, key);
       console.log("createOrUpdateFilter existing filter", existingFilter);
       (existingFilter) ?
@@ -180,7 +209,7 @@ export default {
   watch: {
     "$route.query.filter": {
       immediate: true,
-      handler(to,from){
+      handler(to, from) {
         this.stagedFilterKey = null
       }
     }

@@ -91,7 +91,6 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {url} from "@/url";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
-import SerpAppliedFilters from "../components/SerpAppliedFilters.vue";
 import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
@@ -118,7 +117,6 @@ export default {
   },
   components: {
     SerpToolbar,
-    SerpAppliedFilters,
     FilterList,
     SerpResultsList,
     ApiDialog,
