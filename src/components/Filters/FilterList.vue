@@ -14,9 +14,6 @@
       <v-toolbar-title>
         <v-icon left>mdi-filter-outline</v-icon>
         Filters
-        <span class="body-2">
-                  ({{ filters.length }})
-                </span>
       </v-toolbar-title>
       <v-spacer/>
       <v-btn
@@ -29,7 +26,10 @@
     <v-list expand dense class="pt-1">
       <template v-if="filters.length">
 
-        <v-subheader>Filters active</v-subheader>
+        <v-subheader>
+          Active filters
+          ({{ filters.length }})
+        </v-subheader>
         <v-divider class="mb-4"/>
       </template>
       <template
@@ -49,7 +49,10 @@
       </template>
 
 
-      <v-subheader>Filter options</v-subheader>
+      <v-subheader>
+        Filter options
+        ({{ filterOptionsCount }})
+      </v-subheader>
       <v-divider/>
       <v-list-group
           v-for="category in facetsByCategory"
@@ -112,11 +115,6 @@
 
 
     </v-list>
-    <!--    <v-subheader>Filter options</v-subheader>-->
-    <!--    <filter-key-selector-->
-    <!--        dense-->
-    <!--        @select="setStagedFilter"-->
-    <!--    />-->
 
   </v-card>
 </template>
@@ -140,7 +138,7 @@ import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 
 import AddFilterDialog from "../AddFilterDialog.vue";
-import {facetsByCategory, getFacetConfig} from "@/facetConfigs";
+import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 
 
 export default {
@@ -178,6 +176,9 @@ export default {
     stagedFilterConfig() {
       if (!this.stagedFilterKey) return
       return getFacetConfig(this.entityType, this.stagedFilterKey)
+    },
+    filterOptionsCount(){
+      return filtersList(this.entityType).length - this.filters.length
     },
 
     facetsByCategory() {

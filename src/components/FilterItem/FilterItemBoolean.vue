@@ -1,53 +1,62 @@
 <template>
-  <v-list-item>
-    <v-list-item-icon>
-      <v-icon class="mt-3">{{ myFilterConfig.icon }}</v-icon>
-    </v-list-item-icon>
-    <v-list-item-content>
-<!--      <v-list-item-title>-->
-<!--        <span class="text-capitalize">-->
-<!--        {{ entityType | pluralize(1)}}-->
-<!--        </span>-->
-<!--          <span>is</span>-->
-<!--          <span v-if="!selectedValue" class="font-weight-bold"> NOT</span>-->
-<!--        {{ myFilterConfig.displayName }}-->
+  <v-menu offset-x :close-on-content-click="false">
+    <template v-slot:activator="{on}">
+      <v-list-item v-on="on">
 
-<!--      </v-list-item-title>-->
-<!--      <v-list-item-subtitle>-->
-<!--        {{ myFilterConfig.type }}-->
-<!--      </v-list-item-subtitle>-->
+        <v-list-item-icon>
+          <v-icon class="mt-3">{{ myFilterConfig.icon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+        <span class="text-capitalize">
+        {{ entityType | pluralize(1) }}
+        </span>
+            <span>is</span>
+            <span v-if="!myFilterValue" class="font-weight-bold"> NOT</span>
+            {{ myFilterConfig.displayName }}
 
-      <v-switch
-          :label="myFilterConfig.displayName"
-            :disabled="disabled"
-            class="ma-0 pt-0 pl-3"
-            v-model="selectedValue"
-            hide-details
-            @change="$emit('update', selectedValue)"
+          </v-list-item-title>
+          <v-list-item-subtitle>
+            {{ myFilterConfig.type }}
+          </v-list-item-subtitle>
 
-        />
+          <!--      <v-switch-->
+          <!--          :label="myFilterConfig.displayName"-->
+          <!--            :disabled="disabled"-->
+          <!--            class="ma-0 pt-0 pl-3"-->
+          <!--            v-model="myFilterValue"-->
+          <!--            hide-details-->
+          <!--            @change="$emit('update', myFilterValue)"-->
 
-    </v-list-item-content>
-<!--    <v-list-item-action>-->
-<!--      <v-switch-->
+          <!--        />-->
 
-<!--            :disabled="disabled"-->
-<!--            class="ma-0 pt-1"-->
-<!--            v-model="selectedValue"-->
-<!--            hide-details-->
-<!--            @change="$emit('update', selectedValue)"-->
-<!--            -->
-<!--        />-->
-<!--    </v-list-item-action>-->
-    <v-list-item-action>
+        </v-list-item-content>
+        <!--    <v-list-item-action>-->
+        <!--      <v-switch-->
+
+        <!--            :disabled="disabled"-->
+        <!--            class="ma-0 pt-1"-->
+        <!--            v-model="myFilterValue"-->
+        <!--            hide-details-->
+        <!--            @change="$emit('update', myFilterValue)"-->
+        <!--            -->
+        <!--        />-->
+        <!--    </v-list-item-action>-->
+        <v-list-item-action>
 
 
-      <v-btn icon @click="$emit('delete', filterKey)">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-list-item-action>
-  </v-list-item>
-
+          <v-btn icon @click="$emit('delete', filterKey)">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-list-item-action>
+      </v-list-item>
+    </template>
+    <filter-edit-boolean
+        :filter-key="filterKey"
+        :filter-value="filterValue"
+        @update="(newValue) =>  $emit('update', newValue)"
+    />
+  </v-menu>
 
 
 </template>
@@ -60,20 +69,23 @@ import {api} from "@/api";
 import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
 import {getFacetConfig} from "@/facetConfigs";
+import FilterEditBoolean from "@/components/FilterEdit/FilterEditBoolean.vue";
 
 export default {
   name: "FilterValueBoolean",
-  components: {},
+  components: {
+    FilterEditBoolean,
+  },
   props: {
     disabled: Boolean,
     filterKey: String,
-    filterValue: Boolean,
+    filterValue: [Boolean, String],
   },
   data() {
     return {
       foo: 42,
       options: [],
-      selectedValue: this.filterValue,
+      myFilterValue: this.filterValue,
     }
   },
   computed: {
@@ -85,7 +97,7 @@ export default {
       return getFacetConfig(this.entityType, this.filterKey)
     },
     label() {
-      const negationString = (this.selectedValue) ? "" : "NOT"
+      const negationString = (this.myFilterValue) ? "" : "NOT"
       return `${negationString} ${this.myFilterConfig.displayName}`
     }
   },
@@ -101,7 +113,6 @@ export default {
   created() {
   },
   async mounted() {
-    this.options = await api.getGroups(this.entityType, this.filterKey, {})
   },
   watch: {}
 }

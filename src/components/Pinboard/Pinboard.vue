@@ -94,7 +94,7 @@ export default {
       "entityType",
     ]),
     filterOptions() {
-      return filtersList(this.entityType, [], this.searchString)
+      return filtersList(this.entityType,  this.searchString)
     },
 
   },

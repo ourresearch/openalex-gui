@@ -950,20 +950,12 @@ const filtersList = function (entityType, resultsFilters, searchString) {
             return c.entityType === entityType
         })
         .filter(c => {
-
             return c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
         .filter(c => {
-            const filters = resultsFilters.filter(f => f.key === c.key)
-            // hide the noOptions facets unless they have selected filters
-            return !c.noOptions || filters.length
+            return !c.noOptions
         })
-        .map(c => {
-            return {
-                ...c,
-                resultsFiltersCount: resultsFilters.filter(f => f.key === c.key).length,
-            }
-        })
+
     const sorted = sortByKey(ret, "displayName")
     return sorted
 }

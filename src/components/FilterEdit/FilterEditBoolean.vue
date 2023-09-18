@@ -39,7 +39,7 @@ export default {
   components: {},
   props: {
     filterKey: String,
-    filterValue: String,
+    filterValue: [Boolean, String],
   },
   data() {
     return {

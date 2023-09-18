@@ -46,7 +46,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetCategories, facetConfigs, facetsByCategory, filtersList} from "@/facetConfigs";
+import {facetCategories, facetConfigs, facetsByCategory} from "@/facetConfigs";
 
 export default {
   name: "Template",
