@@ -1,66 +1,13 @@
 <template>
 
-<!--    <v-list-group>-->
-<!--      <template v-slot:activator>-->
-<!--        <v-list-item-icon>-->
-<!--          <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
-<!--        </v-list-item-icon>-->
-<!--        <v-list-item-content>-->
-<!--          <v-list-item-title>{{ myFilterConfig.displayName }}</v-list-item-title>-->
-<!--        </v-list-item-content>-->
-<!--        <v-menu>-->
-<!--        <template v-slot:activator="{on}">-->
-<!--          <v-btn-->
-<!--              rounded-->
-<!--              text-->
-<!--              class=""-->
-<!--              v-on="on"-->
-<!--              small-->
-<!--          >-->
-<!--            {{ selectedMatchMode }}-->
-<!--            <v-icon right>mdi-menu-down</v-icon>-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <v-list>-->
-<!--          <v-subheader>Match mode:</v-subheader>-->
-<!--          <v-list-item-->
-<!--              v-for="modeName in matchModes"-->
-<!--              :key="modeName"-->
-<!--              @click="setSelectedMatchMode(modeName)"-->
-<!--          >-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-title>-->
-<!--              {{ modeName }}-->
-<!--            </v-list-item-title>-->
-<!--          </v-list-item>-->
-<!--        </v-list>-->
-<!--      </v-menu>-->
-
-<!--      </template>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-
-
-<!--    </v-list-group>-->
-
-    <v-list-item @click="$emit('click')" flat class="">
-      <v-list-item-icon>
-        <v-icon>{{ myFilterConfig.icon }}</v-icon>
-
-      </v-list-item-icon>
-      <v-list-item-content>
+    <v-card @click="$emit('click')" flat class="">
+      <v-toolbar flat dense>
+      <v-icon left>{{ myConfig.icon }}</v-icon>
+      <v-toolbar-title>
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+    </v-toolbar>
+      <v-card-text class="pt-0">
         <v-autocomplete
             chips
             dense
@@ -74,7 +21,6 @@
             item-text="display_name"
             item-value="id"
             @input="input"
-            :label="myFilterConfig.displayName"
         >
           <template v-slot:selection="data">
             <v-chip
@@ -90,19 +36,9 @@
             </v-chip>
           </template>
         </v-autocomplete>
-      </v-list-item-content>
-<!--      <v-list-item-action>-->
-<!--        <v-btn icon  @click="$emit('delete', myFilterConfig.id)">-->
-<!--          <v-icon >mdi-dots-vertical</v-icon>-->
-<!--        </v-btn>-->
-<!--      </v-list-item-action>-->
-      <v-list-item-action>
-        <v-btn icon  @click="$emit('delete', myFilterConfig.id)">
-          <v-icon >mdi-close</v-icon>
-        </v-btn>
-      </v-list-item-action>
 
-    </v-list-item>
+      </v-card-text>
+    </v-card>
 </template>
 
 <script>
@@ -113,7 +49,7 @@ import {createDisplayFilter} from "@/filterConfigs";
 import axios from "axios";
 import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
-import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
+import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
@@ -157,7 +93,7 @@ export default {
           })
       return makeSelectFilterValue(items, this.selectedMatchMode)
     },
-    myFilterConfig() {
+    myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
   },
@@ -225,7 +161,7 @@ export default {
 
 
       const makeAutocompleteResponseFromId = async function (id) {
-        const config = that.myFilterConfig
+        const config = that.myConfig
         const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
         const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
         // const sdgConfig =

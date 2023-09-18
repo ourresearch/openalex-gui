@@ -1,32 +1,44 @@
 <template>
   <v-list-item>
     <v-list-item-icon>
-      <v-icon>{{ myFilterConfig.icon }}</v-icon>
+      <v-icon class="mt-3">{{ myFilterConfig.icon }}</v-icon>
     </v-list-item-icon>
     <v-list-item-content>
-      <v-list-item-title>
-        <span class="text-capitalize">
-        {{ entityType | pluralize(1)}}
-        </span>
-          <span>is</span>
-          <span v-if="!selectedValue" class="font-weight-bold"> NOT</span>
-        {{ myFilterConfig.displayName }}
+<!--      <v-list-item-title>-->
+<!--        <span class="text-capitalize">-->
+<!--        {{ entityType | pluralize(1)}}-->
+<!--        </span>-->
+<!--          <span>is</span>-->
+<!--          <span v-if="!selectedValue" class="font-weight-bold"> NOT</span>-->
+<!--        {{ myFilterConfig.displayName }}-->
 
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        {{ myFilterConfig.displayName }}
-      </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action>
+<!--      </v-list-item-title>-->
+<!--      <v-list-item-subtitle>-->
+<!--        {{ myFilterConfig.type }}-->
+<!--      </v-list-item-subtitle>-->
+
       <v-switch
-
+          :label="myFilterConfig.displayName"
             :disabled="disabled"
-            class="ma-0 pt-1"
+            class="ma-0 pt-0 pl-3"
             v-model="selectedValue"
             hide-details
             @change="$emit('update', selectedValue)"
+
         />
-    </v-list-item-action>
+
+    </v-list-item-content>
+<!--    <v-list-item-action>-->
+<!--      <v-switch-->
+
+<!--            :disabled="disabled"-->
+<!--            class="ma-0 pt-1"-->
+<!--            v-model="selectedValue"-->
+<!--            hide-details-->
+<!--            @change="$emit('update', selectedValue)"-->
+<!--            -->
+<!--        />-->
+<!--    </v-list-item-action>-->
     <v-list-item-action>
 
 

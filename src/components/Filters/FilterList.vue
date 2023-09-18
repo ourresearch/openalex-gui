@@ -27,6 +27,11 @@
       </v-btn>
     </v-toolbar>
     <v-list expand dense class="pt-1">
+      <template v-if="filters.length">
+
+        <v-subheader>Filters active</v-subheader>
+        <v-divider class="mb-4"/>
+      </template>
       <template
           v-for="(filter, i) in filters"
       >
@@ -44,6 +49,8 @@
       </template>
 
 
+      <v-subheader>Filter options</v-subheader>
+      <v-divider/>
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"
@@ -60,6 +67,7 @@
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
             offset-x
+            :close-on-content-click="false"
         >
           <template v-slot:activator="{on}">
             <v-list-item
@@ -127,6 +135,8 @@ import FilterItemSearch from "../FilterItem/FilterItemSearch.vue";
 
 import FilterEditRange from "../FilterEdit/FilterEditRange.vue";
 import FilterEditSearch from "../FilterEdit/FilterEditSearch.vue";
+import FilterEditBoolean from "../FilterEdit/FilterEditBoolean.vue";
+import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 
 import AddFilterDialog from "../AddFilterDialog.vue";
@@ -145,6 +155,8 @@ export default {
 
     FilterEditRange,
     FilterEditSearch,
+    FilterEditBoolean,
+    FilterEditSelect,
   },
   props: {
     filters: Array,

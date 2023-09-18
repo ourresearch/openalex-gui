@@ -3,8 +3,6 @@
     <template v-slot:activator="{ on, attrs }">
       <v-btn
               text
-              large
-              rounded
               class="text-capitalize"
               v-bind="attrs"
               v-on="on"

@@ -3,6 +3,18 @@
     <v-toolbar dense flat>
       <v-toolbar-items style="margin-left:-7px;" >
         <entity-type-selector  />
+        <v-btn text>
+          Filters
+        </v-btn>
+        <v-btn text>
+          Results
+        </v-btn>
+        <v-btn text>
+          Summaries
+        </v-btn>
+        <v-btn text>
+          Export
+        </v-btn>
 
       </v-toolbar-items>
     </v-toolbar>
