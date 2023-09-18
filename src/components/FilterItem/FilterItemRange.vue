@@ -5,6 +5,12 @@
       <v-icon>{{ myFilterConfig.icon }}</v-icon>
     </v-list-item-icon>
     <v-list-item-content>
+<!--      <v-list-item-title>-->
+<!--        {{ myFilterValue }}-->
+<!--      </v-list-item-title>-->
+<!--      <v-list-item-subtitle>-->
+<!--        {{ myFilterConfig.displayName}}-->
+<!--      </v-list-item-subtitle>-->
       <v-text-field
           dense
           hide-details

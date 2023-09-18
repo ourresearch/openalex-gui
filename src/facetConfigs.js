@@ -205,7 +205,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Title, abstract, & fulltext search",
+            displayName: "Fulltext search",
             type: "search",
             categories: ["popular", "search"],
             isCore: true,

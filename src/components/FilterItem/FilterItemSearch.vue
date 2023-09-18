@@ -1,25 +1,31 @@
 <template>
-  <v-card  flat>
-    <v-toolbar  color="transparent" dense flat>
-      <v-icon small left>{{ myFilterConfig.icon }}</v-icon>
-      {{ myFilterConfig.displayName }}
-      <v-spacer></v-spacer>
-      <v-btn icon small @click="$emit('delete', myFilterKey)">
-        <v-icon small>mdi-close</v-icon>
+  <v-list-item>
+    <v-list-item-icon>
+      <v-icon>{{ myFilterConfig.icon }}</v-icon>
+    </v-list-item-icon>
+    <v-list-item-content>
+<!--      <v-list-item-title>-->
+<!--        {{ myFilterValue }}-->
+<!--      </v-list-item-title>-->
+<!--      <v-list-item-subtitle>-->
+<!--        {{ myFilterConfig.displayName}}-->
+<!--      </v-list-item-subtitle>-->
+      <v-text-field
+          dense
+          hide-details
+          outlined
+          v-model="myFilterValue"
+          @keypress.enter="$emit('update', myFilterValue)"
+          class="pb-0 mb-0"
+          :label="myFilterConfig.displayName"
+      />
+    </v-list-item-content>
+    <v-list-item-action>
+      <v-btn icon @click="$emit('delete', filterKey)">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
-    </v-toolbar>
-    <v-card-text class="pt-0">
-    <v-text-field
-        dense
-        hide-details
-        outlined
-        v-model="myFilterValue"
-        @keypress.enter="$emit('update', myFilterValue)"
-        class="pb-0 mb-0"
-    />
-
-    </v-card-text>
-  </v-card>
+    </v-list-item-action>
+  </v-list-item>
 </template>
 
 <script>

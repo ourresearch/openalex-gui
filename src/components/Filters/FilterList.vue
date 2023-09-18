@@ -35,7 +35,7 @@
         <component
             :key="filter.key + $route.query.filter"
             class=""
-            :is="'filter-value-' + filter.type"
+            :is="'filter-item-' + filter.type"
             :filter-key="filter.key"
             :filter-value="filter.value"
             @update="(newValue) => updateFilter(filter.key, newValue)"
@@ -56,12 +56,14 @@
             <v-list-item-title>{{ category.displayName }}</v-list-item-title>
           </v-list-item-content>
         </template>
-        <v-menu>
+        <v-menu
+            v-for="filterConfig in category.filterConfigs"
+            :key="category.displayName + filterConfig.key"
+            offset-x
+        >
           <template v-slot:activator="{on}">
             <v-list-item
                 class="pl-12"
-                v-for="filterConfig in category.filterConfigs"
-                :key="category.displayName + filterConfig.key"
                 v-on="on"
             >
               <v-list-item-icon>
@@ -78,7 +80,13 @@
             </v-list-item>
           </template>
           <div>
-            dude
+            <component
+                :key="filterConfig.key + $route.query.filter"
+                class=""
+                :is="'filter-edit-' + filterConfig.type"
+                :filter-key="filterConfig.key"
+                @update="(newValue) => createFilter(filterConfig.key, newValue)"
+            />
           </div>
         </v-menu>
 
@@ -111,10 +119,15 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createSimpleFilter} from "../../filterConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
-import FilterValueBoolean from "./FilterValueBoolean.vue";
-import FilterValueRange from "./FilterValueRange.vue";
-import FilterValueSelect from "./FilterValueSelect.vue";
-import FilterValueSearch from "./FilterValueSearch.vue";
+
+import FilterItemBoolean from "../FilterItem/FilterItemBoolean.vue";
+import FilterItemRange from "../FilterItem/FilterItemRange.vue";
+import FilterItemSelect from "../FilterItem/FilterItemSelect.vue";
+import FilterItemSearch from "../FilterItem/FilterItemSearch.vue";
+
+import FilterEditRange from "../FilterEdit/FilterEditRange.vue";
+import FilterEditSearch from "../FilterEdit/FilterEditSearch.vue";
+
 
 import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, getFacetConfig} from "@/facetConfigs";
@@ -124,11 +137,14 @@ export default {
   name: "Template",
   components: {
     FilterKeySelector,
-    FilterValueBoolean,
-    FilterValueRange,
-    FilterValueSelect,
-    FilterValueSearch,
+    FilterItemBoolean,
+    FilterItemRange,
+    FilterItemSelect,
+    FilterItemSearch,
     AddFilterDialog,
+
+    FilterEditRange,
+    FilterEditSearch,
   },
   props: {
     filters: Array,
