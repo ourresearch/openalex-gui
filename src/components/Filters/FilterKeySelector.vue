@@ -1,21 +1,21 @@
 <template>
   <v-card flat tile>
-    <v-list expand :dense="dense" style="max-height: 80vh; overflow-y: scroll;">
+    <v-list expand :dense="dense" style="">
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"
           :value="!!searchString"
       >
         <template v-slot:activator>
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>{{ category.icon }}</v-icon>-->
-<!--          </v-list-item-icon>-->
+          <v-list-item-icon>
+            <v-icon>{{ category.icon }}</v-icon>
+          </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>{{ category.displayName }}</v-list-item-title>
           </v-list-item-content>
         </template>
         <v-list-item
-            class="pl-6"
+            class="pl-12"
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
             @click="select(filterConfig.key)"
@@ -32,9 +32,9 @@
               {{ filterConfig.type }}
             </v-list-item-subtitle>
           </v-list-item-content>
-          <v-list-item-action>
-            <v-icon :disabled="disabledKeys.includes(filterConfig.key)">mdi-chevron-right</v-icon>
-          </v-list-item-action>
+<!--          <v-list-item-action>-->
+<!--            <v-icon :disabled="disabledKeys.includes(filterConfig.key)">mdi-chevron-right</v-icon>-->
+<!--          </v-list-item-action>-->
         </v-list-item>
 
       </v-list-group>

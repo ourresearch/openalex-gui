@@ -19,19 +19,6 @@
         <!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-
-      </v-btn>
-
-<!--      <v-tooltip bottom>-->
-<!--        <template v-slot:activator="{on}">-->
-<!--          <v-btn v-on="on" icon>-->
-<!--            <v-icon>mdi-delete-outline</v-icon>-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <div>Clear all filters</div>-->
-<!--      </v-tooltip>-->
       <v-btn
           fab
           color="primary lighten-1"
@@ -46,6 +33,15 @@
     <!--    </div>-->
     <div class="pt-1">
       <!--            <v-divider />-->
+      <v-subheader>Active filters</v-subheader>
+      <component
+          v-if="stagedFilterKey"
+          key="filter-to-create"
+          class="flex-grow-1 pb-2 pt-1"
+          :is="'filter-value-' + stagedFilterConfig.type"
+          :filter-key="stagedFilterKey"
+          @update="(newValue) => createOrUpdateFilter(stagedFilterKey, newValue)"
+      />
       <template
           v-for="(filter, i) in filters"
       >
@@ -58,17 +54,9 @@
             @update="(newValue) => updateFilter(filter.key, newValue)"
             @delete="deleteFilter(filter.key)"
         />
-        <v-divider/>
+        <v-divider :key="filter.key + 'divider'" />
       </template>
-      <component
-          v-if="!!filterToCreate"
-          key="filter-to-create"
-          class="flex-grow-1 pb-2 pt-1"
-          :is="'filter-value-' + filterToCreate.type"
-          :filter-key="filterToCreate.key"
-          :filter-value="filterToCreate.value"
-          @update="createFilter"
-      />
+
 
 
       <add-filter-dialog
@@ -82,6 +70,11 @@
 
       <!--      <v-divider v-if="!!filterToCreate"></v-divider>-->
     </div>
+    <v-subheader>Filter options</v-subheader>
+    <filter-key-selector
+        dense
+        @select="setStagedFilter"
+    />
 
   </v-card>
 </template>
@@ -98,6 +91,7 @@ import FilterValueSelect from "./FilterValueSelect.vue";
 import FilterValueSearch from "./FilterValueSearch.vue";
 
 import AddFilterDialog from "../AddFilterDialog.vue";
+import {getFacetConfig} from "@/facetConfigs";
 
 
 
@@ -118,6 +112,7 @@ export default {
     return {
       foo: 42,
       filterToCreate: null,
+      stagedFilterKey: null,
       fabIsVisible: false,
       isFilterKeySelectorVisible: false,
       isAddFilterDialogVisible: false,
@@ -127,6 +122,10 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
+    stagedFilterConfig(){
+      if (!this.stagedFilterKey) return
+      return getFacetConfig(this.entityType, this.stagedFilterKey)
+    }
   },
 
   methods: {
@@ -141,6 +140,9 @@ export default {
       } else {
         this.filterToCreate = filterToCreate
       }
+    },
+    setStagedFilter(key){
+      this.stagedFilterKey = key
     },
     createFilter(key, value) {
       this.isAddFilterDialogVisible = false
@@ -175,7 +177,14 @@ export default {
   mounted() {
     this.fabIsVisible = true
   },
-  watch: {}
+  watch: {
+    "$route.query.filter": {
+      immediate: true,
+      handler(to,from){
+        this.stagedFilterKey = null
+      }
+    }
+  }
 }
 </script>
 

@@ -6,9 +6,6 @@
       </v-toolbar-title>
       <v-spacer/>
 
-      <v-btn icon @click="$emit('click')">
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
       <v-menu
           :close-on-content-click="false"
           v-model="isCreateMenuOpen"
