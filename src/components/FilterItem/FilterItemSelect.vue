@@ -1,108 +1,78 @@
 <template>
 
-<!--    <v-list-group>-->
-<!--      <template v-slot:activator>-->
-<!--        <v-list-item-icon>-->
-<!--          <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
-<!--        </v-list-item-icon>-->
-<!--        <v-list-item-content>-->
-<!--          <v-list-item-title>{{ myFilterConfig.displayName }}</v-list-item-title>-->
-<!--        </v-list-item-content>-->
-<!--        <v-menu>-->
-<!--        <template v-slot:activator="{on}">-->
-<!--          <v-btn-->
-<!--              rounded-->
-<!--              text-->
-<!--              class=""-->
-<!--              v-on="on"-->
-<!--              small-->
-<!--          >-->
-<!--            {{ selectedMatchMode }}-->
-<!--            <v-icon right>mdi-menu-down</v-icon>-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <v-list>-->
-<!--          <v-subheader>Match mode:</v-subheader>-->
-<!--          <v-list-item-->
-<!--              v-for="modeName in matchModes"-->
-<!--              :key="modeName"-->
-<!--              @click="setSelectedMatchMode(modeName)"-->
-<!--          >-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon v-if="modeName === selectedMatchMode">mdi-check</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-title>-->
-<!--              {{ modeName }}-->
-<!--            </v-list-item-title>-->
-<!--          </v-list-item>-->
-<!--        </v-list>-->
-<!--      </v-menu>-->
-
-<!--      </template>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-<!--      <v-list-item>-->
-<!--        hey-->
-<!--      </v-list-item>-->
-
-
-<!--    </v-list-group>-->
-
-    <v-list-item @click="$emit('click')" flat class="">
+  <div>
+    <v-list-item>
       <v-list-item-icon>
         <v-icon>{{ myFilterConfig.icon }}</v-icon>
-
       </v-list-item-icon>
       <v-list-item-content>
-        <v-autocomplete
-            chips
-            dense
-            small-chips
-            multiple
-            outlined
-            hide-details
-            :items="options"
-            v-model="selectedOptions"
-            :search-input.sync="searchString"
-            item-text="display_name"
-            item-value="id"
-            @input="input"
-            :label="myFilterConfig.displayName"
-        >
-          <template v-slot:selection="data">
-            <v-chip
-                small
-                v-bind="data.attrs"
-                :input-value="data.selected"
-                close
-                @click="data.select"
-                class="mt-2"
-                @click:close="remove(data.item.id)"
-            >
-              {{ data.item.display_name | truncate(50) }}
-            </v-chip>
-          </template>
-        </v-autocomplete>
+        <v-list-item-title>{{ myFilterConfig.displayName }}</v-list-item-title>
+        <v-list-item-subtitle>
+          1 selected
+        </v-list-item-subtitle>
       </v-list-item-content>
 <!--      <v-list-item-action>-->
-<!--        <v-btn icon  @click="$emit('delete', myFilterConfig.id)">-->
-<!--          <v-icon >mdi-dots-vertical</v-icon>-->
+<!--        <v-btn icon @click="$emit('delete', myFilterConfig.id)">-->
+<!--          <v-icon>mdi-close</v-icon>-->
 <!--        </v-btn>-->
 <!--      </v-list-item-action>-->
-      <v-list-item-action>
-        <v-btn icon  @click="$emit('delete', myFilterConfig.id)">
-          <v-icon >mdi-close</v-icon>
-        </v-btn>
-      </v-list-item-action>
-
     </v-list-item>
+    <v-list>
+      <v-list-item class="ml-12">
+        <v-list-item-content>
+          <v-list-item-title>
+            one
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+
+
+  </div>
+
+  <!--    <v-list-item @click="$emit('click')" flat class="">-->
+  <!--      <v-list-item-icon>-->
+  <!--        <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
+
+  <!--      </v-list-item-icon>-->
+  <!--      <v-list-item-content>-->
+  <!--        <v-autocomplete-->
+  <!--            chips-->
+  <!--            dense-->
+  <!--            small-chips-->
+  <!--            multiple-->
+  <!--            outlined-->
+  <!--            hide-details-->
+  <!--            :items="options"-->
+  <!--            v-model="selectedOptions"-->
+  <!--            :search-input.sync="searchString"-->
+  <!--            item-text="display_name"-->
+  <!--            item-value="id"-->
+  <!--            @input="input"-->
+  <!--            :label="myFilterConfig.displayName"-->
+  <!--        >-->
+  <!--          <template v-slot:selection="data">-->
+  <!--            <v-chip-->
+  <!--                small-->
+  <!--                v-bind="data.attrs"-->
+  <!--                :input-value="data.selected"-->
+  <!--                close-->
+  <!--                @click="data.select"-->
+  <!--                class="mt-2"-->
+  <!--                @click:close="remove(data.item.id)"-->
+  <!--            >-->
+  <!--              {{ data.item.display_name | truncate(50) }}-->
+  <!--            </v-chip>-->
+  <!--          </template>-->
+  <!--        </v-autocomplete>-->
+  <!--      </v-list-item-content>-->
+  <!--      <v-list-item-action>-->
+  <!--        <v-btn icon  @click="$emit('delete', myFilterConfig.id)">-->
+  <!--          <v-icon >mdi-close</v-icon>-->
+  <!--        </v-btn>-->
+  <!--      </v-list-item-action>-->
+
+  <!--    </v-list-item>-->
 </template>
 
 <script>
