@@ -18,10 +18,14 @@
 <!--      </v-list-item-action>-->
     </v-list-item>
     <v-list>
-      <v-list-item class="ml-12">
+      <v-list-item
+          class="ml-12"
+          v-for="option in options"
+          :key="option.value"
+      >
         <v-list-item-content>
           <v-list-item-title>
-            one
+            {{ option.display_name }}
           </v-list-item-title>
         </v-list-item-content>
       </v-list-item>
