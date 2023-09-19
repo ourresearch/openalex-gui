@@ -8,8 +8,14 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
-            {{ myFilterValue ? "True" : "False" }}
-
+            <span v-if="myFilterValue">
+              <v-icon >mdi-toggle-switch-outline</v-icon>
+              True
+            </span>
+            <span v-else>
+              <v-icon >mdi-toggle-switch-off-outline</v-icon>
+              False
+            </span>
           </v-list-item-title>
           <v-list-item-subtitle>
             {{ myFilterConfig.displayName }}

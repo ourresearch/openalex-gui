@@ -6,25 +6,26 @@
         {{ myConfig.displayName }}
       </v-toolbar-title>
     </v-toolbar>
-    <v-card-text>
-      <v-list-item>
-        <v-list-item-title>
-          <span class="text-capitalize">
-        {{ entityType | pluralize(1) }}
-        </span> is
-          {{ myConfig.displayName }}
-        </v-list-item-title>
-        <v-list-item-action>
+    <v-card-text class="pt-0">
+      <div>
           <v-switch
               v-model="myValue"
+              :label="myConfig.displayName"
           />
-
-        </v-list-item-action>
-      </v-list-item>
+      </div>
+      <div>
+        Show only {{ entityType | pluralize(1) }} that
+        <span>
+          <span v-if="myValue">are</span>
+          <span v-else class="font-weight-bold">are NOT</span>
+        </span>
+        {{ myConfig.displayName }}
+      </div>
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
-      <v-btn text primary @click="update">Update</v-btn>
+      <v-btn text rounded @click="update">Cancel</v-btn>
+      <v-btn :disabled="myValue===filterValue" rounded color="primary" @click="update">Update</v-btn>
     </v-card-actions>
   </v-card>
 </template>

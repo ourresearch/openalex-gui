@@ -19,7 +19,7 @@
     <v-card-actions>
 
       <v-spacer />
-      <v-btn text primary @click="update">Update</v-btn>
+      <v-btn text color="primary" @click="update">Update</v-btn>
     </v-card-actions>
   </v-card>
 </template>

@@ -216,7 +216,12 @@ export default {
       return filtersList(this.entityType).length - this.filters.length
     },
     facetsByCategory() {
-      return facetsByCategory(this.entityType, this.searchString, this.includeOnlyTypes)
+      return facetsByCategory(
+          this.entityType,
+          this.searchString,
+          this.includeOnlyTypes,
+          this.filters.map(f => f.key),
+      )
     },
     appliedFiltersMatchingSearchString() {
       return this.filters.filter(f => {

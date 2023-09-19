@@ -105,7 +105,7 @@ const facetConfigs = function (entityType) {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
-            categories: ["other", ],
+            categories: ["other",],
             isCore: true,
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
@@ -249,7 +249,6 @@ const facetConfigs = function (entityType) {
             categories: ["search"],
             icon: "mdi-file-document-outline",
         },
-
 
 
         // works: authors
@@ -833,7 +832,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
         // institutions
         {
             key: "display_name.search",
@@ -961,13 +959,21 @@ const filtersList = function (entityType, resultsFilters, searchString) {
 }
 
 
-const facetsByCategory = function (entityType, searchString = "", includeOnlyTypes = []) {
+const facetsByCategory = function (
+    entityType,
+    searchString = "",
+    includeOnlyTypes = [],
+    excludeFiltersByKey = [],
+) {
     const filtered = facetConfigs(entityType)
         .filter(c => {
             return !searchString || c.displayName.toLowerCase().match(searchString?.toLowerCase())
         })
         .filter(c => {
             return !includeOnlyTypes.length || includeOnlyTypes.includes(c.type)
+        })
+        .filter(c => {
+            return !excludeFiltersByKey.length || !excludeFiltersByKey.includes(c.key)
         })
 
 
