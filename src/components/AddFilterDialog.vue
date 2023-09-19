@@ -1,5 +1,4 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="600" scrollable>
     <v-card
     >
 
@@ -42,9 +41,9 @@
 
           <v-card flat tile max-height="70vh" style="overflow-y: scroll;">
             <v-list dense>
-              <template  v-if="filterOptions.length">
+              <template v-if="filterOptions.length">
                 <v-subheader>Filter options</v-subheader>
-                <v-divider />
+                <v-divider/>
               </template>
 
 
@@ -70,12 +69,10 @@
                   <v-icon>mdi-chevron-right</v-icon>
                 </v-list-item-icon>
               </v-list-item>
-            </v-list>
 
-            <v-list dense>
-              <template  v-if="shortcutOptions.length">
+              <template v-if="shortcutOptions.length">
                 <v-subheader>Filter values</v-subheader>
-                <v-divider />
+                <v-divider/>
               </template>
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
@@ -91,10 +88,9 @@
                   <v-list-item-title>
                     {{ option.display_name }}
                   </v-list-item-title>
-                      <v-list-item-subtitle class="text-capitalize">
-                        {{ option.entity_type }}
-<!--                        <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>-->
-                      </v-list-item-subtitle>
+                  <v-list-item-subtitle class="text-capitalize">
+                    {{ option.entity_type }}
+                  </v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action-text>
                   {{ option.works_count | toPrecision }} works
@@ -106,53 +102,19 @@
         </v-tab-item>
 
 
-
         <v-tab-item>
-          <template v-if="selectedFilterConfig">
-            <add-filter-dialog-select-value
-                v-if="selectedFilterConfig.type === 'select'"
-                :filter-key="selectedFilterKey"
-                :filter-value="filterValueString"
-                @select="(newValueStr) => filterValueString = newValueStr"
-            />
-            <v-card v-else>
-              <v-toolbar color="transparent" flat dense>
-                <v-icon left>{{ selectedFilterConfig.icon }}</v-icon>
-                <v-toolbar-title>
-                  {{ selectedFilterConfig.displayName }}
-                </v-toolbar-title>
-              </v-toolbar>
-              <v-card-text>
-                <v-text-field
-                    autofocus
-                    v-model="filterValueString"
-                    placeholder="Enter filter value"
-                    outlined
-                    hide-details
-                    @keydown.enter="selectKeyValue(selectedFilterKey, filterValueString)"
-                />
-
-              </v-card-text>
-
-            </v-card>
-          </template>
+        <component
+            class=""
+            v-if="selectedFilterKey"
+            :is="'filter-edit-' + selectedFilterConfig.type"
+            :filter-key="selectedFilterConfig.key"
+            @update="(newValue) => $emit('create', selectedFilterConfig.key, newValue)"
+        />
 
         </v-tab-item>
       </v-tabs-items>
-      <v-card-actions v-if="selectedFilterKey">
-        {{ filterValueString }}
-        <v-spacer/>
-        <v-btn text @click="selectedFilterKey = null">Cancel</v-btn>
-        <v-btn
-            text
-            color="primary"
-            :disabled="!filterValueString"
-            @click="selectKeyValue(selectedFilterKey, filterValueString)">
-          Apply filter
-        </v-btn>
-      </v-card-actions>
+
     </v-card>
-  </v-dialog>
 </template>
 
 <script>
@@ -236,7 +198,6 @@ export default {
     },
     selectedFilterIsAlreadyApplied() {
       return !!this.filters.find(f => f.key === this.selectedFilterKey)
-
     },
   },
 
@@ -295,7 +256,7 @@ export default {
     },
     selectedFilterKey(val) {
       if (val) {
-        this.tab = 2
+        this.tab = 1
         const myAppliedFilterValue = this.filters.find(f => f.key === this.selectedFilterKey)?.value
         this.filterValueString = myAppliedFilterValue
         this.selectedFilterValue = myAppliedFilterValue

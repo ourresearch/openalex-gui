@@ -7,6 +7,7 @@
         class="align-center"
         flat
         color="transparent"
+        extended
 
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
@@ -14,26 +15,32 @@
       <v-toolbar-title>
         <v-icon left>mdi-filter-outline</v-icon>
         Filters
+<!--        <span class="grey&#45;&#45;text">-->
+<!--        ({{ filters.length }})-->
+<!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
-      <v-btn
-          icon
-          @click="isAddFilterDialogVisible = true"
-      >
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+      <template v-slot:extension>
+        <v-text-field
+            v-model="searchString"
+            outlined
+            hide-details
+            dense
+            prepend-inner-icon="mdi-magnify"
+            clearable
+        />
+      </template>
     </v-toolbar>
     <v-list expand dense class="pt-1">
       <template v-if="filters.length">
-
         <v-subheader>
-          Active filters
+          Applied filters
           ({{ filters.length }})
         </v-subheader>
-        <v-divider class="mb-4"/>
+        <v-divider/>
       </template>
       <template
-          v-for="(filter, i) in filters"
+          v-for="(filter, i) in filtersMatchingSearchString"
       >
 
 
@@ -49,14 +56,17 @@
       </template>
 
 
-      <v-subheader>
-        Filter options
-        ({{ filterOptionsCount }})
-      </v-subheader>
-      <v-divider/>
+      <template v-if="filterOptionsCount">
+        <v-subheader>
+          Filter options
+          ({{ filterOptionsCount }})
+        </v-subheader>
+        <v-divider/>
+      </template>
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"
+          :value="!!searchString"
       >
         <template v-slot:activator>
           <v-list-item-icon>
@@ -102,16 +112,6 @@
         </v-menu>
 
       </v-list-group>
-
-
-      <add-filter-dialog
-          v-model="isAddFilterDialogVisible"
-          :filters="filters"
-          @close="isAddFilterDialogVisible = false"
-          @select-key-value="createOrUpdateFilter"
-          @create="createFilter"
-          @update="updateFilter"
-      />
 
 
     </v-list>
@@ -167,6 +167,8 @@ export default {
       fabIsVisible: false,
       isFilterKeySelectorVisible: false,
       isAddFilterDialogVisible: false,
+
+      searchString: "",
     }
   },
   computed: {
@@ -177,13 +179,19 @@ export default {
       if (!this.stagedFilterKey) return
       return getFacetConfig(this.entityType, this.stagedFilterKey)
     },
-    filterOptionsCount(){
+    filterOptionsCount() {
       return filtersList(this.entityType).length - this.filters.length
     },
-
     facetsByCategory() {
       return facetsByCategory(this.entityType, this.searchString, this.includeOnlyTypes)
     },
+    filtersMatchingSearchString(){
+      return this.filters.filter(f => {
+        console.log("filtersMatchingSearchString", f)
+        if (!this.searchString) return true
+        return f.displayName.toLowerCase().match(this.searchString.toLowerCase())
+      })
+    }
   },
 
   methods: {

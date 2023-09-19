@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card flat>
     <v-toolbar flat dense>
       <v-icon left>{{ myConfig.icon }}</v-icon>
       <v-toolbar-title>
