@@ -3,18 +3,18 @@
     <v-toolbar dense flat>
       <v-toolbar-items style="margin-left:-7px;" >
         <entity-type-selector  />
-        <v-btn text>
-          Filters
-        </v-btn>
-        <v-btn text>
-          Results
-        </v-btn>
-        <v-btn text>
-          Summaries
-        </v-btn>
-        <v-btn text>
-          Export
-        </v-btn>
+<!--        <v-btn text>-->
+<!--          Filters-->
+<!--        </v-btn>-->
+<!--        <v-btn text>-->
+<!--          Results-->
+<!--        </v-btn>-->
+<!--        <v-btn text>-->
+<!--          Summaries-->
+<!--        </v-btn>-->
+<!--        <v-btn text>-->
+<!--          Export-->
+<!--        </v-btn>-->
 
       </v-toolbar-items>
     </v-toolbar>
@@ -27,7 +27,7 @@
 <!--    </v-toolbar>-->
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
-      <v-alert v-if="0" dense text type="warning" class="">
+      <v-alert v-if="1" dense text type="warning" class="">
         <v-row class="align-center">
           <div class="">
             <span class="font-weight-bold">Alpha version:</span>

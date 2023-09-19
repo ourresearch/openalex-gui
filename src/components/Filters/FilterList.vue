@@ -15,9 +15,9 @@
       <v-toolbar-title>
         <v-icon left>mdi-filter-outline</v-icon>
         Filters
-<!--        <span class="grey&#45;&#45;text">-->
-<!--        ({{ filters.length }})-->
-<!--        </span>-->
+        <!--        <span class="grey&#45;&#45;text">-->
+        <!--        ({{ filters.length }})-->
+        <!--        </span>-->
       </v-toolbar-title>
       <v-spacer/>
       <template v-slot:extension>
@@ -35,12 +35,12 @@
       <template v-if="filters.length">
         <v-subheader>
           Applied filters
-          ({{ filters.length }})
+          ({{ appliedFiltersMatchingSearchString.length }})
         </v-subheader>
         <v-divider/>
       </template>
       <template
-          v-for="(filter, i) in filtersMatchingSearchString"
+          v-for="(filter, i) in appliedFiltersMatchingSearchString"
       >
 
 
@@ -110,8 +110,38 @@
             />
           </div>
         </v-menu>
-
       </v-list-group>
+
+      <template v-if="filterShortcuts.length">
+        <v-subheader>
+          Filter options + values
+          ({{ filterShortcuts.length }})
+        </v-subheader>
+        <v-divider/>
+      </template>
+      <v-list-item
+          v-for="shortcut in filterShortcuts"
+          :key="shortcut.id + 'shortcut'"
+          @click="createFilter(getShortCutFilterKey(shortcut), shortcut.id)"
+      >
+        <v-list-item-icon>
+          <v-icon>
+            {{ getEntityConfig(shortcut.entity_type).icon }}
+          </v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            {{ shortcut.display_name }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-capitalize">
+            {{ shortcut.entity_type }} -
+            <span class="font-weight-regular">{{ shortcut.works_count | toPrecision }} works</span>
+          </v-list-item-subtitle>
+        </v-list-item-content>
+        <v-list-item-action>
+          <v-icon>mdi-filter-plus-outline</v-icon>
+        </v-list-item-action>
+      </v-list-item>
 
 
     </v-list>
@@ -124,6 +154,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createSimpleFilter} from "../../filterConfigs";
+import {getEntityConfig} from "@/entityConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
 import FilterItemBoolean from "../FilterItem/FilterItemBoolean.vue";
@@ -139,6 +170,7 @@ import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
+import {api} from "@/api";
 
 
 export default {
@@ -169,6 +201,7 @@ export default {
       isAddFilterDialogVisible: false,
 
       searchString: "",
+      getEntityConfig,
     }
   },
   computed: {
@@ -185,13 +218,22 @@ export default {
     facetsByCategory() {
       return facetsByCategory(this.entityType, this.searchString, this.includeOnlyTypes)
     },
-    filtersMatchingSearchString(){
+    appliedFiltersMatchingSearchString() {
       return this.filters.filter(f => {
-        console.log("filtersMatchingSearchString", f)
         if (!this.searchString) return true
         return f.displayName.toLowerCase().match(this.searchString.toLowerCase())
       })
-    }
+    },
+  },
+  asyncComputed: {
+    async filterShortcuts() {
+      if (!this.searchString) return []
+      const autocompleteUrl = url.makeAutocompleteUrl(null, this.searchString)
+      const resp = await api.getUrl(autocompleteUrl)
+      return resp.results.filter(f => !!f.entity_type)
+
+    },
+
   },
 
   methods: {
@@ -206,6 +248,14 @@ export default {
       } else {
         this.filterToCreate = filterToCreate
       }
+    },
+    // hack because shortcut objects (from autocomplete) that are entities
+    // have Null filter_key
+    getShortCutFilterKey(shortcut){
+      if (shortcut.filter_key) return shortcut.filter_key
+      return getEntityConfig(shortcut.entity_type)?.filterKey
+
+
     },
     setStagedFilter(key) {
       this.stagedFilterKey = key

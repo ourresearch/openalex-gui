@@ -51,7 +51,6 @@ export default {
 
       this.isLoading = true
       const resp = await api.makeAutocompleteResponseFromId(this.filterValue)
-      console.log("resp from filterDisplayValue",resp)
       this.isLoading = false
       return resp.display_name
     }

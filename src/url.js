@@ -238,9 +238,15 @@ const goToZoom = async function (router, zoom) {
 }
 
 
-const makeAutocompleteUrl = function(entityType, filterKey, searchString){
+const makeAutocompleteUrl = function(entityType, searchString){
     const url = new URL(`https://api.openalex.org`)
-    url.pathname = `autocomplete/${entityType}`
+
+    url.pathname = (entityType === null) ?
+          "autocomplete" :
+          `autocomplete/${entityType}`
+
+
+    // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)
     url.searchParams.set("mailto", "team@ourresearch.org")
     return url.toString()
