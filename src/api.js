@@ -6,7 +6,7 @@ import {openAlexCountries} from "@/countries";
 import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
-import { entityTypeFromId} from "@/util";
+import {entityTypeFromId} from "@/util";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -139,13 +139,17 @@ const api = (function () {
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
             const myConfig = getFacetConfig(entityType, filterKey)
 
+            // if it's an entity filter, we can use the autocomplete
             if (myConfig.entityId) {
                 if (!searchString) return []
-                const myUrl = url.makeAutocompleteUrl(myConfig.entityId, filterKey, searchString)
+                const myUrl = url.makeAutocompleteUrl(myConfig.entityId, searchString)
                 const resp = await getUrl(myUrl)
                 return resp.results
 
-            } else {
+            }
+
+            // if it's not an entity filter, we have to use (slow) group-by
+            else {
                 const myUrl = url.makeGroupByUrl(entityType, filterKey, {
                     searchString
                 })

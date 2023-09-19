@@ -11,21 +11,26 @@
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
+        <v-icon left>mdi-filter-outline</v-icon>
+        Filters
+        <!--        <span class="grey&#45;&#45;text">-->
+        <!--        ({{ filters.length }})-->
+        <!--        </span>-->
+    </v-toolbar>
+    <v-toolbar flat class="pa-0">
         <v-text-field
             v-model="searchString"
             hide-details
             prepend-inner-icon="mdi-magnify"
             clearable
             outlined
+            dense
             label="Search filters"
             placeholder="Search filters"
         />
-<!--        <v-icon left>mdi-filter-outline</v-icon>-->
-<!--        Filters-->
-        <!--        <span class="grey&#45;&#45;text">-->
-        <!--        ({{ filters.length }})-->
-        <!--        </span>-->
+
     </v-toolbar>
+
     <v-list expand dense class="pt-1">
       <template v-if="filters.length">
         <v-subheader>

@@ -245,7 +245,6 @@ const makeAutocompleteUrl = function(entityType, searchString){
           "autocomplete" :
           `autocomplete/${entityType}`
 
-
     // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)
     url.searchParams.set("mailto", "team@ourresearch.org")
