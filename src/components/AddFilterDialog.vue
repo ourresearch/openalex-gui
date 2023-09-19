@@ -12,20 +12,6 @@
           Add Filter
         </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-toolbar-items>
-          <v-tabs
-              v-model="tab"
-              v-if="!selectedFilterKey"
-          >
-            <v-tab>
-              Search
-            </v-tab>
-            <v-tab>
-              Browse
-            </v-tab>
-          </v-tabs>
-
-        </v-toolbar-items>
         <template v-slot:extension v-if="!selectedFilterKey && tab !== 1">
 
           <!--          <div v-else>-->
@@ -55,8 +41,11 @@
         <v-tab-item>
 
           <v-card flat tile max-height="70vh" style="overflow-y: scroll;">
-            <v-list>
-              <!--              <v-subheader v-if="filterOptions.length">Filter options</v-subheader>-->
+            <v-list dense>
+              <template  v-if="filterOptions.length">
+                <v-subheader>Filter options</v-subheader>
+                <v-divider />
+              </template>
 
 
               <v-list-item
@@ -83,8 +72,11 @@
               </v-list-item>
             </v-list>
 
-            <v-list>
-              <!--              <v-subheader v-if="shortcutOptions.length">Filter shortcuts</v-subheader>-->
+            <v-list dense>
+              <template  v-if="shortcutOptions.length">
+                <v-subheader>Filter values</v-subheader>
+                <v-divider />
+              </template>
               <v-list-item
                   v-for="(option, i) in shortcutOptions"
                   :key="'shortcutOption-'+i"
@@ -97,12 +89,12 @@
                 </v-list-item-icon>
                 <v-list-item-content>
                   <v-list-item-title>
-                    <span class="text-capitalize">{{ option.entity_type }}: </span>
                     {{ option.display_name }}
                   </v-list-item-title>
-                  <!--                  <v-list-item-subtitle>-->
-                  <!--                    <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>-->
-                  <!--                  </v-list-item-subtitle>-->
+                      <v-list-item-subtitle class="text-capitalize">
+                        {{ option.entity_type }}
+<!--                        <span v-if="option.hint">{{ option.hint | truncate(50) }}</span>-->
+                      </v-list-item-subtitle>
                 </v-list-item-content>
                 <v-list-item-action-text>
                   {{ option.works_count | toPrecision }} works
@@ -113,12 +105,6 @@
           </v-card>
         </v-tab-item>
 
-
-        <v-tab-item>
-          <filter-key-selector
-              @select="(newKey) => selectedFilterKey = newKey"
-          />
-        </v-tab-item>
 
 
         <v-tab-item>
@@ -178,11 +164,20 @@ import {facetConfigs} from "../facetConfigs";
 import axios from "axios";
 import AddFilterDialogSelectValue from "./AddFilterDialogSelectValue.vue";
 
+import FilterEditBoolean from "./FilterEdit/FilterEditBoolean.vue";
+import FilterEditRange from "./FilterEdit/FilterEditRange.vue";
+import FilterEditSearch from "./FilterEdit/FilterEditSearch.vue";
+import FilterEditSelect from "./FilterEdit/FilterEditSelect.vue";
+
 export default {
   name: "Template",
   components: {
     AddFilterDialogSelectValue,
     filterKeySelector,
+    FilterEditBoolean,
+    FilterEditRange,
+    FilterEditSearch,
+    FilterEditSelect,
   },
   props: {
     value: Boolean, // this is the magic Vue "value" property, NOT a filter value
