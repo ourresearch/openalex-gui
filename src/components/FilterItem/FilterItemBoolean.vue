@@ -8,16 +8,12 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
-        <span class="text-capitalize">
-        {{ entityType | pluralize(1) }}
-        </span>
-            <span>is</span>
-            <span v-if="!myFilterValue" class="font-weight-bold"> NOT</span>
-            {{ myFilterConfig.displayName }}
+            {{ myFilterValue ? "True" : "False" }}
 
           </v-list-item-title>
           <v-list-item-subtitle>
-            {{ myFilterConfig.type }}
+            {{ myFilterConfig.displayName }}
+<!--            {{ myFilterConfig.type }}-->
           </v-list-item-subtitle>
 
           <!--      <v-switch-->

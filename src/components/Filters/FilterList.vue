@@ -112,7 +112,7 @@
         </v-menu>
       </v-list-group>
 
-      <template v-if="filterShortcuts.length">
+      <template v-if="filterShortcuts && filterShortcuts.length">
         <v-subheader>
           Filter options + values
           ({{ filterShortcuts.length }})

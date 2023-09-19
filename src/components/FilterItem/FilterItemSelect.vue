@@ -23,9 +23,9 @@
         <v-list-item-subtitle>
           {{ myFilterConfig.displayName }}
         </v-list-item-subtitle>
-        <v-list-item-subtitle>
-          Exclude all
-        </v-list-item-subtitle>
+<!--        <v-list-item-subtitle>-->
+<!--          Exclude all-->
+<!--        </v-list-item-subtitle>-->
       </v-list-item-content>
       <v-list-item-action>
         <v-btn icon @click="$emit('delete', myFilterConfig.id)">
