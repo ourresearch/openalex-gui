@@ -106,6 +106,7 @@
                 class=""
                 :is="'filter-edit-' + filterConfig.type"
                 :filter-key="filterConfig.key"
+                create
                 @update="(newValue) => createFilter(filterConfig.key, newValue)"
             />
           </div>

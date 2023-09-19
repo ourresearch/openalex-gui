@@ -21,7 +21,7 @@
 
         </v-list-item-title>
         <v-list-item-subtitle>
-          {{ myFilterConfig.displayName }}
+          {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
         </v-list-item-subtitle>
 <!--        <v-list-item-subtitle>-->
 <!--          Exclude all-->
