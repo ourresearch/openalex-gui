@@ -267,24 +267,29 @@ export default {
       this.stagedFilterKey = key
     },
     createFilter(key, value) {
+      this.searchString = ""
+      console.log("FilterList createFilter existing filter", key, value);
       this.isAddFilterDialogVisible = false
       url.createFilter(this.entityType, key, value)
       // this.filterToCreate = null
     },
     createOrUpdateFilter(key, value) {
+      this.searchString = ""
       const existingFilter = url.readFilter(this.entityType, key);
-      console.log("createOrUpdateFilter existing filter", existingFilter);
+      console.log("FilterList createOrUpdateFilter", key, value, existingFilter);
       (existingFilter) ?
           this.updateFilter(key, value) :
           this.createFilter(key, value)
     },
     deleteFilter(key) {
       console.log("FilterList deleteFilter", key)
+      this.searchString = ""
       url.deleteFilter(this.entityType, key)
       // this.filterToCreate = null
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
+      this.searchString = ""
       if (newValue === "" || newValue === "-") {
         url.deleteFilter(this.entityType, filterKey)
       } else {
