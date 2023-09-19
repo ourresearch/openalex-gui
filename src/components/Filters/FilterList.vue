@@ -7,29 +7,24 @@
         class="align-center"
         flat
         color="transparent"
-        extended
 
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
-      <v-toolbar-title>
-        <v-icon left>mdi-filter-outline</v-icon>
-        Filters
+        <v-text-field
+            v-model="searchString"
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            outlined
+            label="Search filters"
+            placeholder="Search filters"
+        />
+<!--        <v-icon left>mdi-filter-outline</v-icon>-->
+<!--        Filters-->
         <!--        <span class="grey&#45;&#45;text">-->
         <!--        ({{ filters.length }})-->
         <!--        </span>-->
-      </v-toolbar-title>
-      <v-spacer/>
-      <template v-slot:extension>
-        <v-text-field
-            v-model="searchString"
-            outlined
-            hide-details
-            dense
-            prepend-inner-icon="mdi-magnify"
-            clearable
-        />
-      </template>
     </v-toolbar>
     <v-list expand dense class="pt-1">
       <template v-if="filters.length">
