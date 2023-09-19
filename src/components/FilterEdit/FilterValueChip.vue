@@ -1,18 +1,15 @@
 <template>
-  <v-chip
-      :disabled="disabled"
-      small
-      outlined
+  <span
       @click:close="$emit('remove')"
   >
 <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
     <template v-if="filterDisplayValue">
-      {{ filterDisplayValue | truncate(30) }}
+      {{ filterDisplayValue | truncate(40) }}
     </template>
     <template v-else>
       Loading...
     </template>
-  </v-chip>
+  </span>
 </template>
 
 <script>
