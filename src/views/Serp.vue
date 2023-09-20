@@ -27,22 +27,6 @@
     <!--    </v-toolbar>-->
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
-      <v-alert v-if="1" dense text type="warning" class="">
-        <v-row class="align-center">
-          <div class="">
-            <span class="font-weight-bold">Alpha version:</span>
-            buggy, incomplete, and changing daily.
-          </div>
-          <v-spacer v-if="!$vuetify.breakpoint.mobile"/>
-          <v-btn small text light href="https://openalex.org/help" target="_blank">
-            Feedback
-          </v-btn>
-          <v-btn small text light target="_blank"
-                 href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
-            Learn more
-          </v-btn>
-        </v-row>
-      </v-alert>
       <!--      <serp-applied-filters-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->

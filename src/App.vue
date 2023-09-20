@@ -1,8 +1,8 @@
 <template>
   <v-app>
-<!--    <v-navigation-drawer app dark absolute clipped width="320" style="height: 100%;">-->
-<!--      <filter-list :filters="resultsFilters" />-->
-<!--    </v-navigation-drawer>-->
+    <!--    <v-navigation-drawer app dark absolute clipped width="320" style="height: 100%;">-->
+    <!--      <filter-list :filters="resultsFilters" />-->
+    <!--    </v-navigation-drawer>-->
     <v-progress-linear
         indeterminate
         fixed color="primary"
@@ -13,7 +13,6 @@
         app
         clipped-left
         flat
-        dense
         color="white"
         class="pl-0"
         :class="{mobile: $vuetify.breakpoint.mobile}"
@@ -21,113 +20,108 @@
         :extended="$vuetify.breakpoint.mobile"
 
     >
-      <v-container style="margin-left:0;" class="pl-0" :class="{'pr-0': $vuetify.breakpoint.mobile}">
-        <v-row>
+      <v-container style="margin-left:0;" class="d-flex align-center " :class="{'pr-0': $vuetify.breakpoint.mobile}">
 
-          <v-col cols="4" sm="4" class="d-flex align-center">
-            <router-link
-                :to="{name: 'Home'}"
-                class="logo-link pl-1"
-                v-if="$route.name !== 'Home'"
-            >
-              <img
-                  src="@/assets/openalex-logo-icon-black-and-white.png"
-                  class="logo-icon mr-0 colorizable"
-                  :style="logoStyle"
-              />
-              <span
-                  class="logo-text colorizable"
-                  :style="logoStyle"
-              >
+        <router-link
+            :to="{name: 'Home'}"
+            class="logo-link pl-1"
+            v-if="$route.name !== 'Home'"
+        >
+          <img
+              src="@/assets/openalex-logo-icon-black-and-white.png"
+              class="logo-icon mr-0 colorizable"
+              :style="logoStyle"
+          />
+          <span
+              class="logo-text colorizable"
+              :style="logoStyle"
+          >
                 OpenAlex
               </span>
 
-            </router-link>
-            <v-spacer />
+        </router-link>
+        <v-spacer/>
+          <v-btn  light target="_blank"
+                 color="warning"
+                 rounded
+                  outlined
+                 class="ml-3"
+                 href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
+            <v-icon left>mdi-alert</v-icon>
+            Alpha version
+          </v-btn>
 
 
-          </v-col>
-          <v-col cols="5" class="pl-0 d-flex align-center">
-            <div class="flex-grow-1">
-
-            </div>
-          </v-col>
-          <v-col cols="3" class="d-flex align-center">
-            <v-spacer></v-spacer>
-
-
-            <v-menu offset-y v-if="$store.state.exportProgressUrl">
-              <template v-slot:activator="{on}">
-                <v-btn
-                    icon
-                    class="elevation-0"
-                    color="primary"
-                    dark
-                    v-on="on"
-                    style="position: relative;"
-                >
-                  <v-icon x-small v-if="!exportIsFinished">mdi-arrow-down</v-icon>
-                  <v-icon v-if="exportIsFinished">mdi-tray-arrow-down</v-icon>
-                  <v-progress-circular
-                      style="position: absolute;"
-                      rotate="-90"
-                      :value="exportObj.progress * 100" size="25"
-                      v-if="!exportIsFinished"
-                  />
-                  <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
-                  <!--                  <v-icon right>mdi-menu-down</v-icon>-->
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title>Export {{ (exportIsFinished) ? 'complete' : 'in progress' }}</v-card-title>
-                <v-card-text>
-                  Your requested export is <strong>{{ exportObj.progress * 100 | toPrecision }}%</strong> complete.
-                </v-card-text>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn text @click="cancelExport">Cancel</v-btn>
-                  <v-btn text color="primary" :disabled="!exportIsFinished" :href="exportObj.result_url"
-                         target="_blank">
-                    <v-icon left>mdi-tray-arrow-down</v-icon>
-                    Download
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-menu>
-
+        <v-menu offset-y v-if="$store.state.exportProgressUrl">
+          <template v-slot:activator="{on}">
             <v-btn
                 icon
-                target="_blank"
-                @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+                class="elevation-0"
+                color="primary"
+                dark
+                v-on="on"
+                style="position: relative;"
             >
-              <v-icon>mdi-share-variant-outline</v-icon>
+              <v-icon x-small v-if="!exportIsFinished">mdi-arrow-down</v-icon>
+              <v-icon v-if="exportIsFinished">mdi-tray-arrow-down</v-icon>
+              <v-progress-circular
+                  style="position: absolute;"
+                  rotate="-90"
+                  :value="exportObj.progress * 100" size="25"
+                  v-if="!exportIsFinished"
+              />
+              <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
+              <!--                  <v-icon right>mdi-menu-down</v-icon>-->
             </v-btn>
+          </template>
+          <v-card>
+            <v-card-title>Export {{ (exportIsFinished) ? 'complete' : 'in progress' }}</v-card-title>
+            <v-card-text>
+              Your requested export is <strong>{{ exportObj.progress * 100 | toPrecision }}%</strong> complete.
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text @click="cancelExport">Cancel</v-btn>
+              <v-btn text color="primary" :disabled="!exportIsFinished" :href="exportObj.result_url"
+                     target="_blank">
+                <v-icon left>mdi-tray-arrow-down</v-icon>
+                Download
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-menu>
+
+        <v-btn
+            icon
+            target="_blank"
+            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
+        >
+          <v-icon>mdi-share-variant-outline</v-icon>
+        </v-btn>
 
 
-            <v-menu offset-y content-class="no-highlight" min-width="150">
-              <template v-slot:activator="{on}">
-                <v-btn icon color="" v-on="on">
-                  <v-icon class="">mdi-menu</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item to="/">
-                  Home
-                </v-list-item>
-                <v-list-item to="/about">
-                  About
-                </v-list-item>
-                <v-list-item to="/premium">
-                  Premium
-                </v-list-item>
-                <v-list-item to="/help">
-                  Help
-                </v-list-item>
-              </v-list>
-            </v-menu>
+        <v-menu offset-y content-class="no-highlight" min-width="150">
+          <template v-slot:activator="{on}">
+            <v-btn icon color="" v-on="on">
+              <v-icon class="">mdi-menu</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item to="/">
+              Home
+            </v-list-item>
+            <v-list-item to="/about">
+              About
+            </v-list-item>
+            <v-list-item to="/premium">
+              Premium
+            </v-list-item>
+            <v-list-item to="/help">
+              Help
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
-          </v-col>
-        </v-row>
 
       </v-container>
     </v-app-bar>
@@ -284,7 +278,7 @@ export default {
   watch: {
     '$route': {
       immediate: true,
-      handler(to, from){
+      handler(to, from) {
         this.resultsFilters = filtersFromUrlStr(
             this.entityType,
             to?.query?.filter
@@ -377,6 +371,10 @@ body {
   .v-application {
     background: #F7F9FC !important;
     //background: #444 !important;
+
+    .rounded {
+      border-radius: 15px !important;
+    }
 
     .body-1, .body-2 {
       letter-spacing: normal !important;

@@ -1,6 +1,7 @@
 <template>
   <v-card
       class="mb-8"
+      rounded
   >
     <v-toolbar
         class="align-center"
@@ -20,10 +21,12 @@
             hide-details
             prepend-inner-icon="mdi-magnify"
             clearable
-            outlined
             rounded
+            solo
             dense
             placeholder="Search filters"
+            background-color="#eee"
+            light
         />
 
     </v-toolbar>

@@ -17,10 +17,10 @@
         </v-row>
       </v-alert>
 
-      <v-alert v-if="authorshipsToShow >= 100" type="warning" dense text>
+<!--      <v-alert v-if="authorshipsToShow >= 100" type="warning" dense text>-->
 
-        <strong>More than 100 authors.</strong> Only the top 100 are shown below.
-      </v-alert>
+<!--        <strong>More than 100 authors.</strong> Only the top 100 are shown below.-->
+<!--      </v-alert>-->
 
 
       <div v-if="data.publication_year">
