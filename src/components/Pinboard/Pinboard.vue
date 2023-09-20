@@ -2,7 +2,7 @@
   <div>
     <v-toolbar flat>
       <v-toolbar-title>
-        Summaries
+        {{ resultsCount | toPrecision }} results
       </v-toolbar-title>
       <v-spacer/>
 
@@ -41,17 +41,22 @@
         </v-card>
       </v-menu>
     </v-toolbar>
-    <div>
-      <pinboard-widget
+    <v-row>
+      <v-col
           v-for="summaryFilterKey in summaries"
           :key="summaryFilterKey"
-          :filter-key="summaryFilterKey"
-          :filters="filters"
-          class="mt-4"
-          @delete="deleteSummary(summaryFilterKey)"
-      />
 
-    </div>
+      >
+        <pinboard-widget
+            :filter-key="summaryFilterKey"
+            :filters="filters"
+            class="mt-4"
+            @delete="deleteSummary(summaryFilterKey)"
+        />
+
+      </v-col>
+
+    </v-row>
 
   </div>
 </template>
@@ -92,9 +97,10 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "entityType",
+      "resultsCount",
     ]),
     filterOptions() {
-      return filtersList(this.entityType,  this.searchString)
+      return filtersList(this.entityType, this.searchString)
     },
 
   },
@@ -143,7 +149,7 @@ export default {
     "$route.query.summaries": {
       immediate: true,
       handler(to, from) {
-        console.log("summaries just changed",to)
+        console.log("summaries just changed", to)
         this.summaries = (to) ?
             to.split(",") :
             []

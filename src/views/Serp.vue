@@ -1,30 +1,30 @@
 <template>
   <div class="">
     <v-toolbar dense flat>
-      <v-toolbar-items style="margin-left:-7px;" >
-        <entity-type-selector  />
-<!--        <v-btn text>-->
-<!--          Filters-->
-<!--        </v-btn>-->
-<!--        <v-btn text>-->
-<!--          Results-->
-<!--        </v-btn>-->
-<!--        <v-btn text>-->
-<!--          Summaries-->
-<!--        </v-btn>-->
-<!--        <v-btn text>-->
-<!--          Export-->
-<!--        </v-btn>-->
+      <v-toolbar-items style="margin-left:-7px;">
+        <entity-type-selector/>
+        <!--        <v-btn text>-->
+        <!--          Filters-->
+        <!--        </v-btn>-->
+        <!--        <v-btn text>-->
+        <!--          Results-->
+        <!--        </v-btn>-->
+        <!--        <v-btn text>-->
+        <!--          Summaries-->
+        <!--        </v-btn>-->
+        <!--        <v-btn text>-->
+        <!--          Export-->
+        <!--        </v-btn>-->
 
       </v-toolbar-items>
     </v-toolbar>
-<!--    <v-toolbar dense flat color="transparent">-->
-<!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
-<!--&lt;!&ndash;        <entity-type-selector  />&ndash;&gt;-->
+    <!--    <v-toolbar dense flat color="transparent">-->
+    <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
+    <!--&lt;!&ndash;        <entity-type-selector  />&ndash;&gt;-->
 
-<!--&lt;!&ndash;      </v-toolbar-items>&ndash;&gt;-->
-<!--      <serp-tabs />-->
-<!--    </v-toolbar>-->
+    <!--&lt;!&ndash;      </v-toolbar-items>&ndash;&gt;-->
+    <!--      <serp-tabs />-->
+    <!--    </v-toolbar>-->
 
     <v-container style="margin-left: 0;" class="ml-0 pl-2">
       <v-alert v-if="1" dense text type="warning" class="">
@@ -51,27 +51,40 @@
       <v-row dense>
         <v-col cols="12" sm="4">
           <filter-list
-                :filters="resultsFilters"
-                @create="createFilter"
-                @update="updateFilter"
-                @delete="deleteFilter"
-                class="mb-3"
-            />
-        </v-col>
-        <v-col cols="12" sm="5">
-          <v-card flat key="serp-results">
-            <serp-toolbar/>
-            <serp-results-list class="pb-8"/>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="3">
-          <v-card flat>
-            <pinboard
               :filters="resultsFilters"
-            />
-          </v-card>
-
+              @create="createFilter"
+              @update="updateFilter"
+              @delete="deleteFilter"
+              class="mb-3"
+          />
         </v-col>
+        <v-col cols="12" sm="8">
+          <v-tabs v-model="resultsTab">
+            <v-tab>List</v-tab>
+            <v-tab>Analyze</v-tab>
+          </v-tabs>
+          <v-tabs-items v-model="resultsTab">
+            <v-tab-item>
+              <v-card flat key="serp-results">
+                <serp-toolbar/>
+                <serp-results-list class="pb-8"/>
+              </v-card>
+
+            </v-tab-item>
+            <v-tab-item>
+              <v-card>
+                  <v-card flat>
+                    <pinboard
+                      :filters="resultsFilters"
+                    />
+                  </v-card>
+              </v-card>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-col>
+        <!--        <v-col cols="12" sm="3">-->
+
+        <!--        </v-col>-->
       </v-row>
 
     </v-container>
@@ -162,7 +175,8 @@ export default {
       logoColorRotation: 0,
       showYearRange: true,
       widgetFilterKeys: [],
-      resultsFilters: []
+      resultsFilters: [],
+      resultsTab: 0,
     }
   },
   asyncComputed: {},

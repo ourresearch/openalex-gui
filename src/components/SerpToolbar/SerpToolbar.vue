@@ -3,7 +3,8 @@
       flat
   >
     <v-toolbar-title>
-      Results
+      {{resultsCount | toPrecision }}
+      results
       <!--      <span class="body-2">{{resultsCount | toPrecision }}</span>-->
     </v-toolbar-title>
 

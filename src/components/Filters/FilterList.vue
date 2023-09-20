@@ -7,6 +7,7 @@
         class="align-center"
         flat
         color="transparent"
+        dense
 
     >
       <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->

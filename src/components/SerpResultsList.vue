@@ -3,10 +3,10 @@
     <div v-if="!resultsCount" class="mt-8 ml-4 grey--text">
       There are no results for this search.
     </div>
-    <div v-else class="mt-4 ml-4 grey--text">
-      {{ resultsCount | toPrecision }} results
+<!--    <div v-else class="mt-4 ml-4 grey&#45;&#45;text">-->
+<!--      {{ resultsCount | toPrecision }} results-->
 
-    </div>
+<!--    </div>-->
     <v-list v-if="resultsCount" class="serp-results-list" nav>
       <component
           v-for="result in $store.state.results"
