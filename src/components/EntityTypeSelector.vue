@@ -3,7 +3,8 @@
     <template v-slot:activator="{ on, attrs }">
       <v-btn
               rounded
-              color="primary"
+              dark
+              color="#444"
               large
               class="text-capitalize"
               v-bind="attrs"

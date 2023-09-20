@@ -11,11 +11,10 @@
     />
     <v-app-bar
         app
-        clipped-left
         flat
+
         color="white"
         class="pl-0"
-        :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
 
     >
@@ -45,6 +44,7 @@
                  rounded
                   outlined
                  class="ml-3"
+                  v-if="$vuetify.breakpoint.smAndUp"
                  href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
             <v-icon left>mdi-alert</v-icon>
             Alpha version
