@@ -1,10 +1,12 @@
 <template>
   <v-toolbar
       flat
+      dark
+      color="#444"
   >
+    <v-icon left>mdi-filter-check-outline</v-icon>
     <v-toolbar-title>
-      {{resultsCount | toPrecision }}
-      results
+      Results
       <!--      <span class="body-2">{{resultsCount | toPrecision }}</span>-->
     </v-toolbar-title>
 
@@ -15,59 +17,6 @@
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
     <!--*****************************************************************************************-->
-
-
-    <v-dialog persistent max-width="400" v-model="dialogs.export">
-      <v-card :loading="exportIsLoading">
-        <v-card-title class="d-flex">
-          <div>
-            <v-icon left>mdi-tray-arrow-down</v-icon>
-            Export spreadsheet ({{ dialogs.exportType }})
-          </div>
-          <v-spacer></v-spacer>
-        </v-card-title>
-
-        <div class="card-content pa-6">
-
-          <template v-if="exportIsInProgress">
-            <div class="mt-4">
-              Your export is in progress! We'll email it to you in under fifteen minutes; don't forget to check your
-              spam folder.
-            </div>
-          </template>
-          <template v-else>
-            <div>
-              Your export will take about 10 minutes to process. Continue?
-            </div>
-
-
-          </template>
-        </div>
-
-        <v-card-actions class="">
-          <v-spacer></v-spacer>
-          <v-btn text @click="dialogs.export = false">
-            Cancel
-          </v-btn>
-          <v-btn
-              :loading="exportIsInProgress"
-              text
-              color="primary"
-              @click="exportToCsv"
-          >
-            Continue
-          </v-btn>
-          <!--          <v-btn-->
-          <!--              v-if="exportIsInProgress"-->
-          <!--              text-->
-          <!--              color="primary"-->
-          <!--              @click="dialogs.export = false"-->
-          <!--          >-->
-          <!--            Close-->
-          <!--          </v-btn>-->
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
 
     <v-dialog max-width="600" v-model="dialogs.createEmailAlert">
@@ -94,40 +43,24 @@
     <!--*****************************************************************************************-->
 
 
-
-    <v-menu offset-y>
+    <v-menu min-width="200" max-width="300">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on" class="" :disabled="disabled">
-          <v-icon>mdi-dots-vertical</v-icon>
+          <v-icon>mdi-tray-arrow-down</v-icon>
         </v-btn>
       </template>
-      <v-list>
-        <v-menu offset-x open-on-hover max-width="200">
-          <template v-slot:activator="{on}">
-            <v-list-item
-                v-on="on"
-                :disabled="resultsCount > 1000000"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="resultsCount > 1000000">
-                  mdi-tray-arrow-down
-                </v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Download results as ...
-                </v-list-item-title>
-                <v-list-item-subtitle :class="{'grey--text': resultsCount > 1000000}">
-                  Max 100k
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
-                <v-icon :disabled="resultsCount > 1000000">mdi-menu-right</v-icon>
-              </v-list-item-action>
-            </v-list-item>
-          </template>
-          <v-list>
-<!--            <v-subheader>Download format:</v-subheader>-->
+      <v-card v-if="resultsCount > 100000" class="" >
+        <div class="error--text pa-4 pb-0 font-weight-bold">
+          Too many results to export.
+        </div>
+        <v-card-text>
+          You can export a maximum of 100,000 results at a time.
+        </v-card-text>
+      </v-card>
+
+      <v-list v-else>
+            <v-subheader>Export results as:</v-subheader>
+        <v-divider />
             <v-list-item @click="setExport('csv')">
               <v-list-item-title>
                 Spreadsheet
@@ -138,14 +71,67 @@
             </v-list-item>
             <v-list-item @click="setExport('wos-plaintext')">
               <v-list-item-title>
-                Web of Science
+                WoS-format
               </v-list-item-title>
               <v-list-item-action-text>
                 .TXT
               </v-list-item-action-text>
             </v-list-item>
           </v-list>
-        </v-menu>
+    </v-menu>
+
+
+    <v-menu offset-y>
+      <template v-slot:activator="{on}">
+        <v-btn icon v-on="on" class="" :disabled="disabled">
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+<!--        <v-menu offset-x open-on-hover max-width="200">-->
+<!--          <template v-slot:activator="{on}">-->
+<!--            <v-list-item-->
+<!--                v-on="on"-->
+<!--                :disabled="resultsCount > 1000000"-->
+<!--            >-->
+<!--              <v-list-item-icon>-->
+<!--                <v-icon :disabled="resultsCount > 1000000">-->
+<!--                  mdi-tray-arrow-down-->
+<!--                </v-icon>-->
+<!--              </v-list-item-icon>-->
+<!--              <v-list-item-content>-->
+<!--                <v-list-item-title>-->
+<!--                  Download results as ...-->
+<!--                </v-list-item-title>-->
+<!--                <v-list-item-subtitle :class="{'grey&#45;&#45;text': resultsCount > 1000000}">-->
+<!--                  Max 100k-->
+<!--                </v-list-item-subtitle>-->
+<!--              </v-list-item-content>-->
+<!--              <v-list-item-action>-->
+<!--                <v-icon :disabled="resultsCount > 1000000">mdi-menu-right</v-icon>-->
+<!--              </v-list-item-action>-->
+<!--            </v-list-item>-->
+<!--          </template>-->
+<!--          <v-list>-->
+<!--            &lt;!&ndash;            <v-subheader>Download format:</v-subheader>&ndash;&gt;-->
+<!--            <v-list-item @click="setExport('csv')">-->
+<!--              <v-list-item-title>-->
+<!--                Spreadsheet-->
+<!--              </v-list-item-title>-->
+<!--              <v-list-item-action-text>-->
+<!--                .CSV-->
+<!--              </v-list-item-action-text>-->
+<!--            </v-list-item>-->
+<!--            <v-list-item @click="setExport('wos-plaintext')">-->
+<!--              <v-list-item-title>-->
+<!--                Web of Science-->
+<!--              </v-list-item-title>-->
+<!--              <v-list-item-action-text>-->
+<!--                .TXT-->
+<!--              </v-list-item-action-text>-->
+<!--            </v-list-item>-->
+<!--          </v-list>-->
+<!--        </v-menu>-->
 
         <v-list-item
             @click="setApiDialogUrl(searchApiUrlForDisplay)"
@@ -187,36 +173,6 @@
         <!--          </v-list-item>-->
 
 
-      </v-list>
-    </v-menu>
-
-
-
-    <v-menu>
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on" class="" :disabled="disabled">
-          <v-icon class="">mdi-sort-ascending</v-icon>
-        </v-btn>
-      </template>
-      <v-list dense>
-        <v-subheader>Sort by</v-subheader>
-        <v-divider></v-divider>
-        <v-list-item
-            v-for="mySortOption in $store.getters.sortObjectOptions"
-            :key="mySortOption.key"
-            @click="setSort(mySortOption.key)"
-        >
-          <v-list-item-icon>
-            <v-icon>
-              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-            </v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ mySortOption.displayName }}
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
       </v-list>
     </v-menu>
 

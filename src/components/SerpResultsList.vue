@@ -1,12 +1,50 @@
 <template>
   <div class="">
-    <div v-if="!resultsCount" class="mt-8 ml-4 grey--text">
-      There are no results for this search.
-    </div>
-<!--    <div v-else class="mt-4 ml-4 grey&#45;&#45;text">-->
-<!--      {{ resultsCount | toPrecision }} results-->
+    <div class="mx-4 mt-6">
+      <div v-if="!resultsCount" class="mt-8 grey--text">
+        There are no results for this search.
+      </div>
+      <div v-else class=" d-flex align-center">
+        <div class="grey--text">
+          {{ resultsCount | toPrecision }} results
+        </div>
+        <v-spacer/>
+        <v-menu>
+          <template v-slot:activator="{on}">
+            <v-btn small rounded class="font-weight-regular" text v-on="on">
+              <v-icon left class="">mdi-sort</v-icon>
+              Sort by {{ sortObject.displayName }}
+            </v-btn>
+          </template>
+          <v-list>
+            <v-subheader>Sort by</v-subheader>
+            <v-divider></v-divider>
+            <v-list-item
+                v-for="mySortOption in $store.getters.sortObjectOptions"
+                :key="mySortOption.key"
+                @click="setSort(mySortOption.key)"
+            >
+              <v-list-item-icon>
+                <v-icon>
+                  {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+                </v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ mySortOption.displayName }}
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
-<!--    </div>-->
+      </div>
+    </div>
+
+    <!--    <div v-else class="mt-4 ml-4 grey&#45;&#45;text">-->
+    <!--      {{ resultsCount | toPrecision }} results-->
+
+    <!--    </div>-->
     <v-list v-if="resultsCount" class="serp-results-list" nav>
       <component
           v-for="result in $store.state.results"
@@ -59,6 +97,8 @@ export default {
       "resultsFilters",
       "resultsCount",
       "entityConfig",
+      "sortObject",
+      "sortObjectOptions",
     ]),
     resultComponentName() {
       return "result-" + this.entityConfig.nameSingular
@@ -84,7 +124,9 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
+    ...mapActions([
+      "setSort",
+    ]),
 
 
   },

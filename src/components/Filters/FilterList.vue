@@ -1,44 +1,40 @@
 <template>
   <v-card
       class="mb-8"
-      flat
   >
     <v-toolbar
         class="align-center"
+        dark
         flat
-        color="transparent"
-        dense
-
+        color="#444"
     >
-      <!--      <v-icon left>mdi-filter-multiple-outline</v-icon>-->
 
         <v-icon left>mdi-filter-outline</v-icon>
+      <v-toolbar-title>
         Filters
-        <!--        <span class="grey&#45;&#45;text">-->
-        <!--        ({{ filters.length }})-->
-        <!--        </span>-->
+      </v-toolbar-title>
     </v-toolbar>
-    <v-toolbar flat class="pa-0">
+    <v-toolbar dark flat dense color="#444">
         <v-text-field
             v-model="searchString"
             hide-details
             prepend-inner-icon="mdi-magnify"
             clearable
             outlined
+            rounded
             dense
-            label="Search filters"
             placeholder="Search filters"
         />
 
     </v-toolbar>
 
-    <v-list expand dense class="pt-1">
-      <template v-if="filters.length">
-        <v-subheader>
+    <v-list expand  class="pt-1">
+      <template v-if="appliedFiltersMatchingSearchString.length">
+        <v-subheader class="pt-3">
           Applied filters
           ({{ appliedFiltersMatchingSearchString.length }})
         </v-subheader>
-        <v-divider/>
+<!--        <v-divider/>-->
       </template>
       <template
           v-for="(filter, i) in appliedFiltersMatchingSearchString"
@@ -57,12 +53,12 @@
       </template>
 
 
-      <template v-if="filterOptionsCount">
-        <v-subheader>
+      <template v-if="facetsByCategoryCount">
+        <v-subheader class="mt-3">
           Filter options
-          ({{ filterOptionsCount }})
+          ({{ facetsByCategoryCount }})
         </v-subheader>
-        <v-divider/>
+<!--        <v-divider/>-->
       </template>
       <v-list-group
           v-for="category in facetsByCategory"
@@ -116,10 +112,10 @@
 
       <template v-if="filterShortcuts && filterShortcuts.length">
         <v-subheader>
-          Filter options + values
+          Filter shortcut options
           ({{ filterShortcuts.length }})
         </v-subheader>
-        <v-divider/>
+<!--        <v-divider/>-->
       </template>
       <v-list-item
           v-for="shortcut in filterShortcuts"
@@ -225,6 +221,14 @@ export default {
           this.filters.map(f => f.key),
       )
     },
+    facetsByCategoryCount(){
+      let sum = 0
+      this.facetsByCategory.forEach(category => {
+        sum += category.filterConfigs.length
+      })
+      return sum
+    },
+
     appliedFiltersMatchingSearchString() {
       return this.filters.filter(f => {
         if (!this.searchString) return true
@@ -261,8 +265,6 @@ export default {
     getShortCutFilterKey(shortcut){
       if (shortcut.filter_key) return shortcut.filter_key
       return getEntityConfig(shortcut.entity_type)?.filterKey
-
-
     },
     setStagedFilter(key) {
       this.stagedFilterKey = key

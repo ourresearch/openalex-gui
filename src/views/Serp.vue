@@ -59,28 +59,32 @@
           />
         </v-col>
         <v-col cols="12" sm="8">
-          <v-tabs v-model="resultsTab">
-            <v-tab>List</v-tab>
-            <v-tab>Analyze</v-tab>
-          </v-tabs>
-          <v-tabs-items v-model="resultsTab">
-            <v-tab-item>
-              <v-card flat key="serp-results">
-                <serp-toolbar/>
-                <serp-results-list class="pb-8"/>
-              </v-card>
+          <v-card rounded>
+            <serp-toolbar/>
+            <v-tabs :slider-size="5" slider-color="primary lighten-2" dark background-color="#444" v-model="resultsTab">
+              <v-tab>List</v-tab>
+              <v-tab>Summaries</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="resultsTab">
+              <v-tab-item>
+                <v-card flat key="serp-results">
 
-            </v-tab-item>
-            <v-tab-item>
-              <v-card>
-                  <v-card flat>
-                    <pinboard
-                      :filters="resultsFilters"
-                    />
-                  </v-card>
-              </v-card>
-            </v-tab-item>
-          </v-tabs-items>
+                  <serp-results-list class="pb-8"/>
+                </v-card>
+
+              </v-tab-item>
+              <v-tab-item>
+                <v-card>
+                    <v-card flat>
+                      <pinboard
+                        :filters="resultsFilters"
+                      />
+                    </v-card>
+                </v-card>
+              </v-tab-item>
+            </v-tabs-items>
+
+          </v-card>
         </v-col>
         <!--        <v-col cols="12" sm="3">-->
 
