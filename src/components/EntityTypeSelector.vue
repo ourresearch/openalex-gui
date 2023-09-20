@@ -2,7 +2,9 @@
   <v-menu offset-y>
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-              text
+              rounded
+              color="primary"
+              large
               class="text-capitalize"
               v-bind="attrs"
               v-on="on"

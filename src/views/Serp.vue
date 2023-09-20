@@ -1,23 +1,6 @@
 <template>
   <div class="">
-    <v-toolbar dense flat>
-      <v-toolbar-items style="margin-left:-7px;">
-        <entity-type-selector/>
-        <!--        <v-btn text>-->
-        <!--          Filters-->
-        <!--        </v-btn>-->
-        <!--        <v-btn text>-->
-        <!--          Results-->
-        <!--        </v-btn>-->
-        <!--        <v-btn text>-->
-        <!--          Summaries-->
-        <!--        </v-btn>-->
-        <!--        <v-btn text>-->
-        <!--          Export-->
-        <!--        </v-btn>-->
 
-      </v-toolbar-items>
-    </v-toolbar>
     <!--    <v-toolbar dense flat color="transparent">-->
     <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
     <!--&lt;!&ndash;        <entity-type-selector  />&ndash;&gt;-->
@@ -26,11 +9,15 @@
     <!--      <serp-tabs />-->
     <!--    </v-toolbar>-->
 
-    <v-container style="margin-left: 0;" class="ml-0 pl-2">
+    <v-container >
       <!--      <serp-applied-filters-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
       <!--      />-->
+      <div class="py-2">
+        <entity-type-selector />
+
+    </div>
 
       <v-row dense>
         <v-col cols="12" sm="4">

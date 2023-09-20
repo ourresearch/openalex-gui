@@ -17,10 +17,9 @@
         class="pl-0"
         :class="{mobile: $vuetify.breakpoint.mobile}"
         absolute
-        :extended="$vuetify.breakpoint.mobile"
 
     >
-      <v-container style="margin-left:0;" class="d-flex align-center " :class="{'pr-0': $vuetify.breakpoint.mobile}">
+      <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
 
         <router-link
             :to="{name: 'Home'}"
@@ -328,7 +327,7 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 32px;
+$logo-link-height: 38px;
 
 .logo-link {
   text-decoration: none;
