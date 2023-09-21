@@ -1,68 +1,24 @@
 <template>
-  <v-dialog>
-    <template v-slot:activator="{on}">
-      <v-list-item v-on="on">
-
+      <v-list-item @click="$emit('edit')">
         <v-list-item-icon>
-<!--          <v-icon class="">{{ myFilterConfig.icon }}</v-icon>-->
           <v-icon class="">mdi-filter-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
             <span v-if="!myFilterValue" class="font-weight-bold">NOT</span>
             {{ myFilterConfig.displayName }}
-<!--            <span v-if="myFilterValue">-->
-<!--              <v-icon >mdi-toggle-switch-outline</v-icon>-->
-<!--              True-->
-<!--            </span>-->
-<!--            <span v-else>-->
-<!--              <v-icon >mdi-toggle-switch-off-outline</v-icon>-->
-<!--              False-->
-<!--            </span>-->
           </v-list-item-title>
           <v-list-item-subtitle>
             Boolean filter
           </v-list-item-subtitle>
 
-          <!--      <v-switch-->
-          <!--          :label="myFilterConfig.displayName"-->
-          <!--            :disabled="disabled"-->
-          <!--            class="ma-0 pt-0 pl-3"-->
-          <!--            v-model="myFilterValue"-->
-          <!--            hide-details-->
-          <!--            @change="$emit('update', myFilterValue)"-->
-
-          <!--        />-->
-
         </v-list-item-content>
-        <!--    <v-list-item-action>-->
-        <!--      <v-switch-->
-
-        <!--            :disabled="disabled"-->
-        <!--            class="ma-0 pt-1"-->
-        <!--            v-model="myFilterValue"-->
-        <!--            hide-details-->
-        <!--            @change="$emit('update', myFilterValue)"-->
-        <!--            -->
-        <!--        />-->
-        <!--    </v-list-item-action>-->
         <v-list-item-action>
-
-
           <v-btn icon @click="$emit('delete', filterKey)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-list-item-action>
       </v-list-item>
-    </template>
-    <filter-edit-boolean
-        :filter-key="filterKey"
-        :filter-value="filterValue"
-        @update="(newValue) =>  $emit('update', newValue)"
-    />
-  </v-dialog>
-
-
 </template>
 
 <script>

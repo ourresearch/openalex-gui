@@ -48,7 +48,6 @@ const setDefault = function (entityType) {
 const getWidgets = function(entityType){
     const key = "pinboard." + entityType
     const resp = localStorage.getItem(key)
-    console.log("getWidgets", resp)
     return (resp && JSON.parse(resp)) ?
         JSON.parse(resp) :
         []

@@ -1,7 +1,7 @@
 <template>
   <v-card rounded flat>
     <v-toolbar flat class="d-flex align-center">
-      <v-icon left>mdi-filter-outline</v-icon>
+<!--      <v-icon left>mdi-filter-outline</v-icon>-->
       <v-toolbar-items>
       <v-switch
           v-model="myValue"

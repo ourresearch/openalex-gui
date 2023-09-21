@@ -50,7 +50,7 @@
             :is="'filter-item-' + filter.type"
             :filter-key="filter.key"
             :filter-value="filter.value"
-            @update="(newValue) => updateFilter(filter.key, newValue)"
+            @edit="setActiveFilter(filter.key, filter.value, false)"
             @delete="deleteFilter(filter.key)"
         />
       </template>

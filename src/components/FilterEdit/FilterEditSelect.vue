@@ -1,12 +1,6 @@
 <template>
-  <v-card flat class="">
-    <v-toolbar flat dense>
-      <v-icon left>{{ myConfig.icon }}</v-icon>
-      <v-toolbar-title>
-        {{ myConfig.displayName }}
-      </v-toolbar-title>
-    </v-toolbar>
-    <v-toolbar flat class="">
+  <v-card flat rounded class="">
+    <div flat>
       <v-text-field
           autofocus
           v-model="searchString"
@@ -14,58 +8,65 @@
           prepend-inner-icon="mdi-magnify"
           clearable
           full-width
-          dense
           rounded
-          outlined
           :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
       />
-    </v-toolbar>
+    </div>
+    <v-divider></v-divider>
+    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">
+      Here's some information about this filter. I hope you find it useful.
+    </v-card-text>
     <v-list
     >
-      <v-subheader v-if="selectedOptions.length">Selected values</v-subheader>
-        <v-list-item
-            v-for="option in selectedOptions"
-            :key="'selected' + option.id"
-            @click="unselectOption(option)"
-        >
-          <v-list-item-action>
-            <v-icon>mdi-checkbox-marked</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ option.display_name }}
-            </v-list-item-title>
-<!--            <v-list-item-subtitle>-->
-<!--              {{ option.works_count }}-->
-<!--            </v-list-item-subtitle>-->
-          </v-list-item-content>
-        </v-list-item>
+      <v-subheader v-if="selectedOptionsToShow.length">
+        Selected
+        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
 
-      <v-subheader v-if="unselectedOptions.length">Values</v-subheader>
+        ({{ selectedOptionsToShow.length }})
+      </v-subheader>
       <v-list-item
-            v-for="option in unselectedOptions"
-            :key="'unselected' + option.id"
-            @click="selectOption(option)"
-        >
+          v-for="option in selectedOptionsToShow"
+          :key="'selected' + option.id"
+          @click="unselectOption(option)"
+      >
         <v-list-item-action>
-            <v-icon>mdi-checkbox-blank-outline</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ option.display_name }}
-            </v-list-item-title>
-<!--            <v-list-item-subtitle>-->
-<!--              {{ option.works_count }}-->
-<!--            </v-list-item-subtitle>-->
-          </v-list-item-content>
-        </v-list-item>
+          <v-icon>mdi-checkbox-marked</v-icon>
+        </v-list-item-action>
+        <v-list-item-content>
+          <v-list-item-title>
+            {{ option.display_name }}
+          </v-list-item-title>
+          <!--            <v-list-item-subtitle>-->
+          <!--              {{ option.works_count }}-->
+          <!--            </v-list-item-subtitle>-->
+        </v-list-item-content>
+      </v-list-item>
+
+      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>
+      <v-list-item
+          v-for="option in unselectedOptions"
+          :key="'unselected' + option.id"
+          @click="selectOption(option)"
+      >
+        <v-list-item-action>
+          <v-icon>mdi-checkbox-blank-outline</v-icon>
+        </v-list-item-action>
+        <v-list-item-content>
+          <v-list-item-title>
+            {{ option.display_name }}
+          </v-list-item-title>
+          <!--            <v-list-item-subtitle>-->
+          <!--              {{ option.works_count }}-->
+          <!--            </v-list-item-subtitle>-->
+        </v-list-item-content>
+      </v-list-item>
 
     </v-list>
     <v-card-actions>
       <v-spacer/>
-      <v-btn text rounded @click="update">Cancel</v-btn>
-      <v-btn  rounded  color="primary" @click="update">
-        {{ createMode ? "Add filter" : "Update filter"}}
+      <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
+      <v-btn rounded color="primary" @click="$emit('upsert', myValue)">
+        {{ createMode ? "Add filter" : "Update filter" }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -117,13 +118,16 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    mySelectedValueString() {
+    myValue() {
       const items = this.selectedOptions.map(o => o.id)
       return makeSelectFilterValue(items, this.selectedMatchMode)
     },
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
+    selectedOptionsToShow() {
+      return this.searchString ? [] : this.selectedOptions
+    }
   },
 
   methods: {
@@ -131,18 +135,15 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    update() {
-      this.$emit("update", this.mySelectedValueString)
-    },
     setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
     },
-    selectOption(option){
+    selectOption(option) {
       this.unselectedOptions = this.unselectedOptions.filter(o => o.id !== option.id)
       this.selectedOptions.push(option)
       this.searchString = ""
     },
-    unselectOption(option){
+    unselectOption(option) {
       this.selectedOptions = this.selectedOptions.filter(o => o.id !== option.id)
       this.unselectedOptions.push(option)
       this.searchString = ""

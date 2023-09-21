@@ -1,51 +1,38 @@
 <template>
-  <v-dialog
-    max-width="400"
-    scrollable
-  >
-    <template v-slot:activator="{on}">
-      <v-list-item v-on="on">
-
-      <v-list-item-icon>
-        <v-icon>mdi-filter-outline</v-icon>
-<!--        <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
-      </v-list-item-icon>
-      <v-list-item-content>
-        <v-list-item-title>
-<!--          <div>{{ options }}</div>-->
-          <filter-value-chip
+  <v-list-item @click="$emit('edit')">
+    <v-list-item-icon>
+      <v-icon v-if="mySelectedIds.length === 1">mdi-filter-outline</v-icon>
+      <v-icon v-else>mdi-filter-multiple-outline</v-icon>
+      <!--        <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
+    </v-list-item-icon>
+    <v-list-item-content>
+      <v-list-item-title>
+        <!--          <div>{{ options }}</div>-->
+        <filter-value-chip
             v-for="id in mySelectedIds.slice(0, 1)"
             :key="id"
             :filter-key="myFilterConfig.key"
             :filter-value="id"
-            />
-          <span v-if="mySelectedIds.length > 1" class="font-weight-bold">
-            +{{ mySelectedIds.length - 1}}
+        />
+        <span v-if="mySelectedIds.length > 1" class="font-weight-bold">
+            +{{ mySelectedIds.length - 1 }}
           </span>
 
-        </v-list-item-title>
-        <v-list-item-subtitle>
-          {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
-        </v-list-item-subtitle>
-<!--        <v-list-item-subtitle>-->
-<!--          Exclude all-->
-<!--        </v-list-item-subtitle>-->
-      </v-list-item-content>
-      <v-list-item-action>
-        <v-btn icon @click="$emit('delete', myFilterConfig.id)">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-list-item-action>
-    </v-list-item>
-    </template>
-    <filter-edit-select
-        :filter-key="filterKey"
-        :filter-value="filterValue"
-        @update="(newValue) =>  $emit('update', newValue)"
-    />
-  </v-dialog>
+      </v-list-item-title>
+      <v-list-item-subtitle>
+        {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
+      </v-list-item-subtitle>
+      <!--        <v-list-item-subtitle>-->
+      <!--          Exclude all-->
+      <!--        </v-list-item-subtitle>-->
+    </v-list-item-content>
+    <v-list-item-action>
+      <v-btn icon @click="$emit('delete', myFilterConfig.id)">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-list-item-action>
+  </v-list-item>
 </template>
-
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -58,7 +45,11 @@ import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
-import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
+import {
+  getMatchModeFromSelectFilterValue,
+  getItemsFromSelectFilterValue,
+  makeSelectFilterValue
+} from "@/filterConfigs";
 import Template from "@/components/Filters/FilterKeySelector.vue";
 import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
@@ -101,7 +92,7 @@ export default {
           })
       return makeSelectFilterValue(items, this.selectedMatchMode)
     },
-    mySelectedIds(){
+    mySelectedIds() {
       return getItemsFromSelectFilterValue(this.filterValue)
     },
     myFilterConfig() {

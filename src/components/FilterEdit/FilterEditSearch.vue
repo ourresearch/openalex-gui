@@ -1,18 +1,21 @@
 <template>
   <v-card rounded flat>
-    <v-toolbar flat>
+    <v-toolbar flat >
 <!--      <v-icon left>{{ myConfig.icon }}</v-icon>-->
       <v-text-field
           autofocus
+          rounded
+          clearable
           v-model="myValue"
           :placeholder="myConfig.displayName"
-          outlined
-          rounded
           hide-details
+          prepend-icon="mdi-magnify"
           @keyup.enter="$emit('upsert', myValue)"
       />
     </v-toolbar>
-    <v-card-text>
+    <v-divider></v-divider>
+    <v-card-text class="pt-4">
+      Here are a few words about this filter.
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
