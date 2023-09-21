@@ -144,7 +144,12 @@ const api = (function () {
                 if (!searchString) return []
                 const myUrl = url.makeAutocompleteUrl(myConfig.entityId, searchString)
                 const resp = await getUrl(myUrl)
-                return resp.results
+                return resp.results.map(r => {
+                    return {
+                        ...r,
+                        id: r.id.replace("https://openalex.org/", "")
+                    }
+                })
 
             }
 
