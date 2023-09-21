@@ -1,42 +1,67 @@
 <template>
-
     <v-card flat class="">
-      <v-toolbar flat dense>
-      <v-icon left>{{ myConfig.icon }}</v-icon>
-      <v-toolbar-title>
-        {{ myConfig.displayName }}
-      </v-toolbar-title>
-    </v-toolbar>
-      <v-card-text class="pt-0">
-        <v-autocomplete
-            chips
-            dense
-            small-chips
-            multiple
-            outlined
+<!--      <v-toolbar flat dense>-->
+<!--      <v-icon left>{{ myConfig.icon }}</v-icon>-->
+<!--      <v-toolbar-title>-->
+<!--        {{ myConfig.displayName }}-->
+<!--      </v-toolbar-title>-->
+<!--    </v-toolbar>-->
+      <v-toolbar flat class="">
+        <v-text-field
+            autofocus
+            v-model="searchString"
             hide-details
-            :items="options"
-            v-model="selectedOptions"
-            :search-input.sync="searchString"
-            item-text="display_name"
-            item-value="id"
-        >
-          <template v-slot:selection="data">
-            <v-chip
-                small
-                v-bind="data.attrs"
-                :input-value="data.selected"
-                close
-                @click="data.select"
-                class="mt-2"
-                @click:close="remove(data.item.id)"
-            >
-              {{ data.item.display_name | truncate(50) }}
-            </v-chip>
-          </template>
-        </v-autocomplete>
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            full-width
+            dense
+            rounded
+            outlined
+            :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
+        />
+      </v-toolbar>
+      <v-list>
+        <v-list-item @click="$emit('click')">
+          one
+        </v-list-item>
+        <v-list-item @click="$emit('click')">
+          two
+        </v-list-item>
+        <v-list-item @click="$emit('click')">
+          three
+        </v-list-item>
+      </v-list>
 
-      </v-card-text>
+<!--      <v-card-text class="pt-0">-->
+<!--        <v-autocomplete-->
+<!--            chips-->
+<!--            dense-->
+<!--            small-chips-->
+<!--            multiple-->
+<!--            outlined-->
+<!--            hide-details-->
+<!--            :items="options"-->
+<!--            v-model="selectedOptions"-->
+<!--            :search-input.sync="searchString"-->
+<!--            item-text="display_name"-->
+<!--            item-value="id"-->
+<!--        >-->
+<!--          <template v-slot:selection="data">-->
+<!--            <v-chip-->
+<!--                small-->
+<!--                v-bind="data.attrs"-->
+<!--                :input-value="data.selected"-->
+<!--                close-->
+<!--                @click="data.select"-->
+<!--                class="mt-2"-->
+<!--                @click:close="remove(data.item.id)"-->
+<!--            >-->
+<!--              {{ data.item.display_name | truncate(50) }}-->
+<!--            </v-chip>-->
+<!--          </template>-->
+<!--        </v-autocomplete>-->
+
+<!--      </v-card-text>-->
       <v-card-actions>
       <v-spacer />
       <v-btn text color="primary" @click="update">Update</v-btn>
