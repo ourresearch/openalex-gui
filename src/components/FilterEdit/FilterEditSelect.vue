@@ -20,15 +20,18 @@
           :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
       />
     </v-toolbar>
-    <div>selected: {{ selectedOptions }}</div>
+<!--    <div>selected: {{ selectedOptions }}</div>-->
     <v-list
     >
-      <v-list-item-group v-model="selectedOptions" multiple>
+      <v-subheader v-if="selectedOptions.length">Selected values</v-subheader>
         <v-list-item
-            v-for="option in options"
-            :key="option.id"
-            :value="option.id"
+            v-for="option in selectedOptions"
+            :key="'selected' + option.id"
+            @click="unselectOption(option)"
         >
+          <v-list-item-action>
+            <v-icon>mdi-checkbox-marked</v-icon>
+          </v-list-item-action>
           <v-list-item-content>
             <v-list-item-title>
               {{ option.display_name }}
@@ -39,42 +42,32 @@
           </v-list-item-content>
         </v-list-item>
 
-      </v-list-item-group>
+      <v-subheader v-if="unselectedOptions.length">Values</v-subheader>
+      <v-list-item
+            v-for="option in unselectedOptions"
+            :key="'unselected' + option.id"
+            @click="selectOption(option)"
+        >
+        <v-list-item-action>
+            <v-icon>mdi-checkbox-blank-outline</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ option.display_name }}
+            </v-list-item-title>
+<!--            <v-list-item-subtitle>-->
+<!--              {{ option.works_count }}-->
+<!--            </v-list-item-subtitle>-->
+          </v-list-item-content>
+        </v-list-item>
+
     </v-list>
-
-    <!--      <v-card-text class="pt-0">-->
-    <!--        <v-autocomplete-->
-    <!--            chips-->
-    <!--            dense-->
-    <!--            small-chips-->
-    <!--            multiple-->
-    <!--            outlined-->
-    <!--            hide-details-->
-    <!--            :items="options"-->
-    <!--            v-model="selectedOptions"-->
-    <!--            :search-input.sync="searchString"-->
-    <!--            item-text="display_name"-->
-    <!--            item-value="id"-->
-    <!--        >-->
-    <!--          <template v-slot:selection="data">-->
-    <!--            <v-chip-->
-    <!--                small-->
-    <!--                v-bind="data.attrs"-->
-    <!--                :input-value="data.selected"-->
-    <!--                close-->
-    <!--                @click="data.select"-->
-    <!--                class="mt-2"-->
-    <!--                @click:close="remove(data.item.id)"-->
-    <!--            >-->
-    <!--              {{ data.item.display_name | truncate(50) }}-->
-    <!--            </v-chip>-->
-    <!--          </template>-->
-    <!--        </v-autocomplete>-->
-
-    <!--      </v-card-text>-->
     <v-card-actions>
       <v-spacer/>
-      <v-btn text color="primary" @click="update">Update</v-btn>
+      <v-btn text rounded @click="update">Cancel</v-btn>
+      <v-btn  rounded  color="primary" @click="update">
+        {{ createMode ? "Add filter" : "Update filter"}}
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -98,9 +91,9 @@ export default {
   name: "FilterValueSelect",
   components: {Template},
   props: {
-    disabled: Boolean,
     filterKey: String,
     filterValue: String,
+    createMode: Boolean,
   },
   data() {
     return {
@@ -109,6 +102,7 @@ export default {
       selectedValue: this.filterValue,
       options: [],
       selectedOptions: [],
+      unselectedOptions: [],
       matchModes: [
         "any",
         "all",
@@ -125,10 +119,7 @@ export default {
       "entityType",
     ]),
     mySelectedValueString() {
-      const items = this.selectedOptions
-          .map(optionId => {
-            return shortenOpenAlexId(optionId)
-          })
+      const items = this.selectedOptions.map(o => o.id)
       return makeSelectFilterValue(items, this.selectedMatchMode)
     },
     myConfig() {
@@ -143,15 +134,20 @@ export default {
     ...mapActions([]),
     update() {
       this.$emit("update", this.mySelectedValueString)
-      // if (this.mySelectedValueString){
-      //   console.log("this.mySelectedValueString", this.mySelectedValueString)
-      // }
-      // else {
-      //   this.$emit("delete")
-      // }
     },
     setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
+    },
+    selectOption(option){
+      this.unselectedOptions = this.unselectedOptions.filter(o => o.id !== option.id)
+      this.selectedOptions.push(option)
+      this.searchString = ""
+    },
+    unselectOption(option){
+      this.selectedOptions = this.selectedOptions.filter(o => o.id !== option.id)
+      this.unselectedOptions.push(option)
+      this.searchString = ""
+      this.fetchOptions()
     },
     remove(id) {
       console.log("remove()", id)
@@ -170,13 +166,12 @@ export default {
         //   const oldOptionIds = this.options.map(o => o.id)
         //   return !oldOptionIds.includes(myNewOption.id)
         // })
-        const selectedOptionObjects = this.options.filter(o => {
-          return this.selectedOptions.includes(o.id)
-        })
-        this.options = [
-            ...selectedOptionObjects,
-            ...apiOptions.slice(0, 5)
-        ]
+        this.unselectedOptions = apiOptions.filter(o => {
+          const iAmInSelectedOptions = this.selectedOptions.find(selectedOption => {
+            return selectedOption.id === o.id
+          })
+          return !iAmInSelectedOptions
+        }).slice(0, 5)
 
       } catch (e) {
         console.log("fetchOptions() error:", e.message)
@@ -222,7 +217,7 @@ export default {
         }
       }
       const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
-      this.options = await Promise.all(
+      this.selectedOptions = await Promise.all(
           autocompletePromises
       )
     }

@@ -17,9 +17,11 @@
       />
     </v-card-text>
     <v-card-actions>
-
-      <v-spacer />
-      <v-btn rounded :disabled="filterValue===myValue" color="primary" @click="update">Update</v-btn>
+      <v-spacer/>
+      <v-btn text rounded @click="update">Cancel</v-btn>
+      <v-btn  rounded  color="primary" @click="update">
+        {{ createMode ? "Add filter" : "Update filter"}}
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -35,7 +37,7 @@ export default {
   props: {
     filterKey: String,
     filterValue: String,
-    create: Boolean,
+    createMode: Boolean,
   },
   data() {
     return {
