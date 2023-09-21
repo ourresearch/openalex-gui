@@ -10,34 +10,34 @@
         color="#444"
     >
 
-        <v-icon left>mdi-filter-outline</v-icon>
+      <v-icon left>mdi-filter-outline</v-icon>
       <v-toolbar-title>
         Filters
       </v-toolbar-title>
     </v-toolbar>
     <v-toolbar dark flat dense color="#444">
-        <v-text-field
-            v-model="searchString"
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            clearable
-            rounded
-            solo
-            dense
-            placeholder="Search filters"
-            background-color="#eee"
-            light
-        />
+      <v-text-field
+          v-model="searchString"
+          hide-details
+          prepend-inner-icon="mdi-magnify"
+          clearable
+          rounded
+          solo
+          dense
+          placeholder="Search filters"
+          background-color="#eee"
+          light
+      />
 
     </v-toolbar>
 
-    <v-list expand  class="pt-1">
+    <v-list expand class="pt-1">
       <template v-if="appliedFiltersMatchingSearchString.length">
         <v-subheader class="pt-3">
           Applied filters
           ({{ appliedFiltersMatchingSearchString.length }})
         </v-subheader>
-<!--        <v-divider/>-->
+        <!--        <v-divider/>-->
       </template>
       <template
           v-for="(filter, i) in appliedFiltersMatchingSearchString"
@@ -61,7 +61,7 @@
           Filter options
           ({{ facetsByCategoryCount }})
         </v-subheader>
-<!--        <v-divider/>-->
+        <!--        <v-divider/>-->
       </template>
       <v-list-group
           v-for="category in facetsByCategory"
@@ -76,76 +76,45 @@
             <v-list-item-title>{{ category.displayName }}</v-list-item-title>
           </v-list-item-content>
         </template>
-        <v-menu
+        <v-list-item
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
-            offset-x
-            :close-on-content-click="false"
+            class="pl-12"
+            @click="setActiveFilter(filterConfig.key, null, true)"
         >
-          <template v-slot:activator="{on}">
-            <v-list-item
-                class="pl-12"
-                v-on="on"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ filterConfig.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filterConfig.displayName }}
-                </v-list-item-title>
-                <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
-                <!--              {{ filterConfig.type }}-->
-                <!--            </v-list-item-subtitle>-->
-              </v-list-item-content>
-            </v-list-item>
-          </template>
-          <div>
-            <component
-                :key="filterConfig.key + $route.query.filter"
-                class=""
-                :is="'filter-edit-' + filterConfig.type"
-                :filter-key="filterConfig.key"
-                create-mode
-                @update="(newValue) => createFilter(filterConfig.key, newValue)"
-            />
-          </div>
-        </v-menu>
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>{{ filterConfig.icon }}</v-icon>-->
+<!--          </v-list-item-icon>-->
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ filterConfig.displayName }}
+            </v-list-item-title>
+            <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
+            <!--              {{ filterConfig.type }}-->
+            <!--            </v-list-item-subtitle>-->
+          </v-list-item-content>
+        </v-list-item>
       </v-list-group>
-
-      <template v-if="filterShortcuts && filterShortcuts.length">
-        <v-subheader>
-          Filter shortcut options
-          ({{ filterShortcuts.length }})
-        </v-subheader>
-<!--        <v-divider/>-->
-      </template>
-      <v-list-item
-          v-for="shortcut in filterShortcuts"
-          :key="shortcut.id + 'shortcut'"
-          @click="createFilter(getShortCutFilterKey(shortcut), shortcut.id)"
-      >
-        <v-list-item-icon>
-          <v-icon>
-            {{ getEntityConfig(shortcut.entity_type).icon }}
-          </v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            {{ shortcut.display_name }}
-          </v-list-item-title>
-          <v-list-item-subtitle class="text-capitalize">
-            {{ shortcut.entity_type }} -
-            <span class="font-weight-regular">{{ shortcut.works_count | toPrecision }} works</span>
-          </v-list-item-subtitle>
-        </v-list-item-content>
-        <v-list-item-action>
-          <v-icon>mdi-filter-plus-outline</v-icon>
-        </v-list-item-action>
-      </v-list-item>
 
 
     </v-list>
+
+    <v-dialog
+        v-model="isActiveFilterDialogOpen"
+        max-width="400"
+    >
+      <component
+          class=""
+          v-if="activeFilterConfig"
+          :is="'filter-edit-' + activeFilterConfig.type"
+          :filter-key="activeFilterKey"
+          :filter-value="activeFilterValue"
+          :create-mode="activeFilterCreateMode"
+          @upsert="(newValue) => createOrUpdateFilter(activeFilterKey, newValue)"
+          @close="setActiveFilter(null, null, null)"
+      />
+    </v-dialog>
+
 
   </v-card>
 </template>
@@ -195,26 +164,24 @@ export default {
   data() {
     return {
       foo: 42,
-      filterToCreate: null,
-      stagedFilterKey: null,
-      fabIsVisible: false,
-      isFilterKeySelectorVisible: false,
-      isAddFilterDialogVisible: false,
+      activeFilterKey: null,
+      activeFilterValue: null,
+      activeFilterCreateMode: false,
+      isActiveFilterDialogOpen: false,
+
 
       searchString: "",
       getEntityConfig,
+
     }
   },
   computed: {
     ...mapGetters([
       "entityType",
     ]),
-    stagedFilterConfig() {
-      if (!this.stagedFilterKey) return
-      return getFacetConfig(this.entityType, this.stagedFilterKey)
-    },
-    filterOptionsCount() {
-      return filtersList(this.entityType).length - this.filters.length
+    activeFilterConfig() {
+      if (!this.activeFilterKey) return
+      return getFacetConfig(this.entityType, this.activeFilterKey)
     },
     facetsByCategory() {
       return facetsByCategory(
@@ -224,7 +191,7 @@ export default {
           this.filters.map(f => f.key),
       )
     },
-    facetsByCategoryCount(){
+    facetsByCategoryCount() {
       let sum = 0
       this.facetsByCategory.forEach(category => {
         sum += category.filterConfigs.length
@@ -239,45 +206,23 @@ export default {
       })
     },
   },
-  asyncComputed: {
-    async filterShortcuts() {
-      if (!this.searchString) return []
-      const autocompleteUrl = url.makeAutocompleteUrl(null, this.searchString)
-      const resp = await api.getUrl(autocompleteUrl)
-      return resp.results.filter(f => !!f.entity_type)
 
-    },
-
-  },
 
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
-    setFilterToCreate(filterKey) {
-      const filterToCreate = createSimpleFilter(this.entityType, filterKey)
-      if (filterToCreate.type === "boolean") {
-        this.$emit("create", filterKey, filterToCreate.value)
-      } else {
-        this.filterToCreate = filterToCreate
-      }
-    },
-    // hack because shortcut objects (from autocomplete) that are entities
-    // have Null filter_key
-    getShortCutFilterKey(shortcut){
-      if (shortcut.filter_key) return shortcut.filter_key
-      return getEntityConfig(shortcut.entity_type)?.filterKey
-    },
-    setStagedFilter(key) {
-      this.stagedFilterKey = key
+    setActiveFilter(key, value, createMode) {
+      this.activeFilterKey = key
+      this.activeFilterValue = value
+      this.activeFilterCreateMode = createMode
+      this.isActiveFilterDialogOpen = !!key
     },
     createFilter(key, value) {
       this.searchString = ""
       console.log("FilterList createFilter existing filter", key, value);
-      this.isAddFilterDialogVisible = false
       url.createFilter(this.entityType, key, value)
-      // this.filterToCreate = null
     },
     createOrUpdateFilter(key, value) {
       this.searchString = ""
@@ -286,12 +231,12 @@ export default {
       (existingFilter) ?
           this.updateFilter(key, value) :
           this.createFilter(key, value)
+      this.setActiveFilter(null, null, null)
     },
     deleteFilter(key) {
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
       url.deleteFilter(this.entityType, key)
-      // this.filterToCreate = null
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
@@ -308,13 +253,12 @@ export default {
   created() {
   },
   mounted() {
-    this.fabIsVisible = true
   },
   watch: {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
-        this.stagedFilterKey = null
+        this.activeFilterKey = null
       }
     }
   }

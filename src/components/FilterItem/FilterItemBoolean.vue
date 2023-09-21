@@ -1,5 +1,5 @@
 <template>
-  <v-menu offset-x :close-on-content-click="false">
+  <v-dialog>
     <template v-slot:activator="{on}">
       <v-list-item v-on="on">
 
@@ -60,7 +60,7 @@
         :filter-value="filterValue"
         @update="(newValue) =>  $emit('update', newValue)"
     />
-  </v-menu>
+  </v-dialog>
 
 
 </template>
