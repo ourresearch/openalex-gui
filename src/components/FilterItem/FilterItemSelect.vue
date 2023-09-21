@@ -1,10 +1,14 @@
 <template>
-  <v-menu offset-x :close-on-content-click="false">
+  <v-dialog
+    max-width="400"
+    scrollable
+  >
     <template v-slot:activator="{on}">
       <v-list-item v-on="on">
 
       <v-list-item-icon>
-        <v-icon>{{ myFilterConfig.icon }}</v-icon>
+        <v-icon>mdi-filter-outline</v-icon>
+<!--        <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
       </v-list-item-icon>
       <v-list-item-content>
         <v-list-item-title>
@@ -15,7 +19,7 @@
             :filter-key="myFilterConfig.key"
             :filter-value="id"
             />
-          <span v-if="mySelectedIds.length > 1">
+          <span v-if="mySelectedIds.length > 1" class="font-weight-bold">
             +{{ mySelectedIds.length - 1}}
           </span>
 
@@ -39,7 +43,7 @@
         :filter-value="filterValue"
         @update="(newValue) =>  $emit('update', newValue)"
     />
-  </v-menu>
+  </v-dialog>
 </template>
 
 <script>

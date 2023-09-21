@@ -4,22 +4,24 @@
       <v-list-item v-on="on">
 
         <v-list-item-icon>
-          <v-icon class="mt-3">{{ myFilterConfig.icon }}</v-icon>
+<!--          <v-icon class="">{{ myFilterConfig.icon }}</v-icon>-->
+          <v-icon class="">mdi-filter-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
-            <span v-if="myFilterValue">
-              <v-icon >mdi-toggle-switch-outline</v-icon>
-              True
-            </span>
-            <span v-else>
-              <v-icon >mdi-toggle-switch-off-outline</v-icon>
-              False
-            </span>
+            <span v-if="!myFilterValue" class="font-weight-bold">NOT</span>
+            {{ myFilterConfig.displayName }}
+<!--            <span v-if="myFilterValue">-->
+<!--              <v-icon >mdi-toggle-switch-outline</v-icon>-->
+<!--              True-->
+<!--            </span>-->
+<!--            <span v-else>-->
+<!--              <v-icon >mdi-toggle-switch-off-outline</v-icon>-->
+<!--              False-->
+<!--            </span>-->
           </v-list-item-title>
           <v-list-item-subtitle>
-            {{ myFilterConfig.displayName }}
-<!--            {{ myFilterConfig.type }}-->
+            Boolean filter
           </v-list-item-subtitle>
 
           <!--      <v-switch-->

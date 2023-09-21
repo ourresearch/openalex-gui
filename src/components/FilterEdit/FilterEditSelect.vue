@@ -20,7 +20,6 @@
           :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
       />
     </v-toolbar>
-<!--    <div>selected: {{ selectedOptions }}</div>-->
     <v-list
     >
       <v-subheader v-if="selectedOptions.length">Selected values</v-subheader>
@@ -188,7 +187,6 @@ export default {
     if (this.filterValue) {
       // const newIds = this.filterValue.split("|")
       const newIds = getItemsFromSelectFilterValue(this.filterValue)
-      this.selectedOptions = newIds
       this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
 
       const that = this
