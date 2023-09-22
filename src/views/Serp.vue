@@ -14,10 +14,20 @@
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
       <!--      />-->
-      <div class="py-2">
+      <v-card  rounded class="my-2 pa-1 d-flex">
         <entity-type-selector />
+        <v-text-field
+            prepend-inner-icon="mdi-magnify"
+            light
+            background-color="#fff"
+            hide-details
+            filled
+            rounded
+            v-model="searchString"
+        />
 
-    </div>
+
+    </v-card>
 
       <v-row dense>
         <v-col cols="12" sm="4">
@@ -152,6 +162,9 @@ export default {
       widgetFilterKeys: [],
       resultsFilters: [],
       resultsTab: 0,
+
+      // temp
+      searchString: "",
     }
   },
   asyncComputed: {},
@@ -293,7 +306,10 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.v-text-field--rounded {
+  border-radius: inherit;
+}
 
 
 .v-app-bar.mobile {

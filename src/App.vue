@@ -308,6 +308,7 @@ html, body {
   opacity: 0.00005 !important;
 }
 
+
 .v-btn.v-size--default {
   //opacity: 0.00005 !important;
   font-size: 1rem;
