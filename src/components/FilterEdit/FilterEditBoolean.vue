@@ -13,6 +13,8 @@
       </v-toolbar-items>
     </v-toolbar>
     <v-card-text class="pt-0">
+      {{ this.filterDocstrings[myConfig.key].docstring }} <a :href="this.filterDocstrings[myConfig.key].documentationLink" rel="noopener noreferrer" target="_blank">Learn more in the docs</a>
+      <br />
       <div>
         Show only {{ entityType | pluralize(1) }} that
         <span>
@@ -36,6 +38,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
+import {api} from "@/api";
 
 export default {
   name: "FilterEditBoolean",
@@ -49,6 +52,7 @@ export default {
     return {
       foo: 42,
       myValue: (this.createMode) ? true : this.filterValue,
+      filterDocstrings: [],
     }
   },
   computed: {
@@ -74,7 +78,8 @@ export default {
   },
   created() {
   },
-  mounted() {
+  async mounted() {
+    this.filterDocstrings = await api.get("works/filters_docstrings")
   },
   watch: {}
 }
