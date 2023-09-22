@@ -8,22 +8,25 @@
         rounded
         outlined
         :placeholder="`Filter ${entityType}`"
-        @click="isDialogOpen = true"
         append-icon="mdi-magnify"
         full-width
+        id="search-box-new-text-field"
     >
       <template v-slot:prepend-inner>
         <entity-type-selector style="margin-top: 2px;" />
       </template>
     </v-text-field>
 
-    <v-dialog
+    <component
+        :is="$vuetify.breakpoint.mobile ? 'v-dialog' : 'v-menu'"
         v-model="isDialogOpen"
-        max-width="800"
-        :fullscreen="$vuetify.breakpoint.mobile"
+        fullscreen
         scrollable
+        activator="#search-box-new-text-field"
+        rounded
+        :content-class="$vuetify.breakpoint.mobile ? 'search-box-new-dialog' : 'search-box-new-menu' "
     >
-      <v-card>
+      <v-card rounded width="600">
         <v-toolbar max-height="60">
           <v-text-field
               autofocus
@@ -59,7 +62,7 @@
 
       </v-card>
 
-    </v-dialog>
+    </component>
   </div>
 </template>
 
@@ -79,10 +82,15 @@ import {url} from "@/url";
 import {getFacetConfig} from "../facetConfigs";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
+import {VMenu} from "vuetify/lib";
+import {VDialog} from "vuetify/lib";
+
 export default {
   name: "SearchBoxNew",
   components: {
     EntityTypeSelector,
+    VDialog,
+    VMenu,
   },
   props: {},
   data() {
@@ -155,6 +163,11 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+  .search-box-new-menu {
+    left: calc(50vw - 300px) !important;
+    top: 1px !important;
+
+  }
 
 </style>

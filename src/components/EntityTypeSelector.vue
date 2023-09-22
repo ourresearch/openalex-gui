@@ -22,21 +22,21 @@
         :is="$vuetify.breakpoint.mobile ? 'v-dialog' : 'v-menu'"
         v-model="isDialogOpen"
         fullscreen
-        scrollable
         activator="#entity-type-select-btn"
         rounded
     >
       <v-card flat rounded>
-        <v-toolbar flat dark v-if="$vuetify.breakpoint.mobile">
+        <v-toolbar flat v-if="$vuetify.breakpoint.mobile">
+          <v-btn icon @click="isDialogOpen = false">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
+
           <v-toolbar-title>
             What are you looking for?
           </v-toolbar-title>
           <v-spacer/>
-          <v-btn icon @click="isDialogOpen = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-0" style="max-height: 95vh">
+        <v-card-text class="pa-0" >
           <!--        <v-container>-->
           <!--          <v-row-->
           <!--              v-if="$vuetify.breakpoint.mdAndUp"-->
