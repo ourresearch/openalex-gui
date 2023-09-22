@@ -15,7 +15,7 @@
     </v-toolbar>
     <v-divider></v-divider>
     <v-card-text class="pt-4">
-      Here are a few words about this filter.
+      {{ this.filterDocstrings[myConfig.key].docstring }} <a :href="this.filterDocstrings[myConfig.key].documentationLink" rel="noopener noreferrer" target="_blank">Learn more in the docs</a>
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
@@ -31,6 +31,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
+import {api} from "@/api";
 
 export default {
   name: "FilterEditSearch",
@@ -44,6 +45,7 @@ export default {
     return {
       foo: 42,
       myValue: this.filterValue,
+      filterDocstrings: [],
     }
   },
   computed: {
@@ -69,7 +71,8 @@ export default {
   },
   created() {
   },
-  mounted() {
+  async mounted() {
+    this.filterDocstrings = await api.get("works/filters_docstrings")
   },
   watch: {}
 }

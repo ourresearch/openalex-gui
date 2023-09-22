@@ -14,7 +14,7 @@
     </div>
     <v-divider></v-divider>
     <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">
-      Here's some information about this filter. I hope you find it useful.
+      {{ this.filterDocstrings[myConfig.key].docstring }} <a :href="this.filterDocstrings[myConfig.key].documentationLink" rel="noopener noreferrer" target="_blank">Learn more in the docs</a>
     </v-card-text>
     <v-list
     >
@@ -119,6 +119,7 @@ export default {
       selectedMatchMode: "any",
       searchString: "",
       mySelectedValues: [],
+      filterDocstrings: [],
     }
   },
   computed: {
@@ -135,7 +136,7 @@ export default {
     },
     selectedOptionsToShow() {
       return this.searchString ? [] : this.selectedOptions
-    }
+    },
   },
 
   methods: {
@@ -228,6 +229,7 @@ export default {
           autocompletePromises
       )
     }
+    this.filterDocstrings = await api.get("works/filters_docstrings")
   },
   watch: {
     searchString: {
