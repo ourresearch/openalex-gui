@@ -189,11 +189,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
-import UserToolbarMenu from "./components/user/UserToolbarMenu.vue";
-import EntityTypeSelector from "./components/EntityTypeSelector.vue";
 import axios from "axios";
-import SearchBoxNew from "./components/SearchBoxNew.vue";
-import FilterList from "@/components/Filters/FilterList.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 
 export default {
@@ -205,10 +201,6 @@ export default {
     meta: []
   },
   components: {
-    SearchBoxNew,
-    EntityTypeSelector,
-    UserToolbarMenu,
-    FilterList,
   },
 
 

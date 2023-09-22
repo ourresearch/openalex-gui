@@ -19,14 +19,12 @@
       <v-text-field
           v-model="searchString"
           hide-details
-          prepend-inner-icon="mdi-magnify"
+          prepend-icon="mdi-magnify"
           clearable
           rounded
-          solo
+          dark
           dense
           placeholder="Search filters"
-          background-color="#eee"
-          light
       />
 
     </v-toolbar>
@@ -144,7 +142,7 @@ import {api} from "@/api";
 
 
 export default {
-  name: "Template",
+  name: "FilterList",
   components: {
     FilterKeySelector,
     FilterItemBoolean,

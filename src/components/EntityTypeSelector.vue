@@ -8,13 +8,13 @@
         @click="isDialogOpen = true"
         id="entity-type-select-btn"
     >
-      <v-icon :left="$vuetify.breakpoint.mdAndUp">{{ selectedEntityTypeConfig.icon }}</v-icon>
-      <template
+      <v-icon >{{ selectedEntityTypeConfig.icon }}</v-icon>
+      <v-toolbar-title
           v-if="$vuetify.breakpoint.mdAndUp"
-          class=""
+          class="ml-2"
       >
         {{ selectedEntityTypeConfig.displayName }}
-      </template>
+      </v-toolbar-title>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 

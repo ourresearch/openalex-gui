@@ -1,110 +1,62 @@
 <template>
   <div>
+    <v-text-field
 
-    <v-menu :value="!!searchString" offset-y content-class="no-highlight" min-width="150">
-      <template v-slot:activator="{on}">
-        <v-text-field
-                v-on="on"
-                v-model="searchString"
-dense
-                solo
-                flat
-                outlined
-                hide-details
-                clearable
-                rounded
-                prepend-inner-icon="mdi-filter-plus-outline"
-                placeholder="Search fulltext, abstract, author, and more"
-                @keypress.enter.stop.prevent="setTopFilter"
-                :loading="isLoading"
-        />
-      </template>
-      <v-list v-if="!!searchString">
+        prepend-inner-icon="mdi-magnify"
+        light
+        background-color="#fff"
+        hide-details
+        readonly
+        filled
+        rounded
+        :placeholder="`Filter ${entityType}`"
+        @keypress.enter.stop.prevent="setTopFilter"
+        @click="isDialogOpen = true"
+    />
 
-        <v-list-item
-                @click.stop="setTopFilter"
-                @keydown.enter.prevent="setTopFilter"
-                key="top-filter-slot"
-                v-if="pidFilterSuggestion"
-                :disabled="isLoading"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-filter-plus-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title class="font-weight-bold">
-              <div class="text-wrap">
-                {{ topFilterSlot.displayValue }}
-              </div>
-            </v-list-item-title>
-            <v-list-item-subtitle v-if="topFilterSlot">
-              {{ topFilterSlot.displayName }}
-            </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-action>
-            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">
-              ⏎ Enter
-            </v-chip>
-          </v-list-item-action>
-        </v-list-item>
-
-        <v-list-item
-                @click.stop="setTopFilter"
-                @keydown.enter.prevent="setTopFilter"
-                key="top-filter-slot"
-                v-else
-        >
-
-          <v-list-item-icon>
-            <v-icon>mdi-magnify</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title class="font-weight-bold">
-              <q>{{ searchFilter.value }}</q>
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              {{ searchFilter.displayName }}
-            </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-action>
-            <v-chip small color="" outlined style="border-radius: 5px;   opacity: .7">
-              ⏎ Enter
-            </v-chip>
-          </v-list-item-action>
-        </v-list-item>
-
-
-        <template v-if="filterSuggestions.length && !pidFromSearchString">
-          <v-subheader>
-            Filter values
-          </v-subheader>
-          <v-divider></v-divider>
-          <v-list-item
-                  @click.stop="setFilter(suggestion)"
-                  @keydown.enter.prevent="setFilter(suggestion)"
-                  v-for="suggestion in filterSuggestions"
-                  :key="suggestion.id"
-          >
-            <v-list-item-icon>
-              <!--            <v-icon>{{ suggestion.icon }}</v-icon>-->
-              <v-icon>mdi-filter-plus-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                <div class="text-wrap">
+    <v-dialog
+        v-model="isDialogOpen"
+        max-width="800"
+        :fullscreen="$vuetify.breakpoint.smAndDown"
+        scrollable
+    >
+      <v-card>
+        <v-toolbar max-height="60">
+          <v-text-field
+              autofocus
+              rounded
+              v-model="searchString"
+              :placeholder="`Filter ${entityType}`"
+              hide-details
+              prepend-icon="mdi-magnify"
+              append-outer-icon="mdi-close"
+              @click:append-outer="isDialogOpen = false"
+          />
+        </v-toolbar>
+        <v-card-text class="pa-0">
+          <v-list two-line>
+            <v-list-item
+              v-for="suggestion in filterSuggestions"
+              :key="suggestion.id"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-filter-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
                   {{ suggestion.displayValue }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ suggestion.displayKey }} - {{ suggestion.filterKey }}
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
 
-                </div>
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                {{ suggestion.displayName }}
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
+      </v-card>
 
-      </v-list>
-    </v-menu>
+    </v-dialog>
   </div>
 </template>
 
@@ -114,151 +66,86 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import axios from "axios";
 import {
-    createSimpleFilter,
-    createDisplayFilter,
-    createSimpleFilterFromPid,
-    createDisplayFilterFromPid
+  createSimpleFilter,
+  createDisplayFilter,
+  createSimpleFilterFromPid,
+  createDisplayFilterFromPid
 } from "@/filterConfigs";
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {url} from "@/url";
+import {getFacetConfig} from "../facetConfigs";
 
 export default {
-    name: "SearchBoxNew",
-    components: {},
-    props: {},
-    data() {
-        return {
-            foo: 42,
-            isLoading: false,
-            searchString: "",
+  name: "SearchBoxNew",
+  components: {},
+  props: {},
+  data() {
+    return {
+      foo: 42,
+      isLoading: false,
+      searchString: "",
+      isDialogOpen: false,
 
-        }
-    },
-    computed: {
-        ...mapGetters([
-            "resultsFilters",
-            "entityType",
-        ]),
-        pidFromSearchString() {
-            const pidFilter = createSimpleFilterFromPid(this.searchString)
-            if (!pidFilter) return
-            const fullyQualifiedPid = [pidFilter?.pidPrefix, pidFilter.value].join(":")
-            return fullyQualifiedPid
-        },
-        autocompleteUrl() {
-            const url = new URL("https://api.openalex.org")
-            url.pathname = "autocomplete"
-
-            url.searchParams.set("email", "team@ourresearch.org")
-            const q = this.pidFromSearchString ?? this.searchString
-            url.searchParams.set("q", q)
-            return url.toString()
-        },
-        isOpen: {
-            get() {
-                if (!this.$vuetify.breakpoint.mobile) return true
-                return this.$store.state.showFiltersDrawer
-            },
-            set(val) {
-                if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
-                this.$store.state.showFiltersDrawer = val
-            },
-        },
-
-        searchFilter() {
-            return createSimpleFilter(
-                "works",
-                "default.search",
-                this.searchString,
-            )
-        },
-        topFilterSlot(){
-            return this.pidFilterSuggestion ?? this.searchFilter
-        }
-    },
-    asyncComputed: {
-        async filterSuggestions() {
-            if (!this.searchString) return []
-            this.isLoading = true
-            const resp = await axios.get(this.autocompleteUrl)
-            this.isLoading = false
-
-            return resp.data.results
-                // .filter(r => r.entity_type !== 'funder')
-                // .filter(r => r.entity_type !== 'publisher')
-                .map(r => {
-
-                    const filterKey = (r.filter_key) ?
-                        r.filter_key :
-                        getEntityConfig(r.entity_type)?.filterKey
-
-                    const ret = createDisplayFilter(
-                        "works",
-                        filterKey,
-                        r.id,
-                        false,
-                        r.display_name,
-                    )
-
-                    return ret
-                }).slice(0, 4)
-
-        },
-        async pidFilterSuggestion() {
-            if (!this.pidFromSearchString) return
-            const suggestions = await this.filterSuggestions
-            if (suggestions.length) {
-                return suggestions[0]
-            }
-        },
-    },
-
-    methods: {
-        ...mapMutations([
-            "snackbar",
-            "openFacetsDialog",
-        ]),
-        ...mapActions([]),
-        setFilter(filter) {
-            console.log("setFilter", filter)
-
-            url.setFilters("works", [...this.resultsFilters, filter], false)
-            this.searchString = ""
-        },
-        setTopFilter() {
-            this.setFilter(this.topFilterSlot)
-        },
-
-        setSearch() {
-            console.log("setSearch", this.searchString)
-            if (!this.searchString) return
-            const filter = createSimpleFilter(
-                "works",
-                "title.search",
-                this.searchString
-            )
-            url.setFilters("works", [...this.resultsFilters, filter], false)
-
-            this.searchString = ""
-            // console.log("setSearch")
-            // url.setSearch(this.entityType, this.searchString)
-        },
-        clickViewAllFilters() {
-            this.openFacetsDialog()
-            this.searchString = ""
-        }
-
-
-    },
-    created() {
-    },
-    mounted() {
-    },
-    watch: {
-        '$store.state.facetsListDialogIsOpen'(to, from) {
-            this.searchString = ""
-        }
     }
+  },
+  computed: {
+    ...mapGetters([
+      "resultsFilters",
+      "entityType",
+    ]),
+
+    searchFilter() {
+      return createSimpleFilter(
+          "works",
+          "default.search",
+          this.searchString,
+      )
+    },
+    topFilterSlot() {
+      return this.pidFilterSuggestion ?? this.searchFilter
+    }
+  },
+  asyncComputed: {
+    async filterSuggestions() {
+      if (!this.searchString) return []
+      const autocompleteUrl = url.makeAutocompleteUrl(null, this.searchString)
+      const resp = await api.getUrl(autocompleteUrl)
+      return resp.results.map(result => {
+        let filter_key = (result.filter_key) ?
+            result.filter_key :
+            getEntityConfig(result.entity_type)?.filterKey
+
+        if (filter_key === "authorships.institutions.country_code") {
+          filter_key = "institutions.country_code"
+        }
+
+        return {
+          ...result,
+          displayValue: result.display_name,
+          displayKey: getFacetConfig(this.entityType, filter_key)?.displayName,
+          filterKey: filter_key,
+          filterValue: result.id,
+        }
+      }).slice(0, 5)
+
+    },
+  },
+
+  methods: {
+    ...mapMutations([
+      "snackbar",
+      "openFacetsDialog",
+    ]),
+    ...mapActions([]),
+
+
+  },
+  created() {
+  },
+  mounted() {
+  },
+  watch: {
+  }
 }
 </script>
 

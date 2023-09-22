@@ -9,25 +9,24 @@
     <!--      <serp-tabs />-->
     <!--    </v-toolbar>-->
 
-    <v-container >
+    <v-container>
       <!--      <serp-applied-filters-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
       <!--      />-->
-      <v-card  rounded class="my-2 pa-1 d-flex">
-        <entity-type-selector />
-        <v-text-field
-            prepend-inner-icon="mdi-magnify"
-            light
-            background-color="#fff"
-            hide-details
-            filled
-            rounded
-            v-model="searchString"
-        />
+      <v-card rounded class="my-2 pa-1 d-flex">
+        <v-row dense>
+          <v-col cols="3" md="4">
+            <entity-type-selector/>
+          </v-col>
+          <v-col cols="9" md="8">
+            <search-box-new/>
+
+          </v-col>
+        </v-row>
 
 
-    </v-card>
+      </v-card>
 
       <v-row dense>
         <v-col cols="12" sm="4">
@@ -56,11 +55,11 @@
               </v-tab-item>
               <v-tab-item>
                 <v-card>
-                    <v-card flat>
-                      <pinboard
+                  <v-card flat>
+                    <pinboard
                         :filters="resultsFilters"
-                      />
-                    </v-card>
+                    />
+                  </v-card>
                 </v-card>
               </v-tab-item>
             </v-tabs-items>
@@ -104,7 +103,6 @@ import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
-import YearRange from "../components/YearRange";
 import {api} from "@/api";
 import {pinboard} from "@/pinboard";
 import SerpResultsList from "../components/SerpResultsList.vue";
@@ -113,10 +111,7 @@ import Pinboard from "../components/Pinboard/Pinboard.vue";
 
 import ApiDialog from "../components/ApiDialog.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
-
-import PinboardWidget from "../components/Pinboard/PinboardWidget.vue";
-import SerpTabs from "@/SerpTabs.vue";
+import SearchBoxNew from "../components/SearchBoxNew.vue";
 
 export default {
   name: "Serp",
@@ -126,16 +121,13 @@ export default {
     return ret
   },
   components: {
-    SerpToolbar,
     FilterList,
+    SearchBoxNew,
+    SerpToolbar,
     SerpResultsList,
     ApiDialog,
     Pinboard,
-    PinboardWidget,
     EntityTypeSelector,
-    FilterKeySelector,
-    YearRange,
-    SerpTabs,
 
   },
   props: {},
