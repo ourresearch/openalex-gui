@@ -27,7 +27,7 @@
         :content-class="$vuetify.breakpoint.mobile ? 'search-box-new-dialog' : 'search-box-new-menu' "
     >
       <v-card rounded width="600">
-        <div class="px-4 pb-2">
+        <div class="px-4 pb-0">
           <v-text-field
               autofocus
               full-width
