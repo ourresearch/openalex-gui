@@ -1,5 +1,7 @@
 <template>
-      <v-list-item @click="$emit('edit')">
+      <v-list-item
+          @click="$emit('edit')"
+      >
         <v-list-item-icon>
           <v-icon class="">mdi-filter-outline</v-icon>
         </v-list-item-icon>

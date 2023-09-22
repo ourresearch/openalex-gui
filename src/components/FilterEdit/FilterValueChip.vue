@@ -4,7 +4,7 @@
   >
 <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
     <template v-if="filterDisplayValue">
-      {{ filterDisplayValue | truncate(40) }}
+      {{ filterDisplayValue | truncate(30) }}
     </template>
     <template v-else>
       Loading...

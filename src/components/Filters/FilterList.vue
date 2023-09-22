@@ -13,29 +13,29 @@
       <v-icon left>mdi-filter-outline</v-icon>
       <v-toolbar-title>
         Filters
+<!--        ({{ filters.length }})-->
       </v-toolbar-title>
-    </v-toolbar>
-    <v-toolbar dark flat dense color="#444">
-      <v-text-field
-          v-model="searchString"
-          hide-details
-          prepend-icon="mdi-magnify"
-          clearable
-          rounded
-          dark
-          dense
-          placeholder="Search filters"
-      />
+
+
+<!--      <v-text-field-->
+<!--          v-model="searchString"-->
+<!--          hide-details-->
+<!--          prepend-icon="mdi-magnify"-->
+<!--          clearable-->
+<!--          rounded-->
+<!--          dark-->
+<!--          dense-->
+<!--          placeholder="Search filters"-->
+<!--      />-->
 
     </v-toolbar>
 
-    <v-list expand class="pt-1">
+    <v-list nav expand class="pt-2">
       <template v-if="appliedFiltersMatchingSearchString.length">
         <v-subheader class="pt-3">
-          Applied filters
+          Applied
           ({{ appliedFiltersMatchingSearchString.length }})
         </v-subheader>
-        <!--        <v-divider/>-->
       </template>
       <template
           v-for="(filter, i) in appliedFiltersMatchingSearchString"
@@ -52,11 +52,15 @@
             @delete="deleteFilter(filter.key)"
         />
       </template>
+      <v-divider
+          v-if="appliedFiltersMatchingSearchString.length"
+          class="mb-6 mt-6"
+      />
 
 
-      <template v-if="facetsByCategoryCount">
-        <v-subheader class="mt-3">
-          Filter options
+      <template v-if="facetsByCategoryCount && !searchString && filters.length">
+        <v-subheader class="">
+          Available
           ({{ facetsByCategoryCount }})
         </v-subheader>
         <!--        <v-divider/>-->
