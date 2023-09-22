@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-text-field
-        style="max-width: 600px;"
+
         prepend-inner-icon="mdi-magnify"
         hide-details
         readonly
@@ -10,16 +10,17 @@
         :placeholder="`Filter ${entityType}`"
         @click="isDialogOpen = true"
         append-icon="mdi-magnify"
+        full-width
     >
       <template v-slot:prepend-inner>
-        <entity-type-selector style="margin-top: 1px;" />
+        <entity-type-selector style="margin-top: 2px;" />
       </template>
     </v-text-field>
 
     <v-dialog
         v-model="isDialogOpen"
         max-width="800"
-        :fullscreen="$vuetify.breakpoint.smAndDown"
+        :fullscreen="$vuetify.breakpoint.mobile"
         scrollable
     >
       <v-card>

@@ -16,6 +16,8 @@
         color="white"
         class="pl-0"
         absolute
+        :extended="$vuetify.breakpoint.mobile"
+        extension-height="100"
 
     >
       <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
@@ -39,7 +41,7 @@
 
         </router-link>
         <v-spacer />
-        <search-box-new class="flex-grow-1" />
+        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />
         <v-spacer/>
 <!--        <v-btn light target="_blank"-->
 
@@ -126,6 +128,14 @@
 
 
       </v-container>
+
+      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
+        <v-container>
+        <search-box-new class="flex-grow-1" />
+
+        </v-container>
+      </template>
+
     </v-app-bar>
     <v-main>
       <router-view></router-view>

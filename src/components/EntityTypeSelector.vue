@@ -2,9 +2,9 @@
   <div>
     <v-btn
         rounded
-        text
         x-large
-        class="text-capitalize"
+        text
+        class="text-capitalize elevation-0"
 
         id="entity-type-select-btn"
     >
@@ -19,7 +19,7 @@
     </v-btn>
 
     <component
-        :is="$vuetify.breakpoint.smAndDown ? 'v-dialog' : 'v-menu'"
+        :is="$vuetify.breakpoint.mobile ? 'v-dialog' : 'v-menu'"
         v-model="isDialogOpen"
         fullscreen
         scrollable
@@ -27,7 +27,7 @@
         rounded
     >
       <v-card flat rounded>
-        <v-toolbar flat dark v-if="$vuetify.breakpoint.smAndDown">
+        <v-toolbar flat dark v-if="$vuetify.breakpoint.mobile">
           <v-toolbar-title>
             What are you looking for?
           </v-toolbar-title>
