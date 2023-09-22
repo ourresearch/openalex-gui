@@ -1,5 +1,5 @@
 <template>
-  <v-list-item @click="$emit('edit')">
+  <v-list-item  @click="$emit('edit')">
     <v-list-item-icon>
       <v-icon v-if="mySelectedIds.length === 1">mdi-filter-outline</v-icon>
       <v-icon v-else>mdi-filter-multiple-outline</v-icon>

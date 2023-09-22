@@ -1,5 +1,5 @@
 <template>
-      <v-list-item  @click="$emit('edit')">
+      <v-list-item @click="$emit('edit')">
         <v-list-item-icon>
           <v-icon>{{ myFilterConfig.icon }}</v-icon>
         </v-list-item-icon>

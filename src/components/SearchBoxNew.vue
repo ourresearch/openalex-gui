@@ -13,7 +13,7 @@
         id="search-box-new-text-field"
     >
       <template v-slot:prepend-inner>
-        <entity-type-selector style="margin-top: 2px;" />
+        <entity-type-selector style="margin-top: 2px;"/>
       </template>
     </v-text-field>
 
@@ -40,13 +40,36 @@
               @click:append-outer="isDialogOpen = false"
           />
         </div>
-        <v-divider />
+        <v-divider/>
         <v-card-text class="pa-0">
           <v-list>
             <v-list-item
-              v-for="suggestion in filterSuggestions"
-              :key="suggestion.key + suggestion.value"
-              @click="createOrUpdateFilter(suggestion.key, suggestion.value)"
+                v-for="suggestion in shortcutSuggestions"
+                :key="suggestion.key + suggestion.value"
+                :to="{name: 'EntityPage', params: {entityType, entityId: suggestion.value}}"
+            >
+              <v-list-item-icon>
+                <v-icon>{{myEntityIcon}}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ suggestion.displayValue }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  <span class="">
+                   {{ suggestion.hint }}
+                  </span>
+                </v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-divider v-if="shortcutSuggestions && shortcutSuggestions.length"/>
+
+
+            <v-list-item
+                v-for="suggestion in filterSuggestions"
+                :key="suggestion.key + suggestion.value"
+                @click="createOrUpdateFilter(suggestion.key, suggestion.value)"
             >
               <v-list-item-icon>
                 <v-icon>mdi-filter-plus-outline</v-icon>
@@ -59,26 +82,26 @@
                   <span class="">
                     {{ suggestion.displayKey }}
                   </span>
-                   filter - {{ suggestion.works_count | toPrecision }} works
+                  filter - {{ suggestion.works_count | toPrecision }} works
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
             <template v-if="searchString.length >= 3">
-              <v-divider />
+              <v-divider/>
               <v-list-item
-                key="fulltext-search-filter"
-                @click="createOrUpdateFilter('default.search', searchString)"
+                  key="fulltext-search-filter"
+                  @click="createOrUpdateFilter(searchFilterConfig.key, searchString)"
               >
                 <v-list-item-icon>
                   <v-icon>mdi-magnify</v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
                   <v-list-item-title>
-                      <q>{{ searchString }}</q>
+                    <q>{{ searchString }}</q>
                   </v-list-item-title>
                   <v-list-item-subtitle>
                     <span class="">
-                     Fulltext search
+                      {{ searchFilterConfig.displayName }}
                     </span>
                   </v-list-item-subtitle>
                 </v-list-item-content>
@@ -114,6 +137,7 @@ import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
 import {VMenu} from "vuetify/lib";
 import {VDialog} from "vuetify/lib";
+import {shortenOpenAlexId} from "../util";
 
 export default {
   name: "SearchBoxNew",
@@ -145,36 +169,59 @@ export default {
           this.searchString,
       )
     },
+    myEntityIcon(){
+      return getEntityConfig(this.entityType)?.icon
+    },
     topFilterSlot() {
       return this.pidFilterSuggestion ?? this.searchFilter
+    },
+    searchFilterConfig(){
+      const searchKeyName = this.entityType === "works" ?
+          "default.search" :
+          "display_name.search"
+        return getFacetConfig(this.entityType, searchKeyName)
     }
   },
   asyncComputed: {
-    async filterSuggestions() {
+    async autocompleteSuggestions() {
       if (!this.searchString) return []
       const myEntityType = (this.entityType === "works") ?
           null :
           this.entityType
       const autocompleteUrl = url.makeAutocompleteUrl(myEntityType, this.searchString)
       const resp = await api.getUrl(autocompleteUrl)
-      // return resp.results.map(result => {
-      //   let filter_key = (result.filter_key) ?
-      //       result.filter_key :
-      //       getEntityConfig(result.entity_type)?.filterKey
-      //
-      //   if (filter_key === "authorships.institutions.country_code") {
-      //     filter_key = "institutions.country_code"
-      //   }
-      //
-      //   return {
-      //     ...result,
-      //     displayValue: result.display_name,
-      //     displayKey: getFacetConfig(this.entityType, filter_key)?.displayName,
-      //     key: filter_key,
-      //     value: result.id,
-      //   }
-      // }).slice(0, 5)
 
+      // there are a bunch of hacks in this part...casey will fix some of this soon
+      return resp.results.map(result => {
+        let filterKey
+        if (this.entityType === "works") {
+          filterKey = (result.filter_key) ?
+              result.filter_key :
+              getEntityConfig(result.entity_type)?.filterKey
+
+          if (filterKey === "authorships.institutions.country_code") {
+            filterKey = "institutions.country_code"
+          }
+        }
+        else {
+          filterKey = "ids.openalex"
+        }
+
+        return {
+          ...result,
+          displayValue: result.display_name,
+          displayKey: getFacetConfig(this.entityType, filterKey)?.displayName,
+          key: filterKey,
+          value: shortenOpenAlexId(result.id),
+          isShortcut: result.entity_type && this.$pluralize(result.entity_type, 1) === this.$pluralize(this.entityType, 1)
+        }
+      })
+    },
+    async shortcutSuggestions() {
+      return  this.autocompleteSuggestions.filter(f => f.isShortcut).slice(0, 3)
+    },
+    async filterSuggestions() {
+      return  this.autocompleteSuggestions.filter(f => !f.isShortcut).slice(0,5)
     },
   },
 
@@ -202,7 +249,7 @@ export default {
   mounted() {
   },
   watch: {
-    isDialogOpen(to, from){
+    isDialogOpen(to, from) {
       this.searchString = ""
     }
   }
@@ -210,10 +257,10 @@ export default {
 </script>
 
 <style lang="scss">
-  .search-box-new-menu {
-    left: calc(50vw - 300px) !important;
-    top: 0 !important;
+.search-box-new-menu {
+  left: calc(50vw - 300px) !important;
+  top: 0 !important;
 
-  }
+}
 
 </style>

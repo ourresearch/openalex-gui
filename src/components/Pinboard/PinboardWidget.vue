@@ -114,7 +114,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs} from "@/facetConfigs";
-import {pinboard} from "@/pinboard";
 
 export default {
   name: "PinboardWidget",
@@ -131,7 +130,6 @@ export default {
       selectedValue: this.filterValue,
       groups: [],
       searchString: "",
-      pinboard,
     }
   },
   computed: {

@@ -89,7 +89,6 @@ import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
-import {pinboard} from "@/pinboard";
 import SerpResultsList from "../components/SerpResultsList.vue";
 import Pinboard from "../components/Pinboard/Pinboard.vue";
 
@@ -240,23 +239,11 @@ export default {
     deleteFilter(key) {
       url.deleteFilter(this.entityType, key)
     },
-    createWidget(filterKey) {
-      console.log("serp createWidget", filterKey)
-      this.widgetFilterKeys.push(filterKey)
-      pinboard.addWidget(this.entityType, filterKey)
-    },
-    deleteWidget(filterKey) {
-      console.log("serp deleteWidget", filterKey)
-      this.widgetFilterKeys = this.widgetFilterKeys.filter(k => k !== filterKey)
-      pinboard.deleteWidget(this.entityType, filterKey)
-    },
   },
 
   created() {
   },
   async mounted() {
-    pinboard.init(this.entityType)
-    this.widgetFilterKeys = pinboard.getWidgets(this.entityType)
 
   },
   watch: {

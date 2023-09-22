@@ -691,7 +691,32 @@ const facetConfigs = function (entityType) {
         },
 
 
+
+
+
+
+
+
+
+
+
+
+
         // authors
+        {
+            key: "ids.openalex",
+            entityType: "authors",
+            entityId: "authors",
+            pidPrefix: "openalex",
+            displayName: "Author",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-account-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "authors",
@@ -753,12 +778,38 @@ const facetConfigs = function (entityType) {
         },
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         // sources
+        {
+            key: "ids.openalex",
+            entityType: "sources",
+            entityId: "sources",
+            pidPrefix: "openalex",
+            displayName: "Source",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-book-open-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "sources",
             isDefault: true,
-            displayName: "Name search",
+            displayName: "Title search",
             type: "search",
             categories: ["search"],
             icon: "mdi-magnify",
@@ -809,7 +860,30 @@ const facetConfigs = function (entityType) {
         },
 
 
+
+
+
+
+
+
+
+
+
         // publishers
+        {
+            key: "ids.openalex",
+            entityType: "publishers",
+            entityId: "publishers",
+            pidPrefix: "openalex",
+            displayName: "Publisher",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-domain",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "publishers",
@@ -820,7 +894,33 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
 
+
+
+
+
+
+
+
+
+
+
+
+
         // funders
+        {
+            key: "ids.openalex",
+            entityType: "funders",
+            entityId: "funders",
+            pidPrefix: "openalex",
+            displayName: "Funder",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-cash-multiple",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "funders",
@@ -832,7 +932,34 @@ const facetConfigs = function (entityType) {
         },
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
         // institutions
+        {
+            key: "ids.openalex",
+            entityType: "institutions",
+            entityId: "institutions",
+            pidPrefix: "openalex",
+            displayName: "Institution",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-town-hall",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "institutions",
@@ -874,7 +1001,33 @@ const facetConfigs = function (entityType) {
         },
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         // concepts
+        {
+            key: "ids.openalex",
+            entityType: "concepts",
+            entityId: "concepts",
+            pidPrefix: "openalex",
+            displayName: "Concept",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
         {
             key: "display_name.search",
             entityType: "concepts",
