@@ -104,6 +104,8 @@ const replaceFilter = async function (oldFilter, newFilter) {
 
 
 const createFilter = async function (entityType, key, newValue) {
+          console.log("url.createFilter()", entityType, key, newValue);
+
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     if (oldFilters.map(f => f.key).includes(key)) {
         throw Error("OpenAlex: url.createFilter trying to create a filter with a key that's already in URL")

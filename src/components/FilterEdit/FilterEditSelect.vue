@@ -9,7 +9,7 @@
           clearable
           full-width
           rounded
-          :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
+          :placeholder="'Add ' + myConfig.displayName | pluralize(2)"
       />
     </div>
     <v-divider></v-divider>
@@ -18,39 +18,47 @@
     </v-card-text>
     <v-list
     >
-      <v-subheader v-if="selectedOptionsToShow.length">
-        Selected
-        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
+<!--      <v-subheader v-if="selectedOptionsToShow.length">-->
+<!--        Selected-->
+<!--        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>-->
 
-        ({{ selectedOptionsToShow.length }})
-      </v-subheader>
+<!--        ({{ selectedOptionsToShow.length }})-->
+<!--      </v-subheader>-->
       <v-list-item
           v-for="option in selectedOptionsToShow"
           :key="'selected' + option.id"
-          @click="unselectOption(option)"
+
       >
-        <v-list-item-action>
-          <v-icon>mdi-checkbox-marked</v-icon>
-        </v-list-item-action>
+        <v-list-item-icon>
+          <v-icon>mdi-filter-outline</v-icon>
+        </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
+            <div class="text-wrap">
             {{ option.display_name }}
+
+            </div>
           </v-list-item-title>
           <!--            <v-list-item-subtitle>-->
           <!--              {{ option.works_count }}-->
           <!--            </v-list-item-subtitle>-->
         </v-list-item-content>
+        <v-list-item-action>
+          <v-btn icon @click="unselectOption(option)">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-list-item-action>
       </v-list-item>
 
-      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>
+<!--      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>-->
       <v-list-item
           v-for="option in unselectedOptions"
           :key="'unselected' + option.id"
           @click="selectOption(option)"
       >
-        <v-list-item-action>
-          <v-icon>mdi-checkbox-blank-outline</v-icon>
-        </v-list-item-action>
+        <v-list-item-icon>
+          <v-icon>mdi-filter-plus-outline</v-icon>
+        </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
             {{ option.display_name }}
