@@ -27,9 +27,10 @@
         :content-class="$vuetify.breakpoint.mobile ? 'search-box-new-dialog' : 'search-box-new-menu' "
     >
       <v-card rounded width="600">
-        <v-toolbar max-height="60">
+        <div class="px-4 pb-2">
           <v-text-field
               autofocus
+              full-width
               rounded
               v-model="searchString"
               :placeholder="`Filter ${entityType}`"
@@ -38,7 +39,8 @@
               append-outer-icon="mdi-close"
               @click:append-outer="isDialogOpen = false"
           />
-        </v-toolbar>
+        </div>
+        <v-divider />
         <v-card-text class="pa-0">
           <v-list two-line>
             <v-list-item
@@ -166,7 +168,7 @@ export default {
 <style lang="scss">
   .search-box-new-menu {
     left: calc(50vw - 300px) !important;
-    top: 1px !important;
+    top: 0 !important;
 
   }
 

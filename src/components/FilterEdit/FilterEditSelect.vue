@@ -1,11 +1,11 @@
 <template>
   <v-card flat rounded class="">
-    <div flat>
+    <div class="px-4">
       <v-text-field
           autofocus
           v-model="searchString"
           hide-details
-          prepend-inner-icon="mdi-magnify"
+          prepend-icon="mdi-magnify"
           clearable
           full-width
           rounded
