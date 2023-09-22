@@ -1,18 +1,20 @@
 <template>
   <div>
     <v-text-field
-
+        style="max-width: 600px;"
         prepend-inner-icon="mdi-magnify"
-        light
-        background-color="#fff"
         hide-details
         readonly
-        filled
         rounded
+        outlined
         :placeholder="`Filter ${entityType}`"
-        @keypress.enter.stop.prevent="setTopFilter"
         @click="isDialogOpen = true"
-    />
+        append-icon="mdi-magnify"
+    >
+      <template v-slot:prepend-inner>
+        <entity-type-selector style="margin-top: 1px;" />
+      </template>
+    </v-text-field>
 
     <v-dialog
         v-model="isDialogOpen"
@@ -74,10 +76,13 @@ import {
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {url} from "@/url";
 import {getFacetConfig} from "../facetConfigs";
+import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
 export default {
   name: "SearchBoxNew",
-  components: {},
+  components: {
+    EntityTypeSelector,
+  },
   props: {},
   data() {
     return {

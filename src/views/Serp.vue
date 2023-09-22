@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class="mt-12">
 
     <!--    <v-toolbar dense flat color="transparent">-->
     <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
@@ -10,23 +10,8 @@
     <!--    </v-toolbar>-->
 
     <v-container>
-      <!--      <serp-applied-filters-->
-      <!--          :filters="resultsFilters"-->
-      <!--          class="mb-3"-->
-      <!--      />-->
-      <v-card rounded class="my-2 pa-1 d-flex">
-        <v-row dense>
-          <v-col cols="3" md="4">
-            <entity-type-selector/>
-          </v-col>
-          <v-col cols="9" md="8">
-            <search-box-new/>
-
-          </v-col>
-        </v-row>
 
 
-      </v-card>
 
       <v-row dense>
         <v-col cols="12" sm="4">

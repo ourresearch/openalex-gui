@@ -38,17 +38,20 @@
               </span>
 
         </router-link>
+        <v-spacer />
+        <search-box-new class="flex-grow-1" />
         <v-spacer/>
-          <v-btn  light target="_blank"
-                 color="warning"
-                 rounded
-                  outlined
-                 class="ml-3"
-                  v-if="$vuetify.breakpoint.smAndUp"
-                 href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX--7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">
-            <v-icon left>mdi-alert</v-icon>
-            Alpha version
-          </v-btn>
+<!--        <v-btn light target="_blank"-->
+
+<!--               color="warning"-->
+<!--               rounded-->
+<!--               outlined-->
+<!--               class="ml-3"-->
+<!--               v-if="$vuetify.breakpoint.smAndUp"-->
+<!--               href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX&#45;&#45;7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">-->
+<!--          <v-icon left>mdi-alert</v-icon>-->
+<!--          Alpha version-->
+<!--        </v-btn>-->
 
 
         <v-menu offset-y v-if="$store.state.exportProgressUrl">
@@ -191,6 +194,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 import axios from "axios";
 import {filtersFromUrlStr} from "@/filterConfigs";
+import SearchBoxNew from "@/components/SearchBoxNew.vue";
 
 export default {
   name: 'App',
@@ -201,6 +205,7 @@ export default {
     meta: []
   },
   components: {
+    SearchBoxNew,
   },
 
 
@@ -294,6 +299,19 @@ html, body {
 .theme--dark.v-sheet {
   background-color: #444;
 
+}
+
+
+// customizing the text-field component
+.v-text-field--rounded > .v-input__control > .v-input__slot {
+  padding: 0 24px 0 0 !important;
+}
+.v-application--is-ltr .v-text-field .v-input__prepend-inner {
+  //padding: 0 !important;
+  margin-top: 0 !important;
+}
+.v-input__icon v-input__icon--append {
+    //padding-right: 20px !important;
 }
 
 .v-btn--active.no-active::before {

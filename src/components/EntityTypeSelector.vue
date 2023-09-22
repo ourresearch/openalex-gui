@@ -5,25 +5,29 @@
         text
         x-large
         class="text-capitalize"
-        @click="isDialogOpen = true"
+
         id="entity-type-select-btn"
     >
-      <v-icon >{{ selectedEntityTypeConfig.icon }}</v-icon>
-      <v-toolbar-title
+      <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>
+      <span
           v-if="$vuetify.breakpoint.mdAndUp"
           class="ml-2"
       >
         {{ selectedEntityTypeConfig.displayName }}
-      </v-toolbar-title>
+      </span>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 
-    <v-dialog
+    <component
+        :is="$vuetify.breakpoint.smAndDown ? 'v-dialog' : 'v-menu'"
         v-model="isDialogOpen"
-        :fullscreen="$vuetify.breakpoint.smAndDown"
+        fullscreen
+        scrollable
+        activator="#entity-type-select-btn"
+        rounded
     >
-      <v-card flat>
-        <v-toolbar flat>
+      <v-card flat rounded>
+        <v-toolbar flat dark v-if="$vuetify.breakpoint.smAndDown">
           <v-toolbar-title>
             What are you looking for?
           </v-toolbar-title>
@@ -32,78 +36,76 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider/>
-        <v-container>
-          <v-row
-              v-if="$vuetify.breakpoint.mdAndUp"
+        <v-card-text class="pa-0" style="max-height: 95vh">
+          <!--        <v-container>-->
+          <!--          <v-row-->
+          <!--              v-if="$vuetify.breakpoint.mdAndUp"-->
+          <!--          >-->
+          <!--            <v-col-->
+          <!--                cols="6"-->
+          <!--                v-for="entityType in entityTypeOptions"-->
+          <!--                :key="entityType.name"-->
+          <!--                :to="{name: 'Serp', params: {entityType: entityType.name}}"-->
+          <!--                class=""-->
+          <!--                @click="isDialogOpen = false"-->
+          <!--            >-->
+          <!--              <v-card-->
+          <!--                  class="d-flex px-6 card-button"-->
+          <!--                  rounded-->
+          <!--                  flat-->
+          <!--                  :to="{name: 'Serp', params: {entityType: entityType.name}}"-->
+          <!--                  @click="isDialogOpen = false"-->
+          <!--                  :class="{selected: $route.params.entityType === entityType.name}"-->
+          <!--                  :dark="$route.params.entityType === entityType.name"-->
+          <!--              >-->
+          <!--                <v-list-item-icon>-->
+          <!--                  <v-icon large left>{{ entityType.icon }}</v-icon>-->
+          <!--                </v-list-item-icon>-->
+          <!--                <div>-->
+          <!--                  <v-card-title class="text-capitalize mb-0 pb-0">-->
+          <!--                    {{ entityType.name }}-->
+          <!--                  </v-card-title>-->
+          <!--                  <div class="mx-4 mb-4">-->
+          <!--                    {{ entityType.descr }}-->
+          <!--                  </div>-->
+
+          <!--                </div>-->
+
+          <!--              </v-card>-->
+
+          <!--            </v-col>-->
+          <!--          </v-row>-->
+
+          <!--        </v-container>-->
+
+          <v-list
           >
-            <v-col
-                cols="6"
+            <v-list-item
                 v-for="entityType in entityTypeOptions"
                 :key="entityType.name"
                 :to="{name: 'Serp', params: {entityType: entityType.name}}"
                 class=""
                 @click="isDialogOpen = false"
             >
-              <v-card
-                  class="d-flex px-6 card-button"
-                  rounded
-                  flat
-                  :to="{name: 'Serp', params: {entityType: entityType.name}}"
-                  @click="isDialogOpen = false"
-                  :class="{selected: $route.params.entityType === entityType.name}"
-                  :dark="$route.params.entityType === entityType.name"
-              >
-                <v-list-item-icon>
-                  <v-icon large left>{{ entityType.icon }}</v-icon>
-                </v-list-item-icon>
-                <div>
-                  <v-card-title class="text-capitalize mb-0 pb-0">
-                    {{ entityType.name }}
-                  </v-card-title>
-                  <div class="mx-4 mb-4">
-                    {{ entityType.descr }}
-                  </div>
+              <v-list-item-icon>
+                <v-icon>{{ entityType.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title class="text-capitalize">
+                  <span>{{ entityType.displayName }}</span>
+                </v-list-item-title>
+                <v-list-item-subtitle class="">
+                  {{ entityType.descr }}
+                </v-list-item-subtitle>
 
-                </div>
-
-              </v-card>
-
-            </v-col>
-          </v-row>
-
-        </v-container>
-
-        <v-list
-            two-line
-            nav
-            v-if="$vuetify.breakpoint.smAndDown"
-        >
-          <v-list-item
-              v-for="entityType in entityTypeOptions"
-              :key="entityType.name"
-              :to="{name: 'Serp', params: {entityType: entityType.name}}"
-              class=""
-              @click="isDialogOpen = false"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ entityType.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="text-capitalize">
-                <span>{{ entityType.displayName }}</span>
-              </v-list-item-title>
-              <v-list-item-subtitle class="">
-                {{ entityType.descr }}
-              </v-list-item-subtitle>
-
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
 
       </v-card>
 
-    </v-dialog>
+    </component>
 
   </div>
 </template>
@@ -112,11 +114,16 @@
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs} from "../entityConfigs";
+import {VMenu} from "vuetify/lib";
+import {VDialog} from "vuetify/lib";
 
 export default {
   name: "SearchBox",
   props: {},
-  components: {},
+  components: {
+    VMenu,
+    VDialog
+  },
   data: function () {
     return {
       select: "",
@@ -172,6 +179,7 @@ export default {
   &:hover {
     background-color: rgba(0, 0, 0, .08) !important;
   }
+
   &.selected {
     background-color: #444 !important;
 
