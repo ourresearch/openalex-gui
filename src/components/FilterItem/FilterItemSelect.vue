@@ -1,37 +1,34 @@
 <template>
-  <v-list-item  @click="$emit('edit')">
-    <v-list-item-icon>
-      <v-icon v-if="mySelectedIds.length === 1">mdi-filter-outline</v-icon>
-      <v-icon v-else>mdi-filter-multiple-outline</v-icon>
-      <!--        <v-icon>{{ myFilterConfig.icon }}</v-icon>-->
-    </v-list-item-icon>
-    <v-list-item-content>
-      <v-list-item-title>
+  <span>
+    <v-menu :close-on-content-click="true" max-width="350" rounded>
+      <template v-slot:activator="{on}">
+        <a v-on="on">
+          {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
+        </a>
+      </template>
+      <v-card>
+        <v-card-title class="capitalize-first-letter">{{ myFilterConfig.displayName }}</v-card-title>
+        <v-card-text>{{ myFilterConfig.docstring }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text rounded color="error" @click="$emit('delete')">
+            Delete all
+          </v-btn>
+          <v-btn rounded color="primary" @click="$emit('delete')">
+            Add
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-menu>
         <!--          <div>{{ options }}</div>-->
         <filter-value-chip
-            v-for="id in mySelectedIds.slice(0, 1)"
+            v-for="id in mySelectedIds"
             :key="id"
             :filter-key="myFilterConfig.key"
             :filter-value="id"
         />
-        <span v-if="mySelectedIds.length > 1" class="font-weight-bold">
-            +{{ mySelectedIds.length - 1 }}
-          </span>
 
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
-      </v-list-item-subtitle>
-      <!--        <v-list-item-subtitle>-->
-      <!--          Exclude all-->
-      <!--        </v-list-item-subtitle>-->
-    </v-list-item-content>
-    <v-list-item-action>
-      <v-btn icon @click="$emit('delete', myFilterConfig.id)">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-list-item-action>
-  </v-list-item>
+  </span>
 </template>
 <script>
 
@@ -130,6 +127,6 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
 
 </style>

@@ -467,8 +467,14 @@ body {
   //padding: 0 16px 16px;
 }
 
-.capitalize-first-letter::first-letter {
-  text-transform: uppercase !important;
+.v-application {
+  .capitalize-first-letter {
+    display: inline-block;
+  }
+  .capitalize-first-letter::first-letter {
+    text-transform: uppercase !important;
+  }
+
 }
 
 img.site-footer-logo {
