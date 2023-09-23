@@ -12,21 +12,30 @@
         <v-card-actions>
           <v-spacer />
           <v-btn text rounded color="error" @click="$emit('delete')">
-            Delete all
-          </v-btn>
-          <v-btn rounded color="primary" @click="$emit('delete')">
-            Add
+            Delete
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-menu>
         <!--          <div>{{ options }}</div>-->
         <filter-value-chip
-            v-for="id in mySelectedIds"
+            v-for="(id, i) in mySelectedIds"
             :key="id"
             :filter-key="myFilterConfig.key"
             :filter-value="id"
+            :is-first="i === 0"
+            :has-siblings="mySelectedIds.length > 1"
+            :append-separator="appendSeparator"
+            @delete="$emit('delete')"
+            @add-another="openAddOptionDialog"
         />
+
+    <v-dialog v-model="isAddOptionDialogOpen" fullscreen scrollable>
+      <filter-edit-select
+        :filter-key="filterKey"
+        @select="(newOptionValue) => $emit('update', )"
+      />
+    </v-dialog>
 
   </span>
 </template>
@@ -49,6 +58,8 @@ import {
 } from "@/filterConfigs";
 import Template from "@/components/Filters/FilterKeySelector.vue";
 import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
+import app from "../../App.vue";
+import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "FilterValueSelect",
@@ -60,6 +71,7 @@ export default {
     disabled: Boolean,
     filterKey: String,
     filterValue: String,
+    appendSeparator: Boolean,
   },
   data() {
     return {
@@ -75,9 +87,14 @@ export default {
       selectedMatchMode: "any",
       searchString: "",
       mySelectedValues: [],
+
+      isAddOptionDialogOpen: false,
     }
   },
   computed: {
+    app() {
+      return app
+    },
     ...mapGetters([
       "resultsFilters",
       "entityType",
@@ -98,6 +115,7 @@ export default {
   },
 
   methods: {
+    filter,
     ...mapMutations([
       "snackbar",
     ]),
@@ -109,6 +127,12 @@ export default {
     },
     remove(id) {
     },
+    openAddOptionDialog(){
+      this.isAddOptionDialogOpen = true
+    },
+    addSelectedOption(){
+      this.$emit()  //jason priem pick up here!
+    }
 
 
   },

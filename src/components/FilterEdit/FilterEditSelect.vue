@@ -9,50 +9,14 @@
           clearable
           full-width
           rounded
-          :placeholder="'Add ' + myConfig.displayName | pluralize(2)"
+          :placeholder="'Add ' + myConfig.displayName"
       />
     </div>
     <v-divider></v-divider>
-    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">
-      Here's some information about this filter. I hope you find it useful.
-    </v-card-text>
     <v-list
     >
-<!--      <v-subheader v-if="selectedOptionsToShow.length">-->
-<!--        Selected-->
-<!--        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>-->
-
-<!--        ({{ selectedOptionsToShow.length }})-->
-<!--      </v-subheader>-->
       <v-list-item
-          v-for="option in selectedOptionsToShow"
-          :key="'selected' + option.id"
-
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-filter-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            <div class="text-wrap">
-            {{ option.display_name }}
-
-            </div>
-          </v-list-item-title>
-          <!--            <v-list-item-subtitle>-->
-          <!--              {{ option.works_count }}-->
-          <!--            </v-list-item-subtitle>-->
-        </v-list-item-content>
-        <v-list-item-action>
-          <v-btn icon @click="unselectOption(option)">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-list-item-action>
-      </v-list-item>
-
-<!--      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>-->
-      <v-list-item
-          v-for="option in unselectedOptions"
+          v-for="option in options"
           :key="'unselected' + option.id"
           @click="selectOption(option)"
       >
@@ -70,13 +34,6 @@
       </v-list-item>
 
     </v-list>
-    <v-card-actions>
-      <v-spacer/>
-      <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn rounded color="primary" @click="$emit('upsert', myValue)">
-        {{ createMode ? "Add filter" : "Update filter" }}
-      </v-btn>
-    </v-card-actions>
   </v-card>
 </template>
 
@@ -109,16 +66,7 @@ export default {
       isLoading: false,
       selectedValue: this.filterValue,
       options: [],
-      selectedOptions: [],
-      unselectedOptions: [],
-      matchModes: [
-        "any",
-        "all",
-        "none",
-      ],
-      selectedMatchMode: "any",
       searchString: "",
-      mySelectedValues: [],
     }
   },
   computed: {
@@ -133,9 +81,6 @@ export default {
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
-    selectedOptionsToShow() {
-      return this.searchString ? [] : this.selectedOptions
-    }
   },
 
   methods: {
@@ -143,23 +88,8 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    setSelectedMatchMode(newMode) {
-      this.selectedMatchMode = newMode
-    },
     selectOption(option) {
-      this.unselectedOptions = this.unselectedOptions.filter(o => o.id !== option.id)
-      this.selectedOptions.push(option)
-      this.searchString = ""
-    },
-    unselectOption(option) {
-      this.selectedOptions = this.selectedOptions.filter(o => o.id !== option.id)
-      this.unselectedOptions.push(option)
-      this.searchString = ""
-      this.fetchOptions()
-    },
-    remove(id) {
-      console.log("remove()", id)
-      this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
+      this.$emit("select", option.id)
     },
     async fetchOptions() {
       this.isLoading = true
@@ -169,18 +99,7 @@ export default {
             this.filterKey,
             this.searchString,
         )
-
-        // const newOptions = apiOptions.filter(myNewOption => {
-        //   const oldOptionIds = this.options.map(o => o.id)
-        //   return !oldOptionIds.includes(myNewOption.id)
-        // })
-        this.unselectedOptions = apiOptions.filter(o => {
-          const iAmInSelectedOptions = this.selectedOptions.find(selectedOption => {
-            return selectedOption.id === o.id
-          })
-          return !iAmInSelectedOptions
-        }).slice(0, 5)
-
+        this.options = apiOptions
       } catch (e) {
         console.log("fetchOptions() error:", e.message)
       } finally {
@@ -193,41 +112,6 @@ export default {
   created() {
   },
   async mounted() {
-    if (this.filterValue) {
-      // const newIds = this.filterValue.split("|")
-      const newIds = getItemsFromSelectFilterValue(this.filterValue)
-      this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
-
-      const that = this
-
-
-      const makeAutocompleteResponseFromId = async function (id) {
-        const config = that.myConfig
-        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
-        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
-        // const sdgConfig =
-
-        // console.log("countryConfig", openAlexCountries, id, countryConfig)
-        let displayName
-        if (countryConfig) {
-          displayName = countryConfig.display_name
-        } else if (sdgConfig) {
-          displayName = sdgConfig.display_name
-        } else if (config.isEntity) {
-          displayName = await api.getEntityDisplayName(id)
-        } else {
-          displayName = id
-        }
-        return {
-          id,
-          display_name: displayName,
-        }
-      }
-      const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
-      this.selectedOptions = await Promise.all(
-          autocompletePromises
-      )
-    }
   },
   watch: {
     searchString: {

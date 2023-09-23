@@ -2,13 +2,40 @@
   <span
       @click:close="$emit('remove')"
   >
-<!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
-    <template v-if="filterDisplayValue">
-      {{ filterDisplayValue | truncate(30) }}
-    </template>
-    <template v-else>
-      Loading...
-    </template>
+    <span v-if="isFirst">
+      <span v-if="hasSiblings">are</span>
+      <span v-else>is</span>
+    </span>
+    <v-menu :close-on-content-click="false" max-width="350" rounded v-model="isOpen">
+      <template v-slot:activator="{on}">
+        <a v-on="on" class="font-weight-bold">
+          <template v-if="filterDisplayValue" class="font-weight-bold">
+            {{ filterDisplayValue | truncate(80) }}
+          </template>
+          <template v-else>
+            Loading...
+          </template>
+        </a>
+      </template>
+      <v-card>
+        <v-card-title class="capitalize-first-letter">{{ filterDisplayValue }}</v-card-title>
+        <v-card-subtitle>{{ filterValue }}</v-card-subtitle>
+        <v-card-actions>
+          <v-spacer/>
+          <v-btn text rounded color="error" @click="$emit('delete')">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-menu>
+    <a @click="addAnother">(+)</a>{{ appendSeparator ? "; " : "" }}
+
+
+    <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
+
+
+
+
   </span>
 </template>
 
@@ -25,20 +52,25 @@ export default {
     disabled: Boolean,
     filterValue: String,
     filterKey: String,
-      close: Boolean,
+    close: Boolean,
+    isFirst: Boolean,
+    hasSiblings: Boolean,
+    appendSeparator: Boolean,
+    appendPeriod: Boolean,
   },
   data() {
     return {
       foo: 42,
       displayValue: "",
       isLoading: false,
+      isOpen: false,
     }
   },
   computed: {
     ...mapGetters([
       "resultsFilters",
     ]),
-    isEntity(){
+    isEntity() {
       return isOpenAlexId(this.filterValue)
     }
   },
@@ -58,6 +90,11 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    addAnother(){
+      this.$emit('add-another')
+      this.isOpen = false
+
+    }
 
 
   },

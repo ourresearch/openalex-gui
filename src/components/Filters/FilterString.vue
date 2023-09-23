@@ -18,7 +18,8 @@
 
     </v-toolbar>
 
-    <div class="pa-6 text-h6 font-weight-regular">
+    <div class="pa-6 text-h6 font-weight-regular" style="line-height: 1.7">
+      Showing
       <a @click="$vuetify.goTo('#serp-toolbar', {offset: -70})" class="results-count font-weight-bold">
         {{ resultsCount | toPrecision}}
       </a>
@@ -41,7 +42,7 @@
             @update="(newValue) => updateFilter(filter.key, newValue)"
             @delete="deleteFilter(filter.key)"
         />
-      </template>
+      </template><span style="margin-left:-4px;">.</span>
 
 
 
