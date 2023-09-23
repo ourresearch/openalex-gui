@@ -131,7 +131,7 @@
 
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
         <v-container>
-        <search-box-new class="flex-grow-1" />
+        <search-box-new class="flex-grow-1"  />
 
         </v-container>
       </template>

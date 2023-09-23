@@ -10,50 +10,26 @@
     <!--    </v-toolbar>-->
 
     <v-container>
-
+      <filter-string
+          :filters="resultsFilters"
+          class="mb-3"
+      />
 
 
       <v-row dense>
-        <v-col cols="12" sm="4">
-          <filter-list
-              :filters="resultsFilters"
-              @create="createFilter"
-              @update="updateFilter"
-              @delete="deleteFilter"
-              class="mb-3"
-          />
-        </v-col>
         <v-col cols="12" sm="8">
           <v-card rounded>
             <serp-toolbar/>
-            <v-tabs :slider-size="5" slider-color="primary lighten-2" dark background-color="#444" v-model="resultsTab">
-              <v-tab>List</v-tab>
-              <v-tab>Summaries</v-tab>
-            </v-tabs>
-            <v-tabs-items v-model="resultsTab">
-              <v-tab-item>
-                <v-card flat key="serp-results">
-
-                  <serp-results-list class="pb-8"/>
-                </v-card>
-
-              </v-tab-item>
-              <v-tab-item>
-                <v-card>
-                  <v-card flat>
-                    <pinboard
-                        :filters="resultsFilters"
-                    />
-                  </v-card>
-                </v-card>
-              </v-tab-item>
-            </v-tabs-items>
-
+            <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>
-        <!--        <v-col cols="12" sm="3">-->
-
-        <!--        </v-col>-->
+        <v-col cols="12" sm="4">
+          <v-card rounded>
+          <pinboard
+              :filters="resultsFilters"
+          />
+          </v-card>
+        </v-col>
       </v-row>
 
     </v-container>
@@ -61,15 +37,6 @@
 
     <div id="serp-hidden">
       <api-dialog/>
-      <v-dialog v-model="groupByDialogIsOpen">
-        <facet-zoom-new
-            v-if="facetZoom"
-            :facet-zoom="facetZoom"
-            @close="groupByDialogIsOpen = false"
-        />
-      </v-dialog>
-
-
     </div>
 
   </div>
@@ -97,6 +64,8 @@ import ApiDialog from "../components/ApiDialog.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import SearchBoxNew from "../components/SearchBoxNew.vue";
 
+import FilterString from "@/components/Filters/FilterString.vue";
+
 export default {
   name: "Serp",
   metaInfo() {
@@ -112,6 +81,7 @@ export default {
     ApiDialog,
     Pinboard,
     EntityTypeSelector,
+    FilterString
 
   },
   props: {},
@@ -229,16 +199,16 @@ export default {
     },
 
 
-    createFilter(key, value) {
-      url.createFilter(this.entityType, key, value)
-    },
-    updateFilter(key, value) {
-      console.log("Serp.updateFilter", key, value)
-      url.updateFilter(this.entityType, key, value)
-    },
-    deleteFilter(key) {
-      url.deleteFilter(this.entityType, key)
-    },
+    // createFilter(key, value) {
+    //   url.createFilter(this.entityType, key, value)
+    // },
+    // updateFilter(key, value) {
+    //   console.log("Serp.updateFilter", key, value)
+    //   url.updateFilter(this.entityType, key, value)
+    // },
+    // deleteFilter(key) {
+    //   url.deleteFilter(this.entityType, key)
+    // },
   },
 
   created() {

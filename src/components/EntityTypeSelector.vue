@@ -1,12 +1,20 @@
 <template>
-  <div>
+  <span>
+    <a
+        v-if="inline"
+        class="entity-type-select-btn"
+        :id="myId"
+    >
+      {{ selectedEntityTypeConfig.displayName }}
+    </a>
     <v-btn
+        v-else
         rounded
         x-large
         text
-        class="text-capitalize elevation-0"
+        class="text-capitalize elevation-0 entity-type-select-btn"
+        :id="myId"
 
-        id="entity-type-select-btn"
     >
       <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>
       <span
@@ -22,7 +30,7 @@
         :is="$vuetify.breakpoint.mobile ? 'v-dialog' : 'v-menu'"
         v-model="isDialogOpen"
         fullscreen
-        activator="#entity-type-select-btn"
+        :activator="'#' +  myId"
         rounded
     >
       <v-card flat rounded>
@@ -36,7 +44,7 @@
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <v-card-text class="pa-0" >
+        <v-card-text class="pa-0">
           <!--        <v-container>-->
           <!--          <v-row-->
           <!--              v-if="$vuetify.breakpoint.mdAndUp"-->
@@ -107,7 +115,7 @@
 
     </component>
 
-  </div>
+  </span>
 </template>
 
 
@@ -119,7 +127,9 @@ import {VDialog} from "vuetify/lib";
 
 export default {
   name: "SearchBox",
-  props: {},
+  props: {
+    inline: Boolean,
+  },
   components: {
     VMenu,
     VDialog
@@ -130,6 +140,7 @@ export default {
       isDialogOpen: false,
       entityConfigs,
       selectedEntityType: "works",
+      myId: "my-id-" + Math.random().toString().replace(".", "")
     }
   },
   computed: {
@@ -169,6 +180,9 @@ export default {
   },
   mounted() {
   },
+  beforeCreate() {
+
+  }
 }
 </script>
 

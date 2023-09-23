@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <v-toolbar flat>
+  <v-card rounded>
+    <v-toolbar dark color="#444" flat>
       <v-toolbar-title>
-        {{ resultsCount | toPrecision }} results
+        Summaries
       </v-toolbar-title>
       <v-spacer/>
 
@@ -58,7 +58,7 @@
 
     </v-row>
 
-  </div>
+  </v-card>
 </template>
 
 <script>
