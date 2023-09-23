@@ -19,7 +19,7 @@
       <v-row dense>
         <v-col cols="12" sm="8">
           <v-card rounded>
-            <serp-toolbar/>
+            <serp-toolbar id="serp-toolbar" />
             <serp-results-list class="pb-8"/>
           </v-card>
         </v-col>

@@ -19,9 +19,9 @@
     </v-toolbar>
 
     <div class="pa-6 text-h6 font-weight-regular">
-      <span class="results-count font-weight-bold">
+      <a @click="$vuetify.goTo('#serp-toolbar', {offset: -70})" class="results-count font-weight-bold">
         {{ resultsCount | toPrecision}}
-      </span>
+      </a>
       <entity-type-selector inline />
       <span v-if="filters.length">where</span>
 

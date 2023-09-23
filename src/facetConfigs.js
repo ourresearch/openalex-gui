@@ -205,7 +205,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Fulltext search",
+            displayName: "fulltext search",
             type: "search",
             categories: ["popular", "search"],
             isCore: true,
@@ -462,7 +462,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.type",
             entityType: "works",
-            displayName: "Source type",
+            displayName: "source type",
             type: "select",
             categories: ["source"],
             icon: "mdi-book-open-outline",
@@ -470,7 +470,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_in_doaj",
             entityType: "works",
-            displayName: "Indexed by DOAJ",
+            displayName: "indexed by DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             categories: ["source"],
@@ -479,7 +479,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_oa",
             entityType: "works",
-            displayName: "Source is OA",
+            displayName: "source is OA",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             categories: ["source"],
@@ -542,7 +542,7 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Publication year",
+            displayName: "publication year",
             type: "range",
             sortByValue: true,
             examples: ["1999", "1999-", "1999-2020"],
