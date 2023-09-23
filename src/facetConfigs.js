@@ -1081,7 +1081,10 @@ const getFacetConfig = function (entityType, key) {
         throw new Error(msg)
 
     }
-    return myFacetConfig
+    return {
+        ...myFacetConfig,
+        docstring: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+    }
 }
 
 

@@ -2,7 +2,7 @@
   <span>
     <a
         v-if="inline"
-        class="entity-type-select-btn"
+        class="entity-type-select-btn font-weight-bold"
         :id="myId"
     >
       {{ selectedEntityTypeConfig.displayName }}

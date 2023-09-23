@@ -29,28 +29,18 @@
       <template
           v-for="(filter, i) in filters"
       >
-        <span
+
+
+        <component
             :key="filter.key + $route.query.filter"
-        >
-          {{ filter.key }}: {{ filter.value}}
-        <span
-            :key="`semicolon-${i}`"
-            style="margin-left:-5px;"
-            v-if="i < filters.length-1"
-        >; </span>
-        </span>
-
-
-
-<!--        <component-->
-<!--            :key="filter.key + $route.query.filter"-->
-<!--            class=""-->
-<!--            :is="'filter-item-' + filter.type"-->
-<!--            :filter-key="filter.key"-->
-<!--            :filter-value="filter.value"-->
-<!--            @edit="setActiveFilter(filter.key, filter.value, false)"-->
-<!--            @delete="deleteFilter(filter.key)"-->
-<!--        />-->
+            class=""
+            :append-separator="i < filters.length-1"
+            :is="'filter-item-' + filter.type"
+            :filter-key="filter.key"
+            :filter-value="filter.value"
+            @update="(newValue) => updateFilter(filter.key, newValue)"
+            @delete="deleteFilter(filter.key)"
+        />
       </template>
 
 
@@ -213,7 +203,6 @@ export default {
 <style  lang="scss">
   .v-application .filter-string-card a {
     color: #333 !important;
-    font-weight: bold;
     &:hover {
       color: #1976d2 !important;
     }

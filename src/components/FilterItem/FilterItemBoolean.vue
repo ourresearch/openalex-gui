@@ -1,26 +1,34 @@
 <template>
-      <v-list-item
-          @click="$emit('edit')"
+  <span>
+    <v-menu rounded max-width="350">
+      <template v-slot:activator="{on}">
+        <a v-on="on">
+          {{ myFilterConfig.displayName }}
+        </a>
+      </template>
+        <v-card rounded class="">
+          <v-card-title class="text-h6 font-weight-regular">
+            {{ myFilterConfig.displayName}}
+          </v-card-title>
+          <v-card-text>
+            {{ myFilterConfig.docstring }}
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="error" rounded @click="$emit('delete')">
+              Delete
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+    </v-menu>
+    is
+      <a
+          class="font-weight-bold"
+          @click="toggleMyFilterValue"
       >
-        <v-list-item-icon>
-          <v-icon class="">mdi-filter-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            <span v-if="!myFilterValue" class="font-weight-bold">NOT</span>
-            {{ myFilterConfig.displayName }}
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Boolean filter
-          </v-list-item-subtitle>
-
-        </v-list-item-content>
-        <v-list-item-action>
-          <v-btn icon @click="$emit('delete', filterKey)">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-list-item-action>
-      </v-list-item>
+         {{ myFilterValue }}{{ (appendSeparator) ? ";" : "" }}
+      </a>
+  </span>
 </template>
 
 <script>
@@ -42,6 +50,7 @@ export default {
     disabled: Boolean,
     filterKey: String,
     filterValue: [Boolean, String],
+    appendSeparator: Boolean,
   },
   data() {
     return {
@@ -61,7 +70,7 @@ export default {
     label() {
       const negationString = (this.myFilterValue) ? "" : "NOT"
       return `${negationString} ${this.myFilterConfig.displayName}`
-    }
+    },
   },
 
   methods: {
@@ -69,6 +78,10 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    toggleMyFilterValue(){
+      this.myFilterValue = !this.myFilterValue
+      this.$emit("update", this.myFilterValue)
+    }
 
 
   },
