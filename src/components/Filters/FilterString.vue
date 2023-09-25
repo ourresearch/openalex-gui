@@ -46,7 +46,9 @@
       </template>
 
 
+
       <div class="d-inline-flex align-baseline">
+
         <div class="mr-3">and </div>
 
         <v-menu
@@ -55,24 +57,24 @@
             max-width="350"
         >
           <template v-slot:activator="{on}">
-            <v-text-field
-                v-if="activeFilterConfig"
-                v-on="on"
-                readonly
-                v-model="activeFilterConfig.displayName"
-                class="text-h5"
-                hide-details
-                style="max-width: 300px;"
-            />
-            <v-text-field
-                v-else
-                placeholder="Select filter"
-                v-on="on"
-                readonly
-                class="text-h5"
-                hide-details
-                style="max-width: 300px;"
-            />
+            <span v-on="on">
+              <span
+                  v-if="!!activeFilterKey"
+                  class="text-h5"
+              >
+                  {{ activeFilterConfig.displayName }}
+              </span>
+              <v-text-field
+                  v-else
+                  placeholder="Select filter"
+                  v-on="on"
+                  readonly
+                  class="text-h5"
+                  hide-details
+                  style="max-width: 300px;"
+              />
+
+            </span>
 
           </template>
           <v-card>
@@ -115,26 +117,26 @@
           </v-card>
         </v-menu>
 
-        <div class="px-3">is</div>
+<!--        <div class="px-3">is</div>-->
 
-         <v-text-field
-                v-if="activeFilterConfig"
-                v-on="on"
-                readonly
-                v-model="activeFilterConfig.displayName"
-                class="text-h5"
-                hide-details
-                style="max-width: 300px;"
-            />
-            <v-text-field
-                v-else
-                placeholder="Select filter"
-                v-on="on"
-                readonly
-                class="text-h5"
-                hide-details
-                style="max-width: 300px;"
-            />
+<!--         <v-text-field-->
+<!--                v-if="activeFilterConfig"-->
+<!--                v-on="on"-->
+<!--                readonly-->
+<!--                v-model="activeFilterConfig.displayName"-->
+<!--                class="text-h5"-->
+<!--                hide-details-->
+<!--                style="max-width: 300px;"-->
+<!--            />-->
+<!--            <v-text-field-->
+<!--                v-else-->
+<!--                placeholder="Select filter"-->
+<!--                v-on="on"-->
+<!--                readonly-->
+<!--                class="text-h5"-->
+<!--                hide-details-->
+<!--                style="max-width: 300px;"-->
+<!--            />-->
       </div>
 
 

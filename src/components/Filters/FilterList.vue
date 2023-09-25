@@ -31,40 +31,6 @@
     </v-toolbar>
 
     <v-list nav expand class="pt-2">
-      <template v-if="appliedFiltersMatchingSearchString.length">
-        <v-subheader class="pt-3">
-          Applied
-          ({{ appliedFiltersMatchingSearchString.length }})
-        </v-subheader>
-      </template>
-      <template
-          v-for="(filter, i) in appliedFiltersMatchingSearchString"
-      >
-
-
-        <component
-            :key="filter.key + $route.query.filter"
-            class=""
-            :is="'filter-item-' + filter.type"
-            :filter-key="filter.key"
-            :filter-value="filter.value"
-            @edit="setActiveFilter(filter.key, filter.value, false)"
-            @delete="deleteFilter(filter.key)"
-        />
-      </template>
-      <v-divider
-          v-if="appliedFiltersMatchingSearchString.length"
-          class="mb-6 mt-6"
-      />
-
-
-      <template v-if="facetsByCategoryCount && !searchString && filters.length">
-        <v-subheader class="">
-          Available
-          ({{ facetsByCategoryCount }})
-        </v-subheader>
-        <!--        <v-divider/>-->
-      </template>
       <v-list-group
           v-for="category in facetsByCategory"
           :key="category.displayName"
