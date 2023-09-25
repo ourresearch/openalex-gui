@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-12">
+  <div class="">
 
     <!--    <v-toolbar dense flat color="transparent">-->
     <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->

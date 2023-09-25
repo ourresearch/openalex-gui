@@ -18,13 +18,14 @@
 
     </v-toolbar>
 
-    <div class="pa-6 text-h6 font-weight-regular" style="line-height: 1.7">
+    <div class="pa-6 text-h5 font-weight-regular" style="line-height: 1.7">
       Showing
-      <a @click="$vuetify.goTo('#serp-toolbar', {offset: -70})" class="results-count font-weight-bold">
+      <a @click="$vuetify.goTo('#serp-toolbar', {offset: -70})" class="results-count ">
         {{ resultsCount | toPrecision}}
       </a>
       <entity-type-selector inline />
-      <span v-if="filters.length">where</span>
+      where
+      <span v-if="!filters.length">...</span>
 
 
       <template
@@ -42,8 +43,99 @@
             @update="(newValue) => updateFilter(filter.key, newValue)"
             @delete="deleteFilter(filter.key)"
         />
-      </template><span style="margin-left:-4px;">.</span>
+      </template>
 
+
+      <div class="d-inline-flex align-baseline">
+        <div class="mr-3">and </div>
+
+        <v-menu
+            :close-on-content-click="false"
+            v-model="isFilterKeySelectMenuOpen"
+            max-width="350"
+        >
+          <template v-slot:activator="{on}">
+            <v-text-field
+                v-if="activeFilterConfig"
+                v-on="on"
+                readonly
+                v-model="activeFilterConfig.displayName"
+                class="text-h5"
+                hide-details
+                style="max-width: 300px;"
+            />
+            <v-text-field
+                v-else
+                placeholder="Select filter"
+                v-on="on"
+                readonly
+                class="text-h5"
+                hide-details
+                style="max-width: 300px;"
+            />
+
+          </template>
+          <v-card>
+            <div class="pa-4 pb-0">
+              <v-text-field
+                v-model="searchString"
+                prepend-inner-icon="mdi-magnify"
+                autofocus
+
+              />
+
+            </div>
+            <v-list style="max-height: 60vh; overflow-y:scroll;">
+              <v-list-item-group
+                  v-model="activeFilterKey"
+              >
+                <v-list-item
+                  v-for="(filter, i) in popularFilters"
+                  :key="filter.key"
+                  :value="filter.key"
+                >
+                  <v-list-item-icon><v-icon>{{ filter.icon }}</v-icon></v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ filter.displayName }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+
+              </v-list-item-group>
+              <v-divider />
+              <v-list-item
+                key="view-all-filters"
+                @click="isAllFiltersDialogOpen = true"
+              >
+                <v-list-item-icon></v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>More filters...</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+
+        <div class="px-3">is</div>
+
+         <v-text-field
+                v-if="activeFilterConfig"
+                v-on="on"
+                readonly
+                v-model="activeFilterConfig.displayName"
+                class="text-h5"
+                hide-details
+                style="max-width: 300px;"
+            />
+            <v-text-field
+                v-else
+                placeholder="Select filter"
+                v-on="on"
+                readonly
+                class="text-h5"
+                hide-details
+                style="max-width: 300px;"
+            />
+      </div>
 
 
     </div>
@@ -104,6 +196,9 @@ export default {
       activeFilterCreateMode: false,
       isActiveFilterDialogOpen: false,
 
+      isFilterKeySelectMenuOpen: false,
+      isAllFiltersDialogOpen: false,
+
 
       searchString: "",
       getEntityConfig,
@@ -118,6 +213,13 @@ export default {
     activeFilterConfig() {
       if (!this.activeFilterKey) return
       return getFacetConfig(this.entityType, this.activeFilterKey)
+    },
+    popularFilters(){
+      return filtersList(this.entityType).filter(f => f.categories.includes("popular"))
+    },
+    searchResultFilters(){
+      return filtersList(this.entityType, this.searchString)
+
     },
     facetsByCategory() {
       return facetsByCategory(
@@ -135,12 +237,6 @@ export default {
       return sum
     },
 
-    appliedFiltersMatchingSearchString() {
-      return this.filters.filter(f => {
-        if (!this.searchString) return true
-        return f.displayName.toLowerCase().match(this.searchString.toLowerCase())
-      })
-    },
   },
 
 
@@ -196,6 +292,12 @@ export default {
       handler(to, from) {
         this.activeFilterKey = null
       }
+    },
+    activeFilterKey(to, from){
+      this.isFilterKeySelectMenuOpen = false
+    },
+    isAllFiltersDialogOpen(to, from){
+      this.isFilterKeySelectMenuOpen = false
     }
   }
 }

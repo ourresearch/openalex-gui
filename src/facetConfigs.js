@@ -1098,7 +1098,7 @@ const makeFacet = function (key, isNegated, values) {
     }
 }
 
-const filtersList = function (entityType, resultsFilters, searchString) {
+const filtersList = function (entityType, searchString) {
     const ret = facetConfigs(entityType)
         .filter(c => {
             return c.entityType === entityType

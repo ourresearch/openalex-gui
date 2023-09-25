@@ -13,7 +13,7 @@
         app
         flat
 
-        color="white"
+        color="transparent"
         class="pl-0"
         absolute
         :extended="$vuetify.breakpoint.mobile"
@@ -41,7 +41,7 @@
 
         </router-link>
         <v-spacer />
-        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />
+<!--        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />-->
         <v-spacer/>
 <!--        <v-btn light target="_blank"-->
 

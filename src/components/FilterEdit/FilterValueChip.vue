@@ -28,7 +28,7 @@
         </v-card-actions>
       </v-card>
     </v-menu>
-    <a @click="addAnother">(+)</a>{{ appendSeparator ? "; " : "" }}
+    <!--<a  @click="addAnother">(+)</a>-->{{ appendSeparator ? "; " : "" }}
 
 
     <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
