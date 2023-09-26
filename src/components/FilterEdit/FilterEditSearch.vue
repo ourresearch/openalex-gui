@@ -27,10 +27,33 @@
     <v-card-actions>
       <v-spacer/>
       <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn  rounded  color="primary" @click="$emit('upsert', myValue)">
-        {{ createMode ? "Add search" : "Update search"}}
-      </v-btn>
+      <template v-if="createMode">
+        <v-btn
+            text
+            rounded
+            color="primary"
+            @click="$emit('upsert', myValue)"
+            :disabled="!myValue"
+        >
+          Create
+        </v-btn>
+      </template>
+      <template v-else>
+        <v-btn
+            text
+            rounded
+            :color="myValue ? 'primary' : 'error'"
+            @click="$emit((myValue ? 'upsert' : 'delete'), myValue)"
+            :disabled="filterValue === myValue"
+        >
+          {{  myValue ? 'Update' : 'Delete' }}
+        </v-btn>
+      </template>
+
     </v-card-actions>
+
+
+
   </v-card>
 </template>
 
