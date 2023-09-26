@@ -94,13 +94,6 @@
           </v-card>
         </v-menu>
 
-        <v-btn
-            icon
-            target="_blank"
-            @click="copyToClipboard('https://alpha.openalex.org' + $route.fullPath)"
-        >
-          <v-icon>mdi-share-variant-outline</v-icon>
-        </v-btn>
 
 
         <v-menu offset-y content-class="no-highlight" min-width="150">
@@ -110,17 +103,24 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item to="/">
-              Home
-            </v-list-item>
             <v-list-item to="/about">
               About
             </v-list-item>
-            <v-list-item to="/premium">
-              Premium
+            <v-list-item to="/testimonials">
+              Testimonials
+            </v-list-item>
+            <v-list-item to="/pricing">
+              Pricing
             </v-list-item>
             <v-list-item to="/help">
               Help
+            </v-list-item>
+            <v-list-item to="/about#contact">
+              Contact
+            </v-list-item>
+            <v-list-item href="https://docs.openalex.org/">
+              Read the docs
+              <v-icon small right>mdi-open-in-new</v-icon>
             </v-list-item>
           </v-list>
         </v-menu>
