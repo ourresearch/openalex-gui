@@ -17,17 +17,26 @@
 
 
       <v-row dense>
-        <v-col cols="12" sm="8">
-          <v-card rounded>
-            <serp-toolbar/>
-            <serp-results-list class="pb-8"/>
-          </v-card>
-        </v-col>
         <v-col cols="12" sm="4">
           <v-card rounded>
-          <pinboard
-              :filters="resultsFilters"
-          />
+            <filter-list :filters="resultsFilters" />
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="8">
+          <v-card rounded>
+            <v-tabs height="64" slider-color="primary lighten-2" slider-size="5" dark background-color="#444" v-model="resultsTab" fixed-tabs>
+              <v-tab>List</v-tab>
+              <v-tab>Summaries</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="resultsTab">
+              <v-tab-item>
+                <serp-toolbar id="serp-toolbar" />
+                <serp-results-list class="pb-8"/>
+              </v-tab-item>
+              <v-tab-item>
+                <pinboard />
+              </v-tab-item>
+            </v-tabs-items>
           </v-card>
         </v-col>
       </v-row>
