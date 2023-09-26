@@ -1,88 +1,103 @@
 <template>
   <v-card flat rounded class="">
+    <v-toolbar flat>
+      <v-toolbar-title>
+        <v-icon left>mdi-filter-outline</v-icon>
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+      <v-spacer />
+      <v-btn icon @click="$emit('close')"><v-icon>mdi-close</v-icon></v-btn>
+      <template v-slot:extension>
+        <v-text-field
+            autofocus
+            v-model="searchString"
+            hide-details
+            prepend-icon="mdi-magnify"
+            clearable
+            full-width
+            rounded
+            :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
+        />
 
-    <div class="px-4">
-      <v-text-field
-          autofocus
-          v-model="searchString"
-          hide-details
-          prepend-icon="mdi-magnify"
-          clearable
-          full-width
-          rounded
-          :placeholder="'Add ' + myConfig.displayName | pluralize(2)"
-      />
-    </div>
+      </template>
+
+    </v-toolbar>
+
+
     <v-divider></v-divider>
-    <!--    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">-->
-    <!--      Here's some information about this filter. I hope you find it useful.-->
-    <!--    </v-card-text>-->
-    <v-list
-    >
-      <v-subheader v-if="selectedOptionsToShow.length">
-        Selected
-        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
-
-        ({{ selectedOptionsToShow.length }})
-      </v-subheader>
-      <v-list-item
-          v-for="option in selectedOptionsToShow"
-          :key="'selected' + option.id"
-          @click="unselectOption(option)"
-
+    <v-card-text style="flex-grow:9999;" id="filter-edit-select-card-text">
+      <v-list
       >
-        <v-list-item-icon>
-          <v-icon>mdi-checkbox-marked</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            <div class="text-wrap">
+        <v-subheader v-if="selectedOptionsToShow.length">
+          Selected
+          <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
+
+          ({{ selectedOptionsToShow.length }})
+        </v-subheader>
+        <v-list-item
+            v-for="option in selectedOptionsToShow"
+            :key="'selected' + option.id"
+            @click="unselectOption(option)"
+
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-checkbox-marked</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              <div class="text-wrap">
+                {{ option.display_name }}
+
+              </div>
+            </v-list-item-title>
+            <v-list-item-subtitle v-if="option.entity_type">
+              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
+              <span>{{ option.id }})</span>
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-subheader v-if="unselectedOptions.length">
+          <template v-if="searchString">
+            Search results
+          </template>
+          <template v-else>
+            Options
+          </template>
+          ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
+        </v-subheader>
+
+        <v-list-item
+            v-for="option in unselectedOptions"
+            :key="'unselected' + option.id"
+            @click="selectOption(option)"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-checkbox-blank-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
               {{ option.display_name }}
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              <span v-if="option.entity_type">{{ option.id }} -</span>
+              <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
 
-            </div>
-          </v-list-item-title>
-          <v-list-item-subtitle v-if="option.entity_type">
-            <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
-            <span>{{ option.id }})</span>
-          </v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
+    </v-card-text>
+    <v-divider></v-divider>
 
-      <v-subheader v-if="unselectedOptions.length">
-        <template v-if="searchString">
-          Search results
-        </template>
-        <template v-else>
-          Options
-        </template>
-        ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
-      </v-subheader>
-
-      <v-list-item
-          v-for="option in unselectedOptions"
-          :key="'unselected' + option.id"
-          @click="selectOption(option)"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-checkbox-blank-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            {{ option.display_name }}
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            <span v-if="option.entity_type">{{ option.id }} -</span>
-            <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
-          </v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
-
-    </v-list>
     <v-card-actions>
       <v-spacer/>
       <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn rounded color="primary" @click="$emit('upsert', myValue)">
+      <v-btn v-if="myValue" text rounded color="primary" @click="$emit('upsert', myValue)">
         {{ createMode ? "Add filter" : "Update filter" }}
+      </v-btn>
+      <v-btn v-else text rounded color="error" @click="$emit('delete')">
+        Delete
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -202,6 +217,7 @@ export default {
   created() {
   },
   async mounted() {
+    console.log("FilterEditSelect mounted")
     if (this.filterValue) {
       // const newIds = this.filterValue.split("|")
       const newIds = getItemsFromSelectFilterValue(this.filterValue)
@@ -237,6 +253,7 @@ export default {
           autocompletePromises
       )
     }
+    await this.fetchOptions()
   },
   watch: {
     searchString: {
@@ -245,6 +262,12 @@ export default {
         await this.fetchOptions()
       },
     },
+    myValue(to, from){
+
+      this.$vuetify.goTo(0, {
+        container: "#filter-edit-select-card-text"
+      })
+    }
 
   }
 }

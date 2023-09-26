@@ -104,6 +104,7 @@
     <v-dialog
         v-model="isActiveFilterDialogOpen"
         max-width="400"
+        scrollable
     >
       <component
           class=""
@@ -114,7 +115,8 @@
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
           @upsert="(newValue) => createOrUpdateFilter(activeFilterKey, newValue)"
-          @close="setActiveFilter(null, null, null)"
+          @delete="deleteFilter(activeFilterKey)"
+          @close="isActiveFilterDialogOpen = false"
       />
     </v-dialog>
 
@@ -240,6 +242,7 @@ export default {
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
       url.deleteFilter(this.entityType, key)
+      this.setActiveFilter(null, null, null)
     },
     updateFilter(filterKey, newValue) {
       console.log("updateFilter", filterKey, newValue)
@@ -263,6 +266,9 @@ export default {
       handler(to, from) {
         this.activeFilterKey = null
       }
+    },
+    isActiveFilterDialogOpen(to, from){
+      if (!to) this.setActiveFilter(null, null, null)
     }
   }
 }
