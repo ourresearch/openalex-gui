@@ -1,17 +1,13 @@
 <template>
   <v-toolbar
       flat
-      dark
-      color="#444"
   >
-    <v-icon left>mdi-filter-check-outline</v-icon>
-    <v-toolbar-title>
-      Results
-      <!--      <span class="body-2">{{resultsCount | toPrecision }}</span>-->
-    </v-toolbar-title>
 
-    <v-spacer/>
-
+<!--    <v-toolbar-title>-->
+<!--      List-->
+<!--    </v-toolbar-title>-->
+    <span class="grey--text">{{resultsCount | toPrecision }} results</span>
+    <v-spacer />
 
     <!--DIALOGS-->
     <!--*****************************************************************************************-->
@@ -43,13 +39,43 @@
     <!--*****************************************************************************************-->
 
 
+    <v-menu>
+      <template v-slot:activator="{on}">
+        <v-btn rounded class="font-weight-regular" text v-on="on">
+          <v-icon left class="">mdi-sort</v-icon>
+          Sort by {{ sortObject.displayName }}
+        </v-btn>
+      </template>
+      <v-list>
+        <v-subheader>Sort by</v-subheader>
+        <v-divider></v-divider>
+        <v-list-item
+            v-for="mySortOption in $store.getters.sortObjectOptions"
+            :key="mySortOption.key"
+            @click="setSort(mySortOption.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>
+              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ mySortOption.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+
     <v-menu min-width="200" max-width="300">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on" class="" :disabled="disabled">
           <v-icon>mdi-tray-arrow-down</v-icon>
         </v-btn>
       </template>
-      <v-card v-if="resultsCount > 100000" class="" >
+      <v-card v-if="resultsCount > 100000" class="">
         <div class="error--text pa-4 pb-0 font-weight-bold">
           Too many results to export.
         </div>
@@ -59,25 +85,25 @@
       </v-card>
 
       <v-list v-else>
-            <v-subheader>Export results as:</v-subheader>
-        <v-divider />
-            <v-list-item @click="setExport('csv')">
-              <v-list-item-title>
-                Spreadsheet
-              </v-list-item-title>
-              <v-list-item-action-text>
-                .CSV
-              </v-list-item-action-text>
-            </v-list-item>
-            <v-list-item @click="setExport('wos-plaintext')">
-              <v-list-item-title>
-                WoS-format
-              </v-list-item-title>
-              <v-list-item-action-text>
-                .TXT
-              </v-list-item-action-text>
-            </v-list-item>
-          </v-list>
+        <v-subheader>Export results as:</v-subheader>
+        <v-divider/>
+        <v-list-item @click="setExport('csv')">
+          <v-list-item-title>
+            Spreadsheet
+          </v-list-item-title>
+          <v-list-item-action-text>
+            .CSV
+          </v-list-item-action-text>
+        </v-list-item>
+        <v-list-item @click="setExport('wos-plaintext')">
+          <v-list-item-title>
+            WoS-format
+          </v-list-item-title>
+          <v-list-item-action-text>
+            .TXT
+          </v-list-item-action-text>
+        </v-list-item>
+      </v-list>
     </v-menu>
 
 
@@ -88,50 +114,50 @@
         </v-btn>
       </template>
       <v-list>
-<!--        <v-menu offset-x open-on-hover max-width="200">-->
-<!--          <template v-slot:activator="{on}">-->
-<!--            <v-list-item-->
-<!--                v-on="on"-->
-<!--                :disabled="resultsCount > 1000000"-->
-<!--            >-->
-<!--              <v-list-item-icon>-->
-<!--                <v-icon :disabled="resultsCount > 1000000">-->
-<!--                  mdi-tray-arrow-down-->
-<!--                </v-icon>-->
-<!--              </v-list-item-icon>-->
-<!--              <v-list-item-content>-->
-<!--                <v-list-item-title>-->
-<!--                  Download results as ...-->
-<!--                </v-list-item-title>-->
-<!--                <v-list-item-subtitle :class="{'grey&#45;&#45;text': resultsCount > 1000000}">-->
-<!--                  Max 100k-->
-<!--                </v-list-item-subtitle>-->
-<!--              </v-list-item-content>-->
-<!--              <v-list-item-action>-->
-<!--                <v-icon :disabled="resultsCount > 1000000">mdi-menu-right</v-icon>-->
-<!--              </v-list-item-action>-->
-<!--            </v-list-item>-->
-<!--          </template>-->
-<!--          <v-list>-->
-<!--            &lt;!&ndash;            <v-subheader>Download format:</v-subheader>&ndash;&gt;-->
-<!--            <v-list-item @click="setExport('csv')">-->
-<!--              <v-list-item-title>-->
-<!--                Spreadsheet-->
-<!--              </v-list-item-title>-->
-<!--              <v-list-item-action-text>-->
-<!--                .CSV-->
-<!--              </v-list-item-action-text>-->
-<!--            </v-list-item>-->
-<!--            <v-list-item @click="setExport('wos-plaintext')">-->
-<!--              <v-list-item-title>-->
-<!--                Web of Science-->
-<!--              </v-list-item-title>-->
-<!--              <v-list-item-action-text>-->
-<!--                .TXT-->
-<!--              </v-list-item-action-text>-->
-<!--            </v-list-item>-->
-<!--          </v-list>-->
-<!--        </v-menu>-->
+        <!--        <v-menu offset-x open-on-hover max-width="200">-->
+        <!--          <template v-slot:activator="{on}">-->
+        <!--            <v-list-item-->
+        <!--                v-on="on"-->
+        <!--                :disabled="resultsCount > 1000000"-->
+        <!--            >-->
+        <!--              <v-list-item-icon>-->
+        <!--                <v-icon :disabled="resultsCount > 1000000">-->
+        <!--                  mdi-tray-arrow-down-->
+        <!--                </v-icon>-->
+        <!--              </v-list-item-icon>-->
+        <!--              <v-list-item-content>-->
+        <!--                <v-list-item-title>-->
+        <!--                  Download results as ...-->
+        <!--                </v-list-item-title>-->
+        <!--                <v-list-item-subtitle :class="{'grey&#45;&#45;text': resultsCount > 1000000}">-->
+        <!--                  Max 100k-->
+        <!--                </v-list-item-subtitle>-->
+        <!--              </v-list-item-content>-->
+        <!--              <v-list-item-action>-->
+        <!--                <v-icon :disabled="resultsCount > 1000000">mdi-menu-right</v-icon>-->
+        <!--              </v-list-item-action>-->
+        <!--            </v-list-item>-->
+        <!--          </template>-->
+        <!--          <v-list>-->
+        <!--            &lt;!&ndash;            <v-subheader>Download format:</v-subheader>&ndash;&gt;-->
+        <!--            <v-list-item @click="setExport('csv')">-->
+        <!--              <v-list-item-title>-->
+        <!--                Spreadsheet-->
+        <!--              </v-list-item-title>-->
+        <!--              <v-list-item-action-text>-->
+        <!--                .CSV-->
+        <!--              </v-list-item-action-text>-->
+        <!--            </v-list-item>-->
+        <!--            <v-list-item @click="setExport('wos-plaintext')">-->
+        <!--              <v-list-item-title>-->
+        <!--                Web of Science-->
+        <!--              </v-list-item-title>-->
+        <!--              <v-list-item-action-text>-->
+        <!--                .TXT-->
+        <!--              </v-list-item-action-text>-->
+        <!--            </v-list-item>-->
+        <!--          </v-list>-->
+        <!--        </v-menu>-->
 
         <v-list-item
             @click="setApiDialogUrl(searchApiUrlForDisplay)"
