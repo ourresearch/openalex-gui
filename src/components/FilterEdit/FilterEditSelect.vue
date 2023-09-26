@@ -15,7 +15,6 @@
             v-model="searchString"
             hide-details
             prepend-icon="mdi-magnify"
-            clearable
             full-width
             rounded
             :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
@@ -30,6 +29,7 @@
     <v-card-text style="flex-grow:9999;" id="filter-edit-select-card-text">
       <v-list
       >
+
         <v-subheader v-if="selectedOptionsToShow.length">
           Selected
           <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
@@ -67,6 +67,9 @@
             Options
           </template>
           ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
+        </v-subheader>
+        <v-subheader v-if="!unselectedOptions.length">
+          No search results
         </v-subheader>
 
         <v-list-item
