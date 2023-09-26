@@ -24,8 +24,8 @@
         </v-col>
         <v-col cols="12" sm="8">
           <v-card rounded>
-            <v-tabs height="64" slider-color="primary lighten-2" slider-size="5" dark background-color="#444" v-model="resultsTab" fixed-tabs>
-              <v-tab>List</v-tab>
+            <v-tabs height="64"   v-model="resultsTab" fixed-tabs>
+              <v-tab>Results</v-tab>
               <v-tab>Summaries</v-tab>
             </v-tabs>
             <v-tabs-items v-model="resultsTab">

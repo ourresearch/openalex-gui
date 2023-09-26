@@ -1,7 +1,6 @@
 <template>
-  <div>
+  <div class="search-box-new">
     <v-text-field
-
         prepend-inner-icon="mdi-magnify"
         hide-details
         readonly
@@ -262,5 +261,26 @@ export default {
   top: 0 !important;
 
 }
+
+
+
+
+.search-box-new {
+  .v-text-field--rounded > .v-input__control > .v-input__slot {
+    padding: 0 24px 0 0 !important;
+  }
+  .v-application--is-ltr .v-text-field .v-input__prepend-inner {
+    padding: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .v-text-field--full-width .v-input__prepend-outer, .v-text-field--full-width .v-input__prepend-inner, .v-text-field--full-width , .v-text-field--full-width, .v-text-field--enclosed .v-input__prepend-outer, .v-text-field--enclosed .v-input__prepend-inner, .v-text-field--enclosed , .v-text-field--enclosed  {
+    margin-top: 0;
+  }
+
+}
+
+
+
 
 </style>

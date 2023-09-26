@@ -7,7 +7,7 @@ const facetCategories = {
         "source",
         "funder",
         "institution",
-
+        "geo",
         "open access",
         "search",
         "citation",
