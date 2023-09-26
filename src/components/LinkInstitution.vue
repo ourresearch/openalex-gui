@@ -1,7 +1,7 @@
 <template>
-  <router-link :to="data.id | idLink">
-    {{data.display_name}}
-  </router-link>
+  <router-link
+      class="text-decoration-none"
+      :to="data.id | entityZoomLink">{{data.display_name}}{{ append }}</router-link>
 </template>
 
 
@@ -12,6 +12,8 @@ export default {
   },
   props: {
     data: Object,
+    append: String,
+    surroundWithParens: Boolean,
   },
   data() {
     return {

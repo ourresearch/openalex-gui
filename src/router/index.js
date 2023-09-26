@@ -1,61 +1,78 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import EntityPage from "../views/EntityPage";
-import Accessibility from "../views/Accessibility";
-import Transparency from "../views/Transparency";
+import Faq from "../views/Faq.vue";
+import Testimonials from "../views/Testimonials.vue";
+import Help from "../views/Help.vue";
+
+import Serp from "../views/Serp";
+import EntityPage from "@/views/EntityPage.vue";
+import About from "../views/About";
+import store from "@/store";
+import UserSignup from "@/components/user/UserSignup.vue";
+import UserMagicToken from "../components/user/UserMagicToken.vue";
+import Login from "@/views/Login.vue";
+import Me from "../views/Me.vue"
+
 import goTo from 'vuetify/es5/services/goto'
+import Pricing from "../views/Pricing.vue";
+import Webinars from "../views/Webinars.vue";
+
 
 Vue.use(VueRouter)
 
-const entityTypes = {
-    "W": "works",
-    "I": "institutions",
-    "V": "venues",
-    "A": "authors",
-    "C": "concepts",
-};
 
+
+
+const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
 const routes = [
+
+    // data pages
     {
-        path: '/',
-        name: 'Home',
-        component: Home
+        path: `/:entityType(${entityNames})`,
+        name: 'Serp',
+        component: Serp,
     },
-
-    // temp for now
-    // {
-    //     path: '/',
-    //     redirect: 'works/W2741809807',
-    // },
-
     {
-        path: '/:id([wWiIvVaAcC]\\d+)',
-        redirect: to => {
-            // https://router.vuejs.org/api/#the-route-object
-            const firstLetter = to.params.id.substr(0,1).toUpperCase()
-            const entityType = entityTypes[firstLetter]
-            return `/${entityType}/${to.params.id}`
-        },
-    },
-
-
-    {
-        path: '/:entityType(works|authors|venues|institutions|concepts)/:id',
+        path: `/:entityType(${entityNames})/:entityId`,
         name: 'EntityPage',
         component: EntityPage,
     },
-    {path: '/team', redirect: "/about"},
-    {path: '/accessibility', component: Accessibility},
-    {path: '/transparency', component: Transparency},
+
+
+    // user pages and routes
+    { path: '/signup', name: 'Signup', component: UserSignup},
+    { path: '/login', name: 'Login', component: Login},
+    { path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    { path: '/me',redirect: {name: "Me", params: {tab: "details"}}},
+    { path: '/me/:tab?', name: 'Me', component: Me, meta: {requiresAuth: true}},
+
+
+    // static pages
     {
-        path: '/about',
-        name: 'About',
-        // route level code-splitting
-        // this generates a separate chunk (about.[hash].js) for this route
-        // which is lazy-loaded when the route is visited.
-        component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-    }
+        path: '/',
+        // redirect: {name: "Serp", params: {entityType: "works"}},
+        component: Home,
+        name: 'Home',
+        // component: Home
+    },
+    { path: '/about', name: 'About', component: About},
+    {path: '/faq', component: Faq},
+    {path: '/users', redirect: {name: "testimonials"}},
+    {path: '/testimonials', name: "testimonials", component: Testimonials},
+    {path: '/help', component: Help},
+    {path: '/feedback', redirect: {name: "testimonials"}},
+    {path: '/contact', redirect: {name: "about"}},
+    {path: '/pricing', component: Pricing},
+    {path: '/webinars', component: Webinars},
+
+
+    // redirects to gitbook docs
+    {path: '/data-dump', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
+    {path: '/rest-api', beforeEnter() {window.location.href = "https://docs.openalex.org/api" }},
+    {path: '/schema', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
+    {path: '/mag-migration-guide', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot/mag-format" }},
+
 ]
 
 const router = new VueRouter({
@@ -68,12 +85,41 @@ const router = new VueRouter({
             })
         } else if (savedPosition) {
             return savedPosition
-        } else {
+        }
+        else if (to.name === "Serp") {
+            // do nothing
+        }
+        else {
             return {x: 0, y: 0}
         }
 
     },
 })
+
+router.beforeEach(async (to, from, next) => {
+    const userId = store.getters["user/userId"]
+
+    if (localStorage.getItem("token") && !userId) {
+        console.log("in router, we found a user token")
+        try {
+            await store.dispatch("user/fetchUser")
+        } catch (e) {
+            store.commit("logout")
+        }
+    }
+
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // this page requires authentication
+        if (userId) {  // you're logged in great. proceed.
+            next()
+        } else { // sorry, you can't view this page. go log in.
+            next("/login")
+        }
+    } else { //  no auth required. proceed.
+        next()
+    }
+});
+
 
 
 export default router
