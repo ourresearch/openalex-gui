@@ -5,8 +5,10 @@
         <v-icon left>mdi-filter-outline</v-icon>
         {{ myConfig.displayName }}
       </v-toolbar-title>
-      <v-spacer />
-      <v-btn icon @click="$emit('close')"><v-icon>mdi-close</v-icon></v-btn>
+      <v-spacer/>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
       <template v-slot:extension>
         <v-text-field
             autofocus
@@ -93,12 +95,29 @@
     <v-card-actions>
       <v-spacer/>
       <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn v-if="myValue" text rounded color="primary" @click="$emit('upsert', myValue)">
-        {{ createMode ? "Add filter" : "Update filter" }}
-      </v-btn>
-      <v-btn v-else text rounded color="error" @click="$emit('delete')">
-        Delete
-      </v-btn>
+      <template v-if="createMode">
+        <v-btn
+            text
+            rounded
+            color="primary"
+            @click="$emit('upsert', myValue)"
+            :disabled="!myValue"
+        >
+          Create
+        </v-btn>
+      </template>
+      <template v-else>
+        <v-btn
+            text
+            rounded
+            :color="myValue ? 'primary' : 'error'"
+            @click="$emit((myValue ? 'upsert' : 'delete'), myValue)"
+            :disabled="filterValue === myValue"
+        >
+          {{  myValue ? 'Update' : 'Delete' }}
+        </v-btn>
+      </template>
+
     </v-card-actions>
   </v-card>
 </template>
@@ -262,7 +281,7 @@ export default {
         await this.fetchOptions()
       },
     },
-    myValue(to, from){
+    myValue(to, from) {
 
       this.$vuetify.goTo(0, {
         container: "#filter-edit-select-card-text"
