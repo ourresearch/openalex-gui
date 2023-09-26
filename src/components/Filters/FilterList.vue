@@ -5,9 +5,8 @@
   >
     <v-toolbar
         class="align-center"
-        dark
         flat
-        color="#444"
+
     >
 
       <v-icon left>mdi-filter-outline</v-icon>
