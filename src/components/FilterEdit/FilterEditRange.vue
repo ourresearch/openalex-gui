@@ -1,31 +1,59 @@
 <template>
   <v-card rounded flat>
-    <v-toolbar flat >
-<!--      <v-icon left>{{ myConfig.icon }}</v-icon>-->
-
-      <v-text-field
-          rounded
-          dense
-          autofocus
-          v-model="myValue"
-          :placeholder="myConfig.displayName"
-          outlined
-          hide-details
-          @keyup.enter="$emit('upsert', myValue)"
-      />
-
-
+    <v-toolbar flat>
+      <v-toolbar-title>
+        <v-icon left>mdi-filter-outline</v-icon>
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+      <v-spacer/>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
-    <v-card-text>
-      Here's some information about this filter.
+    <v-divider></v-divider>
+    <v-card-text class="pt-4">
+      <v-text-field
+            autofocus
+            rounded
+            clearable
+            outlined
+            v-model="myValue"
+            placeholder="Search"
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            @keyup.enter="$emit('upsert', myValue)"
+        />
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
       <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn  rounded  color="primary" @click="$emit('upsert', myValue)">
-        {{ createMode ? "Add filter" : "Update filter"}}
-      </v-btn>
+      <template v-if="createMode">
+        <v-btn
+            text
+            rounded
+            color="primary"
+            @click="$emit('upsert', myValue)"
+            :disabled="!myValue"
+        >
+          Create
+        </v-btn>
+      </template>
+      <template v-else>
+        <v-btn
+            text
+            rounded
+            :color="myValue ? 'primary' : 'error'"
+            @click="$emit((myValue ? 'upsert' : 'delete'), myValue)"
+            :disabled="filterValue === myValue"
+        >
+          {{  myValue ? 'Update' : 'Delete' }}
+        </v-btn>
+      </template>
+
     </v-card-actions>
+
+
+
   </v-card>
 </template>
 
@@ -33,10 +61,11 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
+import Template from "@/SerpTabs.vue";
 
 export default {
   name: "FilterEditRange",
-  components: {},
+  components: {Template},
   props: {
     filterKey: String,
     filterValue: String,
