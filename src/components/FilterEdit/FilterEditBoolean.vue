@@ -1,20 +1,28 @@
 <template>
   <v-card rounded flat>
-    <v-toolbar flat class="d-flex align-center">
-<!--      <v-icon left>mdi-filter-outline</v-icon>-->
-      <v-toolbar-items>
-      <v-switch
-          v-model="myValue"
-          :label="myConfig.displayName"
-          hide-details
-          class="align-self-center"
-      />
-
-      </v-toolbar-items>
+    <v-toolbar flat>
+      <v-toolbar-title>
+        <v-icon left>mdi-filter-outline</v-icon>
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+      <v-spacer/>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
+
     <v-card-text class="pt-0">
+      <div class="pb-4">
+        <v-switch
+            v-model="myValue"
+            :label="myConfig.displayName"
+            hide-details
+            class="align-self-center"
+        />
+
+      </div>
       <div>
-        Show only {{ entityType | pluralize(1) }} that
+        Show only {{ entityType | pluralize(2) }} that
         <span>
           <span v-if="myValue">are</span>
           <span v-else class="font-weight-bold">are NOT</span>
@@ -25,9 +33,16 @@
     <v-card-actions>
       <v-spacer/>
       <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <v-btn rounded color="primary" @click="$emit('upsert', myValue)">
-        {{ createMode ? "Add filter" : "Update filter" }}
-      </v-btn>
+        <v-btn
+            text
+            rounded
+            color="primary"
+            @click="$emit('upsert', myValue)"
+            :disabled="filterValue === myValue"
+        >
+          {{ createMode ? "Create" : "Update" }}
+        </v-btn>
+
     </v-card-actions>
   </v-card>
 </template>
@@ -36,10 +51,11 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
+import Template from "@/SerpTabs.vue";
 
 export default {
   name: "FilterEditBoolean",
-  components: {},
+  components: {Template},
   props: {
     filterKey: String,
     filterValue: [Boolean, String],
@@ -76,7 +92,11 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    // myValue(to, from){
+    //   this.$emit("upsert", this.myValue)
+    // }
+  }
 }
 </script>
 
