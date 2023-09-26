@@ -1,5 +1,6 @@
 <template>
   <v-card flat rounded class="">
+
     <div class="px-4">
       <v-text-field
           autofocus
@@ -13,9 +14,9 @@
       />
     </div>
     <v-divider></v-divider>
-<!--    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">-->
-<!--      Here's some information about this filter. I hope you find it useful.-->
-<!--    </v-card-text>-->
+    <!--    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">-->
+    <!--      Here's some information about this filter. I hope you find it useful.-->
+    <!--    </v-card-text>-->
     <v-list
     >
       <v-subheader v-if="selectedOptionsToShow.length">
@@ -36,18 +37,26 @@
         <v-list-item-content>
           <v-list-item-title>
             <div class="text-wrap">
-            {{ option.display_name }}
+              {{ option.display_name }}
 
             </div>
           </v-list-item-title>
-                      <v-list-item-subtitle>
-              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
-                {{ option.works_count }} works
-            </v-list-item-subtitle>
+          <v-list-item-subtitle v-if="option.entity_type">
+            <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
+            <span>{{ option.id }})</span>
+          </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
 
-<!--      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>-->
+      <v-subheader v-if="unselectedOptions.length">
+        <template v-if="searchString">
+          Search results
+        </template>
+        <template v-else>
+          Options
+        </template>
+        ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
+      </v-subheader>
 
       <v-list-item
           v-for="option in unselectedOptions"
@@ -61,10 +70,10 @@
           <v-list-item-title>
             {{ option.display_name }}
           </v-list-item-title>
-            <v-list-item-subtitle>
-              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
-                {{ option.works_count }} works
-            </v-list-item-subtitle>
+          <v-list-item-subtitle>
+            <span v-if="option.entity_type">{{ option.id }} -</span>
+            <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
+          </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
 
@@ -105,6 +114,7 @@ export default {
   data() {
     return {
       foo: 42,
+      maxUnselectedOptionsCount: 35,
       isLoading: false,
       selectedValue: this.filterValue,
       options: [],
@@ -178,7 +188,7 @@ export default {
             return selectedOption.id === o.id
           })
           return !iAmInSelectedOptions
-        }).slice(0, 5)
+        }).slice(0, this.maxUnselectedOptionsCount)
 
       } catch (e) {
         console.log("fetchOptions() error:", e.message)
