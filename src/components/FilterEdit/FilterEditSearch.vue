@@ -1,21 +1,28 @@
 <template>
   <v-card rounded flat>
-    <v-toolbar flat >
-<!--      <v-icon left>{{ myConfig.icon }}</v-icon>-->
-      <v-text-field
-          autofocus
-          rounded
-          clearable
-          v-model="myValue"
-          :placeholder="myConfig.displayName"
-          hide-details
-          prepend-icon="mdi-magnify"
-          @keyup.enter="$emit('upsert', myValue)"
-      />
+    <v-toolbar flat>
+      <v-toolbar-title>
+        <v-icon left>mdi-filter-outline</v-icon>
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+      <v-spacer/>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-toolbar>
     <v-divider></v-divider>
     <v-card-text class="pt-4">
-      Here are a few words about this filter.
+      <v-text-field
+            autofocus
+            rounded
+            clearable
+            outlined
+            v-model="myValue"
+            placeholder="Search"
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            @keyup.enter="$emit('upsert', myValue)"
+        />
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
@@ -31,10 +38,11 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
+import Template from "@/SerpTabs.vue";
 
 export default {
   name: "FilterEditSearch",
-  components: {},
+  components: {Template},
   props: {
     filterKey: String,
     filterValue: String,

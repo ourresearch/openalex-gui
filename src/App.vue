@@ -282,11 +282,11 @@ html, body {
 
 // customizing the text-field component
 .v-text-field--rounded > .v-input__control > .v-input__slot {
-  padding: 0 24px 0 0 !important;
+  //padding: 0 24px 0 0 !important;
 }
 .v-application--is-ltr .v-text-field .v-input__prepend-inner {
   //padding: 0 !important;
-  margin-top: 0 !important;
+  //margin-top: 0 !important;
 }
 .v-input__icon v-input__icon--append {
     //padding-right: 20px !important;
