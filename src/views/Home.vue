@@ -1,58 +1,94 @@
 <template>
-  <div class="home">
-    <v-container style="min-height: 75vh;" class="d-flex align-center">
-      <v-row>
-        <v-col cols="2" class="hidden-xs-only"></v-col>
-        <v-col>
-          <v-card flat class="">
-            <div class="text-h4 text-center">Look up entities:</div>
-            <ul style="list-style-type: none;" class="my-6">
-              <li
-                  v-for="config in entityConfigs"
-                  :key="config.name"
-                  class="my-1"
-              >
-                {{ config.icon }}
-                <strong class="text-capitalize">{{ config.name }}s </strong>
-                <span v-html="`${config.descr}.`"></span>
-              </li>
-            </ul>
-            <search-box />
-            <div class="d-flex justify-center">
-              <v-btn large disabled class="mr-2">Search</v-btn>
-              <v-menu offset-y content-class="no-highlight" min-width="150">
-                <template v-slot:activator="{on}">
-                  <v-btn large v-on="on">
-                    I'm feeling lucky
-                    <v-icon>mdi-menu-down</v-icon>
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-subheader>View a random entity:</v-subheader>
-                  <v-list-item
-                      v-for="(config, k) in entityConfigs"
-                      :to="`/${config.name}/random`"
-                      :key="config.name"
-                      class="text-capitalize"
-                  >
-                    <span class="mr-2">{{config.icon}}</span>
-                    {{config.name}}
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+  <div class="">
+    <div class="above-the-fold">
+      <v-container style="margin-top: 150px">
+        <div class="text-h3" style="line-height: 1.3;">
+          An open and comprehensive catalog of scholarly papers, authors, institutions, and more.
+        </div>
+        <div class="mt-12">
+          <p style="">
 
-            </div>
-            <div>
-            </div>
-          </v-card>
+            Inspired by the ancient Library of Alexandria, OpenAlex is an index of hundreds of millions of interconnected entities across the global research system. We're 100% free and open source, and offer access via a web interface, API, and database snapshot.
+          </p>
 
-        </v-col>
-        <v-col cols="2" class="hidden-xs-only"></v-col>
+        </div>
+        <div class="mt-8">
+          <v-btn x-large
+              class=""
+              color="primary"
+              href="https://docs.openalex.org/"
+          >
+            Read the docs
+            <v-icon right>mdi-open-in-new</v-icon>
+          </v-btn>
+          <v-btn
+              x-large
+              outlined
+              color="primary"
+              to="/testimonials"
+              class="ml-4"
+          >
+            Read testimonials
 
-      </v-row>
 
-    </v-container>
+          </v-btn>
 
+
+<!--          <v-btn-->
+<!--              x-large-->
+<!--              class=""-->
+<!--              text-->
+<!--              color="primary"-->
+<!--              href="http://eepurl.com/hA8PhL"-->
+<!--              target="_blank"-->
+<!--          >-->
+<!--            Join mailing list-->
+<!--            <v-icon right>mdi-open-in-new</v-icon>-->
+<!--          </v-btn>-->
+
+        </div>
+      </v-container>
+
+    </div>
+
+
+    <!--        <homepage-user-logos/>-->
+
+    <!--        <homepage-selling-points />-->
+
+    <!--        <homepage-testimonials />-->
+
+    <!--        <v-card flat tile class=""  style="margin-bottom: -50px; padding: 150px 0;">-->
+    <!--            <v-container class="text-center my-12 py-6">-->
+    <!--                <div class="text-h4 py-2">-->
+    <!--                    Want to learn more?-->
+    <!--                </div>-->
+    <!--                <div class="text-h5">-->
+    <!--                    Schedule a free custom demo, or watch our video guided tour.-->
+    <!--                </div>-->
+    <!--                <div class="mt-4">-->
+    <!--                    <v-btn-->
+    <!--                            to="./request-demo"-->
+    <!--                            x-large-->
+    <!--                            class="ma-4"-->
+    <!--                            dark-->
+    <!--                            color="primary"-->
+    <!--                    >-->
+    <!--                        Get your demo-->
+    <!--                    </v-btn>-->
+    <!--                    <v-btn-->
+    <!--                            href="https://vimeo.com/420183913"-->
+    <!--                            target="_blank"-->
+    <!--                            x-large-->
+    <!--                            class="ma-4">-->
+    <!--                        Watch video-->
+    <!--                        <v-icon small class="ml-2">mdi-open-in-new</v-icon>-->
+    <!--                    </v-btn>-->
+
+    <!--                </div>-->
+    <!--            </v-container>-->
+
+    <!--        </v-card>-->
 
 
   </div>
@@ -62,43 +98,29 @@
 
 <script>
 
-import axios from "axios";
-import SearchBox from "../components/SearchBox";
-import {entityConfigs} from "../entityConfigs";
-
 export default {
   name: 'home',
-  components: {
-    SearchBox,
-  },
+  components: {},
   metaInfo: {
-    title: "OpenAlex GUI",
+    title: "OpenAlex: The open catalog to the global research system",
     titleTemplate: undefined, // have to override this or it'll get the site title template
   },
   data() {
     return {
-      results: [],
-      entityConfigs,
-
-
+      userEmail: "",
+      errorMsg: ""
     }
   },
   computed: {},
-  methods: {
-    async doSearch() {
-      const resp = await axios.get("https://api.openalex.org/works/query?filter=continent:Asia,genre:proceedings&details")
-      this.results = resp.data.response
-      console.log("got a response!", resp.data.response)
-
-    }
-  },
+  methods: {},
   mounted() {
-    // this.doSearch()
   },
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+
+
 
 .above-the-fold {
   /*background: linear-gradient(0deg, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100%);*/

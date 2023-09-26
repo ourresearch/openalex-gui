@@ -1,33 +1,113 @@
+
+// color ideas!
+// https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
+// https://carbondesignsystem.com/data-visualization/color-palettes/
+
 const entityConfigs = {
-    work: {
-        icon: "📄",
-        name: "work",
-        descr: "(like papers and datasets) are products of research",
+    works: {
+        emoji: "📄",
+        icon: "mdi-file-document-outline",
+        name: "works",
+        nameSingular: "work",
+        displayName: "works",
+        displayNameSingular: "work",
+        descr: "Scholarly papers, books, datasets, etc.",
+        eg: "On the Electrodynamics of Moving Bodies",
+        placeholder: "Search scholarly papers, books, and more",
+        filterName: "work",
+        filterKey: "ids.openalex"
     },
-    author: {
-        icon: "🧑",
-        name: "author",
-        descr: "create works",
+    authors: {
+        emoji: "🧑",
+        // icon: "mdi-account-school-outline",
+        icon: "mdi-account-outline",
+        name: "authors",
+        nameSingular: "author",
+        displayName: "authors",
+        displayNameSingular: "author",
+        descr: "Creators of scholarly works",
+        eg: "Albert Einstein",
+        placeholder: "Search scholarly authors",
+        filterName: "author",
+        filterKey: "authorships.author.id",
     },
-    venue: {
-        icon: "📚",
-        name: "venue",
-        descr: "(like journals and repositories) host works",
+    sources: {
+        emoji: "📚",
+        // icon: "mdi-book-outline",
+        icon: "mdi-book-open-outline",
+        name: "sources",
+        nameSingular: "source",
+        displayName: "sources",
+        displayNameSingular: "source",
+        descr: "Journals, conferences, and repositories",
+        eg: "The New England Journal of Medicine",
+        placeholder: "Search academic journals & repositories",
+        filterName: "primary_location.source",
+        filterKey: "primary_location.source.id",
     },
-    institution: {
-        icon: "🏫",
-        name: "institution",
-        descr: "(like universities) are affiliated with works",
+    publishers: {
+        emoji: "📚",
+        // icon: "mdi-book-outline",
+        icon: "mdi-domain",
+        name: "publishers",
+        nameSingular: "publisher",
+        displayName: "publishers",
+        displayNameSingular: "publisher",
+        descr: "Company hosting journals",
+        eg: "Elsevier",
+        placeholder: "Search academic publishers",
+        filterName: "primary_location.source.publisher_lineage",
+        filterKey: "primary_location.source.publisher_lineage",
     },
-    concept: {
-        icon: "💡",
-        name: "concept",
-        descr: "describe the topics of works",
+    funders: {
+        emoji: "💰",
+        // icon: "mdi-book-outline",
+        icon: "mdi-cash-multiple",
+        name: "funders",
+        nameSingular: "funder",
+        displayName: "funders",
+        displayNameSingular: "funder",
+        descr: "Organization funding works via grants",
+        eg: "US National Science Foundation",
+        placeholder: "Search research funders",
+        filterName: "grants.funder",
+        filterKey: "grants.funder",
     },
+    institutions: {
+        emoji: "🏫",
+        icon: "mdi-town-hall",
+        name: "institutions",
+        nameSingular: "institution",
+        displayName: "institutions",
+        displayNameSingular: "institution",
+        descr: "Universities and research centers",
+        eg: "Harvard University",
+        placeholder: "Search academic institutions",
+        filterName: "institutions",
+        filterKey: "authorships.institutions.id",
+    },
+    concepts: {
+        emoji: "💡",
+        icon: "mdi-lightbulb-outline",
+        name: "concepts",
+        nameSingular: "concept",
+        displayName: "concepts",
+        displayNameSingular: "concept",
+        descr: "Topics and fields of study",
+        eg: "History",
+        placeholder: "Search topics",
+        filterName: "concepts",
+        filterKey: "concepts.id",
+    },
+}
 
-
+const getEntityConfig = function(name) {
+    return Object.values(entityConfigs).find(c => {
+        return c.nameSingular === name || c.displayName === name
+    })
 }
 
 export {
     entityConfigs,
+    getEntityConfig,
 }
