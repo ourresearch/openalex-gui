@@ -13,24 +13,25 @@
       />
     </div>
     <v-divider></v-divider>
-    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">
-      Here's some information about this filter. I hope you find it useful.
-    </v-card-text>
+<!--    <v-card-text class="pt-4" v-if="!selectedOptionsToShow.length && !searchString">-->
+<!--      Here's some information about this filter. I hope you find it useful.-->
+<!--    </v-card-text>-->
     <v-list
     >
-<!--      <v-subheader v-if="selectedOptionsToShow.length">-->
-<!--        Selected-->
-<!--        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>-->
+      <v-subheader v-if="selectedOptionsToShow.length">
+        Selected
+        <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
 
-<!--        ({{ selectedOptionsToShow.length }})-->
-<!--      </v-subheader>-->
+        ({{ selectedOptionsToShow.length }})
+      </v-subheader>
       <v-list-item
           v-for="option in selectedOptionsToShow"
           :key="'selected' + option.id"
+          @click="unselectOption(option)"
 
       >
         <v-list-item-icon>
-          <v-icon>mdi-filter-outline</v-icon>
+          <v-icon>mdi-checkbox-marked</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
@@ -39,33 +40,31 @@
 
             </div>
           </v-list-item-title>
-          <!--            <v-list-item-subtitle>-->
-          <!--              {{ option.works_count }}-->
-          <!--            </v-list-item-subtitle>-->
+                      <v-list-item-subtitle>
+              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
+                {{ option.works_count }} works
+            </v-list-item-subtitle>
         </v-list-item-content>
-        <v-list-item-action>
-          <v-btn icon @click="unselectOption(option)">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-list-item-action>
       </v-list-item>
 
 <!--      <v-subheader v-if="unselectedOptions.length">Add a value:</v-subheader>-->
+
       <v-list-item
           v-for="option in unselectedOptions"
           :key="'unselected' + option.id"
           @click="selectOption(option)"
       >
         <v-list-item-icon>
-          <v-icon>mdi-filter-plus-outline</v-icon>
+          <v-icon>mdi-checkbox-blank-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
             {{ option.display_name }}
           </v-list-item-title>
-          <!--            <v-list-item-subtitle>-->
-          <!--              {{ option.works_count }}-->
-          <!--            </v-list-item-subtitle>-->
+            <v-list-item-subtitle>
+              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
+                {{ option.works_count }} works
+            </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
 

@@ -1,8 +1,8 @@
 <template>
   <v-card rounded>
-    <v-toolbar dark color="#444" flat>
+    <v-toolbar flat>
       <v-toolbar-title>
-        Summaries
+        Summaries ({{ summaries.length }})
       </v-toolbar-title>
       <v-spacer/>
 
@@ -13,10 +13,13 @@
       >
         <template v-slot:activator="{on}">
           <v-btn
-              icon
               v-on="on"
+              text
+              rounded
+              color="primary"
           >
-            <v-icon>mdi-plus</v-icon>
+            <v-icon left>mdi-plus</v-icon>
+            Add summary
           </v-btn>
         </template>
         <v-card>
@@ -42,6 +45,11 @@
       </v-menu>
     </v-toolbar>
     <v-row>
+      <v-col cols="12" v-if="summaries.length === 0">
+        <v-card>
+          <v-card-text>No summaries to show.</v-card-text>
+        </v-card>
+      </v-col>
       <v-col
           v-for="summaryFilterKey in summaries"
           :key="summaryFilterKey"

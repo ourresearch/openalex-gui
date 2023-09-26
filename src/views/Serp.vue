@@ -10,10 +10,10 @@
     <!--    </v-toolbar>-->
 
     <v-container>
-      <filter-string
-          :filters="resultsFilters"
-          class="mb-3"
-      />
+<!--      <filter-string-->
+<!--          :filters="resultsFilters"-->
+<!--          class="mb-3"-->
+<!--      />-->
 
 
       <v-row dense>

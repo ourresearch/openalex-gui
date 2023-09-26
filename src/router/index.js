@@ -1,6 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import Faq from "../views/Faq.vue";
+import Testimonials from "../views/Testimonials.vue";
+import Help from "../views/Help.vue";
+
 import Serp from "../views/Serp";
 import EntityPage from "@/views/EntityPage.vue";
 import About from "../views/About";
@@ -11,6 +15,8 @@ import Login from "@/views/Login.vue";
 import Me from "../views/Me.vue"
 
 import goTo from 'vuetify/es5/services/goto'
+import Pricing from "../views/Pricing.vue";
+import Webinars from "../views/Webinars.vue";
 
 
 Vue.use(VueRouter)
@@ -20,12 +26,8 @@ Vue.use(VueRouter)
 
 const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
 const routes = [
-    {
-        path: '/',
-        redirect: {name: "Serp", params: {entityType: "works"}},
-        name: 'Home',
-        // component: Home
-    },
+
+    // data pages
     {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
@@ -36,12 +38,40 @@ const routes = [
         name: 'EntityPage',
         component: EntityPage,
     },
-    { path: '/about', name: 'About', component: About},
+
+
+    // user pages and routes
     { path: '/signup', name: 'Signup', component: UserSignup},
     { path: '/login', name: 'Login', component: Login},
     { path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     { path: '/me',redirect: {name: "Me", params: {tab: "details"}}},
     { path: '/me/:tab?', name: 'Me', component: Me, meta: {requiresAuth: true}},
+
+
+    // static pages
+    {
+        path: '/',
+        // redirect: {name: "Serp", params: {entityType: "works"}},
+        component: Home,
+        name: 'Home',
+        // component: Home
+    },
+    { path: '/about', name: 'About', component: About},
+    {path: '/faq', component: Faq},
+    {path: '/users', redirect: {name: "testimonials"}},
+    {path: '/testimonials', name: "testimonials", component: Testimonials},
+    {path: '/help', component: Help},
+    {path: '/feedback', redirect: {name: "testimonials"}},
+    {path: '/contact', redirect: {name: "about"}},
+    {path: '/pricing', component: Pricing},
+    {path: '/webinars', component: Webinars},
+
+
+    // redirects to gitbook docs
+    {path: '/data-dump', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
+    {path: '/rest-api', beforeEnter() {window.location.href = "https://docs.openalex.org/api" }},
+    {path: '/schema', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
+    {path: '/mag-migration-guide', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot/mag-format" }},
 
 ]
 

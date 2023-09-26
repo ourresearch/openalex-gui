@@ -21,11 +21,10 @@
 
     >
       <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
-
+<!--            v-if="$route.name !== 'Home'"-->
         <router-link
             :to="{name: 'Home'}"
             class="logo-link pl-1"
-            v-if="$route.name !== 'Home'"
         >
           <img
               src="@/assets/openalex-logo-icon-black-and-white.png"
@@ -41,7 +40,7 @@
 
         </router-link>
         <v-spacer />
-        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />
+<!--        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />-->
         <v-spacer/>
 <!--        <v-btn light target="_blank"-->
 
@@ -140,40 +139,7 @@
     <v-main>
       <router-view></router-view>
     </v-main>
-    <v-footer
-        class="py-10 site-footer"
-        style="margin-top: 150px;"
-        :style="{paddingRight: 0}"
-        dark
-        color="#363636"
-    >
-      <v-container>
-        <v-row>
-          <v-col cols="12" sm="4">
-            <div>
-              <router-link to="/">Home</router-link>
-            </div>
-            <div>
-              <!--              <a href="/about">-->
-              <!--                About-->
-              <!--              </a>-->
-            </div>
-          </v-col>
-          <v-col cols="12" sm="4" class="text-center">
-            <router-link to="/">
-              <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
-            </router-link>
-          </v-col>
-          <v-col cols="12" sm="4" class="body-2">
-            OurResearch is supported in part by <a
-              style="text-decoration: underline;"
-              href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
-            charitable fund of Lisbet Rausing and Peter Baldwin</a>.
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-footer>
-
+    <site-footer />
 
     <v-snackbar
         bottom
@@ -205,6 +171,7 @@ import {sleep} from "./util";
 import axios from "axios";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
+import SiteFooter from "./components/SiteFooter.vue";
 
 export default {
   name: 'App',
@@ -216,6 +183,7 @@ export default {
   },
   components: {
     SearchBoxNew,
+    SiteFooter,
   },
 
 

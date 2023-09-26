@@ -108,6 +108,7 @@
       <component
           class=""
           v-if="activeFilterConfig"
+          :key="activeFilterKey + $route.query.filter"
           :is="'filter-edit-' + activeFilterConfig.type"
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
