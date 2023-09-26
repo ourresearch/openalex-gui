@@ -1,9 +1,9 @@
 <template>
   <v-card rounded>
     <v-toolbar flat>
-      <v-toolbar-title>
-        Summaries ({{ summaries.length }})
-      </v-toolbar-title>
+      <span class="grey--text">
+        {{ summaries.length }} summaries
+      </span>
       <v-spacer/>
 
       <v-menu
@@ -19,7 +19,7 @@
               color="primary"
           >
             <v-icon left>mdi-plus</v-icon>
-            Add summary
+            Add
           </v-btn>
         </template>
         <v-card>

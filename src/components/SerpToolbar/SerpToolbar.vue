@@ -3,11 +3,12 @@
       flat
   >
 
-<!--    <v-toolbar-title>-->
-<!--      List-->
-<!--    </v-toolbar-title>-->
-    <span class="grey--text">{{resultsCount | toPrecision }} results</span>
-    <v-spacer />
+    <!--    <v-toolbar-title>-->
+    <!--      List-->
+    <!--    </v-toolbar-title>-->
+    <span v-if="$vuetify.breakpoint.mobile" class="grey--text">{{ resultsCount | millify }} results</span>
+    <span v-else class="grey--text">{{ resultsCount | toPrecision }} results</span>
+    <v-spacer/>
 
     <!--DIALOGS-->
     <!--*****************************************************************************************-->
@@ -42,8 +43,11 @@
     <v-menu>
       <template v-slot:activator="{on}">
         <v-btn rounded class="font-weight-regular" text v-on="on">
-          <v-icon left class="">mdi-sort</v-icon>
-          Sort by {{ sortObject.displayName }}
+          <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>
+          <template v-else>
+            <v-icon left class="">mdi-sort</v-icon>
+            Sort by {{ sortObject.displayName }}
+          </template>
         </v-btn>
       </template>
       <v-list>
@@ -69,7 +73,7 @@
     </v-menu>
 
 
-    <v-menu min-width="200" max-width="300">
+    <v-menu v-if="!$vuetify.breakpoint.mobile" min-width="200" max-width="300">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on" class="" :disabled="disabled">
           <v-icon>mdi-tray-arrow-down</v-icon>
@@ -218,10 +222,12 @@ import {entityConfigs} from "../../entityConfigs";
 import EntityIcon from "../Entity/EntityIcon.vue";
 import axios from "axios";
 import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
+import Template from "@/SerpTabs.vue";
 
 export default {
   name: "SerpToolbar",
   components: {
+    Template,
     EntityIcon,
     YearRange,
     SerpToolbarEmailAlert,

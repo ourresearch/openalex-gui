@@ -19,6 +19,7 @@
         :extended="$vuetify.breakpoint.mobile"
         extension-height="100"
 
+
     >
       <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
 <!--            v-if="$route.name !== 'Home'"-->
@@ -40,7 +41,7 @@
 
         </router-link>
         <v-spacer />
-<!--        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />-->
+        <search-box-new class="flex-grow-1" v-if="!$vuetify.breakpoint.mobile" />
         <v-spacer/>
 <!--        <v-btn light target="_blank"-->
 
@@ -129,10 +130,8 @@
       </v-container>
 
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
-        <v-container>
         <search-box-new class="flex-grow-1"  />
 
-        </v-container>
       </template>
 
     </v-app-bar>
@@ -280,17 +279,6 @@ html, body {
 }
 
 
-// customizing the text-field component
-.v-text-field--rounded > .v-input__control > .v-input__slot {
-  //padding: 0 24px 0 0 !important;
-}
-.v-application--is-ltr .v-text-field .v-input__prepend-inner {
-  //padding: 0 !important;
-  //margin-top: 0 !important;
-}
-.v-input__icon v-input__icon--append {
-    //padding-right: 20px !important;
-}
 
 .v-btn--active.no-active::before {
   opacity: 0.00005 !important;
