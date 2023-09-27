@@ -42,12 +42,13 @@
 
     <v-menu>
       <template v-slot:activator="{on}">
-        <v-btn rounded class="font-weight-regular" text v-on="on">
-          <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>
-          <template v-else>
-            <v-icon left class="">mdi-sort</v-icon>
-            Sort by {{ sortObject.displayName }}
-          </template>
+        <v-btn icon class="font-weight-regular" text v-on="on">
+          <v-icon>mdi-sort</v-icon>
+<!--          <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>-->
+<!--          <template v-else>-->
+<!--            <v-icon left class="">mdi-sort</v-icon>-->
+<!--            Sort by {{ sortObject.displayName }}-->
+<!--          </template>-->
         </v-btn>
       </template>
       <v-list>

@@ -201,6 +201,12 @@ export default {
           if (filterKey === "authorships.institutions.country_code") {
             filterKey = "institutions.country_code"
           }
+          if (filterKey === "locations.source.id") {
+            filterKey = "primary_location.source.id"
+          }
+          if (filterKey === "locations.source.host_organization") {
+            filterKey = "primary_location.source.publisher_lineage"
+          }
         }
         else {
           filterKey = "ids.openalex"

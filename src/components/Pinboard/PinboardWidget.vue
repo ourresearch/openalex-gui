@@ -48,15 +48,15 @@
         </v-list>
       </v-menu>
       <v-btn
-        icon
-        small
-        @click="$emit('delete')"
+          icon
+          small
+          @click="$emit('delete')"
       >
         <v-icon small>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>
 
-    <v-divider />
+    <v-divider/>
 
     <v-list dense class="flex-grow-1">
       <v-list-item
@@ -66,15 +66,15 @@
           @click="url.createFilter(entityType, filterKey, group.value)"
       >
         <v-list-item-icon>
-<!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
-<!--            <v-spacer/>-->
-<!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
-<!--          </div>-->
+          <!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
+          <!--            <v-spacer/>-->
+          <!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+          <!--          </div>-->
           <v-progress-circular
-            width="7"
-            size="22"
-            :value="group.countScaled * 100"
-            rotate="-90"
+              width="7"
+              size="22"
+              :value="group.countScaled * 100"
+              rotate="-90"
           />
 
         </v-list-item-icon>
@@ -82,9 +82,9 @@
           <v-list-item-title class="font-weight-regular">
             {{ group.displayValue }}
           </v-list-item-title>
-<!--          <v-list-item-subtitle>-->
-<!--             {{group.count | toPrecision }}-->
-<!--          </v-list-item-subtitle>-->
+          <!--          <v-list-item-subtitle>-->
+          <!--             {{group.count | toPrecision }}-->
+          <!--          </v-list-item-subtitle>-->
         </v-list-item-content>
         <v-list-item-action-text>
           <span>
@@ -149,7 +149,7 @@ export default {
           }
       )
     },
-    csvUrl(){
+    csvUrl() {
       return url.makeGroupByUrl(
           this.entityType,
           this.filterKey,
@@ -169,21 +169,16 @@ export default {
     ...mapActions([]),
     async fetchOptions() {
       this.isLoading = true
-      try {
-        this.groups = await api.getGroups(
-            this.entityType,
-            this.filterKey,
-            {
-              perPage: 6,
-              hideUnknown: true,
-              filters: this.filters,
-            }
-        )
-      } catch (e) {
-        console.log("PinboardView fetchOptions() error:", e.message)
-      } finally {
-        this.isLoading = false
-      }
+      this.groups = await api.getGroups(
+          this.entityType,
+          this.filterKey,
+          {
+            perPage: 6,
+            hideUnknown: true,
+            filters: this.filters,
+          }
+      )
+      this.isLoading = false
     }
 
 

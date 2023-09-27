@@ -64,7 +64,7 @@ const facetConfigs = function (entityType) {
         // works:  WASPFIC. test
 
         {
-            key: "ids.openalex",
+            key: "id",
             entityType: "works",
             entityId: "works",
             pidPrefix: "openalex",

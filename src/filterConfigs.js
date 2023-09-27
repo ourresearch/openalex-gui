@@ -76,7 +76,7 @@ const filtersAreEqual = function (f1, f2) {
 //         .map(f => f.asStr)
 //         .join(",")
 // }
-const filtersAsUrlStr = function (filters, entityType) {
+const filtersAsUrlStr = function (filters) {
     const filtersAsStrings = filters.map((f => f.asStr))
     const dedupedFilterStrings = new Set([...filtersAsStrings])
     return [...dedupedFilterStrings].join(",")

@@ -34,7 +34,7 @@
                 <serp-results-list class="pb-8"/>
               </v-tab-item>
               <v-tab-item>
-                <pinboard />
+                <pinboard :filters="resultsFilters" />
               </v-tab-item>
             </v-tabs-items>
           </v-card>

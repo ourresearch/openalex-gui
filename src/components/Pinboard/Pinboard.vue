@@ -87,7 +87,10 @@ export default {
     FilterKeySelector,
   },
   props: {
-    filters: Array,
+    filters: {
+      type: Array,
+      required: true,
+    },
   },
   data() {
     return {
