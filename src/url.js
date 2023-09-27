@@ -66,7 +66,7 @@ const setFiltersByKey = function (filterKey, filters) {
             page: 1,
             sort: router.currentRoute.query.sort,
             search: router.currentRoute.query.search,
-            filter: filtersAsUrlStr(newFilters, entityType)
+            filter: filtersAsUrlStr(newFilters)
         }
     }
     pushToRoute(router, newRoute)
@@ -74,6 +74,20 @@ const setFiltersByKey = function (filterKey, filters) {
 
 const negateFilter = async function (key, value) {
 
+}
+
+const pushNewFilters = async function (newFilters) {
+    const query = {
+        ...router.currentRoute.query,
+        page: 1,
+        filter: filtersAsUrlStr(newFilters),
+    }
+    const newRoute = {
+        name: "Serp",
+        // params: {entityType},
+        query
+    }
+    return pushToRoute(router, newRoute)
 }
 
 const replaceFilter = async function (oldFilter, newFilter) {
@@ -95,16 +109,15 @@ const replaceFilter = async function (oldFilter, newFilter) {
         query: {
             page: 1,
             sort: router.currentRoute.query.sort,
-            filter: filtersAsUrlStr(newFilters, entityType)
+            filter: filtersAsUrlStr(newFilters)
         }
     }
     pushToRoute(router, newRoute)
 }
 
 
-
 const createFilter = async function (entityType, key, newValue) {
-          console.log("url.createFilter()", entityType, key, newValue);
+    console.log("url.createFilter()", entityType, key, newValue);
 
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     if (oldFilters.map(f => f.key).includes(key)) {
@@ -112,19 +125,10 @@ const createFilter = async function (entityType, key, newValue) {
     }
     const newFilters = [...oldFilters, createSimpleFilter(entityType, key, newValue)]
 
-    // set and push
-    const newRoute = {
-        name: "Serp",
-        params: {entityType},
-        query: {
-            page: 1,
-            sort: router.currentRoute.query.sort,
-            filter: filtersAsUrlStr(newFilters, entityType)
-        }
-    }
-    return await pushToRoute(router, newRoute)
+    return await pushNewFilters(newFilters)
+
 }
-const readFilter =  function (entityType, key) {
+const readFilter = function (entityType, key) {
     return filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
         return f.key === key
     })
@@ -146,17 +150,7 @@ const updateFilter = async function (entityType, key, newValue) {
         )
     })
 
-    // set and push
-    const newRoute = {
-        name: "Serp",
-        params: {entityType},
-        query: {
-            page: 1,
-            sort: router.currentRoute.query.sort,
-            filter: filtersAsUrlStr(newFilters, entityType)
-        }
-    }
-    return await pushToRoute(router, newRoute)
+    return await pushNewFilters(newFilters)
 }
 
 const deleteFilter = async function (entityType, key) {
@@ -167,17 +161,7 @@ const deleteFilter = async function (entityType, key) {
         return oldFilter.key !== key
     })
 
-    // set and push
-    const newRoute = {
-        name: "Serp",
-        params: {entityType},
-        query: {
-            page: 1,
-            sort: router.currentRoute.query.sort,
-            filter: filtersAsUrlStr(newFilters, entityType)
-        }
-    }
-    return await pushToRoute(router, newRoute)
+    return await pushNewFilters(newFilters)
 }
 
 
@@ -240,12 +224,12 @@ const goToZoom = async function (router, zoom) {
 }
 
 
-const makeAutocompleteUrl = function(entityType, searchString){
+const makeAutocompleteUrl = function (entityType, searchString) {
     const url = new URL(`https://api.openalex.org`)
 
     url.pathname = (entityType === null) ?
-          "autocomplete" :
-          `autocomplete/${entityType}`
+        "autocomplete" :
+        `autocomplete/${entityType}`
 
     // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)
@@ -280,7 +264,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     url.searchParams.set("per_page", String(options.perPage))
     if (options.filters.length > 0) url.searchParams.set(
         "filter",
-        filtersAsUrlStr(options.filters, entityType)
+        filtersAsUrlStr(options.filters)
     )
     if (options.searchString) url.searchParams.set("q", options.searchString)
     if (options.formatCsv) url.searchParams.set("format", "csv");

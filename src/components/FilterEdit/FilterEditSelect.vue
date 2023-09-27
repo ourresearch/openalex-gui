@@ -68,7 +68,7 @@
           </template>
           ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
         </v-subheader>
-        <v-subheader v-if="!unselectedOptions.length">
+        <v-subheader v-if="!unselectedOptions.length && searchString">
           No search results
         </v-subheader>
 
