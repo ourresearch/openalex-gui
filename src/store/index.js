@@ -295,18 +295,6 @@ export default new Vuex.Store({
             dispatch("pushSearchUrl")
         },
 
-        // used some
-        // eslint-disable-next-line no-unused-vars
-        async replaceInputFilters({commit, getters, dispatch, state}, filters) {
-            console.log("Vuex replaceInputFilters", filters)
-            state.inputFilters = []
-            console.log("addInputFilters", filters)
-            filters.forEach(f => {
-                commit("addInputFilter", f)
-            })
-            commit("setPage", 1)
-            await dispatch("pushSearchUrl")
-        },
 
 
         // used a lot
@@ -377,16 +365,6 @@ export default new Vuex.Store({
         },
 
 
-        // *****************************************
-        // entityZoom stuff
-        // *****************************************
-
-        // eslint-disable-next-line no-unused-vars
-        // async setEntityZoom({commit, getters, dispatch, state}, id) {
-        //     console.log("setting entity zoom", id)
-        //     state.zoomId = id
-        //     dispatch("pushSearchUrl")
-        // },
     },
     getters: {
         apiDialogUrl(state) {

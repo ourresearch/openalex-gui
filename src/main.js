@@ -8,7 +8,6 @@ import VScrollLock from "v-scroll-lock";
 import millify from "millify";
 import {idsAreEqual, setOrDelete} from "./util";
 import {url} from "./url"
-import SearchBox from "./components/SearchBox";
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilterFromPid} from "./filterConfigs";
@@ -24,7 +23,6 @@ Vue.prototype.$prettyTitle = prettyTitle
 
 // we have to globally register this or it throws errors.
 // https://stackoverflow.com/a/58875919
-Vue.component("SearchBox", SearchBox)
 Vue.use(VueMeta, {
     refreshOnceOnNavigation: true
 })
