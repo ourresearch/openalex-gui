@@ -20,20 +20,6 @@ import axios from "axios";
 
 Vue.use(Vuex)
 
-
-const mergeArrays = function (arr1, arr2) {
-    // arr1 = arr1.map(x => JSON.stringify(x, Object.keys(x).soz
-    // const arraysCombined = [...new Set([...arr1, ...arr2])]
-    // return arraysCombined.map(x => JSON.parse(x))
-
-    return [...new Set([...arr1, ...arr2])]
-}
-const subtractArray = function (base, subtractThese) {
-    return base.filter(x => {
-        return !subtractThese.includes(x)
-    })
-}
-
 const sortDefaults = {
     works: {
         textSearch: "relevance_score:desc",
@@ -108,6 +94,7 @@ const stateDefaults = function () {
         textSearch: "",
         page: 1,
         results: [],
+        resultsObject: null,
         velocity: null,
         sort: null,
         responseTime: null,
@@ -155,12 +142,6 @@ export default new Vuex.Store({
         user,
     },
     mutations: {
-        resetSearch(state, entityType) {
-            stateDefaults()
-            Object.entries(stateDefaults()).forEach(([k, v]) => {
-                state[k] = v
-            })
-        },
         setApiDialogUrl(state, url) {
             state.apiDialogUrl = url
         },
@@ -277,28 +258,6 @@ export default new Vuex.Store({
         // *****************************************
 
         // eslint-disable-next-line no-unused-vars
-        async bootFromUrl({commit, getters, dispatch, state}) {
-            // state.results = []
-            if (router.currentRoute.params.entityType !== state.entityType) {
-                commit("resetSearch")
-                commit("setEntityType", router.currentRoute.params.entityType)
-            }
-
-            commit("setTextSearch", router.currentRoute.query.search)
-            commit("setPage", router.currentRoute.query.page)
-
-
-            // this must be after setting the text search, because it affects the defaults
-            if (router.currentRoute.query.sort) {
-                commit("setSort", router.currentRoute.query.sort)
-            } else {
-                commit("setSort", getters.defaultSort)
-            }
-
-            state.inputFilters = filtersFromUrlStr(state.entityType, router.currentRoute.query.filter)
-
-            await dispatch("doSearch")
-        },
 
         // eslint-disable-next-line no-unused-vars
         async setExport({commit, getters, dispatch, state}, format) {
@@ -366,6 +325,7 @@ export default new Vuex.Store({
         // eslint-disable-next-line no-unused-vars
         async getResults({commit, getters, dispatch, state}) {
             const resp = await api.get(state.entityType, getters.searchQueryBase)
+            state.resultsObject = resp
             state.results = resp.results.map(r => {
                 return {
                     ...r,

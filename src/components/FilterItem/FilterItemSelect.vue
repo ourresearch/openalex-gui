@@ -14,13 +14,15 @@
             :filter-key="myFilterConfig.key"
             :filter-value="id"
         />
-        <span v-if="mySelectedIds.length > 1" class="font-weight-bold">
-            +{{ mySelectedIds.length - 1 }}
-          </span>
 
       </v-list-item-title>
       <v-list-item-subtitle>
-        {{ myFilterConfig.displayName | pluralize(mySelectedIds.length) }}
+        {{ myFilterConfig.displayName }}
+      </v-list-item-subtitle>
+      <v-list-item-subtitle v-if="mySelectedIds.length > 1" class="font-weight-bold">
+        <span class="font-weight-bold">
+            +{{ mySelectedIds.length - 1 }} more
+          </span>
       </v-list-item-subtitle>
       <!--        <v-list-item-subtitle>-->
       <!--          Exclude all-->

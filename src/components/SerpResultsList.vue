@@ -1,37 +1,63 @@
 <template>
   <div class="">
-    <div class="mx-4">
-      <div v-if="!resultsCount" class="mt-8 grey--text">
-        There are no results for this search.
-      </div>
-    </div>
+
 
     <!--    <div v-else class="mt-4 ml-4 grey&#45;&#45;text">-->
     <!--      {{ resultsCount | toPrecision }} results-->
 
     <!--    </div>-->
-    <v-list v-if="resultsCount" class="serp-results-list" nav>
-      <component
-          v-for="result in $store.state.results"
-          :key="result.id"
-          :is="resultComponentName"
-          :data="result"
-      />
-    </v-list>
-    <div class="serp-bottom" v-if="$store.state.results.length">
-      <v-pagination
-          v-model="page"
-          :length="numPages"
-          :total-visible="10"
-          light
-      />
-    </div>
+    <template v-if="resultsObject">
+      <v-card flat dark class="ma-2" v-if="apiMode">
+        <vue-json-pretty
+            v-if="resultsObject"
+            :data="resultsObject"
+            :deep="3"
+            :show-icon="true"
+            :show-length="true"
+            style="font-size: 12px;"
+            class="pa-4"
+
+        />
+      </v-card>
+      <v-card flat v-else>
+        <div class="mx-4">
+          <div v-if="!resultsCount" class="mt-8 grey--text">
+            There are no results for this search.
+          </div>
+        </div>
+        <v-list v-if="resultsCount" class="serp-results-list" nav>
+          <component
+              v-for="result in resultsObject.results"
+              :key="result.id"
+              :is="resultComponentName"
+              :data="result"
+          />
+        </v-list>
+      </v-card>
+      <div class="serp-bottom" v-if="resultsObject.results.length">
+        <v-pagination
+            v-model="page"
+            :length="numPages"
+            :total-visible="10"
+            light
+        />
+      </div>
+
+    </template>
+    <template v-else>
+
+    </template>
   </div>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import VueJsonPretty from 'vue-json-pretty'
+
+import {url} from "@/url";
+
+
 import ResultWork from "./Result/ResultWork.vue";
 import ResultAuthor from "./Result/ResultAuthor.vue";
 import ResultSource from "./Result/ResultSource.vue";
@@ -40,9 +66,12 @@ import ResultFunder from "@/components/Result/ResultFunder.vue";
 import ResultInstitution from "./Result/ResultInstitution.vue";
 import ResultConcept from "./Result/ResultConcept.vue";
 
+
 export default {
   name: "SerpResultsList",
   components: {
+    VueJsonPretty,
+
     ResultWork,
     ResultAuthor,
     ResultSource,
@@ -51,7 +80,10 @@ export default {
     ResultInstitution,
     ResultConcept,
   },
-  props: {},
+  props: {
+    apiMode: Boolean,
+    resultsObject: Object,
+  },
   data() {
     return {
       resultsPerPage: 25, // not editable now, but could be in future
@@ -59,27 +91,25 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
-      "resultsCount",
       "entityConfig",
-      "sortObject",
-      "sortObjectOptions",
     ]),
     resultComponentName() {
       return "result-" + this.entityConfig.nameSingular
-
+    },
+    resultsCount() {
+      return this.resultsObject.meta.count
     },
     page: {
       get() {
-        return this.$store.state.page
+        return this.resultsObject.meta.page
       },
       set(val) {
-        this.$store.dispatch("setPage", val)
+        url.setPage(val)
       }
     },
     numPages() {
       return Math.min(
-          Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
+          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
           10
       )
     },
@@ -112,5 +142,10 @@ div.serp-results-list {
     white-space: normal !important;
     line-height: 1.4 !important;
   }
+
+}
+
+.vjs-tree-node.is-highlight, .vjs-tree-node:hover {
+  background-color: transparent !important;
 }
 </style>
