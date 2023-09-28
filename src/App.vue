@@ -119,10 +119,13 @@
             <v-list-item to="/help">
               Help
             </v-list-item>
+            <v-list-item to="/webinars">
+              Webinars
+            </v-list-item>
             <v-list-item to="/about#contact">
               Contact
             </v-list-item>
-            <v-list-item href="https://docs.openalex.org/">
+            <v-list-item href="https://docs.openalex.org/" target="_blank">
               Read the docs
               <v-icon small right>mdi-open-in-new</v-icon>
             </v-list-item>

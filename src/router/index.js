@@ -61,7 +61,7 @@ const routes = [
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/help', component: Help},
-    {path: '/feedback', redirect: {name: "testimonials"}},
+    {path: '/feedback', component: Help},
     {path: '/contact', redirect: {name: "about"}},
     {path: '/pricing', component: Pricing},
     {path: '/webinars', component: Webinars},
