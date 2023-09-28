@@ -98,10 +98,14 @@ const setPage = async function(page){
 
 
 const pushNewFilters = async function (newFilters) {
+    const filter = (newFilters.length) ?
+        filtersAsUrlStr(newFilters) :
+        undefined
+
     const query = {
         ...router.currentRoute.query,
         page: 1,
-        filter: filtersAsUrlStr(newFilters),
+        filter,
     }
     const newRoute = {
         name: "Serp",
@@ -175,6 +179,7 @@ const updateFilter = async function (entityType, key, newValue) {
 }
 
 const deleteFilter = async function (entityType, key) {
+    console.log("url.deleteFilter")
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
     // add the new filter
