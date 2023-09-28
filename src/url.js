@@ -26,6 +26,16 @@ const removeFromQuery = function (oldQuery, k) {
     return newQuery
 }
 
+const setApiMode = async function(newVal) {
+    return await pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.query,
+            "api-mode": newVal ? "true" : undefined
+        }
+    })
+}
+
 const pushNewSearch = async function (router, entityType, search) {
     const newRoute = {
         name: "Serp",
@@ -75,6 +85,17 @@ const setFiltersByKey = function (filterKey, filters) {
 const negateFilter = async function (key, value) {
 
 }
+
+const setPage = async function(page){
+    return pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.query,
+            page
+        }
+    })
+}
+
 
 const pushNewFilters = async function (newFilters) {
     const query = {
@@ -290,6 +311,7 @@ const url = {
     replaceFilter,
     negateFilter,
     setSearch,
+    setPage,
 
     setGroupBy,
 
@@ -299,6 +321,8 @@ const url = {
     pushNewSearch,
     makeGroupByUrl,
     makeAutocompleteUrl,
+
+    setApiMode,
 }
 
 

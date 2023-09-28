@@ -15,14 +15,41 @@
 <!--          class="mb-3"-->
 <!--      />-->
 
-
+<!--      <div class="d-flex">-->
+<!--        <v-spacer />-->
+<!--        <v-btn icon @click="url.setApiMode(true)"><v-icon>mdi-api</v-icon></v-btn>-->
+<!--      </div>-->
+<!--      <v-row>-->
+<!--        <v-col>-->
+<!--          <v-card>-->
+<!--            <v-toolbar color="transparent" flat>-->
+<!--              <v-toolbar-title>-->
+<!--                <v-icon left>mdi-api</v-icon> API Query-->
+<!--              </v-toolbar-title>-->
+<!--              <v-spacer />-->
+<!--              <v-btn-->
+<!--                  icon-->
+<!--                @click="copyToClipboard(searchApiUrlForDisplay)"-->
+<!--              >-->
+<!--                  <v-icon>mdi-content-copy</v-icon>-->
+<!--              </v-btn>-->
+<!--              <v-btn icon @click="url.setApiMode(false)"><v-icon>mdi-close</v-icon></v-btn>-->
+<!--            </v-toolbar>-->
+<!--            <v-card-text>-->
+<!--              <v-card dark flat class="pa-3" style="font-family: Monaco, monospace; font-size:16px; color: #13ce66;">-->
+<!--                {{ searchApiUrlForDisplay }}-->
+<!--              </v-card>-->
+<!--            </v-card-text>-->
+<!--          </v-card>-->
+<!--        </v-col>-->
+<!--      </v-row>-->
       <v-row dense>
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="3">
           <v-card rounded>
             <filter-list :filters="resultsFilters" />
           </v-card>
         </v-col>
-        <v-col cols="12" sm="8">
+        <v-col cols="12" sm="9">
           <v-card rounded>
             <v-tabs height="64"   v-model="resultsTab" fixed-tabs>
               <v-tab>Results</v-tab>
@@ -30,8 +57,8 @@
             </v-tabs>
             <v-tabs-items v-model="resultsTab">
               <v-tab-item>
-                <serp-toolbar id="serp-toolbar" />
-                <serp-results-list class="pb-8"/>
+<!--                <serp-toolbar id="serp-toolbar" />-->
+                <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
               </v-tab-item>
               <v-tab-item>
                 <pinboard :filters="resultsFilters" />
@@ -78,7 +105,7 @@ import FilterString from "@/components/Filters/FilterString.vue";
 export default {
   name: "Serp",
   metaInfo() {
-    const ret = {title: _.capitalize(this.entityConfig.displayName) + " search"}
+    const ret = {title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"}
     if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
     return ret
   },
@@ -118,24 +145,19 @@ export default {
       resultsFilters: [],
       resultsTab: 0,
 
+      resultsObject: null,
+      
+
       // temp
       searchString: "",
+      url,
     }
   },
   asyncComputed: {},
   computed: {
     ...mapGetters([
-      "searchApiUrl",
-      "searchFacetConfigs",
-      "inputFiltersAsString",
-      "searchApiUrlForDisplay",
-      "entityZoomData",
       "searchIsLoading",
-      "showFiltersDrawer",
-      // "facetZoom",
-      "resultsCount",
       "entityType",
-      "entityConfig",
     ]),
     page: {
       get() {
@@ -154,12 +176,6 @@ export default {
       }
     },
 
-    numPages() {
-      return Math.min(
-          Math.ceil(this.$store.state.resultsCount / this.resultsPerPage),
-          10
-      )
-    },
 
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
@@ -169,12 +185,6 @@ export default {
       return this.$route.params.entityType
     },
 
-    entityId() {
-      return this.$route.params.id
-    },
-    apiUrl() {
-      return `/${this.entityType}/${this.entityId}`
-    },
 
   },
   methods: {
@@ -182,7 +192,6 @@ export default {
       "snackbar",
       "toggleFiltersDrawer",
       "openFacetsDialog",
-      "setApiDialogUrl",
     ]),
     ...mapActions([
       "updateTextSearch",
@@ -192,32 +201,6 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("URL copied to clipboard.")
     },
-    getEntityData() {
-      if (!this.entityId) return
-      const pathName = this.myEntityType + "/" + this.entityId
-      this.data = null
-      console.log("zoomentity getting data for", this.entityId)
-
-      api.get(pathName).then(resp => {
-        console.log("zoomEntity resp", resp)
-        this.data = resp
-      })
-    },
-    removeWidget(filterKey) {
-
-    },
-
-
-    // createFilter(key, value) {
-    //   url.createFilter(this.entityType, key, value)
-    // },
-    // updateFilter(key, value) {
-    //   console.log("Serp.updateFilter", key, value)
-    //   url.updateFilter(this.entityType, key, value)
-    // },
-    // deleteFilter(key) {
-    //   url.deleteFilter(this.entityType, key)
-    // },
   },
 
   created() {
@@ -230,18 +213,22 @@ export default {
       immediate: true,
       async handler(to, from) {
         const scrollTop = window.scrollY
+        const apiQuery = "https://api.openalex.org" + this.$route.fullPath
+        console.log("Serp apiQuery", apiQuery)
+        const resp = await api.getUrl(apiQuery)
+        this.resultsObject = resp
+        console.log("Serp resp", resp)
 
-        this.facetZoom = to?.query?.group_by
+
+
 
         this.resultsFilters = filtersFromUrlStr(
             this.entityType,
             to?.query?.filter
         )
+        window.scroll(0, 0)
 
-        await this.$store.dispatch("bootFromUrl")
-        if (to?.query?.zoom || from?.query?.qoom) {
-          window.scroll(0, scrollTop)
-        }
+        // await this.$store.dispatch("bootFromUrl")
       }
     },
 
