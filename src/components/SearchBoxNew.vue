@@ -6,7 +6,7 @@
         readonly
         rounded
         outlined
-        :placeholder="`Filter ${entityType}`"
+        :placeholder="`Search ${entityType}`"
         append-icon="mdi-magnify"
         full-width
         id="search-box-new-text-field"

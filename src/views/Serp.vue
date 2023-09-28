@@ -53,7 +53,7 @@
           <v-card rounded>
             <v-tabs height="64"   v-model="resultsTab" fixed-tabs>
               <v-tab>Results</v-tab>
-              <v-tab>Summaries</v-tab>
+              <v-tab disabled>Summaries</v-tab>
             </v-tabs>
             <v-tabs-items v-model="resultsTab">
               <v-tab-item>
