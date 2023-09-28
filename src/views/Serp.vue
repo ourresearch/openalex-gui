@@ -15,34 +15,13 @@
 <!--          class="mb-3"-->
 <!--      />-->
 
-<!--      <div class="d-flex">-->
-<!--        <v-spacer />-->
-<!--        <v-btn icon @click="url.setApiMode(true)"><v-icon>mdi-api</v-icon></v-btn>-->
-<!--      </div>-->
-<!--      <v-row>-->
-<!--        <v-col>-->
-<!--          <v-card>-->
-<!--            <v-toolbar color="transparent" flat>-->
-<!--              <v-toolbar-title>-->
-<!--                <v-icon left>mdi-api</v-icon> API Query-->
-<!--              </v-toolbar-title>-->
-<!--              <v-spacer />-->
-<!--              <v-btn-->
-<!--                  icon-->
-<!--                @click="copyToClipboard(searchApiUrlForDisplay)"-->
-<!--              >-->
-<!--                  <v-icon>mdi-content-copy</v-icon>-->
-<!--              </v-btn>-->
-<!--              <v-btn icon @click="url.setApiMode(false)"><v-icon>mdi-close</v-icon></v-btn>-->
-<!--            </v-toolbar>-->
-<!--            <v-card-text>-->
-<!--              <v-card dark flat class="pa-3" style="font-family: Monaco, monospace; font-size:16px; color: #13ce66;">-->
-<!--                {{ searchApiUrlForDisplay }}-->
-<!--              </v-card>-->
-<!--            </v-card-text>-->
-<!--          </v-card>-->
-<!--        </v-col>-->
-<!--      </v-row>-->
+      <div class="d-flex">
+        <v-spacer />
+        <v-btn icon @click="apiMode = !apiMode"><v-icon>mdi-api</v-icon></v-btn>
+      </div>
+      <serp-api-editor
+        v-if="apiMode"
+      />
       <v-row dense>
         <v-col cols="12" sm="3">
           <v-card rounded>
@@ -101,6 +80,7 @@ import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import SearchBoxNew from "../components/SearchBoxNew.vue";
 
 import FilterString from "@/components/Filters/FilterString.vue";
+import SerpApiEditor from "../components/SerpApiEditor.vue";
 
 export default {
   name: "Serp",
@@ -117,7 +97,8 @@ export default {
     ApiDialog,
     Pinboard,
     EntityTypeSelector,
-    FilterString
+    FilterString,
+    SerpApiEditor,
 
   },
   props: {},
@@ -146,6 +127,7 @@ export default {
       resultsTab: 0,
 
       resultsObject: null,
+      apiMode: false,
       
 
       // temp
