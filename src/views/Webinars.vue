@@ -93,7 +93,7 @@ export default {
         },
         {
           title: "Using OpenAlex to understand your University’s research",
-          date: "October 10, 2023",
+          date: "October 12, 2023",
           time: "12pm EDT",
           location: "Virtual (link sent after registration)",
           presenters: "Kyle Demes & Jason Portenoy",
