@@ -15,37 +15,31 @@
 <!--          class="mb-3"-->
 <!--      />-->
 
-      <div class="d-flex">
-        <v-spacer />
-        <v-btn icon @click="apiMode = !apiMode"><v-icon>mdi-api</v-icon></v-btn>
-      </div>
-      <serp-api-editor
-        v-if="apiMode"
-      />
-      <v-row dense>
-        <v-col cols="12" sm="3">
-          <v-card rounded>
-            <filter-list :filters="resultsFilters" />
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="9">
-          <v-card rounded>
-            <v-tabs height="64"   v-model="resultsTab" fixed-tabs>
-              <v-tab>Results</v-tab>
-              <v-tab disabled>Summaries</v-tab>
-            </v-tabs>
-            <v-tabs-items v-model="resultsTab">
-              <v-tab-item>
+<!--      <div class="d-flex">-->
+<!--        <v-spacer />-->
+<!--        <v-btn icon @click="apiMode = !apiMode"><v-icon>mdi-api</v-icon></v-btn>-->
+<!--      </div>-->
+<!--      <serp-api-editor-->
+<!--        v-if="apiMode"-->
+<!--      />-->
+      <filter-chips-list :filters="resultsFilters" />
+
+      <v-card rounded>
+        <v-tabs   v-model="resultsTab" fixed-tabs>
+          <v-tab>List</v-tab>
+          <v-tab>Group</v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="resultsTab">
+          <v-tab-item>
 <!--                <serp-toolbar id="serp-toolbar" />-->
-                <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
-              </v-tab-item>
-              <v-tab-item>
-                <pinboard :filters="resultsFilters" />
-              </v-tab-item>
-            </v-tabs-items>
-          </v-card>
-        </v-col>
-      </v-row>
+            <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
+          </v-tab-item>
+          <v-tab-item>
+            <pinboard :filters="resultsFilters" />
+          </v-tab-item>
+        </v-tabs-items>
+      </v-card>
+
 
     </v-container>
 
@@ -81,6 +75,7 @@ import SearchBoxNew from "../components/SearchBoxNew.vue";
 
 import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
+import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 
 export default {
   name: "Serp",
@@ -99,6 +94,7 @@ export default {
     EntityTypeSelector,
     FilterString,
     SerpApiEditor,
+    FilterChipsList,
 
   },
   props: {},
@@ -124,7 +120,6 @@ export default {
       showYearRange: true,
       widgetFilterKeys: [],
       resultsFilters: [],
-      resultsTab: 0,
 
       resultsObject: null,
       apiMode: false,
@@ -141,11 +136,21 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    page: {
+    resultsTab: {
       get() {
-        return this.$store.state.page
+        return this.$route.query.group_by ? 1 : 0
       },
       set(val) {
+        const group_by = val ? val : undefined
+        this.$router.push({
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            page: 1,
+            sort: undefined,
+            group_by,
+          }
+        })
         this.$store.dispatch("setPage", val)
       }
     },
