@@ -20,7 +20,7 @@
           </div>
         </v-col>
         <v-col cols="12" sm="2">
-          <a href="https://docs.openalex.org/">
+          <a href="https://docs.openalex.org/" target="_blank">
             Read the docs
             <v-icon small>mdi-open-in-new</v-icon>
           </a>
