@@ -303,10 +303,6 @@ export default {
       this.snackbar("Permalink copied to clipboard.")
       // alert('Copied!');
     },
-    viewIncomingCitations() {
-      const filter = createSimpleFilter("works", "cites", this.data.id)
-      this.$store.dispatch("replaceInputFilters", [filter])
-    },
 
 
   },

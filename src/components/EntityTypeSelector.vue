@@ -157,7 +157,6 @@ export default {
       "setEntityType",
     ]),
     ...mapActions([
-      "replaceInputFilters",
       "removeAllInputFilters",
     ]),
 
