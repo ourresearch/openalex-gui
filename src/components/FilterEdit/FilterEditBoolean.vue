@@ -37,7 +37,7 @@
             text
             rounded
             color="primary"
-            @click="$emit('upsert', myValue)"
+            @click="$emit( createMode ? 'create' : 'update', myValue)"
             :disabled="filterValue === myValue"
         >
           {{ createMode ? "Create" : "Update" }}
