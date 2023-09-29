@@ -1,127 +1,142 @@
 <template>
-  <v-card flat rounded class="">
-    <v-toolbar flat>
-      <v-toolbar-title>
-        <v-icon left>mdi-filter-outline</v-icon>
-        {{ myConfig.displayName }}
-      </v-toolbar-title>
-      <v-spacer/>
-      <v-btn icon @click="$emit('close')">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-      <template v-slot:extension>
+  <v-card class="" style="height: 100%;">
+    <v-card v-if="isSearchMode" class="" style="height: 100%;">
+      <v-toolbar flat>
         <v-text-field
             autofocus
             v-model="searchString"
             hide-details
-            prepend-icon="mdi-magnify"
+            prepend-icon="mdi-arrow-left"
             full-width
             rounded
             :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
+            @click:prepend="isSearchMode = false"
         />
-
-      </template>
-
-    </v-toolbar>
-
-
-    <v-divider></v-divider>
-    <v-card-text style="flex-grow:9999;" id="filter-edit-select-card-text">
-      <v-list
-      >
-
-        <v-subheader v-if="selectedOptionsToShow.length">
-          Selected
-          <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>
-
-          ({{ selectedOptionsToShow.length }})
-        </v-subheader>
-        <v-list-item
-            v-for="option in selectedOptionsToShow"
-            :key="'selected' + option.id"
-            @click="unselectOption(option)"
-
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-checkbox-marked</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              <div class="text-wrap">
+      </v-toolbar>
+      <v-divider/>
+      <v-card-text :style="{height: dialogTextHeight}" class="px-0 overflow-y-auto">
+        <v-list>
+          <v-subheader v-if="searchString && !unselectedOptions.length">
+            No results
+          </v-subheader>
+          <v-list-item
+              v-for="option in unselectedOptions"
+              :key="'unselected' + option.id"
+              @click="selectOption(option)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-checkbox-blank-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
                 {{ option.display_name }}
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
 
-              </div>
-            </v-list-item-title>
-            <v-list-item-subtitle v-if="option.entity_type">
-              <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
-              <span>{{ option.id }})</span>
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
+        </v-list>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn @click="isSearchMode = false" text>Cancel</v-btn>
+      </v-card-actions>
+    </v-card>
 
-        <v-subheader v-if="unselectedOptions.length">
-          <template v-if="searchString">
-            Search results
-          </template>
-          <template v-else>
-            Options
-          </template>
-          ({{ unselectedOptions.length < maxUnselectedOptionsCount ? unselectedOptions.length : 'many' }})
-        </v-subheader>
-        <v-subheader v-if="!unselectedOptions.length && searchString">
-          No search results
-        </v-subheader>
 
-        <v-list-item
-            v-for="option in unselectedOptions"
-            :key="'unselected' + option.id"
-            @click="selectOption(option)"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-checkbox-blank-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ option.display_name }}
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              <span v-if="option.entity_type">{{ option.id }} -</span>
-              <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
-            </v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-
-    </v-card-text>
-    <v-divider></v-divider>
-
-    <v-card-actions>
-      <v-spacer/>
-      <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-      <template v-if="createMode">
-        <v-btn
-            text
-            rounded
-            color="primary"
-            @click="$emit('upsert', myValue)"
-            :disabled="!myValue"
-        >
-          Create
+    <v-card v-else flat rounded class="d-flex flex-column">
+      <v-toolbar flat>
+        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">
+          <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
-      </template>
-      <template v-else>
-        <v-btn
-            text
-            rounded
-            :color="myValue ? 'primary' : 'error'"
-            @click="$emit((myValue ? 'upsert' : 'delete'), myValue)"
-            :disabled="filterValue === myValue"
-        >
-          {{  myValue ? 'Update' : 'Delete' }}
+        <v-toolbar-title class="">
+          {{ myConfig.displayName }}
+        </v-toolbar-title>
+        <v-spacer/>
+        <v-btn v-if="!$vuetify.breakpoint.mobile" icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
         </v-btn>
-      </template>
+      </v-toolbar>
+      <v-divider></v-divider>
+      <v-card-text :style="{height: dialogTextHeight}" class="pa-0 overflow-y-auto">
+        <v-list
+        >
 
-    </v-card-actions>
+          <!--        <v-subheader v-if="selectedOptionsToShow.length">-->
+          <!--          Selected-->
+          <!--          <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>-->
+
+          <!--          ({{ selectedOptionsToShow.length }})-->
+          <!--        </v-subheader>-->
+          <v-list-item
+              v-for="option in selectedOptionsToShow"
+              :key="'selected' + option.id"
+              @click="unselectOption(option)"
+
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-checkbox-marked</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                <div class="text-wrap">
+                  {{ option.display_name }}
+
+                </div>
+              </v-list-item-title>
+              <v-list-item-subtitle v-if="option.entity_type">
+                <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
+                <span>{{ option.id }})</span>
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+
+          <v-list-item  color="primary" @click="isSearchMode = true" key="add-new">
+            <v-list-item-icon>
+              <v-icon>mdi-plus</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Add a new {{ myConfig.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
+      </v-card-text>
+      <v-divider></v-divider>
+
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
+        <template v-if="createMode">
+          <v-btn
+              text
+              rounded
+              color="primary"
+              @click="$emit('create', myValue)"
+              :disabled="!myValue"
+          >
+            Create
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-btn
+              text
+              rounded
+              :color="myValue ? 'primary' : 'error'"
+              @click="$emit((myValue ? 'update' : 'delete'), myValue)"
+              :disabled="filterValue === myValue"
+          >
+            {{ myValue ? 'Update' : 'Delete' }}
+          </v-btn>
+        </template>
+
+      </v-card-actions>
+    </v-card>
   </v-card>
 </template>
 
@@ -162,6 +177,7 @@ export default {
         "all",
         "none",
       ],
+      isSearchMode: false,
       selectedMatchMode: "any",
       searchString: "",
       mySelectedValues: [],
@@ -181,6 +197,9 @@ export default {
     },
     selectedOptionsToShow() {
       return this.searchString ? [] : this.selectedOptions
+    },
+    dialogTextHeight() {
+      return this.$vuetify.breakpoint.mobile ? "calc(100vh - 120px)" : "50vh"
     }
   },
 
@@ -193,7 +212,7 @@ export default {
       this.selectedMatchMode = newMode
     },
     selectOption(option) {
-      this.unselectedOptions = this.unselectedOptions.filter(o => o.id !== option.id)
+      this.isSearchMode = false
       this.selectedOptions.push(option)
       this.searchString = ""
     },
@@ -286,9 +305,9 @@ export default {
     },
     myValue(to, from) {
 
-      this.$vuetify.goTo(0, {
-        container: "#filter-edit-select-card-text"
-      })
+      // this.$vuetify.goTo(0, {
+      //   container: "#filter-edit-select-card-text"
+      // })
     }
 
   }

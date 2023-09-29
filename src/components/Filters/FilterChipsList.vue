@@ -7,17 +7,18 @@
   >
 
     <v-chip
+        @click="isFilterSelectorOpen = true"
+        class="mr-2 mb-2"
         color="primary"
         label
-        class="mr-2 mb-2"
-        dark
     >
       <v-icon left>mdi-filter</v-icon>
-      {{ appliedFiltersMatchingSearchString.length }}
+      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length}}</span>
+      <span v-else>Create filter</span>
     </v-chip>
 
     <component
-        v-for="(filter, i) in appliedFiltersMatchingSearchString"
+        v-for="(filter, i) in appliedFilters"
         :key="filter.key + $route.query.filter"
         class="mr-2 mb-2"
         :is="'filter-chip-' + filter.type"
@@ -26,6 +27,15 @@
         @edit="setActiveFilter(filter.key, filter.value, false)"
         @delete="deleteFilter(filter.key)"
     />
+    <v-btn
+        v-if="appliedFilters.length > 0"
+        text
+        color="primary"
+        class="mr-2 mb-2"
+        @click="isFilterSelectorOpen = true"
+    >
+      All filters
+    </v-btn>
 
     <!--      <v-list-group-->
     <!--          v-for="category in facetsByCategory"-->
@@ -58,6 +68,7 @@
     <v-dialog
         v-model="isActiveFilterDialogOpen"
         max-width="400"
+        :fullscreen="$vuetify.breakpoint.mobile"
         scrollable
     >
       <component
@@ -68,9 +79,20 @@
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
-          @upsert="(newValue) => createOrUpdateFilter(activeFilterKey, newValue)"
+          @create="(newValue) => createFilter(activeFilterKey, newValue)"
+          @update="(newValue) => updateFilter(activeFilterKey, newValue)"
           @delete="deleteFilter(activeFilterKey)"
           @close="isActiveFilterDialogOpen = false"
+      />
+    </v-dialog>
+    <v-dialog
+        v-model="isFilterSelectorOpen"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        max-width="400"
+    >
+      <filter-selector
+          @close="isFilterSelectorOpen = false"
+          :applied-filters="appliedFilters"
       />
     </v-dialog>
 
@@ -102,6 +124,7 @@ import FilterChipRange from "../FilterChip/FilterChipRange.vue";
 import FilterChipSearch from "../FilterChip/FilterChipSearch.vue";
 import FilterChipSelect from "../FilterChip/FilterChipSelect.vue";
 
+import FilterSelector from "./FilterSelector.vue";
 
 import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
@@ -125,6 +148,8 @@ export default {
     FilterEditSearch,
     FilterEditBoolean,
     FilterEditSelect,
+
+    FilterSelector,
   },
   props: {
     filters: Array,
@@ -136,6 +161,8 @@ export default {
       activeFilterValue: null,
       activeFilterCreateMode: false,
       isActiveFilterDialogOpen: false,
+
+      isFilterSelectorOpen: false,
 
 
       searchString: "",
@@ -167,7 +194,7 @@ export default {
       return sum
     },
 
-    appliedFiltersMatchingSearchString() {
+    appliedFilters() {
       return this.filters.filter(f => {
         if (!this.searchString) return true
         return f.displayName.toLowerCase().match(this.searchString.toLowerCase())
@@ -190,9 +217,11 @@ export default {
     createFilter(key, value) {
       this.searchString = ""
       console.log("FilterList createFilter existing filter", key, value);
+      this.isActiveFilterDialogOpen = false
       url.createFilter(this.entityType, key, value)
     },
     createOrUpdateFilter(key, value) {
+      this.isActiveFilterDialogOpen = false
       this.searchString = ""
       const existingFilter = url.readFilter(this.entityType, key);
       console.log("FilterList createOrUpdateFilter", key, value, existingFilter);
@@ -202,12 +231,14 @@ export default {
       this.setActiveFilter(null, null, null)
     },
     deleteFilter(key) {
+      this.isActiveFilterDialogOpen = false
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
       url.deleteFilter(this.entityType, key)
       this.setActiveFilter(null, null, null)
     },
     updateFilter(filterKey, newValue) {
+      this.isActiveFilterDialogOpen = false
       console.log("updateFilter", filterKey, newValue)
       this.searchString = ""
       if (newValue === "" || newValue === "-") {

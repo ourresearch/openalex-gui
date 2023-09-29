@@ -55,7 +55,10 @@ export default {
     value: Boolean,
     dark: Boolean,
     hideUnpinnable: Boolean,
-    dense: Boolean,
+    dense: {
+      type: Boolean,
+      default() { return false }
+    },
 
     searchString: {
       type: String,
@@ -70,6 +73,12 @@ export default {
       },
     },
     disabledKeys: {
+      type: Array,
+      default() {
+        return []
+      },
+    },
+    appliedKeys: {
       type: Array,
       default() {
         return []
