@@ -87,8 +87,7 @@
                 </div>
               </v-list-item-title>
               <v-list-item-subtitle v-if="option.entity_type">
-                <span v-if="option.entity_type !== 'author'">{{ option.hint }} - </span>
-                <span>{{ option.id }})</span>
+                <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>

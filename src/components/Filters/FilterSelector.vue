@@ -62,9 +62,9 @@
         :key="'first-card'"
         :is="'filter-edit-' + activeFilterConfig.type"
         :filter-key="activeFilterKey"
-        :show-back-arrow="true"
+        :filter-value="activeFilterValue"
         style="height: 100vh;"
-        :createMode="true"
+        :createMode="activeFilterValue === undefined"
         @create="(newValue) => createFilter(activeFilterKey, newValue)"
         @update="(newValue) => updateFilter(activeFilterKey, newValue)"
         @delete="deleteFilter(activeFilterKey)"
@@ -119,6 +119,9 @@ export default {
       if (!this.activeFilterKey) return
       return getFacetConfig(this.entityType, this.activeFilterKey)
     },
+    activeFilterValue(){
+      return this.appliedFilters.find(f => f.key === this.activeFilterKey)?.value
+    }
   },
 
   methods: {
