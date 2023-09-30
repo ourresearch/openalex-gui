@@ -27,18 +27,27 @@
       <v-row dense>
         <v-col cols="3" v-if="!$vuetify.breakpoint.mobile">
           <v-card rounded>
-            <filter-selector :applied-filters="resultsFilters" />
+<!--            <filter-selector :applied-filters="resultsFilters" />-->
+            <filter-list :filters="resultsFilters" />
           </v-card>
         </v-col>
         <v-col cols="12" sm="9">
       <v-card rounded>
-        <v-tabs   v-model="resultsTab" fixed-tabs>
+        <v-toolbar flat>
+          <v-toolbar-title>Results</v-toolbar-title>
+          <v-spacer />
+          <v-chip-group v-model="resultsTab" mandatory active-class="primary--text">
+            <v-chip filter :key="0">List</v-chip>
+            <v-chip filter  :key="1">Groups</v-chip>
+          </v-chip-group>
+        </v-toolbar>
+        <v-tabs class="d-none" v-model="resultsTab">
           <v-tab>List</v-tab>
           <v-tab>Group</v-tab>
         </v-tabs>
         <v-tabs-items v-model="resultsTab">
           <v-tab-item>
-<!--                <serp-toolbar id="serp-toolbar" />-->
+                <serp-toolbar id="serp-toolbar" />
             <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
           </v-tab-item>
           <v-tab-item>
@@ -135,7 +144,8 @@ export default {
 
       resultsObject: null,
       apiMode: false,
-      
+      resultsTab: 0,
+
 
       // temp
       searchString: "",
@@ -148,24 +158,24 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    resultsTab: {
-      get() {
-        return this.$route.query.group_by ? 1 : 0
-      },
-      set(val) {
-        const group_by = val ? val : undefined
-        this.$router.push({
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            page: 1,
-            sort: undefined,
-            group_by,
-          }
-        })
-        this.$store.dispatch("setPage", val)
-      }
-    },
+    // resultsTab: {
+    //   get() {
+    //     return this.$route.query.group_by ? 1 : 0
+    //   },
+    //   set(val) {
+    //     const group_by = val ? val : undefined
+    //     this.$router.push({
+    //       name: "Serp",
+    //       query: {
+    //         ...this.$route.query,
+    //         page: 1,
+    //         sort: undefined,
+    //         group_by,
+    //       }
+    //     })
+    //     this.$store.dispatch("setPage", val)
+    //   }
+    // },
     groupByDialogIsOpen: {
       get() {
         return !!this.facetZoom

@@ -29,63 +29,54 @@
 
     </v-toolbar>
 
-    <v-list nav expand class="pt-2">
-      <template v-if="appliedFiltersMatchingSearchString.length">
-        <v-subheader class="pt-3">
-          Applied
-          ({{ appliedFiltersMatchingSearchString.length }})
-        </v-subheader>
-      </template>
+    <v-list  expand class="pt-2">
+<!--      <template v-if="appliedFiltersMatchingSearchString.length">-->
+<!--        <v-subheader class="pt-3">-->
+<!--          Applied-->
+<!--          ({{ appliedFiltersMatchingSearchString.length }})-->
+<!--        </v-subheader>-->
+<!--      </template>-->
+<!--      <template-->
+<!--          v-for="(filter, i) in appliedFiltersMatchingSearchString"-->
+<!--      >-->
+
+
+<!--        <component-->
+<!--            :key="filter.key + $route.query.filter"-->
+<!--            class=""-->
+<!--            :is="'filter-item-' + filter.type"-->
+<!--            :filter-key="filter.key"-->
+<!--            :filter-value="filter.value"-->
+<!--            @edit="setActiveFilter(filter.key, filter.value, false)"-->
+<!--            @delete="deleteFilter(filter.key)"-->
+<!--        />-->
+<!--      </template>-->
+<!--      <v-divider-->
+<!--          v-if="appliedFiltersMatchingSearchString.length"-->
+<!--          class="mb-6 mt-6"-->
+<!--      />-->
+
+
+<!--      <template v-if="facetsByCategoryCount && !searchString && filters.length">-->
+<!--        <v-subheader class="">-->
+<!--          Available-->
+<!--          ({{ facetsByCategoryCount }})-->
+<!--        </v-subheader>-->
+<!--        &lt;!&ndash;        <v-divider/>&ndash;&gt;-->
+<!--      </template>-->
       <template
-          v-for="(filter, i) in appliedFiltersMatchingSearchString"
-      >
-
-
-        <component
-            :key="filter.key + $route.query.filter"
-            class=""
-            :is="'filter-item-' + filter.type"
-            :filter-key="filter.key"
-            :filter-value="filter.value"
-            @edit="setActiveFilter(filter.key, filter.value, false)"
-            @delete="deleteFilter(filter.key)"
-        />
-      </template>
-      <v-divider
-          v-if="appliedFiltersMatchingSearchString.length"
-          class="mb-6 mt-6"
-      />
-
-
-      <template v-if="facetsByCategoryCount && !searchString && filters.length">
-        <v-subheader class="">
-          Available
-          ({{ facetsByCategoryCount }})
-        </v-subheader>
-        <!--        <v-divider/>-->
-      </template>
-      <v-list-group
           v-for="category in facetsByCategory"
-          :key="category.displayName"
-          :value="!!searchString"
       >
-        <template v-slot:activator>
-          <v-list-item-icon>
-            <v-icon>{{ category.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>{{ category.displayName }}</v-list-item-title>
-          </v-list-item-content>
-        </template>
+        <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
+
         <v-list-item
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
-            class="pl-12"
             @click="setActiveFilter(filterConfig.key, null, true)"
         >
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>{{ filterConfig.icon }}</v-icon>-->
-<!--          </v-list-item-icon>-->
+          <v-list-item-icon>
+            <v-icon>{{ filterConfig.icon }}</v-icon>
+          </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
               {{ filterConfig.displayName }}
@@ -95,7 +86,7 @@
             <!--            </v-list-item-subtitle>-->
           </v-list-item-content>
         </v-list-item>
-      </v-list-group>
+      </template>
 
 
     </v-list>
@@ -113,7 +104,8 @@
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
-          @upsert="(newValue) => createOrUpdateFilter(activeFilterKey, newValue)"
+          @create="(newValue) => createFilter(activeFilterKey, newValue)"
+          @update="(newValue) => updateFilter(activeFilterKey, newValue)"
           @delete="deleteFilter(activeFilterKey)"
           @close="isActiveFilterDialogOpen = false"
       />

@@ -223,7 +223,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Fulltext search",
             type: "search",
-            categories: ["search"],
+            categories: ["search", "popular"],
             isCore: true,
             icon: "mdi-magnify",
         },
@@ -553,7 +553,7 @@ const facetConfigs = function (entityType) {
             displayName: "Work type",
             type: "select",
             categories: ["popular", "other"],
-            icon: "mdi-file-document-outline",
+            icon: "mdi-shape-outline",
         },
         {
             key: "publication_year",
@@ -564,7 +564,7 @@ const facetConfigs = function (entityType) {
             examples: ["1999", "1999-", "1999-2020"],
             categories: ["popular", "other"],
             isCore: true,
-            icon: "mdi-calendar-text"
+            icon: "mdi-calendar-range"
         },
         {
             key: "has_doi",
@@ -636,7 +636,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             displayNullAs: "Unknown",
             categories: ["other", "popular"],
-            icon: "mdi-lightbulb-outline"
+            icon: "mdi-sprout-outline"
         },
 
 

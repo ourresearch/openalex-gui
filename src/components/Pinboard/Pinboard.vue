@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded>
+  <v-card flat rounded>
     <v-toolbar flat>
       <span class="grey--text">
         {{ summaries.length }} summaries

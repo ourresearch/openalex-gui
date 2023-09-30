@@ -78,7 +78,11 @@
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
+                  {{ suggestion.displayKey }}:
+                  <span class="font-weight-bold">
                   {{ suggestion.displayValue }}
+
+                  </span>
                 </v-list-item-title>
                 <v-list-item-subtitle v-if="suggestion.type==='boolean'">
                   Show only {{ entityType | pluralize(2) }} that are
@@ -86,9 +90,9 @@
                 </v-list-item-subtitle>
                 <v-list-item-subtitle v-else>
                   <span class="">
-                    {{ suggestion.displayKey }}
+                    {{ suggestion.hint }}
                   </span>
-                  filter - {{ suggestion.works_count | toPrecision }} works
+                   - {{ suggestion.works_count | toPrecision }} works
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
