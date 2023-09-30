@@ -78,8 +78,40 @@
             <v-icon>{{ filterConfig.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>
+            <v-list-item-title
+                v-if="getAppliedFilter(filterConfig.key)"
+                class="font-weight-bold primary--text"
+            >
+              <template v-if="filterConfig.type === 'boolean'">
+                {{ filterConfig.displayName }}: true
+              </template>
+
+              <template v-else-if="filterConfig.type === 'select'">
+                {{ filterConfig.displayName }}:
+                <filter-select-value-as-string
+                    :filter-value="getAppliedFilter(filterConfig.key).value"
+                    :filter-key="filterConfig.key"
+                />
+              </template>
+
+              <template v-else-if="filterConfig.type === 'search'">
+                {{ filterConfig.displayName }}: "{{ getAppliedFilter(filterConfig.key).value }}"
+              </template>
+              <template v-else-if="filterConfig.type === 'range'">
+                {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
+              </template>
+              <template v-else >
+                {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
+              </template>
+
+              <!--                  <span-->
+              <!--                      class="body-2 font-weight-bold"-->
+              <!--                    v-if="appliedFilters.map(f => f.key).includes(filterConfig.key)"-->
+              <!--                  >(applied)</span>-->
+            </v-list-item-title>
+            <v-list-item-title v-else>
               {{ filterConfig.displayName }}
+
             </v-list-item-title>
             <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
             <!--              {{ filterConfig.type }}-->
@@ -137,7 +169,10 @@ import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 import {api} from "@/api";
+import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
+import {filter} from "core-js/internals/array-iteration";
 
+import FilterSelectValueAsString from "./FilterSelectValueAsString.vue";
 
 export default {
   name: "FilterList",
@@ -153,6 +188,9 @@ export default {
     FilterEditSearch,
     FilterEditBoolean,
     FilterEditSelect,
+
+    FilterValueChip,
+    FilterSelectValueAsString,
   },
   props: {
     filters: Array,
@@ -183,8 +221,8 @@ export default {
       return facetsByCategory(
           this.entityType,
           this.searchString,
-          this.includeOnlyTypes,
-          this.filters.map(f => f.key),
+          // this.includeOnlyTypes,
+          // this.filters.map(f => f.key),
       )
     },
     facetsByCategoryCount() {
@@ -205,6 +243,7 @@ export default {
 
 
   methods: {
+    filter,
     ...mapMutations([
       "snackbar",
     ]),
@@ -243,6 +282,9 @@ export default {
       } else {
         url.updateFilter(this.entityType, filterKey, newValue)
       }
+    },
+    getAppliedFilter(filterKey) {
+      return this.filters.find(f => f.key === filterKey)
     },
 
 
