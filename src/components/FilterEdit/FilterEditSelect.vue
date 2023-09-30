@@ -48,14 +48,14 @@
 
     <v-card v-else flat rounded class="d-flex flex-column">
       <v-toolbar flat>
-        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">
-          <v-icon>mdi-arrow-left</v-icon>
-        </v-btn>
+<!--        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">-->
+<!--          <v-icon>mdi-arrow-left</v-icon>-->
+<!--        </v-btn>-->
         <v-toolbar-title class="">
           {{ myConfig.displayName }}
         </v-toolbar-title>
         <v-spacer/>
-        <v-btn v-if="!$vuetify.breakpoint.mobile" icon @click="$emit('close')">
+        <v-btn  icon @click="$emit('close')">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>

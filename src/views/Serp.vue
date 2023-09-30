@@ -24,6 +24,13 @@
 <!--      />-->
       <filter-chips-list :filters="resultsFilters" />
 
+      <v-row dense>
+        <v-col cols="3" v-if="!$vuetify.breakpoint.mobile">
+          <v-card rounded>
+            <filter-selector :applied-filters="resultsFilters" />
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="9">
       <v-card rounded>
         <v-tabs   v-model="resultsTab" fixed-tabs>
           <v-tab>List</v-tab>
@@ -39,6 +46,9 @@
           </v-tab-item>
         </v-tabs-items>
       </v-card>
+
+        </v-col>
+      </v-row>
 
 
     </v-container>
@@ -75,6 +85,7 @@ import SearchBoxNew from "../components/SearchBoxNew.vue";
 
 import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
+import FilterSelector from "../components/Filters/FilterSelector.vue";
 import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 
 export default {
@@ -95,6 +106,7 @@ export default {
     FilterString,
     SerpApiEditor,
     FilterChipsList,
+    FilterSelector,
 
   },
   props: {},
