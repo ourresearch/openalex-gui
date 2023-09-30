@@ -13,7 +13,7 @@
         label
     >
       <v-icon left>mdi-filter</v-icon>
-      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length}}</span>
+      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length }}</span>
       <span v-else>Create filter</span>
     </v-chip>
 
@@ -88,12 +88,27 @@
     <v-dialog
         v-model="isFilterSelectorOpen"
         :fullscreen="$vuetify.breakpoint.mobile"
-        max-width="400"
+        max-width="500"
+        scrollable
     >
-      <filter-selector
-          @close="isFilterSelectorOpen = false"
-          :applied-filters="appliedFilters"
-      />
+      <v-card>
+            <v-toolbar flat>
+              <v-toolbar-title>
+                Filters
+              </v-toolbar-title>
+              <v-spacer/>
+              <v-btn icon @click="isFilterSelectorOpen = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-toolbar>
+            <v-divider/>
+
+            <filter-selector
+                @close="isFilterSelectorOpen = false"
+                :applied-filters="appliedFilters"
+            />
+
+          </v-card>
     </v-dialog>
 
 

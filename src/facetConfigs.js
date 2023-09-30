@@ -207,7 +207,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Fulltext search",
             type: "search",
-            categories: ["popular", "search"],
+            categories: ["search"],
             isCore: true,
             icon: "mdi-magnify",
         },

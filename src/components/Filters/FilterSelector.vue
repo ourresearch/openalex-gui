@@ -1,77 +1,66 @@
 <template>
-  <v-card style="height: 100vh">
-    <v-card v-if="!activeFilterConfig" style="height: 100%;" class="d-flex flex-column">
-      <v-toolbar flat>
-        <v-btn icon @click="clickBackButton">
-          <v-icon>mdi-arrow-left</v-icon>
-        </v-btn>
-        <v-toolbar-title>
-          Filters
-        </v-toolbar-title>
-        <v-spacer/>
-      </v-toolbar>
-      <v-divider/>
-      <v-card-text class="pa-0" style="flex-grow: 99999; overflow-y: auto">
-        <v-list expand style="">
-          <v-list-group
-              v-for="category in facetsByCategory"
-              :key="category.displayName"
-              color="#444"
-          >
-            <template v-slot:activator>
-              <v-list-item-icon>
-                <v-icon>{{ category.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ category.displayName }}</v-list-item-title>
-              </v-list-item-content>
-            </template>
-            <v-list-item
-                class=""
-                v-for="filterConfig in category.filterConfigs"
-                :key="category.displayName + filterConfig.key"
-                @click="setActiveFilterKey(filterConfig.key)"
+
+  <v-card-text class="pa-0" style="flex-grow: 99999; overflow-y: auto">
+    <v-list expand style="">
+      <template
+          v-for="category in facetsByCategory"
+          color="#444"
+      >
+        <v-subheader :key="'subheader' + category.displayName">
+          {{ category.displayName }}
+        </v-subheader>
+        <v-list-item
+            class=""
+            v-for="filterConfig in category.filterConfigs"
+            :key="category.displayName + filterConfig.key"
+            @click="setActiveFilterKey(filterConfig.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ filterConfig.icon }}</v-icon>
+
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title
+                v-if="getAppliedFilter(filterConfig.key)"
+                class="font-weight-bold primary--text"
             >
-              <v-list-item-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title
-                    v-if="getAppliedFilter(filterConfig.key)"
-                    class="font-weight-bold primary--text"
-                >
-                  {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
-                  <!--                  <span-->
-                  <!--                      class="body-2 font-weight-bold"-->
-                  <!--                    v-if="appliedFilters.map(f => f.key).includes(filterConfig.key)"-->
-                  <!--                  >(applied)</span>-->
-                </v-list-item-title>
-                <v-list-item-title v-else>
-                  {{ filterConfig.displayName }}
+              {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
+              <!--                  <span-->
+              <!--                      class="body-2 font-weight-bold"-->
+              <!--                    v-if="appliedFilters.map(f => f.key).includes(filterConfig.key)"-->
+              <!--                  >(applied)</span>-->
+            </v-list-item-title>
+            <v-list-item-title v-else>
+              {{ filterConfig.displayName }}
 
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
-          </v-list-group>
-        </v-list>
-      </v-card-text>
-    </v-card>
-    <component
-        class=""
-        v-if="activeFilterConfig"
-        :key="'first-card'"
-        :is="'filter-edit-' + activeFilterConfig.type"
-        :filter-key="activeFilterKey"
-        :filter-value="activeFilterValue"
-        style="height: 100vh;"
-        :createMode="activeFilterValue === undefined"
-        @create="(newValue) => createFilter(activeFilterKey, newValue)"
-        @update="(newValue) => updateFilter(activeFilterKey, newValue)"
-        @delete="deleteFilter(activeFilterKey)"
+      </template>
+    </v-list>
+    <v-dialog
+        v-model="isFilterDialogOpen"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        max-width="500"
+    >
+      <component
+          class=""
+          v-if="activeFilterConfig"
+          :key="'first-card'"
+          :is="'filter-edit-' + activeFilterConfig.type"
+          :filter-key="activeFilterKey"
+          :filter-value="activeFilterValue"
+          :createMode="activeFilterValue === undefined"
+          @create="(newValue) => createFilter(activeFilterKey, newValue)"
+          @update="(newValue) => updateFilter(activeFilterKey, newValue)"
+          @delete="deleteFilter(activeFilterKey)"
 
-        @close="setActiveFilterKey(null)"
-    />
-  </v-card>
+          @close="setActiveFilterKey(null)"
+      />
+
+    </v-dialog>
+  </v-card-text>
 </template>
 
 <script>
@@ -104,6 +93,7 @@ export default {
       selectedKey: "",
       activeFilterKey: "",
       tab: 0,
+      isFilterDialogOpen: false,
     }
   },
   computed: {
@@ -119,7 +109,7 @@ export default {
       if (!this.activeFilterKey) return
       return getFacetConfig(this.entityType, this.activeFilterKey)
     },
-    activeFilterValue(){
+    activeFilterValue() {
       return this.appliedFilters.find(f => f.key === this.activeFilterKey)?.value
     }
   },
@@ -164,7 +154,11 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    activeFilterKey(to,from){
+      this.isFilterDialogOpen = !!to
+    }
+  }
 }
 </script>
 
