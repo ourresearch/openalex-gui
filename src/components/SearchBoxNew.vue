@@ -54,6 +54,9 @@
                 <v-list-item-title>
                   {{ suggestion.displayValue }}
                 </v-list-item-title>
+                <v-list-item-title>
+                  {{ suggestion.displayValue }}
+                </v-list-item-title>
                 <v-list-item-subtitle>
                   <span class="">
                    {{ suggestion.hint }}
@@ -77,7 +80,11 @@
                 <v-list-item-title>
                   {{ suggestion.displayValue }}
                 </v-list-item-title>
-                <v-list-item-subtitle>
+                <v-list-item-subtitle v-if="suggestion.type==='boolean'">
+                  Show only {{ entityType | pluralize(2) }} that are
+                  {{ suggestion.displayValue }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle v-else>
                   <span class="">
                     {{ suggestion.displayKey }}
                   </span>
@@ -85,6 +92,8 @@
                 </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
+
+
             <template v-if="searchString.length >= 3">
               <v-divider/>
               <v-list-item
@@ -212,10 +221,21 @@ export default {
           filterKey = "ids.openalex"
         }
 
+        const myConfig = getFacetConfig(this.entityType, filterKey)
+        let displayValue
+        if (myConfig.type === "boolean") {
+          const prepend = result.id ? "" : "NOT "
+          displayValue = prepend + myConfig.displayName
+        }
+        else {
+          displayValue = result.display_name
+        }
+
         return {
           ...result,
-          displayValue: result.display_name,
-          displayKey: getFacetConfig(this.entityType, filterKey)?.displayName,
+          displayValue,
+          displayKey: myConfig?.displayName,
+          type: myConfig.type,
           key: filterKey,
           value: shortenOpenAlexId(result.id),
           isShortcut: result.entity_type && this.$pluralize(result.entity_type, 1) === this.$pluralize(this.entityType, 1)

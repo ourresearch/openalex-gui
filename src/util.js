@@ -89,6 +89,7 @@ const toPrecision = function(number, precision) {
 
 
 const shortenOpenAlexId = function (longId) {
+    if (typeof longId !== "string") return longId
     return longId.replace("https://openalex.org/", "").toLowerCase()
 }
 
