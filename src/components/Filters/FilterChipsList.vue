@@ -6,16 +6,16 @@
 
   >
 
-    <v-chip
-        @click="isFilterSelectorOpen = true"
-        class="mr-2 mb-2"
-        color="primary"
-        label
-    >
-      <v-icon left>mdi-filter</v-icon>
-      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length }}</span>
-      <span v-else>Create filter</span>
-    </v-chip>
+<!--    <v-chip-->
+<!--        @click="isFilterSelectorOpen = true"-->
+<!--        class="mr-2 mb-2"-->
+<!--        color="primary"-->
+<!--        label-->
+<!--    >-->
+<!--      <v-icon left>mdi-filter</v-icon>-->
+<!--      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length }}</span>-->
+<!--      <span v-else>Create filter</span>-->
+<!--    </v-chip>-->
 
     <component
         v-for="(filter, i) in appliedFilters"
@@ -27,15 +27,15 @@
         @edit="setActiveFilter(filter.key, filter.value, false)"
         @delete="deleteFilter(filter.key)"
     />
-    <v-btn
-        v-if="appliedFilters.length > 0"
-        text
-        color="primary"
-        class="mr-2 mb-2"
-        @click="isFilterSelectorOpen = true"
-    >
-      All filters
-    </v-btn>
+<!--    <v-btn-->
+<!--        v-if="appliedFilters.length > 0"-->
+<!--        text-->
+<!--        color="primary"-->
+<!--        class="mr-2 mb-2"-->
+<!--        @click="isFilterSelectorOpen = true"-->
+<!--    >-->
+<!--      All filters-->
+<!--    </v-btn>-->
 
     <!--      <v-list-group-->
     <!--          v-for="category in facetsByCategory"-->

@@ -16,8 +16,6 @@
         color="white"
         class="pl-0"
         absolute
-        :extended="$vuetify.breakpoint.mobile"
-        extension-height="100"
 
 
     >
@@ -41,10 +39,10 @@
 
         </router-link>
         <v-spacer />
-        <search-box-new
-            class="flex-grow-1"
-            v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"
-        />
+<!--        <search-box-new-->
+<!--            class="flex-grow-1"-->
+<!--            v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
+<!--        />-->
         <v-spacer/>
 <!--        <v-btn light target="_blank"-->
 
@@ -135,12 +133,12 @@
 
       </v-container>
 
-      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-        <search-box-new
-            class="flex-grow-1"
-        />
+<!--      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">-->
+<!--        <search-box-new-->
+<!--            class="flex-grow-1"-->
+<!--        />-->
 
-      </template>
+<!--      </template>-->
 
     </v-app-bar>
     <v-main>
