@@ -84,7 +84,7 @@ const entityConfigs = {
         eg: "Harvard University",
         placeholder: "Search academic institutions",
         filterName: "institutions",
-        filterKey: "authorships.institutions.id",
+        filterKey: "authorships.institutions.lineage",
     },
     concepts: {
         emoji: "💡",

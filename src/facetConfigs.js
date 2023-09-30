@@ -138,6 +138,22 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.id",
             entityType: "works",
+            displayName: "Exact Institution",
+            pidPrefix: "openalex",
+            isEntity: true,
+            showInSidebar: true,
+            entityId: "institutions",
+            autocompleteEndpoint: "autocomplete/institutions",
+            type: "select",
+            categories: ["institution",],
+            isCore: true,
+            icon: "mdi-town-hall",
+            regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
+        },
+
+        {
+            key: "authorships.institutions.lineage",
+            entityType: "works",
             displayName: "Institution",
             pidPrefix: "openalex",
             isEntity: true,
