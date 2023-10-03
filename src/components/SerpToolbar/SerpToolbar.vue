@@ -6,8 +6,8 @@
     <!--    <v-toolbar-title>-->
     <!--      List-->
     <!--    </v-toolbar-title>-->
-    <span v-if="$vuetify.breakpoint.mobile" class="grey--text">{{ resultsCount | millify }} results</span>
-    <span v-else class="grey--text">{{ resultsCount | toPrecision }} results</span>
+<!--    <span v-if="$vuetify.breakpoint.mobile" class="grey&#45;&#45;text">{{ resultsCount | millify }} results</span>-->
+<!--    <span v-else class="grey&#45;&#45;text">{{ resultsCount | toPrecision }} results</span>-->
     <v-spacer/>
 
     <!--DIALOGS-->
@@ -40,38 +40,7 @@
     <!--*****************************************************************************************-->
 
 
-    <v-menu>
-      <template v-slot:activator="{on}">
-        <v-btn icon class="font-weight-regular" text v-on="on">
-          <v-icon>mdi-sort</v-icon>
-<!--          <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>-->
-<!--          <template v-else>-->
-<!--            <v-icon left class="">mdi-sort</v-icon>-->
-<!--            Sort by {{ sortObject.displayName }}-->
-<!--          </template>-->
-        </v-btn>
-      </template>
-      <v-list>
-        <v-subheader>Sort by</v-subheader>
-        <v-divider></v-divider>
-        <v-list-item
-            v-for="mySortOption in $store.getters.sortObjectOptions"
-            :key="mySortOption.key"
-            @click="setSort(mySortOption.key)"
-        >
-          <v-list-item-icon>
-            <v-icon>
-              {{ (sortObject.key === mySortOption.key) ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-            </v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ mySortOption.displayName }}
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+
 
 
     <v-menu v-if="!$vuetify.breakpoint.mobile" min-width="200" max-width="300">

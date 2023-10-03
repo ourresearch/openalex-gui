@@ -20,64 +20,7 @@ import axios from "axios";
 
 Vue.use(Vuex)
 
-const sortDefaults = {
-    works: {
-        textSearch: "relevance_score:desc",
-        // noTextSearch: "publication_date:desc",
-        noTextSearch: "cited_by_count:desc",
-    },
-    authors: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-    sources: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-    publishers: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-    funders: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-    institutions: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-    concepts: {
-        textSearch: "relevance_score:desc",
-        noTextSearch: "works_count:desc",
-    },
-}
 
-const sortConfigs = [
-    {
-        key: "cited_by_count:desc",
-        displayName: "Citations",
-        showForEntityTypes: entityTypes.all(),
-    },
-    {
-        // only for non-work entities
-        key: "works_count:desc",
-        displayName: "Works",
-        showForEntityTypes: entityTypes.allExcept("works"),
-    },
-    {
-        // only for works
-        key: "publication_date:desc",
-        displayName: "Date",
-        showForEntityTypes: ["works"],
-    },
-    {
-        // only if there's a text search on
-        key: "relevance_score:desc",
-        displayName: "Relevance",
-        showForEntityTypes: entityTypes.all(),
-        requiresTextSearch: true,
-    },
-]
 
 
 const stateDefaults = function () {
@@ -182,10 +125,6 @@ export default new Vuex.Store({
         setPage(state, page) {
             const pageInt = parseInt(page)
             state.page = (isNaN(pageInt)) ? 1 : pageInt
-        },
-        setSort(state, sortKey) {
-            const mySortConfig = sortConfigs.find(c => c.key === sortKey)
-            if (mySortConfig) state.sort = mySortConfig.key
         },
         addInputFilter(state, filter) {
             state.inputFilters = state.inputFilters.filter(f => {
@@ -409,19 +348,6 @@ export default new Vuex.Store({
         },
         resultsCount(state) {
             return state.resultsCount
-        },
-        sortObjectOptions(state, getters) {
-            if (!state.results.length) return
-            return sortConfigs.filter(sortConfig => {
-                if (sortConfig.requiresTextSearch && !state.textSearch) return false
-                if (!sortConfig.showForEntityTypes.includes(state.entityType)) return false
-                return true
-            })
-        },
-        sortObject(state, getters) {
-            return sortConfigs.find(sortOption => {
-                return sortOption.key === state.sort
-            })
         },
         // stuff used by both the server and UI
         searchQueryBase(state, getters) {
