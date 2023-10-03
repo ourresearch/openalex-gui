@@ -53,13 +53,14 @@
               <!--            <v-chip filter  :key="1">Groups</v-chip>-->
               <!--          </v-chip-group>-->
             </v-toolbar>
+            <v-divider />
             <v-tabs class="d-none" v-model="resultsTab">
               <v-tab>List</v-tab>
               <v-tab>Group</v-tab>
             </v-tabs>
             <v-tabs-items v-model="resultsTab">
               <v-tab-item>
-                <serp-toolbar id="serp-toolbar"/>
+<!--                <serp-toolbar id="serp-toolbar"/>-->
                 <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
               </v-tab-item>
               <v-tab-item>

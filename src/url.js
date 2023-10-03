@@ -102,9 +102,18 @@ const pushNewFilters = async function (newFilters) {
         filtersAsUrlStr(newFilters) :
         undefined
 
+    // const oldSort = router.currentRoute.query.sort
+    // const oldSortIsRelevance = oldSort?.indexOf("relevance") > -1
+    // const oldParams = new URLSearchParams(router.currentRoute.query)
+    // const isSearchFilterApplied = oldParams.toString().indexOf(".search") > -1
+    //
+
+
+
     const query = {
         ...router.currentRoute.query,
         page: 1,
+        sort: undefined,
         filter,
     }
     const newRoute = {
