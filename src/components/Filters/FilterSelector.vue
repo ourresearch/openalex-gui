@@ -157,7 +157,7 @@ export default {
   watch: {
     activeFilterKey(to,from){
       this.isFilterDialogOpen = !!to
-    }
+    },
   }
 }
 </script>

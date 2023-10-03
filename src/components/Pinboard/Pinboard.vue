@@ -91,12 +91,13 @@ export default {
       type: Array,
       required: true,
     },
+    summaries: Array,
   },
   data() {
     return {
       foo: 42,
       searchString: "",
-      summaries: [],
+      // summaries: [],
       isCreateMenuOpen: false,
 
     }
@@ -128,7 +129,7 @@ export default {
         params: {entityType: this.entityType},
         query: {
           ...this.$route.query,
-          summaries: [...this.summaries, key].join(",")
+          group_by: [...this.summaries, key].join(",")
 
         }
       }
@@ -141,7 +142,7 @@ export default {
         params: {entityType: this.entityType},
         query: {
           ...this.$route.query,
-          summaries: this.summaries.filter(k => k !== key).join(",")
+          group_by: this.summaries.filter(k => k !== key).join(",")
 
         }
       }
@@ -157,13 +158,13 @@ export default {
     // this.viewKeys = pinboard.getViews(this.entityType)
   },
   watch: {
-    "$route.query.summaries": {
+    "$route.query.group_by": {
       immediate: true,
       handler(to, from) {
-        console.log("summaries just changed", to)
-        this.summaries = (to) ?
-            to.split(",") :
-            []
+        // console.log("summaries just changed", to)
+        // this.summaries = (to) ?
+        //     to.split(",") :
+        //     []
       }
     }
   }
