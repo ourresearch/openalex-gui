@@ -10,51 +10,63 @@
     <!--    </v-toolbar>-->
 
     <v-container>
-<!--      <filter-string-->
-<!--          :filters="resultsFilters"-->
-<!--          class="mb-3"-->
-<!--      />-->
+      <!--      <filter-string-->
+      <!--          :filters="resultsFilters"-->
+      <!--          class="mb-3"-->
+      <!--      />-->
 
-<!--      <div class="d-flex">-->
-<!--        <v-spacer />-->
-<!--        <v-btn icon @click="apiMode = !apiMode"><v-icon>mdi-api</v-icon></v-btn>-->
-<!--      </div>-->
-<!--      <serp-api-editor-->
-<!--        v-if="apiMode"-->
-<!--      />-->
-      <filter-chips-list :filters="resultsFilters" />
+      <div class="d-flex">
+        <v-spacer/>
+        <v-btn icon @click="apiMode = !apiMode">
+          <v-icon>mdi-api</v-icon>
+        </v-btn>
+      </div>
+      <serp-api-editor
+          v-if="apiMode"
+          class="mb-3"
+      />
+      <filter-chips-list :filters="resultsFilters"/>
 
       <v-row dense>
         <v-col cols="3" v-if="!$vuetify.breakpoint.mobile">
           <v-card rounded>
-<!--            <filter-selector :applied-filters="resultsFilters" />-->
-            <filter-list :filters="resultsFilters" />
+            <!--            <filter-selector :applied-filters="resultsFilters" />-->
+            <filter-list :filters="resultsFilters"/>
           </v-card>
         </v-col>
         <v-col cols="12" sm="9">
-      <v-card rounded>
-        <v-toolbar flat>
-          <v-toolbar-title>Results</v-toolbar-title>
-          <v-spacer />
-          <v-chip-group v-model="resultsTab" mandatory active-class="primary--text">
-            <v-chip filter :key="0">List</v-chip>
-            <v-chip filter  :key="1">Groups</v-chip>
-          </v-chip-group>
-        </v-toolbar>
-        <v-tabs class="d-none" v-model="resultsTab">
-          <v-tab>List</v-tab>
-          <v-tab>Group</v-tab>
-        </v-tabs>
-        <v-tabs-items v-model="resultsTab">
-          <v-tab-item>
-                <serp-toolbar id="serp-toolbar" />
-            <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
-          </v-tab-item>
-          <v-tab-item>
-            <pinboard :filters="resultsFilters" />
-          </v-tab-item>
-        </v-tabs-items>
-      </v-card>
+          <v-card rounded>
+            <v-toolbar flat>
+              <v-toolbar-title>Results</v-toolbar-title>
+              <v-spacer/>
+              <v-chip
+                  :input-value="isGroupByView"
+                  active-class="primary--text"
+                  filter
+                  @click="isGroupByView = !isGroupByView"
+              >
+                Summarize
+              </v-chip>
+
+              <!--          <v-chip-group v-model="resultsTab" mandatory active-class="primary&#45;&#45;text">-->
+              <!--            <v-chip filter :key="0">List</v-chip>-->
+              <!--            <v-chip filter  :key="1">Groups</v-chip>-->
+              <!--          </v-chip-group>-->
+            </v-toolbar>
+            <v-tabs class="d-none" v-model="resultsTab">
+              <v-tab>List</v-tab>
+              <v-tab>Group</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="resultsTab">
+              <v-tab-item>
+                <serp-toolbar id="serp-toolbar"/>
+                <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
+              </v-tab-item>
+              <v-tab-item>
+                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-card>
 
         </v-col>
       </v-row>
@@ -96,6 +108,7 @@ import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
 import FilterSelector from "../components/Filters/FilterSelector.vue";
 import FilterChipsList from "../components/Filters/FilterChipsList.vue";
+import router from "../router";
 
 export default {
   name: "Serp",
@@ -145,6 +158,8 @@ export default {
       resultsObject: null,
       apiMode: false,
       resultsTab: 0,
+      lastGroupByValue: null,
+      groupByKeys: [],
 
 
       // temp
@@ -158,30 +173,22 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    // resultsTab: {
-    //   get() {
-    //     return this.$route.query.group_by ? 1 : 0
-    //   },
-    //   set(val) {
-    //     const group_by = val ? val : undefined
-    //     this.$router.push({
-    //       name: "Serp",
-    //       query: {
-    //         ...this.$route.query,
-    //         page: 1,
-    //         sort: undefined,
-    //         group_by,
-    //       }
-    //     })
-    //     this.$store.dispatch("setPage", val)
-    //   }
-    // },
-    groupByDialogIsOpen: {
+    isGroupByView: {
       get() {
-        return !!this.facetZoom
+        return this.$route.query.group_by !== undefined
       },
       set(val) {
-        url.setGroupBy(!!val)
+        // view the groupBy tab if we are setting this to true
+        this.resultsTab = val ? 1 : 0
+
+        if (val){ // we want the group view
+          this.pushQueryChanges({group_by: this.lastGroupByValue})
+        }
+        else { // we want the list view
+          this.lastGroupByValue = this.$route.query.group_by
+          this.pushQueryChanges({group_by: undefined})
+
+        }
       }
     },
 
@@ -210,6 +217,24 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("URL copied to clipboard.")
     },
+    async pushQueryChanges(query) {
+
+      const pushTo = {
+        name: "Serp",
+        query: {
+          ...this.$route.query,
+          ...query,
+        }
+      }
+      console.log("pushQueryChanges", query)
+      await router.push(pushTo)
+          .catch((e) => {
+            if (e.name !== "NavigationDuplicated") {
+              throw e
+            }
+          })
+
+    }
   },
 
   created() {
@@ -224,11 +249,16 @@ export default {
         const scrollTop = window.scrollY
         const apiQuery = "https://api.openalex.org" + this.$route.fullPath
         console.log("Serp apiQuery", apiQuery)
+
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp
+
+        // group-by stuff
+        if (this.isGroupByView) {
+          this.resultsTab = 1
+        }
+        this.groupByKeys = (this.$route.query.group_by) ? this.$route.query.group_by.split(",") : []
         console.log("Serp resp", resp)
-
-
 
 
         this.resultsFilters = filtersFromUrlStr(
