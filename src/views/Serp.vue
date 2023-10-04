@@ -41,17 +41,19 @@
                 <v-icon>mdi-arrow-left</v-icon>
               </v-btn>
               <v-toolbar-title class="pl-0">
-                {{ isGroupByView ? 'Summaries' : 'Results'}}
+                {{ isGroupByView ? 'Groups' : 'Results'}}
               </v-toolbar-title>
               <v-spacer/>
               <v-chip
                   :input-value="isGroupByView"
                   active-class="primary--text"
                   filter
+                  outlined
                   @click="isGroupByView = !isGroupByView"
               >
-                Summarize
+                Group
               </v-chip>
+              <sort-button :disabled="isGroupByView" />
               <export-button
                 :disabled="resultsCount > 100000"
               />
@@ -123,6 +125,7 @@ import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 import router from "../router";
 
 import ExportButton from "../components/ExportButton.vue";
+import SortButton from "../components/SortButton.vue";
 
 export default {
   name: "Serp",
@@ -145,6 +148,7 @@ export default {
     FilterSelector,
 
     ExportButton,
+    SortButton,
 
   },
   props: {},

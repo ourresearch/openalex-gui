@@ -1,10 +1,10 @@
 <template>
   <v-card flat rounded>
     <v-toolbar flat>
-      <span class="grey--text">
-        {{ summaries.length }} summaries
-      </span>
-      <v-spacer/>
+<!--      <span class="grey&#45;&#45;text">-->
+<!--        {{ summaries.length }} summaries-->
+<!--      </span>-->
+<!--      <v-spacer/>-->
 
       <v-menu
           :close-on-content-click="false"
@@ -14,7 +14,6 @@
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"
-              text
               rounded
               color="primary"
           >
