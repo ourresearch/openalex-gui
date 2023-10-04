@@ -37,7 +37,12 @@
         <v-col cols="12" sm="9">
           <v-card rounded>
             <v-toolbar flat>
-              <v-toolbar-title>Results</v-toolbar-title>
+              <v-btn v-if="isGroupByView" @click="isGroupByView = false" icon>
+                <v-icon>mdi-arrow-left</v-icon>
+              </v-btn>
+              <v-toolbar-title class="pl-0">
+                {{ isGroupByView ? 'Summaries' : 'Results'}}
+              </v-toolbar-title>
               <v-spacer/>
               <v-chip
                   :input-value="isGroupByView"
@@ -47,6 +52,12 @@
               >
                 Summarize
               </v-chip>
+              <export-button
+                :disabled="resultsCount > 100000"
+              />
+              <v-btn icon>
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
 
               <!--          <v-chip-group v-model="resultsTab" mandatory active-class="primary&#45;&#45;text">-->
               <!--            <v-chip filter :key="0">List</v-chip>-->
@@ -111,6 +122,8 @@ import FilterSelector from "../components/Filters/FilterSelector.vue";
 import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 import router from "../router";
 
+import ExportButton from "../components/ExportButton.vue";
+
 export default {
   name: "Serp",
   metaInfo() {
@@ -130,6 +143,8 @@ export default {
     SerpApiEditor,
     FilterChipsList,
     FilterSelector,
+
+    ExportButton,
 
   },
   props: {},
@@ -183,7 +198,10 @@ export default {
         this.resultsTab = val ? 1 : 0
 
         if (val){ // we want the group view
-          this.pushQueryChanges({group_by: this.lastGroupByValue})
+          this.pushQueryChanges({
+            group_by: this.lastGroupByValue,
+            sort: undefined,
+          })
         }
         else { // we want the list view
           this.lastGroupByValue = this.$route.query.group_by
@@ -200,6 +218,9 @@ export default {
 
     entityType() {
       return this.$route.params.entityType
+    },
+    resultsCount(){
+      return this.resultsObject?.meta?.count
     },
 
 
