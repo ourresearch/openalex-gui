@@ -106,7 +106,7 @@ export default {
   data() {
     return {
       foo: 42,
-      maxUnselectedOptionsCount: 4,
+      maxUnselectedOptionsCount: 40,
       isLoading: false,
       options: [],
 
@@ -201,8 +201,8 @@ export default {
         //   return !oldOptionIds.includes(myNewOption.id)
         // })
         this.unselectedOptions = apiOptions.filter(o => {
-          const iAmInSelectedOptions = this.selectedOptions.find(selectedOption => {
-            return selectedOption.id === o.id
+          const iAmInSelectedOptions = this.appliedOptionIds.find(appliedId => {
+            return appliedId === o.id
           })
           return !iAmInSelectedOptions
         }).slice(0, this.maxUnselectedOptionsCount)

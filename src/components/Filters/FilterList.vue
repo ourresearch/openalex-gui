@@ -258,15 +258,6 @@ export default {
       console.log("FilterList createFilter existing filter", key, value);
       url.createFilter(this.entityType, key, value)
     },
-    createOrUpdateFilter(key, value) {
-      this.searchString = ""
-      const existingFilter = url.readFilter(this.entityType, key);
-      console.log("FilterList createOrUpdateFilter", key, value, existingFilter);
-      (existingFilter) ?
-          this.updateFilter(key, value) :
-          this.createFilter(key, value)
-      this.setActiveFilter(null, null, null)
-    },
     deleteFilter(key) {
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
@@ -296,7 +287,7 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
-        this.activeFilterKey = null
+        // this.activeFilterKey = null
       }
     },
     isActiveFilterDialogOpen(to, from){
