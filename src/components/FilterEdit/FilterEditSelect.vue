@@ -1,28 +1,53 @@
 <template>
   <v-card class="" style="height: 100%;">
-    <v-card v-if="isSearchMode" class="" style="height: 100%;">
       <v-toolbar flat>
-        <v-text-field
-            autofocus
-            v-model="searchString"
-            hide-details
-            prepend-icon="mdi-arrow-left"
-            full-width
-            rounded
-            :placeholder="'Search ' + myConfig.displayName | pluralize(2)"
-            @click:prepend="isSearchMode = false"
-        />
+<!--        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">-->
+<!--          <v-icon>mdi-arrow-left</v-icon>-->
+<!--        </v-btn>-->
+        <v-toolbar-title class="">
+          {{ myConfig.displayName }}
+        </v-toolbar-title>
+        <v-spacer/>
+        <v-btn  icon>
+          <v-icon>mdi-dots-vertical</v-icon>
+        </v-btn>
+        <v-btn  icon @click="$emit('close')">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </v-toolbar>
-      <v-divider/>
-      <v-card-text :style="{height: dialogTextHeight}" class="px-0 overflow-y-auto">
-        <v-list>
+      <v-divider></v-divider>
+    <div class="mt-1 ml-1">
+          <filter-option-chip
+            v-for="id in appliedOptionIds"
+            :key="id"
+            :filter-value="id"
+            :filter-key="filterKey"
+            class="mr-1 mb-1"
+            @delete="deleteOption(id)"
+          />
+        <v-text-field
+            hide-details
+            dense
+            full-width
+            v-model="searchString"
+            rounded
+            class="elevation-0 ma-0 pa-0"
+            placeholder="add another"
+            prepend-inner-icon="mdi-plus"
+        />
+        </div>
+      <v-divider></v-divider>
+      <v-card-text :style="{height: dialogTextHeight}" class="pa-0 overflow-y-auto">
+
+        <div>
+          <v-list>
           <v-subheader v-if="searchString && !unselectedOptions.length">
             No results
           </v-subheader>
           <v-list-item
               v-for="option in unselectedOptions"
               :key="'unselected' + option.id"
-              @click="selectOption(option)"
+              @click="createOrUpdate(option.id)"
           >
             <v-list-item-icon>
               <v-icon>mdi-checkbox-blank-outline</v-icon>
@@ -38,105 +63,19 @@
           </v-list-item>
 
         </v-list>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn @click="isSearchMode = false" text>Cancel</v-btn>
-      </v-card-actions>
-    </v-card>
+        </div>
 
 
-    <v-card v-else flat rounded class="d-flex flex-column">
-      <v-toolbar flat>
-<!--        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">-->
-<!--          <v-icon>mdi-arrow-left</v-icon>-->
-<!--        </v-btn>-->
-        <v-toolbar-title class="">
-          {{ myConfig.displayName }}
-        </v-toolbar-title>
-        <v-spacer/>
-        <v-btn  icon @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-toolbar>
-      <v-divider></v-divider>
-      <v-card-text :style="{height: dialogTextHeight}" class="pa-0 overflow-y-auto">
-        <v-list
-        >
-
-          <!--        <v-subheader v-if="selectedOptionsToShow.length">-->
-          <!--          Selected-->
-          <!--          <span class="text-lowercase mx-1">{{ myConfig.displayName | pluralize(selectedOptionsToShow) }}</span>-->
-
-          <!--          ({{ selectedOptionsToShow.length }})-->
-          <!--        </v-subheader>-->
-          <v-list-item
-              v-for="option in selectedOptionsToShow"
-              :key="'selected' + option.id"
-              @click="unselectOption(option)"
-
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-checkbox-marked</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                <div class="text-wrap">
-                  {{ option.display_name }}
-
-                </div>
-              </v-list-item-title>
-              <v-list-item-subtitle v-if="option.entity_type">
-                <span v-if="option.entity_type !== 'author'">{{ option.hint }}</span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
-
-          <v-list-item  color="primary" @click="isSearchMode = true" key="add-new">
-            <v-list-item-icon>
-              <v-icon>mdi-plus</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Add a new {{ myConfig.displayName }}
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
 
       </v-card-text>
       <v-divider></v-divider>
 
       <v-card-actions>
         <v-spacer/>
-        <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
-        <template v-if="createMode">
-          <v-btn
-              text
-              rounded
-              color="primary"
-              @click="$emit('create', myValue)"
-              :disabled="!myValue"
-          >
-            Create
-          </v-btn>
-        </template>
-        <template v-else>
-          <v-btn
-              text
-              rounded
-              :color="myValue ? 'primary' : 'error'"
-              @click="$emit((myValue ? 'update' : 'delete'), myValue)"
-              :disabled="filterValue === myValue"
-          >
-            {{ myValue ? 'Update' : 'Delete' }}
-          </v-btn>
-        </template>
+        <v-btn text rounded @click="$emit('close')">OK</v-btn>
 
       </v-card-actions>
     </v-card>
-  </v-card>
 </template>
 
 <script>
@@ -153,22 +92,24 @@ import {openAlexCountries} from "@/countries";
 import {openAlexSdgs} from "@/sdgs";
 import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
 import Template from "@/components/Filters/FilterKeySelector.vue";
+import FilterOptionChip from "../Filters/FilterOptionChip.vue";
 
 export default {
   name: "FilterValueSelect",
-  components: {Template},
+  components: {
+    FilterOptionChip,
+  },
   props: {
     filterKey: String,
-    filterValue: String,
     createMode: Boolean,
   },
   data() {
     return {
       foo: 42,
-      maxUnselectedOptionsCount: 35,
+      maxUnselectedOptionsCount: 4,
       isLoading: false,
-      selectedValue: this.filterValue,
       options: [],
+
       selectedOptions: [],
       unselectedOptions: [],
       matchModes: [
@@ -179,7 +120,6 @@ export default {
       isSearchMode: false,
       selectedMatchMode: "any",
       searchString: "",
-      mySelectedValues: [],
     }
   },
   computed: {
@@ -199,6 +139,12 @@ export default {
     },
     dialogTextHeight() {
       return this.$vuetify.breakpoint.mobile ? "calc(100vh - 120px)" : "50vh"
+    },
+    filterValue(){
+      return url.readFilterValue(this.entityType, this.filterKey)
+    },
+    appliedOptionIds(){
+      return this.filterValue?.split(/[|+]/) ?? []
     }
   },
 
@@ -207,6 +153,22 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    createOrUpdate(id){
+      const newAppliedOptionIds = [...this.appliedOptionIds, id]
+      const newValue = makeSelectFilterValue(newAppliedOptionIds, this.selectedMatchMode)
+      const event = this.appliedOptionIds.length ?
+          "update" :
+          "create"
+      this.$emit(event, newValue)
+    },
+    deleteOption(id){
+      const newAppliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
+      const newValue = makeSelectFilterValue(newAppliedOptionIds, this.selectedMatchMode)
+      const event = newAppliedOptionIds.length ?
+          "update" :
+          "delete"
+      this.$emit(event, newValue)
+    },
     setSelectedMatchMode(newMode) {
       this.selectedMatchMode = newMode
     },
@@ -257,43 +219,6 @@ export default {
   created() {
   },
   async mounted() {
-    console.log("FilterEditSelect mounted")
-    if (this.filterValue) {
-      // const newIds = this.filterValue.split("|")
-      const newIds = getItemsFromSelectFilterValue(this.filterValue)
-      this.selectedMatchMode = getMatchModeFromSelectFilterValue(this.filterValue)
-
-      const that = this
-
-
-      const makeAutocompleteResponseFromId = async function (id) {
-        const config = that.myConfig
-        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
-        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
-        // const sdgConfig =
-
-        // console.log("countryConfig", openAlexCountries, id, countryConfig)
-        let displayName
-        if (countryConfig) {
-          displayName = countryConfig.display_name
-        } else if (sdgConfig) {
-          displayName = sdgConfig.display_name
-        } else if (config.isEntity) {
-          displayName = await api.getEntityDisplayName(id)
-        } else {
-          displayName = id
-        }
-        return {
-          id,
-          display_name: displayName,
-        }
-      }
-      const autocompletePromises = newIds.map(makeAutocompleteResponseFromId)
-      this.selectedOptions = await Promise.all(
-          autocompletePromises
-      )
-    }
-    await this.fetchOptions()
   },
   watch: {
     searchString: {
@@ -305,7 +230,6 @@ export default {
     myValue(to, from) {
 
       // this.$vuetify.goTo(0, {
-      //   container: "#filter-edit-select-card-text"
       // })
     }
 

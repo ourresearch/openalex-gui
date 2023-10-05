@@ -1,6 +1,7 @@
 <template>
   <span>
-    <filter-value-chip :filter-key="filterKey" :filter-value="items[0]" />
+    <template v-if="count">({{items.length}})</template>
+    <filter-value-chip v-else :filter-key="filterKey" :filter-value="items[0]" />
 
 <!--    {{ filterKey }}: {{ items }}-->
   </span>
@@ -20,6 +21,7 @@ export default {
   props: {
     filterValue: String,
     filterKey: String,
+    count: Boolean,
   },
   data() {
     return {

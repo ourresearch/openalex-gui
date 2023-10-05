@@ -105,6 +105,7 @@ const facetConfigs = function (entityType) {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
+            isManyOptions: true,
             categories: ["other",],
             isCore: true,
             icon: "mdi-lightbulb-outline",
@@ -119,6 +120,7 @@ const facetConfigs = function (entityType) {
             showInSidebar: true,
             entityId: "funders",
             type: "select",
+            isManyOptions: true,
             categories: ["funder"],
             isCore: true,
             icon: "mdi-cash-multiple",
@@ -130,6 +132,7 @@ const facetConfigs = function (entityType) {
             displayName: "Grant ID",
             showInSidebar: true,
             type: "select",
+            isManyOptions: true,
             categories: ["funder"],
             isCore: true,
             icon: "mdi-cash-multiple",
@@ -145,6 +148,7 @@ const facetConfigs = function (entityType) {
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
+            isManyOptions: true,
             categories: ["institution",],
             isCore: true,
             icon: "mdi-town-hall",
@@ -161,6 +165,7 @@ const facetConfigs = function (entityType) {
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
+            isManyOptions: true,
             categories: ["institution", "popular"],
             isCore: true,
             icon: "mdi-town-hall",
@@ -193,6 +198,7 @@ const facetConfigs = function (entityType) {
             entityId: "authors",
             autocompleteEndpoint: "autocomplete/authors",
             type: "select",
+            isManyOptions: true,
             categories: ["author", "popular"],
             isCore: true,
             icon: "mdi-account-outline",
@@ -284,6 +290,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Author (corresponding)",
             type: "select",
+            isManyOptions: true,
             categories: ["author"],
             icon: "mdi-account-outline",
         },
@@ -388,6 +395,7 @@ const facetConfigs = function (entityType) {
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
+            isManyOptions: true,
             isCountry: true,
             categories: ["geo", "institution"],
             isCore: true,
@@ -437,6 +445,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "Institution (corresponding)",
             type: "select",
+            isManyOptions: true,
             categories: ["institution"],
             icon: "mdi-town-hall",
         },
@@ -454,6 +463,7 @@ const facetConfigs = function (entityType) {
             entityId: "sources",
             autocompleteEndpoint: "autocomplete/sources",
             type: "select",
+            isManyOptions: true,
             categories: ["source"],
             isCore: true,
             icon: "mdi-book-open-outline",
@@ -513,6 +523,7 @@ const facetConfigs = function (entityType) {
             // entityId: "publishers",
             autocompleteEndpoint: "autocomplete/publishers",
             type: "select",
+            isManyOptions: true,
             categories: ["source"],
             isCore: true,
             icon: "mdi-domain",
@@ -530,6 +541,7 @@ const facetConfigs = function (entityType) {
             showInSidebar: true,
             entityId: "sources",
             type: "select",
+            isManyOptions: true,
             categories: ["repository"],
             isCore: true,
             icon: "mdi-book-open-outline",
@@ -707,17 +719,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
-
-
-
-
-
-
         // authors
         {
             key: "ids.openalex",
@@ -750,6 +751,7 @@ const facetConfigs = function (entityType) {
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
+            isManyOptions: true,
             categories: ["institution"],
             icon: "mdi-town-hall",
         },
@@ -789,21 +791,10 @@ const facetConfigs = function (entityType) {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
+            isManyOptions: true,
             categories: ["other"],
             icon: "mdi-lightbulb-outline",
         },
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // sources
@@ -836,6 +827,7 @@ const facetConfigs = function (entityType) {
             displayName: "Publisher",
             autocompleteEndpoint: "autocomplete/sources/publisher",
             type: "select",
+            isManyOptions: true,
             categories: ["popular"],
             icon: "mdi-book-open-outline",
         },
@@ -851,7 +843,7 @@ const facetConfigs = function (entityType) {
             key: "is_oa",
             entityType: "sources",
             displayName: "Open Access",
-            type: "select",
+            type: "boolean",
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
@@ -859,7 +851,7 @@ const facetConfigs = function (entityType) {
             key: "is_in_doaj",
             entityType: "sources",
             displayName: "In DOAJ",
-            type: "select",
+            type: "boolean",
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
         },
@@ -871,18 +863,10 @@ const facetConfigs = function (entityType) {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
+            isManyOptions: true,
             categories: ["other"],
             icon: "mdi-lightbulb-outline",
         },
-
-
-
-
-
-
-
-
-
 
 
         // publishers
@@ -911,17 +895,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
-
-
-
-
-
-
-
-
         // funders
         {
             key: "ids.openalex",
@@ -946,19 +919,6 @@ const facetConfigs = function (entityType) {
             categories: ["search"],
             icon: "mdi-magnify",
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // institutions
@@ -991,6 +951,7 @@ const facetConfigs = function (entityType) {
             displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
+            isManyOptions: true,
             isCountry: true,
             categories: ["geo"],
             icon: "mdi-map-marker-outline"
@@ -1012,21 +973,10 @@ const facetConfigs = function (entityType) {
             entityId: "concepts",
             autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
+            isManyOptions: true,
             categories: ["other"],
             icon: "mdi-lightbulb-outline",
         },
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // concepts

@@ -87,10 +87,11 @@
               </template>
 
               <template v-else-if="filterConfig.type === 'select'">
-                {{ filterConfig.displayName }}:
+                {{ filterConfig.displayName }}
                 <filter-select-value-as-string
                     :filter-value="getAppliedFilter(filterConfig.key).value"
                     :filter-key="filterConfig.key"
+                    count
                 />
               </template>
 
@@ -166,7 +167,6 @@ import FilterEditBoolean from "../FilterEdit/FilterEditBoolean.vue";
 import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 
-import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 import {api} from "@/api";
 import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
@@ -182,7 +182,6 @@ export default {
     FilterItemRange,
     FilterItemSelect,
     FilterItemSearch,
-    AddFilterDialog,
 
     FilterEditRange,
     FilterEditSearch,

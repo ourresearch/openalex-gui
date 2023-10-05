@@ -120,7 +120,6 @@ import SearchBoxNew from "../components/SearchBoxNew.vue";
 
 import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
-import FilterSelector from "../components/Filters/FilterSelector.vue";
 import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 import router from "../router";
 
@@ -145,7 +144,6 @@ export default {
     FilterString,
     SerpApiEditor,
     FilterChipsList,
-    FilterSelector,
 
     ExportButton,
     SortButton,

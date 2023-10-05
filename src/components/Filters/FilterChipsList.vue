@@ -85,31 +85,6 @@
           @close="isActiveFilterDialogOpen = false"
       />
     </v-dialog>
-    <v-dialog
-        v-model="isFilterSelectorOpen"
-        :fullscreen="$vuetify.breakpoint.mobile"
-        max-width="500"
-        scrollable
-    >
-      <v-card>
-            <v-toolbar flat>
-              <v-toolbar-title>
-                Filters
-              </v-toolbar-title>
-              <v-spacer/>
-              <v-btn icon @click="isFilterSelectorOpen = false">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-toolbar>
-            <v-divider/>
-
-            <filter-selector
-                @close="isFilterSelectorOpen = false"
-                :applied-filters="appliedFilters"
-            />
-
-          </v-card>
-    </v-dialog>
 
 
   </v-card>
@@ -139,9 +114,7 @@ import FilterChipRange from "../FilterChip/FilterChipRange.vue";
 import FilterChipSearch from "../FilterChip/FilterChipSearch.vue";
 import FilterChipSelect from "../FilterChip/FilterChipSelect.vue";
 
-import FilterSelector from "./FilterSelector.vue";
 
-import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 import {api} from "@/api";
 
@@ -157,14 +130,12 @@ export default {
     FilterChipSelect,
 
 
-    AddFilterDialog,
 
     FilterEditRange,
     FilterEditSearch,
     FilterEditBoolean,
     FilterEditSelect,
 
-    FilterSelector,
   },
   props: {
     filters: Array,
@@ -176,9 +147,6 @@ export default {
       activeFilterValue: null,
       activeFilterCreateMode: false,
       isActiveFilterDialogOpen: false,
-
-      isFilterSelectorOpen: false,
-
 
       searchString: "",
       getEntityConfig,
@@ -232,18 +200,8 @@ export default {
     createFilter(key, value) {
       this.searchString = ""
       console.log("FilterList createFilter existing filter", key, value);
-      this.isActiveFilterDialogOpen = false
+      // this.isActiveFilterDialogOpen = false
       url.createFilter(this.entityType, key, value)
-    },
-    createOrUpdateFilter(key, value) {
-      this.isActiveFilterDialogOpen = false
-      this.searchString = ""
-      const existingFilter = url.readFilter(this.entityType, key);
-      console.log("FilterList createOrUpdateFilter", key, value, existingFilter);
-      (existingFilter) ?
-          this.updateFilter(key, value) :
-          this.createFilter(key, value)
-      this.setActiveFilter(null, null, null)
     },
     deleteFilter(key) {
       this.isActiveFilterDialogOpen = false
@@ -253,7 +211,7 @@ export default {
       this.setActiveFilter(null, null, null)
     },
     updateFilter(filterKey, newValue) {
-      this.isActiveFilterDialogOpen = false
+      // this.isActiveFilterDialogOpen = false
       console.log("updateFilter", filterKey, newValue)
       this.searchString = ""
       if (newValue === "" || newValue === "-") {
@@ -273,7 +231,8 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
-        this.activeFilterKey = null
+        // this.isActiveFilterDialogOpen = true
+        // this.activeFilterKey = null
       }
     },
     isActiveFilterDialogOpen(to, from) {
