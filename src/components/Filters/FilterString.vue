@@ -80,7 +80,6 @@ import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-import AddFilterDialog from "../AddFilterDialog.vue";
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 import {api} from "@/api";
 
@@ -93,7 +92,6 @@ export default {
     FilterItemRange,
     FilterItemSelect,
     FilterItemSearch,
-    AddFilterDialog,
 
     FilterEditRange,
     FilterEditSearch,

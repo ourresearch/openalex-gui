@@ -167,6 +167,12 @@ const readFilter = function (entityType, key) {
         return f.key === key
     })
 }
+const readFilterValue = function (entityType, key) {
+    const myFilter = filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
+        return f.key === key
+    })
+    return myFilter?.value
+}
 
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -317,6 +323,7 @@ const url = {
 
     createFilter,
     readFilter,
+    readFilterValue,
     updateFilter,
     deleteFilter,
 
