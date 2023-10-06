@@ -17,13 +17,6 @@
         <div v-if="!resultsCount" class="mt-8 grey--text">
           There are no results for this search.
         </div>
-        <v-toolbar v-else dense flat class="">
-          <div class="grey--text">
-            {{ resultsCount | toPrecision }} results
-          </div>
-          <v-spacer/>
-
-        </v-toolbar>
         <v-list v-if="resultsCount" class="serp-results-list" nav>
           <component
               v-for="result in resultsObject.results"

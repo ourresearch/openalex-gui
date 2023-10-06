@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-12">
+  <div class="">
 
     <!--    <v-toolbar dense flat color="transparent">-->
     <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
@@ -37,45 +37,31 @@
         <v-col cols="12" sm="9">
           <v-card rounded>
             <v-toolbar flat>
-              <v-btn v-if="isGroupByView" @click="isGroupByView = false" icon>
-                <v-icon>mdi-arrow-left</v-icon>
-              </v-btn>
-              <v-toolbar-title class="pl-0">
-                {{ isGroupByView ? 'Groups' : 'Results'}}
-              </v-toolbar-title>
-              <v-spacer/>
-              <v-chip
-                  :input-value="isGroupByView"
-                  active-class="primary--text"
-                  filter
-                  outlined
-                  @click="isGroupByView = !isGroupByView"
-              >
-                Group
-              </v-chip>
-              <sort-button :disabled="isGroupByView" />
-              <export-button
-                :disabled="resultsCount > 100000"
-              />
-              <v-btn icon>
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-
-              <!--          <v-chip-group v-model="resultsTab" mandatory active-class="primary&#45;&#45;text">-->
-              <!--            <v-chip filter :key="0">List</v-chip>-->
-              <!--            <v-chip filter  :key="1">Groups</v-chip>-->
-              <!--          </v-chip-group>-->
+              <v-tabs class="" v-model="resultsTab">
+                <v-tab>Results</v-tab>
+                <!--                <v-tab>Overview</v-tab>-->
+                <v-tab>Group by</v-tab>
+              </v-tabs>
             </v-toolbar>
-            <v-divider />
-            <v-tabs class="d-none" v-model="resultsTab">
-              <v-tab>List</v-tab>
-              <v-tab>Group</v-tab>
-            </v-tabs>
+
+            <v-divider/>
+
             <v-tabs-items v-model="resultsTab">
               <v-tab-item>
-<!--                <serp-toolbar id="serp-toolbar"/>-->
+                <!--                <serp-toolbar id="serp-toolbar"/>-->
+                <v-toolbar>
+                  <div class="grey--text">about {{ resultsCount | toPrecision }} results</div>
+                  <v-spacer></v-spacer>
+                  <sort-button :disabled="isGroupByView"/>
+                  <export-button
+                      :disabled="resultsCount > 100000"
+                  />
+                </v-toolbar>
                 <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
               </v-tab-item>
+              <!--              <v-tab-item>-->
+              <!--                <v-card>overview</v-card>-->
+              <!--              </v-tab-item>-->
               <v-tab-item>
                 <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>
               </v-tab-item>
@@ -199,13 +185,12 @@ export default {
         // view the groupBy tab if we are setting this to true
         this.resultsTab = val ? 1 : 0
 
-        if (val){ // we want the group view
+        if (val) { // we want the group view
           this.pushQueryChanges({
             group_by: this.lastGroupByValue,
             sort: undefined,
           })
-        }
-        else { // we want the list view
+        } else { // we want the list view
           this.lastGroupByValue = this.$route.query.group_by
           this.pushQueryChanges({group_by: undefined})
 
@@ -221,7 +206,7 @@ export default {
     entityType() {
       return this.$route.params.entityType
     },
-    resultsCount(){
+    resultsCount() {
       return this.resultsObject?.meta?.count
     },
 
