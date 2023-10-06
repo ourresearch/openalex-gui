@@ -1,5 +1,5 @@
 <template>
-  <v-menu rounded>
+  <v-menu  rounded :close-on-content-click="false" v-model="isMenuOpen">
     <template v-slot:activator="{on}">
       <v-chip
           close
@@ -7,11 +7,13 @@
           @click:close="$emit('delete')"
           v-on="on"
           class="mr-1 mb-1"
+          :color="isNegated ? 'error' : undefined"
       >
 
         <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
         <template v-if="filterDisplayValue">
-          {{ filterDisplayValue | truncate(590) }}
+          <span class="mr-1 font-weight-bold" v-if="isNegated">NOT</span>
+          {{ filterDisplayValue | truncate(50) }}
         </template>
         <template v-else>
           Loading...
@@ -20,28 +22,35 @@
     </template>
     <v-card rounded>
       <v-card-title>
+
         {{ filterDisplayValue }}
+
       </v-card-title>
       <v-card-subtitle>
-        dude
+        {{ filterId }}
       </v-card-subtitle>
-      <v-divider />
+      <v-divider/>
       <v-card-actions>
-        <v-spacer />
+        <v-spacer/>
         <v-btn
-          text
-          rounded
+            v-if="isEntity"
+            text
+            rounded
         >
           <v-icon left>mdi-information-outline</v-icon>
           Learn more
         </v-btn>
-        <v-btn
-          text
-          rounded
+        <v-chip
+            filter
+            :dark="isNegated"
+            :color="isNegated ? 'error': undefined"
+            class="mr-1"
+            :input-value="isNegated"
+            @click="isNegated = !isNegated"
         >
-          <v-icon left>mdi-minus-circle</v-icon>
-          Negate
-        </v-btn>
+          {{ isNegated ? "Negated" : "Negate" }}
+        </v-chip>
+
       </v-card-actions>
     </v-card>
   </v-menu>
@@ -61,12 +70,14 @@ export default {
     filterValue: String,
     filterKey: String,
     close: Boolean,
+    openMenu: Boolean,
   },
   data() {
     return {
       foo: 42,
       displayValue: "",
       isLoading: false,
+      isMenuOpen: false,
     }
   },
   computed: {
@@ -75,6 +86,25 @@ export default {
     ]),
     isEntity() {
       return isOpenAlexId(this.filterValue)
+    },
+    filterId() {
+      return this.filterValue.replace("!", "")
+    },
+    menuKey(){
+      return this.filterKey + '-' + this.filterId
+    },
+    isNegated: {
+      get() {
+        return this.filterValue[0] === "!"
+      },
+      set(to) {
+        // this.$store.state.filterOptionChipOpenMenu = this.menuKey
+        this.$emit('toggle-is-negated')
+        // this.$nextTick(()=>{
+        // this.isMenuOpen = true
+        //
+        // })
+      }
     }
   },
   asyncComputed: {
@@ -82,11 +112,10 @@ export default {
       // if (!this.isEntity) return this.filterValue
 
       this.isLoading = true
-      const resp = await api.makeAutocompleteResponseFromId(this.filterValue)
-      console.log("filterdisplayvalue response", resp)
+      const resp = await api.makeAutocompleteResponseFromId(this.filterId)
       this.isLoading = false
       return resp.display_name
-    }
+    },
   },
 
   methods: {
@@ -100,10 +129,18 @@ export default {
   created() {
   },
   async mounted() {
+    // setTimeout(()=>{
+    //   if (this.$store.state.filterOptionChipOpenMenu === this.menuKey){
+    // this.isMenuOpen = true
+    //
+    //   }
+    //
+    // }, 100)
 
 
   },
-  watch: {}
+  watch: {
+  }
 }
 </script>
 

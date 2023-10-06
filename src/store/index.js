@@ -67,6 +67,8 @@ const stateDefaults = function () {
         facetsToRequireAll: [],
         exportProgressUrl: null,
 
+        filterOptionChipOpenMenu: null,
+
         tabs: [
             {
                 name: "First tab",

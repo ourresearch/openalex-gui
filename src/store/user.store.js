@@ -88,7 +88,6 @@ export const user = {
                 apiBaseUrl + "/user/me",
                 axiosConfig()
             )
-            console.log("got a user api response", resp)
             commit("setFromApiResp", resp.data)
             dispatch("fetchSavedSearches")
             dispatch("fetchEmailAlerts")

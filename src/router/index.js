@@ -100,7 +100,6 @@ router.beforeEach(async (to, from, next) => {
     const userId = store.getters["user/userId"]
 
     if (localStorage.getItem("token") && !userId) {
-        console.log("in router, we found a user token")
         try {
             await store.dispatch("user/fetchUser")
         } catch (e) {
