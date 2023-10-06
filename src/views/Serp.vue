@@ -271,11 +271,12 @@ export default {
       immediate: true,
       async handler(to, from) {
         const scrollTop = window.scrollY
-        const apiQuery = "https://api.openalex.org" + this.$route.fullPath
+        const apiQuery = "https://api.openalex.org" + this.$route.fullPath.replace(/%2B/g, "+")
         console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp
+        this.$store.state.resultsObject = resp
 
         // group-by stuff
         if (this.isGroupByView) {

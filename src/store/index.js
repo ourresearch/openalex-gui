@@ -347,7 +347,7 @@ export default new Vuex.Store({
             return state.velocity?.week < 100
         },
         resultsCount(state) {
-            return state.resultsCount
+            return state?.resultsObject?.meta?.count
         },
         // stuff used by both the server and UI
         searchQueryBase(state, getters) {

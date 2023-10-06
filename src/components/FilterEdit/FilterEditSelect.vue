@@ -1,53 +1,68 @@
 <template>
   <v-card class="" style="height: 100%;">
-      <v-toolbar flat>
-<!--        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">-->
-<!--          <v-icon>mdi-arrow-left</v-icon>-->
-<!--        </v-btn>-->
-        <v-toolbar-title class="">
-          {{ myConfig.displayName }}
-        </v-toolbar-title>
-        <v-spacer/>
-        <v-btn  icon>
-          <v-icon>mdi-dots-vertical</v-icon>
-        </v-btn>
-        <v-btn  icon @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-toolbar>
-      <v-divider></v-divider>
-    <div class="mt-1 ml-1">
-          <filter-option-chip
-            v-for="id in appliedOptionIds"
-            :key="id"
-            :filter-value="id"
-            :filter-key="filterKey"
-            class="mr-1 mb-1"
-            @delete="deleteOption(id)"
-          />
-        <v-text-field
-            hide-details
-            dense
-            full-width
-            v-model="searchString"
-            rounded
-            class="elevation-0 ma-0 pa-0"
-            placeholder="add another"
-            prepend-inner-icon="mdi-plus"
-        />
-        </div>
-      <v-divider></v-divider>
-      <v-card-text :style="{height: dialogTextHeight}" class="pa-0 overflow-y-auto">
-
+    <v-toolbar flat>
+      <!--        <v-btn v-if="$vuetify.breakpoint.mobile" icon @click="$emit('close')">-->
+      <!--          <v-icon>mdi-arrow-left</v-icon>-->
+      <!--        </v-btn>-->
+      <v-toolbar-title class="">
+        {{ myConfig.displayName }}
+      </v-toolbar-title>
+      <v-spacer/>
+      <v-tooltip bottom>
+        <template v-slot:activator="{on}">
+          <v-chip
+              v-on="on"
+              filter
+              :dark="isMatchModeAnd"
+              :color="isMatchModeAnd ? 'primary': undefined"
+              class="ml-1"
+              :input-value="isMatchModeAnd"
+              :disabled="appliedOptionIds.length < 2"
+              @click="isMatchModeAnd = !isMatchModeAnd"
+          >
+            AND
+          </v-chip>
+        </template>
         <div>
-          <v-list>
+          Require match on all selected values.
+        </div>
+      </v-tooltip>
+      <v-btn icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+    <v-divider></v-divider>
+    <div class="mt-1 ml-1">
+      <filter-option-chip
+          v-for="id in appliedOptionIds"
+          :key="id"
+          :filter-value="id"
+          :filter-key="filterKey"
+          @delete="deleteOption(id)"
+      />
+      <v-text-field
+          hide-details
+          dense
+          full-width
+          v-model="searchString"
+          rounded
+          class="elevation-0 ma-0 pa-0"
+          placeholder="add another"
+          prepend-inner-icon="mdi-plus"
+      />
+    </div>
+    <v-divider></v-divider>
+    <v-card-text :style="{height: dialogTextHeight}" class="pa-0 overflow-y-auto">
+
+      <div>
+        <v-list>
           <v-subheader v-if="searchString && !unselectedOptions.length">
             No results
           </v-subheader>
           <v-list-item
               v-for="option in unselectedOptions"
               :key="'unselected' + option.id"
-              @click="createOrUpdate(option.id)"
+              @click="addOption(option.id)"
           >
             <v-list-item-icon>
               <v-icon>mdi-checkbox-blank-outline</v-icon>
@@ -63,19 +78,20 @@
           </v-list-item>
 
         </v-list>
-        </div>
+      </div>
 
 
+    </v-card-text>
+    <v-divider></v-divider>
 
-      </v-card-text>
-      <v-divider></v-divider>
+    <v-card-actions>
+      <v-spacer/>
+      <v-btn color="primary" text rounded @click="$emit('close')">
+        See {{ resultsCount | toPrecision }} works
+      </v-btn>
 
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn text rounded @click="$emit('close')">OK</v-btn>
-
-      </v-card-actions>
-    </v-card>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
@@ -108,16 +124,10 @@ export default {
       foo: 42,
       maxUnselectedOptionsCount: 40,
       isLoading: false,
-      options: [],
+
 
       selectedOptions: [],
       unselectedOptions: [],
-      matchModes: [
-        "any",
-        "all",
-        "none",
-      ],
-      isSearchMode: false,
       selectedMatchMode: "any",
       searchString: "",
     }
@@ -126,6 +136,7 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "entityType",
+      "resultsCount",
     ]),
     myValue() {
       const items = this.selectedOptions.map(o => o.id)
@@ -140,11 +151,40 @@ export default {
     dialogTextHeight() {
       return this.$vuetify.breakpoint.mobile ? "calc(100vh - 120px)" : "50vh"
     },
-    filterValue(){
+    filterValue() {
       return url.readFilterValue(this.entityType, this.filterKey)
     },
-    appliedOptionIds(){
-      return this.filterValue?.split(/[|+]/) ?? []
+    isAppliedMatchModeAnd() {
+      return this.filterValue?.includes("+")
+    },
+    isMatchAndDisabled() {
+      return this.appliedOptionIds.length < 2
+    },
+    matchModeString(){
+      return this.isMatchModeAnd ? "all" : "any"
+    },
+    appliedOptionIds: {
+      get() {
+        return this.filterValue?.split(/[|+]/) ?? []
+      },
+      set(to) {
+        console.log("set appliedOptionIds", to)
+        const newValue = makeSelectFilterValue(to, this.matchModeString)
+        const eventName = this.createMode ?
+            "create" :
+            "update"
+        this.$emit(eventName, newValue)
+      }
+    },
+    isMatchModeAnd: {
+      get() {
+        return this.filterValue?.includes("+")
+      },
+      set(to) {
+        const matchModeString = to ? "all" : "any"
+        const newValue = makeSelectFilterValue(this.appliedOptionIds, matchModeString)
+        this.$emit("update", newValue)
+      }
     }
   },
 
@@ -153,39 +193,12 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    createOrUpdate(id){
-      const newAppliedOptionIds = [...this.appliedOptionIds, id]
-      const newValue = makeSelectFilterValue(newAppliedOptionIds, this.selectedMatchMode)
-      const event = this.appliedOptionIds.length ?
-          "update" :
-          "create"
-      this.$emit(event, newValue)
+
+    addOption(id){
+      this.appliedOptionIds = [...this.appliedOptionIds, id]
     },
-    deleteOption(id){
-      const newAppliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
-      const newValue = makeSelectFilterValue(newAppliedOptionIds, this.selectedMatchMode)
-      const event = newAppliedOptionIds.length ?
-          "update" :
-          "delete"
-      this.$emit(event, newValue)
-    },
-    setSelectedMatchMode(newMode) {
-      this.selectedMatchMode = newMode
-    },
-    selectOption(option) {
-      this.isSearchMode = false
-      this.selectedOptions.push(option)
-      this.searchString = ""
-    },
-    unselectOption(option) {
-      this.selectedOptions = this.selectedOptions.filter(o => o.id !== option.id)
-      this.unselectedOptions.push(option)
-      this.searchString = ""
-      this.fetchOptions()
-    },
-    remove(id) {
-      console.log("remove()", id)
-      this.selectedOptions = this.selectedOptions.filter(oldId => oldId !== id)
+    deleteOption(id) {
+      this.appliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
     },
     async fetchOptions() {
       this.isLoading = true
@@ -227,6 +240,7 @@ export default {
         await this.fetchOptions()
       },
     },
+
     myValue(to, from) {
 
       // this.$vuetify.goTo(0, {

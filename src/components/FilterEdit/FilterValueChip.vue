@@ -44,7 +44,6 @@ export default {
   },
   asyncComputed: {
     filterDisplayValue: async function () {
-      if (!this.isEntity) return this.filterValue
 
       this.isLoading = true
       const resp = await api.makeAutocompleteResponseFromId(this.filterValue)
