@@ -6,42 +6,28 @@
       close-icon="mdi-close"
       @click:close="$emit('delete')"
   >
-        <filter-value-chip
-            v-for="id in mySelectedIds.slice(0, 1)"
-            :key="id"
-            :filter-key="myFilterConfig.key"
-            :filter-value="id"
-        />
-      <span class="font-weight-bold ml-1" v-if="mySelectedIds.length > 1">
-            +{{ mySelectedIds.length - 1 }}
-          </span>
+    <filter-select-value-as-string
+        :filter-key="filterKey"
+    />
   </v-chip>
 </template>
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {createDisplayFilter} from "@/filterConfigs";
-import axios from "axios";
 import {shortenOpenAlexId} from "@/util";
-import {api} from "@/api";
-import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
-import {openAlexCountries} from "@/countries";
-import {openAlexSdgs} from "@/sdgs";
 import {
-  getMatchModeFromSelectFilterValue,
-  getItemsFromSelectFilterValue,
   makeSelectFilterValue
 } from "@/filterConfigs";
 import Template from "@/components/Filters/FilterKeySelector.vue";
 import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
+import FilterSelectValueAsString from "../Filters/FilterSelectValueAsString.vue";
 
 export default {
   name: "FilterValueSelect",
   components: {
-    FilterValueChip,
     FilterEditSelect,
+    FilterSelectValueAsString,
   },
   props: {
     disabled: Boolean,
@@ -75,9 +61,6 @@ export default {
             return shortenOpenAlexId(optionId)
           })
       return makeSelectFilterValue(items, this.selectedMatchMode)
-    },
-    mySelectedIds() {
-      return getItemsFromSelectFilterValue(this.filterValue)
     },
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)

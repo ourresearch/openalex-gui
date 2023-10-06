@@ -7,12 +7,11 @@
           @click:close="$emit('delete')"
           v-on="on"
           class="mr-1 mb-1"
-          :color="isNegated ? 'error' : undefined"
       >
 
         <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
         <template v-if="filterDisplayValue">
-          <span class="mr-1 font-weight-bold" v-if="isNegated">NOT</span>
+          <span class="mr-1 font-weight-bold error--text" v-if="isNegated">NOT</span>
           {{ filterDisplayValue | truncate(50) }}
         </template>
         <template v-else>
