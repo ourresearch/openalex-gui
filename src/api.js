@@ -104,9 +104,6 @@ const api = (function () {
     const makeAutocompleteResponseFromId = async function (id) {
         const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
         const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
-        // const sdgConfig =
-
-        console.log("countryConfig", id, countryConfig)
 
         // console.log("countryConfig", openAlexCountries, id, countryConfig)
         let displayName

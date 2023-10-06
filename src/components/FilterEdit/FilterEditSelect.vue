@@ -8,25 +8,46 @@
         {{ myConfig.displayName }}
       </v-toolbar-title>
       <v-spacer/>
-      <v-tooltip bottom>
+      <v-menu>
         <template v-slot:activator="{on}">
           <v-chip
               v-on="on"
-              filter
-              :dark="isMatchModeAnd"
-              :color="isMatchModeAnd ? 'primary': undefined"
+              color="#444"
+              dark
               class="ml-1"
               :input-value="isMatchModeAnd"
-              :disabled="appliedOptionIds.length < 2"
-              @click="isMatchModeAnd = !isMatchModeAnd"
+              v-if="appliedOptionIds.length > 1"
+              :disabled="isAnyAppliedOptionNegated"
+
           >
-            AND
+            {{ isMatchModeAnd ? "AND" : "OR" }}
           </v-chip>
         </template>
-        <div>
-          Require match on all selected values.
-        </div>
-      </v-tooltip>
+        <v-card>
+            <v-list dense>
+              <v-subheader>Match strategy</v-subheader>
+              <v-divider />
+              <v-list-item @click="isMatchModeAnd = true">
+                <v-list-item-icon>
+                  <v-icon v-if="isMatchModeAnd">mdi-check</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>AND</v-list-item-title>
+                  <v-list-item-subtitle>Match all selected values</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item @click="isMatchModeAnd = false">
+                <v-list-item-icon>
+                  <v-icon v-if="!isMatchModeAnd">mdi-check</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>OR</v-list-item-title>
+                  <v-list-item-subtitle>Match any selected values</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+        </v-card>
+      </v-menu>
       <v-btn icon @click="$emit('close')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -39,6 +60,7 @@
           :filter-value="id"
           :filter-key="filterKey"
           @delete="deleteOption(id)"
+          @toggle-is-negated="toggleOptionIsNegated(id)"
       />
       <v-text-field
           hide-details
@@ -163,13 +185,22 @@ export default {
     matchModeString(){
       return this.isMatchModeAnd ? "all" : "any"
     },
+    isAnyAppliedOptionNegated(){
+      return this.appliedOptionIds.some(id => id.includes("!"))
+    },
     appliedOptionIds: {
       get() {
         return this.filterValue?.split(/[|+]/) ?? []
       },
       set(to) {
         console.log("set appliedOptionIds", to)
-        const newValue = makeSelectFilterValue(to, this.matchModeString)
+
+        const isMatchModeAnd = to.some(id => id.includes("!")) ?
+            true :
+            this.isMatchModeAnd
+        const matchModeString = isMatchModeAnd ? "all" : "any"
+
+        const newValue = makeSelectFilterValue(to, matchModeString)
         const eventName = this.createMode ?
             "create" :
             "update"
@@ -199,6 +230,20 @@ export default {
     },
     deleteOption(id) {
       this.appliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
+    },
+    toggleOptionIsNegated(idToToggle){
+
+      this.appliedOptionIds = this.appliedOptionIds.map(optionValue => {
+        const optionId = optionValue.replace("!", "")
+        const optionIsNegated = optionValue[0] === "!"
+        const toggledOption = optionIsNegated ?
+            optionId :
+            "!" + optionId
+
+        return optionValue === idToToggle ?
+            toggledOption :
+            optionValue // no change
+      })
     },
     async fetchOptions() {
       this.isLoading = true
