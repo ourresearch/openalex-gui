@@ -68,10 +68,6 @@ import {createSimpleFilter} from "../../filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
-import FilterItemBoolean from "../FilterItem/FilterItemBoolean.vue";
-import FilterItemRange from "../FilterItem/FilterItemRange.vue";
-import FilterItemSelect from "../FilterItem/FilterItemSelect.vue";
-import FilterItemSearch from "../FilterItem/FilterItemSearch.vue";
 
 import FilterEditRange from "../FilterEdit/FilterEditRange.vue";
 import FilterEditSearch from "../FilterEdit/FilterEditSearch.vue";
@@ -88,10 +84,6 @@ export default {
   name: "FilterString",
   components: {
     FilterKeySelector,
-    FilterItemBoolean,
-    FilterItemRange,
-    FilterItemSelect,
-    FilterItemSearch,
 
     FilterEditRange,
     FilterEditSearch,

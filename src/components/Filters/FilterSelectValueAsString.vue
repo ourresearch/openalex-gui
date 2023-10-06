@@ -1,9 +1,16 @@
 <template>
   <span>
-    <template v-if="count">({{items.length}})</template>
-    <filter-value-chip v-else :filter-key="filterKey" :filter-value="items[0]" />
+    <template v-if="count">({{ filterValueOptions.length }})</template>
+    <template v-else>
+      <span v-if="firstOptionIsNegated" class="font-weight-bold">NOT </span>
+      {{ firstOptionDisplayName }}
+      <span class="font-weight-bold " v-if="filterValueOptions.length > 1">
+            +{{ filterValueOptions.length - 1 }}
+          </span>
+    </template>
+    <!--    <filter-value-chip v-else :filter-key="filterKey" :filter-value="items[0]" />-->
 
-<!--    {{ filterKey }}: {{ items }}-->
+    <!--    {{ filterKey }}: {{ items }}-->
   </span>
 </template>
 
@@ -11,29 +18,47 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getItemsFromSelectFilterValue} from "../../filterConfigs";
-import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
+import {url} from "../../url";
+import {api} from "../../api";
 
 export default {
   name: "Template",
   components: {
-    FilterValueChip
   },
   props: {
-    filterValue: String,
     filterKey: String,
     count: Boolean,
   },
   data() {
     return {
       foo: 42,
+      isLoading: false,
     }
   },
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "entityType",
     ]),
-    items(){
-      return getItemsFromSelectFilterValue(this.filterValue)
+    filterValueOptions() {
+      return this.filterValue.split(/[+|]/)
+    },
+    filterValue() {
+      return url.readFilterValue(this.entityType, this.filterKey)
+    },
+    firstOptionIsNegated() {
+      return this.filterValueOptions[0].includes("!")
+    },
+    firstOptionId() {
+      return this.filterValueOptions[0].replace("!", "")
+    },
+  },
+  asyncComputed: {
+    firstOptionDisplayName: async function () {
+      this.isLoading = true
+      const resp = await api.makeAutocompleteResponseFromId(this.firstOptionId)
+      this.isLoading = false
+      return resp.display_name
     }
   },
 
@@ -49,8 +74,7 @@ export default {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 

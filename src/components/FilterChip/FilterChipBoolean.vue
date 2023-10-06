@@ -15,18 +15,12 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {api} from "@/api";
-import {createDisplayFilter} from "@/filterConfigs";
-import axios from "axios";
 import {getFacetConfig} from "@/facetConfigs";
 import FilterEditBoolean from "@/components/FilterEdit/FilterEditBoolean.vue";
-import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
 
 export default {
   name: "FilterValueBoolean",
   components: {
-    FilterValueChip,
     FilterEditBoolean,
   },
   props: {

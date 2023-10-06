@@ -156,10 +156,6 @@ import {createSimpleFilter} from "../../filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
-import FilterItemBoolean from "../FilterItem/FilterItemBoolean.vue";
-import FilterItemRange from "../FilterItem/FilterItemRange.vue";
-import FilterItemSelect from "../FilterItem/FilterItemSelect.vue";
-import FilterItemSearch from "../FilterItem/FilterItemSearch.vue";
 
 import FilterEditRange from "../FilterEdit/FilterEditRange.vue";
 import FilterEditSearch from "../FilterEdit/FilterEditSearch.vue";
@@ -169,7 +165,6 @@ import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 import {facetsByCategory, filtersList, getFacetConfig} from "@/facetConfigs";
 import {api} from "@/api";
-import FilterValueChip from "../FilterEdit/FilterValueChip.vue";
 import {filter} from "core-js/internals/array-iteration";
 
 import FilterSelectValueAsString from "./FilterSelectValueAsString.vue";
@@ -178,17 +173,12 @@ export default {
   name: "FilterList",
   components: {
     FilterKeySelector,
-    FilterItemBoolean,
-    FilterItemRange,
-    FilterItemSelect,
-    FilterItemSearch,
 
     FilterEditRange,
     FilterEditSearch,
     FilterEditBoolean,
     FilterEditSelect,
 
-    FilterValueChip,
     FilterSelectValueAsString,
   },
   props: {

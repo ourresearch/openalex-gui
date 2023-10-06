@@ -8,44 +8,42 @@
         {{ myConfig.displayName }}
       </v-toolbar-title>
       <v-spacer/>
-      <v-menu>
-        <template v-slot:activator="{on}">
-          <v-chip
-              v-on="on"
-              color="#444"
-              dark
-              class="ml-1"
-              :input-value="isMatchModeAnd"
-              v-if="appliedOptionIds.length > 1"
-              :disabled="isAnyAppliedOptionNegated"
 
-          >
-            {{ isMatchModeAnd ? "AND" : "OR" }}
-          </v-chip>
+      <v-menu>
+        <template v-slot:activator="{on}" v-if="appliedOptionIds.length > 1">
+            <v-chip
+                v-on="on"
+                class="ml-1"
+                :input-value="isMatchModeAnd"
+                :disabled="isAnyAppliedOptionNegated"
+
+            >
+              {{ isMatchModeAnd ? "AND" : "OR" }}
+            </v-chip>
         </template>
         <v-card>
-            <v-list dense>
-              <v-subheader>Match strategy</v-subheader>
-              <v-divider />
-              <v-list-item @click="isMatchModeAnd = true">
-                <v-list-item-icon>
-                  <v-icon v-if="isMatchModeAnd">mdi-check</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>AND</v-list-item-title>
-                  <v-list-item-subtitle>Match all selected values</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-              <v-list-item @click="isMatchModeAnd = false">
-                <v-list-item-icon>
-                  <v-icon v-if="!isMatchModeAnd">mdi-check</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>OR</v-list-item-title>
-                  <v-list-item-subtitle>Match any selected values</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
+          <v-list dense>
+            <v-subheader>Match strategy</v-subheader>
+            <v-divider/>
+            <v-list-item @click="isMatchModeAnd = false">
+              <v-list-item-icon>
+                <v-icon v-if="!isMatchModeAnd">mdi-check</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>OR</v-list-item-title>
+                <v-list-item-subtitle>Match any selected values</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item @click="isMatchModeAnd = true">
+              <v-list-item-icon>
+                <v-icon v-if="isMatchModeAnd">mdi-check</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>AND</v-list-item-title>
+                <v-list-item-subtitle>Match all selected values</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
         </v-card>
       </v-menu>
       <v-btn icon @click="$emit('close')">
@@ -120,17 +118,10 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
-import {createDisplayFilter} from "@/filterConfigs";
-import axios from "axios";
-import {shortenOpenAlexId} from "@/util";
 import {api} from "@/api";
-import FilterValueChip from "./FilterValueChip.vue";
 import {getFacetConfig} from "@/facetConfigs";
-import {openAlexCountries} from "@/countries";
-import {openAlexSdgs} from "@/sdgs";
-import {getMatchModeFromSelectFilterValue, getItemsFromSelectFilterValue, makeSelectFilterValue} from "@/filterConfigs";
-import Template from "@/components/Filters/FilterKeySelector.vue";
 import FilterOptionChip from "../Filters/FilterOptionChip.vue";
+import {makeSelectFilterValue} from "../../filterConfigs";
 
 export default {
   name: "FilterValueSelect",
@@ -182,10 +173,10 @@ export default {
     isMatchAndDisabled() {
       return this.appliedOptionIds.length < 2
     },
-    matchModeString(){
+    matchModeString() {
       return this.isMatchModeAnd ? "all" : "any"
     },
-    isAnyAppliedOptionNegated(){
+    isAnyAppliedOptionNegated() {
       return this.appliedOptionIds.some(id => id.includes("!"))
     },
     appliedOptionIds: {
@@ -225,13 +216,13 @@ export default {
     ]),
     ...mapActions([]),
 
-    addOption(id){
+    addOption(id) {
       this.appliedOptionIds = [...this.appliedOptionIds, id]
     },
     deleteOption(id) {
       this.appliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
     },
-    toggleOptionIsNegated(idToToggle){
+    toggleOptionIsNegated(idToToggle) {
 
       this.appliedOptionIds = this.appliedOptionIds.map(optionValue => {
         const optionId = optionValue.replace("!", "")
