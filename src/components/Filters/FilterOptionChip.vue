@@ -1,18 +1,50 @@
 <template>
-  <v-chip
-      close
-      outlined
-      @click:close="$emit('delete')"
-  >
+  <v-menu rounded>
+    <template v-slot:activator="{on}">
+      <v-chip
+          close
+          outlined
+          @click:close="$emit('delete')"
+          v-on="on"
+          class="mr-1 mb-1"
+      >
 
-<!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
-    <template v-if="filterDisplayValue">
-      {{ filterDisplayValue | truncate(590) }}
+        <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
+        <template v-if="filterDisplayValue">
+          {{ filterDisplayValue | truncate(590) }}
+        </template>
+        <template v-else>
+          Loading...
+        </template>
+      </v-chip>
     </template>
-    <template v-else>
-      Loading...
-    </template>
-  </v-chip>
+    <v-card rounded>
+      <v-card-title>
+        {{ filterDisplayValue }}
+      </v-card-title>
+      <v-card-subtitle>
+        dude
+      </v-card-subtitle>
+      <v-divider />
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+          text
+          rounded
+        >
+          <v-icon left>mdi-information-outline</v-icon>
+          Learn more
+        </v-btn>
+        <v-btn
+          text
+          rounded
+        >
+          <v-icon left>mdi-minus-circle</v-icon>
+          Negate
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-menu>
 </template>
 
 <script>
@@ -28,7 +60,7 @@ export default {
     disabled: Boolean,
     filterValue: String,
     filterKey: String,
-      close: Boolean,
+    close: Boolean,
   },
   data() {
     return {
@@ -41,16 +73,17 @@ export default {
     ...mapGetters([
       "resultsFilters",
     ]),
-    isEntity(){
+    isEntity() {
       return isOpenAlexId(this.filterValue)
     }
   },
   asyncComputed: {
     filterDisplayValue: async function () {
-      if (!this.isEntity) return this.filterValue
+      // if (!this.isEntity) return this.filterValue
 
       this.isLoading = true
       const resp = await api.makeAutocompleteResponseFromId(this.filterValue)
+      console.log("filterdisplayvalue response", resp)
       this.isLoading = false
       return resp.display_name
     }

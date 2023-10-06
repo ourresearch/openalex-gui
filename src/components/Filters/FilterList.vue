@@ -72,7 +72,7 @@
         <v-list-item
             v-for="filterConfig in category.filterConfigs"
             :key="category.displayName + filterConfig.key"
-            @click="setActiveFilter(filterConfig.key, null, true)"
+            @click="setActiveFilter(filterConfig.key, null, !getAppliedFilter(filterConfig.key))"
         >
           <v-list-item-icon>
             <v-icon>{{ filterConfig.icon }}</v-icon>
