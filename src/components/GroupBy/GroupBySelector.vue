@@ -5,15 +5,17 @@
       v-model="isMenuOpen"
   >
     <template v-slot:activator="{on}">
-      <v-btn
+      <v-chip
           v-on="on"
-          rounded
-          text
+          outlined
+          :close="!!groupByKey"
+          @click:close="groupByKey=undefined"
       >
         <v-icon left>mdi-layers-triple-outline</v-icon>
         Group by
-        <v-icon right>mdi-menu-down</v-icon>
-      </v-btn>
+        <template v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</template>
+        <v-icon right v-if="!groupByKey">mdi-menu-down</v-icon>
+      </v-chip>
     </template>
     <v-card>
       <v-text-field
@@ -61,7 +63,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import FilterKeySelector from "../Filters/FilterKeySelector.vue";
 import {url} from "../../url";
-import {facetsByCategory} from "../../facetConfigs";
+import {facetsByCategory, getFacetConfig} from "../../facetConfigs";
 import {filter} from "core-js/internals/array-iteration";
 
 export default {
@@ -87,6 +89,10 @@ export default {
           this.entityType,
           this.searchString,
       )
+    },
+    groupByKeyConfig(){
+      if (!this.groupByKey) return
+      return getFacetConfig(this.entityType, this.groupByKey)
     },
     groupByKey: {
       get() {
