@@ -1,5 +1,5 @@
 <template>
-  <span>
+  <span v-if="filterValueOptions">
     <template v-if="count">({{ filterValueOptions.length }})</template>
     <template v-else>
       <span v-if="firstOptionIsNegated" class="font-weight-bold">NOT </span>
@@ -41,7 +41,7 @@ export default {
       "entityType",
     ]),
     filterValueOptions() {
-      return this.filterValue.split(/[+|]/)
+      return this.filterValue?.split(/[+|]/)
     },
     filterValue() {
       return url.readFilterValue(this.entityType, this.filterKey)
@@ -55,6 +55,7 @@ export default {
   },
   asyncComputed: {
     firstOptionDisplayName: async function () {
+      if (!this.filterValueOptions) return
       this.isLoading = true
       const resp = await api.makeAutocompleteResponseFromId(this.firstOptionId)
       this.isLoading = false

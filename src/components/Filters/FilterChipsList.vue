@@ -18,7 +18,7 @@
 <!--    </v-chip>-->
 
     <component
-        v-for="(filter, i) in appliedFilters"
+        v-for="(filter, i) in filters"
         :key="filter.key + $route.query.filter"
         class="mr-2 mb-2"
         :is="'filter-chip-' + filter.type"
@@ -94,7 +94,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
-import {createSimpleFilter} from "../../filterConfigs";
+import {createSimpleFilter, filtersFromUrlStr} from "../../filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
@@ -134,7 +134,6 @@ export default {
 
   },
   props: {
-    filters: Array,
   },
   data() {
     return {
@@ -144,7 +143,6 @@ export default {
       activeFilterCreateMode: false,
       isActiveFilterDialogOpen: false,
 
-      searchString: "",
       getEntityConfig,
 
     }
@@ -157,28 +155,10 @@ export default {
       if (!this.activeFilterKey) return
       return getFacetConfig(this.entityType, this.activeFilterKey)
     },
-    facetsByCategory() {
-      return facetsByCategory(
-          this.entityType,
-          this.searchString,
-          this.includeOnlyTypes,
-          this.filters.map(f => f.key),
-      )
-    },
-    facetsByCategoryCount() {
-      let sum = 0
-      this.facetsByCategory.forEach(category => {
-        sum += category.filterConfigs.length
-      })
-      return sum
+    filters(){
+      return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
 
-    appliedFilters() {
-      return this.filters.filter(f => {
-        if (!this.searchString) return true
-        return f.displayName.toLowerCase().match(this.searchString.toLowerCase())
-      })
-    },
   },
 
 

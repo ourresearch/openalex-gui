@@ -1,7 +1,11 @@
 <template>
   <v-menu>
     <template v-slot:activator="{on}">
+      <a v-if="textMode" v-on="on">
+        sort={{ activeSortKey }}
+      </a>
       <v-btn
+          v-else
           icon
           class="font-weight-regular"
           v-on="on"
@@ -116,6 +120,7 @@ export default {
   },
   props: {
     disabled: Boolean,
+    textMode: Boolean,
   },
   data() {
     return {
