@@ -173,6 +173,7 @@ const api = (function () {
                 filterKey,
                 options,
             )
+            console.log("getGroups make this url", options, myUrl)
             const resp = await axios.get(myUrl)
             const filteredGroups = resp.data.group_by.filter(g => {
                 const keyIsNullish = g.key === "unknown" || g.key === null
