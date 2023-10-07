@@ -28,15 +28,15 @@
       <filter-chips-list :filters="resultsFilters"/>
 
       <v-row dense>
-        <v-col cols="3" v-if="!$vuetify.breakpoint.mobile">
+        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
           <v-card rounded>
             <!--            <filter-selector :applied-filters="resultsFilters" />-->
             <filter-list :filters="resultsFilters"/>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="9">
+        <v-col cols="12" sm="8">
           <v-card rounded>
-            <v-toolbar flat :dark="resultsTab===1" class="">
+            <v-toolbar flat  class="">
               <v-toolbar-title>
                 <v-btn v-if="resultsTab===1" icon @click="clearGroupBy">
                   <v-icon>mdi-arrow-left</v-icon>
