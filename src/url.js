@@ -304,8 +304,6 @@ const makeApiUrl = function (currentRoute) {
             searchParams.set(k, query[k])
         }
     })
-    console.log("makeApiUrl", query, searchParams.toString())
-
 
     apiUrl.search =  decodeURIComponent(searchParams.toString())
     return apiUrl.toString()
