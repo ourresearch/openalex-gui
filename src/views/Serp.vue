@@ -15,17 +15,17 @@
       <!--          class="mb-3"-->
       <!--      />-->
 
+      <serp-api-editor
+          v-if="apiMode"
+          class="mb-3"
+      />
       <div class="d-flex">
         <v-spacer/>
         <v-btn icon @click="apiMode = !apiMode">
           <v-icon>mdi-api</v-icon>
         </v-btn>
       </div>
-      <serp-api-editor
-          v-if="apiMode"
-          class="mb-3"
-      />
-      <filter-chips-list :filters="resultsFilters"/>
+      <filter-chips-list />
 
       <v-row dense>
         <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
@@ -42,7 +42,7 @@
                   <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
                 <template v-if="groupByConfig">
-                {{ groupByConfig.displayName }}
+<!--                {{ groupByConfig.displayName }}-->
 
                 </template>
                 <template v-else>
@@ -107,7 +107,7 @@ import _ from 'lodash';
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
-import {filtersFromUrlStr} from "@/filterConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
 import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
 import FilterList from "@/components/Filters/FilterList.vue";
 
@@ -133,6 +133,7 @@ import GroupBySelector from "../components/GroupBy/GroupBySelector.vue";
 import {getFacetConfig} from "../facetConfigs";
 import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
+import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "Serp",
@@ -303,7 +304,10 @@ export default {
       immediate: true,
       async handler(to, from) {
         const scrollTop = window.scrollY
-        const apiQuery = "https://api.openalex.org" + this.$route.fullPath.replace(/%2B/g, "+")
+        // const apiQuery = "https://api.openalex.org" + this.$route.fullPath.replace(/%2B/g, "+")
+        const apiQuery = url.makeApiUrl(this.$route)
+
+
         console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)

@@ -11,9 +11,9 @@
           :close="!!groupByKey"
           @click:close="groupByKey=undefined"
       >
-        <v-icon left>mdi-layers-triple-outline</v-icon>
+<!--        <v-icon left>mdi-layers-triple-outline</v-icon>-->
         Group by
-        <template v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</template>
+        <span class="font-weight-bold ml-1" v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</span>
         <v-icon right v-if="!groupByKey">mdi-menu-down</v-icon>
       </v-chip>
     </template>
@@ -88,6 +88,7 @@ export default {
       return facetsByCategory(
           this.entityType,
           this.searchString,
+          ["boolean", "select", "range"]
       )
     },
     groupByKeyConfig(){
@@ -105,6 +106,7 @@ export default {
           name: "Serp",
           query: {
             ...this.$route.query,
+            sort: undefined,
             group_by: to
           }
         })

@@ -1,17 +1,16 @@
 <template>
   <v-card flat tile class="">
-    <v-toolbar flat>
-      <v-text-field
-          autofocus
-          hide-details
-          rounded
-          class=" ma-0"
-          prepend-icon="mdi-magnify"
-          clearable
-          v-model="searchString"
-      />
-<!--          :placeholder="`Search within ${resultsCount} results`"-->
-    </v-toolbar>
+<!--    <v-toolbar flat>-->
+<!--      <v-text-field-->
+<!--          autofocus-->
+<!--          hide-details-->
+<!--          rounded-->
+<!--          class=" ma-0"-->
+<!--          prepend-icon="mdi-magnify"-->
+<!--          clearable-->
+<!--          v-model="searchString"-->
+<!--      />-->
+<!--    </v-toolbar>-->
     <v-list class="flex-grow-1">
       <v-list-item
           v-for="group in groups"

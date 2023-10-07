@@ -26,7 +26,7 @@ const removeFromQuery = function (oldQuery, k) {
     return newQuery
 }
 
-const setApiMode = async function(newVal) {
+const setApiMode = async function (newVal) {
     return await pushToRoute(router, {
         name: "Serp",
         query: {
@@ -86,7 +86,7 @@ const negateFilter = async function (key, value) {
 
 }
 
-const setPage = async function(page){
+const setPage = async function (page) {
     return pushToRoute(router, {
         name: "Serp",
         query: {
@@ -107,7 +107,6 @@ const pushNewFilters = async function (newFilters) {
     // const oldParams = new URLSearchParams(router.currentRoute.query)
     // const isSearchFilterApplied = oldParams.toString().indexOf(".search") > -1
     //
-
 
 
     const query = {
@@ -278,6 +277,42 @@ const makeAutocompleteUrl = function (entityType, searchString) {
     return url.toString()
 }
 
+const makeApiUrl = function (currentRoute) {
+    const entityType = currentRoute.params.entityType
+    const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
+    const filterString = filtersAsUrlStr(filtersFromUrl)
+    const query = {
+        page: currentRoute.query.page,
+        filter: filterString,
+        group_by: currentRoute.query.group_by,
+        sort: currentRoute.query.sort
+    }
+
+    const apiUrl = new URL("https://api.openalex.org")
+    apiUrl.pathname = entityType
+
+    // list of legal keys: https://api.openalex.org/works?page=1&foo=bar
+    const validQueryKeys = [
+        "page",
+        "filter",
+        "group_by",
+        "sort"
+    ]
+    const searchParams = new URLSearchParams()
+    validQueryKeys.forEach(k => {
+        if (query[k] !== undefined && query[k] !== "") {
+            searchParams.set(k, query[k])
+        }
+    })
+    console.log("makeApiUrl", query, searchParams.toString())
+
+
+    apiUrl.search =  decodeURIComponent(searchParams.toString())
+    return apiUrl.toString()
+
+}
+
+
 const makeGroupByUrl = function (entityType, groupByKey, options) {
 
     // set options from defaults and args
@@ -344,6 +379,7 @@ const url = {
     makeAutocompleteUrl,
 
     setApiMode,
+    makeApiUrl,
 }
 
 
