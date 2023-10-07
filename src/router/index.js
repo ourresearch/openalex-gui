@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Faq from "../views/Faq.vue";
 import Testimonials from "../views/Testimonials.vue";
 import Help from "../views/Help.vue";
+import OpenAlexStats from "../views/OpenAlexStats.vue";
 
 import Serp from "../views/Serp";
 import EntityPage from "@/views/EntityPage.vue";
@@ -65,6 +66,7 @@ const routes = [
     {path: '/contact', redirect: {name: "about"}},
     {path: '/pricing', component: Pricing},
     {path: '/webinars', component: Webinars},
+    {path: '/stats', component: OpenAlexStats},
 
 
     // redirects to gitbook docs
