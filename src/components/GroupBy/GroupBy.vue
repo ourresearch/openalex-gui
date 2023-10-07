@@ -1,5 +1,17 @@
 <template>
   <v-card flat tile class="">
+    <v-toolbar flat>
+      <v-text-field
+          autofocus
+          hide-details
+          rounded
+          class=" ma-0"
+          prepend-icon="mdi-magnify"
+          clearable
+          v-model="searchString"
+      />
+<!--          :placeholder="`Search within ${resultsCount} results`"-->
+    </v-toolbar>
     <v-list class="flex-grow-1">
       <v-list-item
           v-for="group in groups"
@@ -76,6 +88,7 @@ export default {
     ...mapGetters([
       "resultsFilters",
       "entityType",
+        "resultsCount",
     ]),
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
@@ -105,18 +118,22 @@ export default {
   },
   asyncComputed: {
     async groups(){
+      if (!this.filterKey) return []
       this.isLoading = true
-      const filters = filtersFromUrlStr(this.$route.query.filter)
-      return  await api.getGroups(
+      const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      console.log("groupBy groups,usin these filters", this.$route.query.filter)
+      const ret =  await api.getGroups(
           this.entityType,
           this.filterKey,
           {
             perPage: 200,
             hideUnknown: true,
-            filters: filters,
+            filters,
+            searchString: this.searchString
           }
       )
       this.isLoading = false
+      return ret
     }
   },
 
@@ -126,20 +143,6 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
-    async fetchOptions() {
-      this.isLoading = true
-      const filters = filtersFromUrlStr(this.$route.query.filter)
-      this.groups = await api.getGroups(
-          this.entityType,
-          this.filterKey,
-          {
-            perPage: 200,
-            hideUnknown: true,
-            filters: filters,
-          }
-      )
-      this.isLoading = false
-    }
 
 
   },
