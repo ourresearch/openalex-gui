@@ -36,10 +36,29 @@
         </v-col>
         <v-col cols="12" sm="9">
           <v-card rounded>
-            <v-toolbar flat>
-              <v-tabs class="" v-model="resultsTab">
+            <v-toolbar flat :dark="resultsTab===1" class="">
+              <v-toolbar-title>
+                <v-btn v-if="resultsTab===1" icon @click="clearGroupBy">
+                  <v-icon>mdi-arrow-left</v-icon>
+                </v-btn>
+                <template v-if="groupByConfig">
+                {{ groupByConfig.displayName }}
+
+                </template>
+                <template v-else>
+                  Results
+                </template>
+
+              </v-toolbar-title>
+              <v-spacer/>
+              <group-by-selector />
+
+              <export-button
+                  :disabled="resultsCount > 100000"
+              />
+
+              <v-tabs class="d-none" v-model="resultsTab">
                 <v-tab>Results</v-tab>
-                <!--                <v-tab>Overview</v-tab>-->
                 <v-tab>Group by</v-tab>
               </v-tabs>
             </v-toolbar>
@@ -53,9 +72,6 @@
                   <div class="grey--text">about {{ resultsCount | toPrecision }} results</div>
                   <v-spacer></v-spacer>
                   <sort-button :disabled="isGroupByView"/>
-                  <export-button
-                      :disabled="resultsCount > 100000"
-                  />
                 </v-toolbar>
                 <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
               </v-tab-item>
@@ -63,7 +79,8 @@
               <!--                <v-card>overview</v-card>-->
               <!--              </v-tab-item>-->
               <v-tab-item>
-                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>
+<!--                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>-->
+                <group-by />
               </v-tab-item>
             </v-tabs-items>
           </v-card>
@@ -111,6 +128,11 @@ import router from "../router";
 
 import ExportButton from "../components/ExportButton.vue";
 import SortButton from "../components/SortButton.vue";
+import FilterKeySelector from "../components/Filters/FilterKeySelector.vue";
+import GroupBySelector from "../components/GroupBy/GroupBySelector.vue";
+import {getFacetConfig} from "../facetConfigs";
+import Template from "../components/Template.vue";
+import GroupBy from "../components/GroupBy/GroupBy.vue";
 
 export default {
   name: "Serp",
@@ -120,6 +142,7 @@ export default {
     return ret
   },
   components: {
+    Template,
     FilterList,
     SearchBoxNew,
     SerpToolbar,
@@ -130,9 +153,12 @@ export default {
     FilterString,
     SerpApiEditor,
     FilterChipsList,
+    FilterKeySelector,
 
     ExportButton,
     SortButton,
+    GroupBySelector,
+    GroupBy,
 
   },
   props: {},
@@ -164,6 +190,7 @@ export default {
       resultsTab: 0,
       lastGroupByValue: null,
       groupByKeys: [],
+      groupBySearchString: "",
 
 
       // temp
@@ -197,6 +224,10 @@ export default {
         }
       }
     },
+    groupByConfig(){
+      if (!this.$route.query.group_by) return
+      return getFacetConfig(this.entityType, this.$route.query.group_by)
+    },
 
 
     selectedEntityTypeConfig() {
@@ -226,6 +257,15 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("URL copied to clipboard.")
     },
+    clearGroupBy(){
+      url.pushToRoute(this.$router, {
+        name: "Serp",
+        query: {
+          ...this.$route.query,
+          group_by: undefined,
+        }
+      })
+    },
     async pushQueryChanges(query) {
 
       const pushTo = {
@@ -252,6 +292,13 @@ export default {
 
   },
   watch: {
+    "$route.query.group_by": {
+      immediate: true,
+      handler(to){
+        this.resultsTab = to ? 1 : 0
+      }
+    },
+
     "$route": {
       immediate: true,
       async handler(to, from) {
@@ -262,14 +309,6 @@ export default {
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp
         this.$store.state.resultsObject = resp
-
-        // group-by stuff
-        if (this.isGroupByView) {
-          this.resultsTab = 1
-        }
-        this.groupByKeys = (this.$route.query.group_by) ? this.$route.query.group_by.split(",") : []
-        console.log("Serp resp", resp)
-
 
         this.resultsFilters = filtersFromUrlStr(
             this.entityType,
