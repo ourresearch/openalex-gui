@@ -2,6 +2,8 @@ import router from "./router";
 import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual, createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
+import {entityTypes} from "./util";
+import {filter} from "core-js/internals/array-iteration";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
@@ -173,6 +175,11 @@ const readFilterValue = function (entityType, key) {
     return myFilter?.value
 }
 
+const isFilterApplied = function(entityType, key){
+    const filterValue = readFilterValue(entityType, key)
+    return filterValue !== "" && filterValue !== undefined && filterValue !== null
+}
+
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
@@ -191,6 +198,21 @@ const updateFilter = async function (entityType, key, newValue) {
 
     return await pushNewFilters(newFilters)
 }
+
+const updateOrDeleteFilter = function(entityType, filterKey, filterValue){
+    (filterValue === "" || filterValue === "-") ?
+        deleteFilter(entityType, filterKey) :
+        updateFilter(entityType, filterKey, filterValue)
+
+}
+
+const upsertFilter = function(entityType, filterKey, filterValue){
+    return isFilterApplied(entityType, filterKey) ?
+        updateOrDeleteFilter(entityType, filterKey, filterValue) :
+        createFilter(entityType, filterKey, filterValue)
+}
+
+
 
 const deleteFilter = async function (entityType, key) {
     console.log("url.deleteFilter")
@@ -359,6 +381,7 @@ const url = {
     readFilterValue,
     updateFilter,
     deleteFilter,
+    upsertFilter,
 
     setFiltersByKey,
     setFilters,

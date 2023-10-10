@@ -79,8 +79,7 @@
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
-          @create="(newValue) => createFilter(activeFilterKey, newValue)"
-          @update="(newValue) => updateFilter(activeFilterKey, newValue)"
+          @upsert="(newValue) => url.upsertFilter(entityType, activeFilterKey, newValue)"
           @delete="deleteFilter(activeFilterKey)"
           @close="isActiveFilterDialogOpen = false"
       />
@@ -144,6 +143,7 @@ export default {
       isActiveFilterDialogOpen: false,
 
       getEntityConfig,
+      url,
 
     }
   },
@@ -173,28 +173,12 @@ export default {
       this.activeFilterCreateMode = createMode
       this.isActiveFilterDialogOpen = !!key
     },
-    createFilter(key, value) {
-      this.searchString = ""
-      console.log("FilterList createFilter existing filter", key, value);
-      // this.isActiveFilterDialogOpen = false
-      url.createFilter(this.entityType, key, value)
-    },
     deleteFilter(key) {
       this.isActiveFilterDialogOpen = false
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
       url.deleteFilter(this.entityType, key)
       this.setActiveFilter(null, null, null)
-    },
-    updateFilter(filterKey, newValue) {
-      // this.isActiveFilterDialogOpen = false
-      console.log("updateFilter", filterKey, newValue)
-      this.searchString = ""
-      if (newValue === "" || newValue === "-") {
-        url.deleteFilter(this.entityType, filterKey)
-      } else {
-        url.updateFilter(this.entityType, filterKey, newValue)
-      }
     },
 
 
@@ -207,6 +191,7 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
+
         // this.isActiveFilterDialogOpen = true
         // this.activeFilterKey = null
       }

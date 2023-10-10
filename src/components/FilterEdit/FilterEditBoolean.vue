@@ -32,15 +32,13 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
-      <v-btn text rounded @click="$emit('close')">Cancel</v-btn>
         <v-btn
             text
             rounded
             color="primary"
-            @click="$emit( createMode ? 'create' : 'update', myValue)"
-            :disabled="filterValue === myValue"
+            @click="$emit( 'upsert', myValue)"
         >
-          {{ createMode ? "Create" : "Update" }}
+          Ok
         </v-btn>
 
     </v-card-actions>
