@@ -43,7 +43,7 @@
             text
             rounded
             :color="myValue ? 'primary' : 'error'"
-            @click="$emit((myValue ? 'update' : 'delete'), myValue)"
+            @click="$emit('upsert', myValue)"
             :disabled="filterValue === myValue"
         >
           {{  myValue ? 'Update' : 'Delete' }}

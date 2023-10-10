@@ -7,6 +7,7 @@ import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {entityTypeFromId} from "@/util";
+import {isOpenAlexId} from "./util";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -111,7 +112,8 @@ const api = (function () {
             displayName = countryConfig.display_name
         } else if (sdgConfig) {
             displayName = sdgConfig.display_name
-        } else if (entityTypeFromId(id)) {
+        } else if (isOpenAlexId(id)) {
+            console.log("makeAutocompleteResponseFromId", entityTypeFromId(id), id)
             displayName = await getEntityDisplayName(id)
         } else {
             displayName = id

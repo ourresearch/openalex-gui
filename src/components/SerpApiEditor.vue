@@ -1,6 +1,5 @@
 <template>
   <div class="serp-api-editor">
-    <v-card>
       <!--      <v-toolbar dense color="transparent" flat>-->
       <!--        <v-toolbar-title>-->
       <!--          <v-icon left>mdi-api</v-icon>-->
@@ -18,6 +17,7 @@
       <!--        </v-btn>-->
       <!--      </v-toolbar>-->
       <v-card
+          rounded
           dark
           style="font-family: Monaco, monospace;"
           class="d-flex align-start pa-2"
@@ -70,7 +70,6 @@
         </v-btn>
       </v-card>
 
-    </v-card>
   </div>
 </template>
 

@@ -192,10 +192,7 @@ export default {
         const matchModeString = isMatchModeAnd ? "all" : "any"
 
         const newValue = makeSelectFilterValue(to, matchModeString)
-        const eventName = this.createMode ?
-            "create" :
-            "update"
-        this.$emit(eventName, newValue)
+        this.$emit("upsert", newValue)
       }
     },
     isMatchModeAnd: {
@@ -205,7 +202,7 @@ export default {
       set(to) {
         const matchModeString = to ? "all" : "any"
         const newValue = makeSelectFilterValue(this.appliedOptionIds, matchModeString)
-        this.$emit("update", newValue)
+        this.$emit("upsert", newValue)
       }
     }
   },

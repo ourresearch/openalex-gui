@@ -137,8 +137,7 @@
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
-          @create="(newValue) => createFilter(activeFilterKey, newValue)"
-          @update="(newValue) => updateFilter(activeFilterKey, newValue)"
+          @upsert="(newValue) => url.upsertFilter(entityType, activeFilterKey, newValue)"
           @delete="deleteFilter(activeFilterKey)"
           @close="isActiveFilterDialogOpen = false"
       />
@@ -195,6 +194,7 @@ export default {
 
       searchString: "",
       getEntityConfig,
+      url,
 
     }
   },
@@ -243,25 +243,11 @@ export default {
       this.activeFilterCreateMode = createMode
       this.isActiveFilterDialogOpen = !!key
     },
-    createFilter(key, value) {
-      this.searchString = ""
-      console.log("FilterList createFilter existing filter", key, value);
-      url.createFilter(this.entityType, key, value)
-    },
     deleteFilter(key) {
       console.log("FilterList deleteFilter", key)
       this.searchString = ""
       url.deleteFilter(this.entityType, key)
       this.setActiveFilter(null, null, null)
-    },
-    updateFilter(filterKey, newValue) {
-      console.log("updateFilter", filterKey, newValue)
-      this.searchString = ""
-      if (newValue === "" || newValue === "-") {
-        url.deleteFilter(this.entityType, filterKey)
-      } else {
-        url.updateFilter(this.entityType, filterKey, newValue)
-      }
     },
     getAppliedFilter(filterKey) {
       return this.filters.find(f => f.key === filterKey)
@@ -278,6 +264,7 @@ export default {
       immediate: true,
       handler(to, from) {
         // this.activeFilterKey = null
+        this.searchString = ""
       }
     },
     isActiveFilterDialogOpen(to, from){
