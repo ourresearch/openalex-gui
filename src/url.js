@@ -199,6 +199,10 @@ const updateFilter = async function (entityType, key, newValue) {
     return await pushNewFilters(newFilters)
 }
 
+const isGroupBy = function(){
+    return !!router.currentRoute.query.group_by
+}
+
 const updateOrDeleteFilter = function(entityType, filterKey, filterValue){
     (filterValue === "" || filterValue === "-") ?
         deleteFilter(entityType, filterKey) :
@@ -299,7 +303,7 @@ const makeAutocompleteUrl = function (entityType, searchString) {
     return url.toString()
 }
 
-const makeApiUrl = function (currentRoute) {
+const makeApiUrl = function (currentRoute, formatCsv) {
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
@@ -310,6 +314,10 @@ const makeApiUrl = function (currentRoute) {
         sort: currentRoute.query.sort
     }
 
+    if (formatCsv) {
+        query.format = "csv"
+    }
+
     const apiUrl = new URL("https://api.openalex.org")
     apiUrl.pathname = entityType
 
@@ -318,7 +326,8 @@ const makeApiUrl = function (currentRoute) {
         "page",
         "filter",
         "group_by",
-        "sort"
+        "sort",
+        "format",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
@@ -391,6 +400,7 @@ const url = {
     setPage,
 
     setGroupBy,
+    isGroupBy,
 
     goToZoom,
     addZoomToRoute,

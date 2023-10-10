@@ -16,7 +16,6 @@
       <!--      />-->
 
       <serp-api-editor
-          v-if="apiMode"
           class="mb-3"
       />
 <!--      <div class="d-flex">-->
