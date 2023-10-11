@@ -13,28 +13,27 @@
 
     <v-card-text class="pt-0">
       <div class="pb-4">
-        <v-chip-group mandatory v-model="myValue" active-class="primary--text">
-          <v-chip
+        <v-list-item-group mandatory v-model="myValue" active-class="primary--text">
+          <v-list-item
+
             key="true-chip"
             :value="true"
             filter
             large
-            class="px-8"
 
           >
-            True
-          </v-chip>
-          <v-chip
+            is true
+          </v-list-item>
+          <v-list-item
             key="false-chip"
             :value="false"
             filter
             large
-            class="px-8"
           >
-            False
-          </v-chip>
+            is false
+          </v-list-item>
 
-        </v-chip-group>
+        </v-list-item-group>
 
       </div>
       <div>
