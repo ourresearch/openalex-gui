@@ -15,22 +15,15 @@
       <div class="pb-4">
         <v-list-item-group mandatory v-model="myValue" active-class="primary--text">
           <v-list-item
+              v-for="val in [true, false]"
 
-            key="true-chip"
-            :value="true"
+            :key="`list-item-${val}`"
+            :value="val"
             filter
             large
 
           >
-            is true
-          </v-list-item>
-          <v-list-item
-            key="false-chip"
-            :value="false"
-            filter
-            large
-          >
-            is false
+            is {{ val }}
           </v-list-item>
 
         </v-list-item-group>
