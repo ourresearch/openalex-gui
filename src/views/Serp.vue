@@ -21,12 +21,12 @@
       <filter-chips-list />
 
       <v-row dense>
-        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
-          <v-card rounded>
-            <!--            <filter-selector :applied-filters="resultsFilters" />-->
-            <filter-list :filters="resultsFilters"/>
-          </v-card>
-        </v-col>
+<!--        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">-->
+<!--          <v-card rounded>-->
+<!--            &lt;!&ndash;            <filter-selector :applied-filters="resultsFilters" />&ndash;&gt;-->
+<!--            <filter-list :filters="resultsFilters"/>-->
+<!--          </v-card>-->
+<!--        </v-col>-->
         <v-col cols="12" sm="8">
           <v-card rounded>
             <v-toolbar flat  class="">
