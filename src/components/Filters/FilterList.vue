@@ -83,7 +83,8 @@
                 class="font-weight-bold primary--text"
             >
               <template v-if="filterConfig.type === 'boolean'">
-                {{ filterConfig.displayName }}: true
+                {{ filterConfig.displayName }}:
+                {{ url.readFilterValue(entityType, filterConfig.key) }}
               </template>
 
               <template v-else-if="filterConfig.type === 'select'">
