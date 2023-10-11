@@ -13,12 +13,28 @@
 
     <v-card-text class="pt-0">
       <div class="pb-4">
-        <v-switch
-            v-model="myValue"
-            :label="myConfig.displayName"
-            hide-details
-            class="align-self-center"
-        />
+        <v-chip-group mandatory v-model="myValue" active-class="primary--text">
+          <v-chip
+            key="true-chip"
+            :value="true"
+            filter
+            large
+            class="px-8"
+
+          >
+            True
+          </v-chip>
+          <v-chip
+            key="false-chip"
+            :value="false"
+            filter
+            large
+            class="px-8"
+          >
+            False
+          </v-chip>
+
+        </v-chip-group>
 
       </div>
       <div>
@@ -50,6 +66,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
 import Template from "@/SerpTabs.vue";
+import {url} from "../../url";
 
 export default {
   name: "FilterEditBoolean",
@@ -62,7 +79,6 @@ export default {
   data() {
     return {
       foo: 42,
-      myValue: (this.createMode) ? true : this.filterValue,
     }
   },
   computed: {
@@ -72,6 +88,14 @@ export default {
     ]),
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
+    },
+    myValue: {
+      get(){
+        return url.readFilterValue(this.entityType, this.filterKey)
+      },
+      set(to){
+        return url.upsertFilter(this.entityType, this.filterKey, to)
+      }
     }
   },
 

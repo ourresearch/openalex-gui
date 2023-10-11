@@ -1,12 +1,10 @@
 <template>
   <v-chip
       @click="$emit('edit')"
-      close
       color="primary"
-      close-icon="mdi-close"
-      @click:close="$emit('delete')"
+      close
   >
-    <span v-if="!filterValue" class="font-weight-bold mr-1">NOT</span>
+    <span v-if="!myValue" class="font-weight-bold mr-1">NOT</span>
             {{ myFilterConfig.displayName }}
   </v-chip>
 
@@ -17,6 +15,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import FilterEditBoolean from "@/components/FilterEdit/FilterEditBoolean.vue";
+import {url} from "../../url";
 
 export default {
   name: "FilterValueBoolean",
@@ -42,6 +41,14 @@ export default {
     ]),
     myFilterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
+    },
+    myValue: {
+      get(){
+        return url.readFilterValue(this.entityType, this.filterKey)
+      },
+      set(to){
+        return url.upsertFilter(this.entityType, this.filterKey, to)
+      }
     },
     label() {
       const negationString = (this.myFilterValue) ? "" : "NOT"
