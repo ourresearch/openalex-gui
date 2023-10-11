@@ -18,12 +18,6 @@
       <serp-api-editor
           class="mb-3"
       />
-<!--      <div class="d-flex">-->
-<!--        <v-spacer/>-->
-<!--        <v-btn icon @click="apiMode = !apiMode">-->
-<!--          <v-icon>mdi-api</v-icon>-->
-<!--        </v-btn>-->
-<!--      </div>-->
       <filter-chips-list />
 
       <v-row dense>
