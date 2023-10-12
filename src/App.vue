@@ -57,46 +57,25 @@
 <!--        </v-btn>-->
 
 
-        <v-menu offset-y v-if="$store.state.exportProgressUrl">
+        <v-menu rounded offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">
-            <v-btn
-                icon
-                class="elevation-0"
-                color="primary"
-                dark
-                v-on="on"
-                style="position: relative;"
-            >
-              <v-icon x-small v-if="!exportIsFinished">mdi-arrow-down</v-icon>
-              <v-icon v-if="exportIsFinished">mdi-tray-arrow-down</v-icon>
-              <v-progress-circular
-                  style="position: absolute;"
-                  rotate="-90"
-                  :value="exportObj.progress * 100" size="25"
-                  v-if="!exportIsFinished"
-              />
-              <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
-              <!--                  <v-icon right>mdi-menu-down</v-icon>-->
+            <v-btn icon color="" v-on="on">
+              <v-icon class="">mdi-cog</v-icon>
             </v-btn>
           </template>
-          <v-card>
-            <v-card-title>Export {{ (exportIsFinished) ? 'complete' : 'in progress' }}</v-card-title>
-            <v-card-text>
-              Your requested export is <strong>{{ exportObj.progress * 100 | toPrecision }}%</strong> complete.
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text @click="cancelExport">Cancel</v-btn>
-              <v-btn text color="primary" :disabled="!exportIsFinished" :href="exportObj.result_url"
-                     target="_blank">
-                <v-icon left>mdi-tray-arrow-down</v-icon>
-                Download
-              </v-btn>
-            </v-card-actions>
-          </v-card>
+          <v-list>
+            <v-list-item @click="$store.state.isApiEditorShowing = !$store.state.isApiEditorShowing">
+              <v-list-item-icon>
+                <v-icon v-if="$store.state.isApiEditorShowing">mdi-check</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  Show API query
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
         </v-menu>
-
-
 
         <v-menu offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">

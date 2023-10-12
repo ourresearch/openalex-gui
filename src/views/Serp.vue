@@ -9,77 +9,82 @@
     <!--      <serp-tabs />-->
     <!--    </v-toolbar>-->
 
-    <v-container >
+    <v-container>
       <!--      <filter-string-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
       <!--      />-->
 
-      <serp-api-editor
-          class="mb-3"
-      />
-      <filter-chips-list />
+      <v-slide-y-transition group leave-absolute>
 
-      <v-row dense>
-<!--        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">-->
-<!--          <v-card rounded>-->
-<!--            &lt;!&ndash;            <filter-selector :applied-filters="resultsFilters" />&ndash;&gt;-->
-<!--            <filter-list :filters="resultsFilters"/>-->
-<!--          </v-card>-->
-<!--        </v-col>-->
-        <v-col cols="12" sm="12">
-          <v-card rounded>
-            <v-toolbar flat  class="">
-              <v-toolbar-title>
-                <v-btn v-if="resultsTab===1" icon @click="clearGroupBy">
-                  <v-icon>mdi-arrow-left</v-icon>
-                </v-btn>
-                <template v-if="groupByConfig">
-<!--                {{ groupByConfig.displayName }}-->
+        <serp-api-editor
+            v-if="$store.state.isApiEditorShowing"
+            class="mb-3"
+            key="api-editor"
+        />
+        <filter-chips-list key="filter-chips-list"/>
 
-                </template>
-                <template v-else>
-                  Results
-                </template>
+        <v-row dense key="main-serp-row">
+          <!--        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">-->
+          <!--          <v-card rounded>-->
+          <!--            &lt;!&ndash;            <filter-selector :applied-filters="resultsFilters" />&ndash;&gt;-->
+          <!--            <filter-list :filters="resultsFilters"/>-->
+          <!--          </v-card>-->
+          <!--        </v-col>-->
+          <v-col cols="12" sm="12">
+            <v-card rounded>
+              <v-toolbar flat class="">
+                <v-toolbar-title>
+                  <v-btn v-if="resultsTab===1" icon @click="clearGroupBy">
+                    <v-icon>mdi-arrow-left</v-icon>
+                  </v-btn>
+                  <template v-if="groupByConfig">
+                    <!--                {{ groupByConfig.displayName }}-->
 
-              </v-toolbar-title>
-              <v-spacer/>
-              <group-by-selector />
+                  </template>
+                  <template v-else>
+                    Results
+                  </template>
 
-              <export-button
-                  :disabled="resultsCount > 100000"
-              />
+                </v-toolbar-title>
+                <v-spacer/>
+                <group-by-selector/>
 
-              <v-tabs class="d-none" v-model="resultsTab">
-                <v-tab>Results</v-tab>
-                <v-tab>Group by</v-tab>
-              </v-tabs>
-            </v-toolbar>
+                <export-button
+                    :disabled="resultsCount > 100000"
+                />
 
-            <v-divider/>
+                <v-tabs class="d-none" v-model="resultsTab">
+                  <v-tab>Results</v-tab>
+                  <v-tab>Group by</v-tab>
+                </v-tabs>
+              </v-toolbar>
 
-            <v-tabs-items v-model="resultsTab">
-              <v-tab-item>
-                <!--                <serp-toolbar id="serp-toolbar"/>-->
-                <v-toolbar>
-                  <div class="grey--text">about {{ resultsCount | toPrecision }} results</div>
-                  <v-spacer></v-spacer>
-                  <sort-button :disabled="isGroupByView"/>
-                </v-toolbar>
-                <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
-              </v-tab-item>
-              <!--              <v-tab-item>-->
-              <!--                <v-card>overview</v-card>-->
-              <!--              </v-tab-item>-->
-              <v-tab-item>
-<!--                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>-->
-                <group-by />
-              </v-tab-item>
-            </v-tabs-items>
-          </v-card>
+              <v-divider/>
 
-        </v-col>
-      </v-row>
+              <v-tabs-items v-model="resultsTab">
+                <v-tab-item>
+                  <!--                <serp-toolbar id="serp-toolbar"/>-->
+                  <v-toolbar>
+                    <div class="grey--text">about {{ resultsCount | toPrecision }} results</div>
+                    <v-spacer></v-spacer>
+                    <sort-button :disabled="isGroupByView"/>
+                  </v-toolbar>
+                  <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
+                </v-tab-item>
+                <!--              <v-tab-item>-->
+                <!--                <v-card>overview</v-card>-->
+                <!--              </v-tab-item>-->
+                <v-tab-item>
+                  <!--                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>-->
+                  <group-by/>
+                </v-tab-item>
+              </v-tabs-items>
+            </v-card>
+
+          </v-col>
+        </v-row>
+      </v-slide-y-transition>
 
 
     </v-container>
@@ -218,7 +223,7 @@ export default {
         }
       }
     },
-    groupByConfig(){
+    groupByConfig() {
       if (!this.$route.query.group_by) return
       return getFacetConfig(this.entityType, this.$route.query.group_by)
     },
@@ -251,7 +256,7 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("URL copied to clipboard.")
     },
-    clearGroupBy(){
+    clearGroupBy() {
       url.pushToRoute(this.$router, {
         name: "Serp",
         query: {
@@ -288,7 +293,7 @@ export default {
   watch: {
     "$route.query.group_by": {
       immediate: true,
-      handler(to){
+      handler(to) {
         this.resultsTab = to ? 1 : 0
       }
     },

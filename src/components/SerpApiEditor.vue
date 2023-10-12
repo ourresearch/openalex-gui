@@ -55,7 +55,7 @@
       >
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
-      <v-menu>
+      <v-menu rounded>
         <template v-slot:activator="{on}">
           <v-btn
               icon
@@ -79,6 +79,12 @@
         </v-list>
 
       </v-menu>
+      <v-btn
+        icon
+        @click="$store.state.isApiEditorShowing = false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </v-card>
 
   </div>
