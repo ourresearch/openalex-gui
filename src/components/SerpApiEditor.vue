@@ -1,5 +1,5 @@
 <template>
-  <div class="serp-api-editor">
+  <div class="serp-api-editor" style="min-height: 80px;">
     <!--      <v-toolbar dense color="transparent" flat>-->
     <!--        <v-toolbar-title>-->
     <!--          <v-icon left>mdi-api</v-icon>-->

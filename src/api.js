@@ -182,8 +182,8 @@ const api = (function () {
                 return !(keyIsNullish && options.hideUnknown)
             })
 
-            const maxGroups = (options.perPage) ? options.perPage - 1 : 300
-            const truncatedGroups = filteredGroups.splice(0, maxGroups)
+            // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
+            const truncatedGroups = filteredGroups.splice(0, 25)
 
             const groupCounts = truncatedGroups.map(g => g.count)
             const maxCount = Math.max(...groupCounts)
@@ -197,7 +197,7 @@ const api = (function () {
                         false,
                         group.key_display_name,
                         group.count,
-                        group.count / countSum,
+                        group.count / maxCount,
                     )
                 })
 

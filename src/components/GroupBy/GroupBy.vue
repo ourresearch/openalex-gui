@@ -35,15 +35,19 @@
           <v-list-item-title class="font-weight-regular">
             {{ group.displayValue }}
           </v-list-item-title>
-<!--          <v-list-item-subtitle>-->
-<!--            {{ group.count | toPrecision }}-->
-<!--          </v-list-item-subtitle>-->
         </v-list-item-content>
-        <v-list-item-action-text>
+        <v-list-item-action-text class="mr-4">
           <span>
             {{ group.count | toPrecision }}
           </span>
         </v-list-item-action-text>
+        <div style="height: 30px; width: 300px">
+                  <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
+                    <v-spacer/>
+                    <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
+                  </div>
+
+        </div>
       </v-list-item>
       <!--      <v-list-item v-if="groups.length >= 5" key="viewmore">-->
       <!--        <v-list-item-icon>-->
@@ -130,6 +134,15 @@ export default {
             searchString: this.searchString
           }
       )
+      if (this.filterKey === "publication_year") {
+        console.log("group by year")
+        ret.sort((a, b) => {
+          console.log("a, b", a)
+          return (a.value > b.value) ? -1 : 1
+        })
+      }
+
+
       this.isLoading = false
       return ret
     }

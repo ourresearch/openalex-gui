@@ -227,7 +227,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Fulltext search",
+            displayName: "Fulltext",
             type: "search",
             categories: ["search", "popular"],
             isCore: true,
@@ -562,7 +562,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "works",
-            displayName: "Work type",
+            displayName: "Type",
             type: "select",
             categories: ["popular", "other"],
             icon: "mdi-shape-outline",
@@ -570,7 +570,7 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Publication year",
+            displayName: "Year",
             type: "range",
             sortByValue: true,
             examples: ["1999", "1999-", "1999-2020"],
@@ -644,7 +644,7 @@ const facetConfigs = function (entityType) {
         {
             key: "sustainable_development_goals.id",
             entityType: "works",
-            displayName: "Sustainable Development Goals",
+            displayName: "SDG",
             type: "select",
             displayNullAs: "Unknown",
             categories: ["other", "popular"],

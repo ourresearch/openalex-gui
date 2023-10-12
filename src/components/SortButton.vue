@@ -6,18 +6,19 @@
       </a>
       <v-btn
           v-else
-          icon
+          :icon="$vuetify.breakpoint.mobile"
+          :text="!$vuetify.breakpoint.mobile"
+          rounded
           class="font-weight-regular"
           v-on="on"
           :disabled="disabled"
       >
-        <v-icon>mdi-sort</v-icon>
-<!--        <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>-->
-<!--        <template v-else>-->
-<!--          <v-icon left class="">mdi-sort</v-icon>-->
-<!--          Sort-->
-<!--          by {{ activeSortConfig.displayName }}-->
-<!--        </template>-->
+<!--        <v-icon>mdi-sort</v-icon>-->
+        <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>
+        <template v-else>
+          <v-icon left class="">mdi-sort</v-icon>
+          {{ activeSortConfig.displayName }}
+        </template>
       </v-btn>
     </template>
     <v-list>

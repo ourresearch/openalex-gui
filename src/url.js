@@ -388,6 +388,7 @@ const url = {
     createFilter,
     readFilter,
     readFilterValue,
+    isFilterApplied,
     updateFilter,
     deleteFilter,
     upsertFilter,

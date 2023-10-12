@@ -9,7 +9,7 @@
     <!--      <serp-tabs />-->
     <!--    </v-toolbar>-->
 
-    <v-container>
+    <v-container style="max-width: 800px;">
       <!--      <filter-string-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
@@ -27,7 +27,7 @@
 <!--            <filter-list :filters="resultsFilters"/>-->
 <!--          </v-card>-->
 <!--        </v-col>-->
-        <v-col cols="12" sm="8">
+        <v-col cols="12" sm="12">
           <v-card rounded>
             <v-toolbar flat  class="">
               <v-toolbar-title>
