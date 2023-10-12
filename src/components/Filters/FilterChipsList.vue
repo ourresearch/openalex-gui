@@ -113,7 +113,9 @@
         :fullscreen="$vuetify.breakpoint.mobile"
         scrollable
     >
-      <filter-list />
+      <filter-list
+        @select="setActiveFilter"
+      />
     </v-dialog>
 
 
@@ -212,6 +214,7 @@ export default {
     ]),
     ...mapActions([]),
     setActiveFilter(key, value, createMode) {
+      this.isAllFiltersDialogOpen = false
       this.activeFilterKey = key
       this.activeFilterValue = value
       this.activeFilterCreateMode = createMode

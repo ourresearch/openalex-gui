@@ -9,7 +9,7 @@
     <!--      <serp-tabs />-->
     <!--    </v-toolbar>-->
 
-    <v-container style="max-width: 800px;">
+    <v-container >
       <!--      <filter-string-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->
