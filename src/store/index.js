@@ -68,6 +68,7 @@ const stateDefaults = function () {
         exportProgressUrl: null,
 
         filterOptionChipOpenMenu: null,
+        isApiEditorShowing: false,
 
         tabs: [
             {

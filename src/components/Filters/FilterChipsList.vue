@@ -46,7 +46,7 @@
       class="mr-2 mb-2"
       @click="isAllFiltersDialogOpen = true"
     >
-      All filters
+      More&hellip;
     </v-btn>
 
     <!--    <v-btn-->
