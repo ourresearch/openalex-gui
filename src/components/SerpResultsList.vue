@@ -26,7 +26,7 @@
           />
         </v-list>
       </v-card>
-      <div class="serp-bottom" v-if="resultsObject.results.length">
+      <div class="serp-bottom" v-if="resultsObject.results && resultsObject.results.length">
         <v-pagination
             v-model="page"
             :length="numPages"

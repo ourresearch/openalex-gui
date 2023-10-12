@@ -152,7 +152,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
-import {createSimpleFilter} from "../../filterConfigs";
+import {createSimpleFilter, filtersFromUrlStr} from "../../filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterKeySelector from "@/components/Filters/FilterKeySelector.vue";
 
@@ -182,7 +182,6 @@ export default {
     FilterSelectValueAsString,
   },
   props: {
-    filters: Array,
   },
   data() {
     return {
@@ -203,6 +202,9 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
+    filters(){
+      return filtersFromUrlStr(this.entityType, this.$route.query.filter)
+    },
     activeFilterConfig() {
       if (!this.activeFilterKey) return
       return getFacetConfig(this.entityType, this.activeFilterKey)

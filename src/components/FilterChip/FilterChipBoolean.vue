@@ -3,6 +3,8 @@
       @click="$emit('edit')"
       color="primary"
       close
+      close-icon="mdi-close"
+      @click:close="$emit('delete')"
   >
     <span v-if="!myValue" class="font-weight-bold mr-1">NOT</span>
             {{ myFilterConfig.displayName }}
