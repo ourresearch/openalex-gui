@@ -64,20 +64,36 @@
 
     </v-list-item-content>
     <v-list-item-action >
-      <v-btn
+      <template v-if="$vuetify.breakpoint.mobile">
+        <v-btn
+            v-if="fulltextLinkObj"
+            icon
+            :href="fulltextLinkObj.href"
+            color="primary"
+            target="_blank"
+            @click.stop="$emit('click')"
+        >
+                    <v-icon color="primary">
+                      {{ fulltextLinkObj.icon }}
+                    </v-icon>
+  <!--        {{ fulltextLinkObj.text }}-->
+  <!--        <v-icon small right>mdi-open-in-new</v-icon>-->
+        </v-btn>
+      </template>
+      <template v-else>
+        <v-btn
           v-if="fulltextLinkObj"
-          icon
+          text
+          rounded
           :href="fulltextLinkObj.href"
           color="primary"
           target="_blank"
           @click.stop="$emit('click')"
       >
-                  <v-icon color="primary">
-                    {{ fulltextLinkObj.icon }}
-                  </v-icon>
-<!--        {{ fulltextLinkObj.text }}-->
-<!--        <v-icon small right>mdi-open-in-new</v-icon>-->
+        {{ fulltextLinkObj.text }}
+        <v-icon small right>mdi-open-in-new</v-icon>
       </v-btn>
+      </template>
 
     </v-list-item-action>
 
