@@ -36,12 +36,12 @@
             {{ group.displayValue }}
           </v-list-item-title>
         </v-list-item-content>
-        <v-list-item-action-text class="mr-4">
+        <div class="mr-4">
           <span>
             {{ group.count | toPrecision }}
           </span>
-        </v-list-item-action-text>
-        <div style="height: 30px; width: 300px">
+        </div>
+        <div style="height: 40px; width: 500px">
                   <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
                     <v-spacer/>
                     <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>

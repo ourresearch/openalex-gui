@@ -1,6 +1,6 @@
 <template>
   <v-card
-      class="mb-8"
+      class=""
       rounded
   >
     <v-toolbar
@@ -11,119 +11,124 @@
 
       <v-icon left>mdi-filter-outline</v-icon>
       <v-toolbar-title>
-        Filters
-<!--        ({{ filters.length }})-->
+        All filters
+        <!--        ({{ filters.length }})-->
       </v-toolbar-title>
 
 
-<!--      <v-text-field-->
-<!--          v-model="searchString"-->
-<!--          hide-details-->
-<!--          prepend-icon="mdi-magnify"-->
-<!--          clearable-->
-<!--          rounded-->
-<!--          dark-->
-<!--          dense-->
-<!--          placeholder="Search filters"-->
-<!--      />-->
+      <!--      <v-text-field-->
+      <!--          v-model="searchString"-->
+      <!--          hide-details-->
+      <!--          prepend-icon="mdi-magnify"-->
+      <!--          clearable-->
+      <!--          rounded-->
+      <!--          dark-->
+      <!--          dense-->
+      <!--          placeholder="Search filters"-->
+      <!--      />-->
 
     </v-toolbar>
-
-    <v-list  expand class="pt-2">
-<!--      <template v-if="appliedFiltersMatchingSearchString.length">-->
-<!--        <v-subheader class="pt-3">-->
-<!--          Applied-->
-<!--          ({{ appliedFiltersMatchingSearchString.length }})-->
-<!--        </v-subheader>-->
-<!--      </template>-->
-<!--      <template-->
-<!--          v-for="(filter, i) in appliedFiltersMatchingSearchString"-->
-<!--      >-->
+    <v-divider />
+    <v-card-text class="px-0">
 
 
-<!--        <component-->
-<!--            :key="filter.key + $route.query.filter"-->
-<!--            class=""-->
-<!--            :is="'filter-item-' + filter.type"-->
-<!--            :filter-key="filter.key"-->
-<!--            :filter-value="filter.value"-->
-<!--            @edit="setActiveFilter(filter.key, filter.value, false)"-->
-<!--            @delete="deleteFilter(filter.key)"-->
-<!--        />-->
-<!--      </template>-->
-<!--      <v-divider-->
-<!--          v-if="appliedFiltersMatchingSearchString.length"-->
-<!--          class="mb-6 mt-6"-->
-<!--      />-->
+      <v-list expand class="pt-2">
+        <!--      <template v-if="appliedFiltersMatchingSearchString.length">-->
+        <!--        <v-subheader class="pt-3">-->
+        <!--          Applied-->
+        <!--          ({{ appliedFiltersMatchingSearchString.length }})-->
+        <!--        </v-subheader>-->
+        <!--      </template>-->
+        <!--      <template-->
+        <!--          v-for="(filter, i) in appliedFiltersMatchingSearchString"-->
+        <!--      >-->
 
 
-<!--      <template v-if="facetsByCategoryCount && !searchString && filters.length">-->
-<!--        <v-subheader class="">-->
-<!--          Available-->
-<!--          ({{ facetsByCategoryCount }})-->
-<!--        </v-subheader>-->
-<!--        &lt;!&ndash;        <v-divider/>&ndash;&gt;-->
-<!--      </template>-->
-      <template
-          v-for="category in facetsByCategory"
-      >
-        <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
+        <!--        <component-->
+        <!--            :key="filter.key + $route.query.filter"-->
+        <!--            class=""-->
+        <!--            :is="'filter-item-' + filter.type"-->
+        <!--            :filter-key="filter.key"-->
+        <!--            :filter-value="filter.value"-->
+        <!--            @edit="setActiveFilter(filter.key, filter.value, false)"-->
+        <!--            @delete="deleteFilter(filter.key)"-->
+        <!--        />-->
+        <!--      </template>-->
+        <!--      <v-divider-->
+        <!--          v-if="appliedFiltersMatchingSearchString.length"-->
+        <!--          class="mb-6 mt-6"-->
+        <!--      />-->
 
-        <v-list-item
-            v-for="filterConfig in category.filterConfigs"
-            :key="category.displayName + filterConfig.key"
-            @click="setActiveFilter(filterConfig.key, null, !getAppliedFilter(filterConfig.key))"
+
+        <!--      <template v-if="facetsByCategoryCount && !searchString && filters.length">-->
+        <!--        <v-subheader class="">-->
+        <!--          Available-->
+        <!--          ({{ facetsByCategoryCount }})-->
+        <!--        </v-subheader>-->
+        <!--        &lt;!&ndash;        <v-divider/>&ndash;&gt;-->
+        <!--      </template>-->
+        <template
+            v-for="category in facetsByCategory"
         >
-          <v-list-item-icon>
-            <v-icon>{{ filterConfig.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title
-                v-if="getAppliedFilter(filterConfig.key)"
-                class="font-weight-bold primary--text"
-            >
-              <template v-if="filterConfig.type === 'boolean'">
-                {{ filterConfig.displayName }}:
-                {{ url.readFilterValue(entityType, filterConfig.key) }}
-              </template>
+          <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
 
-              <template v-else-if="filterConfig.type === 'select'">
+          <!--            @click="setActiveFilter(filterConfig.key, null, !getAppliedFilter(filterConfig.key))"-->
+          <v-list-item
+              v-for="filterConfig in category.filterConfigs"
+              :key="category.displayName + filterConfig.key"
+              @click="$emit('select', filterConfig.key)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ filterConfig.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title
+                  v-if="getAppliedFilter(filterConfig.key)"
+                  class="font-weight-bold primary--text"
+              >
+                <template v-if="filterConfig.type === 'boolean'">
+                  {{ filterConfig.displayName }}:
+                  {{ url.readFilterValue(entityType, filterConfig.key) }}
+                </template>
+
+                <template v-else-if="filterConfig.type === 'select'">
+                  {{ filterConfig.displayName }}
+                  <filter-select-value-as-string
+                      :filter-value="getAppliedFilter(filterConfig.key).value"
+                      :filter-key="filterConfig.key"
+                      count
+                  />
+                </template>
+
+                <template v-else-if="filterConfig.type === 'search'">
+                  {{ filterConfig.displayName }}: "{{ getAppliedFilter(filterConfig.key).value }}"
+                </template>
+                <template v-else-if="filterConfig.type === 'range'">
+                  {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
+                </template>
+                <template v-else>
+                  {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
+                </template>
+
+                <!--                  <span-->
+                <!--                      class="body-2 font-weight-bold"-->
+                <!--                    v-if="appliedFilters.map(f => f.key).includes(filterConfig.key)"-->
+                <!--                  >(applied)</span>-->
+              </v-list-item-title>
+              <v-list-item-title v-else>
                 {{ filterConfig.displayName }}
-                <filter-select-value-as-string
-                    :filter-value="getAppliedFilter(filterConfig.key).value"
-                    :filter-key="filterConfig.key"
-                    count
-                />
-              </template>
 
-              <template v-else-if="filterConfig.type === 'search'">
-                {{ filterConfig.displayName }}: "{{ getAppliedFilter(filterConfig.key).value }}"
-              </template>
-              <template v-else-if="filterConfig.type === 'range'">
-                {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
-              </template>
-              <template v-else >
-                {{ filterConfig.displayName }}: {{ getAppliedFilter(filterConfig.key).value }}
-              </template>
-
-              <!--                  <span-->
-              <!--                      class="body-2 font-weight-bold"-->
-              <!--                    v-if="appliedFilters.map(f => f.key).includes(filterConfig.key)"-->
-              <!--                  >(applied)</span>-->
-            </v-list-item-title>
-            <v-list-item-title v-else>
-              {{ filterConfig.displayName }}
-
-            </v-list-item-title>
-            <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
-            <!--              {{ filterConfig.type }}-->
-            <!--            </v-list-item-subtitle>-->
-          </v-list-item-content>
-        </v-list-item>
-      </template>
+              </v-list-item-title>
+              <!--            <v-list-item-subtitle :class="{'grey&#45;&#45;text': disabledKeys.includes(filterConfig.key)}">-->
+              <!--              {{ filterConfig.type }}-->
+              <!--            </v-list-item-subtitle>-->
+            </v-list-item-content>
+          </v-list-item>
+        </template>
 
 
-    </v-list>
+      </v-list>
+    </v-card-text>
 
     <v-dialog
         v-model="isActiveFilterDialogOpen"
@@ -181,8 +186,7 @@ export default {
 
     FilterSelectValueAsString,
   },
-  props: {
-  },
+  props: {},
   data() {
     return {
       foo: 42,
@@ -202,7 +206,7 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
-    filters(){
+    filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
     activeFilterConfig() {
@@ -215,7 +219,9 @@ export default {
           this.searchString,
           // this.includeOnlyTypes,
           // this.filters.map(f => f.key),
-      )
+      ).filter(f => {
+        return f.displayName !== "popular"
+      })
     },
     facetsByCategoryCount() {
       let sum = 0
@@ -270,7 +276,7 @@ export default {
         this.searchString = ""
       }
     },
-    isActiveFilterDialogOpen(to, from){
+    isActiveFilterDialogOpen(to, from) {
       if (!to) this.setActiveFilter(null, null, null)
     }
   }
