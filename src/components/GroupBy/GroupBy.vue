@@ -137,7 +137,6 @@ export default {
       if (this.filterKey === "publication_year") {
         console.log("group by year")
         ret.sort((a, b) => {
-          console.log("a, b", a)
           return (a.value > b.value) ? -1 : 1
         })
       }
