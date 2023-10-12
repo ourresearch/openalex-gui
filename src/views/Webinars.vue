@@ -98,8 +98,8 @@ export default {
           location: "Virtual (link sent after registration)",
           presenters: "Kyle Demes & Jason Portenoy",
           summary: "Because research is disseminated in many ways, often independent of Universities, most institutions don’t have a catalog of the works published by their researchers. This gap has severely constrained the ability of institutions and funders to make informed management decisions, without paying for access to costly third-party databases. OpenAlex is a free, completely open database of the global research ecosystem that can provide research leaders with the data they need about the research by their institution and peers. In this webinar, we will demonstrate how to perform some of the most common analyses of bibliometric data performed by research leaders using OpenAlex—specifically: (1) identifying areas of research strength (2) assessing current and potential research collaborators (3) providing objective evidence of impact and position within a field for reports and grant proposals. We will end by highlighting some of the additional benefits of the OpenAlex model to institutional intelligence, like integration with internal research management systems, external profiling of research(ers), and building derivative tools off the database for custom research intelligence needs.",
-          video_link: null,
-          slides: null
+          video_link: "https://youtu.be/FbbeUGd6i-4",
+          slides: "Research.pdf"
         },
         {
           title: "Using OpenAlex for International Intelligence",
