@@ -33,43 +33,40 @@
           <!--        </v-col>-->
           <v-col cols="12" sm="12">
             <v-card rounded>
-              <v-toolbar flat class="">
+              <v-toolbar flat class=""  :extended="isGroupByView">
                 <v-btn icon v-if="isGroupByView" @click="clearGroupBy">
                   <v-icon>mdi-arrow-left</v-icon>
                 </v-btn>
-                <v-toolbar-title>
+                <v-toolbar-title v-if="!isGroupByView">
                   Results
-                  <span v-if="isGroupByView" class="body-2">({{ listResultsCount | millify }})</span>
                 </v-toolbar-title>
+                <span class="body-1" v-if="isGroupByView">
+                  results
+<!--                  {{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}-->
+                </span>
                 <v-spacer/>
-<!--                <span class="body-2">-->
-<!--                  {{ listResultsCount | millify }}-->
-<!--                </span>-->
+                <!--                <span class="body-2">-->
+                <!--                  {{ listResultsCount | millify }}-->
+                <!--                </span>-->
 
-                <group-by-selector />
+                <group-by-selector v-if="!isGroupByView"/>
 
                 <export-button
                     style="margin-right:-13px;"
-                    v-if="!isGroupByView"
                 />
 
-              </v-toolbar>
-<!--              <v-divider/>-->
-              <v-toolbar flat>
-                <template v-if="isGroupByView">
-<!--                  <span class="grey&#45;&#45;text">-->
-<!--                  Works count by <span class="font-weight-bold">{{ groupByConfig.displayName }}:</span>-->
-<!--                  </span>-->
-                  <group-by-selector />
-                  <v-spacer />
-                  <v-btn icon><v-icon>mdi-dots-vertical</v-icon></v-btn>
-                  <v-btn icon @click="clearGroupBy"><v-icon>mdi-close</v-icon></v-btn>
+                <template v-slot:extension v-if="groupByConfig">
+                  <v-toolbar-title>
+                    Group by {{ groupByConfig.displayName }}
+                  </v-toolbar-title>
                 </template>
-                <template v-else>
 
-                  <v-spacer></v-spacer>
-                  <sort-button />
-                </template>
+              </v-toolbar>
+                            <v-divider/>
+              <v-toolbar flat v-if="!isGroupByView">
+                <span class="grey--text">{{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}</span>
+                <v-spacer />
+                <sort-button  />
               </v-toolbar>
 
               <div>
