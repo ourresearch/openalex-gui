@@ -1,9 +1,9 @@
 <template>
   <div>
-
     <template v-if="isGroupBy">
       <v-btn icon
              :href="url.makeApiUrl($route, true)"
+             :disabled="disabled"
       >
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
@@ -56,7 +56,7 @@
             <v-icon>mdi-tray-arrow-down</v-icon>
           </v-btn>
         </template>
-        <v-card v-if="disabled" class="">
+        <v-card v-if="isTooManyResultsToExport" class="">
           <div class="error--text pa-4 pb-0 font-weight-bold">
             Too many results to export.
           </div>
@@ -140,13 +140,18 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "resultsCount",
     ]),
     isExportFinished() {
       return this.exportObj.result_url
     },
     isGroupBy() {
       return !!this.$route.query.group_by
+    },
+    isTooManyResultsToExport(){
+      return this.resultsCount > 100000
     }
+
   },
 
   methods: {

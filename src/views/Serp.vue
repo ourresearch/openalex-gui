@@ -34,52 +34,49 @@
           <v-col cols="12" sm="12">
             <v-card rounded>
               <v-toolbar flat class="">
+                <v-btn icon v-if="isGroupByView" @click="clearGroupBy">
+                  <v-icon>mdi-arrow-left</v-icon>
+                </v-btn>
                 <v-toolbar-title>
-                  <v-btn v-if="resultsTab===1" icon @click="clearGroupBy">
-                    <v-icon>mdi-arrow-left</v-icon>
-                  </v-btn>
-                  <template v-if="groupByConfig">
-                    <!--                {{ groupByConfig.displayName }}-->
-
-                  </template>
-                  <template v-else>
-                    Results
-                  </template>
-
+                  Results
+                  <span v-if="isGroupByView" class="body-2">({{ listResultsCount | millify }})</span>
                 </v-toolbar-title>
                 <v-spacer/>
-                <group-by-selector/>
+<!--                <span class="body-2">-->
+<!--                  {{ listResultsCount | millify }}-->
+<!--                </span>-->
+
+                <group-by-selector />
 
                 <export-button
-                    :disabled="resultsCount > 100000"
+                    style="margin-right:-13px;"
+                    v-if="!isGroupByView"
                 />
 
-                <v-tabs class="d-none" v-model="resultsTab">
-                  <v-tab>Results</v-tab>
-                  <v-tab>Group by</v-tab>
-                </v-tabs>
+              </v-toolbar>
+<!--              <v-divider/>-->
+              <v-toolbar flat>
+                <template v-if="isGroupByView">
+<!--                  <span class="grey&#45;&#45;text">-->
+<!--                  Works count by <span class="font-weight-bold">{{ groupByConfig.displayName }}:</span>-->
+<!--                  </span>-->
+                  <group-by-selector />
+                  <v-spacer />
+                  <v-btn icon><v-icon>mdi-dots-vertical</v-icon></v-btn>
+                  <v-btn icon @click="clearGroupBy"><v-icon>mdi-close</v-icon></v-btn>
+                </template>
+                <template v-else>
+
+                  <v-spacer></v-spacer>
+                  <sort-button />
+                </template>
               </v-toolbar>
 
-              <v-divider/>
+              <div>
+                <group-by v-if="isGroupByView"/>
+                <serp-results-list v-else :results-object="resultsObject"/>
 
-              <v-tabs-items v-model="resultsTab">
-                <v-tab-item>
-                  <!--                <serp-toolbar id="serp-toolbar"/>-->
-                  <v-toolbar>
-                    <div class="grey--text">about {{ resultsCount | toPrecision }} results</div>
-                    <v-spacer></v-spacer>
-                    <sort-button :disabled="isGroupByView"/>
-                  </v-toolbar>
-                  <serp-results-list :results-object="resultsObject" :api-mode="false" class="pb-8"/>
-                </v-tab-item>
-                <!--              <v-tab-item>-->
-                <!--                <v-card>overview</v-card>-->
-                <!--              </v-tab-item>-->
-                <v-tab-item>
-                  <!--                <pinboard :summaries="groupByKeys" :filters="resultsFilters"/>-->
-                  <group-by/>
-                </v-tab-item>
-              </v-tabs-items>
+              </div>
             </v-card>
 
           </v-col>
@@ -190,6 +187,8 @@ export default {
       lastGroupByValue: null,
       groupByKeys: [],
       groupBySearchString: "",
+
+      listResultsCount: null, // not the group_by one
 
 
       // temp
@@ -309,7 +308,10 @@ export default {
         console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)
-        this.resultsObject = resp
+        this.resultsObject = resp;
+        if (!this.isGroupByView) this.listResultsCount = resp.meta.count
+
+
         this.$store.state.resultsObject = resp
 
         this.resultsFilters = filtersFromUrlStr(

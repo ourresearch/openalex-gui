@@ -1110,6 +1110,9 @@ const facetsByCategory = function (
         .filter(categoryObj => {
             return categoryObj.filterConfigs.length > 0
         })
+        .filter(categoryObj => {
+            return !(searchString && categoryObj.displayName === "popular")
+        })
 
 
 }
