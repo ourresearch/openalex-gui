@@ -1,6 +1,6 @@
 <template>
   <v-list-item class="content " :to="clickRoute">
-    <v-list-item-icon>
+    <v-list-item-icon v-if="!$vuetify.breakpoint.mobile">
       <v-icon>mdi-file-document-outline</v-icon>
     </v-list-item-icon>
     <v-list-item-content class="">
@@ -63,7 +63,7 @@
 
 
     </v-list-item-content>
-    <v-list-item-action style="width: 100px;">
+    <v-list-item-action>
       <template v-if="$vuetify.breakpoint.mobile">
         <v-btn
             v-if="fulltextLinkObj"
