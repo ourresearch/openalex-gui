@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-progress-circular color="grey" :size="loadingSpinnerSize" v-if="isLoading" indeterminate></v-progress-circular>
+    <v-progress-circular :color="color" :size="loadingSpinnerSize" v-if="isLoading" indeterminate></v-progress-circular>
     <span v-if="count">
     {{ count | millify }}
 
@@ -23,10 +23,11 @@ export default {
     entityType: String,
     loadingSpinnerSize: {
       type: Number,
-      default: 24
+      default: 28
     },
     filterKey: String,
     filterValue: String|Boolean,
+    color: String,
   },
   data() {
     return {

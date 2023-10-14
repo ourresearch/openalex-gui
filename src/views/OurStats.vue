@@ -57,6 +57,7 @@
                             :loading-spinner-size="12"
                             :filter-key="highlightFilter.key"
                             :filter-value="highlightFilter.value"
+                            color="grey"
                             class="font-weight-bold"
                           />
                           <span>
