@@ -1,10 +1,18 @@
 <template>
   <v-container class="page">
 
-    <div class="text-h1">Webinars</div>
-    <div class="text-h5 mt-4">
-      Our free how-to webinars are on second Thursday of each month at 12pm Eastern Time. Sign up below!
-    </div>
+    <v-card
+        rounded
+        flat
+    >
+<!--        class="pa-8 py-12"-->
+<!--        color="light-blue lighten-5" -->
+      <div class="text-h1">Webinars</div>
+      <div class="text-h5 mt-4">
+        Our free how-to webinars are on second Thursday of each month at 12pm ET. Sign up below!
+      </div>
+
+    </v-card>
 
     <div class="text-h2 mb-4" id="upcoming" style="margin-top: 100px;">
       Upcoming
@@ -14,7 +22,7 @@
     </div>
     <v-row class="">
       <v-col cols="12" lg="6" xl="4" v-for="item in upcomingItems" :key="item.title">
-        <v-card rounded>
+        <v-card rounded outlined>
           <v-card-title style="word-break: normal;">
             {{ item.title }}
           </v-card-title>
@@ -50,7 +58,7 @@
     </div>
     <v-row>
        <v-col cols="12" lg="6" xl="4" v-for="item in completeItems" :key="item.title">
-        <v-card rounded>
+        <v-card rounded outlined>
           <v-card-title style="word-break: normal;">
           <v-chip small outlined class="mb-2">
                 <v-icon small left>mdi-check</v-icon>
