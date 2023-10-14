@@ -1,5 +1,6 @@
 <template>
   <v-container class="page">
+
     <div class="text-h4">
       Current stats
     </div>
@@ -16,15 +17,18 @@
             <v-hover>
             <v-card
                 rounded
+                flat
                 class="fill-height d-flex flex-column pb-3"
             >
+<!--                :color="`${cardData.color} lighten-5`"-->
 <!--                :to="{name: 'Serp', params:{ entityType: cardData.name}}"-->
-              <div class="flex-grow-1 ">
+              <div class="flex-grow-1 " :class="`${cardData.color}--text`">
                 <div class="d-flex align-baseline pa-4 pb-2">
-                  <v-icon left large>{{ cardData.icon }}</v-icon>
+                  <v-icon left large :color="cardData.color">{{ cardData.icon }}</v-icon>
                   <our-stats-entry
                       :entity-type="cardData.name"
                       class="text-h4 font-weight-bold"
+
                   />
                   <span class="ml-2 text-capitalize">
                     {{ cardData.name }}
@@ -41,7 +45,7 @@
 
                 </div>
                 <v-divider v-if="cardData.highlightFilters" />
-                <v-list class="pa-0 " v-if="cardData.highlightFilters">
+                <v-list class="pa-0" color="transparent" v-if="cardData.highlightFilters">
                   <v-list-item
                     v-for="highlightFilter in cardData.highlightFilters"
                     :key="highlightFilter.key"
