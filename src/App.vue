@@ -333,8 +333,8 @@ body {
   //font-size: 16px;
 
   .v-application {
-    background: #F7F9FC !important;
-    //background: #444 !important;
+    //background: #F7F9FC !important;
+    background: #fff !important;
 
     .rounded {
       border-radius: 15px !important;
@@ -345,11 +345,11 @@ body {
     }
 
     .body-1 {
-      font-size: 15px !important;
+      font-size: 16px !important;
     }
 
     .body-2 {
-      font-size: 13px !important;
+      font-size: 14px !important;
     }
 
     .subtitle-1 {
@@ -418,5 +418,9 @@ body {
 img.site-footer-logo {
   width: 60px;
 
+}
+
+.page {
+  margin-top: 70px;
 }
 </style>

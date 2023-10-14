@@ -19,8 +19,8 @@
                 rounded
                 flat
                 class="fill-height d-flex flex-column pb-3"
+                :color="`${cardData.color} lighten-5`"
             >
-<!--                :color="`${cardData.color} lighten-5`"-->
 <!--                :to="{name: 'Serp', params:{ entityType: cardData.name}}"-->
               <div class="flex-grow-1 " :class="`${cardData.color}--text`">
                 <div class="d-flex align-baseline pa-4 pb-2">
