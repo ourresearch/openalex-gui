@@ -421,6 +421,6 @@ img.site-footer-logo {
 }
 
 .page {
-  margin-top: 70px;
+  margin-top: 50px;
 }
 </style>

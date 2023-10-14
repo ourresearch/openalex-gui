@@ -1,70 +1,56 @@
 <template>
   <v-container class="page">
-    <h3 class="text-h3">About</h3>
-    <p>
-      OpenAlex is a free and open catalog of the world's scholarly papers, researchers, journals, and institutions
-      &mdash; along with all the ways they're connected to one another.
-    </p>
-    <p>
+    <v-card
+        rounded
+        flat
+    >
+      <!--        class="pa-8 py-12"-->
+      <!--        color="light-blue lighten-5" -->
+      <div class="text-h1">About</div>
+      <div class="text-h5 mt-4">
+        OpenAlex is a free and open catalog of the world's scholarly research system
+      </div>
 
-      Using OpenAlex, you can <strong>build</strong> your own scholarly search engine, recommender service, or trend
-      detector. You can help <strong>manage</strong> research by tracking impact, spotting emerging fields, and
-      identifying key groups. And you can do <strong>research</strong> to better understand how scholarship works..
-    </p>
-    <p>
-      Because we think all research should be free and open, OpenAlex is free and open itself:
-    </p>
-    <ul>
-      <li>
-        We're operated by a <a href="http://ourresearch.org/transparency">sustainable and transparent nonprofit,</a>
-      </li>
-      <li>
-        our <a href="https://docs.openalex.org/download-all-data/openalex-snapshot">complete dataset</a> is free under the
-        <a href="https://creativecommons.org/share-your-work/public-domain/cc0/">CC0 license,</a>
-      </li>
-      <li>
-        We offer a
-        <a href="https://docs.openalex.org/">free API,</a>
-        and
-      </li>
-      <li>
-        <a href="https://github.com/orgs/ourresearch/repositories?language=&q=openalex&sort=&type=public">Our code
-        </a> is fully open-source.
-      </li>
-    </ul>
+    </v-card>
 
-    <p class="mt-6">
-      We believe the global research system is one of humankind's most beautiful creations. OpenAlex aims to make that
-      whole beautiful creation available to everyone, everywhere.
-    </p>
+    <div class="text-h2 mb-4" id="upcoming" style="margin-top: 100px;">
+      What we do
+      <v-btn icon to="#what-we-do">
+        <v-icon>mdi-link</v-icon>
+      </v-btn>
+    </div>
+    <div>
+      <p>
+        The ancient <a
+          href="https://en.wikipedia.org/wiki/Library_of_Alexandria">Library of Alexandria</a> aimed to create a universal
+        collection of scholarship, indexed using the first library catalog, the
+        <a href="https://en.wikipedia.org/wiki/Pinakes">Pinakes.</a> We're working toward that same goal, but making it
+        completely open:
+      </p>
+      <ul>
+
+        <li>
+          Our data is free and <a href="https://docs.openalex.org/additional-help/faq#how-is-openalex-licensed"
+                                  target="_blank">reusable</a>, available via <a
+            href="https://docs.openalex.org/download-all-data/openalex-snapshot">bulk download</a> or <a
+            href="https://docs.openalex.org/">API,</a>
+        </li>
+        <li>
+          <a href="https://github.com/orgs/ourresearch/repositories?language=&q=openalex&sort=&type=public">our code
+          </a> is fully open-source, and
+        </li>
+        <li>
+          we're governed by a <a href="http://ourresearch.org/transparency">sustainable and transparent nonprofit.</a>
+        </li>
+      </ul>
+      <p class="mt-6">
+        We believe the global research system is one of humankind's most beautiful creations. OpenAlex aims to make that
+        whole beautiful creation available to everyone, everywhere.
+      </p>
 
 
-    <h4 class="text-h4" id="past-and-future">Past and future</h4>
-    <p>
-      Let's start <em>way</em> back at the beginning, with the ancient <a
-        href="https://en.wikipedia.org/wiki/Library_of_Alexandria">Library of Alexandria.</a> Working create a Universal
-      Library, they didn't just gather knowledge &mdash; they made it useful by indexing it in the
-      world's first library catalog, the
-      <a href="https://en.wikipedia.org/wiki/Pinakes">Pinakes.</a> That's what we're trying to do, too, and so our name
-      is an homage to them!
-    </p>
-    <p>
-      Fast forward a few millenia: OpenAlex had been a dream at
-      <a href="https://ourresearch.org">our little nonprofit</a> for a long time, but two doors opened simultaneously in
-      May 2021. First,
-      <a href="https://blog.ourresearch.org/arcadia-2021-grant/">we received a generous grant</a> from <a
-        href="https://www.arcadiafund.org.uk/">Arcadia, a charitable fund of Lisbet Rausing and Peter Baldwin.</a>
-      Second, Microsoft announced it would shutter <a
-        href="https://www.microsoft.com/en-us/research/project/microsoft-academic-graph/">Microsoft Academic Graph
-        (MAG),</a> which much of the community has come to rely upon as our best index of scholarly communication. So, we
-      had the means and the opportunity, and we ran with it!
-    </p>
-    <p>
-      OpenAlex beta launched on January 3rd, 2022. Currently the data is available via an <a
-        href="https://docs.openalex.org/">API</a> and a full <a
-        href="https://docs.openalex.org/download-all-data/openalex-snapshot">database snapshot.</a> We're also working
-      on a web-based graphical user interface.
-    </p>
+    </div>
+
 
     <h4 class="text-h4" id="contact">Contact</h4>
     <p>
@@ -75,7 +61,7 @@
 
     <p>
       You can also stay in touch with us via the <a href="https://groups.google.com/g/openalex-users">OpenAlex User
-        Group</a> and via Twitter (<a href="https://twitter.com/openalex_org">@OpenAlex_org</a>) and Mastodon (<a
+      Group</a> and via Twitter (<a href="https://twitter.com/openalex_org">@OpenAlex_org</a>) and Mastodon (<a
         href="https://mastodon.social/@OpenAlex">@OpenAlex@mastodon.social</a>).
     </p>
 
@@ -110,7 +96,8 @@
       How does OpenAlex compare to other scholarly data sources like Dimensions, Scopus, Google Scholar, etc.?
     </p>
     <p>
-      That is a big question! There are many ways to measure this, and we encourage you to try out the different options to see what is best for you.
+      That is a big question! There are many ways to measure this, and we encourage you to try out the different options
+      to see what is best for you.
     </p>
     <p>
       Here we offer a comparison of some of the different options available, across just a few aspects:
@@ -127,82 +114,92 @@
           <col style="width: 170.333333px">
         </colgroup>
         <thead>
-          <tr>
-            <th class="tg-loku"></th>
-            <th class="tg-q56f">Number of works</th>
-            <th class="tg-q56f">Open Access works</th>
-            <th class="tg-q56f">Citations</th>
-            <th class="tg-q56f">Price</th>
-            <th class="tg-q56f">Data Openness</th>
-            <th class="tg-q56f">Org structure</th>
-          </tr>
+        <tr>
+          <th class="tg-loku"></th>
+          <th class="tg-q56f">Number of works</th>
+          <th class="tg-q56f">Open Access works</th>
+          <th class="tg-q56f">Citations</th>
+          <th class="tg-q56f">Price</th>
+          <th class="tg-q56f">Data Openness</th>
+          <th class="tg-q56f">Org structure</th>
+        </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="tg-lhf6"><a href="https://openalex.org/">OpenAlex</a></td>
-            <td class="tg-loku">243M</td>
-            <td class="tg-loku">48M</td>
-            <td class="tg-loku">1.9B</td>
-            <td class="tg-loku">Freemium</td>
-            <td class="tg-loku">Fully open, CC0 license</td>
-            <td class="tg-loku">Non-profit</td>
-          </tr>
-          <tr>
-            <td class="tg-lhf6"><a href="https://www.elsevier.com/solutions/scopus" target="_blank" rel="noopener noreferrer">Scopus</a></td>
-            <td class="tg-loku">87M</td>
-            <td class="tg-loku"><span style="font-style:normal">20.5M (</span><a
-                href="https://blog.scopus.com/posts/scopus-now-includes-90-million-content-records" target="_blank" rel="noopener noreferrer">ref</a><span
-                style="font-style:normal">)</span></td>
-            <td class="tg-loku">1.8B</td>
-            <td class="tg-loku">Subscription</td>
-            <td class="tg-loku">Closed</td>
-            <td class="tg-loku">For Profit</td>
-          </tr>
-          <tr>
-            <td class="tg-lhf6"><a href="https://clarivate.com/webofsciencegroup/solutions/web-of-science" target="_blank" rel="noopener noreferrer">Web of
-                Science (core)</a></td>
-            <td class="tg-loku"><span style="font-style:normal">87M (</span><a
-                href="https://clarivate.libguides.com/librarianresources/coverage" target="_blank" rel="noopener noreferrer">ref</a><span
-                style="font-style:normal">)</span></td>
-            <td class="tg-loku"><span style="font-style:normal">12M (</span><a
-                href="https://clarivate.com/webofsciencegroup/solutions/open-access/" target="_blank" rel="noopener noreferrer">ref</a><span
-                style="font-style:normal">)</span></td>
-            <td class="tg-loku">1.8B</td>
-            <td class="tg-loku">Subscription</td>
-            <td class="tg-loku">Closed</td>
-            <td class="tg-loku">For Profit</td>
-          </tr>
-          <tr>
-            <td class="tg-lhf6"><a href="https://www.dimensions.ai/" target="_blank" rel="noopener noreferrer">Dimensions</a></td>
-            <td class="tg-loku">135M</td>
-            <td class="tg-loku"><span style="font-style:normal">29M (</span><a
-                href="https://www.dimensions.ai/resources/evaluate-your-universitys-oa-status/" target="_blank" rel="noopener noreferrer">ref</a><span
-                style="font-style:normal">)</span></td>
-            <td class="tg-loku">1.7B</td>
-            <td class="tg-loku">Freemium</td>
-            <td class="tg-loku">Partly open, personal use</td>
-            <td class="tg-loku">For Profit</td>
-          </tr>
-          <tr>
-            <td class="tg-lhf6"><a href="https://scholar.google.com/" target="_blank" rel="noopener noreferrer">Google Scholar</a></td>
-            <td class="tg-loku"><span style="font-style:normal">389M (</span><a
-                href="https://doi.org/10.1007/s11192-018-2958-5" target="_blank" rel="noopener noreferrer">estimated</a><span style="font-style:normal">)</span>
-            </td>
-            <td class="tg-loku">?</td>
-            <td class="tg-loku">?</td>
-            <td class="tg-loku">Free</td>
-            <td class="tg-loku">Closed</td>
-            <td class="tg-loku">For Profit</td>
-          </tr>
-          <tr>
-            <td class="tg-lhf6"><a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer">Crossref</a></td>
-            <td class="tg-loku">145M</td>
-            <td class="tg-loku">20M</td>
-            <td class="tg-loku">1.45B</td>
-            <td class="tg-loku">Free</td>
-            <td class="tg-loku">Fully open, CC0 license</td>
-            <td class="tg-loku">Non-profit</td>
-          </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://openalex.org/">OpenAlex</a></td>
+          <td class="tg-loku">243M</td>
+          <td class="tg-loku">48M</td>
+          <td class="tg-loku">1.9B</td>
+          <td class="tg-loku">Freemium</td>
+          <td class="tg-loku">Fully open, CC0 license</td>
+          <td class="tg-loku">Non-profit</td>
+        </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://www.elsevier.com/solutions/scopus" target="_blank"
+                                 rel="noopener noreferrer">Scopus</a></td>
+          <td class="tg-loku">87M</td>
+          <td class="tg-loku"><span style="font-style:normal">20.5M (</span><a
+              href="https://blog.scopus.com/posts/scopus-now-includes-90-million-content-records" target="_blank"
+              rel="noopener noreferrer">ref</a><span
+              style="font-style:normal">)</span></td>
+          <td class="tg-loku">1.8B</td>
+          <td class="tg-loku">Subscription</td>
+          <td class="tg-loku">Closed</td>
+          <td class="tg-loku">For Profit</td>
+        </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://clarivate.com/webofsciencegroup/solutions/web-of-science" target="_blank"
+                                 rel="noopener noreferrer">Web of
+            Science (core)</a></td>
+          <td class="tg-loku"><span style="font-style:normal">87M (</span><a
+              href="https://clarivate.libguides.com/librarianresources/coverage" target="_blank"
+              rel="noopener noreferrer">ref</a><span
+              style="font-style:normal">)</span></td>
+          <td class="tg-loku"><span style="font-style:normal">12M (</span><a
+              href="https://clarivate.com/webofsciencegroup/solutions/open-access/" target="_blank"
+              rel="noopener noreferrer">ref</a><span
+              style="font-style:normal">)</span></td>
+          <td class="tg-loku">1.8B</td>
+          <td class="tg-loku">Subscription</td>
+          <td class="tg-loku">Closed</td>
+          <td class="tg-loku">For Profit</td>
+        </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://www.dimensions.ai/" target="_blank"
+                                 rel="noopener noreferrer">Dimensions</a></td>
+          <td class="tg-loku">135M</td>
+          <td class="tg-loku"><span style="font-style:normal">29M (</span><a
+              href="https://www.dimensions.ai/resources/evaluate-your-universitys-oa-status/" target="_blank"
+              rel="noopener noreferrer">ref</a><span
+              style="font-style:normal">)</span></td>
+          <td class="tg-loku">1.7B</td>
+          <td class="tg-loku">Freemium</td>
+          <td class="tg-loku">Partly open, personal use</td>
+          <td class="tg-loku">For Profit</td>
+        </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://scholar.google.com/" target="_blank" rel="noopener noreferrer">Google
+            Scholar</a></td>
+          <td class="tg-loku"><span style="font-style:normal">389M (</span><a
+              href="https://doi.org/10.1007/s11192-018-2958-5" target="_blank"
+              rel="noopener noreferrer">estimated</a><span style="font-style:normal">)</span>
+          </td>
+          <td class="tg-loku">?</td>
+          <td class="tg-loku">?</td>
+          <td class="tg-loku">Free</td>
+          <td class="tg-loku">Closed</td>
+          <td class="tg-loku">For Profit</td>
+        </tr>
+        <tr>
+          <td class="tg-lhf6"><a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer">Crossref</a>
+          </td>
+          <td class="tg-loku">145M</td>
+          <td class="tg-loku">20M</td>
+          <td class="tg-loku">1.45B</td>
+          <td class="tg-loku">Free</td>
+          <td class="tg-loku">Fully open, CC0 license</td>
+          <td class="tg-loku">Non-profit</td>
+        </tr>
         </tbody>
       </v-table>
     </div>
@@ -222,7 +219,7 @@
 <script>
 export default {
   name: "About",
-  metaInfo: { title: "About" }
+  metaInfo: {title: "About"}
 }
 </script>
 
