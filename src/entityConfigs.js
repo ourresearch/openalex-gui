@@ -16,6 +16,7 @@ const entityConfigs = {
         placeholder: "Search scholarly papers, books, and more",
         filterName: "work",
         filterKey: "ids.openalex",
+        color: "blue",
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
             {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
@@ -36,6 +37,7 @@ const entityConfigs = {
         placeholder: "Search scholarly authors",
         filterName: "author",
         filterKey: "authorships.author.id",
+        color: "green",
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
             {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
@@ -54,6 +56,7 @@ const entityConfigs = {
         placeholder: "Search academic journals & repositories",
         filterName: "primary_location.source",
         filterKey: "primary_location.source.id",
+        color: "orange",
         highlightFilters: [
             {key: "is_oa", value: true, displayName: "that are Open Access"},
         ]
@@ -71,6 +74,7 @@ const entityConfigs = {
         placeholder: "Search academic publishers",
         filterName: "primary_location.source.publisher_lineage",
         filterKey: "primary_location.source.publisher_lineage",
+        color: "pink",
     },
     funders: {
         emoji: "💰",
@@ -85,6 +89,7 @@ const entityConfigs = {
         placeholder: "Search research funders",
         filterName: "grants.funder",
         filterKey: "grants.funder",
+        color: "brown",
     },
     institutions: {
         emoji: "🏫",
@@ -98,6 +103,7 @@ const entityConfigs = {
         placeholder: "Search academic institutions",
         filterName: "institutions",
         filterKey: "authorships.institutions.lineage",
+        color: "purple",
     },
     concepts: {
         emoji: "💡",
@@ -111,6 +117,7 @@ const entityConfigs = {
         placeholder: "Search topics",
         filterName: "concepts",
         filterKey: "concepts.id",
+        color: "blue-grey",
     },
 }
 
