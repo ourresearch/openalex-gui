@@ -57,7 +57,7 @@
 <!--        </v-btn>-->
 
 
-        <v-menu rounded offset-y content-class="no-highlight" min-width="150">
+        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">
           <template v-slot:activator="{on}">
             <v-btn icon color="" v-on="on">
               <v-icon class="">mdi-cog</v-icon>
@@ -89,6 +89,9 @@
             </v-list-item>
             <v-list-item to="/testimonials">
               Testimonials
+            </v-list-item>
+            <v-list-item to="/stats">
+              Statistics
             </v-list-item>
             <v-list-item to="/pricing">
               Pricing

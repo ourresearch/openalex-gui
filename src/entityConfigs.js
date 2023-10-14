@@ -15,7 +15,13 @@ const entityConfigs = {
         eg: "On the Electrodynamics of Moving Bodies",
         placeholder: "Search scholarly papers, books, and more",
         filterName: "work",
-        filterKey: "ids.openalex"
+        filterKey: "ids.openalex",
+        highlightFilters: [
+            {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
+            {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
+            {key: "type", value: "dataset", displayName: "datasets"},
+
+        ]
     },
     authors: {
         emoji: "🧑",
@@ -30,6 +36,10 @@ const entityConfigs = {
         placeholder: "Search scholarly authors",
         filterName: "author",
         filterKey: "authorships.author.id",
+        highlightFilters: [
+            {key: "has_orcid", value: true, displayName: "with ORCIDs"},
+            {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
+        ]
     },
     sources: {
         emoji: "📚",
@@ -44,6 +54,9 @@ const entityConfigs = {
         placeholder: "Search academic journals & repositories",
         filterName: "primary_location.source",
         filterKey: "primary_location.source.id",
+        highlightFilters: [
+            {key: "is_oa", value: true, displayName: "that are Open Access"},
+        ]
     },
     publishers: {
         emoji: "📚",

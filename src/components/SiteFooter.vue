@@ -18,6 +18,9 @@
           <div>
             <router-link to="/webinars">Webinars</router-link>
           </div>
+          <div>
+            <router-link to="/stats">Statistics</router-link>
+          </div>
         </v-col>
         <v-col cols="12" sm="2">
           <a href="https://docs.openalex.org/" target="_blank">

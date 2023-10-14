@@ -18,6 +18,7 @@ import Me from "../views/Me.vue"
 import goTo from 'vuetify/es5/services/goto'
 import Pricing from "../views/Pricing.vue";
 import Webinars from "../views/Webinars.vue";
+import OurStats from "../views/OurStats.vue";
 
 
 Vue.use(VueRouter)
@@ -66,7 +67,8 @@ const routes = [
     {path: '/contact', redirect: {name: "about"}},
     {path: '/pricing', component: Pricing},
     {path: '/webinars', component: Webinars},
-    {path: '/stats', component: OpenAlexStats},
+    // {path: '/stats', component: OpenAlexStats},
+    {path: '/stats', component: OurStats},
 
 
     // redirects to gitbook docs
