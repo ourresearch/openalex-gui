@@ -1,34 +1,80 @@
 <template>
-  <v-footer class="py-10 site-footer" dark color="#555">
+  <v-footer color="#fff" class="site-footer" style="border-top: 2px dashed #ccc; padding:50px 0 100px;">
     <v-container>
       <v-row>
+        <v-col cols="12" sm="5" class="">
+          <div>
+            <img
+                src="@/assets/openalex-logo-icon-black-and-white.png"
+                class="logo-icon mr-0 colorizable"
+                style="height: 35px;"
+            />
+          </div>
+          OpenAlex is a free index for the world's research ecosystem. It's made by <a
+            href="https://ourresearch.org">OurResearch</a> with support from
+
+          <a href="https://www.arcadiafund.org.uk/">Arcadia</a>&mdash;a
+          charitable fund of Lisbet Rausing and Peter Baldwin.
+        </v-col>
+        <v-spacer/>
         <v-col cols="12" sm="2">
+          <div class=" mb-4">Use</div>
+
+
           <div>
-            <router-link to="/about">About</router-link>
+            <a href="https://cookbook.openalex.org/" target="_blank">
+              Cookbook
+              <v-icon small color="primary">mdi-open-in-new</v-icon>
+            </a>
           </div>
-          <div>
-            <router-link to="/testimonials">Testimonials</router-link>
-          </div>
+
           <div>
             <router-link to="/pricing">Pricing</router-link>
           </div>
           <div>
-            <router-link to="/help">Help</router-link>
+          <router-link to="/testimonials">
+            Testimonials
+          </router-link>
+
+          </div>
+
+
+        </v-col>
+
+
+        <v-col cols="12" sm="2">
+          <div class=" mb-4">Learn</div>
+
+
+          <div>
+            <a href="https://help.openalex.org/" target="_blank">
+              Data reference
+              <v-icon small color="primary">mdi-open-in-new</v-icon>
+            </a>
+          </div>
+
+          <div>
+            <a href="https://docs.openalex.org/" target="_blank">
+              Developers guide
+              <v-icon small color="primary">mdi-open-in-new</v-icon>
+            </a>
+
+          </div>
+
+          <div>
+            <router-link to="/stats">Coverage stats</router-link>
+          </div>
+        </v-col>
+
+        <v-col cols="12" sm="2">
+          <div class=" mb-4">Connect</div>
+
+
+          <div>
+            <router-link to="/help">Contact</router-link>
           </div>
           <div>
             <router-link to="/webinars">Webinars</router-link>
-          </div>
-          <div>
-            <router-link to="/stats">Statistics</router-link>
-          </div>
-        </v-col>
-        <v-col cols="12" sm="2">
-          <a href="https://docs.openalex.org/" target="_blank">
-            Read the docs
-            <v-icon small>mdi-open-in-new</v-icon>
-          </a>
-          <div>
-            <router-link to="/about#contact">Contact</router-link>
           </div>
           <div>
             <a href="https://groups.google.com/g/openalex-users" target="_blank">Mailing list</a>
@@ -36,22 +82,10 @@
           <div>
             <a href="https://twitter.com/openalex_org" target="_blank">Twitter</a>
           </div>
-          <div>
-            <a href="https://github.com/orgs/ourresearch/repositories?language=&q=openalex&sort=&type=public"
-              target="_blank">Source code</a>
-          </div>
+
+
         </v-col>
-        <v-col cols="12" sm="4" class="text-center">
-          <router-link to="/">
-            <img class="site-footer-logo" src="@/assets/openalex-logo-icon-reverse.png" alt=""/>
-          </router-link>
-        </v-col>
-        <v-col cols="12" sm="4" class="body-2">
-          OpenAlex is made with ❤︎ by <a style="text-decoration: underline;"
-            href="https://ourresearch.org">OurResearch,</a> with generous support from <a
-            style="text-decoration: underline;" href="https://www.arcadiafund.org.uk/">Arcadia&mdash;a
-            charitable fund of Lisbet Rausing and Peter Baldwin</a>.
-        </v-col>
+
       </v-row>
     </v-container>
   </v-footer>
@@ -74,7 +108,7 @@ export default {
 
   a {
     text-decoration: none;
-    color: #fff;
+    //color: #fff;
 
     &:hover {
       text-decoration: underline;

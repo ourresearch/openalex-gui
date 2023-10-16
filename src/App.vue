@@ -394,18 +394,6 @@ body {
 }
 
 
-.site-footer {
-  line-height: 1.8;
-
-  a {
-    text-decoration: none;
-    color: #fff !important;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
 
 .v-expansion-panel-content__wrap {
   //padding: 0 16px 16px;
