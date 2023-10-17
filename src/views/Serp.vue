@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class=" serp-page">
 
     <div class="d-flex">
       <v-container class="py-0 pr-8">
@@ -331,17 +331,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.v-text-field--rounded {
-  border-radius: inherit;
-}
-
-
-.v-app-bar.mobile {
-  padding: 0 !important;
-}
-
-.serp-container.mobile {
-  padding: 5px !important;
-}
+  .container {
+    //max-width: 1024px !important;
+  }
 
 </style>

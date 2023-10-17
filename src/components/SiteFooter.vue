@@ -30,82 +30,32 @@
           charitable fund of Lisbet Rausing and Peter Baldwin.
         </v-col>
         <v-spacer/>
-        <v-col cols="12" sm="2">
-          <div class=" mb-4">Learn</div>
-
-
-
-
-          <div>
-            <router-link to="/pricing">Pricing</router-link>
-          </div>
-          <div>
-            <router-link to="/testimonials">
-              Testimonials
+        <v-col
+            cols="12"
+            sm="2"
+            v-for="col in navConfigs"
+            :key="col.name"
+        >
+          <div class=" mb-4">{{ col.name }}</div>
+          <div
+              v-for="link in col.links"
+              :key="link.name"
+          >
+            <router-link
+                v-if="link.to"
+                :to="link.to"
+            >
+              {{ link.name }}
             </router-link>
-
-          </div>
-
-          <div>
-            <router-link to="/stats">Coverage stats</router-link>
-          </div>
-
-
-        </v-col>
-
-
-        <v-col cols="12" sm="2">
-          <div class=" mb-4">Use</div>
-
-          <div>
-            <router-link to="/works">
-              Explore the data
-            </router-link>
-          </div>
-
-          <div>
-            <a href="https://cookbook.openalex.org/" target="_blank">
-              How-to guide
+            <a
+                v-if="link.href"
+                :href="link.href"
+                target="_blank"
+            >
+              {{ link.name }}
               <v-icon small color="primary">mdi-open-in-new</v-icon>
             </a>
           </div>
-
-
-          <div>
-            <a href="https://help.openalex.org/" target="_blank">
-              Data reference
-              <v-icon small color="primary">mdi-open-in-new</v-icon>
-            </a>
-          </div>
-
-          <div>
-            <a href="https://docs.openalex.org/" target="_blank">
-              Developers
-              <v-icon small color="primary">mdi-open-in-new</v-icon>
-            </a>
-
-          </div>
-
-        </v-col>
-
-        <v-col cols="12" sm="2">
-          <div class=" mb-4">Connect</div>
-
-
-          <div>
-            <router-link to="/help">Contact</router-link>
-          </div>
-          <div>
-            <router-link to="/webinars">Webinars</router-link>
-          </div>
-          <div>
-            <a href="https://groups.google.com/g/openalex-users" target="_blank">Mailing list</a>
-          </div>
-          <div>
-            <a href="https://twitter.com/openalex_org" target="_blank">Twitter</a>
-          </div>
-
-
         </v-col>
 
       </v-row>
@@ -114,8 +64,15 @@
 </template>
 
 <script>
+import {navConfigs} from "@/navConfigs";
+
 export default {
-  name: "SiteFooter"
+  name: "SiteFooter",
+  data() {
+    return {
+      navConfigs,
+    }
+  }
 }
 </script>
 

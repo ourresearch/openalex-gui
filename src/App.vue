@@ -1,8 +1,19 @@
 <template>
   <v-app>
-    <!--    <v-navigation-drawer app dark absolute clipped width="320" style="height: 100%;">-->
-    <!--      <filter-list :filters="resultsFilters" />-->
-    <!--    </v-navigation-drawer>-->
+    <v-navigation-drawer color="blue-grey lighten-5" app width="200" style="height: 100%;">
+      <v-list rounded nav >
+        <v-list-item to="/works" color="primary">
+          <v-list-item-icon>
+            <v-icon>mdi-magnify</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Explore
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
     <v-progress-linear
         indeterminate
         fixed color="primary"
@@ -20,7 +31,7 @@
 
     >
       <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
-<!--            v-if="$route.name !== 'Home'"-->
+        <!--            v-if="$route.name !== 'Home'"-->
         <router-link
             :to="{name: 'Home'}"
             class="logo-link pl-1"
@@ -38,23 +49,23 @@
               </span>
 
         </router-link>
-        <v-spacer />
-<!--        <search-box-new-->
-<!--            class="flex-grow-1"-->
-<!--            v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
-<!--        />-->
         <v-spacer/>
-<!--        <v-btn light target="_blank"-->
+        <!--        <search-box-new-->
+        <!--            class="flex-grow-1"-->
+        <!--            v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
+        <!--        />-->
+        <v-spacer/>
+        <!--        <v-btn light target="_blank"-->
 
-<!--               color="warning"-->
-<!--               rounded-->
-<!--               outlined-->
-<!--               class="ml-3"-->
-<!--               v-if="$vuetify.breakpoint.smAndUp"-->
-<!--               href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX&#45;&#45;7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">-->
-<!--          <v-icon left>mdi-alert</v-icon>-->
-<!--          Alpha version-->
-<!--        </v-btn>-->
+        <!--               color="warning"-->
+        <!--               rounded-->
+        <!--               outlined-->
+        <!--               class="ml-3"-->
+        <!--               v-if="$vuetify.breakpoint.smAndUp"-->
+        <!--               href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX&#45;&#45;7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">-->
+        <!--          <v-icon left>mdi-alert</v-icon>-->
+        <!--          Alpha version-->
+        <!--        </v-btn>-->
 
 
         <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">
@@ -77,56 +88,17 @@
           </v-list>
         </v-menu>
 
-        <v-menu offset-y content-class="no-highlight" min-width="150">
-          <template v-slot:activator="{on}">
-            <v-btn icon color="" v-on="on">
-              <v-icon class="">mdi-menu</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item to="/about">
-              About
-            </v-list-item>
-            <v-list-item to="/testimonials">
-              Testimonials
-            </v-list-item>
-            <v-list-item to="/stats">
-              Statistics
-            </v-list-item>
-            <v-list-item to="/pricing">
-              Pricing
-            </v-list-item>
-            <v-list-item to="/help">
-              Help
-            </v-list-item>
-            <v-list-item to="/webinars">
-              Webinars
-            </v-list-item>
-            <v-list-item to="/about#contact">
-              Contact
-            </v-list-item>
-            <v-list-item href="https://docs.openalex.org/" target="_blank">
-              Read the docs
-              <v-icon small right>mdi-open-in-new</v-icon>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+
 
 
       </v-container>
 
-<!--      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">-->
-<!--        <search-box-new-->
-<!--            class="flex-grow-1"-->
-<!--        />-->
-
-<!--      </template>-->
 
     </v-app-bar>
     <v-main>
       <router-view></router-view>
+    <site-footer/>
     </v-main>
-    <site-footer />
 
     <v-snackbar
         bottom
@@ -267,7 +239,6 @@ html, body {
 }
 
 
-
 .v-btn--active.no-active::before {
   opacity: 0.00005 !important;
 }
@@ -392,7 +363,6 @@ body {
 .v-list--two-line.v-list--dense .v-list-item {
   min-height: unset;
 }
-
 
 
 .v-expansion-panel-content__wrap {
