@@ -23,7 +23,7 @@
                 style="height: 35px;"
             />
           </div>
-          OpenAlex is a free index for the world's research ecosystem. It's made by <a
+          OpenAlex is a free index of the world's research ecosystem. It's made by <a
             href="https://ourresearch.org">OurResearch</a> with support from
 
           <a href="https://www.arcadiafund.org.uk/">Arcadia</a>&mdash;a
@@ -31,15 +31,10 @@
         </v-col>
         <v-spacer/>
         <v-col cols="12" sm="2">
-          <div class=" mb-4">Use</div>
+          <div class=" mb-4">Learn</div>
 
 
-          <div>
-            <a href="https://cookbook.openalex.org/" target="_blank">
-              Cookbook
-              <v-icon small color="primary">mdi-open-in-new</v-icon>
-            </a>
-          </div>
+
 
           <div>
             <router-link to="/pricing">Pricing</router-link>
@@ -51,12 +46,29 @@
 
           </div>
 
+          <div>
+            <router-link to="/stats">Coverage stats</router-link>
+          </div>
+
 
         </v-col>
 
 
         <v-col cols="12" sm="2">
-          <div class=" mb-4">Learn</div>
+          <div class=" mb-4">Use</div>
+
+          <div>
+            <router-link to="/works">
+              Explore the data
+            </router-link>
+          </div>
+
+          <div>
+            <a href="https://cookbook.openalex.org/" target="_blank">
+              How-to guide
+              <v-icon small color="primary">mdi-open-in-new</v-icon>
+            </a>
+          </div>
 
 
           <div>
@@ -68,15 +80,12 @@
 
           <div>
             <a href="https://docs.openalex.org/" target="_blank">
-              Developers guide
+              Developers
               <v-icon small color="primary">mdi-open-in-new</v-icon>
             </a>
 
           </div>
 
-          <div>
-            <router-link to="/stats">Coverage stats</router-link>
-          </div>
         </v-col>
 
         <v-col cols="12" sm="2">
