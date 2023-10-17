@@ -1,13 +1,22 @@
 <template>
   <div class="">
 
-    <!--    <v-toolbar dense flat color="transparent">-->
-    <!--&lt;!&ndash;      <v-toolbar-items style="margin-left:-7px;" >&ndash;&gt;-->
-    <!--&lt;!&ndash;        <entity-type-selector  />&ndash;&gt;-->
+    <div class="d-flex">
+      <v-container class="py-0 pr-8">
+        <div class="d-flex">
+          <filter-chips-list key="filter-chips-list"/>
+          <v-spacer/>
+          <group-by-selector />
 
-    <!--&lt;!&ndash;      </v-toolbar-items>&ndash;&gt;-->
-    <!--      <serp-tabs />-->
-    <!--    </v-toolbar>-->
+          <export-button
+              style="margin-right:-13px;"
+          />
+        </div>
+      </v-container>
+
+
+    </div>
+    <v-divider/>
 
     <v-container>
       <!--      <filter-string-->
@@ -22,7 +31,6 @@
             class="mb-3"
             key="api-editor"
         />
-        <filter-chips-list key="filter-chips-list"/>
 
         <v-row dense key="main-serp-row">
           <!--        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">-->
@@ -31,42 +39,39 @@
           <!--            <filter-list :filters="resultsFilters"/>-->
           <!--          </v-card>-->
           <!--        </v-col>-->
-          <v-col cols="12" sm="12">
-            <v-card rounded>
-              <v-toolbar flat class=""  :extended="isGroupByView">
-                <v-btn icon v-if="isGroupByView" @click="clearGroupBy">
-                  <v-icon>mdi-arrow-left</v-icon>
-                </v-btn>
-                <v-toolbar-title v-if="!isGroupByView">
-                  Results
-                </v-toolbar-title>
-                <span class="body-1" v-if="isGroupByView">
-                  results
-<!--                  {{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}-->
-                </span>
-                <v-spacer/>
-                <!--                <span class="body-2">-->
-                <!--                  {{ listResultsCount | millify }}-->
-                <!--                </span>-->
+<!--          <v-col cols="12" sm="12">-->
+<!--            <v-card flat>-->
+<!--              <v-toolbar flat class="" :extended="isGroupByView">-->
+<!--                <v-btn icon v-if="isGroupByView" @click="clearGroupBy">-->
+<!--                  <v-icon>mdi-arrow-left</v-icon>-->
+<!--                </v-btn>-->
+<!--                <v-toolbar-title v-if="!isGroupByView">-->
+<!--                  Results-->
+<!--                </v-toolbar-title>-->
+<!--                <span class="body-1" v-if="isGroupByView">-->
+<!--                  results-->
+<!--                  &lt;!&ndash;                  {{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}&ndash;&gt;-->
+<!--                </span>-->
+<!--                <v-spacer/>-->
+<!--                &lt;!&ndash;                <span class="body-2">&ndash;&gt;-->
+<!--                &lt;!&ndash;                  {{ listResultsCount | millify }}&ndash;&gt;-->
+<!--                &lt;!&ndash;                </span>&ndash;&gt;-->
 
-                <group-by-selector v-if="!isGroupByView"/>
 
-                <export-button
-                    style="margin-right:-13px;"
-                />
+<!--                <template v-slot:extension v-if="groupByConfig">-->
+<!--                  <v-toolbar-title>-->
+<!--                    Group by {{ groupByConfig.displayName }}-->
+<!--                  </v-toolbar-title>-->
+<!--                </template>-->
 
-                <template v-slot:extension v-if="groupByConfig">
-                  <v-toolbar-title>
-                    Group by {{ groupByConfig.displayName }}
-                  </v-toolbar-title>
-                </template>
-
-              </v-toolbar>
-                            <v-divider/>
+<!--              </v-toolbar>-->
+<!--              <v-divider/>-->
               <v-toolbar flat v-if="!isGroupByView">
-                <span class="grey--text">{{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}</span>
-                <v-spacer />
-                <sort-button  />
+                <span class="grey--text">{{ listResultsCount | millify }} {{
+                    entityType | pluralize(listResultsCount)
+                  }}</span>
+                <v-spacer/>
+                <sort-button/>
               </v-toolbar>
 
               <div>
