@@ -1,10 +1,11 @@
 const navConfigs = [
     {
-        name: "Learn",
+        name: "Get started",
+        icon: "mdi-timer-outline",
         links: [
             {
-                name: "Pricing",
-                to: "/pricing",
+                name: "Overview",
+                to: "/about",
             },
             {
                 name: "Testimonials",
@@ -18,23 +19,24 @@ const navConfigs = [
 
     },
     {
-        name: "Use",
+        name: "Learn more",
+        icon: "mdi-book-open-outline",
         links: [
-            {
-                name: "Explore the data",
-                to: "/works",
-            },
             {
                 name: "How-to guides",
                 href: "https://cookbook.openalex.org/",
+            },
+            {
+                name: "API docs",
+                href: "https://docs.openalex.org/",
             },
             {
                 name: "Data reference",
                 href: "https://help.openalex.org/",
             },
             {
-                name: "Developers",
-                href: "https://docs.openalex.org/",
+                name: "Upgrade",
+                to: "/pricing",
             },
         ],
 
@@ -42,6 +44,7 @@ const navConfigs = [
 
     {
         name: "Connect",
+        icon: "mdi-chat-outline",
         links: [
             {
                 name: "Contact",

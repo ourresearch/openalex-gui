@@ -1,7 +1,7 @@
 <template>
-  <div class=" serp-page">
+  <div class="serp-page">
 
-    <div class="d-flex">
+    <v-toolbar flat class="">
       <v-container class="py-0 pr-8">
         <div class="d-flex">
           <filter-chips-list key="filter-chips-list"/>
@@ -15,10 +15,10 @@
       </v-container>
 
 
-    </div>
+    </v-toolbar>
     <v-divider/>
 
-    <v-container>
+    <v-container style="max-width: 1260px; margin-left: 0;">
       <!--      <filter-string-->
       <!--          :filters="resultsFilters"-->
       <!--          class="mb-3"-->

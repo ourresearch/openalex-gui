@@ -3,7 +3,7 @@
     <div class="above-the-fold">
       <v-container style="margin-top: 150px">
         <div class="text-h2" style="line-height: 1.3;">
-          A free index of the world's research ecosystem
+          A free index for the world's research
         </div>
         <div class="mt-12">
           <p style="">
