@@ -1,18 +1,31 @@
 <template>
   <v-app>
-    <v-navigation-drawer color="blue-grey lighten-5" app width="200" style="height: 100%;">
-      <v-list rounded nav >
-        <v-list-item to="/works" color="primary">
-          <v-list-item-icon>
-            <v-icon>mdi-magnify</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Explore
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
+    <v-navigation-drawer
+        v-model="isSiteNavOpen"
+        app
+        color="#fafafa"
+        floating
+    >
+      <router-link
+          :to="{name: 'Home'}"
+          class="logo-link pt-3 pb-3 pl-4"
+      >
+        <img
+            src="@/assets/openalex-logo-icon-black-and-white.png"
+            class="logo-icon mr-0 colorizable"
+            :style="logoStyle"
+        />
+        <span
+            class="logo-text colorizable"
+            :style="logoStyle"
+        >
+                OpenAlex
+              </span>
+
+      </router-link>
+      <site-nav/>
+
+
     </v-navigation-drawer>
     <v-progress-linear
         indeterminate
@@ -23,6 +36,7 @@
     <v-app-bar
         app
         flat
+        v-if="$vuetify.breakpoint.mobile"
 
         color="white"
         class="pl-0"
@@ -30,11 +44,17 @@
 
 
     >
-      <v-container class="d-flex align-center" :class="{'pr-0': $vuetify.breakpoint.mobile}">
         <!--            v-if="$route.name !== 'Home'"-->
+        <v-btn
+            icon
+            @click="isSiteNavOpen = !isSiteNavOpen"
+            style="margin-left: -10px;"
+        >
+          <v-icon>mdi-menu</v-icon>
+        </v-btn>
         <router-link
             :to="{name: 'Home'}"
-            class="logo-link pl-1"
+            class="logo-link"
         >
           <img
               src="@/assets/openalex-logo-icon-black-and-white.png"
@@ -49,55 +69,35 @@
               </span>
 
         </router-link>
-        <v-spacer/>
-        <!--        <search-box-new-->
-        <!--            class="flex-grow-1"-->
-        <!--            v-if="!$vuetify.breakpoint.mobile && $route.name === 'Serp'"-->
-        <!--        />-->
-        <v-spacer/>
-        <!--        <v-btn light target="_blank"-->
-
-        <!--               color="warning"-->
-        <!--               rounded-->
-        <!--               outlined-->
-        <!--               class="ml-3"-->
-        <!--               v-if="$vuetify.breakpoint.smAndUp"-->
-        <!--               href="https://docs.google.com/document/d/1G0_HBvaeH30rQTGwxhVwVtdh5rX&#45;&#45;7dWb9poBDUGdA0/edit#heading=h.oyun2a4w33cz">-->
-        <!--          <v-icon left>mdi-alert</v-icon>-->
-        <!--          Alpha version-->
-        <!--        </v-btn>-->
 
 
-        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">
-          <template v-slot:activator="{on}">
-            <v-btn icon color="" v-on="on">
-              <v-icon class="">mdi-cog</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item @click="$store.state.isApiEditorShowing = !$store.state.isApiEditorShowing">
-              <v-list-item-icon>
-                <v-icon v-if="$store.state.isApiEditorShowing">mdi-check</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  Show API query
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+<!--        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">-->
+<!--          <template v-slot:activator="{on}">-->
+<!--            <v-btn icon color="" v-on="on">-->
+<!--              <v-icon class="">mdi-cog</v-icon>-->
+<!--            </v-btn>-->
+<!--          </template>-->
+<!--          <v-list>-->
+<!--            <v-list-item @click="$store.state.isApiEditorShowing = !$store.state.isApiEditorShowing">-->
+<!--              <v-list-item-icon>-->
+<!--                <v-icon v-if="$store.state.isApiEditorShowing">mdi-check</v-icon>-->
+<!--              </v-list-item-icon>-->
+<!--              <v-list-item-content>-->
+<!--                <v-list-item-title>-->
+<!--                  Show API query-->
+<!--                </v-list-item-title>-->
+<!--              </v-list-item-content>-->
+<!--            </v-list-item>-->
+<!--          </v-list>-->
+<!--        </v-menu>-->
 
 
-
-
-      </v-container>
 
 
     </v-app-bar>
     <v-main>
       <router-view></router-view>
-    <site-footer/>
+      <site-footer/>
     </v-main>
 
     <v-snackbar
@@ -131,6 +131,7 @@ import axios from "axios";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
+import SiteNav from "@/components/SiteNav.vue";
 
 export default {
   name: 'App',
@@ -143,12 +144,14 @@ export default {
   components: {
     SearchBoxNew,
     SiteFooter,
+    SiteNav,
   },
 
 
   data: function () {
     return {
       exportProgress: 0,
+      isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {
         progress: 0,
       },
@@ -263,7 +266,7 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 38px;
+$logo-link-height: 32px;
 
 .logo-link {
   text-decoration: none;
