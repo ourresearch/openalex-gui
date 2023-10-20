@@ -1,19 +1,19 @@
 <template>
   <thead>
-    <tr>
-      <th
+  <tr>
+    <th
         key="title"
-      >
-        Title
-      </th>
-      <th
-        v-for="header in headers"
+    >
+      Title
+    </th>
+    <th
+        v-for="header in headerConfigs"
         :key="header.key"
-      >
-        {{ header.displayName }}
-      </th>
+    >
+      {{ header.displayName }}
+    </th>
 
-    </tr>
+  </tr>
   </thead>
 </template>
 
@@ -24,8 +24,7 @@ import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "ResultsTableHeaders",
-  components: {
-  },
+  components: {},
   props: {},
   data() {
     return {
@@ -37,10 +36,15 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    headers(){
-      return this.$store.state.showColumns.map(filterKey => {
-        return getFacetConfig(this.entityType, filterKey)
-      })
+    headerKeys() {
+      return this.$route.query.column?.split(",") ?? []
+    },
+    headerConfigs() {
+      return this.headerKeys
+          .map(key => {
+            return getFacetConfig(this.entityType, key)
+          })
+
     }
   },
 
@@ -56,8 +60,7 @@ export default {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
