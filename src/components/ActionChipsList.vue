@@ -1,5 +1,8 @@
 <template>
-  <div>
+  <v-card flat class="d-flex align-center">
+    <span class="mr-2">
+      {{ myConfig.displayName }}
+    </span>
     <v-chip-group
         v-model="selected"
         :mandatory="false"
@@ -9,7 +12,7 @@
           v-for="filterConfig in topFilters"
           :key="filterConfig.key"
           :value="filterConfig.key"
-          color="primary"
+          class="text--primary"
 
           :outlined="!isSelected(filterConfig.key)"
           filter
@@ -20,7 +23,7 @@
 
     </v-chip-group>
 
-  </div>
+  </v-card>
 </template>
 
 <script>

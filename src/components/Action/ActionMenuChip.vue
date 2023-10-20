@@ -3,20 +3,12 @@
       color="#fff"
       :value="action"
   >
-    <template v-if="action==='group_by'">
-      Group by
-    </template>
-
-    <template v-else>
-      <span class="text-capitalize">
-        {{ myConfig.displayName | pluralize(actionNamePluralizeCount) }}
-      </span>
-      <span v-if="actionValuesCount" class="ml-1 font-weight-bold">
-        ({{ actionValuesCount }})
-      </span>
-    </template>
-
     <span>
+      {{ myConfig.displayName | pluralize(actionNamePluralizeCount) }}
+    </span>
+    <span v-if="action === 'sort' && actionValueString" class="ml-1"> by </span>
+    <span class="ml-1 font-weight-bold">
+      {{  actionValueString }}
     </span>
   </v-chip>
 </template>
@@ -25,6 +17,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {actionConfigs, getActionConfig} from "@/actionConfigs";
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "Template",
@@ -53,6 +46,17 @@ export default {
     },
     myConfig(){
       return getActionConfig(this.action)
+    },
+    actionValueString(){
+      if (!this.actionValues?.length) return
+      if (this.myConfig.isMultiple) {
+        return `(${this.actionValuesCount})`
+      }
+      else {
+        const key = this.actionValues[0]?.replace(":desc", "")
+        const config = getFacetConfig("works", key)
+        return config.displayName
+      }
     }
   },
 
