@@ -36,6 +36,9 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    keysToShow() {
+      return this.$route.query.column?.split(",") ?? []
+    },
     cells() {
       const pluck = function (string, object) {
         return string.split('.').reduce(function (a, b) {
@@ -45,7 +48,7 @@ export default {
       }
 
 
-      return this.$store.state.showColumns.map(filterKey => {
+      return this.keysToShow.map(filterKey => {
         return {
           ...getFacetConfig(this.entityType, filterKey),
           value: pluck(filterKey, this.entity)
