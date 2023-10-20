@@ -570,22 +570,23 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Date",
+            displayName: "Year",
             type: "range",
             sortByValue: true,
             examples: ["1999", "1999-", "1999-2020"],
-            categories: [], // just for sort
+            categories: ["popular", "other"],
             isCore: true,
             icon: "mdi-calendar-range"
         },
         {
             key: "publication_date",
             entityType: "works",
-            displayName: "Year",
+            displayName: "Date",
             type: "range",
+            categories: [], // just for sort
             sortByValue: true,
             examples: ["1999", "1999-", "1999-2020"],
-            categories: ["popular", "other"],
+
             isCore: true,
             icon: "mdi-calendar-range"
         },
