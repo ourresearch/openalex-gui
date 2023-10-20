@@ -1,31 +1,29 @@
 <template>
   <div class="">
     <template v-if="resultsObject">
-      <v-card flat dark class="ma-2" v-if="apiMode">
-        <vue-json-pretty
-            v-if="resultsObject"
-            :data="resultsObject"
-            :deep="3"
-            :show-icon="true"
-            :show-length="true"
-            style="font-size: 12px;"
-            class="pa-4"
-
+      <div v-if="!resultsCount" class="mt-8 grey--text">
+        There are no results for this search.
+      </div>
+      <table v-if="resultsCount" class="serp-results-table">
+        <results-table-header/>
+        <tbody>
+        <results-table-row
+            v-for="result in resultsObject.results"
+            :key="result.id"
+            :entity="result"
         />
-      </v-card>
-      <v-card flat v-else>
-        <div v-if="!resultsCount" class="mt-8 grey--text">
-          There are no results for this search.
-        </div>
-        <v-list v-if="resultsCount" class="serp-results-list" nav>
-          <component
-              v-for="result in resultsObject.results"
-              :key="result.id"
-              :is="resultComponentName"
-              :data="result"
-          />
-        </v-list>
-      </v-card>
+        </tbody>
+      </table>
+
+
+      <v-list v-if="resultsCount" class="serp-results-list" nav>
+        <component
+            v-for="result in resultsObject.results"
+            :key="result.id"
+            :is="resultComponentName"
+            :data="result"
+        />
+      </v-list>
       <div class="serp-bottom" v-if="resultsObject.results && resultsObject.results.length">
         <v-pagination
             v-model="page"
@@ -59,7 +57,8 @@ import ResultInstitution from "./Result/ResultInstitution.vue";
 import ResultConcept from "./Result/ResultConcept.vue";
 import {entityTypes} from "../util";
 import router from "../router";
-
+import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
+import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 
 
 export default {
@@ -74,9 +73,11 @@ export default {
     ResultFunder,
     ResultInstitution,
     ResultConcept,
+
+    ResultsTableHeader,
+    ResultsTableRow,
   },
   props: {
-    apiMode: Boolean,
     resultsObject: Object,
   },
   data() {
@@ -112,16 +113,13 @@ export default {
     },
 
 
-
   },
 
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([
-    ]),
-
+    ...mapActions([]),
 
 
   },
@@ -129,12 +127,45 @@ export default {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
 <style lang="scss">
+table.serp-results-table {
+
+   th {
+    padding: 0 10px;
+    white-space: nowrap;
+    background: #fff;
+    display: table-cell;
+    text-align: left;
+    vertical-align: center;
+    border-bottom: 1px solid #eee;
+
+    .header-cell-contents {
+      position: absolute;
+      padding-top: 10px;
+      top: 0;
+
+    }
+
+    .header-width {
+      visibility: hidden;
+      display: block;
+      height: 0;
+    }
+
+    &.title-header {
+      text-align: left;
+      padding-left: 70px;
+
+    }
+
+  }
+}
+
+
 div.serp-results-list {
   .v-list-item__title, .v-list-item__subtitle {
     white-space: normal !important;

@@ -1,21 +1,31 @@
 <template>
   <div class="serp-page">
-
-    <v-toolbar flat class="">
-      <v-container class="py-0 pr-8">
-        <div class="d-flex">
-          <filter-chips-list key="filter-chips-list"/>
-          <v-spacer/>
-          <group-by-selector />
-
-          <export-button
-              style="margin-right:-13px;"
-          />
-        </div>
-      </v-container>
-
-
+    <v-toolbar flat>
+      <v-toolbar-title>
+        Explore
+        <span class="">
+          {{ listResultsCount | millify }}
+          {{  entityType | pluralize(listResultsCount) }}
+        </span>
+      </v-toolbar-title>
+      <v-spacer />
     </v-toolbar>
+    <div class="d-flex">
+      <filter-menu action="filter" />
+      <filter-menu action="group by" />
+      <filter-menu action="sort" :disabled="!!$route.query.group_by" />
+      <filter-menu action="column" :disabled="!!$route.query.group_by" />
+
+
+<!--      <v-btn text rounded class="font-weight-regular">-->
+<!--        Filter-->
+<!--      </v-btn>-->
+<!--      <sort-button />-->
+<!--      <group-by-selector/>-->
+      <export-button />
+
+    </div>
+
     <v-divider/>
 
     <v-container style="max-width: 1260px; margin-left: 0;">
@@ -33,55 +43,11 @@
         />
 
         <v-row dense key="main-serp-row">
-          <!--        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">-->
-          <!--          <v-card rounded>-->
-          <!--            &lt;!&ndash;            <filter-selector :applied-filters="resultsFilters" />&ndash;&gt;-->
-          <!--            <filter-list :filters="resultsFilters"/>-->
-          <!--          </v-card>-->
-          <!--        </v-col>-->
-<!--          <v-col cols="12" sm="12">-->
-<!--            <v-card flat>-->
-<!--              <v-toolbar flat class="" :extended="isGroupByView">-->
-<!--                <v-btn icon v-if="isGroupByView" @click="clearGroupBy">-->
-<!--                  <v-icon>mdi-arrow-left</v-icon>-->
-<!--                </v-btn>-->
-<!--                <v-toolbar-title v-if="!isGroupByView">-->
-<!--                  Results-->
-<!--                </v-toolbar-title>-->
-<!--                <span class="body-1" v-if="isGroupByView">-->
-<!--                  results-->
-<!--                  &lt;!&ndash;                  {{ listResultsCount | millify }} {{ entityType | pluralize(listResultsCount) }}&ndash;&gt;-->
-<!--                </span>-->
-<!--                <v-spacer/>-->
-<!--                &lt;!&ndash;                <span class="body-2">&ndash;&gt;-->
-<!--                &lt;!&ndash;                  {{ listResultsCount | millify }}&ndash;&gt;-->
-<!--                &lt;!&ndash;                </span>&ndash;&gt;-->
+          <div>
+            <group-by v-if="isGroupByView"/>
+            <serp-results-list v-else :results-object="resultsObject"/>
 
-
-<!--                <template v-slot:extension v-if="groupByConfig">-->
-<!--                  <v-toolbar-title>-->
-<!--                    Group by {{ groupByConfig.displayName }}-->
-<!--                  </v-toolbar-title>-->
-<!--                </template>-->
-
-<!--              </v-toolbar>-->
-<!--              <v-divider/>-->
-              <v-toolbar flat v-if="!isGroupByView">
-                <span class="grey--text">{{ listResultsCount | millify }} {{
-                    entityType | pluralize(listResultsCount)
-                  }}</span>
-                <v-spacer/>
-                <sort-button/>
-              </v-toolbar>
-
-              <div>
-                <group-by v-if="isGroupByView"/>
-                <serp-results-list v-else :results-object="resultsObject"/>
-
-              </div>
-            </v-card>
-
-          </v-col>
+          </div>
         </v-row>
       </v-slide-y-transition>
 
@@ -131,6 +97,7 @@ import {getFacetConfig} from "../facetConfigs";
 import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 import {filter} from "core-js/internals/array-iteration";
+import FilterMenu from "@/components/FilterMenu.vue";
 
 export default {
   name: "Serp",
@@ -152,6 +119,8 @@ export default {
     SerpApiEditor,
     FilterChipsList,
     FilterKeySelector,
+
+    FilterMenu,
 
     ExportButton,
     SortButton,
@@ -331,8 +300,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .container {
-    //max-width: 1024px !important;
-  }
+.container {
+  //max-width: 1024px !important;
+}
 
 </style>

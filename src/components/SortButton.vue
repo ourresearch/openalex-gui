@@ -16,8 +16,10 @@
 <!--        <v-icon>mdi-sort</v-icon>-->
         <v-icon v-if="$vuetify.breakpoint.mobile">mdi-sort</v-icon>
         <template v-else>
-          <v-icon left class="">mdi-sort</v-icon>
-          {{ activeSortConfig.displayName }}
+<!--          <v-icon left class="">mdi-sort</v-icon>-->
+          Sort
+<!--          <v-icon right class="">mdi-menu-down</v-icon>-->
+<!--          {{ activeSortConfig.displayName }}-->
         </template>
       </v-btn>
     </template>
