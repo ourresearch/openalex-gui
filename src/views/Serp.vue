@@ -11,7 +11,7 @@
       <v-spacer/>
     </v-toolbar>
     <div class="d-flex">
-      <v-chip-group v-model="selectedActionTab" :mandatory="false">
+      <v-chip-group v-model="selectedActionTab" :mandatory="true">
         <action-menu-chip
             v-for="actionConfig in actionConfigs"
             :key="actionConfig.id"
