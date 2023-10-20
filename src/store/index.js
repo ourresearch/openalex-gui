@@ -69,13 +69,13 @@ const stateDefaults = function () {
 
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
-
-        tabs: [
-            {
-                name: "First tab",
-                url: ""
-            }
+        showColumns: [
+            "publication_year",
+            "type",
+            "open_access.is_oa",
+            "cited_by_count",
         ]
+
     }
     return ret
 }

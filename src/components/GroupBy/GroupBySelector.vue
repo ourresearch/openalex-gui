@@ -1,4 +1,26 @@
 <template>
+  <div>
+    <v-menu rounded>
+      <template v-slot:activator="{on}">
+      <v-btn
+          :close="!!groupByKey"
+          rounded
+          text
+          v-on="on"
+          :dark="!!groupByKey"
+          :color="groupByKey ? '#333' : undefined"
+          @click:close="groupByKey=undefined"
+      >
+<!--          :outlined="!groupByKey"-->
+        <!--        <v-icon left>mdi-layers-triple-outline</v-icon>-->
+        <span class="font-weight-regular">Group</span>
+<!--        <span class="font-weight-bold ml-1" v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</span>-->
+<!--        <v-icon right>mdi-menu-down</v-icon>-->
+      </v-btn>
+    </template>
+    </v-menu>
+
+
   <v-dialog
       :close-on-content-click="false"
       min-width="400"
@@ -6,22 +28,7 @@
       :fullscreen="$vuetify.breakpoint.mobile"
       scrollable
   >
-    <template v-slot:activator="{on}">
-      <v-chip
-          :close="!!groupByKey"
-          text
-          v-on="on"
-          :outlined="!groupByKey"
-          :dark="!!groupByKey"
-          :color="groupByKey ? '#333' : undefined"
-          @click:close="groupByKey=undefined"
-      >
-        <!--        <v-icon left>mdi-layers-triple-outline</v-icon>-->
-        Group by
-        <span class="font-weight-bold ml-1" v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</span>
-<!--        <v-icon right v-if="!groupByKey">mdi-menu-down</v-icon>-->
-      </v-chip>
-    </template>
+
     <v-card>
       <v-toolbar flat>
         <v-toolbar-title>
@@ -76,6 +83,7 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+  </div>
 </template>
 
 <script>
@@ -110,6 +118,9 @@ export default {
           this.searchString,
           ["boolean", "select", "range"]
       )
+    },
+    menuFacets(){
+      return this.facetsByCategory[0]
     },
     groupByKeyConfig() {
       if (!this.groupByKey) return

@@ -1,28 +1,36 @@
 <template>
   <div>
     <template v-if="isGroupBy">
-      <v-btn icon
-             :href="url.makeApiUrl($route, true)"
-             :disabled="disabled"
+      <v-btn
+          :icon="icon"
+          :text="!icon"
+          rounded
+          :href="url.makeApiUrl($route, true)"
+          :disabled="disabled"
+          class="font-weight-regular"
       >
-        <v-icon>mdi-tray-arrow-down</v-icon>
+        <v-icon v-if="icon">mdi-tray-arrow-down</v-icon>
+        {{ icon ? "" : "export" }}
+        <v-icon v-if="!icon" right>mdi-menu-down</v-icon>
       </v-btn>
     </template>
     <template v-if="!isGroupBy">
 
       <!--    There's an export in progress -->
-      <v-menu offset-y v-if="isExportStarted">
+      <v-menu rounded offset-y v-if="isExportStarted">
         <template v-slot:activator="{on}">
           <v-btn
-              icon
-              class="elevation-0"
+              :icon="icon"
+              :text="!icon"
+              rounded
+              class="elevation-0 font-weight-regular"
               color="primary"
               dark
               v-on="on"
               style="position: relative;"
           >
-            <v-icon x-small v-if="!isExportFinished">mdi-arrow-down</v-icon>
-            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>
+<!--            <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>-->
+<!--            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>-->
             <v-progress-circular
                 style="position: absolute;"
                 :color="(isExportStarted && !exportObj.progress) ? 'grey' : 'primary'"
@@ -32,6 +40,7 @@
                 size="25"
                 v-if="!isExportFinished"
             />
+            {{ icon ? "" : "exporting"}}
             <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
             <!--                  <v-icon right>mdi-menu-down</v-icon>-->
           </v-btn>
@@ -50,10 +59,18 @@
 
 
       <!--    There's no export in progress right now -->
-      <v-menu v-else min-width="200" max-width="300">
+      <v-menu rounded v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="">
-            <v-icon>mdi-tray-arrow-down</v-icon>
+          <v-btn
+              :icon="icon"
+              :text="!icon"
+              rounded
+              v-on="on"
+              class="font-weight-regular"
+          >
+            <v-icon v-if="icon">mdi-tray-arrow-down</v-icon>
+            {{ icon ? "" : "export" }}
+            <v-icon v-if="!icon" right>mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-card v-if="isTooManyResultsToExport" class="">
@@ -124,6 +141,7 @@ export default {
   components: {},
   props: {
     disabled: Boolean,
+    icon: Boolean,
   },
   data() {
     return {
@@ -148,7 +166,7 @@ export default {
     isGroupBy() {
       return !!this.$route.query.group_by
     },
-    isTooManyResultsToExport(){
+    isTooManyResultsToExport() {
       return this.resultsCount > 100000
     }
 
