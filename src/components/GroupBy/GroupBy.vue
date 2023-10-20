@@ -11,6 +11,19 @@
     <!--          v-model="searchString"-->
     <!--      />-->
     <!--    </v-toolbar>-->
+    <table v-if="resultsCount" class="serp-results-table">
+        <results-table-header/>
+        <tbody>
+<!--        <results-table-row-->
+<!--            v-for="result in resultsObject.results"-->
+<!--            :key="result.id"-->
+<!--            :entity="result"-->
+<!--        />-->
+        </tbody>
+      </table>
+
+
+
     <v-list class="flex-grow-1">
       <v-list-item
           v-for="group in groups"
@@ -72,10 +85,12 @@ import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
+import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
+import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 
 export default {
   name: "GroupBy",
-  components: {},
+  components: {ResultsTableRow, ResultsTableHeader},
   props: {},
   data() {
     return {

@@ -5,25 +5,45 @@
         Explore
         <span class="">
           {{ listResultsCount | millify }}
-          {{  entityType | pluralize(listResultsCount) }}
+          {{ entityType | pluralize(listResultsCount) }}
         </span>
       </v-toolbar-title>
-      <v-spacer />
+      <v-spacer/>
     </v-toolbar>
     <div class="d-flex">
-      <filter-menu action="filter" />
-      <filter-menu action="group by" />
-      <filter-menu action="sort" :disabled="!!$route.query.group_by" />
-      <filter-menu action="column" :disabled="!!$route.query.group_by" />
+      <v-chip-group v-model="selectedActionTab" :mandatory="false">
+        <action-menu-chip
+            v-for="actionConfig in actionConfigs"
+            :key="actionConfig.id"
+            :action="actionConfig.id"
+        />
 
+<!--        <v-chip-->
+<!--            color="#fff"-->
+<!--            v-for="tabName in actionTabs"-->
+<!--            :key="tabName"-->
+<!--            :value="tabName"-->
+<!--        >-->
+<!--          {{ tabName }}-->
+<!--        </v-chip>-->
+      </v-chip-group>
+      <!--      <v-btn text rounded class="font-weight-regular">-->
+      <!--        Filter-->
+      <!--      </v-btn>-->
+      <!--      <sort-button />-->
+      <!--      <group-by-selector/>-->
+      <v-spacer/>
+      <export-button/>
 
-<!--      <v-btn text rounded class="font-weight-regular">-->
-<!--        Filter-->
-<!--      </v-btn>-->
-<!--      <sort-button />-->
-<!--      <group-by-selector/>-->
-      <export-button />
-
+    </div>
+    <div v-if="selectedActionTab">
+      <filter-chips-list
+          v-if="selectedActionTab==='filter'"
+      />
+      <action-chips-list
+          v-else
+          :action="selectedActionTab"
+      />
     </div>
 
     <v-divider/>
@@ -97,7 +117,10 @@ import {getFacetConfig} from "../facetConfigs";
 import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterMenu from "@/components/FilterMenu.vue";
+import FilterMenu from "@/components/ActionChipsList.vue";
+import ActionChipsList from "@/components/ActionChipsList.vue";
+import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
+import {actionConfigs} from "@/actionConfigs";
 
 export default {
   name: "Serp",
@@ -120,7 +143,8 @@ export default {
     FilterChipsList,
     FilterKeySelector,
 
-    FilterMenu,
+    ActionChipsList,
+    ActionMenuChip,
 
     ExportButton,
     SortButton,
@@ -161,10 +185,12 @@ export default {
 
       listResultsCount: null, // not the group_by one
 
+      selectedActionTab: "filter",
 
-      // temp
+
       searchString: "",
       url,
+      actionConfigs,
     }
   },
   asyncComputed: {},

@@ -1,10 +1,5 @@
 <template>
-  <v-card
-      class="mb-2"
-      flat
-      color="transparent"
-
-  >
+  <div class="py-2">
     <!--    <v-chip-->
     <!--        @click="isFilterSelectorOpen = true"-->
     <!--        class="mr-2 mb-2"-->
@@ -31,6 +26,7 @@
       v-for="filter in unselectedChips"
       :key="`unselected-chip-${filter.key}`"
       outlined
+      label
       color="primary"
       text-color="primary"
       class="mr-2 mb-2"
@@ -119,7 +115,7 @@
     </v-dialog>
 
 
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -180,6 +176,8 @@ export default {
 
       getEntityConfig,
       url,
+
+
 
     }
   },

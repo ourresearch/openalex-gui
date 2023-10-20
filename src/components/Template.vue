@@ -10,8 +10,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "Template",
-  components: {
-  },
+  components: {},
   props: {},
   data() {
     return {
@@ -21,6 +20,7 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "entityType",
     ]),
   },
 
@@ -36,8 +36,7 @@ export default {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
