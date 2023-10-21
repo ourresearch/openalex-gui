@@ -11,7 +11,8 @@ const actionConfigs = [
             "type",
             "publication_year",
             "sustainable_development_goals.id",
-        ]
+        ],
+        defaultValues: [],
     },
     {
         id: "group_by",
@@ -24,16 +25,21 @@ const actionConfigs = [
             "type",
             "publication_year",
             "sustainable_development_goals.id",
-        ]
+        ],
+        defaultValues: [],
     },
     {
         id: "sort",
         displayName: "Sort",
-        isMultiple: false,
+        isMultiple: true,
         topValues: [
           "publication_date",
           "cited_by_count",
+        ],
+        defaultValues: [
+            "cited_by_count",
         ]
+
     },
     {
         id: "column",
@@ -44,7 +50,13 @@ const actionConfigs = [
           "type",
           "open_access.is_oa",
           "cited_by_count",
-        ]
+        ],
+        defaultValues:  [
+          "publication_year",
+          "type",
+          "open_access.is_oa",
+          "cited_by_count",
+        ],
     },
 ]
 
