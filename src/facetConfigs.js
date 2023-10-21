@@ -571,6 +571,7 @@ const facetConfigs = function (entityType) {
             key: "publication_year",
             entityType: "works",
             displayName: "Year",
+            isDate: true,
             type: "range",
             sortByValue: true,
             examples: ["1999", "1999-", "1999-2020"],
@@ -582,6 +583,7 @@ const facetConfigs = function (entityType) {
             key: "publication_date",
             entityType: "works",
             displayName: "Date",
+            isDate: true,
             type: "range",
             categories: [], // just for sort
             sortByValue: true,
@@ -673,7 +675,7 @@ const facetConfigs = function (entityType) {
             placeholders: ["min", "max"],
             categories: ["citation"],
             isCore: true,
-            icon: "mdi-file-document-outline",
+            icon: "mdi-format-quote-close",
         },
         {
             key: "cited_by",

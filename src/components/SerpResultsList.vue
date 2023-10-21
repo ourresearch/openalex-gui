@@ -1,10 +1,18 @@
 <template>
   <div class="">
+    <div class="my-1 mx-3 d-flex">
+      <action-menu-item action="sort" />
+      <action-menu-item action="column" />
+      <export-button />
+    </div>
+
+
     <template v-if="resultsObject">
       <div v-if="!resultsCount" class="mt-8 grey--text">
         There are no results for this search.
       </div>
-      <table v-if="resultsCount" class="serp-results-table">
+      <v-card outlined rounded class="ma-3 py-3">
+      <table  v-if="resultsCount" class="serp-results-table">
         <results-table-header/>
         <tbody>
         <results-table-row
@@ -14,6 +22,8 @@
         />
         </tbody>
       </table>
+
+      </v-card>
 
 
       <v-list v-if="resultsCount" class="serp-results-list" nav>
@@ -59,7 +69,8 @@ import {entityTypes} from "../util";
 import router from "../router";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
-
+import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
+import ExportButton from "@/components/ExportButton.vue";
 
 export default {
   name: "SerpResultsList",
@@ -76,6 +87,11 @@ export default {
 
     ResultsTableHeader,
     ResultsTableRow,
+
+    ActionMenuItem,
+    ExportButton,
+
+
   },
   props: {
     resultsObject: Object,

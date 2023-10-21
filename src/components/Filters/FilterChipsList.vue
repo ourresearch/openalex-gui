@@ -1,5 +1,5 @@
 <template>
-  <div class="py-2">
+  <v-card flat class="">
     <!--    <v-chip-->
     <!--        @click="isFilterSelectorOpen = true"-->
     <!--        class="mr-2 mb-2"-->
@@ -10,6 +10,7 @@
     <!--      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length }}</span>-->
     <!--      <span v-else>Create filter</span>-->
     <!--    </v-chip>-->
+    <v-icon class="pr-3">mdi-filter-outline</v-icon>
 
     <component
         v-for="(filter, i) in filters"
@@ -115,7 +116,7 @@
     </v-dialog>
 
 
-  </div>
+  </v-card>
 </template>
 
 <script>

@@ -1,29 +1,48 @@
 <template>
-  <v-card flat class="d-flex align-center">
-    <span class="mr-2">
-      {{ myConfig.displayName }}
-    </span>
-    <v-chip-group
-        v-model="selected"
-        :mandatory="false"
-        :multiple="isMultipleSelect"
-    >
-      <v-chip
-          v-for="filterConfig in topFilters"
-          :key="filterConfig.key"
-          :value="filterConfig.key"
-          class="text--primary"
+  <v-menu rounded offset-y>
+    <template v-slot:activator="{on}">
+      <v-btn text rounded v-on="on" class="">
+        {{ myConfig.displayName }}
+      </v-btn>
+    </template>
 
-          :outlined="!isSelected(filterConfig.key)"
-          filter
-          label
+    <v-list>
+      <v-list-item
+          v-for="config in selectedValueConfigs"
+          :key="config.key"
+          :value="config.key"
       >
-        {{ filterConfig.displayName }}
-      </v-chip>
+        <v-list-item-icon>
+          <v-icon>{{ config.icon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            {{ config.displayName }}
+          </v-list-item-title>
 
-    </v-chip-group>
+        </v-list-item-content>
+      </v-list-item>
+      <v-divider/>
+      <v-list-item
+          v-for="config in unselectedValueConfigs"
+          :key="config.key"
+          :value="config.key"
+          @click="addValue(config.key)"
+      >
+        <v-list-item-icon>
+          <v-icon>{{ config.icon }}</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            {{ config.displayName }}
+          </v-list-item-title>
 
-  </v-card>
+        </v-list-item-content>
+      </v-list-item>
+
+    </v-list>
+  </v-menu>
+
 </template>
 
 <script>
@@ -51,7 +70,7 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    myConfig(){
+    myConfig() {
       return getActionConfig(this.action)
     },
     topFilters() {
@@ -86,6 +105,23 @@ export default {
     urlAction() {
       return this.action.replace(" ", "_")
     },
+    urlValues() {
+      return this.$route.query[this.action]?.split(",") ?? []
+    },
+    urlValueKeys() {
+      return this.urlValues.map(val => val.replace(":desc", ""))
+    },
+    selectedValueConfigs() {
+      return this.urlValueKeys.map(k => {
+        return getFacetConfig(this.entityType, k)
+      })
+    },
+    unselectedValueConfigs() {
+      return this.myConfig.topValues.filter(k => {
+        return !this.urlValueKeys.includes(k)
+      }).map(k => getFacetConfig(this.entityType, k))
+    },
+
     selected: {
       get() {
         if (this.action === "filter") {
@@ -135,8 +171,22 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    isSelected(key){
+    isSelected(key) {
       return this.selected === key || this.selected?.includes(key)
+    },
+    addValue(key) {
+      const appendToKey = (this.action === 'sort') ? ':desc' : ''
+      const myKey = key + appendToKey
+      const query = {...this.$route.query}
+      const newKeys = [...this.urlValues, myKey]
+      query[this.action] = newKeys.join(",")
+      url.pushToRoute(
+          this.$router,
+          {
+            name: "Serp",
+            query,
+          }
+      )
     },
 
 
@@ -145,7 +195,15 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    "$route.query": {
+      immediate: true,
+      handler(to) {
+
+
+      }
+    },
+  }
 }
 </script>
 

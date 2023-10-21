@@ -1,5 +1,17 @@
 <template>
   <v-card flat tile class="">
+    <div class="my-1 mx-3 d-flex">
+      <action-menu-item action="group_by" />
+      <v-btn
+          text
+          rounded
+          :href="url.makeApiUrl($route, true)"
+      >
+        Export
+      </v-btn>
+    </div>
+
+
     <!--    <v-toolbar flat>-->
     <!--      <v-text-field-->
     <!--          autofocus-->
@@ -11,69 +23,49 @@
     <!--          v-model="searchString"-->
     <!--      />-->
     <!--    </v-toolbar>-->
-    <table v-if="resultsCount" class="serp-results-table">
-        <results-table-header/>
-        <tbody>
-<!--        <results-table-row-->
-<!--            v-for="result in resultsObject.results"-->
-<!--            :key="result.id"-->
-<!--            :entity="result"-->
-<!--        />-->
-        </tbody>
-      </table>
+    <table v-if="0 && resultsCount" class="serp-results-table">
+      <thead>
+      <tr>
+        <th>
+          {{ myFilterConfig.displayName }}
 
+        </th>
+        <th>Works count</th>
+        <th></th>
 
-
-    <v-list class="flex-grow-1">
-      <v-list-item
+      </tr>
+      </thead>
+      <tbody>
+      <tr
           v-for="group in groups"
           :key="group.value"
-          style="min-height: unset;"
           @click="url.createFilter(entityType, filterKey, group.value)"
       >
-        <!--        <v-list-item-icon>-->
-        <!--          <div class="d-flex" style="background: #eee; height: 100%;  min-width: 50px;">-->
-        <!--            <v-spacer/>-->
-        <!--            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
-        <!--          </div>-->
-        <!--          <v-progress-circular-->
-        <!--              width="7"-->
-        <!--              size="22"-->
-        <!--              :value="group.countScaled * 100"-->
-        <!--              rotate="-90"-->
-        <!--          />-->
-
-        <!--        </v-list-item-icon>-->
-        <v-list-item-content>
-          <v-list-item-title class="font-weight-regular">
-            {{ group.displayValue }}
-          </v-list-item-title>
-        </v-list-item-content>
-        <div class="mr-4">
-          <span>
-            {{ group.count | toPrecision }}
-          </span>
-        </div>
-        <div style="height: 40px; width: 500px">
-                  <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
-                    <v-spacer/>
-                    <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-                  </div>
+        <td>
+          {{ group.displayValue }}
+        </td>
+        <td class="range">
+          {{ group.count | toPrecision }}
+        </td>
+        <td>
+          <div style="height: 40px; width: 500px">
+          <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
+            <v-spacer/>
+            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
+          </div>
 
         </div>
-      </v-list-item>
-      <!--      <v-list-item v-if="groups.length >= 5" key="viewmore">-->
-      <!--        <v-list-item-icon>-->
-      <!--          <v-icon>mdi-dots-horizontal</v-icon>-->
-      <!--        </v-list-item-icon>-->
-      <!--        <v-list-item-content>-->
-      <!--          <v-list-item-title class="font-weight-regular">-->
-      <!--            view more-->
-      <!--          </v-list-item-title>-->
-      <!--        </v-list-item-content>-->
+        </td>
 
-      <!--      </v-list-item>-->
-    </v-list>
+      </tr>
+      <!--        <results-table-row-->
+      <!--            v-for="result in resultsObject.results"-->
+      <!--            :key="result.id"-->
+      <!--            :entity="result"-->
+      <!--        />-->
+
+      </tbody>
+    </table>
 
   </v-card>
 </template>
@@ -87,10 +79,13 @@ import {facetConfigs} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
+import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
 
 export default {
   name: "GroupBy",
-  components: {ResultsTableRow, ResultsTableHeader},
+  components: {
+    ActionMenuItem,
+  },
   props: {},
   data() {
     return {

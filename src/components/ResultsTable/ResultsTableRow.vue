@@ -5,12 +5,36 @@
     >
       {{ entity.display_name }}
     </td>
-    <td
+    <template
         v-for="cell in cells"
-        :key="entity.id + cell.key"
     >
-      {{ cell.value }}
-    </td>
+      <td
+          v-if="cell.type==='range'"
+          :key="entity.id + cell.key"
+          class="range"
+      >
+        <template v-if="cell.isDate">{{ cell.value}}</template>
+        <template v-else>{{ cell.value | toPrecision }}</template>
+
+      </td>
+      <td
+          v-else-if="cell.type==='boolean'"
+          :key="entity.id + cell.key"
+          class="boolean"
+      >
+        <v-icon v-if="cell.value" color="success">mdi-check</v-icon>
+<!--        <v-icon v-else color="error lighten-2">mdi-close</v-icon>-->
+<!--        {{ cell.value }}-->
+      </td>
+      <td
+          v-else
+          :key="entity.id + cell.key"
+          class=""
+      >
+        {{ cell.value }}
+      </td>
+
+    </template>
 
   </tr>
 </template>

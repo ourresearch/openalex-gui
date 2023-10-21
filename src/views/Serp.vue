@@ -4,75 +4,35 @@
       <v-toolbar-title>
         Explore
         <span class="">
-          {{ listResultsCount | millify }}
+<!--          {{ listResultsCount | millify }}-->
           {{ entityType | pluralize(listResultsCount) }}
         </span>
       </v-toolbar-title>
       <v-spacer/>
     </v-toolbar>
-    <div class="d-flex">
-      <v-chip-group v-model="selectedActionTab" :mandatory="true">
-        <action-menu-chip
-            v-for="actionConfig in actionConfigs"
-            :key="actionConfig.id"
-            :action="actionConfig.id"
-        />
 
-<!--        <v-chip-->
-<!--            color="#fff"-->
-<!--            v-for="tabName in actionTabs"-->
-<!--            :key="tabName"-->
-<!--            :value="tabName"-->
-<!--        >-->
-<!--          {{ tabName }}-->
-<!--        </v-chip>-->
-      </v-chip-group>
-      <!--      <v-btn text rounded class="font-weight-regular">-->
-      <!--        Filter-->
-      <!--      </v-btn>-->
-      <!--      <sort-button />-->
-      <!--      <group-by-selector/>-->
-      <v-spacer/>
-      <export-button/>
+    <filter-chips-list class="pl-3"/>
 
-    </div>
-    <div v-if="selectedActionTab">
-      <filter-chips-list
-          v-if="selectedActionTab==='filter'"
-      />
-      <action-chips-list
-          v-else
-          :action="selectedActionTab"
-      />
-    </div>
+    <!--      <serp-api-editor-->
+    <!--          v-if="1 || $store.state.isApiEditorShowing"-->
+    <!--          class="mb-3"-->
+    <!--          key="api-editor"-->
+    <!--      />-->
+
+    <v-divider class="mb-8"/>
+
+
+    <v-tabs v-model="resultsTab">
+      <v-tab>List</v-tab>
+      <v-tab>Group</v-tab>
+    </v-tabs>
 
     <v-divider/>
+    <div>
+      <group-by v-if="resultsTab === 1"/>
+      <serp-results-list v-else :results-object="resultsObject"/>
 
-    <v-container style="max-width: 1260px; margin-left: 0;">
-      <!--      <filter-string-->
-      <!--          :filters="resultsFilters"-->
-      <!--          class="mb-3"-->
-      <!--      />-->
-
-      <v-slide-y-transition group leave-absolute>
-
-        <serp-api-editor
-            v-if="$store.state.isApiEditorShowing"
-            class="mb-3"
-            key="api-editor"
-        />
-
-        <v-row dense key="main-serp-row">
-          <div>
-            <group-by v-if="isGroupByView"/>
-            <serp-results-list v-else :results-object="resultsObject"/>
-
-          </div>
-        </v-row>
-      </v-slide-y-transition>
-
-
-    </v-container>
+    </div>
 
 
     <div id="serp-hidden">
@@ -117,10 +77,11 @@ import {getFacetConfig} from "../facetConfigs";
 import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterMenu from "@/components/ActionChipsList.vue";
-import ActionChipsList from "@/components/ActionChipsList.vue";
+
+import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
+import ActionChipsList from "@/components/Action/ActionMenuItem.vue";
 import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
-import {actionConfigs} from "@/actionConfigs";
+import {actionConfigs, getActionConfig} from "@/actionConfigs";
 
 export default {
   name: "Serp",
@@ -145,6 +106,7 @@ export default {
 
     ActionChipsList,
     ActionMenuChip,
+    ActionMenuItem,
 
     ExportButton,
     SortButton,
@@ -178,7 +140,7 @@ export default {
 
       resultsObject: null,
       apiMode: false,
-      resultsTab: 0,
+      // resultsTab: 0,
       lastGroupByValue: null,
       groupByKeys: [],
       groupBySearchString: "",
@@ -199,24 +161,31 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    isGroupByView: {
+    resultsTab: {
       get() {
-        return this.$route.query.group_by !== undefined
+        const ret = (this.$route.query.group_by === undefined) ? 0 : 1
+        return ret
       },
       set(val) {
         // view the groupBy tab if we are setting this to true
-        this.resultsTab = val ? 1 : 0
+        // this.resultsTab = val ? 1 : 0
+
+
+        const query = {...this.$route.query,}
 
         if (val) { // we want the group view
-          this.pushQueryChanges({
-            group_by: this.lastGroupByValue,
-            sort: undefined,
-          })
+          query.group_by = ""
+          query.sort = undefined
         } else { // we want the list view
           this.lastGroupByValue = this.$route.query.group_by
-          this.pushQueryChanges({group_by: undefined})
-
+          query.group_by = undefined
         }
+
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query,
+        })
+
       }
     },
     groupByConfig() {
@@ -290,7 +259,6 @@ export default {
     "$route.query.group_by": {
       immediate: true,
       handler(to) {
-        this.resultsTab = to ? 1 : 0
       }
     },
 
@@ -298,15 +266,29 @@ export default {
       immediate: true,
       async handler(to, from) {
         const scrollTop = window.scrollY
-        // const apiQuery = "https://api.openalex.org" + this.$route.fullPath.replace(/%2B/g, "+")
         const apiQuery = url.makeApiUrl(this.$route)
+
+        const newQuery = {...this.$route.query}
+        newQuery.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
+        newQuery.column ??= getActionConfig("column").defaultValues.join(",")
+
+        console.log(`Serp $route watcher`, newQuery, this.$route.query)
+
+        if (Object.keys(newQuery).length > Object.keys(this.$route.query).length) {
+          url.pushToRoute(this.$router, {
+            name: "Serp",
+            query: newQuery
+          })
+        }
+
+
 
 
         console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp;
-        if (!this.isGroupByView) this.listResultsCount = resp.meta.count
+        // if (!this.isGroupByView) this.listResultsCount = resp.meta.count
 
 
         this.$store.state.resultsObject = resp
@@ -317,7 +299,6 @@ export default {
         )
         window.scroll(0, 0)
 
-        // await this.$store.dispatch("bootFromUrl")
       }
     },
 
@@ -325,9 +306,38 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .container {
   //max-width: 1024px !important;
 }
+
+table.serp-results-table {
+  border-collapse: collapse;
+
+  tr {
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, .05)
+    }
+  }
+
+  td {
+    border: none;
+    margin: 0;
+    padding: 5px 10px;
+
+    &.range {
+      text-align: right;
+      //font-family: Monaco, Menlo, Consolas, Bitstream Vera Sans Mono, monospace;
+    }
+
+    &.boolean {
+      text-align: center;
+    }
+  }
+
+}
+
 
 </style>

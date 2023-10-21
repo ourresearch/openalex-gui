@@ -19,6 +19,7 @@
     <v-card
         rounded
         dark
+        flat
         style="font-family: Monaco, monospace;"
         class="d-flex align-start pa-2"
     >
