@@ -1,10 +1,5 @@
 <template>
   <tr>
-    <td
-        key="title"
-    >
-      {{ entity.display_name }}
-    </td>
     <template
         v-for="cell in cells"
     >

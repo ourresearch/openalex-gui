@@ -234,7 +234,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
-            key: "title.search",
+            key: "display_name.search",
             isDefault: true,
             entityType: "works",
             displayName: "Title search",
@@ -242,6 +242,19 @@ const facetConfigs = function (entityType) {
             categories: ["search"],
             isCore: true,
             icon: "mdi-magnify",
+        },
+
+        /// this is a wierd one, still working it into the schema
+        {
+            key: "display_name",
+            isColumnMandatory: true,
+            isDefault: true,
+            entityType: "works",
+            displayName: "Title",
+            type: "search",
+            categories: ["search"],
+            isCore: true,
+            icon: "mdi-file-document-outline",
         },
         {
             key: "abstract.search",
@@ -1054,6 +1067,17 @@ const getFacetConfigFromPid = function (pid) {
 
 
 const getFacetConfig = function (entityType, key) {
+    // hack time
+    if (key === "relevance_score") {
+        return {
+            key: "relevance_score",
+            displayName: "Relevance score",
+            icon: "mdi-magnify",
+            type: "search",
+        }
+    }
+
+
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
     if (!myFacetConfig) {
         const msg = `openAlex error: getFacetConfig(): no facet found for '${entityType}' filter "${key}"`

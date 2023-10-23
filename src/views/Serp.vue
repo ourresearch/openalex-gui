@@ -284,16 +284,17 @@ export default {
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
 
+        // set default actions if there are none
+        Object.values(this.$route.query).length || url.setDefaultActions(this.entityType)
+
+
+        // handle the column action
+
+
+
+
         const newQuery = {...this.$route.query}
-        if ("group_by" in this.$route.query){
-          delete newQuery.sort
-          delete newQuery.column
-            url.pushToRoute(this.$router, {
-              name: "Serp",
-              query: newQuery
-            })
-        }
-          console.log(`Serp $route watcher`, newQuery, this.$route.query)
+        // console.log(`Serp $route watcher`, newQuery, this.$route.query)
 
 
 
