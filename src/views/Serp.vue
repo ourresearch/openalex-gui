@@ -178,15 +178,11 @@ export default {
         // this.resultsTab = val ? 1 : 0
 
 
-        const query = {...this.$route.query,}
-
-        if (val) { // we want the group view
-          query.group_by = ""
-          query.sort = undefined
-        } else { // we want the list view
-          this.lastGroupByValue = this.$route.query.group_by
-          query.group_by = undefined
+        const query = {
+          ...this.$route.query,
+          group_by: (val === 0) ? undefined : ""
         }
+
 
         url.pushToRoute(this.$router, {
           name: "Serp",
@@ -260,15 +256,15 @@ export default {
   created() {
   },
   async mounted() {
-    if ("group_by" in this.$route.query) return
-
-    const query = {...this.$route.query}
-    query.column ??= getActionConfig("column").defaultValues.join(",")
-    query.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
-    url.pushToRoute(this.$router, {
-              name: "Serp",
-              query
-            })
+    // if ("group_by" in this.$route.query) return
+    //
+    // const query = {...this.$route.query}
+    // query.column ??= getActionConfig("column").defaultValues.join(",")
+    // query.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
+    // url.pushToRoute(this.$router, {
+    //           name: "Serp",
+    //           query
+    //         })
 
   },
   watch: {
