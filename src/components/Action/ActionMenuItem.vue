@@ -11,6 +11,7 @@
           v-for="config in selectedValueConfigs"
           :key="config.key"
           :value="config.key"
+          @click="removeValue(config.key)"
       >
         <v-list-item-icon>
           <v-icon>{{ config.icon }}</v-icon>
@@ -21,6 +22,9 @@
           </v-list-item-title>
 
         </v-list-item-content>
+        <v-list-item-icon>
+          <v-icon>mdi-checkbox-marked</v-icon>
+        </v-list-item-icon>
       </v-list-item>
       <v-divider/>
       <v-list-item
@@ -38,6 +42,9 @@
           </v-list-item-title>
 
         </v-list-item-content>
+        <v-list-item-icon>
+          <v-icon>mdi-checkbox-blank-outline</v-icon>
+        </v-list-item-icon>
       </v-list-item>
 
     </v-list>
@@ -188,6 +195,9 @@ export default {
           }
       )
     },
+    removeValue(key){
+      console.log("remove value", key)
+    }
 
 
   },

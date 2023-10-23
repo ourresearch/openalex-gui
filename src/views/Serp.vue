@@ -145,6 +145,10 @@ export default {
       groupByKeys: [],
       groupBySearchString: "",
 
+      savedActions: [
+
+      ],
+
       listResultsCount: null, // not the group_by one
 
       selectedActionTab: "filter",
@@ -161,6 +165,9 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
+    isGroupBy(){
+      return "group_by" in this.$route.query
+    },
     resultsTab: {
       get() {
         const ret = (this.$route.query.group_by === undefined) ? 0 : 1
@@ -253,6 +260,15 @@ export default {
   created() {
   },
   async mounted() {
+    if ("group_by" in this.$route.query) return
+
+    const query = {...this.$route.query}
+    query.column ??= getActionConfig("column").defaultValues.join(",")
+    query.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
+    url.pushToRoute(this.$router, {
+              name: "Serp",
+              query
+            })
 
   },
   watch: {
@@ -269,17 +285,15 @@ export default {
         const apiQuery = url.makeApiUrl(this.$route)
 
         const newQuery = {...this.$route.query}
-        newQuery.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
-        newQuery.column ??= getActionConfig("column").defaultValues.join(",")
-
-        console.log(`Serp $route watcher`, newQuery, this.$route.query)
-
-        if (Object.keys(newQuery).length > Object.keys(this.$route.query).length) {
-          url.pushToRoute(this.$router, {
-            name: "Serp",
-            query: newQuery
-          })
+        if ("group_by" in this.$route.query){
+          delete newQuery.sort
+          delete newQuery.column
+            url.pushToRoute(this.$router, {
+              name: "Serp",
+              query: newQuery
+            })
         }
+          console.log(`Serp $route watcher`, newQuery, this.$route.query)
 
 
 

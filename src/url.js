@@ -307,6 +307,8 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
+
+
     const query = {
         page: currentRoute.query.page,
         filter: filterString,
@@ -316,6 +318,9 @@ const makeApiUrl = function (currentRoute, formatCsv) {
 
     if (formatCsv) {
         query.format = "csv"
+    }
+    if (query.group_by){
+        query.sort = undefined
     }
 
     const apiUrl = new URL("https://api.openalex.org")
