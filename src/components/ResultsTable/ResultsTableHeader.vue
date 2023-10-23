@@ -2,11 +2,6 @@
   <thead>
   <tr>
     <th
-        key="title"
-    >
-      Title
-    </th>
-    <th
         v-for="header in headerConfigs"
         :key="header.key"
     >

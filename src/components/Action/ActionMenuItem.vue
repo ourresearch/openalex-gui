@@ -1,5 +1,5 @@
 <template>
-  <v-menu rounded offset-y>
+  <v-menu rounded offset-y :close-on-content-click="false">
     <template v-slot:activator="{on}">
       <v-btn text rounded v-on="on" class="">
         {{ myConfig.displayName }}
@@ -7,6 +7,7 @@
     </template>
 
     <v-list>
+
       <v-list-item
           v-for="config in selectedValueConfigs"
           :key="config.key"
@@ -20,10 +21,14 @@
           <v-list-item-title>
             {{ config.displayName }}
           </v-list-item-title>
+          <v-list-item-subtitle v-if="isDefault(config.key)">
+            {{ config.isColumnMandatory ? "Required" : "Default" }}
+          </v-list-item-subtitle>
 
         </v-list-item-content>
         <v-list-item-icon>
-          <v-icon>mdi-checkbox-marked</v-icon>
+          <v-icon v-if="config.isColumnMandatory">mdi-pin</v-icon>
+          <v-icon v-else>mdi-checkbox-marked</v-icon>
         </v-list-item-icon>
       </v-list-item>
       <v-divider/>
@@ -40,6 +45,9 @@
           <v-list-item-title>
             {{ config.displayName }}
           </v-list-item-title>
+          <v-list-item-subtitle v-if="isDefault(config.key)">
+            Default
+          </v-list-item-subtitle>
 
         </v-list-item-content>
         <v-list-item-icon>
@@ -57,7 +65,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetsByCategory, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
-import {getActionConfig} from "@/actionConfigs";
+import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 
 export default {
@@ -126,50 +134,20 @@ export default {
     unselectedValueConfigs() {
       return this.myConfig.topValues.filter(k => {
         return !this.urlValueKeys.includes(k)
-      }).map(k => getFacetConfig(this.entityType, k))
+      })
+          .map(k => getFacetConfig(this.entityType, k))
+          .filter(conf => {
+            return url.isSearchFilterApplied() || conf.type !== "search"
+            return !(!url.isSearchFilterApplied() && conf.type === "search")
+          })
     },
 
-    selected: {
-      get() {
-        if (this.action === "filter") {
-
-
-        } else if (this.action === "group_by") {
-          return this.$route.query.group_by
-        } else if (this.action === "sort") {
-          return this.$route.query.sort?.replace(":desc", "")
-        } else if (this.action === "column") {
-          return this.$route.query?.column?.split(",") ?? []
-        }
-      },
-      set(to) {
-        const query = {
-          ...this.$route.query,
-          page: undefined,
-        }
-        if (this.action === "filter") {
-
-        } else if (this.action === "group_by") {
-          query.sort = undefined
-          query.group_by = to
-        } else if (this.action === "sort") {
-          query.sort = to + ":desc"
-        } else if (this.action === "column") {
-          query.column = to.length ? to.join(",") : undefined
-        }
-
-        url.pushToRoute(
-            this.$router,
-            {
-              name: "Serp",
-              query,
-            }
-        )
-      }
-    },
     selectedConfig() {
       if (!this.selected || this.isMultipleSelect) return
       return getFacetConfig(this.entityType, this.selected)
+    },
+    appendToKeyValues(){
+      return (this.action === "sort") ? ":desc" : ""
     }
   },
 
@@ -182,11 +160,12 @@ export default {
       return this.selected === key || this.selected?.includes(key)
     },
     addValue(key) {
-      const appendToKey = (this.action === 'sort') ? ':desc' : ''
-      const myKey = key + appendToKey
-      const query = {...this.$route.query}
+      const myKey = key + this.appendToKeyValues
       const newKeys = [...this.urlValues, myKey]
-      query[this.action] = newKeys.join(",")
+      const query = {
+        ...this.$route.query,
+        [this.action]: newKeys.join(","),
+      }
       url.pushToRoute(
           this.$router,
           {
@@ -196,7 +175,35 @@ export default {
       )
     },
     removeValue(key){
+      if (key === "display_name") return
       console.log("remove value", key)
+
+
+      let newKeys = this.urlValueKeys.filter(k => {
+        return k !== key
+      })
+
+      if (this.action === "sort" && newKeys.length === 0){
+        newKeys = getActionDefaultValues(this.action, this.$route.query)
+      }
+
+      const query = {
+        ...this.$route.query,
+        [this.action]: newKeys.map(k => k + this.myConfig.appendToValues).join(",")
+      }
+
+
+      url.pushToRoute(
+          this.$router,
+          {
+            name: "Serp",
+            query,
+          }
+      )
+    },
+    isDefault(key){
+      const defaults = getActionDefaultValues(this.action, this.$route.query)
+      return defaults.includes(key)
     }
 
 

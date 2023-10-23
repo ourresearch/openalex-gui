@@ -4,6 +4,7 @@ import {entityConfigs} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
 import {entityTypes} from "./util";
 import {filter} from "core-js/internals/array-iteration";
+import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
 const makeRoute = function (router, newRoute) {
     const newQuery = {...router.currentRoute.query}
@@ -62,31 +63,7 @@ const pushToRoute = async function (router, newRoute) {
         })
 }
 
-const setFiltersByKey = function (filterKey, filters) {
-    const entityType = router.currentRoute.params.entityType
 
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    const newFilters = [
-        ...oldFilters.filter(f => f.key !== filterKey),
-        ...filters
-    ]
-
-    const newRoute = {
-        name: "Serp",
-        params: {entityType},
-        query: {
-            page: 1,
-            sort: router.currentRoute.query.sort,
-            search: router.currentRoute.query.search,
-            filter: filtersAsUrlStr(newFilters)
-        }
-    }
-    pushToRoute(router, newRoute)
-}
-
-const negateFilter = async function (key, value) {
-
-}
 
 const setPage = async function (page) {
     return pushToRoute(router, {
@@ -114,9 +91,10 @@ const pushNewFilters = async function (newFilters) {
     const query = {
         ...router.currentRoute.query,
         page: 1,
-        sort: undefined,
         filter,
     }
+    query.sort = getActionDefaultsStr("sort", query)
+
     const newRoute = {
         name: "Serp",
         // params: {entityType},
@@ -125,30 +103,6 @@ const pushNewFilters = async function (newFilters) {
     return pushToRoute(router, newRoute)
 }
 
-const replaceFilter = async function (oldFilter, newFilter) {
-    const entityType = router.currentRoute.params.entityType
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-
-    // remove the old filter
-    const oldFiltersToKeep = oldFilters.filter(f => {
-        return !oldFilter || !filtersAreEqual(f, oldFilter)
-    })
-
-    // add the new filter
-    const newFilters = [...oldFiltersToKeep, newFilter].filter(f => !!f)
-
-    // set and push
-    const newRoute = {
-        name: "Serp",
-        params: {entityType},
-        query: {
-            page: 1,
-            sort: router.currentRoute.query.sort,
-            filter: filtersAsUrlStr(newFilters)
-        }
-    }
-    pushToRoute(router, newRoute)
-}
 
 
 const createFilter = async function (entityType, key, newValue) {
@@ -179,6 +133,13 @@ const isFilterApplied = function(entityType, key){
     const filterValue = readFilterValue(entityType, key)
     return filterValue !== "" && filterValue !== undefined && filterValue !== null
 }
+const isSearchFilterApplied = function(){
+    return router.currentRoute.query?.filter?.split(",")?.some(f => {
+        return f.split(":")[0]?.indexOf(".search") > -1
+    })
+}
+
+
 
 const updateFilter = async function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -271,6 +232,23 @@ const setGroupBy = function (facetKey) {
 }
 
 
+const setDefaultActions = function() {
+    console.log("setDefaultActions")
+    pushToRoute(router, {
+        name: "Serp",
+        query: {
+            sort: getActionDefaultsStr("sort", router.currentRoute.query),
+            column: getActionDefaultsStr("column", router.currentRoute.query),
+        }
+    })
+}
+
+
+
+
+
+
+
 const addZoomToRoute = function (router, zoom) {
     if (!zoom) return
     const shortId = zoom.replace("https://openalex.org/", "")
@@ -347,6 +325,8 @@ const makeApiUrl = function (currentRoute, formatCsv) {
 }
 
 
+
+
 const makeGroupByUrl = function (entityType, groupByKey, options) {
 
     // set options from defaults and args
@@ -392,16 +372,20 @@ const url = {
 
     createFilter,
     readFilter,
+    isSearchFilterApplied,
     readFilterValue,
     isFilterApplied,
     updateFilter,
     deleteFilter,
     upsertFilter,
 
-    setFiltersByKey,
+    setDefaultActions,
+
+
+
+
+
     setFilters,
-    replaceFilter,
-    negateFilter,
     setSearch,
     setPage,
 
