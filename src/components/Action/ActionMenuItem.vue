@@ -2,7 +2,7 @@
   <v-menu rounded offset-y :close-on-content-click="false">
     <template v-slot:activator="{on}">
       <v-btn text rounded v-on="on" class="">
-        {{ myConfig.displayName }}
+        {{  myConfig.displayName }}
       </v-btn>
     </template>
 
@@ -12,7 +12,7 @@
           v-for="config in selectedValueConfigs"
           :key="config.key"
           :value="config.key"
-          @click="removeValue(config.key)"
+
       >
         <v-list-item-icon>
           <v-icon>{{ config.icon }}</v-icon>
@@ -21,23 +21,28 @@
           <v-list-item-title>
             {{ config.displayName }}
           </v-list-item-title>
-          <v-list-item-subtitle v-if="isDefault(config.key)">
-            {{ config.isColumnMandatory ? "Required" : "Default" }}
+          <v-list-item-subtitle v-if="isDefault(config.key) && !config.isColumnMandatory">
+            Default
           </v-list-item-subtitle>
 
         </v-list-item-content>
-        <v-list-item-icon>
-          <v-icon v-if="config.isColumnMandatory">mdi-pin</v-icon>
-          <v-icon v-else>mdi-checkbox-marked</v-icon>
-        </v-list-item-icon>
+        <v-list-item-action>
+          <v-btn icon :disabled="config.isColumnMandatory"  @click="removeValue(config.key)">
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-btn>
+        </v-list-item-action>
+<!--        <v-list-item-icon>-->
+<!--          <v-icon v-if="config.isColumnMandatory">mdi-pin</v-icon>-->
+<!--          <v-icon v-else>mdi-checkbox-marked</v-icon>-->
+<!--        </v-list-item-icon>-->
       </v-list-item>
       <v-divider/>
       <v-list-item
           v-for="config in unselectedValueConfigs"
           :key="config.key"
           :value="config.key"
-          @click="addValue(config.key)"
       >
+<!--          @click="addValue(config.key)"-->
         <v-list-item-icon>
           <v-icon>{{ config.icon }}</v-icon>
         </v-list-item-icon>
@@ -50,9 +55,15 @@
           </v-list-item-subtitle>
 
         </v-list-item-content>
-        <v-list-item-icon>
-          <v-icon>mdi-checkbox-blank-outline</v-icon>
-        </v-list-item-icon>
+<!--        <v-list-item-icon>-->
+<!--          <v-icon>mdi-checkbox-blank-outline</v-icon>-->
+<!--        </v-list-item-icon>-->
+
+        <v-list-item-action>
+          <v-btn icon  @click="addValue(config.key)">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </v-list-item-action>
       </v-list-item>
 
     </v-list>
@@ -88,40 +99,8 @@ export default {
     myConfig() {
       return getActionConfig(this.action)
     },
-    topFilters() {
-      return this.myConfig.topValues.map(filterKey => {
-        return getFacetConfig("works", filterKey)
-      })
-
-
-      const config = {
-        filter: facetsByCategory(this.entityType)[0].filterConfigs,
-        group_by: facetsByCategory(this.entityType)[0].filterConfigs,
-        sort: [
-          "publication_date",
-          "cited_by_count"
-        ].map(k => getFacetConfig(this.entityType, k)),
-        column: [
-          "publication_year",
-          "type",
-          "open_access.is_oa",
-          "cited_by_count",
-        ].map(k => getFacetConfig(this.entityType, k)),
-      }
-
-      return config[this.action]
-    },
-    isMultipleSelect() {
-      return ["filter", "column"].includes(this.action)
-    },
-    isSelectedDirty() {
-      return this.selected?.length > 0
-    },
-    urlAction() {
-      return this.action.replace(" ", "_")
-    },
     urlValues() {
-      return this.$route.query[this.action]?.split(",") ?? []
+      return this.$route.query[this.action]?.split(",")?.filter(x => !!x) ?? []
     },
     urlValueKeys() {
       return this.urlValues.map(val => val.replace(":desc", ""))
@@ -190,8 +169,10 @@ export default {
       const query = {
         ...this.$route.query,
         [this.action]: newKeys.map(k => k + this.myConfig.appendToValues).join(",")
+        // [this.action]: "publication_year,display_name"
       }
 
+      console.log("removeValue pushing this query", query)
 
       url.pushToRoute(
           this.$router,
