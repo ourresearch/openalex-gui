@@ -1,7 +1,43 @@
 <template>
   <v-card flat tile class="">
     <div class="my-1 mx-3 d-flex">
-      <action-menu-item action="group_by" />
+      <v-menu rounded :close-on-content-click="true">
+        <template v-slot:activator="{on}">
+          <v-btn text rounded v-on="on" class="">
+            Group
+            by<span v-if="selectedConfig">: {{ selectedConfig.displayName }}</span>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item-group v-model="selected">
+            <v-list-item
+                v-for="config in optionConfigs"
+                :key="config.key"
+                :value="config.key"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ config.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ config.displayName }}
+                </v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-icon>
+                <v-icon v-if="selected === config.key">mdi-checkbox-marked</v-icon>
+                <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+              </v-list-item-icon>
+            </v-list-item>
+          </v-list-item-group>
+          <v-divider />
+          <v-list-item key="more-items">
+            <v-list-item-content>
+              <v-list-item-title>More...</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
       <v-btn
           text
           rounded
@@ -23,12 +59,11 @@
     <!--          v-model="searchString"-->
     <!--      />-->
     <!--    </v-toolbar>-->
-    <table v-if="0 && resultsCount" class="serp-results-table">
+    <table v-if="selected" class="serp-results-table mt-12">
       <thead>
       <tr>
         <th>
-          {{ myFilterConfig.displayName }}
-
+          {{ selectedConfig.displayName }}
         </th>
         <th>Works count</th>
         <th></th>
@@ -49,12 +84,12 @@
         </td>
         <td>
           <div style="height: 40px; width: 500px">
-          <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
-            <v-spacer/>
-            <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-          </div>
+            <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
+              <v-spacer/>
+              <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
+            </div>
 
-        </div>
+          </div>
         </td>
 
       </tr>
@@ -75,15 +110,18 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import {url} from "../../url";
-import {facetConfigs} from "@/facetConfigs";
+import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
+import Template from "@/components/Action/ActionMenuItem.vue";
+import {getActionConfig} from "@/actionConfigs";
 
 export default {
   name: "GroupBy",
   components: {
+    Template,
     ActionMenuItem,
   },
   props: {},
@@ -102,6 +140,34 @@ export default {
       "entityType",
       "resultsCount",
     ]),
+    selected: {
+      get() {
+        return this.$route.query.group_by
+      },
+      set(to) {
+        const query = {
+          ...this.$route.query,
+          group_by: to
+        }
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query
+        })
+      }
+    },
+    selectedConfig(){
+      if (!this.selected) return
+      return getFacetConfig(this.entityType, this.selected)
+    },
+    options() {
+      return getActionConfig("group_by").topValues
+    },
+    optionConfigs() {
+      return this.options.map(k => {
+        return getFacetConfig(this.entityType, k)
+      })
+    },
+
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
     },
