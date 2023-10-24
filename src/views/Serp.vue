@@ -170,25 +170,17 @@ export default {
     },
     resultsTab: {
       get() {
-        const ret = (this.$route.query.group_by === undefined) ? 0 : 1
-        return ret
+        return this.$route.query.tab ?? 0
       },
-      set(val) {
-        // view the groupBy tab if we are setting this to true
-        // this.resultsTab = val ? 1 : 0
-
-
+      set(to) {
         const query = {
           ...this.$route.query,
-          group_by: (val === 0) ? undefined : ""
+          tab: to
         }
-
-
         url.pushToRoute(this.$router, {
           name: "Serp",
           query,
         })
-
       }
     },
     groupByConfig() {
@@ -291,7 +283,7 @@ export default {
 
 
         const newQuery = {...this.$route.query}
-        // console.log(`Serp $route watcher`, newQuery, this.$route.query)
+        console.log(`Serp $route watcher`, newQuery, this.$route.query)
 
 
 
