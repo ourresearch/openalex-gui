@@ -1,7 +1,7 @@
 <template>
   <v-card flat tile class="">
     <div class="my-1 mx-3 d-flex">
-<!--      <action-menu-item action="group_by" />-->
+      <action-menu-item action="group_by" />
       <v-btn
           text
           rounded

@@ -277,6 +277,7 @@ export default {
     "$route": {
       immediate: true,
       async handler(to, from) {
+
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
 
