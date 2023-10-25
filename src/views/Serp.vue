@@ -1,5 +1,19 @@
 <template>
   <div class="serp-page">
+
+    <v-navigation-drawer
+        v-model="isSidebarOpen"
+        app
+        fixed
+        right
+        color="#fafafa"
+    >
+      hola
+
+
+    </v-navigation-drawer>
+
+
     <v-toolbar flat>
       <v-toolbar-title>
         Explore
@@ -82,6 +96,7 @@ import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
 import ActionChipsList from "@/components/Action/ActionMenuItem.vue";
 import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
 import {actionConfigs, getActionConfig} from "@/actionConfigs";
+import SiteNav from "@/components/SiteNav.vue";
 
 export default {
   name: "Serp",
@@ -91,6 +106,7 @@ export default {
     return ret
   },
   components: {
+    SiteNav,
     Template,
     FilterList,
     SearchBoxNew,
@@ -167,6 +183,21 @@ export default {
     ]),
     isGroupBy(){
       return "group_by" in this.$route.query
+    },
+    isSidebarOpen: {
+      get(){
+        return !!this.$route.query.sidebar
+      },
+      set(to){
+        const query = {
+          ...this.$route.query,
+          sidebar: to
+        }
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query,
+        })
+      }
     },
     resultsTab: {
       get() {
@@ -283,12 +314,12 @@ export default {
 
 
         const newQuery = {...this.$route.query}
-        console.log(`Serp $route watcher`, newQuery, this.$route.query)
+        // console.log(`Serp $route watcher`, newQuery, this.$route.query)
 
 
 
 
-        console.log("Serp apiQuery", apiQuery)
+        // console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp;

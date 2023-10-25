@@ -4,7 +4,8 @@
         v-model="isSiteNavOpen"
         app
         color="#fafafa"
-        floating
+        :expand-on-hover="$route.name === 'Serp'"
+        :mini-variant.sync="$route.name === 'Serp'"
     >
       <router-link
           :to="{name: 'Home'}"
@@ -281,7 +282,7 @@ $logo-link-height: 32px;
   .logo-text {
     //padding: 0 14px;
 
-    margin: 5px 0 5px 10px;
+    margin: 5px 0 5px 15px;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
