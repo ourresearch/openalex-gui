@@ -2,7 +2,7 @@ import router from "./router";
 import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual, createSimpleFilter} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
-import {entityTypes} from "./util";
+import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
@@ -282,6 +282,18 @@ const setActionValueKeys = function(actionName, actionValueKeys){
 }
 
 
+const setSidebar = function(id){
+    const shortId = shortenOpenAlexId(id)
+    console.log("setSidebar", shortId)
+    pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.query,
+            sidebar: shortId
+        }
+    })
+}
+
 
 
 
@@ -420,6 +432,8 @@ const url = {
     getActionValues,
     getActionValueKeys,
     setActionValueKeys,
+
+    setSidebar,
 
 
 
