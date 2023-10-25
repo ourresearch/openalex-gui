@@ -73,7 +73,7 @@
         color="primary"
     >
       <v-list-item-icon>
-        <v-icon>mdi-creation-outline</v-icon>
+        <v-icon>mdi-diamond-stone</v-icon>
       </v-list-item-icon>
       <v-list-item-content>
         <v-list-item-title>

@@ -243,6 +243,44 @@ const setDefaultActions = function() {
     })
 }
 
+const getActionValues = function(action){
+    const val = router.currentRoute.query[action]
+    if (!val) return []
+
+    return val?.split(",").filter(x => !!x)
+}
+
+
+const getActionValueKeys = function(currentRoute, action){
+    const val = currentRoute.query[action]
+    if (!val) return []
+
+    return val?.split(",").filter(x => !!x).map(val => {
+        const hasColon = val.indexOf(":") > -1
+        return hasColon ? val.split(":")[0] : val
+    })
+}
+const setActionValueKeys = function(actionName, actionValueKeys){
+    console.log("addActionValueKey", actionName, actionValueKeys)
+    const actionConfig = getActionConfig(actionName)
+
+    let newValues = actionValueKeys.map(k => k + actionConfig.appendToValues)
+    if (actionName === "sort" && newValues.length === 0) {
+        newValues = getActionDefaultValues(actionName, router.currentRoute.query).map(v => v + actionConfig.appendToValues)
+      }
+
+    const query = {
+        ...router.currentRoute.query,
+        [actionName]: newValues.join(",")
+    }
+
+    pushToRoute(router, {
+        name: "Serp",
+        query,
+    })
+
+}
+
 
 
 
@@ -379,6 +417,9 @@ const url = {
     upsertFilter,
 
     setDefaultActions,
+    getActionValues,
+    getActionValueKeys,
+    setActionValueKeys,
 
 
 

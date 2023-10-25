@@ -30,7 +30,7 @@
             </v-list-item>
           </v-list-item-group>
           <v-divider />
-          <v-list-item key="more-items">
+          <v-list-item key="more-items" @click="isDialogOpen = true">
             <v-list-item-content>
               <v-list-item-title>More...</v-list-item-title>
             </v-list-item-content>
@@ -101,6 +101,9 @@
 
       </tbody>
     </table>
+    <v-dialog scrollable v-model="isDialogOpen">
+      <action-add-value-dialog/>
+    </v-dialog>
 
   </v-card>
 </template>
@@ -117,12 +120,15 @@ import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
 import Template from "@/components/Action/ActionMenuItem.vue";
 import {getActionConfig} from "@/actionConfigs";
+import ActionAddValueDialog from "@/components/Action/ActionAddValueDialog.vue";
 
 export default {
   name: "GroupBy",
   components: {
     Template,
     ActionMenuItem,
+    ActionAddValueDialog,
+
   },
   props: {},
   data() {
@@ -132,6 +138,7 @@ export default {
       isLoading: false,
       selectedValue: this.filterValue,
       searchString: "",
+      isDialogOpen: false,
     }
   },
   computed: {
@@ -160,7 +167,14 @@ export default {
       return getFacetConfig(this.entityType, this.selected)
     },
     options() {
-      return getActionConfig("group_by").topValues
+      const topValues = getActionConfig("group_by").topValues
+      const selectedValue = this.$route.query.group_by
+      const allValues = [
+          selectedValue,
+          ...topValues,
+      ].filter(x => !!x)
+      return [...new Set(allValues)]
+
     },
     optionConfigs() {
       return this.options.map(k => {
