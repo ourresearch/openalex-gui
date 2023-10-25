@@ -4,12 +4,13 @@
     <v-navigation-drawer
         v-model="isSidebarOpen"
         app
-        fixed
+        temporary
+        height="100vh"
         right
         color="#fafafa"
+        width="600"
     >
-      hola
-
+      <entity v-if="sidebarData" :data="sidebarData"/>
 
     </v-navigation-drawer>
 
@@ -97,6 +98,8 @@ import ActionChipsList from "@/components/Action/ActionMenuItem.vue";
 import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
 import {actionConfigs, getActionConfig} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
+import Entity from "@/components/Entity/Entity.vue";
+import {shortenOpenAlexId} from "@/util";
 
 export default {
   name: "Serp",
@@ -128,6 +131,8 @@ export default {
     SortButton,
     GroupBySelector,
     GroupBy,
+
+    Entity,
 
   },
   props: {},
@@ -161,9 +166,7 @@ export default {
       groupByKeys: [],
       groupBySearchString: "",
 
-      savedActions: [
-
-      ],
+      savedActions: [],
 
       listResultsCount: null, // not the group_by one
 
@@ -181,21 +184,27 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    isGroupBy(){
+    isGroupBy() {
       return "group_by" in this.$route.query
     },
+    sidebarData() {
+      const sidebarId = this.$route.query.sidebar
+      return this.resultsObject?.results?.find(res => {
+        return shortenOpenAlexId(res.id) === sidebarId
+      })
+    },
     isSidebarOpen: {
-      get(){
+      get() {
         return !!this.$route.query.sidebar
       },
-      set(to){
-        const query = {
-          ...this.$route.query,
-          sidebar: to
-        }
+      set(to) {
+        if (to) return
         url.pushToRoute(this.$router, {
           name: "Serp",
-          query,
+          query: {
+            ...this.$route.query,
+            sidebar: undefined
+          },
         })
       }
     },
@@ -311,12 +320,8 @@ export default {
         // handle the column action
 
 
-
-
         const newQuery = {...this.$route.query}
         // console.log(`Serp $route watcher`, newQuery, this.$route.query)
-
-
 
 
         // console.log("Serp apiQuery", apiQuery)
@@ -345,6 +350,8 @@ export default {
 .container {
   //max-width: 1024px !important;
 }
+
+
 
 table.serp-results-table {
   border-collapse: collapse;

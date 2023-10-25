@@ -5,7 +5,7 @@
         app
         color="#fafafa"
         :expand-on-hover="$route.name === 'Serp'"
-        :mini-variant.sync="$route.name === 'Serp'"
+        :mini-variant="$route.name === 'Serp'"
     >
       <router-link
           :to="{name: 'Home'}"
@@ -259,9 +259,9 @@ html, body {
   text-transform: none;
 }
 
-.v-navigation-drawer__content {
-  overflow-y: hidden !important;
-}
+//.v-navigation-drawer__content {
+//  overflow-y: hidden !important;
+//}
 
 .theme--light.v-list-item--active::before {
   //opacity: 0;

@@ -74,14 +74,14 @@
 
 
         <!--    Concepts list-->
-        <div v-if="data.concepts.length">
-        <span class="font-weight-bold">
-          Concepts:
-        </span>
-          <span>
-          <concepts-list :concepts="data.concepts" :is-clickable="true"/>
-        </span>
-        </div>
+<!--        <div v-if="data.concepts.length">-->
+<!--        <span class="font-weight-bold">-->
+<!--          Concepts:-->
+<!--        </span>-->
+<!--          <span>-->
+<!--          <concepts-list :concepts="data.concepts" :is-clickable="true"/>-->
+<!--        </span>-->
+<!--        </div>-->
 
 
         <!--    Cited By  -->

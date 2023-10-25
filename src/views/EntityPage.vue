@@ -47,11 +47,11 @@ export default {
       "userEmailAlerts",
       "userSavedSearches",
     ]),
-    apiPath(){
+    apiPath() {
       return [
-          this.$route.params.entityType,
-          this.$route.params.entityId
-        ].join("/")
+        this.$route.params.entityType,
+        this.$route.params.entityId
+      ].join("/")
     }
   },
 

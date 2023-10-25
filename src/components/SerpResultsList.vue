@@ -26,7 +26,7 @@
       </v-card>
 
 
-      <v-list v-if="resultsCount" class="serp-results-list" nav>
+      <v-list v-if="0 && resultsCount" class="serp-results-list" nav>
         <component
             v-for="result in resultsObject.results"
             :key="result.id"
