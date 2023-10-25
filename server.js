@@ -8,15 +8,22 @@ let app = express();
 // always redirect to https:
 app.use(sslRedirect(['production'], 301));
 
+// redirect alpha.openalex.org to openalex.org/works
+app.use(function (req, res, next) {
+    if (req.subdomains.includes('alpha') || req.hostname.split('.').includes('alpha')) {
+        res.redirect('https://openalex.org/works');
+    } else {
+        next();
+    }
+});
+
 // this was helpful for configs:
 // https://scotch.io/tutorials/creating-a-single-page-todo-app-with-node-and-angular
 app.use(serveStatic(__dirname + "/dist"));
 
-
-
 app.get('*', function (req, res) {
 
-    res.sendfile('./dist/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
 
 const port = process.env.PORT || 5000;
