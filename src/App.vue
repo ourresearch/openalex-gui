@@ -385,4 +385,11 @@ img.site-footer-logo {
 .page {
   margin-top: 50px;
 }
+
+.v-tabs--icons-and-text .v-tab{
+  font-size: 12px !important;
+  text-transform: capitalize;
+}
+
+
 </style>

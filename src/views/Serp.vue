@@ -10,7 +10,7 @@
         color="#fafafa"
         width="600"
     >
-      <entity v-if="sidebarData" :data="sidebarData"/>
+      <entity-work v-if="sidebarData" :data="sidebarData"/>
 
     </v-navigation-drawer>
 
@@ -24,15 +24,18 @@
         </span>
       </v-toolbar-title>
       <v-spacer/>
+      <v-btn icon @click="isShowApiSet = !isShowApiSet">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
     </v-toolbar>
 
     <filter-chips-list class="pl-3"/>
 
-    <!--      <serp-api-editor-->
-    <!--          v-if="1 || $store.state.isApiEditorShowing"-->
-    <!--          class="mb-3"-->
-    <!--          key="api-editor"-->
-    <!--      />-->
+    <serp-api-editor
+        v-if="isShowApiSet"
+        class="mb-3 mx-3"
+        key="api-editor"
+    />
 
     <v-divider class="mb-8"/>
 
@@ -99,6 +102,7 @@ import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
 import {actionConfigs, getActionConfig} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
 import Entity from "@/components/Entity/Entity.vue";
+import EntityWork from "@/components/Entity/EntityWork/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
 
 export default {
@@ -133,6 +137,7 @@ export default {
     GroupBy,
 
     Entity,
+    EntityWork,
 
   },
   props: {},
@@ -192,6 +197,21 @@ export default {
       return this.resultsObject?.results?.find(res => {
         return shortenOpenAlexId(res.id) === sidebarId
       })
+    },
+    isShowApiSet: {
+      get() {
+        return !!this.$route.query.show_api
+      },
+      set(to) {
+        const show_api = (to) ? to : undefined
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            show_api
+          },
+        })
+      }
     },
     isSidebarOpen: {
       get() {

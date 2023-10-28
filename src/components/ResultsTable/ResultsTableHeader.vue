@@ -1,6 +1,7 @@
 <template>
   <thead>
   <tr>
+
     <th
         v-for="header in headerConfigs"
         :key="header.key"
