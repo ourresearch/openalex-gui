@@ -162,6 +162,14 @@ export default {
       if (!this.data.abstract_inverted_index) return
       return unravel(this.data.abstract_inverted_index)
     },
+    primaryLocationUrl(){
+      return this.data.primary_location.url
+    },
+    bestOaLocationUrl(){
+      return this.data.best_oa_location?.url ?? ""
+    },
+
+
     fulltextUrl() {
       // this is kind of hacky because the oa data we get back from the api has weird holes.
       if (this.data.open_access.oa_url) return this.data.open_access.oa_url

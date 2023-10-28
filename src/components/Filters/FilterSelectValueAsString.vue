@@ -3,7 +3,9 @@
     <template v-if="count">({{ filterValueOptions.length }})</template>
     <template v-else>
       <span v-if="firstOptionIsNegated" class="font-weight-bold">NOT </span>
-      {{ firstOptionDisplayName }}
+      <span v-if="firstOptionDisplayName">
+        {{ firstOptionDisplayName | truncate(30) }}
+      </span>
       <span class="font-weight-bold " v-if="filterValueOptions.length > 1">
             +{{ filterValueOptions.length - 1 }}
           </span>

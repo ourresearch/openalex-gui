@@ -699,7 +699,7 @@ const facetConfigs = function (entityType) {
             showInSidebar: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
-            type: "entity",
+            type: "select", // used to be "entity"
             categories: ["citation"],
             icon: "mdi-format-quote-close",
         },
@@ -712,7 +712,7 @@ const facetConfigs = function (entityType) {
             showNameInChip: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
-            type: "entity",
+            type: "select", // used to be "entity"
             categories: ["citation"],
             icon: "mdi-format-quote-close",
         },
@@ -725,7 +725,7 @@ const facetConfigs = function (entityType) {
             showNameInChip: true,
             autocompleteEndpoint: "autocomplete/works",
             noOptions: true,
-            type: "entity",
+            type: "select", // used to be "entity"
             categories: ["other"],
             isHidden: true,
             icon: "mdi-book-open-outline",

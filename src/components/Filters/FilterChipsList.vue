@@ -134,7 +134,6 @@ import FilterEditBoolean from "../FilterEdit/FilterEditBoolean.vue";
 import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 import FilterChipBoolean from "../FilterChip/FilterChipBoolean.vue";
-import FilterChipEntity from "../FilterChip/FilterChipEntity.vue";
 import FilterChipRange from "../FilterChip/FilterChipRange.vue";
 import FilterChipSearch from "../FilterChip/FilterChipSearch.vue";
 import FilterChipSelect from "../FilterChip/FilterChipSelect.vue";
@@ -152,7 +151,6 @@ export default {
 
     FilterKeySelector,
     FilterChipBoolean,
-    FilterChipEntity,
     FilterChipRange,
     FilterChipSearch,
     FilterChipSelect,
