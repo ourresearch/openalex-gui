@@ -1,6 +1,7 @@
 <template>
   <v-list-item
       :href="loc.landing_page_url"
+      target="_blank"
   >
     <v-list-item-icon>
       <v-icon>
@@ -12,18 +13,34 @@
         {{ displayName }}
       </v-list-item-title>
       <v-list-item-subtitle>
-        <span class="text-capitalize">{{ myVersion }}</span>
+        <span v-if="isCanonical">Canonical</span>
+<!--        <span class="text-capitalize">{{ myVersion }}</span>-->
       </v-list-item-subtitle>
 
     </v-list-item-content>
     <v-list-item-action>
-      <v-btn icon v-if="loc.pdf_url" :to="loc.pdf_url">
+      <v-btn
+          icon
+          v-if="loc.pdf_url"
+          :href="loc.pdf_url"
+          target="_blank"
+      >
         <v-icon>mdi-file-pdf-box</v-icon>
       </v-btn>
+
+      <v-list-item-action-text>
+        {{ myVersion }}
+      </v-list-item-action-text>
     </v-list-item-action>
-    <v-list-item-icon>
-      <v-icon>mdi-open-in-new</v-icon>
-    </v-list-item-icon>
+    <v-list-item-action>
+      <v-btn
+          icon
+          :href="loc.landing_page_url"
+          target="_blank"
+      >
+        <v-icon>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-list-item-action>
 
 
   </v-list-item>
@@ -38,8 +55,7 @@ export default {
   components: {},
   props: {
     loc: Object,
-    canonicalUrl: String,
-    bestOaUrl: String,
+    isCanonical: Boolean,
   },
   data() {
     return {
@@ -57,8 +73,8 @@ export default {
           "Unknown source"
     },
     myVersion() {
-      return this.loc.version.replace("Version", "")
-    }
+      return this.loc?.version?.replace("Version", "")
+    },
   },
 
   methods: {
