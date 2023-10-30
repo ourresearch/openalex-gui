@@ -1,6 +1,29 @@
 <template>
   <!--  <div class="entity-zoom-container">-->
   <v-card flat class="" min-height="100vh">
+    <v-toolbar flat dense>
+       <v-btn icon>
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <v-spacer />
+
+
+      <entity-ids-menu-item :ids="data.ids" />
+      <v-btn
+        icon
+        :href="apiUrl"
+        target="_blank"
+      >
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
+      <v-btn
+        icon
+        :href="primaryLocationUrl"
+        target="_blank"
+      >
+        <v-icon>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-toolbar>
     <div class="d-flex pa-2">
       <div class="pa-3">
         <div
@@ -8,17 +31,15 @@
             v-html="$prettyTitle(data.display_name)"
         />
         <div class="body-2">
-          <span v-if="data.publication_year">{{ data.publication_year }}. </span>
+          <span v-if="data.publication_year">{{ data.publication_year }} </span>
+          <span>{{ data.type }}</span>
+          <span class="mx-1">by</span>
           <work-authors-string :authorships="data.authorships"/>
-          .
-          <span v-if="data.primary_location">{{ data.primary_location.source.display_name }}. </span>
+          <span v-if="data.primary_location">in {{ data.primary_location.source.display_name }}. </span>
         </div>
 
       </div>
-      <v-spacer/>
-      <v-btn icon>
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+
 
 
     </div>
@@ -113,114 +134,26 @@
 
 
       <v-tab-item>
-        <div v-if="authorshipsToShow.length">
+          <entity-work-author
+            v-for="author in data.authorships"
+            :key="author.id"
+            :author="author"
+          />
 
-        <span class="font-weight-bold">
-          {{ "Author" | pluralize(authorshipsToShow.length) }}:
-        </span>
-          <span>
-
-            <!--      Multiple authors-->
-            <authorship
-                v-for="(authorship, i) in authorshipsToShow"
-                :key="authorship.author.id"
-                :authorship="authorship"
-                :append-comma="i < authorshipsToShow.length - 1"
-                :show-institutions="true"
-                class="mr-1"
-            />
-
-            <!--                    <a-->
-            <!--                        v-if="truncatedAuthorshipsCount"-->
-            <!--                        @click="showAuthorDetails = !showAuthorDetails"-->
-            <!--                        class="font-weight-bold"-->
-            <!--                    >+ {{truncatedAuthorshipsCount}} more-->
-
-            <!--                    </a>-->
-        </span>
-        </div>
 
       </v-tab-item>
 
 
       <v-tab-item>
+        {{ primaryLocationUrl }}
         <v-list class="pa-0">
+
           <entity-work-source
               v-for="(loc, i) in data.locations"
               :loc="loc"
+              :is-canonical="loc.landing_page_url === primaryLocationUrl"
               :key="i"
           />
-
-
-          <v-list-item
-              class="d-none"
-              v-for="(loc, i) in data.locations"
-              :key="i"
-              three-line
-          >
-            <!--                :href="loc.landing_page_url" target="_blank"-->
-
-            <v-list-item-content>
-              <v-list-item-title>
-                {{
-                  (loc.source && loc.source.display_name) ? loc.source.display_name.replace(/\(.+?\)/, "") : "Unknown source"
-                }}
-              </v-list-item-title>
-              <v-list-item-subtitle style="">
-                  <span class="text-capitalize" v-if="loc.source && loc.source.host_organization_name">{{
-                      loc.source.host_organization_name
-                    }}</span>
-                <span v-else>Unknown publisher</span>
-              </v-list-item-subtitle>
-              <v-list-item-subtitle class="grey--text font-weight-normal" style="">
-                  <span v-if="!loc.is_oa">
-                    <v-icon small class="mr-1">mdi-lock-outline</v-icon> Paywalled
-                  </span>
-                <span v-if="loc.is_oa">
-                    <v-icon small class="mr-1">mdi-lock-open-variant-outline</v-icon>
-                  </span>
-                <span small outlined v-if="loc.version" class="">
-                    <span class="text-capitalize">{{ loc.version.replace("Version", "") }}</span>
-                  </span>
-                <span v-if="loc.version && loc.license">・</span>
-                <span small outlined class="" v-if="loc.license && loc.license !== 'implied-oa'">{{
-                    loc.license
-                  }}</span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-            <v-list-item-action>
-              <v-menu>
-                <template v-slot:activator="{on}">
-                  <v-btn v-on="on" small icon>
-                    <v-icon small>mdi-dots-horizontal</v-icon>
-                  </v-btn>
-                </template>
-                <v-list dense>
-                  <v-subheader>
-                    View
-                    <span v-if="!loc.is_oa" class="ml-2">(paywalled)</span>
-                  </v-subheader>
-                  <v-divider/>
-                  <v-list-item :href="loc.landing_page_url" target="_blank">
-                    <v-list-item-title>
-                      <v-icon left small>
-                        {{ (loc.is_oa) ? "mdi-file-document" : "mdi-lock-outline" }}
-                      </v-icon>
-                      HTML
-                    </v-list-item-title>
-                  </v-list-item>
-
-                  <v-list-item v-if="loc.pdf_url" :href="loc.pdf_url" target="_blank">
-                    <v-list-item-title>
-                      <v-icon left small>mdi-file-pdf-box</v-icon>
-                      PDF
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-
-              </v-menu>
-            </v-list-item-action>
-          </v-list-item>
         </v-list>
 
       </v-tab-item>
@@ -326,7 +259,9 @@ import LinkToEntity from "../../LinkToEntity.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 import EntityWorkSource from "@/components/Entity/EntityWork/EntityWorkSource.vue";
+import EntityWorkAuthor from "@/components/Entity/EntityWork/EntityWorkAuthor.vue";
 // import {url} from "../url";
+import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 
 export default {
   name: "EntityWork",
@@ -339,6 +274,8 @@ export default {
     WorkLinkouts,
     WorkAuthorsString,
     EntityWorkSource,
+    EntityWorkAuthor,
+    EntityIdsMenuItem,
   },
   props: {
     data: Object,
@@ -426,6 +363,9 @@ export default {
       // const sliceAt = (this.showAuthorDetails) ? Infinity : this.maxAuthorshipsToShowAtFirst
       // return this.data.authorships.slice(0, sliceAt)
     },
+    primaryLocationUrl() {
+      return this.data.primary_location.landing_page_url;
+    }
   },
   created() {
   },
