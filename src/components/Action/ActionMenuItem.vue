@@ -3,26 +3,34 @@
 
     <v-menu rounded offset-y :close-on-content-click="false">
       <template v-slot:activator="{on}">
-        <v-btn text rounded v-on="on" class="">
+        <v-btn
+            text
+            outlined
+            v-on="on"
+            class="mr-1"
+            :disabled="isDisabled"
+        >
           {{ myConfig.displayName }}
+          <span class="ml-1 ">({{ selectedOptions.length }})</span>
         </v-btn>
       </template>
       <v-list>
         <action-key-list-item
-          v-for="key in selectedOptions"
-          :key="key"
-          :action="action"
-          :action-key="key"
+            v-for="key in selectedOptions"
+            :key="key"
+            :action="action"
+            :action-key="key"
+            is-selected
         />
-        <v-divider />
+        <v-divider/>
         <action-key-list-item
-          v-for="key in unselectedOptions"
-          :key="key"
-          :action="action"
-          :action-key="key"
+            v-for="key in unselectedOptions"
+            :key="key"
+            :action="action"
+            :action-key="key"
+            :is-selected="false"
         />
       </v-list>
-
 
 
     </v-menu>
@@ -90,6 +98,10 @@ export default {
       return getActionConfig(this.action).topValues.filter(k => {
         return !this.selected?.includes(k)
       })
+          .filter(k => {
+            const conf = getFacetConfig(this.entityType, k)
+            return url.isSearchFilterApplied() || conf.type !== "search"
+          })
     },
     unselectedOptionsConfigs() {
       return this.unselectedOptions.map(k => {
@@ -132,7 +144,10 @@ export default {
     // },
     appendToKeyValues() {
       return (this.action === "sort") ? ":desc" : ""
-    }
+    },
+    isDisabled(){
+      return false
+    },
   },
 
   methods: {
