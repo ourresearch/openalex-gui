@@ -2,7 +2,7 @@
   <v-menu rounded>
     <template v-slot:activator="{on}">
       <v-btn icon v-on="on">
-        <v-icon>mdi-link-variant</v-icon>
+        <v-icon>mdi-barcode</v-icon>
       </v-btn>
     </template>
     <v-list dense>
