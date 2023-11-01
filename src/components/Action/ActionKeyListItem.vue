@@ -4,6 +4,7 @@
         :key="actionKey"
         :value="config.key"
         :disabled="isDisabled"
+        @click="click"
     >
       <v-list-item-icon>
         <v-icon>{{ config.icon }}</v-icon>
@@ -24,6 +25,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -54,6 +56,19 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    click(){
+      console.log("click")
+      if (this.action === "filter") {
+        console.log("click filter")
+      }
+      else {
+        (this.isSelected) ?
+            url.deleteActionKey(this.action, this.actionKey) :
+            url.addActionKey(this.action, this.actionKey)
+
+      }
+    }
+
 
 
   },

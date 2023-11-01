@@ -5,7 +5,8 @@
       <!--    There's an export in progress -->
       <v-menu rounded offset-y v-if="isExportStarted">
         <template v-slot:activator="{on}">
-          <v-btn
+          <v-chip
+              outlined
               :icon="icon"
               :text="!icon"
               rounded
@@ -29,7 +30,7 @@
             {{ icon ? "" : "Exporting"}}
             <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
             <!--                  <v-icon right>mdi-menu-down</v-icon>-->
-          </v-btn>
+          </v-chip>
         </template>
         <v-card>
           <v-card-title>Export in progress</v-card-title>
@@ -47,7 +48,8 @@
       <!--    There's no export in progress right now -->
       <v-menu rounded offset-y v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
-          <v-btn
+          <v-chip
+              outlined
               :icon="icon"
               :text="!icon"
               rounded
@@ -56,7 +58,7 @@
           >
             <v-icon v-if="icon">mdi-tray-arrow-down</v-icon>
             {{ icon ? "" : "Export" }}
-          </v-btn>
+          </v-chip>
         </template>
         <v-card v-if="isTooManyResultsToExport" class="">
           <div class=" pa-4 pb-0 font-weight-bold">

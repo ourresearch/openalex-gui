@@ -278,6 +278,20 @@ const setActionValueKeys = function(actionName, actionValueKeys){
         name: "Serp",
         query,
     })
+}
+
+const addActionKey = function(actionName, actionKey){
+    const current = getActionValueKeys(router.currentRoute, actionName)
+    console.log("addActionKey", current)
+    setActionValueKeys(actionName, [...current, actionKey])
+
+}
+
+const deleteActionKey = function(actionName, actionKey){
+    const current = getActionValueKeys(router.currentRoute, actionName)
+    console.log("deleteActionKey", actionName, actionKey)
+    const newKeys = current.filter(k => k !== actionKey)
+    setActionValueKeys(actionName, newKeys)
 
 }
 
@@ -432,6 +446,8 @@ const url = {
     getActionValues,
     getActionValueKeys,
     setActionValueKeys,
+    addActionKey,
+    deleteActionKey,
 
     setSidebar,
 
