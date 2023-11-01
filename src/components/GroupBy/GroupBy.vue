@@ -1,51 +1,5 @@
 <template>
   <v-card flat tile class="">
-    <div class="my-1 mx-3 d-flex">
-      <v-menu rounded :close-on-content-click="true">
-        <template v-slot:activator="{on}">
-          <v-btn text rounded v-on="on" class="">
-            Group
-            by<span v-if="selectedConfig">: {{ selectedConfig.displayName }}</span>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item-group v-model="selected">
-            <v-list-item
-                v-for="config in optionConfigs"
-                :key="config.key"
-                :value="config.key"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ config.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ config.displayName }}
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-icon>
-                <v-icon v-if="selected === config.key">mdi-checkbox-marked</v-icon>
-                <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list-item-group>
-          <v-divider />
-          <v-list-item key="more-items" @click="isDialogOpen = true">
-            <v-list-item-content>
-              <v-list-item-title>More...</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
-      <v-btn
-          text
-          rounded
-          :href="url.makeApiUrl($route, true)"
-      >
-        Export
-      </v-btn>
-    </div>
 
 
     <!--    <v-toolbar flat>-->
@@ -59,48 +13,51 @@
     <!--          v-model="searchString"-->
     <!--      />-->
     <!--    </v-toolbar>-->
-    <table v-if="selected" class="serp-results-table mt-12">
-      <thead>
-      <tr>
-        <th>
-          {{ selectedConfig.displayName }}
-        </th>
-        <th>Works count</th>
-        <th></th>
+    <v-card outlined rounded class="ma-3 py-3">
+      <table v-if="selected" class="serp-results-table ">
+        <thead>
+        <tr>
+          <th>
+            {{ selectedConfig.displayName }}
+          </th>
+          <th>Works count</th>
+          <th></th>
 
-      </tr>
-      </thead>
-      <tbody>
-      <tr
-          v-for="group in groups"
-          :key="group.value"
-          @click="url.createFilter(entityType, filterKey, group.value)"
-      >
-        <td>
-          {{ group.displayValue }}
-        </td>
-        <td class="range">
-          {{ group.count | toPrecision }}
-        </td>
-        <td>
-          <div style="height: 40px; width: 500px">
-            <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
-              <v-spacer/>
-              <div class="d-flex" :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+            v-for="group in groups"
+            :key="group.value"
+            @click="url.createFilter(entityType, filterKey, group.value)"
+        >
+          <td>
+            {{ group.displayValue }}
+          </td>
+          <td class="range">
+            {{ group.count | toPrecision }}
+          </td>
+          <td>
+            <div style="height: 40px; width: 500px">
+              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
+                <v-spacer/>
+                <div class="d-flex"
+                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
+              </div>
+
             </div>
+          </td>
 
-          </div>
-        </td>
+        </tr>
+        <!--        <results-table-row-->
+        <!--            v-for="result in resultsObject.results"-->
+        <!--            :key="result.id"-->
+        <!--            :entity="result"-->
+        <!--        />-->
 
-      </tr>
-      <!--        <results-table-row-->
-      <!--            v-for="result in resultsObject.results"-->
-      <!--            :key="result.id"-->
-      <!--            :entity="result"-->
-      <!--        />-->
-
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </v-card>
     <v-dialog scrollable v-model="isDialogOpen">
       <action-add-value-dialog/>
     </v-dialog>
@@ -162,7 +119,7 @@ export default {
         })
       }
     },
-    selectedConfig(){
+    selectedConfig() {
       if (!this.selected) return
       return getFacetConfig(this.entityType, this.selected)
     },
@@ -170,8 +127,8 @@ export default {
       const topValues = getActionConfig("group_by").topValues
       const selectedValue = this.$route.query.group_by
       const allValues = [
-          selectedValue,
-          ...topValues,
+        selectedValue,
+        ...topValues,
       ].filter(x => !!x)
       return [...new Set(allValues)]
 

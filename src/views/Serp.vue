@@ -27,6 +27,7 @@
       <v-btn icon @click="isShowApiSet = !isShowApiSet">
         <v-icon>mdi-api</v-icon>
       </v-btn>
+      <export-button />
     </v-toolbar>
 
 <!--    <filter-chips-list class="pl-3"/>-->
@@ -46,8 +47,16 @@
 <!--    </v-tabs>-->
 
 <!--    <v-divider/>-->
+    <div class="my-1 mx-3 d-flex">
+      <action-menu-item action="filter" />
+      <action-menu-item action="sort" />
+      <action-menu-item action="column" />
+      <action-menu-item action="group_by" />
+
+    </div>
+
     <div>
-      <group-by v-if="resultsTab === 1"/>
+      <group-by v-if="$route.query.group_by"/>
       <serp-results-list v-else :results-object="resultsObject"/>
 
     </div>
