@@ -1,8 +1,10 @@
 <template>
   <div class="">
     <div class="my-1 mx-3 d-flex">
+      <action-menu-item action="filter" />
       <action-menu-item action="sort" />
       <action-menu-item action="column" />
+      <action-menu-item action="group_by" />
       <export-button />
     </div>
 

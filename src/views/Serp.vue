@@ -29,7 +29,7 @@
       </v-btn>
     </v-toolbar>
 
-    <filter-chips-list class="pl-3"/>
+<!--    <filter-chips-list class="pl-3"/>-->
 
     <serp-api-editor
         v-if="isShowApiSet"
@@ -37,15 +37,15 @@
         key="api-editor"
     />
 
-    <v-divider class="mb-8"/>
+<!--    <v-divider class="mb-8"/>-->
 
 
-    <v-tabs v-model="resultsTab">
-      <v-tab>List</v-tab>
-      <v-tab>Group</v-tab>
-    </v-tabs>
+<!--    <v-tabs v-model="resultsTab">-->
+<!--      <v-tab>List</v-tab>-->
+<!--      <v-tab>Group</v-tab>-->
+<!--    </v-tabs>-->
 
-    <v-divider/>
+<!--    <v-divider/>-->
     <div>
       <group-by v-if="resultsTab === 1"/>
       <serp-results-list v-else :results-object="resultsObject"/>

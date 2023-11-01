@@ -8,123 +8,22 @@
         </v-btn>
       </template>
       <v-list>
-        <v-list-item-group v-model="selected" multiple>
-          <!--          <v-subheader>Selected</v-subheader>-->
-          <v-list-item
-              v-for="config in selectedOptionsConfigs"
-              :key="config.key"
-              :value="config.key"
-              :disabled="config.isColumnMandatory"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ config.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ config.displayName }}
-              </v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-icon>
-              <v-icon v-if="selected.includes(config.key)">mdi-checkbox-marked</v-icon>
-              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-            </v-list-item-icon>
-          </v-list-item>
-
-
-          <v-divider/>
-          <v-list-item
-              v-for="config in unselectedOptionsConfigs"
-              :key="config.key"
-              :value="config.key"
-              :disabled="config.isColumnMandatory"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ config.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ config.displayName }}
-              </v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-icon>
-              <v-icon v-if="selected.includes(config.key)">mdi-checkbox-marked</v-icon>
-              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-            </v-list-item-icon>
-          </v-list-item>
-
-
-        </v-list-item-group>
-
+        <action-key-list-item
+          v-for="key in selectedOptions"
+          :key="key"
+          :action="action"
+          :action-key="key"
+        />
+        <v-divider />
+        <action-key-list-item
+          v-for="key in unselectedOptions"
+          :key="key"
+          :action="action"
+          :action-key="key"
+        />
       </v-list>
 
 
-      <v-list v-if="0">
-
-        <v-list-item
-            v-for="config in selectedValueConfigs"
-            :key="config.key"
-            :value="config.key"
-
-        >
-          <v-list-item-icon>
-            <v-icon>{{ config.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ config.displayName }}
-            </v-list-item-title>
-            <v-list-item-subtitle v-if="isDefault(config.key) && !config.isColumnMandatory">
-              Default
-            </v-list-item-subtitle>
-
-          </v-list-item-content>
-          <v-list-item-action>
-            <v-btn icon :disabled="config.isColumnMandatory" @click="removeValue(config.key)">
-              <v-icon>mdi-delete-outline</v-icon>
-            </v-btn>
-          </v-list-item-action>
-          <!--        <v-list-item-icon>-->
-          <!--          <v-icon v-if="config.isColumnMandatory">mdi-pin</v-icon>-->
-          <!--          <v-icon v-else>mdi-checkbox-marked</v-icon>-->
-          <!--        </v-list-item-icon>-->
-        </v-list-item>
-        <v-divider/>
-        <v-list-item
-            v-for="config in unselectedValueConfigs"
-            :key="config.key"
-            :value="config.key"
-        >
-          <!--          @click="addValue(config.key)"-->
-          <v-list-item-icon>
-            <v-icon>{{ config.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ config.displayName }}
-            </v-list-item-title>
-            <v-list-item-subtitle v-if="isDefault(config.key)">
-              Default
-            </v-list-item-subtitle>
-
-          </v-list-item-content>
-          <!--        <v-list-item-icon>-->
-          <!--          <v-icon>mdi-checkbox-blank-outline</v-icon>-->
-          <!--        </v-list-item-icon>-->
-
-          <v-list-item-action>
-            <v-btn icon @click="addValue(config.key)">
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
-          </v-list-item-action>
-        </v-list-item>
-        <v-list-item @click="isDialogOpen = true" key="more-items">
-          <v-list-item-content>
-            <v-list-item-title>More...</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-
-      </v-list>
 
     </v-menu>
     <v-dialog scrollable model="isDialogOpen">
@@ -141,12 +40,14 @@ import {facetsByCategory, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 import ActionAddValueDialog from "@/components/Action/ActionAddValueDialog.vue";
+import ActionKeyListItem from "@/components/Action/ActionKeyListItem.vue";
 
 
 export default {
   name: "Template",
   components: {
     ActionAddValueDialog,
+    ActionKeyListItem,
   },
   props: {
     action: String,
