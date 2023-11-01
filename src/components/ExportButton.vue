@@ -5,19 +5,15 @@
       <!--    There's an export in progress -->
       <v-menu rounded offset-y v-if="isExportStarted">
         <template v-slot:activator="{on}">
-          <v-chip
-              outlined
-              :icon="icon"
-              :text="!icon"
-              rounded
+          <v-btn
+              icon
               class="elevation-0 "
               color="primary"
-              dark
               v-on="on"
               style="position: relative;"
           >
-<!--            <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>-->
-<!--            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>-->
+            <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>
+            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>
             <v-progress-circular
                 style="position: absolute;"
                 :color="(isExportStarted && !exportObj.progress) ? 'grey' : 'primary'"
@@ -27,10 +23,10 @@
                 size="25"
                 v-if="!isExportFinished"
             />
-            {{ icon ? "" : "Exporting"}}
+<!--            {{ icon ? "" : "Exporting"}}-->
             <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
             <!--                  <v-icon right>mdi-menu-down</v-icon>-->
-          </v-chip>
+          </v-btn>
         </template>
         <v-card>
           <v-card-title>Export in progress</v-card-title>
@@ -48,17 +44,14 @@
       <!--    There's no export in progress right now -->
       <v-menu rounded offset-y v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
-          <v-chip
-              outlined
-              :icon="icon"
-              :text="!icon"
-              rounded
+          <v-btn
+              icon
               v-on="on"
               class=""
           >
-            <v-icon v-if="icon">mdi-tray-arrow-down</v-icon>
-            {{ icon ? "" : "Export" }}
-          </v-chip>
+            <v-icon>mdi-tray-arrow-down</v-icon>
+<!--            {{ icon ? "" : "Export" }}-->
+          </v-btn>
         </template>
         <v-card v-if="isTooManyResultsToExport" class="">
           <div class=" pa-4 pb-0 font-weight-bold">

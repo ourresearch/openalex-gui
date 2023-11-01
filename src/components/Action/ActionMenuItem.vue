@@ -11,7 +11,8 @@
             :disabled="isDisabled"
         >
           {{ myConfig.displayName }}
-          <span class="ml-1 ">({{ selectedOptions.length }})</span>
+          <span v-if="selectedKeyDisplayName" class="ml-1">{{ selectedKeyDisplayName }}</span>
+          <span v-if="myConfig.isMultiple" class="ml-1 ">({{ selectedOptions.length }})</span>
         </v-btn>
       </template>
       <v-list>
@@ -59,7 +60,6 @@ export default {
   },
   props: {
     action: String,
-    disabled: Boolean,
   },
   data() {
     return {
@@ -122,6 +122,12 @@ export default {
     urlValueKeys() {
       return this.urlValues.map(val => val.replace(":desc", ""))
     },
+    selectedKeyDisplayName(){
+      if (!this.selectedOptions[0]) return
+      if (this.myConfig.isMultiple) return
+      const key = this.selectedOptions[0]
+      return getFacetConfig(this.entityType, key).displayName
+    },
     selectedValueConfigs() {
       return this.urlValueKeys.map(k => {
         return getFacetConfig(this.entityType, k)
@@ -146,7 +152,7 @@ export default {
       return (this.action === "sort") ? ":desc" : ""
     },
     isDisabled(){
-      return false
+      return !!(["sort", "column"].includes(this.action) && this.$route.query.group_by?.length)
     },
   },
 

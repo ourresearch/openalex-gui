@@ -1,12 +1,5 @@
 <template>
   <div class="">
-    <div class="my-1 mx-3 d-flex">
-      <action-menu-item action="filter" />
-      <action-menu-item action="sort" />
-      <action-menu-item action="column" />
-      <action-menu-item action="group_by" />
-      <export-button />
-    </div>
 
 
     <template v-if="resultsObject">
@@ -14,16 +7,16 @@
         There are no results for this search.
       </div>
       <v-card outlined rounded class="ma-3 py-3">
-      <table  v-if="resultsCount" class="serp-results-table">
-        <results-table-header/>
-        <tbody>
-        <results-table-row
-            v-for="result in resultsObject.results"
-            :key="result.id"
-            :entity="result"
-        />
-        </tbody>
-      </table>
+        <table v-if="resultsCount" class="serp-results-table">
+          <results-table-header/>
+          <tbody>
+          <results-table-row
+              v-for="result in resultsObject.results"
+              :key="result.id"
+              :entity="result"
+          />
+          </tbody>
+        </table>
 
       </v-card>
 
@@ -152,7 +145,7 @@ export default {
 <style lang="scss">
 table.serp-results-table {
 
-   th {
+  th {
     padding: 0 10px;
     white-space: nowrap;
     background: #fff;
