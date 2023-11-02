@@ -16,7 +16,8 @@
         </v-btn>
       </template>
       <v-list>
-        <action-key-list-item
+        <component
+            :is="listComponentName"
             v-for="key in selectedOptions"
             :key="key"
             :action="action"
@@ -24,7 +25,8 @@
             is-selected
         />
         <v-divider/>
-        <action-key-list-item
+        <component
+            :is="listComponentName"
             v-for="key in unselectedOptions"
             :key="key"
             :action="action"
@@ -50,6 +52,7 @@ import {url} from "@/url";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 import ActionAddValueDialog from "@/components/Action/ActionAddValueDialog.vue";
 import ActionKeyListItem from "@/components/Action/ActionKeyListItem.vue";
+import ActionKeyListItemFilter from "@/components/Action/ActionKeyListItemFilter.vue";
 
 
 export default {
@@ -57,6 +60,7 @@ export default {
   components: {
     ActionAddValueDialog,
     ActionKeyListItem,
+    ActionKeyListItemFilter,
   },
   props: {
     action: String,
@@ -72,8 +76,10 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-
-
+    listComponentName(){
+      const append = (this.action === 'filter') ? "-filter" : ""
+      return "action-key-list-item" + append
+    },
     selected: {
       get() {
         return url.getActionValueKeys(this.$route, this.action)
