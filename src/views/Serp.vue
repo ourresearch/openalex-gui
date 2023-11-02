@@ -30,7 +30,7 @@
       <export-button />
     </v-toolbar>
 
-<!--    <filter-chips-list class="pl-3"/>-->
+    <filter-chips-list class="pl-3"/>
 
     <serp-api-editor
         v-if="isShowApiSet"
