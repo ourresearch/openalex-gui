@@ -38,6 +38,10 @@ const navConfigs = [
                 name: "Upgrade",
                 to: "/pricing",
             },
+            {
+                name: "Privacy policy",
+                href: "OpenAlex_privacy_policy.pdf",
+            },
         ],
 
     },

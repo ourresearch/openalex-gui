@@ -111,7 +111,7 @@ export default {
         return {
           ...c,
           links: c.links.filter(link => {
-            return link.name !== "Upgrade"
+            return link.name !== "Upgrade" && link.name !== "Privacy policy"
           })
         }
       })
