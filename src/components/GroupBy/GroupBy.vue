@@ -58,9 +58,6 @@
         </tbody>
       </table>
     </v-card>
-    <v-dialog scrollable v-model="isDialogOpen">
-      <action-add-value-dialog/>
-    </v-dialog>
 
   </v-card>
 </template>
@@ -74,17 +71,15 @@ import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
-import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
-import Template from "@/components/Action/ActionMenuItem.vue";
+import ActionMenuItem from "@/components/Action/Action.vue";
+import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
-import ActionAddValueDialog from "@/components/Action/ActionAddValueDialog.vue";
 
 export default {
   name: "GroupBy",
   components: {
     Template,
     ActionMenuItem,
-    ActionAddValueDialog,
 
   },
   props: {},
@@ -170,7 +165,6 @@ export default {
       if (!this.filterKey) return []
       this.isLoading = true
       const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
-      console.log("groupBy groups,usin these filters", this.$route.query.filter)
       const ret = await api.getGroups(
           this.entityType,
           this.filterKey,

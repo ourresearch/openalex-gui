@@ -3,6 +3,7 @@ const actionConfigs = [
         id: "filter",
         displayName: "Filter",
         isMultiple: true,
+        isMandatory: false,
         topValues: [
             "authorships.institutions.lineage",
             "authorships.author.id",
@@ -16,10 +17,13 @@ const actionConfigs = [
         getDefaultValues(){return []},
         appendToValues: "",
     },
+
+
     {
         id: "group_by",
-        displayName: "Group by",
+        displayName: "Count by",
         isMultiple: false,
+        isMandatory: false,
         topValues: [
             "authorships.institutions.lineage",
             "authorships.author.id",
@@ -32,10 +36,13 @@ const actionConfigs = [
         getDefaultValues(){return []},
         appendToValues: "",
     },
+
+
     {
         id: "sort",
-        displayName: "Sort",
-        isMultiple: true,
+        displayName: "Sort by",
+        isMultiple: false,
+        isMandatory: true,
         topValues: [
             "publication_date",
             "cited_by_count",
@@ -54,10 +61,16 @@ const actionConfigs = [
         appendToValues: ":desc",
 
     },
+
+
     {
         id: "column",
         displayName: "Column",
         isMultiple: true,
+        isMandatory: true,
+        disableKeys: [
+            "display_name",
+        ],
         topValues: [
             "publication_year",
             "type",

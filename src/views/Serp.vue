@@ -14,8 +14,13 @@
 
     </v-navigation-drawer>
 
+    <serp-api-editor
+        v-if="isShowApiSet"
+        class="mt-3"
+        key="api-editor"
+    />
 
-    <v-toolbar flat>
+    <v-toolbar flat dense>
       <v-toolbar-title>
         Explore
         <span class="">
@@ -27,32 +32,32 @@
       <v-btn icon @click="isShowApiSet = !isShowApiSet">
         <v-icon>mdi-api</v-icon>
       </v-btn>
-      <export-button />
+      <export-button/>
     </v-toolbar>
 
-    <filter-chips-list class="pl-3"/>
 
-    <serp-api-editor
-        v-if="isShowApiSet"
-        class="mb-3 mx-3"
-        key="api-editor"
-    />
-
-<!--    <v-divider class="mb-8"/>-->
+    <!--    <filter-chips-list class="pl-3"/>-->
 
 
-<!--    <v-tabs v-model="resultsTab">-->
-<!--      <v-tab>List</v-tab>-->
-<!--      <v-tab>Group</v-tab>-->
-<!--    </v-tabs>-->
+    <!--    <v-tabs v-model="resultsTab">-->
+    <!--      <v-tab>List</v-tab>-->
+    <!--      <v-tab>Group</v-tab>-->
+    <!--    </v-tabs>-->
 
-<!--    <v-divider/>-->
+    <!--    <v-divider/>-->
     <div class="my-1 mx-3 d-flex">
-      <action-menu-item action="filter" />
-      <action-menu-item action="sort" />
-      <action-menu-item action="column" />
-      <action-menu-item action="group_by" />
+      <action action="filter"/>
+      <action action="sort"/>
+      <action action="column"/>
+      <action action="group_by"/>
 
+    </div>
+
+
+    <v-divider class="mb-8 mt-3"/>
+
+    <div class="ml-4 grey--text">
+      About {{ listResultsCount | toPrecision }} results
     </div>
 
     <div>
@@ -105,9 +110,8 @@ import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 import {filter} from "core-js/internals/array-iteration";
 
-import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
-import ActionChipsList from "@/components/Action/ActionMenuItem.vue";
-import ActionMenuChip from "@/components/Action/ActionMenuChip.vue";
+import Action from "@/components/Action/Action.vue";
+import ActionChipsList from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
 import Entity from "@/components/Entity/Entity.vue";
@@ -137,8 +141,7 @@ export default {
     FilterKeySelector,
 
     ActionChipsList,
-    ActionMenuChip,
-    ActionMenuItem,
+    Action,
 
     ExportButton,
     SortButton,
@@ -357,7 +360,7 @@ export default {
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp;
-        // if (!this.isGroupByView) this.listResultsCount = resp.meta.count
+        if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
 
 
         this.$store.state.resultsObject = resp
@@ -379,7 +382,6 @@ export default {
 .container {
   //max-width: 1024px !important;
 }
-
 
 
 table.serp-results-table {

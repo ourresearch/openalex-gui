@@ -2,7 +2,6 @@
   <v-chip
       @click="$emit('edit')"
       close
-      label
       color="primary"
       close-icon="mdi-close"
       @click:close="$emit('delete')"

@@ -6,9 +6,17 @@
       <div v-if="!resultsCount" class="mt-8 grey--text">
         There are no results for this search.
       </div>
-      <v-card outlined rounded class="ma-3 py-3">
+      <v-card flat outlined rounded class="ma-3 py-3">
         <table v-if="resultsCount" class="serp-results-table">
-          <results-table-header/>
+          <thead>
+          <tr>
+            <results-table-header
+                v-for="config in headerConfigs"
+                :key="config.key"
+                :config="config"
+            />
+          </tr>
+          </thead>
           <tbody>
           <results-table-row
               v-for="result in resultsObject.results"
@@ -17,7 +25,6 @@
           />
           </tbody>
         </table>
-
       </v-card>
 
 
@@ -64,8 +71,9 @@ import {entityTypes} from "../util";
 import router from "../router";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
-import ActionMenuItem from "@/components/Action/ActionMenuItem.vue";
+import ActionMenuItem from "@/components/Action/Action.vue";
 import ExportButton from "@/components/ExportButton.vue";
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "SerpResultsList",
@@ -102,6 +110,16 @@ export default {
       "entityConfig",
       "entityType",
     ]),
+    headerKeys() {
+      return this.$route.query.column?.split(",") ?? []
+    },
+    headerConfigs() {
+      return this.headerKeys
+          .map(key => {
+            return getFacetConfig(this.entityType, key)
+          })
+
+    },
     resultComponentName() {
       return "result-" + this.entityConfig.nameSingular
     },

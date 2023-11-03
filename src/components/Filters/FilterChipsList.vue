@@ -10,7 +10,7 @@
     <!--      <span v-if="appliedFilters.length > 0">{{ appliedFilters.length }}</span>-->
     <!--      <span v-else>Create filter</span>-->
     <!--    </v-chip>-->
-    <v-icon class="pr-3">mdi-filter-outline</v-icon>
+<!--    <v-icon class="pr-3">mdi-filter-outline</v-icon>-->
 
     <component
         v-for="(filter, i) in filters"
@@ -27,7 +27,6 @@
       v-for="filter in unselectedChips"
       :key="`unselected-chip-${filter.key}`"
       outlined
-      label
       color="primary"
       text-color="primary"
       class="mr-2 mb-2"
@@ -46,42 +45,6 @@
       More&hellip;
     </v-btn>
 
-    <!--    <v-btn-->
-    <!--        v-if="appliedFilters.length > 0"-->
-    <!--        text-->
-    <!--        color="primary"-->
-    <!--        class="mr-2 mb-2"-->
-    <!--        @click="isFilterSelectorOpen = true"-->
-    <!--    >-->
-    <!--      All filters-->
-    <!--    </v-btn>-->
-
-    <!--      <v-list-group-->
-    <!--          v-for="category in facetsByCategory"-->
-    <!--          :key="category.displayName"-->
-    <!--          :value="!!searchString"-->
-    <!--      >-->
-    <!--        <template v-slot:activator>-->
-    <!--          <v-list-item-icon>-->
-    <!--            <v-icon>{{ category.icon }}</v-icon>-->
-    <!--          </v-list-item-icon>-->
-    <!--          <v-list-item-content>-->
-    <!--            <v-list-item-title>{{ category.displayName }}</v-list-item-title>-->
-    <!--          </v-list-item-content>-->
-    <!--        </template>-->
-    <!--        <v-list-item-->
-    <!--            v-for="filterConfig in category.filterConfigs"-->
-    <!--            :key="category.displayName + filterConfig.key"-->
-    <!--            class="pl-12"-->
-    <!--            @click="setActiveFilter(filterConfig.key, null, true)"-->
-    <!--        >-->
-    <!--          <v-list-item-content>-->
-    <!--            <v-list-item-title>-->
-    <!--              {{ filterConfig.displayName }}-->
-    <!--            </v-list-item-title>-->
-    <!--          </v-list-item-content>-->
-    <!--        </v-list-item>-->
-    <!--      </v-list-group>-->
 
 
     <v-dialog
@@ -194,6 +157,7 @@ export default {
     unselectedChips() {
       return facetConfigs(this.entityType)
           .filter(config => {
+            return true
             return config.categories.includes("popular")
           })
           .filter(config => {

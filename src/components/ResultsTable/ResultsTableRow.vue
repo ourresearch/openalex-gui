@@ -19,6 +19,7 @@
           @click="clickCell(cell.key)"
       >
         <v-icon v-if="cell.value" color="success">mdi-check</v-icon>
+        <span v-else class="grey--text">-</span>
 <!--        <v-icon v-else color="error lighten-2">mdi-close</v-icon>-->
 <!--        {{ cell.value }}-->
       </td>
