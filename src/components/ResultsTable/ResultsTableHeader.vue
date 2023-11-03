@@ -12,16 +12,20 @@
         </v-btn>
       </template>
       <v-list>
-        <v-list-item @click="url.deleteActionKey('column', config.key)">
+        <v-list-item
+            v-if="config?.actions.includes('sort')"
+            @click="url.setSort( config.key)"
+        >
           <v-list-item-icon>
-            <v-icon>mdi-delete-outline</v-icon>
+            <v-icon>mdi-sort-ascending</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
-              Remove column
+              Sort by {{ config.displayName }}
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+
 
         <v-list-item
             v-if="config?.actions.includes('group_by')"
@@ -32,10 +36,26 @@
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
-              Count works by {{ config.displayName }}
+              Count by {{ config.displayName }}
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+
+        <v-list-item
+            :disabled="config.key === 'display_name'"
+            @click="url.deleteActionKey('column', config.key)"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-table-column-remove</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Remove column
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+
       </v-list>
 
     </v-menu>
