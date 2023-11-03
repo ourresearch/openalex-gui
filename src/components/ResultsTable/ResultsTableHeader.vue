@@ -2,63 +2,63 @@
   <th>
     {{ config.displayName }}
 
-    <v-menu
-        rounded
-        offset-y
-    >
-      <template v-slot:activator="{on}">
-        <v-btn icon small v-on="on">
-          <v-icon small>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item
-            v-if="config?.actions.includes('sort')"
-            @click="url.setSort( config.key)"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-sort-ascending</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Sort by {{ config.displayName }}
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+<!--    <v-menu-->
+<!--        rounded-->
+<!--        offset-y-->
+<!--    >-->
+<!--      <template v-slot:activator="{on}">-->
+<!--        <v-btn icon small v-on="on">-->
+<!--          <v-icon small>mdi-menu-down</v-icon>-->
+<!--        </v-btn>-->
+<!--      </template>-->
+<!--      <v-list>-->
+<!--        <v-list-item-->
+<!--            v-if="config?.actions.includes('sort')"-->
+<!--            @click="url.setSort( config.key)"-->
+<!--        >-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-sort-ascending</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            <v-list-item-title>-->
+<!--              Sort by {{ config.displayName }}-->
+<!--            </v-list-item-title>-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
 
 
-        <v-list-item
-            v-if="config?.actions.includes('group_by')"
-            @click="url.setGroupBy( config.key)"
-        >
-          <v-list-item-icon>
-            <v-icon style="transform: rotate(90deg)">mdi-poll</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Count by {{ config.displayName }}
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+<!--        <v-list-item-->
+<!--            v-if="config?.actions.includes('group_by')"-->
+<!--            @click="url.setGroupBy( config.key)"-->
+<!--        >-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon style="transform: rotate(90deg)">mdi-poll</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            <v-list-item-title>-->
+<!--              Count by {{ config.displayName }}-->
+<!--            </v-list-item-title>-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
 
-        <v-list-item
-            :disabled="config.key === 'display_name'"
-            @click="url.deleteActionKey('column', config.key)"
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-table-column-remove</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Remove column
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+<!--        <v-list-item-->
+<!--            :disabled="config.key === 'display_name'"-->
+<!--            @click="url.deleteActionKey('column', config.key)"-->
+<!--        >-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-table-column-remove</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            <v-list-item-title>-->
+<!--              Remove column-->
+<!--            </v-list-item-title>-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
 
 
-      </v-list>
+<!--      </v-list>-->
 
-    </v-menu>
+<!--    </v-menu>-->
 
   </th>
 </template>

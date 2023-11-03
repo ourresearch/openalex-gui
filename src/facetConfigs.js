@@ -93,7 +93,7 @@ const facetConfigs = function (entityType) {
             noOptions: true,
             type: "entity",
             categories: ["ids"],
-            actions: ["column"],
+            actions: [],
             icon: "mdi-file-document-outline",
             regex: /(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/,
         },

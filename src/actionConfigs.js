@@ -16,6 +16,7 @@ const actionConfigs = [
         defaultValues: [],
         getDefaultValues(){return []},
         appendToValues: "",
+        icon: "mdi-filter-outline",
     },
 
 
@@ -35,6 +36,8 @@ const actionConfigs = [
         defaultValues: [],
         getDefaultValues(){return []},
         appendToValues: "",
+        icon: "mdi-poll",
+        isIconRotated: true,
     },
 
 
@@ -59,6 +62,7 @@ const actionConfigs = [
         // to see if a search is set or not. so it's handled via a function url.js
         defaultValues: [],
         appendToValues: ":desc",
+        icon:"mdi-sort-ascending",
 
     },
 
@@ -85,6 +89,7 @@ const actionConfigs = [
             "cited_by_count",
         ]},
         appendToValues: "",
+        icon: "mdi-view-column-outline",
     },
 ]
 

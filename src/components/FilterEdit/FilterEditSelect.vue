@@ -69,6 +69,7 @@
           class="elevation-0 ma-0 pa-0"
           placeholder="add another"
           prepend-inner-icon="mdi-plus"
+          autofocus
       />
     </div>
     <v-divider></v-divider>
