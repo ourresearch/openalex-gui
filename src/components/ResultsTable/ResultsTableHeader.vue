@@ -1,30 +1,64 @@
 <template>
-  <thead>
-  <tr>
+  <th>
+    {{ config.displayName }}
 
-    <th
-        v-for="header in headerConfigs"
-        :key="header.key"
+    <v-menu
+        rounded
+        offset-y
     >
-      {{ header.displayName }}
-    </th>
+      <template v-slot:activator="{on}">
+        <v-btn icon small v-on="on">
+          <v-icon small>mdi-menu-down</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item @click="url.deleteActionKey('column', config.key)">
+          <v-list-item-icon>
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Remove column
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
-  </tr>
-  </thead>
+        <v-list-item
+            v-if="config?.actions.includes('group_by')"
+            @click="url.setGroupBy( config.key)"
+        >
+          <v-list-item-icon>
+            <v-icon style="transform: rotate(90deg)">mdi-poll</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Count works by {{ config.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+
+    </v-menu>
+
+  </th>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
+import {url} from "@/url";
 
 export default {
-  name: "ResultsTableHeaders",
+  name: "ResultsTableconfigs",
   components: {},
-  props: {},
+  props: {
+    config: Object,
+  },
   data() {
     return {
       foo: 42,
+      url,
     }
   },
   computed: {
@@ -32,16 +66,7 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    headerKeys() {
-      return this.$route.query.column?.split(",") ?? []
-    },
-    headerConfigs() {
-      return this.headerKeys
-          .map(key => {
-            return getFacetConfig(this.entityType, key)
-          })
 
-    }
   },
 
   methods: {

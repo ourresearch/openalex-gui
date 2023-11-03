@@ -6,15 +6,6 @@ import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
-const makeRoute = function (router, newRoute) {
-    const newQuery = {...router.currentRoute.query}
-    newQuery.zoom = undefined
-    return {
-        name: this.$route.name,
-        params: this.$route.params,
-        query: newQuery,
-    }
-}
 
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
@@ -22,37 +13,19 @@ const addToQuery = function (oldQuery, k, v) {
     return newQuery
 }
 
-
-const removeFromQuery = function (oldQuery, k) {
-    const newQuery = {...oldQuery}
-    delete newQuery[k]
-    return newQuery
-}
-
-const setApiMode = async function (newVal) {
-    return await pushToRoute(router, {
+const pushQueryParam = function (key, value) {
+    const query = {
+        ...router.currentRoute.query,
+        [key]: value,
+    }
+    pushToRoute(router, {
         name: "Serp",
-        query: {
-            ...router.currentRoute.query,
-            "api-mode": newVal ? "true" : undefined
-        }
+        query,
     })
 }
 
-const pushNewSearch = async function (router, entityType, search) {
-    const newRoute = {
-        name: "Serp",
-        params: {entityType,},
-    }
-    // if (entityType === router.currentRoute.params.entityType) {
-    //     newRoute.query = addToQuery(router.currentRoute.query, "search", search)
-    // }
-    newRoute.query = addToQuery(router.currentRoute.query, "search", search)
 
 
-    console.log("pushNewSearch", newRoute)
-    return await pushToRoute(router, newRoute)
-}
 
 const pushToRoute = async function (router, newRoute) {
     return await router.push(newRoute)
@@ -62,7 +35,6 @@ const pushToRoute = async function (router, newRoute) {
             }
         })
 }
-
 
 
 const setPage = async function (page) {
@@ -75,18 +47,15 @@ const setPage = async function (page) {
     })
 }
 
+const setShowApi = function(val){
+    pushQueryParam("show_api", val)
+}
+
 
 const pushNewFilters = async function (newFilters) {
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined
-
-    // const oldSort = router.currentRoute.query.sort
-    // const oldSortIsRelevance = oldSort?.indexOf("relevance") > -1
-    // const oldParams = new URLSearchParams(router.currentRoute.query)
-    // const isSearchFilterApplied = oldParams.toString().indexOf(".search") > -1
-    //
-
 
     const query = {
         ...router.currentRoute.query,
@@ -102,7 +71,6 @@ const pushNewFilters = async function (newFilters) {
     }
     return pushToRoute(router, newRoute)
 }
-
 
 
 const createFilter = async function (entityType, key, newValue) {
@@ -129,16 +97,15 @@ const readFilterValue = function (entityType, key) {
     return myFilter?.value
 }
 
-const isFilterApplied = function(entityType, key){
+const isFilterApplied = function (entityType, key) {
     const filterValue = readFilterValue(entityType, key)
     return filterValue !== "" && filterValue !== undefined && filterValue !== null
 }
-const isSearchFilterApplied = function(){
+const isSearchFilterApplied = function () {
     return router.currentRoute.query?.filter?.split(",")?.some(f => {
         return f.split(":")[0]?.indexOf(".search") > -1
     })
 }
-
 
 
 const updateFilter = async function (entityType, key, newValue) {
@@ -160,23 +127,22 @@ const updateFilter = async function (entityType, key, newValue) {
     return await pushNewFilters(newFilters)
 }
 
-const isGroupBy = function(){
+const isGroupBy = function () {
     return !!router.currentRoute.query.group_by
 }
 
-const updateOrDeleteFilter = function(entityType, filterKey, filterValue){
+const updateOrDeleteFilter = function (entityType, filterKey, filterValue) {
     (filterValue === "" || filterValue === "-") ?
         deleteFilter(entityType, filterKey) :
         updateFilter(entityType, filterKey, filterValue)
 
 }
 
-const upsertFilter = function(entityType, filterKey, filterValue){
+const upsertFilter = function (entityType, filterKey, filterValue) {
     return isFilterApplied(entityType, filterKey) ?
         updateOrDeleteFilter(entityType, filterKey, filterValue) :
         createFilter(entityType, filterKey, filterValue)
 }
-
 
 
 const deleteFilter = async function (entityType, key) {
@@ -216,23 +182,8 @@ const setSearch = function (entityType, searchString) {
     pushToRoute(router, newRoute)
 }
 
-const setGroupBy = function (facetKey) {
-    // if (!Object.keys(entityConfigs).includes(entityType)) {
-    //     throw new Error("OpenAlex error: url.setGroupBy called with invalid entityType")
-    // }
-    if (!facetKey) facetKey = undefined
 
-    const newRoute = {
-        name: "Serp",
-        // params: {entityType},
-    }
-    newRoute.query = addToQuery(router.currentRoute.query, "group_by", facetKey)
-
-    return pushToRoute(router, newRoute)
-}
-
-
-const setDefaultActions = function() {
+const setDefaultActions = function () {
     console.log("setDefaultActions")
     pushToRoute(router, {
         name: "Serp",
@@ -243,7 +194,7 @@ const setDefaultActions = function() {
     })
 }
 
-const getActionValues = function(action){
+const getActionValues = function (action) {
     const val = router.currentRoute.query[action]
     if (!val) return []
 
@@ -251,7 +202,7 @@ const getActionValues = function(action){
 }
 
 
-const getActionValueKeys = function(currentRoute, action){
+const getActionValueKeys = function (currentRoute, action) {
     const val = currentRoute.query[action]
     if (!val) return []
 
@@ -260,19 +211,48 @@ const getActionValueKeys = function(currentRoute, action){
         return hasColon ? val.split(":")[0] : val
     })
 }
-const setActionValueKeys = function(actionName, actionValueKeys){
-    console.log("addActionValueKey", actionName, actionValueKeys)
+
+const setSort = function (filterKey) {
+    if (!filterKey) {
+        filterKey = getActionDefaultValues("sort", router.currentRoute.query).shift()
+    }
+    filterKey = filterKey + ":desc"
+    pushQueryParam("sort", filterKey)
+}
+const getSort = function(route){
+    return route.query.sort.replace(":desc", "")
+}
+const setGroupBy = function (filterKey) {
+    pushQueryParam("group_by", filterKey)
+}
+const getGroupBy = function(route){
+    return route.query.group_by
+}
+const setColumn = function (filterKeys) {
+    pushQueryParam("column", filterKeys.join(","))
+}
+const getColumn = function(route){
+    return route.query.column.split(",")
+}
+
+const setActionValueKeys = function (actionName, keys) {
+    console.log("url.setActionValueKeys", actionName, keys)
     const actionConfig = getActionConfig(actionName)
 
-    let newValues = actionValueKeys.map(k => k + actionConfig.appendToValues)
+    const keysArray = (!Array.isArray(keys)) ?
+        [keys] :
+        keys
+
+    let newValues = keysArray.map(k => k + actionConfig.appendToValues)
     if (actionName === "sort" && newValues.length === 0) {
         newValues = getActionDefaultValues(actionName, router.currentRoute.query).map(v => v + actionConfig.appendToValues)
-      }
+    }
 
     const query = {
         ...router.currentRoute.query,
         [actionName]: newValues.join(",")
     }
+    console.log("url.setActionValueKeys query", query)
 
     pushToRoute(router, {
         name: "Serp",
@@ -280,14 +260,14 @@ const setActionValueKeys = function(actionName, actionValueKeys){
     })
 }
 
-const addActionKey = function(actionName, actionKey){
+const addActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("addActionKey", current)
     setActionValueKeys(actionName, [...current, actionKey])
 
 }
 
-const deleteActionKey = function(actionName, actionKey){
+const deleteActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("deleteActionKey", actionName, actionKey)
     const newKeys = current.filter(k => k !== actionKey)
@@ -296,7 +276,7 @@ const deleteActionKey = function(actionName, actionKey){
 }
 
 
-const setSidebar = function(id){
+const setSidebar = function (id) {
     const shortId = shortenOpenAlexId(id)
     console.log("setSidebar", shortId)
     pushToRoute(router, {
@@ -306,29 +286,6 @@ const setSidebar = function(id){
             sidebar: shortId
         }
     })
-}
-
-
-
-
-
-
-const addZoomToRoute = function (router, zoom) {
-    if (!zoom) return
-    const shortId = zoom.replace("https://openalex.org/", "")
-
-    const zoomIds = router.currentRoute.query.zoom?.split(",") ?? []
-    zoomIds.push(shortId)
-
-    const newQuery = url.addToQuery(router.currentRoute.query, "zoom", zoomIds.join())
-    return {
-        name: "Serp",
-        query: newQuery,
-    }
-}
-
-const goToZoom = async function (router, zoom) {
-    return pushToRoute(router, addZoomToRoute(router, zoom))
 }
 
 
@@ -360,7 +317,7 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     if (formatCsv) {
         query.format = "csv"
     }
-    if (query.tab === 1){
+    if (query.tab === 1) {
         query.group_by = currentRoute.query.group_by
     }
 
@@ -382,12 +339,10 @@ const makeApiUrl = function (currentRoute, formatCsv) {
         }
     })
 
-    apiUrl.search =  decodeURIComponent(searchParams.toString())
+    apiUrl.search = decodeURIComponent(searchParams.toString())
     return apiUrl.toString()
 
 }
-
-
 
 
 const makeGroupByUrl = function (entityType, groupByKey, options) {
@@ -429,7 +384,6 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 
 
 const url = {
-    makeRoute,
     pushToRoute,
     addToQuery,
 
@@ -449,28 +403,32 @@ const url = {
     addActionKey,
     deleteActionKey,
 
+    setSort,
+    setGroupBy,
+    setColumn,
+
+    getSort,
+    getGroupBy,
+    getColumn,
+
+
+
+
     setSidebar,
-
-
-
 
 
     setFilters,
     setSearch,
     setPage,
 
-    setGroupBy,
     isGroupBy,
 
-    goToZoom,
-    addZoomToRoute,
 
-    pushNewSearch,
     makeGroupByUrl,
     makeAutocompleteUrl,
 
-    setApiMode,
     makeApiUrl,
+    setShowApi,
 }
 
 

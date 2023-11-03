@@ -1,24 +1,8 @@
 <template>
-  <div class="serp-api-editor" style="min-height: 80px;">
-    <!--      <v-toolbar dense color="transparent" flat>-->
-    <!--        <v-toolbar-title>-->
-    <!--          <v-icon left>mdi-api</v-icon>-->
-    <!--          API Query-->
-    <!--        </v-toolbar-title>-->
-    <!--        <v-spacer/>-->
-    <!--        <v-btn-->
-    <!--            icon-->
-    <!--            @click="copyToClipboard(apiUrl)"-->
-    <!--        >-->
-    <!--          <v-icon>mdi-content-copy</v-icon>-->
-    <!--        </v-btn>-->
-    <!--        <v-btn icon @click="$emit('close')">-->
-    <!--          <v-icon>mdi-close</v-icon>-->
-    <!--        </v-btn>-->
-    <!--      </v-toolbar>-->
+  <div class="serp-api-editor">
     <v-card
-        rounded
         dark
+        tile
         flat
         style="font-family: Monaco, monospace;"
         class="d-flex align-start pa-2"
@@ -56,33 +40,9 @@
       >
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
-      <v-menu rounded>
-        <template v-slot:activator="{on}">
-          <v-btn
-              icon
-              v-on="on"
-          >
-            <v-icon>mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
-              :href="apiUrl"
-              target="_blank"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-code-json</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              View JSON response
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-
-      </v-menu>
       <v-btn
         icon
-        @click="$store.state.isApiEditorShowing = false"
+        @click="url.setShowApi(undefined)"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -108,6 +68,7 @@ export default {
   data() {
     return {
       foo: 42,
+      url,
     }
   },
   computed: {
@@ -135,6 +96,9 @@ export default {
       await navigator.clipboard.writeText(this.apiUrl);
       this.snackbar("URL copied to clipboard.")
     },
+    hideMe(){
+
+    }
 
 
   },

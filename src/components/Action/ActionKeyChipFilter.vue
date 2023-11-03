@@ -48,10 +48,27 @@
       </v-list-item-title>
     </v-list-item-content>
     <v-list-item-action v-if="isSelected">
-      <v-btn icon>
+      <v-btn icon @click.stop="url.deleteFilter(entityType, filterKey)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-list-item-action>
+    <v-dialog
+        v-model="isActiveFilterDialogOpen"
+        max-width="400"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        scrollable
+    >
+      <component
+          class=""
+          :key="filterKey + $route.query.filter"
+          :is="'filter-edit-' + config.type"
+          :filter-key="filterKey"
+          :filter-value="filterValue"
+          @close="isActiveFilterDialogOpen = false"
+          @upsert="(newValue) => url.upsertFilter(entityType, filterKey, newValue)"
+          @delete="deleteFilter(filterKey)"
+      />
+    </v-dialog>
   </v-list-item>
 </template>
 
@@ -62,10 +79,25 @@ import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import FilterSelectValueAsString from "@/components/Filters/FilterSelectValueAsString.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
+import FilterList from "@/components/Filters/FilterList.vue";
+
+
+import FilterEditRange from "../FilterEdit/FilterEditRange.vue";
+import FilterEditSearch from "../FilterEdit/FilterEditSearch.vue";
+import FilterEditBoolean from "../FilterEdit/FilterEditBoolean.vue";
+import FilterEditSelect from "../FilterEdit/FilterEditSelect.vue";
 
 export default {
   name: "Template",
-  components: {FilterSelectValueAsString},
+  components: {
+    FilterList,
+    FilterSelectValueAsString,
+
+    FilterEditRange,
+    FilterEditSearch,
+    FilterEditBoolean,
+    FilterEditSelect,
+  },
   props: {
     action: String,
     actionKey: String,
@@ -75,6 +107,7 @@ export default {
     return {
       foo: 42,
       url,
+      isActiveFilterDialogOpen: false,
     }
   },
   computed: {
@@ -91,13 +124,13 @@ export default {
     filterKey() {
       return this.actionKey
     },
-    filterValue(){
+    filterValue() {
       const myFilterObj = filtersFromUrlStr(this.entityType, this.$route.query.filter).find(f => {
         return f.key === this.filterKey
       })
       return myFilterObj?.value
     },
-    isSelected(){
+    isSelected() {
       return this.filterValue !== undefined
     }
 
@@ -112,16 +145,17 @@ export default {
       return this.filters.find(f => f.key === filterKey)
     },
     click() {
-      console.log("click")
-      if (this.action === "filter") {
-        console.log("click filter")
-      } else {
-        (this.isSelected) ?
-            url.deleteActionKey(this.action, this.actionKey) :
-            url.addActionKey(this.action, this.actionKey)
-
-      }
-    }
+      console.log("click");
+      (this.config.type === "boolean") ?
+          url.upsertFilter(this.entityType, this.filterKey, true) :
+          this.isActiveFilterDialogOpen = true
+    },
+    deleteFilter(key) {
+      this.isActiveFilterDialogOpen = false
+      console.log("ActionKeyListItemFilter deleteFilter", key)
+      this.searchString = ""
+      url.deleteFilter(this.entityType, key)
+    },
 
 
   },

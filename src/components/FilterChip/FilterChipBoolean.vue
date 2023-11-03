@@ -3,7 +3,6 @@
       @click="$emit('edit')"
       color="primary"
       close
-      label
       close-icon="mdi-close"
       @click:close="$emit('delete')"
   >
