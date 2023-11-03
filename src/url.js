@@ -183,7 +183,9 @@ const setSearch = function (entityType, searchString) {
 }
 
 
+
 const setDefaultActions = function () {
+
     console.log("setDefaultActions")
     pushToRoute(router, {
         name: "Serp",
@@ -429,6 +431,8 @@ const url = {
 
     makeApiUrl,
     setShowApi,
+
+    pushQueryParam,
 }
 
 

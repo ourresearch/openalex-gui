@@ -112,7 +112,7 @@ import {filter} from "core-js/internals/array-iteration";
 
 import Action from "@/components/Action/Action.vue";
 import ActionChipsList from "@/components/Action/Action.vue";
-import {actionConfigs, getActionConfig} from "@/actionConfigs";
+import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
 import Entity from "@/components/Entity/Entity.vue";
 import EntityWork from "@/components/Entity/EntityWork/EntityWork.vue";
@@ -207,7 +207,7 @@ export default {
     sidebarData() {
       const sidebarId = this.$route.query.sidebar
       return this.resultsObject?.results?.find(res => {
-        return shortenOpenAlexId(res.id) === sidebarId
+        return shortenOpenAlexId(res.id) === sidebarId?.toLowerCase()
       })
     },
     isShowApiSet: {
@@ -346,17 +346,15 @@ export default {
         const apiQuery = url.makeApiUrl(this.$route)
 
         // set default actions if there are none
-        Object.values(this.$route.query).length || url.setDefaultActions(this.entityType)
+        if (!this.$route.query.sort) url.pushQueryParam(
+            "sort",
+            getActionDefaultsStr("sort", this.$route)
+        )
+        if (!this.$route.query.column) url.pushQueryParam(
+            "column",
+            getActionDefaultsStr("column", this.$route)
+        )
 
-
-        // handle the column action
-
-
-        const newQuery = {...this.$route.query}
-        // console.log(`Serp $route watcher`, newQuery, this.$route.query)
-
-
-        // console.log("Serp apiQuery", apiQuery)
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp;
