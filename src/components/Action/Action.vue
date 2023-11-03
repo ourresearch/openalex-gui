@@ -1,6 +1,10 @@
 <template>
   <div>
-    <v-menu rounded offset-y :close-on-content-click="false">
+    <v-menu
+        rounded
+        offset-y
+        :close-on-content-click="!myConfig.isMultiple"
+    >
       <template v-slot:activator="{on}">
         <v-chip
             text
@@ -12,6 +16,8 @@
             :close="isClearable"
             @click:close="selected = undefined"
         >
+          <v-icon left v-if="myConfig.isIconRotated" style="transform: rotate(90deg)">{{ myConfig.icon }}</v-icon>
+          <v-icon v-else left>{{ myConfig.icon }}</v-icon>
           {{ myConfig.displayName }}
           <span v-if="selectedKeyDisplayName" class="ml-1">{{ selectedKeyDisplayName }}</span>
           <span v-if="myConfig.isMultiple" class="ml-1 ">({{ selectedOptions.length }})</span>

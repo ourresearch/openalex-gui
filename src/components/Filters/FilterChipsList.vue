@@ -61,7 +61,7 @@
           :filter-key="activeFilterKey"
           :filter-value="activeFilterValue"
           :create-mode="activeFilterCreateMode"
-          @upsert="(newValue) => url.upsertFilter(entityType, activeFilterKey, newValue)"
+          @upsert="upsertFilter"
           @delete="deleteFilter(activeFilterKey)"
           @close="isActiveFilterDialogOpen = false"
       />
@@ -157,8 +157,8 @@ export default {
     unselectedChips() {
       return facetConfigs(this.entityType)
           .filter(config => {
-            return true
-            return config.categories.includes("popular")
+            return config.actions.includes("filter")
+            // return config.categories.includes("popular")
           })
           .filter(config => {
             const appliedKeys = this.filters.map(f => f.key)
@@ -181,6 +181,10 @@ export default {
       this.activeFilterCreateMode = createMode
       this.isActiveFilterDialogOpen = !!key
     },
+    upsertFilter(newValue){
+      url.upsertFilter(this.entityType, this.activeFilterKey, newValue)
+      this.setActiveFilter(null, null, null)
+    },
     deleteFilter(key) {
       this.isActiveFilterDialogOpen = false
       console.log("FilterList deleteFilter", key)
@@ -191,7 +195,6 @@ export default {
     selectChip(filterKey){
       const config = getFacetConfig(this.entityType, filterKey)
       if (config.type === "boolean") {
-        console.log("do boolean things", filterKey)
         url.upsertFilter(this.entityType, filterKey, true)
       }
       else {
