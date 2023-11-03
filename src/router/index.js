@@ -37,8 +37,13 @@ const routes = [
     },
     {
         path: `/:entityType(${entityNames})/:entityId`,
-        name: 'EntityPage',
-        component: EntityPage,
+        redirect: to => {
+            return {
+                name: "Serp",
+                params: {entityType: to.params.entityType},
+                query: {sidebar: to.params.entityId}
+            }
+        }
     },
 
 
