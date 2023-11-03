@@ -8,13 +8,13 @@
         class="d-flex align-start pa-2"
     >
       <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>
-      <div class="flex-grow-1 mt-1">
+      <div class="flex-grow-1 mt-1" style="white-space-collapse: collapse;">
           <span class="entity-type">
             /{{ $route.params.entityType }}
           </span>
-        <span v-if="$route.query.page">
+        <template v-if="$route.query.page">
             ?page={{ $route.query.page }}
-          </span>
+          </template>
         <span class="filters" v-if="filters.length">
             &filter=
             <span

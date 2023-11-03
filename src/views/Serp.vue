@@ -29,9 +29,9 @@
         </span>
       </v-toolbar-title>
       <v-spacer/>
-      <v-btn icon @click="isShowApiSet = !isShowApiSet">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
+<!--      <v-btn icon @click="isShowApiSet = !isShowApiSet">-->
+<!--        <v-icon>mdi-api</v-icon>-->
+<!--      </v-btn>-->
       <export-button/>
     </v-toolbar>
 
