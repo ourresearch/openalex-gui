@@ -8,7 +8,7 @@
         height="100vh"
         right
         color="#fafafa"
-        width="600"
+        width="500"
     >
       <entity-work v-if="sidebarData" :data="sidebarData"/>
 
@@ -282,6 +282,9 @@ export default {
     resultsCount() {
       return this.resultsObject?.meta?.count
     },
+    filtersLength(){
+      return this.$route.query.filter?.length ?? 0
+    },
 
 
   },
@@ -343,9 +346,11 @@ export default {
 
   },
   watch: {
-    "$route.query.group_by": {
-      immediate: true,
-      handler(to) {
+    filtersLength: {
+      immediate: false,
+      handler(to, from) {
+        const msg = (to > from) ? "Filter added" : "Filter removed"
+        this.snackbar(msg)
       }
     },
 
@@ -355,7 +360,6 @@ export default {
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
-        console.log("Serp watcher apiQuery", apiQuery)
 
         // set default actions if there are none
         if (!this.$route.query.sort) url.pushQueryParam(

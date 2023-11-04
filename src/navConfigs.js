@@ -1,7 +1,7 @@
 const navConfigs = [
     {
-        name: "Get started",
-        icon: "mdi-timer-outline",
+        name: "About",
+        icon: "mdi-information-outline",
         links: [
             {
                 name: "Overview",
@@ -22,12 +22,12 @@ const navConfigs = [
         name: "Learn more",
         icon: "mdi-book-open-outline",
         links: [
+            // {
+            //     name: "How-to guides",
+            //     href: "https://cookbook.openalex.org/",
+            // },
             {
-                name: "How-to guides",
-                href: "https://cookbook.openalex.org/",
-            },
-            {
-                name: "API docs",
+                name: "API reference",
                 href: "https://docs.openalex.org/",
             },
             {

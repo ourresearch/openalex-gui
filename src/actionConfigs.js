@@ -18,6 +18,7 @@ const actionConfigs = [
         appendToValues: "",
         icon: "mdi-filter-outline",
         color: "primary",
+        closeMenuOnContentClick: false,
     },
 
 
@@ -40,6 +41,7 @@ const actionConfigs = [
         icon: "mdi-poll",
         isIconRotated: true,
         color: "purple",
+        closeMenuOnContentClick: true,
     },
 
 
@@ -66,6 +68,7 @@ const actionConfigs = [
         appendToValues: ":desc",
         icon:"mdi-sort-ascending",
         color: "deep-orange",
+        closeMenuOnContentClick: false,
 
     },
 
@@ -94,6 +97,7 @@ const actionConfigs = [
         appendToValues: "",
         icon: "mdi-view-column-outline",
         color: "green",
+        closeMenuOnContentClick: false,
     },
 ]
 
