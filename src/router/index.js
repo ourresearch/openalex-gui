@@ -19,10 +19,11 @@ import goTo from 'vuetify/es5/services/goto'
 import Pricing from "../views/Pricing.vue";
 import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
+import {isOpenAlexId} from "@/util";
+import PageNotFound from "@/views/PageNotFound.vue";
 
 
 Vue.use(VueRouter)
-
 
 
 
@@ -40,7 +41,17 @@ const routes = [
         redirect: to => {
             return {
                 name: "Serp",
-                params: {entityType: to.params.entityType},
+                params: {entityType: "works"},
+                query: {sidebar: to.params.entityId}
+            }
+        }
+    },
+    {
+        path: `/:entityId([waspfic]\\d+)`,
+        redirect: to => {
+            return {
+                name: "Serp",
+                params: {entityType: "works"},
                 query: {sidebar: to.params.entityId}
             }
         }
@@ -81,6 +92,10 @@ const routes = [
     {path: '/rest-api', beforeEnter() {window.location.href = "https://docs.openalex.org/api" }},
     {path: '/schema', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
     {path: '/mag-migration-guide', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot/mag-format" }},
+
+    {path: '*', component: PageNotFound},
+
+
 
 ]
 
