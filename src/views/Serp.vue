@@ -25,12 +25,12 @@
         Explore works
       </v-toolbar-title>
       <v-spacer/>
-<!--      <v-btn icon @click="isShowApiSet = !isShowApiSet">-->
-<!--        <v-icon>mdi-api</v-icon>-->
-<!--      </v-btn>-->
       <export-button
           :disabled="!!$route.query.group_by"
       />
+      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
     </v-toolbar>
 
 

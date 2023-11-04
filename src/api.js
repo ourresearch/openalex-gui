@@ -8,6 +8,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {entityTypeFromId} from "@/util";
 import {isOpenAlexId} from "./util";
+import {filter} from "core-js/internals/array-iteration";
 
 const cache = {}
 const getFromCache = function (url) {
@@ -182,7 +183,8 @@ const api = (function () {
             })
 
             // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
-            const truncatedGroups = filteredGroups.splice(0, 25)
+            // const truncatedGroups = filteredGroups.splice(0, 25)
+            const truncatedGroups = filteredGroups
 
             const groupCounts = truncatedGroups.map(g => g.count)
             const maxCount = Math.max(...groupCounts)
