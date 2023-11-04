@@ -29,7 +29,7 @@
               class="boolean"
 
           >
-            <v-icon v-if="cell.value" color="success">mdi-check</v-icon>
+            <v-icon v-if="cell.value" color="">mdi-check</v-icon>
             <span v-else class="grey--text">-</span>
     <!--        <v-icon v-else color="error lighten-2">mdi-close</v-icon>-->
     <!--        {{ cell.value }}-->
