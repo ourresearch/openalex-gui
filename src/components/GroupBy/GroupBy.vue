@@ -6,7 +6,13 @@
         <v-toolbar-title>
           Count by <span class="font-weight-bold">{{ selectedConfig.displayName }}</span>
         </v-toolbar-title>
-        <v-spacer />
+        <v-spacer/>
+        <v-btn
+            icon
+            :href="url.makeApiUrl($route, true)"
+        >
+          <v-icon>mdi-tray-arrow-down</v-icon>
+        </v-btn>
         <v-btn icon @click="url.setGroupBy(undefined)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -14,7 +20,7 @@
       </v-toolbar>
       <table v-if="selected" class="serp-results-table ">
         <thead>
-        <tr >
+        <tr>
           <th class="py-2">
             {{ selectedConfig.displayName }}
           </th>
@@ -27,8 +33,8 @@
         <tr
             v-for="group in groups"
             :key="group.value"
-            @click="url.createFilter(entityType, filterKey, group.value)"
         >
+<!--            @click="url.createFilter(entityType, filterKey, group.value)"-->
           <td>
             {{ group.displayValue }}
           </td>
@@ -167,7 +173,6 @@ export default {
           this.entityType,
           this.filterKey,
           {
-            perPage: 200,
             hideUnknown: true,
             filters,
             searchString: this.searchString
