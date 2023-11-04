@@ -1,26 +1,24 @@
 <template>
   <v-card flat tile class="">
+    <v-card outlined rounded class="mx-3">
+      <v-toolbar dense flat dark color="purple">
+        <v-icon left style="transform: rotate(90deg)">mdi-poll</v-icon>
+        <v-toolbar-title>
+          Count by <span class="font-weight-bold">{{ selectedConfig.displayName }}</span>
+        </v-toolbar-title>
+        <v-spacer />
+        <v-btn icon @click="url.setGroupBy(undefined)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
 
-
-    <!--    <v-toolbar flat>-->
-    <!--      <v-text-field-->
-    <!--          autofocus-->
-    <!--          hide-details-->
-    <!--          rounded-->
-    <!--          class=" ma-0"-->
-    <!--          prepend-icon="mdi-magnify"-->
-    <!--          clearable-->
-    <!--          v-model="searchString"-->
-    <!--      />-->
-    <!--    </v-toolbar>-->
-    <v-card outlined rounded class="ma-3 py-3">
+      </v-toolbar>
       <table v-if="selected" class="serp-results-table ">
         <thead>
-        <tr>
-          <th>
+        <tr >
+          <th class="py-2">
             {{ selectedConfig.displayName }}
           </th>
-          <th>Works count</th>
+          <th class="pa-2">Works count</th>
           <th></th>
 
         </tr>

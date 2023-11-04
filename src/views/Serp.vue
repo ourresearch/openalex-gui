@@ -22,11 +22,7 @@
 
     <v-toolbar flat dense>
       <v-toolbar-title>
-        Explore
-        <span class="">
-<!--          {{ listResultsCount | millify }}-->
-          {{ entityType | pluralize(listResultsCount) }}
-        </span>
+        Explore works
       </v-toolbar-title>
       <v-spacer/>
 <!--      <v-btn icon @click="isShowApiSet = !isShowApiSet">-->
@@ -54,10 +50,23 @@
     </div>
 
 
-    <v-divider class="mb-8 mt-3"/>
+    <v-divider class="mb-4 mt-3"/>
 
-    <div class="ml-4 grey--text">
-      About {{ listResultsCount | toPrecision }} results
+    <div class="ml-4">
+      <span v-if="$route.query.group_by">
+<!--        About {{ listResultsCount | toPrecision }} results-->
+      </span>
+      <span v-else class="grey--text">
+        <span v-if="resultsObject.meta.count === 0">
+          No results; try modifying your filters.
+        </span>
+        <span v-else-if="resultsObject.meta.count < 100">
+          {{ resultsObject.meta.count | toPrecision }} results
+        </span>
+        <span v-else>
+          About {{ resultsObject.meta.count | toPrecision }} results
+        </span>
+      </span>
     </div>
 
     <div>
@@ -358,7 +367,9 @@ export default {
 
         const resp = await api.getUrl(apiQuery)
         this.resultsObject = resp;
-        if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
+        // this.count = this.meta.count
+        //
+        // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
 
 
         this.$store.state.resultsObject = resp

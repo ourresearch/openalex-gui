@@ -2,10 +2,7 @@
   <div class="">
 
 
-    <template v-if="resultsObject">
-      <div v-if="!resultsCount" class="mt-8 grey--text">
-        There are no results for this search.
-      </div>
+    <template v-if="resultsObject?.meta?.count">
       <v-card flat outlined rounded class="ma-3 py-3">
         <table v-if="resultsCount" class="serp-results-table">
           <thead>

@@ -1,6 +1,10 @@
 <template>
-  <th>
+  <th class="pb-2 green--text">
     {{ config.displayName }}
+<!--    <v-chip color="green" class="white&#45;&#45;text">-->
+<!--    {{ config.displayName }}-->
+
+<!--    </v-chip>-->
 
 <!--    <v-menu-->
 <!--        rounded-->
