@@ -1,36 +1,27 @@
 <template>
   <!--  <div class="entity-zoom-container">-->
   <v-card flat class="" min-height="100vh">
-    <v-toolbar flat dense>
-       <v-btn icon>
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-      <v-spacer />
+    <v-alert type="error" prominent v-if="data.is_retracted">
+      <v-row align="center">
+        <v-col class="grow">
+          This work has been <strong>retracted.</strong>
 
+        </v-col>
+        <v-col class="shrink">
+          <v-btn icon href="https://en.wikipedia.org/wiki/Retraction_in_academic_publishing" target="_blank">
+            <v-icon>mdi-information-outline</v-icon>
+          </v-btn>
 
-      <entity-ids-menu-item :ids="data.ids" />
-      <v-btn
-        icon
-        :href="apiUrl"
-        target="_blank"
-      >
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        :href="primaryLocationUrl"
-        target="_blank"
-      >
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-toolbar>
+        </v-col>
+      </v-row>
+    </v-alert>
     <div class="d-flex pa-2">
       <div class="pa-3">
         <div
             class="text-h5 "
             v-html="$prettyTitle(data.display_name)"
         />
-        <div class="body-2">
+        <div class="body-2 mt-2 mb-4">
           <span v-if="data.publication_year">{{ data.publication_year }} </span>
           <span>{{ data.type }}</span>
           <span class="mx-1">by</span>
@@ -41,53 +32,25 @@
       </div>
 
 
-
     </div>
-    <div class="d-flex">
+    <div class="d-flex px-3">
       <work-linkouts :data="data"/>
+      <v-btn
+          icon
+          :href="apiUrl"
+          target="_blank"
+      >
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
+      <entity-ids-menu-item :ids="data.ids"/>
 
     </div>
-
-
-    <v-tabs v-model="tab" icons-and-text>
-      <v-tab>
+    <v-divider/>
+    <v-card outlined class="ma-1">
+      <v-card-title>
         Citations
-        <v-icon>mdi-format-quote-open</v-icon>
-      </v-tab>
-      <v-tab>
-        Authors
-        ({{ authorshipsCount }})
-        <v-icon>mdi-account-outline</v-icon>
-      </v-tab>
-      <v-tab>
-        Sources
-        ({{ data.locations.length }})
-        <v-icon>mdi-book-open-outline</v-icon>
-      </v-tab>
-      <v-tab v-if="abstract">
-        Abstract
-        <v-icon>mdi-text</v-icon>
-      </v-tab>
-    </v-tabs>
-    <v-tabs-items v-model="tab" class="pa-3">
-      <v-tab-item>
-        <v-alert type="error" prominent v-if="data.is_retracted">
-          <v-row align="center">
-            <v-col class="grow">
-              This work has been <strong>retracted.</strong>
-
-            </v-col>
-            <v-col class="shrink">
-              <v-btn icon href="https://en.wikipedia.org/wiki/Retraction_in_academic_publishing" target="_blank">
-                <v-icon>mdi-information-outline</v-icon>
-              </v-btn>
-
-            </v-col>
-          </v-row>
-        </v-alert>
-
-
-        <!--    Cited By  -->
+      </v-card-title>
+      <div class="pa-4 pt-0">
         <div class="mt-3">
         <span class="pt-6 font-weight-bold">
           <span>Cited by: </span>
@@ -130,39 +93,49 @@
           />
         </span>
         </div>
-      </v-tab-item>
+      </div>
+    </v-card>
 
 
-      <v-tab-item>
-          <entity-work-author
+    <v-card outlined class="ma-1">
+      <v-card-title>
+        Authors
+      </v-card-title>
+      <v-list>
+        <entity-work-author
             v-for="author in data.authorships"
             :key="author.id"
             :author="author"
-          />
+        />
+
+      </v-list>
+    </v-card>
 
 
-      </v-tab-item>
+    <v-card outlined class="ma-1">
+      <v-card-title>
+        Versions
+      </v-card-title>
+      <v-list class="pa-0">
+
+        <entity-work-source
+            v-for="(loc, i) in data.locations"
+            :loc="loc"
+            :is-canonical="loc.landing_page_url === primaryLocationUrl"
+            :key="i"
+        />
+      </v-list>
+    </v-card>
 
 
-      <v-tab-item>
-        {{ primaryLocationUrl }}
-        <v-list class="pa-0">
-
-          <entity-work-source
-              v-for="(loc, i) in data.locations"
-              :loc="loc"
-              :is-canonical="loc.landing_page_url === primaryLocationUrl"
-              :key="i"
-          />
-        </v-list>
-
-      </v-tab-item>
-
-
-      <v-tab-item v-if="abstract">
+    <v-card v-if="abstract" outlined class="ma-1">
+      <v-card-title>
+        Abstract
+      </v-card-title>
+      <v-card-text>
         {{ abstract }}
-      </v-tab-item>
-    </v-tabs-items>
+      </v-card-text>
+    </v-card>
 
 
     <div class="padded-part pa-4">

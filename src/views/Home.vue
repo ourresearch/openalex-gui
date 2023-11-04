@@ -17,22 +17,20 @@
                  rounded
               class=""
               color="primary"
-              href="https://docs.openalex.org/"
+              to="/works"
           >
-            Read the docs
-            <v-icon right>mdi-open-in-new</v-icon>
+            Explore the data
           </v-btn>
           <v-btn
               x-large
               rounded
               outlined
               color="primary"
-              to="/testimonials"
+              href="https://help.openalex.org/"
               class="ml-4"
           >
-            Read testimonials
-
-
+            Learn more
+            <v-icon right>mdi-open-in-new</v-icon>
           </v-btn>
 
 

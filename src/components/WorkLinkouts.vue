@@ -8,13 +8,11 @@
               target="_blank"
               color="primary"
               class="mr-3"
-              small
+              icon
               rounded
-              text
               v-if="isGreenOa && !pdfUrl"
           >
-            <v-icon left small>mdi-file-document</v-icon>
-            HTML
+            <v-icon>mdi-file-document</v-icon>
           </v-btn>
 
 
@@ -24,13 +22,10 @@
               target="_blank"
               color="primary"
               class="mr-3"
-              small
-              rounded
-              text
+              icon
               v-if="pdfUrl"
           >
-            <v-icon left small>mdi-file-pdf-box</v-icon>
-            PDF
+            <v-icon >mdi-file-pdf-box</v-icon>
           </v-btn>
 
           <!--   HTML  at publisher -->
@@ -38,13 +33,10 @@
               :href="htmlUrl"
               target="_blank"
               color="primary"
-              small
-              rounded
-              text
+              icon
               v-if="isOaAtPublisher"
           >
-            <v-icon left small>mdi-file-document</v-icon>
-            HTML
+            <v-icon>mdi-file-document</v-icon>
           </v-btn>
 
 
@@ -52,13 +44,10 @@
           <v-btn
               :href="data.primary_location.landing_page_url"
               target="_blank"
-              text
-              small
-              rounded
+              icon
               v-if="!isOaAtPublisher"
           >
-            <v-icon left small>mdi-lock-outline</v-icon>
-            HTML
+            <v-icon>mdi-lock-outline</v-icon>
           </v-btn>
 
         </div>

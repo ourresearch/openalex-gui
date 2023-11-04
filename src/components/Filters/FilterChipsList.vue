@@ -35,15 +35,15 @@
       {{filter.displayName}}
     </v-chip>
 
-    <v-btn
-      text
-      rounded
-      color="primary"
-      class="mr-2 mb-2"
-      @click="isAllFiltersDialogOpen = true"
-    >
-      More&hellip;
-    </v-btn>
+<!--    <v-btn-->
+<!--      text-->
+<!--      rounded-->
+<!--      color="primary"-->
+<!--      class="mr-2 mb-2"-->
+<!--      @click="isAllFiltersDialogOpen = true"-->
+<!--    >-->
+<!--      More&hellip;-->
+<!--    </v-btn>-->
 
 
 
@@ -183,7 +183,9 @@ export default {
     },
     upsertFilter(newValue){
       url.upsertFilter(this.entityType, this.activeFilterKey, newValue)
-      this.setActiveFilter(null, null, null)
+      if (this.activeFilterConfig.type !== "select") {
+        this.setActiveFilter(null, null, null)
+      }
     },
     deleteFilter(key) {
       this.isActiveFilterDialogOpen = false

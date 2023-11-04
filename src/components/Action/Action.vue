@@ -3,7 +3,7 @@
     <v-menu
         rounded
         offset-y
-        :close-on-content-click="!myConfig.isMultiple"
+        :close-on-content-click="myConfig.closeMenuOnContentClick"
     >
       <template v-slot:activator="{on}">
         <v-chip

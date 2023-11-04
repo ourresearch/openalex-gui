@@ -28,9 +28,9 @@
         <v-icon>mdi-file-pdf-box</v-icon>
       </v-btn>
 
-      <v-list-item-action-text>
-        {{ myVersion }}
-      </v-list-item-action-text>
+<!--      <v-list-item-action-text>-->
+<!--        {{ myVersion }}-->
+<!--      </v-list-item-action-text>-->
     </v-list-item-action>
     <v-list-item-action>
       <v-btn
