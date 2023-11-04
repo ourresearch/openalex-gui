@@ -311,16 +311,18 @@ const makeApiUrl = function (currentRoute, formatCsv) {
 
 
     const query = {
-        page: currentRoute.query.page,
         filter: filterString,
-        sort: currentRoute.query.sort
     }
 
     if (formatCsv) {
         query.format = "csv"
     }
-    if (query.tab === 1) {
+    if (currentRoute.query.group_by) {
         query.group_by = currentRoute.query.group_by
+    }
+    else {
+        query.page = currentRoute.query.page
+        query.sort = currentRoute.query.sort
     }
 
     const apiUrl = new URL("https://api.openalex.org")
@@ -352,7 +354,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     // set options from defaults and args
     const defaults = {
         searchString: null,
-        perPage: 100,
+        perPage: 200,
         formatCsv: false,
         includeEmail: true,
         filters: [],

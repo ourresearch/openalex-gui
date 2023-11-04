@@ -11,6 +11,7 @@
               color="primary"
               v-on="on"
               style="position: relative;"
+
           >
             <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>
             <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>
@@ -48,6 +49,7 @@
               icon
               v-on="on"
               class=""
+              :disabled="disabled"
           >
             <v-icon>mdi-tray-arrow-down</v-icon>
 <!--            {{ icon ? "" : "Export" }}-->

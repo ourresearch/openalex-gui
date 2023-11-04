@@ -28,7 +28,9 @@
 <!--      <v-btn icon @click="isShowApiSet = !isShowApiSet">-->
 <!--        <v-icon>mdi-api</v-icon>-->
 <!--      </v-btn>-->
-      <export-button/>
+      <export-button
+          :disabled="!!$route.query.group_by"
+      />
     </v-toolbar>
 
 
@@ -57,14 +59,14 @@
 <!--        About {{ listResultsCount | toPrecision }} results-->
       </span>
       <span v-else class="grey--text">
-        <span v-if="resultsObject.meta.count === 0">
+        <span v-if="resultsObject?.meta.count === 0">
           No results; try modifying your filters.
         </span>
-        <span v-else-if="resultsObject.meta.count < 100">
+        <span v-else-if="resultsObject?.meta.count < 100">
           {{ resultsObject.meta.count | toPrecision }} results
         </span>
         <span v-else>
-          About {{ resultsObject.meta.count | toPrecision }} results
+          About {{ resultsObject?.meta.count | toPrecision }} results
         </span>
       </span>
     </div>
@@ -353,6 +355,7 @@ export default {
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
+        console.log("Serp watcher apiQuery", apiQuery)
 
         // set default actions if there are none
         if (!this.$route.query.sort) url.pushQueryParam(
