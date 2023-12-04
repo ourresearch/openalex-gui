@@ -108,7 +108,6 @@ export default {
       }
     },
     clickRow() {
-      console.log("click row", this.entity)
       url.setSidebar(this.entity.id)
 
     }

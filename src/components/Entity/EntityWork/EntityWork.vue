@@ -26,7 +26,7 @@
           <span>{{ data.type }}</span>
           <span class="mx-1">by</span>
           <work-authors-string :authorships="data.authorships"/>
-          <span v-if="data.primary_location">in {{ data.primary_location.source.display_name }}. </span>
+          <span v-if="data?.primary_location?.source?.display_name">in {{ data.primary_location.source.display_name }}. </span>
         </div>
 
       </div>

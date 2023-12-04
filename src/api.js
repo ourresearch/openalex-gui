@@ -6,19 +6,33 @@ import {openAlexCountries} from "@/countries";
 import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
-import {entityTypeFromId} from "@/util";
+import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 import {isOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
+import {getActionDefaultsStr} from "@/actionConfigs";
 
 const cache = {}
+const entityCache = {}
 const getFromCache = function (url) {
     if (!cache[url]) return
     return _.cloneDeep(cache[url])
+}
+const getEntityFromCache = function (id) {
+    const myId = shortenOpenAlexId(id)
+    if (!myId) return
+    if (!entityCache[myId]) return
+    return _.cloneDeep(entityCache[myId])
 }
 const clearCache = function () {
     Object.keys(cache).forEach(k => {
         cache[k] = null
     })
+    Object.keys(entityCache).forEach(k => {
+        cache[k] = null
+    })
+}
+const stockCache = function(url, ret){
+    cache[url] = ret
 }
 
 let urlBase = {
@@ -95,9 +109,20 @@ const api = (function () {
             throw e
         }
         cache[url] = res.data
-
         return res.data
     }
+    const getResultsList = async function(url){
+        const ret = getUrl(url)
+        return ret
+    }
+
+
+    const getEntity = async function(id){
+        const myUrl = makeUrl(id)
+        const resp = await getUrl(myUrl)
+        return resp
+    }
+
     const getEntityDisplayName = async function (id) {
         const myUrl = makeUrl(id, {select: "display_name"})
         const resp = await getUrl(myUrl)
@@ -133,6 +158,8 @@ const api = (function () {
         getEntityDisplayName,
         makeAutocompleteResponseFromId,
         getUrl,
+        getResultsList,
+        getEntity,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
             const resp = await getUrl(url)
