@@ -20,7 +20,7 @@
         key="api-editor"
     />
 
-    <v-toolbar flat dense>
+    <v-toolbar flat >
       <v-toolbar-title>
         Explore works
       </v-toolbar-title>
@@ -206,7 +206,19 @@ export default {
       actionConfigs,
     }
   },
-  asyncComputed: {},
+  asyncComputed: {
+    async sidebarData() {
+      const sidebarId =  shortenOpenAlexId(this.$route.query.sidebar)
+      if (!sidebarId) return
+
+      const extantResult = this.resultsObject?.results?.find(res => {
+        const resultId = shortenOpenAlexId((res.id))
+        return resultId === sidebarId
+      })
+      const ret = (extantResult) ? extantResult : await api.getEntity(sidebarId)
+      return ret
+    },
+  },
   computed: {
     ...mapGetters([
       "searchIsLoading",
@@ -214,12 +226,6 @@ export default {
     ]),
     isGroupBy() {
       return "group_by" in this.$route.query
-    },
-    sidebarData() {
-      const sidebarId = this.$route.query.sidebar
-      return this.resultsObject?.results?.find(res => {
-        return shortenOpenAlexId(res.id) === sidebarId?.toLowerCase()
-      })
     },
     isShowApiSet: {
       get() {
@@ -370,9 +376,7 @@ export default {
             "column",
             getActionDefaultsStr("column", this.$route)
         )
-
-
-        const resp = await api.getUrl(apiQuery)
+        const resp = await api.getResultsList(apiQuery)
         this.resultsObject = resp;
         // this.count = this.meta.count
         //
