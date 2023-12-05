@@ -139,7 +139,6 @@ const api = (function () {
         } else if (sdgConfig) {
             displayName = sdgConfig.display_name
         } else if (isOpenAlexId(id)) {
-            console.log("makeAutocompleteResponseFromId", entityTypeFromId(id), id)
             displayName = await getEntityDisplayName(id)
         } else {
             displayName = id
@@ -203,6 +202,8 @@ const api = (function () {
                 filterKey,
                 options,
             )
+            console.log("api.getGroups() myUrl", myUrl)
+
             const resp = await axios.get(myUrl)
             const filteredGroups = resp.data.group_by.filter(g => {
                 const keyIsNullish = g.key === "unknown" || g.key === null
