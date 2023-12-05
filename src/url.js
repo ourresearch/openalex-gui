@@ -374,13 +374,16 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 
     // set optional params
     url.searchParams.set("per_page", String(options.perPage))
-    if (options.filters.length > 0) url.searchParams.set(
-        "filter",
-        filtersAsUrlStr(options.filters)
-    )
     if (options.searchString) url.searchParams.set("q", options.searchString)
     if (options.formatCsv) url.searchParams.set("format", "csv");
     if (options.includeEmail) url.searchParams.set("mailto", "team@ourresearch.org")
+
+    // we have to do it hacky like this because searchParams.set() will urlencode
+    // special within-filter symbols like + and !
+    if (options.filters.length > 0) {
+        url.search = url.search + "&filter=" + filtersAsUrlStr(options.filters)
+    }
+
 
     // all done
     return url.toString()

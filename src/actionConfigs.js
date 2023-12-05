@@ -54,11 +54,13 @@ const actionConfigs = [
             "publication_date",
             "cited_by_count",
             "relevance_score",
+            // "cited_by_percentile_year.min",
         ],
         getDefaultValues: function (query) {
             const isSearchFilterApplied = query?.filter?.split(",")?.some(f => {
                 return f.split(":")[0]?.indexOf(".search") > -1
             })
+            // return [ isSearchFilterApplied ? "relevance_score" : "cited_by_count" ]
             return [ isSearchFilterApplied ? "relevance_score" : "cited_by_count" ]
         },
 
