@@ -93,6 +93,7 @@ const routes = [
     {path: '/schema', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
     {path: '/mag-migration-guide', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot/mag-format" }},
 
+    {path: '/author-change-request', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
     {path: '/authorChangeRequest', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
 
     {path: '*', component: PageNotFound},
