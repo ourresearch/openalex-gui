@@ -6,26 +6,26 @@
       <v-menu rounded offset-y v-if="isExportStarted">
         <template v-slot:activator="{on}">
           <v-btn
-              icon
+              text
               class="elevation-0 "
-              color="primary"
               v-on="on"
               style="position: relative;"
 
           >
-            <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>
-            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>
-            <v-progress-circular
-                style="position: absolute;"
-                :color="(isExportStarted && !exportObj.progress) ? 'grey' : 'primary'"
-                rotate="-90"
-                :value="exportObj.progress * 100"
-                :indeterminate="isExportStarted && !exportObj.progress"
-                size="25"
-                v-if="!isExportFinished"
-            />
+<!--            <v-icon small v-if="!isExportFinished">mdi-arrow-down</v-icon>-->
+<!--            <v-icon v-if="isExportFinished">mdi-tray-arrow-down</v-icon>-->
+<!--            <v-progress-circular-->
+<!--                :color="(isExportStarted && !exportObj.progress) ? 'grey' : 'primary'"-->
+<!--                rotate="-90"-->
+<!--                :value="exportObj.progress * 100"-->
+<!--                :indeterminate="isExportStarted && !exportObj.progress"-->
+<!--                size="20"-->
+<!--                class="mr-2"-->
+<!--                v-if="!isExportFinished"-->
+<!--            />-->
 <!--            {{ icon ? "" : "Exporting"}}-->
-            <!--                  {{ Math.round(exportObj.progress * 100) }}%-->
+            Exporting
+                               ({{ Math.round(exportObj.progress * 100) }}%)
             <!--                  <v-icon right>mdi-menu-down</v-icon>-->
           </v-btn>
         </template>
@@ -46,12 +46,13 @@
       <v-menu rounded offset-y v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
           <v-btn
-              icon
+              text
               v-on="on"
               class=""
               :disabled="disabled"
           >
-            <v-icon>mdi-tray-arrow-down</v-icon>
+            Export
+<!--            <v-icon>mdi-tray-arrow-down</v-icon>-->
 <!--            {{ icon ? "" : "Export" }}-->
           </v-btn>
         </template>

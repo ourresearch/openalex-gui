@@ -6,23 +6,20 @@
         :close-on-content-click="myConfig.closeMenuOnContentClick"
     >
       <template v-slot:activator="{on}">
-        <v-chip
+        <v-btn
             text
-            label
-            outlined
             v-on="on"
             class="mr-1"
-            :color="myConfig.color"
             :disabled="isDisabled"
             :close="isClearable"
             @click:close="selected = undefined"
         >
-          <v-icon left v-if="myConfig.isIconRotated" style="transform: rotate(90deg)">{{ myConfig.icon }}</v-icon>
-          <v-icon v-else left>{{ myConfig.icon }}</v-icon>
+<!--          <v-icon left v-if="myConfig.isIconRotated" style="transform: rotate(90deg)">{{ myConfig.icon }}</v-icon>-->
+<!--          <v-icon v-else left>{{ myConfig.icon }}</v-icon>-->
           {{ myConfig.displayName }}
           <span v-if="selectedKeyDisplayName" class="ml-1 font-weight-bold">{{ selectedKeyDisplayName }}</span>
           <span v-if="myConfig.isMultiple" class="ml-1 font-weight-bold">({{ selectedOptions.length }})</span>
-        </v-chip>
+        </v-btn>
       </template>
       <v-card class="pa-4" v-if="action==='filter'">
         <filter-chips-list/>
