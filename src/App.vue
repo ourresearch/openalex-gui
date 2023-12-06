@@ -4,26 +4,8 @@
         v-model="isSiteNavOpen"
         app
         color="#fafafa"
-        :expand-on-hover="$route.name === 'Serp'"
-        :mini-variant="$route.name === 'Serp'"
+        right
     >
-      <router-link
-          :to="{name: 'Home'}"
-          class="logo-link pt-3 pb-3 pl-4"
-      >
-        <img
-            src="@/assets/openalex-logo-icon-black-and-white.png"
-            class="logo-icon mr-0 colorizable"
-            :style="logoStyle"
-        />
-        <span
-            class="logo-text colorizable"
-            :style="logoStyle"
-        >
-                OpenAlex
-              </span>
-
-      </router-link>
       <site-nav/>
 
 
@@ -37,7 +19,7 @@
     <v-app-bar
         app
         flat
-        v-if="$vuetify.breakpoint.mobile"
+        dense
 
         color="white"
         class="pl-0"
@@ -46,13 +28,6 @@
 
     >
         <!--            v-if="$route.name !== 'Home'"-->
-        <v-btn
-            icon
-            @click="isSiteNavOpen = !isSiteNavOpen"
-            style="margin-left: -10px;"
-        >
-          <v-icon>mdi-menu</v-icon>
-        </v-btn>
         <router-link
             :to="{name: 'Home'}"
             class="logo-link"
@@ -91,6 +66,16 @@
 <!--            </v-list-item>-->
 <!--          </v-list>-->
 <!--        </v-menu>-->
+
+      <v-spacer />
+
+        <v-btn
+            icon
+            @click="isSiteNavOpen = !isSiteNavOpen"
+            style="margin-left: -10px;"
+        >
+          <v-icon>mdi-menu</v-icon>
+        </v-btn>
 
 
 
@@ -308,8 +293,8 @@ body {
   //font-size: 16px;
 
   .v-application {
-    //background: #F7F9FC !important;
-    background: #fff !important;
+    background: #F7F9FC !important;
+    //background: #fff !important;
 
     .rounded {
       border-radius: 15px !important;

@@ -14,24 +14,19 @@
 
     </v-navigation-drawer>
 
-    <serp-api-editor
-        v-if="isShowApiSet"
-        class="mt-3"
-        key="api-editor"
-    />
 
-    <v-toolbar flat >
-      <v-toolbar-title>
-        Explore works
-      </v-toolbar-title>
-      <v-spacer/>
-      <export-button
-          :disabled="!!$route.query.group_by"
-      />
-      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
-    </v-toolbar>
+<!--    <v-toolbar flat >-->
+<!--      <v-toolbar-title>-->
+<!--        Explore works-->
+<!--      </v-toolbar-title>-->
+<!--      <v-spacer/>-->
+<!--      <export-button-->
+<!--          :disabled="!!$route.query.group_by"-->
+<!--      />-->
+<!--      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">-->
+<!--        <v-icon>mdi-api</v-icon>-->
+<!--      </v-btn>-->
+<!--    </v-toolbar>-->
 
 
     <!--    <filter-chips-list class="pl-3"/>-->
@@ -43,18 +38,51 @@
     <!--    </v-tabs>-->
 
     <!--    <v-divider/>-->
-    <div class="my-1 mx-3 d-flex">
+    <div class="white d-flex">
       <action action="filter"/>
       <action action="sort"/>
       <action action="column"/>
       <action action="group_by"/>
+      <export-button
+          :disabled="!!$route.query.group_by"
+      />
+      <v-menu rounded offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              text
+              class="elevation-0 "
+              v-on="on"
+          >
+            View
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="url.pushQueryParam('show_api', true)">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Show API call
+            </v-list-item-title>
+            <v-list-item-action>
+              <v-icon v-if="!!$route.query.show_api" class="mt-2">mdi-check</v-icon>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
     </div>
 
+    <serp-api-editor
+        v-if="isShowApiSet"
+        class="mt-3"
+        key="api-editor"
+    />
 
-    <v-divider class="mb-4 mt-3"/>
 
-    <div class="ml-4">
+<!--    <v-divider class="mb-4 mt-3"/>-->
+
+    <div class="ml-4 mt-4">
       <span v-if="$route.query.group_by">
 <!--        About {{ listResultsCount | toPrecision }} results-->
       </span>
