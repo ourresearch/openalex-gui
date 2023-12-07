@@ -9,7 +9,7 @@
         <v-btn
             text
             v-on="on"
-            class="mr-1"
+            class="font-weight-regular"
             :disabled="isDisabled"
             :close="isClearable"
             @click:close="selected = undefined"
@@ -17,7 +17,7 @@
 <!--          <v-icon left v-if="myConfig.isIconRotated" style="transform: rotate(90deg)">{{ myConfig.icon }}</v-icon>-->
 <!--          <v-icon v-else left>{{ myConfig.icon }}</v-icon>-->
           {{ myConfig.displayName }}
-          <span v-if="selectedKeyDisplayName" class="ml-1 font-weight-bold">{{ selectedKeyDisplayName }}</span>
+          <span v-if="selectedKeyDisplayName" class="ml-1">{{ selectedKeyDisplayName }}</span>
           <span v-if="myConfig.isMultiple" class="ml-1 font-weight-bold">({{ selectedOptions.length }})</span>
         </v-btn>
       </template>

@@ -3,7 +3,7 @@
 
 
     <template v-if="resultsObject?.meta?.count">
-      <v-card flat outlined rounded class="ma-3 py-3">
+      <v-card flat  rounded class="ma-3 py-3">
         <table v-if="resultsCount" class="serp-results-table">
           <thead>
           <tr>

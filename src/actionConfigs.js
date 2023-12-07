@@ -24,7 +24,7 @@ const actionConfigs = [
 
     {
         id: "group_by",
-        displayName: "Count by",
+        displayName: "Count",
         isMultiple: false,
         isMandatory: false,
         topValues: [
@@ -47,8 +47,8 @@ const actionConfigs = [
 
     {
         id: "sort",
-        displayName: "Sort by",
-        isMultiple: false,
+        displayName: "Sort",
+        isMultiple: true,
         isMandatory: true,
         topValues: [
             "publication_date",

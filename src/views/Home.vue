@@ -1,14 +1,13 @@
 <template>
   <div class="">
-    <div class="above-the-fold">
-      <v-container style="margin-top: 150px">
+    <div class="above-the-fold" style="height: 100vh;">
+      <v-container style="margin-top: 100px; max-width: 500px;">
         <div class="text-h2" style="line-height: 1.3;">
-          A free index for the world's research
+          A free index of the world's research ecosystem
         </div>
         <div class="mt-12">
           <p style="">
-
-            Inspired by the ancient Library of Alexandria, OpenAlex is an index of hundreds of millions of interconnected entities across the global research system. We're 100% free and open source, and offer access via a web interface, API, and database snapshot.
+            Inspired by the ancient library of Alexandria, OpenAlex catalogs 250M scholarly works, along with their citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.
           </p>
 
         </div>
@@ -18,8 +17,9 @@
               class=""
               color="primary"
               to="/works"
+                 style="min-width: 150px;"
           >
-            Explore the data
+            Try it!
           </v-btn>
           <v-btn
               x-large

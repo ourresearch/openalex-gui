@@ -1,5 +1,5 @@
 <template>
-  <div class="serp-page">
+  <div class="serp-page pb-12" style="background: #F7F9FC;">
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -15,18 +15,18 @@
     </v-navigation-drawer>
 
 
-<!--    <v-toolbar flat >-->
-<!--      <v-toolbar-title>-->
-<!--        Explore works-->
-<!--      </v-toolbar-title>-->
-<!--      <v-spacer/>-->
-<!--      <export-button-->
-<!--          :disabled="!!$route.query.group_by"-->
-<!--      />-->
-<!--      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">-->
-<!--        <v-icon>mdi-api</v-icon>-->
-<!--      </v-btn>-->
-<!--    </v-toolbar>-->
+    <!--    <v-toolbar flat >-->
+    <!--      <v-toolbar-title>-->
+    <!--        Explore works-->
+    <!--      </v-toolbar-title>-->
+    <!--      <v-spacer/>-->
+    <!--      <export-button-->
+    <!--          :disabled="!!$route.query.group_by"-->
+    <!--      />-->
+    <!--      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">-->
+    <!--        <v-icon>mdi-api</v-icon>-->
+    <!--      </v-btn>-->
+    <!--    </v-toolbar>-->
 
 
     <!--    <filter-chips-list class="pl-3"/>-->
@@ -43,14 +43,11 @@
       <action action="sort"/>
       <action action="column"/>
       <action action="group_by"/>
-      <export-button
-          :disabled="!!$route.query.group_by"
-      />
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
               text
-              class="elevation-0 "
+              class="elevation-0 font-weight-regular"
               v-on="on"
           >
             View
@@ -70,6 +67,48 @@
           </v-list-item>
         </v-list>
       </v-menu>
+      <export-button
+          :disabled="!!$route.query.group_by"
+      />
+      <v-menu rounded offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              text
+              class="elevation-0 font-weight-regular"
+              v-on="on"
+          >
+            Help
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item href="https://help.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-information-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              User manual
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item href="https://docs.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              API reference
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item to="help">
+            <v-list-item-icon>
+              <v-icon>mdi-message-text-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Contact us
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
     </div>
 
@@ -80,7 +119,7 @@
     />
 
 
-<!--    <v-divider class="mb-4 mt-3"/>-->
+    <!--    <v-divider class="mb-4 mt-3"/>-->
 
     <div class="ml-4 mt-4">
       <span v-if="$route.query.group_by">
@@ -236,7 +275,7 @@ export default {
   },
   asyncComputed: {
     async sidebarData() {
-      const sidebarId =  shortenOpenAlexId(this.$route.query.sidebar)
+      const sidebarId = shortenOpenAlexId(this.$route.query.sidebar)
       if (!sidebarId) return
 
       const extantResult = this.resultsObject?.results?.find(res => {
@@ -316,7 +355,7 @@ export default {
     resultsCount() {
       return this.resultsObject?.meta?.count
     },
-    filtersLength(){
+    filtersLength() {
       return this.$route.query.filter?.length ?? 0
     },
 
