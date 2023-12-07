@@ -1,9 +1,9 @@
 <template>
   <div class="">
     <div class="above-the-fold" style="height: 100vh;">
-      <v-container style="margin-top: 100px; max-width: 500px;">
+      <v-container style="margin-top: 100px; max-width: 700px;">
         <div class="text-h2" style="line-height: 1.3;">
-          A free index of the world's research ecosystem
+          A free index of the world's research ecosystem.
         </div>
         <div class="mt-12">
           <p style="">
