@@ -7,7 +7,7 @@
         <template v-slot:activator="{on}">
           <v-btn
               text
-              class="elevation-0 "
+              class="elevation-0 font-weight-regular"
               v-on="on"
               style="position: relative;"
 
@@ -48,7 +48,7 @@
           <v-btn
               text
               v-on="on"
-              class=""
+              class="font-weight-regular"
               :disabled="disabled"
           >
             Export

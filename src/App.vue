@@ -4,7 +4,7 @@
         v-model="isSiteNavOpen"
         app
         color="#fafafa"
-        right
+        v-if="0"
     >
       <site-nav/>
 
@@ -69,13 +69,13 @@
 
       <v-spacer />
 
-        <v-btn
-            icon
-            @click="isSiteNavOpen = !isSiteNavOpen"
-            style="margin-left: -10px;"
-        >
-          <v-icon>mdi-menu</v-icon>
-        </v-btn>
+<!--        <v-btn-->
+<!--            icon-->
+<!--            @click="isSiteNavOpen = !isSiteNavOpen"-->
+<!--            style="margin-left: -10px;"-->
+<!--        >-->
+<!--          <v-icon>mdi-menu</v-icon>-->
+<!--        </v-btn>-->
 
 
 
@@ -293,8 +293,8 @@ body {
   //font-size: 16px;
 
   .v-application {
-    background: #F7F9FC !important;
-    //background: #fff !important;
+    //background: #F7F9FC !important;
+    background: #fff !important;
 
     .rounded {
       border-radius: 15px !important;
