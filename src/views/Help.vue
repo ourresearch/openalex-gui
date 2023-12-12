@@ -4,6 +4,9 @@
       <h3 class="text-h3">Get in Touch</h3>
       <p ref="description">Use this form to get in touch with the OpenAlex team, to send a bug report, or to ask
         any questions not answered by the <a href="https://docs.openalex.org/">documentation</a>.</p>
+      <p>If you have any trouble with the form, or if you want to attach a screenshot or file, you can instead send an
+        email to <a href="mailto:support@openalex.org"></a>.
+      </p>
 
       <v-form
           ref="form"
