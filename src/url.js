@@ -1,5 +1,16 @@
 import router from "./router";
-import {filtersAsUrlStr, filtersFromUrlStr, filtersAreEqual, createSimpleFilter} from "./filterConfigs";
+import {
+    filtersAsUrlStr,
+    filtersFromUrlStr,
+    filtersAreEqual,
+    createSimpleFilter,
+    getItemsFromSelectFilterValue,
+    deleteOptionFromFilterValue,
+    optionsFromString,
+    addOptionToFilterValue,
+    toggleOptionIsNegated,
+    getMatchModeFromSelectFilterValue, optionsToString,
+} from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
 import {entityTypes, shortenOpenAlexId} from "./util";
@@ -25,8 +36,6 @@ const pushQueryParam = function (key, value) {
 }
 
 
-
-
 const pushToRoute = async function (router, newRoute) {
     return await router.push(newRoute)
         .catch((e) => {
@@ -47,7 +56,7 @@ const setPage = async function (page) {
     })
 }
 
-const setShowApi = function(val){
+const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
 
@@ -66,7 +75,7 @@ const pushNewFilters = async function (newFilters) {
 
     const newRoute = {
         name: "Serp",
-        // params: {entityType},
+        params: {entityType: "works"},
         query
     }
     return pushToRoute(router, newRoute)
@@ -90,6 +99,13 @@ const readFilter = function (entityType, key) {
         return f.key === key
     })
 }
+
+const readFiltersLength = function(){
+    return filtersFromUrlStr(
+        router.currentRoute.params.entityType,
+        router.currentRoute.query.filter,
+    ).length
+}
 const readFilterValue = function (entityType, key) {
     const myFilter = filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
         return f.key === key
@@ -109,6 +125,7 @@ const isSearchFilterApplied = function () {
 
 
 const updateFilter = async function (entityType, key, newValue) {
+    console.log("url.updateFilter", entityType, key, newValue)
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
     // add the new filter
@@ -127,6 +144,80 @@ const updateFilter = async function (entityType, key, newValue) {
     return await pushNewFilters(newFilters)
 }
 
+const deleteFilterOption = async function (entityType, key, optionToDelete) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+
+    const newFilters = oldFilters.map(oldFilter => {
+        const newValue = (oldFilter.key === key) ?
+            deleteOptionFromFilterValue(oldFilter.value, optionToDelete) :
+            oldFilter.value // change nothing
+
+        console.log("deleteFilterOption() newValue", optionToDelete, oldFilter.value, newValue)
+
+        if (!newValue) return
+
+        return createSimpleFilter(
+            entityType,
+            oldFilter.key,
+            newValue
+        )
+    })
+
+    return await pushNewFilters(newFilters.filter(f => !!f))
+}
+const addFilterOption = async function (entityType, key, optionToAdd) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+
+    const newFilters = oldFilters.map(oldFilter => {
+        const newValue = (oldFilter.key === key) ?
+            addOptionToFilterValue(oldFilter.value, optionToAdd) :
+            oldFilter.value // change nothing
+
+        return createSimpleFilter(
+            entityType,
+            oldFilter.key,
+            newValue
+        )
+    })
+
+    return await pushNewFilters(newFilters)
+}
+const toggleFilterOptionIsNegated = async function (entityType, key, option) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+
+    const newFilters = oldFilters.map(oldFilter => {
+        const newValue = (oldFilter.key === key) ?
+            toggleOptionIsNegated(oldFilter.value, option) :
+            oldFilter.value // change nothing
+
+        return createSimpleFilter(
+            entityType,
+            oldFilter.key,
+            newValue
+        )
+    })
+
+    return await pushNewFilters(newFilters)
+}
+
+const readFilterOptions =  function (entityType, key) {
+    const filter = readFilter(entityType, key)
+    return optionsFromString(filter.value)
+}
+
+const readFilterMatchMode = function(entityType, key){
+    const filter = readFilter(entityType, key)
+    return getMatchModeFromSelectFilterValue(filter.value)
+}
+
+const setFilterMatchMode = function(entityType, key, mode){
+    const filter = readFilter(entityType, key)
+    const options = optionsFromString(filter.value)
+    const newValue = optionsToString(options, mode)
+    upsertFilter(entityType, key, newValue)
+}
+
+
 const isGroupBy = function () {
     return !!router.currentRoute.query.group_by
 }
@@ -135,7 +226,6 @@ const updateOrDeleteFilter = function (entityType, filterKey, filterValue) {
     (filterValue === "" || filterValue === "-") ?
         deleteFilter(entityType, filterKey) :
         updateFilter(entityType, filterKey, filterValue)
-
 }
 
 const upsertFilter = function (entityType, filterKey, filterValue) {
@@ -155,6 +245,10 @@ const deleteFilter = async function (entityType, key) {
     })
 
     return await pushNewFilters(newFilters)
+}
+
+const deleteAllFilters = async function(){
+    return await pushNewFilters([])
 }
 
 
@@ -181,7 +275,6 @@ const setSearch = function (entityType, searchString) {
     }
     pushToRoute(router, newRoute)
 }
-
 
 
 const setDefaultActions = function () {
@@ -221,19 +314,19 @@ const setSort = function (filterKey) {
     filterKey = filterKey + ":desc"
     pushQueryParam("sort", filterKey)
 }
-const getSort = function(route){
+const getSort = function (route) {
     return route.query.sort.replace(":desc", "")
 }
 const setGroupBy = function (filterKey) {
     pushQueryParam("group_by", filterKey)
 }
-const getGroupBy = function(route){
+const getGroupBy = function (route) {
     return route.query.group_by
 }
 const setColumn = function (filterKeys) {
     pushQueryParam("column", filterKeys.join(","))
 }
-const getColumn = function(route){
+const getColumn = function (route) {
     return route.query.column.split(",")
 }
 
@@ -319,8 +412,7 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     }
     if (currentRoute.query.group_by) {
         query.group_by = currentRoute.query.group_by
-    }
-    else {
+    } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort
     }
@@ -396,12 +488,23 @@ const url = {
 
     createFilter,
     readFilter,
+    readFiltersLength,
     isSearchFilterApplied,
     readFilterValue,
+    readFilterOptions,
+    readFilterMatchMode,
+
     isFilterApplied,
     updateFilter,
     deleteFilter,
+    deleteAllFilters,
     upsertFilter,
+    setFilterMatchMode,
+
+
+    deleteFilterOption,
+    addFilterOption,
+    toggleFilterOptionIsNegated,
 
     setDefaultActions,
     getActionValues,
@@ -417,8 +520,6 @@ const url = {
     getSort,
     getGroupBy,
     getColumn,
-
-
 
 
     setSidebar,

@@ -1,6 +1,7 @@
 <template>
   <div class="">
     <div class="above-the-fold" style="height: 100vh;">
+
       <v-container style="margin-top: 100px; max-width: 700px;">
         <div class="text-h2" style="line-height: 1.3;">
           A free index of the world's research ecosystem.
@@ -12,26 +13,27 @@
 
         </div>
         <div class="mt-8">
-          <v-btn x-large
-                 rounded
-              class=""
-              color="primary"
-              to="/works"
-                 style="min-width: 150px;"
-          >
-            Try it!
-          </v-btn>
-          <v-btn
-              x-large
-              rounded
-              outlined
-              color="primary"
-              href="https://help.openalex.org/"
-              class="ml-4"
-          >
-            Learn more
-            <v-icon right>mdi-open-in-new</v-icon>
-          </v-btn>
+          <filter-bar />
+<!--          <v-btn x-large-->
+<!--                 rounded-->
+<!--              class=""-->
+<!--              color="primary"-->
+<!--              to="/works"-->
+<!--                 style="min-width: 150px;"-->
+<!--          >-->
+<!--            Try it!-->
+<!--          </v-btn>-->
+<!--          <v-btn-->
+<!--              x-large-->
+<!--              rounded-->
+<!--              outlined-->
+<!--              color="primary"-->
+<!--              href="https://help.openalex.org/"-->
+<!--              class="ml-4"-->
+<!--          >-->
+<!--            Learn more-->
+<!--            <v-icon right>mdi-open-in-new</v-icon>-->
+<!--          </v-btn>-->
 
 
 <!--          <v-btn-->
@@ -98,9 +100,12 @@
 
 <script>
 
+import FilterBar from "@/components/FilterBar/FilterBar.vue";
 export default {
   name: 'home',
-  components: {},
+  components: {
+    FilterBar,
+  },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",
     titleTemplate: undefined, // have to override this or it'll get the site title template

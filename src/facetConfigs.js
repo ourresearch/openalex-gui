@@ -66,7 +66,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "works",
             pidPrefix: "openalex",
-            displayName: "OpenAlex ID",
+            displayName: "Work",
             isEntity: true,
             isSingleWork: true,
             isId: true,
@@ -104,7 +104,7 @@ const facetConfigs = function (entityType) {
         {
             key: "concepts.id",
             entityType: "works",
-            displayName: "Concept",
+            displayName: "concept",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -124,7 +124,7 @@ const facetConfigs = function (entityType) {
         {
             key: "grants.funder",
             entityType: "works",
-            displayName: "Funder",
+            displayName: "funder",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -143,7 +143,7 @@ const facetConfigs = function (entityType) {
         {
             key: "grants.award_id",
             entityType: "works",
-            displayName: "Grant ID",
+            displayName: "grant ID",
             showInSidebar: true,
             type: "select",
             isManyOptions: true,
@@ -176,7 +176,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.lineage",
             entityType: "works",
-            displayName: "Institution",
+            displayName: "institution",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -227,7 +227,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.author.id",
             entityType: "works",
-            displayName: "Author",
+            displayName: "author",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -279,7 +279,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Search",
+            displayName: "fulltext includes",
             type: "search",
             categories: ["other", "popular"],
             actions: ["filter",],
@@ -314,7 +314,7 @@ const facetConfigs = function (entityType) {
             isColumnMandatory: true,
             isDefault: true,
             entityType: "works",
-            displayName: "Title",
+            displayName: "title",
             type: "search",
             categories: ["search"],
             actions: ["sort", "column",],
@@ -350,7 +350,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authors_count",
             entityType: "works",
-            displayName: "Authors Count",
+            displayName: "authors count",
             type: "range",
             sortByValue: true,
             placeholders: ["min", "max"],
@@ -364,7 +364,7 @@ const facetConfigs = function (entityType) {
         {
             key: "corresponding_author_ids",
             entityType: "works",
-            displayName: "Corresponding Author",
+            displayName: "corresponding author",
             type: "select",
             isManyOptions: true,
             categories: ["author"],
@@ -379,7 +379,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.is_oa",
             entityType: "works",
-            displayName: "Open Access",
+            displayName: "open access",
             type: "boolean",
             booleanValues: ["NOT Open Access", "Open Access"],
             categories: ["popular", "open access"],
@@ -392,7 +392,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.license",
             entityType: "works",
-            displayName: "License",
+            displayName: "license",
             type: "select",
             categories: ["open access"],
             actions: ["filter", "column", "group_by",],
@@ -404,7 +404,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.oa_status",
             entityType: "works",
-            displayName: "OA Color",
+            displayName: "OA color",
             type: "select",
             categories: ["open access"],
             actions: ["filter",  "column", "group_by",],
@@ -423,7 +423,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.is_accepted",
             entityType: "works",
-            displayName: "Open Access accepted",
+            displayName: "open access accepted",
             type: "boolean",
             booleanValues: ["NOT Open Access", "Open Access"],
             categories: ["open access"],
@@ -436,7 +436,7 @@ const facetConfigs = function (entityType) {
         {
             key: "best_oa_location.is_published",
             entityType: "works",
-            displayName: "Open Access published",
+            displayName: "open access published",
             type: "boolean",
             booleanValues: ["NOT Open Access", "Open Access"],
             categories: ["open access"],
@@ -487,7 +487,7 @@ const facetConfigs = function (entityType) {
         {
             key: "institutions.country_code",
             entityType: "works",
-            displayName: "Institution country",
+            displayName: "institution country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isManyOptions: true,
@@ -502,7 +502,7 @@ const facetConfigs = function (entityType) {
         {
             key: "countries_distinct_count",
             entityType: "works",
-            displayName: "Countries count",
+            displayName: "countries count",
             type: "range",
             sortByValue: true,
             examples: ["1", "2-", "2-10"],
@@ -524,7 +524,7 @@ const facetConfigs = function (entityType) {
         {
             key: "institutions.is_global_south",
             entityType: "works",
-            displayName: "From Global South",
+            displayName: "from Global South",
             type: "boolean",
             actions: ["filter",  "column", "group_by",],
             categories: ["geo", "institution"],
@@ -537,7 +537,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.institutions.type",
             entityType: "works",
-            displayName: "Institution type",
+            displayName: "institution type",
             category: "institution",
             isList: true,
             autocompleteEndpoint: "autocomplete/institutions/country",
@@ -549,7 +549,7 @@ const facetConfigs = function (entityType) {
         {
             key: "corresponding_institution_ids",
             entityType: "works",
-            displayName: "Corresponding Institution",
+            displayName: "corresponding institution",
             category: "institution",
             isList: true,
             type: "select",
@@ -565,7 +565,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.id",
             entityType: "works",
-            displayName: "Source",
+            displayName: "source",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -603,7 +603,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.type",
             entityType: "works",
-            displayName: "Source type",
+            displayName: "source type",
             type: "select",
             categories: ["source"],
             category: "source",
@@ -614,7 +614,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_in_doaj",
             entityType: "works",
-            displayName: "Indexed by DOAJ",
+            displayName: "indexed by DOAJ",
             type: "boolean",
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             categories: ["source"],
@@ -626,7 +626,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_oa",
             entityType: "works",
-            displayName: "Source is OA",
+            displayName: "source is OA",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             categories: ["source"],
@@ -640,7 +640,7 @@ const facetConfigs = function (entityType) {
             key: "primary_location.source.publisher_lineage",
             entityType: "works",
             entityId: "publishers",
-            displayName: "Publisher",
+            displayName: "publisher",
             pidPrefix: "openalex",
             isEntity: true,
             showInSidebar: true,
@@ -663,7 +663,7 @@ const facetConfigs = function (entityType) {
         {
             key: "repository",
             entityType: "works",
-            displayName: "Repository",
+            displayName: "repository",
             isEntity: true,
             showInSidebar: true,
             entityId: "sources",
@@ -679,7 +679,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.any_repository_has_fulltext",
             entityType: "works",
-            displayName: "Has repository fulltext",
+            displayName: "has repository fulltext",
             type: "boolean",
             booleanValues: ["Not in any repository", "In a repository"],
             categories: ["source"],
@@ -695,7 +695,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "works",
-            displayName: "Type",
+            displayName: "type",
             type: "select",
             categories: ["popular", "other"],
             category: "other",
@@ -706,7 +706,7 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_year",
             entityType: "works",
-            displayName: "Year",
+            displayName: "year",
             isDate: true,
             type: "range",
             sortByValue: true,
@@ -721,7 +721,7 @@ const facetConfigs = function (entityType) {
         {
             key: "publication_date",
             entityType: "works",
-            displayName: "Date",
+            displayName: "date",
             isDate: true,
             type: "range",
             categories: ["other"],
@@ -736,7 +736,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_doi",
             entityType: "works",
-            displayName: "Indexed by Crossref",
+            displayName: "indexed by Crossref",
             type: "boolean",
             booleanValues: ["Has a DOI", "No DOI"],
             categories: ["ids"],
@@ -748,7 +748,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityType: "works",
-            displayName: "Indexed by ORCID",
+            displayName: "indexed by ORCID",
             type: "boolean",
             booleanValues: ["No ORCID", "At least one ORCID",],
             categories: ["ids"],
@@ -759,7 +759,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_pmid",
             entityType: "works",
-            displayName: "Indexed by PubMed",
+            displayName: "indexed by PubMed",
             type: "boolean",
             categories: ["ids"],
             category: "ids",
@@ -781,7 +781,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_retracted",
             entityType: "works",
-            displayName: "Is retracted",
+            displayName: "is retracted",
             type: "boolean",
             booleanValues: ["Isn't retracted", "Is retracted"],
             categories: ["other"],
@@ -793,7 +793,7 @@ const facetConfigs = function (entityType) {
         {
             key: "language",
             entityType: "works",
-            displayName: "Language",
+            displayName: "language",
             type: "select",
             displayNullAs: "Unknown",
             categories: ["other"],
@@ -819,7 +819,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cited_by_count",
             entityType: "works",
-            displayName: "Citation count",
+            displayName: "citation count",
             type: "range",
             sortByValue: true,
             placeholders: ["min", "max"],
@@ -847,7 +847,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cited_by",
             entityType: "works",
-            displayName: "Cited by",
+            displayName: "cited by",
             showNameInChip: true,
             isEntity: true,
             showInSidebar: true,
@@ -863,7 +863,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cites",
             entityType: "works",
-            displayName: "Cites",
+            displayName: "cites",
             isEntity: true,
             showInSidebar: true,
             showNameInChip: true,
@@ -879,7 +879,7 @@ const facetConfigs = function (entityType) {
         {
             key: "related_to",
             entityType: "works",
-            displayName: "Related to",
+            displayName: "related to",
             isEntity: true,
             showInSidebar: true,
             showNameInChip: true,
@@ -900,7 +900,7 @@ const facetConfigs = function (entityType) {
         {
             key: "locations_count",
             entityType: "works",
-            displayName: "Sources count",
+            displayName: "sources count",
             type: "range",
             sortByValue: true,
             placeholders: ["min", "max"],

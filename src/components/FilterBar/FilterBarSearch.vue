@@ -41,7 +41,7 @@
             <v-list-item
                 v-for="suggestion in shortcutSuggestions"
                 :key="suggestion.key + suggestion.value"
-                :to="{name: 'EntityPage', params: {entityType, entityId: suggestion.value}}"
+                :to="{name: 'Serp', params: {entityType},  query: {sidebar: suggestion.value}}"
             >
               <v-list-item-icon>
                 <v-icon>{{myEntityIcon}}</v-icon>
@@ -140,15 +140,16 @@ import {
 } from "@/filterConfigs";
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {url} from "@/url";
-import {getFacetConfig} from "../facetConfigs";
+import {getFacetConfig} from "@/facetConfigs";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
 import {VMenu} from "vuetify/lib";
 import {VDialog} from "vuetify/lib";
-import {shortenOpenAlexId} from "../util";
+import {shortenOpenAlexId} from "@/util";
+import entity from "../Entity/Entity.vue";
 
 export default {
-  name: "SearchBoxNew",
+  name: "FilterBarSearch",
   components: {
     EntityTypeSelector,
     VDialog,
@@ -165,6 +166,9 @@ export default {
     }
   },
   computed: {
+    entity() {
+      return entity
+    },
     ...mapGetters([
       "resultsFilters",
       "entityType",
@@ -259,7 +263,7 @@ export default {
     createOrUpdateFilter(key, value) {
       this.searchString = ""
       const existingFilter = url.readFilter(this.entityType, key);
-      console.log("SearchBoxNew createOrUpdateFilter()", key, value, existingFilter);
+      console.log("SearchBoxNew createOrUpdateFilter()", this.entityType, key, value, existingFilter);
       this.isDialogOpen = false
 
       return (existingFilter) ?

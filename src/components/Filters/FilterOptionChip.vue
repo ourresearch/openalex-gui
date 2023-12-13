@@ -59,6 +59,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
+import {url} from "@/url";
 import {isOpenAlexId} from "@/util";
 
 export default {
@@ -82,6 +83,7 @@ export default {
   computed: {
     ...mapGetters([
       "resultsFilters",
+      "entityType",
     ]),
     isEntity() {
       return isOpenAlexId(this.filterValue)
@@ -122,6 +124,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    delete(){
+      url.deleteFilterOption(this.entityType, this.filterKey, this.filterValue)
+    }
 
 
   },
