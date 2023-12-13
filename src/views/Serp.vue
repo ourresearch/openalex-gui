@@ -111,6 +111,9 @@
       </v-menu>
 
     </div>
+    <div class="white pl-4 py-1">
+      <filter-bar />
+    </div>
 
     <serp-api-editor
         v-if="isShowApiSet"
@@ -188,6 +191,8 @@ import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 import {filter} from "core-js/internals/array-iteration";
 
+import FilterBar from "@/components/FilterBar/FilterBar.vue";
+
 import Action from "@/components/Action/Action.vue";
 import ActionChipsList from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
@@ -228,6 +233,8 @@ export default {
 
     Entity,
     EntityWork,
+
+    FilterBar,
 
   },
   props: {},
@@ -422,8 +429,8 @@ export default {
     filtersLength: {
       immediate: false,
       handler(to, from) {
-        const msg = (to > from) ? "Filter added" : "Filter removed"
-        this.snackbar(msg)
+        // const msg = (to > from) ? "Filter added" : "Filter removed"
+        // this.snackbar(msg)
       }
     },
 

@@ -26,6 +26,7 @@ Vue.use(Vuex)
 const stateDefaults = function () {
     const ret = {
         entityType: "works",
+        activeFilter: null,
         // resultsEntityType: "works",
 
         inputFilters: [],

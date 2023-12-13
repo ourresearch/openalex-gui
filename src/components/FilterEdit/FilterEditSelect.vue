@@ -215,7 +215,7 @@ export default {
     ...mapActions([]),
 
     addOption(id) {
-      this.appliedOptionIds = [...this.appliedOptionIds, id]
+      url.addFilterOption(this.entityType, this.filterKey, id)
     },
     deleteOption(id) {
       this.appliedOptionIds = this.appliedOptionIds.filter(i => i !== id)
