@@ -46,6 +46,7 @@
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
+              rounded
               text
               class="elevation-0 font-weight-regular"
               v-on="on"
@@ -73,6 +74,7 @@
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
+              rounded
               text
               class="elevation-0 font-weight-regular"
               v-on="on"
