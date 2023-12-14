@@ -1,27 +1,15 @@
 <template>
-  <span>
+  <span class="phrase phrase-search" @click="isDialogOpen = true">
     <span>
-      {{ myFilterConfig.displayName }}:
-    </span>
-    <span
-        v-if="isActive"
-    >
-      <input
-          type="text"
-          v-model="text"
-          :id="'input.' + filterKey"
-          style="border: none !important; padding:0;"
-          @keyup.enter="submit"
-          @keydown.delete="onDelete"
-          v-click-outside="onClickOutside"
-          autofocus
-      >
-
-    </span>
-    <span v-else @click="$store.state.activeFilter = filterKey">
+      {{ myFilterConfig.displayName }}
       <q>{{ text }}</q>
 
     </span>
+     <EditPhraseSearch
+         :filter-key="filterKey"
+         v-model="isDialogOpen"
+     />
+
 
   </span>
 </template>
@@ -36,12 +24,18 @@ import FilterEditSearch from "@/components/FilterEdit/FilterEditSearch.vue";
 import FilterEditRange from "@/components/FilterEdit/FilterEditRange.vue";
 import Template from "@/components/FilterPhrase/FilterPhraseSelect.vue";
 
+
+import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
+import {filter} from "core-js/internals/array-iteration";
+
 export default {
   name: "FilterValueSearch",
   components: {
     Template,
     FilterEditRange,
     FilterEditSearch,
+
+    EditPhraseSearch,
   },
   props: {
     filterKey: String,
@@ -50,8 +44,10 @@ export default {
     return {
       foo: 42,
 
+
       isDialogOpen: false,
       text: url.readFilterValue(this.$store.state.entityType, this.filterKey),
+      searchString: "",
     }
   },
   computed: {
@@ -62,12 +58,13 @@ export default {
     myFilterConfig() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
-    isActive(){
+    isActive() {
       return this.$store.state.activeFilter === this.filterKey
     },
   },
 
   methods: {
+    filter,
     ...mapMutations([
       "snackbar",
     ]),
@@ -76,21 +73,29 @@ export default {
       url.upsertFilter(
           this.entityType,
           this.filterKey,
-          this.text
+          this.searchString
       )
       this.$store.state.activeFilter = null
       this.$emit("submit")
     },
-    onClickOutside(){
+    onClickOutside() {
       if (this.filterKey === this.$store.state.activeFilter) {
         this.$store.state.activeFilter = null
       }
     },
     onDelete() {
-      if (this.text) return
+      if (this.searchString) return
       url.deleteFilter(this.entityType, this.filterKey)
       this.$store.state.activeFilter = null
     },
+    openDialog() {
+      this.isDialogOpen = true
+      this.searchString = url.readFilterValue(this.$store.state.entityType, this.filterKey)
+    },
+    closeDialog() {
+      this.isDialogOpen = false
+      this.searchString = ""
+    }
 
 
   },
@@ -112,6 +117,13 @@ export default {
 input {
   padding: 0 3px !important;
 }
+.phrase-search {
+  cursor: pointer;
+  :hover {
+    text-decoration: underline;
+  }
+}
+
 input:focus, textarea:focus, select:focus {
   //outline: none;
 }
