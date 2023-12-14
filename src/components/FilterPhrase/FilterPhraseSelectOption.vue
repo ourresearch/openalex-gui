@@ -34,10 +34,10 @@
               <v-divider/>
 
               <v-card-actions>
-                <v-spacer />
+                <v-spacer/>
                 <v-btn icon @click="toggleIsNegated">
                   <v-icon>
-                    {{ (isNegated) ? 'mdi-filter-outline' : 'mdi-filter-off-outline'}}
+                    {{ (isNegated) ? 'mdi-filter-outline' : 'mdi-filter-off-outline' }}
                   </v-icon>
                 </v-btn>
                 <v-btn icon @click="deleteMe">
@@ -70,9 +70,13 @@ import {api} from "@/api";
 import {isOpenAlexId} from "@/util";
 import {url} from "@/url";
 
+import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
+
 export default {
   name: "FilterOptionChip",
-  components: {},
+  components: {
+    EditPhraseOption,
+  },
   props: {
     disabled: Boolean,
     filterValue: String,
