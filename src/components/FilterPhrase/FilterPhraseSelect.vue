@@ -25,7 +25,7 @@
         </div>
         <v-card-actions>
               <v-spacer/>
-                <v-btn icon @click="$store.state.activeFilter = filterKey">
+                <v-btn icon @click="isEditOpen = true">
                   <v-icon>mdi-plus</v-icon>
                 </v-btn>
                 <v-btn icon @click="deleteMe">
@@ -46,38 +46,15 @@
 
       </template>
 
-    <span
-        v-if="isActive"
-        class="filter-phrase-select-suggest"
-        style="position: relative; display: inline-block;"
-    >
-      <input
-          type="text"
-          v-if="isActive"
-          v-model="searchString"
-          :id="'input.' + filterKey"
-          style=""
-          @keydown.delete="onDelete"
-          v-click-outside="onClickOutside"
-      >
-      <v-card style="position: absolute;">
-        <div
-            v-for="option in unselectedOptions"
-            :key="'unselected' + option.id"
-            @click="addOption(option.id)"
-            class="d-flex pa-2 suggestion"
-        >
-          <v-icon left>mdi-plus</v-icon>
-          <span>
-            {{ option.display_name }}
-          </span>
-        </div>
-      </v-card>
-
-    </span>
 
 
     <!--          @toggle-is-negated="toggleOptionIsNegated(id)"-->
+
+    <edit-phrase-option
+      v-model="isEditOpen"
+      :filter-key="filterKey"
+      :option="undefined"
+    />
 
   </span>
 </template>
@@ -94,12 +71,16 @@ import {api} from "@/api";
 import FilterPhraseMatchMode from "@/components/FilterPhrase/FilterPhraseMatchMode.vue";
 import {filter} from "core-js/internals/array-iteration";
 
+import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
+
 export default {
   name: "Template",
   components: {
     FilterOptionChip,
     FilterPhraseSelectOption,
     FilterPhraseMatchMode,
+
+    EditPhraseOption,
   },
   props: {
     filterKey: String,
@@ -111,6 +92,8 @@ export default {
       isLoading: false,
       unselectedOptions: [],
       maxUnselectedOptionsCount: 10,
+
+      isEditOpen: false,
     }
   },
   computed: {
@@ -183,32 +166,7 @@ export default {
     addOption(id) {
       url.addFilterOption(this.entityType, this.filterKey, id)
     },
-    async fetchOptions() {
-      this.isLoading = true
-      try {
-        const apiOptions = await api.getAutocompleteResponses(
-            this.entityType,
-            this.filterKey,
-            this.searchString,
-        )
 
-        // const newOptions = apiOptions.filter(myNewOption => {
-        //   const oldOptionIds = this.options.map(o => o.id)
-        //   return !oldOptionIds.includes(myNewOption.id)
-        // })
-        this.unselectedOptions = apiOptions.filter(o => {
-          const iAmInSelectedOptions = this.optionIds.find(appliedId => {
-            return appliedId === o.id
-          })
-          return !iAmInSelectedOptions
-        }).slice(0, this.maxUnselectedOptionsCount)
-
-      } catch (e) {
-        console.log("fetchOptions() error:", e.message)
-      } finally {
-        this.isLoading = false
-      }
-    }
 
 
   },
@@ -217,12 +175,6 @@ export default {
   mounted() {
   },
   watch: {
-    searchString: {
-      immediate: true,
-      handler: async function (newVal, oldVal) {
-        await this.fetchOptions()
-      },
-    },
   }
 }
 </script>
@@ -232,14 +184,5 @@ input {
   padding: 0 3px !important;
 }
 
-.filter-phrase-select-suggest {
-  .suggestion {
-    cursor: default;
-
-    &:hover {
-      background: #fafafa;
-    }
-  }
-}
 
 </style>
