@@ -53,7 +53,11 @@
         </v-list>
       </v-card>
     </v-menu>
-    <v-dialog v-model="isMoreDialogOpen" scrollable>
+    <v-dialog
+        v-model="isMoreDialogOpen"
+        scrollable
+        max-width="400"
+    >
       <v-card rounded>
         <v-toolbar flat>
           <v-toolbar-title>More {{ myConfig.displayName }} options</v-toolbar-title>
@@ -62,27 +66,32 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-list-item-group
-              v-model="selected"
-              :multiple="myConfig.isMultiple"
-              :mandatory="false"
-          >
-
-            <v-list-item
-                v-for="key in allOptions"
-                :key="key"
-                color="primary"
-                :value="key"
-                :disabled="myConfig?.disableKeys?.includes(key)"
+        <v-divider />
+        <v-card-text class="pa-0">
+          <v-list-item-group
+                v-model="selected"
+                :multiple="myConfig.isMultiple"
+                :mandatory="false"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ getKeyDisplayName(key) }}
-                </v-list-item-title>
-              </v-list-item-content>
-              <!--            <v-icon left>mdi-check</v-icon>-->
-            </v-list-item>
-          </v-list-item-group>
+
+              <v-list-item
+                  v-for="key in allOptions"
+                  :key="key"
+                  color="primary"
+                  :value="key"
+                  :disabled="myConfig?.disableKeys?.includes(key)"
+                  @click="closeMoreDialog"
+              >
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ getKeyDisplayName(key) }}
+                  </v-list-item-title>
+                </v-list-item-content>
+                <!--            <v-icon left>mdi-check</v-icon>-->
+              </v-list-item>
+            </v-list-item-group>
+
+        </v-card-text>
       </v-card>
     </v-dialog>
   </div>
