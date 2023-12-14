@@ -155,9 +155,9 @@ export default {
           location: "Virtual (link sent after registration)",
           presenters: "Nees Jan van Eck",
           summary: `<a href="https://www.vosviewer.com/" target="_blank">VOSViewer</a> is one of the most widely used bibliometric tools by researchers and librarians across the globe because it performs high-quality analyses and is freely available to all users. However, achieving its full analytical potential has been limited by access to costly databases with restrictive licenses (e.g., Web of Science, Scopus). With the launch of OpenAlex, a completely open and comprehensive bibliometric database, any user across the globe can now freely and easily perform high-quality research analytics, regardless of their institution’s subscriptions. In this webinar, special guest presenter Nees Jan van Eck—senior researcher at the Centre for Science and Technology Studies (CWTS) and lead developer of VOSViewer—will review the common use cases of VOSViewer, summarize the coverage of OpenAlex, and demonstrate how combining the two enables unparalleled ease for some of the most common bibliometric analyses (e.g., co-authorship analyses; institution- and country-level network mapping; co-occurence of research topics).`,
-          video_link: null,
-          slides: null,
-          isComplete: false,
+          video_link: "https://youtu.be/MfwFzLQmUwo",
+          slides: "Visualizing_Science_Using_OpenAlex_and_VOSviewer.pdf",
+          isComplete: true,
         },
       ]
     }
