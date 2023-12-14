@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
-    <!--    <div>active: {{ $store.state.activeFilter }}</div>-->
+        <div>active: {{ $store.state?.activeFilter }}</div>
     <v-card outlined class="px-2 py-1 d-flex" style="min-height: 40px;">
       <div class="flex-grow-1 pt-0 d-flex align-baseline">
         <span class="mr-1">Show works where </span>
@@ -13,6 +13,17 @@
             :is-active="filter.key === activeFilterKey"
             @submit="focusOnSearchBox"
         />
+
+        <component
+            v-if="creatingNewFilter"
+            :key="'new-filter' + $route.query.filter"
+            class="mr-2 mb-2"
+            :is="'filter-phrase-' + activeFilterConfig.type"
+            :filter-key="activeFilterConfig.key"
+            @submit="focusOnSearchBox"
+        />
+
+
 
         <v-text-field
             hide-details
@@ -104,7 +115,17 @@ export default {
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
-
+    activeFilter(){
+      return this.$store.state.activeFilter
+    },
+    creatingNewFilter(){
+      const appliedFilterKeys = this.filters.map(f => f.key)
+      return this.activeFilter && !appliedFilterKeys.includes(this.activeFilter)
+    },
+    activeFilterConfig(){
+      if (!this.$store.state.activeFilter) return
+      return getFacetConfig(this.entityType, this.$store.state.activeFilter)
+    },
     searchFilterConfig() {
       const searchKeyName = this.entityType === "works" ?
           "default.search" :
@@ -131,7 +152,7 @@ export default {
     },
     focusOnSearchBox(){
       setTimeout(()=> {
-        this.$refs.facetBarSearchBox.focus()
+        // this.$refs.facetBarSearchBox.focus()
       }, 1)
     },
     deleteFilter(key) {
@@ -186,7 +207,7 @@ export default {
         const inputId = "input." + to
         console.log("$store.state.activeFilter changed", inputId)
         setTimeout(() => {
-          document.getElementById(inputId).focus()
+          // document.getElementById(inputId).focus()
 
         }, 0)
       }
