@@ -9,7 +9,7 @@
 <!--        color="light-blue lighten-5" -->
       <div class="text-h1">Webinars</div>
       <div class="text-h5 mt-4">
-        Our free how-to webinars are on second Thursday of each month at 12pm ET. Sign up below!
+        Our free how-to webinars are on the second Thursday of each month at 12pm ET. Sign up below!
       </div>
 
     </v-card>
@@ -20,7 +20,8 @@
         <v-icon>mdi-link</v-icon>
       </v-btn>
     </div>
-    <v-row class="">
+    <p v-if="!upcomingItems.length">No upcoming webinars scheduled for now. Check back soon!</p>
+    <v-row v-else class="">
       <v-col cols="12" lg="6" xl="4" v-for="item in upcomingItems" :key="item.title">
         <v-card rounded outlined>
           <v-card-title style="word-break: normal;">
