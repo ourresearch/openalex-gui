@@ -46,6 +46,7 @@
       <v-menu rounded offset-y v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
           <v-btn
+              rounded
               text
               v-on="on"
               class="font-weight-regular"

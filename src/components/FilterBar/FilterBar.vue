@@ -142,11 +142,16 @@ export default {
       this.setActiveFilter(null, null, null)
     },
     onEnter() {
-      url.upsertFilter(
-          this.entityType,
-          "default.search",
-          this.searchString
-      )
+      if (!this.searchString) {
+        this.$router.push({name: "Serp", params: {entityType: this.entityType}})
+      }
+      else {
+        url.upsertFilter(
+            this.entityType,
+            "default.search",
+            this.searchString
+        )
+      }
       this.searchString = ""
     },
     onDelete() {

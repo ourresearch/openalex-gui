@@ -48,7 +48,7 @@ const actionConfigs = [
     {
         id: "sort",
         displayName: "Sort",
-        isMultiple: true,
+        isMultiple: false,
         isMandatory: true,
         topValues: [
             "publication_date",
