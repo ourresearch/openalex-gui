@@ -4,7 +4,7 @@
       {{ myFilterConfig.displayName }}:
     </span>
     <span
-        v-if="$store.state.activeFilter === filterKey"
+        v-if="isActive"
     >
       <input
           type="text"
@@ -14,6 +14,7 @@
           @keyup.enter="submit"
           @keydown.delete="onDelete"
           v-click-outside="onClickOutside"
+          autofocus
       >
 
     </span>
@@ -44,7 +45,6 @@ export default {
   },
   props: {
     filterKey: String,
-    isActive: Boolean,
   },
   data() {
     return {
@@ -61,6 +61,9 @@ export default {
     ]),
     myFilterConfig() {
       return facetConfigs().find(c => c.key === this.filterKey)
+    },
+    isActive(){
+      return this.$store.state.activeFilter === this.filterKey
     },
   },
 
@@ -86,7 +89,8 @@ export default {
     onDelete() {
       if (this.text) return
       url.deleteFilter(this.entityType, this.filterKey)
-    }
+      this.$store.state.activeFilter = null
+    },
 
 
   },

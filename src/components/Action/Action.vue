@@ -18,7 +18,12 @@
         </v-btn>
       </template>
       <v-card class="pa-4" v-if="action==='filter'">
-        <filter-chips-list/>
+<!--        <filter-chips-list/>-->
+        <v-btn text rounded
+        @click="$store.state.activeFilter = 'default.search'"
+      >
+        do it
+      </v-btn>
       </v-card>
       <v-card v-else class="">
         <v-list>
