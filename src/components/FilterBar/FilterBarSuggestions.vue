@@ -8,30 +8,22 @@
     >
       <v-icon left>{{ suggestion.icon }}</v-icon>
       <span class="">
-        {{ suggestion.displayKey }} is
+        <template v-if="suggestion.type === 'boolean'">
+          the work is
+        </template>
+        <template v-else>
+          {{ suggestion.displayKey }} is
+        </template>
 
       </span>
       <span class="font-weight-bold">
               {{ suggestion.displayValue }}
           </span>
-      <!--        <v-list-item-subtitle v-if="suggestion.type==='boolean'">-->
-      <!--          Show only {{ entityType | pluralize(2) }} that are-->
-      <!--          {{ suggestion.displayValue }}-->
-      <!--        </v-list-item-subtitle>-->
-      <!--        <v-list-item-subtitle v-else>-->
-      <!--                  <span class="">-->
-      <!--                    {{ suggestion.hint }}-->
-      <!--                  </span>-->
-      <!--          <span v-if="suggestion.works_count">-->
-      <!--          - {{ suggestion.works_count | toPrecision }} works-->
-
-      <!--          </span>-->
-      <!--        </v-list-item-subtitle>-->
     </div>
 
 
     <template v-if="searchString.length >= 3">
-      <v-divider class="" />
+      <v-divider class=""/>
       <div
           class="pa-2 pt-3 suggestion d-flex"
           key="fulltext-search-filter"
@@ -132,6 +124,8 @@ export default {
         if (myConfig.type === "boolean") {
           const prepend = result.id ? "" : "NOT "
           displayValue = prepend + myConfig.displayName
+        } else if (myConfig.type === "range") {
+          displayValue = result.id
         } else {
           displayValue = result.display_name
         }
@@ -195,6 +189,7 @@ export default {
 .filter-bar-suggestions {
   .suggestion {
     cursor: default;
+
     &:hover {
       background: #fafafa;
     }

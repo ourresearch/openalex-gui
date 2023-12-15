@@ -3,7 +3,6 @@
     <span>
       {{ myFilterConfig.displayName }}
       <q>{{ text }}</q>
-
     </span>
      <EditPhraseSearch
          :filter-key="filterKey"
@@ -20,8 +19,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
-import FilterEditSearch from "@/components/FilterEdit/FilterEditSearch.vue";
-import FilterEditRange from "@/components/FilterEdit/FilterEditRange.vue";
 import Template from "@/components/FilterPhrase/FilterPhraseSelect.vue";
 
 
@@ -32,9 +29,6 @@ export default {
   name: "FilterValueSearch",
   components: {
     Template,
-    FilterEditRange,
-    FilterEditSearch,
-
     EditPhraseSearch,
   },
   props: {
@@ -113,15 +107,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
 input {
   padding: 0 3px !important;
 }
 .phrase-search {
-  cursor: pointer;
-  :hover {
-    text-decoration: underline;
-  }
+
 }
 
 input:focus, textarea:focus, select:focus {

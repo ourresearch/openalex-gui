@@ -1,9 +1,13 @@
 <template>
-  <div>
-    <span>is </span>
+  <div class="phrase phrase-boolean" @click="isDialogOpen = true">
+    <span>the work {{ myValue ? "is" : "is not" }}</span>
     <span>
       {{ myFilterConfig.displayName }}
     </span>
+    <edit-phrase-boolean
+      v-model="isDialogOpen"
+      :filter-key="filterKey"
+    />
   </div>
 </template>
 
@@ -12,15 +16,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
+import EditPhraseBoolean from "@/components/EditPhrase/EditPhraseBoolean.vue";
 import {url} from "@/url";
-import FilterEditSearch from "@/components/FilterEdit/FilterEditSearch.vue";
-import FilterEditRange from "@/components/FilterEdit/FilterEditRange.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
-    FilterEditRange,
-    FilterEditSearch,
+    EditPhraseBoolean,
   },
   props: {
     filterKey: String,
@@ -41,6 +43,9 @@ export default {
     myFilterConfig() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
+    myValue(){
+      return url.readFilterValue(this.entityType, this.filterKey)
+    }
   },
 
   methods: {

@@ -9,7 +9,7 @@
     >
         <v-card rounded flat class="d-flex align-center px-3">
           <span class="grey--text text-h5">
-              {{ myFilterConfig.displayName }}
+              {{ myFilterConfig.displayName }} is
               </span>
 
           <v-text-field
@@ -50,7 +50,6 @@ export default {
     return {
       foo: 42,
       searchString: "",
-      url,
     }
   },
   computed: {
@@ -62,10 +61,10 @@ export default {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
     isOpen: {
-      get() {
+      get(){
         return this.value
       },
-      set(to) {
+      set(to){
         this.$emit("input", to)
       }
     }

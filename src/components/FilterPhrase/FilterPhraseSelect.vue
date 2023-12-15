@@ -64,7 +64,6 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import FilterPhraseSelectOption from "@/components/FilterPhrase/FilterPhraseSelectOption.vue";
-import FilterOptionChip from "@/components/Filters/FilterOptionChip.vue";
 import {makeSelectFilterValue} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
@@ -76,7 +75,6 @@ import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 export default {
   name: "Template",
   components: {
-    FilterOptionChip,
     FilterPhraseSelectOption,
     FilterPhraseMatchMode,
 
