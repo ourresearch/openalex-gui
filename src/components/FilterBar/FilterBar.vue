@@ -1,9 +1,7 @@
 <template>
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
-        <div>active: {{ $store.state?.activeFilter }}</div>
-    <v-card outlined class="px-2 py-1 d-flex" style="min-height: 40px;">
+    <v-card outlined rounded class="px-2 py-1 d-flex" style="min-height: 40px;">
       <div class="flex-grow-1 pt-0 d-flex align-baseline">
-        <span class="mr-1">Show works where </span>
         <component
             v-for="(filter, i) in filters"
             :key="filter.key + $route.query.filter"
@@ -26,6 +24,7 @@
 
 
         <v-text-field
+
             hide-details
             dense
             v-model="searchString"

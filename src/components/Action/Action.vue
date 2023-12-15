@@ -17,29 +17,27 @@
           {{ myConfig.displayName }}
         </v-btn>
       </template>
-      <v-card class="pa-4" v-if="action==='filter'">
-<!--        <filter-chips-list/>-->
-        <v-btn text rounded
-        @click="$store.state.activeFilter = 'default.search'"
-      >
-        do it
-      </v-btn>
-      </v-card>
-      <v-card v-else class="">
+<!--      <v-card class="pa-4" v-if="action==='filter'">-->
+<!--&lt;!&ndash;        <filter-chips-list/>&ndash;&gt;-->
+<!--        <v-btn text rounded-->
+<!--        @click="$store.state.activeFilter = 'default.search'"-->
+<!--      >-->
+<!--        do it-->
+<!--      </v-btn>-->
+<!--      </v-card>-->
+      <v-card class="">
         <v-list>
-          <v-list-item-group
-              v-model="selected"
-              :multiple="myConfig.isMultiple"
-              :mandatory="false"
-          >
-
             <v-list-item
                 v-for="key in menuOptions"
                 :key="key"
                 color="primary"
                 :value="key"
                 :disabled="myConfig?.disableKeys?.includes(key)"
+                @click="clickOption(key)"
             >
+              <v-list-item-icon>
+                  <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+                </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
                   {{ getKeyDisplayName(key) }}
@@ -47,7 +45,6 @@
               </v-list-item-content>
               <!--            <v-icon left>mdi-check</v-icon>-->
             </v-list-item>
-          </v-list-item-group>
           <v-divider />
           <v-list-item @click="openMoreDialog">
             <v-list-item-content>
@@ -87,6 +84,9 @@
                   :disabled="myConfig?.disableKeys?.includes(key)"
                   @click="closeMoreDialog"
               >
+                <v-list-item-icon>
+                  <v-icon>mdi-check</v-icon>
+                </v-list-item-icon>
                 <v-list-item-content>
                   <v-list-item-title>
                     {{ getKeyDisplayName(key) }}
@@ -207,9 +207,18 @@ export default {
     openMoreDialog(){
       this.isMoreDialogOpen = true
     },
-
     closeMoreDialog(){
       this.isMoreDialogOpen = false
+    },
+    clickOption(key){
+      console.log("clickOption", key)
+        if (this.action === 'sort') {
+          url.toggleSort(key)
+        } else if (this.action === "group_by") {
+          url.toggleGroupBy(key)
+        } else if (this.action === "column") {
+          url.toggleColumn(key)
+        }
     },
 
 

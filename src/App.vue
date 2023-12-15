@@ -353,6 +353,19 @@ body {
   min-height: unset;
 }
 
+.v-list-item {
+  min-height: unset !important;
+  .v-list-item__content {
+    padding: 8px 0 !important;
+  }
+}
+.v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
+  margin-right: 8px;
+}
+.v-list-item__icon {
+  margin: 4px 0;
+}
+
 
 .v-expansion-panel-content__wrap {
   //padding: 0 16px 16px;
