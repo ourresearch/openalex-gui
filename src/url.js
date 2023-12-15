@@ -317,14 +317,49 @@ const setSort = function (filterKey) {
 const getSort = function (route) {
     return route.query.sort.replace(":desc", "")
 }
+
+const toggleSort = function (filterKey) {
+    const currentSort = getSort(router.currentRoute)
+    if (currentSort === filterKey) {
+        setSort(undefined)
+    }
+    else {
+        setSort(filterKey)
+    }
+}
+
+
 const setGroupBy = function (filterKey) {
     pushQueryParam("group_by", filterKey)
 }
 const getGroupBy = function (route) {
     return route.query.group_by
 }
+const toggleGroupBy = function (filterKey) {
+    const filterKeyIsAlreadySet = filterKey === getGroupBy(router.currentRoute)
+    const newKey = filterKeyIsAlreadySet ?
+        undefined :
+        filterKey
+    setGroupBy(newKey)
+}
 const setColumn = function (filterKeys) {
     pushQueryParam("column", filterKeys.join(","))
+}
+const addColumn = function (filterKey) {
+    const extantKeys = getColumn(router.currentRoute)
+    const newKeys = [...extantKeys, filterKey]
+    pushQueryParam("column", newKeys.join(","))
+}
+const toggleColumn = function (filterKey) {
+    const extantKeys = getColumn(router.currentRoute)
+    let newKeys
+    if (extantKeys.includes(filterKey)) {
+        newKeys = extantKeys.filter(k => k !== filterKey)
+    }
+    else {
+        newKeys = [...extantKeys, filterKey]
+    }
+    pushQueryParam("column", newKeys.join(","))
 }
 const getColumn = function (route) {
     return route.query.column.split(",")
@@ -515,9 +550,13 @@ const url = {
 
     setSort,
     setGroupBy,
+    toggleGroupBy,
     setColumn,
+    addColumn,
+    toggleColumn,
 
     getSort,
+    toggleSort,
     getGroupBy,
     getColumn,
 
