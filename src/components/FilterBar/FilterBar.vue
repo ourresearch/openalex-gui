@@ -2,25 +2,24 @@
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
     <v-card outlined rounded class="px-2 py-1 d-flex" style="min-height: 40px;">
       <div class="flex-grow-1 pt-0 d-flex align-baseline">
-        <component
+        <template
             v-for="(filter, i) in filters"
-            :key="filter.key + $route.query.filter"
-            class="mr-2 mb-2"
-            :is="'filter-phrase-' + filter.type"
-            :filter-key="filter.key"
-            :is-active="filter.key === activeFilterKey"
-            @submit="focusOnSearchBox"
-        />
+        >
+          <component
+              :key="filter.key + $route.query.filter"
+              class="mr-2 mb-2"
+              :is="'filter-phrase-' + filter.type"
+              :filter-key="filter.key"
+              :is-active="filter.key === activeFilterKey"
+              @submit="focusOnSearchBox"
+          />
+          <span
+              v-if="i < filters.length-1"
+              :key="'and'+i"
+              class="mr-1 grey--text"
+              style="margin-left: -.3em">and </span>
 
-        <component
-            v-if="creatingNewFilter"
-            :key="'new-filter' + $route.query.filter"
-            class="mr-2 mb-2"
-            :is="'filter-phrase-' + activeFilterConfig.type"
-            :filter-key="activeFilterConfig.key"
-            @submit="focusOnSearchBox"
-        />
-
+        </template>
 
 
         <v-text-field
@@ -33,8 +32,8 @@
             class="elevation-0 ma-0 pa-0 "
             @keyup.enter="onEnter"
             @keydown.delete="onDelete"
-            :placeholder="placeholder"
         />
+        <!--            :placeholder="placeholder"-->
 
       </div>
       <div>
@@ -114,14 +113,14 @@ export default {
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
-    activeFilter(){
+    activeFilter() {
       return this.$store.state.activeFilter
     },
-    creatingNewFilter(){
+    creatingNewFilter() {
       const appliedFilterKeys = this.filters.map(f => f.key)
       return this.activeFilter && !appliedFilterKeys.includes(this.activeFilter)
     },
-    activeFilterConfig(){
+    activeFilterConfig() {
       if (!this.$store.state.activeFilter) return
       return getFacetConfig(this.entityType, this.$store.state.activeFilter)
     },
@@ -149,8 +148,8 @@ export default {
         this.setActiveFilter(null, null, null)
       }
     },
-    focusOnSearchBox(){
-      setTimeout(()=> {
+    focusOnSearchBox() {
+      setTimeout(() => {
         // this.$refs.facetBarSearchBox.focus()
       }, 1)
     },
@@ -164,8 +163,7 @@ export default {
     onEnter() {
       if (!this.searchString) {
         this.$router.push({name: "Serp", params: {entityType: this.entityType}})
-      }
-      else {
+      } else {
         url.upsertFilter(
             this.entityType,
             "default.search",
@@ -221,6 +219,18 @@ export default {
     padding: 0 !important;
   }
 
+  .phrase {
+    cursor: pointer;
+    display: block;
+    //padding: 0 2px;
+    //border-radius: 5px;
+
+    &:hover {
+      text-decoration: underline;
+      //background: #eee;
+    }
+  }
 }
+
 
 </style>

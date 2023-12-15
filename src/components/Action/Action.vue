@@ -11,41 +11,39 @@
             v-on="on"
             class="font-weight-regular"
             :disabled="isDisabled"
-            :close="isClearable"
-            @click:close="selected = undefined"
         >
           {{ myConfig.displayName }}
         </v-btn>
       </template>
-<!--      <v-card class="pa-4" v-if="action==='filter'">-->
-<!--&lt;!&ndash;        <filter-chips-list/>&ndash;&gt;-->
-<!--        <v-btn text rounded-->
-<!--        @click="$store.state.activeFilter = 'default.search'"-->
-<!--      >-->
-<!--        do it-->
-<!--      </v-btn>-->
-<!--      </v-card>-->
+      <!--      <v-card class="pa-4" v-if="action==='filter'">-->
+      <!--&lt;!&ndash;        <filter-chips-list/>&ndash;&gt;-->
+      <!--        <v-btn text rounded-->
+      <!--        @click="$store.state.activeFilter = 'default.search'"-->
+      <!--      >-->
+      <!--        do it-->
+      <!--      </v-btn>-->
+      <!--      </v-card>-->
       <v-card class="">
         <v-list>
-            <v-list-item
-                v-for="key in menuOptions"
-                :key="key"
-                color="primary"
-                :value="key"
-                :disabled="myConfig?.disableKeys?.includes(key)"
-                @click="clickOption(key)"
-            >
-              <v-list-item-icon>
-                  <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
-                </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ getKeyDisplayName(key) }}
-                </v-list-item-title>
-              </v-list-item-content>
-              <!--            <v-icon left>mdi-check</v-icon>-->
-            </v-list-item>
-          <v-divider />
+          <v-list-item
+              v-for="key in menuOptions"
+              :key="key"
+              color="primary"
+              :value="key"
+              :disabled="myConfig?.disableKeys?.includes(key)"
+              @click="clickOption(key)"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ getKeyDisplayName(key) }}
+              </v-list-item-title>
+            </v-list-item-content>
+            <!--            <v-icon left>mdi-check</v-icon>-->
+          </v-list-item>
+          <v-divider/>
           <v-list-item @click="openMoreDialog">
             <v-list-item-content>
               <v-list-item-title>More</v-list-item-title>
@@ -63,38 +61,32 @@
       <v-card rounded>
         <v-toolbar flat>
           <v-toolbar-title>More {{ myConfig.displayName }} options</v-toolbar-title>
-          <v-spacer />
+          <v-spacer/>
           <v-btn icon @click="closeMoreDialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-divider />
+        <v-divider/>
         <v-card-text class="pa-0">
-          <v-list-item-group
-                v-model="selected"
-                :multiple="myConfig.isMultiple"
-                :mandatory="false"
-            >
 
-              <v-list-item
-                  v-for="key in allOptions"
-                  :key="key"
-                  color="primary"
-                  :value="key"
-                  :disabled="myConfig?.disableKeys?.includes(key)"
-                  @click="closeMoreDialog"
-              >
-                <v-list-item-icon>
-                  <v-icon>mdi-check</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    {{ getKeyDisplayName(key) }}
-                  </v-list-item-title>
-                </v-list-item-content>
-                <!--            <v-icon left>mdi-check</v-icon>-->
-              </v-list-item>
-            </v-list-item-group>
+          <v-list-item
+              v-for="key in allOptions"
+              :key="key"
+              color="primary"
+              :value="key"
+              :disabled="myConfig?.disableKeys?.includes(key)"
+              @click="clickOption(key)"
+          >
+            <v-list-item-icon>
+              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ getKeyDisplayName(key) }}
+              </v-list-item-title>
+            </v-list-item-content>
+            <!--            <v-icon left>mdi-check</v-icon>-->
+          </v-list-item>
 
         </v-card-text>
       </v-card>
@@ -110,17 +102,11 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs, facetsByCategory, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
-import ActionKeyChip from "@/components/Action/ActionKeyChip.vue";
-import FilterList from "@/components/Filters/FilterList.vue";
-import FilterChipsList from "@/components/Filters/FilterChipsList.vue";
 
 
 export default {
   name: "Template",
   components: {
-    FilterList,
-    ActionKeyChip,
-    FilterChipsList,
 
   },
   props: {
@@ -130,6 +116,7 @@ export default {
     return {
       foo: 42,
       isMoreDialogOpen: false,
+      isEditDialogOpen: true,
     }
   },
   computed: {
@@ -160,12 +147,12 @@ export default {
     selectedOptions() {
       return url.getActionValueKeys(this.$route, this.action)
     },
-    allOptions(){
+    allOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actions?.includes(this.action))
           .map(conf => conf.key)
     },
-    popularOptions(){
+    popularOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes(this.action))
           .map(conf => conf.key)
@@ -178,9 +165,6 @@ export default {
         }
       })
       return ret
-    },
-    isClearable() {
-      return (this.action === 'group_by' && !!this.selected)
     },
 
 
@@ -204,23 +188,27 @@ export default {
     getKeyDisplayName(key) {
       return getFacetConfig(this.entityType, key)?.displayName
     },
-    openMoreDialog(){
+    openMoreDialog() {
       this.isMoreDialogOpen = true
     },
-    closeMoreDialog(){
+    closeMoreDialog() {
       this.isMoreDialogOpen = false
     },
-    clickOption(key){
-      console.log("clickOption", key)
-        if (this.action === 'sort') {
-          url.toggleSort(key)
-        } else if (this.action === "group_by") {
-          url.toggleGroupBy(key)
-        } else if (this.action === "column") {
-          url.toggleColumn(key)
-        }
+    clickOption(key) {
+      this.isMoreDialogOpen = false
+      if (this.action === 'sort') {
+        url.toggleSort(key)
+      } else if (this.action === "group_by") {
+        url.toggleGroupBy(key)
+      } else if (this.action === "column") {
+        url.toggleColumn(key)
+      } else if (this.action === "filter") {
+        this.openFilterEditDialog(key)
+      }
     },
-
+    openFilterEditDialog(key) {
+      console.log("openFilterEditDialog()", key)
+    }
 
 
   },

@@ -17,7 +17,7 @@
         >
           <template v-slot:prepend-inner>
             <span style="padding-top: 0px;" class="grey--text">
-            {{ myFilterConfig.displayName }}:
+            {{ myFilterConfig.displayName }}
             </span>
           </template>
         </v-text-field>

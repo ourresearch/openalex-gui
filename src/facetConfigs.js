@@ -1274,6 +1274,9 @@ const getFacetConfig = function (entityType, key) {
         }
     }
 
+    // more hack time
+    key = key.replace("primary_location.source.host_organization_lineage", "primary_location.source.publisher_lineage")
+
 
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
     if (!myFacetConfig) {

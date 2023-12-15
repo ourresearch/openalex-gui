@@ -166,40 +166,26 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
 import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
-import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
-import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
 import SerpResultsList from "../components/SerpResultsList.vue";
-import Pinboard from "../components/Pinboard/Pinboard.vue";
 
 
 import ApiDialog from "../components/ApiDialog.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-import SearchBoxNew from "../components/SearchBoxNew.vue";
 
-import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
-import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 import router from "../router";
 
 import ExportButton from "../components/ExportButton.vue";
-import SortButton from "../components/SortButton.vue";
-import FilterKeySelector from "../components/Filters/FilterKeySelector.vue";
-import GroupBySelector from "../components/GroupBy/GroupBySelector.vue";
 import {getFacetConfig} from "../facetConfigs";
-import Template from "../components/Template.vue";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
-import {filter} from "core-js/internals/array-iteration";
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 
 import Action from "@/components/Action/Action.vue";
-import ActionChipsList from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
-import Entity from "@/components/Entity/Entity.vue";
 import EntityWork from "@/components/Entity/EntityWork/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
 
@@ -212,28 +198,15 @@ export default {
   },
   components: {
     SiteNav,
-    Template,
-    FilterList,
-    SearchBoxNew,
-    SerpToolbar,
     SerpResultsList,
     ApiDialog,
-    Pinboard,
-    EntityTypeSelector,
-    FilterString,
     SerpApiEditor,
-    FilterChipsList,
-    FilterKeySelector,
 
-    ActionChipsList,
     Action,
 
     ExportButton,
-    SortButton,
-    GroupBySelector,
     GroupBy,
 
-    Entity,
     EntityWork,
 
     FilterBar,

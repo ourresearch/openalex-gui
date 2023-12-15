@@ -235,6 +235,7 @@ const upsertFilter = function (entityType, filterKey, filterValue) {
 }
 
 
+
 const deleteFilter = async function (entityType, key) {
     console.log("url.deleteFilter")
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
