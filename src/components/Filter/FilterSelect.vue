@@ -1,82 +1,82 @@
 <template>
-  <span>
-    <v-menu offset-y open-on-hover :close-on-content-click="false">
-      <template v-slot:activator="{on}">
-        <span
-            v-on="on"
-            class=""
-            style="cursor: default;"
-        >
-          the {{ config.displayName }} is
-        </span>
-      </template>
-      <v-card>
-        <div class="pa-3 d-flex">
-          <v-icon large left>{{ config.icon }}</v-icon>
-          <div>
-              <div class="text-capitalize text-h6">
-                {{ config.displayName }}
-            </div>
-            <div class="body-2 grey--text">
-              {{ filterKey }}
-
-            </div>
-          </div>
-        </div>
-        <v-card-actions>
-              <v-spacer/>
-                <v-btn icon @click="isEditOpen = true">
-                  <v-icon>mdi-plus</v-icon>
-                </v-btn>
-                <v-btn icon @click="deleteMe">
-                  <v-icon>mdi-delete-outline</v-icon>
-                </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-menu>
-
-      <template v-for="(id, i) in optionIds">
-        <filter-phrase-select-option
+  <div class="filter filter-range d-flex align-center">
+    <v-icon left>{{ config.icon }}</v-icon>
+    <div>
+      <span>the {{ config.displayName }}</span>
+      <span class="ml-2">is</span>
+      <span>
+        <filter-select-option
+            v-for="(id, i) in optionIds"
             :key="id"
             :filter-value="id"
             :filter-key="filterKey"
             @delete="deleteOption(id)"
-        /><template v-if="optionIds.length > 1 && i < optionIds.length - 1"><filter-phrase-match-mode
-          :filter-key="filterKey"/></template>
+        />
+      </span>
 
-      </template>
+      <span>
+        <span v-if="isEditMode">
+          or
+<!--          <v-text-field-->
+<!--              class="text-h5 pa-0  ml-2"-->
+<!--              style="display: inline-block"-->
+<!--              v-model="searchString"-->
+<!--              hide-details-->
+<!--              autofocus-->
+<!--              @keydown.enter="submit"-->
+<!--              @blur="isEditMode = false"-->
+<!--          />-->
 
+          <filter-select-add-option
+            @submit="submit"
+            :filter-key="filterKey"
+            @blur="isEditMode = false"
+        />
+
+        </span>
+        <v-btn v-else icon @click="isEditMode = true">
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </span>
+    </div>
+    <v-spacer/>
+    <v-btn icon @click="deleteMe">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+
+
+    <!--      <template v-if="optionIds.length > 1 && i < optionIds.length - 1">-->
+    <!--        <filter-phrase-match-mode-->
+    <!--            :filter-key="filterKey"/>-->
+    <!--      </template>-->
 
 
     <!--          @toggle-is-negated="toggleOptionIsNegated(id)"-->
 
-    <edit-phrase-option
-      v-model="isEditOpen"
-      :filter-key="filterKey"
-      :option="undefined"
-    />
+  </div>
 
-  </span>
+
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
-import FilterPhraseSelectOption from "@/components/FilterPhrase/FilterPhraseSelectOption.vue";
+import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import {makeSelectFilterValue} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
-import FilterPhraseMatchMode from "@/components/FilterPhrase/FilterPhraseMatchMode.vue";
+import FilterPhraseMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import {filter} from "core-js/internals/array-iteration";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
+import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 
 export default {
   name: "Template",
   components: {
-    FilterPhraseSelectOption,
-    FilterPhraseMatchMode,
+    FilterSelectOption,
+    FilterSelectAddOption,
 
     EditPhraseOption,
   },
@@ -91,7 +91,7 @@ export default {
       unselectedOptions: [],
       maxUnselectedOptionsCount: 10,
 
-      isEditOpen: false,
+      isEditMode: false,
     }
   },
   computed: {
@@ -166,14 +166,12 @@ export default {
     },
 
 
-
   },
   created() {
   },
   mounted() {
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 

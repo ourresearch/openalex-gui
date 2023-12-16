@@ -113,8 +113,8 @@
       </v-menu>
 
     </div>
-    <div class="white pl-4 py-1">
-      <filter-bar />
+    <div class="white py-1">
+      <filter-list />
     </div>
 
     <serp-api-editor
@@ -182,6 +182,7 @@ import {getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
+import FilterList from "@/components/FilterList.vue";
 
 import Action from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
@@ -209,7 +210,7 @@ export default {
 
     EntityWork,
 
-    FilterBar,
+    FilterList,
 
   },
   props: {},
