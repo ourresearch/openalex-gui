@@ -5,7 +5,7 @@
       <span>
         the work
         <v-chip outlined style="font-size: 20px;" @click="myValue = !myValue">
-          <v-icon>mdi-toggle</v-icon>
+<!--          <v-icon>mdi-toggle-switch-off-outline</v-icon>-->
           {{ myValue ? "is" : "is not" }}
         </v-chip>
 

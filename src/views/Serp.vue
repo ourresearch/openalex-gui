@@ -1,6 +1,12 @@
 <template>
   <div class="serp-page pb-12" style="background: #F7F9FC;">
 
+    <div>
+<!--          <filter-bar />-->
+
+
+    </div>
+
     <v-navigation-drawer
         v-model="isSidebarOpen"
         app
@@ -214,6 +220,7 @@ export default {
     EntityWork,
 
     FilterList,
+    FilterBar,
 
   },
   props: {},
