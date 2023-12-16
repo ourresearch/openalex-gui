@@ -113,7 +113,8 @@
       </v-menu>
 
     </div>
-    <div class="white py-1">
+
+    <div class="py-1">
       <filter-list />
     </div>
 
@@ -142,6 +143,8 @@
         </span>
       </span>
     </div>
+
+
 
     <div>
       <group-by v-if="$route.query.group_by"/>

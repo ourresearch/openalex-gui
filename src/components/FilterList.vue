@@ -1,7 +1,10 @@
 <template>
   <v-card rounded flat outlined class="ma-3 filter-list">
     <v-toolbar flat>
-      <v-toolbar-title>Filters</v-toolbar-title>
+      <v-toolbar-title>
+        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>
+        Filters
+      </v-toolbar-title>
       <v-spacer/>
 
       <v-btn
@@ -12,19 +15,19 @@
         <v-icon>mdi-delete-outline</v-icon>
       </v-btn>
     </v-toolbar>
+    <v-divider/>
 
-    <v-list>
-        <component
+    <div>
+      <component
           v-for="(filter, i) in filters"
           :key="filter.key + $route.query.filter"
-            class="mr-2 mb-2 d-block"
-            :is="'filter-phrase-' + filter.type"
-            :filter-key="filter.key"
-            :is-active="filter.key === activeFilterKey"
-            @submit="focusOnSearchBox"
-        />
-
-    </v-list>
+          class="d-block pa-2"
+          :is="'filter-phrase-' + filter.type"
+          :filter-key="filter.key"
+          :is-active="filter.key === activeFilterKey"
+          @submit="focusOnSearchBox"
+      />
+    </div>
 
 
     <v-card
@@ -50,6 +53,8 @@ import FilterPhraseSelect from "@/components/Filter/FilterSelect.vue";
 import FilterPhraseRange from "@/components/Filter/FilterRange.vue";
 import FilterPhraseBoolean from "@/components/Filter/FilterBoolean.vue";
 
+import NewFilter from "@/components/NewFilter/NewFilter.vue";
+
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
@@ -67,6 +72,8 @@ export default {
 
     FilterBarSearch,
     FilterBarSuggestions,
+
+    NewFilter,
   },
   props: {},
   data() {
@@ -188,12 +195,12 @@ export default {
 <style lang="scss">
 .filter-list {
   .v-text-field--rounded > .v-input__control > .v-input__slot {
-    padding: 0 !important;
+    //padding: 0 !important;
   }
 
   .filter {
-    font-size: 22px;
-    padding: 10px 10px;
+    font-size: 20px;
+
     &:hover {
       background: #fafafa;
     }

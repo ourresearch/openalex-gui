@@ -1,66 +1,17 @@
 <template>
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
-    <v-card
-        flat
+    <v-text-field
+        hide-details
+        dense
+        v-model="searchString"
+        ref="facetBarSearchBox"
         rounded
-        class="px-2 py-1 pt-3 d-flex align-start mx-3"
-        style="min-height: 40px;"
-    >
-      <v-icon class="mr-3 mt-2 ml-1">mdi-magnify</v-icon>
-      <div class="flex-grow-1 pt-0  align-baseline">
-        <template
-            v-for="(filter, i) in filters"
-        >
-          <component
-              :key="filter.key + $route.query.filter"
-              class="mr-2 mb-2 d-block"
-              :is="'filter-phrase-' + filter.type"
-              :filter-key="filter.key"
-              :is-active="filter.key === activeFilterKey"
-              @submit="focusOnSearchBox"
-          />
-<!--          <span-->
-<!--              v-if="i < filters.length-1"-->
-<!--              :key="'and'+i"-->
-<!--              class="mr-1 grey&#45;&#45;text"-->
-<!--              style="margin-left: -.3em">and </span>-->
-
-        </template>
-
-
-        <v-text-field
-
-            hide-details
-            dense
-            v-model="searchString"
-            ref="facetBarSearchBox"
-            rounded
-            class="elevation-0 ma-0 pa-0 "
-            @keyup.enter="onEnter"
-            @keydown.delete="onDelete"
-        />
-        <!--            :placeholder="placeholder"-->
-
-      </div>
-      <div>
-        <v-btn
-            v-if="url.readFiltersLength()"
-            icon
-            @click="clearEverything"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-
-
-      <!--        :filter-value="filter.value"-->
-      <!--        @edit="setActiveFilter(filter.key, filter.value, false)"-->
-      <!--        @delete="deleteFilter(filter.key)"-->
-
-      <!--      <filter-bar-search />-->
-
-
-    </v-card>
+        outlined
+        class="elevation-0 ma-0 pa-0 "
+        @keyup.enter="onEnter"
+        @keydown.delete="onDelete"
+        @blur="onBlur"
+    />
     <v-card
         style="position: absolute; width: 100%;"
         v-if="searchString.length"
@@ -194,6 +145,11 @@ export default {
       this.searchString = ""
       url.deleteAllFilters()
 
+    },
+    onBlur(){
+      setTimeout(()=> {
+        this.searchString = ""
+      })
     }
 
 
@@ -222,9 +178,10 @@ export default {
 <style lang="scss">
 .filter-bar {
   .v-text-field--rounded > .v-input__control > .v-input__slot {
-    padding: 0 !important;
+    //padding: 0 !important;
   }
-  font-size: 22px;
+
+  //font-size: 22px;
 
   .phrase {
     cursor: pointer;

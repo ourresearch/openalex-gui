@@ -2,7 +2,14 @@
   <div class="filter filter-boolean d-flex align-center">
     <v-icon  left>{{ config.icon }}</v-icon>
     <div>
-      <span>the work {{ myValue ? "is" : "is not" }}</span>
+      <span>
+        the work
+        <v-chip outlined style="font-size: 20px;" @click="myValue = !myValue">
+          <v-icon>mdi-toggle</v-icon>
+          {{ myValue ? "is" : "is not" }}
+        </v-chip>
+
+      </span>
       <span>
         {{ config.displayName }}
       </span>
@@ -46,8 +53,18 @@ export default {
     config() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
-    myValue(){
-      return url.readFilterValue(this.entityType, this.filterKey)
+    myValue: {
+      get(){
+        return url.readFilterValue(this.entityType, this.filterKey)
+      },
+      set(to){
+        url.upsertFilter(
+            this.entityType,
+            this.filterKey,
+            !!to
+        )
+      }
+
     }
   },
 
@@ -59,13 +76,9 @@ export default {
     deleteMe() {
       url.deleteFilter(this.entityType, this.filterKey)
     },
-    submit() {
-      url.upsertFilter(
-            this.entityType,
-            this.filterKey,
-            this.text
-        )
-    }
+    toggleValue(){
+
+    },
 
   },
   created() {
