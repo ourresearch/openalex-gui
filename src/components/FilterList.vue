@@ -1,21 +1,26 @@
 <template>
   <v-card rounded flat outlined class="ma-3 filter-list">
-    <v-toolbar flat>
-      <v-toolbar-title>
-        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>
-        Filters
-      </v-toolbar-title>
-      <v-spacer/>
+<!--    <v-toolbar flat>-->
+<!--      <v-toolbar-title>-->
+<!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
+<!--        Filters-->
+<!--      </v-toolbar-title>-->
+<!--      <v-spacer/>-->
 
-      <v-btn
-          v-if="url.readFiltersLength()"
-          icon
-          @click="clearEverything"
-      >
-        <v-icon>mdi-delete-outline</v-icon>
-      </v-btn>
-    </v-toolbar>
-    <v-divider/>
+<!--      <v-btn-->
+<!--          v-if="url.readFiltersLength()"-->
+<!--          icon-->
+<!--          @click="clearEverything"-->
+<!--      >-->
+<!--        <v-icon>mdi-delete-outline</v-icon>-->
+<!--      </v-btn>-->
+<!--    </v-toolbar>-->
+<!--    <v-divider/>-->
+
+    <v-subheader>
+      <span class="font-weight-bold mr-2">{{ url.readFiltersLength() }}</span>
+      <span>search filters already applied: </span>
+    </v-subheader>
 
     <div>
       <component
@@ -28,6 +33,15 @@
           @submit="focusOnSearchBox"
       />
     </div>
+    <div class="d-flex pa-2">
+      <v-btn color="primary">
+      add filter
+
+      </v-btn>
+<!--      <filter-bar />-->
+    </div>
+
+
 
 
     <v-card
@@ -61,10 +75,12 @@ import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import {shortenOpenAlexId} from "@/util";
+import FilterBar from "@/components/FilterBar/FilterBar.vue";
 
 export default {
   name: "Template",
   components: {
+    FilterBar,
     FilterPhraseSelect,
     FilterPhraseSearch,
     FilterPhraseRange,

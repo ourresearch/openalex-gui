@@ -1,10 +1,11 @@
 <template>
-  <span
-      style="cursor: pointer;"
+  <v-chip
+      outlined
+      style="cursor: pointer; font-size: 20px;"
       @click="toggleMode"
   >
     {{ (value === 'any') ? 'or' : 'and' }}
-  </span>
+  </v-chip>
 </template>
 
 <script>

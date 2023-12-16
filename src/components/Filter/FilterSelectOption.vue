@@ -1,6 +1,10 @@
 <template>
   <span>
-    <v-menu offset-y open-on-hover :close-on-content-click="false" v-model="isMenuOpen">
+    <filter-match-mode
+        v-if="position > 0"
+        :filter-key="filterKey"
+    />
+    <v-menu max-width="200" offset-y :close-on-content-click="false" v-model="isMenuOpen">
       <template v-slot:activator="{on}">
         <span
             v-on="on"
@@ -18,31 +22,22 @@
           </template>
         </span>
       </template>
-      <v-card>
-        <v-card-title>
-          <div>
-            {{ filterDisplayValue }}
-          </div>
-          <v-spacer/>
+      <v-list>
 
+        <v-subheader>
+          OpenAlex:{{ filterId }}
+        </v-subheader>
+        <v-list-item @click="toggleIsNegated">
+          <v-list-item-content>
+            negate
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item  @click="deleteMe">
+          <v-list-item-content>
+            Delete
 
-
-        </v-card-title>
-        <v-card-subtitle>
-          {{ filterId }}
-        </v-card-subtitle>
-              <v-divider/>
-
-              <v-card-actions>
-                <v-spacer/>
-                <v-btn icon @click="toggleIsNegated">
-                  <v-icon>
-                    {{ (isNegated) ? 'mdi-filter-outline' : 'mdi-filter-off-outline' }}
-                  </v-icon>
-                </v-btn>
-                <v-btn icon @click="deleteMe">
-                  <v-icon>mdi-delete-outline</v-icon>
-                </v-btn>
+          </v-list-item-content>
+        </v-list-item>
 
 
                 <!--                <v-spacer/>-->
@@ -58,7 +53,7 @@
                 <!--                </v-chip>-->
 
               </v-card-actions>
-      </v-card>
+      </v-list>
     </v-menu>
   </span>
 </template>
@@ -71,11 +66,13 @@ import {isOpenAlexId} from "@/util";
 import {url} from "@/url";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
+import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "FilterOptionChip",
   components: {
     EditPhraseOption,
+    FilterMatchMode,
   },
   props: {
     disabled: Boolean,
@@ -83,6 +80,8 @@ export default {
     filterKey: String,
     close: Boolean,
     openMenu: Boolean,
+    matchMode: String,
+    position: Number,
   },
   data() {
     return {

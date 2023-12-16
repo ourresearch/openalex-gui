@@ -1,5 +1,5 @@
 <template>
-  <div class="filter filter-range d-flex align-center">
+  <div class="filter filter-range d-flex align-baseline">
     <v-icon left>{{ config.icon }}</v-icon>
     <div>
       <span>the {{ config.displayName }}</span>
@@ -10,13 +10,16 @@
             :key="id"
             :filter-value="id"
             :filter-key="filterKey"
+            :match-mode="url.readFilterMatchMode(entityType, filterKey)"
+            :position="i"
             @delete="deleteOption(id)"
+
         />
       </span>
 
       <span>
         <span v-if="isEditMode">
-          or
+          {{ url.readFilterMatchMode(entityType, filterKey) === 'all' ? 'and' : 'or' }}
 <!--          <v-text-field-->
 <!--              class="text-h5 pa-0  ml-2"-->
 <!--              style="display: inline-block"-->
@@ -66,8 +69,8 @@ import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import {makeSelectFilterValue} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
-import FilterPhraseMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import {filter} from "core-js/internals/array-iteration";
+import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
@@ -76,6 +79,7 @@ export default {
   name: "Template",
   components: {
     FilterSelectOption,
+    FilterMatchMode,
     FilterSelectAddOption,
 
     EditPhraseOption,
@@ -92,6 +96,7 @@ export default {
       maxUnselectedOptionsCount: 10,
 
       isEditMode: false,
+      url,
     }
   },
   computed: {

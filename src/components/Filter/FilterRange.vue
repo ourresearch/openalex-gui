@@ -5,11 +5,13 @@
       <span>the {{ config.displayName }} is</span>
       <span>
         <v-text-field
-              class="text-h5 pa-0  ml-2"
-              style="display: inline-block"
+              class="pa-0  ml-2"
+              style="display: inline-block; font-size: 20px;"
               v-model="searchString"
               hide-details
               @keydown.enter="submit"
+              prepend-inner-icon="mdi-pencil-outline"
+              @blur="submit"
           >
           </v-text-field>
       </span>

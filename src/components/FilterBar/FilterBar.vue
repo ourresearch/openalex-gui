@@ -5,12 +5,14 @@
         dense
         v-model="searchString"
         ref="facetBarSearchBox"
+        prepend-inner-icon="mdi-magnify"
         rounded
         outlined
         class="elevation-0 ma-0 pa-0 "
         @keyup.enter="onEnter"
         @keydown.delete="onDelete"
         @blur="onBlur"
+        placeholder="search OpenAlex"
     />
     <v-card
         style="position: absolute; width: 100%;"
