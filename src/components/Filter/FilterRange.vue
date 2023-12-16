@@ -17,7 +17,7 @@
       </span>
     </div>
     <v-spacer />
-    <v-btn icon @click="deleteMe">
+    <v-btn icon @click="$emit('delete')">
       <v-icon>mdi-close</v-icon>
     </v-btn>
   </div>

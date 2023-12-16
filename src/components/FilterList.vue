@@ -1,26 +1,29 @@
 <template>
   <v-card rounded flat outlined class="ma-3 filter-list">
-<!--    <v-toolbar flat>-->
-<!--      <v-toolbar-title>-->
-<!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
-<!--        Filters-->
-<!--      </v-toolbar-title>-->
-<!--      <v-spacer/>-->
+    <!--    <v-toolbar flat>-->
+    <!--      <v-toolbar-title>-->
+    <!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
+    <!--        search filters applied-->
+    <!--      </v-toolbar-title>-->
+    <!--      <v-spacer/>-->
 
-<!--      <v-btn-->
-<!--          v-if="url.readFiltersLength()"-->
-<!--          icon-->
-<!--          @click="clearEverything"-->
-<!--      >-->
-<!--        <v-icon>mdi-delete-outline</v-icon>-->
-<!--      </v-btn>-->
-<!--    </v-toolbar>-->
-<!--    <v-divider/>-->
+    <!--      <v-btn-->
+    <!--          v-if="url.readFiltersLength()"-->
+    <!--          icon-->
+    <!--          @click="clearEverything"-->
+    <!--      >-->
+    <!--        <v-icon>mdi-delete-outline</v-icon>-->
+    <!--      </v-btn>-->
+    <!--    </v-toolbar>-->
+    <!--    <v-divider/>-->
 
-    <v-subheader>
-      <span class="font-weight-bold mr-2">{{ url.readFiltersLength() }}</span>
-      <span>search filters already applied: </span>
-    </v-subheader>
+    <!--    <v-subheader>-->
+    <!--      <span class="font-weight-bold mr-1">{{ url.readFiltersLength() }}</span>-->
+    <!--      <span>search filters applied</span>-->
+    <!--      <v-btn text small rounded @click="clearEverything">-->
+    <!--        clear-->
+    <!--      </v-btn>-->
+    <!--    </v-subheader>-->
 
     <div>
       <component
@@ -30,29 +33,108 @@
           :is="'filter-phrase-' + filter.type"
           :filter-key="filter.key"
           :is-active="filter.key === activeFilterKey"
-          @submit="focusOnSearchBox"
+          @delete="url.deleteFilter(entityType, filter.key)"
+      />
+      <component
+          v-if="activeFilterConfig"
+          :key="'new' + activeFilterConfig.key + $route.query.filter"
+          class="d-block pa-2"
+          :is="'filter-phrase-' + activeFilterConfig.type"
+          :filter-key="activeFilterConfig.key"
+          :is-active="activeFilterConfig.key === activeFilterKey"
+          @delete="setActiveFilter(undefined)"
       />
     </div>
+    <v-divider/>
+
     <div class="d-flex pa-2">
-      <v-btn color="primary">
-      add filter
+      <v-menu
+          rounded
+          offset-y
+      >
+        <template v-slot:activator="{on}">
+          <v-btn
+              color="primary"
+              rounded
+              style=""
+              v-on="on"
+          >
+            <v-icon>mdi-plus</v-icon>
+            add filter
+            <v-icon>mdi-menu-down</v-icon>
 
-      </v-btn>
-<!--      <filter-bar />-->
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+              v-for="filter in popularFilterOptions"
+              :key="filter.key"
+              color="primary"
+              :disabled="url.isFilterApplied(entityType, filter.key)"
+              @click="setActiveFilter(filter)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ filter.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ filter.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+            <!--            <v-icon left>mdi-check</v-icon>-->
+          </v-list-item>
+          <v-divider/>
+          <v-list-item @click="dialogs.moreFilters = true">
+            <v-list-item-content>
+              <v-list-item-title>More</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+        </v-list>
+      </v-menu>
+
+
+      <!--      <filter-bar />-->
     </div>
 
-
-
-
-    <v-card
-        style="position: absolute; width: 100%;"
-        v-if="searchString.length"
+    <v-dialog
+        v-model="dialogs.moreFilters"
+        scrollable
+        max-width="400"
     >
-      <filter-bar-suggestions
-          :search-string="searchString"
-          @submit="searchString = ''"
-      />
-    </v-card>
+      <v-card rounded>
+        <v-toolbar flat>
+          <v-toolbar-title>More Filter options</v-toolbar-title>
+          <v-spacer/>
+          <v-btn icon @click="dialogs.moreFilters = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider/>
+        <v-card-text class="pa-0">
+          <v-list-item
+              v-for="filter in allFilterOptions"
+              :key="filter.key"
+              color="primary"
+              :disabled="url.isFilterApplied(entityType, filter.key)"
+              @click="setActiveFilter(filter)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ filter.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ filter.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+            <!--            <v-icon left>mdi-check</v-icon>-->
+          </v-list-item>
+
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+
   </v-card>
 </template>
 
@@ -73,7 +155,7 @@ import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
-import {getFacetConfig} from "@/facetConfigs";
+import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {shortenOpenAlexId} from "@/util";
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 
@@ -98,6 +180,9 @@ export default {
       searchString: "",
       url,
       activeFilterKey: null,
+      dialogs: {
+        moreFilters: false
+      },
     }
   },
   computed: {
@@ -105,19 +190,20 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
     activeFilter() {
-      return this.$store.state.activeFilter
+      return this.activeFilterKey
     },
     creatingNewFilter() {
       const appliedFilterKeys = this.filters.map(f => f.key)
       return this.activeFilter && !appliedFilterKeys.includes(this.activeFilter)
     },
     activeFilterConfig() {
-      if (!this.$store.state.activeFilter) return
-      return getFacetConfig(this.entityType, this.$store.state.activeFilter)
+      if (!this.activeFilterKey) return
+      return getFacetConfig(this.entityType, this.activeFilterKey)
     },
     searchFilterConfig() {
       const searchKeyName = this.entityType === "works" ?
@@ -129,6 +215,19 @@ export default {
       return (this.filters.length) ?
           "+" :
           "search"
+    },
+    addFilterOptions() {
+      return []
+    },
+    popularFilterOptions() {
+      return facetConfigs(this.entityType)
+          .filter(conf => conf.actionsPopular?.includes("filter"))
+
+    },
+    allFilterOptions() {
+      return facetConfigs(this.entityType)
+          .filter(conf => conf.actions?.includes("filter"))
+
     }
   },
 
@@ -137,52 +236,24 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    upsertFilter(newValue) {
-      url.upsertFilter(this.entityType, this.activeFilterKey, newValue)
-      if (this.activeFilterConfig.type !== "select") {
-        this.setActiveFilter(null, null, null)
-      }
-    },
-    focusOnSearchBox() {
-      setTimeout(() => {
-        // this.$refs.facetBarSearchBox.focus()
-      }, 1)
-    },
-    deleteFilter(key) {
-      this.isActiveFilterDialogOpen = false
-      console.log("FilterList deleteFilter", key)
-      this.searchString = ""
-      url.deleteFilter(this.entityType, key)
-      this.setActiveFilter(null, null, null)
-    },
-    onEnter() {
-      if (!this.searchString) {
-        this.$router.push({name: "Serp", params: {entityType: this.entityType}})
-      } else {
-        url.upsertFilter(
-            this.entityType,
-            "default.search",
-            this.searchString
-        )
-      }
-      this.searchString = ""
-    },
-    onDelete() {
-      if (this.searchString) return
-      // const lastFilterKey = this.filters.at(-1)?.key
-      // if (!lastFilterKey) return
-      //
-      // console.log("delete", lastFilterKey)
-      // this.setActiveFilter(lastFilterKey)
-    },
-    async setActiveFilter(filterKey) {
-      this.$store.state.activeFilter = filterKey
-    },
     clearEverything() {
-      this.$store.state.activeFilter = null
+      this.activeFilterKey = null
       this.searchString = ""
       url.deleteAllFilters()
 
+    },
+    setActiveFilter(newFilter) {
+      console.log("select filter", newFilter)
+      if (!newFilter) {
+        this.activeFilterKey = null
+        return
+      }
+      if (newFilter.type === "boolean") {
+        url.upsertFilter(this.entityType, newFilter.key, true)
+      } else {
+
+        this.activeFilterKey = newFilter.key
+      }
     }
 
 
@@ -192,6 +263,12 @@ export default {
   mounted() {
   },
   watch: {
+    '$route': {
+      immediate: true,
+      handler(to, from) {
+        this.activeFilterKey = null
+      }
+    },
     '$store.state.activeFilter': {
       immediate: false,
       handler(to) {
