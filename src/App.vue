@@ -1,5 +1,6 @@
 <template>
   <v-app>
+
     <v-navigation-drawer
         v-model="isSiteNavOpen"
         app
@@ -45,6 +46,8 @@
               </span>
 
         </router-link>
+
+
 
 
 <!--        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">-->
@@ -356,14 +359,14 @@ body {
 .v-list-item {
   min-height: unset !important;
   .v-list-item__content {
-    padding: 8px 0 !important;
+    padding: 10px 0 !important;
   }
 }
 .v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
   margin-right: 8px;
 }
 .v-list-item__icon {
-  margin: 4px 0;
+  margin: 5px 0;
 }
 
 

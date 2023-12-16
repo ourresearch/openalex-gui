@@ -202,12 +202,14 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 
 const readFilterOptions =  function (entityType, key) {
     const filter = readFilter(entityType, key)
+    if (!filter ) return []
     return optionsFromString(filter.value)
 }
 
 const readFilterMatchMode = function(entityType, key){
     const filter = readFilter(entityType, key)
-    return getMatchModeFromSelectFilterValue(filter.value)
+
+    return getMatchModeFromSelectFilterValue(filter?.value)
 }
 
 const setFilterMatchMode = function(entityType, key, mode){

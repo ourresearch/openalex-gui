@@ -19,7 +19,9 @@
 
       <span>
         <span v-if="isEditMode">
-          {{ url.readFilterMatchMode(entityType, filterKey) === 'all' ? 'and' : 'or' }}
+          <span v-if="optionIds.length">
+            {{ url.readFilterMatchMode(entityType, filterKey) === 'all' ? 'and' : 'or' }}
+          </span>
 <!--          <v-text-field-->
 <!--              class="text-h5 pa-0  ml-2"-->
 <!--              style="display: inline-block"-->
@@ -43,7 +45,7 @@
       </span>
     </div>
     <v-spacer/>
-    <v-btn icon @click="deleteMe">
+    <v-btn icon @click="$emit('delete')">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -176,7 +178,14 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    optionIds: {
+      immediate: true,
+      handler(to, from){
+        if (!to?.length) this.isEditMode = true
+      }
+    }
+  }
 }
 </script>
 

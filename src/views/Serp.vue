@@ -2,7 +2,7 @@
   <div class="serp-page pb-12" style="background: #F7F9FC;">
 
     <div>
-<!--          <filter-bar />-->
+      <!--          <filter-bar />-->
 
 
     </div>
@@ -45,10 +45,9 @@
 
     <!--    <v-divider/>-->
     <div class="white d-flex">
-      <action action="filter"/>
+      <action action="group_by"/>
       <action action="sort"/>
       <action action="column"/>
-      <action action="group_by"/>
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -120,24 +119,27 @@
 
     </div>
 
-    <div class="py-1">
-      <filter-list />
-    </div>
-
-    <serp-api-editor
-        v-if="isShowApiSet"
-        class="mt-3"
-        key="api-editor"
-    />
+    <v-container class="serp-bottom-stuff" style="">
 
 
-    <!--    <v-divider class="mb-4 mt-3"/>-->
+      <div class="py-1">
+        <filter-list/>
+      </div>
 
-    <div class="ml-4 mt-4">
+      <serp-api-editor
+          v-if="isShowApiSet"
+          class="mt-3"
+          key="api-editor"
+      />
+
+
+      <!--    <v-divider class="mb-4 mt-3"/>-->
+
+      <div class="ml-4 mt-4">
       <span v-if="$route.query.group_by">
 <!--        About {{ listResultsCount | toPrecision }} results-->
       </span>
-      <span v-else class="grey--text">
+        <span v-else class="grey--text">
         <span v-if="resultsObject?.meta.count === 0">
           No results; try modifying your filters.
         </span>
@@ -148,15 +150,15 @@
           About {{ resultsObject?.meta.count | toPrecision }} results
         </span>
       </span>
-    </div>
+      </div>
 
 
+      <div>
+        <group-by v-if="$route.query.group_by"/>
+        <serp-results-list v-else :results-object="resultsObject"/>
 
-    <div>
-      <group-by v-if="$route.query.group_by"/>
-      <serp-results-list v-else :results-object="resultsObject"/>
-
-    </div>
+      </div>
+    </v-container>
 
 
     <div id="serp-hidden">
@@ -436,7 +438,9 @@ export default {
             "column",
             getActionDefaultsStr("column", this.$route)
         )
+        this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)
+        this.$store.state.isLoading = false
         this.resultsObject = resp;
         // this.count = this.meta.count
         //

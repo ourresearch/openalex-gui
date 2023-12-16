@@ -1,7 +1,9 @@
 <template>
   <div class="filter-select-add-option" style="display: inline-block;">
     <v-text-field
-        class="text-h5 pa-0"
+        prepend-inner-icon="mdi-magnify"
+        class=" pa-0 ml-2"
+        style="font-size: 20px;"
         v-model="searchString"
         autofocus
         hide-details
@@ -98,12 +100,17 @@ export default {
     },
 
     addOption(id) {
-      url.addFilterOption(this.entityType, this.filterKey, id)
+      if (url.isFilterApplied(this.entityType, this.filterKey)) {
+        url.addFilterOption(this.entityType, this.filterKey, id)
+      }
+      else {
+        url.createFilter(this.entityType, this.filterKey, id)
+      }
     },
     onBlur(){
       setTimeout(()=> {
         this.$emit("blur")
-      }, 0)
+      }, 100)
     }
 
 

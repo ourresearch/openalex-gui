@@ -4,7 +4,7 @@
         v-if="position > 0"
         :filter-key="filterKey"
     />
-    <v-menu max-width="200" offset-y :close-on-content-click="false" v-model="isMenuOpen">
+    <v-menu rounded max-width="200" offset-y :close-on-content-click="false" v-model="isMenuOpen">
       <template v-slot:activator="{on}">
         <span
             v-on="on"
@@ -12,9 +12,10 @@
         >
           <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
           <template v-if="filterDisplayValue">
-            <span class="font-weight-bold" style="cursor: default;">
-              <span v-if="isNegated">NOT</span>
+            <span class="font-weight-bold option">
+              <span class="ml-2" v-if="isNegated">NOT</span>
               {{ filterDisplayValue | truncate(50) }}
+              <v-icon>mdi-menu-down</v-icon>
             </span>
           </template>
           <template v-else>
@@ -22,14 +23,15 @@
           </template>
         </span>
       </template>
-      <v-list>
+      <v-list >
 
         <v-subheader>
           OpenAlex:{{ filterId }}
         </v-subheader>
+        <v-divider />
         <v-list-item @click="toggleIsNegated">
           <v-list-item-content>
-            negate
+            {{ isNegated ? "Un-negate" : "Negate" }}
           </v-list-item-content>
         </v-list-item>
         <v-list-item  @click="deleteMe">
@@ -154,5 +156,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.option {
+  font-weight: bold;
+  cursor:pointer;
+  &:hover {
+    text-decoration:  underline;
+
+  }
+}
 
 </style>
