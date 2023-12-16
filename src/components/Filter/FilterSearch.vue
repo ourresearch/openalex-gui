@@ -1,16 +1,24 @@
 <template>
-  <span class="phrase phrase-search" @click="isDialogOpen = true">
-    <span>
-      {{ myFilterConfig.displayName }}
-      <q>{{ text }}</q>
-    </span>
-     <EditPhraseSearch
-         :filter-key="filterKey"
-         v-model="isDialogOpen"
-     />
-
-
-  </span>
+  <div class="filter filter-search d-flex align-center">
+    <v-icon  left>{{ config.icon }}</v-icon>
+    <div>
+      <span>{{ config.displayName }}</span>
+      <span>
+        <v-text-field
+              class="text-h5 pa-0  ml-2"
+              style="display: inline-block"
+              v-model="searchString"
+              hide-details
+              @keydown.enter="submit"
+          >
+          </v-text-field>
+      </span>
+    </div>
+    <v-spacer />
+    <v-btn icon @click="deleteMe">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+  </div>
 </template>
 
 <script>
@@ -19,7 +27,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
-import Template from "@/components/FilterPhrase/FilterPhraseSelect.vue";
+import Template from "@/components/Filter/FilterSelect.vue";
 
 
 import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
@@ -28,7 +36,6 @@ import {filter} from "core-js/internals/array-iteration";
 export default {
   name: "FilterValueSearch",
   components: {
-    Template,
     EditPhraseSearch,
   },
   props: {
@@ -37,11 +44,8 @@ export default {
   data() {
     return {
       foo: 42,
-
-
       isDialogOpen: false,
-      text: url.readFilterValue(this.$store.state.entityType, this.filterKey),
-      searchString: "",
+      searchString: url.readFilterValue(this.$store.state.entityType, this.filterKey),
     }
   },
   computed: {
@@ -49,7 +53,7 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    myFilterConfig() {
+    config() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
     isActive() {
@@ -63,6 +67,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    deleteMe() {
+      url.deleteFilter(this.entityType, this.filterKey)
+    },
     submit() {
       url.upsertFilter(
           this.entityType,
@@ -77,19 +84,6 @@ export default {
         this.$store.state.activeFilter = null
       }
     },
-    onDelete() {
-      if (this.searchString) return
-      url.deleteFilter(this.entityType, this.filterKey)
-      this.$store.state.activeFilter = null
-    },
-    openDialog() {
-      this.isDialogOpen = true
-      this.searchString = url.readFilterValue(this.$store.state.entityType, this.filterKey)
-    },
-    closeDialog() {
-      this.isDialogOpen = false
-      this.searchString = ""
-    }
 
 
   },

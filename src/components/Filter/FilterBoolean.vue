@@ -1,17 +1,16 @@
 <template>
-  <div class="phrase phrase-range" @click="isDialogOpen = true">
-    <span>
-      the {{ myFilterConfig.displayName }} is
-    </span>
-    <span>
-      {{ text }}
-    </span>
-
-    <edit-phrase-range
-      v-model="isDialogOpen"
-      :filter-key="filterKey"
-
-    />
+  <div class="filter filter-boolean d-flex align-center">
+    <v-icon  left>{{ config.icon }}</v-icon>
+    <div>
+      <span>the work {{ myValue ? "is" : "is not" }}</span>
+      <span>
+        {{ config.displayName }}
+      </span>
+    </div>
+    <v-spacer />
+    <v-btn icon @click="deleteMe">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
   </div>
 </template>
 
@@ -20,13 +19,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
+import EditPhraseBoolean from "@/components/EditPhrase/EditPhraseBoolean.vue";
 import {url} from "@/url";
-import EditPhraseRange from "@/components/EditPhrase/EditPhraseRange.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
-    EditPhraseRange,
+    EditPhraseBoolean,
   },
   props: {
     filterKey: String,
@@ -44,9 +43,12 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    myFilterConfig() {
+    config() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
+    myValue(){
+      return url.readFilterValue(this.entityType, this.filterKey)
+    }
   },
 
   methods: {
@@ -54,6 +56,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    deleteMe() {
+      url.deleteFilter(this.entityType, this.filterKey)
+    },
     submit() {
       url.upsertFilter(
             this.entityType,
