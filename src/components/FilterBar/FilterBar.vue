@@ -2,16 +2,14 @@
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
     <v-text-field
         hide-details
-        dense
         v-model="searchString"
         ref="facetBarSearchBox"
         prepend-inner-icon="mdi-magnify"
         rounded
         outlined
-        class="elevation-0 ma-0 pa-0 "
+        class="pa-0 ma-0"
+        style="font-size: 20px;"
         @keyup.enter="onEnter"
-        @keydown.delete="onDelete"
-        @blur="onBlur"
         placeholder="search OpenAlex"
     />
     <v-card
