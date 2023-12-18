@@ -8,6 +8,7 @@
         autofocus
         hide-details
         @blur="onBlur"
+        :placeholder="placeholder"
     />
     <v-card class="suggestions-box">
       <div
@@ -57,6 +58,10 @@ export default {
     myFilterConfig() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
+    placeholder(){
+      const pluralName = this.$pluralize(this.myFilterConfig.displayName, 2)
+      return "search " + pluralName
+    }
   },
 
   methods: {
