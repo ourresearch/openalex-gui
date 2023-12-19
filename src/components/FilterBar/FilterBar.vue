@@ -1,5 +1,6 @@
 <template>
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
+<!--    {{ focusNumberLine }}-->
     <v-text-field
         hide-details
         v-model="searchString"
@@ -12,6 +13,8 @@
         @keyup.enter="onEnter"
         placeholder="search OpenAlex"
         autofocus
+        @keyup.up="onUpArrow"
+        @keyup.down="onDownArrow"
     />
     <v-card
         style="position: absolute; width: 100%;"
@@ -20,6 +23,7 @@
       <filter-bar-suggestions
           :search-string="searchString"
           @submit="searchString = ''"
+          :focus-number-line="focusNumberLine"
       />
     </v-card>
   </div>
@@ -61,6 +65,7 @@ export default {
       searchString: "",
       url,
       activeFilterKey: null,
+      focusNumberLine: 0,
     }
   },
   computed: {
@@ -151,7 +156,15 @@ export default {
       setTimeout(()=> {
         this.searchString = ""
       })
-    }
+    },
+    onUpArrow(){
+      console.log("up arrow")
+      this.focusNumberLine --
+    },
+    onDownArrow(){
+      console.log("down arrow")
+      this.focusNumberLine ++
+    },
 
 
   },

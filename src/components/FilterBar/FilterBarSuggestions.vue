@@ -1,10 +1,12 @@
 <template>
   <div class="filter-bar-suggestions">
+<!--    <div>my focus: {{ myFocusIndex }}</div>-->
     <div
-        v-for="suggestion in suggestionsToShow"
+        v-for="(suggestion, i) in suggestionsToShow"
         :key="suggestion.key + suggestion.value"
         @click="createOrUpdateFilter(suggestion.key, suggestion.value)"
         class="pa-2 suggestion"
+        :class="{'has-focus': myFocusIndex === i}"
     >
       <v-icon left>{{ suggestion.icon }}</v-icon>
       <span class="">
@@ -61,10 +63,12 @@ export default {
   components: {},
   props: {
     searchString: String,
+    focusNumberLine: Number,
   },
   data() {
     return {
       foo: 42,
+      myFocusIndex: 0,
     }
   },
   computed: {
@@ -87,6 +91,10 @@ export default {
           this.searchString,
       )
     },
+    numSuggestions(){
+      return this.suggestionsToShow?.length ?? 0
+    }
+
 
   },
   asyncComputed: {
@@ -160,6 +168,7 @@ export default {
     },
   },
 
+
   methods: {
     ...mapMutations([
       "snackbar",
@@ -174,6 +183,18 @@ export default {
           url.updateFilter(this.entityType, key, value) :
           url.createFilter(this.entityType, key, value)
     },
+    moveFocusUp(){
+      console.log("move focus up")
+      this.myFocusIndex = (this.myFocusIndex - 1  < 0) ?
+          this.numSuggestions - 1 :
+          this.myFocusIndex - 1
+    },
+    moveFocusDown(){
+      console.log("move focus down")
+      this.myFocusIndex = (this.myFocusIndex + 2 > this.numSuggestions) ?
+          0 :
+          this.myFocusIndex + 1
+    }
 
 
   },
@@ -181,7 +202,20 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    focusNumberLine: {
+      immediate: true,
+      handler(to, from){
+        (from > to) ?
+            this.moveFocusUp() :
+            this.moveFocusDown()
+
+      }
+    },
+    searchString(to, from) {
+       this.myFocusIndex = 0
+    }
+  }
 }
 </script>
 
