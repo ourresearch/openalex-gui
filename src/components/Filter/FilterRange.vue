@@ -12,6 +12,7 @@
               @keydown.enter="submit"
               prepend-inner-icon="mdi-pencil-outline"
               @blur="submit"
+              autofocus
           >
           </v-text-field>
       </span>

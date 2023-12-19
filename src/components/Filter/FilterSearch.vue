@@ -10,7 +10,8 @@
               v-model="searchString"
               hide-details
               @keydown.enter="submit"
-              prepend-inner-icon="mdi-pencil-outline"
+              prepend-inner-icon="mdi-pesncil-outline"
+              autofocus
               @blur="submit"
               :loading="false"
           >
