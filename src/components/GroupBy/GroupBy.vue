@@ -1,7 +1,7 @@
 <template>
   <v-card flat tile class="">
     <v-card outlined rounded class="mx-3">
-      <v-toolbar dense flat dark color="purple">
+      <v-toolbar dense flat dark>
         <v-icon left style="transform: rotate(90deg)">mdi-poll</v-icon>
         <v-toolbar-title>
           Count by <span class="font-weight-bold">{{ selectedConfig.displayName }}</span>
@@ -33,8 +33,8 @@
         <tr
             v-for="group in groups"
             :key="group.value"
+            @click="selectGroup(group.value)"
         >
-<!--            @click="url.createFilter(entityType, filterKey, group.value)"-->
           <td>
             {{ group.displayValue }}
           </td>
@@ -197,6 +197,10 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
+    selectGroup(val){
+      url.createFilter(this.entityType, this.filterKey, val)
+      url.setGroupBy(undefined)
+    },
 
 
   },
