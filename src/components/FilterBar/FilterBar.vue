@@ -11,6 +11,7 @@
         style="font-size: 20px;"
         @keyup.enter="onEnter"
         placeholder="search OpenAlex"
+        autofocus
     />
     <v-card
         style="position: absolute; width: 100%;"

@@ -466,6 +466,9 @@ const facetConfigs = function (entityType) {
         //     isCore: true,
         //     icon: "mdi-cash"
         // },
+
+
+        //
         // {
         //     key: "apc_paid.value_usd",
         //     entityType: "works",
@@ -474,10 +477,13 @@ const facetConfigs = function (entityType) {
         //     sortByValue: true,
         //     placeholders: ["min", "max"],
         //     categories: ["apc"],
-        //     actions: ["filter", "sort", "column", ],
+        //     actions: ["filter", ],
         //     isCore: true,
         //     icon: "mdi-cash"
         // },
+
+
+
         // {
         //     key: "apc_paid.provenance",
         //     entityType: "works",
