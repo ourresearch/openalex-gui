@@ -244,6 +244,7 @@ export default {
     },
     setActiveFilter(newFilter) {
       console.log("select filter", newFilter)
+      this.dialogs.moreFilters = false
       if (!newFilter) {
         this.activeFilterKey = null
         return
