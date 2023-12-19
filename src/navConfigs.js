@@ -42,6 +42,10 @@ const navConfigs = [
                 name: "Privacy policy",
                 href: "OpenAlex_privacy_policy.pdf",
             },
+            {
+                name: "Source Code",
+                href: "https://github.com/ourresearch",
+            },
         ],
 
     },
