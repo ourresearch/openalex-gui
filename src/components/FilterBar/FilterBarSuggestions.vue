@@ -110,19 +110,23 @@ export default {
       return resp.results.map(result => {
         let filterKey
         if (this.entityType === "works") {
-          filterKey = (result.filter_key) ?
-              result.filter_key :
-              getEntityConfig(result.entity_type)?.filterKey
 
-          if (filterKey === "authorships.institutions.country_code") {
-            filterKey = "institutions.country_code"
-          }
-          if (filterKey === "locations.source.id") {
-            filterKey = "primary_location.source.id"
-          }
-          if (filterKey === "locations.source.host_organization") {
-            filterKey = "primary_location.source.publisher_lineage"
-          }
+          filterKey = result.filter_key.replace(/^id$/, "ids.openalex")
+
+
+          // filterKey = (result.filter_key === "id") ?
+          //     result.filter_key :
+          //     getEntityConfig(result.entity_type)?.filterKey
+          //
+          // if (filterKey === "authorships.institutions.country_code") {
+          //   filterKey = "institutions.country_code"
+          // }
+          // if (filterKey === "locations.source.id") {
+          //   filterKey = "primary_location.source.id"
+          // }
+          // if (filterKey === "locations.source.host_organization") {
+          //   filterKey = "primary_location.source.publisher_lineage"
+          // }
         } else {
           filterKey = "ids.openalex"
         }
