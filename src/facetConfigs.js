@@ -62,7 +62,7 @@ const facetConfigs = function (entityType) {
         // works:  WASPFIC. test
 
         {
-            key: "id",
+            key: "ids.openalex",
             entityType: "works",
             entityId: "works",
             pidPrefix: "openalex",
@@ -72,11 +72,11 @@ const facetConfigs = function (entityType) {
             isId: true,
             showInSidebar: true,
             noOptions: true,
-            type: "entity",
+            type: "select",
             categories: ["ids"],
             category: "ids",
             isList: false,
-            actions: [],
+            actions: [""],
             icon: "mdi-file-document-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
             extractFn: (entity) => entity.id,
@@ -92,7 +92,7 @@ const facetConfigs = function (entityType) {
             pidPrefix: "doi",
             showInSidebar: true,
             noOptions: true,
-            type: "entity",
+            type: "entselectity",
             categories: ["ids"],
             isList: false,
             category: "ids",

@@ -14,7 +14,7 @@
           <template v-if="filterDisplayValue">
             <span class="font-weight-bold option">
               <span class="ml-2" v-if="isNegated">NOT</span>
-              {{ filterDisplayValue | truncate(50) }}
+              {{ filterDisplayValue | truncate(100) }}
               <v-icon>mdi-menu-down</v-icon>
             </span>
           </template>
