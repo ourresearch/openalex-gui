@@ -1,10 +1,10 @@
 <template>
   <div class="serp-api-editor">
     <v-card
-        rounded
-        outlined
+        flat
+        tile
         style="font-family: Monaco, monospace; min-height: 40px;"
-        class="d-flex align-start pa-2 mx-3"
+        class="d-flex align-start pa-2 "
 
     >
       <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>
