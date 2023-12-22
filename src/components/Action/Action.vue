@@ -7,12 +7,21 @@
       <template v-slot:activator="{on}">
         <v-btn
             text
+            :icon="myConfig.id !== 'sort'"
             rounded
             v-on="on"
             class="font-weight-regular"
             :disabled="isDisabled"
         >
-          {{ myConfig.displayName }}
+          <template v-if="myConfig.id === 'sort'">
+            <v-icon left>mdi-sort-ascending</v-icon>
+            {{ selectedSortConfig.displayName }}
+
+
+          </template>
+          <template v-if="myConfig.id === 'column'">
+            <v-icon>mdi-plus</v-icon>
+          </template>
         </v-btn>
       </template>
       <!--      <v-card class="pa-4" v-if="action==='filter'">-->
@@ -106,9 +115,7 @@ import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 export default {
   name: "Template",
-  components: {
-
-  },
+  components: {},
   props: {
     action: String,
   },
@@ -165,6 +172,11 @@ export default {
         }
       })
       return ret
+    },
+    selectedSortConfig(){
+      if (this.action !== 'sort') return
+      const key = url.getSort(this.$route)
+      return getFacetConfig(this.entityType, key)
     },
 
 

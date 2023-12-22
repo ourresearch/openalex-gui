@@ -41,16 +41,16 @@
           <td class="range">
             {{ group.count | toPrecision }}
           </td>
-          <td>
-            <div style="height: 40px; width: 500px">
-              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
-                <v-spacer/>
-                <div class="d-flex"
-                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-              </div>
+<!--          <td>-->
+<!--            <div style="height: 40px; width: 500px">-->
+<!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
+<!--                <v-spacer/>-->
+<!--                <div class="d-flex"-->
+<!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+<!--              </div>-->
 
-            </div>
-          </td>
+<!--            </div>-->
+<!--          </td>-->
 
         </tr>
         <!--        <results-table-row-->
@@ -86,7 +86,10 @@ export default {
     ActionMenuItem,
 
   },
-  props: {},
+  props: {
+      selected: String,
+
+  },
   data() {
     return {
       url,
@@ -95,6 +98,7 @@ export default {
       selectedValue: this.filterValue,
       searchString: "",
       isDialogOpen: false,
+
     }
   },
   computed: {
@@ -103,21 +107,21 @@ export default {
       "entityType",
       "resultsCount",
     ]),
-    selected: {
-      get() {
-        return this.$route.query.group_by
-      },
-      set(to) {
-        const query = {
-          ...this.$route.query,
-          group_by: to
-        }
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query
-        })
-      }
-    },
+    // selected: {
+    //   get() {
+    //     return this.$route.query.group_by
+    //   },
+    //   set(to) {
+    //     const query = {
+    //       ...this.$route.query,
+    //       group_by: to
+    //     }
+    //     url.pushToRoute(this.$router, {
+    //       name: "Serp",
+    //       query
+    //     })
+    //   }
+    // },
     selectedConfig() {
       if (!this.selected) return
       return getFacetConfig(this.entityType, this.selected)
@@ -142,7 +146,8 @@ export default {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
     },
     filterKey() {
-      return this.$route.query.group_by
+      // return this.$route.query.group_by
+      return this.selected
     },
     apiUrl() {
       return url.makeGroupByUrl(

@@ -23,49 +23,49 @@
               </span>
 
       </router-link>
-      <v-spacer />
-      <v-btn icon  @click="url.pushQueryParam('show_api', true)">
+      <v-spacer/>
+      <v-btn icon @click="url.pushQueryParam('show_api', true)">
         <v-icon>mdi-api</v-icon>
       </v-btn>
       <v-menu rounded offset-y>
-            <template v-slot:activator="{on}">
-              <v-btn
-                  icon
-                  class="elevation-0 font-weight-regular"
-                  v-on="on"
-              >
-                <v-icon>mdi-help-circle-outline</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item href="https://help.openalex.org/" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-information-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  User manual
-                  <v-icon small right class="">mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item href="https://docs.openalex.org/" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  API reference
-                  <v-icon small right class="">mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item to="help">
-                <v-list-item-icon>
-                  <v-icon>mdi-message-text-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Contact us
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              class="elevation-0 font-weight-regular"
+              v-on="on"
+          >
+            <v-icon>mdi-help-circle-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item href="https://help.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-information-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              User manual
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item href="https://docs.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              API reference
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item to="help">
+            <v-list-item-icon>
+              <v-icon>mdi-message-text-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Contact us
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <!--          <filter-bar />-->
 
 
@@ -89,31 +89,6 @@
       <entity-work v-if="sidebarData" :data="sidebarData"/>
 
     </v-navigation-drawer>
-
-
-    <!--    <v-toolbar flat >-->
-    <!--      <v-toolbar-title>-->
-    <!--        Explore works-->
-    <!--      </v-toolbar-title>-->
-    <!--      <v-spacer/>-->
-    <!--      <export-button-->
-    <!--          :disabled="!!$route.query.group_by"-->
-    <!--      />-->
-    <!--      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">-->
-    <!--        <v-icon>mdi-api</v-icon>-->
-    <!--      </v-btn>-->
-    <!--    </v-toolbar>-->
-
-
-    <!--    <filter-chips-list class="pl-3"/>-->
-
-
-    <!--    <v-tabs v-model="resultsTab">-->
-    <!--      <v-tab>List</v-tab>-->
-    <!--      <v-tab>Group</v-tab>-->
-    <!--    </v-tabs>-->
-
-    <!--    <v-divider/>-->
 
 
     <v-container class="serp-bottom-stuff" style="">
@@ -143,19 +118,40 @@
       </span>
       </div>
 
+      <div class="d-flex ma-3 px-3">
+        <v-chip
+            @click="isAnalyze = false"
+            :dark="!isAnalyze"
+        >
+          List
+        </v-chip>
+        <v-chip
+            @click="isAnalyze = true"
+            :dark="isAnalyze"
+        >
+          Analyze
+        </v-chip>
+        <v-spacer/>
+        <action action="sort"/>
+        <export-button
+            :disabled="!!$route.query.group_by"
+        />
+
+      </div>
+
 
       <div>
-        <div class="white d-flex ma-3 py-3 rounded">
-          <action action="group_by"/>
-          <action action="sort"/>
-          <action action="column"/>
-          <export-button
-              :disabled="!!$route.query.group_by"
-          />
+        <v-card rounded flat v-if="isAnalyze">
+          <v-toolbar dense flat>
+            Analytic views
+          </v-toolbar>
+          <div class="d-flex">
+          <group-by selected="type" />
+          <group-by selected="publication_year" />
+          <group-by selected="open_access.is_oa" />
 
-
-        </div>
-        <group-by v-if="$route.query.group_by"/>
+          </div>
+        </v-card>
         <serp-results-list v-else :results-object="resultsObject"/>
 
       </div>
@@ -289,6 +285,21 @@ export default {
     ]),
     isGroupBy() {
       return "group_by" in this.$route.query
+    },
+    isAnalyze: {
+      get() {
+        return !!this.$route.query.analyze
+      },
+      set(to) {
+        const analyze = (to) ? to : undefined
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            analyze,
+          },
+        })
+      }
     },
     isShowApiSet: {
       get() {
