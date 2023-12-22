@@ -12,6 +12,9 @@
                 :key="config.key"
                 :config="config"
             />
+            <th key="new-column-button">
+              <action action="column"/>
+            </th>
           </tr>
           </thead>
           <tbody>
@@ -71,10 +74,12 @@ import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/Action.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import {getFacetConfig} from "@/facetConfigs";
+import Action from "@/components/Action/Action.vue";
 
 export default {
   name: "SerpResultsList",
   components: {
+    Action,
     VueJsonPretty,
 
     ResultWork,
