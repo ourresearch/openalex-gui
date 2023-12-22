@@ -332,19 +332,10 @@ const toggleSort = function (filterKey) {
 }
 
 
-const setGroupBy = function (filterKey) {
-    pushQueryParam("group_by", filterKey)
-}
-const getGroupBy = function (route) {
-    return route.query.group_by
-}
-const toggleGroupBy = function (filterKey) {
-    const filterKeyIsAlreadySet = filterKey === getGroupBy(router.currentRoute)
-    const newKey = filterKeyIsAlreadySet ?
-        undefined :
-        filterKey
-    setGroupBy(newKey)
-}
+
+
+
+
 const setColumn = function (filterKeys) {
     pushQueryParam("column", filterKeys.join(","))
 }
@@ -367,6 +358,43 @@ const toggleColumn = function (filterKey) {
 const getColumn = function (route) {
     return route.query.column.split(",")
 }
+
+
+
+
+
+
+const getGroupBy = function (route) {
+    return route.query.group_by.split(",")
+}
+const setGroupBy = function (filterKeys) {
+    pushQueryParam("group_by", filterKeys.join(","))
+}
+const addGroupBy = function (filterKey) {
+    const extantKeys = getGroupBy(router.currentRoute)
+    const newKeys = [...extantKeys, filterKey]
+    pushQueryParam("group_by", newKeys.join(","))
+}
+const toggleGroupBy = function (filterKey) {
+    const extantKeys = getGroupBy(router.currentRoute)
+    let newKeys
+    if (extantKeys.includes(filterKey)) {
+        newKeys = extantKeys.filter(k => k !== filterKey)
+    }
+    else {
+        newKeys = [...extantKeys, filterKey]
+    }
+    pushQueryParam("group_by", newKeys.join(","))
+}
+
+
+
+
+
+
+
+
+
 
 const setActionValueKeys = function (actionName, keys) {
     console.log("url.setActionValueKeys", actionName, keys)
@@ -462,7 +490,7 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     const validQueryKeys = [
         "page",
         "filter",
-        "group_by",
+        // "group_by",
         "sort",
         "format",
     ]
@@ -562,6 +590,7 @@ const url = {
     toggleSort,
     getGroupBy,
     getColumn,
+    addGroupBy,
 
 
     setSidebar,
