@@ -1,10 +1,80 @@
 <template>
   <div class="serp-page pb-12" style="background: #F7F9FC;">
 
-    <div>
+    <v-app-bar
+        flat
+        dense
+
+        color="white"
+        class="pl-0"
+    >
+      <router-link
+          :to="{name: 'Home'}"
+          class="logo-link"
+      >
+        <img
+            src="@/assets/openalex-logo-icon-black-and-white.png"
+            class="logo-icon mr-0 colorizable"
+        />
+        <span
+            class="logo-text colorizable"
+        >
+                OpenAlex
+              </span>
+
+      </router-link>
+      <v-spacer />
+      <v-btn icon  @click="url.pushQueryParam('show_api', true)">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
+      <v-menu rounded offset-y>
+            <template v-slot:activator="{on}">
+              <v-btn
+                  icon
+                  class="elevation-0 font-weight-regular"
+                  v-on="on"
+              >
+                <v-icon>mdi-help-circle-outline</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item href="https://help.openalex.org/" target="_blank">
+                <v-list-item-icon>
+                  <v-icon>mdi-information-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  User manual
+                  <v-icon small right class="">mdi-open-in-new</v-icon>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item href="https://docs.openalex.org/" target="_blank">
+                <v-list-item-icon>
+                  <v-icon>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  API reference
+                  <v-icon small right class="">mdi-open-in-new</v-icon>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item to="help">
+                <v-list-item-icon>
+                  <v-icon>mdi-message-text-outline</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  Contact us
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
       <!--          <filter-bar />-->
 
 
+    </v-app-bar>
+    <div>
+      <serp-api-editor
+          v-if="isShowApiSet"
+          key="api-editor"
+      />
     </div>
 
     <v-navigation-drawer
@@ -53,12 +123,6 @@
         <filter-list/>
       </div>
 
-      <serp-api-editor
-          v-if="isShowApiSet"
-          class="mt-3"
-          key="api-editor"
-      />
-
 
       <!--    <v-divider class="mb-4 mt-3"/>-->
 
@@ -85,74 +149,10 @@
           <action action="group_by"/>
           <action action="sort"/>
           <action action="column"/>
-          <v-menu rounded offset-y>
-            <template v-slot:activator="{on}">
-              <v-btn
-                  rounded
-                  text
-                  class="elevation-0 font-weight-regular"
-                  v-on="on"
-              >
-                View
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item @click="url.pushQueryParam('show_api', true)">
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Show API call
-                </v-list-item-title>
-                <v-list-item-action>
-                  <v-icon v-if="!!$route.query.show_api" class="mt-2">mdi-check</v-icon>
-                </v-list-item-action>
-              </v-list-item>
-            </v-list>
-          </v-menu>
           <export-button
               :disabled="!!$route.query.group_by"
           />
-          <v-menu rounded offset-y>
-            <template v-slot:activator="{on}">
-              <v-btn
-                  rounded
-                  text
-                  class="elevation-0 font-weight-regular"
-                  v-on="on"
-              >
-                Help
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item href="https://help.openalex.org/" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-information-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  User manual
-                  <v-icon small right class="">mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item href="https://docs.openalex.org/" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  API reference
-                  <v-icon small right class="">mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item to="help">
-                <v-list-item-icon>
-                  <v-icon>mdi-message-text-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  Contact us
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
+
 
         </div>
         <group-by v-if="$route.query.group_by"/>

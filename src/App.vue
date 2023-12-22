@@ -25,62 +25,29 @@
         color="white"
         class="pl-0"
         absolute
+        v-if="$route.name !== 'Serp'"
 
 
     >
-        <!--            v-if="$route.name !== 'Home'"-->
-        <router-link
-            :to="{name: 'Home'}"
-            class="logo-link"
+      <router-link
+          :to="{name: 'Home'}"
+          class="logo-link"
+      >
+        <img
+            src="@/assets/openalex-logo-icon-black-and-white.png"
+            class="logo-icon mr-0 colorizable"
+        />
+        <span
+            class="logo-text colorizable"
         >
-          <img
-              src="@/assets/openalex-logo-icon-black-and-white.png"
-              class="logo-icon mr-0 colorizable"
-              :style="logoStyle"
-          />
-          <span
-              class="logo-text colorizable"
-              :style="logoStyle"
-          >
                 OpenAlex
               </span>
 
-        </router-link>
+      </router-link>
 
 
 
-
-<!--        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">-->
-<!--          <template v-slot:activator="{on}">-->
-<!--            <v-btn icon color="" v-on="on">-->
-<!--              <v-icon class="">mdi-cog</v-icon>-->
-<!--            </v-btn>-->
-<!--          </template>-->
-<!--          <v-list>-->
-<!--            <v-list-item @click="$store.state.isApiEditorShowing = !$store.state.isApiEditorShowing">-->
-<!--              <v-list-item-icon>-->
-<!--                <v-icon v-if="$store.state.isApiEditorShowing">mdi-check</v-icon>-->
-<!--              </v-list-item-icon>-->
-<!--              <v-list-item-content>-->
-<!--                <v-list-item-title>-->
-<!--                  Show API query-->
-<!--                </v-list-item-title>-->
-<!--              </v-list-item-content>-->
-<!--            </v-list-item>-->
-<!--          </v-list>-->
-<!--        </v-menu>-->
-
-      <v-spacer />
-
-<!--        <v-btn-->
-<!--            icon-->
-<!--            @click="isSiteNavOpen = !isSiteNavOpen"-->
-<!--            style="margin-left: -10px;"-->
-<!--        >-->
-<!--          <v-icon>mdi-menu</v-icon>-->
-<!--        </v-btn>-->
-
-
+      <v-spacer/>
 
 
     </v-app-bar>
@@ -358,13 +325,16 @@ body {
 
 .v-list-item {
   min-height: unset !important;
+
   .v-list-item__content {
     padding: 10px 0 !important;
   }
 }
+
 .v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
   margin-right: 8px;
 }
+
 .v-list-item__icon {
   margin: 5px 0;
 }
@@ -387,7 +357,7 @@ img.site-footer-logo {
   margin-top: 50px;
 }
 
-.v-tabs--icons-and-text .v-tab{
+.v-tabs--icons-and-text .v-tab {
   font-size: 12px !important;
   text-transform: capitalize;
 }
