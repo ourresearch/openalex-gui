@@ -19,7 +19,7 @@
 
 
           </template>
-          <template v-if="myConfig.id === 'column'">
+          <template v-else>
             <v-icon>mdi-plus</v-icon>
           </template>
         </v-btn>

@@ -1,10 +1,10 @@
 <template>
   <v-card flat tile class="">
     <v-card outlined rounded class="mx-3">
-      <v-toolbar dense flat dark>
-        <v-icon left style="transform: rotate(90deg)">mdi-poll</v-icon>
+      <v-toolbar dense flat >
+        <v-icon left>{{ selectedConfig.icon }}</v-icon>
         <v-toolbar-title>
-          Count by <span class="font-weight-bold">{{ selectedConfig.displayName }}</span>
+          <span class="">{{ selectedConfig.displayName }}</span>
         </v-toolbar-title>
         <v-spacer/>
         <v-btn

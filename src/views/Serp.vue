@@ -143,12 +143,17 @@
       <div>
         <v-card rounded flat v-if="isAnalyze">
           <v-toolbar dense flat>
-            Analytic views
+            <v-toolbar-title>
+              Analytic views
+            </v-toolbar-title>
+            <v-spacer/>
+<!--            <action class="" action="group_by"/>-->
           </v-toolbar>
-          <div class="d-flex">
-          <group-by selected="type" />
-          <group-by selected="publication_year" />
-          <group-by selected="open_access.is_oa" />
+          <v-divider/>
+          <div class="d-flex pt-4">
+            <group-by selected="type"/>
+            <group-by selected="publication_year"/>
+            <group-by selected="open_access.is_oa"/>
 
           </div>
         </v-card>
@@ -449,6 +454,10 @@ export default {
         if (!this.$route.query.column) url.pushQueryParam(
             "column",
             getActionDefaultsStr("column", this.$route)
+        )
+        if (!this.$route.query.group_by) url.pushQueryParam(
+            "group_by",
+            getActionDefaultsStr("group_by", this.$route)
         )
         this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)
