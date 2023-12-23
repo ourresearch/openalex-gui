@@ -87,25 +87,19 @@
         width="500"
     >
       <entity-work v-if="sidebarData" :data="sidebarData"/>
-
     </v-navigation-drawer>
 
 
     <v-container class="serp-bottom-stuff" style="">
-
-
-      <div class="py-1">
+      <div class="">
         <filter-list/>
       </div>
 
 
       <!--    <v-divider class="mb-4 mt-3"/>-->
 
-      <div class="ml-4 mt-4">
-      <span v-if="$route.query.group_by">
-<!--        About {{ listResultsCount | toPrecision }} results-->
-      </span>
-        <span v-else class="grey--text">
+      <div class="mt-6 mb-6">
+        <span class="text-h6">
         <span v-if="resultsObject?.meta.count === 0">
           No results; try modifying your filters.
         </span>
@@ -118,7 +112,7 @@
       </span>
       </div>
 
-      <div class="d-flex ma-3 px-3">
+      <div class="d-flex">
         <v-chip
             @click="isAnalyze = false"
             :dark="!isAnalyze"
@@ -132,10 +126,8 @@
           Analyze
         </v-chip>
         <v-spacer/>
-        <action action="sort"/>
-        <export-button
-            :disabled="!!$route.query.group_by"
-        />
+        <action  :disabled="isAnalyze" action="sort"/>
+        <export-button :disabled="isAnalyze" />
 
       </div>
 
@@ -147,7 +139,7 @@
               Analytic views
             </v-toolbar-title>
             <v-spacer/>
-<!--            <action class="" action="group_by"/>-->
+            <!--            <action class="" action="group_by"/>-->
           </v-toolbar>
           <v-divider/>
           <div class="d-flex pt-4">

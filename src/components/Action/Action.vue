@@ -11,7 +11,7 @@
             rounded
             v-on="on"
             class="font-weight-regular"
-            :disabled="isDisabled"
+            :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
             <v-icon left>mdi-sort-ascending</v-icon>
@@ -43,14 +43,16 @@
               @click="clickOption(key)"
           >
             <v-list-item-icon>
-              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+              <v-icon>{{ getKeyIcon(key) }}</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
             </v-list-item-content>
-            <!--            <v-icon left>mdi-check</v-icon>-->
+            <v-list-item-action>
+              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+            </v-list-item-action>
           </v-list-item>
           <v-divider/>
           <v-list-item @click="openMoreDialog">
@@ -87,14 +89,16 @@
               @click="clickOption(key)"
           >
             <v-list-item-icon>
-              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+              <v-icon>{{ getKeyIcon(key) }}</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
             </v-list-item-content>
-            <!--            <v-icon left>mdi-check</v-icon>-->
+            <v-list-item-action>
+              <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
+            </v-list-item-action>
           </v-list-item>
 
         </v-card-text>
@@ -118,6 +122,7 @@ export default {
   components: {},
   props: {
     action: String,
+    disabled: Boolean,
   },
   data() {
     return {
@@ -183,9 +188,6 @@ export default {
     myConfig() {
       return getActionConfig(this.action)
     },
-    isDisabled() {
-      return !!(["sort", "column"].includes(this.action) && this.$route.query.group_by?.length)
-    },
   },
 
   methods: {
@@ -199,6 +201,10 @@ export default {
     },
     getKeyDisplayName(key) {
       return getFacetConfig(this.entityType, key)?.displayName
+    },
+    getKeyIcon(key){
+      return getFacetConfig(this.entityType, key)?.icon
+
     },
     openMoreDialog() {
       this.isMoreDialogOpen = true

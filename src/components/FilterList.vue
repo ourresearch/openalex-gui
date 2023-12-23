@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded flat outlined class="ma-3 filter-list">
+  <v-card rounded flat outlined class=" filter-list">
     <!--    <v-toolbar flat>-->
     <!--      <v-toolbar-title>-->
     <!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
