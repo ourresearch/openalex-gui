@@ -1,26 +1,21 @@
 <template>
   <v-card rounded flat>
-    <v-toolbar dense flat>
-      <v-toolbar-title>
-        Count works by:
-      </v-toolbar-title>
-      <v-spacer/>
-      <action class="" action="group_by"/>
-    </v-toolbar>
-    <v-divider/>
-    <v-row class="pt-4">
-      <v-col
-          v-for="key in groupByKeys"
-          :key="key"
-          cols="4"
-      >
-        <group-by
-            :selected="key"
-        />
+    <v-container>
+      <v-row class="">
+        <v-col
+            v-for="key in groupByKeys"
+            :key="key"
+            cols="4"
+        >
+          <group-by
+              :selected="key"
+          />
 
-      </v-col>
+        </v-col>
 
-    </v-row>
+      </v-row>
+
+    </v-container>
   </v-card>
 </template>
 

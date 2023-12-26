@@ -7,14 +7,33 @@
           <span class="">{{ selectedConfig.displayName }}</span>
         </v-toolbar-title>
         <v-spacer/>
-        <v-btn
-            icon
-            :href="url.makeApiUrl($route, true)"
-        >
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-btn>
-        <v-btn icon @click="url.toggleGroupBy(selected)">
-          <v-icon>mdi-close</v-icon>
+        <v-menu rounded offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn
+                icon
+                v-on="on"
+                small
+            >
+              <v-icon small>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item :href="url.makeApiUrl($route, true, selected)" >
+              <v-list-item-icon>
+                <v-icon>mdi-tray-arrow-down</v-icon>
+              </v-list-item-icon>
+              Export
+            </v-list-item>
+            <v-list-item :href="url.makeApiUrl($route, false)" target="_blank">
+              <v-list-item-icon>
+                <v-icon>mdi-api</v-icon>
+              </v-list-item-icon>
+              View in API
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-btn small icon @click="url.toggleGroupBy(selected)">
+          <v-icon small>mdi-close</v-icon>
         </v-btn>
 
       </v-toolbar>
@@ -34,8 +53,8 @@
         <tr
             v-for="group in groups"
             :key="group.value"
-            @click="selectGroup(group.value)"
         >
+<!--            @click="selectGroup(group.value)"-->
           <td>
             {{ group.displayValue }}
           </td>
@@ -205,7 +224,6 @@ export default {
     ...mapActions([]),
     selectGroup(val){
       url.createFilter(this.entityType, this.filterKey, val)
-      url.setGroupBy(undefined)
     },
 
 

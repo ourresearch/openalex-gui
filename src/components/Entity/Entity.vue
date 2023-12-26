@@ -162,9 +162,9 @@
 <script>
 import {url} from "../../url";
 
-import EntityWork from "./EntityWork/EntityWork.vue";
+import EntityWork from "./EntityWork.vue";
 import EntityAuthor from "./EntityAuthor.vue";
-import EntityVenue from "./EntityVenue.vue";
+import EntityVenue from "./EntitySource.vue";
 import EntityPublisher from "./EntityPublisher.vue";
 import EntityFunder from "@/components/Entity/EntityFunder.vue";
 
