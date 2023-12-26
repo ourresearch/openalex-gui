@@ -463,7 +463,7 @@ const makeAutocompleteUrl = function (entityType, searchString) {
     return url.toString()
 }
 
-const makeApiUrl = function (currentRoute, formatCsv) {
+const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
@@ -476,8 +476,8 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     if (formatCsv) {
         query.format = "csv"
     }
-    if (currentRoute.query.group_by) {
-        query.group_by = currentRoute.query.group_by
+    if (groupBy) {
+        query.group_by = groupBy
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort
@@ -490,7 +490,7 @@ const makeApiUrl = function (currentRoute, formatCsv) {
     const validQueryKeys = [
         "page",
         "filter",
-        // "group_by",
+        "group_by",
         "sort",
         "format",
     ]

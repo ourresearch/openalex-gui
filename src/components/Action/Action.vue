@@ -6,8 +6,8 @@
     >
       <template v-slot:activator="{on}">
         <v-btn
-            text
-            :icon="myConfig.id !== 'sort'"
+            :text="myConfig.id !== 'column'"
+            :icon="myConfig.id === 'column'"
             rounded
             v-on="on"
             class="font-weight-regular"
@@ -17,9 +17,12 @@
             <v-icon left>mdi-sort-ascending</v-icon>
             {{ selectedSortConfig.displayName }}
 
-
           </template>
-          <template v-else>
+          <template v-if="myConfig.id === 'group_by'">
+            Add count
+            <v-icon right>mdi-menu-down</v-icon>
+          </template>
+          <template v-if="myConfig.id === 'column'">
             <v-icon>mdi-plus</v-icon>
           </template>
         </v-btn>

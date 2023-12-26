@@ -19,7 +19,7 @@ import goTo from 'vuetify/es5/services/goto'
 import Pricing from "../views/Pricing.vue";
 import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
-import {isOpenAlexId} from "@/util";
+import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 
 
@@ -38,21 +38,28 @@ const routes = [
     },
     {
         path: `/:entityType(${entityNames})/:entityId`,
-        redirect: to => {
-            return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {sidebar: to.params.entityId}
-            }
-        }
+        name: 'EntityPage',
+        component: EntityPage,
+        // redirect: to => {
+        //     return {
+        //         name: "Serp",
+        //         params: {entityType: "works"},
+        //         query: {sidebar: to.params.entityId}
+        //     }
+        // }
     },
     {
         path: `/:entityId([waspfic]\\d+)`,
+        name: 'EntityPageShortcut',
         redirect: to => {
+            const entityType = entityTypeFromId(to.params.entityId)
+            console.log("routes EntityPageShortcut", to.params)
             return {
-                name: "Serp",
-                params: {entityType: "works"},
-                query: {sidebar: to.params.entityId}
+                name: "EntityPage",
+                params: {
+                    entityType,
+                    entityId: to.params.entityId,
+                },
             }
         }
     },

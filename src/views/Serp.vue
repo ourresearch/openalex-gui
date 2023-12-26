@@ -126,14 +126,20 @@
           Count by
         </v-chip>
         <v-spacer/>
-        <action  :disabled="isAnalyze" action="sort"/>
-        <export-button :disabled="isAnalyze" />
+        <template v-if="isAnalyze">
+          <Action action="group_by"/>
+        </template>
+        <template v-else>
+          <action :disabled="isAnalyze" action="sort"/>
+          <export-button :disabled="isAnalyze"/>
+
+        </template>
 
       </div>
 
 
       <div>
-        <analytic-views v-if="isAnalyze" />
+        <analytic-views v-if="isAnalyze"/>
         <serp-results-list v-else :results-object="resultsObject"/>
 
       </div>
@@ -178,7 +184,7 @@ import AnalyticViews from "@/components/AnalyticViews.vue";
 import Action from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
-import EntityWork from "@/components/Entity/EntityWork/EntityWork.vue";
+import EntityWork from "@/components/Entity/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
 
 export default {

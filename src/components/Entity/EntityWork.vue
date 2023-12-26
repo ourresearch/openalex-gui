@@ -18,7 +18,7 @@
     <div class="d-flex pa-2">
       <div class="pa-3">
         <div
-            class="text-h5 "
+            class="text-h2"
             v-html="$prettyTitle(data.display_name)"
         />
         <div class="body-2 mt-2 mb-4">
@@ -219,20 +219,20 @@
 
 
 <script>
-import ConceptsList from "../../ConceptsList.vue";
-import Authorship from "../../Authorship.vue";
-import EntityIcon from "../EntityIcon.vue";
+import ConceptsList from "../ConceptsList.vue";
+import Authorship from "../Authorship.vue";
+import EntityIcon from "./EntityIcon.vue";
 
-import {createSimpleFilter} from "../../../filterConfigs";
-import LinkToSearch from "../../LinkToSearch.vue";
-import {unravel, sleep} from "../../../util";
+import {createSimpleFilter} from "../../filterConfigs";
+import LinkToSearch from "../LinkToSearch.vue";
+import {unravel, sleep} from "../../util";
 
 import {mapActions, mapMutations, mapGetters} from "vuex";
-import LinkToEntity from "../../LinkToEntity.vue";
+import LinkToEntity from "../LinkToEntity.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
-import EntityWorkSource from "@/components/Entity/EntityWork/EntityWorkSource.vue";
-import EntityWorkAuthor from "@/components/Entity/EntityWork/EntityWorkAuthor.vue";
+import EntityWorkSource from "@/components/Entity/EntityWorkSource.vue";
+import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 // import {url} from "../url";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 

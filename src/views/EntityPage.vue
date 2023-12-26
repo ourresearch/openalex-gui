@@ -10,7 +10,11 @@
       <v-icon left>mdi-arrow-left</v-icon>
       back
     </v-btn>
-    <entity :data="entityData"/>
+    <component
+        class=""
+        :is="myEntityComponentName"
+        :data="entityData"
+    />
   </v-container>
 </template>
 
@@ -18,6 +22,17 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import Entity from "@/components/Entity/Entity.vue";
+import EntityWork from "@/components/Entity/EntityWork.vue";
+import EntityAuthor from "@/components/Entity/EntityAuthor.vue";
+import EntitySource from "@/components/Entity/EntitySource.vue";
+import EntityPublisher from "@/components/Entity/EntityPublisher.vue";
+import EntityFunder from "@/components/Entity/EntityFunder.vue";
+import EntityInstitution from "@/components/Entity/EntityInstitution.vue";
+import EntityConcept from "@/components/Entity/EntityConcept.vue";
+
+
+
+
 import {api} from "@/api";
 
 export default {
@@ -27,6 +42,13 @@ export default {
   },
   components: {
     Entity,
+    EntityWork,
+    EntityAuthor,
+    EntitySource,
+    EntityPublisher,
+    EntityFunder,
+    EntityInstitution,
+    EntityConcept,
   },
   props: {},
   data() {
@@ -47,6 +69,12 @@ export default {
       "userEmailAlerts",
       "userSavedSearches",
     ]),
+    myEntityComponentName() {
+      return "entity-" + this.$pluralize(
+          this.$route.params.entityType,
+          1
+      )
+    },
     apiPath() {
       return [
         this.$route.params.entityType,
