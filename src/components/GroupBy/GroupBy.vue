@@ -13,22 +13,23 @@
         >
           <v-icon>mdi-tray-arrow-down</v-icon>
         </v-btn>
-        <v-btn icon @click="url.setGroupBy(undefined)">
+        <v-btn icon @click="url.toggleGroupBy(selected)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
 
       </v-toolbar>
-      <table v-if="selected" class="serp-results-table ">
-        <thead>
-        <tr>
-          <th class="py-2">
-            {{ selectedConfig.displayName }}
-          </th>
-          <th class="pa-2">Works count</th>
-          <th></th>
+      <v-divider />
+      <table v-if="selected" class="serp-results-table " style="width: 100%;">
+<!--        <thead>-->
+<!--        <tr>-->
+<!--          <th class="py-2">-->
+<!--            {{ selectedConfig.displayName }}-->
+<!--          </th>-->
+<!--          <th class="pa-2">Works count</th>-->
+<!--          <th></th>-->
 
-        </tr>
-        </thead>
+<!--        </tr>-->
+<!--        </thead>-->
         <tbody>
         <tr
             v-for="group in groups"
@@ -192,7 +193,7 @@ export default {
 
 
       this.isLoading = false
-      return ret
+      return ret.slice(0,5)
     }
   },
 

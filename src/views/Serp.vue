@@ -123,7 +123,7 @@
             @click="isAnalyze = true"
             :dark="isAnalyze"
         >
-          Analyze
+          Count by
         </v-chip>
         <v-spacer/>
         <action  :disabled="isAnalyze" action="sort"/>
@@ -133,22 +133,7 @@
 
 
       <div>
-        <v-card rounded flat v-if="isAnalyze">
-          <v-toolbar dense flat>
-            <v-toolbar-title>
-              Analytic views
-            </v-toolbar-title>
-            <v-spacer/>
-            <!--            <action class="" action="group_by"/>-->
-          </v-toolbar>
-          <v-divider/>
-          <div class="d-flex pt-4">
-            <group-by selected="type"/>
-            <group-by selected="publication_year"/>
-            <group-by selected="open_access.is_oa"/>
-
-          </div>
-        </v-card>
+        <analytic-views v-if="isAnalyze" />
         <serp-results-list v-else :results-object="resultsObject"/>
 
       </div>
@@ -188,6 +173,7 @@ import GroupBy from "../components/GroupBy/GroupBy.vue";
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import FilterList from "@/components/FilterList.vue";
+import AnalyticViews from "@/components/AnalyticViews.vue";
 
 import Action from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
@@ -212,6 +198,7 @@ export default {
 
     ExportButton,
     GroupBy,
+    AnalyticViews,
 
     EntityWork,
 
