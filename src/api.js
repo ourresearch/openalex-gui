@@ -202,7 +202,6 @@ const api = (function () {
                 filterKey,
                 options,
             )
-            console.log("api.getGroups() myUrl", myUrl)
 
             const resp = await axios.get(myUrl)
             const filteredGroups = resp.data.group_by.filter(g => {
