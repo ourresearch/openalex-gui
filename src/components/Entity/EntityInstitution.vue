@@ -1,85 +1,78 @@
 <template>
-  <div class="pa-3">
+  <div class="">
+    <v-container>
+      <v-row>
+        <v-col>
+          <div class="text-h2">
+            {{ data.display_name }}
+          </div>
+          <div class="d-inline-flex align-baseline">
+            <v-icon  left>{{ entityConfig.icon }}</v-icon>
+            {{ data.type |capitalize }} institution in {{ locationStr }}
+            <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none ml-2"> (map).</a>
+          </div>
+          <div class="d-flex mt-6 align-center">
+            <v-btn
+                :to="data.id | entityWorksLink"
+                color="primary"
+                class="mr-3"
+                rounded
+            >
+              Affiliated works
+            </v-btn>
+            <link-entity-roles-list :roles="data.roles" hide-role="institution" />
+            <v-btn
+                :href="data.homepage_url"
+                v-if="data.homepage_url"
+                icon
+                target="_blank"
+            >
+              <v-icon small class="mt-1">mdi-open-in-new</v-icon>
+            </v-btn>
 
-    <div class="data-row" v-if="data.roles.length">
-        <span class="font-weight-bold">
-          Other roles:
-        </span>
-      <link-entity-roles-list
-          :roles="data.roles"
-          hide-role="institution"
-      />
-    </div>
+          </div>
 
-    <div class="data-row">
-        <span class="font-weight-bold">
-          Location:
-        </span>
-      <span>
-<!--          <flag-->
-        <!--              :squared="false"-->
-        <!--              :iso="data.country_code"-->
-        <!--              style="height:12px;-->
-        <!--              vertical-align: -2px;-->
-        <!--              margin-right: 1px;"-->
-        <!--              v-if="data.country_code"-->
-        <!--          />-->
-          {{ locationStr }}
-          <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none caption">(map)</a>
-        </span>
-    </div>
-    <div class="data-row" v-if="data.x_concepts.length">
-        <span class="font-weight-bold">
-          Key topics:
-        </span>
-      <span>
-          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
-        </span>
-    </div>
-
-    <div class="data-row" v-if="data.repositories.length">
-        <span class="font-weight-bold">
-          Repositories:
-        </span>
-      <span>
-          <link-repository
-              v-for="(repo, i) in data.repositories"
-              :key="repo.id" class="text-decoration-none"
-              :repository="repo"
-              :append-comma="i < data.repositories.length - 1 "
-          />
-        </span>
-    </div>
+        </v-col>
+      </v-row>
 
 
-    <!--      <div class="data-row"  v-if="data.associated_institutions.length">-->
-    <!--        <span class="font-weight-bold">-->
-    <!--          Associated:-->
-    <!--        </span>-->
-    <!--        <span>-->
-    <!--            <span-->
-    <!--                v-for="institution in data.associated_institutions"-->
-    <!--                :key="institution.id"-->
-    <!--            >-->
-    <!--              <a :href="institution.id | idLink" class="text-decoration-none">-->
-    <!--                {{ institution.display_name }}-->
-    <!--              </a> ({{ institution.relationship }})-->
-    <!--            </span>-->
-    <!--        </span>-->
+    </v-container>
 
-    <!--    <div class="data-row">-->
-    <!--        <span class="font-weight-bold pt-6">-->
-    <!--          Works:-->
-    <!--        </span>-->
-    <!--      <span class="pt-6">-->
-    <!--          <link-to-search-->
-    <!--              :count="data.works_count"-->
-    <!--              filter-key="authorships.institutions.id"-->
-    <!--              :filter-value="data.id"-->
-    <!--              entity-type="works"-->
-    <!--          />-->
-    <!--        </span>-->
-    <!--    </div>-->
+
+
+
+<!--    <div class="data-row" v-if="data.roles.length">-->
+<!--        <span class="font-weight-bold">-->
+<!--          Other roles:-->
+<!--        </span>-->
+<!--      <link-entity-roles-list-->
+<!--          :roles="data.roles"-->
+<!--          hide-role="institution"-->
+<!--      />-->
+<!--    </div>-->
+<!--    <div class="data-row" v-if="data.x_concepts.length">-->
+<!--        <span class="font-weight-bold">-->
+<!--          Key topics:-->
+<!--        </span>-->
+<!--      <span>-->
+<!--          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>-->
+<!--        </span>-->
+<!--    </div>-->
+
+<!--    <div class="data-row" v-if="data.repositories.length">-->
+<!--        <span class="font-weight-bold">-->
+<!--          Repositories:-->
+<!--        </span>-->
+<!--      <span>-->
+<!--          <link-repository-->
+<!--              v-for="(repo, i) in data.repositories"-->
+<!--              :key="repo.id" class="text-decoration-none"-->
+<!--              :repository="repo"-->
+<!--              :append-comma="i < data.repositories.length - 1 "-->
+<!--          />-->
+<!--        </span>-->
+<!--    </div>-->
+
 
 
   </div>
@@ -97,6 +90,7 @@ import LinkToSearch from "../LinkToSearch.vue";
 import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 import LinkRepository from "@/components/LinkRepository.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
+import {getEntityConfig} from "@/entityConfigs";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -132,6 +126,9 @@ export default {
         countryResult.country,
       ].filter(x => x)
       return locArr.join(", ")
+    },
+    entityConfig(){
+      return getEntityConfig("institution")
     },
     mapLink() {
       if (!this.data.geo.latitude || !this.data.geo.longitude) return

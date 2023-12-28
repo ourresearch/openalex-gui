@@ -1,57 +1,52 @@
 <template>
-  <div class="pa-3">
-    <div class="data-row" v-if="data.roles.length">
-        <span class="font-weight-bold">
-          Other roles:
-        </span>
-      <link-entity-roles-list
-          :roles="data.roles"
-          hide-role="funder"
-      />
-    </div>
+  <div class="">
+    <v-container>
+      <v-row>
+        <v-col>
+          <div class="body-2">
 
-    <div class="data-row" v-if="data.description">
-        <span class="font-weight-bold">
-          About:
-        </span>
-      <span class="">{{ capitalizedDescription }}
-        </span>
-    </div>
+          </div>
+          <div class="text-h2">
+            {{ data.display_name }}
+          </div>
+          <div class="d-inline-flex align-baseline">
+            <v-icon left>{{ getEntityConfig('funder').icon }}</v-icon>
+            Research funder
+          </div>
+          <div class="d-flex mt-6">
+            <v-btn
+                :to="data.id | entityWorksLink"
+                color="primary"
+                class="mr-3"
+                rounded
+            >
+              Funded works
+            </v-btn>
+            <link-entity-roles-list :roles="data.roles" hide-role="funder" />
+            <v-btn
+                :href="data.homepage_url"
+                v-if="data.homepage_url"
+                icon
+                target="_blank"
+            >
+              <v-icon>mdi-open-in-new</v-icon>
+            </v-btn>
 
-    <div class="data-row">
-        <span class="font-weight-bold">
-          Location:
-        </span>
-      <span>
-<!--          <flag-->
-        <!--              :squared="false"-->
-        <!--              :iso="data.country_code"-->
-        <!--              style="height:12px;-->
-        <!--              vertical-align: -2px;-->
-        <!--              margin-right: 1px;"-->
-        <!--              v-if="data.country_code"-->
-        <!--          />-->
-          {{ locationStr }}
-        </span>
-    </div>
+          </div>
 
-    <!--    <div class="data-row" v-if="data.x_concepts.length">-->
-    <!--        <span class="font-weight-bold">-->
-    <!--          Key topics:-->
-    <!--        </span>-->
-    <!--      <span>-->
-    <!--          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>-->
-    <!--        </span>-->
-    <!--    </div>-->
+        </v-col>
+      </v-row>
+
+
+    </v-container>
   </div>
-
-
 </template>
 
 
 <script>
 import ConceptsList from "../ConceptsList.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
+import {getEntityConfig} from "../../entityConfigs";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -70,7 +65,7 @@ export default {
       foo: 42,
     }
   },
-  methods: {},
+  methods: {getEntityConfig},
   computed: {
     locationStr() {
       const countryResult = countryCodeLookup.byIso(this.data.country_code)

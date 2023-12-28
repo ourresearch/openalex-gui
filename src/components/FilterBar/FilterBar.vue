@@ -1,6 +1,7 @@
 <template>
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
-<!--    {{ focusNumberLine }}-->
+    <!--    {{ focusNumberLine }}-->
+
     <v-text-field
         hide-details
         v-model="searchString"
@@ -19,12 +20,26 @@
     <v-card
         style="position: absolute; width: 100%;"
         v-if="searchString.length"
+        class="filter-bar-suggestions"
     >
-      <filter-bar-suggestions
-          :search-string="searchString"
-          @submit="searchString = ''"
-          :focus-number-line="focusNumberLine"
-      />
+      <div
+          v-for="(suggestion, i) in autocompleteSuggestions"
+          :key="i"
+          class="py-2 px-2 suggestion d-flex"
+          :class="{'has-focus': myFocusIndex === i}"
+          @click="clickSuggestion(suggestion.id)"
+      >
+        <div>
+          <v-icon left>{{ suggestion.icon }}</v-icon>
+        </div>
+        <div>
+          <div class="">
+            {{ suggestion.display_name }}
+          </div>
+          <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint}}</div>
+        </div>
+      </div>
+
     </v-card>
   </div>
 </template>
@@ -45,7 +60,9 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
-import {shortenOpenAlexId} from "@/util";
+import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+
+
 
 export default {
   name: "Template",
@@ -66,6 +83,7 @@ export default {
       url,
       activeFilterKey: null,
       focusNumberLine: 0,
+      myFocusIndex: 0,
     }
   },
   computed: {
@@ -97,6 +115,55 @@ export default {
       return (this.filters.length) ?
           "+" :
           "search"
+    },
+
+  },
+  asyncComputed: {
+    async autocompleteSuggestions() {
+      if (!this.searchString) return []
+
+
+      const myEntityType = (this.entityType === "works") ?
+          null :
+          this.entityType
+      const autocompleteUrl = url.makeAutocompleteUrl(myEntityType, this.searchString)
+      const resp = await api.getUrl(autocompleteUrl)
+
+
+
+      const ret = resp.results
+          .filter(r => !!r.id)
+          .map(result => {
+            const entityConfig = getEntityConfig(result.entity_type)
+
+            let hint
+            if (result.hint) {
+              if (entityConfig.name === "works") hint = "Work by " + result.hint
+              else if (entityConfig.name === "authors") hint = "Author at " + result.hint
+              else if (entityConfig.name === "sources") hint = "Journal published by " + result.hint
+              else if (entityConfig.name === "institutions") hint = "Institution in " + result.hint
+              else if (entityConfig.name === "concepts") hint = result.hint
+              else hint = _.capitalize(entityConfig.displayNameSingular)
+            }
+            else {
+              hint = _.capitalize(entityConfig.displayNameSingular)
+            }
+
+
+            return {
+              ...result,
+              icon: entityConfig.icon,
+              hint
+
+            }
+          })
+      const everySuggestionIsAWork = ret.every(f => f.entity_type === "work")
+      const cleaned = everySuggestionIsAWork ?
+          ret.slice(0, 3) :
+          ret.filter(r => r.entity_type !== "work").slice(0, 5)
+
+      return cleaned
+
     }
   },
 
@@ -105,6 +172,17 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    clickSuggestion(id) {
+      const entityId = shortenOpenAlexId(id)
+      const entityType = entityTypeFromId(entityId)
+      this.$router.push({
+        name: "EntityPage",
+        params: {
+          entityType,
+          entityId,
+        },
+      })
+    },
     upsertFilter(newValue) {
       url.upsertFilter(this.entityType, this.activeFilterKey, newValue)
       if (this.activeFilterConfig.type !== "select") {
@@ -152,18 +230,18 @@ export default {
       url.deleteAllFilters()
 
     },
-    onBlur(){
-      setTimeout(()=> {
+    onBlur() {
+      setTimeout(() => {
         this.searchString = ""
       })
     },
-    onUpArrow(){
+    onUpArrow() {
       console.log("up arrow")
-      this.focusNumberLine --
+      this.focusNumberLine--
     },
-    onDownArrow(){
+    onDownArrow() {
       console.log("down arrow")
-      this.focusNumberLine ++
+      this.focusNumberLine++
     },
 
 
@@ -190,6 +268,17 @@ export default {
 </script>
 
 <style lang="scss">
+.filter-bar-suggestions {
+  .suggestion {
+    cursor: default;
+    line-height: 1;
+
+    &:hover {
+      background: #fafafa;
+    }
+  }
+}
+
 .filter-bar {
   .v-text-field--rounded > .v-input__control > .v-input__slot {
     //padding: 0 !important;

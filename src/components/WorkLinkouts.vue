@@ -3,17 +3,17 @@
 
 
           <!--   HTML at repository, paywalled at publisher -->
-          <v-btn
-              :href="htmlUrl"
-              target="_blank"
-              color="primary"
-              class="mr-3"
-              icon
-              rounded
-              v-if="isGreenOa && !pdfUrl"
-          >
-            <v-icon>mdi-file-document</v-icon>
-          </v-btn>
+<!--          <v-btn-->
+<!--              :href="htmlUrl"-->
+<!--              target="_blank"-->
+<!--              color="primary"-->
+<!--              class="mr-3"-->
+<!--              icon-->
+<!--              rounded-->
+<!--              v-if="isGreenOa && !pdfUrl"-->
+<!--          >-->
+<!--            <v-icon>mdi-file-document</v-icon>-->
+<!--          </v-btn>-->
 
 
           <!--   PDF anywhere -->
@@ -22,33 +22,44 @@
               target="_blank"
               color="primary"
               class="mr-3"
-              icon
               v-if="pdfUrl"
+              rounded
           >
-            <v-icon >mdi-file-pdf-box</v-icon>
-          </v-btn>
-
-          <!--   HTML  at publisher -->
-          <v-btn
-              :href="htmlUrl"
-              target="_blank"
-              color="primary"
-              icon
-              v-if="isOaAtPublisher"
-          >
-            <v-icon>mdi-file-document</v-icon>
+            <v-icon left>mdi-file-pdf-box</v-icon>
+            PDF
           </v-btn>
 
 
-          <!--   Paywalled at publisher-->
+<!--       generic linkout -->
           <v-btn
               :href="data.primary_location.landing_page_url"
               target="_blank"
               icon
-              v-if="!isOaAtPublisher"
           >
-            <v-icon>mdi-lock-outline</v-icon>
+            <v-icon>mdi-open-in-new</v-icon>
           </v-btn>
+
+          <!--   HTML  at publisher -->
+<!--          <v-btn-->
+<!--              :href="htmlUrl"-->
+<!--              target="_blank"-->
+<!--              color="primary"-->
+<!--              icon-->
+<!--              v-if="isOaAtPublisher"-->
+<!--          >-->
+<!--            <v-icon>mdi-file-document</v-icon>-->
+<!--          </v-btn>-->
+
+
+          <!--   Paywalled at publisher-->
+<!--          <v-btn-->
+<!--              :href="data.primary_location.landing_page_url"-->
+<!--              target="_blank"-->
+<!--              icon-->
+<!--              v-if="!isOaAtPublisher"-->
+<!--          >-->
+<!--            <v-icon>mdi-lock-outline</v-icon>-->
+<!--          </v-btn>-->
 
         </div>
 </template>
