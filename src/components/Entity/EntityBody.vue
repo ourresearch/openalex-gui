@@ -41,7 +41,7 @@
       </v-row>
 
       <v-row class="mt-9">
-        <v-col cols="4" v-if="alternateNamesString">
+        <v-col cols="3" v-if="alternateNamesString">
           <v-card flat rounded outlined>
             <v-card-title>
               Alternate names
@@ -52,7 +52,7 @@
 
           </v-card>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="3">
           <v-card flat rounded outlined>
             <v-card-title>
               Metrics
@@ -76,6 +76,16 @@
         </v-col>
 
 
+        <v-col cols="2">
+          <v-card flat rounded outlined>
+            <v-card-title>
+              Links
+            </v-card-title>
+            <id-list :data="data.ids"></id-list>
+          </v-card>
+        </v-col>
+
+
       </v-row>
 
 
@@ -89,11 +99,13 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getEntityConfig} from "@/entityConfigs";
 import {entityTypeFromId} from "@/util";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
+import IdList from "@/components/IdList.vue";
 
 export default {
   name: "Template",
   components: {
-    LinkEntityRolesList
+    LinkEntityRolesList,
+    IdList,
 
   },
   props: {
