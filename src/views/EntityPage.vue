@@ -1,19 +1,27 @@
 <template>
   <v-container>
-    <v-btn
-        color="primary"
-        rounded
-        class="my-2"
-        text
-        @click="$router.back()"
-    >
-      <v-icon left>mdi-arrow-left</v-icon>
-      back
-    </v-btn>
+    <div class="d-flex">
+      <v-btn
+          color="primary"
+          rounded
+          class="my-2"
+          text
+          @click="$router.back()"
+      >
+        <v-icon left>mdi-arrow-left</v-icon>
+        back
+      </v-btn>
+      <v-spacer />
+      <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
+
+    </div>
     <component
         class=""
         :is="myEntityComponentName"
         :data="entityData"
+        v-if="isDataMatchingId"
     />
   </v-container>
 </template>
@@ -31,9 +39,8 @@ import EntityInstitution from "@/components/Entity/EntityInstitution.vue";
 import EntityConcept from "@/components/Entity/EntityConcept.vue";
 
 
-
-
 import {api} from "@/api";
+import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 export default {
   name: "EntityPage",
@@ -80,7 +87,12 @@ export default {
         this.$route.params.entityType,
         this.$route.params.entityId
       ].join("/")
-    }
+    },
+    isDataMatchingId(){
+      const loadedId = shortenOpenAlexId(this.entityData?.id)
+      const requestedId = this.$route.params.entityId
+      return loadedId === requestedId
+    },
   },
 
   methods: {

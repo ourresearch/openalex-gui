@@ -6,11 +6,11 @@ import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
-import {idsAreEqual, setOrDelete} from "./util";
+import {idsAreEqual, setOrDelete, shortenOpenAlexId} from "./util";
 import {url} from "./url"
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
-import {createSimpleFilterFromPid} from "./filterConfigs";
+import {createFilterId, createSimpleFilterFromPid} from "./filterConfigs";
 
 import _ from 'lodash'
 
@@ -32,15 +32,20 @@ const VueTruncate = require('vue-truncate-filter')
 Vue.use(VueTruncate)
 
 import FlagIcon from 'vue-flag-icon'
+
 Vue.use(FlagIcon);
 
 import VuePluralize from 'vue-pluralize'
+
 Vue.use(VuePluralize)
 
 import VueShortkey from 'vue-shortkey'
+
 Vue.use(VueShortkey)
 
 import AsyncComputed from 'vue-async-computed'
+import {getEntityConfig} from "@/entityConfigs";
+
 Vue.use(AsyncComputed)
 
 
@@ -51,15 +56,33 @@ Vue.filter("idLink", function (fullId) {
     return `/${myEntityType}/${shortId}`
 })
 
+Vue.filter("entityWorksLink", function (id) {
+    if (!id) return
+    const myEntityType = entityTypeFromId(id)
+    const shortId = shortenOpenAlexId(id)
+    const filterKey = getEntityConfig(myEntityType)?.filterKey
+
+    return {
+        name: "Serp",
+        params: {
+            entityType: "works",
+        },
+        query: {
+            filter: createFilterId(filterKey, shortId)
+        }
+    }
+})
+
 
 Vue.filter("entityZoomLink", function (id) {
     if (!id) return
-    const shortId = id.replace("https://openalex.org/", "")
+    const entityId = shortenOpenAlexId(id)
+    const entityType = entityTypeFromId(entityId)
     return {
         name: "EntityPage",
         params: {
-            entityType: entityTypeFromId(shortId),
-            entityId: shortId,
+            entityType,
+            entityId,
         },
     }
 });
@@ -81,13 +104,14 @@ Vue.filter("zoomLink", function (fullId) {
 });
 
 
-
-
-
 Vue.filter("toPrecision", function (number, precision = 4) {
     return toPrecision(number, precision)
 });
 
+
+Vue.filter("capitalize", function (str) {
+    return _.capitalize(str)
+});
 
 
 Vue.filter("prettyName", function (name) {

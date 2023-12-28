@@ -1,6 +1,5 @@
 <template>
   <div class="serp-page pb-12" style="background: #F7F9FC;">
-
     <v-app-bar
         flat
         dense

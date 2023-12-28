@@ -1,61 +1,145 @@
 <template>
   <!--  <div class="entity-zoom-container">-->
-  <v-card flat class="" min-height="100vh">
-    <v-alert type="error" prominent v-if="data.is_retracted">
-      <v-row align="center">
-        <v-col class="grow">
-          This work has been <strong>retracted.</strong>
+  <div>
 
-        </v-col>
-        <v-col class="shrink">
-          <v-btn icon href="https://en.wikipedia.org/wiki/Retraction_in_academic_publishing" target="_blank">
-            <v-icon>mdi-information-outline</v-icon>
-          </v-btn>
+  <v-container v-if="data" flat class="" min-height="100vh">
+    <v-row>
+      <v-col>
+        <v-alert type="error" prominent v-if="data.is_retracted">
+          <v-row align="center">
+            <v-col class="grow">
+              This work has been <strong>retracted.</strong>
 
-        </v-col>
-      </v-row>
-    </v-alert>
-    <div class="d-flex pa-2">
-      <div class="pa-3">
-        <div
-            class="text-h2"
-            v-html="$prettyTitle(data.display_name)"
-        />
-        <div class="body-2 mt-2 mb-4">
-          <span v-if="data.publication_year">{{ data.publication_year }} </span>
-          <span>{{ data.type }}</span>
-          <span class="mx-1">by</span>
-          <work-authors-string :authorships="data.authorships"/>
-          <span v-if="data?.primary_location?.source?.display_name">in {{ data.primary_location.source.display_name }}. </span>
+            </v-col>
+            <v-col class="shrink">
+              <v-btn icon href="https://en.wikipedia.org/wiki/Retraction_in_academic_publishing" target="_blank">
+                <v-icon>mdi-information-outline</v-icon>
+              </v-btn>
+
+            </v-col>
+          </v-row>
+        </v-alert>
+        <div class="d-flex">
+          <div class="">
+            <div
+                class="text-h2"
+                v-html="$prettyTitle(data.display_name)"
+            />
+            <div class="mt-2 mb-4">
+              <span v-if="data.publication_year">{{ data.publication_year }} </span>
+              <span>{{ data.type }}</span>
+              <span class="mx-1">by</span>
+              <work-authors-string :authorships="data.authorships"/>
+              <span v-if="data?.primary_location?.source?.display_name"> in
+            <router-link :to="data.primary_location.source.id | entityZoomLink">
+              {{ data.primary_location.source.display_name }}.
+            </router-link>
+             </span>
+
+            </div>
+
+          </div>
+
+
+        </div>
+        <div class="d-flex">
+          <work-linkouts :data="data"/>
         </div>
 
-      </div>
+      </v-col>
+    </v-row>
+    <v-row class="mt-8">
+      <!--        <v-col cols="4" v-if="abstract">-->
+      <!--          -->
+      <!--        </v-col>-->
 
 
-    </div>
-    <div class="d-flex px-3">
-      <work-linkouts :data="data"/>
-      <v-btn
-          icon
-          :href="apiUrl"
-          target="_blank"
-      >
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
-      <entity-ids-menu-item :ids="data.ids"/>
+      <v-col cols="8">
+        <!-- AUTHORS -->
+        <v-card rounded flat color="#E9F2FB">
+          <v-card-title>
+            Authors
+          </v-card-title>
+          <v-list color="#E9F2FB">
+            <entity-work-author
+                v-for="author in data.authorships"
+                :key="author.id"
+                :author="author"
+            />
 
-    </div>
-    <v-divider/>
-    <v-card outlined class="ma-1">
-      <v-card-title>
-        Citations
-      </v-card-title>
-      <div class="pa-4 pt-0">
-        <div class="mt-3">
+          </v-list>
+        </v-card>
+        <v-card rounded flat color="#E9F2FB" class="mt-3">
+          <v-card-title>
+            Versions
+          </v-card-title>
+          <v-list color="#E9F2FB">
+
+            <entity-work-source
+                v-for="(loc, i) in data.locations"
+                :loc="loc"
+                :is-canonical="loc.landing_page_url === primaryLocationUrl"
+                :key="i"
+            />
+
+          </v-list>
+        </v-card>
+      </v-col>
+
+
+      <!-- CITATIONS STUFF -->
+      <v-col cols="4">
+        <v-row>
+          <v-col cols="6">
+            <v-card rounded flat color="#E9F2FB" class=text-right>
+              <div class="pa-3 pb-0">
+                Cited by
+              </div>
+              <div class="text-h3 pa-3">
+                {{ data.cited_by_count }}
+              </div>
+            </v-card>
+          </v-col>
+          <v-col cols="6">
+            <v-card rounded flat color="#E9F2FB" class="pa-4">
+              <span class="font-weight-bold">{{ data.referenced_works.length }}</span>
+              outgoing references
+            </v-card>
+            <v-card rounded flat color="#E9F2FB" class="pa-4 mt-2">
+              <span class="font-weight-bold">{{ data.related_works.length }}</span>
+              related works
+            </v-card>
+          </v-col>
+        </v-row>
+        <v-row v-if="abstract">
+          <v-card rounded flat color="#E9F2FB">
+            <v-card-title>
+              Abstract
+            </v-card-title>
+            <v-card-text>
+              {{ abstract }}
+            </v-card-text>
+          </v-card>
+        </v-row>
+      </v-col>
+
+      <!-- VERSIONS STUFF -->
+
+
+    </v-row>
+
+  </v-container>
+
+  <v-card v-if="0" outlined class="ma-1">
+    <v-card-title>
+      Citations
+    </v-card-title>
+    <div class="pa-4 pt-0">
+      <div class="mt-3">
         <span class="pt-6 font-weight-bold">
           <span>Cited by: </span>
         </span>
-          <span class="pt-6">
+        <span class="pt-6">
           <link-to-search
               :count="data.cited_by_count"
               entity-type="works"
@@ -63,14 +147,14 @@
               :filter-value="data.id"
           />
         </span>
-        </div>
+      </div>
 
-        <!--    References  -->
-        <div>
+      <!--    References  -->
+      <div>
         <span class="font-weight-bold">
           <span>Cites: </span>
         </span>
-          <span class="">
+        <span class="">
           <link-to-search
               :count="data.referenced_works.length"
               entity-type="works"
@@ -78,13 +162,13 @@
               :filter-value="data.id"
           />
         </span>
-        </div>
-        <!--    Related works  -->
-        <div>
+      </div>
+      <!--    Related works  -->
+      <div>
         <span class="font-weight-bold">
           <span>Related: </span>
         </span>
-          <span class="">
+        <span class="">
           <link-to-search
               :count="data.related_works.length"
               entity-type="works"
@@ -92,127 +176,102 @@
               :filter-value="data.id"
           />
         </span>
-        </div>
-      </div>
-    </v-card>
-
-
-    <v-card outlined class="ma-1">
-      <v-card-title>
-        Authors
-      </v-card-title>
-      <v-list>
-        <entity-work-author
-            v-for="author in data.authorships"
-            :key="author.id"
-            :author="author"
-        />
-
-      </v-list>
-    </v-card>
-
-
-    <v-card outlined class="ma-1">
-      <v-card-title>
-        Versions
-      </v-card-title>
-      <v-list class="pa-0">
-
-        <entity-work-source
-            v-for="(loc, i) in data.locations"
-            :loc="loc"
-            :is-canonical="loc.landing_page_url === primaryLocationUrl"
-            :key="i"
-        />
-      </v-list>
-    </v-card>
-
-
-    <v-card v-if="abstract" outlined class="ma-1">
-      <v-card-title>
-        Abstract
-      </v-card-title>
-      <v-card-text>
-        {{ abstract }}
-      </v-card-text>
-    </v-card>
-
-
-    <div class="padded-part pa-4">
-
-      <!--      <v-alert v-if="authorshipsToShow >= 100" type="warning" dense text>-->
-
-      <!--        <strong>More than 100 authors.</strong> Only the top 100 are shown below.-->
-      <!--      </v-alert>-->
-
-
-      <div class="">
-
-
-        <!--    Author list-->
-
-
-        <!--    Concepts list-->
-        <!--        <div v-if="data.concepts.length">-->
-        <!--        <span class="font-weight-bold">-->
-        <!--          Concepts:-->
-        <!--        </span>-->
-        <!--          <span>-->
-        <!--          <concepts-list :concepts="data.concepts" :is-clickable="true"/>-->
-        <!--        </span>-->
-        <!--        </div>-->
-
-
       </div>
     </div>
-
-
-    <v-expansion-panels flat accordion multiple>
-
-      <v-expansion-panel v-if="data.grants && data.grants.length">
-        <v-divider/>
-        <v-expansion-panel-header>
-          Funders <span class="caption ml-1">({{ data.grants.length }})</span>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content class="body-1">
-          <v-list nav dense class="pa-0">
-            <v-list-item
-                v-for="(grant, i) in data.grants"
-                :key="i"
-                two-line
-            >
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ grant.funder_display_name }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ grant.award_id }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-
-            </v-list-item>
-          </v-list>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-
-
-      <!--      <v-expansion-panel>-->
-      <!--        <v-divider/>-->
-      <!--        <v-expansion-panel-header>-->
-      <!--          Locations <span class="caption ml-1">({{ data.locations.length }})</span>-->
-      <!--        </v-expansion-panel-header>-->
-      <!--        <v-expansion-panel-content>-->
-      <!--          -->
-      <!--        </v-expansion-panel-content>-->
-      <!--      </v-expansion-panel>-->
-
-    </v-expansion-panels>
-
-    <!--  <pre>-->
-    <!--    {{ data.locations }}-->
-    <!--  </pre>-->
-
   </v-card>
+
+
+  <!--    <v-card outlined class="ma-1">-->
+  <!--      <v-card-title>-->
+  <!--        Versions-->
+  <!--      </v-card-title>-->
+  <!--      <v-list class="pa-0">-->
+
+  <!--        <entity-work-source-->
+  <!--            v-for="(loc, i) in data.locations"-->
+  <!--            :loc="loc"-->
+  <!--            :is-canonical="loc.landing_page_url === primaryLocationUrl"-->
+  <!--            :key="i"-->
+  <!--        />-->
+  <!--      </v-list>-->
+  <!--    </v-card>-->
+
+
+  <div class="padded-part pa-4">
+
+    <!--      <v-alert v-if="authorshipsToShow >= 100" type="warning" dense text>-->
+
+    <!--        <strong>More than 100 authors.</strong> Only the top 100 are shown below.-->
+    <!--      </v-alert>-->
+
+
+    <div class="">
+
+
+      <!--    Author list-->
+
+
+      <!--    Concepts list-->
+      <!--        <div v-if="data.concepts.length">-->
+      <!--        <span class="font-weight-bold">-->
+      <!--          Concepts:-->
+      <!--        </span>-->
+      <!--          <span>-->
+      <!--          <concepts-list :concepts="data.concepts" :is-clickable="true"/>-->
+      <!--        </span>-->
+      <!--        </div>-->
+
+
+    </div>
+  </div>
+
+
+  <v-expansion-panels flat accordion multiple>
+
+    <v-expansion-panel v-if="data.grants && data.grants.length">
+      <v-divider/>
+      <v-expansion-panel-header>
+        Funders <span class="caption ml-1">({{ data.grants.length }})</span>
+      </v-expansion-panel-header>
+      <v-expansion-panel-content class="body-1">
+        <v-list nav dense class="pa-0">
+          <v-list-item
+              v-for="(grant, i) in data.grants"
+              :key="i"
+              two-line
+          >
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ grant.funder_display_name }}
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                {{ grant.award_id }}
+              </v-list-item-subtitle>
+            </v-list-item-content>
+
+          </v-list-item>
+        </v-list>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+
+
+    <!--      <v-expansion-panel>-->
+    <!--        <v-divider/>-->
+    <!--        <v-expansion-panel-header>-->
+    <!--          Locations <span class="caption ml-1">({{ data.locations.length }})</span>-->
+    <!--        </v-expansion-panel-header>-->
+    <!--        <v-expansion-panel-content>-->
+    <!--          -->
+    <!--        </v-expansion-panel-content>-->
+    <!--      </v-expansion-panel>-->
+
+  </v-expansion-panels>
+
+  <!--  <pre>-->
+  <!--    {{ data.locations }}-->
+  <!--  </pre>-->
+
+  </div>
 
 
 </template>

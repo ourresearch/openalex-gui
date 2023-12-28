@@ -1,5 +1,45 @@
 <template>
-    <div class="pa-3">
+  <div>
+    <v-container>
+      <v-row>
+        <v-col>
+          <div class="text-h2">
+            {{ data.display_name }}
+          </div>
+          <div class="capitalize-first-letter">
+            {{ data.type }} hosted by
+            <router-link :to="data.host_organization | entityZoomLink">
+              {{ data.host_organization_name }}
+            </router-link>
+          </div>
+          <div class="d-flex">
+            <v-btn
+                :to="data.id | entityWorksLink"
+                color="primary"
+                class="mr-3"
+                rounded
+            >
+              Hosted works
+            </v-btn>
+            <v-btn
+                :href="data.homepage_url"
+                v-if="data.homepage_url"
+                icon
+                target="_blank"
+            >
+              <v-icon>mdi-open-in-new</v-icon>
+            </v-btn>
+
+          </div>
+
+        </v-col>
+      </v-row>
+
+
+    </v-container>
+
+
+    <div v-if="0" class="pa-3">
       <div class="data-row" v-if="data.host_organization_name">
         <template>
           <span v-if="data.type==='repository'" class="font-weight-bold">
@@ -50,12 +90,12 @@
           APC:
         </span>
         <span>
-          ${{data.apc_usd.toLocaleString()}} <span class="caption">(USD)</span>
+          ${{ data.apc_usd.toLocaleString() }} <span class="caption">(USD)</span>
         </span>
       </div>
     </div>
 
-
+  </div>
 
 
 </template>

@@ -16,6 +16,7 @@ const entityConfigs = {
         placeholder: "Search scholarly papers, books, and more",
         filterName: "work",
         filterKey: "ids.openalex",
+        hintVerb: "by",
         color: "blue",
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
@@ -37,6 +38,7 @@ const entityConfigs = {
         placeholder: "Search scholarly authors",
         filterName: "author",
         filterKey: "authorships.author.id",
+        hintVerb: "at",
         color: "green",
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
@@ -56,6 +58,7 @@ const entityConfigs = {
         placeholder: "Search academic journals & repositories",
         filterName: "primary_location.source",
         filterKey: "primary_location.source.id",
+        hintVerb: "published by",
         color: "orange",
         highlightFilters: [
             {key: "is_oa", value: true, displayName: "that are Open Access"},
@@ -103,6 +106,7 @@ const entityConfigs = {
         placeholder: "Search academic institutions",
         filterName: "institutions",
         filterKey: "authorships.institutions.lineage",
+        hintVerb: "in",
         color: "purple",
     },
     concepts: {

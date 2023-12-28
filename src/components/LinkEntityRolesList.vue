@@ -1,12 +1,23 @@
 <template>
   <span>
-    <link-entity-role
-              v-for="(role, i) in rolesToShow"
-              :key="i"
-              class="text-decoration-none"
-              :role="role"
-              :append-comma="i < rolesToShow.length - 1 "
-          />
+<!--    <link-entity-role-->
+<!--        v-for="(role, i) in rolesToShow"-->
+<!--        :key="i"-->
+<!--        class="text-decoration-none"-->
+<!--        :role="role"-->
+<!--        :append-comma="i < rolesToShow.length - 1 "-->
+<!--    />-->
+    <v-btn
+        text
+        rounded
+        class="mr-3 capitalize-first-letter"
+        v-for="(role, i) in rolesToShow"
+        :key="i"
+        :to="role.id | entityZoomLink"
+    >
+      {{role.role | capitalize }}
+    </v-btn>
+
   </span>
 </template>
 
@@ -14,6 +25,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import LinkEntityRole from "@/components/LinkEntityRole.vue";
+
 export default {
   name: "LinkEntityRolesList",
   components: {
@@ -32,7 +44,7 @@ export default {
     ...mapGetters([
       "resultsFilters",
     ]),
-    rolesToShow(){
+    rolesToShow() {
       return this.roles.filter(r => {
         return r.role !== this.hideRole
       })
