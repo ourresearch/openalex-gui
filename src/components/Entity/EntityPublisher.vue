@@ -1,53 +1,42 @@
 <template>
-  <div class="pa-3">
+  <div class="">
+    <v-container>
+      <v-row>
+        <v-col>
+          <div class="body-2">
 
-    <div class="data-row" v-if="data.roles.length">
-        <span class="font-weight-bold">
-          Other roles:
-        </span>
-      <link-entity-roles-list
-          :roles="data.roles"
-          hide-role="publisher"
-      />
-    </div>
+          </div>
+          <div class="text-h2">
+            {{ data.display_name }}
+          </div>
+          <div class="d-inline-flex align-baseline">
+            <link-entity-roles-list :roles="data.roles" selected="publisher"/>
+          </div>
+          <div class="d-flex mt-6">
+            <v-btn
+                :to="data.id | entityWorksLink"
+                color="primary"
+                class="mr-3"
+                rounded
+            >
+              Published works
+            </v-btn>
+            <v-btn
+                :href="data.homepage_url"
+                v-if="data.homepage_url"
+                icon
+                target="_blank"
+            >
+              <v-icon>mdi-open-in-new</v-icon>
+            </v-btn>
 
-      <div class="data-row">
-        <span class="font-weight-bold">
-          Location{{(data.country_codes.length > 1) ? "s" : ""}}:
-        </span>
-        <span v-if="data.country_codes.length">
-          {{ countryNamesString }}
-        </span>
-        <span v-else>Unknown</span>
-      </div>
+          </div>
 
-<!--      <div class="data-row" v-if="data.x_concepts.length">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Concepts:-->
-<!--        </span>-->
-<!--        <span>-->
-<!--          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>-->
-<!--        </span>-->
-<!--      </div>-->
-
-<!--      <div class="data-row">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Access:-->
-<!--        </span>-->
-<!--        <span>-->
-<!--          <span v-if="!data.is_oa">-->
-<!--            toll-access-->
-<!--          </span>-->
-<!--          <span v-else>-->
-<!--            Open Access-->
-<!--            <template v-if="doajLink">(indexed in <a target="_blank" :href="doajLink">DOAJ</a>)</template>-->
-<!--          </span>-->
-<!--        </span>-->
-<!--      </div>-->
+        </v-col>
+      </v-row>
 
 
-
-
+    </v-container>
 
 
   </div>

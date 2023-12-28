@@ -20,7 +20,6 @@
     <v-app-bar
         app
         flat
-        dense
 
         color="white"
         class="pl-0"
@@ -44,6 +43,7 @@
               </span>
 
       </router-link>
+      <filter-bar class="mx-3" />
 
 
 
@@ -88,6 +88,8 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
+import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
+import FilterBar from "@/components/FilterBar/FilterBar.vue";
 
 export default {
   name: 'App',
@@ -98,6 +100,8 @@ export default {
     meta: []
   },
   components: {
+    FilterBarSearch,
+    FilterBar,
     SearchBoxNew,
     SiteFooter,
     SiteNav,
