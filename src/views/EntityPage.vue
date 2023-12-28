@@ -17,12 +17,19 @@
       </v-btn>
 
     </div>
-    <component
-        class=""
-        :is="myEntityComponentName"
-        :data="entityData"
-        v-if="isDataMatchingId"
-    />
+
+    <template v-if="isDataMatchingId">
+      <entity-work v-if="myEntityName === 'works'" :data="entityData" />
+      <entity-body v-else :data="entityData" />
+
+    </template>
+
+<!--    <component-->
+<!--        class=""-->
+<!--        :is="myEntityComponentName"-->
+<!--        :data="entityData"-->
+<!--        v-if="isDataMatchingId"-->
+<!--    />-->
   </v-container>
 </template>
 
@@ -41,6 +48,7 @@ import EntityConcept from "@/components/Entity/EntityConcept.vue";
 
 import {api} from "@/api";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 export default {
   name: "EntityPage",
@@ -48,6 +56,7 @@ export default {
     return {title: this.entityData?.display_name}
   },
   components: {
+    EntityBody,
     Entity,
     EntityWork,
     EntityAuthor,
@@ -81,6 +90,9 @@ export default {
           this.$route.params.entityType,
           1
       )
+    },
+    myEntityName(){
+      return this.$route.params.entityType
     },
     apiPath() {
       return [

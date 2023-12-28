@@ -7,7 +7,7 @@
             {{ data.display_name }}
           </div>
           <div class="d-inline-flex align-center">
-            <link-entity-roles-list :roles="data.roles" selected="institution" />
+            <link-entity-roles-list :roles="data.roles" selected="institution"/>
             <span v-if="locationStr"> in {{ locationStr }}</span>
             <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none ml-2"> (map).</a>
           </div>
@@ -35,55 +35,78 @@
         </v-col>
       </v-row>
       <v-row>
-        <v-col cols="3">
-          <v-card flat outlined>
+        <v-col cols="4">
+          <v-card flat rounded outlined>
             <v-card-title>
+              Alternate names
             </v-card-title>
-            <v-list>
-            </v-list>
+            <v-card-text>
+              {{ alternateNamesString }}
+            </v-card-text>
+
+          </v-card>
+        </v-col>
+        <v-col cols="4">
+          <v-card flat rounded outlined>
+            <v-card-title>
+              Metrics
+            </v-card-title>
+            <v-divider />
+            <v-simple-table dense>
+              <tbody>
+              <tr key="cited_by_count">
+                <td>Citations</td>
+                <td>{{ data.cited_by_count | toPrecision }}</td>
+              </tr>
+              <tr v-for="(val, key) in data.summary_stats" :key="key">
+                <td>{{ key.replace("_", " ") }}</td>
+                <td>{{ val | toPrecision }}</td>
+              </tr>
+
+              </tbody>
+            </v-simple-table>
 
           </v-card>
         </v-col>
       </v-row>
 
+      <entity-body :data="data" />
+
 
     </v-container>
 
 
+    <!--    <div class="data-row" v-if="data.roles.length">-->
+    <!--        <span class="font-weight-bold">-->
+    <!--          Other roles:-->
+    <!--        </span>-->
+    <!--      <link-entity-roles-list-->
+    <!--          :roles="data.roles"-->
+    <!--          hide-role="institution"-->
+    <!--      />-->
+    <!--    </div>-->
+    <!--    <div class="data-row" v-if="data.x_concepts.length">-->
+    <!--        <span class="font-weight-bold">-->
+    <!--          Key topics:-->
+    <!--        </span>-->
+    <!--      <span>-->
+    <!--          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>-->
+    <!--        </span>-->
+    <!--    </div>-->
 
-
-<!--    <div class="data-row" v-if="data.roles.length">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Other roles:-->
-<!--        </span>-->
-<!--      <link-entity-roles-list-->
-<!--          :roles="data.roles"-->
-<!--          hide-role="institution"-->
-<!--      />-->
-<!--    </div>-->
-<!--    <div class="data-row" v-if="data.x_concepts.length">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Key topics:-->
-<!--        </span>-->
-<!--      <span>-->
-<!--          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>-->
-<!--        </span>-->
-<!--    </div>-->
-
-<!--    <div class="data-row" v-if="data.repositories.length">-->
-<!--        <span class="font-weight-bold">-->
-<!--          Repositories:-->
-<!--        </span>-->
-<!--      <span>-->
-<!--          <link-repository-->
-<!--              v-for="(repo, i) in data.repositories"-->
-<!--              :key="repo.id" class="text-decoration-none"-->
-<!--              :repository="repo"-->
-<!--              :append-comma="i < data.repositories.length - 1 "-->
-<!--          />-->
-<!--        </span>-->
-<!--    </div>-->
-
+    <!--    <div class="data-row" v-if="data.repositories.length">-->
+    <!--        <span class="font-weight-bold">-->
+    <!--          Repositories:-->
+    <!--        </span>-->
+    <!--      <span>-->
+    <!--          <link-repository-->
+    <!--              v-for="(repo, i) in data.repositories"-->
+    <!--              :key="repo.id" class="text-decoration-none"-->
+    <!--              :repository="repo"-->
+    <!--              :append-comma="i < data.repositories.length - 1 "-->
+    <!--          />-->
+    <!--        </span>-->
+    <!--    </div>-->
 
 
   </div>
@@ -102,6 +125,7 @@ import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 import LinkRepository from "@/components/LinkRepository.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import {getEntityConfig} from "@/entityConfigs";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -109,6 +133,7 @@ const countryCodeLookup = require('country-code-lookup')
 export default {
   name: "EntityInstitution",
   components: {
+    EntityBody,
     IdList,
     EntityIcon,
     ConceptsList,
@@ -128,6 +153,12 @@ export default {
   },
   methods: {},
   computed: {
+    alternateNamesString() {
+      return [
+        ...this.data.display_name_alternatives,
+        ...this.data.display_name_acronyms,
+      ].join("; ")
+    },
     locationStr() {
       const countryResult = countryCodeLookup.byIso(this.data.country_code)
 
@@ -138,7 +169,7 @@ export default {
       ].filter(x => x)
       return locArr.join(", ")
     },
-    entityConfig(){
+    entityConfig() {
       return getEntityConfig("institution")
     },
     mapLink() {

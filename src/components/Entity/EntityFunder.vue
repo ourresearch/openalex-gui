@@ -34,6 +34,7 @@
 
         </v-col>
       </v-row>
+      <entity-body :data="data" />
 
 
     </v-container>
@@ -45,6 +46,7 @@
 import ConceptsList from "../ConceptsList.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import {getEntityConfig} from "../../entityConfigs";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 const countryCodeLookup = require('country-code-lookup')
 
@@ -52,6 +54,7 @@ const countryCodeLookup = require('country-code-lookup')
 export default {
   name: "EntityFunder",
   components: {
+    EntityBody,
     ConceptsList,
     LinkEntityRolesList
   },

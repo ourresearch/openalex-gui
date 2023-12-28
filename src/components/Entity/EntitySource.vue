@@ -35,6 +35,8 @@
         </v-col>
       </v-row>
 
+      <entity-body :data="data" />
+
 
     </v-container>
 
@@ -107,6 +109,7 @@ import LinkToEntity from "../LinkToEntity.vue";
 import EntityIcon from "./EntityIcon.vue";
 import ConceptsList from "../ConceptsList.vue";
 import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 export default {
   name: "EntityVenue",
@@ -116,6 +119,7 @@ export default {
     EntityIcon,
     ConceptsList,
     EntitySummaryStats,
+    EntityBody,
   },
   props: {
     data: Object,

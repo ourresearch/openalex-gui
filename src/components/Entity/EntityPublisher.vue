@@ -35,6 +35,8 @@
         </v-col>
       </v-row>
 
+      <entity-body :data="data" />
+
 
     </v-container>
 
@@ -53,11 +55,13 @@ import ConceptsList from "../ConceptsList.vue";
 import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
 import countryCodeLookup from "country-code-lookup";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 export default {
   name: "EntityPublisher",
   components: {
     LinkEntityRolesList,
+    EntityBody,
   },
   props: {
     data: Object,
