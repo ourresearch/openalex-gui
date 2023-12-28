@@ -10,8 +10,7 @@
             {{ data.display_name }}
           </div>
           <div class="d-inline-flex align-baseline">
-            <v-icon left>{{ getEntityConfig('funder').icon }}</v-icon>
-            Research funder
+            <link-entity-roles-list :roles="data.roles" selected="funder" />
           </div>
           <div class="d-flex mt-6">
             <v-btn
@@ -22,7 +21,6 @@
             >
               Funded works
             </v-btn>
-            <link-entity-roles-list :roles="data.roles" hide-role="funder" />
             <v-btn
                 :href="data.homepage_url"
                 v-if="data.homepage_url"

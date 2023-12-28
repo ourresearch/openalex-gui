@@ -6,12 +6,12 @@
           <div class="text-h2">
             {{ data.display_name }}
           </div>
-          <div class="d-inline-flex align-baseline">
-            <v-icon  left>{{ entityConfig.icon }}</v-icon>
-            {{ data.type |capitalize }} institution in {{ locationStr }}
+          <div class="d-inline-flex align-center">
+            <link-entity-roles-list :roles="data.roles" selected="institution" />
+            <span v-if="locationStr"> in {{ locationStr }}</span>
             <a v-if="mapLink" :href="mapLink" target="_blank" class="text-decoration-none ml-2"> (map).</a>
           </div>
-          <div class="d-flex mt-6 align-center">
+          <div class="d-flex mt-6 ">
             <v-btn
                 :to="data.id | entityWorksLink"
                 color="primary"
@@ -20,18 +20,29 @@
             >
               Affiliated works
             </v-btn>
-            <link-entity-roles-list :roles="data.roles" hide-role="institution" />
+
             <v-btn
                 :href="data.homepage_url"
                 v-if="data.homepage_url"
                 icon
                 target="_blank"
             >
-              <v-icon small class="mt-1">mdi-open-in-new</v-icon>
+              <v-icon class="mt-1">mdi-open-in-new</v-icon>
             </v-btn>
 
           </div>
 
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="3">
+          <v-card flat outlined>
+            <v-card-title>
+            </v-card-title>
+            <v-list>
+            </v-list>
+
+          </v-card>
         </v-col>
       </v-row>
 
