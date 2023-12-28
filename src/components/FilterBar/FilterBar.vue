@@ -16,11 +16,13 @@
         autofocus
         @keyup.up="onUpArrow"
         @keyup.down="onDownArrow"
+        @blur="onBlur"
     />
     <v-card
         style="position: absolute; width: 100%;"
         v-if="searchString.length"
         class="filter-bar-suggestions"
+
     >
       <div
           v-for="(suggestion, i) in autocompleteSuggestions"
@@ -172,6 +174,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    onClickOutside(){
+      console.log("click outside")
+    },
     clickSuggestion(id) {
       const entityId = shortenOpenAlexId(id)
       const entityType = entityTypeFromId(entityId)

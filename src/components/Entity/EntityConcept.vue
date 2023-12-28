@@ -1,35 +1,6 @@
 <template>
   <div class="pa-3">
-    <div class="data-row" v-if="data.description">
-        <span class="font-weight-bold">
-          About:
-        </span>
-      <span class="description">
-          {{ data.description }}.
-        </span>
-    </div>
-
-    <div class="data-row" v-if="parentConcepts.length">
-        <span class="font-weight-bold">
-          {{ "Parent" | pluralize(parentConcepts.length) }}:
-        </span>
-      <span>
-          <concepts-list :concepts="parentConcepts" :is-clickable="true"/>
-        </span>
-    </div>
-
-
-    <div class="data-row" v-if="data.related_concepts.length">
-        <span class="font-weight-bold">
-          Related:
-        </span>
-      <span>
-          <concepts-list :concepts="data.related_concepts" :is-clickable="true"/>
-        </span>
-    </div>
-
-
-
+    <entity-body :data="data" />
   </div>
 
 
@@ -43,10 +14,12 @@ import ConceptsList from "../ConceptsList.vue";
 import LinkToEntity from "../LinkToEntity.vue";
 import LinkToSearch from "../LinkToSearch.vue";
 import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
+import EntityBody from "@/components/Entity/EntityBody.vue";
 
 export default {
   name: "EntityConcept",
   components: {
+    EntityBody,
     IdList,
     EntityIcon,
     ConceptsList,
