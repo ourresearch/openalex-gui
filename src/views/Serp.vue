@@ -1,5 +1,7 @@
 <template>
   <div class="serp-page pb-12" style="background: #F7F9FC;">
+    <div class="white">
+    </div>
     <div>
       <serp-api-editor
           v-if="isShowApiSet"
@@ -21,40 +23,24 @@
 
 
     <v-container class="serp-bottom-stuff" style="">
-      <div class="">
-        <filter-list/>
-      </div>
+      <filter-list/>
 
 
-      <!--    <v-divider class="mb-4 mt-3"/>-->
+      <div class="d-flex py-1 px-3 mt-10 align-center">
+        <div class="font-weight-bold">
+          {{ isAnalyze ? "Analyze: " : "List: "}}
 
-      <div class="mt-6 mb-6">
-        <span class="text-h6">
-        <span v-if="resultsObject?.meta.count === 0">
+
+          <span v-if="resultsObject?.meta.count === 0">
           No results; try modifying your filters.
         </span>
-        <span v-else-if="resultsObject?.meta.count < 100">
+          <span v-else-if="resultsObject?.meta.count < 100">
           {{ resultsObject.meta.count | toPrecision }} results
         </span>
-        <span v-else>
-          About {{ resultsObject?.meta.count | toPrecision }} results
+          <span v-else>
+          about {{ resultsObject?.meta.count | toPrecision }} results
         </span>
-      </span>
-      </div>
-
-      <div class="d-flex">
-        <v-chip
-            @click="isAnalyze = false"
-            :dark="!isAnalyze"
-        >
-          List
-        </v-chip>
-        <v-chip
-            @click="isAnalyze = true"
-            :dark="isAnalyze"
-        >
-          Count by
-        </v-chip>
+        </div>
         <v-spacer/>
         <template v-if="isAnalyze">
           <Action action="group_by"/>
@@ -64,6 +50,22 @@
           <export-button :disabled="isAnalyze"/>
 
         </template>
+        <v-chip class="pa-0 ml-2">
+          <v-chip
+              @click="isAnalyze = false"
+              :dark="!isAnalyze"
+          >
+            List
+          </v-chip>
+          <v-chip
+              @click="isAnalyze = true"
+              :dark="isAnalyze"
+          >
+            Analyze
+          </v-chip>
+
+        </v-chip>
+
 
       </div>
 
@@ -104,7 +106,7 @@ import SerpApiEditor from "../components/SerpApiEditor.vue";
 import router from "../router";
 
 import ExportButton from "../components/ExportButton.vue";
-import {getFacetConfig} from "../facetConfigs";
+import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
@@ -284,6 +286,11 @@ export default {
     },
     filtersLength() {
       return this.$route.query.filter?.length ?? 0
+    },
+
+    popularFilterOptions() {
+      return facetConfigs(this.entityType)
+          .filter(conf => conf.actionsPopular?.includes("filter"))
     },
 
 

@@ -25,6 +25,7 @@
         class="pl-0"
         absolute
     >
+
       <router-link
           :to="{name: 'Home'}"
           class="logo-link"
@@ -40,7 +41,7 @@
               </span>
 
       </router-link>
-      <filter-bar v-if="$route.name !== 'Home'" class="mx-3" />
+<!--      <filter-bar v-if="$route.name !== 'Home'" class="mx-3" />-->
       <v-spacer/>
 
 <!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->

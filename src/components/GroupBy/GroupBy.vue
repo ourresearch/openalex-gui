@@ -1,6 +1,5 @@
 <template>
-  <v-card flat tile class="">
-    <v-card outlined rounded class="mx-3">
+    <v-card flat rounded class="">
       <v-toolbar dense flat >
         <v-icon left>{{ selectedConfig.icon }}</v-icon>
         <v-toolbar-title>
@@ -83,7 +82,6 @@
       </table>
     </v-card>
 
-  </v-card>
 </template>
 
 <script>
