@@ -4,7 +4,8 @@
 
     <v-menu
         :close-on-content-click="false"
-        rounded nudge-top="10"
+        rounded
+        nudge-top="5"
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
     >
@@ -12,7 +13,6 @@
         <v-text-field
             v-on="on"
             hide-details
-            dense
             v-model="searchString"
             prepend-inner-icon="mdi-magnify"
             readonly

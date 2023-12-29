@@ -52,7 +52,7 @@
 
           </v-card>
         </v-col>
-        <v-col cols="3">
+        <v-col cols="2">
           <v-card flat rounded outlined>
             <v-card-title>
               Metrics

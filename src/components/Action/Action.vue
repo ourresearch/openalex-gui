@@ -6,20 +6,20 @@
     >
       <template v-slot:activator="{on}">
         <v-btn
-            :text="myConfig.id !== 'column'"
-            :icon="myConfig.id === 'column'"
+            :text="myConfig.id === 'group_by'"
+            :icon="myConfig.id !== 'group_by'"
             rounded
             v-on="on"
             class="font-weight-regular"
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <v-icon left>mdi-sort-ascending</v-icon>
-            {{ selectedSortConfig.displayName }}
+            <v-icon >mdi-sort-ascending</v-icon>
+<!--            {{ selectedSortConfig.displayName }}-->
 
           </template>
           <template v-if="myConfig.id === 'group_by'">
-            Add count
+            Add
             <v-icon right>mdi-menu-down</v-icon>
           </template>
           <template v-if="myConfig.id === 'column'">
@@ -35,7 +35,7 @@
       <!--        do it-->
       <!--      </v-btn>-->
       <!--      </v-card>-->
-      <v-card class="">
+      <v-card flat class="">
         <v-list>
           <v-list-item
               v-for="key in menuOptions"

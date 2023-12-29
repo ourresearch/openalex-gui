@@ -1,7 +1,7 @@
 <template>
-  <v-card rounded flat>
+  <v-card rounded flat color="transparent">
     <v-container>
-      <v-row class="">
+      <v-row dense  class="">
         <v-col
             v-for="key in groupByKeys"
             :key="key"

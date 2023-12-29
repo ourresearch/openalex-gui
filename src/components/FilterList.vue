@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded flat outlined class=" filter-list">
+  <div class=" filter-list">
     <!--    <v-toolbar flat>-->
     <!--      <v-toolbar-title>-->
     <!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
@@ -20,10 +20,17 @@
     <!--    <v-subheader>-->
     <!--      <span class="font-weight-bold mr-1">{{ url.readFiltersLength() }}</span>-->
     <!--      <span>search filters applied</span>-->
-    <!--      <v-btn text small rounded @click="clearEverything">-->
-    <!--        clear-->
-    <!--      </v-btn>-->
     <!--    </v-subheader>-->
+
+    <div class="d-flex py-1 px-3 align-center">
+        <div class="font-weight-bold">
+          {{ filters.length }} {{ "Filter" | pluralize(filters.length) }} applied
+          <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">
+            (clear all)
+          </v-btn>
+
+        </div>
+      </div>
 
     <div>
       <component
@@ -45,56 +52,32 @@
           @delete="setActiveFilter(undefined)"
       />
     </div>
-    <v-divider/>
+    <v-divider v-if="filters.length || activeFilterKey" />
 
-    <div class="d-flex pa-2">
-      <v-menu
-          rounded
-          offset-y
+    <div class="d-flex pt-2 pl-2">
+<!--      <v-icon left class="">mdi-plus</v-icon>-->
+<!--      <span class="pr-2">Add filter</span>-->
+      <v-chip
+          v-for="filter in popularFilterOptions"
+          :key="filter.key"
+          outlined
+          label
+          class="mr-1"
+          @click="setActiveFilter(filter)"
+          small
+          :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
       >
-        <template v-slot:activator="{on}">
-          <v-btn
-              color="primary"
-              rounded
-              style=""
-              v-on="on"
-          >
-            <v-icon>mdi-plus</v-icon>
-            add filter
-            <v-icon>mdi-menu-down</v-icon>
+        {{ filter.displayName }}
+      </v-chip>
 
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
-              v-for="filter in popularFilterOptions"
-              :key="filter.key"
-              color="primary"
-              :disabled="url.isFilterApplied(entityType, filter.key)"
-              @click="setActiveFilter(filter)"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ filter.displayName }}
-              </v-list-item-title>
-            </v-list-item-content>
-            <!--            <v-icon left>mdi-check</v-icon>-->
-          </v-list-item>
-          <v-divider/>
-          <v-list-item @click="dialogs.moreFilters = true">
-            <v-list-item-content>
-              <v-list-item-title>More</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-        </v-list>
-      </v-menu>
-
-
-      <!--      <filter-bar />-->
+      <v-btn
+          @click="dialogs.moreFilters = true"
+          text
+          small
+          rounded
+      >
+        More...
+      </v-btn>
     </div>
 
     <v-dialog
@@ -135,7 +118,7 @@
     </v-dialog>
 
 
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -192,7 +175,12 @@ export default {
     ]),
 
     filters() {
-      return filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      return filtersFromUrlStr(this.entityType, this.$route.query.filter).filter(f => {
+        return true
+      })
+    },
+    filterKeys(){
+        return this.filters.map(f => f.key)
     },
     activeFilter() {
       return this.activeFilterKey
@@ -222,7 +210,7 @@ export default {
     popularFilterOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("filter"))
-
+          // .filter(f => !this.filterKeys.includes(f.key))
     },
     allFilterOptions() {
       return facetConfigs(this.entityType)
