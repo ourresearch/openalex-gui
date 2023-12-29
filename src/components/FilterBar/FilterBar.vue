@@ -2,47 +2,63 @@
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
     <!--    {{ focusNumberLine }}-->
 
-    <v-text-field
-        hide-details
-        v-model="searchString"
-        ref="facetBarSearchBox"
-        prepend-inner-icon="mdi-magnify"
-        rounded
-        outlined
-        class="pa-0 ma-0"
-        style="font-size: 20px;"
-        @keyup.enter="onEnter"
-        placeholder="search OpenAlex"
-        autofocus
-        @keyup.up="onUpArrow"
-        @keyup.down="onDownArrow"
-        @blur="onBlur"
-    />
-    <v-card
-        style="position: absolute; width: 100%;"
-        v-if="searchString.length"
-        class="filter-bar-suggestions"
-
+    <v-menu
+        :close-on-content-click="false"
+        rounded nudge-top="10"
+        content-class="filter-bar-menu"
+        v-model="isMenuOpen"
     >
-      <div
-          v-for="(suggestion, i) in autocompleteSuggestions"
-          :key="i"
-          class="py-2 px-2 suggestion d-flex"
-          :class="{'has-focus': myFocusIndex === i}"
-          @click="clickSuggestion(suggestion.id)"
-      >
-        <div>
-          <v-icon left>{{ suggestion.icon }}</v-icon>
-        </div>
-        <div>
-          <div class="">
-            {{ suggestion.display_name }}
-          </div>
-          <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint}}</div>
-        </div>
-      </div>
+      <template v-slot:activator="{on}">
+        <v-text-field
+            v-on="on"
+            hide-details
+            dense
+            v-model="searchString"
+            prepend-inner-icon="mdi-magnify"
+            readonly
+            rounded
+            outlined
+            class="pa-0 ma-0"
+            placeholder="search OpenAlex"
+        />
+      </template>
+      <div style="background: #fff; ">
+        <v-text-field
+            hide-details
+            v-model="searchString"
+            ref="facetBarSearchBox"
+            prepend-inner-icon="mdi-magnify"
+            rounded
+            outlined
+            class="pa-0 ma-0"
+            @keyup.enter="onEnter"
+            placeholder="search OpenAlex"
+            autofocus
+        />
+<!--            @blur="onBlur"-->
+        <v-list>
+          <v-list-item
+              v-for="(suggestion, i) in autocompleteSuggestions"
+              :key="i"
+              class="py-2 px-2 suggestion d-flex"
+              :class="{'has-focus': myFocusIndex === i}"
+              @click="clickSuggestion(suggestion.id)"
+          >
+            <div>
+              <v-icon left>{{ suggestion.icon }}</v-icon>
+            </div>
+            <div>
+              <div class="">
+                {{ suggestion.display_name }}
+              </div>
+              <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint }}</div>
+            </div>
 
-    </v-card>
+          </v-list-item>
+        </v-list>
+
+      </div>
+    </v-menu>
   </div>
 </template>
 
@@ -62,8 +78,7 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
-
+import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 
 
 export default {
@@ -86,6 +101,7 @@ export default {
       activeFilterKey: null,
       focusNumberLine: 0,
       myFocusIndex: 0,
+      isMenuOpen: false,
     }
   },
   computed: {
@@ -132,7 +148,6 @@ export default {
       const resp = await api.getUrl(autocompleteUrl)
 
 
-
       const ret = resp.results
           .filter(r => !!r.id)
           .map(result => {
@@ -146,8 +161,7 @@ export default {
               else if (entityConfig.name === "institutions") hint = "Institution in " + result.hint
               else if (entityConfig.name === "concepts") hint = result.hint
               else hint = _.capitalize(entityConfig.displayNameSingular)
-            }
-            else {
+            } else {
               hint = _.capitalize(entityConfig.displayNameSingular)
             }
 
@@ -174,9 +188,6 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    onClickOutside(){
-      console.log("click outside")
-    },
     clickSuggestion(id) {
       const entityId = shortenOpenAlexId(id)
       const entityType = entityTypeFromId(entityId)
@@ -209,7 +220,11 @@ export default {
     onEnter() {
       if (!this.searchString) {
         this.$router.push({name: "Serp", params: {entityType: this.entityType}})
-      } else {
+      }
+      else if (isOpenAlexId(this.searchString)) {
+        this.clickSuggestion(this.searchString)
+      }
+      else {
         url.upsertFilter(
             this.entityType,
             "default.search",
@@ -256,16 +271,24 @@ export default {
   mounted() {
   },
   watch: {
-    '$store.state.activeFilter': {
-      immediate: false,
+    '$route': {
+      immediate: true,
       handler(to) {
-        if (!to) return
-        const inputId = "input." + to
-        console.log("$store.state.activeFilter changed", inputId)
-        setTimeout(() => {
-          // document.getElementById(inputId).focus()
+        this.isMenuOpen = false
+        if (to.params?.entityId) {
+          this.searchString = "openalex:" + shortenOpenAlexId(to.params.entityId)
+        }
+        else {
+          const searchFilter = url.readFilter(this.entityType, "default.search")
+          this.searchString = searchFilter?.value ?? ""
+        }
 
-        }, 0)
+        // if (!to) return
+        // const inputId = "input." + to
+        // setTimeout(() => {
+        //   // document.getElementById(inputId).focus()
+        //
+        // }, 0)
       }
     }
   }
@@ -273,6 +296,13 @@ export default {
 </script>
 
 <style lang="scss">
+.filter-bar-menu {
+  //top: 0px !important;
+  border-radius: 50px !important;
+  padding: 5px;
+  background: #fff;
+}
+
 .filter-bar-suggestions {
   .suggestion {
     cursor: default;
