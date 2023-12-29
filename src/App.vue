@@ -24,9 +24,6 @@
         color="white"
         class="pl-0"
         absolute
-        v-if="$route.name !== 'Serp'"
-
-
     >
       <router-link
           :to="{name: 'Home'}"
@@ -43,11 +40,51 @@
               </span>
 
       </router-link>
-      <filter-bar class="mx-3" />
-
-
-
+      <filter-bar v-if="$route.name !== 'Home'" class="mx-3" />
       <v-spacer/>
+
+<!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->
+<!--        <v-icon>mdi-api</v-icon>-->
+<!--      </v-btn>-->
+      <v-menu rounded offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              class="elevation-0 font-weight-regular"
+              v-on="on"
+          >
+            <v-icon>mdi-help-circle-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item href="https://help.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-information-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              User manual
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item href="https://docs.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              API reference
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item to="help">
+            <v-list-item-icon>
+              <v-icon>mdi-message-text-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Contact us
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
 
     </v-app-bar>

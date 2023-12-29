@@ -14,7 +14,7 @@
               {{ myEntityConfig.displayNameSingular | capitalize }}
             </template>
           </div>
-          <div class="text-h2">
+          <div class="text-h4">
             {{ data.display_name }}
           </div>
           <div class="d-flex mt-4">
