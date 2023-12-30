@@ -17,6 +17,8 @@
           <div class="text-h4">
             {{ data.display_name }}
           </div>
+
+
           <div class="d-flex mt-4">
             <v-btn
                 :to="data.id | entityWorksLink"
@@ -34,7 +36,6 @@
             >
               <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
-
           </div>
 
         </v-col>
@@ -162,7 +163,7 @@ export default {
     },
 
     abstract() {
-      if (!this.data.open_access.is_oa) return
+      if (!this.data?.open_access?.is_oa) return
       return unravel(this.data.abstract_inverted_index)
     },
   },
