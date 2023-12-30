@@ -17,7 +17,10 @@
       </v-btn>
 
     </div>
-      <entity-body v-if="isDataMatchingId" :data="entityData" />
+      <entity-body
+          :data="entityData"
+          v-if="isDataMatchingId"
+      />
 
 <!--    <template v-if="isDataMatchingId">-->
 <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->

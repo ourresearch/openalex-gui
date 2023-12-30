@@ -35,12 +35,12 @@
             placeholder="search OpenAlex"
             autofocus
         />
-<!--            @blur="onBlur"-->
+        <!--            @blur="onBlur"-->
         <v-list>
           <v-list-item
               v-for="(suggestion, i) in autocompleteSuggestions"
               :key="i"
-              class="py-2 px-2 suggestion d-flex"
+              class="py-2 px-2 suggestion d-flex align-start"
               :class="{'has-focus': myFocusIndex === i}"
               @click="clickSuggestion(suggestion.id)"
           >
@@ -52,6 +52,13 @@
                 {{ suggestion.display_name }}
               </div>
               <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint }}</div>
+            </div>
+            <v-spacer class="mx-2" />
+            <div v-if="suggestion.entity_type === 'work'">
+              <v-icon>mdi-arrow-right</v-icon>
+            </div>
+            <div v-else class="grey--text">
+              {{ suggestion.works_count | toPrecision }} works
             </div>
 
           </v-list-item>
@@ -189,6 +196,22 @@ export default {
     ]),
     ...mapActions([]),
     clickSuggestion(id) {
+      const entityType = entityTypeFromId(id)
+      if (entityType === this.entityType) {
+        this.goToEntityPage(id)
+      }
+      else {
+        this.filterByEntity(id)
+      }
+
+    },
+    filterByEntity(id){
+      const entityId = shortenOpenAlexId(id)
+      const entityType = entityTypeFromId(entityId)
+      const filterKey = getEntityConfig(entityType)?.filterKey
+      url.upsertFilter(this.entityType, filterKey, id)
+    },
+    goToEntityPage(id) {
       const entityId = shortenOpenAlexId(id)
       const entityType = entityTypeFromId(entityId)
       this.$router.push({
@@ -198,13 +221,9 @@ export default {
           entityId,
         },
       })
+
     },
-    upsertFilter(newValue) {
-      url.upsertFilter(this.entityType, this.activeFilterKey, newValue)
-      if (this.activeFilterConfig.type !== "select") {
-        this.setActiveFilter(null, null, null)
-      }
-    },
+
     focusOnSearchBox() {
       setTimeout(() => {
         // this.$refs.facetBarSearchBox.focus()
@@ -220,11 +239,9 @@ export default {
     onEnter() {
       if (!this.searchString) {
         this.$router.push({name: "Serp", params: {entityType: this.entityType}})
-      }
-      else if (isOpenAlexId(this.searchString)) {
+      } else if (isOpenAlexId(this.searchString)) {
         this.clickSuggestion(this.searchString)
-      }
-      else {
+      } else {
         url.upsertFilter(
             this.entityType,
             "default.search",
@@ -277,8 +294,7 @@ export default {
         this.isMenuOpen = false
         if (to.params?.entityId) {
           this.searchString = "openalex:" + shortenOpenAlexId(to.params.entityId)
-        }
-        else {
+        } else {
           const searchFilter = url.readFilter(this.entityType, "default.search")
           this.searchString = searchFilter?.value ?? ""
         }

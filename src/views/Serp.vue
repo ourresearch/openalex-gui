@@ -28,7 +28,7 @@
 
       <div class="d-flex py-1 px-3 mt-10 align-center">
         <div class="font-weight-bold">
-          {{ isAnalyze ? "Analyze: " : "List: "}}
+<!--          {{ isAnalyze ? "Analyze: " : "List: "}}-->
 
 
           <span v-if="resultsObject?.meta.count === 0">
@@ -38,7 +38,7 @@
           {{ resultsObject.meta.count | toPrecision }} results
         </span>
           <span v-else>
-          about {{ resultsObject?.meta.count | toPrecision }} results
+          About {{ resultsObject?.meta.count | toPrecision }} results
         </span>
         </div>
         <v-spacer/>
