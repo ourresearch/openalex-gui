@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container>
+    <v-container >
       <v-row>
         <v-col>
           <div class="d-inline-flex align-center mt-2">
@@ -18,8 +18,12 @@
             {{ data.display_name }}
           </div>
 
+          <div v-if="myEntityType === 'works'" class="d-flex mt-4">
 
-          <div class="d-flex mt-4">
+          </div>
+
+
+          <div v-else class="d-flex mt-4">
             <v-btn
                 :to="data.id | entityWorksLink"
                 color="primary"
@@ -27,6 +31,22 @@
                 rounded
             >
               View works
+            </v-btn>
+            <v-btn
+                v-if="data?.ids?.wikipedia"
+                :href="data?.ids?.wikipedia"
+                icon
+                target="_blank"
+            >
+              <v-icon>mdi-wikipedia</v-icon>
+            </v-btn>
+            <v-btn
+                v-if="mapLink"
+                :href="mapLink"
+                icon
+                target="_blank"
+            >
+              <v-icon>mdi-map-marker-outline</v-icon>
             </v-btn>
             <v-btn
                 :href="data.homepage_url"
@@ -165,6 +185,11 @@ export default {
     abstract() {
       if (!this.data?.open_access?.is_oa) return
       return unravel(this.data.abstract_inverted_index)
+    },
+
+    mapLink() {
+      if (!this.data?.geo?.latitude || !this.data?.geo?.longitude) return
+      return `https://www.openstreetmap.org/?mlat=${this.data.geo.latitude}&mlon=${this.data.geo.longitude}`
     },
   },
 
