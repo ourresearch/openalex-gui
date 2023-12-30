@@ -41,7 +41,7 @@
       </v-row>
 
       <v-row class="mt-9">
-        <v-col cols="3" v-if="alternateNamesString">
+        <v-col cols="4" v-if="alternateNamesString">
           <v-card flat rounded outlined>
             <v-card-title>
               Alternate names
@@ -50,6 +50,30 @@
               {{ alternateNamesString }}
             </v-card-text>
 
+          </v-card>
+        </v-col>
+        <v-col cols="4" v-if="abstract">
+          <v-card flat rounded outlined>
+            <v-card-title>
+              Abstract
+            </v-card-title>
+            <v-card-text>
+              {{ abstract }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="4" v-if="data.authorships">
+          <v-card flat rounded outlined>
+            <v-card-title>
+              Authors
+            </v-card-title>
+            <v-list>
+              <entity-work-author
+                v-for="author in data.authorships"
+                :key="author.id"
+                :author="author"
+              />
+            </v-list>
           </v-card>
         </v-col>
         <v-col cols="2">
@@ -97,16 +121,17 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getEntityConfig} from "@/entityConfigs";
-import {entityTypeFromId} from "@/util";
+import {entityTypeFromId, unravel} from "@/util";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import IdList from "@/components/IdList.vue";
+import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 
 export default {
   name: "Template",
   components: {
     LinkEntityRolesList,
     IdList,
-
+    EntityWorkAuthor,
   },
   props: {
     data: Object,
@@ -134,6 +159,11 @@ export default {
         ...this.data.alternate_titles ?? [],
 
       ].join("; ")
+    },
+
+    abstract() {
+      if (!this.data.open_access.is_oa) return
+      return unravel(this.data.abstract_inverted_index)
     },
   },
 
