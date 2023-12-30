@@ -19,7 +19,7 @@
     </div>
       <entity-body
           :data="entityData"
-          v-if="isDataMatchingId"
+          v-if="entityData"
       />
 
 <!--    <template v-if="isDataMatchingId">-->
