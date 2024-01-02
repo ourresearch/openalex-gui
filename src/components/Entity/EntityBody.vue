@@ -19,7 +19,7 @@
           </div>
 
           <div v-if="myEntityType === 'works'" class="d-flex mt-4">
-
+            <work-linkouts :data="data" />
           </div>
 
 
@@ -146,6 +146,7 @@ import {entityTypeFromId, unravel} from "@/util";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import IdList from "@/components/IdList.vue";
 import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
+import WorkLinkouts from "@/components/WorkLinkouts.vue";
 
 export default {
   name: "Template",
@@ -153,6 +154,7 @@ export default {
     LinkEntityRolesList,
     IdList,
     EntityWorkAuthor,
+    WorkLinkouts,
   },
   props: {
     data: Object,
