@@ -41,8 +41,13 @@
               </span>
 
       </router-link>
-<!--      <filter-bar v-if="$route.name !== 'Home'" class="mx-3" />-->
       <v-spacer/>
+      <filter-bar
+          v-if="$route.name !== 'Home'"
+          class="mx-3"
+          dense
+          style="max-width: 400px;"
+      />
 
 <!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->
 <!--        <v-icon>mdi-api</v-icon>-->

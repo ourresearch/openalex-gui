@@ -2,66 +2,79 @@
   <div>
 
 
-          <!--   HTML at repository, paywalled at publisher -->
-<!--          <v-btn-->
-<!--              :href="htmlUrl"-->
-<!--              target="_blank"-->
-<!--              color="primary"-->
-<!--              class="mr-3"-->
-<!--              icon-->
-<!--              rounded-->
-<!--              v-if="isGreenOa && !pdfUrl"-->
-<!--          >-->
-<!--            <v-icon>mdi-file-document</v-icon>-->
-<!--          </v-btn>-->
+    <!--   PDF anywhere -->
+    <v-btn
+        :href="pdfUrl"
+        target="_blank"
+        color="primary"
+        class="mr-3"
+        v-if="pdfUrl"
+        rounded
+    >
+      <v-icon left>mdi-file-pdf-box</v-icon>
+      PDF
+    </v-btn>
 
 
-          <!--   PDF anywhere -->
-          <v-btn
-              :href="pdfUrl"
-              target="_blank"
-              color="primary"
-              class="mr-3"
-              v-if="pdfUrl"
-              rounded
-          >
-            <v-icon left>mdi-file-pdf-box</v-icon>
-            PDF
-          </v-btn>
+    <!--       Has-PDF linkout -->
+    <v-btn
+        :href="data.primary_location.landing_page_url"
+        target="_blank"
+        v-if="pdfUrl"
+        icon
+    >
+      <v-icon>mdi-open-in-new</v-icon>
+    </v-btn>
+
+    <!--       No-PDF linkout -->
+    <v-btn
+        :href="data.primary_location.landing_page_url"
+        target="_blank"
+        v-if="!pdfUrl"
+        rounded
+        outlined
+    >
+      Paywalled
+      <v-icon right>mdi-open-in-new</v-icon>
+    </v-btn>
 
 
-<!--       generic linkout -->
-          <v-btn
-              :href="data.primary_location.landing_page_url"
-              target="_blank"
-              icon
-          >
-            <v-icon>mdi-open-in-new</v-icon>
-          </v-btn>
+    <!--   HTML at repository, paywalled at publisher -->
+    <!--          <v-btn-->
+    <!--              :href="htmlUrl"-->
+    <!--              target="_blank"-->
+    <!--              color="primary"-->
+    <!--              class="mr-3"-->
+    <!--              icon-->
+    <!--              rounded-->
+    <!--              v-if="isGreenOa && !pdfUrl"-->
+    <!--          >-->
+    <!--            <v-icon>mdi-file-document</v-icon>-->
+    <!--          </v-btn>-->
 
-          <!--   HTML  at publisher -->
-<!--          <v-btn-->
-<!--              :href="htmlUrl"-->
-<!--              target="_blank"-->
-<!--              color="primary"-->
-<!--              icon-->
-<!--              v-if="isOaAtPublisher"-->
-<!--          >-->
-<!--            <v-icon>mdi-file-document</v-icon>-->
-<!--          </v-btn>-->
+    <!--   HTML  at publisher -->
+    <!--          <v-btn-->
+    <!--              :href="htmlUrl"-->
+    <!--              target="_blank"-->
+    <!--              color="primary"-->
+    <!--              icon-->
+    <!--              v-if="isOaAtPublisher"-->
+    <!--          >-->
+    <!--            <v-icon>mdi-file-document</v-icon>-->
+    <!--          </v-btn>-->
 
 
-          <!--   Paywalled at publisher-->
-<!--          <v-btn-->
-<!--              :href="data.primary_location.landing_page_url"-->
-<!--              target="_blank"-->
-<!--              icon-->
-<!--              v-if="!isOaAtPublisher"-->
-<!--          >-->
-<!--            <v-icon>mdi-lock-outline</v-icon>-->
-<!--          </v-btn>-->
+    <!--   Paywalled at publisher-->
+    <!--          <v-btn-->
+    <!--              :href="data.primary_location.landing_page_url"-->
+    <!--              target="_blank"-->
+    <!--              icon-->
+    <!--              v-if="!isOaAtPublisher"-->
+    <!--          >-->
+    <!--            <v-icon>mdi-lock-outline</v-icon>-->
+    <!--          </v-btn>-->
 
-        </div>
+  </div>
 </template>
 
 <script>

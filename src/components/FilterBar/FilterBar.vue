@@ -20,6 +20,7 @@
             outlined
             class="pa-0 ma-0"
             placeholder="search OpenAlex"
+            :dense="dense"
         />
       </template>
       <div style="background: #fff; ">
@@ -35,12 +36,30 @@
             placeholder="search OpenAlex"
             autofocus
         />
+        <div
+            class="px-3 py-3"
+             v-if="!searchString"
+        >
+          <span class="mr-2">Try: </span>
+          <v-chip
+              small
+              outlined
+              label
+              v-for="example in exampleSearches"
+              :key="example"
+              class="mr-1"
+              @click="searchString = example"
+          >
+            {{  example  }}
+          </v-chip>
+
+        </div>
         <!--            @blur="onBlur"-->
-        <v-list>
+        <v-list v-if="autocompleteSuggestions.length">
           <v-list-item
               v-for="(suggestion, i) in autocompleteSuggestions"
               :key="i"
-              class="py-2 px-2 suggestion d-flex align-start"
+              class=" suggestion d-flex align-start"
               :class="{'has-focus': myFocusIndex === i}"
               @click="clickSuggestion(suggestion.id)"
           >
@@ -87,6 +106,12 @@ import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 
+const exampleSearches = [
+    "Tim Berners-Lee",
+    "Sorbonne",
+    "Solar power",
+    "doi:10.7717/peerj.4375",
+]
 
 export default {
   name: "Template",
@@ -99,7 +124,9 @@ export default {
     FilterBarSearch,
     FilterBarSuggestions,
   },
-  props: {},
+  props: {
+    dense: Boolean,
+  },
   data() {
     return {
       foo: 42,
@@ -109,6 +136,7 @@ export default {
       focusNumberLine: 0,
       myFocusIndex: 0,
       isMenuOpen: false,
+      exampleSearches,
     }
   },
   computed: {
