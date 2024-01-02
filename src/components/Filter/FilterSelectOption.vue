@@ -40,6 +40,15 @@
 
           </v-list-item-content>
         </v-list-item>
+        <v-list-item
+            :to="filterId | entityZoomLink"
+            v-if="isEntity"
+        >
+          <v-list-item-content>
+            Learn more
+
+          </v-list-item-content>
+        </v-list-item>
 
 
                 <!--                <v-spacer/>-->
@@ -69,6 +78,7 @@ import {url} from "@/url";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
+import {getEntityConfig} from "@/entityConfigs";
 
 export default {
   name: "FilterOptionChip",
@@ -123,6 +133,7 @@ export default {
   },
 
   methods: {
+    getEntityConfig,
     ...mapMutations([
       "snackbar",
     ]),
