@@ -27,12 +27,12 @@ const navConfigs = [
             //     href: "https://cookbook.openalex.org/",
             // },
             {
-                name: "API reference",
-                href: "https://docs.openalex.org/",
+                name: "User manual",
+                href: "https://help.openalex.org/",
             },
             {
-                name: "Data reference",
-                href: "https://help.openalex.org/",
+                name: "API reference",
+                href: "https://docs.openalex.org/",
             },
             {
                 name: "Upgrade",
