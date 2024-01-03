@@ -18,6 +18,21 @@
             {{ data.display_name }}
           </div>
 
+          <div class="subtitle">
+            <template v-if="myEntityType === 'works'">
+              <span v-if="data.publication_year">{{ data.publication_year }}</span>
+              <span v-if="data.publication_year && data.type"> · </span>
+              <span v-if="data.type">{{ data.type }}</span>
+              <span v-if="data.primary_location?.source?.display_name"> · </span>
+              <span v-if="data.primary_location?.source?.display_name" class="font-italic">
+                {{ data.primary_location?.source?.display_name }}
+              </span>
+            </template>
+            <template v-else>
+
+            </template>
+          </div>
+
           <div v-if="myEntityType === 'works'" class="d-flex mt-4">
             <work-linkouts :data="data" />
           </div>
@@ -57,6 +72,8 @@
               <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
           </div>
+
+
 
         </v-col>
       </v-row>
