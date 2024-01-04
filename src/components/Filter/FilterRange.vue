@@ -1,6 +1,6 @@
 <template>
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter">
+    <v-card rounded flat class="filter" @click="isActive = true">
       <div class="d-flex pa-2 pb-1 align-center">
         <v-icon left>{{ config.icon }}</v-icon>
         <span>{{ config.displayName }}</span>
@@ -11,37 +11,41 @@
       </div>
       <div class="pa-3 pt-1">
         <v-icon left>mdi-pencil-outline</v-icon>
-        <span class="font-weight-bold">{{ searchString }}</span>
+        <span class="font-weight-bold">{{ value }}</span>
       </div>
-
-
     </v-card>
 
-
-    <div v-if="0" class="filter filter-search d-flex align-center">
-      <v-icon left>{{ config.icon }}</v-icon>
-      <div>
-        <span>{{ config.displayName }}</span>
-        <span>
+    <v-dialog rounded v-model="isActive" max-width="600">
+      <v-card rounded>
+        <v-toolbar flat>
+          <v-toolbar-title>
+            {{ config.displayName }}
+          </v-toolbar-title>
+          <v-spacer />
+          <v-btn icon @click="isActive = false"><v-icon>mdi-close</v-icon></v-btn>
+        </v-toolbar>
+        <div class="pa-2">
           <v-text-field
-              class=" pa-0 ml-2 font-weight-bold"
-              style="display: inline-block; font-size: 20px;"
+              style="width: 100%;"
+              rounded
+              outlined
+              full-width
               v-model="searchString"
               hide-details
               @keydown.enter="submit"
-              prepend-inner-icon="mdi-pesncil-outline"
               autofocus
-              @blur="submit"
-              :loading="false"
           >
             </v-text-field>
-        </span>
-      </div>
-      <v-spacer/>
-      <v-btn icon @click="$emit('delete')">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </div>
+        </div>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+          <v-btn color="primary" rounded @click="submit">Apply</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
 
 
   </v-col>
@@ -77,6 +81,7 @@ export default {
     return {
       foo: 42,
       isDialogOpen: false,
+      value: url.readFilterValue(this.$store.state.entityType, this.filterKey),
       searchString: url.readFilterValue(this.$store.state.entityType, this.filterKey),
     }
   },
@@ -88,9 +93,16 @@ export default {
     config() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
-    isActive() {
-      return this.$store.state.activeFilter === this.filterKey
-    },
+    isActive: {
+      get() {
+        return this.$store.state.activeFilterKey === this.filterKey
+      },
+      set(to){
+          this.$store.state.activeFilterKey = (to) ?
+              this.filterKey :
+              undefined
+      }
+    }
   },
 
   methods: {

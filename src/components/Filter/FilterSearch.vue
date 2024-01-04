@@ -46,30 +46,6 @@
     </v-dialog>
 
 
-    <div v-if="0" class="filter filter-search d-flex align-center">
-      <v-icon left>{{ config.icon }}</v-icon>
-      <div>
-        <span>{{ config.displayName }}</span>
-        <span>
-          <v-text-field
-              class=" pa-0 ml-2 font-weight-bold"
-              style="display: inline-block; font-size: 20px;"
-              v-model="searchString"
-              hide-details
-              @keydown.enter="submit"
-              prepend-inner-icon="mdi-pesncil-outline"
-              autofocus
-              @blur="submit"
-              :loading="false"
-          >
-            </v-text-field>
-        </span>
-      </div>
-      <v-spacer/>
-      <v-btn icon @click="$emit('delete')">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </div>
 
 
   </v-col>

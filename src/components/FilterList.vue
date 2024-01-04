@@ -3,7 +3,7 @@
 
     <div class="d-flex py-1 px-3 align-center">
       <div class="text-h6">
-        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }} applied
+        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}
         <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">
           (clear all)
         </v-btn>
@@ -25,7 +25,7 @@
         <component
             v-if="newFilterKey"
             :key="'new' + activeFilterConfig.key + $route.query.filter"
-            class="d-block"
+            class="d-none"
             :is="'filter-phrase-' + activeFilterConfig.type"
             :filter-key="activeFilterConfig.key"
             :is-active="activeFilterConfig.key === activeFilterKey"
