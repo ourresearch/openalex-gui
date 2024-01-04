@@ -55,7 +55,7 @@
 
         </div>
         <!--            @blur="onBlur"-->
-        <v-list v-if="autocompleteSuggestions.length">
+        <v-list v-if="autocompleteSuggestions?.length">
           <v-list-item
               v-for="(suggestion, i) in autocompleteSuggestions"
               :key="i"
@@ -323,8 +323,9 @@ export default {
         if (to.params?.entityId) {
           this.searchString = "openalex:" + shortenOpenAlexId(to.params.entityId)
         } else {
-          const searchFilter = url.readFilter(this.entityType, "default.search")
-          this.searchString = searchFilter?.value ?? ""
+          this.searchString = ""
+          // const searchFilter = url.readFilter(this.entityType, "default.search")
+          // this.searchString = searchFilter?.value ?? ""
         }
 
         // if (!to) return

@@ -1,17 +1,28 @@
 <template>
   <v-chip
-      outlined
-      style="cursor: pointer; font-size: 20px;"
+      small
       @click="toggleMode"
+      class="pa-0"
   >
-    {{ (value === 'any') ? 'or' : 'and' }}
+    <v-chip
+        small
+        :dark="value === 'any'"
+    >
+      or
+    </v-chip>
+    <v-chip
+        small
+        :dark="value === 'all'">
+      and
+    </v-chip>
+    <!--    {{ (value === 'any') ? 'or' : 'and' }}-->
   </v-chip>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import { url} from "@/url";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -30,10 +41,10 @@ export default {
       "entityType",
     ]),
     value: {
-      get(){
+      get() {
         return url.readFilterMatchMode(this.entityType, this.filterKey)
       },
-      set(to){
+      set(to) {
         url.setFilterMatchMode(
             this.entityType,
             this.filterKey,
@@ -48,7 +59,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    toggleMode(){
+    toggleMode() {
       this.value = (this.value === "any") ?
           "all" :
           "any"

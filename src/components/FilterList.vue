@@ -1,62 +1,44 @@
 <template>
   <div class=" filter-list">
-    <!--    <v-toolbar flat>-->
-    <!--      <v-toolbar-title>-->
-    <!--        <span class="font-weight-bold">{{ url.readFiltersLength() }}</span>-->
-    <!--        search filters applied-->
-    <!--      </v-toolbar-title>-->
-    <!--      <v-spacer/>-->
-
-    <!--      <v-btn-->
-    <!--          v-if="url.readFiltersLength()"-->
-    <!--          icon-->
-    <!--          @click="clearEverything"-->
-    <!--      >-->
-    <!--        <v-icon>mdi-delete-outline</v-icon>-->
-    <!--      </v-btn>-->
-    <!--    </v-toolbar>-->
-    <!--    <v-divider/>-->
-
-    <!--    <v-subheader>-->
-    <!--      <span class="font-weight-bold mr-1">{{ url.readFiltersLength() }}</span>-->
-    <!--      <span>search filters applied</span>-->
-    <!--    </v-subheader>-->
 
     <div class="d-flex py-1 px-3 align-center">
-        <div class="font-weight-bold">
-          {{ filters.length }} {{ "Filter" | pluralize(filters.length) }} applied
-          <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">
-            (clear all)
-          </v-btn>
-
-        </div>
+      <div class="text-h6">
+        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }} applied
+        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">
+          (clear all)
+        </v-btn>
       </div>
-
-    <div>
-      <component
-          v-for="(filter, i) in filters"
-          :key="filter.key + $route.query.filter"
-          class="d-block pa-2"
-          :is="'filter-phrase-' + filter.type"
-          :filter-key="filter.key"
-          :is-active="filter.key === activeFilterKey"
-          @delete="url.deleteFilter(entityType, filter.key)"
-      />
-      <component
-          v-if="activeFilterConfig"
-          :key="'new' + activeFilterConfig.key + $route.query.filter"
-          class="d-block pa-2"
-          :is="'filter-phrase-' + activeFilterConfig.type"
-          :filter-key="activeFilterConfig.key"
-          :is-active="activeFilterConfig.key === activeFilterKey"
-          @delete="setActiveFilter(undefined)"
-      />
     </div>
-    <v-divider v-if="filters.length || activeFilterKey" />
+      <v-divider/>
+
+    <v-container>
+      <v-row dense>
+        <component
+            v-for="(filter, i) in filters"
+            :key="filter.key + $route.query.filter"
+            class="d-block"
+            :is="'filter-phrase-' + filter.type"
+            :filter-key="filter.key"
+            :is-active="filter.key === activeFilterKey"
+            @delete="url.deleteFilter(entityType, filter.key)"
+        />
+        <component
+            v-if="newFilterKey"
+            :key="'new' + activeFilterConfig.key + $route.query.filter"
+            class="d-block"
+            :is="'filter-phrase-' + activeFilterConfig.type"
+            :filter-key="activeFilterConfig.key"
+            :is-active="activeFilterConfig.key === activeFilterKey"
+            @delete="setActiveFilter(undefined)"
+        />
+      </v-row>
+
+    </v-container>
+    <v-divider v-if="filters.length || activeFilterKey"/>
 
     <div class="d-flex pt-2 pl-2">
-<!--      <v-icon left class="">mdi-plus</v-icon>-->
-<!--      <span class="pr-2">Add filter</span>-->
+      <!--      <v-icon left class="">mdi-plus</v-icon>-->
+      <!--      <span class="pr-2">Add filter</span>-->
       <v-chip
           v-for="filter in popularFilterOptions"
           :key="filter.key"
@@ -162,7 +144,6 @@ export default {
       foo: 42,
       searchString: "",
       url,
-      activeFilterKey: null,
       dialogs: {
         moreFilters: false
       },
@@ -179,11 +160,22 @@ export default {
         return true
       })
     },
-    filterKeys(){
-        return this.filters.map(f => f.key)
+    filterKeys() {
+      return this.filters.map(f => f.key)
+    },
+    activeFilterKey: {
+      get(){
+        return this.$store.state.activeFilterKey
+      },
+      set(to){
+        this.$store.state.activeFilterKey = to
+      }
     },
     activeFilter() {
       return this.activeFilterKey
+    },
+    newFilterKey(){
+      return this.activeFilterKey && !this.filterKeys.includes(this.activeFilterKey)
     },
     creatingNewFilter() {
       const appliedFilterKeys = this.filters.map(f => f.key)
@@ -210,7 +202,7 @@ export default {
     popularFilterOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("filter"))
-          // .filter(f => !this.filterKeys.includes(f.key))
+      // .filter(f => !this.filterKeys.includes(f.key))
     },
     allFilterOptions() {
       return facetConfigs(this.entityType)
@@ -281,10 +273,16 @@ export default {
   }
 
   .filter {
-    font-size: 20px;
+    //font-size: 20px;
+    //background: #f5f5f5;
+    //background: #eee;
+    //background: #fff;
+    background: #F3F7FF;
+    //border: 1px solid #ddd;
 
     &:hover {
-      background: #fafafa;
+      background: #f4f9ff;
+      //box-shadow: 5px 5px #000 !important;
     }
 
   }

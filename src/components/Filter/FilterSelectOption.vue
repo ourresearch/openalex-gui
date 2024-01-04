@@ -1,72 +1,82 @@
 <template>
-  <span>
-    <filter-match-mode
-        v-if="position > 0"
-        :filter-key="filterKey"
-    />
-    <v-menu rounded max-width="200" offset-y :close-on-content-click="false" v-model="isMenuOpen">
-      <template v-slot:activator="{on}">
-        <span
-            v-on="on"
-            class=""
+  <v-menu rounded max-width="400" offset-y :close-on-content-click="false" v-model="isMenuOpen">
+    <template v-slot:activator="{on}">
+      <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
+      <v-chip
+          outlined
+          label
+          class="font-weight-bold option"
+          v-on="on"
+      >
+        <span class="ml-2" v-if="isNegated">NOT</span>
+        <template v-if="filterDisplayValue">
+          {{ filterDisplayValue | truncate(20) }}
+        </template>
+        <template v-else>
+          loading...
+        </template>
+        <v-icon>mdi-menu-down</v-icon>
+      </v-chip>
+    </template>
+    <v-card :loading="isLoading">
+      <div class="pa-3 text-h6">
+        {{ filterDisplayValue }}
+      </div>
+      <v-divider/>
+      <div class="pa-4">
+        <div>
+          <span class="font-weight-bold">Alternate names: </span>
+          <span>{{ alternateNamesString }}</span>
+        </div>
+
+      </div>
+
+      <v-divider/>
+      <v-card-actions>
+        <v-spacer/>
+        <v-chip
+            small
+            @click="toggleIsNegated"
+            class="pa-0"
         >
-          <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
-          <template v-if="filterDisplayValue">
-            <span class="font-weight-bold option">
-              <span class="ml-2" v-if="isNegated">NOT</span>
-              {{ filterDisplayValue | truncate(100) }}
-<!--              <v-icon>mdi-menu-down</v-icon>-->
-            </span>
-          </template>
-          <template v-else>
-            loading...
-          </template>
-        </span>
-      </template>
-      <v-list >
+          <v-chip
+              small
+              :dark="isNegated"
+          >
+            ≠
+          </v-chip>
+          <v-chip
+              small
+              :dark="!isNegated">
+            =
+          </v-chip>
+        </v-chip>
+        <v-btn icon
+               :to="filterId | entityZoomLink"
+               v-if="isEntity">
+          <v-icon>mdi-information-outline</v-icon>
+        </v-btn>
+        <v-btn icon @click="deleteMe">
+          <v-icon>mdi-delete-outline</v-icon>
+        </v-btn>
 
-        <v-subheader>
-          OpenAlex:{{ filterId }}
-        </v-subheader>
-        <v-divider />
-        <v-list-item @click="toggleIsNegated">
-          <v-list-item-content>
-            {{ isNegated ? "Un-negate" : "Negate" }}
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item  @click="deleteMe">
-          <v-list-item-content>
-            Delete
-
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item
-            :to="filterId | entityZoomLink"
-            v-if="isEntity"
-        >
-          <v-list-item-content>
-            Learn more
-
-          </v-list-item-content>
-        </v-list-item>
+      </v-card-actions>
 
 
-                <!--                <v-spacer/>-->
-                <!--                <v-chip-->
-                <!--                    filter-->
-                <!--                    :dark="isNegated"-->
-                <!--                    :color="isNegated ? 'error': undefined"-->
-                <!--                    class="mr-1"-->
-                <!--                    :input-value="isNegated"-->
-                <!--                    @click="isNegated = !isNegated"-->
-                <!--                >-->
-                <!--                  {{ isNegated ? "Negated" : "Negate" }}-->
-                <!--                </v-chip>-->
+      <!--                <v-spacer/>-->
+      <!--                <v-chip-->
+      <!--                    filter-->
+      <!--                    :dark="isNegated"-->
+      <!--                    :color="isNegated ? 'error': undefined"-->
+      <!--                    class="mr-1"-->
+      <!--                    :input-value="isNegated"-->
+      <!--                    @click="isNegated = !isNegated"-->
+      <!--                >-->
+      <!--                  {{ isNegated ? "Negated" : "Negate" }}-->
+      <!--                </v-chip>-->
 
-              </v-card-actions>
-      </v-list>
-    </v-menu>
-  </span>
+    </v-card>
+  </v-menu>
 </template>
 
 <script>
@@ -119,16 +129,30 @@ export default {
     },
     isNegated() {
       return this.filterValue[0] === "!"
-    }
+    },
+
+    alternateNamesString() {
+      return [
+        ...this.filterData?.display_name_alternatives ?? [],
+        ...this.filterData?.display_name_acronyms ?? [],
+        ...this.filterData?.alternate_titles ?? [],
+
+      ].join("; ")
+    },
   },
   asyncComputed: {
     filterDisplayValue: async function () {
-      // if (!this.isEntity) return this.filterValue
-
       this.isLoading = true
       const resp = await api.makeAutocompleteResponseFromId(this.filterId)
       this.isLoading = false
       return resp.display_name
+    },
+    filterData: async function () {
+      if (!this.isEntity) return {}
+      this.isLoading = true
+      const resp = await api.getEntity(this.filterId)
+      this.isLoading = false
+      return resp
     },
   },
 
@@ -169,9 +193,10 @@ export default {
 <style scoped lang="scss">
 .option {
   font-weight: bold;
-  cursor:pointer;
+  cursor: pointer;
+
   &:hover {
-    text-decoration:  underline;
+    //text-decoration:  underline;
 
   }
 }
