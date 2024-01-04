@@ -26,43 +26,54 @@
 
 
     <v-container class="serp-bottom-stuff" style="">
-      <filter-list/>
+      <filter-list style="margin-top: 50px;"/>
 
 
 
-      <div class=" py-1 px-3 mt-12 mb-4 text-h6">
-        <span v-if="!resultsObject?.meta?.count">No </span>
-        <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
-        <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
-        results
-      </div>
+      <div class="d-flex px-3 align-center" style="margin-top: 100px;">
 
-      <div class="d-flex px-3 align-center">
+        <!--        <v-chip class="pa-0 mr-2">-->
+        <!--          <v-chip-->
+        <!--              @click="isAnalyze = false"-->
+        <!--              :dark="!isAnalyze"-->
+        <!--          >-->
+        <!--            List-->
+        <!--          </v-chip>-->
+        <!--          <v-chip-->
+        <!--              @click="isAnalyze = true"-->
+        <!--              :dark="isAnalyze"-->
+        <!--          >-->
+        <!--            Analyze-->
+        <!--          </v-chip>-->
 
-        <v-chip class="pa-0 mr-2" >
-          <v-chip
-              @click="isAnalyze = false"
-              :dark="!isAnalyze"
-          >
-            List
-          </v-chip>
-          <v-chip
-              @click="isAnalyze = true"
-              :dark="isAnalyze"
-          >
-            Analyze
-          </v-chip>
+        <!--        </v-chip>-->
 
-        </v-chip>
+
+        <div class="text-h6">
+
+          <span v-if="!resultsObject?.meta?.count">No </span>
+          <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
+          <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
+          results
+        </div>
 
 
         <v-spacer/>
+        <v-chip
+            class="ml-2"
+            filter
+            @click="isAnalyze = !isAnalyze"
+            outlined
+            :input-value="isAnalyze"
+        >
+          Analyze
+        </v-chip>
         <template v-if="isAnalyze">
-          <Action action="group_by"/>
+          <Action class="ml-2" action="group_by"/>
         </template>
         <template v-else>
-          <action :disabled="isAnalyze" action="sort"/>
-          <export-button :disabled="isAnalyze"/>
+          <action class="ml-2" :disabled="isAnalyze" action="sort"/>
+          <export-button class="ml-2" :disabled="isAnalyze"/>
 
         </template>
 

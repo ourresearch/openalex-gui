@@ -1,37 +1,56 @@
 <template>
 
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter filter-boolean d-flex align-center pa-2">
-      <div>
-        <v-icon left>{{ config.icon }}</v-icon>
-      </div>
-        <div class="font-weight-bold mr-1" v-if="!myValue">NOT </div>
-        <div class="">{{ config.displayName }}</div>
+    <v-card
+        rounded
+        flat
+        class="filter filter-boolean  pa-2 fill-height d-flex flex-column"
+    >
+      <div class="d-flex align-center flex-grow-1">
+
+        <div>
+          <v-icon left>{{ config.icon }}</v-icon>
+        </div>
+        <div class="font-weight-bold mr-1" v-if="!myValue">NOT</div>
+        <div class="font-weight-bold">{{ config.displayName }}</div>
         <v-spacer/>
         <v-chip
-            small
+            class="ml-2"
+            filter
             @click="myValue = !myValue"
-            class="pa-0"
+            outlined
+            :input-value="!myValue"
+            small
         >
-          <v-chip
-              small
-              :dark="!myValue"
-          >
-            ≠
-          </v-chip>
-          <v-chip
-              small
-              :dark="!!myValue">
-            =
-          </v-chip>
+          not
         </v-chip>
-      <div>
-        <v-btn small icon @click="$emit('delete')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
+
+
+        <!--        <v-chip-->
+        <!--            small-->
+        <!--            @click="myValue = !myValue"-->
+        <!--            class="pa-0"-->
+        <!--        >-->
+        <!--          <v-chip-->
+        <!--              small-->
+        <!--              :dark="!myValue"-->
+        <!--          >-->
+        <!--            ≠-->
+        <!--          </v-chip>-->
+        <!--          <v-chip-->
+        <!--              small-->
+        <!--              :dark="!!myValue">-->
+        <!--            =-->
+        <!--          </v-chip>-->
+        <!--        </v-chip>-->
+        <div>
+          <v-btn small icon @click="$emit('delete')">
+            <v-icon small>mdi-close</v-icon>
+          </v-btn>
+        </div>
+
+
       </div>
-
-
     </v-card>
 
 
