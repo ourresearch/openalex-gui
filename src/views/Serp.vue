@@ -1,5 +1,8 @@
 <template>
-  <div class="serp-page pb-12" style="background: #F7F9FC;">
+  <div class="serp-page pb-12"
+
+  >
+    <!--       style="background: #F7F9FC;"-->
     <div class="white">
     </div>
     <div>
@@ -26,31 +29,17 @@
       <filter-list/>
 
 
-      <div class="d-flex py-1 px-3 mt-10 align-center">
-        <div class="font-weight-bold">
-<!--          {{ isAnalyze ? "Analyze: " : "List: "}}-->
 
+      <div class=" py-1 px-3 mt-12 mb-4 text-h6">
+        <span v-if="!resultsObject?.meta?.count">No </span>
+        <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
+        <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
+        results
+      </div>
 
-          <span v-if="resultsObject?.meta.count === 0">
-          No results; try modifying your filters.
-        </span>
-          <span v-else-if="resultsObject?.meta.count < 100">
-          {{ resultsObject.meta.count | toPrecision }} results
-        </span>
-          <span v-else>
-          About {{ resultsObject?.meta.count | toPrecision }} results
-        </span>
-        </div>
-        <v-spacer/>
-        <template v-if="isAnalyze">
-          <Action action="group_by"/>
-        </template>
-        <template v-else>
-          <action :disabled="isAnalyze" action="sort"/>
-          <export-button :disabled="isAnalyze"/>
+      <div class="d-flex px-3 align-center">
 
-        </template>
-        <v-chip class="pa-0 ml-2">
+        <v-chip class="pa-0 mr-2" >
           <v-chip
               @click="isAnalyze = false"
               :dark="!isAnalyze"
@@ -65,6 +54,17 @@
           </v-chip>
 
         </v-chip>
+
+
+        <v-spacer/>
+        <template v-if="isAnalyze">
+          <Action action="group_by"/>
+        </template>
+        <template v-else>
+          <action :disabled="isAnalyze" action="sort"/>
+          <export-button :disabled="isAnalyze"/>
+
+        </template>
 
 
       </div>
@@ -408,6 +408,10 @@ export default {
 <style lang="scss">
 .container {
   //max-width: 1024px !important;
+}
+
+.serp-page {
+  //background: #F3F7FF;
 }
 
 

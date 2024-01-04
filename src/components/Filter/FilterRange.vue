@@ -1,27 +1,54 @@
 <template>
-  <div class="filter filter-range d-flex align-center">
-    <v-icon  left>{{ config.icon }}</v-icon>
-    <div>
-      <span>the {{ config.displayName }} is</span>
-      <span>
-        <v-text-field
-              class="pa-0  ml-2"
+  <v-col cols="12" lg="4" xl="3">
+    <v-card rounded flat class="filter">
+      <div class="d-flex pa-2 pb-1 align-center">
+        <v-icon left>{{ config.icon }}</v-icon>
+        <span>{{ config.displayName }}</span>
+        <v-spacer/>
+        <v-btn class="ml-1" small icon @click="$emit('delete')">
+          <v-icon small>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <div class="pa-3 pt-1">
+        <v-icon left>mdi-pencil-outline</v-icon>
+        <span class="font-weight-bold">{{ searchString }}</span>
+      </div>
+
+
+    </v-card>
+
+
+    <div v-if="0" class="filter filter-search d-flex align-center">
+      <v-icon left>{{ config.icon }}</v-icon>
+      <div>
+        <span>{{ config.displayName }}</span>
+        <span>
+          <v-text-field
+              class=" pa-0 ml-2 font-weight-bold"
               style="display: inline-block; font-size: 20px;"
               v-model="searchString"
               hide-details
               @keydown.enter="submit"
-              prepend-inner-icon="mdi-pencil-outline"
-              @blur="submit"
+              prepend-inner-icon="mdi-pesncil-outline"
               autofocus
+              @blur="submit"
+              :loading="false"
           >
-          </v-text-field>
-      </span>
+            </v-text-field>
+        </span>
+      </div>
+      <v-spacer/>
+      <v-btn icon @click="$emit('delete')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
     </div>
-    <v-spacer />
-    <v-btn icon @click="$emit('delete')">
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
-  </div>
+
+
+  </v-col>
+
+
+
+
 </template>
 
 <script>
@@ -35,10 +62,12 @@ import Template from "@/components/Filter/FilterSelect.vue";
 
 import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
 import {filter} from "core-js/internals/array-iteration";
+import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
+    FilterMatchMode,
     EditPhraseSearch,
   },
   props: {
@@ -104,10 +133,11 @@ export default {
 }
 </script>
 
-<style  lang="scss">
+<style lang="scss">
 input {
   padding: 0 3px !important;
 }
+
 .phrase-search {
 
 }

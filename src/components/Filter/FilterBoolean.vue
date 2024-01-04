@@ -1,24 +1,43 @@
 <template>
-  <div class="filter filter-boolean d-flex align-center">
-    <v-icon  left>{{ config.icon }}</v-icon>
-    <div>
-      <span>
-        the work
-        <v-chip outlined style="font-size: 20px;" @click="myValue = !myValue">
-<!--          <v-icon>mdi-toggle-switch-off-outline</v-icon>-->
-          {{ myValue ? "is" : "is not" }}
-        </v-chip>
 
-      </span>
-      <span>
-        {{ config.displayName }}
-      </span>
-    </div>
-    <v-spacer />
-    <v-btn icon @click="$emit('delete')">
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
-  </div>
+  <v-col cols="12" lg="4" xl="3">
+    <v-card rounded flat class="filter filter-boolean d-flex align-center pa-2">
+      <div>
+        <v-icon left>{{ config.icon }}</v-icon>
+      </div>
+        <div class="font-weight-bold mr-1" v-if="!myValue">NOT </div>
+        <div class="">{{ config.displayName }}</div>
+        <v-spacer/>
+        <v-chip
+            small
+            @click="myValue = !myValue"
+            class="pa-0"
+        >
+          <v-chip
+              small
+              :dark="!myValue"
+          >
+            ≠
+          </v-chip>
+          <v-chip
+              small
+              :dark="!!myValue">
+            =
+          </v-chip>
+        </v-chip>
+      <div>
+        <v-btn small icon @click="$emit('delete')">
+          <v-icon small>mdi-close</v-icon>
+        </v-btn>
+      </div>
+
+
+    </v-card>
+
+
+  </v-col>
+
+
 </template>
 
 <script>
@@ -54,10 +73,10 @@ export default {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
     myValue: {
-      get(){
+      get() {
         return url.readFilterValue(this.entityType, this.filterKey)
       },
-      set(to){
+      set(to) {
         url.upsertFilter(
             this.entityType,
             this.filterKey,
@@ -76,7 +95,7 @@ export default {
     deleteMe() {
       url.deleteFilter(this.entityType, this.filterKey)
     },
-    toggleValue(){
+    toggleValue() {
 
     },
 
