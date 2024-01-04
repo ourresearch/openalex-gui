@@ -1,6 +1,11 @@
 <template>
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter" @click="isActive = true">
+    <v-card
+        rounded
+        flat
+        class="filter fill-height d-flex flex-column"
+        @click="isActive = true"
+    >
       <div class="d-flex pa-2 pb-1 align-center">
         <v-icon left>{{ config.icon }}</v-icon>
         <span>{{ config.displayName }}</span>

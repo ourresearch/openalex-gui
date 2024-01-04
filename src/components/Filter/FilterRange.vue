@@ -1,6 +1,11 @@
 <template>
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter" @click="isActive = true">
+    <v-card
+        rounded
+        flat
+        class="filter fill-height d-flex flex-column"
+        @click="isActive = true"
+    >
       <div class="d-flex pa-2 pb-1 align-center">
         <v-icon left>{{ config.icon }}</v-icon>
         <span>{{ config.displayName }}</span>
@@ -9,9 +14,12 @@
           <v-icon small>mdi-close</v-icon>
         </v-btn>
       </div>
-      <div class="pa-3 pt-1">
+
+
+      <div class="d-flex pa-2">
         <v-icon left>mdi-pencil-outline</v-icon>
         <span class="font-weight-bold">{{ value }}</span>
+
       </div>
     </v-card>
 
@@ -21,8 +29,10 @@
           <v-toolbar-title>
             {{ config.displayName }}
           </v-toolbar-title>
-          <v-spacer />
-          <v-btn icon @click="isActive = false"><v-icon>mdi-close</v-icon></v-btn>
+          <v-spacer/>
+          <v-btn icon @click="isActive = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-toolbar>
         <div class="pa-2">
           <v-text-field
@@ -35,7 +45,7 @@
               @keydown.enter="submit"
               autofocus
           >
-            </v-text-field>
+          </v-text-field>
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -46,11 +56,7 @@
     </v-dialog>
 
 
-
-
   </v-col>
-
-
 
 
 </template>
@@ -97,10 +103,10 @@ export default {
       get() {
         return this.$store.state.activeFilterKey === this.filterKey
       },
-      set(to){
-          this.$store.state.activeFilterKey = (to) ?
-              this.filterKey :
-              undefined
+      set(to) {
+        this.$store.state.activeFilterKey = (to) ?
+            this.filterKey :
+            undefined
       }
     }
   },

@@ -1,49 +1,57 @@
 <template>
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter" @click="$store.state.activeFilterKey = filterKey">
-      <div class="d-flex pa-2 pb-1 align-center">
-        <v-icon left>{{ config.icon }}</v-icon>
-        <span>{{ config.displayName }}</span>
-        <v-spacer/>
-        <filter-match-mode
-            v-if="optionIds.length > 1"
-            :filter-key="filterKey"
-        />
-        <v-btn class="ml-1" small icon @click="$store.state.activeFilterKey = filterKey">
-          <v-icon small>mdi-plus</v-icon>
-        </v-btn>
-        <v-btn class="ml-1" small icon @click="$emit('delete')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
-      </div>
-      <!--      <v-divider />-->
-      <div class="pa-3 pt-1 d-flex">
-        <filter-select-option
-            class="mb-1 mr-1 d-block"
-            v-for="(id, i) in optionIds"
-            :key="id"
-            :filter-value="id"
-            :filter-key="filterKey"
-            :match-mode="url.readFilterMatchMode(entityType, filterKey)"
-            :position="i"
-            @delete="deleteOption(id)"
-        />
-      </div>
+    <v-card
+        rounded
+        flat
+        class="filter fill-height d-flex flex-column"
+        @click="$store.state.activeFilterKey = filterKey"
+    >
+      <div>
 
-      <v-dialog rounded v-model="isActive" max-width="600">
-        <v-card rounded>
-            <filter-select-add-option
-              @submit="submit"
+        <div class="d-flex pa-2 pb-1 align-center flex-grow-1">
+          <v-icon left>{{ config.icon }}</v-icon>
+          <span>{{ config.displayName }}</span>
+          <v-spacer/>
+          <filter-match-mode
+              v-if="optionIds.length > 1"
               :filter-key="filterKey"
           />
-          <v-divider />
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text rounded @click="isActive = false">Cancel</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          <!--        <v-btn class="ml-1" small icon @click="$store.state.activeFilterKey = filterKey">-->
+          <!--          <v-icon small>mdi-plus</v-icon>-->
+          <!--        </v-btn>-->
+          <v-btn class="ml-1" small icon @click="$emit('delete')">
+            <v-icon small>mdi-close</v-icon>
+          </v-btn>
+        </div>
+        <!--      <v-divider />-->
+        <div class="pa-3 pt-1 d-flex flex-wrap">
+          <filter-select-option
+              class=""
+              v-for="(id, i) in optionIds"
+              :key="id"
+              :filter-value="id"
+              :filter-key="filterKey"
+              :match-mode="url.readFilterMatchMode(entityType, filterKey)"
+              :position="i"
+              @delete="deleteOption(id)"
+          />
+        </div>
 
+        <v-dialog rounded v-model="isActive" max-width="600">
+          <v-card rounded>
+            <filter-select-add-option
+                @submit="submit"
+                :filter-key="filterKey"
+            />
+            <v-divider/>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+      </div>
     </v-card>
   </v-col>
 

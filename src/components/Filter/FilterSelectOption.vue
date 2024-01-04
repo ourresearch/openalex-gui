@@ -1,14 +1,14 @@
 <template>
-  <v-menu rounded max-width="400" offset-y :close-on-content-click="false" v-model="isMenuOpen">
+  <v-menu rounded max-width="400" class="" offset-y :close-on-content-click="false" v-model="isMenuOpen">
     <template v-slot:activator="{on}">
       <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
       <v-chip
           outlined
           label
-          class="font-weight-bold option"
+          class="font-weight-bold option d-block mb-1 mr-1"
           v-on="on"
       >
-        <span class="ml-2" v-if="isNegated">NOT</span>
+        <span class="mr-2" v-if="isNegated">NOT</span>
         <template v-if="filterDisplayValue">
           {{ filterDisplayValue | truncate(20) }}
         </template>
@@ -34,29 +34,40 @@
       <v-divider/>
       <v-card-actions>
         <v-spacer/>
+        <!--        <v-chip-->
+        <!--            small-->
+        <!--            @click="toggleIsNegated"-->
+        <!--            class="pa-0"-->
+        <!--        >-->
+        <!--          <v-chip-->
+        <!--              small-->
+        <!--              :dark="isNegated"-->
+        <!--          >-->
+        <!--            ≠-->
+        <!--          </v-chip>-->
+        <!--          <v-chip-->
+        <!--              small-->
+        <!--              :dark="!isNegated">-->
+        <!--            =-->
+        <!--          </v-chip>-->
+        <!--        </v-chip>-->
+
         <v-chip
-            small
+            class="ml-2"
+            filter
             @click="toggleIsNegated"
-            class="pa-0"
+            outlined
+            :input-value="isNegated"
         >
-          <v-chip
-              small
-              :dark="isNegated"
-          >
-            ≠
-          </v-chip>
-          <v-chip
-              small
-              :dark="!isNegated">
-            =
-          </v-chip>
+          not
         </v-chip>
         <v-btn icon
+               class="ml-2"
                :to="filterId | entityZoomLink"
                v-if="isEntity">
           <v-icon>mdi-information-outline</v-icon>
         </v-btn>
-        <v-btn icon @click="deleteMe">
+        <v-btn icon @click="deleteMe" class="ml-2">
           <v-icon>mdi-delete-outline</v-icon>
         </v-btn>
 

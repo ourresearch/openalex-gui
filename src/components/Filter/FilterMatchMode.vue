@@ -1,22 +1,33 @@
 <template>
+
   <v-chip
-      small
+      class="ml-2"
+      filter
       @click="toggleMode"
-      class="pa-0"
+      outlined
+      :input-value="value === 'all'"
+      small
   >
-    <v-chip
-        small
-        :dark="value === 'any'"
-    >
-      or
-    </v-chip>
-    <v-chip
-        small
-        :dark="value === 'all'">
-      and
-    </v-chip>
-    <!--    {{ (value === 'any') ? 'or' : 'and' }}-->
+    all
   </v-chip>
+
+  <!--  <v-chip-->
+  <!--      small-->
+  <!--      @click="toggleMode"-->
+  <!--      class="pa-0"-->
+  <!--  >-->
+  <!--    <v-chip-->
+  <!--        small-->
+  <!--        :dark="value === 'any'"-->
+  <!--    >-->
+  <!--      or-->
+  <!--    </v-chip>-->
+  <!--    <v-chip-->
+  <!--        small-->
+  <!--        :dark="value === 'all'">-->
+  <!--      and-->
+  <!--    </v-chip>-->
+  <!--  </v-chip>-->
 </template>
 
 <script>
