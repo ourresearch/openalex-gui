@@ -1,29 +1,47 @@
 <template>
-  <div class="filter-select-add-option" style="display: inline-block;">
-    <v-text-field
-        prepend-inner-icon="mdi-magnify"
-        class=" pa-0 ml-2"
-        style="font-size: 20px;"
-        v-model="searchString"
-        autofocus
-        hide-details
-        @blur="onBlur"
-        :placeholder="placeholder"
-    />
-    <v-card class="suggestions-box">
-      <div
+  <v-card flat>
+    <!--    <v-text-field-->
+    <!--        prepend-inner-icon="mdi-magnify"-->
+    <!--        class=" pa-0 ml-2"-->
+    <!--        style="font-size: 20px;"-->
+    <!--        v-model="searchString"-->
+    <!--        autofocus-->
+    <!--        hide-details-->
+    <!--        @blur="onBlur"-->
+    <!--        :placeholder="placeholder"-->
+    <!--    />-->
+    <div class="py-2 pb-3">
+      <v-text-field
+          :placeholder="placeholder"
+          v-model="searchString"
+          autofocus
+          rounded
+          flat
+          clearable
+          hide-details
+          :prepend-inner-icon="myFilterConfig.icon"
+      >
+
+      </v-text-field>
+    </div>
+    <v-divider/>
+    <div v-if="searchString && !options.length" class="grey--text pl-8 pt-3">
+      No results found
+    </div>
+    <v-list v-if="searchString || options.length">
+      <v-list-item
           v-for="option in options"
           :key="'unselected' + option.id"
           @click="addOption(option.id)"
-          class="d-flex pa-2 suggestion"
       >
-        <v-icon left>mdi-plus</v-icon>
-        <span>
+        <v-list-item-content>
+          <v-list-item-title>
             {{ option.display_name }}
-          </span>
-      </div>
-    </v-card>
-  </div>
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+  </v-card>
 </template>
 
 <script>
@@ -58,7 +76,7 @@ export default {
     myFilterConfig() {
       return facetConfigs().find(c => c.key === this.filterKey)
     },
-    placeholder(){
+    placeholder() {
       const pluralName = this.$pluralize(this.myFilterConfig.displayName, 2)
       return "search " + pluralName
     }
@@ -107,13 +125,12 @@ export default {
     addOption(id) {
       if (url.isFilterApplied(this.entityType, this.filterKey)) {
         url.addFilterOption(this.entityType, this.filterKey, id)
-      }
-      else {
+      } else {
         url.createFilter(this.entityType, this.filterKey, id)
       }
     },
-    onBlur(){
-      setTimeout(()=> {
+    onBlur() {
+      setTimeout(() => {
         this.$emit("blur")
       }, 100)
     }
@@ -139,9 +156,11 @@ export default {
 
 .filter-select-add-option {
   position: relative;
+
   .suggestions-box {
     position: absolute;
     z-index: 9;
+
     .suggestion {
       cursor: default;
       font-size: 16px;

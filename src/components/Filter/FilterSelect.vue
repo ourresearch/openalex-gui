@@ -1,6 +1,6 @@
 <template>
   <v-col cols="12" lg="4" xl="3">
-    <v-card rounded flat class="filter">
+    <v-card rounded flat class="filter" @click="$store.state.activeFilterKey = filterKey">
       <div class="d-flex pa-2 pb-1 align-center">
         <v-icon left>{{ config.icon }}</v-icon>
         <span>{{ config.displayName }}</span>
@@ -9,14 +9,14 @@
             v-if="optionIds.length > 1"
             :filter-key="filterKey"
         />
-        <v-btn class="ml-1" small icon @click="isEditMode = true">
+        <v-btn class="ml-1" small icon @click="$store.state.activeFilterKey = filterKey">
           <v-icon small>mdi-plus</v-icon>
         </v-btn>
         <v-btn class="ml-1" small icon @click="$emit('delete')">
           <v-icon small>mdi-close</v-icon>
         </v-btn>
       </div>
-<!--      <v-divider />-->
+      <!--      <v-divider />-->
       <div class="pa-3 pt-1 d-flex">
         <filter-select-option
             class="mb-1 mr-1 d-block"
@@ -28,40 +28,21 @@
             :position="i"
             @delete="deleteOption(id)"
         />
-
-        <span>
-        <span v-if="isEditMode">
-          <span v-if="optionIds.length">
-            {{ url.readFilterMatchMode(entityType, filterKey) === 'all' ? 'and' : 'or' }}
-          </span>
-          <!--          <v-text-field-->
-          <!--              class="text-h5 pa-0  ml-2"-->
-          <!--              style="display: inline-block"-->
-          <!--              v-model="searchString"-->
-          <!--              hide-details-->
-          <!--              autofocus-->
-          <!--              @keydown.enter="submit"-->
-          <!--              @blur="isEditMode = false"-->
-          <!--          />-->
-
-          <filter-select-add-option
-              @submit="submit"
-              :filter-key="filterKey"
-              @blur="isEditMode = false"
-          />
-
-        </span>
-      </span>
       </div>
 
-
-      <!--      <template v-if="optionIds.length > 1 && i < optionIds.length - 1">-->
-      <!--        <filter-phrase-match-mode-->
-      <!--            :filter-key="filterKey"/>-->
-      <!--      </template>-->
-
-
-      <!--          @toggle-is-negated="toggleOptionIsNegated(id)"-->
+      <v-dialog rounded v-model="isActive" max-width="600">
+        <v-card rounded>
+            <filter-select-add-option
+              @submit="submit"
+              :filter-key="filterKey"
+          />
+          <v-divider />
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
     </v-card>
   </v-col>
@@ -112,8 +93,15 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    isActive() {
-      return this.$store.state.activeFilter === this.filterKey
+    isActive: {
+      get() {
+        return this.$store.state.activeFilterKey === this.filterKey
+      },
+      set(to) {
+        this.$store.state.activeFilterKey = (to) ?
+            this.filterKey :
+            undefined
+      }
     },
     config() {
       return getFacetConfig(this.entityType, this.filterKey)
