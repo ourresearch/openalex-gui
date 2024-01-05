@@ -1,60 +1,33 @@
 <template>
 
-  <v-col cols="12" lg="4" xl="3">
     <v-card
         rounded
         flat
-        class="filter filter-boolean  pa-2 fill-height d-flex flex-column"
+        class="filter d-flex align-center py-2 mr-2 mb-2"
     >
-      <div class="d-flex">
-
-        <div>
-          <v-icon left>{{ config.icon }}</v-icon>
+        <div class="px-4">
+          <v-icon class="">{{ config.icon }}</v-icon>
         </div>
-        <div class="font-weight-bold mr-1" v-if="!myValue">NOT</div>
-        <div class="font-weight-bold">{{ config.displayName }}</div>
-        <v-spacer/>
         <v-chip
-            class="ml-2"
-            filter
+            class="mr-2"
             @click="myValue = !myValue"
             outlined
-            :input-value="!myValue"
-            small
+            label
         >
-          not
+          {{ myValue ? "is" : "is NOT" }}
         </v-chip>
-
-
-        <!--        <v-chip-->
-        <!--            small-->
-        <!--            @click="myValue = !myValue"-->
-        <!--            class="pa-0"-->
-        <!--        >-->
-        <!--          <v-chip-->
-        <!--              small-->
-        <!--              :dark="!myValue"-->
-        <!--          >-->
-        <!--            ≠-->
-        <!--          </v-chip>-->
-        <!--          <v-chip-->
-        <!--              small-->
-        <!--              :dark="!!myValue">-->
-        <!--            =-->
-        <!--          </v-chip>-->
-        <!--        </v-chip>-->
-        <div>
-          <v-btn small icon @click="$emit('delete')">
-            <v-icon small>mdi-close</v-icon>
+        <div class="font-weight-bold">{{ config.displayName }}</div>
+        <v-spacer/>
+        <div class="px-4">
+          <v-btn icon @click="$emit('delete')">
+            <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
 
 
-      </div>
     </v-card>
 
 
-  </v-col>
 
 
 </template>
