@@ -1,15 +1,15 @@
 <template>
   <div class=" filter-list">
 
-    <div class="d-flex py-1 px-3 align-center">
-      <div class="text-h6">
-        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}
-        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">
-          (clear all)
-        </v-btn>
-      </div>
-    </div>
-      <v-divider/>
+<!--    <div class="d-flex py-1 px-3 align-center">-->
+<!--      <div class="text-h6">-->
+<!--        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}-->
+<!--        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">-->
+<!--          (clear all)-->
+<!--        </v-btn>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--      <v-divider/>-->
 
     <v-container>
       <v-row dense>
