@@ -12,7 +12,7 @@
 <!--      <v-divider/>-->
 
     <v-container>
-      <v-row dense>
+      <div class="d-flex flex-wrap">
         <component
             v-for="(filter, i) in filters"
             :key="filter.key + $route.query.filter"
@@ -31,7 +31,7 @@
             :is-active="activeFilterConfig.key === activeFilterKey"
             @delete="setActiveFilter(undefined)"
         />
-      </v-row>
+      </div>
 
     </v-container>
     <v-divider v-if="filters.length || activeFilterKey"/>

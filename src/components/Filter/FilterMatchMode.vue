@@ -1,14 +1,12 @@
 <template>
 
   <v-chip
-      class="ml-2"
-      filter
+      class="mr-2"
       @click="toggleMode"
       outlined
-      :input-value="value === 'all'"
-      small
+      label
   >
-    all
+    {{ (value === "all") ? "all" : "any" }}
   </v-chip>
 
   <!--  <v-chip-->
