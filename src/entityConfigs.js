@@ -1,7 +1,8 @@
-
 // color ideas!
 // https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
 // https://carbondesignsystem.com/data-visualization/color-palettes/
+
+import countryCodeLookup from "country-code-lookup";
 
 const entityConfigs = {
     works: {
@@ -125,13 +126,26 @@ const entityConfigs = {
     },
 }
 
-const getEntityConfig = function(name) {
+const getEntityConfig = function (name) {
     return Object.values(entityConfigs).find(c => {
         return c.nameSingular === name || c.displayName === name
     })
 }
 
+const getLocationString = function (entity) {
+    if (!entity || !entity?.country_code) return
+    const countryResult = countryCodeLookup.byIso(entity?.country_code)
+
+    const locArr = [
+        entity?.geo?.city,
+        entity?.geo?.region,
+        countryResult?.country,
+    ].filter(x => x)
+    return locArr.join(", ")
+}
+
 export {
     entityConfigs,
     getEntityConfig,
+    getLocationString,
 }
