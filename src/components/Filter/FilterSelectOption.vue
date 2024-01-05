@@ -43,6 +43,10 @@
           <span class="font-weight-bold">Alternate names: </span>
           <span>{{ alternateNamesString }}</span>
         </div>
+        <div v-if="locationStr" class="mt-2">
+          <span class="font-weight-bold">Location: </span>
+          <span>{{ locationStr }}</span>
+        </div>
 
       </v-card-text>
 
@@ -96,7 +100,7 @@ import {url} from "@/url";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
-import {getEntityConfig} from "@/entityConfigs";
+import {getEntityConfig, getLocationString} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
@@ -153,6 +157,10 @@ export default {
     },
     subtitle(){
       return "subtitle"
+    },
+    locationStr(){
+      if (!this.filterData) return
+      return getLocationString(this.filterData)
     },
 
     alternateNamesString() {

@@ -71,6 +71,9 @@
             >
               <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
+
+            <entity-ids-menu-item :ids="data.ids" />
+
           </div>
 
 
@@ -114,7 +117,7 @@
             </v-list>
           </v-card>
         </v-col>
-        <v-col cols="2">
+        <v-col cols="4">
           <v-card flat rounded outlined>
             <v-card-title>
               Metrics
@@ -138,14 +141,6 @@
         </v-col>
 
 
-        <v-col cols="2">
-          <v-card flat rounded outlined>
-            <v-card-title>
-              Links
-            </v-card-title>
-            <id-list :data="data.ids"></id-list>
-          </v-card>
-        </v-col>
 
 
       </v-row>
@@ -164,6 +159,7 @@ import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import IdList from "@/components/IdList.vue";
 import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 
 export default {
   name: "Template",
@@ -172,6 +168,7 @@ export default {
     IdList,
     EntityWorkAuthor,
     WorkLinkouts,
+    EntityIdsMenuItem,
   },
   props: {
     data: Object,
