@@ -2,8 +2,8 @@
   <div class="serp-api-editor">
     <v-card
         flat
-        tile
-        style="font-family: Monaco, monospace; min-height: 40px;"
+        rounded
+        style="font-family: Monaco, monospace; min-height: 40px; background: #F3F7FF;"
         class="d-flex align-start pa-2 "
 
     >

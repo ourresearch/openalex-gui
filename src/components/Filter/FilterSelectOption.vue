@@ -1,5 +1,12 @@
 <template>
-  <v-menu rounded max-width="400" class="" offset-y :close-on-content-click="false" v-model="isMenuOpen">
+  <v-menu
+      rounded
+      max-width="400"
+      class=""
+      offset-y
+      :close-on-content-click="false"
+      v-model="isMenuOpen"
+  >
     <template v-slot:activator="{on}">
       <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
       <v-chip
@@ -19,39 +26,29 @@
       </v-chip>
     </template>
     <v-card :loading="isLoading">
-      <div class="pa-3 text-h6">
-        {{ filterDisplayValue }}
+      <div class="pa-3">
+        <div class="text-h6">
+          {{ filterDisplayValue }}
+        </div>
+        <div class="grey--text">
+          {{ myEntityType | pluralize(1)}} ·
+          {{ myEntityId }}
+          <template v-if="0"></template>
+        </div>
+
       </div>
       <v-divider/>
-      <div class="pa-4">
-        <div>
+      <v-card-text class="pa-4">
+        <div v-if="alternateNamesString">
           <span class="font-weight-bold">Alternate names: </span>
           <span>{{ alternateNamesString }}</span>
         </div>
 
-      </div>
+      </v-card-text>
 
       <v-divider/>
       <v-card-actions>
         <v-spacer/>
-        <!--        <v-chip-->
-        <!--            small-->
-        <!--            @click="toggleIsNegated"-->
-        <!--            class="pa-0"-->
-        <!--        >-->
-        <!--          <v-chip-->
-        <!--              small-->
-        <!--              :dark="isNegated"-->
-        <!--          >-->
-        <!--            ≠-->
-        <!--          </v-chip>-->
-        <!--          <v-chip-->
-        <!--              small-->
-        <!--              :dark="!isNegated">-->
-        <!--            =-->
-        <!--          </v-chip>-->
-        <!--        </v-chip>-->
-
         <v-chip
             class="ml-2"
             filter
@@ -94,12 +91,13 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
-import {isOpenAlexId} from "@/util";
+import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 import {url} from "@/url";
 
 import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import {getEntityConfig} from "@/entityConfigs";
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterOptionChip",
@@ -132,14 +130,29 @@ export default {
     isEntity() {
       return isOpenAlexId(this.filterValue)
     },
+    myEntityType(){
+      return (this.isEntity) ?
+          entityTypeFromId(this.filterValue) :
+          this.filterConfig.displayName
+    },
+    filterConfig(){
+      return getFacetConfig(this.entityType, this.filterKey)
+    },
     filterId() {
       return this.filterValue.replace("!", "")
     },
     menuKey() {
       return this.filterKey + '-' + this.filterId
     },
+    myEntityId(){
+      if (!this.isEntity) return
+      return shortenOpenAlexId(this.filterValue)
+    },
     isNegated() {
       return this.filterValue[0] === "!"
+    },
+    subtitle(){
+      return "subtitle"
     },
 
     alternateNamesString() {

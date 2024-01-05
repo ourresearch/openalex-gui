@@ -6,7 +6,7 @@
         flat
         class="filter filter-boolean  pa-2 fill-height d-flex flex-column"
     >
-      <div class="d-flex align-center flex-grow-1">
+      <div class="d-flex">
 
         <div>
           <v-icon left>{{ config.icon }}</v-icon>

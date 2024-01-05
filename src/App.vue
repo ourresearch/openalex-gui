@@ -20,6 +20,7 @@
     <v-app-bar
         app
         flat
+        height="100"
 
         color="white"
         class="pl-0"
@@ -45,13 +46,13 @@
       <filter-bar
           v-if="$route.name !== 'Home'"
           class="mx-3"
-          dense
-          style="max-width: 400px;"
+          style="max-width: 600px;"
       />
+      <v-spacer/>
 
-<!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->
-<!--        <v-icon>mdi-api</v-icon>-->
-<!--      </v-btn>-->
+      <v-btn icon @click="url.pushQueryParam('show_api', true)">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -133,6 +134,7 @@ import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
 import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
+import {url} from "@/url";
 
 export default {
   name: 'App',
@@ -162,6 +164,7 @@ export default {
         showAlpha: false
       },
       resultsFilters: [],
+      url,
     }
   },
   computed: {

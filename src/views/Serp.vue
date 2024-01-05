@@ -5,12 +5,12 @@
     <!--       style="background: #F7F9FC;"-->
     <div class="white">
     </div>
-    <div>
+    <v-container>
       <serp-api-editor
           v-if="isShowApiSet"
           key="api-editor"
       />
-    </div>
+    </v-container>
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -26,7 +26,7 @@
 
 
     <v-container class="serp-bottom-stuff" style="">
-      <filter-list style="margin-top: 50px;"/>
+      <filter-list style=""/>
 
 
 
