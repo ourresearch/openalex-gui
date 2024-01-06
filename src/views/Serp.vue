@@ -25,7 +25,7 @@
     </v-navigation-drawer>
 
 
-    <v-container class="serp-bottom-stuff" style="">
+    <v-container class="serp-bottom-stuff px-0" style="">
       <filter-list style=""/>
 
 
