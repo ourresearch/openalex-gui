@@ -9,15 +9,16 @@
       <v-icon>{{ config.icon }}</v-icon>
     </div>
     <div class="">
+      <div class="body-2 pb-1 pl-2">
+        {{ config.displayName}}
+      </div>
       <v-btn @click="isActive = true" text class="font-weight-bold px-2">
         <v-icon left>mdi-pencil-outline</v-icon>
         {{ value }}
       </v-btn>
-      <div class="body-2">
-        {{ config.displayName}}
-      </div>
+
     </div>
-    <div class="pl-2 pr-4">
+    <div class="pl-2">
       <v-btn class="" icon @click="$emit('delete')">
         <v-icon>mdi-close</v-icon>
       </v-btn>

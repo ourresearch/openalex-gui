@@ -8,12 +8,17 @@
       <v-icon>{{ config.icon }}</v-icon>
     </div>
     <div>
+      <div class="body-2 pb-1">
+          The {{ config.displayName }} is
+        </div>
 
       <div class="d-flex flex-wrap">
+
         <filter-match-mode
             v-if="optionIds.length > 1"
             :filter-key="filterKey"
         />
+
         <filter-select-option
             class=""
             v-for="(id, i) in optionIds"
@@ -25,14 +30,15 @@
             @delete="deleteOption(id)"
         />
 
+
         <v-btn class="" icon @click="$store.state.activeFilterKey = filterKey">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
 
       </div>
-      <div class="body-2">
-        {{ config.displayName }}
-      </div>
+      <!--      <div class="body-2">-->
+      <!--        {{ config.displayName }}-->
+      <!--      </div>-->
     </div>
 
     <!--        <div class="d-flex pa-2 pb-1 align-center flex-grow-1">-->

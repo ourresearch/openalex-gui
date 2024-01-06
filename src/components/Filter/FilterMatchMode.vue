@@ -1,12 +1,12 @@
 <template>
 
   <v-chip
-      class="mr-2"
+      class="mr-1"
       @click="toggleMode"
       outlined
       label
   >
-    {{ (value === "all") ? "all" : "any" }}
+    {{ (value === "all") ? "all of:" : "any of:" }}
   </v-chip>
 
   <!--  <v-chip-->
