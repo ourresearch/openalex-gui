@@ -4,11 +4,12 @@
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          :to="result.id | entityZoomLink"
           class="pl-0"
+          :to="result.id | entityZoomLink"
       >
-        <v-list-item-icon>
-          <v-icon class="pt-1">mdi-file-document-outline</v-icon>
+<!--          @click="clickResult(result.id)"-->
+        <v-list-item-icon class="pt-1 pl-3">
+          <v-icon class="">mdi-file-document-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title style="white-space: normal; line-height: 1.5;">
@@ -25,6 +26,31 @@
                 </span>
             </div>
           </v-list-item-subtitle>
+          <div>
+            <span>
+              <v-btn text small class="px-1" @click.prevent="showCitingWorks(result.id)">
+                Cited by {{ result.cited_by_count | toPrecision }}
+              </v-btn>
+
+            </span>
+<!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
+<!--              web-->
+<!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
+<!--            </v-btn>-->
+            <span @click.stop>
+              <v-btn
+                  v-if="result?.best_oa_location?.pdf_url"
+                  :href="result?.best_oa_location?.pdf_url"
+                  target="_blank"
+                  text
+                  small
+                  class="ml-2"
+              >
+                PDF
+              </v-btn>
+
+            </span>
+          </div>
         </v-list-item-content>
       </v-list-item>
     </v-list>
@@ -36,6 +62,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 import {shortenOpenAlexId} from "@/util";
+import {createSimpleFilter} from "@/filterConfigs";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -62,6 +90,16 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+
+    showCitingWorks(id){
+      const newFilter = createSimpleFilter(
+          this.entityType,
+          "cited_by",
+          id
+      )
+      url.setFilters(this.entityType, [newFilter], true)
+      return false
+    },
 
 
 

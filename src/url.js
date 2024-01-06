@@ -263,7 +263,8 @@ const setFilters = function (entityType, filters, hardReset = false) {
             page: 1,
             sort: (hardReset) ? undefined : router.currentRoute.query.sort,
             search: (hardReset) ? undefined : router.currentRoute.query.search,
-            filter: filtersAsUrlStr(filters)
+            filter: filtersAsUrlStr(filters),
+            is_list_view: router.currentRoute.query.is_list_view,
         }
     }
     pushToRoute(router, newRoute)
