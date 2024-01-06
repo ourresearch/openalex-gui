@@ -29,7 +29,6 @@
       <filter-list style=""/>
 
 
-
       <div class="d-flex px-3 align-center" style="margin-top: 100px;">
 
         <!--        <v-chip class="pa-0 mr-2">-->
@@ -74,6 +73,9 @@
         <template v-else>
           <action class="ml-2" :disabled="isAnalyze" action="sort"/>
           <export-button class="ml-2" :disabled="isAnalyze"/>
+          <v-btn icon @click="isListView = !isListView">
+            <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline'}} </v-icon>
+          </v-btn>
 
         </template>
 
@@ -81,9 +83,21 @@
       </div>
 
 
-      <div>
+      <div v-if="resultsObject?.meta?.count">
         <analytic-views v-if="isAnalyze"/>
-        <serp-results-list v-else :results-object="resultsObject"/>
+        <template v-else>
+          <serp-results-list v-if="isListView" :results-object="resultsObject" />
+          <serp-results-table v-else :results-object="resultsObject"/>
+
+          <div class="serp-bottom" >
+            <v-pagination
+                v-model="page"
+                :length="numPages"
+                :total-visible="10"
+                light
+            />
+          </div>
+        </template>
 
       </div>
     </v-container>
@@ -108,7 +122,8 @@ import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
 
 import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
-import SerpResultsList from "../components/SerpResultsList.vue";
+import SerpResultsTable from "../components/SerpResultsTable.vue";
+import SerpResultsList from "@/components/SerpResultsList.vue";
 
 
 import ApiDialog from "../components/ApiDialog.vue";
@@ -139,6 +154,7 @@ export default {
   },
   components: {
     SiteNav,
+    SerpResultsTable,
     SerpResultsList,
     ApiDialog,
     SerpApiEditor,
@@ -216,8 +232,11 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    isGroupBy() {
-      return "group_by" in this.$route.query
+    numPages() {
+      return Math.min(
+          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
+          10
+      )
     },
     isAnalyze: {
       get() {
@@ -249,6 +268,21 @@ export default {
         })
       }
     },
+    isListView: {
+      get() {
+        return !!this.$route.query.is_list_view
+      },
+      set(to) {
+        const is_list_view = (to) ? to : undefined
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            is_list_view
+          },
+        })
+      }
+    },
     isSidebarOpen: {
       get() {
         return !!this.$route.query.sidebar
@@ -264,27 +298,14 @@ export default {
         })
       }
     },
-    resultsTab: {
+    page: {
       get() {
-        return this.$route.query.tab ?? 0
+        return this.resultsObject?.meta?.page ?? 1
       },
-      set(to) {
-        const query = {
-          ...this.$route.query,
-          tab: to
-        }
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query,
-        })
+      set(val) {
+        url.setPage(val)
       }
     },
-    groupByConfig() {
-      if (!this.$route.query.group_by) return
-      return getFacetConfig(this.entityType, this.$route.query.group_by)
-    },
-
-
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
     },

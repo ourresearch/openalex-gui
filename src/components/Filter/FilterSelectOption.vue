@@ -77,18 +77,6 @@
       </v-card-actions>
 
 
-      <!--                <v-spacer/>-->
-      <!--                <v-chip-->
-      <!--                    filter-->
-      <!--                    :dark="isNegated"-->
-      <!--                    :color="isNegated ? 'error': undefined"-->
-      <!--                    class="mr-1"-->
-      <!--                    :input-value="isNegated"-->
-      <!--                    @click="isNegated = !isNegated"-->
-      <!--                >-->
-      <!--                  {{ isNegated ? "Negated" : "Negate" }}-->
-      <!--                </v-chip>-->
-
     </v-card>
   </v-menu>
 </template>

@@ -14,7 +14,7 @@
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <v-icon >mdi-sort-ascending</v-icon>
+            <v-icon >mdi-sort</v-icon>
 <!--            {{ selectedSortConfig.displayName }}-->
 
           </template>
