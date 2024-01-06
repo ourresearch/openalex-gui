@@ -1,66 +1,71 @@
 <template>
   <div class=" filter-list">
 
-<!--    <div class="d-flex py-1 px-3 align-center">-->
-<!--      <div class="text-h6">-->
-<!--        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}-->
-<!--        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">-->
-<!--          (clear all)-->
-<!--        </v-btn>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--      <v-divider/>-->
+    <!--    <div class="d-flex py-1 px-3 align-center">-->
+    <!--      <div class="text-h6">-->
+    <!--        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}-->
+    <!--        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">-->
+    <!--          (clear all)-->
+    <!--        </v-btn>-->
+    <!--      </div>-->
+    <!--    </div>-->
+    <!--      <v-divider/>-->
 
-    <v-container class="ml-0 main-serp-container">
-      <div class="d-flex flex-wrap">
-        <component
-            v-for="(filter, i) in filters"
-            :key="filter.key + $route.query.filter"
-            class="d-block"
-            :is="'filter-phrase-' + filter.type"
-            :filter-key="filter.key"
-            :is-active="filter.key === activeFilterKey"
-            @delete="url.deleteFilter(entityType, filter.key)"
-        />
-        <component
-            v-if="newFilterKey"
-            :key="'new' + activeFilterConfig.key + $route.query.filter"
-            class="d-none"
-            :is="'filter-phrase-' + activeFilterConfig.type"
-            :filter-key="activeFilterConfig.key"
-            :is-active="activeFilterConfig.key === activeFilterKey"
-            @delete="setActiveFilter(undefined)"
-        />
+    <v-container class="ml-0 d-flex main-serp-container">
+      <div class="d-lg-block d-none" style="width: 151px;"></div>
+      <div>
+        <div class="d-flex flex-wrap">
+          <component
+              v-for="(filter, i) in filters"
+              :key="filter.key + $route.query.filter"
+              class="d-block"
+              :is="'filter-phrase-' + filter.type"
+              :filter-key="filter.key"
+              :is-active="filter.key === activeFilterKey"
+              @delete="url.deleteFilter(entityType, filter.key)"
+          />
+          <component
+              v-if="newFilterKey"
+              :key="'new' + activeFilterConfig.key + $route.query.filter"
+              class="d-none"
+              :is="'filter-phrase-' + activeFilterConfig.type"
+              :filter-key="activeFilterConfig.key"
+              :is-active="activeFilterConfig.key === activeFilterKey"
+              @delete="setActiveFilter(undefined)"
+          />
+        </div>
+
+        <div class="d-flex">
+          <!--      <v-icon left class="">mdi-plus</v-icon>-->
+          <!--      <span class="pr-2">Add filter</span>-->
+
+          <v-chip
+              v-for="filter in popularFilterOptions"
+              :key="filter.key"
+              outlined
+              label
+              class="mr-1"
+              @click="setActiveFilter(filter)"
+              small
+              :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
+          >
+            {{ filter.displayName }}
+          </v-chip>
+
+          <v-btn
+              @click="dialogs.moreFilters = true"
+              text
+              small
+              rounded
+          >
+            More...
+          </v-btn>
+        </div>
       </div>
 
     </v-container>
-    <v-divider  />
+    <v-divider/>
 
-    <v-container class="d-flex pt-2 pl-2 main-serp-container">
-      <!--      <v-icon left class="">mdi-plus</v-icon>-->
-      <!--      <span class="pr-2">Add filter</span>-->
-      <v-chip
-          v-for="filter in popularFilterOptions"
-          :key="filter.key"
-          outlined
-          label
-          class="mr-1"
-          @click="setActiveFilter(filter)"
-          small
-          :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
-      >
-        {{ filter.displayName }}
-      </v-chip>
-
-      <v-btn
-          @click="dialogs.moreFilters = true"
-          text
-          small
-          rounded
-      >
-        More...
-      </v-btn>
-    </v-container>
 
     <v-dialog
         v-model="dialogs.moreFilters"
@@ -164,17 +169,17 @@ export default {
       return this.filters.map(f => f.key)
     },
     activeFilterKey: {
-      get(){
+      get() {
         return this.$store.state.activeFilterKey
       },
-      set(to){
+      set(to) {
         this.$store.state.activeFilterKey = to
       }
     },
     activeFilter() {
       return this.activeFilterKey
     },
-    newFilterKey(){
+    newFilterKey() {
       return this.activeFilterKey && !this.filterKeys.includes(this.activeFilterKey)
     },
     creatingNewFilter() {
