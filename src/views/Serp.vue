@@ -3,14 +3,12 @@
 
   >
     <!--       style="background: #F7F9FC;"-->
-    <div class="white">
-    </div>
-    <v-container>
-      <serp-api-editor
-          v-if="isShowApiSet"
-          key="api-editor"
-      />
-    </v-container>
+<!--    <v-container class="">-->
+<!--      <serp-api-editor-->
+<!--          v-if="isShowApiSet"-->
+<!--          key="api-editor"-->
+<!--      />-->
+<!--    </v-container>-->
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -25,29 +23,13 @@
     </v-navigation-drawer>
 
 
-    <v-container class="serp-bottom-stuff px-0" style="">
-      <filter-list style=""/>
+    <filter-list style=""/>
 
+
+
+     <v-container class="ml-0 main-serp-container">
 
       <div class="d-flex px-3 align-center" style="margin-top: 100px;">
-
-        <!--        <v-chip class="pa-0 mr-2">-->
-        <!--          <v-chip-->
-        <!--              @click="isAnalyze = false"-->
-        <!--              :dark="!isAnalyze"-->
-        <!--          >-->
-        <!--            List-->
-        <!--          </v-chip>-->
-        <!--          <v-chip-->
-        <!--              @click="isAnalyze = true"-->
-        <!--              :dark="isAnalyze"-->
-        <!--          >-->
-        <!--            Analyze-->
-        <!--          </v-chip>-->
-
-        <!--        </v-chip>-->
-
-
         <div class="text-h6">
 
           <span v-if="!resultsObject?.meta?.count">No </span>
@@ -74,7 +56,7 @@
           <action class="ml-2" :disabled="isAnalyze" action="sort"/>
           <export-button class="ml-2" :disabled="isAnalyze"/>
           <v-btn icon @click="isListView = !isListView">
-            <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline'}} </v-icon>
+            <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline' }}</v-icon>
           </v-btn>
 
         </template>
@@ -86,10 +68,10 @@
       <div v-if="resultsObject?.meta?.count">
         <analytic-views v-if="isAnalyze"/>
         <template v-else>
-          <serp-results-list v-if="isListView" :results-object="resultsObject" />
+          <serp-results-list v-if="isListView" :results-object="resultsObject"/>
           <serp-results-table v-else :results-object="resultsObject"/>
 
-          <div class="serp-bottom" >
+          <div class="serp-bottom">
             <v-pagination
                 v-model="page"
                 :length="numPages"
