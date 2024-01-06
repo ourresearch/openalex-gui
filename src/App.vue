@@ -274,13 +274,12 @@ html, body {
 $logo-link-height: 32px;
 
 .container.main-serp-container {
-  margin-left: 201px !important;
-  max-width: 1100px;
+  margin-left: 0 !important;
 }
 
 .logo-link {
   text-decoration: none;
-  width: 201px;
+  width: 151px;
   display: flex;
   align-items: center;
   //padding-left: 30px;

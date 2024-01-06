@@ -3,12 +3,12 @@
 
   >
     <!--       style="background: #F7F9FC;"-->
-<!--    <v-container class="">-->
-<!--      <serp-api-editor-->
-<!--          v-if="isShowApiSet"-->
-<!--          key="api-editor"-->
-<!--      />-->
-<!--    </v-container>-->
+    <!--    <v-container class="">-->
+    <!--      <serp-api-editor-->
+    <!--          v-if="isShowApiSet"-->
+    <!--          key="api-editor"-->
+    <!--      />-->
+    <!--    </v-container>-->
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -26,61 +26,62 @@
     <filter-list style=""/>
 
 
+    <v-container class="ml-0 pa-0 main-serp-container d-flex">
+      <div class="d-lg-block d-none" style="width: 151px; flex-shrink: 0;"></div>
+      <div>
+        <div class="d-flex px-3 align-center" style="margin-top: 100px;">
+          <div class="text-h6">
 
-     <v-container class="ml-0 main-serp-container">
+            <span v-if="!resultsObject?.meta?.count">No </span>
+            <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
+            <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
+            results
+          </div>
 
-      <div class="d-flex px-3 align-center" style="margin-top: 100px;">
-        <div class="text-h6">
 
-          <span v-if="!resultsObject?.meta?.count">No </span>
-          <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
-          <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
-          results
+          <v-spacer/>
+          <v-chip
+              class="ml-2"
+              filter
+              @click="isAnalyze = !isAnalyze"
+              outlined
+              :input-value="isAnalyze"
+          >
+            Analyze
+          </v-chip>
+          <template v-if="isAnalyze">
+            <Action class="ml-2" action="group_by"/>
+          </template>
+          <template v-else>
+            <action class="ml-2" :disabled="isAnalyze" action="sort"/>
+            <export-button class="ml-2" :disabled="isAnalyze"/>
+            <v-btn icon @click="isListView = !isListView">
+              <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline' }}</v-icon>
+            </v-btn>
+
+          </template>
+
+
         </div>
 
 
-        <v-spacer/>
-        <v-chip
-            class="ml-2"
-            filter
-            @click="isAnalyze = !isAnalyze"
-            outlined
-            :input-value="isAnalyze"
-        >
-          Analyze
-        </v-chip>
-        <template v-if="isAnalyze">
-          <Action class="ml-2" action="group_by"/>
-        </template>
-        <template v-else>
-          <action class="ml-2" :disabled="isAnalyze" action="sort"/>
-          <export-button class="ml-2" :disabled="isAnalyze"/>
-          <v-btn icon @click="isListView = !isListView">
-            <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline' }}</v-icon>
-          </v-btn>
+        <div v-if="resultsObject?.meta?.count">
+          <analytic-views v-if="isAnalyze"/>
+          <template v-else>
+            <serp-results-list v-if="isListView" :results-object="resultsObject"/>
+            <serp-results-table v-else :results-object="resultsObject"/>
 
-        </template>
+            <div class="serp-bottom">
+              <v-pagination
+                  v-model="page"
+                  :length="numPages"
+                  :total-visible="10"
+                  light
+              />
+            </div>
+          </template>
 
-
-      </div>
-
-
-      <div v-if="resultsObject?.meta?.count">
-        <analytic-views v-if="isAnalyze"/>
-        <template v-else>
-          <serp-results-list v-if="isListView" :results-object="resultsObject"/>
-          <serp-results-table v-else :results-object="resultsObject"/>
-
-          <div class="serp-bottom">
-            <v-pagination
-                v-model="page"
-                :length="numPages"
-                :total-visible="10"
-                light
-            />
-          </div>
-        </template>
-
+        </div>
       </div>
     </v-container>
 
