@@ -1,29 +1,34 @@
 <template>
-  <v-col cols="12" lg="4" xl="3">
-    <v-card
-        rounded
-        flat
-        class="filter fill-height d-flex flex-column"
-        @click="isActive = true"
-    >
-      <div class="d-flex pa-2 pb-1 align-center">
-        <v-icon left>{{ config.icon }}</v-icon>
-        <span>{{ config.displayName }}</span>
-        <v-spacer/>
-        <v-btn class="ml-1" small icon @click="$emit('delete')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
+  <v-card
+      rounded
+      flat
+      class="filter d-flex align-center pa-2 mr-2 mb-2"
+
+  >
+    <div class="pl-2 pr-4">
+      <v-icon>{{ config.icon }}</v-icon>
+    </div>
+    <div class="">
+      <div class="body-2 pb-1 pl-2">
+        The {{ config.displayName}} is
       </div>
-
-
-      <div class="d-flex pa-2">
+      <v-btn @click="isActive = true" text class="font-weight-bold px-2">
         <v-icon left>mdi-pencil-outline</v-icon>
-        <span class="font-weight-bold">{{ value }}</span>
+        {{ value }}
+      </v-btn>
 
-      </div>
-    </v-card>
-
-    <v-dialog rounded v-model="isActive" max-width="600">
+    </div>
+    <div class="pl-2 pr-0">
+      <v-btn class="" icon @click="$emit('delete')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </div>
+    <v-dialog
+        rounded
+        v-model="isActive"
+        max-width="600"
+        @keydown.enter="submit"
+    >
       <v-card rounded>
         <v-toolbar flat>
           <v-toolbar-title>
@@ -46,6 +51,11 @@
               autofocus
           >
           </v-text-field>
+          <try-chips
+              :ideas="['2023', '2020-', '2020-2024', '-2020']"
+              @select="idea => searchString = idea"
+          />
+
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -54,9 +64,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-
-  </v-col>
+  </v-card>
 
 
 </template>
@@ -73,12 +81,14 @@ import Template from "@/components/Filter/FilterSelect.vue";
 import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
 import {filter} from "core-js/internals/array-iteration";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
+import TryChips from "@/components/TryChips.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
     FilterMatchMode,
     EditPhraseSearch,
+    TryChips,
   },
   props: {
     filterKey: String,

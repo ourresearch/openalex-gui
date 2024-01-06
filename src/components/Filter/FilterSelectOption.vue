@@ -14,6 +14,8 @@
           label
           class="font-weight-bold option d-block mb-1 mr-1"
           v-on="on"
+          close
+          @click:close="deleteMe"
       >
         <span class="mr-2" v-if="isNegated">NOT</span>
         <template v-if="filterDisplayValue">
@@ -22,7 +24,7 @@
         <template v-else>
           loading...
         </template>
-        <v-icon>mdi-menu-down</v-icon>
+<!--        <v-icon>mdi-menu-down</v-icon>-->
       </v-chip>
     </template>
     <v-card :loading="isLoading">

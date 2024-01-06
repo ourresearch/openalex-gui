@@ -1,15 +1,18 @@
 <template>
 
-    <v-card
-        rounded
-        flat
-        class="filter d-flex align-center py-2 mr-2 mb-2"
-    >
-        <div class="px-4">
-          <v-icon class="">{{ config.icon }}</v-icon>
-        </div>
+  <v-card
+      rounded
+      flat
+      class="filter d-flex align-center py-2 mr-2 mb-2"
+  >
+    <div class="px-4">
+      <v-icon class="">{{ config.icon }}</v-icon>
+    </div>
+    <div>
+      <div class="body-2 pb-1">The {{ entityType | pluralize(1) }}</div>
+      <div class="d-flex align-center">
         <v-chip
-            class="mr-2"
+            class="mr-1"
             @click="myValue = !myValue"
             outlined
             label
@@ -17,17 +20,20 @@
           {{ myValue ? "is" : "is NOT" }}
         </v-chip>
         <div class="font-weight-bold">{{ config.displayName }}</div>
-        <v-spacer/>
-        <div class="px-4">
-          <v-btn icon @click="$emit('delete')">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
+
+      </div>
 
 
-    </v-card>
+    </div>
+    <v-spacer/>
+    <div class="px-4">
+      <v-btn icon @click="$emit('delete')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </div>
 
 
+  </v-card>
 
 
 </template>
