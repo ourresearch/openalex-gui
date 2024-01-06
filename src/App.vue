@@ -42,7 +42,6 @@
               </span>
 
       </router-link>
-      <v-spacer/>
       <filter-bar
           v-if="$route.name !== 'Home'"
           class="mx-3"
@@ -50,9 +49,9 @@
       />
       <v-spacer/>
 
-      <v-btn icon @click="url.pushQueryParam('show_api', true)">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
+<!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->
+<!--        <v-icon>mdi-api</v-icon>-->
+<!--      </v-btn>-->
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -274,8 +273,14 @@ html, body {
 
 $logo-link-height: 32px;
 
+.container.main-serp-container {
+  margin-left: 201px !important;
+  max-width: 1100px;
+}
+
 .logo-link {
   text-decoration: none;
+  width: 201px;
   display: flex;
   align-items: center;
   //padding-left: 30px;

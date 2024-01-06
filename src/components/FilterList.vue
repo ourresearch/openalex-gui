@@ -11,7 +11,7 @@
 <!--    </div>-->
 <!--      <v-divider/>-->
 
-    <v-container>
+    <v-container class="ml-0 main-serp-container">
       <div class="d-flex flex-wrap">
         <component
             v-for="(filter, i) in filters"
@@ -34,9 +34,9 @@
       </div>
 
     </v-container>
-    <v-divider v-if="filters.length || activeFilterKey"/>
+    <v-divider  />
 
-    <div class="d-flex pt-2 pl-2">
+    <v-container class="d-flex pt-2 pl-2 main-serp-container">
       <!--      <v-icon left class="">mdi-plus</v-icon>-->
       <!--      <span class="pr-2">Add filter</span>-->
       <v-chip
@@ -60,7 +60,7 @@
       >
         More...
       </v-btn>
-    </div>
+    </v-container>
 
     <v-dialog
         v-model="dialogs.moreFilters"
