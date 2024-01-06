@@ -78,7 +78,7 @@ export default {
     },
     placeholder() {
       const pluralName = this.$pluralize(this.myFilterConfig.displayName, 2)
-      return "search " + pluralName
+      return "add " + this.myFilterConfig.displayName + " filter"
     }
   },
 

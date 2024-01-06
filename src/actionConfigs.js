@@ -79,7 +79,7 @@ const actionConfigs = [
         // to see if a search is set or not. so it's handled via a function url.js
         defaultValues: [],
         appendToValues: ":desc",
-        icon:"mdi-sort-ascending",
+        icon:"mdi-sort",
         color: "deep-orange",
         closeMenuOnContentClick: false,
 

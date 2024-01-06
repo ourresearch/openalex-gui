@@ -36,22 +36,8 @@
         </v-btn>
 
       </div>
-      <!--      <div class="body-2">-->
-      <!--        {{ config.displayName }}-->
-      <!--      </div>-->
     </div>
 
-    <!--        <div class="d-flex pa-2 pb-1 align-center flex-grow-1">-->
-    <!--          <span>{{ config.displayName }}</span>-->
-    <!--          <v-spacer/>-->
-    <!--          <filter-match-mode-->
-    <!--              v-if="optionIds.length > 1"-->
-    <!--              :filter-key="filterKey"-->
-    <!--          />-->
-    <!--                  <v-btn class="ml-1" small icon @click="$store.state.activeFilterKey = filterKey">-->
-    <!--                    <v-icon small>mdi-plus</v-icon>-->
-    <!--                  </v-btn>-->
-    <!--        </div>-->
 
 
     <v-dialog rounded v-model="isActive" max-width="600">
