@@ -1,33 +1,37 @@
 <template>
-  <v-col cols="12" lg="4" xl="3">
-    <v-card
-        rounded
-        flat
-        class="filter fill-height d-flex flex-column"
-        @click="isActive = true"
-    >
-      <div class="d-flex pa-2 pb-1 align-center">
-        <v-icon left>{{ config.icon }}</v-icon>
-        <span>{{ config.displayName }}</span>
-        <v-spacer/>
-        <v-btn class="ml-1" small icon @click="$emit('delete')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
-      </div>
-      <div class="pa-3 pt-1">
-        <v-icon left>mdi-pencil-outline</v-icon>
-        <span class="font-weight-bold">{{ value }}</span>
-      </div>
-    </v-card>
+  <v-card
+      rounded
+      flat
+      class="filter d-flex align-center pa-2 mr-2 mb-2"
 
+  >
+    <div class="pl-2 pr-4">
+      <v-icon>{{ config.icon }}</v-icon>
+    </div>
+    <div class="">
+      <v-btn @click="isActive = true" text class="font-weight-bold px-2">
+        <v-icon left>mdi-pencil-outline</v-icon>
+        {{ value }}
+      </v-btn>
+      <div class="body-2">
+        {{ config.displayName}}
+      </div>
+    </div>
+    <div class="pl-2 pr-4">
+      <v-btn class="" icon @click="$emit('delete')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </div>
     <v-dialog rounded v-model="isActive" max-width="600">
       <v-card rounded>
         <v-toolbar flat>
           <v-toolbar-title>
             {{ config.displayName }}
           </v-toolbar-title>
-          <v-spacer />
-          <v-btn icon @click="isActive = false"><v-icon>mdi-close</v-icon></v-btn>
+          <v-spacer/>
+          <v-btn icon @click="isActive = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-toolbar>
         <div class="pa-2">
           <v-textarea
@@ -40,7 +44,7 @@
               @keydown.enter="submit"
               autofocus
           >
-            </v-textarea>
+          </v-textarea>
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -49,13 +53,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-
-
-
-  </v-col>
-
-
+  </v-card>
 
 
 </template>
@@ -102,10 +100,10 @@ export default {
       get() {
         return this.$store.state.activeFilterKey === this.filterKey
       },
-      set(to){
-          this.$store.state.activeFilterKey = (to) ?
-              this.filterKey :
-              undefined
+      set(to) {
+        this.$store.state.activeFilterKey = (to) ?
+            this.filterKey :
+            undefined
       }
     }
   },
