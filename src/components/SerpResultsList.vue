@@ -5,24 +5,25 @@
           v-for="result in resultsObject.results"
           :key="result.id"
           :to="result.id | entityZoomLink"
+          class="pl-0"
       >
         <v-list-item-icon>
           <v-icon class="pt-1">mdi-file-document-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
-          <v-list-item-title>
-            {{ result.display_name }}
+          <v-list-item-title style="white-space: normal; line-height: 1.5;">
+            <div>{{ result.display_name }}</div>
           </v-list-item-title>
-          <v-list-item-subtitle>
-            <span v-if="result.publication_year">{{ result.publication_year }}</span>
-            <span v-if="result.publication_year && result.type"> · </span>
-
-            <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships" />
-
-            <span v-if="result.primary_location?.source?.display_name"> · </span>
-            <span v-if="result.primary_location?.source?.display_name" class="font-italic">
-                {{ result.primary_location?.source?.display_name }}
-              </span>
+          <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
+            <div>
+              <span v-if="result.publication_year">{{ result.publication_year }}</span>
+              <span v-if="result.publication_year && result.type"> · </span>
+              <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships" />
+              <span v-if="result.primary_location?.source?.display_name"> · </span>
+              <span v-if="result.primary_location?.source?.display_name" class="font-italic">
+                  {{ result.primary_location?.source?.display_name }}
+                </span>
+            </div>
           </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
