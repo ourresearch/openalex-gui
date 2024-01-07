@@ -25,7 +25,7 @@
         rounded
     >
       <v-icon left>mdi-lock-open-variant-outline</v-icon>
-      View
+      Online
 <!--      <v-icon>mdi-open-in-new</v-icon>-->
     </v-btn>
 
@@ -38,7 +38,7 @@
         text
     >
       <v-icon left>mdi-lock-outline</v-icon>
-      View
+      Paywalled
 <!--      <v-icon right>mdi-open-in-new</v-icon>-->
     </v-btn>
 
