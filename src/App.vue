@@ -6,6 +6,7 @@
         app
         color="#fafafa"
         v-if="0"
+
     >
       <site-nav/>
 
@@ -20,7 +21,8 @@
     <v-app-bar
         app
         flat
-        height="100"
+        height="80"
+        extension-height="80"
 
         color="white"
         class="pl-0"
@@ -43,11 +45,12 @@
 
       </router-link>
       <filter-bar
-          v-if="$route.name !== 'Home'"
-          class="mx-3"
+          v-if="$route.name !== 'Home' && !$vuetify.breakpoint.mobile"
+          class=""
           style="max-width: 600px;"
       />
       <v-spacer/>
+
 
       <v-btn
           icon
@@ -95,9 +98,18 @@
           </v-list-item>
         </v-list>
       </v-menu>
+      <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.mobile">
+        <filter-bar
+            class=""
+            style="max-width: 600px;"
+        />
+
+      </template>
 
 
     </v-app-bar>
+    <div>
+    </div>
     <v-main>
       <router-view></router-view>
       <site-footer/>

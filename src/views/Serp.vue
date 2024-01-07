@@ -31,7 +31,11 @@
       <div class="d-lg-block d-none" style="width: 151px; flex-shrink: 0;"></div>
       <div>
         <div class="d-flex px-3 align-center" style="margin-top: 100px;">
-          <div class="text-h6">
+          <div  v-if="$vuetify.breakpoint.mobile" class="font-weight-bold">
+            <span v-if="!resultsObject?.meta?.count">No </span>
+            <span v-else>{{ resultsObject?.meta.count | millify }}</span> results
+          </div>
+          <div class="text-h6" v-else>
 
             <span v-if="!resultsObject?.meta?.count">No </span>
             <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
@@ -217,9 +221,13 @@ export default {
       "entityType",
     ]),
     numPages() {
+      const maxToShow = this.$vuetify.breakpoint.mobile ?
+          4 :
+          10
+
       return Math.min(
           Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
-          10
+          maxToShow
       )
     },
     isAnalyze: {

@@ -11,7 +11,7 @@
     <!--    </div>-->
     <!--      <v-divider/>-->
 
-    <v-container class="ml-0 d-flex main-serp-container">
+    <v-container class="ml-0 mt-0 d-flex main-serp-container">
       <div class="d-lg-block d-none" style="width: 151px;"></div>
       <div>
         <div class="d-flex flex-wrap">
@@ -35,7 +35,7 @@
           />
         </div>
 
-        <div class="d-flex">
+        <div class="d-flex flex-wrap">
           <!--      <v-icon left class="">mdi-plus</v-icon>-->
           <!--      <span class="pr-2">Add filter</span>-->
 
