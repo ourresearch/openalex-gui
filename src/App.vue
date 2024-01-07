@@ -49,9 +49,13 @@
       />
       <v-spacer/>
 
-<!--      <v-btn icon @click="url.pushQueryParam('show_api', true)">-->
-<!--        <v-icon>mdi-api</v-icon>-->
-<!--      </v-btn>-->
+      <v-btn
+          icon
+          @click="url.pushQueryParam('show_api', true)"
+          v-if="$route.name === 'Serp'"
+      >
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn

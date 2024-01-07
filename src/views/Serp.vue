@@ -4,10 +4,7 @@
   >
     <!--       style="background: #F7F9FC;"-->
     <!--    <v-container class="">-->
-    <!--      <serp-api-editor-->
-    <!--          v-if="isShowApiSet"-->
-    <!--          key="api-editor"-->
-    <!--      />-->
+
     <!--    </v-container>-->
 
     <v-navigation-drawer
@@ -24,6 +21,10 @@
 
 
     <filter-list style=""/>
+    <serp-api-editor
+              v-if="isShowApiSet"
+              key="api-editor"
+          />
 
 
     <v-container class="ml-0 pa-0 main-serp-container d-flex">
