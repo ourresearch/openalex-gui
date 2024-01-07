@@ -29,7 +29,7 @@
 
     <v-container class="ml-0 pa-0 main-serp-container d-flex">
       <div class="d-lg-block d-none" style="width: 151px; flex-shrink: 0;"></div>
-      <div>
+      <div class="flex-grow-1">
         <div class="d-flex px-3 align-center" style="margin-top: 100px;">
           <div  v-if="$vuetify.breakpoint.mobile" class="font-weight-bold">
             <span v-if="!resultsObject?.meta?.count">No </span>

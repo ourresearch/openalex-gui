@@ -866,6 +866,7 @@ const facetConfigs = function (entityType) {
             key: "cited_by",
             entityType: "works",
             displayName: "cited by",
+            isVerb: true, // need to know how to display the name
             showNameInChip: true,
             isEntity: true,
             showInSidebar: true,
@@ -882,6 +883,7 @@ const facetConfigs = function (entityType) {
             key: "cites",
             entityType: "works",
             displayName: "cites",
+            isVerb: true, // need to know how to display the name
             isEntity: true,
             showInSidebar: true,
             showNameInChip: true,
@@ -898,6 +900,7 @@ const facetConfigs = function (entityType) {
             key: "related_to",
             entityType: "works",
             displayName: "related to",
+            isVerb: true, // need to know how to display the name
             isEntity: true,
             showInSidebar: true,
             showNameInChip: true,

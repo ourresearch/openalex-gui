@@ -74,6 +74,7 @@ Vue.filter("entityWorksLink", function (id) {
 })
 
 
+
 Vue.filter("entityZoomLink", function (id) {
     if (!id) return
     const entityId = shortenOpenAlexId(id)

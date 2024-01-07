@@ -1,5 +1,5 @@
 <template>
-    <v-card flat rounded class="">
+    <v-card flat rounded class="" :loading="isLoading" style="width: 100%;">
       <v-toolbar dense flat >
         <v-icon left>{{ selectedConfig.icon }}</v-icon>
         <v-toolbar-title>

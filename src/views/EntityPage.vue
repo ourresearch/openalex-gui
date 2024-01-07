@@ -133,7 +133,9 @@ export default {
       immediate: true,
       async handler(to, from) {
         console.log("entityid change", this.apiPath)
+        this.$store.state.isLoading = true
         this.entityData = await api.get(this.apiPath)
+        this.$store.state.isLoading = false
       }
     }
   }

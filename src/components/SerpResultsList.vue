@@ -7,7 +7,7 @@
           class="pl-0"
           :to="result.id | entityZoomLink"
       >
-<!--          @click="clickResult(result.id)"-->
+        <!--          @click="clickResult(result.id)"-->
         <v-list-item-icon class="pt-1 pl-3">
           <v-icon class="">mdi-file-document-outline</v-icon>
         </v-list-item-icon>
@@ -19,7 +19,7 @@
             <div>
               <span v-if="result.publication_year">{{ result.publication_year }}</span>
               <span v-if="result.publication_year && result.type"> · </span>
-              <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships" />
+              <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
               <span v-if="result.primary_location?.source?.display_name"> · </span>
               <span v-if="result.primary_location?.source?.display_name" class="font-italic">
                   {{ result.primary_location?.source?.display_name }}
@@ -27,16 +27,22 @@
             </div>
           </v-list-item-subtitle>
           <div>
-            <span>
-              <v-btn text small class="px-1" @click.prevent="showCitingWorks(result.id)">
+            <span @click.prevent>
+              <v-btn
+                  text
+                  small
+                  class="px-1"
+                  :to="url.makeFilterRoute(entityType, 'cited_by', result.id)"
+              >
+<!--                  @click.prevent="showCitingWorks(result.id)"-->
                 Cited by {{ result.cited_by_count | toPrecision }}
               </v-btn>
 
             </span>
-<!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
-<!--              web-->
-<!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
-<!--            </v-btn>-->
+            <!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
+            <!--              web-->
+            <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
+            <!--            </v-btn>-->
             <span @click.stop>
               <v-btn
                   v-if="result?.best_oa_location?.pdf_url"
@@ -76,6 +82,7 @@ export default {
   data() {
     return {
       foo: 42,
+      url,
     }
   },
   computed: {
@@ -91,7 +98,7 @@ export default {
     ]),
     ...mapActions([]),
 
-    showCitingWorks(id){
+    showCitingWorks(id) {
       const newFilter = createSimpleFilter(
           this.entityType,
           "cited_by",
@@ -100,7 +107,6 @@ export default {
       url.setFilters(this.entityType, [newFilter], true)
       return false
     },
-
 
 
   },

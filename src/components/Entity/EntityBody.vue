@@ -24,9 +24,13 @@
               <span v-if="data.publication_year && data.type"> · </span>
               <span v-if="data.type">{{ data.type }}</span>
               <span v-if="data.primary_location?.source?.display_name"> · </span>
-              <span v-if="data.primary_location?.source?.display_name" class="font-italic">
+              <router-link
+                  v-if="data.primary_location?.source?.display_name && data?.primary_location?.source?.id"
+                  :to="data.primary_location.source.id | entityZoomLink"
+                  class=""
+              >
                 {{ data.primary_location?.source?.display_name }}
-              </span>
+              </router-link>
             </template>
             <template v-else>
 
@@ -84,7 +88,7 @@
 
       <v-row class="mt-9">
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesString">
-          <v-card rounded outlined>
+          <v-card rounded flat class="factoid-card">
             <v-card-title>
               Alternate names
             </v-card-title>
@@ -95,7 +99,7 @@
           </v-card>
         </v-col>
         <v-col  cols="12" md="6" lg="4" xl="3" v-if="abstract">
-          <v-card rounded outlined>
+          <v-card rounded flat class="factoid-card">
             <v-card-title>
               Abstract
             </v-card-title>
@@ -110,11 +114,11 @@
           </v-card>
         </v-col>
         <v-col  cols="12" md="6" lg="4" xl="3" v-if="authorshipsCount">
-          <v-card rounded outlined>
+          <v-card rounded flat class="factoid-card">
             <v-card-title>
               Authors ({{ authorshipsCount}})
             </v-card-title>
-            <v-list>
+            <v-list color="#eee">
               <entity-work-author
                 v-for="authorship in authorships"
                 :key="authorship.id"
@@ -129,7 +133,7 @@
           </v-card>
         </v-col>
         <v-col  cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
-          <v-card rounded outlined>
+          <v-card rounded flat class="factoid-card">
             <v-card-title>
               Metrics
             </v-card-title>
@@ -152,21 +156,37 @@
         <v-col  cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'works'">
           <v-row>
             <v-col cols="12">
-              <v-card  rounded outlined>
+              <v-card
+                  :to="url.makeFilterRoute(entityType, 'cited_by', data.id)"
+                  rounded
+                  outlined
+                  class="pa-3 text-right button-card"
+              >
                 <div class="text-h4">{{ data.cited_by_count | toPrecision }}</div>
-                <div class="body-2">Cited by</div>
+                <div class="body-2">Incoming citations</div>
               </v-card>
             </v-col>
           </v-row>
-          <v-row>
+
+          <v-row dense>
             <v-col cols="6">
-              <v-card  rounded outlined>
+              <v-card
+                  :to="url.makeFilterRoute(entityType, 'cites', data.id)"
+                  rounded
+                  outlined
+                  class="pa-3 text-right button-card"
+              >
                 <div class="text-h4">{{ data.referenced_works_count.toLocaleString() }}</div>
                 <div class="body-2">References</div>
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card  rounded outlined>
+              <v-card
+                  :to="url.makeFilterRoute(entityType, 'related_to', data.id)"
+                  rounded
+                  outlined
+                  class="pa-3 text-right button-card"
+              >
                 <div class="text-h4">{{ data.related_works?.length }}</div>
                 <div class="body-2">Related works</div>
               </v-card>
@@ -195,6 +215,7 @@ import IdList from "@/components/IdList.vue";
 import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -212,6 +233,7 @@ export default {
     return {
       foo: 42,
       maxAuthorships: 3,
+      url,
       isMore: {
         abstract: false,
         authorships: false,
@@ -252,6 +274,7 @@ export default {
       return this.data?.authorships?.length
     },
 
+
     mapLink() {
       if (!this.data?.geo?.latitude || !this.data?.geo?.longitude) return
       return `https://www.openstreetmap.org/?mlat=${this.data.geo.latitude}&mlon=${this.data.geo.longitude}`
@@ -275,5 +298,22 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+.factoid-card {
+  background-color: #eee;
+  border: none;
+  box-shadow: none;
+}
+
+.button-card {
+  transition: background-color 300ms;
+  background-color: #eee;
+  border: none;
+  &:hover {
+    background-color: #ddd;
+
+  }
+}
+
 
 </style>
