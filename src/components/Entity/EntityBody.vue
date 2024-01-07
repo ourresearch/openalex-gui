@@ -83,8 +83,8 @@
       </v-row>
 
       <v-row class="mt-9">
-        <v-col cols="4" v-if="alternateNamesString">
-          <v-card flat rounded outlined>
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesString">
+          <v-card rounded outlined>
             <v-card-title>
               Alternate names
             </v-card-title>
@@ -94,8 +94,8 @@
 
           </v-card>
         </v-col>
-        <v-col cols="4" v-if="abstract">
-          <v-card flat rounded outlined>
+        <v-col  cols="12" md="6" lg="4" xl="3" v-if="abstract">
+          <v-card rounded outlined>
             <v-card-title>
               Abstract
             </v-card-title>
@@ -109,22 +109,27 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="4" v-if="data.authorships">
-          <v-card flat rounded outlined>
+        <v-col  cols="12" md="6" lg="4" xl="3" v-if="authorshipsCount">
+          <v-card rounded outlined>
             <v-card-title>
-              Authors
+              Authors ({{ authorshipsCount}})
             </v-card-title>
             <v-list>
               <entity-work-author
-                v-for="author in data.authorships"
-                :key="author.id"
-                :author="author"
+                v-for="authorship in authorships"
+                :key="authorship.id"
+                :author="authorship"
               />
             </v-list>
+            <v-card-actions v-if="authorshipsCount > maxAuthorships">
+              <v-btn text rounded small @click="isMore.authorships = !isMore.authorships">
+                {{ isMore.authorships ? "Less" : "More" }}
+              </v-btn>
+            </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="4">
-          <v-card flat rounded outlined>
+        <v-col  cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
+          <v-card rounded outlined>
             <v-card-title>
               Metrics
             </v-card-title>
@@ -139,11 +144,35 @@
                 <td>{{ key.replace("_", " ") }}</td>
                 <td>{{ val | toPrecision }}</td>
               </tr>
-
               </tbody>
             </v-simple-table>
-
           </v-card>
+        </v-col>
+
+        <v-col  cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'works'">
+          <v-row>
+            <v-col cols="12">
+              <v-card  rounded outlined>
+                <div class="text-h4">{{ data.cited_by_count | toPrecision }}</div>
+                <div class="body-2">Cited by</div>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="6">
+              <v-card  rounded outlined>
+                <div class="text-h4">{{ data.referenced_works_count.toLocaleString() }}</div>
+                <div class="body-2">References</div>
+              </v-card>
+            </v-col>
+            <v-col cols="6">
+              <v-card  rounded outlined>
+                <div class="text-h4">{{ data.related_works?.length }}</div>
+                <div class="body-2">Related works</div>
+              </v-card>
+            </v-col>
+
+          </v-row>
         </v-col>
 
 
@@ -182,8 +211,10 @@ export default {
   data() {
     return {
       foo: 42,
+      maxAuthorships: 3,
       isMore: {
         abstract: false,
+        authorships: false,
       }
     }
   },
@@ -210,6 +241,15 @@ export default {
     abstract() {
       if (!this.data?.open_access?.is_oa) return
       return unravel(this.data.abstract_inverted_index)
+    },
+    authorships(){
+      if (!this.data?.authorships?.length) return []
+      return this.isMore.authorships ?
+          this.data.authorships :
+          this.data.authorships.slice(0, this.maxAuthorships)
+    },
+    authorshipsCount(){
+      return this.data?.authorships?.length
     },
 
     mapLink() {
