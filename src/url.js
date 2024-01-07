@@ -254,21 +254,27 @@ const deleteAllFilters = async function(){
     return await pushNewFilters([])
 }
 
-
-const setFilters = function (entityType, filters, hardReset = false) {
-    const newRoute = {
+const makeFilterRoute = function(entityType, key, value){
+    const newFilter = createSimpleFilter(entityType, key, value)
+    return {
         name: "Serp",
         params: {entityType},
         query: {
             page: 1,
-            sort: (hardReset) ? undefined : router.currentRoute.query.sort,
-            search: (hardReset) ? undefined : router.currentRoute.query.search,
-            filter: filtersAsUrlStr(filters),
+            sort:   router.currentRoute.query.sort,
+            search:  router.currentRoute.query.search,
+            filter: filtersAsUrlStr([newFilter]),
             is_list_view: router.currentRoute.query.is_list_view,
         }
     }
+}
+
+const newQueryFromFilter = function (entityType, key, value) {
+    const newRoute = makeFilterRoute()
     pushToRoute(router, newRoute)
 }
+
+
 const setSearch = function (entityType, searchString) {
     const newRoute = {
         name: "Serp",
@@ -567,6 +573,7 @@ const url = {
     deleteAllFilters,
     upsertFilter,
     setFilterMatchMode,
+    makeFilterRoute,
 
 
     deleteFilterOption,
@@ -597,7 +604,6 @@ const url = {
     setSidebar,
 
 
-    setFilters,
     setSearch,
     setPage,
 

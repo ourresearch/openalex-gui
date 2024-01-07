@@ -2,7 +2,7 @@
   <div class="serp-api-editor">
     <v-card
         flat
-        style="font-family: Monaco, monospace; min-height: 40px; background: #F3F7FF;"
+        style="font-family: Monaco, monospace; min-height: 40px; background: #ddd;"
         class="d-flex align-start pa-2 "
 
     >

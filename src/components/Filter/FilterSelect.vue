@@ -9,7 +9,8 @@
     </div>
     <div>
       <div class="body-2 pb-1">
-          The {{ config.displayName }} is
+          {{ config.displayName }} {{ !config.isVerb ? "is" : ""}}
+
         </div>
 
       <div class="d-flex flex-wrap">
