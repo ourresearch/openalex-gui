@@ -35,6 +35,7 @@
 
           <div v-if="myEntityType === 'works'" class="d-flex mt-4">
             <work-linkouts :data="data" />
+            <entity-ids-menu-item :ids="data.ids" />
           </div>
 
 
@@ -99,8 +100,13 @@
               Abstract
             </v-card-title>
             <v-card-text>
-              {{ abstract }}
+              {{ abstract | truncate(isMore.abstract ? 9999999999 : 200) }}
             </v-card-text>
+            <v-card-actions>
+              <v-btn text rounded small @click="isMore.abstract = !isMore.abstract">
+                {{ isMore.abstract ? "Less" : "More" }}
+              </v-btn>
+            </v-card-actions>
           </v-card>
         </v-col>
         <v-col cols="4" v-if="data.authorships">
@@ -176,6 +182,9 @@ export default {
   data() {
     return {
       foo: 42,
+      isMore: {
+        abstract: false,
+      }
     }
   },
   computed: {

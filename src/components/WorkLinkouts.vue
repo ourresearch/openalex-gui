@@ -12,7 +12,7 @@
         rounded
     >
       <v-icon left>mdi-file-pdf-box</v-icon>
-      PDF
+      Read
     </v-btn>
 
 
@@ -21,9 +21,12 @@
         :href="data.primary_location.landing_page_url"
         target="_blank"
         v-if="pdfUrl"
-        icon
+        text
+        rounded
     >
-      <v-icon>mdi-open-in-new</v-icon>
+      <v-icon left>mdi-lock-open-variant-outline</v-icon>
+      View
+<!--      <v-icon>mdi-open-in-new</v-icon>-->
     </v-btn>
 
     <!--       No-PDF linkout -->
@@ -32,10 +35,11 @@
         target="_blank"
         v-if="!pdfUrl"
         rounded
-        outlined
+        text
     >
-      Paywalled
-      <v-icon right>mdi-open-in-new</v-icon>
+      <v-icon left>mdi-lock-outline</v-icon>
+      View
+<!--      <v-icon right>mdi-open-in-new</v-icon>-->
     </v-btn>
 
 
