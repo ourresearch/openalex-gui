@@ -1,6 +1,6 @@
 <template>
   <v-card flat rounded class="py-3">
-    <v-list rounded>
+    <v-list rounded class="pa-0">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
