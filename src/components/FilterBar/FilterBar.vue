@@ -7,7 +7,7 @@
         rounded
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
-        nudge-top="4"
+        nudge-top="2"
     >
       <template v-slot:activator="{on}">
         <v-btn
@@ -15,7 +15,9 @@
             rounded
             outlined
             class="font-weight-regular"
-            large
+            :class="{'py-7': !dense}"
+            :large="dense"
+            :x-large="!dense"
             style="width: 100%; border-color: #999; cursor: text;"
         >
           <v-icon class="mr-2 ml-2">mdi-magnify</v-icon>
@@ -40,7 +42,7 @@
             ref="facetBarSearchBox"
             prepend-inner-icon="mdi-magnify"
             rounded
-            dense
+            :dense="dense"
             outlined
             class="pa-0"
             style="margin: 2px 6px 6px;"
