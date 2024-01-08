@@ -32,6 +32,8 @@
         </v-btn>
       </template>
       <div style="background: #fff; ">
+        <v-progress-linear :height="4" v-if="isLoading"  indeterminate />
+        <div v-else style="height: 4px;"></div>
         <v-text-field
             hide-details
             v-model="searchString"
@@ -40,7 +42,8 @@
             rounded
             dense
             outlined
-            class="pa-0 ma-0"
+            class="pa-0"
+            style="margin: 2px 6px 6px;"
             @keyup.enter="onEnter"
             placeholder="search and filter works"
             autofocus
@@ -49,7 +52,7 @@
             class="px-3 py-3"
             v-if="!searchString"
         >
-          <span class="mr-2">Try: </span>
+          <span class="mr-2 caption">Try: </span>
           <v-chip
               small
               outlined
@@ -63,12 +66,11 @@
           </v-chip>
 
         </div>
-        <!--            @blur="onBlur"-->
         <v-list v-if="autocompleteSuggestions?.length">
           <v-list-item
               v-for="(suggestion, i) in autocompleteSuggestions"
               :key="i"
-              class=" suggestion d-flex align-start"
+              class=" suggestion d-flex align-start py-2"
               :class="{'has-focus': myFocusIndex === i}"
               @click="clickSuggestion(suggestion.id)"
           >
@@ -79,7 +81,9 @@
               <div class="">
                 {{ suggestion.display_name }}
               </div>
-              <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint }}</div>
+              <div class="body-2" style="color: #777;">
+                {{ suggestion.hint }}
+              </div>
             </div>
             <v-spacer class="mx-2"/>
             <div v-if="suggestion.entity_type === 'work'">
@@ -140,6 +144,7 @@ export default {
     return {
       foo: 42,
       searchString: "",
+      isLoading: false,
       url,
       activeFilterKey: null,
       focusNumberLine: 0,
@@ -182,6 +187,7 @@ export default {
   },
   asyncComputed: {
     async autocompleteSuggestions() {
+
       if (!this.searchString) return []
 
 
@@ -189,7 +195,9 @@ export default {
           null :
           this.entityType
       const autocompleteUrl = url.makeAutocompleteUrl(myEntityType, this.searchString)
+      this.isLoading = true
       const resp = await api.getUrl(autocompleteUrl)
+      this.isLoading = false
 
 
       const ret = resp.results
@@ -197,17 +205,23 @@ export default {
           .map(result => {
             const entityConfig = getEntityConfig(result.entity_type)
 
-            let hint
-            if (result.hint) {
-              if (entityConfig.name === "works") hint = "Work by " + result.hint
-              else if (entityConfig.name === "authors") hint = "Author at " + result.hint
-              else if (entityConfig.name === "sources") hint = "Journal published by " + result.hint
-              else if (entityConfig.name === "institutions") hint = "Institution in " + result.hint
-              else if (entityConfig.name === "concepts") hint = result.hint
-              else hint = _.capitalize(entityConfig.displayNameSingular)
-            } else {
-              hint = _.capitalize(entityConfig.displayNameSingular)
-            }
+            const hint = (entityConfig.name === "works") ?
+                "Shortcut to work" :
+                _.capitalize(entityConfig.displayNameSingular) + " filter"
+
+            // let hint
+            // if (result.hint) {
+            //   if (entityConfig.name === "works") hint = "Work by " + result.hint
+            //
+            //   else if (entityConfig.name === "authors") hint = "Author at " + result.hint
+            //   else if (entityConfig.name === "sources") hint = "Journal published by " + result.hint
+            //   else if (entityConfig.name === "institutions") hint = "Institution in " + result.hint
+            //   else if (entityConfig.name === "concepts") hint = result.hint
+            //
+            //   else hint = _.capitalize(entityConfig.displayNameSingular)
+            // } else {
+            //   hint = _.capitalize(entityConfig.displayNameSingular) + " filter"
+            // }
 
 
             return {
@@ -356,7 +370,6 @@ export default {
   }
 
   border-radius: 50px !important;
-  padding: 5px;
   background: #fff;
 }
 
