@@ -17,7 +17,9 @@
 
         </div>
 
-      <div class="d-flex flex-wrap">
+      <div class="d-flex flex-wrap"
+      >
+<!--           style="margin-left: -11px;"-->
 
 
         <filter-select-option
