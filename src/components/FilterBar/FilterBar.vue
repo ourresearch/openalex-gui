@@ -7,7 +7,7 @@
         rounded
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
-        nudge-top="10"
+        nudge-top="4"
     >
       <template v-slot:activator="{on}">
         <v-btn
@@ -18,7 +18,7 @@
             large
             style="width: 100%; border-color: #999; cursor: text;"
         >
-          <v-icon class="mr-1">mdi-magnify</v-icon>
+          <v-icon class="mr-2 ml-2">mdi-magnify</v-icon>
           <span
               class=""
               v-if="searchString"
@@ -38,6 +38,7 @@
             ref="facetBarSearchBox"
             prepend-inner-icon="mdi-magnify"
             rounded
+            dense
             outlined
             class="pa-0 ma-0"
             @keyup.enter="onEnter"
