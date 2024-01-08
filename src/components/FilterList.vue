@@ -11,10 +11,10 @@
     <!--    </div>-->
     <!--      <v-divider/>-->
 
-    <v-container class="ml-0 mt-0 d-flex main-serp-container">
+    <v-container class="ml-0 pt-0 mt-0 d-flex main-serp-container">
       <div class="d-lg-block d-none" style="width: 151px;"></div>
       <div>
-        <div class="d-flex flex-wrap">
+        <div class="d-flex flex-wrap mb-2 mt-2">
           <component
               v-for="(filter, i) in filters"
               :key="filter.key + $route.query.filter"

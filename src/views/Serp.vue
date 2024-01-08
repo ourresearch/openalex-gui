@@ -30,16 +30,21 @@
     <v-container class="ml-0 pa-0 main-serp-container d-flex">
       <div class="d-lg-block d-none" style="width: 151px; flex-shrink: 0;"></div>
       <div class="flex-grow-1">
-        <div class="d-flex px-3 align-center" style="margin-top: 100px;">
-          <div  v-if="$vuetify.breakpoint.mobile" class="font-weight-bold">
+        <div class="d-flex px-3 align-center grey--text mb-8">
+          <div  v-if="$vuetify.breakpoint.mobile" class="">
             <span v-if="!resultsObject?.meta?.count">No </span>
             <span v-else>{{ resultsObject?.meta.count | millify }}</span> results
           </div>
-          <div class="text-h6" v-else>
+          <div class="" v-else>
+            <span v-if="isAnalyze">Analyzing </span>
 
             <span v-if="!resultsObject?.meta?.count">No </span>
-            <span v-else-if="resultsObject?.meta?.count < 100">{{ resultsObject.meta.count | toPrecision }} </span>
-            <span v-else>About {{ resultsObject?.meta.count | toPrecision }}</span>
+            <span v-else>
+              <span v-if="!isAnalyze && resultsObject?.meta?.count >= 100">About</span>
+              <span class="font-weight-bold">
+              {{ resultsObject?.meta.count | toPrecision }}
+              </span>
+            </span>
             results
           </div>
 

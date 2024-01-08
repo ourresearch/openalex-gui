@@ -5,7 +5,10 @@
         <v-col
             v-for="key in groupByKeys"
             :key="key"
-            cols="4"
+            cols="12"
+            md="6"
+            lg="4"
+            xl="3"
         >
           <group-by
               :selected="key"
