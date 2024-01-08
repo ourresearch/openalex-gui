@@ -1,57 +1,64 @@
 <template>
-  <div class="">
-    <div class="above-the-fold" style="height: 100vh;">
+  <v-container class="">
+    <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
+      <v-col cols="3"></v-col>
+      <v-col class="">
+        <v-card flat :height="logoHeight" class="landing-page-logo">
+          <img
+              src="@/assets/openalex-logo-icon-black-and-white.png"
+              class="logo-icon mr-0 colorizable"
+          />
+          <span
+              class="logo-text colorizable"
+              :style="'font-size:' + logoHeight * .75 + 'px'"
+          >
+                OpenAlex
+              </span>
 
-      <v-container style="margin-top: 100px; max-width: 700px;">
-        <div class="text-h2" style="line-height: 1.3;">
-          A free index of the world's research ecosystem.
+        </v-card>
+          <div class="text-body-2 text-md-body-1 mt-8 text-center">
+            <span>Search and analyze the world's research ecosystem:</span>
+          </div>
+        <div class="mt-2 d-flex justify-center">
+          <filter-bar style="max-width: 800px" />
         </div>
-        <div class="mt-12">
-          <p style="">
-            Inspired by the ancient library of Alexandria, OpenAlex catalogs 250M scholarly works, along with their citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.
-          </p>
-
-        </div>
-        <div class="mt-8">
-          <filter-bar />
-<!--          <v-btn x-large-->
-<!--                 rounded-->
-<!--              class=""-->
-<!--              color="primary"-->
-<!--              to="/works"-->
-<!--                 style="min-width: 150px;"-->
-<!--          >-->
-<!--            Try it!-->
-<!--          </v-btn>-->
-<!--          <v-btn-->
-<!--              x-large-->
-<!--              rounded-->
-<!--              outlined-->
-<!--              color="primary"-->
-<!--              href="https://help.openalex.org/"-->
-<!--              class="ml-4"-->
-<!--          >-->
-<!--            Learn more-->
-<!--            <v-icon right>mdi-open-in-new</v-icon>-->
-<!--          </v-btn>-->
 
 
-<!--          <v-btn-->
-<!--              x-large-->
-<!--              class=""-->
-<!--              text-->
-<!--              color="primary"-->
-<!--              href="http://eepurl.com/hA8PhL"-->
-<!--              target="_blank"-->
-<!--          >-->
-<!--            Join mailing list-->
-<!--            <v-icon right>mdi-open-in-new</v-icon>-->
-<!--          </v-btn>-->
+      </v-col>
+      <v-spacer></v-spacer>
+      <v-btn text rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
+        <v-icon>mdi-chevron-down</v-icon>
+        Learn more
+      </v-btn>
+    </v-row>
 
-        </div>
-      </v-container>
+<!--        <p style="">-->
+<!--          Inspired by the ancient library of Alexandria, OpenAlex catalogs 250M scholarly works, along with their-->
+<!--          citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.-->
+<!--        </p>-->
 
-    </div>
+    <v-row class="" id="learn-more">
+      <v-col class="d-flex justify-center">
+        <v-card flat max-width="800" class="mb-12">
+          <v-card-title>About us:</v-card-title>
+          <div class="pa-3">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          </div>
+          <div class="pa-3">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          </div>
+          <div class="pa-3">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          </div>
+        </v-card>
+
+      </v-col>
+
+
+    </v-row>
+
+    </v-container>
+
 
 
     <!--        <homepage-user-logos/>-->
@@ -60,40 +67,9 @@
 
     <!--        <homepage-testimonials />-->
 
-    <!--        <v-card flat tile class=""  style="margin-bottom: -50px; padding: 150px 0;">-->
-    <!--            <v-container class="text-center my-12 py-6">-->
-    <!--                <div class="text-h4 py-2">-->
-    <!--                    Want to learn more?-->
-    <!--                </div>-->
-    <!--                <div class="text-h5">-->
-    <!--                    Schedule a free custom demo, or watch our video guided tour.-->
-    <!--                </div>-->
-    <!--                <div class="mt-4">-->
-    <!--                    <v-btn-->
-    <!--                            to="./request-demo"-->
-    <!--                            x-large-->
-    <!--                            class="ma-4"-->
-    <!--                            dark-->
-    <!--                            color="primary"-->
-    <!--                    >-->
-    <!--                        Get your demo-->
-    <!--                    </v-btn>-->
-    <!--                    <v-btn-->
-    <!--                            href="https://vimeo.com/420183913"-->
-    <!--                            target="_blank"-->
-    <!--                            x-large-->
-    <!--                            class="ma-4">-->
-    <!--                        Watch video-->
-    <!--                        <v-icon small class="ml-2">mdi-open-in-new</v-icon>-->
-    <!--                    </v-btn>-->
-
-    <!--                </div>-->
-    <!--            </v-container>-->
-
-    <!--        </v-card>-->
 
 
-  </div>
+
 
 
 </template>
@@ -101,6 +77,7 @@
 <script>
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
+
 export default {
   name: 'home',
   components: {
@@ -116,7 +93,13 @@ export default {
       errorMsg: ""
     }
   },
-  computed: {},
+  computed: {
+    logoHeight() {
+      return this.$vuetify.breakpoint.mobile ?
+          50 :
+          100
+    }
+  },
   methods: {},
   mounted() {
   },
@@ -124,7 +107,25 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.landing-page-logo {
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .logo-icon {
+    height: 100%;
+  }
+
+  .logo-text {
+    margin: 0;
+    line-height: 1.2;
+    color: #000;
+    font-family: Dosis;
+    padding-left: .3em;
+    font-weight: 500;
+  }
+}
 
 
 .above-the-fold {

@@ -24,7 +24,9 @@
 
         color="white"
         class="pl-0"
+        height="70"
         absolute
+        v-if="$route.name !== 'Home'"
     >
 
       <router-link
@@ -45,6 +47,7 @@
       <filter-bar
           v-if="$route.name !== 'Home' && !$vuetify.breakpoint.mobile"
           class=""
+          dense
           style="max-width: 600px;"
       />
       <v-spacer/>
@@ -99,6 +102,7 @@
       <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.mobile">
         <filter-bar
             class=""
+            dense
             style="max-width: 600px;"
         />
 
