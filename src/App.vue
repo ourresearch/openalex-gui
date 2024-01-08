@@ -21,8 +21,6 @@
     <v-app-bar
         app
         flat
-        height="80"
-        extension-height="80"
 
         color="white"
         class="pl-0"

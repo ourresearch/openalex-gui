@@ -376,7 +376,7 @@ const facetConfigs = function (entityType) {
             category: "author",
             isList: true,
             actions: ["filter", "group_by",],
-            icon: "mdi-account-outline",
+            icon: "mdi-email-outline",
         },
 
 
@@ -569,7 +569,7 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             categories: ["institution"],
             actions: ["filter", "group_by",],
-            icon: "mdi-town-hall",
+            icon: "mdi-email-outline",
         },
 
 
@@ -803,7 +803,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             isList: false,
             actions: ["filter",  "column", "group_by",],
-            icon: "mdi-file-document-outline"
+            icon: "mdi-close-octagon"
         },
         {
             key: "language",
@@ -816,7 +816,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter",  "column", "group_by",],
             actionsPopular: ["column", "group_by"],
-            icon: "mdi-file-document-outline"
+            icon: "mdi-translate"
         },
         {
             key: "sustainable_development_goals.id",
