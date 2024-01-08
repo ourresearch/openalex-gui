@@ -27,7 +27,7 @@
           <component
               v-if="newFilterKey"
               :key="'new' + activeFilterConfig.key + $route.query.filter"
-              class="d-none"
+              style="display: none !important;"
               :is="'filter-phrase-' + activeFilterConfig.type"
               :filter-key="activeFilterConfig.key"
               :is-active="activeFilterConfig.key === activeFilterKey"

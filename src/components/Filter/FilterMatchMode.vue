@@ -4,7 +4,8 @@
       class="mr-1"
       @click="toggleMode"
       outlined
-      label
+      x-small
+
   >
     {{ (value === "all") ? "all of:" : "any of:" }}
   </v-chip>
