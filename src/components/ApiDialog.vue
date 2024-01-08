@@ -1,7 +1,7 @@
 <template>
   <v-dialog max-width="600" scrollable v-model="isOpen">
 
-      <v-card color="#E4EDFE">
+      <v-card color="#EEF5FC">
         <v-toolbar dark color="primary" style="z-index:999">
           <v-toolbar-title>API viewer</v-toolbar-title>
           <v-spacer></v-spacer>
