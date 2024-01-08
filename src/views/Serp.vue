@@ -65,7 +65,7 @@
           <template v-else>
             <action class="ml-2" :disabled="isAnalyze" action="sort"/>
             <export-button class="ml-2" :disabled="isAnalyze"/>
-            <v-btn icon @click="isListView = !isListView">
+            <v-btn v-if="!$vuetify.breakpoint.mobile" icon @click="isListView = !isListView">
               <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline' }}</v-icon>
             </v-btn>
 

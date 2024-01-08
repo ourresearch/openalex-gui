@@ -44,7 +44,7 @@
               :key="filter.key"
               outlined
               label
-              class="mr-1"
+              class="mr-1 mb-1"
               @click="setActiveFilter(filter)"
               small
               :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
