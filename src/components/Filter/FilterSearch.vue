@@ -2,20 +2,20 @@
   <v-card
       rounded
       flat
-      class="filter d-flex align-center pa-2 mr-2 mb-2"
+      class="filter button-card d-flex align-center py-1 px-2 mr-2 mb-2"
+      @click="isActive = true"
 
   >
     <div class="pl-2 pr-4">
       <v-icon>{{ config.icon }}</v-icon>
     </div>
     <div class="">
-      <div class="body-2 pb-1 pl-2">
+      <div class="caption">
         {{ config.displayName}}
       </div>
-      <v-btn @click="isActive = true" text class="font-weight-bold px-2">
-        <v-icon left>mdi-pencil-outline</v-icon>
+      <span class="font-weight-bold">
         {{ value }}
-      </v-btn>
+      </span>
 
     </div>
     <div class="pl-2">

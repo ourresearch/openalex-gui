@@ -260,8 +260,12 @@ export default {
   border: none;
   &:hover {
     background-color: #ddd;
-
   }
+}
+
+// don't show when a card has focus because we don't care.
+.v-card--link:focus:before {
+  opacity: 0;
 }
 
 html, body {

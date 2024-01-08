@@ -2,23 +2,23 @@
   <v-card
       rounded
       flat
-      class="filter d-flex align-center pa-2 mr-2 mb-2"
+      class="filter d-flex align-center py-1 pr-2 mr-2 mb-2"
   >
-    <div class="pl-2 pr-4">
+    <div class="pl-4 pr-4">
       <v-icon>{{ config.icon }}</v-icon>
     </div>
     <div>
-      <div class="body-2 pb-1">
+      <div class="caption mb-1">
           {{ config.displayName }} {{ !config.isVerb ? "is" : ""}}
+          <filter-match-mode
+              v-if="optionIds.length > 1"
+              :filter-key="filterKey"
+          />
 
         </div>
 
       <div class="d-flex flex-wrap">
 
-        <filter-match-mode
-            v-if="optionIds.length > 1"
-            :filter-key="filterKey"
-        />
 
         <filter-select-option
             class=""
@@ -54,6 +54,22 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog rounded v-model="isMergeMethodPickerActive" max-width="600">
+      <v-card rounded>
+        <filter-select-add-option
+            @submit="submit"
+            :filter-key="filterKey"
+        />
+        <v-divider/>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
 
   </v-card>
 
@@ -93,6 +109,7 @@ export default {
       isLoading: false,
       unselectedOptions: [],
       maxUnselectedOptionsCount: 10,
+      isMergeMethodPickerActive: false,
 
       isEditMode: false,
       url,
