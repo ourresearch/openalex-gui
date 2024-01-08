@@ -3,7 +3,7 @@
     <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
       <v-col cols="3"></v-col>
       <v-col class="">
-        <v-card flat :height="logoHeight" class="landing-page-logo">
+        <v-card flat :height="logoHeight" class="landing-page-logo mb-8" >
           <img
               src="@/assets/openalex-logo-icon-black-and-white.png"
               class="logo-icon mr-0 colorizable"
@@ -16,10 +16,10 @@
               </span>
 
         </v-card>
-<!--          <div class="text-body-2 text-md-body-1 mt-8 text-center">-->
-<!--            <span>Search and analyze the world's research ecosystem:</span>-->
-<!--          </div>-->
-        <div class="mt-8 d-flex justify-center">
+          <div v-if="$vuetify.breakpoint.mobile" class="text-body-2 text-md-body-1 mb-2 text-center">
+            <span>Search and analyze the world's research ecosystem:</span>
+          </div>
+        <div class="d-flex justify-center">
           <filter-bar style="max-width: 800px" />
         </div>
 

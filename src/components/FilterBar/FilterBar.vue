@@ -28,7 +28,7 @@
             {{ searchString }}
           </span>
           <span v-else class="grey--text">
-            <template v-if="$route.name === 'Home'">
+            <template v-if="$route.name === 'Home' && !$vuetify.breakpoint.mobile">
               Search and analyze the world's research ecosystem
             </template>
             <template v-else>
@@ -56,21 +56,24 @@
             autofocus
         />
         <div
-            class="px-3 py-3"
+            class="px-3 py-3 d-flex"
             v-if="!searchString"
         >
-          <span class="mr-2 caption">Try: </span>
-          <v-chip
-              small
-              outlined
-              label
-              v-for="example in exampleSearches"
-              :key="example"
-              class="mr-1"
-              @click="searchString = example"
-          >
-            {{ example }}
-          </v-chip>
+          <div class="mr-2 caption">Try: </div>
+          <div>
+            <v-chip
+                small
+                outlined
+                label
+                v-for="example in exampleSearches"
+                :key="example"
+                class="mr-1 mb-1"
+                @click="searchString = example"
+            >
+              {{ example }}
+            </v-chip>
+
+          </div>
 
         </div>
         <v-list v-if="autocompleteSuggestions?.length">

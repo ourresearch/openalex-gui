@@ -410,6 +410,8 @@ export default {
             "group_by",
             getActionDefaultsStr("group_by", this.$route)
         )
+        if (this.$vuetify.breakpoint.mobile) url.pushQueryParam("is_list_view", true)
+
         this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)
         this.$store.state.isLoading = false
