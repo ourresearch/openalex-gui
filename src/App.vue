@@ -247,6 +247,23 @@ export default {
 </script>
 <style lang="scss">
 
+
+.v-card.factoid-card {
+  background-color: #eee;
+  border: none;
+  box-shadow: none;
+}
+
+.v-card.button-card {
+  transition: background-color 300ms;
+  background-color: #eee;
+  border: none;
+  &:hover {
+    background-color: #ddd;
+
+  }
+}
+
 html, body {
   // THIS IS REQUIRED to disable styles that Vuetify applies,
   // which keep the v-scroll-lock directive from working.

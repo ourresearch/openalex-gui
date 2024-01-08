@@ -1,6 +1,6 @@
 <template>
-    <v-card flat rounded class="" :loading="isLoading" style="width: 100%;">
-      <v-toolbar dense flat >
+    <v-card class="factoid-card" flat rounded  :loading="isLoading" style="width: 100%;">
+      <v-toolbar dense flat color="transparent">
         <v-icon left>{{ selectedConfig.icon }}</v-icon>
         <v-toolbar-title>
           <span class="">{{ selectedConfig.displayName }}</span>
