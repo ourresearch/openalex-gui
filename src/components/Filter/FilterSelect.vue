@@ -57,20 +57,6 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog rounded v-model="isMergeMethodPickerActive" max-width="600">
-      <v-card rounded>
-        <filter-select-add-option
-            @submit="submit"
-            :filter-key="filterKey"
-        />
-        <v-divider/>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text rounded @click="isActive = false">Cancel</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
 
 
   </v-card>
@@ -111,7 +97,6 @@ export default {
       isLoading: false,
       unselectedOptions: [],
       maxUnselectedOptionsCount: 10,
-      isMergeMethodPickerActive: false,
 
       isEditMode: false,
       url,
