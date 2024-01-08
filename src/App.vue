@@ -251,17 +251,17 @@ export default {
 
 
 .v-card.factoid-card {
-  background-color: #eee;
+  background-color: #E4EDFE;
   border: none;
   box-shadow: none;
 }
 
 .v-card.button-card {
   transition: background-color 300ms;
-  background-color: #eee;
+  background-color: #E4EDFE;
   border: none;
   &:hover {
-    background-color: #ddd;
+    background-color: #D2DAEA;
   }
 }
 

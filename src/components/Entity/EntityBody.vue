@@ -87,7 +87,7 @@
 
       <v-row class="mt-9">
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesString">
-          <v-card rounded flat outlined class="">
+          <v-card rounded flat outlined class="" color="#EFEBE9">
             <v-card-title>
               Alternate names
             </v-card-title>
@@ -98,7 +98,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="6" lg="4" xl="3" v-if="abstract">
-          <v-card rounded flat class="">
+          <v-card rounded flat class="" color="#EFEBE9">
             <v-card-title>
               Abstract
             </v-card-title>
@@ -117,7 +117,7 @@
             <v-card-title>
               Authors ({{ authorshipsCount }})
             </v-card-title>
-            <v-list color="#eee">
+            <v-list color="#E4EDFE">
               <entity-work-author
                   v-for="(authorship, i) in authorships"
                   :key="i"
@@ -132,12 +132,12 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
-          <v-card rounded flat outlined class="">
+          <v-card rounded flat outlined color="#EFEBE9">
             <v-card-title>
               Metrics
             </v-card-title>
             <v-divider/>
-            <v-simple-table dense>
+            <v-simple-table dense style="background-color: #EFEBE9;">
               <tbody>
               <tr key="cited_by_count">
                 <td>Citations</td>
@@ -157,7 +157,7 @@
             <v-card-title>
               Affiliations ({{ data.affiliations.length }})
             </v-card-title>
-            <v-list color="#eee">
+            <v-list color="#E4EDFE">
               <v-list-item
                   :to="affil.institution.id | entityZoomLink"
                   v-for="(affil, i) in data.affiliations.slice(0, (isMore.affiliations ? 9999 : 3))"

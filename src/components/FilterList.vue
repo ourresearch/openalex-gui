@@ -282,7 +282,7 @@ export default {
     //background: #f5f5f5;
     //background: #eee;
     //background: #fff;
-    background: #eee;
+    background: #E4EDFE;
     //border: 1px solid #ddd;
 
     &:hover {
