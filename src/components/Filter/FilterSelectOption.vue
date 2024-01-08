@@ -28,19 +28,33 @@
       </v-chip>
     </template>
     <v-card :loading="isLoading">
-      <div class="pa-3">
-        <div class="text-h6">
-          {{ filterDisplayValue }}
+      <div class="pa-3 d-flex">
+        <div class="content">
+          <div class="text-h6">
+            {{ filterDisplayValue }}
+          </div>
+          <div class="caption grey--text">
+            {{ myEntityType | pluralize(1)}}
+            {{ isEntity ? " · " + myEntityId : "" }}
+            <template v-if="0"></template>
+          </div>
         </div>
-        <div class="grey--text">
-          {{ myEntityType | pluralize(1)}} ·
-          {{ myEntityId }}
-          <template v-if="0"></template>
-        </div>
+        <v-spacer></v-spacer>
+        <v-chip
+            class="ml-2"
+            filter
+            small
+            @click="toggleIsNegated"
+            outlined
+            :input-value="isNegated"
+        >
+          not
+        </v-chip>
+
 
       </div>
       <v-divider/>
-      <v-card-text class="pa-4">
+      <v-card-text class="pa-4" v-if="isEntity">
         <div v-if="alternateNamesString">
           <span class="font-weight-bold">Alternate names: </span>
           <span>{{ alternateNamesString }}</span>
@@ -53,25 +67,16 @@
       </v-card-text>
 
       <v-divider/>
-      <v-card-actions>
+      <v-card-actions v-if="isEntity">
         <v-spacer/>
-        <v-chip
-            class="ml-2"
-            filter
-            @click="toggleIsNegated"
-            outlined
-            :input-value="isNegated"
-        >
-          not
-        </v-chip>
-        <v-btn icon
+
+        <v-btn text
+               rounded
                class="ml-2"
                :to="filterId | entityZoomLink"
                v-if="isEntity">
-          <v-icon>mdi-information-outline</v-icon>
-        </v-btn>
-        <v-btn icon @click="deleteMe" class="ml-2">
-          <v-icon>mdi-delete-outline</v-icon>
+          <v-icon left>mdi-information-outline</v-icon>
+          View details
         </v-btn>
 
       </v-card-actions>
@@ -122,11 +127,12 @@ export default {
       "entityType",
     ]),
     isEntity() {
-      return isOpenAlexId(this.filterValue)
+      if (!this.filterId) return false
+      return isOpenAlexId(this.filterId)
     },
     myEntityType(){
       return (this.isEntity) ?
-          entityTypeFromId(this.filterValue) :
+          entityTypeFromId(this.filterId) :
           this.filterConfig.displayName
     },
     filterConfig(){
@@ -140,7 +146,7 @@ export default {
     },
     myEntityId(){
       if (!this.isEntity) return
-      return shortenOpenAlexId(this.filterValue)
+      return shortenOpenAlexId(this.filterId)
     },
     isNegated() {
       return this.filterValue[0] === "!"
