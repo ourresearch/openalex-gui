@@ -1,5 +1,6 @@
 <template>
   <v-list-item
+    :to="author.author.id | entityZoomLink"
   >
     <v-list-item-icon>
       <v-icon>mdi-account-outline</v-icon>

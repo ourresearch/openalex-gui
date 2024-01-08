@@ -28,7 +28,12 @@
             {{ searchString }}
           </span>
           <span v-else class="grey--text">
-            Search and filter works
+            <template v-if="$route.name === 'Home'">
+              Search and analyze the world's research ecosystem
+            </template>
+            <template v-else>
+              Search and filter works
+            </template>
           </span>
           <v-spacer/>
         </v-btn>
