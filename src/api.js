@@ -11,6 +11,8 @@ import {isOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionDefaultsStr} from "@/actionConfigs";
 
+import ISO6391 from 'iso-639-1'
+
 const cache = {}
 const entityCache = {}
 const getFromCache = function (url) {
@@ -128,6 +130,26 @@ const api = (function () {
         const resp = await getUrl(myUrl)
         return resp.display_name
     }
+
+    const getFilterValueDisplayName = async function (filterKey, id) {
+        console.log("getFilterValueDisplayName", filterKey, id)
+        if (filterKey === "institutions.country_code") {
+            return openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())?.display_name
+        }
+        else if (filterKey === "sustainable_development_goals.id") {
+            return openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())?.display_name
+        }
+        else if (filterKey === "language") {
+           return ISO6391.getName(id.toLowerCase())
+        }
+        else if (isOpenAlexId(id)) {
+           return await getEntityDisplayName(id)
+        }
+        else {
+            return id
+        }
+    }
+
     const makeAutocompleteResponseFromId = async function (id) {
         const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
         const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
@@ -155,6 +177,7 @@ const api = (function () {
             return makeUrl(pathName, searchParams, false)
         },
         getEntityDisplayName,
+        getFilterValueDisplayName,
         makeAutocompleteResponseFromId,
         getUrl,
         getResultsList,

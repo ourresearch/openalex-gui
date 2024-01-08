@@ -165,9 +165,11 @@ export default {
   asyncComputed: {
     filterDisplayValue: async function () {
       this.isLoading = true
-      const resp = await api.makeAutocompleteResponseFromId(this.filterId)
+      // const resp = await api.makeAutocompleteResponseFromId(this.filterId)
+      const displayName = await api.getFilterValueDisplayName(this.filterKey, this.filterId)
       this.isLoading = false
-      return resp.display_name
+      console.log("filterDisplayValue", displayName)
+      return displayName
     },
     filterData: async function () {
       if (!this.isEntity) return {}
