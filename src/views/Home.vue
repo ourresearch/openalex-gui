@@ -16,10 +16,10 @@
               </span>
 
         </v-card>
-          <div class="text-body-2 text-md-body-1 mt-8 text-center">
-            <span>Search and analyze the world's research ecosystem:</span>
-          </div>
-        <div class="mt-2 d-flex justify-center">
+<!--          <div class="text-body-2 text-md-body-1 mt-8 text-center">-->
+<!--            <span>Search and analyze the world's research ecosystem:</span>-->
+<!--          </div>-->
+        <div class="mt-8 d-flex justify-center">
           <filter-bar style="max-width: 800px" />
         </div>
 

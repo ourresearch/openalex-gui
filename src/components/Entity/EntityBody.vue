@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container >
+    <v-container>
       <v-row>
         <v-col>
           <div class="d-inline-flex align-center mt-2">
@@ -38,8 +38,8 @@
           </div>
 
           <div v-if="myEntityType === 'works'" class="d-flex mt-4">
-            <work-linkouts :data="data" />
-            <entity-ids-menu-item :ids="data.ids" />
+            <work-linkouts :data="data"/>
+            <entity-ids-menu-item :ids="data.ids"/>
           </div>
 
 
@@ -77,10 +77,9 @@
               <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
 
-            <entity-ids-menu-item :ids="data.ids" />
+            <entity-ids-menu-item :ids="data.ids"/>
 
           </div>
-
 
 
         </v-col>
@@ -88,7 +87,7 @@
 
       <v-row class="mt-9">
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesString">
-          <v-card rounded flat class="factoid-card">
+          <v-card rounded flat outlined class="">
             <v-card-title>
               Alternate names
             </v-card-title>
@@ -98,8 +97,8 @@
 
           </v-card>
         </v-col>
-        <v-col  cols="12" md="6" lg="4" xl="3" v-if="abstract">
-          <v-card rounded flat class="factoid-card">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="abstract">
+          <v-card rounded flat class="">
             <v-card-title>
               Abstract
             </v-card-title>
@@ -113,16 +112,16 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col  cols="12" md="6" lg="4" xl="3" v-if="authorshipsCount">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="authorshipsCount">
           <v-card rounded flat class="factoid-card">
             <v-card-title>
-              Authors ({{ authorshipsCount}})
+              Authors ({{ authorshipsCount }})
             </v-card-title>
             <v-list color="#eee">
               <entity-work-author
-                v-for="authorship in authorships"
-                :key="authorship.id"
-                :author="authorship"
+                  v-for="(authorship, i) in authorships"
+                  :key="i"
+                  :author="authorship"
               />
             </v-list>
             <v-card-actions v-if="authorshipsCount > maxAuthorships">
@@ -132,12 +131,12 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col  cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
-          <v-card rounded flat class="factoid-card">
+        <v-col cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
+          <v-card rounded flat outlined class="">
             <v-card-title>
               Metrics
             </v-card-title>
-            <v-divider />
+            <v-divider/>
             <v-simple-table dense>
               <tbody>
               <tr key="cited_by_count">
@@ -153,7 +152,46 @@
           </v-card>
         </v-col>
 
-        <v-col  cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'works'">
+        <v-col cols="12" md="6" lg="4" xl="33" v-if="data.affiliations?.length">
+          <v-card rounded flat class="factoid-card">
+            <v-card-title>
+              Affiliations ({{ data.affiliations.length }})
+            </v-card-title>
+            <v-list color="#eee">
+              <v-list-item
+                  :to="affil.institution.id | entityZoomLink"
+                  v-for="(affil, i) in data.affiliations.slice(0, (isMore.affiliations ? 9999 : 3))"
+                  :key="i"
+              >
+                <v-list-item-icon>
+                  <v-icon>mdi-town-hall</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ affil.institution.display_name }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <template v-if="affil.years.length === 1">
+                      {{ affil.years[0]}}
+                    </template>
+                    <template v-else>
+                      {{ affil.years[0] }} - {{ affil.years.at(-1) }}
+                    </template>
+                  </v-list-item-subtitle>
+
+                </v-list-item-content>
+
+              </v-list-item>
+            </v-list>
+            <v-card-actions v-if="data.affiliations.length > 3">
+              <v-btn text rounded small @click="isMore.affiliations = !isMore.affiliations">
+                {{ isMore.affiliations ? "Less" : "More" }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'works'">
           <v-row>
             <v-col cols="12">
               <v-card
@@ -196,8 +234,6 @@
         </v-col>
 
 
-
-
       </v-row>
 
 
@@ -237,6 +273,7 @@ export default {
       isMore: {
         abstract: false,
         authorships: false,
+        affiliations: false,
       }
     }
   },
@@ -245,10 +282,10 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    myEntityType(){
+    myEntityType() {
       return entityTypeFromId(this.data.id)
     },
-    myEntityConfig(){
+    myEntityConfig() {
       return getEntityConfig(this.myEntityType)
     },
     alternateNamesString() {
@@ -264,13 +301,13 @@ export default {
       if (!this.data?.open_access?.is_oa) return
       return unravel(this.data.abstract_inverted_index)
     },
-    authorships(){
+    authorships() {
       if (!this.data?.authorships?.length) return []
       return this.isMore.authorships ?
           this.data.authorships :
           this.data.authorships.slice(0, this.maxAuthorships)
     },
-    authorshipsCount(){
+    authorshipsCount() {
       return this.data?.authorships?.length
     },
 
@@ -298,7 +335,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 
 
 </style>
