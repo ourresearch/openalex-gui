@@ -299,21 +299,6 @@ export default {
 
 <style scoped lang="scss">
 
-.factoid-card {
-  background-color: #eee;
-  border: none;
-  box-shadow: none;
-}
-
-.button-card {
-  transition: background-color 300ms;
-  background-color: #eee;
-  border: none;
-  &:hover {
-    background-color: #ddd;
-
-  }
-}
 
 
 </style>

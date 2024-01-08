@@ -5,23 +5,31 @@
     <v-menu
         :close-on-content-click="false"
         rounded
-        nudge-top="5"
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
+        nudge-top="10"
     >
       <template v-slot:activator="{on}">
-        <v-text-field
+        <v-btn
             v-on="on"
-            hide-details
-            v-model="searchString"
-            prepend-inner-icon="mdi-magnify"
-            readonly
             rounded
             outlined
-            class="pa-0 ma-0"
-            placeholder="search OpenAlex"
-            :dense="dense"
-        />
+            class="font-weight-regular"
+            large
+            style="width: 100%; border-color: #999; cursor: text;"
+        >
+          <v-icon class="mr-1">mdi-magnify</v-icon>
+          <span
+              class=""
+              v-if="searchString"
+          >
+            {{ searchString }}
+          </span>
+          <span v-else class="grey--text">
+            Search and filter works
+          </span>
+          <v-spacer/>
+        </v-btn>
       </template>
       <div style="background: #fff; ">
         <v-text-field
@@ -33,12 +41,12 @@
             outlined
             class="pa-0 ma-0"
             @keyup.enter="onEnter"
-            placeholder="search OpenAlex"
+            placeholder="search and filter works"
             autofocus
         />
         <div
             class="px-3 py-3"
-             v-if="!searchString"
+            v-if="!searchString"
         >
           <span class="mr-2">Try: </span>
           <v-chip
@@ -50,7 +58,7 @@
               class="mr-1"
               @click="searchString = example"
           >
-            {{  example  }}
+            {{ example }}
           </v-chip>
 
         </div>
@@ -72,7 +80,7 @@
               </div>
               <div class="body-2" style="color: #777; font-size: 13px;">{{ suggestion.hint }}</div>
             </div>
-            <v-spacer class="mx-2" />
+            <v-spacer class="mx-2"/>
             <div v-if="suggestion.entity_type === 'work'">
               <v-icon>mdi-arrow-right</v-icon>
             </div>
@@ -107,10 +115,10 @@ import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 
 const exampleSearches = [
-    "Tim Berners-Lee",
-    "Sorbonne",
-    "Solar power",
-    "doi:10.7717/peerj.4375",
+  "Tim Berners-Lee",
+  "Sorbonne",
+  "Solar power",
+  "doi:10.7717/peerj.4375",
 ]
 
 export default {
@@ -227,13 +235,12 @@ export default {
       const entityType = entityTypeFromId(id)
       if (entityType === this.entityType) {
         this.goToEntityPage(id)
-      }
-      else {
+      } else {
         this.filterByEntity(id)
       }
 
     },
-    filterByEntity(id){
+    filterByEntity(id) {
       const entityId = shortenOpenAlexId(id)
       const entityType = entityTypeFromId(entityId)
       const filterKey = getEntityConfig(entityType)?.filterKey
@@ -342,7 +349,11 @@ export default {
 
 <style lang="scss">
 .filter-bar-menu {
-  //top: 0px !important;
+  &.top {
+    top: 5px !important;
+
+  }
+
   border-radius: 50px !important;
   padding: 5px;
   background: #fff;
