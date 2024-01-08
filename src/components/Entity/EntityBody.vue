@@ -18,6 +18,8 @@
             {{ data.display_name }}
           </div>
 
+
+
           <div class="subtitle">
             <template v-if="myEntityType === 'works'">
               <span v-if="data.publication_year">{{ data.publication_year }}</span>
@@ -32,8 +34,8 @@
                 {{ data.primary_location?.source?.display_name }}
               </router-link>
             </template>
-            <template v-else>
-
+            <template v-else-if="myEntityType === 'authors'">
+              {{ data.last_known_institutions.map(i => i.display_name).join(", ") }}
             </template>
           </div>
 
@@ -117,7 +119,7 @@
             <v-card-title>
               Authors ({{ authorshipsCount }})
             </v-card-title>
-            <v-list color="#E4EDFE">
+            <v-list color="#EEF5FC">
               <entity-work-author
                   v-for="(authorship, i) in authorships"
                   :key="i"
@@ -157,7 +159,7 @@
             <v-card-title>
               Affiliations ({{ data.affiliations.length }})
             </v-card-title>
-            <v-list color="#E4EDFE">
+            <v-list color="#EEF5FC">
               <v-list-item
                   :to="affil.institution.id | entityZoomLink"
                   v-for="(affil, i) in data.affiliations.slice(0, (isMore.affiliations ? 9999 : 3))"
@@ -172,7 +174,7 @@
                   </v-list-item-title>
                   <v-list-item-subtitle>
                     <template v-if="affil.years.length === 1">
-                      {{ affil.years[0]}}
+                      {{ affil.years[0] }}
                     </template>
                     <template v-else>
                       {{ affil.years[0] }} - {{ affil.years.at(-1) }}
