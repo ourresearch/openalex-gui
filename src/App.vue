@@ -310,7 +310,7 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 32px;
+$logo-link-height: 30px;
 
 .container.main-serp-container {
   margin-left: 0 !important;
@@ -330,14 +330,13 @@ $logo-link-height: 32px;
   .logo-text {
     //padding: 0 14px;
 
-    margin: 5px 0 5px 15px;
+    padding-left: .3em;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
 
 
     font-family: Dosis;
-    letter-spacing: .03em;
     font-size: $logo-link-height * 0.75;
     font-weight: 500;
   }
