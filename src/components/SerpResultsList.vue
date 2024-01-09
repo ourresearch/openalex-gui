@@ -126,7 +126,7 @@ export default {
 
 
 .v-list-item--link:hover, .v-list-item:hover {
-  background-color: #eee;
+  //background-color: #eee;
 }
 
 </style>
