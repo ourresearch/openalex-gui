@@ -295,7 +295,7 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 30px;
+$logo-link-height: 35px;
 
 
 .logo-link {

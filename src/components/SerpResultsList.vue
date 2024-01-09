@@ -1,16 +1,16 @@
 <template>
   <v-card flat rounded class="">
     <serp-toolbar :results-object="resultsObject" />
-    <v-list rounded class="pa-0" color="">
+    <v-list nav  class="" color="">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class="pl-0 serp-result-item mx-1"
+          class="serp-result-item "
           :to="result.id | entityZoomLink"
           color="primary"
       >
         <!--          @click="clickResult(result.id)"-->
-        <v-list-item-icon class="pt-1 pl-3">
+        <v-list-item-icon v-if="!$vuetify.breakpoint.mobile" class="pt-1 pl-3">
           <v-icon class="">mdi-file-document-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
