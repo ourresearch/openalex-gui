@@ -38,7 +38,7 @@
               {{ data.last_known_institutions.map(i => i.display_name).join(", ") }}
             </template>
             <template v-else-if="myEntityType === 'institutions'">
-              {{ data.type }} · {{ getLocationString(data) }}
+               {{ getLocationString(data) }}
             </template>
           </div>
 
@@ -90,7 +90,29 @@
         </v-col>
       </v-row>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       <v-row class="mt-9">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType !== 'works'">
+          <works-graph
+              :counts-by-year="data.counts_by_year"
+              :works-count="data.works_count"
+              :id="data.id"
+          />
+        </v-col>
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesString">
           <v-card rounded flat outlined class="" color="#EFEBE9">
             <v-card-title>
@@ -257,6 +279,7 @@ import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 import {url} from "@/url";
+import WorksGraph from "@/components/WorksGraph.vue";
 export default {
   name: "Template",
   components: {
@@ -265,6 +288,7 @@ export default {
     EntityWorkAuthor,
     WorkLinkouts,
     EntityIdsMenuItem,
+    WorksGraph
   },
   props: {
     data: Object,
