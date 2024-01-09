@@ -22,9 +22,8 @@
         app
         flat
 
-        color="white"
+        color="transparent"
         class="pl-0"
-        height="70"
         absolute
         v-if="$route.name !== 'Home'"
     >
@@ -44,22 +43,11 @@
               </span>
 
       </router-link>
-      <filter-bar
-          v-if="$route.name !== 'Home' && !$vuetify.breakpoint.mobile"
-          class=""
-          dense
-          style="max-width: 600px;"
-      />
+
       <v-spacer/>
 
 
-      <v-btn
-          icon
-          @click="url.pushQueryParam('show_api', true)"
-          v-if="$route.name === 'Serp'"
-      >
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
+
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -99,14 +87,6 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.mobile">
-        <filter-bar
-            class=""
-            dense
-            style="max-width: 600px;"
-        />
-
-      </template>
 
 
     </v-app-bar>
@@ -249,9 +229,12 @@ export default {
 </script>
 <style lang="scss">
 
-
+.v-main {
+  background-color: #eee;
+}
 .v-card.factoid-card {
-  background-color: #EEF5FC;
+  //background-color: #EEF5FC;
+  background-color: #fff;
   border: none;
   box-shadow: none;
 }
@@ -259,9 +242,11 @@ export default {
 .v-card.button-card {
   transition: background-color 300ms;
   background-color: #EEF5FC;
+  background-color: #ddd;
   border: none;
   &:hover {
     background-color: #D2DAEA;
+    background-color: #ccc;
   }
 }
 
@@ -312,9 +297,6 @@ html, body {
 
 $logo-link-height: 30px;
 
-.container.main-serp-container {
-  margin-left: 0 !important;
-}
 
 .logo-link {
   text-decoration: none;

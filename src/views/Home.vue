@@ -3,7 +3,7 @@
     <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
       <v-col cols="3"></v-col>
       <v-col class="">
-        <v-card flat :height="logoHeight" class="landing-page-logo mb-8" >
+        <v-card color="transparent" flat :height="logoHeight" class="landing-page-logo mb-8" >
           <img
               src="@/assets/openalex-logo-icon-black-and-white.png"
               class="logo-icon mr-0 colorizable"
@@ -39,7 +39,7 @@
 
     <v-row class="" id="learn-more">
       <v-col class="d-flex justify-center">
-        <v-card flat max-width="600" class="mb-12">
+        <v-card flat rounded pa-4 max-width="800" class="mb-12">
           <v-card-title>About us:</v-card-title>
           <div class="pa-3">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum

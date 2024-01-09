@@ -54,10 +54,10 @@
             :key="group.value"
         >
 <!--            @click="selectGroup(group.value)"-->
-          <td>
+          <td class="body-2">
             {{ group.displayValue }}
           </td>
-          <td class="range">
+          <td class="range body-2">
             {{ group.count | toPrecision }}
           </td>
 <!--          <td>-->
