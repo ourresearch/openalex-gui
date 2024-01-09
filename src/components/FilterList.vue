@@ -33,7 +33,7 @@
         />
       </div>
 
-      <div class="d-flex  align-center px-4 pb-4">
+      <div class="d-lg-flex d-block  align-center px-4 pb-4">
         <!--      <v-icon left class="">mdi-plus</v-icon>-->
         <!--      <span class="pr-2">Add filter</span>-->
         <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
@@ -42,7 +42,6 @@
               v-for="filter in popularFilterOptions"
               :key="filter.key"
               outlined
-              label
               class="mr-1 mb-1"
               @click="setActiveFilter(filter)"
               small

@@ -131,7 +131,7 @@
               <v-card-title>
                 Authors ({{ authorshipsCount }})
               </v-card-title>
-              <v-list color="">
+              <v-list nav color="">
                 <entity-work-author
                     v-for="(authorship, i) in authorships"
                     :key="i"
