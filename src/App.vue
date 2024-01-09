@@ -94,7 +94,7 @@
     </div>
     <v-main >
       <router-view></router-view>
-      <site-footer/>
+      <site-footer />
     </v-main>
 
     <v-snackbar
@@ -230,7 +230,7 @@ export default {
 <style lang="scss">
 
 .v-main {
-  background-color: #eee;
+  background-color: #ddd;
 }
 .v-card.factoid-card {
   //background-color: #EEF5FC;
