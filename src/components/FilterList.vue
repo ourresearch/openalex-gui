@@ -1,5 +1,5 @@
 <template>
-  <v-container class=" main-serp-container">
+  <v-container fluid class=" main-serp-container">
 
     <v-card class="" width="100%" rounded flat color="#f5f5f5">
       <v-toolbar flat color="transparent">

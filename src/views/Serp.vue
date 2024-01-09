@@ -22,7 +22,7 @@
         key="api-editor"
     />
 
-    <v-container class=" main-serp-container">
+    <v-container fluid class=" main-serp-container">
       <v-card flat rounded color="#f5f5f5">
         <v-container fluid>
           <v-row>
