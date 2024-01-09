@@ -1,59 +1,72 @@
 <template>
-    <v-container fluid class="pt-0 d-flex main-serp-container">
-      <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto"></div>
-      <div class="flex-grow-1">
-        <div class="d-flex flex-wrap mb-2 mt-2">
-          <component
-              v-for="(filter, i) in filters"
-              :key="filter.key + $route.query.filter"
-              class="d-block"
-              :is="'filter-phrase-' + filter.type"
-              :filter-key="filter.key"
-              :is-active="filter.key === activeFilterKey"
-              @delete="url.deleteFilter(entityType, filter.key)"
-          />
-          <component
-              v-if="newFilterKey"
-              :key="'new' + activeFilterConfig.key + $route.query.filter"
-              style="display: none !important;"
-              :is="'filter-phrase-' + activeFilterConfig.type"
-              :filter-key="activeFilterConfig.key"
-              :is-active="activeFilterConfig.key === activeFilterKey"
-              @delete="setActiveFilter(undefined)"
-          />
-        </div>
+  <v-container class=" main-serp-container">
 
-        <div class="d-flex  align-center">
-          <!--      <v-icon left class="">mdi-plus</v-icon>-->
-          <!--      <span class="pr-2">Add filter</span>-->
-          <div v-if="filters.length < 2" class="caption mr-2" >Try: </div>
-          <div class="d-flex flex-wrap">
-            <v-chip
-                v-for="filter in popularFilterOptions"
-                :key="filter.key"
-                outlined
-                label
-                class="mr-1 mb-1"
-                @click="setActiveFilter(filter)"
-                small
-                :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
-            >
-              {{ filter.displayName }}
-            </v-chip>
-          </div>
-          <v-spacer />
+    <v-card class="" width="100%" rounded flat color="#f5f5f5">
+      <v-toolbar flat color="transparent">
+        <filter-bar
+          class=""
+          dense
+          style="max-width: 720px;"
+      />
+        <v-spacer />
 
+      </v-toolbar>
 
-          <v-btn
-              @click="dialogs.moreFilters = true"
-              text
-              small
-              rounded
-          >
-            All filters
-          </v-btn>
-        </div>
+      <div class="d-flex flex-wrap mb-2 mt-2 px-4">
+        <component
+            v-for="(filter, i) in filters"
+            :key="filter.key + $route.query.filter"
+            class="d-block"
+            :is="'filter-phrase-' + filter.type"
+            :filter-key="filter.key"
+            :is-active="filter.key === activeFilterKey"
+            @delete="url.deleteFilter(entityType, filter.key)"
+        />
+        <component
+            v-if="newFilterKey"
+            :key="'new' + activeFilterConfig.key + $route.query.filter"
+            style="display: none !important;"
+            :is="'filter-phrase-' + activeFilterConfig.type"
+            :filter-key="activeFilterConfig.key"
+            :is-active="activeFilterConfig.key === activeFilterKey"
+            @delete="setActiveFilter(undefined)"
+        />
       </div>
+
+      <div class="d-flex  align-center px-4 pb-4">
+        <!--      <v-icon left class="">mdi-plus</v-icon>-->
+        <!--      <span class="pr-2">Add filter</span>-->
+        <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
+        <div class="d-flex flex-wrap">
+          <v-chip
+              v-for="filter in popularFilterOptions"
+              :key="filter.key"
+              outlined
+              label
+              class="mr-1 mb-1"
+              @click="setActiveFilter(filter)"
+              small
+              :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
+          >
+            {{ filter.displayName }}
+          </v-chip>
+        </div>
+        <v-spacer/>
+
+
+        <v-btn
+            @click="dialogs.moreFilters = true"
+            text
+            small
+            rounded
+        >
+          All filters
+        </v-btn>
+      </div>
+
+    </v-card>
+
+
 
     <v-dialog
         v-model="dialogs.moreFilters"
@@ -91,9 +104,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    </v-container>
-
-
+  </v-container>
 
 
 </template>
@@ -118,10 +129,12 @@ import {getEntityConfig} from "@/entityConfigs";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {shortenOpenAlexId} from "@/util";
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
+import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
   name: "Template",
   components: {
+    SerpResultsCount,
     FilterBar,
     FilterPhraseSelect,
     FilterPhraseSearch,

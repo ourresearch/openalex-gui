@@ -5,7 +5,7 @@
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class="pl-0 serp-result-item"
+          class="pl-0 serp-result-item mx-1"
           :to="result.id | entityZoomLink"
           color="primary"
       >
@@ -126,7 +126,7 @@ export default {
 
 
 .v-list-item--link:hover, .v-list-item:hover {
-  background-color: var(--v-primary-base) !important;
+  background-color: #eee;
 }
 
 </style>

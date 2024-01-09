@@ -16,45 +16,48 @@
     </v-navigation-drawer>
 
 
-    <filter-list style=""/>
-    <v-divider />
+    <filter-list :results-object="resultsObject" style=""/>
     <serp-api-editor
         v-if="isShowApiSet"
         key="api-editor"
     />
 
+    <v-container class=" main-serp-container">
+      <v-card flat rounded color="#f5f5f5">
+        <v-container fluid>
+          <v-row>
+            <serp-results-count :results-object="resultsObject" />
 
-    <v-container fluid class=" main-serp-container">
-      <div class="d-flex">
-        <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto;"></div>
-        <serp-results-count :results-object="resultsObject" />
-      </div>
-      <v-row>
-        <v-col class="flex-grow-1 d-flex">
-          <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto;"></div>
-          <div>
+          </v-row>
 
-            <div v-if="resultsObject?.meta?.count">
-              <serp-results-list  :results-object="resultsObject"/>
-              <!--                <serp-results-table v-else :results-object="resultsObject"/>-->
+          <v-row>
+            <v-col class="flex-grow-1 d-flex">
+              <div>
 
-              <div class="serp-bottom">
-                <v-pagination
-                    v-model="page"
-                    :length="numPages"
-                    :total-visible="10"
-                    light
-                />
+                <div v-if="resultsObject?.meta?.count">
+                  <serp-results-list :results-object="resultsObject"/>
+                  <!--                <serp-results-table v-else :results-object="resultsObject"/>-->
+
+                  <div class="serp-bottom">
+                    <v-pagination
+                        v-model="page"
+                        :length="numPages"
+                        :total-visible="10"
+                        light
+                    />
+                  </div>
+
+                </div>
               </div>
 
-            </div>
-          </div>
+            </v-col>
+            <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
+              <analytic-views/>
+            </v-col>
+          </v-row>
+        </v-container>
 
-        </v-col>
-        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
-          <analytic-views/>
-        </v-col>
-      </v-row>
+      </v-card>
     </v-container>
 
 

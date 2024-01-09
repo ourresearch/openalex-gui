@@ -1,6 +1,6 @@
 <template>
   <v-card rounded flat color="transparent">
-    <v-toolbar flat>
+    <v-toolbar flat color="transparent">
       <v-toolbar-title>Analytics</v-toolbar-title>
       <v-spacer />
       <Action class="ml-2" action="group_by"/>
