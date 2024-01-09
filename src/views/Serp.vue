@@ -2,10 +2,6 @@
   <div class="serp-page pb-12"
 
   >
-    <!--       style="background: #F7F9FC;"-->
-    <!--    <v-container class="">-->
-
-    <!--    </v-container>-->
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -28,7 +24,7 @@
     />
 
 
-    <v-container class="ml-0 pa-0 main-serp-container">
+    <v-container fluid class=" main-serp-container">
       <div class="d-flex">
         <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto;"></div>
         <serp-results-count :results-object="resultsObject" />

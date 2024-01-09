@@ -1,5 +1,5 @@
 <template>
-    <v-container class="ml-0 pt-0 mt-0 d-flex main-serp-container">
+    <v-container fluid class="pt-0 d-flex main-serp-container">
       <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto"></div>
       <div class="flex-grow-1">
         <div class="d-flex flex-wrap mb-2 mt-2">
