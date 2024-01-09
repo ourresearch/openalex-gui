@@ -16,11 +16,11 @@
               </span>
 
         </v-card>
-          <div v-if="$vuetify.breakpoint.mobile" class="text-body-2 text-md-body-1 mb-2 text-center">
+          <div v-if="$vuetify.breakpoint.mobile" class="text-caption text-md-body-1 mb-2 text-center">
             <span>Search and analyze the world's research ecosystem:</span>
           </div>
         <div class="d-flex justify-center">
-          <filter-bar style="max-width: 800px" />
+          <filter-bar style="max-width: 600px" />
         </div>
 
 
@@ -39,7 +39,7 @@
 
     <v-row class="" id="learn-more">
       <v-col class="d-flex justify-center">
-        <v-card flat max-width="800" class="mb-12">
+        <v-card flat max-width="600" class="mb-12">
           <v-card-title>About us:</v-card-title>
           <div class="pa-3">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
@@ -95,9 +95,11 @@ export default {
   },
   computed: {
     logoHeight() {
+      return 75
+
       return this.$vuetify.breakpoint.mobile ?
           50 :
-          100
+          75
     }
   },
   methods: {},

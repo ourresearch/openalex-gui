@@ -37,6 +37,9 @@
             <template v-else-if="myEntityType === 'authors'">
               {{ data.last_known_institutions.map(i => i.display_name).join(", ") }}
             </template>
+            <template v-else-if="myEntityType === 'institutions'">
+              {{ data.type }} · {{ getLocationString(data) }}
+            </template>
           </div>
 
           <div v-if="myEntityType === 'works'" class="d-flex mt-4">
@@ -246,7 +249,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {getEntityConfig} from "@/entityConfigs";
+import {getEntityConfig, getLocationString} from "@/entityConfigs";
 import {entityTypeFromId, unravel} from "@/util";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import IdList from "@/components/IdList.vue";
@@ -254,7 +257,6 @@ import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 import {url} from "@/url";
-
 export default {
   name: "Template",
   components: {
@@ -271,6 +273,7 @@ export default {
     return {
       foo: 42,
       maxAuthorships: 3,
+      getLocationString,
       url,
       isMore: {
         abstract: false,

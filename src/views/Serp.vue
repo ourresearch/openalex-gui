@@ -21,78 +21,44 @@
 
 
     <filter-list style=""/>
+    <v-divider />
     <serp-api-editor
-              v-if="isShowApiSet"
-              key="api-editor"
-          />
+        v-if="isShowApiSet"
+        key="api-editor"
+    />
 
 
-    <v-container class="ml-0 pa-0 main-serp-container d-flex">
-      <div class="d-lg-block d-none" style="width: 151px; flex-shrink: 0;"></div>
-      <div class="flex-grow-1">
-        <div class="d-flex px-3 align-center grey--text mb-8">
-          <div  v-if="$vuetify.breakpoint.mobile" class="">
-            <span v-if="!resultsObject?.meta?.count">No </span>
-            <span v-else>{{ resultsObject?.meta.count | millify }}</span> results
-          </div>
-          <div class="" v-else>
-            <span v-if="isAnalyze">Analyzing </span>
-
-            <span v-if="!resultsObject?.meta?.count">No </span>
-            <span v-else>
-              <span v-if="!isAnalyze && resultsObject?.meta?.count >= 100">About</span>
-              <span class="font-weight-bold">
-              {{ resultsObject?.meta.count | toPrecision }}
-              </span>
-            </span>
-            results
-          </div>
-
-
-          <v-spacer/>
-          <v-chip
-              class="ml-2"
-              filter
-              @click="isAnalyze = !isAnalyze"
-              outlined
-              :input-value="isAnalyze"
-          >
-            Analyze
-          </v-chip>
-          <template v-if="isAnalyze">
-            <Action class="ml-2" action="group_by"/>
-          </template>
-          <template v-else>
-            <action class="ml-2" :disabled="isAnalyze" action="sort"/>
-            <export-button class="ml-2" :disabled="isAnalyze"/>
-            <v-btn v-if="!$vuetify.breakpoint.mobile" icon @click="isListView = !isListView">
-              <v-icon>{{ isListView ? 'mdi-table' : 'mdi-list-box-outline' }}</v-icon>
-            </v-btn>
-
-          </template>
-
-
-        </div>
-
-
-        <div v-if="resultsObject?.meta?.count">
-          <analytic-views v-if="isAnalyze"/>
-          <template v-else>
-            <serp-results-list v-if="isListView" :results-object="resultsObject"/>
-            <serp-results-table v-else :results-object="resultsObject"/>
-
-            <div class="serp-bottom">
-              <v-pagination
-                  v-model="page"
-                  :length="numPages"
-                  :total-visible="10"
-                  light
-              />
-            </div>
-          </template>
-
-        </div>
+    <v-container class="ml-0 pa-0 main-serp-container">
+      <div class="d-flex">
+        <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto;"></div>
+        <serp-results-count :results-object="resultsObject" />
       </div>
+      <v-row>
+        <v-col class="flex-grow-1 d-flex">
+          <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto;"></div>
+          <div>
+
+            <div v-if="resultsObject?.meta?.count">
+              <serp-results-list  :results-object="resultsObject"/>
+              <!--                <serp-results-table v-else :results-object="resultsObject"/>-->
+
+              <div class="serp-bottom">
+                <v-pagination
+                    v-model="page"
+                    :length="numPages"
+                    :total-visible="10"
+                    light
+                />
+              </div>
+
+            </div>
+          </div>
+
+        </v-col>
+        <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
+          <analytic-views/>
+        </v-col>
+      </v-row>
     </v-container>
 
 
@@ -137,6 +103,8 @@ import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConf
 import SiteNav from "@/components/SiteNav.vue";
 import EntityWork from "@/components/Entity/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
+import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
+import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
   name: "Serp",
@@ -146,8 +114,10 @@ export default {
     return ret
   },
   components: {
+    SerpToolbar,
     SiteNav,
     SerpResultsTable,
+    SerpResultsCount,
     SerpResultsList,
     ApiDialog,
     SerpApiEditor,

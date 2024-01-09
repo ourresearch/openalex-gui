@@ -1,15 +1,21 @@
 <template>
   <v-card rounded flat color="transparent">
-    <v-container>
+    <v-toolbar flat>
+      <v-toolbar-title>Analytics</v-toolbar-title>
+      <v-spacer />
+      <Action class="ml-2" action="group_by"/>
+    </v-toolbar>
+    <v-container class="pt-0">
       <v-row dense  class="">
         <v-col
             v-for="key in groupByKeys"
             :key="key"
-            cols="12"
-            md="6"
-            lg="4"
-            xl="3"
+
         >
+<!--            cols="12"-->
+<!--            md="6"-->
+<!--            lg="4"-->
+<!--            xl="3"-->
           <group-by
               :selected="key"
           />

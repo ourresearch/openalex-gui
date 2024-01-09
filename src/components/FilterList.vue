@@ -1,19 +1,7 @@
 <template>
-  <div class=" filter-list">
-
-    <!--    <div class="d-flex py-1 px-3 align-center">-->
-    <!--      <div class="text-h6">-->
-    <!--        {{ filters.length }} {{ "Filter" | pluralize(filters.length) }}-->
-    <!--        <v-btn text small rounded @click="clearEverything" :disabled="!filters.length">-->
-    <!--          (clear all)-->
-    <!--        </v-btn>-->
-    <!--      </div>-->
-    <!--    </div>-->
-    <!--      <v-divider/>-->
-
     <v-container class="ml-0 pt-0 mt-0 d-flex main-serp-container">
-      <div class="d-lg-block d-none" style="width: 151px;"></div>
-      <div>
+      <div class="d-lg-block d-none" style="width: 151px; flex: 0 0 auto"></div>
+      <div class="flex-grow-1">
         <div class="d-flex flex-wrap mb-2 mt-2">
           <component
               v-for="(filter, i) in filters"
@@ -35,22 +23,26 @@
           />
         </div>
 
-        <div class="d-flex flex-wrap">
+        <div class="d-flex  align-center">
           <!--      <v-icon left class="">mdi-plus</v-icon>-->
           <!--      <span class="pr-2">Add filter</span>-->
+          <div v-if="filters.length < 2" class="caption mr-2" >Try: </div>
+          <div class="d-flex flex-wrap">
+            <v-chip
+                v-for="filter in popularFilterOptions"
+                :key="filter.key"
+                outlined
+                label
+                class="mr-1 mb-1"
+                @click="setActiveFilter(filter)"
+                small
+                :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
+            >
+              {{ filter.displayName }}
+            </v-chip>
+          </div>
+          <v-spacer />
 
-          <v-chip
-              v-for="filter in popularFilterOptions"
-              :key="filter.key"
-              outlined
-              label
-              class="mr-1 mb-1"
-              @click="setActiveFilter(filter)"
-              small
-              :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
-          >
-            {{ filter.displayName }}
-          </v-chip>
 
           <v-btn
               @click="dialogs.moreFilters = true"
@@ -58,14 +50,10 @@
               small
               rounded
           >
-            More...
+            All filters
           </v-btn>
         </div>
       </div>
-
-    </v-container>
-    <v-divider/>
-
 
     <v-dialog
         v-model="dialogs.moreFilters"
@@ -103,9 +91,11 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    </v-container>
 
 
-  </div>
+
+
 </template>
 
 <script>
