@@ -112,7 +112,7 @@
     </v-app-bar>
     <div>
     </div>
-    <v-main>
+    <v-main >
       <router-view></router-view>
       <site-footer/>
     </v-main>

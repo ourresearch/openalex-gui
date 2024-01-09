@@ -1,11 +1,13 @@
 <template>
-  <v-card flat rounded class="py-3">
-    <v-list rounded class="pa-0">
+  <v-card flat rounded class="">
+    <serp-toolbar :results-object="resultsObject" />
+    <v-list rounded class="pa-0" color="">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class="pl-0"
+          class="pl-0 serp-result-item"
           :to="result.id | entityZoomLink"
+          color="primary"
       >
         <!--          @click="clickResult(result.id)"-->
         <v-list-item-icon class="pt-1 pl-3">
@@ -13,7 +15,7 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title style="white-space: normal; line-height: 1.5;">
-            <div>{{ result.display_name }}</div>
+            <div class="">{{ result.display_name }}</div>
           </v-list-item-title>
           <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
             <div>
@@ -70,11 +72,13 @@ import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 import {shortenOpenAlexId} from "@/util";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
+import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 export default {
   name: "Template",
   components: {
     WorkAuthorsString,
+    SerpToolbar,
   },
   props: {
     resultsObject: Object,
@@ -119,5 +123,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+
+.v-list-item--link:hover, .v-list-item:hover {
+  background-color: var(--v-primary-base) !important;
+}
 
 </style>
