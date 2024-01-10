@@ -2,8 +2,7 @@
   <v-card
       rounded
       flat
-      class="filter filter-select d-flex align-center py-1 pr-2 mr-2 mb-2"
-      color="#ddd"
+      class="filter no-hover button-card filter-select d-flex align-center py-1 pr-2 mr-2 mb-2"
   >
     <div class="pl-4 pr-4">
       <v-icon>{{ config.icon }}</v-icon>

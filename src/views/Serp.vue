@@ -23,7 +23,7 @@
     />
 
     <v-container fluid class=" main-serp-container">
-      <v-card flat rounded color="#f5f5f5">
+      <v-card flat rounded color="hsl(214, 54%, 98%)">
         <v-container fluid>
           <v-row>
             <serp-results-count :results-object="resultsObject" />

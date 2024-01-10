@@ -1,77 +1,84 @@
 <template>
-  <div style="background: #f5f5f5; padding-bottom: 150px;">
-  <v-container class="" >
-    <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
-      <v-col cols="3"></v-col>
-      <v-col class="">
-        <v-card color="transparent" flat :height="logoHeight" class="landing-page-logo mb-8" >
-          <img
-              src="@/assets/openalex-logo-icon-black-and-white.png"
-              class="logo-icon mr-0 colorizable"
-          />
-          <span
-              class="logo-text colorizable"
-              :style="'font-size:' + logoHeight * .75 + 'px'"
-          >
+  <div style="padding-bottom: 150px;">
+    <v-container class="">
+      <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
+        <v-col cols="3"></v-col>
+        <v-col class="">
+          <v-card color="transparent" flat :height="logoHeight" class="landing-page-logo mb-8">
+            <img
+                src="@/assets/openalex-logo-icon-black-and-white.png"
+                class="logo-icon mr-0 colorizable"
+            />
+            <span
+                class="logo-text colorizable"
+                :style="'font-size:' + logoHeight * .75 + 'px'"
+            >
                 OpenAlex
               </span>
 
-        </v-card>
+          </v-card>
           <div v-if="$vuetify.breakpoint.mobile" class="text-caption text-md-body-1 mb-2 text-center">
             <span>Search and analyze the world's research ecosystem:</span>
           </div>
-        <div class="d-flex justify-center">
-          <filter-bar style="max-width: 600px" />
-        </div>
-
-
-      </v-col>
-      <v-spacer></v-spacer>
-      <v-btn text rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
-        <v-icon>mdi-chevron-down</v-icon>
-        Learn more
-      </v-btn>
-    </v-row>
-
-<!--        <p style="">-->
-<!--          Inspired by the ancient library of Alexandria, OpenAlex catalogs 250M scholarly works, along with their-->
-<!--          citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.-->
-<!--        </p>-->
-
-    <v-row class="" id="learn-more">
-      <v-col class="d-flex justify-center">
-        <v-card flat rounded max-width="900" class="mb-12 pa-8">
-          <v-card-title>About us:</v-card-title>
-          <div class="pa-3">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+          <div class="d-flex justify-center">
+            <filter-bar style="max-width: 600px"/>
           </div>
-          <div class="pa-3">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-          </div>
-          <div class="pa-3">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-          </div>
-        </v-card>
-
-      </v-col>
 
 
-    </v-row>
+        </v-col>
+        <v-spacer></v-spacer>
+        <v-btn text rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
+          <v-icon>mdi-chevron-down</v-icon>
+          Learn more
+        </v-btn>
+      </v-row>
 
-    </v-container >
+      <!--        <p style="">-->
+      <!--          Inspired by the ancient library of Alexandria, OpenAlex catalogs 250M scholarly works, along with their-->
+      <!--          citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.-->
+      <!--        </p>-->
+
+      <v-row class="" id="learn-more">
+        <v-col class="d-flex justify-center">
+          <v-card flat rounded max-width="900" class="mb-12 pa-8">
+            <v-card-title>About us:</v-card-title>
+            <div class="pa-3">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+              mollit anim id est laborum
+            </div>
+            <div class="pa-3">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+              mollit anim id est laborum
+            </div>
+            <div class="pa-3">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+              mollit anim id est laborum
+            </div>
+          </v-card>
+
+        </v-col>
+
+
+      </v-row>
+
+    </v-container>
   </div>
 
 
+  <!--        <homepage-user-logos/>-->
 
-    <!--        <homepage-user-logos/>-->
+  <!--        <homepage-selling-points />-->
 
-    <!--        <homepage-selling-points />-->
-
-    <!--        <homepage-testimonials />-->
-
-
-
-
+  <!--        <homepage-testimonials />-->
 
 
 </template>

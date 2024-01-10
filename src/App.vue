@@ -4,11 +4,14 @@
     <v-navigation-drawer
         v-model="isSiteNavOpen"
         app
-        color="#fafafa"
-        v-if="0"
+        floating
+        :mini-variant="$vuetify.breakpoint.lgAndDown"
+        color="transparent"
+        v-if="$route.name !== 'Home'"
 
     >
-      <site-nav/>
+
+      <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
 
 
     </v-navigation-drawer>
@@ -25,7 +28,7 @@
         color="transparent"
         class="pl-0"
         absolute
-        v-if="$route.name !== 'Home'"
+        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"
     >
 
       <router-link
@@ -230,8 +233,17 @@ export default {
 <style lang="scss">
 
 .v-main {
-  background-color: #ddd;
+  background-color: #fff;
 }
+$color-0: hsl(212, 77%, 82%);
+$color-1: hsl(213, 72%, 88%);
+$color-3: hsl(213, 69%, 95%);
+$color-4: hsl(210, 60%, 98%);
+
+
+.color-3 {background-color: $color-3;}
+
+
 .v-card.factoid-card {
   //background-color: #EEF5FC;
   background-color: #fff;
@@ -241,12 +253,16 @@ export default {
 
 .v-card.button-card {
   transition: background-color 300ms;
-  background-color: #EEF5FC;
-  background-color: #ddd;
+  $card-start-color: hsl(213, 72%, 88%);
+  background-color: $color-1;
+
   border: none;
   &:hover {
-    background-color: #D2DAEA;
-    background-color: #ccc;
+    background-color: $color-0;
+    &.no-hover {
+      background-color: $color-1;
+    }
+
   }
 }
 

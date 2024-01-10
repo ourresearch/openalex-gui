@@ -13,6 +13,9 @@
                   </span>
                 </span>
       results
+      <span v-if="!$vuetify.breakpoint.mobile" class="grey--text">
+        ({{resultsObject.meta.db_response_time_ms / 1000 | toPrecision(2) }} seconds)
+      </span>
     </div>
 
     <v-spacer/>
