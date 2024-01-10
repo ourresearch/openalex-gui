@@ -1,18 +1,18 @@
 <template>
-  <v-container fluid class=" main-serp-container">
+  <v-container fluid class=" main-serp-container pb-0">
 
-    <v-card class="" width="100%" rounded flat color="#f5f5f5">
+    <v-card class="" width="100%" rounded flat color="#E9F1FB">
       <v-toolbar flat color="transparent">
         <filter-bar
-          class=""
-          dense
+          class="pt-3"
+          dark
           style="max-width: 720px;"
       />
         <v-spacer />
 
       </v-toolbar>
 
-      <div class="d-flex flex-wrap mb-2 mt-2 px-4">
+      <div class="d-flex flex-wrap mb-2 mt-3 px-4">
         <component
             v-for="(filter, i) in filters"
             :key="filter.key + $route.query.filter"
@@ -33,7 +33,7 @@
         />
       </div>
 
-      <div class="d-lg-flex d-block  align-center px-4 pb-4">
+      <div class="d-lg-flex d-block  align-center px-4">
         <!--      <v-icon left class="">mdi-plus</v-icon>-->
         <!--      <span class="pr-2">Add filter</span>-->
         <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
@@ -47,6 +47,7 @@
               small
               :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
           >
+            <v-icon small left>{{ filter.icon }}</v-icon>
             {{ filter.displayName }}
           </v-chip>
         </div>

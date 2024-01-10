@@ -7,18 +7,14 @@
         rounded
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
-        nudge-top="2"
+        nudge-top="7"
+        nudge-left="5"
     >
       <template v-slot:activator="{on}">
-        <v-btn
+        <div
             v-on="on"
-            rounded
-            outlined
-            class="font-weight-regular white"
-            :class="{'py-7': !dense}"
-            :large="dense"
-            :x-large="!dense"
-            style="width: 100%; border-color: #ccc; cursor: text;"
+            class="fake-input-button color-3"
+            :class="{'white': dark}"
         >
           <v-icon class="mr-2 ml-2 dark">mdi-magnify</v-icon>
           <span
@@ -36,7 +32,7 @@
             </template>
           </span>
           <v-spacer/>
-        </v-btn>
+        </div>
       </template>
       <div style="background: #fff; ">
         <v-progress-linear :height="4" v-if="isLoading"  indeterminate />
@@ -47,7 +43,6 @@
             ref="facetBarSearchBox"
             prepend-inner-icon="mdi-magnify"
             rounded
-            :dense="dense"
             outlined
             class="pa-0"
             style="margin: 2px 6px 6px;"
@@ -149,6 +144,7 @@ export default {
   },
   props: {
     dense: Boolean,
+    dark: Boolean,
   },
   data() {
     return {
@@ -373,7 +369,23 @@ export default {
 </script>
 
 <style lang="scss">
+.fake-input-button {
+  background-color: #ddd;
+  background-color:  hsl(214, 54%, 98%);
+
+  border-radius: 100px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  cursor: text;
+  &:hover {
+    //background-color: inherit;
+  }
+}
+
 .filter-bar-menu {
+
   &.top {
     top: 5px !important;
 
