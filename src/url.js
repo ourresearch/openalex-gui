@@ -18,6 +18,7 @@ import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
 
+
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
@@ -471,6 +472,7 @@ const makeAutocompleteUrl = function (entityType, searchString) {
 }
 
 const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
+
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
@@ -488,6 +490,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort
+        query.per_page = 10
     }
 
     const apiUrl = new URL("https://api.openalex.org")
@@ -500,6 +503,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "group_by",
         "sort",
         "format",
+        "per_page",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {

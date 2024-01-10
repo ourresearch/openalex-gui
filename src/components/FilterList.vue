@@ -1,7 +1,6 @@
 <template>
-  <v-container fluid class=" main-serp-container pb-0">
 
-    <v-card class="" width="100%" rounded flat color="#E9F1FB">
+    <v-card class="pb-2" width="100%" rounded flat color="#E9F1FB">
       <v-toolbar flat color="transparent">
         <filter-bar
           class="pt-3"
@@ -9,10 +8,13 @@
           style="max-width: 720px;"
       />
         <v-spacer />
+        <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
+          <v-icon>mdi-api</v-icon>
+        </v-btn>
 
       </v-toolbar>
 
-      <div class="d-flex flex-wrap mb-2 mt-3 px-4">
+      <div class="d-flex flex-wrap mb-2 mt-5 px-4">
         <component
             v-for="(filter, i) in filters"
             :key="filter.key + $route.query.filter"
@@ -64,10 +66,6 @@
         </v-btn>
       </div>
 
-    </v-card>
-
-
-
     <v-dialog
         v-model="dialogs.moreFilters"
         scrollable
@@ -104,7 +102,10 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-  </v-container>
+    </v-card>
+
+
+
 
 
 </template>
