@@ -16,17 +16,18 @@
     </v-navigation-drawer>
 
 
-    <filter-list :results-object="resultsObject" style=""/>
-    <serp-api-editor
-        v-if="isShowApiSet"
-        key="api-editor"
-    />
 
-    <v-container fluid class=" main-serp-container">
-      <v-card flat rounded color="hsl(214, 54%, 98%)">
+    <v-container  class=" main-serp-container" style="max-width: 1785px;">
+      <serp-api-editor
+          v-if="isShowApiSet"
+          key="api-editor"
+          class="mb-3"
+      />
+      <filter-list :results-object="resultsObject" class="mb-4" />
+      <v-card flat rounded class="color-3">
         <v-container fluid>
           <v-row>
-            <serp-results-count :results-object="resultsObject" />
+            <serp-results-count :results-object="resultsObject"/>
 
           </v-row>
 
@@ -40,6 +41,8 @@
 
                   <div class="serp-bottom">
                     <v-pagination
+                        class="my-3 elevation-0"
+                        circle
                         v-model="page"
                         :length="numPages"
                         :total-visible="10"
@@ -51,13 +54,17 @@
               </div>
 
             </v-col>
-            <v-col cols="4" v-if="!$vuetify.breakpoint.mobile">
+            <v-col cols="4" xl="6" v-if="$vuetify.breakpoint.mdAndUp">
               <analytic-views/>
             </v-col>
           </v-row>
         </v-container>
 
       </v-card>
+      <v-card flat rounded class="color-3 mt-12" v-if="$vuetify.breakpoint.smAndDown">
+        <analytic-views/>
+      </v-card>
+
     </v-container>
 
 
@@ -390,6 +397,7 @@ export default {
         // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
 
 
+
         this.$store.state.resultsObject = resp
 
         this.resultsFilters = filtersFromUrlStr(
@@ -408,6 +416,9 @@ export default {
 <style lang="scss">
 .container {
   //max-width: 1024px !important;
+}
+.v-pagination__item, .v-pagination__navigation {
+  box-shadow: none;
 }
 
 .serp-page {

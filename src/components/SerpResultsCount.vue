@@ -1,10 +1,10 @@
 <template>
   <div class="d-flex pa-2 px-3">
-    <div v-if="$vuetify.breakpoint.mobile" class="">
-      <span v-if="!resultsObject?.meta?.count">No </span>
-      <span v-else>{{ resultsObject?.meta.count | millify }}</span> results
-    </div>
-    <div class="grey--text" v-else>
+<!--    <div v-if="$vuetify.breakpoint.mobile" class="">-->
+<!--      <span v-if="!resultsObject?.meta?.count">No </span>-->
+<!--      <span v-else>{{ resultsObject?.meta.count | millify }}</span> results-->
+<!--    </div>-->
+    <div class="grey--text">
       <span v-if="!resultsObject?.meta?.count">No </span>
       <span v-else>
                   <span v-if="resultsObject?.meta?.count >= 100">About</span>
@@ -13,8 +13,8 @@
                   </span>
                 </span>
       results
-      <span v-if="!$vuetify.breakpoint.mobile" class="grey--text">
-        ({{resultsObject.meta.db_response_time_ms / 1000 | toPrecision(2) }} seconds)
+      <span  class="grey--text">
+        ({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)
       </span>
     </div>
 

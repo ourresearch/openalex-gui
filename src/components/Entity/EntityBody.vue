@@ -36,7 +36,7 @@
                 </router-link>
               </template>
               <template v-else-if="myEntityType === 'authors'">
-                {{ data.last_known_institutions.map(i => i.display_name).join(", ") }}
+                {{ data.last_known_institutions?.map(i => i.display_name).join(", ") }}
               </template>
               <template v-else-if="myEntityType === 'institutions'">
                 {{ getLocationString(data) }}
@@ -83,7 +83,7 @@
                 <v-icon>mdi-open-in-new</v-icon>
               </v-btn>
 
-              <entity-ids-menu-item :ids="data.ids"/>
+              <entity-ids-menu-item v-if="Object.keys(data.ids).length > 1" :ids="data.ids"/>
 
             </div>
 

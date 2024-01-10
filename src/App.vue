@@ -235,13 +235,16 @@ export default {
 .v-main {
   background-color: #fff;
 }
-$color-0: hsl(212, 77%, 82%);
+$color-3: hsl(210, 60%, 98%);
+$color-2: hsl(213, 69%, 95%);
 $color-1: hsl(213, 72%, 88%);
-$color-3: hsl(213, 69%, 95%);
-$color-4: hsl(210, 60%, 98%);
+$color-0: hsl(212, 77%, 82%);
 
 
-.color-3 {background-color: $color-3;}
+.color-3 {background-color: $color-3 !important;}
+.color-2 {background-color: $color-2 !important;}
+.color-1 {background-color: $color-1 !important;}
+.color-0 {background-color: $color-0 !important;}
 
 
 .v-card.factoid-card {
