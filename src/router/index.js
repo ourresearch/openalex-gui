@@ -87,7 +87,7 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/help', component: Help},
     {path: '/feedback', component: Help},
-    {path: '/contact', redirect: {name: "about"}},
+    {path: '/contact',  component: Help},
     {path: '/pricing', component: Pricing},
     {path: '/webinars', component: Webinars},
     // {path: '/stats', component: OpenAlexStats},

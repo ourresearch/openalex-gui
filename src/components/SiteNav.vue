@@ -1,6 +1,6 @@
 <template>
-  <div class="pt-7">
-    <div class="d-flex flex-column align-end " v-if="isMini">
+  <div class="pt-7 pb-3" style="height: 100%;">
+    <div class="d-flex flex-column align-center fill-height" v-if="isMini">
       <router-link
           :to="{name: 'Home'}"
           class="logo-link-solo"
@@ -10,8 +10,15 @@
             class="logo-icon"
         />
       </router-link>
+      <v-spacer />
+      <v-btn icon large to="contact" class="mb-1">
+        <v-icon large>mdi-chat-processing-outline</v-icon>
+      </v-btn>
+      <v-btn icon large href="https://help.openalex.org" target="_blank">
+        <v-icon large>mdi-help-circle-outline</v-icon>
+      </v-btn>
     </div>
-    <div class="d-flex flex-column align-start pl-4 " v-else>
+    <div class="d-flex flex-column align-start pl-4 fill-height" v-else>
       <router-link
           :to="{name: 'Home'}"
           class="logo-link"
@@ -27,8 +34,26 @@
               </span>
 
       </router-link>
+      <v-spacer />
+
+      <v-btn text large rounded to="contact" class="mb-1" width="100%">
+        <v-icon large left class="mr-4">mdi-chat-processing-outline</v-icon>
+        Contact
+        <v-spacer />
+      </v-btn>
+      <v-btn text large rounded href="https://help.openalex.org" target="_blank" width="100%" class="">
+        <v-icon large left class="mr-4">mdi-help-circle-outline</v-icon>
+        Help
+<!--        <v-icon right x-small color="">mdi-open-in-new</v-icon>-->
+        <v-spacer />
+      </v-btn>
 
     </div>
+
+
+
+
+
 
     <v-list v-if="0" nav rounded>
 

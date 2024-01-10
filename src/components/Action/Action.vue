@@ -6,15 +6,15 @@
     >
       <template v-slot:activator="{on}">
         <v-btn
-            :text="myConfig.id === 'group_by'"
-            :icon="myConfig.id !== 'group_by'"
+            text
             rounded
             v-on="on"
             class="font-weight-regular"
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <v-icon >mdi-sort</v-icon>
+            <v-icon left>mdi-sort</v-icon>
+            Sort
 <!--            {{ selectedSortConfig.displayName }}-->
 
           </template>

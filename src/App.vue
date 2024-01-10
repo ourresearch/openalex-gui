@@ -49,47 +49,12 @@
 
       <v-spacer/>
 
-
-
-      <v-menu rounded offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn
-              icon
-              class="elevation-0 font-weight-regular"
-              v-on="on"
-          >
-            <v-icon>mdi-help-circle-outline</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item href="https://help.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-information-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              User manual
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item href="https://docs.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              API reference
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item to="help">
-            <v-list-item-icon>
-              <v-icon>mdi-message-text-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Contact us
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <v-btn icon  to="contact" class="mb-1">
+        <v-icon >mdi-chat-processing-outline</v-icon>
+      </v-btn>
+      <v-btn icon  href="https://help.openalex.org" target="_blank">
+        <v-icon >mdi-help-circle-outline</v-icon>
+      </v-btn>
 
 
     </v-app-bar>
