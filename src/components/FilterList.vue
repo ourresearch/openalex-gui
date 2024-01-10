@@ -11,6 +11,7 @@
         <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
           <v-icon>mdi-api</v-icon>
         </v-btn>
+        <export-button />
 
       </v-toolbar>
 
@@ -131,6 +132,7 @@ import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {shortenOpenAlexId} from "@/util";
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
+import ExportButton from "@/components/ExportButton.vue";
 
 export default {
   name: "Template",
@@ -146,6 +148,7 @@ export default {
     FilterBarSuggestions,
 
     NewFilter,
+    ExportButton,
   },
   props: {},
   data() {
