@@ -50,7 +50,7 @@
       <v-spacer/>
 
       <v-btn icon  to="contact" class="mb-1">
-        <v-icon >mdi-chat-processing-outline</v-icon>
+        <v-icon >mdi-email-outline</v-icon>
       </v-btn>
       <v-btn icon  href="https://help.openalex.org" target="_blank">
         <v-icon >mdi-help-circle-outline</v-icon>

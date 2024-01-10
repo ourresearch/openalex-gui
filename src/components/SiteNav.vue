@@ -12,7 +12,7 @@
       </router-link>
       <v-spacer />
       <v-btn icon large to="contact" class="mb-1">
-        <v-icon large>mdi-chat-processing-outline</v-icon>
+        <v-icon large>mdi-email-outline</v-icon>
       </v-btn>
       <v-btn icon large href="https://help.openalex.org" target="_blank">
         <v-icon large>mdi-help-circle-outline</v-icon>
@@ -37,7 +37,7 @@
       <v-spacer />
 
       <v-btn text large rounded to="contact" class="mb-1" width="100%">
-        <v-icon large left class="mr-4">mdi-chat-processing-outline</v-icon>
+        <v-icon large left class="mr-4">mdi-email-outline</v-icon>
         Contact
         <v-spacer />
       </v-btn>
