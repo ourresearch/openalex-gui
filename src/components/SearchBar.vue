@@ -1,107 +1,176 @@
 <template>
-  <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
+  <div
+      style="width: 100%; position: relative; z-index: 6;"
+      class="filter-bar"
+
+
+  >
     <!--    {{ focusNumberLine }}-->
 
 
-
-    <v-menu
+    <v-dialog
         :close-on-content-click="false"
-        rounded
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
-        nudge-top="3"
-        nudge-left="6"
+        nudge-left="0"
+        nudge-top="0"
         max-width="800"
+        scrollable
+        :fullscreen="$vuetify.breakpoint.smAndDown"
+
     >
       <template v-slot:activator="{on}">
         <div
             v-on="on"
-            class="fake-input-button"
+            style="padding-right:10px;"
+            v-shortkey="['meta', 'k']"
+            @shortkey="isMenuOpen = true"
         >
-          <v-icon class="mr-2 ml-2 dark">mdi-magnify</v-icon>
-          <span
-              class=""
-              v-if="searchString"
+          <div class="fake-input-button"
+               v-shortkey="['ctrl', 'k']"
+               @shortkey="isMenuOpen = true"
+
           >
-            {{ searchString }}
-          </span>
-          <span v-else class="grey--text">
-          </span>
-          <v-spacer/>
+            <v-icon style="margin: 14px 7px 9px 9px;" class="dark">mdi-magnify</v-icon>
+            <span class="grey--text" >Search and filter works</span>
+            <v-spacer/>
+            <div class="mr-6 px-1 caption grey--text" style="// border: 1px solid #ddd; border-radius: 5px">
+              {{ shortcutSymbol }}K
+            </div>
+          </div>
+
         </div>
       </template>
-      <div style="background: #fff; ">
+      <v-card height="450" style="background: #fff;">
         <v-text-field
             hide-details
             v-model="searchString"
             ref="facetBarSearchBox"
+            class="py-0 flex-grow-0"
             rounded
-            outlined
-            class="pa-0"
-            style="margin: 2px 6px 6px;"
+            style="font-size: 20px;"
             @keyup.enter="onEnter"
-            placeholder="search and filter works"
+            placeholder="Search and filter works"
             autofocus
+
         >
+          <!--              style="margin: 15px 0 12px;"-->
           <template v-slot:prepend-inner>
-            <v-icon>mdi-magnify</v-icon>
+            <v-icon class="mt-4">mdi-magnify</v-icon>
           </template>
-          <template v-slot:append v-if="isLoading">
-            <v-progress-circular indeterminate size="20" color="grey lighten-" style="margin-top:0px;" />
+          <template v-slot:append>
+            <div style="height: 60px" class="d-flex flex-column justify-center">
+              <v-progress-circular
+                  v-if="isLoading"
+                  indeterminate size="25"
+                  color="grey lighten-1"
+              />
+              <v-btn icon v-else class="" @click="isMenuOpen = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+
+            </div>
           </template>
         </v-text-field>
-        <div
-            class="px-3 py-3 d-flex align-center"
-            v-if="!searchString"
-        >
-          <div class="mr-2 caption">Try: </div>
-          <div>
-            <v-chip
-                small
-                v-for="example in exampleSearches"
-                :key="example"
-                class="mr-1 mb-1"
-                outlined
-                @click="searchString = example"
-            >
-              {{ example }}
-            </v-chip>
 
+        <v-divider/>
+        <v-card-text class="pa-0">
+          <div
+              class="px-3 py-3 d-flex align-center"
+              v-if="!searchString"
+          >
+            <div class="mr-2 caption">Try:</div>
+            <div>
+              <v-chip
+                  small
+                  v-for="example in exampleSearches"
+                  :key="example"
+                  class="mr-1 mb-1"
+                  outlined
+                  @click="searchString = example"
+              >
+                {{ example }}
+              </v-chip>
+            </div>
           </div>
 
-        </div>
-        <v-list v-if="autocompleteSuggestions?.length">
-          <v-list-item
-              v-for="(suggestion, i) in autocompleteSuggestions"
-              :key="i"
-              class=" suggestion d-flex align-start py-2"
-              :class="{'has-focus': myFocusIndex === i}"
-              @click="clickSuggestion(suggestion.id)"
-          >
-            <div>
-              <v-icon left>{{ suggestion.icon }}</v-icon>
-            </div>
-            <div>
-              <div class="">
-                {{ suggestion.display_name }}
-              </div>
-              <div class="body-2" style="color: #777;">
-                {{ suggestion.hint }}
-              </div>
-            </div>
+          <v-list v-if="autocompleteSuggestions?.length">
+            <v-list-item
+                v-for="(suggestion, i) in autocompleteSuggestions"
+                :key="i"
+                class=""
+                :class="{'has-focus': myFocusIndex === i}"
+                @click="clickSuggestion(suggestion.id)"
+            >
+              <v-list-item-icon>
+                <v-icon left>{{ suggestion.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title class="">
+                  {{ suggestion.display_name }}
+                </v-list-item-title>
+                <div class="body-2" style="color: #777;">
+                  {{ suggestion.hint }}
+                </div>
+              </v-list-item-content>
+              <v-list-item-action v-if="suggestion.entity_type === 'work'">
+                <v-icon color="grey">mdi-arrow-right</v-icon>
+              </v-list-item-action>
+              <v-list-item-action-text v-else class="body-1 pt-2 align-self-start grey--text">
+                {{ suggestion.works_count | toPrecision }} works
+              </v-list-item-action-text>
+
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+        <v-divider/>
+        <v-card-actions class="px-0">
+
+          <v-list-item v-if="searchString" @click="onEnter">
+            <v-list-item-icon>
+              <v-icon left>mdi-magnify</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-bold">
+                '{{ searchString }}'
+              </v-list-item-title>
+              <v-list-item-subtitle class="body-2" style="color: #777;">
+                Search text, title, and abstract
+              </v-list-item-subtitle>
+            </v-list-item-content>
             <v-spacer class="mx-2"/>
-            <div v-if="suggestion.entity_type === 'work'">
-              <v-icon>mdi-arrow-right</v-icon>
+            <div class="grey--text d-flex body-2">
+              Press
+              <div class="ml-2 keyboard-shortcut">
+                ⏎ Enter
+              </div>
             </div>
-            <div v-else class="grey--text">
-              {{ suggestion.works_count | toPrecision }} works
-            </div>
-
           </v-list-item>
-        </v-list>
 
-      </div>
-    </v-menu>
+          <v-list-item v-else @click="onEnter">
+            <v-list-item-icon>
+              <v-icon left>mdi-filter-off-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="">
+                All works
+              </v-list-item-title>
+              <v-list-item-subtitle class="body-2" style="color: #777;">
+                #nofilter
+              </v-list-item-subtitle>
+            </v-list-item-content>
+            <v-spacer class="mx-2"/>
+            <div class="grey--text d-flex body-2">
+              Press
+              <div class="ml-2 keyboard-shortcut">
+                ⏎ Enter
+              </div>
+            </div>
+          </v-list-item>
+        </v-card-actions>
+
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -122,7 +191,7 @@ import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
-import { VueTyper } from 'vue-typer'
+import {VueTyper} from 'vue-typer'
 
 
 const exampleSearches = [
@@ -153,6 +222,7 @@ export default {
       foo: 42,
       searchString: "",
       isLoading: false,
+      buttonText: "",
       url,
       activeFilterKey: null,
       focusNumberLine: 0,
@@ -160,11 +230,11 @@ export default {
       isMenuOpen: false,
       exampleSearches,
       textToType: [
-          "the world's research ecosystem",
-          "Tim Berners-Lee",
-          "Sorbonne",
-          "solar power",
-          "doi:10.7717/peerj.4375",
+        "the world's research ecosystem",
+        "Tim Berners-Lee",
+        "Sorbonne",
+        "solar power",
+        "doi:10.7717/peerj.4375",
       ]
     }
   },
@@ -175,6 +245,10 @@ export default {
     ]),
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
+    },
+    shortcutSymbol() {
+      const isMac = window.navigator.userAgent.indexOf("Mac") > -1
+      return isMac ? "⌘" : "Ctrl+"
     },
     activeFilter() {
       return this.$store.state.activeFilter
@@ -341,11 +415,15 @@ export default {
   mounted() {
   },
   watch: {
+    isMenuOpen(to){
+      this.searchString = ""
+    },
     '$route': {
       immediate: true,
       handler(to) {
         this.isMenuOpen = false
         if (to.params?.entityId) {
+          this.searchString = ""
           this.searchString = "openalex:" + shortenOpenAlexId(to.params.entityId)
         } else {
           this.searchString = ""
@@ -368,7 +446,7 @@ export default {
 <style lang="scss">
 .fake-input-button {
   background-color: #ddd;
-  background-color:  hsl(214, 54%, 98%);
+  background-color: hsl(214, 54%, 98%);
 
   border-radius: 100px;
   height: 55px;
@@ -376,20 +454,14 @@ export default {
   align-items: center;
   padding-left: 15px;
   cursor: text;
+
   &:hover {
     //background-color: inherit;
   }
 }
 
 .filter-bar-menu {
-
-  &.top {
-    top: 5px !important;
-
-  }
-
-  border-radius: 50px !important;
-  background: #fff;
+  border-radius: 15px 15px !important;
 }
 
 .filter-bar-suggestions {

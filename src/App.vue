@@ -234,6 +234,14 @@ $color-0: hsl(212, 77%, 82%);
   }
 }
 
+.keyboard-shortcut {
+  color: #9e9e9e; // vuetify grey--text
+  border: 1px solid #ccc;
+  padding: 0 5px;
+  border-radius: 5px;
+
+}
+
 // don't show when a card has focus because we don't care.
 .v-card--link:focus:before {
   opacity: 0;
@@ -370,6 +378,7 @@ body {
 }
 
 .v-list-item__icon {
+  margin-top: 8px !important;
 }
 
 .v-list-item__action, {
@@ -393,9 +402,6 @@ body {
   margin-right: 8px;
 }
 
-.v-list-item__icon {
-  margin: 5px 0;
-}
 
 
 .v-expansion-panel-content__wrap {
