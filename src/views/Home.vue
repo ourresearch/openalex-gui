@@ -22,12 +22,12 @@
         <v-col>
           <v-card flat rounded class="color-2 pa-0" max-width="600" style="margin: 0 auto;">
             <div class="pa-5 pb-0 px-6 d-flex align-center">
-                Search and analyze the world's research.
-<!--               <vue-typer-->
-<!--                   class="font-weight-bold"-->
-<!--                   :text="textToType"-->
-<!--                   :pre-erase-delay='1000'-->
-<!--               />-->
+              Search and analyze the world's research.
+              <!--               <vue-typer-->
+              <!--                   class="font-weight-bold"-->
+              <!--                   :text="textToType"-->
+              <!--                   :pre-erase-delay='1000'-->
+              <!--               />-->
               <v-spacer></v-spacer>
               <v-btn icon @click="$vuetify.goTo('#learn-more')">
                 <v-icon>mdi-information-outline</v-icon>
@@ -36,7 +36,7 @@
 
             </div>
             <div class="pa-5">
-              <search-bar />
+              <search-bar/>
             </div>
 
           </v-card>
@@ -56,32 +56,84 @@
       <!--        </p>-->
 
       <v-row class="" id="learn-more">
-        <v-col class="d-flex justify-center">
-          <v-card flat rounded max-width="900" class="mb-12 pa-8">
-            <v-card-title>About us:</v-card-title>
-            <div class="pa-3">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum
-            </div>
-            <div class="pa-3">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum
-            </div>
-            <div class="pa-3">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-              ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-              fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum
-            </div>
+        <v-col cols="12" lg="4" class="">
+          <v-card rounded flat class="color-3">
+            <v-card-title>
+              <v-icon left color="black">mdi-earth-plus</v-icon>
+              Industry-leading coverage
+            </v-card-title>
+            <v-card-text class="body-1">
+              <p>
+                We index over <strong>250M</strong> works from 250k sources, with extra coverage of humanities, non-English languages, and the Global South.
+              </p>
+              <p>
+                We link these works to 90M disambiguated authors and 100k institutions, as well as enriching them with
+                topic information, SDGs, citation counts, and much more.
+              </p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer/>
+              <v-btn text rounded href="https://help.openalex.org/the-data/entities-overview" target="_blank">
+                Coverage stats
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+            </v-card-actions>
           </v-card>
-
+        </v-col>
+        <v-col cols="12" lg="4" class="">
+          <v-card rounded flat class="color-3">
+            <v-card-title>
+              <v-icon left color="black">mdi-lock-open-variant</v-icon>
+              Open, top to bottom
+            </v-card-title>
+            <v-card-text class="body-1">
+              <p>
+                Download up to 100k rows at a time from the web; if you need more use our free API or download the whole database. It's all CC0-licensed so you can share and reuse it as you like! And of course all our our source code is open, too.
+              </p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer/>
+              <v-btn text rounded href="https://github.com/ourresearch" target="_blank">
+                Code
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+              <v-btn text rounded href="https://docs.openalex.org/" target="_blank">
+                API
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+              <v-btn text rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot" target="_blank">
+                Dataset
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="12" lg="4" class="">
+          <v-card rounded flat class="color-3">
+            <v-card-title>
+              <v-icon left color="black">mdi-hand-heart</v-icon>
+              Sustainably not-for-profit
+            </v-card-title>
+            <v-card-text class="body-1">
+              <p>
+                OpenAlex is made by OurResearch, a nonprofit dedicated to making research open. And we've got a decade's experience keeping tools like Unpaywall sustainably open via premium upgrades.
+              </p>
+              <p>
+                Our OpenAlex Premium service gets you upgraded support and higher API limits, and has dozens of subscribers already.
+              </p>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer/>
+              <v-btn text rounded href="https://ourresearch.org/" target="_blank">
+                OurResearch
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+              <v-btn text rounded href="https://help.openalex.org/upgrade" target="_blank">
+                Upgrade
+                <v-icon right small>mdi-open-in-new</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
         </v-col>
 
 
@@ -104,7 +156,8 @@
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SearchBar from "@/components/SearchBar.vue";
-import { VueTyper } from 'vue-typer'
+import {VueTyper} from 'vue-typer'
+
 export default {
   name: 'home',
   components: {
@@ -120,11 +173,11 @@ export default {
       userEmail: "",
       errorMsg: "",
       textToType: [
-          "the world's research ecosystem",
-          "Tim Berners-Lee",
-          "Sorbonne",
-          "solar power",
-          "doi:10.7717/peerj.4375",
+        "the world's research ecosystem",
+        "Tim Berners-Lee",
+        "Sorbonne",
+        "solar power",
+        "doi:10.7717/peerj.4375",
       ]
     }
   },
