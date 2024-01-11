@@ -20,17 +20,22 @@
           </v-card>
         </v-col>
         <v-col>
-          <v-card flat rounded class="color-2 pa-5" max-width="600" style="margin: 0 auto;">
-            <div class="ml-2 mb-4">
-                Search and analyze the world's research
+          <v-card flat rounded class="color-2 pa-0" max-width="600" style="margin: 0 auto;">
+            <div class="pa-5 pb-0 px-6 d-flex align-center">
+                Search and analyze the world's research.
 <!--               <vue-typer-->
 <!--                   class="font-weight-bold"-->
 <!--                   :text="textToType"-->
 <!--                   :pre-erase-delay='1000'-->
 <!--               />-->
+              <v-spacer></v-spacer>
+              <v-btn icon @click="$vuetify.goTo('#learn-more')">
+                <v-icon>mdi-information-outline</v-icon>
+
+              </v-btn>
 
             </div>
-            <div class="">
+            <div class="pa-5">
               <search-bar />
             </div>
 
