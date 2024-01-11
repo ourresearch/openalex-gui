@@ -2,6 +2,8 @@
   <div style="width: 100%; position: relative; z-index: 6;" class="filter-bar">
     <!--    {{ focusNumberLine }}-->
 
+
+
     <v-menu
         :close-on-content-click="false"
         rounded
@@ -123,6 +125,8 @@ import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
+import { VueTyper } from 'vue-typer'
+
 
 const exampleSearches = [
   "Tim Berners-Lee",
@@ -141,6 +145,7 @@ export default {
 
     FilterBarSearch,
     FilterBarSuggestions,
+    VueTyper,
   },
   props: {
     dense: Boolean,

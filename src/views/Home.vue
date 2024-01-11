@@ -3,8 +3,9 @@
     <v-container class="">
       <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
         <v-col cols="3"></v-col>
-        <v-col class="">
-          <v-card color="transparent" flat :height="logoHeight" class="landing-page-logo mb-8">
+        <v-col class="flex-grow-0">
+          <!-- logo -->
+          <v-card color="transparent" flat :height="logoHeight" class="landing-page-logo">
             <img
                 src="@/assets/openalex-logo-icon-black-and-white.png"
                 class="logo-icon mr-0 colorizable"
@@ -17,12 +18,23 @@
               </span>
 
           </v-card>
-          <div v-if="$vuetify.breakpoint.mobile" class="text-caption text-md-body-1 mb-2 text-center">
-            <span>Search and analyze the world's research ecosystem:</span>
-          </div>
-          <div class="d-flex justify-center">
-            <filter-bar style="max-width: 600px"/>
-          </div>
+        </v-col>
+        <v-col>
+          <v-card flat rounded class="color-2 pa-5" max-width="600" style="margin: 0 auto;">
+            <div class="ml-2 mb-4">
+                Search and analyze
+               <vue-typer
+                   class="font-weight-bold"
+                   :text="textToType"
+                   :pre-erase-delay='1000'
+               />
+
+            </div>
+            <div class="">
+              <filter-bar />
+            </div>
+
+          </v-card>
 
 
         </v-col>
@@ -86,11 +98,12 @@
 <script>
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
-
+import { VueTyper } from 'vue-typer'
 export default {
   name: 'home',
   components: {
     FilterBar,
+    VueTyper,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",
@@ -99,7 +112,14 @@ export default {
   data() {
     return {
       userEmail: "",
-      errorMsg: ""
+      errorMsg: "",
+      textToType: [
+          "the world's research ecosystem",
+          "Tim Berners-Lee",
+          "Sorbonne",
+          "solar power",
+          "doi:10.7717/peerj.4375",
+      ]
     }
   },
   computed: {
