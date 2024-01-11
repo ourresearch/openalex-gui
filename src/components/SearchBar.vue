@@ -31,13 +31,10 @@
         </div>
       </template>
       <div style="background: #fff; ">
-        <v-progress-linear :height="4" v-if="isLoading"  indeterminate />
-        <div v-else style="height: 4px;"></div>
         <v-text-field
             hide-details
             v-model="searchString"
             ref="facetBarSearchBox"
-            prepend-inner-icon="mdi-magnify"
             rounded
             outlined
             class="pa-0"
@@ -45,7 +42,14 @@
             @keyup.enter="onEnter"
             placeholder="search and filter works"
             autofocus
-        />
+        >
+          <template v-slot:prepend-inner>
+            <v-icon>mdi-magnify</v-icon>
+          </template>
+          <template v-slot:append v-if="isLoading">
+            <v-progress-circular indeterminate size="20" color="grey lighten-" style="margin-top:0px;" />
+          </template>
+        </v-text-field>
         <div
             class="px-3 py-3 d-flex align-center"
             v-if="!searchString"

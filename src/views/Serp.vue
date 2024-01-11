@@ -100,7 +100,6 @@ import ExportButton from "../components/ExportButton.vue";
 import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 
-import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import FilterList from "@/components/FilterList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
 
@@ -137,7 +136,6 @@ export default {
     EntityWork,
 
     FilterList,
-    FilterBar,
 
   },
   props: {},
