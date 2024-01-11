@@ -22,16 +22,16 @@
         <v-col>
           <v-card flat rounded class="color-2 pa-5" max-width="600" style="margin: 0 auto;">
             <div class="ml-2 mb-4">
-                Search and analyze
-               <vue-typer
-                   class="font-weight-bold"
-                   :text="textToType"
-                   :pre-erase-delay='1000'
-               />
+                Search and analyze the world's research
+<!--               <vue-typer-->
+<!--                   class="font-weight-bold"-->
+<!--                   :text="textToType"-->
+<!--                   :pre-erase-delay='1000'-->
+<!--               />-->
 
             </div>
             <div class="">
-              <filter-bar />
+              <search-bar />
             </div>
 
           </v-card>
@@ -98,11 +98,12 @@
 <script>
 
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
+import SearchBar from "@/components/SearchBar.vue";
 import { VueTyper } from 'vue-typer'
 export default {
   name: 'home',
   components: {
-    FilterBar,
+    SearchBar,
     VueTyper,
   },
   metaInfo: {

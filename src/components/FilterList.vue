@@ -2,9 +2,8 @@
 
     <v-card class="pb-2" width="100%" rounded flat color="#E9F1FB">
       <v-toolbar flat color="transparent">
-        <filter-bar
+        <search-bar
           class="pt-3"
-          dark
           style="max-width: 720px;"
       />
         <v-spacer />
@@ -36,7 +35,7 @@
         />
       </div>
 
-      <div class="d-lg-flex d-block  align-center px-4">
+      <div class="d-md-flex d-block  align-center px-4">
         <!--      <v-icon left class="">mdi-plus</v-icon>-->
         <!--      <span class="pr-2">Add filter</span>-->
         <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
@@ -126,19 +125,17 @@ import NewFilter from "@/components/NewFilter/NewFilter.vue";
 
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
-import {api} from "@/api";
-import {getEntityConfig} from "@/entityConfigs";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {shortenOpenAlexId} from "@/util";
 import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
+import SearchBar from "@/components/SearchBar.vue";
 
 export default {
   name: "Template",
   components: {
     SerpResultsCount,
-    FilterBar,
+    SearchBar,
     FilterPhraseSelect,
     FilterPhraseSearch,
     FilterPhraseRange,
