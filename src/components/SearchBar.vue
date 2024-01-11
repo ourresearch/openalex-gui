@@ -86,7 +86,7 @@
                   v-for="example in exampleSearches"
                   :key="example"
                   class="mr-1 mb-1"
-                  outlined
+                  color="blue lighten-5"
                   @click="searchString = example"
               >
                 {{ example }}
