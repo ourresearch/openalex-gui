@@ -9,14 +9,14 @@
         rounded
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
-        nudge-top="7"
-        nudge-left="5"
+        nudge-top="3"
+        nudge-left="6"
+        max-width="800"
     >
       <template v-slot:activator="{on}">
         <div
             v-on="on"
-            class="fake-input-button color-3"
-            :class="{'white': dark}"
+            class="fake-input-button"
         >
           <v-icon class="mr-2 ml-2 dark">mdi-magnify</v-icon>
           <span
@@ -222,7 +222,7 @@ export default {
             const entityConfig = getEntityConfig(result.entity_type)
 
             const hint = (entityConfig.name === "works") ?
-                "Shortcut to work" :
+                "View work" :
                 _.capitalize(entityConfig.displayNameSingular) + " filter"
 
             // let hint
@@ -332,19 +332,6 @@ export default {
       this.searchString = ""
       url.deleteAllFilters()
 
-    },
-    onBlur() {
-      setTimeout(() => {
-        this.searchString = ""
-      })
-    },
-    onUpArrow() {
-      console.log("up arrow")
-      this.focusNumberLine--
-    },
-    onDownArrow() {
-      console.log("down arrow")
-      this.focusNumberLine++
     },
 
 
