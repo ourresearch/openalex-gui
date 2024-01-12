@@ -137,7 +137,7 @@
                 '{{ searchString }}'
               </v-list-item-title>
               <v-list-item-subtitle class="body-2" style="color: #777;">
-                <div>Search text, title, and abstract</div>
+                <div>Search title, abstract, and text</div>
               </v-list-item-subtitle>
             </v-list-item-content>
             <v-spacer class="mx-2"/>

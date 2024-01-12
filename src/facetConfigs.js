@@ -282,7 +282,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "fulltext includes",
+            displayName: "Search title, abstract, & text",
             type: "search",
             categories: ["other", "popular"],
             actions: ["filter",],
