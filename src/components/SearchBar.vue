@@ -52,7 +52,7 @@
             rounded
             placeholder="Search and filter works"
             autofocus
-            @keydown.enter="onEnter"
+            @keyup.enter="onEnter"
         >
           <!--              style="margin: 15px 0 12px;"-->
           <template v-slot:prepend-inner>
@@ -216,6 +216,7 @@ export default {
       focusNumberLine: 0,
       myFocusIndex: 0,
       isMenuOpen: false,
+      isClicky: false, // so we can select menu items with arrows + enter
       exampleSearches,
       textToType: [
         "the world's research ecosystem",
@@ -329,6 +330,7 @@ export default {
     ]),
     ...mapActions([]),
     clickSuggestion(id) {
+      this.isClicky = true
       const entityType = entityTypeFromId(id)
       if (entityType === this.entityType) {
         this.goToEntityPage(id)
@@ -369,6 +371,12 @@ export default {
       this.setActiveFilter(null, null, null)
     },
     onEnter() {
+      // this so we can select menu items with arrows + enter
+      if (this.isClicky) {
+        this.isClicky = false
+        return
+      }
+
       if (!this.searchString) {
         this.$router.push({name: "Serp", params: {entityType: this.entityType}})
       } else if (isOpenAlexId(this.searchString)) {
