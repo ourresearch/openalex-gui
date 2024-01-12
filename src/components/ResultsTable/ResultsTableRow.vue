@@ -2,47 +2,47 @@
   <tr
       @click="clickRow"
   >
-<!--    <template-->
-<!--        v-for="cell in cells"-->
-<!--    >-->
-<!--      <ResultsTableCellString-->
-<!--          v-if=""-->
-<!--          :key="entity.id + cell.key"-->
-<!--      />-->
+    <!--    <template-->
+    <!--        v-for="cell in cells"-->
+    <!--    >-->
+    <!--      <ResultsTableCellString-->
+    <!--          v-if=""-->
+    <!--          :key="entity.id + cell.key"-->
+    <!--      />-->
 
-<!--    </template>-->
+    <!--    </template>-->
 
-        <template
-            v-for="cell in cells"
-        >
-          <td
-              v-if="cell.type==='range'"
-              :key="entity.id + cell.key"
-              class="range"
-          >
-            <template v-if="cell.isDate">{{ cell.value}}</template>
-            <template v-else>{{ cell.value | toPrecision }}</template>
-          </td>
-          <td
-              v-else-if="cell.type==='boolean'"
-              :key="entity.id + cell.key"
-              class="boolean"
+    <template
+        v-for="cell in cells"
+    >
+      <td
+          v-if="cell.type==='range'"
+          :key="entity.id + cell.key"
+          class="range"
+      >
+        <template v-if="cell.isDate">{{ cell.value }}</template>
+        <template v-else>{{ cell.value | toPrecision }}</template>
+      </td>
+      <td
+          v-else-if="cell.type==='boolean'"
+          :key="entity.id + cell.key"
+          class="boolean"
 
-          >
-            <v-icon v-if="cell.value" color="">mdi-check</v-icon>
-            <span v-else class="grey--text">-</span>
-    <!--        <v-icon v-else color="error lighten-2">mdi-close</v-icon>-->
-    <!--        {{ cell.value }}-->
-          </td>
-          <td
-              v-else
-              :key="entity.id + cell.key"
-              class=""
-          >
-            {{ cell.value }}
-          </td>
+      >
+        <v-icon v-if="cell.value" color="">mdi-check</v-icon>
+        <span v-else class="grey--text">-</span>
+        <!--        <v-icon v-else color="error lighten-2">mdi-close</v-icon>-->
+        <!--        {{ cell.value }}-->
+      </td>
+      <td
+          v-else
+          :key="entity.id + cell.key"
+          class=""
+      >
+        {{ cell.value }}
+      </td>
 
-        </template>
+    </template>
 
   </tr>
 </template>
@@ -55,6 +55,7 @@ import ResultsTableCell from "@/components/ResultsTable/ResultsTableCell.vue";
 import ResultsTableCellString from "@/components/ResultsTable/ResultsTableCellString.vue";
 
 import {url} from "@/url";
+import {shortenOpenAlexId} from "@/util";
 
 export default {
   name: "ResultsTableRow",
@@ -108,8 +109,13 @@ export default {
       }
     },
     clickRow() {
-      url.setSidebar(this.entity.id)
-
+      const entityId = shortenOpenAlexId(this.entity.id)
+      this.$router.push({
+        name: "EntityPageShortcut",
+        params: {
+          entityId
+        }
+      })
     }
 
 

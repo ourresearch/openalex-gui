@@ -1,62 +1,69 @@
 <template>
 
 
-  <v-expansion-panel>
-    <v-divider/>
-    <v-expansion-panel-header>
-      Identifiers <span class="caption ml-1">({{ liveIds.length }})</span>
+  <!--  <v-expansion-panel>-->
+  <!--    <v-divider/>-->
+  <!--    <v-expansion-panel-header>-->
+  <!--      Identifiers <span class="caption ml-1">({{ liveIds.length }})</span>-->
 
-    </v-expansion-panel-header>
-    <v-expansion-panel-content class="pa-0">
-      <v-list nav dense class="pa-0">
-        <v-list-item
-            v-for="(idObj, i) in liveIds"
-            :key="idObj.namespace + idObj.url"
-        >
-<!--            @click="copyToClipboard(idObj.id)"-->
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ idObj.displayNamespace }}
-            </v-list-item-title>
-            <v-list-item-subtitle class="grey--text" style="">
-              {{ idObj.simpleId }}
-            </v-list-item-subtitle>
-          </v-list-item-content>
-          <!--          <v-list-item-action>-->
-          <!--            <v-btn small icon @click="copyToClipboard(idObj.id)">-->
-          <!--              <v-icon small>mdi-content-copy</v-icon>-->
-          <!--            </v-btn>-->
-          <!--          </v-list-item-action>-->
-          <v-list-item-action>
-            <v-menu>
-              <template v-slot:activator="{on}">
-                <v-btn v-on="on" small icon >
-                  <v-icon small>mdi-dots-horizontal</v-icon>
-                </v-btn>
-              </template>
-                <v-list dense>
-                  <v-list-item @click="copyToClipboard(idObj.id)">
-                    <v-list-item-title>
-                      <v-icon left small>mdi-content-copy</v-icon>
-                      Copy to clipboard
-                    </v-list-item-title>
-                  </v-list-item>
-                  <v-list-item :href="idObj.url" target="_blank">
-                    <v-list-item-title>
-                      <v-icon left small>mdi-open-in-new</v-icon>
-                      View on {{ idObj.provider }}
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
+  <!--    </v-expansion-panel-header>-->
+  <!--    <v-expansion-panel-content class="pa-0">-->
+  <v-list class="pa-0">
+    <v-list-item
+        v-for="(idObj, i) in liveIds"
+        :key="idObj.namespace + idObj.url"
+        :href="idObj.url" target="_blank"
+    >
+      <!--            @click="copyToClipboard(idObj.id)"-->
+      <v-list-item-content>
+        <v-list-item-title>
+          {{ idObj.displayNamespace }}
+        </v-list-item-title>
+        <!--            <v-list-item-subtitle class="grey&#45;&#45;text" style="">-->
+        <!--              {{ idObj.simpleId }}-->
+        <!--            </v-list-item-subtitle>-->
+      </v-list-item-content>
+      <v-list-item-icon>
+        <v-icon small class="mt-1">mdi-open-in-new</v-icon>
+      </v-list-item-icon>
 
-            </v-menu>
+      <!--          <v-list-item-action>-->
+      <!--            <v-btn small icon @click="copyToClipboard(idObj.id)">-->
+      <!--              <v-icon small>mdi-content-copy</v-icon>-->
+      <!--            </v-btn>-->
+      <!--          </v-list-item-action>-->
+      <!--          <v-list-item-action>-->
+      <!--            <v-menu>-->
+      <!--              <template v-slot:activator="{on}">-->
+      <!--                <v-btn v-on="on" small icon >-->
+      <!--                  <v-icon small>mdi-dots-horizontal</v-icon>-->
+      <!--                </v-btn>-->
+      <!--              </template>-->
+      <!--                <v-list dense>-->
+      <!--                  <v-list-item @click="copyToClipboard(idObj.id)">-->
+      <!--                    <v-list-item-title>-->
+      <!--                      <v-icon left small>mdi-content-copy</v-icon>-->
+      <!--                      Copy to clipboard-->
+      <!--                    </v-list-item-title>-->
+      <!--                  </v-list-item>-->
+      <!--                  <v-list-item :href="idObj.url" target="_blank">-->
+      <!--                    <v-list-item-title>-->
+      <!--                      <v-icon left small>mdi-open-in-new</v-icon>-->
+      <!--                      View on {{ idObj.provider }}-->
+      <!--                    </v-list-item-title>-->
+      <!--                  </v-list-item>-->
+      <!--                </v-list>-->
 
-          </v-list-item-action>
-        </v-list-item>
-      </v-list>
-    </v-expansion-panel-content>
-    <v-divider/>
-  </v-expansion-panel>
+      <!--            </v-menu>-->
+
+      <!--          </v-list-item-action>-->
+    </v-list-item>
+  </v-list>
+
+
+  <!--    </v-expansion-panel-content>-->
+  <!--    <v-divider/>-->
+  <!--  </v-expansion-panel>-->
 
 
 </template>
@@ -114,11 +121,16 @@ export default {
       })
 
       if (issnL) {
-        return ids.filter(i => {
-          return !(i.namespace === "issn" && i.id === issnL)
-        })
+        return ids
+            .filter(i => {
+              return !(i.namespace === "issn" && i.id === issnL)
+            })
+            .filter(id => id.namespace !== 'openalex')
       }
-      return ids
+      else {
+        return ids.filter(id => id.namespace !== 'openalex')
+
+      }
     }
   },
   created() {

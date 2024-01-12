@@ -1,12 +1,18 @@
 <template>
   <v-app>
+
     <v-navigation-drawer
         v-model="isSiteNavOpen"
         app
-        color="#fafafa"
-        v-if="0"
+        floating
+        color="white"
+        :mini-variant="$vuetify.breakpoint.lgAndDown"
+        v-if="$route.name !== 'Home'"
+
     >
-      <site-nav/>
+<!--        color="hsl(213, 69%, 95%)"-->
+
+      <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
 
 
     </v-navigation-drawer>
@@ -19,71 +25,45 @@
     <v-app-bar
         app
         flat
-        dense
 
-        color="white"
+        color="transparent"
         class="pl-0"
         absolute
-
-
+        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"
     >
-        <!--            v-if="$route.name !== 'Home'"-->
-        <router-link
-            :to="{name: 'Home'}"
-            class="logo-link"
+
+      <router-link
+          :to="{name: 'Home'}"
+          class="logo-link"
+      >
+        <img
+            src="@/assets/openalex-logo-icon-black-and-white.png"
+            class="logo-icon mr-0 colorizable"
+        />
+        <span
+            class="logo-text colorizable"
         >
-          <img
-              src="@/assets/openalex-logo-icon-black-and-white.png"
-              class="logo-icon mr-0 colorizable"
-              :style="logoStyle"
-          />
-          <span
-              class="logo-text colorizable"
-              :style="logoStyle"
-          >
                 OpenAlex
               </span>
 
-        </router-link>
+      </router-link>
 
+      <v-spacer/>
 
-<!--        <v-menu v-if="$route.name === 'Serp'" rounded offset-y content-class="no-highlight" min-width="150">-->
-<!--          <template v-slot:activator="{on}">-->
-<!--            <v-btn icon color="" v-on="on">-->
-<!--              <v-icon class="">mdi-cog</v-icon>-->
-<!--            </v-btn>-->
-<!--          </template>-->
-<!--          <v-list>-->
-<!--            <v-list-item @click="$store.state.isApiEditorShowing = !$store.state.isApiEditorShowing">-->
-<!--              <v-list-item-icon>-->
-<!--                <v-icon v-if="$store.state.isApiEditorShowing">mdi-check</v-icon>-->
-<!--              </v-list-item-icon>-->
-<!--              <v-list-item-content>-->
-<!--                <v-list-item-title>-->
-<!--                  Show API query-->
-<!--                </v-list-item-title>-->
-<!--              </v-list-item-content>-->
-<!--            </v-list-item>-->
-<!--          </v-list>-->
-<!--        </v-menu>-->
-
-      <v-spacer />
-
-<!--        <v-btn-->
-<!--            icon-->
-<!--            @click="isSiteNavOpen = !isSiteNavOpen"-->
-<!--            style="margin-left: -10px;"-->
-<!--        >-->
-<!--          <v-icon>mdi-menu</v-icon>-->
-<!--        </v-btn>-->
-
-
+      <v-btn icon  to="contact" class="mb-1">
+        <v-icon >mdi-email-outline</v-icon>
+      </v-btn>
+      <v-btn icon  href="https://help.openalex.org" target="_blank">
+        <v-icon >mdi-help-circle-outline</v-icon>
+      </v-btn>
 
 
     </v-app-bar>
-    <v-main>
+    <div>
+    </div>
+    <v-main >
       <router-view></router-view>
-      <site-footer/>
+      <site-footer />
     </v-main>
 
     <v-snackbar
@@ -118,6 +98,9 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
+import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
+import FilterBar from "@/components/FilterBar/FilterBar.vue";
+import {url} from "@/url";
 
 export default {
   name: 'App',
@@ -128,6 +111,8 @@ export default {
     meta: []
   },
   components: {
+    FilterBarSearch,
+    FilterBar,
     SearchBoxNew,
     SiteFooter,
     SiteNav,
@@ -145,6 +130,7 @@ export default {
         showAlpha: false
       },
       resultsFilters: [],
+      url,
     }
   },
   computed: {
@@ -212,6 +198,67 @@ export default {
 </script>
 <style lang="scss">
 
+.v-main {
+  background-color: #fff;
+}
+$color-3: hsl(210, 60%, 98%);
+$color-2: hsl(213, 69%, 95%);
+$color-1: hsl(213, 72%, 88%);
+$color-0: hsl(212, 77%, 82%);
+
+
+.color-3 {background-color: $color-3 !important;}
+.color-2 {background-color: $color-2 !important;}
+.color-1 {background-color: $color-1 !important;}
+.color-0 {background-color: $color-0 !important;}
+
+
+.v-card.factoid-card {
+  //background-color: #EEF5FC;
+  background-color: $color-2;
+  border: none;
+  box-shadow: none;
+  .v-card__title {
+    background-color: $color-1;
+  }
+  .v-card__text {
+    padding-top:12px;
+    background-color: white;
+  }
+  .v-card__actions {
+    //background-color: $color-1;
+
+  }
+}
+
+.v-card.button-card {
+  transition: background-color 300ms;
+  $card-start-color: hsl(213, 72%, 88%);
+  background-color: $color-1;
+
+  border: none;
+  &:hover {
+    background-color: $color-0;
+    &.no-hover {
+      background-color: $color-1;
+    }
+
+  }
+}
+
+.keyboard-shortcut {
+  color: #9e9e9e; // vuetify grey--text
+  border: 1px solid #ccc;
+  padding: 0 5px;
+  border-radius: 5px;
+
+}
+
+// don't show when a card has focus because we don't care.
+.v-card--link:focus:before {
+  opacity: 0;
+}
+
 html, body {
   // THIS IS REQUIRED to disable styles that Vuetify applies,
   // which keep the v-scroll-lock directive from working.
@@ -252,10 +299,12 @@ html, body {
   //opacity: 0;
 }
 
-$logo-link-height: 32px;
+$logo-link-height: 35px;
+
 
 .logo-link {
   text-decoration: none;
+  width: 151px;
   display: flex;
   align-items: center;
   //padding-left: 30px;
@@ -267,14 +316,13 @@ $logo-link-height: 32px;
   .logo-text {
     //padding: 0 14px;
 
-    margin: 5px 0 5px 15px;
+    padding-left: .3em;
     line-height: 1.2;
     //border-left: 1px solid #333;
     color: #000;
 
 
     font-family: Dosis;
-    letter-spacing: .03em;
     font-size: $logo-link-height * 0.75;
     font-weight: 500;
   }
@@ -342,6 +390,7 @@ body {
 }
 
 .v-list-item__icon {
+  margin-top: 8px !important;
 }
 
 .v-list-item__action, {
@@ -352,6 +401,19 @@ body {
 .v-list--two-line.v-list--dense .v-list-item {
   min-height: unset;
 }
+
+.v-list-item {
+  min-height: unset !important;
+
+  .v-list-item__content {
+    padding: 10px 0 !important;
+  }
+}
+
+.v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
+  margin-right: 8px;
+}
+
 
 
 .v-expansion-panel-content__wrap {
@@ -371,7 +433,7 @@ img.site-footer-logo {
   margin-top: 50px;
 }
 
-.v-tabs--icons-and-text .v-tab{
+.v-tabs--icons-and-text .v-tab {
   font-size: 12px !important;
   text-transform: capitalize;
 }

@@ -1,68 +1,79 @@
 <template>
-  <v-container class="page">
-    <div class="help-form">
-      <h3 class="text-h3">Get in Touch</h3>
-      <p ref="description">Use this form to get in touch with the OpenAlex team, to send a bug report, or to ask
-        any questions not answered by the <a href="https://docs.openalex.org/">documentation</a>.</p>
-      <p>If you have any trouble with the form, or if you want to attach a screenshot or file, you can instead send an
-        email to <a href="mailto:support@openalex.org"></a>.
-      </p>
+  <v-container class="">
+    <v-card max-width="600" rounded flat class="help-form color-3">
+      <div class="color-2 mb-4">
+        <v-card-title class="">Get in Touch</v-card-title>
+        <v-card-subtitle class="body-1">
+          Report a bug, ask a question not covered by the <a href="https://docs.openalex.org/">documentation</a>, or just chat!
+        </v-card-subtitle>
 
-      <v-form
-          ref="form"
-          lazy-validation
-          class="align-center"
-      >
-        <v-text-field
-            v-model="name"
-            :rules="nameRules"
-            label="Your Name"
-            outlined
-            required
-        ></v-text-field>
+      </div>
+      <div class="px-4">
+        <v-form
+            ref="form"
+            lazy-validation
+            class="align-center"
+        >
+          <v-text-field
+              v-model="name"
+              :rules="nameRules"
+              label="Your Name"
+              filled
+              rounded
+              required
+          ></v-text-field>
 
-        <v-text-field
-            v-model="email"
-            :rules="emailRules"
-            label="Your Email"
-            outlined
-            required
-        ></v-text-field>
+          <v-text-field
+              v-model="email"
+              :rules="emailRules"
+              label="Your Email"
+              filled
+              rounded
+              required
+          ></v-text-field>
 
-        <v-text-field
-            v-model="subject"
-            :rules="nameRules"
-            label="Subject"
-            outlined
-            required
-        ></v-text-field>
+          <v-text-field
+              v-model="subject"
+              :rules="nameRules"
+              label="Subject"
+              filled
+              rounded
+              required
+          ></v-text-field>
 
-        <v-textarea
-            v-model="message"
-            :rules="messageRules"
-            label="Message"
-            outlined
-            required></v-textarea>
+          <v-textarea
+              v-model="message"
+              :rules="messageRules"
+              label="Message"
+              filled
+              rounded
+              required></v-textarea>
 
+
+        </v-form>
+        <div v-if="success">
+          <br><br>
+          <p>Request sent! You will receive an email confirmation shortly. You can reply to that email to send
+            any files.</p>
+        </div>
+        <div v-if="error">
+          <br><br>
+          <p>Looks like something went wrong with our form. Please email us <a href="mailto:support@openalex.org">support@openalex.org</a>
+          </p>
+        </div>
+      </div>
+      <v-card-actions>
+        <v-spacer />
         <v-btn
             color="primary"
+            rounded
             class="mr-4"
             @click="submitForm"
         >
           Submit
         </v-btn>
-      </v-form>
-      <div v-if="success">
-        <br><br>
-        <p>Request sent! You will receive an email confirmation shortly. You can reply to that email to send
-          any files.</p>
-      </div>
-      <div v-if="error">
-        <br><br>
-        <p>Looks like something went wrong with our form. Please email us <a href="mailto:support@openalex.org">support@openalex.org</a>
-        </p>
-      </div>
-    </div>
+      </v-card-actions>
+    </v-card>
 
   </v-container>
 </template>

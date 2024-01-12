@@ -1,56 +1,75 @@
 <template>
-  <v-card flat tile class="">
-    <v-card outlined rounded class="mx-3">
-      <v-toolbar dense flat dark color="purple">
-        <v-icon left style="transform: rotate(90deg)">mdi-poll</v-icon>
+    <v-card class="factoid-card" flat rounded  :loading="isLoading" style="width: 100%;">
+      <v-toolbar dense flat color="transparent">
+        <v-icon left>{{ selectedConfig.icon }}</v-icon>
         <v-toolbar-title>
-          Count by <span class="font-weight-bold">{{ selectedConfig.displayName }}</span>
+          <span class="">{{ selectedConfig.displayName }}</span>
         </v-toolbar-title>
         <v-spacer/>
-        <v-btn
-            icon
-            :href="url.makeApiUrl($route, true)"
-        >
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-btn>
-        <v-btn icon @click="url.setGroupBy(undefined)">
-          <v-icon>mdi-close</v-icon>
+        <v-menu rounded offset-y>
+          <template v-slot:activator="{on}">
+            <v-btn
+                icon
+                v-on="on"
+                small
+            >
+              <v-icon small>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item :href="url.makeApiUrl($route, true, selected)" >
+              <v-list-item-icon>
+                <v-icon>mdi-tray-arrow-down</v-icon>
+              </v-list-item-icon>
+              Export
+            </v-list-item>
+            <v-list-item :href="url.makeApiUrl($route, false)" target="_blank">
+              <v-list-item-icon>
+                <v-icon>mdi-api</v-icon>
+              </v-list-item-icon>
+              View in API
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <v-btn small icon @click="url.toggleGroupBy(selected)">
+          <v-icon small>mdi-close</v-icon>
         </v-btn>
 
       </v-toolbar>
-      <table v-if="selected" class="serp-results-table ">
-        <thead>
-        <tr>
-          <th class="py-2">
-            {{ selectedConfig.displayName }}
-          </th>
-          <th class="pa-2">Works count</th>
-          <th></th>
+      <v-divider />
+      <table v-if="selected" class="serp-results-table " style="width: 100%;">
+<!--        <thead>-->
+<!--        <tr>-->
+<!--          <th class="py-2">-->
+<!--            {{ selectedConfig.displayName }}-->
+<!--          </th>-->
+<!--          <th class="pa-2">Works count</th>-->
+<!--          <th></th>-->
 
-        </tr>
-        </thead>
+<!--        </tr>-->
+<!--        </thead>-->
         <tbody>
         <tr
             v-for="group in groups"
             :key="group.value"
         >
-<!--            @click="url.createFilter(entityType, filterKey, group.value)"-->
-          <td>
+<!--            @click="selectGroup(group.value)"-->
+          <td class="body-2">
             {{ group.displayValue }}
           </td>
-          <td class="range">
+          <td class="range body-2">
             {{ group.count | toPrecision }}
           </td>
-          <td>
-            <div style="height: 40px; width: 500px">
-              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">
-                <v-spacer/>
-                <div class="d-flex"
-                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>
-              </div>
+<!--          <td>-->
+<!--            <div style="height: 40px; width: 500px">-->
+<!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
+<!--                <v-spacer/>-->
+<!--                <div class="d-flex"-->
+<!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+<!--              </div>-->
 
-            </div>
-          </td>
+<!--            </div>-->
+<!--          </td>-->
 
         </tr>
         <!--        <results-table-row-->
@@ -63,7 +82,6 @@
       </table>
     </v-card>
 
-  </v-card>
 </template>
 
 <script>
@@ -86,7 +104,10 @@ export default {
     ActionMenuItem,
 
   },
-  props: {},
+  props: {
+      selected: String,
+
+  },
   data() {
     return {
       url,
@@ -95,6 +116,7 @@ export default {
       selectedValue: this.filterValue,
       searchString: "",
       isDialogOpen: false,
+
     }
   },
   computed: {
@@ -103,21 +125,21 @@ export default {
       "entityType",
       "resultsCount",
     ]),
-    selected: {
-      get() {
-        return this.$route.query.group_by
-      },
-      set(to) {
-        const query = {
-          ...this.$route.query,
-          group_by: to
-        }
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query
-        })
-      }
-    },
+    // selected: {
+    //   get() {
+    //     return this.$route.query.group_by
+    //   },
+    //   set(to) {
+    //     const query = {
+    //       ...this.$route.query,
+    //       group_by: to
+    //     }
+    //     url.pushToRoute(this.$router, {
+    //       name: "Serp",
+    //       query
+    //     })
+    //   }
+    // },
     selectedConfig() {
       if (!this.selected) return
       return getFacetConfig(this.entityType, this.selected)
@@ -142,7 +164,8 @@ export default {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
     },
     filterKey() {
-      return this.$route.query.group_by
+      // return this.$route.query.group_by
+      return this.selected
     },
     apiUrl() {
       return url.makeGroupByUrl(
@@ -187,7 +210,7 @@ export default {
 
 
       this.isLoading = false
-      return ret
+      return ret.slice(0,5)
     }
   },
 
@@ -197,6 +220,9 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
+    selectGroup(val){
+      url.createFilter(this.entityType, this.filterKey, val)
+    },
 
 
   },

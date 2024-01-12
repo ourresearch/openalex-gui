@@ -1,19 +1,15 @@
 <template>
   <div class="search-box-new">
     <v-text-field
-        prepend-inner-icon="mdi-magnify"
         hide-details
+        dense
         readonly
         rounded
-        outlined
         :placeholder="`Search ${entityType}`"
         append-icon="mdi-magnify"
         full-width
         id="search-box-new-text-field"
     >
-      <template v-slot:prepend-inner>
-        <entity-type-selector style="margin-top: 2px;"/>
-      </template>
     </v-text-field>
 
     <component
@@ -287,8 +283,8 @@ export default {
 
 <style lang="scss">
 .search-box-new-menu {
-  left: calc(50vw - 300px) !important;
-  top: 0 !important;
+  //left: calc(50vw - 300px) !important;
+  //top: 0 !important;
 
 }
 

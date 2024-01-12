@@ -1,24 +1,10 @@
 <template>
     <div class="pa-3">
-      <div class="data-row" v-if="data.last_known_institution">
-        <span class="font-weight-bold">
-          Institution:
-        </span>
-        <span>
-          <link-to-entity
-              :entity="data.last_known_institution"
-          />
-        </span>
-      </div>
 
-      <div class="data-row" v-if="data.x_concepts.length">
-        <span class="font-weight-bold">
-          Research interests:
-        </span>
-        <span>
-          <concepts-list :concepts="data.x_concepts" :is-clickable="true"/>
-        </span>
-      </div>
+
+
+
+      <entity-body :data="data" />
     </div>
 </template>
 
@@ -29,6 +15,8 @@ import ConceptsList from "../ConceptsList.vue";
 import LinkToEntity from "../LinkToEntity.vue";
 import LinkToSearch from "../LinkToSearch.vue";
 import EntitySummaryStats from "@/components/Entity/EntitySummaryStats.vue";
+import EntityBody from "@/components/Entity/EntityBody.vue";
+
 
 export default {
   name: "EntityAuthor",
@@ -38,6 +26,7 @@ export default {
     LinkToEntity,
     LinkToSearch,
     EntitySummaryStats,
+    EntityBody,
   },
   props: {
     data: Object,

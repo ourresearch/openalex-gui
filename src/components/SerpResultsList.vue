@@ -1,144 +1,99 @@
 <template>
-  <div class="">
+  <v-card flat rounded class="">
+    <serp-toolbar :results-object="resultsObject" />
+    <v-list nav  class="" color="">
+      <v-list-item
+          v-for="result in resultsObject.results"
+          :key="result.id"
+          class="serp-result-item "
+          :to="result.id | entityZoomLink"
+          color="primary"
+      >
+        <!--          @click="clickResult(result.id)"-->
+        <v-list-item-icon v-if="!$vuetify.breakpoint.mobile" class="pt-1 pl-3">
+          <v-icon class="">mdi-file-document-outline</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title style="white-space: normal; line-height: 1.5;">
+            <div class="">{{ result.display_name }}</div>
+          </v-list-item-title>
+          <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
+            <div>
+              <span v-if="result.publication_year">{{ result.publication_year }}</span>
+              <span v-if="result.publication_year && result.type"> · </span>
+              <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
+              <span v-if="result.primary_location?.source?.display_name"> · </span>
+              <span v-if="result.primary_location?.source?.display_name" class="font-italic">
+                  {{ result.primary_location?.source?.display_name }}
+                </span>
+            </div>
+          </v-list-item-subtitle>
+          <div>
+            <span @click.prevent>
+              <v-btn
+                  text
+                  small
+                  class="px-1"
+                  :to="url.makeFilterRoute(entityType, 'cited_by', result.id)"
+              >
+<!--                  @click.prevent="showCitingWorks(result.id)"-->
+                Cited by {{ result.cited_by_count | toPrecision }}
+              </v-btn>
 
+            </span>
+            <!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
+            <!--              web-->
+            <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
+            <!--            </v-btn>-->
+            <span @click.stop>
+              <v-btn
+                  v-if="result?.best_oa_location?.pdf_url"
+                  :href="result?.best_oa_location?.pdf_url"
+                  target="_blank"
+                  text
+                  small
+                  class="ml-2"
+              >
+                PDF
+              </v-btn>
 
-    <template v-if="resultsObject?.meta?.count">
-      <v-card flat  rounded class="ma-3 py-3">
-        <table v-if="resultsCount" class="serp-results-table">
-          <thead>
-          <tr>
-            <results-table-header
-                v-for="config in headerConfigs"
-                :key="config.key"
-                :config="config"
-            />
-          </tr>
-          </thead>
-          <tbody>
-          <results-table-row
-              v-for="result in resultsObject.results"
-              :key="result.id"
-              :entity="result"
-          />
-          </tbody>
-        </table>
-      </v-card>
-
-
-      <v-list v-if="0 && resultsCount" class="serp-results-list" nav>
-        <component
-            v-for="result in resultsObject.results"
-            :key="result.id"
-            :is="resultComponentName"
-            :data="result"
-        />
-      </v-list>
-      <div class="serp-bottom" v-if="resultsObject.results && resultsObject.results.length">
-        <v-pagination
-            v-model="page"
-            :length="numPages"
-            :total-visible="10"
-            light
-        />
-      </div>
-
-    </template>
-    <template v-else>
-
-    </template>
-  </div>
+            </span>
+          </div>
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+  </v-card>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import VueJsonPretty from 'vue-json-pretty'
-
+import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
+import {shortenOpenAlexId} from "@/util";
+import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
-
-
-import ResultWork from "./Result/ResultWork.vue";
-import ResultAuthor from "./Result/ResultAuthor.vue";
-import ResultSource from "./Result/ResultSource.vue";
-import ResultPublisher from "./Result/ResultPublisher.vue";
-import ResultFunder from "@/components/Result/ResultFunder.vue";
-import ResultInstitution from "./Result/ResultInstitution.vue";
-import ResultConcept from "./Result/ResultConcept.vue";
-import {entityTypes} from "../util";
-import router from "../router";
-import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
-import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
-import ActionMenuItem from "@/components/Action/Action.vue";
-import ExportButton from "@/components/ExportButton.vue";
-import {getFacetConfig} from "@/facetConfigs";
+import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 export default {
-  name: "SerpResultsList",
+  name: "Template",
   components: {
-    VueJsonPretty,
-
-    ResultWork,
-    ResultAuthor,
-    ResultSource,
-    ResultPublisher,
-    ResultFunder,
-    ResultInstitution,
-    ResultConcept,
-
-    ResultsTableHeader,
-    ResultsTableRow,
-
-    ActionMenuItem,
-    ExportButton,
-
-
+    WorkAuthorsString,
+    SerpToolbar,
   },
   props: {
     resultsObject: Object,
   },
   data() {
     return {
-      resultsPerPage: 25, // not editable now, but could be in future
-      // activeSortKey: "cited_by_count:desc",
+      foo: 42,
+      url,
     }
   },
   computed: {
     ...mapGetters([
-      "entityConfig",
+      "resultsFilters",
       "entityType",
     ]),
-    headerKeys() {
-      return this.$route.query.column?.split(",") ?? []
-    },
-    headerConfigs() {
-      return this.headerKeys
-          .map(key => {
-            return getFacetConfig(this.entityType, key)
-          })
-
-    },
-    resultComponentName() {
-      return "result-" + this.entityConfig.nameSingular
-    },
-    resultsCount() {
-      return this.resultsObject.meta.count
-    },
-    page: {
-      get() {
-        return this.resultsObject.meta.page
-      },
-      set(val) {
-        url.setPage(val)
-      }
-    },
-    numPages() {
-      return Math.min(
-          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
-          10
-      )
-    },
-
-
   },
 
   methods: {
@@ -146,6 +101,16 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+
+    showCitingWorks(id) {
+      const newFilter = createSimpleFilter(
+          this.entityType,
+          "cited_by",
+          id
+      )
+      url.setFilters(this.entityType, [newFilter], true)
+      return false
+    },
 
 
   },
@@ -157,50 +122,11 @@ export default {
 }
 </script>
 
-<style lang="scss">
-table.serp-results-table {
+<style scoped lang="scss">
 
-  th {
-    padding: 0 10px;
-    white-space: nowrap;
-    background: #fff;
-    display: table-cell;
-    text-align: left;
-    vertical-align: center;
-    border-bottom: 1px solid #eee;
 
-    .header-cell-contents {
-      position: absolute;
-      padding-top: 10px;
-      top: 0;
-
-    }
-
-    .header-width {
-      visibility: hidden;
-      display: block;
-      height: 0;
-    }
-
-    &.title-header {
-      text-align: left;
-      padding-left: 70px;
-
-    }
-
-  }
+.v-list-item--link:hover, .v-list-item:hover {
+  //background-color: #eee;
 }
 
-
-div.serp-results-list {
-  .v-list-item__title, .v-list-item__subtitle {
-    white-space: normal !important;
-    line-height: 1.4 !important;
-  }
-
-}
-
-.vjs-tree-node.is-highlight, .vjs-tree-node:hover {
-  background-color: transparent !important;
-}
 </style>
