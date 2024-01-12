@@ -33,27 +33,81 @@ const filtersFromUrlStr = function (entityType, str) {
         //     filters.push(createSimpleFilter(entityType, key, valuesStr, false))
 
 
-            // const values = valuesStr.split("|")
-            // values.forEach(value => {
-            //     filters.push(createSimpleFilter(entityType, key, value, false))
-            // })
+        // const values = valuesStr.split("|")
+        // values.forEach(value => {
+        //     filters.push(createSimpleFilter(entityType, key, value, false))
+        // })
         // }
     })
     return filters
 }
 
-const getMatchModeFromSelectFilterValue = function(valueStr){
-    if (valueStr[0] === "!") return "none"
-    else if (valueStr.indexOf("+") > -1) return "all"
-    return "any"
+const getMatchModeFromSelectFilterValue = function (valueStr) {
+    return (valueStr?.indexOf("+") > -1) ? "all" : "any"
 }
-const getItemsFromSelectFilterValue = function(valueStr){
-    const valueStrWithoutBang = valueStr.replace("!", "")
+
+const optionsToString = function (options, matchMode) {
+    const anyOptionIsNegated = options.some(o => o[0] === "!")
+
+
+    const sep = (matchMode === "all" || anyOptionIsNegated) ?
+        "+" :
+        "|"
+    return options.join(sep)
+}
+
+const optionsFromString = function (str) {
     const regex = /[+|]/
+    return str.split(regex)
+}
+
+const deleteOptionFromFilterValue = function (valueStr, optionToDelete) {
+    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
+    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    const newOptions = oldOptions.filter(oldOption => {
+        return oldOption !== optionToDelete
+    })
+    return optionsToString(newOptions, matchMode)
+}
+const addOptionToFilterValue = function (valueStr, optionToAdd) {
+    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
+    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    const newOptions = [...oldOptions, optionToAdd]
+    return optionsToString(newOptions, matchMode)
+}
+
+
+const toggleNegation = function (option) {
+    return option[0] === "!" ?
+        option.substr(1) :
+        "!" + option
+
+}
+const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
+    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
+    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    const newOptions = oldOptions.map(oldOption => {
+        return oldOption === optionToToggleNegation ?
+            toggleNegation(oldOption) :
+            oldOption
+
+    })
+    return optionsToString(newOptions, matchMode)
+}
+
+
+// jason start here
+const getItemsFromSelectFilterValue = function (valueStr) {
+    const regex = /[+|]/
+    return valueStr.split(regex)
+
+
+    const valueStrWithoutBang = valueStr.replace("!", "")
     return valueStrWithoutBang.split(regex)
 }
 
-const makeSelectFilterValue = function(items, matchMode){
+
+const makeSelectFilterValue = function (items, matchMode) {
     const sep = {
         any: "|",
         all: "+",
@@ -133,7 +187,7 @@ const createFilterValue = function (rawValue, filterType) {
         // rawValue = rawValue.replace("unknown", null)
     }
     if (filterType === "boolean") {
-        if (rawValue === undefined){
+        if (rawValue === undefined) {
             rawValue = true //boolean filters default to true
         }
         if (rawValue == "true") rawValue = true
@@ -317,6 +371,12 @@ export {
     createDisplayFilter,
     createFilterId,
     displayYearRange,
+
+    deleteOptionFromFilterValue,
+    addOptionToFilterValue,
+    toggleOptionIsNegated,
+    optionsToString,
+    optionsFromString,
 
     sortedFilters,
 

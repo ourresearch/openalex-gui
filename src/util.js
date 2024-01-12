@@ -90,7 +90,9 @@ const toPrecision = function(number, precision) {
 
 const shortenOpenAlexId = function (longId) {
     if (typeof longId !== "string") return longId
-    return longId.replace("https://openalex.org/", "").toLowerCase()
+    let ret = longId.replace("https://openalex.org/", "").toLowerCase()
+    ret = ret.replace("openalex:", "").toLowerCase()
+    return ret
 }
 
 const entityTypeFromId = function (id) {
@@ -98,7 +100,7 @@ const entityTypeFromId = function (id) {
     return entityTypesDict[firstLetter]
 }
 const isOpenAlexId = function(str){
-    const regex = /^(?:https:\/\/openalex\.org\/)?([WwAaSsPpFfIiCc]\d+)$/
+    const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCc]\d+)$/
     return regex.test(str)
 }
 

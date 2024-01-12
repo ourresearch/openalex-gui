@@ -1,25 +1,6 @@
 const navConfigs = [
     {
-        name: "About",
-        icon: "mdi-information-outline",
-        links: [
-            {
-                name: "Overview",
-                to: "/about",
-            },
-            {
-                name: "Testimonials",
-                to: "/testimonials",
-            },
-            {
-                name: "Coverage stats",
-                to: "/stats",
-            },
-        ],
-
-    },
-    {
-        name: "Learn more",
+        name: "Learn",
         icon: "mdi-book-open-outline",
         links: [
             // {
@@ -27,20 +8,39 @@ const navConfigs = [
             //     href: "https://cookbook.openalex.org/",
             // },
             {
-                name: "API reference",
-                href: "https://docs.openalex.org/",
-            },
-            {
-                name: "Data reference",
+                name: "About the data",
                 href: "https://help.openalex.org/",
             },
             {
-                name: "Upgrade",
-                to: "/pricing",
+                name: "API docs",
+                href: "https://docs.openalex.org/",
             },
             {
-                name: "Privacy policy",
+                name: "Source Code",
+                href: "https://github.com/ourresearch",
+            },
+            {
+                name: "Privacy",
                 href: "OpenAlex_privacy_policy.pdf",
+            },
+        ],
+
+    },
+    {
+        name: "Evaluate",
+        icon: "mdi-information-outline",
+        links: [
+            {
+                name: "Testimonials",
+                to: "/testimonials",
+            },
+            {
+                name: "Coverage",
+                href: "https://help.openalex.org/coverage",
+            },
+            {
+                name: "Pricing",
+                href: "https://help.openalex.org/pricing",
             },
         ],
 
@@ -55,8 +55,8 @@ const navConfigs = [
                 to: "/help",
             },
             {
-                name: "Webinars",
-                to: "/webinars",
+                name: "Help",
+                to: "/help",
             },
             {
                 name: "Mailing list",

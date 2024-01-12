@@ -1,5 +1,7 @@
 <template>
-  <div class="serp-page pb-12" style="background: #F7F9FC;">
+  <div class="serp-page pb-12"
+
+  >
 
     <v-navigation-drawer
         v-model="isSidebarOpen"
@@ -11,138 +13,59 @@
         width="500"
     >
       <entity-work v-if="sidebarData" :data="sidebarData"/>
-
     </v-navigation-drawer>
 
 
-    <!--    <v-toolbar flat >-->
-    <!--      <v-toolbar-title>-->
-    <!--        Explore works-->
-    <!--      </v-toolbar-title>-->
-    <!--      <v-spacer/>-->
-    <!--      <export-button-->
-    <!--          :disabled="!!$route.query.group_by"-->
-    <!--      />-->
-    <!--      <v-btn icon v-if="!$route.query.show_api" @click="url.pushQueryParam('show_api', true)">-->
-    <!--        <v-icon>mdi-api</v-icon>-->
-    <!--      </v-btn>-->
-    <!--    </v-toolbar>-->
 
-
-    <!--    <filter-chips-list class="pl-3"/>-->
-
-
-    <!--    <v-tabs v-model="resultsTab">-->
-    <!--      <v-tab>List</v-tab>-->
-    <!--      <v-tab>Group</v-tab>-->
-    <!--    </v-tabs>-->
-
-    <!--    <v-divider/>-->
-    <div class="white d-flex">
-      <action action="filter"/>
-      <action action="sort"/>
-      <action action="column"/>
-      <action action="group_by"/>
-      <v-menu rounded offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn
-              text
-              class="elevation-0 font-weight-regular"
-              v-on="on"
-          >
-            View
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item @click="url.pushQueryParam('show_api', true)">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Show API call
-            </v-list-item-title>
-            <v-list-item-action>
-              <v-icon v-if="!!$route.query.show_api" class="mt-2">mdi-check</v-icon>
-            </v-list-item-action>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-      <export-button
-          :disabled="!!$route.query.group_by"
+    <v-container  class=" main-serp-container" style="max-width: 1785px;">
+      <serp-api-editor
+          v-if="isShowApiSet"
+          key="api-editor"
+          class="mb-3"
       />
-      <v-menu rounded offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn
-              text
-              class="elevation-0 font-weight-regular"
-              v-on="on"
-          >
-            Help
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item href="https://help.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-information-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              User manual
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item href="https://docs.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              API reference
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item to="help">
-            <v-list-item-icon>
-              <v-icon>mdi-message-text-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Contact us
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <filter-list :results-object="resultsObject" class="mb-4" />
+      <v-card flat rounded class="color-3">
+        <v-container fluid>
+          <v-row class="mt-0">
+            <serp-results-count :results-object="resultsObject"/>
 
-    </div>
+          </v-row>
 
-    <serp-api-editor
-        v-if="isShowApiSet"
-        class="mt-3"
-        key="api-editor"
-    />
+          <v-row>
+            <v-col class="flex-grow-1 d-flex">
+              <div>
 
+                <div v-if="resultsObject?.meta?.count">
+                  <serp-results-list :results-object="resultsObject"/>
+                  <!--                <serp-results-table v-else :results-object="resultsObject"/>-->
 
-    <!--    <v-divider class="mb-4 mt-3"/>-->
+                  <div class="serp-bottom">
+                    <v-pagination
+                        class="my-3 elevation-0"
+                        circle
+                        v-model="page"
+                        :length="numPages"
+                        :total-visible="10"
+                        light
+                    />
+                  </div>
 
-    <div class="ml-4 mt-4">
-      <span v-if="$route.query.group_by">
-<!--        About {{ listResultsCount | toPrecision }} results-->
-      </span>
-      <span v-else class="grey--text">
-        <span v-if="resultsObject?.meta.count === 0">
-          No results; try modifying your filters.
-        </span>
-        <span v-else-if="resultsObject?.meta.count < 100">
-          {{ resultsObject.meta.count | toPrecision }} results
-        </span>
-        <span v-else>
-          About {{ resultsObject?.meta.count | toPrecision }} results
-        </span>
-      </span>
-    </div>
+                </div>
+              </div>
 
-    <div>
-      <group-by v-if="$route.query.group_by"/>
-      <serp-results-list v-else :results-object="resultsObject"/>
+            </v-col>
+            <v-col cols="4" xl="6" v-if="$vuetify.breakpoint.mdAndUp">
+              <analytic-views/>
+            </v-col>
+          </v-row>
+        </v-container>
 
-    </div>
+      </v-card>
+      <v-card flat rounded class="color-3 mt-12" v-if="$vuetify.breakpoint.smAndDown">
+        <analytic-views/>
+      </v-card>
+
+    </v-container>
 
 
     <div id="serp-hidden">
@@ -161,40 +84,32 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
 import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
-import SerpToolbar from "../components/SerpToolbar/SerpToolbar.vue";
-import FilterList from "@/components/Filters/FilterList.vue";
 
 import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
-import SerpResultsList from "../components/SerpResultsList.vue";
-import Pinboard from "../components/Pinboard/Pinboard.vue";
+import SerpResultsTable from "../components/SerpResultsTable.vue";
+import SerpResultsList from "@/components/SerpResultsList.vue";
 
 
 import ApiDialog from "../components/ApiDialog.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-import SearchBoxNew from "../components/SearchBoxNew.vue";
 
-import FilterString from "@/components/Filters/FilterString.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
-import FilterChipsList from "../components/Filters/FilterChipsList.vue";
 import router from "../router";
 
 import ExportButton from "../components/ExportButton.vue";
-import SortButton from "../components/SortButton.vue";
-import FilterKeySelector from "../components/Filters/FilterKeySelector.vue";
-import GroupBySelector from "../components/GroupBy/GroupBySelector.vue";
-import {getFacetConfig} from "../facetConfigs";
-import Template from "../components/Template.vue";
+import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
-import {filter} from "core-js/internals/array-iteration";
+
+import FilterList from "@/components/FilterList.vue";
+import AnalyticViews from "@/components/AnalyticViews.vue";
 
 import Action from "@/components/Action/Action.vue";
-import ActionChipsList from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
-import Entity from "@/components/Entity/Entity.vue";
-import EntityWork from "@/components/Entity/EntityWork/EntityWork.vue";
+import EntityWork from "@/components/Entity/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
+import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
+import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
   name: "Serp",
@@ -204,30 +119,23 @@ export default {
     return ret
   },
   components: {
-    SiteNav,
-    Template,
-    FilterList,
-    SearchBoxNew,
     SerpToolbar,
+    SiteNav,
+    SerpResultsTable,
+    SerpResultsCount,
     SerpResultsList,
     ApiDialog,
-    Pinboard,
-    EntityTypeSelector,
-    FilterString,
     SerpApiEditor,
-    FilterChipsList,
-    FilterKeySelector,
 
-    ActionChipsList,
     Action,
 
     ExportButton,
-    SortButton,
-    GroupBySelector,
     GroupBy,
+    AnalyticViews,
 
-    Entity,
     EntityWork,
+
+    FilterList,
 
   },
   props: {},
@@ -291,8 +199,30 @@ export default {
       "searchIsLoading",
       "entityType",
     ]),
-    isGroupBy() {
-      return "group_by" in this.$route.query
+    numPages() {
+      const maxToShow = this.$vuetify.breakpoint.mobile ?
+          4 :
+          10
+
+      return Math.min(
+          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
+          maxToShow
+      )
+    },
+    isAnalyze: {
+      get() {
+        return !!this.$route.query.analyze
+      },
+      set(to) {
+        const analyze = (to) ? to : undefined
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            analyze,
+          },
+        })
+      }
     },
     isShowApiSet: {
       get() {
@@ -305,6 +235,21 @@ export default {
           query: {
             ...this.$route.query,
             show_api
+          },
+        })
+      }
+    },
+    isListView: {
+      get() {
+        return !!this.$route.query.is_list_view
+      },
+      set(to) {
+        const is_list_view = (to) ? to : undefined
+        url.pushToRoute(this.$router, {
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            is_list_view
           },
         })
       }
@@ -324,27 +269,14 @@ export default {
         })
       }
     },
-    resultsTab: {
+    page: {
       get() {
-        return this.$route.query.tab ?? 0
+        return this.resultsObject?.meta?.page ?? 1
       },
-      set(to) {
-        const query = {
-          ...this.$route.query,
-          tab: to
-        }
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query,
-        })
+      set(val) {
+        url.setPage(val)
       }
     },
-    groupByConfig() {
-      if (!this.$route.query.group_by) return
-      return getFacetConfig(this.entityType, this.$route.query.group_by)
-    },
-
-
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
     },
@@ -357,6 +289,11 @@ export default {
     },
     filtersLength() {
       return this.$route.query.filter?.length ?? 0
+    },
+
+    popularFilterOptions() {
+      return facetConfigs(this.entityType)
+          .filter(conf => conf.actionsPopular?.includes("filter"))
     },
 
 
@@ -422,8 +359,8 @@ export default {
     filtersLength: {
       immediate: false,
       handler(to, from) {
-        const msg = (to > from) ? "Filter added" : "Filter removed"
-        this.snackbar(msg)
+        // const msg = (to > from) ? "Filter added" : "Filter removed"
+        // this.snackbar(msg)
       }
     },
 
@@ -439,15 +376,19 @@ export default {
             "sort",
             getActionDefaultsStr("sort", this.$route)
         )
-        if (!this.$route.query.column) url.pushQueryParam(
-            "column",
-            getActionDefaultsStr("column", this.$route)
+        if (!this.$route.query.group_by) url.pushQueryParam(
+            "group_by",
+            getActionDefaultsStr("group_by", this.$route)
         )
+
+        this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)
+        this.$store.state.isLoading = false
         this.resultsObject = resp;
         // this.count = this.meta.count
         //
         // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
+
 
 
         this.$store.state.resultsObject = resp
@@ -468,6 +409,13 @@ export default {
 <style lang="scss">
 .container {
   //max-width: 1024px !important;
+}
+.v-pagination__item, .v-pagination__navigation {
+  box-shadow: none;
+}
+
+.serp-page {
+  //background: #F3F7FF;
 }
 
 

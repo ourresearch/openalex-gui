@@ -25,7 +25,7 @@ const actionConfigs = [
     {
         id: "group_by",
         displayName: "Count",
-        isMultiple: false,
+        isMultiple: true,
         isMandatory: false,
         topValues: [
             "authorships.institutions.lineage",
@@ -35,8 +35,19 @@ const actionConfigs = [
             "publication_year",
             "sustainable_development_goals.id",
         ],
-        defaultValues: [],
-        getDefaultValues(){return []},
+        defaultValues: [
+            "authorships.institutions.lineage",
+            "open_access.is_oa",
+            "type",
+            "publication_year",
+
+        ],
+        getDefaultValues(query){return [
+            "authorships.institutions.lineage",
+            "open_access.is_oa",
+            "type",
+            "publication_year",
+        ]},
         appendToValues: "",
         icon: "mdi-poll",
         isIconRotated: true,
@@ -48,7 +59,7 @@ const actionConfigs = [
     {
         id: "sort",
         displayName: "Sort",
-        isMultiple: true,
+        isMultiple: false,
         isMandatory: true,
         topValues: [
             "publication_date",
@@ -68,7 +79,7 @@ const actionConfigs = [
         // to see if a search is set or not. so it's handled via a function url.js
         defaultValues: [],
         appendToValues: ":desc",
-        icon:"mdi-sort-ascending",
+        icon:"mdi-sort",
         color: "deep-orange",
         closeMenuOnContentClick: false,
 
