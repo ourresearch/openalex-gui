@@ -221,6 +221,7 @@ const setFilterMatchMode = function(entityType, key, mode){
 }
 
 
+
 const isGroupBy = function () {
     return !!router.currentRoute.query.group_by
 }
@@ -578,6 +579,7 @@ const url = {
     upsertFilter,
     setFilterMatchMode,
     makeFilterRoute,
+    pushNewFilters,
 
 
     deleteFilterOption,

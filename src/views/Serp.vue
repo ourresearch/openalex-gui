@@ -26,7 +26,7 @@
       <filter-list :results-object="resultsObject" class="mb-4" />
       <v-card flat rounded class="color-3">
         <v-container fluid>
-          <v-row>
+          <v-row class="mt-0">
             <serp-results-count :results-object="resultsObject"/>
 
           </v-row>
@@ -376,15 +376,10 @@ export default {
             "sort",
             getActionDefaultsStr("sort", this.$route)
         )
-        if (!this.$route.query.column) url.pushQueryParam(
-            "column",
-            getActionDefaultsStr("column", this.$route)
-        )
         if (!this.$route.query.group_by) url.pushQueryParam(
             "group_by",
             getActionDefaultsStr("group_by", this.$route)
         )
-        if (this.$vuetify.breakpoint.mobile) url.pushQueryParam("is_list_view", true)
 
         this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)

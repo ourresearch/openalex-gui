@@ -8,16 +8,15 @@
     <!--    {{ focusNumberLine }}-->
 
 
-    <v-dialog
+    <component
+        :is="mainComponentName"
         :close-on-content-click="false"
         content-class="filter-bar-menu"
         v-model="isMenuOpen"
         nudge-left="0"
-        nudge-top="0"
-        max-width="800"
+        nudge-top="4"
         scrollable
-        :fullscreen="$vuetify.breakpoint.smAndDown"
-
+        fullscreen
     >
       <template v-slot:activator="{on}">
         <div
@@ -31,7 +30,7 @@
                @shortkey="isMenuOpen = true"
 
           >
-            <v-icon style="margin: 14px 7px 9px 9px;" class="dark">mdi-magnify</v-icon>
+            <v-icon style="margin: 10px 7px 9px 9px;" class="dark">mdi-magnify</v-icon>
             <span class="grey--text" >Search and filter works</span>
             <v-spacer/>
             <div class="mr-6 px-1 caption grey--text" style="// border: 1px solid #ddd; border-radius: 5px">
@@ -41,18 +40,19 @@
 
         </div>
       </template>
-      <v-card height="450" style="background: #fff;">
+      <v-card
+          rounded
+      >
+<!--          height="450"-->
         <v-text-field
             hide-details
             v-model="searchString"
             ref="facetBarSearchBox"
-            class="py-0 flex-grow-0"
+            class="py-0 ma-0 flex-grow-0"
             rounded
-            style="font-size: 20px;"
-            @keyup.enter="onEnter"
             placeholder="Search and filter works"
             autofocus
-
+            @keydown.enter="onEnter"
         >
           <!--              style="margin: 15px 0 12px;"-->
           <template v-slot:prepend-inner>
@@ -123,8 +123,10 @@
             </v-list-item>
           </v-list>
         </v-card-text>
-        <v-divider/>
+        <v-divider v-if="searchString" />
         <v-card-actions class="px-0">
+
+
 
           <v-list-item v-if="searchString" @click="onEnter">
             <v-list-item-icon>
@@ -135,7 +137,7 @@
                 '{{ searchString }}'
               </v-list-item-title>
               <v-list-item-subtitle class="body-2" style="color: #777;">
-                Search text, title, and abstract
+                <div>Search text, title, and abstract</div>
               </v-list-item-subtitle>
             </v-list-item-content>
             <v-spacer class="mx-2"/>
@@ -147,34 +149,15 @@
             </div>
           </v-list-item>
 
-          <v-list-item v-else @click="onEnter">
-            <v-list-item-icon>
-              <v-icon left>mdi-filter-off-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="">
-                All works
-              </v-list-item-title>
-              <v-list-item-subtitle class="body-2" style="color: #777;">
-                #nofilter
-              </v-list-item-subtitle>
-            </v-list-item-content>
-            <v-spacer class="mx-2"/>
-            <div class="grey--text d-flex body-2">
-              Press
-              <div class="ml-2 keyboard-shortcut">
-                ⏎ Enter
-              </div>
-            </div>
-          </v-list-item>
         </v-card-actions>
 
       </v-card>
-    </v-dialog>
+    </component>
   </div>
 </template>
 
 <script>
+
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
@@ -201,9 +184,14 @@ const exampleSearches = [
   "doi:10.7717/peerj.4375",
 ]
 
+import { VDialog, VMenu } from 'vuetify/lib'
+
 export default {
   name: "Template",
   components: {
+    VDialog,
+    VMenu,
+
     FilterPhraseSelect,
     FilterPhraseSearch,
     FilterPhraseRange,
@@ -245,6 +233,9 @@ export default {
     ]),
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
+    },
+    mainComponentName(){
+      return this.$vuetify.breakpoint.mdAndDown ? "v-dialog" : "v-menu"
     },
     shortcutSymbol() {
       const isMac = window.navigator.userAgent.indexOf("Mac") > -1
@@ -328,7 +319,8 @@ export default {
 
       return cleaned
 
-    }
+    },
+
   },
 
   methods: {
@@ -461,7 +453,7 @@ export default {
 }
 
 .filter-bar-menu {
-  border-radius: 15px 15px !important;
+  border-radius: 30px 30px !important;
 }
 
 .filter-bar-suggestions {

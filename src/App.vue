@@ -214,9 +214,20 @@ $color-0: hsl(212, 77%, 82%);
 
 .v-card.factoid-card {
   //background-color: #EEF5FC;
-  background-color: #fff;
+  background-color: $color-2;
   border: none;
   box-shadow: none;
+  .v-card__title {
+    background-color: $color-1;
+  }
+  .v-card__text {
+    padding-top:12px;
+    background-color: white;
+  }
+  .v-card__actions {
+    //background-color: $color-1;
+
+  }
 }
 
 .v-card.button-card {

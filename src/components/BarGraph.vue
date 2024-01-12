@@ -13,6 +13,7 @@
           <div
               v-on="on"
               class="bar-graph-bar-container"
+              @click.prevent="$emit('click', bar.key)"
           >
             <!--            @click.exact="clickYear(filter.value)"-->
             <!--            @click.shift="shiftClickYear(filter.value)"-->
@@ -27,7 +28,7 @@
         </template>
         <div>
           <span class="font-weight-bold">
-          {{ bar.name }}:
+          {{ bar.key }}:
         </span>
           <span class="">
           {{ bar.count | toPrecision }}
@@ -87,6 +88,15 @@ export default {
 
 <style scoped lang="scss">
 
+
+$color-3: hsl(210, 60%, 98%);
+$color-2: hsl(213, 69%, 95%);
+$color-1: hsl(213, 72%, 88%);
+$color-0: hsl(212, 77%, 82%);
+
+
+
+
 .bar-graph {
   flex-direction: row-reverse;
 }
@@ -96,11 +106,17 @@ export default {
   flex: 1;
   display: flex;
   align-items: flex-end;
+  &:hover {
+    .bar-graph-bar {
+      background-color:  rgba(0, 0, 0, 0.5);
+
+    }
+  }
 }
 .bar-graph-bar {
-  background-color: rgba(0, 0, 0, 0.5);
-  width: 100%;
-  //width: calc(100% - 1px);
-  border-right: 1px solid #fff;
+  background-color:  rgba(0, 0, 0, 0.3);
+  //width: 100%;
+  width: calc(100% - 1px); // transparent border
+  //border-right: 1px solid #fff; // broke on non-white backgrounds
 }
 </style>
