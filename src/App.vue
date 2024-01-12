@@ -5,11 +5,12 @@
         v-model="isSiteNavOpen"
         app
         floating
+        color="white"
         :mini-variant="$vuetify.breakpoint.lgAndDown"
-        color="transparent"
         v-if="$route.name !== 'Home'"
 
     >
+<!--        color="hsl(213, 69%, 95%)"-->
 
       <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
 

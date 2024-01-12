@@ -15,7 +15,7 @@
         <v-icon>mdi-email-outline</v-icon>
       </v-btn>
       <v-btn icon large href="https://help.openalex.org" target="_blank">
-        <v-icon >mdi-help-circle-outline</v-icon>
+        <v-icon >mdi-information-outline</v-icon>
       </v-btn>
     </div>
     <div class="d-flex flex-column align-start pl-4 fill-height" v-else>
@@ -42,8 +42,8 @@
         <v-spacer />
       </v-btn>
       <v-btn text large rounded href="https://help.openalex.org" target="_blank" width="100%" class="">
-        <v-icon  class="mr-4">mdi-help-circle-outline</v-icon>
-        Help
+        <v-icon  class="mr-4">mdi-information-outline</v-icon>
+        About the data
 <!--        <v-icon right x-small color="">mdi-open-in-new</v-icon>-->
         <v-spacer />
       </v-btn>
