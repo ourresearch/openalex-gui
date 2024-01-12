@@ -76,7 +76,7 @@
                :to="filterId | entityZoomLink"
                v-if="isEntity">
           <v-icon left>mdi-information-outline</v-icon>
-          View details
+          Details
         </v-btn>
 
       </v-card-actions>

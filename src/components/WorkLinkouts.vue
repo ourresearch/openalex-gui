@@ -12,35 +12,63 @@
         rounded
     >
       <v-icon left>mdi-file-pdf-box</v-icon>
-      Read
+      PDF
     </v-btn>
+
+    <!--   HTML free at publisher -->
+    <v-btn
+        :href="htmlUrl"
+        target="_blank"
+        color="primary"
+        text
+        class="mr-3"
+        rounded
+        v-if="isOaAtPublisher"
+    >
+      <v-icon left>mdi-web</v-icon>
+      Online
+    </v-btn>
+
+
+    <!--   Paywalled at publisher-->
+    <v-btn
+        :href="data.primary_location.landing_page_url"
+        target="_blank"
+        class="mr-3"
+        text
+        rounded
+        v-if="!isOaAtPublisher"
+    >
+      <v-icon left>mdi-web</v-icon>
+      Online (pay)
+    </v-btn>
+
 
 
     <!--       Has-PDF linkout -->
-    <v-btn
-        :href="data.primary_location.landing_page_url"
-        target="_blank"
-        v-if="pdfUrl"
-        text
-        rounded
-    >
-      <v-icon left>mdi-lock-open-variant-outline</v-icon>
-      Online
-<!--      <v-icon>mdi-open-in-new</v-icon>-->
-    </v-btn>
+    <!--    <v-btn-->
+    <!--        :href="data.primary_location.landing_page_url"-->
+    <!--        target="_blank"-->
+    <!--        v-if="pdfUrl"-->
+    <!--        text-->
+    <!--        rounded-->
+    <!--    >-->
+    <!--      <v-icon left>mdi-lock-open-variant-outline</v-icon>-->
+    <!--      View-->
+    <!--&lt;!&ndash;      <v-icon>mdi-open-in-new</v-icon>&ndash;&gt;-->
+    <!--    </v-btn>-->
 
     <!--       No-PDF linkout -->
-    <v-btn
-        :href="data.primary_location.landing_page_url"
-        target="_blank"
-        v-if="!pdfUrl"
-        rounded
-        text
-    >
-      <v-icon left>mdi-lock-outline</v-icon>
-      Paywalled
-<!--      <v-icon right>mdi-open-in-new</v-icon>-->
-    </v-btn>
+    <!--    <v-btn-->
+    <!--        :href="data.primary_location.landing_page_url"-->
+    <!--        target="_blank"-->
+    <!--        v-if="!pdfUrl"-->
+    <!--        rounded-->
+    <!--        text-->
+    <!--    >-->
+    <!--      <v-icon left>mdi-lock-outline</v-icon>-->
+    <!--      Read-->
+    <!--    </v-btn>-->
 
 
     <!--   HTML at repository, paywalled at publisher -->
@@ -56,27 +84,6 @@
     <!--            <v-icon>mdi-file-document</v-icon>-->
     <!--          </v-btn>-->
 
-    <!--   HTML  at publisher -->
-    <!--          <v-btn-->
-    <!--              :href="htmlUrl"-->
-    <!--              target="_blank"-->
-    <!--              color="primary"-->
-    <!--              icon-->
-    <!--              v-if="isOaAtPublisher"-->
-    <!--          >-->
-    <!--            <v-icon>mdi-file-document</v-icon>-->
-    <!--          </v-btn>-->
-
-
-    <!--   Paywalled at publisher-->
-    <!--          <v-btn-->
-    <!--              :href="data.primary_location.landing_page_url"-->
-    <!--              target="_blank"-->
-    <!--              icon-->
-    <!--              v-if="!isOaAtPublisher"-->
-    <!--          >-->
-    <!--            <v-icon>mdi-lock-outline</v-icon>-->
-    <!--          </v-btn>-->
 
   </div>
 </template>
