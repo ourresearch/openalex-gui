@@ -84,9 +84,9 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer/>
-              <v-btn text rounded href="https://help.openalex.org/the-data/entities-overview" target="_blank">
+              <v-btn text rounded href="https://help.openalex.org" target="_blank">
                 <v-icon left>mdi-chart-bar</v-icon>
-                Coverage stats
+                About the data
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -144,7 +144,7 @@
                 <v-icon left>mdi-account-multiple-outline</v-icon>
                 About us
               </v-btn>
-              <v-btn text rounded href="https://help.openalex.org/upgrade" target="_blank">
+              <v-btn text rounded href="https://help.openalex.org/pricing" target="_blank">
                 <v-icon left>mdi-diamond-stone</v-icon>
                 Upgrade
               </v-btn>
@@ -154,7 +154,7 @@
 
 
       </v-row>
-      <v-divider class="mt-12" />
+<!--      <v-divider class="mt-12" />-->
 
     </v-container>
   </div>
