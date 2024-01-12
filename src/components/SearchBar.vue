@@ -284,6 +284,7 @@ export default {
 
       const ret = resp.results
           .filter(r => !!r.id)
+          .filter(r => r.entity_type !== "filter")
           .map(result => {
             const entityConfig = getEntityConfig(result.entity_type)
 
