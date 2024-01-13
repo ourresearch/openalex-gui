@@ -38,13 +38,18 @@
     </v-toolbar>
     <v-divider/>
     <div v-if="filterKey==='publication_year'" style="min-width: 200px">
-      <bar-graph
-          v-if="groups"
-          :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
-          style="height: 100px;"
-          class="pa-2"
-          @click="selectGroup"
-      />
+      <template v-if="groups">
+        <bar-graph
+            v-if="groups.length > 1"
+            :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
+            style="height: 100px;"
+            class="pa-2"
+            @click="selectGroup"
+        />
+        <div v-else class="text-h4 pa-3">
+          {{ groups[0].value }}
+        </div>
+      </template>
     </div>
 
     <table v-else class="serp-results-table " style="width: 100%;">
