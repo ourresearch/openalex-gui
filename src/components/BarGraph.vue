@@ -47,7 +47,7 @@ export default {
   name: "Template",
   components: {},
   props: {
-    bars: Array, // [{name: "foo": count: 42} ...]
+    bars: Array, // [{key: "foo": count: 42} ...]
   },
   data() {
     return {
@@ -102,6 +102,7 @@ $color-0: hsl(212, 77%, 82%);
 }
 .bar-graph-bar-container {
   height: 100%;
+  cursor: pointer;
   //background-color: rgba(255, 255, 255, 0.05);
   flex: 1;
   display: flex;
