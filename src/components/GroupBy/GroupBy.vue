@@ -37,7 +37,7 @@
 
     </v-toolbar>
     <v-divider/>
-    <div v-if="filterKey==='publication_year'">
+    <div v-if="filterKey==='publication_year'" style="min-width: 200px">
       <bar-graph
           v-if="groups"
           :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
