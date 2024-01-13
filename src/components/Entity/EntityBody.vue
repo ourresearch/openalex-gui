@@ -86,8 +86,10 @@
 
 
       </v-col>
-      <v-col v-if="$vuetify.breakpoint.lgAndUp && myEntityType !== 'works'" lg="4" xl="6" class="pr-8">
+      <v-col v-if="$vuetify.breakpoint.lgAndUp" lg="4" xl="6" class="pr-8">
+        <entity-work-count-cards v-if="myEntityType === 'works'" :data="data" />
           <works-graph
+              v-else
               :counts-by-year="data.counts_by_year"
               :works-count="data.works_count"
               :id="data.id"
@@ -101,13 +103,15 @@
     <v-card rounded flat class="color-3">
 
       <v-row class="mt-9 px-4">
-        <v-col cols="12" md="6" v-if="myEntityType !== 'works' && $vuetify.breakpoint.mdAndDown">
+        <v-col v-if="$vuetify.breakpoint.mdAndDown" lg="4" xl="6" class="pr-8">
+        <entity-work-count-cards v-if="myEntityType === 'works'" :data="data" />
           <works-graph
+              v-else
               :counts-by-year="data.counts_by_year"
               :works-count="data.works_count"
               :id="data.id"
           />
-        </v-col>
+      </v-col>
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesList?.length > 0">
           <v-card rounded flat outlined class="factoid-card" color="">
             <v-card-title>
@@ -215,47 +219,9 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'works'">
-          <v-row>
-            <v-col cols="12">
-              <v-card
-                  :to="url.makeFilterRoute(entityType, 'cited_by', data.id)"
-                  rounded
-                  outlined
-                  class="pa-3 text-right button-card"
-              >
-                <div class="text-h4">{{ data.cited_by_count | toPrecision }}</div>
-                <div class="body-2">Incoming citations</div>
-              </v-card>
-            </v-col>
-          </v-row>
-
-          <v-row dense>
-            <v-col cols="6">
-              <v-card
-                  :to="url.makeFilterRoute(entityType, 'cites', data.id)"
-                  rounded
-                  outlined
-                  class="pa-3 text-right button-card"
-              >
-                <div class="text-h4">{{ data.referenced_works_count.toLocaleString() }}</div>
-                <div class="body-2">References</div>
-              </v-card>
-            </v-col>
-            <v-col cols="6">
-              <v-card
-                  :to="url.makeFilterRoute(entityType, 'related_to', data.id)"
-                  rounded
-                  outlined
-                  class="pa-3 text-right button-card"
-              >
-                <div class="text-h4">{{ data.related_works?.length }}</div>
-                <div class="body-2">Related works</div>
-              </v-card>
-            </v-col>
-
-          </v-row>
-        </v-col>
+<!--        <v-col v-if="$vuetify.breakpoint.mdAndDown && myEntityType === 'works' "  cols="12" md="6" lg="4" xl="3" >-->
+<!--          <entity-work-count-cards :data="data" />-->
+<!--        </v-col>-->
 
 
       </v-row>
@@ -276,6 +242,7 @@ import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 import {url} from "@/url";
 import WorksGraph from "@/components/WorksGraph.vue";
+import EntityWorkCountCards from "@/components/Entity/EntityWorkCountCards.vue";
 
 export default {
   name: "Template",
@@ -285,7 +252,8 @@ export default {
     EntityWorkAuthor,
     WorkLinkouts,
     EntityIdsMenuItem,
-    WorksGraph
+    WorksGraph,
+    EntityWorkCountCards,
   },
   props: {
     data: Object,
