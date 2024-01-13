@@ -36,17 +36,17 @@ const actionConfigs = [
             "sustainable_development_goals.id",
         ],
         defaultValues: [
+            "publication_year",
             "authorships.institutions.lineage",
             "open_access.is_oa",
             "type",
-            "publication_year",
 
         ],
         getDefaultValues(query){return [
-            "authorships.institutions.lineage",
-            "open_access.is_oa",
-            "type",
             "publication_year",
+            "open_access.is_oa",
+            "authorships.institutions.lineage",
+            "type",
         ]},
         appendToValues: "",
         icon: "mdi-poll",
