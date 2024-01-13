@@ -1,86 +1,96 @@
 <template>
-    <v-card class="factoid-card" flat rounded  :loading="isLoading" style="width: 100%;">
-      <v-toolbar dense flat color="transparent">
-        <v-icon left>{{ selectedConfig.icon }}</v-icon>
-        <v-toolbar-title>
-          <span class="">{{ selectedConfig.displayName }}</span>
-        </v-toolbar-title>
-        <v-spacer/>
-        <v-menu rounded offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn
-                icon
-                v-on="on"
-                small
-            >
-              <v-icon small>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item :href="url.makeApiUrl($route, true, selected)" >
-              <v-list-item-icon>
-                <v-icon>mdi-tray-arrow-down</v-icon>
-              </v-list-item-icon>
-              Export
-            </v-list-item>
-            <v-list-item :href="url.makeApiUrl($route, false)" target="_blank">
-              <v-list-item-icon>
-                <v-icon>mdi-api</v-icon>
-              </v-list-item-icon>
-              View in API
-            </v-list-item>
-          </v-list>
-        </v-menu>
-        <v-btn small icon @click="url.toggleGroupBy(selected)">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
+  <v-card class="factoid-card" flat rounded :loading="isLoading" style="width: 100%;">
+    <v-toolbar dense flat color="transparent">
+      <v-icon left>{{ selectedConfig.icon }}</v-icon>
+      <v-toolbar-title>
+        <span class="">{{ selectedConfig.displayName }}</span>
+      </v-toolbar-title>
+      <v-spacer/>
+      <v-menu rounded offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              v-on="on"
+              small
+          >
+            <v-icon small>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item :href="url.makeApiUrl($route, true, selected)">
+            <v-list-item-icon>
+              <v-icon>mdi-tray-arrow-down</v-icon>
+            </v-list-item-icon>
+            Export
+          </v-list-item>
+          <v-list-item :href="url.makeApiUrl($route, false)" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            View in API
+          </v-list-item>
+        </v-list>
+      </v-menu>
+      <v-btn small icon @click="url.toggleGroupBy(selected)">
+        <v-icon small>mdi-close</v-icon>
+      </v-btn>
 
-      </v-toolbar>
-      <v-divider />
-      <table v-if="selected" class="serp-results-table " style="width: 100%;">
-<!--        <thead>-->
-<!--        <tr>-->
-<!--          <th class="py-2">-->
-<!--            {{ selectedConfig.displayName }}-->
-<!--          </th>-->
-<!--          <th class="pa-2">Works count</th>-->
-<!--          <th></th>-->
+    </v-toolbar>
+    <v-divider/>
+    <div v-if="filterKey==='publication_year'">
+      <bar-graph
+          v-if="groups"
+          :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
+          style="height: 100px;"
+          class="pa-2"
+          @click="selectGroup"
+      />
+    </div>
 
-<!--        </tr>-->
-<!--        </thead>-->
-        <tbody>
-        <tr
-            v-for="group in groups"
-            :key="group.value"
-            @click="selectGroup(group.value)"
-        >
-          <td class="body-2">
-            {{ group.displayValue }}
-          </td>
-          <td class="range body-2">
-            {{ group.count | toPrecision }}
-          </td>
-<!--          <td>-->
-<!--            <div style="height: 40px; width: 500px">-->
-<!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
-<!--                <v-spacer/>-->
-<!--                <div class="d-flex"-->
-<!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
-<!--              </div>-->
+    <table v-else class="serp-results-table " style="width: 100%;">
+      <!--        <thead>-->
+      <!--        <tr>-->
+      <!--          <th class="py-2">-->
+      <!--            {{ selectedConfig.displayName }}-->
+      <!--          </th>-->
+      <!--          <th class="pa-2">Works count</th>-->
+      <!--          <th></th>-->
 
-<!--            </div>-->
-<!--          </td>-->
+      <!--        </tr>-->
+      <!--        </thead>-->
+      <tbody>
+      <tr
+          v-for="group in groups"
+          :key="group.value"
+          @click="selectGroup(group.value)"
+      >
+        <td class="body-2">
+          {{ group.displayValue }}
+        </td>
+        <td class="range body-2">
+          {{ group.count | toPrecision }}
+        </td>
+        <!--          <td>-->
+        <!--            <div style="height: 40px; width: 500px">-->
+        <!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
+        <!--                <v-spacer/>-->
+        <!--                <div class="d-flex"-->
+        <!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+        <!--              </div>-->
 
-        </tr>
-        <!--        <results-table-row-->
-        <!--            v-for="result in resultsObject.results"-->
-        <!--            :key="result.id"-->
-        <!--            :entity="result"-->
-        <!--        />-->
+        <!--            </div>-->
+        <!--          </td>-->
 
-        </tbody>
-      </table>
-    </v-card>
+      </tr>
+      <!--        <results-table-row-->
+      <!--            v-for="result in resultsObject.results"-->
+      <!--            :key="result.id"-->
+      <!--            :entity="result"-->
+      <!--        />-->
+
+      </tbody>
+    </table>
+  </v-card>
 
 </template>
 
@@ -96,16 +106,18 @@ import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/Action.vue";
 import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
+import BarGraph from "@/components/BarGraph.vue";
 
 export default {
   name: "GroupBy",
   components: {
     Template,
     ActionMenuItem,
+    BarGraph,
 
   },
   props: {
-      selected: String,
+    selected: String,
 
   },
   data() {
@@ -210,7 +222,10 @@ export default {
 
 
       this.isLoading = false
-      return ret.slice(0,5)
+      const maxResults = (this.myFilterConfig.type === "range") ?
+          25 :
+          5
+      return ret.slice(0, maxResults)
     }
   },
 
@@ -220,13 +235,19 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
-    selectGroup(val){
-      const myVal =  (this.myFilterConfig.type === "boolean") ?
-          val != 0 :
-          val
-
-      // url.addFilterOption(this.entityType, this.filterKey, val)
-      url.upsertFilter(this.entityType, this.filterKey, myVal)
+    selectGroup(val) {
+      if (this.myFilterConfig.type === "boolean") {
+        url.upsertFilter(this.entityType, this.filterKey, val != 0)
+      } else if (this.myFilterConfig.type === "range") {
+        url.upsertFilter(this.entityType, this.filterKey, val)
+      } else {
+        if (url.isFilterApplied(this.entityType, this.filterKey)) {
+          url.addFilterOption(this.entityType, this.filterKey, val)
+        }
+        else {
+          url.upsertFilter(this.entityType, this.filterKey, val)
+        }
+      }
     },
 
 
