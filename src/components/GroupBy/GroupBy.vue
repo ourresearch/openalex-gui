@@ -52,8 +52,8 @@
         <tr
             v-for="group in groups"
             :key="group.value"
+            @click="selectGroup(group.value)"
         >
-<!--            @click="selectGroup(group.value)"-->
           <td class="body-2">
             {{ group.displayValue }}
           </td>
@@ -221,7 +221,12 @@ export default {
     ]),
     ...mapActions([]),
     selectGroup(val){
-      url.createFilter(this.entityType, this.filterKey, val)
+      const myVal =  (this.myFilterConfig.type === "boolean") ?
+          val != 0 :
+          val
+
+      // url.addFilterOption(this.entityType, this.filterKey, val)
+      url.upsertFilter(this.entityType, this.filterKey, myVal)
     },
 
 
