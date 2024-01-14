@@ -203,7 +203,7 @@
                       {{ affil.years[0] }}
                     </template>
                     <template v-else>
-                      {{ affil.years[0] }} - {{ affil.years.at(-1) }}
+                      {{ affilYearsRangeStr(affil) }}
                     </template>
                   </v-list-item-subtitle>
 
@@ -320,6 +320,13 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+
+    affilYearsRangeStr(affil) {
+      const years = affil.years.filter(x => !isNaN(x))
+      const minYear = Math.min(...years)
+      const maXYear = Math.max(...years)
+      return `${minYear} - ${maXYear}`
+    },
 
 
   },
