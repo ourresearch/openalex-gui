@@ -1,7 +1,10 @@
 <template>
-  <v-card rounded flat color="transparent">
-    <v-toolbar flat color="transparent">
-      <v-toolbar-title>Analytics</v-toolbar-title>
+  <v-card rounded flat color="color-3">
+    <v-toolbar dense flat color="transparent">
+      <v-toolbar-title class="body-1 grey--text">
+        Analytics
+        ({{ groupByKeys.length }})
+      </v-toolbar-title>
       <v-spacer />
       <Action class="ml-2" action="group_by"/>
     </v-toolbar>

@@ -1,70 +1,72 @@
 <template>
 
-    <v-card class="pb-2" width="100%" rounded flat color="#E9F1FB">
-      <v-toolbar flat color="transparent">
-        <search-bar
-          class="pt-3"
-          style="max-width: 720px;"
+  <v-card class="pb-2 color-3" width="100%" rounded flat>
+    <v-toolbar flat dense color="transparent grey--text">
+      Filters
+      ({{ filters.length }})
+
+      <v-spacer/>
+
+
+    </v-toolbar>
+    <div>
+<!--      <search-bar-->
+<!--          class=""-->
+<!--          style=""-->
+<!--      />-->
+    </div>
+
+    <div class="d-flex flex-wrap mb-2  px-4">
+      <component
+          v-for="(filter, i) in filters"
+          :key="filter.key + $route.query.filter"
+          class="d-block"
+          :is="'filter-phrase-' + filter.type"
+          :filter-key="filter.key"
+          :is-active="filter.key === activeFilterKey"
+          @delete="url.deleteFilter(entityType, filter.key)"
       />
-        <v-spacer />
-        <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
-          <v-icon>mdi-api</v-icon>
-        </v-btn>
-        <export-button />
+      <component
+          v-if="newFilterKey"
+          :key="'new' + activeFilterConfig.key + $route.query.filter"
+          style="display: none !important;"
+          :is="'filter-phrase-' + activeFilterConfig.type"
+          :filter-key="activeFilterConfig.key"
+          :is-active="activeFilterConfig.key === activeFilterKey"
+          @delete="setActiveFilter(undefined)"
+      />
+    </div>
 
-      </v-toolbar>
-
-      <div class="d-flex flex-wrap mb-2 mt-5 px-4">
-        <component
-            v-for="(filter, i) in filters"
-            :key="filter.key + $route.query.filter"
-            class="d-block"
-            :is="'filter-phrase-' + filter.type"
-            :filter-key="filter.key"
-            :is-active="filter.key === activeFilterKey"
-            @delete="url.deleteFilter(entityType, filter.key)"
-        />
-        <component
-            v-if="newFilterKey"
-            :key="'new' + activeFilterConfig.key + $route.query.filter"
-            style="display: none !important;"
-            :is="'filter-phrase-' + activeFilterConfig.type"
-            :filter-key="activeFilterConfig.key"
-            :is-active="activeFilterConfig.key === activeFilterKey"
-            @delete="setActiveFilter(undefined)"
-        />
-      </div>
-
-      <div class="d-md-flex d-block  align-center px-4">
-        <!--      <v-icon left class="">mdi-plus</v-icon>-->
-        <!--      <span class="pr-2">Add filter</span>-->
-        <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
-        <div class="d-flex flex-wrap">
-          <v-chip
-              v-for="filter in popularFilterOptions"
-              :key="filter.key"
-              outlined
-              class="mr-1 mb-1"
-              @click="setActiveFilter(filter)"
-              small
-              :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
-          >
-            <v-icon small left>{{ filter.icon }}</v-icon>
-            {{ filter.displayName }}
-          </v-chip>
-        </div>
-        <v-spacer/>
-
-
-        <v-btn
-            @click="dialogs.moreFilters = true"
-            text
+    <div class="d-md-flex d-block  align-center px-4">
+      <!--      <v-icon left class="">mdi-plus</v-icon>-->
+      <!--      <span class="pr-2">Add filter</span>-->
+      <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
+      <div class="d-flex flex-wrap">
+        <v-chip
+            v-for="filter in popularFilterOptions"
+            :key="filter.key"
+            outlined
+            class="mr-1 mb-1"
+            @click="setActiveFilter(filter)"
             small
-            rounded
+            :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
         >
-          All filters
-        </v-btn>
+          <v-icon small left>{{ filter.icon }}</v-icon>
+          {{ filter.displayName }}
+        </v-chip>
       </div>
+      <v-spacer/>
+
+
+      <v-btn
+          @click="dialogs.moreFilters = true"
+          text
+          small
+          rounded
+      >
+        All filters
+      </v-btn>
+    </div>
 
     <v-dialog
         v-model="dialogs.moreFilters"
@@ -102,10 +104,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    </v-card>
-
-
-
+  </v-card>
 
 
 </template>
