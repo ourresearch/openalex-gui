@@ -237,8 +237,10 @@ const api = (function () {
             const truncatedGroups = filteredGroups
 
             const groupCounts = truncatedGroups.map(g => g.count)
+
             const maxCount = Math.max(...groupCounts)
             const countSum = groupCounts.reduce((a, b) => a + b, 0)
+
             const groupDisplayFilters = truncatedGroups
                 .map(group => {
                     return createDisplayFilter(
@@ -248,7 +250,7 @@ const api = (function () {
                         false,
                         group.key_display_name,
                         group.count,
-                        group.count / maxCount,
+                        group.count / countSum,
                     )
                 })
 

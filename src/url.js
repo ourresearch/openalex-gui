@@ -107,15 +107,15 @@ const readFiltersLength = function(){
         router.currentRoute.query.filter,
     ).length
 }
-const readFilterValue = function (entityType, key) {
-    const myFilter = filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
+const readFilterValue = function (currentRoute, entityType, key) {
+    const myFilter = filtersFromUrlStr(entityType, currentRoute.query.filter).find(f => {
         return f.key === key
     })
     return myFilter?.value
 }
 
-const isFilterApplied = function (entityType, key) {
-    const filterValue = readFilterValue(entityType, key)
+const isFilterApplied = function (currentRoute, entityType, key) {
+    const filterValue = readFilterValue(currentRoute, entityType, key)
     return filterValue !== "" && filterValue !== undefined && filterValue !== null
 }
 const isSearchFilterApplied = function () {
@@ -233,7 +233,7 @@ const updateOrDeleteFilter = function (entityType, filterKey, filterValue) {
 }
 
 const upsertFilter = function (entityType, filterKey, filterValue) {
-    return isFilterApplied(entityType, filterKey) ?
+    return isFilterApplied(router.currentRoute, entityType, filterKey) ?
         updateOrDeleteFilter(entityType, filterKey, filterValue) :
         createFilter(entityType, filterKey, filterValue)
 }

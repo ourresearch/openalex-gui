@@ -17,28 +17,39 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item :href="url.makeApiUrl($route, true, selected)">
+
+          <v-list-item :href="csvUrl">
             <v-list-item-icon>
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
             Export
           </v-list-item>
-          <v-list-item :href="url.makeApiUrl($route, false)" target="_blank">
+          <v-list-item :href="apiUrl" target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
             View in API
           </v-list-item>
+          <v-divider />
+          <v-list-item @click="url.toggleGroupBy(selected)">
+            <v-list-item-icon>
+              <v-icon color="">mdi-delete-outline</v-icon>
+<!--              <v-icon>mdi-close-circle-outline</v-icon>-->
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="">
+                Remove
+              </v-list-item-title>
+
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn small icon @click="url.toggleGroupBy(selected)">
-        <v-icon small>mdi-close</v-icon>
-      </v-btn>
 
     </v-toolbar>
     <v-divider/>
     <div v-if="filterKey==='publication_year'" style="min-width: 200px">
-      <template v-if="groups">
+      <div class="d-flex align-center" v-if="groups">
         <bar-graph
             v-if="groups.length > 1"
             :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
@@ -49,7 +60,36 @@
         <div v-else class="text-h4 pa-3">
           {{ groups[0].value }}
         </div>
-      </template>
+        <v-spacer></v-spacer>
+        <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+    </div>
+    <div v-else-if="myFilterConfig.type === 'boolean'" class="">
+      <v-card flat rounded class="pb-2 d-flex my-3 ml-3 color-2 " @click="selectGroup(true)">
+        <v-progress-circular
+            size="50"
+            width="17"
+            rotate="270"
+            :value="groups?.find(g => g.value != 0).countScaled * 100"
+        />
+        <div class="ml-3">
+          <div class="text-h4">
+            {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+          </div>
+          <div class="body-2">
+            {{ groups?.find(g => g.value != 0).count | toPrecision }}
+          </div>
+        </div>
+        <v-spacer></v-spacer>
+        <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+
+      </v-card>
+
+
     </div>
 
     <table v-else class="serp-results-table " style="width: 100%;">
@@ -202,7 +242,15 @@ export default {
             formatCsv: true,
           }
       )
-    }
+    },
+
+    isGroupSelected(val){
+      if (this.myFilterConfig.type === "boolean") {
+        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
+      } else if (this.myFilterConfig.type === "range") {
+        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
+      }
+    },
   },
   asyncComputed: {
     async groups() {
@@ -240,13 +288,22 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
+
+    unselectGroup(val) {
+      if (this.myFilterConfig.type === "boolean") {
+        url.deleteFilter(this.entityType, this.filterKey)
+      } else if (this.myFilterConfig.type === "range") {
+        url.deleteFilter(this.entityType, this.filterKey)
+      }
+    },
+
     selectGroup(val) {
       if (this.myFilterConfig.type === "boolean") {
         url.upsertFilter(this.entityType, this.filterKey, val != 0)
       } else if (this.myFilterConfig.type === "range") {
         url.upsertFilter(this.entityType, this.filterKey, val)
       } else {
-        if (url.isFilterApplied(this.entityType, this.filterKey)) {
+        if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
           url.addFilterOption(this.entityType, this.filterKey, val)
         }
         else {

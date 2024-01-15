@@ -85,7 +85,7 @@
               v-for="filter in allFilterOptions"
               :key="filter.key"
               color="primary"
-              :disabled="url.isFilterApplied(entityType, filter.key)"
+              :disabled="url.isFilterApplied($route, entityType, filter.key)"
               @click="setActiveFilter(filter)"
           >
             <v-list-item-icon>

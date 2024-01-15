@@ -101,7 +101,7 @@ export default {
     isOpen: {
       immediate: true,
       handler(to, from) {
-        this.searchString = url.readFilterValue(this.$store.state.entityType, this.filterKey)
+        this.searchString = url.readFilterValue(this.$route, this.$store.state.entityType, this.filterKey)
       }
     }
   }
