@@ -25,7 +25,7 @@
             class="pr-2 ml-2 "
             @shortkey="isMenuOpen = true"
         >
-          <div class="fake-input-button color-2"
+          <div class="fake-input-button white"
                v-shortkey="['ctrl', 'k']"
                @shortkey="isMenuOpen = true"
 

@@ -17,25 +17,12 @@
 
 
     <v-container class=" main-serp-container" style="max-width: 1785px;">
-      <v-row v-if="isShowApiSet">
-        <v-col>
-          <serp-api-editor/>
-        </v-col>
-      </v-row>
+
       <v-row>
-        <v-col cols="">
-
-
-        </v-col>
-
-      </v-row>
-      <v-row>
-
         <v-col class="flex-grow-1">
-          <search-bar
-              class="mb-4"
-              style=""
-          />
+          <v-card rounded flat class="color-0 mb-4 py-2">
+            <search-bar />
+          </v-card>
           <filter-list :results-object="resultsObject" class="mb-4"/>
           <div v-if="resultsObject?.meta?.count">
             <serp-results-list :results-object="resultsObject"/>
@@ -46,14 +33,7 @@
             xl="6"
             v-if="$vuetify.breakpoint.mdAndUp"
         >
-          <v-toolbar flat class="">
-            <v-spacer/>
-            <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
-              <v-icon>mdi-api</v-icon>
-            </v-btn>
-            <export-button/>
-          </v-toolbar>
-          <analytic-views class="mt-2" />
+          <analytic-views class="" />
         </v-col>
 
       </v-row>

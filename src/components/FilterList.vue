@@ -1,19 +1,27 @@
 <template>
 
   <v-card class="pb-2 color-3" width="100%" rounded flat>
-    <v-toolbar flat dense color="transparent grey--text">
-      Filters
-      ({{ filters.length }})
+    <!--    <search-bar class="pt-3" />-->
+    <v-toolbar flat dense color="transparent ">
+      <v-toolbar-title>
+        Filters
+        ({{ filters.length }})
+
+      </v-toolbar-title>
 
       <v-spacer/>
-
+      <Action
+          class="ml-2"
+          action="filter"
+          @click="(key) => setActiveFilter(key)"
+      />
 
     </v-toolbar>
     <div>
-<!--      <search-bar-->
-<!--          class=""-->
-<!--          style=""-->
-<!--      />-->
+      <!--      <search-bar-->
+      <!--          class=""-->
+      <!--          style=""-->
+      <!--      />-->
     </div>
 
     <div class="d-flex flex-wrap mb-2  px-4">
@@ -129,10 +137,12 @@ import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import SearchBar from "@/components/SearchBar.vue";
+import Action from "@/components/Action/Action.vue";
 
 export default {
   name: "Template",
   components: {
+    Action,
     SerpResultsCount,
     SearchBar,
     FilterPhraseSelect,
@@ -231,6 +241,12 @@ export default {
 
     },
     setActiveFilter(newFilter) {
+
+      // take a key instead of a filter
+      if (typeof newFilter === "string" && getFacetConfig(this.entityType, newFilter)) {
+        newFilter = getFacetConfig(this.entityType, newFilter)
+      }
+
       console.log("select filter", newFilter)
       this.dialogs.moreFilters = false
       if (!newFilter) {

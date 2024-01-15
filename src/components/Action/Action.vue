@@ -22,8 +22,9 @@
             Add
             <v-icon right>mdi-menu-down</v-icon>
           </template>
-          <template v-if="myConfig.id === 'column'">
-            <v-icon>mdi-plus</v-icon>
+          <template v-if="myConfig.id === 'filter'">
+            Add
+            <v-icon right>mdi-menu-down</v-icon>
           </template>
         </v-btn>
       </template>
@@ -224,7 +225,8 @@ export default {
       } else if (this.action === "column") {
         url.toggleColumn(key)
       } else if (this.action === "filter") {
-        this.openFilterEditDialog(key)
+        this.$emit("click", key)
+        // this.openFilterEditDialog(key)
       }
     },
     openFilterEditDialog(key) {
