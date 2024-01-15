@@ -1,7 +1,7 @@
 <template>
   <v-card rounded flat color="color-3">
-    <v-toolbar dense flat color="transparent">
-      <v-toolbar-title class="">
+    <v-toolbar  flat color="transparent">
+      <v-toolbar-title class="body-1">
         Analytics
 <!--        ({{ groupByKeys.length }})-->
       </v-toolbar-title>
