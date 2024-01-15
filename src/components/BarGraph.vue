@@ -116,8 +116,9 @@ $color-0: hsl(212, 77%, 82%);
 }
 .bar-graph-bar {
   background-color:  rgba(0, 0, 0, 0.3);
+  transition: height 500ms;
   //width: 100%;
-  width: calc(100% - 1px); // transparent border
+  width: calc(100% - 1.1px); // transparent border
   //border-right: 1px solid #fff; // broke on non-white backgrounds
 }
 </style>

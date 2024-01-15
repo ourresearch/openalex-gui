@@ -64,7 +64,7 @@ export default {
       foo: 42,
 
       isDialogOpen: false,
-      text: url.readFilterValue(this.$store.state.entityType, this.filterKey),
+      text: url.readFilterValue(this.$route, this.$store.state.entityType, this.filterKey),
     }
   },
   computed: {
@@ -77,7 +77,7 @@ export default {
     },
     myValue: {
       get() {
-        return url.readFilterValue(this.entityType, this.filterKey)
+        return url.readFilterValue(this.$route, this.entityType, this.filterKey)
       },
       set(to) {
         url.upsertFilter(

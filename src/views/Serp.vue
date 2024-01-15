@@ -54,7 +54,7 @@
               </div>
 
             </v-col>
-            <v-col cols="4" xl="6" v-if="$vuetify.breakpoint.mdAndUp">
+            <v-col cols="6" xl="6" v-if="$vuetify.breakpoint.mdAndUp">
               <analytic-views/>
             </v-col>
           </v-row>

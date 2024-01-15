@@ -42,7 +42,7 @@ export default {
     return {
       foo: 42,
       isDialogOpen: false,
-      searchString: url.readFilterValue(this.$store.state.entityType, this.filterKey),
+      searchString: url.readFilterValue(this.$route, this.$store.state.entityType, this.filterKey),
     }
   },
   computed: {

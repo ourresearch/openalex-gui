@@ -639,7 +639,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.is_oa",
             entityType: "works",
-            displayName: "source is OA",
+            displayName: "in OA source",
             type: "boolean",
             booleanValues: ["Not Open Access", "Open Access"],
             categories: ["source"],
@@ -796,7 +796,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_retracted",
             entityType: "works",
-            displayName: "is retracted",
+            displayName: "retracted",
             type: "boolean",
             booleanValues: ["Isn't retracted", "Is retracted"],
             categories: ["other"],

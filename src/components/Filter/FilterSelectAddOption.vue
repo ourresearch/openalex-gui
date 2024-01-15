@@ -123,7 +123,7 @@ export default {
     },
 
     addOption(id) {
-      if (url.isFilterApplied(this.entityType, this.filterKey)) {
+      if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
         url.addFilterOption(this.entityType, this.filterKey, id)
       } else {
         url.createFilter(this.entityType, this.filterKey, id)

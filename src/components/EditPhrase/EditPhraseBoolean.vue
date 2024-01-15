@@ -82,7 +82,7 @@ export default {
     },
     myValue: {
       get(){
-        return url.readFilterValue(this.entityType, this.filterKey)
+        return url.readFilterValue(this.$route, this.entityType, this.filterKey)
       },
       set(to) {
         url.upsertFilter(this.entityType, this.filterKey, !!to)
@@ -121,7 +121,7 @@ export default {
     isOpen: {
       immediate: true,
       handler(to, from) {
-        this.searchString = url.readFilterValue(this.$store.state.entityType, this.filterKey)
+        this.searchString = url.readFilterValue(this.$route, this.$store.state.entityType, this.filterKey)
       }
     }
   }

@@ -390,7 +390,7 @@ body {
 }
 
 .v-list-item__icon {
-  margin-top: 8px !important;
+  //margin-top: 8px !important;
 }
 
 .v-list-item__action, {
