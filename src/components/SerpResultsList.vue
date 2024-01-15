@@ -1,6 +1,6 @@
 <template>
   <v-card rounded flat class="color-3">
-    <v-toolbar color="transparent" flat dense>
+    <v-toolbar color="transparent" flat >
       <v-toolbar-title>
         Results
       </v-toolbar-title>

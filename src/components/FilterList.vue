@@ -2,8 +2,8 @@
 
   <v-card class="pb-2 color-3" width="100%" rounded flat>
     <!--    <search-bar class="pt-3" />-->
-    <v-toolbar flat dense color="transparent ">
-      <v-toolbar-title>
+    <v-toolbar flat  color="transparent ">
+      <v-toolbar-title class="body-1">
         Filters
         ({{ filters.length }})
 
@@ -66,14 +66,14 @@
       <v-spacer/>
 
 
-      <v-btn
-          @click="dialogs.moreFilters = true"
-          text
-          small
-          rounded
-      >
-        All filters
-      </v-btn>
+<!--      <v-btn-->
+<!--          @click="dialogs.moreFilters = true"-->
+<!--          text-->
+<!--          small-->
+<!--          rounded-->
+<!--      >-->
+<!--        All filters-->
+<!--      </v-btn>-->
     </div>
 
     <v-dialog
