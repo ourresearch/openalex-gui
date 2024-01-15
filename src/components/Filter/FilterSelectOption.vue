@@ -40,15 +40,14 @@
           </div>
         </div>
         <v-spacer></v-spacer>
+
         <v-chip
-            class="ml-2"
-            filter
-            small
-            @click="toggleIsNegated"
-            outlined
-            :input-value="isNegated"
-        >
-          not
+               class="ml-2"
+               small
+               :to="filterId | entityZoomLink"
+               v-if="isEntity">
+          Profile
+          <v-icon right>mdi-chevron-right</v-icon>
         </v-chip>
 
 
@@ -69,15 +68,34 @@
       <v-divider/>
       <v-card-actions v-if="isEntity">
         <v-spacer/>
-
-        <v-btn text
-               rounded
-               class="ml-2"
-               :to="filterId | entityZoomLink"
-               v-if="isEntity">
-          <v-icon left>mdi-information-outline</v-icon>
-          Details
+        <v-btn
+            class="ml-2"
+            text
+            rounded
+            @click="toggleIsNegated"
+            :input-value="isNegated"
+        >
+          <template v-if="isNegated">
+            <v-icon left>mdi-minus-circle-off</v-icon>
+            Remove negation
+          </template>
+          <template v-else>
+            <v-icon left>mdi-minus-circle</v-icon>
+            Negate
+          </template>
         </v-btn>
+
+        <v-btn
+            class="ml-2"
+            text
+            rounded
+            @click="deleteMe"
+            color="error"
+        >
+          <v-icon left>mdi-delete-outline</v-icon>
+          Remove
+        </v-btn>
+
 
       </v-card-actions>
 

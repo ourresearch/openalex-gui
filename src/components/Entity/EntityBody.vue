@@ -87,15 +87,19 @@
 
       </v-col>
       <v-col v-if="$vuetify.breakpoint.lgAndUp" lg="4" xl="6" class="pr-8">
-        <entity-work-count-cards v-if="myEntityType === 'works'" :data="data" />
-          <works-graph
-              v-else
-              :counts-by-year="data.counts_by_year"
-              :works-count="data.works_count"
-              :id="data.id"
-          />
+        <citations-graph
+            v-if="myEntityType === 'works'"
+            :counts-by-year="data.counts_by_year"
+            :cited-by-count="data.cited_by_count"
+            :id="data.id"
+        />
+        <works-graph
+            v-else
+            :counts-by-year="data.counts_by_year"
+            :works-count="data.works_count"
+            :id="data.id"
+        />
       </v-col>
-
 
 
     </v-row>
@@ -104,14 +108,14 @@
 
       <v-row class="mt-9 px-4">
         <v-col v-if="$vuetify.breakpoint.mdAndDown" lg="4" xl="6" class="pr-8">
-        <entity-work-count-cards v-if="myEntityType === 'works'" :data="data" />
+          <entity-work-count-cards v-if="myEntityType === 'works'" :data="data"/>
           <works-graph
               v-else
               :counts-by-year="data.counts_by_year"
               :works-count="data.works_count"
               :id="data.id"
           />
-      </v-col>
+        </v-col>
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesList?.length > 0">
           <v-card rounded flat outlined class="factoid-card" color="">
             <v-card-title>
@@ -219,9 +223,9 @@
           </v-card>
         </v-col>
 
-<!--        <v-col v-if="$vuetify.breakpoint.mdAndDown && myEntityType === 'works' "  cols="12" md="6" lg="4" xl="3" >-->
-<!--          <entity-work-count-cards :data="data" />-->
-<!--        </v-col>-->
+        <!--        <v-col v-if="$vuetify.breakpoint.mdAndDown && myEntityType === 'works' "  cols="12" md="6" lg="4" xl="3" >-->
+        <!--          <entity-work-count-cards :data="data" />-->
+        <!--        </v-col>-->
 
 
       </v-row>
@@ -242,6 +246,7 @@ import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 import {url} from "@/url";
 import WorksGraph from "@/components/WorksGraph.vue";
+import CitationsGraph from "@/CitationsGraph.vue";
 import EntityWorkCountCards from "@/components/Entity/EntityWorkCountCards.vue";
 
 export default {
@@ -254,6 +259,7 @@ export default {
     EntityIdsMenuItem,
     WorksGraph,
     EntityWorkCountCards,
+    CitationsGraph,
   },
   props: {
     data: Object,

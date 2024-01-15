@@ -1,21 +1,21 @@
 <template>
-  <v-card flat rounded class="">
-    <v-toolbar flat dense >
+  <v-card rounded flat class="color-3">
+    <v-toolbar color="transparent" flat dense >
       <serp-results-count :results-object="resultsObject" />
       <v-spacer></v-spacer>
       <action class="ml-2" action="sort"/>
     </v-toolbar>
 
-    <v-list nav  class="" color="">
+    <v-list class="mx-2" color="">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class="serp-result-item "
+          class=""
           :to="result.id | entityZoomLink"
           color="primary"
       >
         <!--          @click="clickResult(result.id)"-->
-        <v-list-item-icon v-if="!$vuetify.breakpoint.mobile" class="pt-1 pl-3">
+        <v-list-item-icon v-if="!$vuetify.breakpoint.mobile" class="">
           <v-icon class="">mdi-file-document-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
