@@ -5,9 +5,8 @@
     <!--      <span v-else>{{ resultsObject?.meta.count | millify }}</span> results-->
     <!--    </div>-->
     <div class="grey--text">
-      Results
-      (<span v-if="resultsObject?.meta?.count >= 1000">about </span><span class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span>)
-      <!--        ({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)-->
+      <span v-if="resultsObject?.meta?.count >= 1000">About </span><span class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span>
+              ({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)
       <!--      </span>-->
     </div>
 
