@@ -16,61 +16,56 @@
     </v-navigation-drawer>
 
 
+    <v-container class=" main-serp-container" style="max-width: 1785px;">
+      <v-row v-if="isShowApiSet">
+        <v-col>
+          <serp-api-editor/>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="">
 
-    <v-container  class=" main-serp-container" style="max-width: 1785px;">
-      <serp-api-editor
-          v-if="isShowApiSet"
-          key="api-editor"
-          class="mb-3"
-      />
-      <filter-list :results-object="resultsObject" class="mb-4" />
-      <v-card flat rounded class="color-3">
-        <v-container fluid>
-          <v-row class="mt-0">
-            <serp-results-count :results-object="resultsObject"/>
 
-          </v-row>
+        </v-col>
 
-          <v-row>
-            <v-col class="flex-grow-1 d-flex">
-              <div>
+      </v-row>
+      <v-row>
 
-                <div v-if="resultsObject?.meta?.count">
-                  <serp-results-list :results-object="resultsObject"/>
-                  <!--                <serp-results-table v-else :results-object="resultsObject"/>-->
+        <v-col class="flex-grow-1">
+          <search-bar
+              class="mb-4"
+              style=""
+          />
+          <filter-list :results-object="resultsObject" class="mb-4"/>
+          <div v-if="resultsObject?.meta?.count">
+            <serp-results-list :results-object="resultsObject"/>
+          </div>
+        </v-col>
+        <v-col
+            cols="4"
+            xl="6"
+            v-if="$vuetify.breakpoint.mdAndUp"
+        >
+          <v-toolbar flat class="">
+            <v-spacer/>
+            <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
+              <v-icon>mdi-api</v-icon>
+            </v-btn>
+            <export-button/>
+          </v-toolbar>
+          <analytic-views class="mt-2" />
+        </v-col>
 
-                  <div class="serp-bottom">
-                    <v-pagination
-                        class="my-3 elevation-0"
-                        circle
-                        v-model="page"
-                        :length="numPages"
-                        :total-visible="10"
-                        light
-                    />
-                  </div>
+      </v-row>
+      <v-row v-if="$vuetify.breakpoint.smAndDown">
+        <v-card flat rounded class="color-3 mt-12">
+          <analytic-views/>
+        </v-card>
 
-                </div>
-              </div>
-
-            </v-col>
-            <v-col cols="6" xl="6" v-if="$vuetify.breakpoint.mdAndUp">
-              <analytic-views/>
-            </v-col>
-          </v-row>
-        </v-container>
-
-      </v-card>
-      <v-card flat rounded class="color-3 mt-12" v-if="$vuetify.breakpoint.smAndDown">
-        <analytic-views/>
-      </v-card>
+      </v-row>
 
     </v-container>
 
-
-    <div id="serp-hidden">
-      <api-dialog/>
-    </div>
 
   </div>
 
@@ -110,6 +105,7 @@ import EntityWork from "@/components/Entity/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
+import SearchBar from "@/components/SearchBar.vue";
 
 export default {
   name: "Serp",
@@ -136,6 +132,7 @@ export default {
     EntityWork,
 
     FilterList,
+    SearchBar,
 
   },
   props: {},
@@ -390,7 +387,6 @@ export default {
         // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
 
 
-
         this.$store.state.resultsObject = resp
 
         this.resultsFilters = filtersFromUrlStr(
@@ -410,6 +406,7 @@ export default {
 .container {
   //max-width: 1024px !important;
 }
+
 .v-pagination__item, .v-pagination__navigation {
   box-shadow: none;
 }

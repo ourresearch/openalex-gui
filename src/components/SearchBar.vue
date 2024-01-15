@@ -21,11 +21,11 @@
       <template v-slot:activator="{on}">
         <div
             v-on="on"
-            style="padding-right:10px;"
             v-shortkey="['meta', 'k']"
+            class="pr-2 ml-2 "
             @shortkey="isMenuOpen = true"
         >
-          <div class="fake-input-button"
+          <div class="fake-input-button color-2"
                v-shortkey="['ctrl', 'k']"
                @shortkey="isMenuOpen = true"
 

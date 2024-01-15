@@ -107,6 +107,7 @@ $color-0: hsl(212, 77%, 82%);
   flex: 1;
   display: flex;
   align-items: flex-end;
+  padding-right: 1px;
   &:hover {
     .bar-graph-bar {
       background-color:  rgba(0, 0, 0, 0.5);
@@ -115,10 +116,15 @@ $color-0: hsl(212, 77%, 82%);
   }
 }
 .bar-graph-bar {
-  background-color:  rgba(0, 0, 0, 0.3);
   transition: height 500ms;
-  //width: 100%;
-  width: calc(100% - 1.1px); // transparent border
-  //border-right: 1px solid #fff; // broke on non-white backgrounds
+  width: 100%;
+  //width: calc(100% - 1.1px); // transparent border
+  //border-right: 1px solid white;
+    background-color:  rgba(0, 0, 0, 0.3);
+  //.bar-graph-bar-color {
+  //  height: 100%;
+  //  width: 100%;
+  //
+  //}
 }
 </style>

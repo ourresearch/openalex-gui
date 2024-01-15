@@ -1,6 +1,11 @@
 <template>
   <v-card flat rounded class="">
-    <serp-toolbar :results-object="resultsObject" />
+    <v-toolbar flat dense >
+      <serp-results-count :results-object="resultsObject" />
+      <v-spacer></v-spacer>
+      <action class="ml-2" action="sort"/>
+    </v-toolbar>
+
     <v-list nav  class="" color="">
       <v-list-item
           v-for="result in resultsObject.results"
@@ -62,6 +67,16 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
+    <div class="serp-bottom">
+              <v-pagination
+                  class="my-3 elevation-0"
+                  circle
+                  v-model="page"
+                  :length="numPages"
+                  :total-visible="10"
+                  light
+              />
+            </div>
   </v-card>
 </template>
 
@@ -72,13 +87,15 @@ import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 import {shortenOpenAlexId} from "@/util";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
-import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
+import Action from "@/components/Action/Action.vue";
+import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
   name: "Template",
   components: {
+    Action,
     WorkAuthorsString,
-    SerpToolbar,
+    SerpResultsCount,
   },
   props: {
     resultsObject: Object,
@@ -87,6 +104,7 @@ export default {
     return {
       foo: 42,
       url,
+      resultsPerPage: 25, // not editable now, but could be in future
     }
   },
   computed: {
@@ -94,6 +112,24 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    numPages() {
+      const maxToShow = this.$vuetify.breakpoint.mobile ?
+          4 :
+          10
+
+      return Math.min(
+          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
+          maxToShow
+      )
+    },
+    page: {
+      get() {
+        return this.resultsObject?.meta?.page ?? 1
+      },
+      set(val) {
+        url.setPage(val)
+      }
+    },
   },
 
   methods: {
