@@ -6,11 +6,21 @@
           <v-card
               :to="url.makeFilterRoute(entityType, 'cited_by', data.id)"
               rounded
-              outlined
-              class="pa-3 text-right button-card"
+              class="button-card pa-4 d-flex align-end"
+              height="100"
           >
-            <div class="text-h4">{{ data.cited_by_count | toPrecision }}</div>
-            <div class="body-2">Incoming citations</div>
+            <bar-graph
+                :bars="data.count_by_year.map(y => {return {key: y.year, count: y.works_count}})"
+                style="height: 100%;"
+                class="flex-grow-1"
+                @click="clickBar"
+
+            />
+            <v-divider vertical class="mx-3"></v-divider>
+            <div>
+              <div class="text-h4">{{ data.cited_by_count | toPrecision }}</div>
+              <div class="body-2">Incoming citations</div>
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -48,10 +58,13 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
+import BarGraph from "@/components/BarGraph.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    BarGraph,
+  },
   props: {
     data: Object,
   },
