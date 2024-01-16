@@ -4,7 +4,7 @@
         flat
         rounded
         style="font-family: Monaco, monospace; min-height: 40px;"
-        class="d-flex align-start pa-2 color-2"
+        class="d-flex align-start pa-2 color-1"
 
     >
       <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>

@@ -5,12 +5,11 @@
     <v-toolbar flat color=" " class="color-1 mb-3">
       <v-row class="align-center">
         <v-col cols="12" md="8" xl="6" class="d-flex align-center flex-grow-1">
+          <v-icon left>mdi-filter-outline</v-icon>
           <v-toolbar-title class="mr-2 ">
-            <v-icon>mdi-filter-outline</v-icon>
-            <span class="font-weight-light">
             Filters
+            <span class="font-weight-light">
             ({{ filters.length }})
-
             </span>
 
           </v-toolbar-title>
@@ -41,6 +40,9 @@
           />
           <v-btn icon @click="clearEverything">
             <v-icon>mdi-filter-off-outline</v-icon>
+          </v-btn>
+          <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
+            <v-icon>mdi-api</v-icon>
           </v-btn>
         </v-col>
       </v-row>

@@ -2,6 +2,7 @@
   <v-card rounded flat color="color-3">
     <v-toolbar  flat color="" class="color-3" >
       <v-toolbar-title class="">
+        <v-icon left>mdi-table</v-icon>
         Analytics
 <!--        ({{ groupByKeys.length }})-->
       </v-toolbar-title>
