@@ -139,11 +139,76 @@
 
     <v-card-actions v-if="isMoreToShow">
       <v-spacer/>
-      <v-btn small rounded text>
+      <v-btn small rounded text @click="isDialogOpen = true">
         View more...
       </v-btn>
 
     </v-card-actions>
+
+    <v-dialog
+        v-model="isDialogOpen"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        max-width="600"
+        scrollable
+    >
+      <v-card :rounded="!$vuetify.breakpoint.mobile">
+        <v-toolbar flat class="color-2">
+            <v-btn icon @click="isDialogOpen = false">
+              <v-icon>mdi-arrow-left</v-icon>
+            </v-btn>
+
+          <v-toolbar-title>
+            {{ allGroups.length === 200 ? "Top 200 " : "All " + allGroups.length}}
+             {{ myFilterConfig.displayName | pluralize(2)}}
+          </v-toolbar-title>
+        </v-toolbar>
+        <v-card-text class="body-1 pa-0">
+          <v-simple-table
+          >
+<!--              fixed-header-->
+<!--              :height="$vuetify.breakpoint.mobile ? 'calc(100vh - 100px)' : '75vh'"-->
+            <thead class="">
+            <tr class="">
+<!--              <th class=""></th>-->
+              <th class="">{{ myFilterConfig.displayName | capitalize }}</th>
+              <th class="">Works count</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            <tr
+                v-for="group in allGroups"
+                :key="group.value"
+                @click="selectGroup(group.value)"
+            >
+<!--              <td>-->
+<!--                <v-icon>mdi-checkbox-blank</v-icon>-->
+<!--              </td>-->
+              <td class="body-2">
+                {{ group.displayValue }}
+              </td>
+              <td class="range body-2">
+                {{ group.count | toPrecision }}
+              </td>
+            </tr>
+            </tbody>
+
+          </v-simple-table>
+        </v-card-text>
+        <v-card-actions class="color-2">
+          <v-spacer />
+          <v-btn text rounded :href="apiUrl" target="_blank">
+            <v-icon left>mdi-api</v-icon>
+            API
+          </v-btn>
+          <v-btn color="primary"  rounded :href="csvUrl" @click="isDialogOpen = false">
+            <v-icon left>mdi-tray-arrow-down</v-icon>
+            Export
+          </v-btn>
+
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 
 </template>
@@ -161,6 +226,7 @@ import ActionMenuItem from "@/components/Action/Action.vue";
 import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
 import BarGraph from "@/components/BarGraph.vue";
+import {all} from "core-js/internals/document-all";
 
 export default {
   name: "GroupBy",
@@ -186,9 +252,13 @@ export default {
       maxResults: 5,
       maxResultsRange: 25,
 
+
     }
   },
   computed: {
+    all() {
+      return all
+    },
     ...mapGetters([
       "resultsFilters",
       "entityType",
@@ -210,9 +280,9 @@ export default {
     //   }
     // },
     isMoreToShow() {
-      return false
+      return this.allGroups.length > this.groups.length
     },
-    minWidth(){
+    minWidth() {
       return (this.myFilterConfig.type === "select") ?
           300 :
           150
@@ -271,7 +341,7 @@ export default {
         return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
       }
     },
-    groups(){
+    groups() {
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
           this.maxResults
