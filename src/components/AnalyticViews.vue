@@ -1,14 +1,14 @@
 <template>
   <v-card rounded flat color="color-3">
-    <v-toolbar  flat color="transparent">
-      <v-toolbar-title class="body-1">
+    <v-toolbar  flat color="" class="color-3" >
+      <v-toolbar-title class="">
         Analytics
 <!--        ({{ groupByKeys.length }})-->
       </v-toolbar-title>
       <v-spacer />
       <Action class="ml-2" action="group_by"/>
     </v-toolbar>
-    <v-container class="pt-0">
+    <v-container class="">
       <v-row dense  class="">
         <v-col
             v-for="key in groupByKeys"

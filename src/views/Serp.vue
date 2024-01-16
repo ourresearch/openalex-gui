@@ -1,28 +1,11 @@
 <template>
-  <div class="serp-page pb-12"
-
-  >
-
-    <v-navigation-drawer
-        v-model="isSidebarOpen"
-        app
-        temporary
-        height="100vh"
-        right
-        color="#fafafa"
-        width="500"
-    >
-      <entity-work v-if="sidebarData" :data="sidebarData"/>
-    </v-navigation-drawer>
-
-
+  <div class="serp-page pb-12">
     <v-container class=" main-serp-container" style="max-width: 1785px;">
-
       <v-row>
         <v-col class="flex-grow-1">
-          <v-card rounded flat class="color-0 mb-4 py-2">
-            <search-bar />
-          </v-card>
+<!--          <v-card rounded flat class="color-0 mb-4 py-2">-->
+<!--            <search-bar />-->
+<!--          </v-card>-->
           <filter-list :results-object="resultsObject" class="mb-4"/>
           <div v-if="resultsObject?.meta?.count">
             <serp-results-list :results-object="resultsObject"/>

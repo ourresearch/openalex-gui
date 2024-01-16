@@ -1,6 +1,6 @@
 <template>
   <div
-      style="width: 100%; position: relative; z-index: 6;"
+      style=" position: relative; z-index: 6;"
       class="filter-bar"
 
 
@@ -11,12 +11,14 @@
     <component
         :is="mainComponentName"
         :close-on-content-click="false"
-        content-class="filter-bar-menu"
         v-model="isMenuOpen"
+        content-class="search-bar-menu"
         nudge-left="0"
         nudge-top="4"
         scrollable
         fullscreen
+        max-width="600"
+        :rounded="$vuetify.breakpoint.smAndUp"
     >
       <template v-slot:activator="{on}">
         <div
@@ -28,7 +30,6 @@
           <div class="fake-input-button white"
                v-shortkey="['ctrl', 'k']"
                @shortkey="isMenuOpen = true"
-
           >
             <v-icon style="margin: 10px 7px 9px 9px;" class="dark">mdi-magnify</v-icon>
             <span class="grey--text" >Search and filter works</span>
@@ -41,14 +42,13 @@
         </div>
       </template>
       <v-card
-          rounded
       >
 <!--          height="450"-->
         <v-text-field
             hide-details
             v-model="searchString"
             ref="facetBarSearchBox"
-            class="py-0 ma-0 flex-grow-0"
+            class="py-3 ma-0 flex-grow-0"
             rounded
             placeholder="Search and filter works"
             autofocus
@@ -56,16 +56,16 @@
         >
           <!--              style="margin: 15px 0 12px;"-->
           <template v-slot:prepend-inner>
-            <v-icon class="mt-4">mdi-magnify</v-icon>
+            <v-icon class="">mdi-magnify</v-icon>
           </template>
           <template v-slot:append>
-            <div style="height: 60px" class="d-flex flex-column justify-center">
+            <div style="" class="d-flex flex-column justify-center">
               <v-progress-circular
                   v-if="isLoading"
                   indeterminate size="25"
                   color="grey lighten-1"
               />
-              <v-btn icon v-else class="" @click="isMenuOpen = false">
+              <v-btn small icon v-else class="" @click="isMenuOpen = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
 
@@ -106,7 +106,7 @@
                 <v-icon left>{{ suggestion.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title class="">
+                <v-list-item-title class="" style="white-space: unset;">
                   {{ suggestion.display_name }}
                 </v-list-item-title>
                 <div class="body-2" style="color: #777;">
@@ -450,7 +450,7 @@ export default {
   background-color: hsl(214, 54%, 98%);
 
   border-radius: 100px;
-  height: 55px;
+  height: 45px;
   display: flex;
   align-items: center;
   padding-left: 15px;
@@ -461,8 +461,8 @@ export default {
   }
 }
 
-.filter-bar-menu {
-  border-radius: 30px 30px !important;
+.v-application .search-bar-menu.rounded {
+  border-radius: 23px 23px !important;
 }
 
 .filter-bar-suggestions {

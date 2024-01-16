@@ -246,6 +246,10 @@ $color-0: hsl(212, 77%, 82%);
   }
 }
 
+.v-toolbar__extension {
+  padding: 4px;
+}
+
 .keyboard-shortcut {
   color: #9e9e9e; // vuetify grey--text
   border: 1px solid #ccc;

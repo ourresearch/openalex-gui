@@ -7,7 +7,7 @@
     <v-menu
         :close-on-content-click="false"
         rounded
-        content-class="filter-bar-menu"
+        :content-class="{'filter-bar-menu': true, mobile: true}"
         v-model="isMenuOpen"
         nudge-top="7"
         nudge-left="5"
@@ -391,13 +391,17 @@ export default {
 }
 
 .filter-bar-menu {
+  border-radius: 23px;
+
+  &.mobile {
+    border-radius: 0;
+  }
 
   &.top {
     top: 5px !important;
 
   }
 
-  border-radius: 50px !important;
   background: #fff;
 }
 
