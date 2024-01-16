@@ -18,7 +18,6 @@ import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
 
-
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
@@ -101,7 +100,7 @@ const readFilter = function (entityType, key) {
     })
 }
 
-const readFiltersLength = function(){
+const readFiltersLength = function () {
     return filtersFromUrlStr(
         router.currentRoute.params.entityType,
         router.currentRoute.query.filter,
@@ -201,25 +200,31 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     return await pushNewFilters(newFilters)
 }
 
-const readFilterOptions =  function (entityType, key) {
+const readFilterOptions = function (entityType, key) {
     const filter = readFilter(entityType, key)
-    if (!filter ) return []
+    if (!filter) return []
     return optionsFromString(filter.value)
 }
 
-const readFilterMatchMode = function(entityType, key){
+const isFilterOptionApplied = function (currentRoute, entityType, key, option) {
+    const val = readFilterValue(currentRoute, entityType, key)
+    if (!val) return false
+    const options = optionsFromString(val)
+    return options.includes(option)
+}
+
+const readFilterMatchMode = function (entityType, key) {
     const filter = readFilter(entityType, key)
 
     return getMatchModeFromSelectFilterValue(filter?.value)
 }
 
-const setFilterMatchMode = function(entityType, key, mode){
+const setFilterMatchMode = function (entityType, key, mode) {
     const filter = readFilter(entityType, key)
     const options = optionsFromString(filter.value)
     const newValue = optionsToString(options, mode)
     upsertFilter(entityType, key, newValue)
 }
-
 
 
 const isGroupBy = function () {
@@ -238,6 +243,14 @@ const upsertFilter = function (entityType, filterKey, filterValue) {
         createFilter(entityType, filterKey, filterValue)
 }
 
+const upsertFilterOption = function (entityType, filterKey, filterOption) {
+    if (isFilterApplied(router.currentRoute, entityType, filterKey)) {
+        addFilterOption(entityType, filterKey, filterOption)
+    } else {
+        upsertFilter(entityType, filterKey, filterOption)
+    }
+
+}
 
 
 const deleteFilter = async function (entityType, key) {
@@ -252,19 +265,19 @@ const deleteFilter = async function (entityType, key) {
     return await pushNewFilters(newFilters)
 }
 
-const deleteAllFilters = async function(){
+const deleteAllFilters = async function () {
     return await pushNewFilters([])
 }
 
-const makeFilterRoute = function(entityType, key, value){
+const makeFilterRoute = function (entityType, key, value) {
     const newFilter = createSimpleFilter(entityType, key, value)
     return {
         name: "Serp",
         params: {entityType},
         query: {
             page: 1,
-            sort:   router.currentRoute.query.sort,
-            search:  router.currentRoute.query.search,
+            sort: router.currentRoute.query.sort,
+            search: router.currentRoute.query.search,
             filter: filtersAsUrlStr([newFilter]),
             is_list_view: router.currentRoute.query.is_list_view,
         }
@@ -334,15 +347,10 @@ const toggleSort = function (filterKey) {
     const currentSort = getSort(router.currentRoute)
     if (currentSort === filterKey) {
         setSort(undefined)
-    }
-    else {
+    } else {
         setSort(filterKey)
     }
 }
-
-
-
-
 
 
 const setColumn = function (filterKeys) {
@@ -358,8 +366,7 @@ const toggleColumn = function (filterKey) {
     let newKeys
     if (extantKeys.includes(filterKey)) {
         newKeys = extantKeys.filter(k => k !== filterKey)
-    }
-    else {
+    } else {
         newKeys = [...extantKeys, filterKey]
     }
     pushQueryParam("column", newKeys.join(","))
@@ -367,10 +374,6 @@ const toggleColumn = function (filterKey) {
 const getColumn = function (route) {
     return route.query.column.split(",")
 }
-
-
-
-
 
 
 const getGroupBy = function (route) {
@@ -389,20 +392,11 @@ const toggleGroupBy = function (filterKey) {
     let newKeys
     if (extantKeys.includes(filterKey)) {
         newKeys = extantKeys.filter(k => k !== filterKey)
-    }
-    else {
+    } else {
         newKeys = [...extantKeys, filterKey]
     }
     pushQueryParam("group_by", newKeys.join(","))
 }
-
-
-
-
-
-
-
-
 
 
 const setActionValueKeys = function (actionName, keys) {
@@ -568,6 +562,7 @@ const url = {
     readFilter,
     readFiltersLength,
     isSearchFilterApplied,
+    isFilterOptionApplied,
     readFilterValue,
     readFilterOptions,
     readFilterMatchMode,
@@ -577,6 +572,7 @@ const url = {
     deleteFilter,
     deleteAllFilters,
     upsertFilter,
+    upsertFilterOption,
     setFilterMatchMode,
     makeFilterRoute,
     pushNewFilters,

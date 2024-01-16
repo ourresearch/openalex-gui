@@ -59,25 +59,25 @@
     <div v-if="groups.length" class="card-body">
 
       <div v-if="filterKey==='publication_year'" style="min-width: 200px">
-        <div class="d-flex align-center" v-if="groups">
-          <bar-graph
-              v-if="groups.length > 1"
-              :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
-              style="height: 100px;"
-              class="pa-2"
-              @click="selectGroup"
-          />
-          <div v-else class="text-h4 pa-3">
-            {{ groups[0].value }}
-          </div>
-          <v-spacer></v-spacer>
-          <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
+        <bar-graph
+            v-if="groups.length > 1"
+            :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
+            style="height: 100px;"
+            class="pa-2"
+            @click="selectGroup"
+        />
+        <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
+          <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
+          {{ groups[0].value }}
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-        <v-card flat rounded class="pb-2 d-flex my-3 ml-3 color-2 " @click="selectGroup(true)">
+        <v-card flat class="pa-2 d-flex color-2 hover-color-1" @click="isSelected = !isSelected">
+          <v-icon class="mr-4 ml-2" color="">{{
+              isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'
+            }}
+          </v-icon>
+
           <v-progress-circular
               size="50"
               width="17"
@@ -92,49 +92,24 @@
               {{ groups?.find(g => g.value != 0).count | toPrecision }}
             </div>
           </div>
-          <v-spacer></v-spacer>
-          <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
 
         </v-card>
 
 
       </div>
 
-      <table v-else class="serp-results-table " style="width: 100%;">
+      <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
-        <tr
+        <group-by-table-row
             v-for="group in groups"
             :key="group.value"
-            @click="selectGroup(group.value)"
-        >
-          <td class="body-2">
-            {{ group.displayValue }}
-          </td>
-          <td class="range body-2">
-            {{ group.count | toPrecision }}
-          </td>
-          <!--          <td>-->
-          <!--            <div style="height: 40px; width: 500px">-->
-          <!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
-          <!--                <v-spacer/>-->
-          <!--                <div class="d-flex"-->
-          <!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
-          <!--              </div>-->
+            :row="group"
+            :filter-key="filterKey"
+        />
 
-          <!--            </div>-->
-          <!--          </td>-->
-
-        </tr>
-        <!--        <results-table-row-->
-        <!--            v-for="result in resultsObject.results"-->
-        <!--            :key="result.id"-->
-        <!--            :entity="result"-->
-        <!--        />-->
 
         </tbody>
-      </table>
+      </v-simple-table>
     </div>
 
     <v-card-actions v-if="isMoreToShow">
@@ -153,55 +128,47 @@
     >
       <v-card :rounded="!$vuetify.breakpoint.mobile">
         <v-toolbar flat class="color-2">
-            <v-btn icon @click="isDialogOpen = false">
-              <v-icon>mdi-arrow-left</v-icon>
-            </v-btn>
+          <v-btn icon @click="isDialogOpen = false">
+            <v-icon>mdi-arrow-left</v-icon>
+          </v-btn>
 
           <v-toolbar-title>
-            {{ allGroups.length === 200 ? "Top 200 " : "All " + allGroups.length}}
-             {{ myFilterConfig.displayName | pluralize(2)}}
+            {{ allGroups.length === 200 ? "Top 200 " : "All " + allGroups.length }}
+            {{ myFilterConfig.displayName | pluralize(2) }}
           </v-toolbar-title>
         </v-toolbar>
         <v-card-text class="body-1 pa-0">
           <v-simple-table
           >
-<!--              fixed-header-->
-<!--              :height="$vuetify.breakpoint.mobile ? 'calc(100vh - 100px)' : '75vh'"-->
+            <!--              fixed-header-->
+            <!--              :height="$vuetify.breakpoint.mobile ? 'calc(100vh - 100px)' : '75vh'"-->
             <thead class="">
             <tr class="">
-<!--              <th class=""></th>-->
+                            <th class=""></th>
               <th class="">{{ myFilterConfig.displayName | capitalize }}</th>
               <th class="">Works count</th>
 
             </tr>
             </thead>
-            <tbody>
-            <tr
+            <tbody @click="isDialogOpen = false">
+            <group-by-table-row
                 v-for="group in allGroups"
                 :key="group.value"
-                @click="selectGroup(group.value)"
-            >
-<!--              <td>-->
-<!--                <v-icon>mdi-checkbox-blank</v-icon>-->
-<!--              </td>-->
-              <td class="body-2">
-                {{ group.displayValue }}
-              </td>
-              <td class="range body-2">
-                {{ group.count | toPrecision }}
-              </td>
-            </tr>
+                :row="group"
+                :filter-key="filterKey"
+
+            />
             </tbody>
 
           </v-simple-table>
         </v-card-text>
         <v-card-actions class="color-2">
-          <v-spacer />
+          <v-spacer/>
           <v-btn text rounded :href="apiUrl" target="_blank">
             <v-icon left>mdi-api</v-icon>
             API
           </v-btn>
-          <v-btn color="primary"  rounded :href="csvUrl" @click="isDialogOpen = false">
+          <v-btn color="primary" rounded :href="csvUrl" @click="isDialogOpen = false">
             <v-icon left>mdi-tray-arrow-down</v-icon>
             Export
           </v-btn>
@@ -227,6 +194,8 @@ import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
 import BarGraph from "@/components/BarGraph.vue";
 import {all} from "core-js/internals/document-all";
+import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
+import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "GroupBy",
@@ -234,6 +203,7 @@ export default {
     Template,
     ActionMenuItem,
     BarGraph,
+    GroupByTableRow,
 
   },
   props: {
@@ -264,21 +234,18 @@ export default {
       "entityType",
       "resultsCount",
     ]),
-    // selected: {
-    //   get() {
-    //     return this.$route.query.group_by
-    //   },
-    //   set(to) {
-    //     const query = {
-    //       ...this.$route.query,
-    //       group_by: to
-    //     }
-    //     url.pushToRoute(this.$router, {
-    //       name: "Serp",
-    //       query
-    //     })
-    //   }
-    // },
+    isSelected: {
+      get() {
+        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
+      },
+      set(to) {
+        if (to) {
+          url.upsertFilter(this.entityType, this.filterKey, true)
+        } else {
+          url.deleteFilter(this.entityType, this.filterKey)
+        }
+      }
+    },
     isMoreToShow() {
       return this.allGroups.length > this.groups.length
     },
@@ -350,11 +317,16 @@ export default {
   },
 
   methods: {
+    filter,
     ...mapMutations([
       "snackbar",
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
+    isOptionSelected(val) {
+      return url.isFilterOptionApplied(this.entityType, this.filterKey, val)
+
+    },
     async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
