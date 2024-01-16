@@ -213,6 +213,12 @@ $color-0: hsl(212, 77%, 82%);
 .color-0 {background-color: $color-0 !important;}
 
 
+.hover-color-3:hover {background-color: $color-3 !important; transition: background-color 500ms;}
+.hover-color-2:hover {background-color: $color-2 !important; transition: background-color 500ms;}
+.hover-color-1:hover {background-color: $color-1 !important; transition: background-color 500ms;}
+.hover-color-0:hover {background-color: $color-0 !important; transition: background-color 500ms;}
+
+
 .v-card.factoid-card {
   //background-color: #EEF5FC;
   background-color: $color-2;
