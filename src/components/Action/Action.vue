@@ -2,29 +2,28 @@
   <div>
     <v-menu
         rounded
-        offset-y
     >
       <template v-slot:activator="{on}">
         <v-btn
-            text
+            icon
             rounded
             v-on="on"
             class="font-weight-regular"
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <v-icon left>mdi-sort</v-icon>
-            Sort
+            <v-icon>mdi-sort</v-icon>
+<!--            Sort-->
 <!--            {{ selectedSortConfig.displayName }}-->
 
           </template>
           <template v-if="myConfig.id === 'group_by'">
-            Add
-            <v-icon right>mdi-menu-down</v-icon>
+<!--            Add-->
+            <v-icon>mdi-plus</v-icon>
           </template>
           <template v-if="myConfig.id === 'filter'">
-            Add
-            <v-icon right>mdi-menu-down</v-icon>
+<!--            Add-->
+            <v-icon>mdi-plus</v-icon>
           </template>
         </v-btn>
       </template>
@@ -38,6 +37,8 @@
       <!--      </v-card>-->
       <v-card flat class="">
         <v-list>
+          <v-subheader>Add  {{ myConfig?.displayName }}</v-subheader>
+          <v-divider />
           <v-list-item
               v-for="key in menuOptions"
               :key="key"
