@@ -2,19 +2,31 @@
 
   <v-card class="pb-2 color-3" width="100%" rounded flat>
     <!--    <search-bar class="pt-3" />-->
-    <v-toolbar flat  color="transparent ">
-      <v-toolbar-title class="body-1">
+    <v-toolbar flat color=" " class="color-2 mb-3">
+      <v-toolbar-title class="mr-2 ">
         Filters
+        <span class="font-weight-light">
         ({{ filters.length }})
 
-      </v-toolbar-title>
+        </span>
 
-      <v-spacer/>
+      </v-toolbar-title>
+      <search-bar
+          class="flex-grow-1" Ω
+          style=""
+          v-if="$vuetify.breakpoint.smAndUp"
+      />
+      <v-spacer v-else/>
       <Action
           class="ml-2"
           action="filter"
           @click="(key) => setActiveFilter(key)"
       />
+      <template v-slot:extension v-if="$vuetify.breakpoint.xsOnly">
+        <search-bar
+            class="flex-grow-1 mb-3"
+        />
+      </template>
 
     </v-toolbar>
     <div>
@@ -24,7 +36,7 @@
       <!--      />-->
     </div>
 
-    <div class="d-flex flex-wrap mb-2  px-4">
+    <div class="d-flex flex-wrap mb-2   px-4">
       <component
           v-for="(filter, i) in filters"
           :key="filter.key + $route.query.filter"
@@ -66,14 +78,14 @@
       <v-spacer/>
 
 
-<!--      <v-btn-->
-<!--          @click="dialogs.moreFilters = true"-->
-<!--          text-->
-<!--          small-->
-<!--          rounded-->
-<!--      >-->
-<!--        All filters-->
-<!--      </v-btn>-->
+      <!--      <v-btn-->
+      <!--          @click="dialogs.moreFilters = true"-->
+      <!--          text-->
+      <!--          small-->
+      <!--          rounded-->
+      <!--      >-->
+      <!--        All filters-->
+      <!--      </v-btn>-->
     </div>
 
     <v-dialog
