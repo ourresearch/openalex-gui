@@ -1,31 +1,45 @@
 <template>
   <div class="serp-page pb-12">
     <v-container class=" main-serp-container" style="max-width: 1785px;">
-      <v-row>
+      <v-row v-if="$vuetify.breakpoint.mdAndUp">
         <v-col class="flex-grow-1">
-<!--          <v-card rounded flat class="color-0 mb-4 py-2">-->
-<!--            <search-bar />-->
-<!--          </v-card>-->
-          <filter-list :results-object="resultsObject" class="mb-4"/>
-          <div v-if="resultsObject?.meta?.count">
-            <serp-results-list :results-object="resultsObject"/>
-          </div>
+          <filter-list :results-object="resultsObject" class="mb-8"/>
+          <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
         </v-col>
         <v-col
             cols="4"
             xl="6"
             v-if="$vuetify.breakpoint.mdAndUp"
         >
-          <analytic-views class="" />
+          <analytic-views class=""/>
         </v-col>
-
       </v-row>
-      <v-row v-if="$vuetify.breakpoint.smAndDown">
-        <v-card flat rounded class="color-3 mt-12">
-          <analytic-views/>
-        </v-card>
 
-      </v-row>
+      <template v-else>
+        <v-row>
+          <v-col>
+            <filter-list :results-object="resultsObject" class="mb-8"/>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col>
+            <v-tabs v-model="resultsTab">
+              <v-tab key="0">Results</v-tab>
+              <v-tab key="1">Analytics</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="resultsTab">
+              <v-tab-item key="0">
+                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
+              </v-tab-item>
+              <v-tab-item key="1">
+                <analytic-views/>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-col>
+        </v-row>
+      </template>
+
 
     </v-container>
 
@@ -111,6 +125,7 @@ export default {
         export: false,
         createAlert: false,
       },
+      resultsTab: 0,
       exportEmail: "",
       exportIsLoading: false,
       exportIsInProgress: false,
