@@ -5,24 +5,31 @@
     >
       <template v-slot:activator="{on}">
         <v-btn
-            icon
+            :icon="myConfig.id !== 'sort'"
             rounded
+            text
             v-on="on"
             class="font-weight-regular"
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <v-icon>mdi-sort</v-icon>
-<!--            Sort-->
-<!--            {{ selectedSortConfig.displayName }}-->
+            <!--            <v-icon left>mdi-sort</v-icon>-->
+            <template v-if="$vuetify.breakpoint.smAndUp">
+              {{ selectedSortConfig.displayName }}
+              <v-icon right>mdi-menu-down</v-icon>
+            </template>
+            <template v-else>
+              <v-icon>mdi-sort</v-icon>
+
+            </template>
 
           </template>
           <template v-if="myConfig.id === 'group_by'">
-<!--            Add-->
+            <!--            Add-->
             <v-icon>mdi-plus</v-icon>
           </template>
           <template v-if="myConfig.id === 'filter'">
-<!--            Add-->
+            <!--            Add-->
             <v-icon>mdi-plus</v-icon>
           </template>
         </v-btn>
@@ -37,8 +44,20 @@
       <!--      </v-card>-->
       <v-card flat class="">
         <v-list>
-          <v-subheader>Add  {{ myConfig?.displayName }}</v-subheader>
-          <v-divider />
+          <v-subheader>
+            <template v-if="myConfig.id === 'sort'">
+              Sort by:
+            </template>
+            <template v-if="myConfig.id === 'group_by'">
+              <!--              <v-icon left>mdi-table-plus</v-icon>-->
+              Add widget:
+            </template>
+            <template v-if="myConfig.id === 'filter'">
+              <!--              <v-icon left>mdi-filter-plus-outline</v-icon>-->
+              Add filter:
+            </template>
+          </v-subheader>
+          <v-divider/>
           <v-list-item
               v-for="key in menuOptions"
               :key="key"
@@ -183,7 +202,7 @@ export default {
       })
       return ret
     },
-    selectedSortConfig(){
+    selectedSortConfig() {
       if (this.action !== 'sort') return
       const key = url.getSort(this.$route)
       return getFacetConfig(this.entityType, key)
@@ -207,7 +226,7 @@ export default {
     getKeyDisplayName(key) {
       return getFacetConfig(this.entityType, key)?.displayName
     },
-    getKeyIcon(key){
+    getKeyIcon(key) {
       return getFacetConfig(this.entityType, key)?.icon
 
     },

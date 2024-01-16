@@ -3,7 +3,13 @@
     <v-container class=" main-serp-container" style="max-width: 1785px;">
       <v-row>
         <v-col>
-          <filter-list :results-object="resultsObject" class="mb-4"/>
+          <filter-list :results-object="resultsObject" class=""/>
+        </v-col>
+      </v-row>
+      <v-row v-if="isShowApiSet">
+        <v-col cols="12">
+          <serp-api-editor class=""/>
+
         </v-col>
       </v-row>
       <v-row v-if="$vuetify.breakpoint.mdAndUp">

@@ -2,21 +2,17 @@
   <v-card rounded flat class="color-3">
     <v-toolbar color="" flat class="color-2">
       <v-toolbar-title>
+      <v-icon left>mdi-format-list-bulleted</v-icon>
         Results
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <action class="ml-2" action="sort"/>
-      <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
+
       <export-button/>
+
     </v-toolbar>
-    <div class="ml-4 mb-3">
+    <div class="ml-4 mb-3 mt-3">
       <serp-results-count :results-object="resultsObject"/>
-    </div>
-    <div>
-      <serp-api-editor class="mx-2 mt-1 mb-4" v-if="isShowApiSet" />
     </div>
 
     <v-list class="mx-2" color="">
