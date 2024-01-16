@@ -1,5 +1,13 @@
 <template>
-  <v-card class="factoid-card" flat rounded :loading="isLoading" style="width: 100%;">
+  <v-card
+      min-height="100"
+      :min-width="minWidth"
+      class="factoid-card fill-height"
+      flat
+      rounded
+      :loading="isLoading"
+      style="width: 100%;"
+  >
     <v-toolbar dense flat color="transparent">
       <v-icon left>{{ selectedConfig.icon }}</v-icon>
       <v-toolbar-title>
@@ -30,11 +38,11 @@
             </v-list-item-icon>
             View in API
           </v-list-item>
-          <v-divider />
+          <v-divider/>
           <v-list-item @click="url.toggleGroupBy(selected)">
             <v-list-item-icon>
               <v-icon color="">mdi-delete-outline</v-icon>
-<!--              <v-icon>mdi-close-circle-outline</v-icon>-->
+              <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title class="">
@@ -48,93 +56,94 @@
 
     </v-toolbar>
     <v-divider/>
-    <div v-if="filterKey==='publication_year'" style="min-width: 200px">
-      <div class="d-flex align-center" v-if="groups">
-        <bar-graph
-            v-if="groups.length > 1"
-            :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
-            style="height: 100px;"
-            class="pa-2"
-            @click="selectGroup"
-        />
-        <div v-else class="text-h4 pa-3">
-          {{ groups[0].value }}
+    <div v-if="groups.length" class="card-body">
+
+      <div v-if="filterKey==='publication_year'" style="min-width: 200px">
+        <div class="d-flex align-center" v-if="groups">
+          <bar-graph
+              v-if="groups.length > 1"
+              :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
+              style="height: 100px;"
+              class="pa-2"
+              @click="selectGroup"
+          />
+          <div v-else class="text-h4 pa-3">
+            {{ groups[0].value }}
+          </div>
+          <v-spacer></v-spacer>
+          <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </div>
-        <v-spacer></v-spacer>
-        <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
       </div>
-    </div>
-    <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-      <v-card flat rounded class="pb-2 d-flex my-3 ml-3 color-2 " @click="selectGroup(true)">
-        <v-progress-circular
-            size="50"
-            width="17"
-            rotate="270"
-            :value="groups?.find(g => g.value != 0).countScaled * 100"
-        />
-        <div class="ml-3">
-          <div class="text-h4">
-            {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+      <div v-else-if="myFilterConfig.type === 'boolean'" class="">
+        <v-card flat rounded class="pb-2 d-flex my-3 ml-3 color-2 " @click="selectGroup(true)">
+          <v-progress-circular
+              size="50"
+              width="17"
+              rotate="270"
+              :value="groups?.find(g => g.value != 0).countScaled * 100"
+          />
+          <div class="ml-3">
+            <div class="text-h4">
+              {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+            </div>
+            <div class="body-2">
+              {{ groups?.find(g => g.value != 0).count | toPrecision }}
+            </div>
           </div>
-          <div class="body-2">
-            {{ groups?.find(g => g.value != 0).count | toPrecision }}
-          </div>
-        </div>
-        <v-spacer></v-spacer>
-        <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn v-if="isGroupSelected" icon @click.stop="unselectGroup">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
 
-      </v-card>
+        </v-card>
 
 
+      </div>
+
+      <table v-else class="serp-results-table " style="width: 100%;">
+        <tbody>
+        <tr
+            v-for="group in groups"
+            :key="group.value"
+            @click="selectGroup(group.value)"
+        >
+          <td class="body-2">
+            {{ group.displayValue }}
+          </td>
+          <td class="range body-2">
+            {{ group.count | toPrecision }}
+          </td>
+          <!--          <td>-->
+          <!--            <div style="height: 40px; width: 500px">-->
+          <!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
+          <!--                <v-spacer/>-->
+          <!--                <div class="d-flex"-->
+          <!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
+          <!--              </div>-->
+
+          <!--            </div>-->
+          <!--          </td>-->
+
+        </tr>
+        <!--        <results-table-row-->
+        <!--            v-for="result in resultsObject.results"-->
+        <!--            :key="result.id"-->
+        <!--            :entity="result"-->
+        <!--        />-->
+
+        </tbody>
+      </table>
     </div>
 
-    <table v-else class="serp-results-table " style="width: 100%;">
-      <!--        <thead>-->
-      <!--        <tr>-->
-      <!--          <th class="py-2">-->
-      <!--            {{ selectedConfig.displayName }}-->
-      <!--          </th>-->
-      <!--          <th class="pa-2">Works count</th>-->
-      <!--          <th></th>-->
+    <v-card-actions v-if="isMoreToShow">
+      <v-spacer/>
+      <v-btn small rounded text>
+        View more...
+      </v-btn>
 
-      <!--        </tr>-->
-      <!--        </thead>-->
-      <tbody>
-      <tr
-          v-for="group in groups"
-          :key="group.value"
-          @click="selectGroup(group.value)"
-      >
-        <td class="body-2">
-          {{ group.displayValue }}
-        </td>
-        <td class="range body-2">
-          {{ group.count | toPrecision }}
-        </td>
-        <!--          <td>-->
-        <!--            <div style="height: 40px; width: 500px">-->
-        <!--              <div class="d-flex flex-row-reverse" style="background: #eee; height: 100%;  min-width: 50px;">-->
-        <!--                <v-spacer/>-->
-        <!--                <div class="d-flex"-->
-        <!--                     :style="`background: #999; height: 100%; width: ${group.countScaled * 100}%;`"></div>-->
-        <!--              </div>-->
-
-        <!--            </div>-->
-        <!--          </td>-->
-
-      </tr>
-      <!--        <results-table-row-->
-      <!--            v-for="result in resultsObject.results"-->
-      <!--            :key="result.id"-->
-      <!--            :entity="result"-->
-      <!--        />-->
-
-      </tbody>
-    </table>
+    </v-card-actions>
   </v-card>
 
 </template>
@@ -173,6 +182,9 @@ export default {
       selectedValue: this.filterValue,
       searchString: "",
       isDialogOpen: false,
+      allGroups: [],
+      maxResults: 5,
+      maxResultsRange: 25,
 
     }
   },
@@ -197,6 +209,14 @@ export default {
     //     })
     //   }
     // },
+    isMoreToShow() {
+      return false
+    },
+    minWidth(){
+      return (this.myFilterConfig.type === "select") ?
+          300 :
+          150
+    },
     selectedConfig() {
       if (!this.selected) return
       return getFacetConfig(this.entityType, this.selected)
@@ -244,16 +264,28 @@ export default {
       )
     },
 
-    isGroupSelected(val){
+    isGroupSelected(val) {
       if (this.myFilterConfig.type === "boolean") {
         return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
       } else if (this.myFilterConfig.type === "range") {
         return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
       }
     },
+    groups(){
+      const maxResults = (this.myFilterConfig.type === "range") ?
+          this.maxResultsRange :
+          this.maxResults
+      return this.allGroups.slice(0, maxResults)
+    }
   },
-  asyncComputed: {
-    async groups() {
+
+  methods: {
+    ...mapMutations([
+      "snackbar",
+      "setApiDialogUrl",
+    ]),
+    ...mapActions([]),
+    async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
       const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
@@ -274,21 +306,10 @@ export default {
       }
 
 
+      this.allGroups = ret
       this.isLoading = false
-      const maxResults = (this.myFilterConfig.type === "range") ?
-          25 :
-          5
-      return ret.slice(0, maxResults)
-    }
-  },
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-      "setApiDialogUrl",
-    ]),
-    ...mapActions([]),
-
+    },
     unselectGroup(val) {
       if (this.myFilterConfig.type === "boolean") {
         url.deleteFilter(this.entityType, this.filterKey)
@@ -305,21 +326,21 @@ export default {
       } else {
         if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
           url.addFilterOption(this.entityType, this.filterKey, val)
-        }
-        else {
+        } else {
           url.upsertFilter(this.entityType, this.filterKey, val)
         }
       }
     },
-
-
   },
-  created() {
-  },
-  mounted() {
 
-  },
-  watch: {}
+  watch: {
+    "$route.query.filter": {
+      immediate: true,
+      handler(to, from) {
+        this.getGroups()
+      }
+    }
+  }
 }
 </script>
 

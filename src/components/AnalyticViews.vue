@@ -9,7 +9,7 @@
       <v-spacer />
       <Action class="ml-2" action="group_by"/>
     </v-toolbar>
-    <v-container class="">
+    <v-container class="pt-0">
       <v-row dense  class="">
         <v-col
             v-for="key in groupByKeys"
