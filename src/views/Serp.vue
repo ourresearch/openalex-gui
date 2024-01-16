@@ -1,9 +1,15 @@
 <template>
   <div class="serp-page pb-12">
     <v-container class=" main-serp-container" style="max-width: 1785px;">
+      <v-row>
+        <v-col>
+
+          <filter-list :results-object="resultsObject" class="mb-4"/>
+        </v-col>
+      </v-row>
       <v-row v-if="$vuetify.breakpoint.mdAndUp">
         <v-col class="flex-grow-1">
-          <filter-list :results-object="resultsObject" class="mb-8"/>
+
           <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
         </v-col>
         <v-col
@@ -16,12 +22,6 @@
       </v-row>
 
       <template v-else>
-        <v-row>
-          <v-col>
-            <filter-list :results-object="resultsObject" class="mb-8"/>
-          </v-col>
-        </v-row>
-
         <v-row>
           <v-col>
             <v-tabs v-model="resultsTab">

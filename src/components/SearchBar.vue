@@ -17,7 +17,6 @@
         nudge-top="4"
         scrollable
         fullscreen
-        max-width="600"
         :rounded="$vuetify.breakpoint.smAndUp"
     >
       <template v-slot:activator="{on}">
@@ -62,7 +61,7 @@
             <div style="" class="d-flex flex-column justify-center">
               <v-progress-circular
                   v-if="isLoading"
-                  indeterminate size="25"
+                  indeterminate size="28"
                   color="grey lighten-1"
               />
               <v-btn small icon v-else class="" @click="isMenuOpen = false">
@@ -106,7 +105,7 @@
                 <v-icon left>{{ suggestion.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title class="" style="white-space: unset;">
+                <v-list-item-title class="" style="white-space: unset; max-width: 600px;">
                   {{ suggestion.display_name }}
                 </v-list-item-title>
                 <div class="body-2" style="color: #777;">

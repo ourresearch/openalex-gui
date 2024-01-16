@@ -1,27 +1,35 @@
 <template>
 
-  <v-card class="pb-2 color-3" width="100%" rounded flat>
+  <v-card class="pb-2 color-2" width="100%" rounded flat>
     <!--    <search-bar class="pt-3" />-->
-    <v-toolbar flat color=" " class="color-2 mb-3">
-      <v-toolbar-title class="mr-2 ">
-        Filters
-        <span class="font-weight-light">
-        ({{ filters.length }})
+    <v-toolbar flat color=" " class="color-1 mb-3">
+      <v-row class="align-center">
+        <v-col cols="9" md="8" xl="6" class="d-flex align-center">
+          <v-toolbar-title class="mr-2 ">
+            Filters
+            <span class="font-weight-light">
+            ({{ filters.length }})
 
-        </span>
+            </span>
 
-      </v-toolbar-title>
-      <search-bar
-          class="flex-grow-1" Ω
-          style=""
-          v-if="$vuetify.breakpoint.smAndUp"
-      />
-      <v-spacer v-else/>
-      <Action
-          class="ml-2"
-          action="filter"
-          @click="(key) => setActiveFilter(key)"
-      />
+          </v-toolbar-title>
+          <search-bar
+              class="flex-grow-1" Ω
+              style=""
+              v-if="$vuetify.breakpoint.smAndUp"
+          />
+          <v-spacer v-else/>
+
+        </v-col>
+        <v-col class="d-flex align-center">
+          <v-spacer />
+          <Action
+              class="ml-2"
+              action="filter"
+              @click="(key) => setActiveFilter(key)"
+          />
+        </v-col>
+      </v-row>
       <template v-slot:extension v-if="$vuetify.breakpoint.xsOnly">
         <search-bar
             class="flex-grow-1 mb-3"
