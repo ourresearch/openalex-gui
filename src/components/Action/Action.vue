@@ -6,6 +6,7 @@
       <template v-slot:activator="{on}">
         <v-btn
             :icon="myConfig.id !== 'sort'"
+            :small="myConfig.id === 'sort'"
             rounded
             text
             v-on="on"

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-center">
-        <div v-if="$vuetify.breakpoint.smAndDown" class="">
+        <div v-if="$vuetify.breakpoint.smAndDown" class="grey--text">
           <span class="font-weight-bold grey--text">{{ resultsObject?.meta.count | millify }}</span> {{entityType | pluralize(2)}}
         </div>
     <div v-else class="grey--text">
