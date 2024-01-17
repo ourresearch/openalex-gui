@@ -43,18 +43,11 @@
 
 
 
-    <v-dialog rounded v-model="isActive" max-width="600">
-      <v-card rounded>
-        <filter-select-add-option
-            @submit="submit"
-            :filter-key="filterKey"
-        />
-        <v-divider/>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text rounded @click="isActive = false">Cancel</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-dialog scrollable :fullscreen="$vuetify.breakpoint.mobile" v-model="isActive" max-width="600">
+      <filter-select-edit
+          :filter-key="filterKey"
+          @close="isActive = false"
+      />
     </v-dialog>
 
 
@@ -75,8 +68,8 @@ import {api} from "@/api";
 import {filter} from "core-js/internals/array-iteration";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
-import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
+import FilterSelectEdit from "@/components/Filter/FilterSelectEdit.vue";
 
 export default {
   name: "Template",
@@ -85,7 +78,10 @@ export default {
     FilterMatchMode,
     FilterSelectAddOption,
 
-    EditPhraseOption,
+    FilterSelectEdit,
+
+
+
   },
   props: {
     filterKey: String,

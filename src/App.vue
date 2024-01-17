@@ -98,8 +98,6 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
-import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
-import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import {url} from "@/url";
 
 export default {
@@ -111,8 +109,6 @@ export default {
     meta: []
   },
   components: {
-    FilterBarSearch,
-    FilterBar,
     SearchBoxNew,
     SiteFooter,
     SiteNav,

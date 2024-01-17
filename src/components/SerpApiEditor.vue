@@ -4,12 +4,12 @@
         flat
         rounded
         style="font-family: Monaco, monospace; min-height: 40px;"
-        class="d-flex align-start pa-2 color-1"
+        class="d-flex align-start pa-2 pr-5 color-3"
 
     >
       <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>
       <div class="flex-grow-1 mt-1">
-        /works<span v-html="apiQuerySplittable"></span>
+        https://api.openalex.org/works<span v-html="apiQuerySplittable"></span>
 <!--        <span v-for="part in apiQuerySplittable" :key="part">-->
 <!--        {{ part }}-->
 <!--      </span>-->

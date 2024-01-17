@@ -83,15 +83,15 @@ const pushNewFilters = async function (newFilters) {
 
 
 const createFilter = async function (entityType, key, newValue) {
-    console.log("url.createFilter()", entityType, key, newValue);
-
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    if (oldFilters.map(f => f.key).includes(key)) {
-        throw Error("OpenAlex: url.createFilter trying to create a filter with a key that's already in URL")
-    }
-    const newFilters = [...oldFilters, createSimpleFilter(entityType, key, newValue)]
-
+    const newFilters = createFilterNoPush(entityType, key, newValue)
     return await pushNewFilters(newFilters)
+
+}
+
+const createFilterNoPush = function (entityType, key, newValue) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    const newFilter =  createSimpleFilter(entityType, key, newValue)
+    return [...oldFilters, newFilter]
 
 }
 const readFilter = function (entityType, key) {
@@ -165,9 +165,15 @@ const deleteFilterOption = async function (entityType, key, optionToDelete) {
 
     return await pushNewFilters(newFilters.filter(f => !!f))
 }
-const addFilterOption = async function (entityType, key, optionToAdd) {
-    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
+
+const addFilterOption = async function (entityType, key, optionToAdd) {
+    const newFilters = addFilterOptionNoPush(entityType, key, optionToAdd)
+    return await pushNewFilters(newFilters)
+}
+
+const addFilterOptionNoPush = function (entityType, key, optionToAdd) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     const newFilters = oldFilters.map(oldFilter => {
         const newValue = (oldFilter.key === key) ?
             addOptionToFilterValue(oldFilter.value, optionToAdd) :
@@ -179,8 +185,7 @@ const addFilterOption = async function (entityType, key, optionToAdd) {
             newValue
         )
     })
-
-    return await pushNewFilters(newFilters)
+    return newFilters
 }
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -249,8 +254,16 @@ const upsertFilterOption = function (entityType, filterKey, filterOption) {
     } else {
         upsertFilter(entityType, filterKey, filterOption)
     }
-
 }
+
+const upsertFilterOptionNoPush = function (entityType, filterKey, filterOption) {
+    const isExtant = isFilterApplied(router.currentRoute, entityType, filterKey)
+    return isExtant ?
+        addFilterOptionNoPush(entityType, filterKey, filterOption) :
+        createFilterNoPush(entityType, filterKey, filterOption)
+}
+
+
 
 
 const deleteFilter = async function (entityType, key) {
@@ -385,6 +398,11 @@ const setGroupBy = function (filterKeys) {
 const addGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     const newKeys = [...extantKeys, filterKey]
+    pushQueryParam("group_by", newKeys.join(","))
+}
+const deleteGroupBy = function (filterKey) {
+    const extantKeys = getGroupBy(router.currentRoute)
+    const newKeys = extantKeys.filter(k => k !== filterKey)
     pushQueryParam("group_by", newKeys.join(","))
 }
 const toggleGroupBy = function (filterKey) {
@@ -573,6 +591,7 @@ const url = {
     deleteAllFilters,
     upsertFilter,
     upsertFilterOption,
+    upsertFilterOptionNoPush,
     setFilterMatchMode,
     makeFilterRoute,
     pushNewFilters,
@@ -592,6 +611,7 @@ const url = {
     setSort,
     setGroupBy,
     toggleGroupBy,
+    deleteGroupBy,
     setColumn,
     addColumn,
     toggleColumn,

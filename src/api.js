@@ -1,7 +1,7 @@
 import axios from 'axios'
 import _ from 'lodash'
 import {url} from "@/url";
-import {createDisplayFilter, createSimpleFilter} from "@/filterConfigs";
+import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
 import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
@@ -171,6 +171,15 @@ const api = (function () {
         }
     }
 
+    const getResultsCount = async function(entityType, filters){
+        const searchParams = {
+            filter: filtersAsUrlStr(filters)
+        }
+        const url = makeUrl(entityType, searchParams)
+        const ret = await getUrl(url)
+        return ret.meta.count
+    }
+
 
     return {
         createUrl: function (pathName, searchParams, includeEmail) {
@@ -181,6 +190,7 @@ const api = (function () {
         makeAutocompleteResponseFromId,
         getUrl,
         getResultsList,
+        getResultsCount,
         getEntity,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)

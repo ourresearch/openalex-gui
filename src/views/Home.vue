@@ -171,7 +171,6 @@
 
 <script>
 
-import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
 
