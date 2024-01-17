@@ -159,8 +159,6 @@
 
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
-import FilterBarSuggestions from "@/components/FilterBar/FilterBarSuggestions.vue";
 
 import FilterPhraseSearch from "@/components/Filter/FilterSearch.vue";
 import FilterPhraseSelect from "@/components/Filter/FilterSelect.vue";
@@ -196,8 +194,6 @@ export default {
     FilterPhraseRange,
     FilterPhraseBoolean,
 
-    FilterBarSearch,
-    FilterBarSuggestions,
     VueTyper,
   },
   props: {

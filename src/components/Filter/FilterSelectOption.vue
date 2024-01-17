@@ -41,14 +41,13 @@
         </div>
         <v-spacer></v-spacer>
 
-        <v-chip
-               class="ml-2"
-               small
+        <v-btn
+               class="ml-4"
+               icon
                :to="filterId | entityZoomLink"
                v-if="isEntity">
-          Profile
-          <v-icon right>mdi-chevron-right</v-icon>
-        </v-chip>
+          <v-icon>mdi-information-outline</v-icon>
+        </v-btn>
 
 
       </div>

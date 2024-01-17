@@ -156,20 +156,16 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import FilterBarSearch from "@/components/FilterBar/FilterBarSearch.vue";
-import FilterBarSuggestions from "@/components/FilterBar/FilterBarSuggestions.vue";
 
 import FilterPhraseSearch from "@/components/Filter/FilterSearch.vue";
 import FilterPhraseSelect from "@/components/Filter/FilterSelect.vue";
 import FilterPhraseRange from "@/components/Filter/FilterRange.vue";
 import FilterPhraseBoolean from "@/components/Filter/FilterBoolean.vue";
 
-import NewFilter from "@/components/NewFilter/NewFilter.vue";
 
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import FilterBar from "@/components/FilterBar/FilterBar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import SearchBar from "@/components/SearchBar.vue";
@@ -186,10 +182,7 @@ export default {
     FilterPhraseRange,
     FilterPhraseBoolean,
 
-    FilterBarSearch,
-    FilterBarSuggestions,
 
-    NewFilter,
     ExportButton,
   },
   props: {},

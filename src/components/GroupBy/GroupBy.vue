@@ -41,12 +41,12 @@
           <v-divider/>
           <v-list-item @click="url.toggleGroupBy(selected)">
             <v-list-item-icon>
-              <v-icon color="">mdi-delete-outline</v-icon>
+              <v-icon color="">mdi-pin-off-outline</v-icon>
               <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title class="">
-                Remove
+                Unpin
               </v-list-item-title>
 
             </v-list-item-content>
@@ -101,11 +101,14 @@
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
-            v-for="group in groups"
-            :key="group.value"
-            :row="group"
-            :filter-key="filterKey"
-        />
+                v-for="row in groups"
+                :key="row.value"
+
+                :filter-key="filterKey"
+                :value="row.value"
+                :display-value="row.displayValue"
+                :count="row.count"
+            />
 
 
         </tbody>
@@ -115,7 +118,7 @@
     <v-card-actions v-if="isMoreToShow">
       <v-spacer/>
       <v-btn small rounded text @click="isDialogOpen = true">
-        View more...
+        More...
       </v-btn>
 
     </v-card-actions>
@@ -126,55 +129,7 @@
         max-width="600"
         scrollable
     >
-      <v-card :rounded="!$vuetify.breakpoint.mobile">
-        <v-toolbar flat class="color-2">
-          <v-btn icon @click="isDialogOpen = false">
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
-
-          <v-toolbar-title>
-            {{ allGroups.length === 200 ? "Top 200 " : "All " + allGroups.length }}
-            {{ myFilterConfig.displayName | pluralize(2) }}
-          </v-toolbar-title>
-        </v-toolbar>
-        <v-card-text class="body-1 pa-0">
-          <v-simple-table
-          >
-            <!--              fixed-header-->
-            <!--              :height="$vuetify.breakpoint.mobile ? 'calc(100vh - 100px)' : '75vh'"-->
-            <thead class="">
-            <tr class="">
-                            <th class=""></th>
-              <th class="">{{ myFilterConfig.displayName | capitalize }}</th>
-              <th class="">Works count</th>
-
-            </tr>
-            </thead>
-            <tbody @click="isDialogOpen = false">
-            <group-by-table-row
-                v-for="group in allGroups"
-                :key="group.value"
-                :row="group"
-                :filter-key="filterKey"
-
-            />
-            </tbody>
-
-          </v-simple-table>
-        </v-card-text>
-        <v-card-actions class="color-2">
-          <v-spacer/>
-          <v-btn text rounded :href="apiUrl" target="_blank">
-            <v-icon left>mdi-api</v-icon>
-            API
-          </v-btn>
-          <v-btn color="primary" rounded :href="csvUrl" @click="isDialogOpen = false">
-            <v-icon left>mdi-tray-arrow-down</v-icon>
-            Export
-          </v-btn>
-
-        </v-card-actions>
-      </v-card>
+      <filter-select-edit :filter-key="filterKey" @close="isDialogOpen = false" />
     </v-dialog>
   </v-card>
 
@@ -196,6 +151,7 @@ import BarGraph from "@/components/BarGraph.vue";
 import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import {filter} from "core-js/internals/array-iteration";
+import FilterSelectEdit from "@/components/Filter/FilterSelectEdit.vue";
 
 export default {
   name: "GroupBy",
@@ -204,6 +160,7 @@ export default {
     ActionMenuItem,
     BarGraph,
     GroupByTableRow,
+    FilterSelectEdit,
 
   },
   props: {
@@ -346,8 +303,6 @@ export default {
           return (a.value > b.value) ? -1 : 1
         })
       }
-
-
       this.allGroups = ret
       this.isLoading = false
 

@@ -1,17 +1,14 @@
 <template>
   <div class="serp-page pb-12">
+
     <v-container class=" main-serp-container" style="max-width: 1785px;">
+    <serp-api-editor v-if="isShowApiSet" class="mt-3 mb-2"/>
       <v-row>
         <v-col>
           <filter-list :results-object="resultsObject" class=""/>
         </v-col>
       </v-row>
-      <v-row v-if="isShowApiSet">
-        <v-col cols="12">
-          <serp-api-editor class=""/>
 
-        </v-col>
-      </v-row>
       <v-row v-if="$vuetify.breakpoint.mdAndUp">
         <v-col class="flex-grow-1">
           <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
