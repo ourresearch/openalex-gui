@@ -48,13 +48,11 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
-import EditPhraseBoolean from "@/components/EditPhrase/EditPhraseBoolean.vue";
 import {url} from "@/url";
 
 export default {
   name: "FilterValueSearch",
   components: {
-    EditPhraseBoolean,
   },
   props: {
     filterKey: String,

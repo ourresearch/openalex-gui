@@ -1,25 +1,35 @@
 <template>
-  <tr @click="isSelected = !isSelected" class="group-by-table-row hover-color-1">
+  <tr @click="clickRow" class="group-by-table-row hover-color-1">
     <td class="pr-0" style="width: 1px; white-space: nowrap">
-      <v-icon v-if="isSelected">mdi-checkbox-marked</v-icon>
+      <template v-if="isApplied">
+        <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
+        <v-icon v-else>mdi-checkbox-marked</v-icon>
+      </template>
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </td>
 
     <td class="body-2">
-      {{ displayValue }}
+      <template v-if="isNegated" class="font-weight-bold">NOT </template>
+        {{ myDisplayValue }}
+
+<!--      <span class="d-inline-flex align-baseline">-->
+<!--        <span v-if="isNegated" class="font-weight-bold">NOT </span>-->
+<!--        <span>{{ myDisplayValue }}</span>-->
+<!--      </span>-->
+
     </td>
-    <td class="range body-2 text-right">
+    <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
     </td>
-    <td class="px-0" style="width: 1px; white-space: nowrap">
+    <td class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
       <v-menu rounded v-model="isMenuOpen">
         <template v-slot:activator="{on}">
           <v-btn small icon v-on="on">
-            <v-icon small>mdi-dots-horizontal</v-icon>
+            <v-icon small>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list @click.stop="isMenuOpen = false">
-          <v-list-item :to="value | entityZoomLink">
+          <v-list-item :to="valueId | entityZoomLink">
             <v-list-item-icon>
               <v-icon>mdi-information-outline</v-icon>
             </v-list-item-icon>
@@ -27,17 +37,20 @@
           </v-list-item>
           <v-divider/>
 
-          <v-list-item @click="isSelected = !isSelected">
+          <v-list-item @click="isApplied = !isApplied">
             <v-list-item-icon>
-              <v-icon>{{ isSelected ? 'mdi-filter-off-outline' : 'mdi-filter-outline' }}</v-icon>
+              <v-icon>{{ isApplied ? 'mdi-filter-off-outline' : 'mdi-filter-outline' }}</v-icon>
             </v-list-item-icon>
-            {{ isSelected ? 'Remove' : 'Apply' }} filter
+            {{ isApplied ? 'Remove' : 'Apply' }} filter
           </v-list-item>
-          <v-list-item @click="isNegated = !isNegated">
+          <v-list-item
+              @click="isNegated = !isNegated"
+              v-if="isApplied"
+          >
             <v-list-item-icon>
-              <v-icon>mdi-filter-outline</v-icon>
+              <v-icon>{{ isNegated ? 'mdi-minus-circle-off' : 'mdi-minus-circle' }}</v-icon>
             </v-list-item-icon>
-            Negate filter
+            {{ isNegated ? 'Remove negation' : 'Negate filter' }}
           </v-list-item>
 
           <!--          <v-divider/>-->
@@ -72,16 +85,15 @@ export default {
   props: {
     filterKey: String,
     value: String,
-    displayValue: String,
-    jason: String,
+    displayValue: String || null,
     count: Number || null,
   },
   data() {
     return {
       isMenuOpen: false,
-      isNegated: false,
       foo: 42,
       myCount: this.count,
+      myDisplayValue: this.displayValue,
     }
   },
   computed: {
@@ -89,7 +101,10 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    isSelected: {
+    valueId(){
+      return this.value.replace("!", "")
+    },
+    isApplied: {
       get() {
         return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
       },
@@ -100,8 +115,15 @@ export default {
           url.deleteFilterOption(this.entityType, this.filterKey, this.value)
         }
       }
-
-    }
+    },
+    isNegated: {
+      get() {
+        return this.value.indexOf("!") === 0
+      },
+      set(to) {
+        url.setFilterOptionIsNegated(this.entityType, this.filterKey, this.value, to)
+      }
+    },
   },
 
   methods: {
@@ -109,18 +131,24 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    async getCounts() {
+    clickRow(){
+      return this.isNegated ?
+          this.isNegated = false :
+          this.isApplied = !this.isApplied
+    },
+    async getMyCount() {
       if (this?.myCount) return
-      console.log("getCounts passed guard clause")
 
       const filters = url.upsertFilterOptionNoPush(this.entityType, this.filterKey, this.value)
       const count = await api.getResultsCount(this.entityType, filters)
 
       console.log("myCount results count", count)
       this.myCount = count
-
-
-    }
+    },
+    async getMyDisplayValue() {
+      if (this?.myDisplayValue) return // no need to get it it we've got it already
+      this.myDisplayValue =  await api.getFilterValueDisplayName(this.filterKey, this.valueId)
+    },
 
 
   },
@@ -132,7 +160,8 @@ export default {
     value: {
       immediate: true,
       handler(to, from) {
-        this.getCounts()
+        this.getMyCount()
+        this.getMyDisplayValue()
       }
     }
   }

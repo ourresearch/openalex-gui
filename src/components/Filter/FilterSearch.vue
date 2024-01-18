@@ -65,18 +65,13 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
-import Template from "@/components/Filter/FilterSelect.vue";
 
 
-import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
-    FilterMatchMode,
-    EditPhraseSearch,
   },
   props: {
     filterKey: String,

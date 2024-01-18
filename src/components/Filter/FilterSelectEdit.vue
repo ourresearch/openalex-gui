@@ -11,6 +11,11 @@
         {{ filterConfig.displayName }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <filter-match-mode
+          :filter-key="filterKey"
+          v-if="selectedGroups?.length > 1"
+          icon
+      />
       <filter-select-menu :filter-key="filterKey"/>
 
 
@@ -32,6 +37,13 @@
       <v-simple-table
       >
         <tbody>
+        <group-by-table-row
+                v-for="id in negatedGroupIds"
+                :key="'negated-id-' + id"
+
+                :filter-key="filterKey"
+                :value="id"
+            />
         <group-by-table-row
             v-for="row in rows"
             :key="row.value"
@@ -58,10 +70,13 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import {api} from "@/api";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import FilterSelectMenu from "@/components/Filter/FilterSelectMenu.vue";
+import {url} from "@/url";
+import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "Template",
   components: {
+    filterMatchMode,
     GroupByTableRow,
     FilterSelectMenu,
   },
@@ -108,7 +123,16 @@ export default {
       return (this.autocompleteResponses.length) ?
           this.autocompleteResponsesInGroupFormat :
           this.filteredGroups
-    }
+    },
+
+    selectedGroups(){
+      return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
+    },
+    negatedGroupIds(){
+      return this.selectedGroups.filter(val => {
+           return val.indexOf("!") === 0
+         })
+    },
   },
 
   methods: {
