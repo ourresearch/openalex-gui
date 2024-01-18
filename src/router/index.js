@@ -88,7 +88,7 @@ const routes = [
     // Move feedback to Zendesk form (see below)
     // {path: '/help', component: Help},
     // {path: '/feedback', component: Help},
-    {path: '/contact',  component: Help},
+    // {path: '/contact',  component: Help},
     {path: '/pricing', component: Pricing},
     // Move webinars to help docs (see below)
     // {path: '/webinars', component: Webinars},
@@ -110,6 +110,7 @@ const routes = [
     
     {path: '/help', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
     {path: '/feedback', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
+    {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
 
     {path: '*', component: PageNotFound},
 
