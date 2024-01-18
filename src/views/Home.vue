@@ -51,16 +51,48 @@
       <!--          citations, authors, institutional affiliations, and more &mdash; and we're 100% free and open source.-->
       <!--        </p>-->
 
-      <v-divider id="learn-more" class="mt-3 mb-12" />
+    </v-container>
+      <v-divider id="learn-more" class=""/>
+    <div class="color-3 lighten-5 py-4 mb-8">
+      <div class="text-center body-2 grey--text pb-2">
+        Trusted by hundreds of institutions worldwide, including
+      </div>
+      <div class="d-flex align-center justify-center flex-wrap user-logo-container"
+           :class="{mobile: $vuetify.breakpoint.mobile}">
+        <img class="user-logo"
+             src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
+             alt="">
+        <img class="user-logo"
+             src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Grammarly_logo.svg/320px-Grammarly_logo.svg.png"
+             alt="">
+        <img class="user-logo tall"
+             src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png"
+             alt="">
+        <!--          <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Bristol-Myers_Squibb_logo_%282020%29.svg/800px-Bristol-Myers_Squibb_logo_%282020%29.svg.png" alt="">-->
+        <img class="user-logo short"
+             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Logo_EPFL.svg/320px-Logo_EPFL.svg.png"
+             alt="">
+        <img class="user-logo tall"
+             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Logo_Bayer.svg/240px-Logo_Bayer.svg.png"
+             alt="">
+        <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Jisc_logo.png" alt="">
+        <img class="user-logo"
+             src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Chan_Zuckerberg_Initiative.svg/320px-Chan_Zuckerberg_Initiative.svg.png"
+             alt="">
+      </div>
+
+    </div>
+    <v-container>
+
       <v-row>
         <v-col cols="12">
-          <div class="text-h4 py-9">
+          <div class="text-h4 py-9 pt-12">
             OpenAlex is a free global index of
-            <vue-typer
-                class="font-weight-bold d-block d-lg-inline"
-                :text="textToType"
-                :pre-erase-delay='1000'
-            />
+                        <vue-typer
+                            class="font-weight-bold d-block d-lg-inline"
+                            :text="textToType"
+                            :pre-erase-delay='1000'
+                        />
           </div>
         </v-col>
       </v-row>
@@ -68,7 +100,7 @@
       <v-row class="">
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
-            <v-card-title>
+            <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-earth-plus</v-icon>
               Industry-leading coverage
             </v-card-title>
@@ -93,7 +125,7 @@
         </v-col>
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
-            <v-card-title>
+            <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-lock-open-variant</v-icon>
               Open, top to bottom
             </v-card-title>
@@ -125,7 +157,7 @@
         </v-col>
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
-            <v-card-title>
+            <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-hand-heart</v-icon>
               Sustainably not-for-profit
             </v-card-title>
@@ -154,7 +186,7 @@
 
 
       </v-row>
-<!--      <v-divider class="mt-12" />-->
+      <!--      <v-divider class="mt-12" />-->
 
     </v-container>
   </div>
@@ -231,6 +263,38 @@ export default {
     padding-left: .3em;
     font-weight: 500;
   }
+}
+
+.user-logo-container {
+  &.mobile {
+    .user-logo {
+      height: 30px;
+      &.tall {
+        height: 35px;
+      }
+
+      &.short {
+        height: 25px;
+      }
+    }
+
+  }
+
+  .user-logo {
+    height: 50px;
+    margin:20px;
+    filter: grayscale(1);
+    opacity: .66;
+
+    &.tall {
+      height: 70px;
+    }
+
+    &.short {
+      height: 40px;
+    }
+  }
+
 }
 
 
