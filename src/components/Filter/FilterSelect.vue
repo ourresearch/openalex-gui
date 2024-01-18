@@ -9,29 +9,38 @@
     </div>
     <div>
       <div class="caption mb-1">
-          {{ config.displayName }} {{ !config.isVerb ? "is" : ""}}
-          <filter-match-mode
-              v-if="optionIds.length > 1"
-              :filter-key="filterKey"
-          />
+        {{ config.displayName }} {{ !config.isVerb ? "is" : "" }}
 
-        </div>
+
+      </div>
 
       <div class="d-flex flex-wrap"
       >
-<!--           style="margin-left: -11px;"-->
+        <!--           style="margin-left: -11px;"-->
 
-
-        <filter-select-option
-            class=""
+        <template
             v-for="(id, i) in optionIds"
-            :key="id"
-            :filter-value="id"
-            :filter-key="filterKey"
-            :match-mode="url.readFilterMatchMode(entityType, filterKey)"
-            :position="i"
-            @delete="deleteOption(id)"
-        />
+
+        >
+          <filter-select-option
+              class=""
+              :key="id"
+              :filter-value="id"
+              :filter-key="filterKey"
+              :position="i"
+              @delete="deleteOption(id)"
+          />
+          <span
+              :key="'matchmode'+i"
+              v-if="i < optionIds.length-1"
+              class="mr-1"
+          >
+            <filter-match-mode
+                :filter-key="filterKey"
+            />
+          </span>
+
+        </template>
 
 
         <v-btn class="" icon @click="$store.state.activeFilterKey = filterKey">
@@ -42,14 +51,12 @@
     </div>
 
 
-
     <v-dialog scrollable :fullscreen="$vuetify.breakpoint.mobile" v-model="isActive" max-width="600">
       <filter-select-edit
           :filter-key="filterKey"
           @close="isActive = false"
       />
     </v-dialog>
-
 
 
   </v-card>
@@ -67,8 +74,6 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {filter} from "core-js/internals/array-iteration";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
-
-import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import FilterSelectEdit from "@/components/Filter/FilterSelectEdit.vue";
 
 export default {
@@ -76,10 +81,8 @@ export default {
   components: {
     FilterSelectOption,
     FilterMatchMode,
-    FilterSelectAddOption,
 
     FilterSelectEdit,
-
 
 
   },
@@ -128,7 +131,7 @@ export default {
     },
     optionIds: {
       get() {
-        return url.readFilterOptions(this.entityType, this.filterKey)
+        return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
       },
       set(to) {
         console.log("set appliedOptionIds", to)
@@ -197,6 +200,7 @@ export default {
 input {
   padding: 0 3px !important;
 }
+
 .filter-select {
   background: #EEF5FC;
 }

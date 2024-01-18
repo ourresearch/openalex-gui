@@ -132,7 +132,6 @@ const api = (function () {
     }
 
     const getFilterValueDisplayName = async function (filterKey, id) {
-        console.log("getFilterValueDisplayName", filterKey, id)
         if (filterKey === "institutions.country_code") {
             return openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())?.display_name
         }

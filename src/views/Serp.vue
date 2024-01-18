@@ -27,7 +27,7 @@
           <v-col>
             <v-tabs v-model="resultsTab">
               <v-tab key="0">Results</v-tab>
-              <v-tab key="1">Analytics</v-tab>
+              <v-tab key="1">Summaries</v-tab>
             </v-tabs>
             <v-tabs-items v-model="resultsTab">
               <v-tab-item key="0">

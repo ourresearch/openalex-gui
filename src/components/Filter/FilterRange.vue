@@ -78,16 +78,12 @@ import {url} from "@/url";
 import Template from "@/components/Filter/FilterSelect.vue";
 
 
-import EditPhraseSearch from "@/components/EditPhrase/EditPhraseSearch.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import TryChips from "@/components/TryChips.vue";
 
 export default {
   name: "FilterValueSearch",
   components: {
-    FilterMatchMode,
-    EditPhraseSearch,
     TryChips,
   },
   props: {

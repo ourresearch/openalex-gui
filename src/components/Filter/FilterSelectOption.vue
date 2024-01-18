@@ -51,7 +51,7 @@
 
 
       </div>
-      <v-divider/>
+      <v-divider v-if="isEntity" />
       <v-card-text class="pa-4" v-if="isEntity">
         <div v-if="alternateNamesString">
           <span class="font-weight-bold">Alternate names: </span>
@@ -65,14 +65,26 @@
       </v-card-text>
 
       <v-divider/>
-      <v-card-actions v-if="isEntity">
+      <v-card-actions>
         <v-spacer/>
+
+        <v-btn
+            class="ml-2"
+            text
+            rounded
+            @click="deleteMe"
+        >
+          <v-icon left>mdi-filter-off-outline</v-icon>
+          Remove
+        </v-btn>
+
         <v-btn
             class="ml-2"
             text
             rounded
             @click="toggleIsNegated"
             :input-value="isNegated"
+            :color="isNegated ? 'primary' : undefined"
         >
           <template v-if="isNegated">
             <v-icon left>mdi-minus-circle-off</v-icon>
@@ -84,16 +96,6 @@
           </template>
         </v-btn>
 
-        <v-btn
-            class="ml-2"
-            text
-            rounded
-            @click="deleteMe"
-            color="error"
-        >
-          <v-icon left>mdi-delete-outline</v-icon>
-          Remove
-        </v-btn>
 
 
       </v-card-actions>
@@ -110,16 +112,12 @@ import {api} from "@/api";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 import {url} from "@/url";
 
-import EditPhraseOption from "@/components/EditPhrase/EditPhraseOption.vue";
-import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import {getEntityConfig, getLocationString} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterOptionChip",
   components: {
-    EditPhraseOption,
-    FilterMatchMode,
   },
   props: {
     disabled: Boolean,
@@ -127,7 +125,6 @@ export default {
     filterKey: String,
     close: Boolean,
     openMenu: Boolean,
-    matchMode: String,
     position: Number,
   },
   data() {
@@ -191,7 +188,6 @@ export default {
       // const resp = await api.makeAutocompleteResponseFromId(this.filterId)
       const displayName = await api.getFilterValueDisplayName(this.filterKey, this.filterId)
       this.isLoading = false
-      console.log("filterDisplayValue", displayName)
       return displayName
     },
     filterData: async function () {

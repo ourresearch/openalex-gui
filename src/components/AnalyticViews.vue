@@ -3,7 +3,7 @@
     <v-toolbar flat color="" class="color-3">
       <v-toolbar-title class="">
         <v-icon left>mdi-pin-outline</v-icon>
-        Pinned views
+        Summaries
         <!--        ({{ groupByKeys.length }})-->
       </v-toolbar-title>
       <v-spacer/>
@@ -38,7 +38,7 @@
           <!--            lg="4"-->
           <!--            xl="3"-->
           <group-by
-              :selected="key"
+              :filter-key="key"
           />
 
         </v-col>

@@ -9,11 +9,16 @@
       style="width: 100%;"
   >
     <v-toolbar dense flat color="transparent">
-      <v-icon left>{{ selectedConfig.icon }}</v-icon>
+      <v-icon left>{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title>
-        <span class="">{{ selectedConfig.displayName }}</span>
+        <span class="">{{ filterConfig.displayName }}</span>
       </v-toolbar-title>
       <v-spacer/>
+      <filter-match-mode
+          :filter-key="filterKey"
+          v-if="filterConfig.type === 'select' && selectedGroups?.length > 1"
+          icon
+      />
       <v-menu rounded offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -21,10 +26,24 @@
               v-on="on"
               small
           >
-            <v-icon small>mdi-dots-vertical</v-icon>
+            <v-icon >mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
+          <v-list-item @click="url.toggleGroupBy(filterKey)">
+            <v-list-item-icon>
+              <v-icon color="">mdi-pin-off-outline</v-icon>
+              <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="">
+                Unpin
+              </v-list-item-title>
+
+            </v-list-item-content>
+          </v-list-item>
+                    <v-divider/>
+
 
           <v-list-item :href="csvUrl">
             <v-list-item-icon>
@@ -38,19 +57,7 @@
             </v-list-item-icon>
             View in API
           </v-list-item>
-          <v-divider/>
-          <v-list-item @click="url.toggleGroupBy(selected)">
-            <v-list-item-icon>
-              <v-icon color="">mdi-pin-off-outline</v-icon>
-              <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="">
-                Unpin
-              </v-list-item-title>
 
-            </v-list-item-content>
-          </v-list-item>
         </v-list>
       </v-menu>
 
@@ -72,7 +79,7 @@
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-        <v-card flat class="pa-2 d-flex color-2 hover-color-1" @click="isSelected = !isSelected">
+        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-2 hover-color-1" @click="isSelected = !isSelected">
           <v-icon class="mr-4 ml-2" color="">{{
               isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'
             }}
@@ -98,11 +105,19 @@
 
       </div>
 
+
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
+                v-for="id in negatedGroupIds"
+                :key="'negated-id-' + id"
+
+                :filter-key="filterKey"
+                :value="id"
+            />
+        <group-by-table-row
                 v-for="row in groups"
-                :key="row.value"
+                :key="row.value + row.count"
 
                 :filter-key="filterKey"
                 :value="row.value"
@@ -142,8 +157,6 @@ import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
-import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
-import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/Action.vue";
 import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
@@ -152,20 +165,19 @@ import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import {filter} from "core-js/internals/array-iteration";
 import FilterSelectEdit from "@/components/Filter/FilterSelectEdit.vue";
+import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "GroupBy",
   components: {
-    Template,
-    ActionMenuItem,
     BarGraph,
     GroupByTableRow,
     FilterSelectEdit,
+    filterMatchMode,
 
   },
   props: {
-    selected: String,
-
+    filterKey: String,
   },
   data() {
     return {
@@ -211,32 +223,12 @@ export default {
           300 :
           150
     },
-    selectedConfig() {
-      if (!this.selected) return
-      return getFacetConfig(this.entityType, this.selected)
+    filterConfig() {
+      if (!this.filterKey) return
+      return getFacetConfig(this.entityType, this.filterKey)
     },
-    options() {
-      const topValues = getActionConfig("group_by").topValues
-      const selectedValue = this.$route.query.group_by
-      const allValues = [
-        selectedValue,
-        ...topValues,
-      ].filter(x => !!x)
-      return [...new Set(allValues)]
-
-    },
-    optionConfigs() {
-      return this.options.map(k => {
-        return getFacetConfig(this.entityType, k)
-      })
-    },
-
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
-    },
-    filterKey() {
-      // return this.$route.query.group_by
-      return this.selected
     },
     apiUrl() {
       return url.makeGroupByUrl(
@@ -244,6 +236,7 @@ export default {
           this.filterKey,
           {
             includeEmail: false,
+            filters: filtersFromUrlStr(this.entityType, this.$route.query.filter),
           }
       )
     },
@@ -254,17 +247,19 @@ export default {
           {
             includeEmail: false,
             formatCsv: true,
+            filters: filtersFromUrlStr(this.entityType, this.$route.query.filter),
           }
       )
     },
-
-    isGroupSelected(val) {
-      if (this.myFilterConfig.type === "boolean") {
-        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
-      } else if (this.myFilterConfig.type === "range") {
-        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
-      }
+    selectedGroups(){
+      return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
     },
+    negatedGroupIds(){
+      return this.selectedGroups.filter(val => {
+           return val.indexOf("!") === 0
+         })
+    },
+
     groups() {
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
@@ -280,14 +275,13 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
-    isOptionSelected(val) {
-      return url.isFilterOptionApplied(this.entityType, this.filterKey, val)
 
-    },
+
     async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
       const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      console.log("getGroups using these filters", filters.map(f => f.value))
       const ret = await api.getGroups(
           this.entityType,
           this.filterKey,
@@ -298,7 +292,6 @@ export default {
           }
       )
       if (this.filterKey === "publication_year") {
-        console.log("group by year")
         ret.sort((a, b) => {
           return (a.value > b.value) ? -1 : 1
         })
@@ -306,13 +299,6 @@ export default {
       this.allGroups = ret
       this.isLoading = false
 
-    },
-    unselectGroup(val) {
-      if (this.myFilterConfig.type === "boolean") {
-        url.deleteFilter(this.entityType, this.filterKey)
-      } else if (this.myFilterConfig.type === "range") {
-        url.deleteFilter(this.entityType, this.filterKey)
-      }
     },
 
     selectGroup(val) {
@@ -334,6 +320,7 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
+
         this.getGroups()
       }
     }

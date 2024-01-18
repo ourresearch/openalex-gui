@@ -43,7 +43,7 @@ const filtersFromUrlStr = function (entityType, str) {
 }
 
 const getMatchModeFromSelectFilterValue = function (valueStr) {
-    return (valueStr?.indexOf("|") > -1) ? "any" : "all"
+    return (valueStr?.indexOf("+") > -1) ? "all" : "any"
 }
 
 const optionsToString = function (options, matchMode) {
@@ -83,6 +83,24 @@ const toggleNegation = function (option) {
         "!" + option
 
 }
+const negateOption = function (option) {
+    return option[0] === "!" ?
+        option :
+        "!" + option
+}
+const removeNegationFromOption = function (option) {
+    return option[0] === "!" ?
+        option.substr(1) :
+        option
+}
+const setOptionIsNegated = function(option, isNegated) {
+    return isNegated ?
+        negateOption(option) :
+        removeNegationFromOption(option)
+}
+
+
+
 const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
     const matchMode = getMatchModeFromSelectFilterValue(valueStr)
     const oldOptions = getItemsFromSelectFilterValue(valueStr)
@@ -375,6 +393,7 @@ export {
     deleteOptionFromFilterValue,
     addOptionToFilterValue,
     toggleOptionIsNegated,
+    setOptionIsNegated,
     optionsToString,
     optionsFromString,
 

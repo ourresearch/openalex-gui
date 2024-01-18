@@ -9,7 +9,7 @@ import {
     optionsFromString,
     addOptionToFilterValue,
     toggleOptionIsNegated,
-    getMatchModeFromSelectFilterValue, optionsToString,
+    getMatchModeFromSelectFilterValue, optionsToString, setFilterStringOptionIsNegated, setOptionIsNegated,
 } from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
@@ -94,8 +94,8 @@ const createFilterNoPush = function (entityType, key, newValue) {
     return [...oldFilters, newFilter]
 
 }
-const readFilter = function (entityType, key) {
-    return filtersFromUrlStr(entityType, router.currentRoute.query.filter).find(f => {
+const readFilter = function (currentRoute, entityType, key) {
+    return filtersFromUrlStr(entityType, currentRoute.query.filter).find(f => {
         return f.key === key
     })
 }
@@ -152,7 +152,6 @@ const deleteFilterOption = async function (entityType, key, optionToDelete) {
             deleteOptionFromFilterValue(oldFilter.value, optionToDelete) :
             oldFilter.value // change nothing
 
-        console.log("deleteFilterOption() newValue", optionToDelete, oldFilter.value, newValue)
 
         if (!newValue) return
 
@@ -187,6 +186,35 @@ const addFilterOptionNoPush = function (entityType, key, optionToAdd) {
     })
     return newFilters
 }
+
+
+const setFilterOptionIsNegated = function (entityType, key, option, isNegated) {
+    const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    const oldFilter = oldFilters.find(f => f.key === key)
+    const oldValue = oldFilter.value
+    const oldOptions = getItemsFromSelectFilterValue(oldValue)
+
+    const matchMode = getMatchModeFromSelectFilterValue(oldValue)
+
+    const newOptions = oldOptions.map(oldOption => {
+        const isThisTheOptionToUpdate = oldOption.replace("!", "") === option.replace("!", "")
+        return isThisTheOptionToUpdate ?
+            setOptionIsNegated(oldOption, isNegated) :
+            oldOption
+    })
+
+    const newValue = optionsToString(newOptions, matchMode)
+    const newFilter = createSimpleFilter(entityType, key, newValue)
+
+
+    const newFilters = oldFilters.map(oldFilter => {
+        return (oldFilter.key === key) ?
+            newFilter :
+            oldFilter
+    })
+
+    return  pushNewFilters(newFilters)
+}
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
 
@@ -205,8 +233,8 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     return await pushNewFilters(newFilters)
 }
 
-const readFilterOptions = function (entityType, key) {
-    const filter = readFilter(entityType, key)
+const readFilterOptions = function (currentRoute, entityType, key) {
+    const filter = readFilter(currentRoute, entityType, key)
     if (!filter) return []
     return optionsFromString(filter.value)
 }
@@ -218,14 +246,14 @@ const isFilterOptionApplied = function (currentRoute, entityType, key, option) {
     return options.includes(option)
 }
 
-const readFilterMatchMode = function (entityType, key) {
-    const filter = readFilter(entityType, key)
+const readFilterMatchMode = function (currentRoute, entityType, key) {
+    const filter = readFilter(currentRoute, entityType, key)
 
     return getMatchModeFromSelectFilterValue(filter?.value)
 }
 
 const setFilterMatchMode = function (entityType, key, mode) {
-    const filter = readFilter(entityType, key)
+    const filter = readFilter(router.currentRoute, entityType, key)
     const options = optionsFromString(filter.value)
     const newValue = optionsToString(options, mode)
     upsertFilter(entityType, key, newValue)
@@ -600,6 +628,7 @@ const url = {
     deleteFilterOption,
     addFilterOption,
     toggleFilterOptionIsNegated,
+    setFilterOptionIsNegated,
 
     setDefaultActions,
     getActionValues,
