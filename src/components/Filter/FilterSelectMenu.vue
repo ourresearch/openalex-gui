@@ -14,22 +14,30 @@
         <v-list-item-icon>
           <v-icon>mdi-tray-arrow-down</v-icon>
         </v-list-item-icon>
-        Export
+        <v-list-item-content>
+          <v-list-item-title>Export</v-list-item-title>
+        </v-list-item-content>
+        <v-list-item-action-text>.csv</v-list-item-action-text>
       </v-list-item>
       <v-list-item :href="apiUrl" target="_blank">
         <v-list-item-icon>
           <v-icon>mdi-api</v-icon>
         </v-list-item-icon>
-        View in API
+        <v-list-item-content>
+          <v-list-item-title>
+            View in API
+          </v-list-item-title>
+        </v-list-item-content>
+        <v-list-item-action-text>.json</v-list-item-action-text>
       </v-list-item>
       <v-divider/>
       <v-list-item @click="isPinned = !isPinned">
         <v-list-item-icon>
-          <v-icon color="">{{ isPinned ? "mdi-pin-off-outline" : "mdi-pin-outline" }}</v-icon>
+          <v-icon color="">{{ isPinned ? "mdi-playlist-remove" : "mdi-playlist-plus" }}</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title class="">
-            {{ isPinned ? "Unpin" : "Pin" }} view
+            {{ isPinned ? "Remove from" : "Add to" }} report
           </v-list-item-title>
         </v-list-item-content>
       </v-list-item>
@@ -60,10 +68,10 @@ export default {
       "entityType",
     ]),
     isPinned: {
-      get(){
+      get() {
         return url.getGroupBy(this.$route).includes(this.filterKey)
       },
-      set(to){
+      set(to) {
         return to ? url.addGroupBy(this.filterKey) : url.deleteGroupBy(this.filterKey)
       }
     },

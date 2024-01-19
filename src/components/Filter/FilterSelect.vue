@@ -1,53 +1,56 @@
 <template>
   <v-card
-      rounded
+      :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
       flat
-      class="filter no-hover button-card filter-select d-flex align-center py-1 pr-2 mr-2 mb-2"
+      class="filter no-hover button-card filter-select d-block d-sm-flex align-center pa-1  mr-2 mb-2"
   >
-    <div class="pl-4 pr-4">
-      <v-icon>{{ config.icon }}</v-icon>
-    </div>
-    <div>
-      <div class="caption mb-1">
-        {{ config.displayName }} {{ !config.isVerb ? "is" : "" }}
-
-
+    <div class="pl-4 pr-2 d-flex align-center py-1">
+      <v-icon left>{{ config.icon }}</v-icon>
+      <div>
+        {{ config.displayName }}:
       </div>
+      <v-spacer></v-spacer>
+      <v-btn icon small v-if="$vuetify.breakpoint.xsOnly">
+        <v-icon >mdi-close</v-icon>
+      </v-btn>
+    </div>
+    <!--      <div class="caption mb-1">-->
+    <!--        {{ config.displayName }} {{ !config.isVerb ? "is" : "" }}-->
+    <!--      </div>-->
 
-      <div class="d-flex flex-wrap"
+    <div class="d-flex flex-wrap align-center px-3 px-sm-0">
+      <!--           style="margin-left: -11px;"-->
+
+
+      <template
+          v-for="(id, i) in optionIds"
+
       >
-        <!--           style="margin-left: -11px;"-->
-
-        <template
-            v-for="(id, i) in optionIds"
-
+        <filter-select-option
+            class=""
+            :key="id"
+            :filter-value="id"
+            :filter-key="filterKey"
+            :position="i"
+            @delete="deleteOption(id)"
+        />
+        <span
+            :key="'matchmode'+i"
+            v-if="i < optionIds.length-1"
+            class="mr-1"
         >
-          <filter-select-option
-              class=""
-              :key="id"
-              :filter-value="id"
-              :filter-key="filterKey"
-              :position="i"
-              @delete="deleteOption(id)"
-          />
-          <span
-              :key="'matchmode'+i"
-              v-if="i < optionIds.length-1"
-              class="mr-1"
-          >
             <filter-match-mode
                 :filter-key="filterKey"
             />
           </span>
 
-        </template>
+      </template>
 
 
-        <v-btn class="" icon @click="$store.state.activeFilterKey = filterKey">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
+      <v-btn class="" icon @click="$store.state.activeFilterKey = filterKey">
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
 
-      </div>
     </div>
 
 

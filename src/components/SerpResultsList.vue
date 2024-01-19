@@ -1,6 +1,6 @@
 <template>
   <v-card rounded flat class="color-3">
-    <v-toolbar color="" flat class="color-2">
+    <v-toolbar color="" flat class="color-3">
       <v-toolbar-title>
       <v-icon left>mdi-format-list-bulleted</v-icon>
         Results
@@ -11,7 +11,7 @@
       <export-button/>
 
     </v-toolbar>
-    <div class="ml-4 mb-3 mt-3">
+    <div class="ml-4 my-1">
       <serp-results-count :results-object="resultsObject"/>
     </div>
 

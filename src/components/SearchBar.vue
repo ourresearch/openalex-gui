@@ -23,10 +23,10 @@
         <div
             v-on="on"
             v-shortkey="['meta', 'k']"
-            class="pr-2 ml-2 "
+            class="pr-2 ml-2"
             @shortkey="isMenuOpen = true"
         >
-          <div class="fake-input-button white"
+          <div class="fake-input-button color-2"
                v-shortkey="['ctrl', 'k']"
                @shortkey="isMenuOpen = true"
           >

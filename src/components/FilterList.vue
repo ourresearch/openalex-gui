@@ -1,66 +1,28 @@
 <template>
 
-  <v-card class="pb-2 color-2" width="100%" rounded flat>
+  <div>
     <!--    <search-bar class="pt-3" />-->
-    <v-toolbar flat color=" " class="color-1 mb-3">
-      <v-row class="align-center">
-        <v-col cols="12" md="8" xl="6" class="d-flex align-center flex-grow-1">
-          <v-icon left>mdi-filter-outline</v-icon>
-          <v-toolbar-title class="mr-2 ">
-            Filters
-            <span class="font-weight-light">
-            ({{ filters.length }})
-            </span>
+<!--    <v-toolbar dense flat color=" " class="transparent" v-if="$vuetify.breakpoint.xsOnly">-->
+<!--      <v-icon left>mdi-filter-outline</v-icon>-->
+<!--      <v-toolbar-title class="mr-2">-->
+<!--        Filters-->
+<!--        <span class="font-weight-light">-->
+<!--            ({{ filters.length }})-->
+<!--            </span>-->
 
-          </v-toolbar-title>
-          <search-bar
-              class="flex-grow-1" Ω
-              style=""
-              v-if="$vuetify.breakpoint.smAndUp"
-          />
-          <v-spacer v-else/>
-          <template v-if="$vuetify.breakpoint.smAndDown">
-            <Action
-                class="ml-2"
-                action="filter"
-                @click="(key) => setActiveFilter(key)"
-            />
-            <v-btn icon @click="clearEverything">
-              <v-icon>mdi-filter-off-outline</v-icon>
-            </v-btn>
-          </template>
+<!--      </v-toolbar-title>-->
+<!--      <v-spacer/>-->
+<!--    </v-toolbar>-->
 
-        </v-col>
-        <v-col v-if="$vuetify.breakpoint.mdAndUp" class="d-flex align-center ">
-          <v-spacer/>
-          <Action
-              class="ml-2"
-              action="filter"
-              @click="(key) => setActiveFilter(key)"
-          />
-          <v-btn icon @click="clearEverything">
-            <v-icon>mdi-filter-off-outline</v-icon>
-          </v-btn>
-          <v-btn icon @click="url.pushQueryParam('show_api', !$route.query.show_api)">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
-      <template v-slot:extension v-if="$vuetify.breakpoint.xsOnly">
-        <search-bar
-            class="flex-grow-1 mb-3"
-        />
-      </template>
 
-    </v-toolbar>
-    <div>
-      <!--      <search-bar-->
-      <!--          class=""-->
-      <!--          style=""-->
-      <!--      />-->
-    </div>
+    <!--    main part of filters list-->
+    <v-card rounded flat class="d-flex flex-wrap mb-2  color-2 py-4 px-4">
+      <v-btn large dark  class="mr-3 elevation-0">
+        <v-icon class="mr-1">mdi-filter-outline</v-icon>
+        {{ filters.length }}
+        Filters:
+      </v-btn>
 
-    <div class="d-flex flex-wrap mb-2   px-4">
       <component
           v-for="(filter, i) in filters"
           :key="filter.key + $route.query.filter"
@@ -70,6 +32,10 @@
           :is-active="filter.key === activeFilterKey"
           @delete="url.deleteFilter(entityType, filter.key)"
       />
+
+      <action action="filter"/>
+
+      <!--      Legacy thing, kinda dumb but important-->
       <component
           v-if="newFilterKey"
           :key="'new' + activeFilterConfig.key + $route.query.filter"
@@ -79,38 +45,28 @@
           :is-active="activeFilterConfig.key === activeFilterKey"
           @delete="setActiveFilter(undefined)"
       />
-    </div>
-
-    <div class="d-md-flex d-block  align-center px-4">
-      <!--      <v-icon left class="">mdi-plus</v-icon>-->
-      <!--      <span class="pr-2">Add filter</span>-->
-      <div v-if="filters.length < 2" class="caption mr-2">Try:</div>
-      <div class="d-flex flex-wrap">
-        <v-chip
-            v-for="filter in popularFilterOptions"
-            :key="filter.key"
-            outlined
-            class="mr-1 mb-1"
-            @click="setActiveFilter(filter)"
-            small
-            :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
-        >
-          <v-icon small left>{{ filter.icon }}</v-icon>
-          {{ filter.displayName }}
-        </v-chip>
-      </div>
-      <v-spacer/>
+    </v-card>
 
 
-      <!--      <v-btn-->
-      <!--          @click="dialogs.moreFilters = true"-->
-      <!--          text-->
-      <!--          small-->
-      <!--          rounded-->
-      <!--      >-->
-      <!--        All filters-->
-      <!--      </v-btn>-->
-    </div>
+<!--    <div class="d-md-flex d-block  align-center px-4 pt-4">-->
+<!--      <div v-if="filters.length < 2" class="caption mr-2">Try:</div>-->
+<!--      <div class="d-flex flex-wrap">-->
+<!--        <v-chip-->
+<!--            v-for="filter in popularFilterOptions"-->
+<!--            :key="filter.key"-->
+<!--            outlined-->
+<!--            class="mr-1 mb-1"-->
+<!--            @click="setActiveFilter(filter)"-->
+<!--            small-->
+<!--            :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"-->
+<!--        >-->
+<!--          <v-icon small left>{{ filter.icon }}</v-icon>-->
+<!--          {{ filter.displayName }}-->
+<!--        </v-chip>-->
+<!--      </div>-->
+<!--      <v-spacer/>-->
+<!--    </div>-->
+
 
     <v-dialog
         v-model="dialogs.moreFilters"
@@ -148,7 +104,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-  </v-card>
+  </div>
 
 
 </template>
@@ -320,24 +276,19 @@ export default {
 </script>
 
 <style lang="scss">
-.filter-list {
-  .v-text-field--rounded > .v-input__control > .v-input__slot {
-    //padding: 0 !important;
-  }
 
   .filter {
-    //font-size: 20px;
-    //background: #f5f5f5;
-    //background: #eee;
-    //background: #fff;
-    background: #EEF5FC;
-    //border: 1px solid #ddd;
+    border-radius: 25px !important;
 
     &:hover {
       //background: #f4f9ff;
       //box-shadow: 5px 5px #000 !important;
     }
 
+  }
+.filter-list {
+  .v-text-field--rounded > .v-input__control > .v-input__slot {
+    //padding: 0 !important;
   }
 }
 

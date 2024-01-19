@@ -1,15 +1,20 @@
 <template>
   <div class="serp-page pb-12">
+    <!--    <div>-->
+    <!--      <qrcode-vue :value="String('https://openalex.org' + $route.fullPath)" size="300" />-->
+    <!--    </div>-->
 
     <v-container class=" main-serp-container" style="max-width: 1785px;">
-    <serp-api-editor v-if="isShowApiSet" class="mt-3 mb-2"/>
+      <serp-toolbar :results-object="resultsObject"/>
+
+      <serp-api-editor v-if="isShowApiSet" class="mb-4"/>
       <v-row>
         <v-col>
           <filter-list :results-object="resultsObject" class=""/>
         </v-col>
       </v-row>
 
-      <v-row v-if="$vuetify.breakpoint.mdAndUp">
+      <v-row style="margin-top: -15px;"  v-if="$vuetify.breakpoint.mdAndUp">
         <v-col class="flex-grow-1">
           <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
         </v-col>
@@ -85,6 +90,8 @@ import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import SearchBar from "@/components/SearchBar.vue";
 
+import QrcodeVue from 'qrcode.vue'
+
 export default {
   name: "Serp",
   metaInfo() {
@@ -111,6 +118,8 @@ export default {
 
     FilterList,
     SearchBar,
+
+    QrcodeVue,
 
   },
   props: {},
@@ -343,6 +352,8 @@ export default {
     "$route": {
       immediate: true,
       async handler(to, from) {
+
+        console.log("Serp $route watcher", this.$route)
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)

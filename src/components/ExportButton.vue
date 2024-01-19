@@ -70,14 +70,26 @@
           <v-subheader>Export results as:</v-subheader>
           <v-divider/>
           <v-list-item @click="setExport('csv')">
-            <v-list-item-title>
-              Spreadsheet (.csv)
-            </v-list-item-title>
+            <v-list-item-icon>
+              <v-icon>mdi-table-arrow-right</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Spreadsheet
+              </v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
           <v-list-item @click="setExport('wos-plaintext')">
-            <v-list-item-title>
-              WoS format (.txt)
-            </v-list-item-title>
+            <v-list-item-icon>
+              <v-icon>mdi-file-move-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                WoS format
+              </v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action-text>.txt</v-list-item-action-text>
           </v-list-item>
         </v-list>
       </v-menu>

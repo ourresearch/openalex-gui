@@ -21,23 +21,6 @@
 <!--        <span class=" mx-1"> {{ filterConfig.displayName |capitalize }}</span> -->
         values using:</v-subheader>
       <v-divider />
-      <v-list-item @click="value = 'any'" :disabled="isAnyOptionNegated">
-        <v-list-item-icon>
-          <v-icon :color="isAnyOptionNegated ? 'grey lighten-2' : ''">mdi-set-all</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title class="">
-            Or
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Match {{ count === 2 ? 'either' : 'any' }} option
-          </v-list-item-subtitle>
-        </v-list-item-content>
-        <v-list-item-icon>
-          <v-icon v-if="value === 'any'" color="">mdi-check</v-icon>
-        </v-list-item-icon>
-      </v-list-item>
-
 
       <v-list-item @click="value = 'all'">
         <v-list-item-icon>
@@ -57,6 +40,23 @@
         </v-list-item-content>
         <v-list-item-icon>
           <v-icon v-if="value === 'all'" color="">mdi-check</v-icon>
+        </v-list-item-icon>
+      </v-list-item>
+
+      <v-list-item @click="value = 'any'" :disabled="isAnyOptionNegated">
+        <v-list-item-icon>
+          <v-icon :color="isAnyOptionNegated ? 'grey lighten-2' : ''">mdi-set-all</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title class="">
+            Or
+          </v-list-item-title>
+          <v-list-item-subtitle>
+            Match {{ count === 2 ? 'either' : 'any' }} option
+          </v-list-item-subtitle>
+        </v-list-item-content>
+        <v-list-item-icon>
+          <v-icon v-if="value === 'any'" color="">mdi-check</v-icon>
         </v-list-item-icon>
       </v-list-item>
 

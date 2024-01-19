@@ -1,24 +1,29 @@
 <template>
   <v-card
-      rounded
+      :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
       flat
-      class="filter button-card d-flex align-center py-1 px-2 mr-2 mb-2"
+      class="filter no-hover button-card filter-select d-block d-sm-flex align-center pa-1  mr-2 mb-2"
       @click="isActive = true"
 
   >
-    <div class="pl-2 pr-4">
-      <v-icon>{{ config.icon }}</v-icon>
+    <div class="pl-4 pr-2 d-flex align-center py-1">
+      <v-icon left>{{ config.icon }}</v-icon>
+      <div>
+        {{ config.displayName }}:
+      </div>
+      <v-spacer />
+      <v-btn icon small v-if="$vuetify.breakpoint.xsOnly">
+        <v-icon >mdi-close</v-icon>
+      </v-btn>
     </div>
     <div class="">
-      <div class="caption">
-        The {{ config.displayName}} is
-      </div>
-      <span class="font-weight-bold">
+      <span class="font-weight-bold px-4 px-sm-0">
         {{ value }}
       </span>
 
+
     </div>
-    <div class="pl-2 pr-0">
+    <div class="pl-2 pr-0" v-if="$vuetify.breakpoint.smAndUp">
       <v-btn class="" icon @click="$emit('delete')">
         <v-icon>mdi-close</v-icon>
       </v-btn>

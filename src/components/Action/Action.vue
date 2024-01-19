@@ -4,7 +4,13 @@
         rounded
     >
       <template v-slot:activator="{on}">
+        <v-btn v-on="on" large rounded dark class="primary pa-4 elevation-0" v-if="myConfig.id === 'filter'">
+          <v-icon class="mr-2">mdi-filter-plus-outline</v-icon>
+<!--          <v-icon left>mdi-plus-circle-outline</v-icon>-->
+          Add filter
+        </v-btn>
         <v-btn
+            v-else
             :icon="myConfig.id !== 'sort'"
             :small="myConfig.id === 'sort'"
             rounded
@@ -29,10 +35,6 @@
             <!--            Add-->
             <v-icon>mdi-plus</v-icon>
           </template>
-          <template v-if="myConfig.id === 'filter'">
-            <!--            Add-->
-            <v-icon>mdi-plus</v-icon>
-          </template>
         </v-btn>
       </template>
       <!--      <v-card class="pa-4" v-if="action==='filter'">-->
@@ -51,7 +53,7 @@
             </template>
             <template v-if="myConfig.id === 'group_by'">
               <!--              <v-icon left>mdi-table-plus</v-icon>-->
-              Add widget:
+              Add to report:
             </template>
             <template v-if="myConfig.id === 'filter'">
               <!--              <v-icon left>mdi-filter-plus-outline</v-icon>-->

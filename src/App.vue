@@ -1,21 +1,21 @@
 <template>
   <v-app>
 
-    <v-navigation-drawer
-        v-model="isSiteNavOpen"
-        app
-        floating
-        color="white"
-        :mini-variant="$vuetify.breakpoint.lgAndDown"
-        v-if="$route.name !== 'Home'"
+<!--    <v-navigation-drawer-->
+<!--        v-model="isSiteNavOpen"-->
+<!--        app-->
+<!--        floating-->
+<!--        color="white"-->
+<!--        :mini-variant="$vuetify.breakpoint.lgAndDown"-->
+<!--        v-if="$route.name !== 'Home'"-->
 
-    >
-<!--        color="hsl(213, 69%, 95%)"-->
+<!--    >-->
+<!--&lt;!&ndash;        color="hsl(213, 69%, 95%)"&ndash;&gt;-->
 
-      <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
+<!--      <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />-->
 
 
-    </v-navigation-drawer>
+<!--    </v-navigation-drawer>-->
     <v-progress-linear
         indeterminate
         fixed color="primary"
@@ -29,8 +29,8 @@
         color="transparent"
         class="pl-0"
         absolute
-        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"
     >
+<!--        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"-->
 
       <router-link
           :to="{name: 'Home'}"
@@ -50,12 +50,58 @@
 
       <v-spacer/>
 
-      <v-btn icon  to="contact" class="mb-1">
-        <v-icon >mdi-email-outline</v-icon>
-      </v-btn>
-      <v-btn icon  href="https://help.openalex.org" target="_blank">
-        <v-icon >mdi-help-circle-outline</v-icon>
-      </v-btn>
+      <search-bar
+          v-if="$route.name !== 'Home' && $vuetify.breakpoint.smAndUp"
+          style="width: 600px;"
+      />
+      <v-spacer/>
+
+
+      <div style="width: 110px" v-if="$vuetify.breakpoint.mdAndUp"></div> <!-- hack to center the search bar... -->
+      <v-menu rounded offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              class="elevation-0 font-weight-regular"
+              v-on="on"
+          >
+            <v-icon>mdi-help-circle-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item href="https://help.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-information-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              User manual
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item href="https://docs.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              API reference
+              <v-icon small right class="">mdi-open-in-new</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item to="help">
+            <v-list-item-icon>
+              <v-icon>mdi-message-text-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              Contact us
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+      <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.xsOnly">
+        <search-bar style="width: 100%;" />
+      <v-spacer/>
+
+      </template>
 
 
     </v-app-bar>
@@ -99,6 +145,8 @@ import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
 import {url} from "@/url";
+import SearchBox from "@/components/EntityTypeSelector.vue";
+import SearchBar from "@/components/SearchBar.vue";
 
 export default {
   name: 'App',
@@ -109,9 +157,11 @@ export default {
     meta: []
   },
   components: {
+    SearchBox,
     SearchBoxNew,
     SiteFooter,
     SiteNav,
+    SearchBar,
   },
 
 
