@@ -1,29 +1,32 @@
 <template>
 
   <v-card
-      rounded
+      :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
       flat
-      class="filter button-card  d-flex align-center py-1 mr-2 mb-2"
+      class="filter button-card filter-select d-flex align-center pa-1  mr-2 mb-2"
       @click="myValue = !myValue"
   >
-    <div class="px-4">
-      <v-icon class="">{{ config.icon }}</v-icon>
+    <div class="pl-4  d-flex align-center py-2">
+      <v-icon left>{{ config.icon }}</v-icon>
+      <!--      <div>-->
+      <!--        {{ entityType | pluralize(1) }} is-->
+      <!--      </div>-->
     </div>
     <div>
-      <div class="caption ">
-        The {{ entityType | pluralize(1) }} is
-        <span v-if="!myValue" class="font-weight-bold">NOT</span>
-      </div>
+      <!--      <div class="caption ">-->
+      <!--        The {{ entityType | pluralize(1) }} is-->
+      <!--        <span v-if="!myValue" class="font-weight-bold">NOT</span>-->
+      <!--      </div>-->
       <div class="d-flex align-center">
-<!--        <v-chip-->
-<!--            class="mr-1"-->
-<!--            @click="myValue = !myValue"-->
-<!--            outlined-->
-<!--            label-->
-<!--        >-->
-<!--          {{ myValue ? "is" : "is NOT" }}-->
-<!--        </v-chip>-->
-
+        <!--        <v-chip-->
+        <!--            class="mr-1"-->
+        <!--            @click="myValue = !myValue"-->
+        <!--            outlined-->
+        <!--            label-->
+        <!--        >-->
+        <!--          {{ myValue ? "is" : "is NOT" }}-->
+        <!--        </v-chip>-->
+        <span v-if="!myValue" class="font-weight-bold mr-1">NOT</span>
         <div class="font-weight-bold">{{ config.displayName }}</div>
 
       </div>
@@ -31,7 +34,7 @@
 
     </div>
     <v-spacer/>
-    <div class="px-4">
+    <div class="px-2">
       <v-btn icon @click="$emit('delete')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
@@ -52,8 +55,7 @@ import {url} from "@/url";
 
 export default {
   name: "FilterValueSearch",
-  components: {
-  },
+  components: {},
   props: {
     filterKey: String,
   },

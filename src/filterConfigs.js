@@ -43,7 +43,7 @@ const filtersFromUrlStr = function (entityType, str) {
 }
 
 const getMatchModeFromSelectFilterValue = function (valueStr) {
-    return (valueStr?.indexOf("+") > -1) ? "all" : "any"
+    return (valueStr?.indexOf("|") > -1) ? "any" : "all"
 }
 
 const optionsToString = function (options, matchMode) {

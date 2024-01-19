@@ -52,11 +52,7 @@ const navConfigs = [
         links: [
             {
                 name: "Contact",
-                to: "/help",
-            },
-            {
-                name: "Help",
-                to: "/help",
+                href: "https://openalex.zendesk.com/hc/requests/new",
             },
             {
                 name: "Mailing list",

@@ -26,36 +26,42 @@
               v-on="on"
               small
           >
-            <v-icon >mdi-dots-vertical</v-icon>
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item @click="url.toggleGroupBy(filterKey)">
             <v-list-item-icon>
-              <v-icon color="">mdi-pin-off-outline</v-icon>
+              <v-icon color="">mdi-playlist-remove</v-icon>
               <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title class="">
-                Unpin
+                Remove from report
               </v-list-item-title>
 
             </v-list-item-content>
           </v-list-item>
-                    <v-divider/>
+          <v-divider/>
 
 
           <v-list-item :href="csvUrl">
             <v-list-item-icon>
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
-            Export
+            <v-list-item-content>
+              <v-list-item-title>Export</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
-            View in API
+            <v-list-item-content>
+              <v-list-item-title>View in API</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action-text>.json</v-list-item-action-text>
           </v-list-item>
 
         </v-list>
@@ -79,7 +85,8 @@
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-2 hover-color-1" @click="isSelected = !isSelected">
+        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-2 hover-color-1"
+                @click="isSelected = !isSelected">
           <v-icon class="mr-4 ml-2" color="">{{
               isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'
             }}
@@ -109,21 +116,21 @@
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
-                v-for="id in negatedGroupIds"
-                :key="'negated-id-' + id"
+            v-for="id in negatedGroupIds"
+            :key="'negated-id-' + id"
 
-                :filter-key="filterKey"
-                :value="id"
-            />
+            :filter-key="filterKey"
+            :value="id"
+        />
         <group-by-table-row
-                v-for="row in groups"
-                :key="row.value + row.count"
+            v-for="row in groups"
+            :key="row.value + row.count"
 
-                :filter-key="filterKey"
-                :value="row.value"
-                :display-value="row.displayValue"
-                :count="row.count"
-            />
+            :filter-key="filterKey"
+            :value="row.value"
+            :display-value="row.displayValue"
+            :count="row.count"
+        />
 
 
         </tbody>
@@ -144,7 +151,7 @@
         max-width="600"
         scrollable
     >
-      <filter-select-edit :filter-key="filterKey" @close="isDialogOpen = false" />
+      <filter-select-edit :filter-key="filterKey" @close="isDialogOpen = false"/>
     </v-dialog>
   </v-card>
 
@@ -251,13 +258,13 @@ export default {
           }
       )
     },
-    selectedGroups(){
+    selectedGroups() {
       return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
     },
-    negatedGroupIds(){
+    negatedGroupIds() {
       return this.selectedGroups.filter(val => {
-           return val.indexOf("!") === 0
-         })
+        return val.indexOf("!") === 0
+      })
     },
 
     groups() {
@@ -281,7 +288,6 @@ export default {
       if (!this.filterKey) return []
       this.isLoading = true
       const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
-      console.log("getGroups using these filters", filters.map(f => f.value))
       const ret = await api.getGroups(
           this.entityType,
           this.filterKey,

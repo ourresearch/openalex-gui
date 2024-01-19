@@ -12,7 +12,7 @@
       <v-chip
           outlined
           label
-          class="font-weight-bold option d-block mb-1 mr-1"
+          class="font-weight-bold option d-block mr-1"
           v-on="on"
           close
           @click:close="deleteMe"

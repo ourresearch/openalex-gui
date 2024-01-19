@@ -90,7 +90,7 @@ const createFilter = async function (entityType, key, newValue) {
 
 const createFilterNoPush = function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    const newFilter =  createSimpleFilter(entityType, key, newValue)
+    const newFilter = createSimpleFilter(entityType, key, newValue)
     return [...oldFilters, newFilter]
 
 }
@@ -213,7 +213,7 @@ const setFilterOptionIsNegated = function (entityType, key, option, isNegated) {
             oldFilter
     })
 
-    return  pushNewFilters(newFilters)
+    return pushNewFilters(newFilters)
 }
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
@@ -290,8 +290,6 @@ const upsertFilterOptionNoPush = function (entityType, filterKey, filterOption) 
         addFilterOptionNoPush(entityType, filterKey, filterOption) :
         createFilterNoPush(entityType, filterKey, filterOption)
 }
-
-
 
 
 const deleteFilter = async function (entityType, key) {
@@ -568,6 +566,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         formatCsv: false,
         includeEmail: true,
         filters: [],
+        isMultipleGroups: false,
     }
     options = Object.assign({}, defaults, options);
 
@@ -580,7 +579,12 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     // set required params
     const url = new URL(`https://api.openalex.org`)
     url.pathname = entityType
-    url.searchParams.set("group_by", groupByKey)
+    if (options.isMultipleGroups) {
+        url.searchParams.set("group_bys", groupByKey) // comma-separated list of keys
+    } else {
+        url.searchParams.set("group_by", groupByKey)
+
+    }
 
     // set optional params
     url.searchParams.set("per_page", String(options.perPage))

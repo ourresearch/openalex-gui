@@ -105,6 +105,7 @@ const routes = [
     {path: '/authorChangeRequest', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
     
     {path: '/help', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
+    {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
     {path: '/feedback', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
 
     {path: '*', component: PageNotFound},
