@@ -39,9 +39,9 @@
 
           <v-list-item @click="isApplied = !isApplied">
             <v-list-item-icon>
-              <v-icon>{{ isApplied ? 'mdi-filter-off-outline' : 'mdi-filter-outline' }}</v-icon>
+              <v-icon>{{ isApplied ? 'mdi-filter-remove-outline' : 'mdi-filter-plus-outline' }}</v-icon>
             </v-list-item-icon>
-            {{ isApplied ? 'Remove' : 'Apply' }} filter
+            {{ isApplied ? 'Remove from filters' : 'Apply as filter' }}
           </v-list-item>
           <v-list-item
               @click="isNegated = !isNegated"

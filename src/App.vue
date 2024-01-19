@@ -62,7 +62,7 @@
         <template v-slot:activator="{on}">
           <v-btn
               icon
-              class="elevation-0 font-weight-regular"
+              class="elevation-0 font-weight-regular mr-0"
               v-on="on"
           >
             <v-icon>mdi-help-circle-outline</v-icon>

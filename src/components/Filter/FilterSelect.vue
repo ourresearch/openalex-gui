@@ -48,7 +48,7 @@
 
 
       <v-btn class="" icon @click="$store.state.activeFilterKey = filterKey">
-        <v-icon>mdi-plus</v-icon>
+        <v-icon>mdi-dots-vertical</v-icon>
       </v-btn>
 
     </div>
