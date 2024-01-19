@@ -23,6 +23,7 @@
         Filters:
       </v-btn>
 
+
       <component
           v-for="(filter, i) in filters"
           :key="filter.key + $route.query.filter"
@@ -33,7 +34,10 @@
           @delete="url.deleteFilter(entityType, filter.key)"
       />
 
-      <action action="filter"/>
+      <action
+          action="filter"
+          @click="(key) => setActiveFilter(key)"
+      />
 
       <!--      Legacy thing, kinda dumb but important-->
       <component
@@ -45,6 +49,9 @@
           :is-active="activeFilterConfig.key === activeFilterKey"
           @delete="setActiveFilter(undefined)"
       />
+<!--      <div class="grey&#45;&#45;text text-h5 align-self-center">-->
+<!--        click to search & filter-->
+<!--      </div>-->
     </v-card>
 
 

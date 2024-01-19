@@ -10,6 +10,7 @@
           v-else
           v-on="on"
           outlined
+          label
       >
         {{ (value === "all") ? "&" : "or" }}
       </v-chip>

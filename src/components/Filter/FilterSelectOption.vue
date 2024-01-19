@@ -68,15 +68,7 @@
       <v-card-actions>
         <v-spacer/>
 
-        <v-btn
-            class="ml-2"
-            text
-            rounded
-            @click="deleteMe"
-        >
-          <v-icon left>mdi-filter-off-outline</v-icon>
-          Remove
-        </v-btn>
+
 
         <v-btn
             class="ml-2"
@@ -94,6 +86,16 @@
             <v-icon left>mdi-minus-circle</v-icon>
             Negate
           </template>
+        </v-btn>
+
+         <v-btn
+            class="ml-2"
+            text
+            rounded
+            @click="deleteMe"
+        >
+          <v-icon left>mdi-close-circle</v-icon>
+          Remove
         </v-btn>
 
 

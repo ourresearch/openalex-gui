@@ -4,10 +4,11 @@
         rounded
     >
       <template v-slot:activator="{on}">
-        <v-btn v-on="on" large rounded dark class="primary pa-4 elevation-0" v-if="myConfig.id === 'filter'">
-          <v-icon class="mr-2">mdi-filter-plus-outline</v-icon>
+        <v-btn v-on="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
+          <v-icon class="">mdi-plus</v-icon>
+<!--          <v-icon class="">mdi-filter-plus-outline</v-icon>-->
 <!--          <v-icon left>mdi-plus-circle-outline</v-icon>-->
-          Add filter
+<!--          Add filter-->
         </v-btn>
         <v-btn
             v-else

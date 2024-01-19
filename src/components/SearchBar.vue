@@ -26,7 +26,7 @@
             class="pr-2 ml-2"
             @shortkey="isMenuOpen = true"
         >
-          <div class="fake-input-button color-2"
+          <div class="fake-input-button"
                v-shortkey="['ctrl', 'k']"
                @shortkey="isMenuOpen = true"
           >
@@ -441,8 +441,10 @@ export default {
 
 <style lang="scss">
 .fake-input-button {
-  background-color: #ddd;
-  background-color: hsl(214, 54%, 98%);
+  //background-color: #ddd;
+  //background-color: hsl(214, 54%, 98%);
+  background-color: #fff;
+  border: 1px solid #eee;
 
   border-radius: 100px;
   height: 45px;

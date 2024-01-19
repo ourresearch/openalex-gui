@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar dense flat class="">
+  <div class="d-flex py-1 px-2 align-center">
 <!--    <v-toolbar-title>Untitled search</v-toolbar-title>-->
 
     <v-spacer/>
@@ -58,7 +58,7 @@
     </v-dialog>
 
 
-  </v-toolbar>
+  </div>
 </template>
 
 <script>
