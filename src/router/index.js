@@ -88,9 +88,10 @@ const routes = [
     // Move feedback to Zendesk form (see below)
     // {path: '/help', component: Help},
     // {path: '/feedback', component: Help},
-    {path: '/contact',  component: Help},
+    // {path: '/contact',  component: Help},
     {path: '/pricing', component: Pricing},
-    {path: '/webinars', component: Webinars},
+    // Move webinars to help docs (see below)
+    // {path: '/webinars', component: Webinars},
     // {path: '/stats', component: OpenAlexStats},
     {path: '/stats', component: OurStats},
 
@@ -103,10 +104,14 @@ const routes = [
 
     {path: '/author-change-request', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
     {path: '/authorChangeRequest', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
+
+    {path: '/webinars', beforeEnter() {window.location.href = "https://help.openalex.org/events/webinars" }},
+    {path: '/open-houses', beforeEnter() {window.location.href = "https://help.openalex.org/events/open-houses" }},
     
     {path: '/help', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
     {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
     {path: '/feedback', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
+    {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
 
     {path: '*', component: PageNotFound},
 
