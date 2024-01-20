@@ -16,8 +16,8 @@
 
 
     <!--    main part of filters list-->
-    <v-card rounded flat class="d-flex flex-wrap mb-2  color-2 py-4 px-4">
-      <v-btn large dark  class="mr-3 elevation-0">
+    <v-card rounded flat class="d-flex flex-wrap mb-2  color-2 pt-4 pb-3 px-4">
+      <v-btn large dark  class="mr-3 elevation-0 mb-2">
         <v-icon class="mr-1">mdi-filter-outline</v-icon>
         {{ filters.length }}
         Filters:
