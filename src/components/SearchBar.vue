@@ -287,20 +287,6 @@ export default {
                 "View work" :
                 _.capitalize(entityConfig.displayNameSingular) + " filter"
 
-            // let hint
-            // if (result.hint) {
-            //   if (entityConfig.name === "works") hint = "Work by " + result.hint
-            //
-            //   else if (entityConfig.name === "authors") hint = "Author at " + result.hint
-            //   else if (entityConfig.name === "sources") hint = "Journal published by " + result.hint
-            //   else if (entityConfig.name === "institutions") hint = "Institution in " + result.hint
-            //   else if (entityConfig.name === "concepts") hint = result.hint
-            //
-            //   else hint = _.capitalize(entityConfig.displayNameSingular)
-            // } else {
-            //   hint = _.capitalize(entityConfig.displayNameSingular) + " filter"
-            // }
-
 
             return {
               ...result,

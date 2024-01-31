@@ -1,135 +1,115 @@
 <template>
   <v-app>
 
-<!--    <v-navigation-drawer-->
-<!--        v-model="isSiteNavOpen"-->
-<!--        app-->
-<!--        floating-->
-<!--        color="white"-->
-<!--        :mini-variant="$vuetify.breakpoint.lgAndDown"-->
-<!--        v-if="$route.name !== 'Home'"-->
+          <v-navigation-drawer
+              app
+              floating
+              mini-variant-width="75"
+              stateless
+              mini-variant
+              :value="true"
+              v-if="$vuetify.breakpoint.smAndUp"
+          >
+<!--              :mini-variant="$vuetify.breakpoint.lgAndDown && $route.name === 'Serp'"-->
+      <!--        color="hsl(213, 69%, 95%)"-->
 
-<!--    >-->
-<!--&lt;!&ndash;        color="hsl(213, 69%, 95%)"&ndash;&gt;-->
-
-<!--      <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />-->
+            <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
 
 
-<!--    </v-navigation-drawer>-->
-    <v-progress-linear
-        indeterminate
-        fixed color="primary"
-        style="z-index: 9999"
-        v-if="globalIsLoading"
-    />
-    <v-app-bar
-        app
-        flat
+          </v-navigation-drawer>
+      <v-progress-linear
+          indeterminate
+          fixed color="primary"
+          style="z-index: 9999"
+          v-if="globalIsLoading"
+      />
+      <v-app-bar
+          v-if="0"
+          app
+          flat
 
-        color="transparent"
-        class="pl-0"
-        absolute
-    >
-<!--        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"-->
-
-      <router-link
-          :to="{name: 'Home'}"
-          class="logo-link"
+          color="transparent"
+          class="pl-0"
+          absolute
       >
-        <img
-            src="@/assets/openalex-logo-icon-black-and-white.png"
-            class="logo-icon mr-0 colorizable"
-        />
-        <span
-            class="logo-text colorizable"
+        <!--        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"-->
+
+        <router-link
+            :to="{name: 'Home'}"
+            class="logo-link"
         >
+          <img
+              src="@/assets/openalex-logo-icon-black-and-white.png"
+              class="logo-icon mr-0 colorizable"
+          />
+          <span
+              class="logo-text colorizable"
+          >
                 OpenAlex
               </span>
 
-      </router-link>
+        </router-link>
 
-      <v-spacer/>
+        <v-spacer/>
 
-      <search-bar
-          v-if="$route.name !== 'Home' && $vuetify.breakpoint.smAndUp"
-          style="width: 600px;"
-      />
-      <v-spacer/>
+<!--        <search-bar-->
+<!--            v-if="$route.name !== 'Home' && $vuetify.breakpoint.smAndUp"-->
+<!--            style="width: 600px;"-->
+<!--        />-->
+        <v-spacer/>
 
 
-      <div style="width: 110px" v-if="$vuetify.breakpoint.mdAndUp"></div> <!-- hack to center the search bar... -->
-      <v-menu rounded offset-y>
-        <template v-slot:activator="{on}">
+<!--        <div style="width: 50px" v-if="$vuetify.breakpoint.mdAndUp"></div> &lt;!&ndash; hack to center the search bar... &ndash;&gt;-->
+        <user-toolbar-menu/>
+<!--        <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.xsOnly">-->
+<!--          <search-bar style="width: 100%;"/>-->
+<!--          <v-spacer/>-->
+
+<!--        </template>-->
+
+
+      </v-app-bar>
+      <div>
+      </div>
+      <v-main class="ma-0 pb-0">
+        <router-view></router-view>
+<!--        <v-footer app absolute>hi jason</v-footer>-->
+      </v-main>
+        <site-footer style="margin-left: 100px;" />
+    <v-bottom-navigation color="primary"  app v-if="$vuetify.breakpoint.xsOnly">
+      <v-btn text height="100%" to="/"  >
+        <span>Searches</span>
+        <v-icon>mdi-folder-outline</v-icon>
+      </v-btn>
+      <v-btn text height="100%" to="/me">
+        <span>Account</span>
+        <v-icon>mdi-account-outline</v-icon>
+      </v-btn>
+      <v-btn text height="100%" href="https://help.openalex.org" target="_blank" >
+        <span>Help</span>
+        <v-icon>mdi-help-circle-outline</v-icon>
+      </v-btn>
+
+
+    </v-bottom-navigation>
+
+      <v-snackbar
+          top
+          v-model="$store.state.snackbarIsOpen"
+      >
+        <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+        {{ $store.state.snackbarMsg }}
+
+        <template v-slot:action="{ attrs }">
           <v-btn
               icon
-              class="elevation-0 font-weight-regular mr-0"
-              v-on="on"
+              v-bind="attrs"
+              @click="$store.commit('closeSnackbar')"
           >
-            <v-icon>mdi-help-circle-outline</v-icon>
+            <v-icon>mdi-close</v-icon>
           </v-btn>
         </template>
-        <v-list>
-          <v-list-item href="https://help.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-information-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              User manual
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item href="https://docs.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              API reference
-              <v-icon small right class="">mdi-open-in-new</v-icon>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item to="help">
-            <v-list-item-icon>
-              <v-icon>mdi-message-text-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              Contact us
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-      <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.xsOnly">
-        <search-bar style="width: 100%;" />
-      <v-spacer/>
-
-      </template>
-
-
-    </v-app-bar>
-    <div>
-    </div>
-    <v-main >
-      <router-view></router-view>
-      <site-footer />
-    </v-main>
-
-    <v-snackbar
-        top
-        v-model="$store.state.snackbarIsOpen"
-    >
-      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
-      {{ $store.state.snackbarMsg }}
-
-      <template v-slot:action="{ attrs }">
-        <v-btn
-            icon
-            v-bind="attrs"
-            @click="$store.commit('closeSnackbar')"
-        >
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </template>
-    </v-snackbar>
-
+      </v-snackbar>
 
   </v-app>
 </template>
@@ -147,6 +127,7 @@ import SiteNav from "@/components/SiteNav.vue";
 import {url} from "@/url";
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import SearchBar from "@/components/SearchBar.vue";
+import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
 export default {
   name: 'App',
@@ -162,6 +143,7 @@ export default {
     SiteFooter,
     SiteNav,
     SearchBar,
+    UserToolbarMenu,
   },
 
 
@@ -244,39 +226,74 @@ export default {
 </script>
 <style lang="scss">
 
-.v-main {
-  background-color: #fff;
-}
 $color-3: hsl(210, 60%, 98%);
 $color-2: hsl(213, 69%, 95%);
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
-
-.color-3 {background-color: $color-3 !important;}
-.color-2 {background-color: $color-2 !important;}
-.color-1 {background-color: $color-1 !important;}
-.color-0 {background-color: $color-0 !important;}
+.v-main {
+  background-color:#fff;
+}
 
 
-.hover-color-3:hover {background-color: $color-3 !important; transition: background-color 500ms;}
-.hover-color-2:hover {background-color: $color-2 !important; transition: background-color 500ms;}
-.hover-color-1:hover {background-color: $color-1 !important; transition: background-color 500ms;}
-.hover-color-0:hover {background-color: $color-0 !important; transition: background-color 500ms;}
+.color-3 {
+  background-color: $color-3 !important;
+}
+
+.color-2 {
+  background-color: $color-2 !important;
+}
+
+.color-1 {
+  background-color: $color-1 !important;
+}
+
+.color-0 {
+  background-color: $color-0 !important;
+}
+
+
+.hover-color-3:hover {
+  background-color: $color-3 !important;
+  transition: background-color 500ms;
+}
+
+.hover-color-white:hover {
+  background-color: white !important;
+  transition: background-color 500ms;
+}
+
+.hover-color-2:hover {
+  background-color: $color-2 !important;
+  transition: background-color 500ms;
+}
+
+.hover-color-1:hover {
+  background-color: $color-1 !important;
+  transition: background-color 500ms;
+}
+
+.hover-color-0:hover {
+  background-color: $color-0 !important;
+  transition: background-color 500ms;
+}
 
 
 .v-card.factoid-card {
   //background-color: #EEF5FC;
-  background-color: $color-2;
+  background-color: $color-3;
   border: none;
   box-shadow: none;
+
   .v-card__title {
     background-color: $color-1;
   }
+
   .v-card__text {
-    padding-top:12px;
+    padding-top: 12px;
     background-color: white;
   }
+
   .v-card__actions {
     //background-color: $color-1;
 
@@ -289,8 +306,10 @@ $color-0: hsl(212, 77%, 82%);
   background-color: $color-1;
 
   border: none;
+
   &:hover {
     background-color: $color-0;
+
     &.no-hover {
       background-color: $color-1;
     }
@@ -345,6 +364,9 @@ html, body {
   font-weight: 500;
   letter-spacing: normal;
   text-transform: none;
+}
+.v-btn--is-elevated {
+  box-shadow: none;
 }
 
 //.v-navigation-drawer__content {
@@ -469,7 +491,6 @@ body {
 .v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
   margin-right: 8px;
 }
-
 
 
 .v-expansion-panel-content__wrap {

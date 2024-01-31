@@ -21,10 +21,10 @@ import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
+import Signup from "@/views/Signup.vue";
 
 
 Vue.use(VueRouter)
-
 
 
 const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
@@ -66,11 +66,10 @@ const routes = [
 
 
     // user pages and routes
-    { path: '/signup', name: 'Signup', component: UserSignup},
-    { path: '/login', name: 'Login', component: Login},
-    { path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    { path: '/me',redirect: {name: "Me", params: {tab: "details"}}},
-    { path: '/me/:tab?', name: 'Me', component: Me, meta: {requiresAuth: true}},
+    {path: '/signup', name: 'Signup', component: Signup},
+    {path: '/login', name: 'Login', component: Login},
+    {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    {path: '/me/:tab?', name: 'Me', component: Me, meta: {requiresAuth: true}},
 
 
     // static pages
@@ -81,7 +80,7 @@ const routes = [
         name: 'Home',
         // component: Home
     },
-    { path: '/about', name: 'About', component: About},
+    {path: '/about', name: 'About', component: About},
     {path: '/faq', component: Faq},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
@@ -97,24 +96,71 @@ const routes = [
 
 
     // redirects to gitbook docs
-    {path: '/data-dump', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
-    {path: '/rest-api', beforeEnter() {window.location.href = "https://docs.openalex.org/how-to-use-the-api/api-overview" }},
-    {path: '/schema', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot" }},
-    {path: '/mag-migration-guide', beforeEnter() {window.location.href = "https://docs.openalex.org/download-snapshot/mag-format" }},
+    {
+        path: '/data-dump', beforeEnter() {
+            window.location.href = "https://docs.openalex.org/download-snapshot"
+        }
+    },
+    {
+        path: '/rest-api', beforeEnter() {
+            window.location.href = "https://docs.openalex.org/how-to-use-the-api/api-overview"
+        }
+    },
+    {
+        path: '/schema', beforeEnter() {
+            window.location.href = "https://docs.openalex.org/download-snapshot"
+        }
+    },
+    {
+        path: '/mag-migration-guide', beforeEnter() {
+            window.location.href = "https://docs.openalex.org/download-snapshot/mag-format"
+        }
+    },
 
-    {path: '/author-change-request', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
-    {path: '/authorChangeRequest', beforeEnter() {window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link" }},
+    {
+        path: '/author-change-request', beforeEnter() {
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link"
+        }
+    },
+    {
+        path: '/authorChangeRequest', beforeEnter() {
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link"
+        }
+    },
 
-    {path: '/webinars', beforeEnter() {window.location.href = "https://help.openalex.org/events/webinars" }},
-    {path: '/open-houses', beforeEnter() {window.location.href = "https://help.openalex.org/events/open-houses" }},
-    
-    {path: '/help', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
-    {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
-    {path: '/feedback', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
-    {path: '/contact', beforeEnter() {window.location.href = "https://openalex.zendesk.com/hc/requests/new" }},
+    {
+        path: '/webinars', beforeEnter() {
+            window.location.href = "https://help.openalex.org/events/webinars"
+        }
+    },
+    {
+        path: '/open-houses', beforeEnter() {
+            window.location.href = "https://help.openalex.org/events/open-houses"
+        }
+    },
+
+    {
+        path: '/help', beforeEnter() {
+            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
+        }
+    },
+    {
+        path: '/contact', beforeEnter() {
+            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
+        }
+    },
+    {
+        path: '/feedback', beforeEnter() {
+            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
+        }
+    },
+    {
+        path: '/contact', beforeEnter() {
+            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
+        }
+    },
 
     {path: '*', component: PageNotFound},
-
 
 
 ]
@@ -129,11 +175,9 @@ const router = new VueRouter({
             })
         } else if (savedPosition) {
             return savedPosition
-        }
-        else if (to.name === "Serp") {
+        } else if (to.name === "Serp") {
             // do nothing
-        }
-        else {
+        } else {
             return {x: 0, y: 0}
         }
 
@@ -141,9 +185,8 @@ const router = new VueRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-    const userId = store.getters["user/userId"]
 
-    if (localStorage.getItem("token") && !userId) {
+    if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser")
         } catch (e) {
@@ -153,7 +196,7 @@ router.beforeEach(async (to, from, next) => {
 
     if (to.matched.some(record => record.meta.requiresAuth)) {
         // this page requires authentication
-        if (userId) {  // you're logged in great. proceed.
+        if ( store.getters["user/userId"]) {  // you're logged in great. proceed.
             next()
         } else { // sorry, you can't view this page. go log in.
             next("/login")
@@ -162,7 +205,6 @@ router.beforeEach(async (to, from, next) => {
         next()
     }
 });
-
 
 
 export default router

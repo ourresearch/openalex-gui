@@ -1,22 +1,31 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-icon left>mdi-content-save-plus-outline</v-icon>
-      Save this search
-    </v-card-title>
-    <v-card-text>
-      <p>Add this search to your list of
-        <router-link to="/me/saved-searches">saved searches.</router-link>
-      </p>
-    </v-card-text>
+  <div>
+    <v-btn icon @click="isDialogOpen = true">
+      <v-icon>mdi-save-outline</v-icon>
+    </v-btn>
+    <v-dialog v-model="isDialogOpen" max-width="600">
+      <v-card>
+        <v-card-title>
+          <v-icon left>mdi-content-save-plus-outline</v-icon>
+          Save this search
+        </v-card-title>
+        <v-card-text>
+          <p>Add this search to your list of
+            <router-link to="/me/saved-searches">saved searches.</router-link>
+          </p>
+        </v-card-text>
 
 
-    <v-card-actions class="py-6">
-      <v-spacer></v-spacer>
-      <v-btn text @click="$emit('close')">Cancel</v-btn>
-      <v-btn color="primary" @click="create">Save search</v-btn>
-    </v-card-actions>
-  </v-card>
+        <v-card-actions class="py-6">
+          <v-spacer></v-spacer>
+          <v-btn text @click="$emit('close')">Cancel</v-btn>
+          <v-btn color="primary" @click="create">Save search</v-btn>
+        </v-card-actions>
+      </v-card>
+
+    </v-dialog>
+
+  </div>
 </template>
 
 <script>

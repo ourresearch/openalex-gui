@@ -18,6 +18,18 @@ import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 
 
+const urlObjectFromSearchUrl = function (searchUrl) {
+    const query = Object.fromEntries(new URL(searchUrl).searchParams);
+    const entityType = "works" // hardcoded for now
+    return {
+        name: "Serp",
+        params: {
+            entityType,
+        },
+        query,
+    }
+}
+
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
@@ -58,6 +70,11 @@ const setPage = async function (page) {
 
 const setShowApi = function (val) {
     pushQueryParam("show_api", val)
+}
+
+const setSerpTabName = function (val) {
+    pushQueryParam("name", val)
+
 }
 
 
@@ -372,14 +389,17 @@ const getActionValueKeys = function (currentRoute, action) {
 }
 
 const setSort = function (filterKey) {
-    if (!filterKey) {
-        filterKey = getActionDefaultValues("sort", router.currentRoute.query).shift()
-    }
-    filterKey = filterKey + ":desc"
-    pushQueryParam("sort", filterKey)
+    const defaultValue = getActionDefaultValues("sort", router.currentRoute.query)[0]
+    const myNewKey = (filterKey === defaultValue) ?
+        undefined :
+        filterKey + ":desc"
+
+    pushQueryParam("sort", myNewKey)
+
 }
 const getSort = function (route) {
-    return route.query.sort.replace(":desc", "")
+    const defaultValue = getActionDefaultValues("sort", route.query)[0]
+    return route.query.sort?.replace(":desc", "") ?? defaultValue
 }
 
 const toggleSort = function (filterKey) {
@@ -416,10 +436,11 @@ const getColumn = function (route) {
 
 
 const getGroupBy = function (route) {
-    return route.query.group_by.split(",")
+    const defaultValue = getActionDefaultValues("group_by", route.query)
+    return route.query.group_by?.split(",") ?? defaultValue
 }
 const setGroupBy = function (filterKeys) {
-    pushQueryParam("group_by", filterKeys.join(","))
+    pushQueryParam("group_by", filterKeys?.join(","))
 }
 const addGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
@@ -607,6 +628,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 const url = {
     pushToRoute,
     addToQuery,
+    urlObjectFromSearchUrl,
 
     createFilter,
     readFilter,
@@ -670,6 +692,8 @@ const url = {
 
     makeApiUrl,
     setShowApi,
+
+    setSerpTabName,
 
     pushQueryParam,
 }

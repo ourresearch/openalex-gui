@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height justify-center">
-    <user-login class=""  style="max-width: 400px" />
+    <user-signup class=""  style="max-width: 400px" />
   </v-container>
 </template>
 
@@ -8,13 +8,14 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import UserLogin from "@/components/user/UserLogin.vue";
+import UserSignup from "@/components/user/UserSignup.vue";
 
 export default {
   name: "Login",
     metaInfo() {
-        return {title: "Log in" }
+        return {title: "Sign up" }
     },
-  components: {UserLogin},
+  components: {UserSignup},
   props: {},
   data() {
     return {

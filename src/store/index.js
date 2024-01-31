@@ -21,8 +21,6 @@ import axios from "axios";
 Vue.use(Vuex)
 
 
-
-
 const stateDefaults = function () {
     const ret = {
         entityType: "works",
@@ -76,7 +74,15 @@ const stateDefaults = function () {
             "type",
             "open_access.is_oa",
             "cited_by_count",
-        ]
+        ],
+
+        serpTabs: [
+            {
+                id: null,
+                name: null,
+                query: undefined,
+            }
+        ],
 
     }
     return ret
@@ -238,7 +244,6 @@ export default new Vuex.Store({
             commit("setPage", 1)
             dispatch("pushSearchUrl")
         },
-
 
 
         // used a lot

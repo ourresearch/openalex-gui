@@ -1,10 +1,10 @@
 <template>
   <div class="d-flex align-center">
         <div v-if="$vuetify.breakpoint.smAndDown" class="grey--text">
-          <span class="font-weight-bold grey--text">{{ resultsObject?.meta.count | millify }}</span> {{entityType | pluralize(2)}}
+          <span class="font-weight-bold grey--text">{{ resultsObject?.meta.count | millify }}</span> results
         </div>
     <div v-else class="grey--text">
-      <span v-if="resultsObject?.meta?.count >= 1000">About </span><span class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span> {{entityType | pluralize(2)}}
+      <span v-if="resultsObject?.meta?.count >= 1000">About </span><span class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span> results
 <!--              ({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)-->
       <!--      </span>-->
     </div>
