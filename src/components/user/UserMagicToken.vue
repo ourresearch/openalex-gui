@@ -1,8 +1,8 @@
 <template>
-  <v-container>
-    <v-card>
+  <v-container class="d-flex justify-center fill-height">
+    <v-card loading max-width="600" min-width="300" flat rounded class="">
       <v-card-title>
-        Logging you in with magic token in the URL...
+        Logging you in...
       </v-card-title>
       <v-card-text>
         <div>user id: {{ userId }}</div>
@@ -35,16 +35,6 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    isOpen: {
-      get() {
-        if (!this.$vuetify.breakpoint.mobile) return true
-        return this.$store.state.showFiltersDrawer
-      },
-      set(val) {
-        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
-        this.$store.state.showFiltersDrawer = val
-      },
-    },
   },
 
   methods: {
@@ -61,10 +51,9 @@ export default {
   },
   async mounted() {
     await this.loginWithMagicToken(this.$route.params.token)
+    this.$router.push("/me")
   },
   watch: {
-    isOpen(to, from) {
-    }
   }
 }
 </script>

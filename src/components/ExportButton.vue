@@ -3,7 +3,7 @@
     <template>
 
       <!--    There's an export in progress -->
-      <v-menu rounded offset-y v-if="isExportStarted">
+      <v-menu offset-y v-if="isExportStarted">
         <template v-slot:activator="{on}">
           <v-btn
               icon
@@ -44,7 +44,7 @@
 
 
       <!--    There's no export in progress right now -->
-      <v-menu rounded offset-y v-else min-width="200" max-width="300">
+      <v-menu offset-y v-else min-width="200" max-width="300">
         <template v-slot:activator="{on}">
           <v-btn
               icon

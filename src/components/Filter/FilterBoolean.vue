@@ -3,7 +3,7 @@
   <v-card
       :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
       flat
-      class="filter button-card filter-select d-flex align-center pa-1  mr-2 mb-2"
+      class="filter button-card filter-select d-flex align-center pa-1  ma-1"
       @click="myValue = !myValue"
   >
     <div class="pl-4  d-flex align-center py-2">

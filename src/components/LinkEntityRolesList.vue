@@ -7,7 +7,7 @@
 <!--        :role="role"-->
 <!--        :append-comma="i < rolesToShow.length - 1 "-->
 <!--    />-->
-    <v-menu rounded>
+    <v-menu>
       <template v-slot:activator="{on}">
         <v-btn
             text

@@ -1,8 +1,8 @@
 <template>
-    <v-card  v-else :loading="isLoading" :disabled="isLoading" class="">
+    <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
       <div v-if="!isSubmitted">
-        <v-icon left>mdi-login</v-icon>
+        <v-icon left>mdi-account</v-icon>
         Log in
       </div>
         <div v-else>
@@ -20,21 +20,19 @@
         </v-card-text>
         <v-card-text v-else key="ready">
           <p>
-            OpenAlex uses passwordless login: just enter your email address below and we'll send you a magic link you can
-            use to log in.
+            OpenAlex uses passwordless login: submit your email and we'll send you a magic login link.
           </p>
 
             <v-text-field
-                flat
+                filled
+                rounded
                 hide-details
-                solo
                 type="email"
                 class="mt-0"
                 prepend-icon="mdi-email-outline"
                 v-model="email"
                 autofocus
                 placeholder="Your email"
-                outlined
                 @keyup.enter="submit"
             >
             </v-text-field>
@@ -46,12 +44,16 @@
       <v-card-actions>
         <v-spacer/>
         <v-btn
-            :dark="!isSubmitted"
+            :disabled="isFormDisabled"
+            rounded
             color="primary"
             @click="submit"
             v-if="!isSubmitted"
         >
           Get login link
+        </v-btn>
+        <v-btn v-else rounded color="primary" @click="$emit('close')">
+          OK
         </v-btn>
 
       </v-card-actions>
@@ -80,6 +82,12 @@ export default {
     ...mapGetters([
       "resultsFilters",
     ]),
+    isFormDisabled() {
+      const isDirty = !!this.email
+      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
+      const isValid = emailRegex.test(this.email)
+      return this.isLoading || (isDirty && !isValid)
+    }
   },
 
 
@@ -88,14 +96,16 @@ export default {
       "snackbar",
     ]),
     ...mapActions("user", [
+      "userId",
       "requestLoginEmail",
     ]),
     async submit() {
+      if (this.isFormDisabled) return false
       this.isLoading = true
       await this.requestLoginEmail(this.email)
       this.isLoading = false
       this.isSubmitted = true
-    }
+    },
 
   },
   created() {

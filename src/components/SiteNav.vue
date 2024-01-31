@@ -1,6 +1,6 @@
 <template>
-  <div class="pt-7 pb-3" style="height: 100%;">
-    <div class="d-flex flex-column align-center fill-height" v-if="isMini">
+  <div class="color-3" style="height: 100%; width: 100%;">
+    <div class="py-3 d-flex flex-column align-center fill-height" >
       <router-link
           :to="{name: 'Home'}"
           class="logo-link-solo"
@@ -10,137 +10,60 @@
             class="logo-icon"
         />
       </router-link>
-      <v-spacer />
-      <v-btn icon large to="contact" class="mb-1">
-        <v-icon>mdi-email-outline</v-icon>
-      </v-btn>
-      <v-btn icon large href="https://help.openalex.org" target="_blank">
-        <v-icon >mdi-information-outline</v-icon>
-      </v-btn>
+      <v-spacer/>
+
+      <v-card flat :to="{name: 'Serp', params: {entityType}}" class="text-center mb-4" color="transparent">
+        <v-chip :color="$route.name === 'Serp' ? 'primary' : 'transparent' ">
+          <v-icon class="">mdi-magnify</v-icon>
+        </v-chip>
+        <div class="text-caption">Search</div>
+      </v-card>
+
+
+<!--      USER LOGGED IN-->
+      <template v-if="userId">
+        <v-card flat to="/" class="text-center mb-4" color="transparent">
+          <v-chip :color="$route.name === 'Home' ? 'primary' : 'transparent' " >
+            <v-icon class="">mdi-folder-outline</v-icon>
+          </v-chip>
+          <div class="text-caption">Saved</div>
+        </v-card>
+
+        <v-card flat to="/me" class="text-center mb-4" color="transparent">
+          <v-chip :color="$route.name === 'Me' ? 'primary' : 'transparent' " >
+            <v-icon class="">mdi-account-outline</v-icon>
+          </v-chip>
+          <div class="text-caption">Account</div>
+        </v-card>
+      </template>
+
+
+<!--      NO USER LOGGED IN-->
+      <template v-else>
+        <v-card flat to="/signup" class="text-center mb-4" color="transparent">
+          <v-chip :color="$route.name === 'Signup' ? 'primary' : 'transparent' " >
+            <v-icon class="">mdi-account-plus-outline</v-icon>
+          </v-chip>
+          <div class="text-caption">Sign up</div>
+        </v-card>
+        <v-card flat to="/login" class="text-center mb-4" color="transparent">
+          <v-chip :color="$route.name === 'Login' ? 'primary' : 'transparent' " >
+            <v-icon class="">mdi-login</v-icon>
+          </v-chip>
+          <div class="text-caption">Log in</div>
+        </v-card>
+
+      </template>
+
+      <v-card flat href="https://help.openalex.org" target="_blank" class="text-center" color="transparent">
+        <v-chip color="transparent">
+          <v-icon class="">mdi-help-circle-outline</v-icon>
+        </v-chip>
+        <div class="text-caption">Help</div>
+      </v-card>
     </div>
-    <div class="d-flex flex-column align-start pl-4 fill-height" v-else>
-      <router-link
-          :to="{name: 'Home'}"
-          class="logo-link"
-      >
-        <img
-            src="@/assets/openalex-logo-icon-black-and-white.png"
-            class="logo-icon mr-0 colorizable"
-        />
-        <span
-            class="logo-text colorizable"
-        >
-                OpenAlex
-              </span>
-
-      </router-link>
-      <v-spacer />
-
-      <v-btn text large rounded to="contact" class="mb-1" width="100%">
-        <v-icon class="mr-4">mdi-email-outline</v-icon>
-        Contact
-        <v-spacer />
-      </v-btn>
-      <v-btn text large rounded href="https://help.openalex.org" target="_blank" width="100%" class="">
-        <v-icon  class="mr-4">mdi-information-outline</v-icon>
-        About the data
-<!--        <v-icon right x-small color="">mdi-open-in-new</v-icon>-->
-        <v-spacer />
-      </v-btn>
-
-    </div>
 
 
-
-
-
-
-    <v-list v-if="0" nav rounded>
-
-      <v-list-item
-          key="asdfasdfasdf"
-          to="/works"
-          color="primary"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-earth</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Explore
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-list-group
-          to="/works"
-          v-for="navItem in navConfigs"
-          :key="navItem.name"
-          :prepend-icon="navItem.icon"
-      >
-        <template v-slot:activator>
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ navItem.name }}
-            </v-list-item-title>
-          </v-list-item-content>
-
-
-        </template>
-
-
-        <template
-            v-for="link in navItem.links"
-        >
-          <v-list-item
-              :key="link.name"
-              v-if="link.to"
-              :to="link.to"
-              color="primary"
-          >
-            <v-list-item-icon></v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ link.name }}
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item
-              :key="link.name"
-              v-if="link.href"
-              :href="link.href"
-              target="_blank"
-              color="primary"
-          >
-            <v-list-item-icon></v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ link.name }}
-                <v-icon x-small class="right">mdi-open-in-new</v-icon>
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-        </template>
-      </v-list-group>
-
-      <v-list-item
-          key="upgrade"
-          to="/pricing"
-          color="primary"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-diamond-stone</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Upgrade
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-
-    </v-list>
   </div>
 </template>
 
@@ -148,6 +71,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {navConfigs} from "@/navConfigs";
+import {user} from "@/store/user.store";
 
 export default {
   name: "SiteNav",
@@ -155,6 +79,7 @@ export default {
   props: {
     isOpen: Boolean,
     isMini: Boolean,
+    bottom: Boolean,
   },
   data() {
     return {
@@ -162,8 +87,15 @@ export default {
     }
   },
   computed: {
+    user() {
+      return user
+    },
     ...mapGetters([
       "resultsFilters",
+        "entityType",
+    ]),
+    ...mapGetters("user", [
+      "userId",
     ]),
     navConfigs() {
       return navConfigs.map(c => {

@@ -164,26 +164,26 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    selected: {
-      get() {
-        if (this.action === 'sort') {
-          return url.getSort(this.$route)
-        } else if (this.action === "group_by") {
-          return url.getGroupBy(this.$route)
-        } else if (this.action === "column") {
-          return url.getColumn(this.$route)
-        }
-      },
-      set(to) {
-        if (this.action === 'sort') {
-          url.setSort(to)
-        } else if (this.action === "group_by") {
-          url.setGroupBy(to)
-        } else if (this.action === "column") {
-          url.setColumn(to)
-        }
-      }
-    },
+    // selected: {
+    //   get() {
+    //     if (this.action === 'sort') {
+    //       return url.getSort(this.$route)
+    //     } else if (this.action === "group_by") {
+    //       return url.getGroupBy(this.$route)
+    //     } else if (this.action === "column") {
+    //       return url.getColumn(this.$route)
+    //     }
+    //   },
+    //   set(to) {
+    //     if (this.action === 'sort') {
+    //       url.setSort(to)
+    //     } else if (this.action === "group_by") {
+    //       url.setGroupBy(to)
+    //     } else if (this.action === "column") {
+    //       url.setColumn(to)
+    //     }
+    //   }
+    // },
     selectedOptions() {
       return url.getActionValueKeys(this.$route, this.action)
     },
@@ -208,8 +208,8 @@ export default {
     },
     selectedSortConfig() {
       if (this.action !== 'sort') return
-      const key = url.getSort(this.$route)
-      return getFacetConfig(this.entityType, key)
+      const sortKey = url.getSort(this.$route)
+      return getFacetConfig(this.entityType, sortKey)
     },
 
 

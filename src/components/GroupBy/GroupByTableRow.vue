@@ -1,5 +1,5 @@
 <template>
-  <tr @click="clickRow" class="group-by-table-row hover-color-1">
+  <tr @click="clickRow" class="group-by-table-row hover-color-2">
     <td class="pr-0" style="width: 1px; white-space: nowrap">
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
@@ -22,7 +22,7 @@
       {{ myCount | toPrecision }}
     </td>
     <td class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
-      <v-menu rounded v-model="isMenuOpen">
+      <v-menu v-model="isMenuOpen">
         <template v-slot:activator="{on}">
           <v-btn small icon v-on="on">
             <v-icon small>mdi-dots-vertical</v-icon>
@@ -142,7 +142,6 @@ export default {
       const filters = url.upsertFilterOptionNoPush(this.entityType, this.filterKey, this.value)
       const count = await api.getResultsCount(this.entityType, filters)
 
-      console.log("myCount results count", count)
       this.myCount = count
     },
     async getMyDisplayValue() {

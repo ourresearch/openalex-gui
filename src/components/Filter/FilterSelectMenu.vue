@@ -1,5 +1,5 @@
 <template>
-  <v-menu rounded>
+  <v-menu>
     <template v-slot:activator="{on}">
       <v-btn
           icon

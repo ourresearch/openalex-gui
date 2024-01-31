@@ -1,78 +1,138 @@
 <template>
 
-  <div>
-    <!--    <search-bar class="pt-3" />-->
-<!--    <v-toolbar dense flat color=" " class="transparent" v-if="$vuetify.breakpoint.xsOnly">-->
-<!--      <v-icon left>mdi-filter-outline</v-icon>-->
-<!--      <v-toolbar-title class="mr-2">-->
-<!--        Filters-->
-<!--        <span class="font-weight-light">-->
-<!--            ({{ filters.length }})-->
-<!--            </span>-->
-
-<!--      </v-toolbar-title>-->
-<!--      <v-spacer/>-->
-<!--    </v-toolbar>-->
-
-
+  <v-card rounded flat class="pa-2 ">
     <!--    main part of filters list-->
-    <v-card rounded flat class="d-flex flex-wrap mb-2  color-2 pt-4 pb-3 px-4">
-      <v-btn large dark  class="mr-3 elevation-0 mb-2">
-        <v-icon class="mr-1">mdi-filter-outline</v-icon>
-        {{ filters.length }}
-        Filters:
-      </v-btn>
+    <div
+        flat
+        class="d-flex  mb-2 px-4 py-1 "
+        style="border-radius: 40px !important; border: 3px solid #333;"
+        @click="$refs.mainTextarea.focus()"
+    >
+      <!--        style="border: 3px solid #ccc;"-->
 
 
-      <component
-          v-for="(filter, i) in filters"
-          :key="filter.key + $route.query.filter"
-          class="d-block"
-          :is="'filter-phrase-' + filter.type"
-          :filter-key="filter.key"
-          :is-active="filter.key === activeFilterKey"
-          @delete="url.deleteFilter(entityType, filter.key)"
-      />
+      <div class="pt-3 mr-3">
+        <v-icon large class="">mdi-magnify</v-icon>
+      </div>
+      <div class="d-flex flex-wrap">
+        <!--      <v-slide-x-transition group hide-on-leave class="d-flex flex-wrap" v-if="$vuetify.breakpoint.mdAndUp">-->
+        <component
+            v-for="(filter, i) in filters"
+            :key="filter.key + $route.query.filter"
+            class="d-block"
+            :is="'filter-phrase-' + filter.type"
+            :filter-key="filter.key"
+            :is-active="filter.key === activeFilterKey"
+            @delete="url.deleteFilter(entityType, filter.key)"
+        />
 
-      <action
-          action="filter"
-          @click="(key) => setActiveFilter(key)"
-      />
+        <component
+            v-if="newFilterKey"
+            :key="'new' + activeFilterConfig.key + $route.query.filter"
+            style="display: none !important;"
+            :is="'filter-phrase-' + activeFilterConfig.type"
+            :filter-key="activeFilterConfig.key"
+            :is-active="activeFilterConfig.key === activeFilterKey"
+            @delete="setActiveFilter(undefined)"
+        />
+        <v-text-field
+            class="grey--text text-h5 pa-1 my-1 align-self-center internal-search-field"
+            autofocus
+            filled
+            rounded
+            dense
+            hide-details
+            background-color="transparent"
+            placeholder="Search OpenAlex"
+            v-model="searchString"
+            @keydown.enter="submitTextSearch"
+            ref="mainTextarea"
+        >
+        </v-text-field>
 
-      <!--      Legacy thing, kinda dumb but important-->
-      <component
-          v-if="newFilterKey"
-          :key="'new' + activeFilterConfig.key + $route.query.filter"
-          style="display: none !important;"
-          :is="'filter-phrase-' + activeFilterConfig.type"
-          :filter-key="activeFilterConfig.key"
-          :is-active="activeFilterConfig.key === activeFilterKey"
-          @delete="setActiveFilter(undefined)"
-      />
-<!--      <div class="grey&#45;&#45;text text-h5 align-self-center">-->
-<!--        click to search & filter-->
-<!--      </div>-->
-    </v-card>
+      </div>
+      <v-spacer/>
+      <div class="pt-1">
+        <v-btn v-if="filters.length || searchString" large icon @click="clearEverything">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+
+      </div>
+
+    </div>
+    <div class="d-md-flex d-block  align-center pt-0">
+      <!--      <div v-if="filters.length < 2" class="caption mr-2">Try:</div>-->
 
 
-<!--    <div class="d-md-flex d-block  align-center px-4 pt-4">-->
-<!--      <div v-if="filters.length < 2" class="caption mr-2">Try:</div>-->
-<!--      <div class="d-flex flex-wrap">-->
-<!--        <v-chip-->
-<!--            v-for="filter in popularFilterOptions"-->
-<!--            :key="filter.key"-->
-<!--            outlined-->
-<!--            class="mr-1 mb-1"-->
-<!--            @click="setActiveFilter(filter)"-->
-<!--            small-->
-<!--            :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"-->
-<!--        >-->
-<!--          <v-icon small left>{{ filter.icon }}</v-icon>-->
-<!--          {{ filter.displayName }}-->
-<!--        </v-chip>-->
-<!--      </div>-->
-<!--      <v-spacer/>-->
-<!--    </div>-->
+      <div class="d-md-flex d-block  align-center pt-2 flex-wrap" style="width: 100%;">
+        <template v-for="filter in filterOptions">
+          <v-chip
+              v-if="!filter.value"
+              :key="filter.key +'no-value'"
+              class="mr-1 mb-1 color-1"
+              outlined
+              @click="setActiveFilter(filter)"
+              :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
+          >
+            <v-icon small left>{{ filter.icon }}</v-icon>
+            {{ filter.displayName }}
+          </v-chip>
+
+          <v-chip
+              v-if="filter.value && filter.isShortcut"
+              :key="filter.key + filter.value"
+              class="mr-1 mb-1 d-flex"
+              color="primary"
+              :to="filter.value | entityZoomLink"
+              dark
+              label
+          >
+            <v-icon small left>{{ filter.icon }}</v-icon>
+            {{ filter.displayName | truncate(100) }}
+            <v-spacer/>
+            <v-icon small right>mdi-arrow-right</v-icon>
+          </v-chip>
+
+
+          <v-chip
+              v-if="filter.value && !filter.isShortcut"
+              :key="filter.key + filter.value"
+              class="mr-1 mb-1 color-1"
+              @click="url.upsertFilterOption(entityType, filter.key, filter.value)"
+
+          >
+            <v-icon small left>{{ filter.icon }}</v-icon>
+            {{ filter.displayName | truncate(100) }}
+          </v-chip>
+
+        </template>
+        <v-chip
+            key="search-filter"
+            v-if="searchString?.length >= 3"
+            class="mr-1 mb-1 color-1"
+            @click="submitTextSearch"
+        >
+          <v-icon small left>mdi-text-search</v-icon>
+          <span class="mr-1">text: </span>
+          <q class="">{{ searchString }}</q>
+
+        </v-chip>
+        <v-spacer/>
+        <v-btn
+            text
+            rounded
+            key="link-to-all-filters"
+            v-if="!searchString?.length"
+            class="mr-1 mb-1"
+            @click="dialogs.moreFilters = true"
+
+        >
+          <v-icon small left>mdi-filter-outline</v-icon>
+          All filters
+        </v-btn>
+
+      </div>
+    </div>
 
 
     <v-dialog
@@ -81,14 +141,20 @@
         max-width="400"
     >
       <v-card rounded>
-        <v-toolbar flat>
-          <v-toolbar-title>More Filter options</v-toolbar-title>
+        <v-toolbar extended flat class="color-2">
+          <v-toolbar-title>Add filter</v-toolbar-title>
           <v-spacer/>
           <v-btn icon @click="dialogs.moreFilters = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
+          <template v-slot:extension>
+            <v-text-field
+
+            />
+
+            </v-text-field>
+          </template>
         </v-toolbar>
-        <v-divider/>
         <v-card-text class="pa-0">
           <v-list-item
               v-for="filter in allFilterOptions"
@@ -111,7 +177,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-  </div>
+  </v-card>
 
 
 </template>
@@ -133,6 +199,8 @@ import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Action from "@/components/Action/Action.vue";
+import {api} from "@/api";
+import {getEntityConfig} from "@/entityConfigs";
 
 export default {
   name: "Template",
@@ -157,6 +225,8 @@ export default {
       dialogs: {
         moreFilters: false
       },
+      autocompleteResponses: [],
+      isLoading: false,
     }
   },
   computed: {
@@ -164,6 +234,24 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    filterOptions() {
+      const filtersWithoutValues = this.allFilterOptions.filter(f => {
+        if (this.searchString) {
+          const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
+          return filterKeyWords.some(w => {
+            return w.toLowerCase().indexOf(this.searchString.toLowerCase()) === 0
+          })
+        } else {
+          return f.actionsPopular?.includes("filter")
+        }
+      })
+
+      const sliceTo = this.searchString ? 4 : 5
+      return [
+        ...filtersWithoutValues,
+        ...this.autocompleteResponses,
+      ].slice(0, sliceTo)
+    },
 
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter).filter(f => {
@@ -206,9 +294,6 @@ export default {
           "+" :
           "search"
     },
-    addFilterOptions() {
-      return []
-    },
     popularFilterOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("filter"))
@@ -217,7 +302,6 @@ export default {
     allFilterOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actions?.includes("filter"))
-
     }
   },
 
@@ -228,9 +312,24 @@ export default {
     ...mapActions([]),
     clearEverything() {
       this.activeFilterKey = null
+      if (!this.searchString) {
+        url.deleteAllFilters()
+      }
       this.searchString = ""
-      url.deleteAllFilters()
+      this.$refs.mainTextarea.focus()
 
+    },
+    submitTextSearch() {
+      if (this.searchString) {
+        url.upsertFilterOption(this.entityType, 'default.search', this.searchString)
+      } else {
+        if (this.$route.name !== "Serp") {
+          this.$router.push({
+            name: "Serp",
+            params: {entityType: this.entityType}
+          })
+        }
+      }
     },
     setActiveFilter(newFilter) {
 
@@ -251,6 +350,46 @@ export default {
 
         this.activeFilterKey = newFilter.key
       }
+    },
+    async getAutocompleteResponses() {
+      if (!this.searchString) {
+        this.autocompleteResponses = []
+        return
+      }
+
+      const myEntityType = (this.entityType === "works") ?
+          null :
+          this.entityType
+      const autocompleteUrl = url.makeAutocompleteUrl(myEntityType, this.searchString)
+      this.isLoading = true
+      const resp = await api.getUrl(autocompleteUrl)
+      this.isLoading = false
+
+
+      const ret = resp.results
+          .filter(r => !!r.id)
+          .filter(r => r.entity_type !== "filter")
+          .map(result => {
+            const entityConfig = getEntityConfig(result.entity_type)
+            const filterConfig = getFacetConfig(this.entityType, entityConfig.filterKey)
+
+
+            return {
+              ...filterConfig,
+              value: result.id,
+              entityType: entityConfig.name,
+              isShortcut: entityConfig.name === "works",
+              displayName: result.display_name,
+              icon: entityConfig.icon,
+            }
+          })
+      const everySuggestionIsAWork = ret.every(f => f.entityType === "works")
+      const cleaned = ret.every(r => r.isShortcut) ?
+          ret.slice(0, 3) :
+          ret.filter(r => !r.isShortcut).slice(0, 5)
+
+      this.autocompleteResponses = cleaned
+
     }
 
 
@@ -260,10 +399,14 @@ export default {
   mounted() {
   },
   watch: {
+    searchString() {
+      this.getAutocompleteResponses()
+    },
     '$route': {
       immediate: true,
       handler(to, from) {
         this.activeFilterKey = null
+        this.searchString = ""
       }
     },
     '$store.state.activeFilter': {
@@ -284,15 +427,20 @@ export default {
 
 <style lang="scss">
 
-  .filter {
-    border-radius: 25px !important;
+.internal-search-field.v-text-field--rounded > .v-input__control > .v-input__slot {
+  padding-left: 0 !important;
+}
 
-    &:hover {
-      //background: #f4f9ff;
-      //box-shadow: 5px 5px #000 !important;
-    }
+.filter {
+  border-radius: 25px !important;
 
+  &:hover {
+    //background: #f4f9ff;
+    //box-shadow: 5px 5px #000 !important;
   }
+
+}
+
 .filter-list {
   .v-text-field--rounded > .v-input__control > .v-input__slot {
     //padding: 0 !important;

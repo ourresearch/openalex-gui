@@ -222,12 +222,10 @@ import {entityConfigs} from "../../entityConfigs";
 import EntityIcon from "../Entity/EntityIcon.vue";
 import axios from "axios";
 import SerpToolbarEmailAlert from "@/components/SerpToolbar/SerpToolbarEmailAlert.vue";
-import Template from "@/SerpTabs.vue";
 
 export default {
   name: "SerpToolbar",
   components: {
-    Template,
     EntityIcon,
     YearRange,
     SerpToolbarEmailAlert,

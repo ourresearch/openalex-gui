@@ -8,7 +8,7 @@
       :loading="isLoading"
       style="width: 100%;"
   >
-    <v-toolbar dense flat color="transparent">
+    <v-toolbar flat color="transparent">
       <v-icon left>{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title>
         <span class="">{{ filterConfig.displayName }}</span>
@@ -19,7 +19,7 @@
           v-if="filterConfig.type === 'select' && selectedGroups?.length > 1"
           icon
       />
-      <v-menu rounded offset-y>
+      <v-menu offset-y>
         <template v-slot:activator="{on}">
           <v-btn
               icon
@@ -68,7 +68,6 @@
       </v-menu>
 
     </v-toolbar>
-    <v-divider/>
     <div v-if="groups.length" class="card-body">
 
       <div v-if="filterKey==='publication_year'" style="min-width: 200px">
@@ -85,7 +84,7 @@
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-2 hover-color-1"
+        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-3 hover-color-2"
                 @click="isSelected = !isSelected">
           <v-icon class="mr-4 ml-2" color="">{{
               isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-menu rounded>
+    <v-menu>
       <template v-slot:activator="{on}">
       <v-btn
           :close="!!groupByKey"

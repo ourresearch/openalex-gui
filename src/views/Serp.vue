@@ -1,55 +1,56 @@
 <template>
-  <div class="serp-page pb-12">
-    <!--    <div>-->
-    <!--      <qrcode-vue :value="String('https://openalex.org' + $route.fullPath)" size="300" />-->
-    <!--    </div>-->
+  <div class="">
 
-    <v-container class=" main-serp-container" style="max-width: 1785px;">
-      <serp-toolbar :results-object="resultsObject"/>
+    <v-container style="max-width: 1785px;">
+      <!--      <serp-tabs :results-object="resultsObject"/>-->
+      <v-card rounded flat class="white">
+        <serp-toolbar :results-object="resultsObject"/>
+        <filter-list :results-object="resultsObject" class=""/>
+        <v-divider />
+        <v-container fluid class="">
 
-      <serp-api-editor v-if="isShowApiSet" class="mb-4"/>
-      <v-row>
-        <v-col>
-          <filter-list :results-object="resultsObject" class=""/>
-        </v-col>
-      </v-row>
+          <serp-api-editor v-if="isShowApiSet" class="mb-2"/>
 
-      <v-row style="margin-top: -15px;"  v-if="$vuetify.breakpoint.mdAndUp">
-        <v-col class="flex-grow-1">
-          <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-        </v-col>
-        <v-col
-            cols="4"
-            xl="6"
-            v-if="$vuetify.breakpoint.mdAndUp"
-        >
-          <analytic-views class=""/>
-        </v-col>
-      </v-row>
 
-      <template v-else>
-        <v-row>
-          <v-col>
-            <v-tabs v-model="resultsTab">
-              <v-tab key="0">Results</v-tab>
-              <v-tab key="1">Summaries</v-tab>
-            </v-tabs>
-            <v-tabs-items v-model="resultsTab">
-              <v-tab-item key="0">
-                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-              </v-tab-item>
-              <v-tab-item key="1">
-                <analytic-views/>
-              </v-tab-item>
-            </v-tabs-items>
-          </v-col>
-        </v-row>
-      </template>
+
+          <v-row  v-if="$vuetify.breakpoint.mdAndUp">
+            <v-col class="flex-grow-1">
+              <serp-results-list :results-object="resultsObject"/>
+            </v-col>
+            <v-col
+                cols="4"
+                xl="6"
+                v-if="$vuetify.breakpoint.mdAndUp"
+            >
+              <analytic-views :results-object="resultsObject" class=""/>
+            </v-col>
+          </v-row>
+
+          <template v-else>
+            <v-row>
+              <v-col>
+                <v-tabs v-model="resultsTab">
+                  <v-tab key="0">Results</v-tab>
+                  <v-tab key="1">Summaries</v-tab>
+                </v-tabs>
+                <v-tabs-items v-model="resultsTab">
+                  <v-tab-item key="0">
+                    <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
+                  </v-tab-item>
+                  <v-tab-item key="1">
+                    <analytic-views/>
+                  </v-tab-item>
+                </v-tabs-items>
+              </v-col>
+            </v-row>
+          </template>
+
+
+        </v-container>
+      </v-card>
 
 
     </v-container>
-
-
   </div>
 
 
@@ -89,8 +90,12 @@ import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import SearchBar from "@/components/SearchBar.vue";
+import SerpTabs from "@/components/SerpTabs.vue";
 
 import QrcodeVue from 'qrcode.vue'
+
+const shortUuid = require('short-uuid');
+
 
 export default {
   name: "Serp",
@@ -120,6 +125,7 @@ export default {
     SearchBar,
 
     QrcodeVue,
+    SerpTabs,
 
   },
   props: {},
@@ -183,6 +189,9 @@ export default {
     ...mapGetters([
       "searchIsLoading",
       "entityType",
+    ]),
+    ...mapGetters("user", [
+      "userId",
     ]),
     numPages() {
       const maxToShow = this.$vuetify.breakpoint.mobile ?
@@ -252,14 +261,6 @@ export default {
             sidebar: undefined
           },
         })
-      }
-    },
-    page: {
-      get() {
-        return this.resultsObject?.meta?.page ?? 1
-      },
-      set(val) {
-        url.setPage(val)
       }
     },
     selectedEntityTypeConfig() {
@@ -348,25 +349,27 @@ export default {
         // this.snackbar(msg)
       }
     },
-
     "$route": {
       immediate: true,
       async handler(to, from) {
+        // console.log("Serp $route watcher", to, from)
+        if (this.userId && !this.$route.query.id) {
+          await this.$router.replace({
+            name: "Serp",
+            query: {
+              ...this.$route.query,
+              id: shortUuid.generate()
+            }
+          })
+          return
+        }
+        if (this.userId) {
+          await this.$store.dispatch("user/upsertActiveSearch")
+        }
 
-        console.log("Serp $route watcher", this.$route)
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
-
-        // set default actions if there are none
-        if (!this.$route.query.sort) url.pushQueryParam(
-            "sort",
-            getActionDefaultsStr("sort", this.$route)
-        )
-        if (!this.$route.query.group_by) url.pushQueryParam(
-            "group_by",
-            getActionDefaultsStr("group_by", this.$route)
-        )
 
         this.$store.state.isLoading = true
         const resp = await api.getResultsList(apiQuery)

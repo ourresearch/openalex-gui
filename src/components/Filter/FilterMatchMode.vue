@@ -1,6 +1,6 @@
 <template>
 
-  <v-menu rounded offset-y max-width="400">
+  <v-menu offset-y max-width="400">
     <template v-slot:activator="{on}">
       <v-btn v-if="icon" icon v-on="on">
         <v-icon>{{ value === "all" ? "mdi-set-center" : "mdi-set-all" }}</v-icon>

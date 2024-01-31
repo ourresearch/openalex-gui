@@ -1,25 +1,12 @@
 <template>
-  <v-card rounded flat class="color-3">
-    <v-toolbar color="" flat class="color-3">
-      <v-toolbar-title>
-      <v-icon left>mdi-format-list-bulleted</v-icon>
-        Results
-      </v-toolbar-title>
+  <v-card rounded flat class="">
+    <serp-results-count :results-object="resultsObject" class="mt-5 ml-3 mr-2" />
 
-      <v-spacer></v-spacer>
-
-      <export-button/>
-
-    </v-toolbar>
-    <div class="ml-4 my-1">
-      <serp-results-count :results-object="resultsObject"/>
-    </div>
-
-    <v-list class="mx-2" color="">
+    <v-list v-if="resultsObject?.results" class="" color="">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class=""
+          class="pl-0"
           :to="result.id | entityZoomLink"
           color="primary"
       >
@@ -59,7 +46,7 @@
             <!--              web-->
             <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
             <!--            </v-btn>-->
-            <span @click.stop>
+            <span @click.stop >
               <v-btn
                   v-if="result?.best_oa_location?.pdf_url"
                   :href="result?.best_oa_location?.pdf_url"
@@ -76,7 +63,7 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
-    <div class="serp-bottom">
+    <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
           class="my-3 elevation-0"
           circle
@@ -86,6 +73,9 @@
           light
       />
     </div>
+    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
+      There are no results for this search.
+    </v-card>
   </v-card>
 </template>
 
@@ -100,6 +90,7 @@ import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
+import SerpAlert from "@/components/SerpAlert.vue";
 
 export default {
   name: "Template",
@@ -109,6 +100,7 @@ export default {
     Action,
     WorkAuthorsString,
     SerpResultsCount,
+    SerpAlert,
   },
   props: {
     resultsObject: Object,
@@ -140,7 +132,8 @@ export default {
         return this.resultsObject?.meta?.page ?? 1
       },
       set(val) {
-        url.setPage(val)
+        const valToUse = (val === 1) ? undefined : val
+        url.setPage(valToUse)
       }
     },
     isShowApiSet: {

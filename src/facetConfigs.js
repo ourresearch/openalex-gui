@@ -282,7 +282,7 @@ const facetConfigs = function (entityType) {
         {
             key: "default.search",
             entityType: "works",
-            displayName: "Search title, abstract, & text",
+            displayName: "text",
             type: "search",
             categories: ["other", "popular"],
             actions: ["filter",],
@@ -290,7 +290,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             isList: false,
             isCore: true,
-            icon: "mdi-magnify",
+            icon: "mdi-text-search",
         },
         // {
         //     key: "display_name.search",
