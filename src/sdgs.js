@@ -51,7 +51,7 @@ const openAlexSdgs = [
     },
     {
         id: "https://metadata.un.org/sdg/15",
-        display_name: "SDG15: Life in Land",
+        display_name: "SDG15: Life on land",
         count: 10643894
     },
     {
@@ -161,7 +161,7 @@ const openAlexSdgs = [
     },
     {
         id: "http://metadata.un.org/sdg/15",
-        display_name: "SDG15: Life in Land",
+        display_name: "SDG15: Life on land",
         count: 4
     },
     {
