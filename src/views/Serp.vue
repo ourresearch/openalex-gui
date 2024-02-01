@@ -11,11 +11,11 @@
 
           <serp-api-editor v-if="isShowApiSet" class="mb-2"/>
 
-<!--          <v-row>-->
-<!--            <v-col>-->
-<!--             <serp-results-count :results-object="resultsObject" />-->
-<!--            </v-col>-->
-<!--          </v-row>-->
+          <v-row>
+            <v-col>
+             <serp-results-count :results-object="resultsObject" include-time class="grey--text" />
+            </v-col>
+          </v-row>
 
 
           <v-row v-if="$vuetify.breakpoint.mdAndUp">
@@ -358,18 +358,21 @@ export default {
       immediate: true,
       async handler(to, from) {
         // console.log("Serp $route watcher", to, from)
-        if (this.userId && !this.$route.query.id) {
-          await this.$router.replace({
-            name: "Serp",
-            query: {
-              ...this.$route.query,
-              id: shortUuid.generate()
-            }
-          })
-          return
-        }
-        if (this.userId) {
-          await this.$store.dispatch("user/upsertActiveSearch")
+
+        // autosave ALL new searches.
+        // if (this.userId && !this.$route.query.id) {
+        //   await this.$router.replace({
+        //     name: "Serp",
+        //     query: {
+        //       ...this.$route.query,
+        //       id: shortUuid.generate()
+        //     }
+        //   })
+        //   return
+        // }
+
+        if (this.userId && this.$route.query.id) {
+          this.$store.dispatch("user/upsertActiveSearch") // not waiting, do async
         }
 
 

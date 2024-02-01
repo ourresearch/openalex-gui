@@ -1,5 +1,4 @@
 <template>
-  <div v-if="!userId">
 
     <div style="padding-bottom: 0px;">
       <v-container class="">
@@ -161,33 +160,6 @@
       </v-container>
     </div>
 
-  </div>
-  <div v-else>
-    <v-container>
-      <v-toolbar flat>
-        <v-toolbar-title>
-        Your searches
-
-        </v-toolbar-title>
-        <v-spacer />
-        <v-btn rounded color="primary" :to="{name:'Serp', params: {entityType: 'works'}}">
-          <v-icon left>mdi-plus</v-icon>
-          new search
-        </v-btn>
-      </v-toolbar>
-      <v-list rounded>
-        <user-saved-search
-            v-for="(savedSearch, i) in userSavedSearches"
-            :key="savedSearch.id"
-            :id="savedSearch.id"
-            :search-url="savedSearch.search_url"
-            :updated="savedSearch.updated"
-        >
-        </user-saved-search>
-      </v-list>
-
-    </v-container>
-  </div>
 
 
 </template>

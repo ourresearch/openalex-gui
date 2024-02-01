@@ -1,12 +1,7 @@
 <template>
   <v-card rounded flat color="">
     <v-toolbar flat color="" class="">
-      <v-btn text rounded @click="hideResults = !hideResults" class="px-2">
-        <v-icon v-if="hideResults" left>mdi-chevron-right</v-icon>
-        <v-icon v-else left>mdi-chevron-left</v-icon>
-        Report
-      </v-btn>
-<!--      <div class="grey&#45;&#45;text">Report</div>-->
+      <div class="font-weight-bold">Report</div>
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
       <v-menu offset-y>

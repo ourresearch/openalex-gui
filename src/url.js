@@ -47,9 +47,28 @@ const pushQueryParam = function (key, value) {
     })
 }
 
+const replaceQueryParam = function (key, value) {
+    const query = {
+        ...router.currentRoute.query,
+        [key]: value,
+    }
+    replaceToRoute(router, {
+        name: "Serp",
+        query,
+    })
+}
+
 
 const pushToRoute = async function (router, newRoute) {
     return await router.push(newRoute)
+        .catch((e) => {
+            if (e.name !== "NavigationDuplicated") {
+                throw e
+            }
+        })
+}
+const replaceToRoute = async function (router, newRoute) {
+    return await router.replace(newRoute)
         .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
                 throw e
@@ -703,6 +722,7 @@ const url = {
     setSerpTabName,
 
     pushQueryParam,
+    replaceQueryParam,
 }
 
 

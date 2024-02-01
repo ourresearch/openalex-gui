@@ -80,6 +80,7 @@ export default {
 
       const oneDayAgo = new Date(new Date().setDate(new Date().getDate() - 1));
       const updatedDate = new Date(this.updated)
+
       return (updatedDate < oneDayAgo) ?
           updatedDate.toLocaleDateString(undefined, dateOptions) :
           updatedDate.toLocaleTimeString(undefined, timeOptions)
