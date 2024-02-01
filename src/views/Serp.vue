@@ -6,20 +6,25 @@
       <v-card rounded flat class="white">
         <serp-toolbar :results-object="resultsObject"/>
         <filter-list :results-object="resultsObject" class=""/>
-        <v-divider />
+        <v-divider/>
         <v-container fluid class="">
 
           <serp-api-editor v-if="isShowApiSet" class="mb-2"/>
 
+<!--          <v-row>-->
+<!--            <v-col>-->
+<!--             <serp-results-count :results-object="resultsObject" />-->
+<!--            </v-col>-->
+<!--          </v-row>-->
 
 
-          <v-row  v-if="$vuetify.breakpoint.mdAndUp">
-            <v-col class="flex-grow-1">
+          <v-row v-if="$vuetify.breakpoint.mdAndUp">
+            <v-col cols="8" v-if="!$route.query.hide_results">
               <serp-results-list :results-object="resultsObject"/>
             </v-col>
             <v-col
-                cols="4"
-                xl="6"
+
+                class="flex-grow-1"
                 v-if="$vuetify.breakpoint.mdAndUp"
             >
               <analytic-views :results-object="resultsObject" class=""/>

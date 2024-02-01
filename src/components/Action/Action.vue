@@ -12,24 +12,24 @@
         </v-btn>
         <v-btn
             v-else
-            :icon="myConfig.id !== 'sort'"
-            :small="myConfig.id === 'sort'"
+            icon
             rounded
             text
             v-on="on"
-            class="font-weight-regular"
+            class=""
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
             <!--            <v-icon left>mdi-sort</v-icon>-->
-            <template v-if="$vuetify.breakpoint.smAndUp">
-              {{ selectedSortConfig.displayName }}
-              <v-icon right>mdi-menu-down</v-icon>
-            </template>
-            <template v-else>
+<!--            <template v-if="$vuetify.breakpoint.smAndUp">-->
+<!--              {{ selectedSortConfig.displayName }}-->
+<!--              <v-icon right>mdi-menu-down</v-icon>-->
+<!--            </template>-->
+<!--            <template v-else>-->
               <v-icon>mdi-sort</v-icon>
 
-            </template>
+<!--            </template>-->
+
 
           </template>
           <template v-if="myConfig.id === 'group_by'">

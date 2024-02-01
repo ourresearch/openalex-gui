@@ -1,10 +1,12 @@
 <template>
   <v-card rounded flat color="">
     <v-toolbar flat color="" class="">
-      <v-btn icon>
-        <v-icon>mdi-chevron-left</v-icon>
+      <v-btn text rounded @click="hideResults = !hideResults" class="px-2">
+        <v-icon v-if="hideResults" left>mdi-chevron-right</v-icon>
+        <v-icon v-else left>mdi-chevron-left</v-icon>
+        Report
       </v-btn>
-      <div class="grey--text">Report</div>
+<!--      <div class="grey&#45;&#45;text">Report</div>-->
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
       <v-menu offset-y>
@@ -102,6 +104,10 @@ export default {
     ]),
     groupByKeys() {
       return url.getGroupBy(this.$route)
+    },
+    hideResults: {
+      get(){ return this.$route.query.hide_results },
+      set(to){ url.setHideResults(to) }
     },
     apiUrl() {
       const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)

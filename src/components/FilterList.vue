@@ -141,7 +141,7 @@
         max-width="400"
     >
       <v-card rounded>
-        <v-toolbar extended flat class="color-2">
+        <v-toolbar extended extension-height="60" flat class="color-2">
           <v-toolbar-title>Add filter</v-toolbar-title>
           <v-spacer/>
           <v-btn icon @click="dialogs.moreFilters = false">
@@ -149,15 +149,27 @@
           </v-btn>
           <template v-slot:extension>
             <v-text-field
+                v-model="moreFiltersSearchString"
+                filled
+                rounded
+                background-color="white"
+                prepend-inner-icon="mdi-magnify"
+                class="mx-2 mb-3"
+                hide-details
+                autofocus
+                clearable
 
             />
 
-            </v-text-field>
           </template>
         </v-toolbar>
         <v-card-text class="pa-0">
+          <div class="pa-6 grey--text" v-if="!moreFiltersOptions.length">
+            <v-icon left>mdi-magnify-close</v-icon>
+            No matching filters
+          </div>
           <v-list-item
-              v-for="filter in allFilterOptions"
+              v-for="filter in moreFiltersOptions"
               :key="filter.key"
               color="primary"
               :disabled="url.isFilterApplied($route, entityType, filter.key)"
@@ -221,6 +233,7 @@ export default {
     return {
       foo: 42,
       searchString: "",
+      moreFiltersSearchString: "",
       url,
       dialogs: {
         moreFilters: false
@@ -251,6 +264,17 @@ export default {
         ...filtersWithoutValues,
         ...this.autocompleteResponses,
       ].slice(0, sliceTo)
+    },
+
+    moreFiltersOptions(){
+      const mySearchString = this.moreFiltersSearchString?.toString() ?? ""
+
+      return this.allFilterOptions.filter(f => {
+          const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
+          return filterKeyWords.some(w => {
+            return w.indexOf(mySearchString) === 0
+          })
+      })
     },
 
     filters() {
@@ -401,6 +425,9 @@ export default {
   watch: {
     searchString() {
       this.getAutocompleteResponses()
+    },
+    "dialogs.moreFilters"(to) {
+      if (to) this.moreFiltersSearchString = ""
     },
     '$route': {
       immediate: true,
