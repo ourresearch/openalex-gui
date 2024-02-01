@@ -22,6 +22,7 @@ import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
+import SavedSearches from "@/views/SavedSearches.vue";
 
 
 Vue.use(VueRouter)
@@ -68,8 +69,9 @@ const routes = [
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
+    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    {path: '/me/:tab?', name: 'Me', component: Me, meta: {requiresAuth: true}},
+    {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},
 
 
     // static pages

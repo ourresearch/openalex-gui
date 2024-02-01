@@ -1,18 +1,9 @@
 <template>
-  <v-toolbar dense color="" flat class="">
-
-<!--    <v-btn-->
-<!--        icon-->
-<!--        small-->
-<!--        :loading="isLoadingSave"-->
-<!--        v-if="true"-->
-<!--    >-->
-<!--      <v-icon>mdi-folder-check-outline</v-icon>-->
-<!--    </v-btn>-->
-
+  <v-toolbar  color="" flat class="">
     <v-btn v-if="!isEditingName" text class="text-h6 px-2" @click="isEditingName = true" rounded>
       {{ tabName || "Untitled search" }}
     </v-btn>
+
     <v-text-field
         v-else
         autofocus
@@ -26,11 +17,17 @@
         class="text-h6 pl-0 ml-0"
     />
 
+    <div class="pt-1">
+      <v-icon small>mdi-{{ isAutoSaved ? (isUserSaving ? "autorenew" : "content-save") : "content-save-off-outline" }}</v-icon>
+      <span class="text-caption grey--text ml-1" v-if="isAutoSaved">{{ isUserSaving ? "saving" : "saved" }}</span>
+
+    </div>
+
 
     <v-spacer/>
 
     <serp-alert/>
-    <export-button/>
+    <!--    <export-button/>-->
 
 
     <v-menu offset-y>
@@ -42,7 +39,26 @@
 
       </template>
       <v-list>
-        <v-list-item @click="newSearch">
+        <v-list-item @click="isAutoSaved = true" :disabled="isAutoSaved">
+          <v-list-item-icon>
+            <v-icon :disabled="isAutoSaved">mdi-content-save-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title v-if="isAutoSaved">
+              Autosave <span class="font-weight-bold">on</span>
+            </v-list-item-title>
+            <v-list-item-title v-else>Autosave</v-list-item-title>
+          </v-list-item-content>
+          <!--          <v-list-item-icon>-->
+          <!--            <v-icon>mdi-toggle-switch</v-icon>-->
+          <!--          </v-list-item-icon>-->
+          <v-list-item-action>
+            <v-switch :disabled="isAutoSaved" class="pt-2" hide-details readonly :input-value="!!isAutoSaved"/>
+          </v-list-item-action>
+        </v-list-item>
+        <v-divider/>
+
+        <v-list-item @click="newSearch" v-if="Object.keys($route.query)?.length">
           <v-list-item-icon>
             <v-icon>mdi-folder-plus-outline</v-icon>
           </v-list-item-icon>
@@ -52,7 +68,6 @@
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-
 
         <v-list-item @click="isDialogOpen.openSearch = true">
           <v-list-item-icon>
@@ -74,7 +89,16 @@
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-
+        <v-list-item v-if="isAutoSaved" @click="deleteSearch">
+          <v-list-item-icon>
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              Delete search
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
 
 
         <v-divider/>
@@ -157,7 +181,6 @@
     </v-dialog>
 
 
-
   </v-toolbar>
 </template>
 
@@ -171,6 +194,9 @@ import QrcodeVue from 'qrcode.vue'
 import SerpAlert from "@/components/SerpAlert.vue";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import FilterList from "@/components/FilterList.vue";
+
+const shortUuid = require('short-uuid');
+
 
 export default {
   name: "Template",
@@ -214,6 +240,7 @@ export default {
     ...mapGetters("user", [
       "isCurrentSerpTabSaved",
       "userSavedSearches",
+      "isUserSaving",
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath
@@ -233,6 +260,17 @@ export default {
       set(to) {
         url.setSerpTabName(to)
       }
+    },
+    isAutoSaved: {
+      get() {
+        return !!this.$route.query.id
+      },
+      set(to) {
+        console.log("set isAutoSaved")
+        to ?
+            this.saveSearch() :
+            url.replaceQueryParam("id", undefined)
+      }
     }
   },
 
@@ -241,10 +279,24 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    ...mapActions("user", [
-    ]),
+    ...mapActions("user", []),
+    async saveSearch() {
+      try {
+        await this.$router.replace({
+          name: "Serp",
+          query: {
+            ...this.$route.query,
+            id: shortUuid.generate()
+          }
+        })
+      } catch (e) {
+        if (e.name !== "NavigationDuplicated") {
+          throw e
+        }
+      }
+    },
     newSearch() {
-      this.$router.push({
+      url.pushToRoute(this.$router,{
         name: "Serp",
         params: {entityType: this.entityType}
       })
@@ -253,8 +305,11 @@ export default {
       await navigator.clipboard.writeText(this.urlToShare);
       this.snackbar("URL copied to clipboard.")
     },
+    deleteSearch() {
+      this.$store.dispatch("user/deleteSavedSearch", this.$route.query.id)
+    },
 
-    copySearch(){
+    copySearch() {
       const newName = this.$route.query?.name ?
           this.$route.query?.name + " copy" :
           "Untitled search copy"
@@ -278,6 +333,9 @@ export default {
   mounted() {
   },
   watch: {
+    isAutoSaved(to) {
+      if (to) this.snackbar("Autosave enabled; changes will be saved automatically.")
+    },
     "$route.query": {
       immediate: true,
       handler(to) {

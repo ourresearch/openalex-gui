@@ -34,6 +34,7 @@ export const user = {
         savedSearches: [],
         serpTabs: [makeDefaultSerpTab()],
         serpTabIndex: 0,
+        isSaving: false,
     },
     mutations: {
         setToken(state, token) {
@@ -118,6 +119,7 @@ export const user = {
 
         // create
         async upsertActiveSearch({commit, dispatch, state}) {
+            state.isSaving = true
             const id = router.currentRoute.query.id
             const search_url = 'https://openalex.org' + router.currentRoute.fullPath
             const putData = {id, search_url}
@@ -127,6 +129,7 @@ export const user = {
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
+            state.isSaving = false
 
 
         },
@@ -170,16 +173,16 @@ export const user = {
         async deleteSavedSearch({commit, dispatch, rootState}, id) {
             console.log("user.store deleteSavedSearch", id)
             rootState.isLoading = true
-            const url = apiBaseUrl + `/saved-search/${id}`
+            const myUrl = apiBaseUrl + `/saved-search/${id}`
             const resp = await axios.delete(
-                url,
+                myUrl,
                 axiosConfig(),
             )
             console.log("user.store deleteSavedSearch done", resp)
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search deleted", {root: true})
             rootState.isLoading = false
-            await router.push("/")
+            await url.pushToRoute(router, "/me/searches")
 
         },
 
@@ -255,7 +258,7 @@ export const user = {
         serpTabIndex: (state) => state.serpTabIndex,
         isCurrentSerpTabSaved: (state) => {
             return !!state.serpTabs[state.serpTabIndex].id
-
         },
+        isUserSaving: (state) => state.isSaving
     }
 }

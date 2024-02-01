@@ -6,8 +6,7 @@
     <template v-else class="">
       <span v-if="resultsObject?.meta?.count >= 1000">About </span><span
         class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span> results
-      <!--              ({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)-->
-      <!--      </span>-->
+      <span v-if="includeTime">({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)</span>
     </template>
   </div>
 </template>
@@ -22,6 +21,7 @@ export default {
   components: {Action},
   props: {
     resultsObject: Object,
+    includeTime: Boolean
   },
   data() {
     return {
