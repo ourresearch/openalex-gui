@@ -41,7 +41,7 @@ const openAlexSdgs = [
     },
     {
         id: "https://metadata.un.org/sdg/4",
-        display_name: "SDG04: Quality Education",
+        display_name: "SDG04: Quality education",
         count: 12097247
     },
     {
@@ -101,7 +101,7 @@ const openAlexSdgs = [
     },
     {
         id: "http://metadata.un.org/sdg/4",
-        display_name: "SDG04: Quality Education",
+        display_name: "SDG04: Quality education",
         count: 33
     },
     {
