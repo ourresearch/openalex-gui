@@ -1,6 +1,10 @@
 <template>
   <v-card rounded flat class="">
-    <serp-results-count :results-object="resultsObject" class="mt-5 ml-3 mr-2" />
+    <div style="height: 65px" class="d-flex align-center">
+      <serp-results-count :results-object="resultsObject" class=""/>
+      <v-spacer/>
+      <action class="ml-2" action="sort"/>
+    </div>
 
     <v-list v-if="resultsObject?.results" class="" color="">
       <v-list-item
@@ -46,7 +50,7 @@
             <!--              web-->
             <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
             <!--            </v-btn>-->
-            <span @click.stop >
+            <span @click.stop>
               <v-btn
                   v-if="result?.best_oa_location?.pdf_url"
                   :href="result?.best_oa_location?.pdf_url"

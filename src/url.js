@@ -72,6 +72,12 @@ const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
 
+const setHideResults = function(val){
+    const urlVal = val ? true : undefined
+    pushQueryParam("hide_results", urlVal)
+
+}
+
 const setSerpTabName = function (val) {
     pushQueryParam("name", val)
 
@@ -692,6 +698,7 @@ const url = {
 
     makeApiUrl,
     setShowApi,
+    setHideResults,
 
     setSerpTabName,
 
