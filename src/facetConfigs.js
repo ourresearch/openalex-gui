@@ -413,7 +413,7 @@ const facetConfigs = function (entityType) {
             displayName: "OA color",
             type: "select",
             categories: ["open access"],
-            actions: ["filter",  "column", "group_by",],
+            actions: ["filter", "column", "group_by",],
             category: "open access",
             isList: false,
             icon: "mdi-lock-open-outline",
@@ -483,7 +483,6 @@ const facetConfigs = function (entityType) {
         // },
 
 
-
         // {
         //     key: "apc_paid.provenance",
         //     entityType: "works",
@@ -505,8 +504,8 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             isCountry: true,
             categories: ["geo", "institution"],
-            actions: [ "filter", "column", "group_by",],
-            actionsPopular: [ "group_by",],
+            actions: ["filter", "column", "group_by",],
+            actionsPopular: ["group_by",],
             category: "institution",
             isList: true,
             isCore: true,
@@ -539,7 +538,7 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "from Global South",
             type: "boolean",
-            actions: ["filter",  "column", "group_by",],
+            actions: ["filter", "column", "group_by",],
             categories: ["geo", "institution"],
             category: "institution",
             isList: false,
@@ -556,7 +555,7 @@ const facetConfigs = function (entityType) {
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             categories: ["institution"],
-            actions: ["filter",  "group_by",],
+            actions: ["filter", "group_by",],
             icon: "mdi-town-hall",
         },
         {
@@ -621,7 +620,7 @@ const facetConfigs = function (entityType) {
             categories: ["source"],
             category: "source",
             isList: false,
-            actions: ["filter",   "column", "group_by",],
+            actions: ["filter", "column", "group_by",],
             icon: "mdi-book-open-outline",
         },
         {
@@ -802,7 +801,7 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             category: "other",
             isList: false,
-            actions: ["filter",  "column", "group_by",],
+            actions: ["filter", "column", "group_by",],
             icon: "mdi-close-octagon"
         },
         {
@@ -814,7 +813,7 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             category: "other",
             isList: false,
-            actions: ["filter",  "column", "group_by",],
+            actions: ["filter", "column", "group_by",],
             actionsPopular: ["column", "group_by"],
             icon: "mdi-translate"
         },
@@ -857,8 +856,8 @@ const facetConfigs = function (entityType) {
             categories: ["citation"],
             category: "citation",
             isList: false,
-            actions: ["filter", "sort",  "column", "group_by",],
-            actionsPopular: ["sort",  "column",],
+            actions: ["filter", "sort", "column", "group_by",],
+            actionsPopular: ["sort", "column",],
             isCore: true,
             icon: "mdi-format-quote-close",
         },
@@ -931,25 +930,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             icon: "mdi-account-outline",
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         // authors
@@ -1248,7 +1228,8 @@ const facetConfigs = function (entityType) {
     ]
 
 
-    return ret
+
+    const manipulated = ret
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
             return {
@@ -1259,6 +1240,12 @@ const facetConfigs = function (entityType) {
         .filter(config => {
             return !entityType || config.entityType === entityType
         })
+
+    manipulated.sort((a, b) => {
+        return a.displayName.toLowerCase() > b.displayName.toLowerCase() ? 1 : -1
+    })
+
+    return manipulated
 }
 
 const getFacetConfigFromPid = function (pid) {

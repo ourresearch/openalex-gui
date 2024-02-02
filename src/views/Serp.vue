@@ -371,9 +371,6 @@ export default {
         //   return
         // }
 
-        if (this.userId && this.$route.query.id) {
-          this.$store.dispatch("user/upsertActiveSearch") // not waiting, do async
-        }
 
 
         const scrollTop = window.scrollY

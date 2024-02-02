@@ -204,9 +204,6 @@ input {
   padding: 0 3px !important;
 }
 
-.filter-select {
-  background: #EEF5FC;
-}
 
 
 </style>

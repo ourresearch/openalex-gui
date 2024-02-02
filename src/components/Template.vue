@@ -22,6 +22,9 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    ...mapGetters("user", [
+      "userId",
+    ]),
   },
 
   methods: {
@@ -29,6 +32,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    ...mapActions("user", []),
 
 
   },

@@ -19,7 +19,7 @@
           </v-navigation-drawer>
       <v-progress-linear
           indeterminate
-          fixed color="primary"
+          fixed color="blue-grey"
           style="z-index: 9999"
           v-if="globalIsLoading"
       />
@@ -111,6 +111,8 @@
         </template>
       </v-snackbar>
 
+    <saved-search-rename-dialog />
+
   </v-app>
 </template>
 
@@ -129,6 +131,8 @@ import SearchBox from "@/components/EntityTypeSelector.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
+import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
+
 export default {
   name: 'App',
   metaInfo: {
@@ -144,6 +148,8 @@ export default {
     SiteNav,
     SearchBar,
     UserToolbarMenu,
+
+    SavedSearchRenameDialog,
   },
 
 
@@ -302,8 +308,8 @@ $color-0: hsl(212, 77%, 82%);
 
 .v-card.button-card {
   transition: background-color 300ms;
-  $card-start-color: hsl(213, 72%, 88%);
   background-color: $color-1;
+  //background-color: #ddd;
 
   border: none;
 

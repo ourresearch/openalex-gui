@@ -58,6 +58,20 @@ const replaceQueryParam = function (key, value) {
     })
 }
 
+const nameFromUrl = function (myUrl) {
+    const urlObj = new URL(myUrl)
+    const name = urlObj.searchParams.get("name") ?? "Untitled search"
+    return name
+}
+
+const setUrlName = function (myUrl, name) {
+    const urlObj = new URL(myUrl)
+    urlObj.searchParams.set("name", name)
+    return urlObj.toString()
+
+
+}
+
 
 const pushToRoute = async function (router, newRoute) {
     return await router.push(newRoute)
@@ -91,7 +105,7 @@ const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
 
-const setHideResults = function(val){
+const setHideResults = function (val) {
     const urlVal = val ? true : undefined
     pushQueryParam("hide_results", urlVal)
 
@@ -723,6 +737,9 @@ const url = {
 
     pushQueryParam,
     replaceQueryParam,
+
+    nameFromUrl,
+    setUrlName,
 }
 
 

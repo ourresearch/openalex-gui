@@ -1,31 +1,27 @@
 <template>
   <v-toolbar  color="" flat class="">
-    <v-btn v-if="!isEditingName" text class="text-h6 px-2" @click="isEditingName = true" rounded>
+    <v-menu offset-y>
+      <template v-slot:activator="{on}">
+        <v-btn icon v-on="on"><v-icon>mdi-menu</v-icon></v-btn>
+      </template>
+      <saved-search-menu />
+    </v-menu>
+
+    <v-btn
+        text
+        rounded
+        class="text-h6 px-2"
+        @click="activeSearchId ? setRenameId(activeSearchId) : isDialogOpen.loginRequired = true"
+    >
       {{ tabName || "Untitled search" }}
     </v-btn>
-
-    <v-text-field
-        v-else
-        autofocus
-        rounded
-        hide-details
-        filled
-        dense
-        @blur="isEditingName = false"
-        @keydown.enter="isEditingName = false"
-        v-model="nameToEdit"
-        class="text-h6 pl-0 ml-0"
-    />
-
-    <div class="pt-1">
-      <v-icon small>mdi-{{ isAutoSaved ? (isUserSaving ? "autorenew" : "content-save") : "content-save-off-outline" }}</v-icon>
-      <span class="text-caption grey--text ml-1" v-if="isAutoSaved">{{ isUserSaving ? "saving" : "saved" }}</span>
-
-    </div>
 
 
     <v-spacer/>
 
+    <v-btn icon @click="openSaveDialog">
+      <v-icon>mdi-content-save-outline</v-icon>
+    </v-btn>
     <serp-alert/>
     <!--    <export-button/>-->
 
@@ -39,69 +35,6 @@
 
       </template>
       <v-list>
-        <v-list-item @click="isAutoSaved = true" :disabled="isAutoSaved">
-          <v-list-item-icon>
-            <v-icon :disabled="isAutoSaved">mdi-content-save-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title v-if="isAutoSaved">
-              Autosave <span class="font-weight-bold">on</span>
-            </v-list-item-title>
-            <v-list-item-title v-else>Autosave</v-list-item-title>
-          </v-list-item-content>
-          <!--          <v-list-item-icon>-->
-          <!--            <v-icon>mdi-toggle-switch</v-icon>-->
-          <!--          </v-list-item-icon>-->
-          <v-list-item-action>
-            <v-switch :disabled="isAutoSaved" class="pt-2" hide-details readonly :input-value="!!isAutoSaved"/>
-          </v-list-item-action>
-        </v-list-item>
-        <v-divider/>
-
-        <v-list-item @click="newSearch" v-if="Object.keys($route.query)?.length">
-          <v-list-item-icon>
-            <v-icon>mdi-folder-plus-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              New search
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-        <v-list-item @click="isDialogOpen.openSearch = true">
-          <v-list-item-icon>
-            <v-icon>mdi-folder-open-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Open search
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item @click="copySearch">
-          <v-list-item-icon>
-            <v-icon>mdi-folder-multiple-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Copy search
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item v-if="isAutoSaved" @click="deleteSearch">
-          <v-list-item-icon>
-            <v-icon>mdi-delete-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Delete search
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-
-
-        <v-divider/>
         <v-list-item @click="isDialogOpen.qrCode = true">
           <v-list-item-icon>
             <v-icon>mdi-qrcode</v-icon>
@@ -180,6 +113,45 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog max-width="400" v-model="isDialogOpen.saveSearch">
+      <v-card rounded flat>
+        <v-card-title>Save search</v-card-title>
+        <div class="pa-4">
+          <v-text-field
+              autofocus
+              rounded
+              filled
+              hide-details
+              clearable
+              placeholder="Name for search"
+              v-model="newSearchName"
+              @keydown.enter="saveThisSearch"
+          />
+        </div>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text rounded @click="isDialogOpen.saveSearch = false">Cancel</v-btn>
+          <v-btn text rounded color="primary" @click="saveThisSearch">Save search</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
+    <v-dialog max-width="400" v-model="isDialogOpen.loginRequired">
+      <v-card rounded flat>
+        <v-card-title>Login required</v-card-title>
+        <v-card-text>
+          Log in or sign up to save searches and get alerts.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text rounded @click="isDialogOpen.loginRequired = false">Dismiss</v-btn>
+          <v-btn text rounded to="/login">Log in</v-btn>
+          <v-btn text rounded color="primary" to="/signup">Sign up</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
 
   </v-toolbar>
 </template>
@@ -194,6 +166,7 @@ import QrcodeVue from 'qrcode.vue'
 import SerpAlert from "@/components/SerpAlert.vue";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import FilterList from "@/components/FilterList.vue";
+import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 const shortUuid = require('short-uuid');
 
@@ -207,6 +180,7 @@ export default {
     ExportButton,
     QrcodeVue,
     FilterList,
+    SavedSearchMenu,
   },
   props: {
     resultsObject: Object,
@@ -216,9 +190,12 @@ export default {
       foo: 42,
       url,
       isLoadingSave: false,
+      newSearchName: "",
       isDialogOpen: {
         qrCode: false,
         openSearch: false,
+        loginRequired: false,
+        saveSearch: false,
       },
       isEditingName: false,
       nameToEdit: "",
@@ -241,6 +218,8 @@ export default {
       "isCurrentSerpTabSaved",
       "userSavedSearches",
       "isUserSaving",
+        "userId",
+        "activeSearchId",
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath
@@ -261,38 +240,38 @@ export default {
         url.setSerpTabName(to)
       }
     },
-    isAutoSaved: {
-      get() {
-        return !!this.$route.query.id
-      },
-      set(to) {
-        console.log("set isAutoSaved")
-        to ?
-            this.saveSearch() :
-            url.replaceQueryParam("id", undefined)
-      }
-    }
   },
 
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
+    ...mapMutations("user", [
+      "setRenameId",
+    ]),
     ...mapActions([]),
-    ...mapActions("user", []),
-    async saveSearch() {
-      try {
-        await this.$router.replace({
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            id: shortUuid.generate()
-          }
-        })
-      } catch (e) {
-        if (e.name !== "NavigationDuplicated") {
-          throw e
-        }
+    ...mapActions("user", [
+        "createSearch"
+    ]),
+    openSaveDialog(){
+      this.newSearchName = ""
+      this.isDialogOpen.saveSearch = true
+    },
+    saveThisSearch(){
+      url.replaceQueryParam("name", this.newSearchName)
+      this.isDialogOpen.saveSearch = false
+      this.createSearch({
+        search_url: `https://openalex.org` + this.$route.fullPath
+      })
+    },
+    clickSearchName(){
+      if (!this.userId) {
+        this.isDialogOpen.loginRequired = true
+      }
+      else {
+        this.activeSearchId ?
+            this.setRenameId(this.activeSearchId) :
+            this
       }
     },
     newSearch() {

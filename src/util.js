@@ -24,9 +24,11 @@ function hashCode(str) {
 const toHexHash = function (str) {
     return "0x" + hashCode(str).toString(16)
 }
+
 function sortByKey(array, key) {
-    return array.sort(function(a, b) {
-        var x = a[key]; var y = b[key];
+    return array.sort(function (a, b) {
+        var x = a[key];
+        var y = b[key];
         return ((x < y) ? -1 : ((x > y) ? 1 : 0));
     });
 }
@@ -51,7 +53,7 @@ const entityTypesDict = {
  *
  * @return {String} formattedValue
  */
-const toPrecision = function(number, precision) {
+const toPrecision = function (number, precision) {
     function round(precision, number) {
         return parseFloat(number.toPrecision(precision))
     }
@@ -99,7 +101,7 @@ const entityTypeFromId = function (id) {
     const firstLetter = shortenOpenAlexId(id).substr(0, 1)
     return entityTypesDict[firstLetter]
 }
-const isOpenAlexId = function(str){
+const isOpenAlexId = function (str) {
     const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCc]\d+)$/
     return regex.test(str)
 }
@@ -160,17 +162,33 @@ const prettyTitle = function (title, facetKey) {
     }
     if (facetKey === "authorships.institutions.country_code") {
         title = title
-          .replace("ieee", "IEEE")
-          .replace("United States of America", "United States")
-          .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
+            .replace("ieee", "IEEE")
+            .replace("United States of America", "United States")
+            .replace("United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
     }
-
 
 
     const safeTitle = sanitizeHtml(title, {
         allowedTags: ['b', 'i', 'em', 'strong', 'a'],
     })
     return safeTitle
+}
+
+/**
+ * Determine whether the given `date` is today.
+ *
+ * @param {Date} date
+ *
+ * @returns {Boolean}
+ */
+function isToday(date) {
+    if (!(date instanceof Date)) {
+        throw new Error('Invalid argument: you must provide a "date" instance')
+    }
+    const today = new Date()
+    return date.getDate() === today.getDate() &&
+        date.getMonth() === today.getMonth() &&
+        date.getFullYear() === today.getFullYear()
 }
 
 
@@ -188,4 +206,5 @@ export {
     prettyTitle,
     compareByCount,
     toPrecision,
+    isToday,
 }

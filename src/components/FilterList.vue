@@ -69,7 +69,8 @@
           <v-chip
               v-if="!filter.value"
               :key="filter.key +'no-value'"
-              class="mr-1 mb-1 color-1"
+              class="mr-1 mb-1 "
+              label
               outlined
               @click="setActiveFilter(filter)"
               :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
@@ -97,7 +98,7 @@
           <v-chip
               v-if="filter.value && !filter.isShortcut"
               :key="filter.key + filter.value"
-              class="mr-1 mb-1 color-1"
+              class="mr-1 mb-1 color-3"
               @click="url.upsertFilterOption(entityType, filter.key, filter.value)"
 
           >
@@ -109,7 +110,7 @@
         <v-chip
             key="search-filter"
             v-if="searchString?.length >= 3"
-            class="mr-1 mb-1 color-1"
+            class="mr-1 mb-1 color-3"
             @click="submitTextSearch"
         >
           <v-icon small left>mdi-text-search</v-icon>
