@@ -35,10 +35,19 @@ export const user = {
         serpTabs: [makeDefaultSerpTab()],
         serpTabIndex: 0,
         isSaving: false,
+
+        renameId: null,
+        activeSearchId: null,
     },
     mutations: {
         setToken(state, token) {
             localStorage.setItem("token", token)
+        },
+        setRenameId(state, id){
+          state.renameId = id
+        },
+        setActiveSearchId(state, id){
+          state.activeSearchId = id
         },
         logout(state) {
             state.id = ""
@@ -117,10 +126,28 @@ export const user = {
         // SAVED SEARCHES
         // **************************************************
 
+
         // create
-        async upsertActiveSearch({commit, dispatch, state}) {
+        async createSearch({commit, dispatch, state, rootState}, {search_url, has_alert}) {
+            rootState.isLoading = true
+            const id = shortUuid.generate()
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {
+                    search_url,
+                    has_alert: has_alert ?? false
+                },
+                axiosConfig(),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            rootState.isLoading = false
+        },
+
+
+        // update
+        async saveActiveSearch({commit, dispatch, state}) {
             state.isSaving = true
-            const id = router.currentRoute.query.id
+            const id = state.activeSearchId
             const search_url = 'https://openalex.org' + router.currentRoute.fullPath
             const putData = {id, search_url}
             const resp = await axios.put(
@@ -130,27 +157,32 @@ export const user = {
             )
             await dispatch("fetchSavedSearches") // have to update the list
             state.isSaving = false
-
-
         },
 
 
-        async createSavedSearch({commit, dispatch, state}) {
-            const id = shortUuid.generate()
-            const postData = {
+        // update
+        async renameSearch({commit, dispatch, state, rootState}, {id, name}) {
+            rootState.isLoading = true
+            const searchObj = state.savedSearches.find(s => s.id === id)
+
+
+            const oldUrl = searchObj.search_url
+
+            const newSearchObj = {
                 id,
-                search_url: "https://openalex.org/works",
+                search_url: url.setUrlName(oldUrl, name)
             }
-            console.log("user.store createSavedSearch", postData)
-            const resp = await axios.post(
-                apiBaseUrl + "/saved-search",
-                postData,
+            console.log("renameSearch setting this new object", newSearchObj)
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                newSearchObj,
                 axiosConfig(),
             )
-            console.log("user.store createSavedSearch done", resp)
-            // await dispatch("fetchSavedSearches") // have to update the list
-            // return resp.data.id
+            await dispatch("fetchSavedSearches") // have to update the list
+            rootState.isLoading = true
         },
+
+
 
         // read
         async fetchSavedSearches({commit, state}) {
@@ -161,7 +193,7 @@ export const user = {
             const sorted = [
                 ...resp.data
             ].sort((a,b) =>{
-                return a.updated > b.updated ? 1 : -1
+                return a.updated > b.updated ? -1 : 1
             })
 
             state.savedSearches = sorted
@@ -222,7 +254,7 @@ export const user = {
                 search_url: 'https://openalex.org' + router.currentRoute.fullPath
             }
             const currentTabObj = state.serpTabs[state.serpTabIndex]
-            currentTabObj.id = await dispatch("createSavedSearch", args)
+            currentTabObj.id = await dispatch("createSavedSearch", args) // won't work, this is gone
 
         },
         removeSerpTab({state, dispatch}, indexToDelete) {
@@ -252,13 +284,14 @@ export const user = {
         userEmail: (state) => state.email,
 
         userSavedSearches: (state) => state.savedSearches,
-        activeSearchId: (state) => state.activeSearchId,
 
         serpTabs: (state) => state.serpTabs,
         serpTabIndex: (state) => state.serpTabIndex,
         isCurrentSerpTabSaved: (state) => {
             return !!state.serpTabs[state.serpTabIndex].id
         },
-        isUserSaving: (state) => state.isSaving
+        isUserSaving: (state) => state.isSaving,
+        renameId: (state) => state.renameId,
+        activeSearchId: (state) => state.activeSearchId,
     }
 }

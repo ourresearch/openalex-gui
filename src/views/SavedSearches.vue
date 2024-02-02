@@ -15,7 +15,7 @@
       <thead>
       <tr>
         <th>Name</th>
-        <th>Last updated</th>
+        <th>Last opened</th>
         <th></th>
       </tr>
       </thead>
@@ -25,9 +25,13 @@
           :key="savedSearch.id"
           @click="open(savedSearch.id)"
       >
-        <td>{{ nameFromUrl(savedSearch.search_url) }}</td>
+        <td>
+          <v-icon left>mdi-folder-outline</v-icon>
+          {{ nameFromUrl(savedSearch.search_url) }}
+        </td>
         <td>
           {{ formatDate(savedSearch.updated) }}
+<!--          {{ (savedSearch.updated) }} -->
         </td>
         <td class="d-flex align-center">
           <v-spacer></v-spacer>
@@ -37,26 +41,28 @@
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
-            <v-list>
-              <v-list-item @click="rename(savedSearch.id)">
-                <v-list-item-icon>
-                  <v-icon>mdi-pencil-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Rename</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="deleteSavedSearch(savedSearch.id)">
-                <v-list-item-icon>
-                  <v-icon>mdi-delete-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Delete</v-list-item-title>
-              </v-list-item>
-              <v-list-item @click="openAsCopy(savedSearch.id)">
-                <v-list-item-icon>
-                  <v-icon>mdi-folder-multiple-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Open as copy</v-list-item-title>
-              </v-list-item>
-            </v-list>
+            <saved-search-menu :id="savedSearch.id" />
+
+<!--            <v-list>-->
+<!--              <v-list-item @click="openRenameDialog(savedSearch.id)">-->
+<!--                <v-list-item-icon>-->
+<!--                  <v-icon>mdi-pencil-outline</v-icon>-->
+<!--                </v-list-item-icon>-->
+<!--                <v-list-item-title>Rename</v-list-item-title>-->
+<!--              </v-list-item>-->
+<!--              <v-list-item @click="deleteSavedSearch(savedSearch.id)">-->
+<!--                <v-list-item-icon>-->
+<!--                  <v-icon>mdi-delete-outline</v-icon>-->
+<!--                </v-list-item-icon>-->
+<!--                <v-list-item-title>Delete</v-list-item-title>-->
+<!--              </v-list-item>-->
+<!--              <v-list-item @click="openAsCopy(savedSearch.id)">-->
+<!--                <v-list-item-icon>-->
+<!--                  <v-icon>mdi-folder-multiple-outline</v-icon>-->
+<!--                </v-list-item-icon>-->
+<!--                <v-list-item-title>Open as copy</v-list-item-title>-->
+<!--              </v-list-item>-->
+<!--            </v-list>-->
           </v-menu>
         </td>
 
@@ -75,11 +81,12 @@
 <!--      </user-saved-search>-->
 <!--    </v-list>-->
 
-    <v-dialog v-model="isDialogOpen.rename">
+    <v-dialog v-model="isDialogOpen.rename" max-width="600">
       <v-card flat rounded>
         <v-card-title>Rename saved search</v-card-title>
         <div class="pa-4">
           <v-text-field
+              autofocus
               rounded
               filled
               hide-details
@@ -89,6 +96,11 @@
               v-model="renameString"
           />
         </div>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text rounded @click="isDialogOpen.rename = false">Cancel</v-btn>
+          <v-btn text rounded color="primary" @click="rename(searchIdToRename, renameString)">Rename</v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -105,6 +117,8 @@ import {VueTyper} from 'vue-typer'
 import FilterList from "@/components/FilterList.vue";
 import {mapActions, mapGetters} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
+import {isToday} from "@/util";
+import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 export default {
   name: 'home',
@@ -113,6 +127,7 @@ export default {
     SearchBar,
     FilterList,
     VueTyper,
+    SavedSearchMenu,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",
@@ -123,7 +138,8 @@ export default {
       renameString: "",
       isDialogOpen: {
         rename: false,
-      }
+      },
+      searchIdToRename: null,
     }
   },
   computed: {
@@ -140,10 +156,13 @@ export default {
     ]),
     openRenameDialog(id) {
       this.renameString = this.nameFromId(id)
+      this.searchIdToRename = id
       this.isDialogOpen.rename = true
     },
     rename(id, newName) {
-
+      console.log("rename search", id, newName)
+      this.isDialogOpen.rename = false
+      this.searchIdToRename = null
     },
     open(id){
       const myUrl = this.urlFromId(id)
@@ -166,7 +185,6 @@ export default {
         params: {entityType: "works"},
         query,
       })
-
     },
     queryFromId(id) {
       const myUrl = this.urlFromId(id)
@@ -187,19 +205,18 @@ export default {
     formatDate(dateString) {
       const dateOptions = {
         month: "short",
-        weekday: "short",
+        // weekday: "short",
         day: "numeric"
       }
       const timeOptions = {
         timeStyle: "short",
       }
 
-      const oneDayAgo = new Date(new Date().setDate(new Date().getDate() - 1));
-      const updatedDate = new Date(dateString)
+      const updatedDate = new Date(dateString + "+0000") // server gives us UTC
 
-      return (updatedDate < oneDayAgo) ?
-          updatedDate.toLocaleDateString(undefined, dateOptions) :
-          updatedDate.toLocaleTimeString(undefined, timeOptions)
+      return (isToday(updatedDate)) ?
+          updatedDate.toLocaleTimeString(undefined, timeOptions) :
+          updatedDate.toLocaleDateString(undefined, dateOptions)
     }
   },
   mounted() {

@@ -2,7 +2,7 @@
 
     <div style="padding-bottom: 0px;">
       <v-container class="">
-        <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
+        <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
           <v-col cols="3"></v-col>
           <v-col>
             <div style="max-width: 1000px; margin: 0 auto;" class="d-flex ">
