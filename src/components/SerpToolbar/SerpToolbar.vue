@@ -1,5 +1,6 @@
 <template>
-  <v-toolbar  color="" flat class="">
+  <v-toolbar dense color="" flat class="">
+<!--    diff? {{ isSavedSearchModified }}  -->
     <v-menu offset-y>
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on"><v-icon>mdi-menu</v-icon></v-btn>
@@ -11,15 +12,15 @@
         text
         rounded
         class="text-h6 px-2"
-        @click="activeSearchId ? setRenameId(activeSearchId) : isDialogOpen.loginRequired = true"
+        @click="clickSearchName"
     >
-      {{ tabName || "Untitled search" }}
+      {{ activeSearchDescription || "Unsaved search" }}
     </v-btn>
 
 
     <v-spacer/>
 
-    <v-btn icon @click="openSaveDialog">
+    <v-btn icon @click="clickSaveButton" >
       <v-icon>mdi-content-save-outline</v-icon>
     </v-btn>
     <serp-alert/>
@@ -115,7 +116,7 @@
 
     <v-dialog max-width="400" v-model="isDialogOpen.saveSearch">
       <v-card rounded flat>
-        <v-card-title>Save search</v-card-title>
+        <v-card-title>Save this search</v-card-title>
         <div class="pa-4">
           <v-text-field
               autofocus
@@ -131,7 +132,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn text rounded @click="isDialogOpen.saveSearch = false">Cancel</v-btn>
-          <v-btn text rounded color="primary" @click="saveThisSearch">Save search</v-btn>
+          <v-btn text rounded color="primary" :disabled="!newSearchName" @click="saveThisSearch">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -145,7 +146,6 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn text rounded @click="isDialogOpen.loginRequired = false">Dismiss</v-btn>
           <v-btn text rounded to="/login">Log in</v-btn>
           <v-btn text rounded color="primary" to="/signup">Sign up</v-btn>
         </v-card-actions>
@@ -219,7 +219,10 @@ export default {
       "userSavedSearches",
       "isUserSaving",
         "userId",
+        "activeSearchObj",
         "activeSearchId",
+        "activeSearchUrl",
+        "activeSearchDescription"
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath
@@ -231,6 +234,13 @@ export default {
     },
     selectedTabObject() {
       return this.searchTabs[this.selectedTab]
+    },
+
+
+    isSavedSearchModified(){
+      if (!this.activeSearchId) return
+      const activeSearchUrlFullPath = this.activeSearchUrl.replace("https://openalex.org", "")
+      return activeSearchUrlFullPath !==   this.$route.fullPath
     },
     tabName: {
       get() {
@@ -251,18 +261,34 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", [
-        "createSearch"
+        "createSearch",
+        "updateSearchUrl",
     ]),
-    openSaveDialog(){
-      this.newSearchName = ""
-      this.isDialogOpen.saveSearch = true
+    clickSaveButton(){
+      if (!this.userId) {
+        this.isDialogOpen.loginRequired = true
+        return
+      }
+
+      if (this.activeSearchId){
+        this.updateSearchUrl({
+          id: this.activeSearchId,
+          search_url: this.urlToShare,
+        })
+
+      }
+      else {
+        this.newSearchName = ""
+        this.isDialogOpen.saveSearch = true
+      }
     },
     saveThisSearch(){
-      url.replaceQueryParam("name", this.newSearchName)
       this.isDialogOpen.saveSearch = false
       this.createSearch({
-        search_url: `https://openalex.org` + this.$route.fullPath
+        search_url: `https://openalex.org` + this.$route.fullPath,
+        description: this.newSearchName
       })
+      this.snackbar("Search saved.")
     },
     clickSearchName(){
       if (!this.userId) {
@@ -271,7 +297,7 @@ export default {
       else {
         this.activeSearchId ?
             this.setRenameId(this.activeSearchId) :
-            this
+            this.clickSaveButton()
       }
     },
     newSearch() {

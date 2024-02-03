@@ -60,7 +60,7 @@ export default {
     },
     name() {
       const url = new URL(this.searchUrl)
-      const name = url.searchParams.get("name") ?? "Untitled search"
+      const name = url.searchParams.get("name") ?? "Unsaved search"
       return name
     },
 

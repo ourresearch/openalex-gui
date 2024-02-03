@@ -45,7 +45,7 @@ export default {
       return Object.fromEntries(new URL(this.searchUrl).searchParams)
     },
     name() {
-      return this.queryParams?.name ?? "Untitled search"
+      return this.queryParams?.name ?? "Unsaved search"
     },
     isSelected() {
       return this.serpTabIndex === this.index
