@@ -63,11 +63,11 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", [
-        "renameSearch",
+        "updateSearchDescription",
     ]),
     rename(){
       console.log("rename search", this.renameId, this.renameString)
-      this.renameSearch({id: this.renameId, name: this.renameString})
+      this.updateSearchDescription({id: this.renameId, description: this.renameString})
       this.renameString = ""
       this.isOpen = false
     }

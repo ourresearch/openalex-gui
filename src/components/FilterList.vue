@@ -260,7 +260,7 @@ export default {
         }
       })
 
-      const sliceTo = this.searchString ? 4 : 5
+      const sliceTo = this.searchString ? 5 : 6
       return [
         ...filtersWithoutValues,
         ...this.autocompleteResponses,

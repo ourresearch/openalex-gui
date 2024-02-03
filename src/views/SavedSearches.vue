@@ -6,16 +6,16 @@
 
       </v-toolbar-title>
       <v-spacer/>
-      <!--        <v-btn rounded color="primary" :to="{name:'Serp', params: {entityType: 'works'}}">-->
-      <!--          <v-icon left>mdi-plus</v-icon>-->
-      <!--          new search-->
-      <!--        </v-btn>-->
+      <v-btn rounded color="primary" :to="{name:'Serp', params: {entityType: 'works'}}">
+        <v-icon left>mdi-plus</v-icon>
+        new search
+      </v-btn>
     </v-toolbar>
-    <v-simple-table>
+    <v-simple-table v-if="userSavedSearches.length">
       <thead>
       <tr>
         <th>Name</th>
-        <th>Last opened</th>
+        <th>Last updated</th>
         <th></th>
       </tr>
       </thead>
@@ -23,15 +23,15 @@
       <tr
           v-for="(savedSearch, i) in userSavedSearches"
           :key="savedSearch.id"
-          @click="open(savedSearch.id)"
+          @click="openSavedSearch(savedSearch.id)"
       >
         <td>
           <v-icon left>mdi-folder-outline</v-icon>
-          {{ nameFromUrl(savedSearch.search_url) }}
+          {{ savedSearch.description }}
         </td>
         <td>
           {{ formatDate(savedSearch.updated) }}
-<!--          {{ (savedSearch.updated) }} -->
+          <!--          {{ (savedSearch.updated) }} -->
         </td>
         <td class="d-flex align-center">
           <v-spacer></v-spacer>
@@ -41,45 +41,51 @@
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
-            <saved-search-menu :id="savedSearch.id" />
+            <saved-search-menu :id="savedSearch.id"/>
 
-<!--            <v-list>-->
-<!--              <v-list-item @click="openRenameDialog(savedSearch.id)">-->
-<!--                <v-list-item-icon>-->
-<!--                  <v-icon>mdi-pencil-outline</v-icon>-->
-<!--                </v-list-item-icon>-->
-<!--                <v-list-item-title>Rename</v-list-item-title>-->
-<!--              </v-list-item>-->
-<!--              <v-list-item @click="deleteSavedSearch(savedSearch.id)">-->
-<!--                <v-list-item-icon>-->
-<!--                  <v-icon>mdi-delete-outline</v-icon>-->
-<!--                </v-list-item-icon>-->
-<!--                <v-list-item-title>Delete</v-list-item-title>-->
-<!--              </v-list-item>-->
-<!--              <v-list-item @click="openAsCopy(savedSearch.id)">-->
-<!--                <v-list-item-icon>-->
-<!--                  <v-icon>mdi-folder-multiple-outline</v-icon>-->
-<!--                </v-list-item-icon>-->
-<!--                <v-list-item-title>Open as copy</v-list-item-title>-->
-<!--              </v-list-item>-->
-<!--            </v-list>-->
+            <!--            <v-list>-->
+            <!--              <v-list-item @click="openRenameDialog(savedSearch.id)">-->
+            <!--                <v-list-item-icon>-->
+            <!--                  <v-icon>mdi-pencil-outline</v-icon>-->
+            <!--                </v-list-item-icon>-->
+            <!--                <v-list-item-title>Rename</v-list-item-title>-->
+            <!--              </v-list-item>-->
+            <!--              <v-list-item @click="deleteSavedSearch(savedSearch.id)">-->
+            <!--                <v-list-item-icon>-->
+            <!--                  <v-icon>mdi-delete-outline</v-icon>-->
+            <!--                </v-list-item-icon>-->
+            <!--                <v-list-item-title>Delete</v-list-item-title>-->
+            <!--              </v-list-item>-->
+            <!--              <v-list-item @click="openAsCopy(savedSearch.id)">-->
+            <!--                <v-list-item-icon>-->
+            <!--                  <v-icon>mdi-folder-multiple-outline</v-icon>-->
+            <!--                </v-list-item-icon>-->
+            <!--                <v-list-item-title>Open as copy</v-list-item-title>-->
+            <!--              </v-list-item>-->
+            <!--            </v-list>-->
           </v-menu>
         </td>
 
       </tr>
       </tbody>
     </v-simple-table>
+    <v-card rounded flat class="color-3 d-flex my-12 mx-4 pa-12" v-else>
+      <div class="grey--text">
+        You have no saved searches.
+      </div>
 
-<!--    <v-list rounded>-->
-<!--      <user-saved-search-->
-<!--          v-for="(savedSearch, i) in userSavedSearches"-->
-<!--          :key="savedSearch.id"-->
-<!--          :id="savedSearch.id"-->
-<!--          :search-url="savedSearch.search_url"-->
-<!--          :updated="savedSearch.updated"-->
-<!--      >-->
-<!--      </user-saved-search>-->
-<!--    </v-list>-->
+    </v-card>
+
+    <!--    <v-list rounded>-->
+    <!--      <user-saved-search-->
+    <!--          v-for="(savedSearch, i) in userSavedSearches"-->
+    <!--          :key="savedSearch.id"-->
+    <!--          :id="savedSearch.id"-->
+    <!--          :search-url="savedSearch.search_url"-->
+    <!--          :updated="savedSearch.updated"-->
+    <!--      >-->
+    <!--      </user-saved-search>-->
+    <!--    </v-list>-->
 
     <v-dialog v-model="isDialogOpen.rename" max-width="600">
       <v-card flat rounded>
@@ -97,7 +103,7 @@
           />
         </div>
         <v-card-actions>
-          <v-spacer />
+          <v-spacer/>
           <v-btn text rounded @click="isDialogOpen.rename = false">Cancel</v-btn>
           <v-btn text rounded color="primary" @click="rename(searchIdToRename, renameString)">Rename</v-btn>
         </v-card-actions>
@@ -153,6 +159,7 @@ export default {
       "deleteSavedSearch",
       "createSerpTab",
       "selectSerpTab",
+      "openSavedSearch",
     ]),
     openRenameDialog(id) {
       this.renameString = this.nameFromId(id)
@@ -163,13 +170,6 @@ export default {
       console.log("rename search", id, newName)
       this.isDialogOpen.rename = false
       this.searchIdToRename = null
-    },
-    open(id){
-      const myUrl = this.urlFromId(id)
-      url.pushToRoute(
-          this.$router,
-          url.urlObjectFromSearchUrl(myUrl)
-      )
     },
     openAsCopy(id) {
       const baseSearchName = this.nameFromId(id)
@@ -190,7 +190,7 @@ export default {
       const myUrl = this.urlFromId(id)
       return Object.fromEntries(new URL(myUrl).searchParams)
     },
-    urlFromId(id){
+    urlFromId(id) {
       return this.userSavedSearches.find(s => s.id === id)?.search_url
     },
     nameFromId(id) {
@@ -199,7 +199,7 @@ export default {
     },
     nameFromUrl(urlArg) {
       const myUrl = new URL(urlArg)
-      const name = myUrl.searchParams.get("name") ?? "Untitled search"
+      const name = myUrl.searchParams.get("name") ?? "Unsaved search"
       return name
     },
     formatDate(dateString) {

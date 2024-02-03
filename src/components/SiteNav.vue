@@ -12,12 +12,12 @@
       </router-link>
       <v-spacer />
 
-      <v-card flat :to="{name: 'Serp', params: {entityType}}" class="text-center " color="transparent">
-        <v-chip :color="$route.name === 'Serp' ? 'primary' : 'transparent' ">
-          <v-icon class="">mdi-magnify</v-icon>
-        </v-chip>
-        <div class="text-caption">Search</div>
-      </v-card>
+<!--      <v-card flat :to="{name: 'Serp', params: {entityType}}" class="text-center " color="transparent">-->
+<!--        <v-chip :color="$route.name === 'Serp' ? 'primary' : 'transparent' ">-->
+<!--          <v-icon class="">mdi-magnify</v-icon>-->
+<!--        </v-chip>-->
+<!--        <div class="text-caption">Search</div>-->
+<!--      </v-card>-->
 
 
       <!--      TOP STUFF -->

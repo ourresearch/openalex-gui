@@ -105,7 +105,7 @@ export default {
     },
     myName(){
       const myUrl = new URL(this.mySearchObj?.search_url)
-      const name = myUrl.searchParams.get("name") ?? "Untitled search"
+      const name = myUrl.searchParams.get("name") ?? "Unsaved search"
       return name
     },
     myQuery(){
@@ -120,6 +120,7 @@ export default {
     ]),
     ...mapMutations("user", [
       "setRenameId",
+        "setActiveSearchId",
     ]),
     ...mapActions([]),
     ...mapActions("user", [
@@ -128,6 +129,7 @@ export default {
     openAsCopy() {
       // const baseSearchName = this.myName
       // const newName = baseSearchName + " copy"
+      this.setActiveSearchId(null)
 
       const query = {
         ...this.myQuery,

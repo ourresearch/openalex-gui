@@ -60,7 +60,7 @@ const replaceQueryParam = function (key, value) {
 
 const nameFromUrl = function (myUrl) {
     const urlObj = new URL(myUrl)
-    const name = urlObj.searchParams.get("name") ?? "Untitled search"
+    const name = urlObj.searchParams.get("name") ?? "Unsaved search"
     return name
 }
 

@@ -43,11 +43,11 @@ export const user = {
         setToken(state, token) {
             localStorage.setItem("token", token)
         },
-        setRenameId(state, id){
-          state.renameId = id
+        setRenameId(state, id) {
+            state.renameId = id
         },
-        setActiveSearchId(state, id){
-          state.activeSearchId = id
+        setActiveSearchId(state, id) {
+            state.activeSearchId = id
         },
         logout(state) {
             state.id = ""
@@ -128,13 +128,14 @@ export const user = {
 
 
         // create
-        async createSearch({commit, dispatch, state, rootState}, {search_url, has_alert}) {
+        async createSearch({commit, dispatch, state, rootState}, {search_url, description, has_alert}) {
             rootState.isLoading = true
             const id = shortUuid.generate()
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {
                     search_url,
+                    description,
                     has_alert: has_alert ?? false
                 },
                 axiosConfig(),
@@ -143,44 +144,6 @@ export const user = {
             rootState.isLoading = false
         },
 
-
-        // update
-        async saveActiveSearch({commit, dispatch, state}) {
-            state.isSaving = true
-            const id = state.activeSearchId
-            const search_url = 'https://openalex.org' + router.currentRoute.fullPath
-            const putData = {id, search_url}
-            const resp = await axios.put(
-                apiBaseUrl + "/saved-search/" + id,
-                putData,
-                axiosConfig(),
-            )
-            await dispatch("fetchSavedSearches") // have to update the list
-            state.isSaving = false
-        },
-
-
-        // update
-        async renameSearch({commit, dispatch, state, rootState}, {id, name}) {
-            rootState.isLoading = true
-            const searchObj = state.savedSearches.find(s => s.id === id)
-
-
-            const oldUrl = searchObj.search_url
-
-            const newSearchObj = {
-                id,
-                search_url: url.setUrlName(oldUrl, name)
-            }
-            console.log("renameSearch setting this new object", newSearchObj)
-            const resp = await axios.put(
-                apiBaseUrl + "/saved-search/" + id,
-                newSearchObj,
-                axiosConfig(),
-            )
-            await dispatch("fetchSavedSearches") // have to update the list
-            rootState.isLoading = true
-        },
 
 
 
@@ -192,13 +155,49 @@ export const user = {
             )
             const sorted = [
                 ...resp.data
-            ].sort((a,b) =>{
+            ].sort((a, b) => {
                 return a.updated > b.updated ? -1 : 1
             })
 
             state.savedSearches = sorted
         },
 
+        // read
+        async openSavedSearch({commit, state, getters}, id) {
+            state.activeSearchId = id
+            return await url.pushToRoute(
+                router,
+                url.urlObjectFromSearchUrl(getters.activeSearchUrl)
+            )
+        },
+
+
+        // update
+        async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
+            rootState.isLoading = true
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {id, description},
+                axiosConfig(),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            await dispatch("openSavedSearch", id) // update the URL
+            rootState.isLoading = false
+            commit("snackbar", "Search renamed", {root: true})
+        },
+
+        // update
+        async updateSearchUrl({commit, dispatch, state, rootState}, {id, search_url}) {
+            rootState.isLoading = true
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {id, search_url},
+                axiosConfig(),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            rootState.isLoading = false
+            commit("snackbar", "Search saved", {root: true})
+        },
 
 
         // delete
@@ -293,5 +292,8 @@ export const user = {
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         activeSearchId: (state) => state.activeSearchId,
+        activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        activeSearchUrl: (state) => state.savedSearches.find(s => s.id === state.activeSearchId)?.search_url,
+        activeSearchDescription: (state) => state.savedSearches.find(s => s.id === state.activeSearchId)?.description,
     }
 }
