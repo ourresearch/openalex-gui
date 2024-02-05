@@ -96,7 +96,6 @@ import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButton.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
-import SerpAlert from "@/components/SerpAlert.vue";
 
 export default {
   name: "Template",
@@ -106,7 +105,6 @@ export default {
     Action,
     WorkAuthorsString,
     SerpResultsCount,
-    SerpAlert,
   },
   props: {
     resultsObject: Object,
