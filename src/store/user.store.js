@@ -37,6 +37,7 @@ export const user = {
         isSaving: false,
 
         renameId: null,
+        editAlertId: null,
         activeSearchId: null,
     },
     mutations: {
@@ -45,6 +46,9 @@ export const user = {
         },
         setRenameId(state, id) {
             state.renameId = id
+        },
+        setEditAlertId(state, id) {
+            state.editAlertId = id
         },
         setActiveSearchId(state, id) {
             state.activeSearchId = id
@@ -129,8 +133,13 @@ export const user = {
 
         // create
         async createSearch({commit, dispatch, state, rootState}, {search_url, description, has_alert}) {
-            rootState.isLoading = true
             const id = shortUuid.generate()
+
+            // add id to search_url
+            const searchUrlObj = new URL(search_url)
+            searchUrlObj.searchParams.set("id", id)
+            search_url = searchUrlObj.toString()
+
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {
@@ -140,8 +149,8 @@ export const user = {
                 },
                 axiosConfig(),
             )
+            await url.pushSearchUrlToRoute(router, search_url)
             await dispatch("fetchSavedSearches") // have to update the list
-            rootState.isLoading = false
         },
 
 
@@ -164,20 +173,22 @@ export const user = {
 
         // read
         async openSavedSearch({commit, state, getters}, id) {
-            state.activeSearchId = id
+            const savedSearchToOpen = state.savedSearches.find((s => s.id === id))
             return await url.pushToRoute(
                 router,
-                url.urlObjectFromSearchUrl(getters.activeSearchUrl)
+                url.urlObjectFromSearchUrl(savedSearchToOpen?.search_url)
             )
         },
+
 
 
         // update
         async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
             rootState.isLoading = true
+            const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
-                {id, description},
+                {...oldSearchObj, description},
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
@@ -189,14 +200,27 @@ export const user = {
         // update
         async updateSearchUrl({commit, dispatch, state, rootState}, {id, search_url}) {
             rootState.isLoading = true
+            const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
-                {id, search_url},
+                {...oldSearchObj, search_url},
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             rootState.isLoading = false
             commit("snackbar", "Search saved", {root: true})
+        },
+        // update
+        async updateSearchAlert({commit, dispatch, state, rootState}, {id, has_alert}) {
+            const oldSearchObj = state.savedSearches.find(s => s.id === id)
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {...oldSearchObj, has_alert},
+                axiosConfig(),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            const snackbarString = has_alert ? "Alert added" : "Alert removed"
+            commit("snackbar", snackbarString, {root: true})
         },
 
 
@@ -291,9 +315,12 @@ export const user = {
         },
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
+        editAlertId: (state) => state.editAlertId,
+
         activeSearchId: (state) => state.activeSearchId,
-        activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
-        activeSearchUrl: (state) => state.savedSearches.find(s => s.id === state.activeSearchId)?.search_url,
-        activeSearchDescription: (state) => state.savedSearches.find(s => s.id === state.activeSearchId)?.description,
+        activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        activeSearchUrl: (state, getters) => getters.activeSearchObj?.search_url,
+        activeSearchDescription: (state, getters) => getters.activeSearchObj?.description,
+        activeSearchHasAlert: (state, getters) => getters.activeSearchObj?.has_alert,
     }
 }

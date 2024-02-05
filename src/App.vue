@@ -112,6 +112,8 @@
       </v-snackbar>
 
     <saved-search-rename-dialog />
+    <saved-search-save-dialog />
+    <saved-search-edit-alert-dialog />
 
   </v-app>
 </template>
@@ -132,6 +134,8 @@ import SearchBar from "@/components/SearchBar.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
+import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
+import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 
 export default {
   name: 'App',
@@ -150,6 +154,8 @@ export default {
     UserToolbarMenu,
 
     SavedSearchRenameDialog,
+    SavedSearchSaveDialog,
+    SavedSearchEditAlertDialog,
   },
 
 

@@ -30,6 +30,10 @@ const urlObjectFromSearchUrl = function (searchUrl) {
     }
 }
 
+const pushSearchUrlToRoute = async function(router, searchUrl){
+    await pushToRoute(router, urlObjectFromSearchUrl(searchUrl))
+}
+
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
@@ -666,6 +670,7 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
 
 const url = {
     pushToRoute,
+    pushSearchUrlToRoute,
     addToQuery,
     urlObjectFromSearchUrl,
 

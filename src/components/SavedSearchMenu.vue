@@ -1,28 +1,40 @@
 <template>
   <v-card flat>
     <v-list>
-<!--      <v-list-item @click="newSearch" v-if="Object.keys($route.query)?.length">-->
-<!--        <v-list-item-icon>-->
-<!--          <v-icon>mdi-folder-plus-outline</v-icon>-->
-<!--        </v-list-item-icon>-->
-<!--        <v-list-item-content>-->
-<!--          <v-list-item-title>-->
-<!--            New search-->
-<!--          </v-list-item-title>-->
-<!--        </v-list-item-content>-->
-<!--      </v-list-item>-->
 
-<!--      <v-list-item to="/me/searches">-->
-<!--        <v-list-item-icon>-->
-<!--          <v-icon>mdi-folder-open-outline</v-icon>-->
-<!--        </v-list-item-icon>-->
-<!--        <v-list-item-content>-->
-<!--          <v-list-item-title>-->
-<!--            Open search-->
-<!--          </v-list-item-title>-->
-<!--        </v-list-item-content>-->
-<!--      </v-list-item>-->
+      <v-list-item @click="">
+        <v-list-item-icon>
+          <v-icon>mdi-content-save-outline</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            Save
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
 
+
+      <v-list-item @click="newSearch">
+        <v-list-item-icon>
+          <v-icon>mdi-folder-plus-outline</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            New
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+      <v-list-item to="/me/searches">
+        <v-list-item-icon>
+          <v-icon>mdi-folder-open-outline</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            Open
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+      <v-divider/>
 
 
 
@@ -42,7 +54,7 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
-            Open as copy
+            Make a copy
           </v-list-item-title>
         </v-list-item-content>
       </v-list-item>
@@ -52,7 +64,7 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
-            Delete search
+            Delete
           </v-list-item-title>
         </v-list-item-content>
       </v-list-item>
@@ -63,8 +75,6 @@
     </v-dialog>
 
 
-
-
   </v-card>
 </template>
 
@@ -72,7 +82,6 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
-
 
 
 export default {
@@ -98,17 +107,17 @@ export default {
     ]),
     ...mapGetters("user", [
       "userId",
-        "userSavedSearches",
+      "userSavedSearches",
     ]),
-    mySearchObj(){
+    mySearchObj() {
       return this.userSavedSearches.find(s => s.id === this.id)
     },
-    myName(){
+    myName() {
       const myUrl = new URL(this.mySearchObj?.search_url)
       const name = myUrl.searchParams.get("name") ?? "Unsaved search"
       return name
     },
-    myQuery(){
+    myQuery() {
       const myUrl = this.mySearchObj?.search_url
       return Object.fromEntries(new URL(myUrl).searchParams)
     }
@@ -120,12 +129,15 @@ export default {
     ]),
     ...mapMutations("user", [
       "setRenameId",
-        "setActiveSearchId",
+      "setActiveSearchId",
     ]),
     ...mapActions([]),
     ...mapActions("user", [
-        "deleteSavedSearch",
+      "deleteSavedSearch",
     ]),
+    newSearch() {
+      url.pushToRoute(this.$router, {name: "Serp"})
+    },
     openAsCopy() {
       // const baseSearchName = this.myName
       // const newName = baseSearchName + " copy"

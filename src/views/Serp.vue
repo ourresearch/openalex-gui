@@ -358,6 +358,9 @@ export default {
       immediate: true,
       async handler(to, from) {
         // console.log("Serp $route watcher", to, from)
+        if (this.userId){
+          this.$store.commit("user/setActiveSearchId", this.$route.query.id)
+        }
 
         // autosave ALL new searches.
         // if (this.userId && !this.$route.query.id) {

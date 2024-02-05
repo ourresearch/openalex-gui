@@ -24,6 +24,7 @@
           v-for="(savedSearch, i) in userSavedSearches"
           :key="savedSearch.id"
           @click="openSavedSearch(savedSearch.id)"
+          class="saved-search-row"
       >
         <td>
           <v-icon left>mdi-folder-outline</v-icon>
@@ -35,6 +36,9 @@
         </td>
         <td class="d-flex align-center">
           <v-spacer></v-spacer>
+          <v-btn icon @click.stop="setEditAlertId(savedSearch.id)">
+            <v-icon>{{ savedSearch.has_alert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
+          </v-btn>
           <v-menu offset-y>
             <template v-slot:activator="{on}">
               <v-btn icon v-on="on">
@@ -121,7 +125,7 @@ import {url} from "@/url";
 import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
 import FilterList from "@/components/FilterList.vue";
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import {isToday} from "@/util";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
@@ -160,6 +164,10 @@ export default {
       "createSerpTab",
       "selectSerpTab",
       "openSavedSearch",
+    ]),
+
+    ...mapMutations("user", [
+      "setEditAlertId",
     ]),
     openRenameDialog(id) {
       this.renameString = this.nameFromId(id)
@@ -230,6 +238,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.saved-search-row {
+  cursor: pointer;
+}
 
 
 </style>
