@@ -149,8 +149,19 @@ export const user = {
                 },
                 axiosConfig(),
             )
-            await url.pushSearchUrlToRoute(router, search_url)
             await dispatch("fetchSavedSearches") // have to update the list
+            await url.pushSearchUrlToRoute(router, search_url)
+        },
+        // create
+        async createSearchFromTemplate({commit, dispatch, state, rootState}, id) {
+            rootState.isLoading = true
+            const searchToCopy = {
+                ...state.savedSearches.find(s => s.id === id),
+            }
+            searchToCopy.description = "Copy of " + searchToCopy.description
+            await dispatch("createSearch", searchToCopy)
+            commit("snackbar", "Search copied", {root: true})
+            rootState.isLoading = false
         },
 
 
@@ -184,7 +195,6 @@ export const user = {
 
         // update
         async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
-            rootState.isLoading = true
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
@@ -192,8 +202,6 @@ export const user = {
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
-            await dispatch("openSavedSearch", id) // update the URL
-            rootState.isLoading = false
             commit("snackbar", "Search renamed", {root: true})
         },
 

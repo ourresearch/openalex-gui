@@ -69,7 +69,7 @@ const routes = [
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
-    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches},
+    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches,  meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},
 

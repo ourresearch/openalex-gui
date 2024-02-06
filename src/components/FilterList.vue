@@ -4,14 +4,14 @@
     <!--    main part of filters list-->
     <div
         flat
-        class="d-flex  mb-2 px-4 py-1 "
-        style="border-radius: 40px !important; border: 3px solid #333;"
+        class="d-flex  mb-2 px-4  "
+        style="border-radius: 25px !important; border: 3px solid #333;"
         @click="$refs.mainTextarea.focus()"
     >
       <!--        style="border: 3px solid #ccc;"-->
 
 
-      <div class="pt-3 mr-3">
+      <div class="pt-2 pb-1 mr-3">
         <v-icon large class="">mdi-magnify</v-icon>
       </div>
       <div class="d-flex flex-wrap">
@@ -36,7 +36,7 @@
             @delete="setActiveFilter(undefined)"
         />
         <v-text-field
-            class="grey--text text-h5 pa-1 my-1 align-self-center internal-search-field"
+            class="grey--text text-h6  align-self-center internal-search-field"
             autofocus
             filled
             rounded
@@ -70,7 +70,6 @@
               v-if="!filter.value"
               :key="filter.key +'no-value'"
               class="mr-1 mb-1 "
-              label
               outlined
               @click="setActiveFilter(filter)"
               :disabled="filterKeys.includes(filter.key) || activeFilterKey === filter.key"
@@ -98,7 +97,8 @@
           <v-chip
               v-if="filter.value && !filter.isShortcut"
               :key="filter.key + filter.value"
-              class="mr-1 mb-1 color-3"
+              class="mr-1 mb-1 color-2"
+              outlined
               @click="url.upsertFilterOption(entityType, filter.key, filter.value)"
 
           >

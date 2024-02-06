@@ -1,31 +1,50 @@
 <template>
   <v-toolbar dense color="" flat class="">
     <!--    diff? {{ isSavedSearchModified }}  -->
-    <v-menu offset-y max-width="300">
-      <template v-slot:activator="{on}">
-        <v-btn
-            v-on="on"
-            text
-            rounded
-            class="text-h6 px-2"
-        >
-          {{ activeSearchDescription || "Unsaved search" }}
-          <v-icon>mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <saved-search-menu :id="$route.query.id"/>
-    </v-menu>
+    <v-btn icon to="/me/searches" v-if="userId">
+      <v-icon>mdi-folder-outline</v-icon>
+    </v-btn>
+    <div>
+
+      <v-menu offset-y max-width="300" v-if="userId">
+        <template v-slot:activator="{on}">
+          <v-btn
+              v-on="on"
+              text
+              rounded
+              class="text-h6 px-2"
+          >
+            {{ activeSearchDescription || "Unsaved search" }}
+            <v-icon>mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <saved-search-menu
+            :id="$route.query.id"
+            @save="clickSaveButton"
+            @toggleAlert="clickAlertButton"
+        />
+      </v-menu>
+      <v-btn
+          text
+          rounded
+          class="text-h6 px-2"
+          v-else
+          @click="clickSaveButton"
+      >
+        <v-icon>mdi-menu-down</v-icon>
+      </v-btn>
+
+    </div>
 
 
     <v-spacer/>
 
-    <v-btn icon @click="clickSaveButton">
-      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>
-    </v-btn>
+<!--    <v-btn icon @click="clickSaveButton">-->
+<!--      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>-->
+<!--    </v-btn>-->
     <v-btn icon @click="clickAlertButton">
-      <v-icon>{{ activeSearchHasAlert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
+      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
     </v-btn>
-    <!--    <export-button/>-->
 
 
     <v-menu offset-y>
@@ -151,6 +170,7 @@ import FilterList from "@/components/FilterList.vue";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
+import {user} from "@/store/user.store";
 
 const shortUuid = require('short-uuid');
 
@@ -195,6 +215,9 @@ export default {
     }
   },
   computed: {
+    user() {
+      return user
+    },
     ...mapGetters([
       "resultsFilters",
       "entityType",

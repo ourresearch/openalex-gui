@@ -2,8 +2,8 @@
   <v-dialog v-model="isOpen" max-width="300">
       <v-card flat rounded :loading="isLoading"  v-if="userId">
         <v-card-title>
-          <v-icon left>{{ hasAlert ? "mdi-bell-off" : "mdi-bell-plus "}}</v-icon>
-          {{ hasAlert ? "Remove alert?" : "Receive alerts?" }}
+          <v-icon left>{{ hasAlert ? "mdi-bell-minus" : "mdi-bell-plus "}}</v-icon>
+          {{ hasAlert ? "Remove alert?" : "Add alert?" }}
         </v-card-title>
         <v-card-text>
           <template v-if="hasAlert">
