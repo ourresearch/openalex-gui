@@ -36,14 +36,14 @@
             @delete="setActiveFilter(undefined)"
         />
         <v-text-field
-            class="grey--text text-h6  align-self-center internal-search-field"
+            class="grey--text text-h6 font-weight-regular align-self-center internal-search-field"
             autofocus
             filled
             rounded
             dense
             hide-details
             background-color="transparent"
-            placeholder="Search OpenAlex"
+            placeholder="Search"
             v-model="searchString"
             @keydown.enter="submitTextSearch"
             ref="mainTextarea"
@@ -111,27 +111,40 @@
         <v-chip
             key="search-filter"
             v-if="searchString?.length >= 3"
-            class="mr-1 mb-1 color-3"
+            class="mr-1 mb-1"
+            outlined
             @click="submitTextSearch"
         >
           <v-icon small left>mdi-text-search</v-icon>
-          <span class="mr-1">text: </span>
+          <span class="mr-1">text</span>
           <q class="">{{ searchString }}</q>
-
+          <span class="grey--text ml-2 text-caption">
+            ⏎ ENTER
+          </span>
+        </v-chip>
+        <v-chip
+          color="white"
+          class="mr-1 mb-1"
+          v-if="!searchString?.length"
+          key="chip-button-to-show-all-filters"
+          @click="dialogs.moreFilters = true"
+        >
+          <v-icon small left>mdi-dots-horizontal</v-icon>
+          More
         </v-chip>
         <v-spacer/>
-        <v-btn
-            text
-            rounded
-            key="link-to-all-filters"
-            v-if="!searchString?.length"
-            class="mr-1 mb-1"
-            @click="dialogs.moreFilters = true"
+<!--        <v-btn-->
+<!--            text-->
+<!--            rounded-->
+<!--            key="link-to-all-filters"-->
+<!--            v-if="!searchString?.length"-->
+<!--            class="mr-1 mb-1"-->
+<!--            @click="dialogs.moreFilters = true"-->
 
-        >
-          <v-icon small left>mdi-filter-outline</v-icon>
-          All filters
-        </v-btn>
+<!--        >-->
+<!--          <v-icon small left>mdi-filter-outline</v-icon>-->
+<!--          All filters-->
+<!--        </v-btn>-->
 
       </div>
     </div>

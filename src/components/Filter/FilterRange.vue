@@ -2,7 +2,7 @@
   <v-card
       :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
       flat
-      class="filter no-hover button-card filter-select d-block d-sm-flex align-center pa-1  ma-1"
+      class="filter no-hover button-card filter-select d-block d-sm-flex align-center   ma-1"
       @click="isActive = true"
 
   >
