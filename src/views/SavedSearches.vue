@@ -18,7 +18,7 @@
       <thead>
       <tr>
         <th>Name</th>
-        <th>Last updated</th>
+        <th>Last opened</th>
         <th></th>
       </tr>
       </thead>

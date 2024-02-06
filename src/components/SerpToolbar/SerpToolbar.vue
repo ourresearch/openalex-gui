@@ -6,7 +6,7 @@
     </v-btn>
     <div>
 
-      <v-menu offset-y max-width="300" v-if="userId">
+      <v-menu offset-y max-width="350" v-if="userId">
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"

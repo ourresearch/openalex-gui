@@ -13,7 +13,7 @@
 
           <v-row>
             <v-col>
-             <serp-results-count :results-object="resultsObject" include-time class="grey--text" />
+              <serp-results-count :results-object="resultsObject" include-time class="grey--text"/>
             </v-col>
           </v-row>
 
@@ -56,6 +56,16 @@
 
 
     </v-container>
+    <v-dialog persistent v-model="dialogs.savedSearchDoesNotExist" max-width="300">
+      <v-card>
+        <v-card-title>Search does not exist</v-card-title>
+        <v-card-text>Sorry, but this saved search doesn't exist; it may have been deleted.</v-card-text>
+        <v-card-actions><v-spacer />
+          <v-btn text rounded color="primary" @click="url.pushToRoute($router,{name: 'Serp'})">New search</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </div>
 
 
@@ -145,6 +155,7 @@ export default {
       dialogs: {
         export: false,
         createAlert: false,
+        savedSearchDoesNotExist: false,
       },
       resultsTab: 0,
       exportEmail: "",
@@ -197,6 +208,7 @@ export default {
     ]),
     ...mapGetters("user", [
       "userId",
+      "userSavedSearches",
     ]),
     numPages() {
       const maxToShow = this.$vuetify.breakpoint.mobile ?
@@ -357,23 +369,24 @@ export default {
     "$route": {
       immediate: true,
       async handler(to, from) {
-        // console.log("Serp $route watcher", to, from)
-        if (this.userId){
-          this.$store.commit("user/setActiveSearchId", this.$route.query.id)
+        console.log("Serp $route watcher", to, from)
+        this.dialogs.savedSearchDoesNotExist = false
+        if (this.$route.query.id && !this.userSavedSearches.find(s => s.id === this.$route.query.id)) {
+          console.log("404 search id doesn't exist", this.$route.params.entityType)
+          this.dialogs.savedSearchDoesNotExist = true
+          return
+
         }
 
-        // autosave ALL new searches.
-        // if (this.userId && !this.$route.query.id) {
-        //   await this.$router.replace({
-        //     name: "Serp",
-        //     query: {
-        //       ...this.$route.query,
-        //       id: shortUuid.generate()
-        //     }
-        //   })
-        //   return
-        // }
-
+        if (this.userId) {
+          this.$store.commit("user/setActiveSearchId", this.$route.query.id)
+          if (this.$route.query.id) {
+            this.$store.dispatch("user/updateSearchUrl", {
+              id: this.$route.query.id,
+              search_url: "https://openalex.org/" + this.$route.fullPath
+            })
+          }
+        }
 
 
         const scrollTop = window.scrollY
