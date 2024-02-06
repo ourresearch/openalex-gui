@@ -11,7 +11,7 @@
       <!--        style="border: 3px solid #ccc;"-->
 
 
-      <div class="pt-2 pb-1 mr-3">
+      <div class="pt-2 pb-1 mr-0">
         <v-icon large class="">mdi-magnify</v-icon>
       </div>
       <div class="d-flex flex-wrap">
@@ -76,6 +76,7 @@
           >
             <v-icon small left>{{ filter.icon }}</v-icon>
             {{ filter.displayName }}
+<!--            <v-icon small right>mdi-plus</v-icon>-->
           </v-chip>
 
           <v-chip

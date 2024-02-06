@@ -165,8 +165,6 @@ export const user = {
         },
 
 
-
-
         // read
         async fetchSavedSearches({commit, state}) {
             const resp = await axios.get(
@@ -192,7 +190,6 @@ export const user = {
         },
 
 
-
         // update
         async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
@@ -207,7 +204,7 @@ export const user = {
 
         // update
         async updateSearchUrl({commit, dispatch, state, rootState}, {id, search_url}) {
-            rootState.isLoading = true
+            state.isSaving = true
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
@@ -215,8 +212,7 @@ export const user = {
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
-            rootState.isLoading = false
-            commit("snackbar", "Search saved", {root: true})
+            state.isSaving = false
         },
         // update
         async updateSearchAlert({commit, dispatch, state, rootState}, {id, has_alert}) {
@@ -234,18 +230,17 @@ export const user = {
 
         // delete
         async deleteSavedSearch({commit, dispatch, rootState}, id) {
-            console.log("user.store deleteSavedSearch", id)
             rootState.isLoading = true
             const myUrl = apiBaseUrl + `/saved-search/${id}`
             const resp = await axios.delete(
                 myUrl,
                 axiosConfig(),
             )
-            console.log("user.store deleteSavedSearch done", resp)
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search deleted", {root: true})
             rootState.isLoading = false
             await url.pushToRoute(router, "/me/searches")
+            commit("setActiveSearchId", undefined)
 
         },
 

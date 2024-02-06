@@ -2,20 +2,42 @@
   <v-card flat>
     <v-list>
 
-      <v-list-item @click="$emit('save')" v-if="$route.name === 'Serp'">
-        <v-list-item-icon>
-          <v-icon>mdi-content-save-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Save
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-divider  v-if="$route.name === 'Serp'" />
+      <template v-if="$route.name === 'Serp'">
 
+          <v-list-item disabled v-if="id" @click="$emit('save')" >
+            <v-list-item-icon>
+              <v-icon>mdi-content-save-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Autosave is on
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Changes saved automatically
+              </v-list-item-subtitle>
+            </v-list-item-content>
+<!--            <v-list-item-action>-->
+<!--              <v-switch class="pt-2" disabled hide-details :input-value="!!id" />-->
+<!--            </v-list-item-action>-->
+          </v-list-item>
 
+          <v-list-item v-else @click="$emit('save')" >
+            <v-list-item-icon>
+              <v-icon>mdi-content-save-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Save
+              </v-list-item-title>
+<!--              <v-list-item-subtitle>-->
+<!--                Changes saved automatically-->
+<!--              </v-list-item-subtitle>-->
+            </v-list-item-content>
+          </v-list-item>
 
+        <v-divider />
+
+      </template>
 
 
       <v-list-item :disabled="!id" @click="setRenameId(id)">
@@ -114,7 +136,7 @@ export default {
     ...mapActions([]),
     ...mapActions("user", [
       "deleteSavedSearch",
-        "createSearchFromTemplate",
+      "createSearchFromTemplate",
     ]),
     newSearch() {
       url.pushToRoute(this.$router, {name: "Serp"})
