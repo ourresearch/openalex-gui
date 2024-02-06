@@ -31,6 +31,7 @@
           v-else
           @click="clickSaveButton"
       >
+        Unsaved search
         <v-icon>mdi-menu-down</v-icon>
       </v-btn>
 
@@ -135,7 +136,7 @@
     </v-dialog>
 
 
-    <v-dialog max-width="400" v-model="isDialogOpen.loginRequired">
+    <v-dialog max-width="300" v-model="isDialogOpen.loginRequired">
       <v-card rounded flat>
         <v-card-title>Login required</v-card-title>
         <v-card-text>

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="myIsOpen" max-width="600">
+  <v-dialog v-model="myIsOpen" max-width="300">
       <v-card :loading="isLoading" v-if="userId" flat rounded>
         <v-card-title>{{ myHasAlert ? "Save search and set alert" : "Save search" }}</v-card-title>
         <div class="pa-4">
@@ -45,7 +45,7 @@
       <v-card-actions>
           <v-spacer />
           <v-btn text rounded to="/login">Log in</v-btn>
-          <v-btn text rounded color="primary" to="signup">Register</v-btn>
+          <v-btn text rounded color="primary" to="signup">Sign up</v-btn>
         </v-card-actions>
     </v-card>
     </v-dialog>

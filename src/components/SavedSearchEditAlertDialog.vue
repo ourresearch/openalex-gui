@@ -29,7 +29,7 @@
       <v-card-actions>
           <v-spacer />
           <v-btn text rounded to="/login">Log in</v-btn>
-          <v-btn text rounded color="primary" to="signup">Register</v-btn>
+          <v-btn text rounded color="primary" to="signup">Sign up</v-btn>
         </v-card-actions>
     </v-card>
     </v-dialog>

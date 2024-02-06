@@ -44,13 +44,20 @@
       <v-card-actions>
         <v-spacer/>
         <v-btn
+            rounded
+            text
+            to="/signup"
+        >
+          Sign up
+        </v-btn>
+        <v-btn
             :disabled="isFormDisabled"
             rounded
             color="primary"
             @click="submit"
             v-if="!isSubmitted"
         >
-          Get login link
+          Send login link
         </v-btn>
         <v-btn v-else rounded color="primary" @click="$emit('close')">
           OK

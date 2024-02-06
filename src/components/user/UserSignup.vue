@@ -4,7 +4,7 @@
 
       <div v-if="!isSubmitted">
         <v-icon left>mdi-account-plus</v-icon>
-        Create Account
+        Sign up
       </div>
       <div v-else>
         <v-icon left>mdi-check</v-icon>
@@ -21,7 +21,7 @@
       </v-card-text>
       <v-card-text v-else key="ready">
         <p>
-          Your OpenAlex account lets you create alerts and save searches.
+          Signing up for an OpenAlex account lets you create alerts and save searches.
         </p>
 
         <v-text-field
@@ -62,7 +62,7 @@
           v-if="!isSubmitted"
           rounded
       >
-        Create account
+        Sign up
       </v-btn>
         <v-btn v-else rounded color="primary" @click="$emit('close')">
           OK
