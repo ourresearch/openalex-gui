@@ -1,18 +1,18 @@
 <template>
   <v-dialog v-model="isOpen" max-width="600">
-      <v-card flat rounded>
+      <v-card :loading="isLoading" flat rounded>
         <v-card-title>Rename saved search</v-card-title>
         <div class="pa-4">
           <v-text-field
               autofocus
               rounded
               filled
-              hide-details
               clearable
               prepend-inner-icon="mdi-magnify"
               placeholder="New name"
               v-model="renameString"
               @keydown.enter="rename"
+              counter="25"
           />
         </div>
         <v-card-actions>
@@ -38,6 +38,7 @@ export default {
     return {
       foo: 42,
       renameString: "",
+      isLoading: false
     }
   },
   computed: {
@@ -65,10 +66,12 @@ export default {
     ...mapActions("user", [
         "updateSearchDescription",
     ]),
-    rename(){
+    async rename(){
       console.log("rename search", this.renameId, this.renameString)
-      this.updateSearchDescription({id: this.renameId, description: this.renameString})
+      this.isLoading = true
+      await this.updateSearchDescription({id: this.renameId, description: this.renameString})
       this.renameString = ""
+      this.isLoading = false
       this.isOpen = false
     }
 

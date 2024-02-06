@@ -1,15 +1,14 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="600">
       <v-card :loading="isLoading" v-if="userId" flat rounded>
-        <v-card-title>Save {{ myHasAlert ? "alert" : "search" }}</v-card-title>
+        <v-card-title>{{ myHasAlert ? "Save search and set alert" : "Save search" }}</v-card-title>
         <div class="pa-4">
           <v-text-field
               autofocus
               rounded
               filled
               clearable
-              prepend-inner-icon="mdi-magnify"
-              placeholder="Name (required)"
+              placeholder="Search name (required)"
               v-model="nameString"
               @keydown.enter="save"
               counter="25"
