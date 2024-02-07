@@ -1,25 +1,25 @@
 <template>
   <div class="d-flex">
-    <div v-if="$vuetify.breakpoint.mdAndUp">
-      <v-toolbar flat  class="align-center flex-grow-0">
-        <router-link
-            :to="{name: 'Home'}"
-            class="logo-link mt-3"
-        >
-          <img
-              src="@/assets/openalex-logo-icon-black-and-white.png"
-              class="logo-icon mr-0 colorizable"
-          />
-          <span
-              class="logo-text colorizable"
-          >
-                  OpenAlex
-                </span>
+<!--    <div v-if="$vuetify.breakpoint.mdAndUp">-->
+<!--      <v-toolbar flat  class="align-center flex-grow-0">-->
+<!--        <router-link-->
+<!--            :to="{name: 'Home'}"-->
+<!--            class="logo-link mt-3"-->
+<!--        >-->
+<!--          <img-->
+<!--              src="@/assets/openalex-logo-icon-black-and-white.png"-->
+<!--              class="logo-icon mr-0 colorizable"-->
+<!--          />-->
+<!--          <span-->
+<!--              class="logo-text colorizable"-->
+<!--          >-->
+<!--                  OpenAlex-->
+<!--                </span>-->
 
-        </router-link>
+<!--        </router-link>-->
 
-      </v-toolbar>
-    </div>
+<!--      </v-toolbar>-->
+<!--    </div>-->
 
     <v-container style="max-width: 1785px;" class="pt-0">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
