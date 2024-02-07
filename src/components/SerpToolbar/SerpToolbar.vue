@@ -1,54 +1,72 @@
 <template>
-  <v-toolbar dense color="" flat class="">
+  <div class="d-flex align-center mt-2">
     <!--    diff? {{ isSavedSearchModified }}  -->
-    <v-btn icon to="/me/searches" v-if="userId">
-      <v-icon>mdi-folder-outline</v-icon>
-    </v-btn>
     <div>
-
-      <v-menu offset-y max-width="350" v-if="userId">
-        <template v-slot:activator="{on}">
-          <v-btn
-              v-on="on"
-              text
-              rounded
-              class="text-h6 px-2"
-          >
-            {{ activeSearchDescription || "Unsaved search" }}
-            <v-icon>mdi-menu-down</v-icon>
-          </v-btn>
-        </template>
-        <saved-search-menu
-            :id="$route.query.id"
-            @save="clickSaveButton"
-            @toggleAlert="clickAlertButton"
-        />
-      </v-menu>
-      <v-btn
-          text
-          rounded
-          class="text-h6 px-2"
-          v-else
-          @click="clickSaveButton"
-      >
-        Unsaved search
-        <v-icon>mdi-menu-down</v-icon>
+      <v-btn icon to="/me/searches" v-if="userId">
+        <v-icon>mdi-folder-outline</v-icon>
       </v-btn>
+      <div>
+
+        <v-menu offset-y max-width="350" v-if="userId">
+          <template v-slot:activator="{on}">
+            <v-btn
+                v-on="on"
+                text
+                rounded
+                class="text-h6 "
+            >
+              {{ activeSearchDescription || "Unsaved search" }}
+<!--              <v-icon>mdi-menu-down</v-icon>-->
+            </v-btn>
+          </template>
+          <saved-search-menu
+              :id="$route.query.id"
+              @save="clickSaveButton"
+              @toggleAlert="clickAlertButton"
+          />
+        </v-menu>
+        <v-btn
+            text
+            rounded
+            class="text-h6 "
+            v-else
+            @click="clickSaveButton"
+        >
+          Unsaved search
+<!--          <v-icon>mdi-menu-down</v-icon>-->
+        </v-btn>
+
+      </div>
+      <div class="d-flex- align-center">
+         <v-btn text rounded>File</v-btn>
+          <v-btn text rounded>View</v-btn>
+          <v-btn text rounded>Export</v-btn>
+          <v-btn text rounded>Share</v-btn>
+          <v-btn text rounded>Help</v-btn>
+      </div>
 
     </div>
 
 
     <v-spacer/>
 
-<!--    <v-btn icon @click="clickSaveButton">-->
-<!--      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>-->
+    <!--    <v-btn icon @click="clickSaveButton">-->
+    <!--      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>-->
+    <!--    </v-btn>-->
+<!--    <v-btn icon @click="clickAlertButton">-->
+<!--      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>-->
 <!--    </v-btn>-->
-    <v-btn icon @click="clickAlertButton">
-      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
-    </v-btn>
+<!--    <v-btn icon>-->
+<!--      <v-icon>mdi-view-dashboard-outline</v-icon>-->
+<!--    </v-btn>-->
+<!--    <export-button/>-->
+<!--    <v-btn icon>-->
+<!--      <v-icon>mdi-share-variant</v-icon>-->
+<!--    </v-btn>-->
+<!--    <v-divider vertical class="mx-3" />-->
 
 
-    <v-menu offset-y>
+    <v-menu offset-y v-if="0">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on">
           <!--          <v-icon>mdi-export-variant</v-icon>-->
@@ -96,6 +114,10 @@
 
       </v-list>
     </v-menu>
+
+    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp" />
+
+
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
       <v-card rounded>
@@ -156,7 +178,7 @@
         @close="isDialogOpen.saveSearch = false"
     />
 
-  </v-toolbar>
+  </div>
 </template>
 
 <script>
@@ -172,6 +194,7 @@ import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import {user} from "@/store/user.store";
+import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
 const shortUuid = require('short-uuid');
 
@@ -186,6 +209,7 @@ export default {
     FilterList,
     SavedSearchMenu,
     SavedSearchSaveDialog,
+    UserToolbarMenu
   },
   props: {
     resultsObject: Object,

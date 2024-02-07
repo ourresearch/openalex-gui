@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height justify-center">
-    <user-login class=""  style="max-width: 400px" />
+    <user-login class=""  style="max-width: 400px" @close="$router.push('/')" />
   </v-container>
 </template>
 

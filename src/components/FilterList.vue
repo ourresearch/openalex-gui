@@ -1,6 +1,6 @@
 <template>
 
-  <v-card rounded flat class="pa-2 ">
+  <v-card rounded flat class="px-2 pb-2 ">
     <!--    main part of filters list-->
     <div
         flat
