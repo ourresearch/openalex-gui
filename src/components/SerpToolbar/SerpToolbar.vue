@@ -1,6 +1,18 @@
 <template>
   <div class="d-flex align-center mt-2">
     <!--    diff? {{ isSavedSearchModified }}  -->
+    <router-link
+        :to="{name: 'Home'}"
+        class="logo-link "
+        v-if="$vuetify.breakpoint.mdAndUp"
+    >
+      <img
+          src="@/assets/openalex-logo-icon-black-and-white.png"
+          class="logo-icon mr-0 colorizable"
+      />
+      <span class="logo-text d-none colorizable">OpenAlex</span>
+
+    </router-link>
     <div>
       <v-btn icon to="/me/searches" v-if="userId">
         <v-icon>mdi-folder-outline</v-icon>
@@ -16,7 +28,7 @@
                 class="text-h6 "
             >
               {{ activeSearchDescription || "Unsaved search" }}
-<!--              <v-icon>mdi-menu-down</v-icon>-->
+              <!--              <v-icon>mdi-menu-down</v-icon>-->
             </v-btn>
           </template>
           <saved-search-menu
@@ -33,16 +45,16 @@
             @click="clickSaveButton"
         >
           Unsaved search
-<!--          <v-icon>mdi-menu-down</v-icon>-->
+          <!--          <v-icon>mdi-menu-down</v-icon>-->
         </v-btn>
 
       </div>
       <div class="d-flex- align-center">
-         <v-btn text rounded>File</v-btn>
-          <v-btn text rounded>View</v-btn>
-          <v-btn text rounded>Export</v-btn>
-          <v-btn text rounded>Share</v-btn>
-          <v-btn text rounded>Help</v-btn>
+        <v-btn text rounded>File</v-btn>
+        <v-btn text rounded>View</v-btn>
+        <v-btn text rounded>Export</v-btn>
+        <v-btn text rounded>Share</v-btn>
+        <v-btn text rounded>Help</v-btn>
       </div>
 
     </div>
@@ -53,17 +65,17 @@
     <!--    <v-btn icon @click="clickSaveButton">-->
     <!--      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>-->
     <!--    </v-btn>-->
-<!--    <v-btn icon @click="clickAlertButton">-->
-<!--      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>-->
-<!--    </v-btn>-->
-<!--    <v-btn icon>-->
-<!--      <v-icon>mdi-view-dashboard-outline</v-icon>-->
-<!--    </v-btn>-->
-<!--    <export-button/>-->
-<!--    <v-btn icon>-->
-<!--      <v-icon>mdi-share-variant</v-icon>-->
-<!--    </v-btn>-->
-<!--    <v-divider vertical class="mx-3" />-->
+    <!--    <v-btn icon @click="clickAlertButton">-->
+    <!--      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>-->
+    <!--    </v-btn>-->
+    <!--    <v-btn icon>-->
+    <!--      <v-icon>mdi-view-dashboard-outline</v-icon>-->
+    <!--    </v-btn>-->
+    <!--    <export-button/>-->
+    <!--    <v-btn icon>-->
+    <!--      <v-icon>mdi-share-variant</v-icon>-->
+    <!--    </v-btn>-->
+    <!--    <v-divider vertical class="mx-3" />-->
 
 
     <v-menu offset-y v-if="0">
@@ -115,8 +127,7 @@
       </v-list>
     </v-menu>
 
-    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp" />
-
+    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>
 
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
@@ -388,6 +399,13 @@ $color-3: hsl(210, 60%, 98%);
 $color-2: hsl(213, 69%, 95%);
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
+
+.logo-link {
+  img {
+    height: 44px;
+    margin: 10px 20px;
+  }
+}
 
 .tab {
   background-color: transparent !important;
