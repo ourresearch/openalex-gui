@@ -1,7 +1,27 @@
 <template>
-  <div class="">
+  <div class="d-flex">
+    <div v-if="$vuetify.breakpoint.mdAndUp">
+      <v-toolbar flat  class="align-center flex-grow-0">
+        <router-link
+            :to="{name: 'Home'}"
+            class="logo-link mt-3"
+        >
+          <img
+              src="@/assets/openalex-logo-icon-black-and-white.png"
+              class="logo-icon mr-0 colorizable"
+          />
+          <span
+              class="logo-text colorizable"
+          >
+                  OpenAlex
+                </span>
 
-    <v-container style="max-width: 1785px;">
+        </router-link>
+
+      </v-toolbar>
+    </div>
+
+    <v-container style="max-width: 1785px;" class="pt-0">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
       <v-card rounded flat class="white">
         <serp-toolbar :results-object="resultsObject"/>
@@ -60,7 +80,8 @@
       <v-card>
         <v-card-title>Search does not exist</v-card-title>
         <v-card-text>Sorry, but this saved search doesn't exist; it may have been deleted.</v-card-text>
-        <v-card-actions><v-spacer />
+        <v-card-actions>
+          <v-spacer/>
           <v-btn text rounded color="primary" @click="url.pushToRoute($router,{name: 'Serp'})">New search</v-btn>
         </v-card-actions>
       </v-card>

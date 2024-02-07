@@ -2,23 +2,15 @@
 
   <div style="padding-bottom: 0px;">
     <v-container class="">
-      <v-row class="above-the-fold flex-column align-center" style="height: 100vh;">
+      <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <div class="landing-page-logo ml-2">
-                <img
-                    src="@/assets/openalex-logo-icon-black-and-white.png"
-                    class="logo-icon mr-0 colorizable"
-                />
-                <span
-                    class="logo-text colorizable"
-                >
-                OpenAlex
-              </span>
+              <div class="text-h5 ml-3">
+                Search and analyze the world's research.
               </div>
-              <FilterList class="mt-2" />
+              <FilterList class="mt-2"/>
 
             </div>
 

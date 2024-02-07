@@ -6,8 +6,8 @@
         Log in
       </div>
         <div v-else>
-          <v-icon left>mdi-check</v-icon>
-        Link sent!
+          <v-icon left>mdi-email-outline</v-icon>
+        Check your email
         </div>
         <v-spacer/>
         <v-btn icon v-if="showCloseButton" @click="$emit('close')">

@@ -1,30 +1,28 @@
 <template>
   <v-app>
 
-          <v-navigation-drawer
-              app
-              floating
-              mini-variant-width="75"
-              stateless
-              mini-variant
-              :value="true"
-              v-if="$vuetify.breakpoint.smAndUp"
-          >
-<!--              :mini-variant="$vuetify.breakpoint.lgAndDown && $route.name === 'Serp'"-->
-      <!--        color="hsl(213, 69%, 95%)"-->
+<!--          <v-navigation-drawer-->
+<!--              app-->
+<!--              floating-->
+<!--              mini-variant-width="75"-->
+<!--              stateless-->
+<!--              mini-variant-->
+<!--              :value="true"-->
+<!--              v-if="$vuetify.breakpoint.smAndUp && $route.name === 'Serp'"-->
+<!--          >-->
 
-            <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />
+<!--            <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />-->
 
 
-          </v-navigation-drawer>
+<!--          </v-navigation-drawer>-->
       <v-progress-linear
           indeterminate
-          fixed color="blue-grey"
+          fixed color="primary"
           style="z-index: 9999"
           v-if="globalIsLoading"
       />
       <v-app-bar
-          v-if="0"
+          v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"
           app
           flat
 
@@ -58,6 +56,11 @@
 <!--        />-->
         <v-spacer/>
 
+        <v-btn text rounded href="https://help.openalex.org" target="_blank">
+          Help
+          <v-icon small right>mdi-open-in-new</v-icon>
+        </v-btn>
+
 
 <!--        <div style="width: 50px" v-if="$vuetify.breakpoint.mdAndUp"></div> &lt;!&ndash; hack to center the search bar... &ndash;&gt;-->
         <user-toolbar-menu/>
@@ -75,7 +78,7 @@
         <router-view></router-view>
 <!--        <v-footer app absolute>hi jason</v-footer>-->
       </v-main>
-        <site-footer style="margin-left: 100px;" />
+        <site-footer   />
     <v-bottom-navigation color="primary"  app v-if="$vuetify.breakpoint.xsOnly">
       <v-btn text height="100%" to="/"  >
         <span>Searches</span>
@@ -394,7 +397,6 @@ $logo-link-height: 35px;
 
 .logo-link {
   text-decoration: none;
-  width: 151px;
   display: flex;
   align-items: center;
   //padding-left: 30px;

@@ -40,7 +40,7 @@
     </v-menu>
 
 
-    <div class="pt-2" v-else>
+    <div class="" v-else>
       <v-btn
           text
           rounded
