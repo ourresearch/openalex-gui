@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center mt-2">
+  <div class="d-flex align-center mt-2 mb-2">
     <!--    diff? {{ isSavedSearchModified }}  -->
     <router-link
         :to="{name: 'Home'}"
@@ -49,14 +49,9 @@
         </v-btn>
 
       </div>
-      <div class="d-flex- align-center">
-        <v-btn text rounded>File</v-btn>
-        <v-btn text rounded>View</v-btn>
-        <v-btn text rounded>Export</v-btn>
-        <v-btn text rounded>Share</v-btn>
-        <v-btn text rounded>Help</v-btn>
-      </div>
 
+
+      <serp-toolbar-menu class="" />
     </div>
 
 
@@ -87,26 +82,7 @@
 
       </template>
       <v-list>
-        <v-list-item @click="isDialogOpen.qrCode = true">
-          <v-list-item-icon>
-            <v-icon>mdi-qrcode</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Get QR code to share
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item @click="copyUrlToClipboard">
-          <v-list-item-icon>
-            <v-icon>mdi-link-variant</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Copy link to share
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
+
 
 
         <v-divider/>
@@ -206,6 +182,7 @@ import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import {user} from "@/store/user.store";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
+import SerpToolbarMenu from "@/components/SerpToolbarMenu.vue";
 
 const shortUuid = require('short-uuid');
 
@@ -220,7 +197,8 @@ export default {
     FilterList,
     SavedSearchMenu,
     SavedSearchSaveDialog,
-    UserToolbarMenu
+    UserToolbarMenu,
+    SerpToolbarMenu,
   },
   props: {
     resultsObject: Object,
@@ -401,9 +379,11 @@ $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
 .logo-link {
+  padding: 10px 5px 10px 10px;
+
   img {
-    height: 44px;
-    margin: 10px 20px;
+    height: 50px;
+    //margin: 10px 20px;
   }
 }
 
