@@ -17,7 +17,7 @@
           <v-spacer />
           <v-btn text rounded @click="isOpen = false">Cancel</v-btn>
           <v-btn text rounded color="primary" @click="toggleAlerts">
-            {{ hasAlert ? "Remove alert" : "Receive alerts"}}
+            {{ hasAlert ? "Remove alert" : "Add alert"}}
           </v-btn>
         </v-card-actions>
       </v-card>

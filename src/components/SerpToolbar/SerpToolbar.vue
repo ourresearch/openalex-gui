@@ -1,38 +1,28 @@
 <template>
   <div class="d-flex align-center mt-2 mb-2">
-<!--    <router-link-->
-<!--        :to="{name: 'Home'}"-->
-<!--        class="logo-link "-->
-<!--        v-if="$vuetify.breakpoint.mdAndUp"-->
-<!--    >-->
-<!--      <img-->
-<!--          src="@/assets/openalex-logo-icon-black-and-white.png"-->
-<!--          class="logo-icon mr-0 colorizable"-->
-<!--      />-->
-<!--      <span class="logo-text d-none colorizable">OpenAlex</span>-->
+    <!--    <router-link-->
+    <!--        :to="{name: 'Home'}"-->
+    <!--        class="logo-link "-->
+    <!--        v-if="$vuetify.breakpoint.mdAndUp"-->
+    <!--    >-->
+    <!--      <img-->
+    <!--          src="@/assets/openalex-logo-icon-black-and-white.png"-->
+    <!--          class="logo-icon mr-0 colorizable"-->
+    <!--      />-->
+    <!--      <span class="logo-text d-none colorizable">OpenAlex</span>-->
 
-<!--    </router-link>-->
+    <!--    </router-link>-->
     <div>
-      <div class="d-flex">
-        <v-btn icon to="/me/searches" v-if="userId" class="ml-3">
-          <v-icon>mdi-folder-outline</v-icon>
-        </v-btn>
-        <v-btn
-            text
-            rounded
-            class="text-h6 pl-1"
-            @click="clickSaveButton"
-        >
-          {{ activeSearchDescription || "Unsaved search" }}
-        </v-btn>
-
-      </div>
+      <serp-title/>
+<!--      <div class="body-2 ml-4 mb-4">-->
+<!--        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.-->
+<!--      </div>-->
       <serp-toolbar-menu class=""/>
     </div>
 
     <v-spacer/>
 
-<!--    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>-->
+    <!--    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>-->
 
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
@@ -112,6 +102,7 @@ import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import {user} from "@/store/user.store";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 import SerpToolbarMenu from "@/components/SerpToolbarMenu.vue";
+import SerpTitle from "@/components/SerpTitle.vue";
 
 const shortUuid = require('short-uuid');
 
@@ -120,14 +111,12 @@ export default {
   name: "Template",
   components: {
     UserSavedSearch,
-    Action,
-    ExportButton,
     QrcodeVue,
-    FilterList,
     SavedSearchMenu,
     SavedSearchSaveDialog,
     UserToolbarMenu,
     SerpToolbarMenu,
+    SerpTitle,
   },
   props: {
     resultsObject: Object,

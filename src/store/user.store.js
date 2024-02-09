@@ -58,7 +58,6 @@ export const user = {
             state.name = ""
             state.email = ""
             localStorage.removeItem("token")
-
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id

@@ -4,10 +4,11 @@
     <!--    main part of filters list-->
     <div
         flat
-        class="d-flex  mb-2 px-4  "
+        class="d-flex  mb-2 px-4 "
         style="border-radius: 25px !important; border: 3px solid #333;"
         @click="$refs.mainTextarea.focus()"
     >
+<!--        style="border-radius: 30px;"-->
       <!--        style="border: 3px solid #ccc;"-->
 
 

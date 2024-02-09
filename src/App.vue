@@ -34,6 +34,7 @@
       </router-link>
       <v-spacer/>
 
+      <user-toolbar-menu/>
 
       <v-menu offset-y>
         <template v-slot:activator="{on}">
@@ -66,7 +67,6 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <user-toolbar-menu/>
     </v-app-bar>
     <div>
     </div>

@@ -3,7 +3,7 @@
     <v-menu offset-y>
       <template v-slot:activator="{on}">
         <v-btn v-on="on" text rounded >
-          File
+          Search
         </v-btn>
       </template>
       <saved-search-menu
