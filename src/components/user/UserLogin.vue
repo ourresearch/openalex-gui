@@ -1,5 +1,5 @@
 <template>
-    <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
+    <v-card outlined rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
       <div v-if="!isSubmitted">
         <v-icon left>mdi-account</v-icon>
@@ -14,6 +14,7 @@
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
+<!--      <v-divider></v-divider>-->
       <v-slide-x-transition group hide-on-leave>
         <v-card-text v-if="isSubmitted" key="submitted">
           We sent your login link to {{ email }}. <strong>Don't forget to check your spam folder.</strong>

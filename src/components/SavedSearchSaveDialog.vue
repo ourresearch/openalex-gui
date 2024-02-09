@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="myIsOpen" max-width="300">
+  <v-dialog v-model="myIsOpen" max-width="500">
       <v-card :loading="isLoading" v-if="userId" flat rounded>
         <v-card-title>{{ myHasAlert ? "Save search and set alert" : "Save search" }}</v-card-title>
         <div class="pa-4">
@@ -23,8 +23,9 @@
             <v-list-item-title>
               Receive alerts
             </v-list-item-title>
-            <v-list-item-subtitle>
+            <v-list-item-subtitle style="white-space: normal;">
               Get an email when new results appear in this search
+
             </v-list-item-subtitle>
 
             </v-list-item-content>
