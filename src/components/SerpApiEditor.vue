@@ -41,15 +41,16 @@
       <v-btn
           icon
           @click="copyToClipboard"
+          class="ml-4"
       >
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
-      <v-btn
-          icon
-          @click="url.setShowApi(undefined)"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+<!--      <v-btn-->
+<!--          icon-->
+<!--          @click="url.setShowApi(undefined)"-->
+<!--      >-->
+<!--        <v-icon>mdi-close</v-icon>-->
+<!--      </v-btn>-->
     </v-card>
 
   </div>

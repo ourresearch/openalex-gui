@@ -1,51 +1,52 @@
 <template>
   <div class="d-flex">
-<!--    <div v-if="$vuetify.breakpoint.mdAndUp">-->
-<!--      <v-toolbar flat  class="align-center flex-grow-0">-->
-<!--        <router-link-->
-<!--            :to="{name: 'Home'}"-->
-<!--            class="logo-link mt-3"-->
-<!--        >-->
-<!--          <img-->
-<!--              src="@/assets/openalex-logo-icon-black-and-white.png"-->
-<!--              class="logo-icon mr-0 colorizable"-->
-<!--          />-->
-<!--          <span-->
-<!--              class="logo-text colorizable"-->
-<!--          >-->
-<!--                  OpenAlex-->
-<!--                </span>-->
+    <!--    <div v-if="$vuetify.breakpoint.mdAndUp">-->
+    <!--      <v-toolbar flat  class="align-center flex-grow-0">-->
+    <!--        <router-link-->
+    <!--            :to="{name: 'Home'}"-->
+    <!--            class="logo-link mt-3"-->
+    <!--        >-->
+    <!--          <img-->
+    <!--              src="@/assets/openalex-logo-icon-black-and-white.png"-->
+    <!--              class="logo-icon mr-0 colorizable"-->
+    <!--          />-->
+    <!--          <span-->
+    <!--              class="logo-text colorizable"-->
+    <!--          >-->
+    <!--                  OpenAlex-->
+    <!--                </span>-->
 
-<!--        </router-link>-->
+    <!--        </router-link>-->
 
-<!--      </v-toolbar>-->
-<!--    </div>-->
+    <!--      </v-toolbar>-->
+    <!--    </div>-->
 
-    <v-container style="max-width: 1785px;" class="pt-0">
+    <v-container fluid  class="pt-0">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
       <v-card rounded flat class="white">
         <serp-toolbar :results-object="resultsObject"/>
         <filter-list :results-object="resultsObject" class=""/>
         <v-divider/>
+        <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>
         <v-container fluid class="">
-
-          <serp-api-editor v-if="isShowApiSet" class="mb-2"/>
-
           <v-row>
             <v-col>
               <serp-results-count :results-object="resultsObject" include-time class="grey--text"/>
             </v-col>
           </v-row>
 
+<!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
 
           <v-row v-if="$vuetify.breakpoint.mdAndUp">
-            <v-col cols="8" v-if="!$route.query.hide_results">
+            <v-col
+                :cols="!url.isViewSet($route, 'report') ? 12 : 8"
+                v-if="url.isViewSet($route, 'list')"
+            >
               <serp-results-list :results-object="resultsObject"/>
             </v-col>
             <v-col
-
                 class="flex-grow-1"
-                v-if="$vuetify.breakpoint.mdAndUp"
+                v-if="url.isViewSet($route, 'report')"
             >
               <analytic-views :results-object="resultsObject" class=""/>
             </v-col>

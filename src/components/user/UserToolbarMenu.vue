@@ -8,26 +8,29 @@
         </v-btn>
       </template>
       <v-list>
-        <!--        <v-list-item class="">-->
-        <!--          <div class="body-2">-->
-        <!--            <span>-->
-        <!--              Hello,-->
-        <!--            </span>-->
-        <!--            <span class="font-weight-bold">-->
-        <!--              {{ userName }}-->
-        <!--            </span>!-->
-        <!--          </div>-->
-        <!--        </v-list-item>-->
-        <!--        <v-divider></v-divider>-->
-        <v-list-item to="/me">
+        <v-subheader>
+          Logged in as <span class="font-weight-bold ml-1">{{ userName }}</span>
+        </v-subheader>
+        <v-divider></v-divider>
+        <v-list-item exact-path to="/me/searches">
+          <v-list-item-icon>
+            <v-icon>mdi-folder-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Saved Searches
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item exact-path to="/me">
           <v-list-item-icon>
             <v-icon>mdi-account-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            Account
+            Account settings
           </v-list-item-content>
         </v-list-item>
-        <v-divider/>
+
+        <v-divider />
         <v-list-item @click="localLogout">
           <v-list-item-icon>
             <v-icon>mdi-logout</v-icon>
@@ -124,6 +127,9 @@ export default {
       this.logout()
       this.$router.push("/")
       this.snackbar("You're logged out")
+    },
+    goToSavedSearches(){
+      this.$router.push("/me/searches")
     }
 
 

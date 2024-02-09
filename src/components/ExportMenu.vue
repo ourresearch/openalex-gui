@@ -12,6 +12,7 @@
             <v-list-item
                 :disabled="isResultsExportDisabled"
                 v-on="on"
+                 @click="placeholder"
             >
               <v-list-item-icon>
                 <v-icon :disabled="isResultsExportDisabled">mdi-table-arrow-down</v-icon>
@@ -25,7 +26,7 @@
                 </v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action class="pt-2">
-                <v-icon>mdi-menu-right</v-icon>
+                <v-icon :disabled="isResultsExportDisabled">mdi-menu-right</v-icon>
               </v-list-item-action>
 
             </v-list-item>
@@ -46,13 +47,13 @@
             </v-list-item>
           </v-list>
         </v-menu>
-        <v-list-item @click="placeholder">
+        <v-list-item :href="groupByDownloadUrl" @click="clickDownloadSummary">
           <v-list-item-icon>
             <v-icon>mdi-clipboard-arrow-down-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>
-              Export summary
+              Export report
             </v-list-item-title>
           </v-list-item-content>
           <!--          <v-list-item-action-text class="ml-6">csv</v-list-item-action-text>-->
@@ -111,6 +112,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import QrcodeVue from "qrcode.vue";
 import axios from "axios";
+import {filtersFromUrlStr} from "@/filterConfigs";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -151,14 +154,24 @@ export default {
       return "fifteen minutes"
     },
     exportDialogTitle(){
-
       const formatConfig = {
         "csv": "Export as spreadsheet (csv)",
         "wos-plaintext": "Export in WoS format (txt)",
       }
       return formatConfig[this.exportFormat]
-
-    }
+    },
+    groupByDownloadUrl(){
+      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      return url.makeGroupByUrl(
+          this.entityType,
+          url.getGroupBy(this.$route).join(","),
+          {
+            filters: myFilters,
+            isMultipleGroups: true,
+            formatCsv: true,
+          }
+      )
+    },
   },
 
   methods: {
@@ -198,6 +211,11 @@ export default {
     clickDownloadButton(){
       this.cleanupExport()
       this.snackbar("Export downloaded")
+    },
+    clickDownloadSummary(){
+      setTimeout(()=>[
+        this.snackbar("Export downloaded")
+      ], 1000)
     }
 
 
