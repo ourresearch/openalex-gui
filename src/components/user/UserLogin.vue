@@ -44,13 +44,6 @@
       <v-card-actions>
         <v-spacer/>
         <v-btn
-            rounded
-            text
-            to="/signup"
-        >
-          Sign up
-        </v-btn>
-        <v-btn
             :disabled="isFormDisabled"
             rounded
             color="primary"

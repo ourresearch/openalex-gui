@@ -4,7 +4,6 @@
 <!--      <serp-results-count :results-object="resultsObject" class=""/>-->
       <div class="font-weight-bold">List</div>
       <v-spacer/>
-      <export-button />
       <action class="ml-2" action="sort"/>
     </div>
 

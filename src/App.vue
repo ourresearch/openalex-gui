@@ -1,86 +1,84 @@
 <template>
   <v-app>
 
-<!--          <v-navigation-drawer-->
-<!--              app-->
-<!--              floating-->
-<!--              mini-variant-width="75"-->
-<!--              stateless-->
-<!--              mini-variant-->
-<!--              :value="true"-->
-<!--              v-if="$vuetify.breakpoint.smAndUp && $route.name === 'Serp'"-->
-<!--          >-->
+    <v-progress-linear
+        indeterminate
+        fixed color="primary"
+        style="z-index: 9999"
+        v-if="globalIsLoading"
+    />
+    <v-app-bar
+        app
+        flat
 
-<!--            <site-nav :is-mini="$vuetify.breakpoint.lgAndDown" />-->
+        color="transparent"
+        class=""
+        absolute
+    >
+<!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
-
-<!--          </v-navigation-drawer>-->
-      <v-progress-linear
-          indeterminate
-          fixed color="primary"
-          style="z-index: 9999"
-          v-if="globalIsLoading"
-      />
-      <v-app-bar
-          v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"
-          app
-          flat
-
-          color="transparent"
-          class="pl-0"
-          absolute
+      <router-link
+          :to="{name: 'Home'}"
+          class="logo-link ml-3"
       >
-        <!--        v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'"-->
-
-        <router-link
-            :to="{name: 'Home'}"
-            class="logo-link"
+        <img
+            src="@/assets/openalex-logo-icon-black-and-white.png"
+            class="logo-icon mr-0 colorizable"
+        />
+        <span
+            class="logo-text colorizable"
         >
-          <img
-              src="@/assets/openalex-logo-icon-black-and-white.png"
-              class="logo-icon mr-0 colorizable"
-          />
-          <span
-              class="logo-text colorizable"
-          >
                 OpenAlex
               </span>
 
-        </router-link>
-
-        <v-spacer/>
-
-<!--        <search-bar-->
-<!--            v-if="$route.name !== 'Home' && $vuetify.breakpoint.smAndUp"-->
-<!--            style="width: 600px;"-->
-<!--        />-->
-        <v-spacer/>
-
-        <v-btn text rounded href="https://help.openalex.org" target="_blank">
-          Help
-          <v-icon small right>mdi-open-in-new</v-icon>
-        </v-btn>
+      </router-link>
+      <v-spacer/>
 
 
-<!--        <div style="width: 50px" v-if="$vuetify.breakpoint.mdAndUp"></div> &lt;!&ndash; hack to center the search bar... &ndash;&gt;-->
-        <user-toolbar-menu/>
-<!--        <template v-slot:extension v-if="$route.name !== 'Home' && $vuetify.breakpoint.xsOnly">-->
-<!--          <search-bar style="width: 100%;"/>-->
-<!--          <v-spacer/>-->
+      <v-menu offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-help-circle-outline</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-comment-question-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Contact support
+                <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item href="https://help.openalex.org/" target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-help-circle-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Visit help center
+                <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+      <user-toolbar-menu/>
+    </v-app-bar>
+    <div>
+    </div>
+    <v-main class="ma-0 pb-0">
+      <router-view></router-view>
+      <!--        <v-footer app absolute>hi jason</v-footer>-->
+    </v-main>
+    <site-footer/>
 
-<!--        </template>-->
 
-
-      </v-app-bar>
-      <div>
-      </div>
-      <v-main class="ma-0 pb-0">
-        <router-view></router-view>
-<!--        <v-footer app absolute>hi jason</v-footer>-->
-      </v-main>
-        <site-footer   />
-    <v-bottom-navigation color="primary"  app v-if="$vuetify.breakpoint.xsOnly">
-      <v-btn text height="100%" to="/"  >
+    <v-bottom-navigation color="primary" app v-if="$vuetify.breakpoint.xsOnly">
+      <v-btn text height="100%" to="/">
         <span>Searches</span>
         <v-icon>mdi-folder-outline</v-icon>
       </v-btn>
@@ -88,35 +86,31 @@
         <span>Account</span>
         <v-icon>mdi-account-outline</v-icon>
       </v-btn>
-      <v-btn text height="100%" href="https://help.openalex.org" target="_blank" >
-        <span>Help</span>
-        <v-icon>mdi-help-circle-outline</v-icon>
-      </v-btn>
 
 
     </v-bottom-navigation>
 
-      <v-snackbar
-          top
-          v-model="$store.state.snackbarIsOpen"
-      >
-        <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
-        {{ $store.state.snackbarMsg }}
+    <v-snackbar
+        top
+        v-model="$store.state.snackbarIsOpen"
+    >
+      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+      {{ $store.state.snackbarMsg }}
 
-        <template v-slot:action="{ attrs }">
-          <v-btn
-              icon
-              v-bind="attrs"
-              @click="$store.commit('closeSnackbar')"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </template>
-      </v-snackbar>
+      <template v-slot:action="{ attrs }">
+        <v-btn
+            icon
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+    </v-snackbar>
 
-    <saved-search-rename-dialog />
-    <saved-search-save-dialog />
-    <saved-search-edit-alert-dialog />
+    <saved-search-rename-dialog/>
+    <saved-search-save-dialog/>
+    <saved-search-edit-alert-dialog/>
 
   </v-app>
 </template>
@@ -139,6 +133,7 @@ import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
+import Template from "@/components/SerpToolbarMenu.vue";
 
 export default {
   name: 'App',
@@ -149,6 +144,7 @@ export default {
     meta: []
   },
   components: {
+    Template,
     SearchBox,
     SearchBoxNew,
     SiteFooter,
@@ -247,7 +243,7 @@ $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
 .v-main {
-  background-color:#fff;
+  background-color: #fff;
 }
 
 
@@ -380,6 +376,7 @@ html, body {
   letter-spacing: normal;
   text-transform: none;
 }
+
 .v-btn--is-elevated {
   box-shadow: none;
 }

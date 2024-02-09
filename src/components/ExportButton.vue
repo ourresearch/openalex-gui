@@ -131,6 +131,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import router from "../router";
 import {url} from "../url";
 import axios from "axios";
+import {filtersFromUrlStr} from "@/filterConfigs";
 
 export default {
   name: "Template",
@@ -161,7 +162,8 @@ export default {
     },
     isTooManyResultsToExport() {
       return this.resultsCount > 100000
-    }
+    },
+
 
   },
 

@@ -30,7 +30,7 @@ const urlObjectFromSearchUrl = function (searchUrl) {
     }
 }
 
-const pushSearchUrlToRoute = async function(router, searchUrl){
+const pushSearchUrlToRoute = async function (router, searchUrl) {
     await pushToRoute(router, urlObjectFromSearchUrl(searchUrl))
 }
 
@@ -477,6 +477,63 @@ const getColumn = function (route) {
     return route.query.column.split(",")
 }
 
+const viewConfigs = [
+    {
+        id: "list",
+        icon: "mdi-format-list-checkbox",
+        displayName: "Results list",
+        isDefault: true,
+    },
+    {
+        id: "report",
+        icon: "mdi-clipboard-pulse-outline",
+        displayName: "Report",
+        isDefault: true,
+    },
+    {
+        id: "api",
+        icon: "mdi-api",
+        displayName: "Api query",
+        isDefault: false,
+    },
+]
+const defaultViewIds = viewConfigs.filter(v => v.isDefault).map(v => v.id).sort()
+const isViewDefault = function(viewIds){
+    const defaultViewIdsString = [...defaultViewIds].join(",")
+    const viewIdsString = [...viewIds].sort().join(",")
+    return defaultViewIdsString === viewIdsString
+}
+const getView = function (route) {
+    return route.query.view ?
+        route.query.view?.split(",") :
+        defaultViewIds
+}
+const isViewSet = function (route, viewId) {
+    const myViewOptions = getView(route)
+    return myViewOptions.includes(viewId)
+}
+
+const setView = function(viewIds){
+    const unsetViewParam = !viewIds.length || isViewDefault(viewIds)
+
+    const newViewValue = unsetViewParam ?
+        undefined :
+        viewIds.join(",")
+    pushQueryParam("view", newViewValue)
+}
+
+const toggleView = function (viewId) {
+    const selectedViewIds = getView(router.currentRoute)
+    const newViewIds = selectedViewIds.includes(viewId) ?
+        selectedViewIds.filter(id => id !== viewId) : // remove it
+        [...selectedViewIds, viewId] // add it
+    setView(newViewIds)
+}
+
+
+
+
+
 
 const getGroupBy = function (route) {
     const defaultValue = getActionDefaultValues("group_by", route.query)
@@ -745,6 +802,10 @@ const url = {
 
     nameFromUrl,
     setUrlName,
+
+    viewConfigs,
+    isViewSet,
+    toggleView,
 }
 
 

@@ -4,7 +4,7 @@
       <div class="font-weight-bold">Report</div>
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
-      <v-menu offset-y>
+      <v-menu offset-y v-if="0">
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on">
             <v-icon>mdi-dots-vertical</v-icon>

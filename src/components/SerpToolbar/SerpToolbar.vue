@@ -1,109 +1,38 @@
 <template>
   <div class="d-flex align-center mt-2 mb-2">
-    <!--    diff? {{ isSavedSearchModified }}  -->
-    <router-link
-        :to="{name: 'Home'}"
-        class="logo-link "
-        v-if="$vuetify.breakpoint.mdAndUp"
-    >
-      <img
-          src="@/assets/openalex-logo-icon-black-and-white.png"
-          class="logo-icon mr-0 colorizable"
-      />
-      <span class="logo-text d-none colorizable">OpenAlex</span>
+<!--    <router-link-->
+<!--        :to="{name: 'Home'}"-->
+<!--        class="logo-link "-->
+<!--        v-if="$vuetify.breakpoint.mdAndUp"-->
+<!--    >-->
+<!--      <img-->
+<!--          src="@/assets/openalex-logo-icon-black-and-white.png"-->
+<!--          class="logo-icon mr-0 colorizable"-->
+<!--      />-->
+<!--      <span class="logo-text d-none colorizable">OpenAlex</span>-->
 
-    </router-link>
+<!--    </router-link>-->
     <div>
-      <v-btn icon to="/me/searches" v-if="userId">
-        <v-icon>mdi-folder-outline</v-icon>
-      </v-btn>
-      <div>
-
-        <v-menu offset-y max-width="350" v-if="userId">
-          <template v-slot:activator="{on}">
-            <v-btn
-                v-on="on"
-                text
-                rounded
-                class="text-h6 "
-            >
-              {{ activeSearchDescription || "Unsaved search" }}
-              <!--              <v-icon>mdi-menu-down</v-icon>-->
-            </v-btn>
-          </template>
-          <saved-search-menu
-              :id="$route.query.id"
-              @save="clickSaveButton"
-              @toggleAlert="clickAlertButton"
-          />
-        </v-menu>
+      <div class="d-flex">
+        <v-btn icon to="/me/searches" v-if="userId" class="ml-3">
+          <v-icon>mdi-folder-outline</v-icon>
+        </v-btn>
         <v-btn
             text
             rounded
-            class="text-h6 "
-            v-else
+            class="text-h6 pl-1"
             @click="clickSaveButton"
         >
-          Unsaved search
-          <!--          <v-icon>mdi-menu-down</v-icon>-->
+          {{ activeSearchDescription || "Unsaved search" }}
         </v-btn>
 
       </div>
-
-
-      <serp-toolbar-menu class="" />
+      <serp-toolbar-menu class=""/>
     </div>
-
 
     <v-spacer/>
 
-    <!--    <v-btn icon @click="clickSaveButton">-->
-    <!--      <v-icon>{{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}</v-icon>-->
-    <!--    </v-btn>-->
-    <!--    <v-btn icon @click="clickAlertButton">-->
-    <!--      <v-icon>{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>-->
-    <!--    </v-btn>-->
-    <!--    <v-btn icon>-->
-    <!--      <v-icon>mdi-view-dashboard-outline</v-icon>-->
-    <!--    </v-btn>-->
-    <!--    <export-button/>-->
-    <!--    <v-btn icon>-->
-    <!--      <v-icon>mdi-share-variant</v-icon>-->
-    <!--    </v-btn>-->
-    <!--    <v-divider vertical class="mx-3" />-->
-
-
-    <v-menu offset-y v-if="0">
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
-          <!--          <v-icon>mdi-export-variant</v-icon>-->
-          <v-icon>mdi-dots-vertical</v-icon>
-        </v-btn>
-
-      </template>
-      <v-list>
-
-
-
-        <v-divider/>
-        <v-list-item @click="url.pushQueryParam('show_api', !$route.query.show_api)">
-          <v-list-item-icon>
-            <v-icon>mdi-api</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              View API call
-            </v-list-item-title>
-          </v-list-item-content>
-          <!--          <v-list-item-action>-->
-          <!--            <v-switch readonly hide-details :value="false" />-->
-          <!--          </v-list-item-action>-->
-        </v-list-item>
-
-      </v-list>
-    </v-menu>
-
-    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>
+<!--    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>-->
 
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">

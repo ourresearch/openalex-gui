@@ -11,7 +11,41 @@
           @save="clickSaveButton"
       />
     </v-menu>
-    <v-btn text rounded>View</v-btn>
+
+
+
+
+    <v-menu offset-y>
+      <template v-slot:activator="{on}">
+        <v-btn rounded text v-on="on">
+          View
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="view in url.viewConfigs"
+          :key="view.id"
+          @click="url.toggleView(view.id)"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ view.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ view.displayName }}
+            </v-list-item-title>
+          </v-list-item-content>
+          <v-list-item-action class="pt-2">
+            <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
+          </v-list-item-action>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+
+
+
+
+
     <export-menu />
 
 
@@ -111,6 +145,8 @@ import QrcodeVue from "qrcode.vue";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import ExportMenu from "@/components/ExportMenu.vue";
+import {filtersFromUrlStr} from "@/filterConfigs";
+import {url} from "@/url";
 
 export default {
   name: "Template",
@@ -132,6 +168,9 @@ export default {
     }
   },
   computed: {
+    url() {
+      return url
+    },
     ...mapGetters([
       "resultsFilters",
       "entityType",
@@ -146,6 +185,17 @@ export default {
       return this.$vuetify.breakpoint.mdAndUp ?
           400 :
           300
+    },
+    groupByDownloadUrl(){
+      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      return url.makeGroupByUrl(
+          this.entityType,
+          this.groupByKeys.join(","),
+          {
+            filters: myFilters,
+            isMultipleGroups: true
+          }
+      )
     },
   },
 
