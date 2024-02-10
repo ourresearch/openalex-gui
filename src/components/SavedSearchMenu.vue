@@ -58,6 +58,18 @@
               <v-list-item-title>{{ search.name }}</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          <v-divider />
+          <v-list-item
+              key="view-em-all"
+              to="/me/searches"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-folder-multiple-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>View all</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-menu>
 
