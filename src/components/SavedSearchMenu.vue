@@ -77,7 +77,7 @@
 
     </template>
 
-    <v-list-item v-if="$route.name === 'Serp'" @click="$emit('save')">
+    <v-list-item v-if="$route.name === 'Serp' && !$route.query.id" @click="$emit('save')">
       <v-list-item-icon>
         <v-icon>mdi-content-save-outline</v-icon>
       </v-list-item-icon>

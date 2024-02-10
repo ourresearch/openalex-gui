@@ -4,13 +4,14 @@
     <!--      <v-icon >mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
 
-    <div class="">
+    <div class="d-flex align-baseline">
       <v-btn rounded text class="text-h6 mr-2" @click="clickTitle">
         {{ activeSearchName || "Unsaved search" }}
       </v-btn>
       <!--      <div v-if="activeSearchDescription" class="body-2 grey&#45;&#45;text mb-2">-->
       <!--        {{ activeSearchDescription }}-->
       <!--      </div>-->
+
 
     </div>
     <!--      <v-divider></v-divider>-->

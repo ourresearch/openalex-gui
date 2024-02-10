@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex- align-center">
+  <div class="d-flex align-center">
     <v-menu offset-y v-model="isMenuOpen.search">
       <template v-slot:activator="{on}">
         <v-btn v-on="on" text rounded >
@@ -113,6 +113,12 @@
         </v-list-item>
       </v-list>
     </v-menu>
+    <v-spacer />
+
+    <div v-if="$route.query.id" class="body-2 grey--text mr-5">
+        <v-icon small left>mdi-content-save-outline</v-icon>
+        autosaved
+      </div>
 
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
