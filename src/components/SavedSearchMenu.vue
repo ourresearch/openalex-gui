@@ -102,8 +102,8 @@
         </div>
         <v-card-actions>
           <v-spacer />
-          <v-btn text rounded>Log in</v-btn>
-          <v-btn color="primary" rounded>Sign up</v-btn>
+          <v-btn text rounded @click="setIsLoginDialogOpen(true)">Log in</v-btn>
+          <v-btn color="primary" rounded @click="setIsSignupDialogOpen(true)">Sign up</v-btn>
         </v-card-actions>
       </v-card>
 
@@ -164,6 +164,8 @@ export default {
     ...mapMutations("user", [
       "setRenameId",
       "setActiveSearchId",
+        "setIsLoginDialogOpen",
+        "setIsSignupDialogOpen",
     ]),
     ...mapActions([]),
     ...mapActions("user", [

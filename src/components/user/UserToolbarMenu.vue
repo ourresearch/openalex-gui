@@ -30,7 +30,7 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-divider />
+        <v-divider/>
         <v-list-item @click="localLogout">
           <v-list-item-icon>
             <v-icon>mdi-logout</v-icon>
@@ -48,7 +48,7 @@
           text
           rounded
           :disabled="$route.name==='Login'"
-          @click="dialogs.userLogin = true"
+          @click="isMyLoginDialogOpen = true"
       >
         Log in
       </v-btn>
@@ -56,19 +56,19 @@
           rounded
           color="primary"
           :disabled="$route.name==='Signup'"
-          @click="dialogs.userSignup = true"
+          @click="isMySignupDialogOpen = true"
       >
         Sign up
       </v-btn>
 
     </div>
 
-    <v-dialog v-model="dialogs.userSignup" max-width="400">
-      <user-signup show-close-button @close="dialogs.userSignup = false"/>
+    <v-dialog v-model="isMySignupDialogOpen" max-width="400">
+      <user-signup show-close-button @close="isMySignupDialogOpen = false"/>
     </v-dialog>
 
-    <v-dialog v-model="dialogs.userLogin" max-width="400">
-      <user-login show-close-button @close="dialogs.userLogin = false"/>
+    <v-dialog v-model="isMyLoginDialogOpen" max-width="400">
+      <user-login show-close-button @close="isMyLoginDialogOpen = false"/>
     </v-dialog>
   </div>
 </template>
@@ -102,15 +102,23 @@ export default {
     ...mapGetters("user", [
       "userName",
       "userId",
+      "isSignupDialogOpen",
+      "isLoginDialogOpen"
     ]),
-    isOpen: {
+    isMySignupDialogOpen: {
       get() {
-        if (!this.$vuetify.breakpoint.mobile) return true
-        return this.$store.state.showFiltersDrawer
+        return this.isSignupDialogOpen
       },
       set(val) {
-        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
-        this.$store.state.showFiltersDrawer = val
+        this.setIsSignupDialogOpen(val)
+      },
+    },
+    isMyLoginDialogOpen: {
+      get() {
+        return this.isLoginDialogOpen
+      },
+      set(val) {
+        this.setIsLoginDialogOpen(val)
       },
     },
   },
@@ -121,6 +129,8 @@ export default {
     ]),
     ...mapMutations("user", [
       "logout",
+      "setIsSignupDialogOpen",
+      "setIsLoginDialogOpen",
     ]),
     ...mapActions([]),
     localLogout() {
@@ -128,7 +138,7 @@ export default {
       this.$router.push("/")
       this.snackbar("You're logged out")
     },
-    goToSavedSearches(){
+    goToSavedSearches() {
       this.$router.push("/me/searches")
     }
 

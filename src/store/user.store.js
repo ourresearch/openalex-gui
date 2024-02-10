@@ -39,11 +39,23 @@ export const user = {
         renameId: null,
         editAlertId: null,
         activeSearchId: null,
+
+        isSignupDialogOpen: false,
+        isLoginDialogOpen: false,
     },
     mutations: {
         setToken(state, token) {
             localStorage.setItem("token", token)
         },
+        setIsSignupDialogOpen(state, val) {
+            state.isLoginDialogOpen = false
+            state.isSignupDialogOpen = val
+        },
+        setIsLoginDialogOpen(state, val) {
+            state.isSignupDialogOpen = false
+            state.isLoginDialogOpen = val
+        },
+
         setRenameId(state, id) {
             state.renameId = id
         },
@@ -318,6 +330,9 @@ export const user = {
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
+
+        isSignupDialogOpen: (state) => state.isSignupDialogOpen,
+        isLoginDialogOpen: (state) => state.isLoginDialogOpen,
 
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),
