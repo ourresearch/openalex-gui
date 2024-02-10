@@ -47,27 +47,22 @@
       <v-btn
           text
           rounded
-          :disabled="$route.name==='Login'"
-          @click="isMyLoginDialogOpen = true"
+          @click="setIsLoginDialogOpen(true)"
       >
         Log in
       </v-btn>
       <v-btn
           rounded
           color="primary"
-          :disabled="$route.name==='Signup'"
-          @click="isMySignupDialogOpen = true"
+          @click="setIsSignupDialogOpen(true)"
       >
         Sign up
       </v-btn>
 
     </div>
 
-    <v-dialog v-model="isMySignupDialogOpen" max-width="400">
-      <user-signup show-close-button @close="isMySignupDialogOpen = false"/>
-    </v-dialog>
-
-    <user-login/>
+    <user-signup />
+    <user-login />
   </div>
 </template>
 
@@ -103,22 +98,6 @@ export default {
       "isSignupDialogOpen",
       "isLoginDialogOpen"
     ]),
-    isMySignupDialogOpen: {
-      get() {
-        return this.isSignupDialogOpen
-      },
-      set(val) {
-        this.setIsSignupDialogOpen(val)
-      },
-    },
-    isMyLoginDialogOpen: {
-      get() {
-        return this.isLoginDialogOpen
-      },
-      set(val) {
-        this.setIsLoginDialogOpen(val)
-      },
-    },
   },
 
   methods: {
