@@ -1,51 +1,37 @@
 <template>
-  <v-card flat >
-    <v-list v-if="userId">
+  <v-list>
 
-      <template v-if="$route.name === 'Serp'">
+    <template v-if="$route.name === 'Serp'">
 
-          <v-list-item  @click="newSearch" >
-            <v-list-item-icon>
-              <v-icon>mdi-plus</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                New
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+      <v-list-item @click="newSearch">
+        <v-list-item-icon>
+          <v-icon>mdi-plus</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>
+            New
+          </v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
 
-          <v-list-item disabled v-if="id" @click="$emit('save')" >
-            <v-list-item-icon>
-              <v-icon>mdi-content-save-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Autosave is on
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                Changes saved automatically
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-
+      <!--          <v-list-item disabled v-if="id" @click="$emit('save')" >-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-content-save-outline</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-content>-->
+      <!--              <v-list-item-title>-->
+      <!--                Autosave is on-->
+      <!--              </v-list-item-title>-->
+      <!--              <v-list-item-subtitle>-->
+      <!--                Changes saved automatically-->
+      <!--              </v-list-item-subtitle>-->
+      <!--            </v-list-item-content>-->
+      <!--          </v-list-item>-->
 
 
-          <v-list-item v-else @click="$emit('save')" >
-            <v-list-item-icon>
-              <v-icon>mdi-content-save-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Save
-              </v-list-item-title>
-<!--              <v-list-item-subtitle>-->
-<!--                Changes saved automatically-->
-<!--              </v-list-item-subtitle>-->
-            </v-list-item-content>
-          </v-list-item>
-
-        <v-list-item  @click="openSearch" >
+      <v-menu offset-x open-on-hover>
+        <template v-slot:activator="{on}">
+          <v-list-item @click="placeholder" v-on="on">
             <v-list-item-icon>
               <v-icon>mdi-folder-open-outline</v-icon>
             </v-list-item-icon>
@@ -54,62 +40,76 @@
                 Open
               </v-list-item-title>
             </v-list-item-content>
+            <v-list-item-action class="pt-2">
+              <v-icon>mdi-menu-right</v-icon>
+            </v-list-item-action>
           </v-list-item>
+        </template>
+        <v-list>
+          <v-list-item
+              v-for="search in searchesToOpen"
+              :key="search.id"
+              @click="openSearch(search.id)"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-folder-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>{{ search.name }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
-        <v-divider />
+      <v-divider/>
 
-      </template>
+    </template>
 
-
-      <v-list-item :disabled="!id" @click="setRenameId(id)">
-        <v-list-item-icon>
-          <v-icon>mdi-pencil-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Rename
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)">
-        <v-list-item-icon>
-          <v-icon>mdi-folder-multiple-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Make a copy
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item :disabled="!id" @click="deleteSavedSearch(id)">
-        <v-list-item-icon>
-          <v-icon>mdi-delete-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>
-            Delete
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list>
-
-    <v-card v-else class="">
-<!--        <v-card-title>-->
-<!--          Login required-->
-<!--        </v-card-title>-->
-        <div class="px-6 pt-6 pb-4">
-          Login or sign up to save searches.
-        </div>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn text rounded @click="setIsLoginDialogOpen(true)">Log in</v-btn>
-          <v-btn color="primary" rounded @click="setIsSignupDialogOpen(true)">Sign up</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-list-item v-if="$route.name === 'Serp'" @click="$emit('save')">
+      <v-list-item-icon>
+        <v-icon>mdi-content-save-outline</v-icon>
+      </v-list-item-icon>
+      <v-list-item-content>
+        <v-list-item-title>
+          Save
+        </v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
 
 
+    <v-list-item :disabled="!id" @click="setRenameId(id)">
+      <v-list-item-icon>
+        <v-icon :disabled="!id">mdi-pencil-outline</v-icon>
+      </v-list-item-icon>
+      <v-list-item-content>
+        <v-list-item-title>
+          Rename
+        </v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
+    <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)">
+      <v-list-item-icon>
+        <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
+      </v-list-item-icon>
+      <v-list-item-content>
+        <v-list-item-title>
+          Make a copy
+        </v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
+    <v-list-item :disabled="!id" @click="deleteSavedSearch(id)">
+      <v-list-item-icon>
+        <v-icon :disabled="!id">mdi-delete-outline</v-icon>
+      </v-list-item-icon>
+      <v-list-item-content>
+        <v-list-item-title>
+          Delete
+        </v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
+  </v-list>
 
-  </v-card>
+
 </template>
 
 <script>
@@ -154,6 +154,9 @@ export default {
     myQuery() {
       const myUrl = this.mySearchObj?.search_url
       return Object.fromEntries(new URL(myUrl).searchParams)
+    },
+    searchesToOpen() {
+      return this.userSavedSearches
     }
   },
 
@@ -164,20 +167,27 @@ export default {
     ...mapMutations("user", [
       "setRenameId",
       "setActiveSearchId",
-        "setIsLoginDialogOpen",
-        "setIsSignupDialogOpen",
+      "setIsLoginDialogOpen",
+      "setIsSignupDialogOpen",
     ]),
     ...mapActions([]),
     ...mapActions("user", [
       "deleteSavedSearch",
       "createSearchFromTemplate",
+      "openSavedSearch",
     ]),
     newSearch() {
       url.pushToRoute(this.$router, {name: "Serp"})
+      this.snackbar("New unsaved search created.")
     },
-    openSearch(){
-      this.$router.push("/me/searches")
-    }
+    openSearch(id) {
+      this.openSavedSearch(id)
+      this.$emit("close")
+      this.snackbar("Search opened.")
+    },
+    placeholder() {
+
+    },
 
 
   },

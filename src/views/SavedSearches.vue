@@ -1,9 +1,9 @@
 <template>
   <v-container>
     <v-toolbar flat>
-      <v-btn icon @click="$router.back()">
-        <v-icon>mdi-arrow-left</v-icon>
-      </v-btn>
+<!--      <v-btn icon @click="$router.back()">-->
+<!--        <v-icon>mdi-arrow-left</v-icon>-->
+<!--      </v-btn>-->
       <v-toolbar-title class="text-h6">
         Your saved searches
 
@@ -31,7 +31,7 @@
       >
         <td>
           <v-icon left>mdi-folder-outline</v-icon>
-          {{ savedSearch.description }}
+          {{ savedSearch.name }}
         </td>
         <td>
           {{ formatDate(savedSearch.updated) }}

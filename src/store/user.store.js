@@ -175,7 +175,7 @@ export const user = {
 
 
         // create
-        async createSearch({commit, dispatch, state, rootState}, {search_url, description, has_alert}) {
+        async createSearch({commit, dispatch, state, rootState}, {search_url, name, description, has_alert}) {
             const id = shortUuid.generate()
 
             // add id to search_url
@@ -187,6 +187,7 @@ export const user = {
                 apiBaseUrl + "/saved-search/" + id,
                 {
                     search_url,
+                    name,
                     description,
                     has_alert: has_alert ?? false
                 },
@@ -239,6 +240,17 @@ export const user = {
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {...oldSearchObj, description},
+                axiosConfig(),
+            )
+            await dispatch("fetchSavedSearches") // have to update the list
+            commit("snackbar", "Description updated", {root: true})
+        },
+        // update
+        async updateSearchName({commit, dispatch, state, rootState}, {id, name}) {
+            const oldSearchObj = state.savedSearches.find(s => s.id === id)
+            const resp = await axios.put(
+                apiBaseUrl + "/saved-search/" + id,
+                {...oldSearchObj, name},
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
@@ -370,6 +382,7 @@ export const user = {
         activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),
         activeSearchUrl: (state, getters) => getters.activeSearchObj?.search_url,
         activeSearchDescription: (state, getters) => getters.activeSearchObj?.description,
+        activeSearchName: (state, getters) => getters.activeSearchObj?.name,
         activeSearchHasAlert: (state, getters) => getters.activeSearchObj?.has_alert,
     }
 }

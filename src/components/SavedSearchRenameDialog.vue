@@ -14,6 +14,14 @@
               @keydown.enter="rename"
               counter="25"
           />
+<!--          <v-textarea-->
+<!--              rounded-->
+<!--              filled-->
+<!--              placeholder="Description (optional)"-->
+<!--              v-model="descriptionString"-->
+<!--              @keydown.enter="save"-->
+<!--              counter="200"-->
+<!--          />-->
         </div>
         <v-card-actions>
           <v-spacer />
@@ -38,6 +46,7 @@ export default {
     return {
       foo: 42,
       renameString: "",
+      descriptionString: "",
       isLoading: false
     }
   },
@@ -65,11 +74,12 @@ export default {
     ...mapActions([]),
     ...mapActions("user", [
         "updateSearchDescription",
+        "updateSearchName",
     ]),
     async rename(){
       console.log("rename search", this.renameId, this.renameString)
       this.isLoading = true
-      await this.updateSearchDescription({id: this.renameId, description: this.renameString})
+      await this.updateSearchName({id: this.renameId, name: this.renameString})
       this.renameString = ""
       this.isLoading = false
       this.isOpen = false

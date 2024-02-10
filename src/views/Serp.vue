@@ -24,7 +24,7 @@
     <v-container fluid  class="pt-0">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
       <v-card rounded flat class="white">
-        <serp-toolbar :results-object="resultsObject"/>
+        <serp-toolbar :results-object="resultsObject" />
         <filter-list :results-object="resultsObject" class=""/>
         <v-divider/>
         <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>

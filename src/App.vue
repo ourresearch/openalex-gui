@@ -109,7 +109,6 @@
     </v-snackbar>
 
     <saved-search-rename-dialog/>
-    <saved-search-save-dialog/>
     <saved-search-edit-alert-dialog/>
 
   </v-app>
