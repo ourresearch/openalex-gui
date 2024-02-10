@@ -182,12 +182,10 @@ const router = new VueRouter({
         } else {
             return {x: 0, y: 0}
         }
-
     },
 })
 
 router.beforeEach(async (to, from, next) => {
-
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser")

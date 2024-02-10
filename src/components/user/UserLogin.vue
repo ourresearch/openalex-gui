@@ -1,47 +1,48 @@
 <template>
+  <v-dialog v-model="isOpen" max-width="500">
+
+
     <v-card outlined rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
-      <div v-if="!isSubmitted">
-        <v-icon left>mdi-account</v-icon>
-        Log in
-      </div>
-        <div v-else>
-          <v-icon left>mdi-email-outline</v-icon>
-        Check your email
+        <div>
+          <v-icon left>mdi-account</v-icon>
+          Log in
         </div>
         <v-spacer/>
-        <v-btn icon v-if="showCloseButton" @click="$emit('close')">
+        <v-btn icon  @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
-<!--      <v-divider></v-divider>-->
-      <v-slide-x-transition group hide-on-leave>
-        <v-card-text v-if="isSubmitted" key="submitted">
-          We sent your login link to {{ email }}. <strong>Don't forget to check your spam folder.</strong>
-        </v-card-text>
-        <v-card-text v-else key="ready">
-          <p>
-            OpenAlex uses passwordless login: submit your email and we'll send you a magic login link.
-          </p>
+      <!--      <v-divider></v-divider>-->
+      <v-card-text>
 
-            <v-text-field
-                filled
-                rounded
-                hide-details
-                type="email"
-                class="mt-0"
-                prepend-icon="mdi-email-outline"
-                v-model="email"
-                autofocus
-                placeholder="Your email"
-                @keyup.enter="submit"
-            >
-            </v-text-field>
-
-
-        </v-card-text>
-
-      </v-slide-x-transition>
+        <v-text-field
+            filled
+            rounded
+            hide-details
+            type="email"
+            class="mt-0"
+            prepend-icon="mdi-email-outline"
+            v-model="email"
+            autofocus
+            placeholder="Your email"
+        >
+        </v-text-field>
+        <v-text-field
+            filled
+            rounded
+            hide-details
+            class="mt-3"
+            prepend-icon="mdi-lock-outline"
+            v-model="password"
+            placeholder="Password"
+            :type="isPasswordVisible ? 'text' : 'password'"
+            :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append="isPasswordVisible = !isPasswordVisible"
+            @keyup.enter="submit"
+        >
+        </v-text-field>
+      </v-card-text>
       <v-card-actions>
         <v-spacer/>
         <v-btn
@@ -49,16 +50,12 @@
             rounded
             color="primary"
             @click="submit"
-            v-if="!isSubmitted"
         >
-          Send login link
+          Log in
         </v-btn>
-        <v-btn v-else rounded color="primary" @click="$emit('close')">
-          OK
-        </v-btn>
-
       </v-card-actions>
     </v-card>
+  </v-dialog>
 
 </template>
 
@@ -70,25 +67,38 @@ export default {
   name: "UserLogin",
   components: {},
   props: {
-    showCloseButton: Boolean,
   },
   data() {
     return {
       email: "",
+      password: "",
+      isPasswordVisible: false,
       isLoading: false,
-      isSubmitted: false,
     }
   },
   computed: {
     ...mapGetters([
       "resultsFilters",
     ]),
+    ...mapGetters("user", [
+      "userId",
+      "userName",
+      "isLoginDialogOpen"
+    ]),
     isFormDisabled() {
-      const isDirty = !!this.email
+      const isDirty = !!this.email || !!this.password
       const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
-      const isValid = emailRegex.test(this.email)
+      const isValid = emailRegex.test(this.email) && this.password?.length >= 5
       return this.isLoading || (isDirty && !isValid)
-    }
+    },
+    isOpen: {
+      get() {
+        return this.isLoginDialogOpen
+      },
+      set(val) {
+        this.setIsLoginDialogOpen(val)
+      },
+    },
   },
 
 
@@ -96,16 +106,22 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
+    ...mapMutations("user", [
+      "setIsLoginDialogOpen",
+    ]),
     ...mapActions("user", [
-      "userId",
-      "requestLoginEmail",
+      "loginUser",
     ]),
     async submit() {
       if (this.isFormDisabled) return false
       this.isLoading = true
-      await this.requestLoginEmail(this.email)
+      await this.loginUser({
+        email: this.email,
+        password: this.password,
+      })
       this.isLoading = false
-      this.isSubmitted = true
+      this.isOpen = false
+      this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
     },
 
   },
@@ -113,7 +129,14 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    isOpen(to, from){
+      this.email = ""
+      this.password = ""
+      this.isLoading = false
+      this.isPasswordVisible = false
+    },
+  }
 }
 </script>
 
