@@ -51,7 +51,7 @@ export default {
   },
   async mounted() {
     await this.loginWithMagicToken(this.$route.params.token)
-    this.$router.push("/me")
+    this.$router.push("/")
   },
   watch: {
   }

@@ -1,8 +1,8 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="500">
-      <v-card :loading="isLoading" v-if="userId" flat rounded>
+      <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
         <v-card-title>{{ myHasAlert ? "Save search and set alert" : "Save search" }}</v-card-title>
-        <div class="pa-4">
+        <div class="pa-4 pb-0">
           <v-text-field
               autofocus
               rounded
@@ -13,9 +13,17 @@
               @keydown.enter="save"
               counter="25"
           />
+          <v-textarea
+              rounded
+              filled
+              placeholder="Description (optional)"
+              v-model="descriptionString"
+              @keydown.meta.enter="save"
+              counter="200"
+          />
         </div>
-        <v-list nav >
-          <v-list-item @click="myHasAlert = !myHasAlert">
+        <v-list nav class="pt-0 pb-6 px-6">
+          <v-list-item @click="myHasAlert = !myHasAlert" class="">
             <v-list-item-action>
               <v-switch readonly v-model="myHasAlert" />
             </v-list-item-action>
@@ -35,18 +43,18 @@
         <v-card-actions>
           <v-spacer />
           <v-btn text rounded @click="myIsOpen = false">Cancel</v-btn>
-          <v-btn text rounded color="primary" @click="save">Save</v-btn>
+          <v-btn rounded color="primary" @click="save">Save</v-btn>
         </v-card-actions>
       </v-card>
     <v-card v-else flat rounded>
       <v-card-title>Login required</v-card-title>
       <v-card-text>
-        You have to login to save searches or set alerts.
+        To {{ myHasAlert ? "set alerts" : "save searches" }}, you must be signed up and logged in.
       </v-card-text>
       <v-card-actions>
           <v-spacer />
-          <v-btn text rounded to="/login">Log in</v-btn>
-          <v-btn text rounded color="primary" to="signup">Sign up</v-btn>
+          <v-btn text rounded @click="clickLogin">Log in</v-btn>
+          <v-btn rounded color="primary" @click="clickSignup">Sign up</v-btn>
         </v-card-actions>
     </v-card>
     </v-dialog>
@@ -67,6 +75,7 @@ export default {
     return {
       foo: 42,
       nameString: "",
+      descriptionString: "",
       isLoading: false,
       myHasAlert: false,
     }
@@ -94,6 +103,11 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
+    ...mapMutations("user", [
+      "snackbar",
+        "setIsLoginDialogOpen",
+        "setIsSignupDialogOpen",
+    ]),
     ...mapActions([]),
     ...mapActions("user", [
         "updateSearchDescription",
@@ -103,13 +117,22 @@ export default {
       this.isLoading = true
       await this.$store.dispatch("user/createSearch", {
         search_url: this.currentUrl,
-        description: this.nameString,
+        name: this.nameString,
+        description: this.descriptionString,
         has_alert: this.myHasAlert
       })
       this.myIsOpen = false
       this.isLoading = false
       this.snackbar("New search saved.")
-    }
+    },
+    clickSignup(){
+      this.myIsOpen = false
+      this.setIsSignupDialogOpen(true)
+    },
+    clickLogin(){
+      this.myIsOpen = false
+      this.setIsLoginDialogOpen(true)
+    },
 
 
   },
@@ -122,6 +145,7 @@ export default {
     },
     isOpen(){
       this.nameString = ""
+      this.descriptionString = ""
       this.myHasAlert = this.hasAlert
     }
   }

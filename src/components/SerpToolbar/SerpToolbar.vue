@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center mt-2 mb-2">
+  <div class="mt-2 mb-2">
     <!--    <router-link-->
     <!--        :to="{name: 'Home'}"-->
     <!--        class="logo-link "-->
@@ -12,15 +12,12 @@
     <!--      <span class="logo-text d-none colorizable">OpenAlex</span>-->
 
     <!--    </router-link>-->
-    <div>
       <serp-title/>
 <!--      <div class="body-2 ml-4 mb-4">-->
 <!--        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.-->
 <!--      </div>-->
       <serp-toolbar-menu class=""/>
-    </div>
 
-    <v-spacer/>
 
     <!--    <user-toolbar-menu v-if="$vuetify.breakpoint.mdAndUp"/>-->
 

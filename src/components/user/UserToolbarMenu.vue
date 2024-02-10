@@ -1,34 +1,40 @@
 <template>
   <div>
+    <v-btn v-if="userId" icon to="/me/searches">
+      <v-icon>mdi-folder-outline</v-icon>
+    </v-btn>
 
-    <v-menu offset-y v-if="userId">
+    <v-menu rounded offset-y v-if="userId">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on">
           <v-icon>mdi-account-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
-        <v-subheader>
-          Logged in as <span class="font-weight-bold ml-1">{{ userName }}</span>
-        </v-subheader>
-        <v-divider></v-divider>
-        <v-list-item exact-path to="/me/searches">
-          <v-list-item-icon>
-            <v-icon>mdi-folder-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            Saved Searches
-          </v-list-item-content>
-        </v-list-item>
+        <div class="py-2 px-4">
+          {{ userName }}
+        </div>
+        <div class="pb-2 px-4 body-2 grey--text">
+          {{ userEmail }}
+        </div>
+<!--        <v-divider></v-divider>-->
+<!--        <v-list-item exact-path to="/me/searches">-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-folder-outline</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            Saved Searches-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
 
-        <v-list-item exact-path to="/me">
-          <v-list-item-icon>
-            <v-icon>mdi-account-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            Account settings
-          </v-list-item-content>
-        </v-list-item>
+<!--        <v-list-item exact-path to="/me">-->
+<!--          <v-list-item-icon>-->
+<!--            <v-icon>mdi-account-outline</v-icon>-->
+<!--          </v-list-item-icon>-->
+<!--          <v-list-item-content>-->
+<!--            Account settings-->
+<!--          </v-list-item-content>-->
+<!--        </v-list-item>-->
 
         <v-divider/>
         <v-list-item @click="localLogout">
@@ -94,6 +100,7 @@ export default {
     ]),
     ...mapGetters("user", [
       "userName",
+      "userEmail",
       "userId",
       "isSignupDialogOpen",
       "isLoginDialogOpen"

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex- align-center">
-    <v-menu offset-y>
+    <v-menu offset-y v-model="isMenuOpen.search">
       <template v-slot:activator="{on}">
         <v-btn v-on="on" text rounded >
           Search
@@ -9,6 +9,7 @@
       <saved-search-menu
           :id="$route.query.id"
           @save="clickSaveButton"
+          @close="isMenuOpen.search = false"
       />
     </v-menu>
 
@@ -161,6 +162,9 @@ export default {
     return {
       foo: 42,
       saveSearchDialogHasAlert: false,
+      isMenuOpen: {
+        search: false,
+      },
       isDialogOpen: {
         qrCode: false,
         saveSearch: false,
@@ -212,14 +216,15 @@ export default {
       this.snackbar("URL copied to clipboard.")
     },
     clickSaveButton() {
-      if (this.$route.query.id) {
-        this.updateSearchUrl({
-          id: this.activeSearchId,
-          search_url: this.urlToShare,
-        })
-      } else {
-        this.openSaveDialog(false)
-      }
+      this.openSaveDialog(false)
+      // if (this.$route.query.id) {
+      //   this.updateSearchUrl({
+      //     id: this.activeSearchId,
+      //     search_url: this.urlToShare,
+      //   })
+      // } else {
+      //   this.openSaveDialog(false)
+      // }
     },
     openSaveDialog(hasAlert) {
       console.log("openSaveDialog", hasAlert)

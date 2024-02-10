@@ -46,7 +46,7 @@ export default {
   },
   mounted() {
     if (this.userId) {
-      this.$router.push("/me")
+      this.$router.push("/")
     }
   },
   watch: {}
