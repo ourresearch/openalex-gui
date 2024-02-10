@@ -9,7 +9,7 @@
           Log in
         </div>
         <v-spacer/>
-        <v-btn icon  @click="isOpen = false">
+        <v-btn icon @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -19,19 +19,20 @@
         <v-text-field
             filled
             rounded
-            hide-details
             type="email"
             class="mt-0"
             prepend-icon="mdi-email-outline"
             v-model="email"
             autofocus
             placeholder="Your email"
+            :messages="isEmailUnrecognized ? 'Email not found' : undefined"
+            :error="isEmailUnrecognized"
+            :hide-details="!isEmailUnrecognized"
         >
         </v-text-field>
         <v-text-field
             filled
             rounded
-            hide-details
             class="mt-3"
             prepend-icon="mdi-lock-outline"
             v-model="password"
@@ -39,6 +40,11 @@
             :type="isPasswordVisible ? 'text' : 'password'"
             :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
             @click:append="isPasswordVisible = !isPasswordVisible"
+
+            :messages="isPasswordWrong ? 'Wrong password' : undefined"
+            :error="isPasswordWrong"
+            :hide-details="!isPasswordWrong"
+
             @keyup.enter="submit"
         >
         </v-text-field>
@@ -66,14 +72,16 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 export default {
   name: "UserLogin",
   components: {},
-  props: {
-  },
+  props: {},
   data() {
     return {
       email: "",
       password: "",
       isPasswordVisible: false,
       isLoading: false,
+
+      isEmailUnrecognized: false,
+      isPasswordWrong: false,
     }
   },
   computed: {
@@ -115,13 +123,23 @@ export default {
     async submit() {
       if (this.isFormDisabled) return false
       this.isLoading = true
-      await this.loginUser({
-        email: this.email,
-        password: this.password,
-      })
-      this.isLoading = false
-      this.isOpen = false
-      this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
+      try {
+        await this.loginUser({
+          email: this.email,
+          password: this.password,
+        })
+        this.isOpen = false
+        this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
+      } catch (e) {
+        if (e.message.includes("404")) {
+          this.isEmailUnrecognized = true
+        }
+        else if (e.message.includes("403")){
+          this.isPasswordWrong = true
+        }
+      } finally {
+        this.isLoading = false
+      }
     },
 
   },
@@ -130,12 +148,22 @@ export default {
   mounted() {
   },
   watch: {
-    isOpen(to, from){
+    isOpen(to, from) {
       this.email = ""
       this.password = ""
       this.isLoading = false
       this.isPasswordVisible = false
+
+      this.isEmailUnrecognized = false
+      this.isPasswordWrong = false
     },
+    password(){
+      this.isPasswordWrong = false
+    },
+    email() {
+      this.isEmailUnrecognized = false
+      this.password = ""
+    }
   }
 }
 </script>
