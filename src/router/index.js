@@ -192,7 +192,7 @@ router.beforeEach(async (to, from, next) => {
         try {
             await store.dispatch("user/fetchUser")
         } catch (e) {
-            store.commit("logout")
+            store.commit("user/logout")
         }
     }
 
