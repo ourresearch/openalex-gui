@@ -67,9 +67,7 @@
       <user-signup show-close-button @close="isMySignupDialogOpen = false"/>
     </v-dialog>
 
-    <v-dialog v-model="isMyLoginDialogOpen" max-width="400">
-      <user-login show-close-button @close="isMyLoginDialogOpen = false"/>
-    </v-dialog>
+    <user-login/>
   </div>
 </template>
 
@@ -135,7 +133,7 @@ export default {
     ...mapActions([]),
     localLogout() {
       this.logout()
-      this.$router.push("/")
+      // this.$router.push("/")
       this.snackbar("You're logged out")
     },
     goToSavedSearches() {

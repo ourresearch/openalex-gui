@@ -98,6 +98,47 @@ export const user = {
         // **************************************************
         // USER PROPER
         // **************************************************
+
+        // create
+        async createUser({commit, dispatch, state, getters}, {email, name, password}) {
+            const id = shortUuid.generate()
+            const postData = {
+                email,
+                display_name: name,
+                password,
+            }
+            console.log("user/createUser sending this:", postData)
+            const resp = await axios.post(
+                apiBaseUrl + "/user/" + id,
+                postData,
+            )
+            console.log("user/createUser got this back:", resp)
+            commit("setToken", resp.data.access_token)
+            commit("setFromApiResp", resp.data.user)
+            await dispatch("fetchSavedSearches")
+        },
+
+        // read
+        async fetchUser({commit, dispatch, state, getters}) {
+            const resp = await axios.get(
+                apiBaseUrl + "/user",
+                axiosConfig()
+            )
+            commit("setFromApiResp", resp.data)
+            await dispatch("fetchSavedSearches")
+        },
+
+        // read
+        async loginUser({commit, dispatch, state, getters}, {email, password}) {
+            console.log("user.store loginUser", email, password)
+            const resp = await axios.post(
+                apiBaseUrl + "/user/login",
+                {email, password}
+            )
+            commit("setToken", resp.data.access_token)
+            await dispatch("fetchUser")
+        },
+
         async loginWithMagicToken({commit, dispatch, getters}, magicToken) {
             console.log("user.store loginWithMagicToken", magicToken)
             const resp = await axios.post(
@@ -106,15 +147,6 @@ export const user = {
             )
             commit("setToken", resp.data.access_token)
             await dispatch("fetchUser")
-        },
-        async fetchUser({commit, dispatch, state, getters}) {
-            const resp = await axios.get(
-                apiBaseUrl + "/user/me",
-                axiosConfig()
-            )
-            commit("setFromApiResp", resp.data)
-            await dispatch("fetchSavedSearches")
-            await router.push("/")
         },
         async requestSignupEmail({commit, dispatch, getters}, signupObj) {
             const resp = await axios.post(
