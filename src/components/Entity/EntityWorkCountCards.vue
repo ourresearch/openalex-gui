@@ -10,7 +10,7 @@
               height="100"
           >
             <bar-graph
-                :bars="data.count_by_year.map(y => {return {key: y.year, count: y.works_count}})"
+                :bars="data.counts_by_year.map(y => {return {key: y.year, count: y.works_count}})"
                 style="height: 100%;"
                 class="flex-grow-1"
                 @click="clickBar"

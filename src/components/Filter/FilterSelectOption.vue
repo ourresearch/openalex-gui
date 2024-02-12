@@ -19,7 +19,7 @@
       >
         <span class="mr-2" v-if="isNegated">NOT</span>
         <template v-if="filterDisplayValue">
-          {{ filterDisplayValue | truncate(20) }}
+          {{ filterDisplayValue | truncate(25) }}
         </template>
         <template v-else>
           loading...

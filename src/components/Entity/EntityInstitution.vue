@@ -13,7 +13,7 @@
           </div>
           <div class="d-flex mt-6 ">
             <v-btn
-                :to="data.id | entityWorksLink"
+                :to="data.id | entityWorksLink('institutions')"
                 color="primary"
                 class="mr-3"
                 rounded

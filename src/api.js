@@ -12,6 +12,7 @@ import {filter} from "core-js/internals/array-iteration";
 import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
+import {entityConfigs} from "@/entityConfigs";
 
 const cache = {}
 const entityCache = {}
@@ -125,50 +126,33 @@ const api = (function () {
         return resp
     }
 
-    const getEntityDisplayName = async function (id) {
-        const myUrl = makeUrl(id, {select: "display_name"})
+    const getEntityDisplayName = async function (entityName, id) {
+        const path = entityName + "/" + id
+        const myUrl = makeUrl(path, {select: "display_name"})
         const resp = await getUrl(myUrl)
         return resp.display_name
     }
 
-    const getFilterValueDisplayName = async function (filterKey, id) {
+    const getFilterValueDisplayName = async function (filterKey, filterValue) {
+        const entityId = getFacetConfig("works", filterKey)?.entityId
+
         if (filterKey === "institutions.country_code") {
-            return openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())?.display_name
+            return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
         }
         else if (filterKey === "sustainable_development_goals.id") {
-            return openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())?.display_name
+            return openAlexSdgs.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
         }
         else if (filterKey === "language") {
-           return ISO6391.getName(id.toLowerCase())
+           return ISO6391.getName(filterValue.toLowerCase())
         }
-        else if (isOpenAlexId(id)) {
-           return await getEntityDisplayName(id)
+        else if (entityId) {
+           return await getEntityDisplayName(entityId, filterValue)
         }
         else {
-            return id
+            return filterValue
         }
     }
 
-    const makeAutocompleteResponseFromId = async function (id) {
-        const countryConfig = openAlexCountries.find(c => c.id.toLowerCase() === id.toLowerCase())
-        const sdgConfig = openAlexSdgs.find(c => c.id.toLowerCase() === id.toLowerCase())
-
-        // console.log("countryConfig", openAlexCountries, id, countryConfig)
-        let displayName
-        if (countryConfig) {
-            displayName = countryConfig.display_name
-        } else if (sdgConfig) {
-            displayName = sdgConfig.display_name
-        } else if (isOpenAlexId(id)) {
-            displayName = await getEntityDisplayName(id)
-        } else {
-            displayName = id
-        }
-        return {
-            id,
-            display_name: displayName,
-        }
-    }
 
     const getResultsCount = async function(entityType, filters){
         const searchParams = {
@@ -186,7 +170,6 @@ const api = (function () {
         },
         getEntityDisplayName,
         getFilterValueDisplayName,
-        makeAutocompleteResponseFromId,
         getUrl,
         getResultsList,
         getResultsCount,
