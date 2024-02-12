@@ -19,7 +19,8 @@
     </div>
       <entity-body
           :data="entityData"
-          v-if="entityData"
+          :type="myEntityType"
+          v-if="entityData && myEntityType"
       />
 
 <!--    <template v-if="isDataMatchingId">-->
@@ -75,6 +76,7 @@ export default {
     return {
       foo: 42,
       entityData: null,
+      myEntityType: null,
     }
   },
   computed: {
@@ -122,6 +124,7 @@ export default {
   created() {
   },
   async mounted() {
+    console.log("EntityPage mounted", this.$route.params.entityType,this.$route.params.entityId )
     // const path = [
     //   this.$route.params.entityType,
     //   this.$route.params.entityId
@@ -135,6 +138,7 @@ export default {
         console.log("entityid change", this.apiPath)
         this.$store.state.isLoading = true
         this.entityData = await api.get(this.apiPath)
+        this.myEntityType = this.$route.params.entityType
         this.$store.state.isLoading = false
       }
     }

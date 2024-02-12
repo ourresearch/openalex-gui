@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="data">
 
 
     <!--   PDF anywhere -->

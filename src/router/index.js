@@ -37,18 +37,7 @@ const routes = [
         name: 'Serp',
         component: Serp,
     },
-    {
-        path: `/:entityType(${entityNames})/:entityId`,
-        name: 'EntityPage',
-        component: EntityPage,
-        // redirect: to => {
-        //     return {
-        //         name: "Serp",
-        //         params: {entityType: "works"},
-        //         query: {sidebar: to.params.entityId}
-        //     }
-        // }
-    },
+
     {
         path: `/:entityId([waspfic]\\d+)`,
         name: 'EntityPageShortcut',
@@ -86,14 +75,7 @@ const routes = [
     {path: '/faq', component: Faq},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
-    // Move feedback to Zendesk form (see below)
-    // {path: '/help', component: Help},
-    // {path: '/feedback', component: Help},
-    // {path: '/contact',  component: Help},
     {path: '/pricing', component: Pricing},
-    // Move webinars to help docs (see below)
-    // {path: '/webinars', component: Webinars},
-    // {path: '/stats', component: OpenAlexStats},
     {path: '/stats', component: OurStats},
 
 
@@ -160,6 +142,21 @@ const routes = [
         path: '/contact', beforeEnter() {
             window.location.href = "https://openalex.zendesk.com/hc/requests/new"
         }
+    },
+
+
+
+    {
+        path: `/:entityType/:entityId`,
+        name: 'EntityPage',
+        component: EntityPage,
+        // redirect: to => {
+        //     return {
+        //         name: "Serp",
+        //         params: {entityType: "works"},
+        //         query: {sidebar: to.params.entityId}
+        //     }
+        // }
     },
 
     {path: '*', component: PageNotFound},

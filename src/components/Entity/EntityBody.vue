@@ -19,7 +19,7 @@
 
 
         <div class="subtitle">
-          <template v-if="myEntityType === 'works'">
+          <template v-if="type === 'works'">
             <span v-if="data.publication_year">{{ data.publication_year }}</span>
             <span v-if="data.publication_year && data.type"> · </span>
             <span v-if="data.type">{{ data.type }}</span>
@@ -32,15 +32,22 @@
               {{ data.primary_location?.source?.display_name }}
             </router-link>
           </template>
-          <template v-else-if="myEntityType === 'authors'">
+          <template v-else-if="type === 'authors'">
             {{ data.last_known_institutions?.map(i => i.display_name).join(", ") }}
           </template>
-          <template v-else-if="myEntityType === 'institutions'">
+          <template v-else-if="type === 'institutions'">
             {{ getLocationString(data) }}
           </template>
         </div>
 
-        <div v-if="myEntityType === 'works'" class="d-flex mt-4">
+        <div v-if="type === 'works'" class="mt-4">
+          <work-topic
+              v-for="topic in data.topics"
+              :key="topic.id"
+              :topic="topic"
+          />
+        </div>
+        <div v-if="type === 'works'" class="d-flex mt-4">
           <work-linkouts :data="data"/>
           <entity-ids-menu-item :ids="data.ids"/>
         </div>
@@ -48,7 +55,7 @@
 
         <div v-else class="d-flex mt-4">
           <v-btn
-              :to="data.id | entityWorksLink"
+              :to="data.id | entityWorksLink(type)"
               color="primary"
               class="mr-3"
               rounded
@@ -80,15 +87,17 @@
             <v-icon>mdi-open-in-new</v-icon>
           </v-btn>
 
-          <entity-ids-menu-item v-if="Object.keys(data.ids).length > 1" :ids="data.ids"/>
+          <entity-ids-menu-item v-if="data.ids && Object.keys(data.ids).length > 1" :ids="data.ids"/>
 
         </div>
 
 
       </v-col>
-      <v-col v-if="$vuetify.breakpoint.lgAndUp" lg="4" xl="6" class="pr-8">
+      <v-col
+          v-if="data.counts_by_year && $vuetify.breakpoint.lgAndUp"
+          lg="4" xl="6" class="pr-8">
         <citations-graph
-            v-if="myEntityType === 'works'"
+            v-if="type === 'works'"
             :counts-by-year="data.counts_by_year"
             :cited-by-count="data.cited_by_count"
             :id="data.id"
@@ -107,15 +116,16 @@
     <v-card rounded flat class="color-3">
 
       <v-row class="mt-9 px-4">
-        <v-col v-if="$vuetify.breakpoint.mdAndDown" lg="4" xl="6" class="pr-8">
-          <entity-work-count-cards v-if="myEntityType === 'works'" :data="data"/>
-          <works-graph
-              v-else
-              :counts-by-year="data.counts_by_year"
-              :works-count="data.works_count"
-              :id="data.id"
-          />
-        </v-col>
+        <!-- PUNT ON MOBILE FOR NOW... -->
+<!--        <v-col v-if="$vuetify.breakpoint.mdAndDown" lg="4" xl="6" class="pr-8">-->
+<!--          <entity-work-count-cards v-if="type === 'works'" :data="data"/>-->
+<!--          <works-graph-->
+<!--              v-else-->
+<!--              :counts-by-year="data.counts_by_year"-->
+<!--              :works-count="data.works_count"-->
+<!--              :id="data.id"-->
+<!--          />-->
+<!--        </v-col>-->
         <v-col cols="12" md="6" lg="4" xl="3" v-if="alternateNamesList?.length > 0">
           <v-card rounded flat outlined class="factoid-card" color="">
             <v-card-title>
@@ -162,7 +172,7 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType !== 'works'">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="type !== 'works'">
           <v-card rounded flat outlined class="factoid-card" color="">
             <v-card-title>
               Metrics
@@ -185,7 +195,7 @@
 
 
 
-        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'institutions'">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="type === 'institutions'">
           <v-card rounded flat class="factoid-card">
             <v-card-title>
               Associated ({{ data.associated_institutions?.length }})
@@ -263,7 +273,7 @@
           </v-card>
         </v-col>
 
-        <!--        <v-col v-if="$vuetify.breakpoint.mdAndDown && myEntityType === 'works' "  cols="12" md="6" lg="4" xl="3" >-->
+        <!--        <v-col v-if="$vuetify.breakpoint.mdAndDown && type === 'works' "  cols="12" md="6" lg="4" xl="3" >-->
         <!--          <entity-work-count-cards :data="data" />-->
         <!--        </v-col>-->
 
@@ -283,6 +293,7 @@ import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import IdList from "@/components/IdList.vue";
 import EntityWorkAuthor from "@/components/Entity/EntityWorkAuthor.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import WorkTopic from "@/components/WorkTopic.vue";
 import EntityIdsMenuItem from "@/components/Entity/EntityIdsMenuItem.vue";
 import {url} from "@/url";
 import WorksGraph from "@/components/WorksGraph.vue";
@@ -296,6 +307,7 @@ export default {
     IdList,
     EntityWorkAuthor,
     WorkLinkouts,
+    WorkTopic,
     EntityIdsMenuItem,
     WorksGraph,
     EntityWorkCountCards,
@@ -303,6 +315,7 @@ export default {
   },
   props: {
     data: Object,
+    type: String,
   },
   data() {
     return {
@@ -322,11 +335,8 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    myEntityType() {
-      return entityTypeFromId(this.data.id)
-    },
     myEntityConfig() {
-      return getEntityConfig(this.myEntityType)
+      return getEntityConfig(this.type)
     },
     alternateNamesString() {
       return this.alternateNamesList.join("; ")

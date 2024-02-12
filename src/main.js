@@ -57,11 +57,11 @@ Vue.filter("idLink", function (fullId) {
     return `/${myEntityType}/${shortId}`
 })
 
-Vue.filter("entityWorksLink", function (id) {
+Vue.filter("entityWorksLink", function (id, entityType) {
     if (!id) return
-    const myEntityType = entityTypeFromId(id)
+    // const myEntityType = entityTypeFromId(id)
     const shortId = shortenOpenAlexId(id)
-    const filterKey = getEntityConfig(myEntityType)?.filterKey
+    const filterKey = getEntityConfig(entityType)?.filterKey
 
     return {
         name: "Serp",
