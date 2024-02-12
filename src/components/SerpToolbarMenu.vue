@@ -1,9 +1,9 @@
 <template>
-  <div class="d-flex align-center">
-    <v-menu offset-y v-model="isMenuOpen.search">
+  <div class="d-flex align-center pr-3">
+    <v-menu offset-y v-model="isMenuOpen.search" min-width="200">
       <template v-slot:activator="{on}">
-        <v-btn v-on="on" text rounded >
-          Search
+        <v-btn v-on="on" text rounded>
+          File
         </v-btn>
       </template>
       <saved-search-menu
@@ -14,8 +14,6 @@
     </v-menu>
 
 
-
-
     <v-menu offset-y>
       <template v-slot:activator="{on}">
         <v-btn rounded text v-on="on">
@@ -24,9 +22,9 @@
       </template>
       <v-list>
         <v-list-item
-          v-for="view in url.viewConfigs"
-          :key="view.id"
-          @click="url.toggleView(view.id)"
+            v-for="view in url.viewConfigs"
+            :key="view.id"
+            @click="url.toggleView(view.id)"
         >
           <v-list-item-icon>
             <v-icon>{{ view.icon }}</v-icon>
@@ -44,12 +42,7 @@
     </v-menu>
 
 
-
-
-
-    <export-menu />
-
-
+    <export-menu/>
 
 
     <v-menu offset-y>
@@ -113,12 +106,47 @@
         </v-list-item>
       </v-list>
     </v-menu>
-    <v-spacer />
+    <v-spacer/>
 
-    <div v-if="$route.query.id" class="body-2 grey--text mr-5">
-        <v-icon small left>mdi-content-save-outline</v-icon>
-        autosaved
-      </div>
+    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">
+      <template v-slot:activator="{on}">
+        <span v-on="on">
+          <v-chip
+              :disabled="!!$route.query.id"
+              class="mr-2 white black--text"
+              @click="clickSaveButton"
+              text
+              rounded
+          >
+            <v-icon v-if="isUserSaving" left small>mdi-autorenew</v-icon>
+            <v-icon v-else left small class="">
+              {{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}
+            </v-icon>
+            <span v-if="isUserSaving">saving</span>
+            <span v-else>
+              Save{{ $route.query.id && "d" }}
+            </span>
+          </v-chip>
+        </span>
+      </template>
+      Autosave is on; all changes are saved automatically.
+    </v-tooltip>
+    <v-chip class="white" @click="clickAlertButton" text rounded>
+      <template v-if="activeSearchHasAlert">
+        <v-icon left small>mdi-bell</v-icon>
+        Remove alert
+      </template>
+      <template v-else>
+        <v-icon left small>mdi-bell-outline</v-icon>
+        Create alert
+      </template>
+    </v-chip>
+
+
+    <!--    <div v-if="$route.query.id" class="body-2 grey&#45;&#45;text mr-5">-->
+    <!--        <v-icon small left>mdi-content-save-outline</v-icon>-->
+    <!--        autosaved-->
+    <!--      </div>-->
 
 
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
@@ -187,6 +215,10 @@ export default {
     ]),
     ...mapGetters("user", [
       "userId",
+      "activeSearchHasAlert",
+      "activeSearchObj",
+      "isUserSaving",
+
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath
@@ -196,7 +228,7 @@ export default {
           400 :
           300
     },
-    groupByDownloadUrl(){
+    groupByDownloadUrl() {
       const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
       return url.makeGroupByUrl(
           this.entityType,
@@ -213,9 +245,12 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
+    ...mapMutations("user", [
+      "setEditAlertId",
+    ]),
     ...mapActions([]),
     ...mapActions("user", [
-        "updateSearchUrl",
+      "updateSearchUrl",
     ]),
     async copyUrlToClipboard() {
       await navigator.clipboard.writeText(this.urlToShare);
@@ -231,6 +266,11 @@ export default {
       // } else {
       //   this.openSaveDialog(false)
       // }
+    },
+    clickAlertButton() {
+      this.$route.query.id ?
+          this.setEditAlertId(this.$route.query.id) :
+          this.openSaveDialog(true)
     },
     openSaveDialog(hasAlert) {
       console.log("openSaveDialog", hasAlert)

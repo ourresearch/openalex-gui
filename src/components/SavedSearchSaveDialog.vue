@@ -1,14 +1,14 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="500">
       <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
-        <v-card-title>{{ myHasAlert ? "Save search and set alert" : "Save search" }}</v-card-title>
+        <v-card-title>{{ myHasAlert ? "Create alert" : "Save search" }}</v-card-title>
         <div class="pa-4 pb-0">
           <v-text-field
               autofocus
               rounded
               filled
               clearable
-              placeholder="Search name (required)"
+              placeholder="Name (required)"
               v-model="nameString"
               @keydown.enter="save"
               counter="25"
@@ -104,7 +104,6 @@ export default {
       "snackbar",
     ]),
     ...mapMutations("user", [
-      "snackbar",
         "setIsLoginDialogOpen",
         "setIsSignupDialogOpen",
     ]),
@@ -123,7 +122,7 @@ export default {
       })
       this.myIsOpen = false
       this.isLoading = false
-      this.snackbar("New search saved.")
+      this.snackbar("Search saved; changes will autosave.")
     },
     clickSignup(){
       this.myIsOpen = false

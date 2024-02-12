@@ -3,7 +3,7 @@
       <v-card flat rounded :loading="isLoading"  v-if="userId">
         <v-card-title>
           <v-icon left>{{ hasAlert ? "mdi-bell-minus" : "mdi-bell-plus "}}</v-icon>
-          {{ hasAlert ? "Remove alert?" : "Add alert?" }}
+          {{ hasAlert ? "Remove alert?" : "Create alert?" }}
         </v-card-title>
         <v-card-text>
           <template v-if="hasAlert">
@@ -17,7 +17,7 @@
           <v-spacer />
           <v-btn text rounded @click="isOpen = false">Cancel</v-btn>
           <v-btn text rounded color="primary" @click="toggleAlerts">
-            {{ hasAlert ? "Remove alert" : "Add alert"}}
+            {{ hasAlert ? "Remove alert" : "Create alert"}}
           </v-btn>
         </v-card-actions>
       </v-card>
