@@ -312,13 +312,13 @@ $color-0: hsl(212, 77%, 82%);
 
 .v-card.button-card {
   transition: background-color 300ms;
-  background-color: $color-1;
+  background-color: $color-3;
   //background-color: #ddd;
 
   border: none;
 
   &:hover {
-    background-color: $color-0;
+    background-color: $color-2;
 
     &.no-hover {
       background-color: $color-1;

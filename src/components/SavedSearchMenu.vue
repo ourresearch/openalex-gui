@@ -31,9 +31,9 @@
 
       <v-menu offset-x open-on-hover>
         <template v-slot:activator="{on}">
-          <v-list-item @click="placeholder" v-on="on">
-            <v-list-item-icon>
-              <v-icon>mdi-folder-open-outline</v-icon>
+          <v-list-item @click="placeholder" v-on="on" :disabled="!$route.query.id">
+            <v-list-item-icon >
+              <v-icon :disabled="!$route.query.id">mdi-folder-open-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>
@@ -41,7 +41,7 @@
               </v-list-item-title>
             </v-list-item-content>
             <v-list-item-action class="pt-2">
-              <v-icon>mdi-menu-right</v-icon>
+              <v-icon :disabled="!$route.query.id">mdi-menu-right</v-icon>
             </v-list-item-action>
           </v-list-item>
         </template>
@@ -88,6 +88,18 @@
       </v-list-item-content>
     </v-list-item>
 
+
+    <v-list-item :disabled="!id" @click="setEditAlertId(id)">
+      <v-list-item-icon>
+        <v-icon :disabled="!id">{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
+      </v-list-item-icon>
+      <v-list-item-content>
+        <v-list-item-title>
+          {{ activeSearchHasAlert ? "Remove" : "Create"}} alert
+        </v-list-item-title>
+      </v-list-item-content>
+    </v-list-item>
+    <v-divider />
 
     <v-list-item :disabled="!id" @click="setRenameId(id)">
       <v-list-item-icon>
@@ -154,6 +166,7 @@ export default {
     ...mapGetters("user", [
       "userId",
       "userSavedSearches",
+        "activeSearchHasAlert",
     ]),
     mySearchObj() {
       return this.userSavedSearches.find(s => s.id === this.id)
@@ -169,7 +182,7 @@ export default {
     },
     searchesToOpen() {
       return this.userSavedSearches
-    }
+    },
   },
 
   methods: {
@@ -178,6 +191,7 @@ export default {
     ]),
     ...mapMutations("user", [
       "setRenameId",
+      "setEditAlertId",
       "setActiveSearchId",
       "setIsLoginDialogOpen",
       "setIsSignupDialogOpen",
@@ -190,7 +204,7 @@ export default {
     ]),
     newSearch() {
       url.pushToRoute(this.$router, {name: "Serp"})
-      this.snackbar("New unsaved search created.")
+      this.snackbar("New search created.")
     },
     openSearch(id) {
       this.openSavedSearch(id)

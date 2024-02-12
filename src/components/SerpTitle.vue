@@ -1,5 +1,5 @@
 <template>
-  <v-card rounded class="d-flex" flat>
+  <v-card rounded class="" flat>
     <!--    <v-btn  icon class="mr-2">-->
     <!--      <v-icon >mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
@@ -8,12 +8,12 @@
       <v-btn rounded text class="text-h6 mr-2" @click="clickTitle">
         {{ activeSearchName || "Unsaved search" }}
       </v-btn>
-      <!--      <div v-if="activeSearchDescription" class="body-2 grey&#45;&#45;text mb-2">-->
-      <!--        {{ activeSearchDescription }}-->
-      <!--      </div>-->
 
 
     </div>
+<!--            <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
+<!--              {{ activeSearchDescription }}-->
+<!--            </div>-->
     <!--      <v-divider></v-divider>-->
 
     <!--    <v-btn icon to="/me/searches" v-if="userId" class="ml-3">-->

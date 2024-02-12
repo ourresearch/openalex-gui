@@ -126,7 +126,6 @@
                 {{ name }}
               </v-chip>
             </v-card-text>
-
           </v-card>
         </v-col>
         <v-col cols="12" md="6" lg="4" xl="3" v-if="abstract">
@@ -163,7 +162,7 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6" lg="4" xl="33" v-if="myEntityType !== 'works'">
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType !== 'works'">
           <v-card rounded flat outlined class="factoid-card" color="">
             <v-card-title>
               Metrics
@@ -184,7 +183,48 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="6" lg="4" xl="33" v-if="data.affiliations?.length">
+
+
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="myEntityType === 'institutions'">
+          <v-card rounded flat class="factoid-card">
+            <v-card-title>
+              Associated ({{ data.associated_institutions?.length }})
+            </v-card-title>
+<!--            <v-list color="color-2">-->
+<!--              <v-list-item-->
+<!--                  :to="affil.institution.id | entityZoomLink"-->
+<!--                  v-for="(affil, i) in data.affiliations.slice(0, (isMore.affiliations ? 9999 : 3))"-->
+<!--                  :key="i"-->
+<!--              >-->
+<!--                <v-list-item-icon>-->
+<!--                  <v-icon>mdi-town-hall</v-icon>-->
+<!--                </v-list-item-icon>-->
+<!--                <v-list-item-content>-->
+<!--                  <v-list-item-title>-->
+<!--                    {{ affil.institution.display_name }}-->
+<!--                  </v-list-item-title>-->
+<!--                  <v-list-item-subtitle>-->
+<!--                    <template v-if="affil.years.length === 1">-->
+<!--                      {{ affil.years[0] }}-->
+<!--                    </template>-->
+<!--                    <template v-else>-->
+<!--                      {{ affilYearsRangeStr(affil) }}-->
+<!--                    </template>-->
+<!--                  </v-list-item-subtitle>-->
+
+<!--                </v-list-item-content>-->
+
+<!--              </v-list-item>-->
+<!--            </v-list>-->
+<!--            <v-card-actions v-if="data.affiliations.length > 3">-->
+<!--              <v-btn text rounded small @click="isMore.affiliations = !isMore.affiliations">-->
+<!--                {{ isMore.affiliations ? "Less" : "More" }}-->
+<!--              </v-btn>-->
+<!--            </v-card-actions>-->
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="6" lg="4" xl="3" v-if="data.affiliations?.length">
           <v-card rounded flat class="factoid-card">
             <v-card-title>
               Affiliations ({{ data.affiliations.length }})

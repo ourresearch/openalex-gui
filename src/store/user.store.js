@@ -69,6 +69,7 @@ export const user = {
             state.id = ""
             state.name = ""
             state.email = ""
+            state.savedSearches = []
             localStorage.removeItem("token")
         },
         setFromApiResp(state, apiResp) {
@@ -202,7 +203,7 @@ export const user = {
             const searchToCopy = {
                 ...state.savedSearches.find(s => s.id === id),
             }
-            searchToCopy.description = "Copy of " + searchToCopy.description
+            searchToCopy.name = "Copy of " + searchToCopy.name
             await dispatch("createSearch", searchToCopy)
             commit("snackbar", "Search copied", {root: true})
             rootState.isLoading = false
