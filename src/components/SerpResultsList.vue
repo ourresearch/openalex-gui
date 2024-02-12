@@ -112,7 +112,7 @@ export default {
     return {
       foo: 42,
       url,
-      resultsPerPage: 25, // not editable now, but could be in future
+      resultsPerPage: 10, // not editable now, but could be in future
     }
   },
   computed: {
