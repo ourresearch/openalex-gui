@@ -59,7 +59,7 @@
       </v-btn>
       <v-btn
           rounded
-          color="primary"
+          text
           @click="setIsSignupDialogOpen(true)"
       >
         Sign up

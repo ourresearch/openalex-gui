@@ -9,64 +9,23 @@
     </td>
 
     <td class="body-2">
-      <template v-if="isNegated" class="font-weight-bold">NOT </template>
-        {{ myDisplayValue }}
+      <template v-if="isNegated" class="font-weight-bold">NOT</template>
+      {{ myDisplayValue }}
 
-<!--      <span class="d-inline-flex align-baseline">-->
-<!--        <span v-if="isNegated" class="font-weight-bold">NOT </span>-->
-<!--        <span>{{ myDisplayValue }}</span>-->
-<!--      </span>-->
+      <!--      <span class="d-inline-flex align-baseline">-->
+      <!--        <span v-if="isNegated" class="font-weight-bold">NOT </span>-->
+      <!--        <span>{{ myDisplayValue }}</span>-->
+      <!--      </span>-->
 
     </td>
     <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
     </td>
     <td class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
-      <v-menu v-model="isMenuOpen">
-        <template v-slot:activator="{on}">
-          <v-btn small icon v-on="on">
-            <v-icon small>mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list @click.stop="isMenuOpen = false">
-          <v-list-item :to="valueId | entityZoomLink">
-            <v-list-item-icon>
-              <v-icon>mdi-information-outline</v-icon>
-            </v-list-item-icon>
-            View profile
-          </v-list-item>
-          <v-divider/>
+      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">
+        <v-icon small>mdi-minus-circle-outline</v-icon>
+      </v-btn>
 
-          <v-list-item @click="isApplied = !isApplied">
-            <v-list-item-icon>
-              <v-icon>{{ isApplied ? 'mdi-filter-remove-outline' : 'mdi-filter-plus-outline' }}</v-icon>
-            </v-list-item-icon>
-            {{ isApplied ? 'Remove from filters' : 'Apply as filter' }}
-          </v-list-item>
-          <v-list-item
-              @click="isNegated = !isNegated"
-              v-if="isApplied"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ isNegated ? 'mdi-minus-circle-off' : 'mdi-minus-circle' }}</v-icon>
-            </v-list-item-icon>
-            {{ isNegated ? 'Remove negation' : 'Negate filter' }}
-          </v-list-item>
-
-          <!--          <v-divider/>-->
-          <!--          <v-list-item @click="isPinned = !isPinned">-->
-          <!--            <v-list-item-icon>-->
-          <!--              <v-icon color="">{{ isPinned ? "mdi-pin-off-outline" : "mdi-pin-outline" }}</v-icon>-->
-          <!--            </v-list-item-icon>-->
-          <!--            <v-list-item-content>-->
-          <!--              <v-list-item-title class="">-->
-          <!--                {{ isPinned ? "Unpin" : "Pin" }} view-->
-          <!--              </v-list-item-title>-->
-          <!--            </v-list-item-content>-->
-          <!--          </v-list-item>-->
-        </v-list>
-
-      </v-menu>
 
     </td>
   </tr>
@@ -76,7 +35,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
-import {filtersFromUrlStr} from "@/filterConfigs";
+import {createSimpleFilter, filtersFromUrlStr, setStringIsNegated} from "@/filterConfigs";
 import {api} from "@/api";
 
 export default {
@@ -101,8 +60,11 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    valueId(){
+    valueId() {
       return this.value.replace("!", "")
+    },
+    index(){
+      return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
     },
     isApplied: {
       get() {
@@ -110,18 +72,23 @@ export default {
       },
       set(to) {
         if (to) {
-          url.upsertFilterOption(this.entityType, this.filterKey, this.value)
+          // url.upsertFilterOption(this.entityType, this.filterKey, this.value)
+          url.createFilter(this.entityType, this.filterKey, this.value)
         } else {
-          url.deleteFilterOption(this.entityType, this.filterKey, this.value)
+          url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
         }
       }
     },
     isNegated: {
       get() {
-        return this.value.indexOf("!") === 0
+        return url.readIsFilterNegated(this.$route, this.entityType, this.index)
       },
       set(to) {
-        url.setFilterOptionIsNegated(this.entityType, this.filterKey, this.value, to)
+        const newValue = setStringIsNegated(this.value, to)
+        this.index >= 0 ?
+            url.updateFilter(this.entityType, this.index, newValue) :
+            url.createFilter(this.entityType, this.filterKey, newValue)
+
       }
     },
   },
@@ -131,22 +98,24 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    clickRow(){
-      return this.isNegated ?
-          this.isNegated = false :
+    clickRow() {
           this.isApplied = !this.isApplied
+      // return this.isNegated ?
+      //     this.isNegated = false :
+      //     this.isApplied = !this.isApplied
     },
     async getMyCount() {
-      if (this?.myCount) return
-
-      const filters = url.upsertFilterOptionNoPush(this.entityType, this.filterKey, this.value)
-      const count = await api.getResultsCount(this.entityType, filters)
-
+      // if (this?.myCount) return
+      const filters = url.readFilters(this.$route)
+      const filtersWithoutMyFilter = filters.splice(this.index, 1)
+      const myNewFilter = createSimpleFilter(this.entityType, this.filterKey, this.value, this.isNegated)
+      const queryFilters = [...filters, myNewFilter]
+      const count = await api.getResultsCount(this.entityType, queryFilters)
       this.myCount = count
     },
     async getMyDisplayValue() {
       if (this?.myDisplayValue) return // no need to get it it we've got it already
-      this.myDisplayValue =  await api.getFilterValueDisplayName(this.filterKey, this.valueId)
+      this.myDisplayValue = await api.getFilterValueDisplayName(this.filterKey, this.valueId)
     },
 
 
@@ -156,8 +125,9 @@ export default {
   mounted() {
   },
   watch: {
-    value: {
+    '$route.query.filter': {
       immediate: true,
+      deep: true,
       handler(to, from) {
         this.getMyCount()
         this.getMyDisplayValue()

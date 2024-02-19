@@ -4,44 +4,47 @@
     <!--      <v-icon >mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
 
-    <div class="d-flex align-baseline">
-      <v-btn rounded text class="text-h6 mr-2" @click="clickTitle">
-        {{ activeSearchName || "Unsaved search" }}
-      </v-btn>
-
-
-    </div>
-<!--            <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
-<!--              {{ activeSearchDescription }}-->
-<!--            </div>-->
+    <!--            <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
+    <!--              {{ activeSearchDescription }}-->
+    <!--            </div>-->
     <!--      <v-divider></v-divider>-->
 
     <!--    <v-btn icon to="/me/searches" v-if="userId" class="ml-3">-->
     <!--      <v-icon>mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
-    <!--    <v-menu offset-y>-->
-    <!--      <template v-slot:activator="{on}">-->
-    <!--        <v-btn-->
-    <!--            v-on="on"-->
-    <!--            text-->
-    <!--            rounded-->
-    <!--            class="text-h6 "-->
-    <!--        >-->
-    <!--          {{ activeSearchDescription || "Unsaved search" }}-->
-    <!--          <v-icon class="ml-1">mdi-menu-down</v-icon>-->
-    <!--        </v-btn>-->
-    <!--      </template>-->
-    <!--      <saved-search-menu-->
-    <!--          :id="$route.query.id"-->
-    <!--          @save="clickSaveButton"-->
-    <!--      />-->
-    <!--    </v-menu>-->
+    <div>
+      <v-btn v-if="!userId" rounded text class="text-h6" @click="clickTitle">
+        <v-icon class="mr-2">mdi-folder-outline</v-icon>
+        Unsaved search
+        <v-icon class="ml-1">mdi-menu-down</v-icon>
+      </v-btn>
+      <v-menu v-else offset-y>
+        <template v-slot:activator="{on}">
+          <v-btn
+              v-on="on"
+              rounded
+              text
+              class="color-3"
+          >
+            <v-icon class="mr-2">mdi-folder-outline</v-icon>
+            {{ activeSearchName || "Unsaved search" }}
+            <v-icon class="ml-1">mdi-menu-down</v-icon>
+          </v-btn>
+        </template>
+        <saved-search-menu
+            :id="$route.query.id"
+            @save="$emit('save')"
+            @toggle-alert="$emit('toggle-alert')"
+        />
+      </v-menu>
+
+    </div>
 
     <v-dialog v-model="isLoginRequiredDialogOpen" max-width="500">
       <v-card rounded>
         <v-card-title>Login required</v-card-title>
         <v-card-text>
-          To rename searches, you must be signed up and logged in.
+          To save searches, you must be signed up and logged in.
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
@@ -110,6 +113,7 @@ export default {
       this.isLoginRequiredDialogOpen = false
       this.setIsLoginDialogOpen(true)
     },
+
     clickSignup() {
       this.isLoginRequiredDialogOpen = false
       this.setIsSignupDialogOpen(true)
@@ -118,8 +122,7 @@ export default {
       if (this.userId) {
         if (this.$route.query.id) {
           this.setRenameId(this.$route.query.id)
-        }
-        else {
+        } else {
           this.isDialogOpen.saveSearch = true
         }
       } else {

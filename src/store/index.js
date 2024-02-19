@@ -26,6 +26,7 @@ const stateDefaults = function () {
         entityType: "works",
         activeFilter: null,
         activeFilterKey: null,
+        newFilterKey: null,
         // resultsEntityType: "works",
 
         inputFilters: [],

@@ -1,26 +1,28 @@
 <template>
   <div class="d-flex align-center pr-3">
-    <v-menu offset-y v-model="isMenuOpen.search" min-width="200">
-      <template v-slot:activator="{on}">
-        <v-btn v-on="on" text rounded>
-          File
-        </v-btn>
+
+    <v-btn icon @click="$emit('toggle-alert')" >
+      <template v-if="activeSearchHasAlert">
+        <v-icon>mdi-bell-check</v-icon>
+<!--        Remove alert-->
       </template>
-      <saved-search-menu
-          :id="$route.query.id"
-          @save="clickSaveButton"
-          @close="isMenuOpen.search = false"
-      />
-    </v-menu>
+      <template v-else>
+        <v-icon>mdi-bell-outline</v-icon>
+<!--        Create alert-->
+      </template>
+    </v-btn>
 
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn rounded text v-on="on">
-          View
+        <v-btn icon v-on="on">
+          <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
+        <v-subheader>
+          Show on page:
+        </v-subheader>
         <v-list-item
             v-for="view in url.viewConfigs"
             :key="view.id"
@@ -42,13 +44,12 @@
     </v-menu>
 
 
-    <export-menu/>
 
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn rounded text v-on="on">
-          Share
+        <v-btn icon v-on="on">
+          <v-icon>mdi-share-variant</v-icon>
         </v-btn>
       </template>
       <v-list>
@@ -75,72 +76,33 @@
       </v-list>
     </v-menu>
 
-    <v-menu offset-y>
-      <template v-slot:activator="{on}">
-        <v-btn rounded text v-on="on">
-          Help
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-          <v-list-item-icon>
-            <v-icon>mdi-comment-question-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Contact support
-              <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item href="https://help.openalex.org/" target="_blank">
-          <v-list-item-icon>
-            <v-icon>mdi-help-circle-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>
-              Visit help center
-              <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-menu>
     <v-spacer/>
 
-    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">
-      <template v-slot:activator="{on}">
-        <span v-on="on">
-          <v-chip
-              :disabled="!!$route.query.id"
-              class="mr-2 white black--text"
-              @click="clickSaveButton"
-              text
-              rounded
-          >
-            <v-icon v-if="isUserSaving" left small>mdi-autorenew</v-icon>
-            <v-icon v-else left small class="">
-              {{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}
-            </v-icon>
-            <span v-if="isUserSaving">saving</span>
-            <span v-else>
-              Save{{ $route.query.id && "d" }}
-            </span>
-          </v-chip>
-        </span>
-      </template>
-      Autosave is on; all changes are saved automatically.
-    </v-tooltip>
-    <v-chip class="white" @click="clickAlertButton" text rounded>
-      <template v-if="activeSearchHasAlert">
-        <v-icon left small>mdi-bell</v-icon>
-        Remove alert
-      </template>
-      <template v-else>
-        <v-icon left small>mdi-bell-outline</v-icon>
-        Create alert
-      </template>
-    </v-chip>
+<!--    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">-->
+<!--      <template v-slot:activator="{on}">-->
+<!--        <span v-on="on">-->
+<!--          <v-chip-->
+<!--              :disabled="!!$route.query.id"-->
+<!--              class="mr-2 white black&#45;&#45;text"-->
+<!--              @click="clickSaveButton"-->
+<!--              text-->
+<!--              rounded-->
+<!--          >-->
+<!--            <v-icon v-if="isUserSaving" left small>mdi-autorenew</v-icon>-->
+<!--            <v-icon v-else left small class="">-->
+<!--              {{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}-->
+<!--            </v-icon>-->
+<!--            <span v-if="isUserSaving">saving</span>-->
+<!--            <span v-else>-->
+<!--              Save{{ $route.query.id && "d" }}-->
+<!--            </span>-->
+<!--          </v-chip>-->
+<!--        </span>-->
+<!--      </template>-->
+<!--      Autosave is on; all changes are saved automatically.-->
+<!--    </v-tooltip>-->
+
+
 
 
     <!--    <div v-if="$route.query.id" class="body-2 grey&#45;&#45;text mr-5">-->
@@ -165,11 +127,6 @@
       </v-card>
     </v-dialog>
 
-    <saved-search-save-dialog
-        :is-open="isDialogOpen.saveSearch"
-        :has-alert="saveSearchDialogHasAlert"
-        @close="isDialogOpen.saveSearch = false"
-    />
   </div>
 </template>
 
@@ -178,7 +135,6 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import QrcodeVue from "qrcode.vue";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import ExportMenu from "@/components/ExportMenu.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
@@ -186,10 +142,7 @@ import {url} from "@/url";
 export default {
   name: "Template",
   components: {
-    SavedSearchSaveDialog,
-    SavedSearchMenu,
     QrcodeVue,
-    ExportMenu,
   },
   props: {},
   data() {
@@ -201,7 +154,6 @@ export default {
       },
       isDialogOpen: {
         qrCode: false,
-        saveSearch: false,
       }
     }
   },
@@ -255,27 +207,6 @@ export default {
     async copyUrlToClipboard() {
       await navigator.clipboard.writeText(this.urlToShare);
       this.snackbar("URL copied to clipboard.")
-    },
-    clickSaveButton() {
-      this.openSaveDialog(false)
-      // if (this.$route.query.id) {
-      //   this.updateSearchUrl({
-      //     id: this.activeSearchId,
-      //     search_url: this.urlToShare,
-      //   })
-      // } else {
-      //   this.openSaveDialog(false)
-      // }
-    },
-    clickAlertButton() {
-      this.$route.query.id ?
-          this.setEditAlertId(this.$route.query.id) :
-          this.openSaveDialog(true)
-    },
-    openSaveDialog(hasAlert) {
-      console.log("openSaveDialog", hasAlert)
-      this.saveSearchDialogHasAlert = hasAlert
-      this.isDialogOpen.saveSearch = true
     },
 
 

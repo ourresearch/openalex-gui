@@ -1,41 +1,21 @@
 <template>
-  <div class="d-flex">
-    <!--    <div v-if="$vuetify.breakpoint.mdAndUp">-->
-    <!--      <v-toolbar flat  class="align-center flex-grow-0">-->
-    <!--        <router-link-->
-    <!--            :to="{name: 'Home'}"-->
-    <!--            class="logo-link mt-3"-->
-    <!--        >-->
-    <!--          <img-->
-    <!--              src="@/assets/openalex-logo-icon-black-and-white.png"-->
-    <!--              class="logo-icon mr-0 colorizable"-->
-    <!--          />-->
-    <!--          <span-->
-    <!--              class="logo-text colorizable"-->
-    <!--          >-->
-    <!--                  OpenAlex-->
-    <!--                </span>-->
-
-    <!--        </router-link>-->
-
-    <!--      </v-toolbar>-->
-    <!--    </div>-->
-
-    <v-container fluid  class="pt-0">
+  <div class="">
+    <serp-toolbar :results-object="resultsObject"/>
+    <v-container fluid class="">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
       <v-card rounded flat class="white">
-        <serp-toolbar :results-object="resultsObject" />
+
         <filter-list :results-object="resultsObject" class=""/>
-        <v-divider/>
+<!--        <v-divider class="mt-3"/>-->
         <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>
         <v-container fluid class="">
-          <v-row>
-            <v-col>
-              <serp-results-count :results-object="resultsObject" include-time class="grey--text"/>
-            </v-col>
-          </v-row>
+<!--          <v-row>-->
+<!--            <v-col>-->
+<!--              <serp-results-count :results-object="resultsObject" include-time class="grey&#45;&#45;text"/>-->
+<!--            </v-col>-->
+<!--          </v-row>-->
 
-<!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
+          <!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
 
           <v-row v-if="$vuetify.breakpoint.mdAndUp">
             <v-col
@@ -116,8 +96,8 @@ import ExportButton from "../components/ExportButton.vue";
 import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 
-import FilterList from "@/components/FilterList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
+import FilterList from "@/components/FilterList.vue";
 
 import Action from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
@@ -391,7 +371,7 @@ export default {
     "$route": {
       immediate: true,
       async handler(to, from) {
-        console.log("Serp $route watcher", to, from)
+        // console.log("Serp $route watcher", to, from)
         this.dialogs.savedSearchDoesNotExist = false
         if (this.$route.query.id && !this.userSavedSearches.find(s => s.id === this.$route.query.id)) {
           console.log("404 search id doesn't exist", this.$route.params.entityType)
@@ -402,12 +382,7 @@ export default {
 
         if (this.userId) {
           this.$store.commit("user/setActiveSearchId", this.$route.query.id)
-          if (this.$route.query.id) {
-            this.$store.dispatch("user/updateSearchUrl", {
-              id: this.$route.query.id,
-              search_url: "https://openalex.org/" + this.$route.fullPath
-            })
-          }
+
         }
 
 

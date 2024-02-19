@@ -12,15 +12,14 @@
       <v-chip
           outlined
           label
-          class="font-weight-bold option d-block mr-1 text-h6 py-1"
-          style="height: unset;"
+          class="font-weight-bold option d-block mr-1"
           v-on="on"
           close
-          @click:close="$emit('delete')"
-          close-icon="mdi-close"
+          @click:close="deleteMe"
       >
+        <span class="mr-2" v-if="isNegated">NOT</span>
         <template v-if="filterDisplayValue">
-          {{ filterDisplayValue | truncate(50) }}
+          {{ filterDisplayValue | truncate(25) }}
         </template>
         <template v-else>
           loading...
@@ -42,7 +41,13 @@
         </div>
         <v-spacer></v-spacer>
 
-
+        <v-btn
+               class="ml-4"
+               icon
+               :to="filterId | entityZoomLink"
+               v-if="isEntity">
+          <v-icon>mdi-information-outline</v-icon>
+        </v-btn>
 
 
       </div>
@@ -62,17 +67,36 @@
       <v-divider/>
       <v-card-actions>
         <v-spacer/>
+
+
+
         <v-btn
-               class="ml-4"
-               text rounded
-               :to="filterId | entityZoomLink"
-               v-if="isEntity">
-          Learn more
-          <v-icon right>mdi-arrow-right</v-icon>
+            class="ml-2"
+            text
+            rounded
+            @click="toggleIsNegated"
+            :input-value="isNegated"
+            :color="isNegated ? 'primary' : undefined"
+        >
+          <template v-if="isNegated">
+            <v-icon left>mdi-minus-circle-off</v-icon>
+            Remove negation
+          </template>
+          <template v-else>
+            <v-icon left>mdi-minus-circle</v-icon>
+            Negate
+          </template>
         </v-btn>
 
-
-
+         <v-btn
+            class="ml-2"
+            text
+            rounded
+            @click="deleteMe"
+        >
+          <v-icon left>mdi-close-circle</v-icon>
+          Remove
+        </v-btn>
 
 
 
@@ -140,6 +164,9 @@ export default {
       if (!this.isEntity) return
       return shortenOpenAlexId(this.filterId)
     },
+    isNegated() {
+      return this.filterValue[0] === "!"
+    },
     subtitle(){
       return "subtitle"
     },
@@ -180,6 +207,16 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    deleteMe() {
+      url.deleteFilterOption(this.entityType, this.filterKey, this.filterValue)
+    },
+    toggleIsNegated() {
+      url.toggleFilterOptionIsNegated(
+          this.entityType,
+          this.filterKey,
+          this.filterValue
+      )
+    },
   },
   created() {
   },

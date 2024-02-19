@@ -14,11 +14,6 @@
         <span class="">{{ filterConfig.displayName }}</span>
       </v-toolbar-title>
       <v-spacer/>
-      <filter-match-mode
-          :filter-key="filterKey"
-          v-if="filterConfig.type === 'select' && selectedGroups?.length > 1"
-          icon
-      />
       <v-menu offset-y>
         <template v-slot:activator="{on}">
           <v-btn
@@ -39,7 +34,6 @@
               <v-list-item-title class="">
                 Remove from report
               </v-list-item-title>
-
             </v-list-item-content>
           </v-list-item>
           <v-divider/>
@@ -115,8 +109,8 @@
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
-            v-for="id in negatedGroupIds"
-            :key="'negated-id-' + id"
+            v-for="id in selectedGroupIds"
+            :key="'selected-id-' + id "
 
             :filter-key="filterKey"
             :value="id"
@@ -170,7 +164,7 @@ import BarGraph from "@/components/BarGraph.vue";
 import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterSelectEdit from "@/components/Filter/FilterSelectEdit.vue";
+import FilterSelectEdit from "@/components/Filter/FilterSelectAddOption.vue";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
@@ -261,16 +255,29 @@ export default {
       return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
     },
     negatedGroupIds() {
-      return this.selectedGroups.filter(val => {
-        return val.indexOf("!") === 0
-      })
+      return url.readFilterOptionsByKey(
+          this.$route,
+          this.entityType,
+          this.filterKey,
+          true,
+      )
+    },
+    selectedGroupIds(){
+      return url.readFilterOptionsByKey(
+          this.$route,
+          this.entityType,
+          this.filterKey,
+      )
+    },
+    unselectedGroups(){
+      return this.allGroups.filter(g => !this.selectedGroupIds.includes(g.value))
     },
 
     groups() {
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
           this.maxResults
-      return this.allGroups.slice(0, maxResults)
+      return this.unselectedGroups.slice(0, maxResults)
     }
   },
 

@@ -19,11 +19,11 @@ const entityConfigs = {
         filterKey: "ids.openalex",
         hintVerb: "by",
         color: "blue",
+        hasAutocomplete: true,
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
             {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
             {key: "type", value: "dataset", displayName: "datasets"},
-
         ]
     },
     authors: {
@@ -41,6 +41,7 @@ const entityConfigs = {
         filterKey: "authorships.author.id",
         hintVerb: "at",
         color: "green",
+        hasAutocomplete: true,
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
             {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
@@ -61,6 +62,7 @@ const entityConfigs = {
         filterKey: "primary_location.source.id",
         hintVerb: "published by",
         color: "orange",
+        hasAutocomplete: true,
         highlightFilters: [
             {key: "is_oa", value: true, displayName: "that are Open Access"},
         ]
@@ -79,6 +81,7 @@ const entityConfigs = {
         filterName: "primary_location.source.publisher_lineage",
         filterKey: "primary_location.source.publisher_lineage",
         color: "pink",
+        hasAutocomplete: true,
     },
     funders: {
         emoji: "💰",
@@ -94,6 +97,7 @@ const entityConfigs = {
         filterName: "grants.funder",
         filterKey: "grants.funder",
         color: "brown",
+        hasAutocomplete: true,
     },
     institutions: {
         emoji: "🏫",
@@ -109,6 +113,7 @@ const entityConfigs = {
         filterKey: "authorships.institutions.lineage",
         hintVerb: "in",
         color: "purple",
+        hasAutocomplete: true,
     },
     concepts: {
         emoji: "💡",
@@ -123,6 +128,7 @@ const entityConfigs = {
         filterName: "concepts",
         filterKey: "concepts.id",
         color: "blue-grey",
+        hasAutocomplete: true,
     },
 
     topics: {
@@ -138,6 +144,7 @@ const entityConfigs = {
         filterName: "topics",
         filterKey: "topics.id",
         color: "blue-grey",
+        hasAutocomplete: true,
     },
     subfields: {
         emoji: "💡",
@@ -152,6 +159,7 @@ const entityConfigs = {
         filterName: "subfields",
         filterKey: "topics.subfield.id",
         color: "blue-grey",
+        hasAutocomplete: false,
     },
     fields: {
         emoji: "💡",
@@ -166,6 +174,7 @@ const entityConfigs = {
         filterName: "fields",
         filterKey: "topics.field.id",
         color: "blue-grey",
+        hasAutocomplete: false,
     },
     domains: {
         emoji: "💡",
@@ -180,6 +189,7 @@ const entityConfigs = {
         filterName: "domains",
         filterKey: "topics.domain.id",
         color: "blue-grey",
+        hasAutocomplete: false,
     },
 }
 
