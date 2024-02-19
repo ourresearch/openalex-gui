@@ -12,7 +12,7 @@ import {filter} from "core-js/internals/array-iteration";
 import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
-import {entityConfigs} from "@/entityConfigs";
+import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 
 const cache = {}
 const entityCache = {}
@@ -182,8 +182,9 @@ const api = (function () {
         getAutocompleteResponses: async function (entityType, filterKey, searchString) {
             const myConfig = getFacetConfig(entityType, filterKey)
 
-            // if it's an entity filter, we can use the autocomplete
-            if (myConfig.entityId) {
+
+            const hasAutocomplete = getEntityConfig(myConfig.entityId)?.hasAutocomplete
+            if (hasAutocomplete) {
                 if (!searchString) return []
                 const myUrl = url.makeAutocompleteUrl(myConfig.entityId, searchString)
                 const resp = await getUrl(myUrl)

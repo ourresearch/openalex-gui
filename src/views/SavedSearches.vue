@@ -18,7 +18,7 @@
       <thead>
       <tr>
         <th>Name</th>
-        <th>Last opened</th>
+        <th>Last updated</th>
         <th></th>
       </tr>
       </thead>
@@ -127,7 +127,7 @@
 import {url} from "@/url";
 import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
-import FilterList from "@/components/FilterList.vue";
+import FilterList from "@/components/FilterListChips.vue";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import {isToday} from "@/util";

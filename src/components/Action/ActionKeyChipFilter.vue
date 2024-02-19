@@ -79,7 +79,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import FilterSelectValueAsString from "@/components/Filters/FilterSelectValueAsString.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
-import FilterList from "@/components/Filters/FilterList.vue";
+import FilterList from "@/components/Filters/FilterListChips.vue";
 
 
 import FilterEditRange from "../FilterEdit/FilterEditRange.vue";

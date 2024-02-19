@@ -20,11 +20,11 @@ const filtersFromUrlStr = function (entityType, str) {
     if (!str) return []
     if (str.indexOf(":") === -1) return []
 
-    const facetStrings = str.split(",")
+    const filterStrings = str.split(",")
     const filters = []
-    facetStrings.forEach(facetStr => {
+    filterStrings.forEach(filterString => {
         const regex = /(?<!http|https):/
-        const [key, valuesStr] = facetStr.split(regex)
+        const [key, valuesStr] = filterString.split(regex)
         filters.push(createSimpleFilter(entityType, key, valuesStr))
         // if (valuesStr[0] === "!") {
         //     const value = valuesStr.replace("!", "")
@@ -43,37 +43,32 @@ const filtersFromUrlStr = function (entityType, str) {
 }
 
 const getMatchModeFromSelectFilterValue = function (valueStr) {
-    return (valueStr?.indexOf("|") > -1) ? "any" : "all"
+    return (valueStr?.indexOf(",") > -1) ? "all" : "any"
 }
 
-const optionsToString = function (options, matchMode) {
-    const anyOptionIsNegated = options.some(o => o[0] === "!")
-
-
-    const sep = (matchMode === "all" || anyOptionIsNegated) ?
-        "+" :
-        "|"
-    return options.join(sep)
+const optionsToString = function (options) {
+    return options.join("|")
 }
 
 const optionsFromString = function (str) {
+    const strWithoutNegation = str.replace(/^!/, "")
     const regex = /[+|]/
-    return str.split(regex)
+    return strWithoutNegation.split(regex)
 }
 
+
 const deleteOptionFromFilterValue = function (valueStr, optionToDelete) {
-    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
-    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    const oldOptions = optionsFromString(valueStr)
     const newOptions = oldOptions.filter(oldOption => {
         return oldOption !== optionToDelete
     })
-    return optionsToString(newOptions, matchMode)
+    return optionsToString(newOptions)
 }
 const addOptionToFilterValue = function (valueStr, optionToAdd) {
-    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
-    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    // const matchMode = getMatchModeFromSelectFilterValue(valueStr)
+    const oldOptions = optionsFromString(valueStr)
     const newOptions = [...oldOptions, optionToAdd]
-    return optionsToString(newOptions, matchMode)
+    return optionsToString(newOptions)
 }
 
 
@@ -99,30 +94,27 @@ const setOptionIsNegated = function(option, isNegated) {
         removeNegationFromOption(option)
 }
 
+// alias because i'm refactoring
+const setStringIsNegated = function(string, isNegated) {
+    return isNegated ?
+        negateOption(string) :
+        removeNegationFromOption(string)
+}
+
 
 
 const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
-    const matchMode = getMatchModeFromSelectFilterValue(valueStr)
-    const oldOptions = getItemsFromSelectFilterValue(valueStr)
+    const oldOptions = optionsFromString(valueStr)
     const newOptions = oldOptions.map(oldOption => {
         return oldOption === optionToToggleNegation ?
             toggleNegation(oldOption) :
             oldOption
 
     })
-    return optionsToString(newOptions, matchMode)
+    return optionsToString(newOptions)
 }
 
 
-// jason start here
-const getItemsFromSelectFilterValue = function (valueStr) {
-    const regex = /[+|]/
-    return valueStr.split(regex)
-
-
-    const valueStrWithoutBang = valueStr.replace("!", "")
-    return valueStrWithoutBang.split(regex)
-}
 
 
 const makeSelectFilterValue = function (items, matchMode) {
@@ -199,7 +191,7 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 }
 
 
-const createFilterValue = function (rawValue, filterType) {
+const createFilterValue = function (rawValue, filterType, isNegated) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
         // rawValue = rawValue.replace("unknown", null)
@@ -210,6 +202,9 @@ const createFilterValue = function (rawValue, filterType) {
         }
         if (rawValue == "true") rawValue = true
         if (rawValue == "false") rawValue = false
+    }
+    else if (filterType === "select" && isNegated) {
+        rawValue = "!" + rawValue
     }
     return rawValue
 }
@@ -223,14 +218,14 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     const facetConfig = getFacetConfig(entityType, key)
 
 
-    const displayValue = createFilterValue(value, facetConfig.type)
+    const myValue = createFilterValue(value, facetConfig.type, isNegated)
     const nullValues = ["unknown", "null"]
-    const apiValue = (nullValues.includes(displayValue)) ? null : displayValue
+    const apiValue = (nullValues.includes(myValue)) ? null : myValue
 
     return {
         ...facetConfig,
         // key,
-        value: displayValue,
+        value: myValue,
         asStr: createFilterId(key, apiValue, isNegated),
         kv: createFilterId(key, apiValue),
         // isEntity: entityKeys.includes(key),
@@ -394,12 +389,12 @@ export {
     addOptionToFilterValue,
     toggleOptionIsNegated,
     setOptionIsNegated,
+    setStringIsNegated,
     optionsToString,
     optionsFromString,
 
     sortedFilters,
 
     getMatchModeFromSelectFilterValue,
-    getItemsFromSelectFilterValue,
     makeSelectFilterValue,
 }

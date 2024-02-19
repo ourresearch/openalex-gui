@@ -2,8 +2,6 @@
   <div
       style=" position: relative; z-index: 6;"
       class="filter-bar"
-
-
   >
     <!--    {{ focusNumberLine }}-->
 
@@ -13,7 +11,7 @@
         :close-on-content-click="false"
         v-model="isMenuOpen"
         content-class="search-bar-menu"
-        nudge-left="0"
+        nudge-left="5"
         nudge-top="4"
         scrollable
         fullscreen
@@ -426,14 +424,18 @@ export default {
 </script>
 
 <style lang="scss">
+
+
+$color-3: hsl(210, 60%, 98%);
+$color-2: hsl(213, 69%, 95%);
 .fake-input-button {
   //background-color: #ddd;
   //background-color: hsl(214, 54%, 98%);
-  background-color: #fff;
-  border: 1px solid #eee;
+  //background-color: $color-2;
+  border: 1px solid #333;
 
   border-radius: 100px;
-  height: 45px;
+  height: 50px;
   display: flex;
   align-items: center;
   padding-left: 15px;

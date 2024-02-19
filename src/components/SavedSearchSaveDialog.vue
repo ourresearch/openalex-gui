@@ -2,6 +2,9 @@
   <v-dialog v-model="myIsOpen" max-width="500">
       <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
         <v-card-title>{{ myHasAlert ? "Create alert" : "Save search" }}</v-card-title>
+        <v-card-subtitle v-if="myHasAlert">
+          Save this search and subscribe to alerts
+        </v-card-subtitle>
         <div class="pa-4 pb-0">
           <v-text-field
               autofocus

@@ -32,7 +32,7 @@
               </span>
 
       </router-link>
-      <v-spacer/>
+      <search-bar class="flex-grow-1 mx-12" />
 
       <user-toolbar-menu/>
 
@@ -132,7 +132,7 @@ import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
-import Template from "@/components/SerpToolbarMenu.vue";
+import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 
 export default {
   name: 'App',

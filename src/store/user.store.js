@@ -268,6 +268,7 @@ export const user = {
                 axiosConfig(),
             )
             await dispatch("fetchSavedSearches") // have to update the list
+            commit("snackbar", "Search saved", {root: true})
             state.isSaving = false
         },
         // update
