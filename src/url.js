@@ -159,11 +159,8 @@ const createFilterNoPush = function (entityType, key, newValue) {
 }
 const readFilter = function (currentRoute, entityType, index) {
     return filtersFromUrlStr(entityType, currentRoute.query.filter)[index]
-
-    // .find(f => {
-    //     return f.key === key
-    // })
 }
+
 const readFilters = function (currentRoute, isNegatedOnly = false) {
     const filters = filtersFromUrlStr(
         currentRoute.params.entityType,
@@ -209,13 +206,14 @@ const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterK
 }
 
 
-const updateFilter = async function (entityType, index, newValue) {
+const updateFilter = async function (entityType, index, newValue, isNegated) {
     console.log("url.updateFilter", entityType, index, newValue)
     const filters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     filters[index] = createSimpleFilter(
         entityType,
         filters[index].key,
-        newValue
+        newValue,
+        isNegated,
     )
 
     // const filterKey = filters[index].filterKey
@@ -275,28 +273,61 @@ const addFilterOption = async function (entityType, index, optionToAdd) {
 
 const addFilterOptionNoPush = function (entityType, index, optionToAdd) {
     const filters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    const myFilterKey = filters[index].key
-    const myFilterValue = addOptionToFilterValue(
-        filters[index].value,
-        optionToAdd
-    )
+    const myFilter = filters[index]
     filters[index] = createSimpleFilter(
         entityType,
-        myFilterKey,
-        myFilterValue
+        myFilter.key,
+        addOptionToFilterValue(myFilter.value, optionToAdd),
+        myFilter.isNegated,
     )
     return filters
 }
 
+const moveFilterOptionToOwnFilter = function(entityType, index, option, isNegated) {
+    const myFilter = readFilter(router.currentRoute, entityType, index)
+    const myNewFilter = createSimpleFilter(
+        entityType,
+        myFilter.key,
+        option,
+        isNegated,
+    )
+    const oldFilters= readFilters(router.currentRoute)
+    oldFilters[index] = createSimpleFilter(
+        entityType,
+        oldFilters[index].key,
+        deleteOptionFromFilterValue(oldFilters[index].value, option),
+        oldFilters[index].isNegated
+    )
+
+    const newFilters = [...oldFilters, myNewFilter]
+    pushNewFilters(newFilters)
+
+}
+
+const setIsFilterOptionNegated = function(entityType, filterKey, option, isNegated){
+    const myFilterIndex = findFilterIndex(
+        router.currentRoute,
+        entityType,
+        filterKey,
+        option
+    )
+    const myFilter = readFilter(router.currentRoute, entityType, myFilterIndex)
+    const myFilterOptionsCount = optionsFromString(myFilter.value).length
+    myFilterOptionsCount === 1 ?
+        setIsFilterNegated(entityType, myFilterIndex, isNegated) :
+        moveFilterOptionToOwnFilter(entityType, myFilterIndex, option, isNegated)
+
+}
+
 const setIsFilterNegated = function (entityType, index, isNegated) {
     const myValue = readFilter(router.currentRoute, entityType, index)?.value
-    const newValue = setStringIsNegated(myValue, isNegated)
-    console.log("setIsFilterNegated new value", newValue)
-    updateFilter(entityType, index, newValue)
+    // const newValue = setStringIsNegated(myValue, isNegated)
+    updateFilter(entityType, index, myValue, isNegated)
 }
 const readIsFilterNegated = function (currentRoute, entityType, index) {
     const myFilter = readFilter(currentRoute, entityType, index)
-    return myFilter?.value && myFilter?.value?.indexOf("!") === 0
+    return myFilter?.isNegated
+    // return myFilter?.value && myFilter?.value?.indexOf("!") === 0
 }
 
 const findFilterIndex = function (currentRoute, entityType, filterKey, option) {
@@ -788,6 +819,7 @@ const url = {
 
     readIsFilterNegated,
     setIsFilterNegated,
+    setIsFilterOptionNegated,
     findFilterIndex,
 
     setDefaultActions,

@@ -85,11 +85,15 @@ export default {
       },
       set(to) {
         const newValue = setStringIsNegated(this.value, to)
+        console.log("isNegated", newValue)
         this.index >= 0 ?
-            url.updateFilter(this.entityType, this.index, newValue) :
+            url.setIsFilterOptionNegated(this.entityType, this.filterKey, this.value, to) :
             url.createFilter(this.entityType, this.filterKey, newValue)
 
       }
+    },
+    doesMyFilterHaveOtherOptions(){
+      return url.readFilterOptions(this.$route, this.entityType, this.index)?.length > 1
     },
   },
 
@@ -104,12 +108,19 @@ export default {
       //     this.isNegated = false :
       //     this.isApplied = !this.isApplied
     },
+    filtersForCount(){
+
+    },
     async getMyCount() {
       // if (this?.myCount) return
       const filters = url.readFilters(this.$route)
-      const filtersWithoutMyFilter = filters.splice(this.index, 1)
-      const myNewFilter = createSimpleFilter(this.entityType, this.filterKey, this.value, this.isNegated)
-      const queryFilters = [...filters, myNewFilter]
+
+      const filtersWithoutMyFilter = filters.toSpliced(this.index, 1)
+      const filterWithOnlyMyValue = createSimpleFilter(this.entityType, this.filterKey, this.value, this.isNegated)
+      const queryFilters = (this.isNegated) ?
+          filters :
+          [...filtersWithoutMyFilter, filterWithOnlyMyValue]
+
       const count = await api.getResultsCount(this.entityType, queryFilters)
       this.myCount = count
     },

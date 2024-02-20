@@ -40,7 +40,7 @@
             :count="row.count"
             :disabled="row.isApplied"
 
-            @add="addOption"
+            @add="(id) => {$emit('add', id)}"
         />
 
 
@@ -154,9 +154,6 @@ export default {
       this.$emit("close")
       url.upsertFilterOption(this.entityType, this.filterKey, value)
 
-    },
-    addOption(id){
-      this.$emit("add", id) // pass it on
     },
     async getGroups() {
       if (!this.filterKey) return []

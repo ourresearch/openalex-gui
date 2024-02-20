@@ -25,7 +25,15 @@ const filtersFromUrlStr = function (entityType, str) {
     filterStrings.forEach(filterString => {
         const regex = /(?<!http|https):/
         const [key, valuesStr] = filterString.split(regex)
-        filters.push(createSimpleFilter(entityType, key, valuesStr))
+        const value = valuesStr.replace(/^!/, "")
+        const isNegated = valuesStr[0] === "!"
+        const myFilter = createSimpleFilter(
+            entityType,
+            key,
+            value,
+            isNegated,
+        )
+        filters.push(myFilter)
         // if (valuesStr[0] === "!") {
         //     const value = valuesStr.replace("!", "")
         //     filters.push(createSimpleFilter(entityType, key, value, true))
@@ -191,7 +199,7 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 }
 
 
-const createFilterValue = function (rawValue, filterType, isNegated) {
+const createFilterValue = function (rawValue, filterType) {
     if (typeof rawValue === "string") {
         rawValue = rawValue.replace("https://openalex.org/", "")
         // rawValue = rawValue.replace("unknown", null)
@@ -202,9 +210,6 @@ const createFilterValue = function (rawValue, filterType, isNegated) {
         }
         if (rawValue == "true") rawValue = true
         if (rawValue == "false") rawValue = false
-    }
-    else if (filterType === "select" && isNegated) {
-        rawValue = "!" + rawValue
     }
     return rawValue
 }
