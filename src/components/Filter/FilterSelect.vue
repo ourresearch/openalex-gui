@@ -156,6 +156,7 @@ export default {
   },
   watch: {
     isActive(to){
+      this.searchString = ""
       if (!to) this.$emit("close")
     }
   }
