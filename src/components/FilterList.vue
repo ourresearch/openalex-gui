@@ -50,7 +50,7 @@
                 v-on="on"
             >
               <v-icon color="primary" class="mr-3">mdi-plus-thick</v-icon>
-              Add another filter
+              Add {{ filters.length ? "another" : "a" }} filter
               <v-icon color="primary" class="ml-1">mdi-menu-down</v-icon>
             </v-card>
           </template>
@@ -188,7 +188,7 @@ import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import ExportButton from "@/components/ExportButton.vue";
+import ExportButton from "@/components/ExportButtonOld.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Action from "@/components/Action/Action.vue";
 import {api} from "@/api";

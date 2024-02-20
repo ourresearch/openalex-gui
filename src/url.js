@@ -370,8 +370,13 @@ const isFilterOptionApplied = function (currentRoute, entityType, filterKey, opt
 }
 const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, isNegatedOnly = false) {
     const allFilters = readFilters(currentRoute, isNegatedOnly)
+    const config = getFacetConfig(entityType, filterKey)
+    if (config.type !== "select") return []
+
     const filtersWithKey = allFilters.filter(f => f.key == filterKey)
-    const filterOptionsWithKey = [...filtersWithKey.map(f => optionsFromString(f.value)).flat()]
+    const filterOptionsWithKey = filtersWithKey?.length ?
+        [...filtersWithKey.map(f => optionsFromString(f.value)).flat()] :
+        []
     return filterOptionsWithKey
 }
 

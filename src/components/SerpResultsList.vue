@@ -4,6 +4,7 @@
 <!--      <serp-results-count :results-object="resultsObject" class=""/>-->
       <div class="font-weight-bold">List</div>
       <v-spacer/>
+      <serp-results-export-button />
       <action class="ml-2" action="sort"/>
     </div>
 
@@ -93,8 +94,9 @@ import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import ExportButton from "@/components/ExportButton.vue";
+import ExportButton from "@/components/ExportButtonOld.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
+import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 
 export default {
   name: "Template",
@@ -104,6 +106,7 @@ export default {
     Action,
     WorkAuthorsString,
     SerpResultsCount,
+    SerpResultsExportButton,
   },
   props: {
     resultsObject: Object,

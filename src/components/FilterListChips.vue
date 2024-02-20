@@ -224,7 +224,7 @@ import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import ExportButton from "@/components/ExportButton.vue";
+import ExportButton from "@/components/ExportButtonOld.vue";
 import SearchBar from "@/components/SearchBar.vue";
 import Action from "@/components/Action/Action.vue";
 import {api} from "@/api";

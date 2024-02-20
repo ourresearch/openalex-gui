@@ -92,7 +92,7 @@ import ApiDialog from "../components/ApiDialog.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
 import router from "../router";
 
-import ExportButton from "../components/ExportButton.vue";
+import ExportButton from "../components/ExportButtonOld.vue";
 import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 

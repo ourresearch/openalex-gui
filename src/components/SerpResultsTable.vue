@@ -44,7 +44,7 @@ import router from "../router";
 import ResultsTableHeader from "@/components/ResultsTable/ResultsTableHeader.vue";
 import ResultsTableRow from "@/components/ResultsTable/ResultsTableRow.vue";
 import ActionMenuItem from "@/components/Action/Action.vue";
-import ExportButton from "@/components/ExportButton.vue";
+import ExportButton from "@/components/ExportButtonOld.vue";
 import {getFacetConfig} from "@/facetConfigs";
 import Action from "@/components/Action/Action.vue";
 
