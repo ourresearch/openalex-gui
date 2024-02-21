@@ -80,7 +80,7 @@
       </v-list-item-icon>
       <v-list-item-content>
         <v-list-item-title>
-          Save
+          Save {{ id ? "" : "As..." }}
         </v-list-item-title>
       </v-list-item-content>
     </v-list-item>

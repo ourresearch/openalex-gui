@@ -1,22 +1,32 @@
 <template>
   <span>
-    <v-menu offset-y>
+    <v-menu offset-y max-width="300">
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on" >
+        <v-btn icon v-on="on">
           <v-icon>mdi-tray-arrow-down</v-icon>
         </v-btn>
       </template>
       <v-list>
-        <v-subheader>
-          Export results (max 100k)
+        <v-list-item v-if="isResultsExportDisabled">
+          <v-list-item-icon><v-icon>mdi-alert-circle</v-icon></v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-bold">Too many results to export</v-list-item-title>
+              <v-list-item-subtitle>Max 100k at a time</v-list-item-subtitle>
+            </v-list-item-content>
+        </v-list-item>
+        <v-divider v-if="isResultsExportDisabled"/>
+        <v-subheader v-if="!isResultsExportDisabled">
+          Export results as...
         </v-subheader>
-        <v-list-item @click="openExportDialog('csv')">
+        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('csv')">
+          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-table</v-icon></v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>Spreadsheet</v-list-item-title>
           </v-list-item-content>
-          <v-list-item-action-text>csv</v-list-item-action-text>
+          <v-list-item-action-text class="ml-4">csv</v-list-item-action-text>
         </v-list-item>
-        <v-list-item @click="openExportDialog('wos-plaintext')">
+        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('wos-plaintext')">
+          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-file-outline</v-icon></v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>WoS format</v-list-item-title>
           </v-list-item-content>
