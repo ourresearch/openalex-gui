@@ -497,9 +497,10 @@ const getActionValueKeys = function (currentRoute, action) {
 
 const setSort = function (filterKey) {
     const defaultValue = getActionDefaultValues("sort", router.currentRoute.query)[0]
+    const appendVerb = (filterKey === "display_name") ? "" : ":desc"
     const myNewKey = (filterKey === defaultValue) ?
         undefined :
-        filterKey + ":desc"
+        filterKey + appendVerb
 
     pushQueryParam("sort", myNewKey)
 

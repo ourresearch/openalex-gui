@@ -1,9 +1,13 @@
 <template>
   <v-card rounded flat color="">
     <v-toolbar flat color="" class="">
-      <div class="font-weight-bold">Report</div>
+      <v-icon left>mdi-clipboard-outline</v-icon>
+      <v-toolbar-title class="font-weight-bold">Report</v-toolbar-title>
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
+      <v-btn icon :href="csvUrl">
+        <v-icon>mdi-tray-arrow-down</v-icon>
+      </v-btn>
       <v-menu offset-y v-if="0">
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on">

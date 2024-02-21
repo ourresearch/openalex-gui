@@ -1,18 +1,19 @@
 <template>
   <v-card rounded flat class="">
-    <div style="height: 65px" class="d-flex align-center">
+    <v-toolbar flat class="">
 <!--      <serp-results-count :results-object="resultsObject" class=""/>-->
-      <div class="font-weight-bold">List</div>
+<!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
+      <v-icon left>mdi-format-list-checkbox</v-icon>
+      <v-toolbar-title class="font-weight-bold">List</v-toolbar-title>
       <v-spacer/>
-      <serp-results-export-button />
       <action class="ml-2" action="sort"/>
-    </div>
+      <serp-results-export-button />
+    </v-toolbar>
 
     <v-list v-if="resultsObject?.results" class="" color="">
       <v-list-item
           v-for="result in resultsObject.results"
           :key="result.id"
-          class="pl-0"
           :to="result.id | entityZoomLink"
           color="primary"
       >
@@ -22,7 +23,7 @@
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title style="white-space: normal; line-height: 1.5;">
-            <div class="">{{ result.display_name }}</div>
+            <div class="" v-html="$prettyTitle(result.display_name)"></div>
           </v-list-item-title>
           <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
             <div>
