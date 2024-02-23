@@ -2,7 +2,7 @@
   <div v-if="data && isDisplayed">
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
-        {{ filterConfig.displayName | capitalize | pluralize(valueLength) }}:
+        {{ filterConfig.displayName | capitalize | pluralize(pluralizeCount) }}:
       </template>
       <template v-else>
         {{ filterConfig.displayName | capitalize }}:
@@ -209,7 +209,8 @@ export default {
     // utility
     pluralizeCount() {
       if (this.filterKey === "cites") return 2
-      return this.filterConfig.isMultiple && this.rawValue?.length > 1 ?
+      if (this.filterConfig.displayName.endsWith(")")) return 1
+      return this.isValueAnArray && this.rawValue?.length > 1 ?
           2 :
           1
     },
