@@ -3,10 +3,10 @@
 // https://carbondesignsystem.com/data-visualization/color-palettes/
 
 import countryCodeLookup from "country-code-lookup";
+import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 const entityConfigs = {
     works: {
-        emoji: "📄",
         icon: "mdi-file-document-outline",
         name: "works",
         nameSingular: "work",
@@ -20,14 +20,30 @@ const entityConfigs = {
         hintVerb: "by",
         color: "blue",
         hasAutocomplete: true,
+        isNative: true,
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
             {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
             {key: "type", value: "dataset", displayName: "datasets"},
-        ]
+        ],
+        rowsToShowOnEntityPage: [
+            "publication_year",
+            "type",
+            "abstract",
+            "primary_location.source.id",
+            "authorships.author.id",
+            "authorships.institutions.lineage",
+            "cites",
+            "cited_by",
+            "related_to",
+            "primary_topic.domain.id",
+            "primary_topic.field.id",
+            "primary_topic.subfield.id",
+            "primary_topic.id",
+            "sustainable_development_goals.id",
+        ],
     },
     authors: {
-        emoji: "🧑",
         // icon: "mdi-account-school-outline",
         icon: "mdi-account-outline",
         name: "authors",
@@ -42,13 +58,17 @@ const entityConfigs = {
         hintVerb: "at",
         color: "green",
         hasAutocomplete: true,
+        isNative: true,
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
             {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
-        ]
+        ],
+        rowsToShowOnEntityPage: [
+            "last_known_institution.id",
+            "display_name_alternatives",
+        ],
     },
     sources: {
-        emoji: "📚",
         // icon: "mdi-book-outline",
         icon: "mdi-book-open-outline",
         name: "sources",
@@ -63,12 +83,14 @@ const entityConfigs = {
         hintVerb: "published by",
         color: "orange",
         hasAutocomplete: true,
+        isNative: true,
         highlightFilters: [
             {key: "is_oa", value: true, displayName: "that are Open Access"},
-        ]
+        ],
+        rowsToShowOnEntityPage: [
+        ],
     },
     publishers: {
-        emoji: "📚",
         // icon: "mdi-book-outline",
         icon: "mdi-domain",
         name: "publishers",
@@ -82,9 +104,11 @@ const entityConfigs = {
         filterKey: "primary_location.source.publisher_lineage",
         color: "pink",
         hasAutocomplete: true,
+        isNative: true,
+        rowsToShowOnEntityPage: [
+        ],
     },
     funders: {
-        emoji: "💰",
         // icon: "mdi-book-outline",
         icon: "mdi-cash-multiple",
         name: "funders",
@@ -98,9 +122,11 @@ const entityConfigs = {
         filterKey: "grants.funder",
         color: "brown",
         hasAutocomplete: true,
+        isNative: true,
+        rowsToShowOnEntityPage: [
+        ],
     },
     institutions: {
-        emoji: "🏫",
         icon: "mdi-town-hall",
         name: "institutions",
         nameSingular: "institution",
@@ -114,9 +140,12 @@ const entityConfigs = {
         hintVerb: "in",
         color: "purple",
         hasAutocomplete: true,
+        isNative: true,
+        rowsToShowOnEntityPage: [
+            "display_name_alternatives",
+        ],
     },
     concepts: {
-        emoji: "💡",
         icon: "mdi-lightbulb-outline",
         name: "concepts",
         nameSingular: "concept",
@@ -129,10 +158,12 @@ const entityConfigs = {
         filterKey: "concepts.id",
         color: "blue-grey",
         hasAutocomplete: true,
+        isNative: true,
+        rowsToShowOnEntityPage: [
+        ],
     },
 
     topics: {
-        emoji: "💡",
         icon: "mdi-lightbulb-outline",
         name: "topics",
         nameSingular: "topic",
@@ -142,12 +173,14 @@ const entityConfigs = {
         eg: "RNA sequencing",
         placeholder: "Search topics",
         filterName: "topics",
-        filterKey: "topics.id",
+        filterKey: "primary_topic.id",
         color: "blue-grey",
         hasAutocomplete: true,
+        isNative: true,
+        rowsToShowOnEntityPage: [
+        ],
     },
     subfields: {
-        emoji: "💡",
         icon: "mdi-lightbulb-outline",
         name: "subfields",
         nameSingular: "subfield",
@@ -157,12 +190,14 @@ const entityConfigs = {
         eg: "Molecular biology",
         placeholder: "Search subfields",
         filterName: "subfields",
-        filterKey: "topics.subfield.id",
+        filterKey: "primary_topic.subfield.id",
         color: "blue-grey",
         hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
     },
     fields: {
-        emoji: "💡",
         icon: "mdi-lightbulb-outline",
         name: "fields",
         nameSingular: "field",
@@ -172,12 +207,14 @@ const entityConfigs = {
         eg: "Computer science",
         placeholder: "Search fields",
         filterName: "fields",
-        filterKey: "topics.field.id",
+        filterKey: "primary_topic.field.id",
         color: "blue-grey",
         hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
     },
     domains: {
-        emoji: "💡",
         icon: "mdi-lightbulb-outline",
         name: "domains",
         nameSingular: "domain",
@@ -187,17 +224,106 @@ const entityConfigs = {
         eg: "Life sciences",
         placeholder: "Search domains",
         filterName: "domains",
-        filterKey: "topics.domain.id",
+        filterKey: "primary_topic.domain.id",
         color: "blue-grey",
         hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
+    },
+    sdgs: {
+        icon: "mdi-sprout-outline",
+        name: "sdgs",
+        nameSingular: "sdg",
+        displayName: "Sustainable Development Goals",
+        displayNameSingular: "Sustainable Development Goal",
+        descr: "Relevant UN SDGs",
+        eg: "Clean water and sanitation",
+        placeholder: "Search SDGs",
+        filterName: "Sustainable Development Goals",
+        filterKey: "sustainable_development_goals.id",
+        color: "blue-grey",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
     },
 }
+const rowsToShowOnAllEntityPagesExceptWorks = [
+    "works_count",
+    "cited_by_count",
+]
+const getEntityConfigs = function(){
+    return Object.values(entityConfigs).map(c => {
+        const rowsToShowOnEntityPage = c.name === "works" ?
+            c.rowsToShowOnEntityPage :
+            [
+                ...c.rowsToShowOnEntityPage,
+                ...rowsToShowOnAllEntityPagesExceptWorks
+            ]
 
-const getEntityConfig = function (name) {
-    return Object.values(entityConfigs).find(c => {
-        return c.nameSingular === name || c.displayName === name
+        return {
+            ...c,
+            rowsToShowOnEntityPage,
+        }
     })
 }
+
+
+const getEntityConfig = function (name) {
+    return getEntityConfigs().find(c => {
+        return c.nameSingular === name || c.name === name
+    })
+}
+const externalEntityNames = getEntityConfigs()
+    .filter(c => !c.isNative)
+    .map(c => c.name)
+
+const nativeEntityFirstLetters = getEntityConfigs()
+    .filter(c => c.isNative)
+    .map(c => c.name.substr(0, 1))
+
+const nativeEntityTypeFromId = function (id) {
+    const shortId = shortenOpenAlexId(id)
+    const regex = /^(\w)\d+$/
+    const shortIdFirstLetter = shortId.match(regex)?.at(1)
+    return getEntityConfigs()
+        .filter(c => c.isNative)
+        .map(c => c.name)
+        .find(entityName => {
+            const entityNameFirstLetter = entityName.substr(0, 1)
+            return shortIdFirstLetter === entityNameFirstLetter
+        })
+}
+const externalEntityTypeFromId = function (id) {
+    id = id.replace("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
+
+    const shortId = shortenOpenAlexId(id)
+    const regex = /^(\w+)\/\w+$/
+    const wordBeforeSlash = shortId.match(regex)?.at(1)
+
+    return getEntityConfigs()
+        .filter(c => !c.isNative)
+        .map(c => c.name)
+        .find(entityName => {
+            return entityName === wordBeforeSlash
+        })
+}
+
+const urlPartsFromId = function (id) {
+    const shortId = shortenOpenAlexId(id)
+    const entityType = entityTypeFromId(id)
+
+    const externalEntityName = externalEntityTypeFromId(id)
+    const externalEntityPath = externalEntityName + "/"
+    const entityId = shortId.replace(externalEntityPath, "")
+
+    return {
+        entityType,
+        entityId,
+    }
+}
+
 
 const getLocationString = function (entity) {
     if (!entity || !entity?.country_code) return
@@ -215,5 +341,10 @@ const getLocationString = function (entity) {
 export {
     entityConfigs,
     getEntityConfig,
+    getEntityConfigs,
     getLocationString,
+
+    nativeEntityTypeFromId,
+    externalEntityTypeFromId,
+    urlPartsFromId,
 }

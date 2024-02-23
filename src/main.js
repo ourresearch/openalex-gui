@@ -10,7 +10,7 @@ import {idsAreEqual, setOrDelete, shortenOpenAlexId} from "./util";
 import {url} from "./url"
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
-import {createFilterId, createSimpleFilterFromPid} from "./filterConfigs";
+import {createFilterId, createSimpleFilter, createSimpleFilterFromPid} from "./filterConfigs";
 
 import _ from 'lodash'
 
@@ -45,7 +45,7 @@ import VueShortkey from 'vue-shortkey'
 Vue.use(VueShortkey)
 
 import AsyncComputed from 'vue-async-computed'
-import {getEntityConfig} from "@/entityConfigs";
+import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId} from "@/entityConfigs";
 
 Vue.use(AsyncComputed)
 
@@ -57,35 +57,30 @@ Vue.filter("idLink", function (fullId) {
     return `/${myEntityType}/${shortId}`
 })
 
-Vue.filter("entityWorksLink", function (id, entityType) {
-    if (!id) return
-    // const myEntityType = entityTypeFromId(id)
-    const shortId = shortenOpenAlexId(id)
-    const filterKey = getEntityConfig(entityType)?.filterKey
+Vue.filter("entityWorksLink", function (id) {
+    const entityType = entityTypeFromId(id)
+    if (!id || !entityType) return
 
-    return {
+    const filter = createSimpleFilter(
+          "works",
+          entityConfigs[entityType].filterKey,
+          shortenOpenAlexId(id),
+      )
+      return {
         name: "Serp",
-        params: {
-            entityType: "works",
-        },
-        query: {
-            filter: createFilterId(filterKey, shortId)
-        }
-    }
+        params: {entityType: "works"},
+        query: {filter: filter.asStr},
+      }
+
 })
 
 
 
 Vue.filter("entityZoomLink", function (id) {
     if (!id) return
-    const entityId = shortenOpenAlexId(id)
-    const entityType = entityTypeFromId(entityId)
     return {
         name: "EntityPage",
-        params: {
-            entityType,
-            entityId,
-        },
+        params: urlPartsFromId(id)
     }
 });
 

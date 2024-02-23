@@ -1,4 +1,5 @@
-import {sortByKey} from "./util";
+import {sortByKey, uniqueObjects, unravel} from "./util";
+import {getEntityConfigs} from "@/entityConfigs";
 
 const facetCategories = {
     works: [
@@ -80,6 +81,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-document-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
             extractFn: (entity) => entity.id,
+            isMultiple: false,
         },
         {
             key: "doi",
@@ -100,6 +102,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-file-document-outline",
             regex: /(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/,
             extractFn: (entity) => entity.doi,
+            isMultiple: false,
         },
         {
             key: "concepts.id",
@@ -121,9 +124,10 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             extractFn: (entity) => entity.concepts,
+            isMultiple: true,
         },
         {
-            key: "topics.id",
+            key: "primary_topic.id",
             entityType: "works",
             displayName: "topic",
             pidPrefix: "openalex",
@@ -137,9 +141,11 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
+            isMultiple: false,
+            extractFn: (entity) => entity.primary_topic,
         },
         {
-            key: "topics.subfield.id",
+            key: "primary_topic.subfield.id",
             entityType: "works",
             displayName: "subfield",
             pidPrefix: "openalex",
@@ -153,9 +159,11 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
+            isMultiple: false,
+            extractFn: (entity) => entity.primary_topic.subfield,
         },
         {
-            key: "topics.field.id",
+            key: "primary_topic.field.id",
             entityType: "works",
             displayName: "field",
             pidPrefix: "openalex",
@@ -169,9 +177,11 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
+            isMultiple: false,
+            extractFn: (entity) => entity.primary_topic.field,
         },
         {
-            key: "topics.domain.id",
+            key: "primary_topic.domain.id",
             entityType: "works",
             displayName: "domain",
             pidPrefix: "openalex",
@@ -185,6 +195,8 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-lightbulb-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
+            isMultiple: false,
+            extractFn: (entity) => entity.primary_topic.domain,
         },
         {
             key: "grants.funder",
@@ -204,6 +216,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-cash-multiple",
             regex: /^(?:https:\/\/openalex\.org\/)?([fF]\d+)$/,
             extractFn: (entity) => entity.grants.map(grant => grant.funder),
+            isMultiple: true,
         },
         {
             key: "grants.award_id",
@@ -219,6 +232,7 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-cash-multiple",
             extractFn: (entity) => entity.grants.map(grant => grant.award_id),
+            isMultiple: true,
         },
 
         // {
@@ -261,8 +275,9 @@ const facetConfigs = function (entityType) {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions
                 })
-                return nested.flat()
+                return uniqueObjects(nested.flat())
             },
+            isMultiple: true,
         },
 
         {
@@ -288,6 +303,7 @@ const facetConfigs = function (entityType) {
                 })
                 return nested.flat()
             },
+            isMultiple: true,
         },
 
         {
@@ -314,6 +330,7 @@ const facetConfigs = function (entityType) {
                     return authorship.author
                 })
             },
+            isMultiple: true,
         },
 
 
@@ -338,6 +355,7 @@ const facetConfigs = function (entityType) {
                     return authorship.author.orcid
                 })
             },
+            isMultiple: true,
         },
 
 
@@ -355,6 +373,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             isCore: true,
             icon: "mdi-text-search",
+            isMultiple: false,
         },
         // {
         //     key: "display_name.search",
@@ -392,6 +411,7 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-file-document-outline",
             extractFn: (entity) => entity.display_name,
+            isMultiple: false,
         },
 
         // {
@@ -429,6 +449,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             icon: "mdi-account-outline",
             extractFn: (entity) => entity.authors_count,
+            isMultiple: false,
         },
         {
             key: "corresponding_author_ids",
@@ -441,6 +462,7 @@ const facetConfigs = function (entityType) {
             isList: true,
             actions: ["filter", "group_by",],
             icon: "mdi-email-outline",
+            isMultiple: true,
         },
 
 
@@ -458,6 +480,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             isCore: true,
             icon: "mdi-lock-open-outline",
+            isMultiple: false,
         },
         {
             key: "best_oa_location.license",
@@ -470,6 +493,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
+            isMultiple: false,
         },
         {
             key: "open_access.oa_status",
@@ -481,6 +505,7 @@ const facetConfigs = function (entityType) {
             category: "open access",
             isList: false,
             icon: "mdi-lock-open-outline",
+            isMultiple: false,
         },
         // {
         //     key: "best_oa_location.version",
@@ -502,6 +527,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             isCore: true,
             icon: "mdi-lock-open-outline",
+            isMultiple: false,
         },
         {
             key: "best_oa_location.is_published",
@@ -515,6 +541,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             isCore: true,
             icon: "mdi-lock-open-outline",
+            isMultiple: false,
         },
 
 
@@ -574,6 +601,7 @@ const facetConfigs = function (entityType) {
             isList: true,
             isCore: true,
             icon: "mdi-map-marker-outline",
+            isMultiple: true,
         },
         {
             key: "countries_distinct_count",
@@ -586,7 +614,8 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             category: "institution",
             isList: false,
-            icon: "mdi-map-marker-outline"
+            icon: "mdi-map-marker-outline",
+            isMultiple: false,
         },
         // {
         //     key: "institutions.continent",
@@ -609,6 +638,7 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Global North", "Global South"],
             icon: "mdi-map-marker-outline",
             // icon: "mdi-town-hall",
+            isMultiple: true,
         },
         {
             key: "authorships.institutions.type",
@@ -621,6 +651,7 @@ const facetConfigs = function (entityType) {
             categories: ["institution"],
             actions: ["filter", "group_by",],
             icon: "mdi-town-hall",
+            isMultiple: true,
         },
         {
             key: "corresponding_institution_ids",
@@ -633,6 +664,7 @@ const facetConfigs = function (entityType) {
             categories: ["institution"],
             actions: ["filter", "group_by",],
             icon: "mdi-email-outline",
+            isMultiple: true,
         },
 
 
@@ -656,6 +688,8 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-book-open-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
+            extractFn: (entity) => entity.primary_location.source,
+            isMultiple: false,
         },
 
         {
@@ -675,6 +709,7 @@ const facetConfigs = function (entityType) {
             actions: [],
             icon: "mdi-book-open-outline",
             regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
+            isMultiple: false,
         },
         {
             key: "primary_location.source.type",
@@ -686,6 +721,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-book-open-outline",
+            isMultiple: false,
         },
         {
             key: "primary_location.source.is_in_doaj",
@@ -698,6 +734,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-outline",
+            isMultiple: false,
         },
         {
             key: "primary_location.source.is_oa",
@@ -710,6 +747,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-book-open-outline",
+            isMultiple: false,
         },
 
         {
@@ -731,6 +769,7 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-domain",
             regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
+            isMultiple: false,
         },
 
 
@@ -751,6 +790,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             isCore: true,
             icon: "mdi-book-open-outline",
+            isMultiple: true,
         },
         {
             key: "open_access.any_repository_has_fulltext",
@@ -763,6 +803,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-tag-outline",
+            isMultiple: true,
         },
 
 
@@ -779,6 +820,23 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["filter", "column", "group_by",],
             icon: "mdi-shape-outline",
+            extractFn: (entity) => entity.type,
+            isMultiple: false,
+        },
+        {
+            key: "abstract",
+            entityType: "works",
+            displayName: "Abstract",
+            type: "search",
+            categories: ["search"],
+            actions: [], // just for display
+            isCore: true,
+            icon: "mdi-text",
+            isMultiple: false,
+            extractFn: (entity) => {
+                if (!entity?.open_access?.is_oa) return
+                return unravel(entity.abstract_inverted_index)
+            },
         },
         {
             key: "publication_year",
@@ -794,7 +852,9 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column", "group_by",],
             actionsPopular: ["filter", "sort", "column", "group_by",],
             isCore: true,
-            icon: "mdi-calendar-range"
+            icon: "mdi-calendar-range",
+            extractFn: (entity) => entity.publication_year,
+            isMultiple: false,
         },
         {
             key: "publication_date",
@@ -809,7 +869,8 @@ const facetConfigs = function (entityType) {
             isList: false,
             examples: ["1999", "1999-", "1999-2020"],
             isCore: true,
-            icon: "mdi-calendar-range"
+            icon: "mdi-calendar-range",
+            isMultiple: false,
         },
         {
             key: "has_doi",
@@ -822,6 +883,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
+            isMultiple: false,
         },
         {
             key: "has_orcid",
@@ -833,6 +895,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
+            isMultiple: true,
         },
         {
             key: "has_pmid",
@@ -845,6 +908,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
             booleanValues: ["No PubMed ID", "Has PubMed ID"],
+            isMultiple: false,
         },
         // {
         //     key: "has_pmcid",
@@ -866,7 +930,8 @@ const facetConfigs = function (entityType) {
             category: "other",
             isList: false,
             actions: ["filter", "column", "group_by",],
-            icon: "mdi-close-octagon"
+            icon: "mdi-close-octagon",
+            isMultiple: false,
         },
         {
             key: "language",
@@ -879,19 +944,22 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["column", "group_by"],
-            icon: "mdi-translate"
+            icon: "mdi-translate",
+            isMultiple: false,
         },
         {
             key: "sustainable_development_goals.id",
             entityType: "works",
-            displayName: "SDG",
+            displayName: "Sustainable Development Goals",
             type: "select",
             displayNullAs: "Unknown",
             categories: ["other", "popular"],
             category: "other",
             isList: true,
             actions: ["filter", "group_by",],
-            icon: "mdi-sprout-outline"
+            icon: "mdi-sprout-outline",
+            isMultiple: true,
+            extractFn: (entity) => entity.sustainable_development_goals
         },
 
 
@@ -909,6 +977,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["sort", "column", "group_by",],
             isCore: true,
             icon: "mdi-format-quote-close",
+            isMultiple: false,
         },
         {
             key: "cited_by_percentile_year.min",
@@ -924,6 +993,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["sort", "column",],
             isCore: true,
             icon: "mdi-format-quote-close",
+            isMultiple: false,
         },
         {
             key: "cited_by",
@@ -941,6 +1011,9 @@ const facetConfigs = function (entityType) {
             isList: true,
             actions: ["filter",],
             icon: "mdi-format-quote-close",
+            isMultiple: true,
+            isDisplayedAsCount: true,
+            extractFn: (entity) => entity.cited_by_count,
         },
         {
             key: "cites",
@@ -958,6 +1031,9 @@ const facetConfigs = function (entityType) {
             isList: true,
             actions: ["filter",],
             icon: "mdi-format-quote-close",
+            isMultiple: true,
+            isDisplayedAsCount: true,
+            extractFn: (entity) => entity.referenced_works.length,
         },
         {
             key: "related_to",
@@ -976,6 +1052,9 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             isHidden: true,
             icon: "mdi-book-open-outline",
+            isMultiple: true,
+            isDisplayedAsCount: true,
+            extractFn: (entity) => entity.related_works.length,
         },
 
 
@@ -993,6 +1072,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             actions: ["filter", "sort", "column", "group_by",],
             icon: "mdi-account-outline",
+            isMultiple: false,
         },
 
 
@@ -1031,6 +1111,7 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             categories: ["institution"],
             icon: "mdi-town-hall",
+            extractFn: (entity) => entity.last_known_institution,
         },
         {
             key: "last_known_institution.country_code",
@@ -1071,6 +1152,17 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             categories: ["other"],
             icon: "mdi-lightbulb-outline",
+        },
+        {
+            key: "display_name_alternatives",
+            entityType: "authors",
+            displayName: "alternate names",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+            extractFn: (entity) => entity.display_name_alternatives,
         },
 
 
@@ -1254,6 +1346,17 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             icon: "mdi-lightbulb-outline",
         },
+        {
+            key: "display_name_alternatives",
+            entityType: "institutions",
+            displayName: "alternate names",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+            extractFn: (entity) => entity.display_name_alternatives,
+        },
 
 
         // concepts
@@ -1291,9 +1394,54 @@ const facetConfigs = function (entityType) {
         },
     ]
 
+    const worksCountFilters = getEntityConfigs()
+        .map(c => c.name)
+        .filter(name => name !== 'works')
+        .map(name => {
+            return {
+                key: "works_count",
+                entityType: name,
+                displayName: "works count",
+                type: "range",
+                sortByValue: true,
+                category: "citation",
+                actions: ["filter", "sort", "column", "group_by",],
+                actionsPopular: ["sort", "column", "group_by",],
+                icon: "mdi-format-quote-close",
+                isMultiple: true,
+                isDisplayedAsCount: true,
+                extractFn: (entity) => entity.works_count,
+            }
+        })
+
+    const citedByCountFilters = getEntityConfigs()
+        .map(c => c.name)
+        .filter(name => name !== 'works')
+        .map(name => {
+            return {
+                key: "cited_by_count",
+                entityType: name,
+                displayName: "cited by",
+                type: "range",
+                sortByValue: true,
+                category: "citation",
+                actions: ["filter", "sort", "column", "group_by",],
+                actionsPopular: ["sort", "column", "group_by",],
+                icon: "mdi-format-quote-close",
+                isMultiple: true,
+                isDisplayedAsCount: true,
+                extractFn: (entity) => entity.cited_by_count,
+            }
+        })
+
+    const allConfigs = [
+        ...ret,
+        ...worksCountFilters,
+        ...citedByCountFilters,
+    ]
 
 
-    const manipulated = ret
+    const manipulated = allConfigs
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
             return {

@@ -32,7 +32,11 @@
               </span>
 
       </router-link>
-      <search-bar class="flex-grow-1 mx-12" />
+      <search-bar
+          v-if="$route.name === 'Serp'"
+          class="flex-grow-1 mx-12"
+      />
+      <v-spacer v-else />
 
       <user-toolbar-menu/>
 
