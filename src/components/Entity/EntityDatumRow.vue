@@ -29,8 +29,10 @@
       </span>
     </span>
     <span v-else-if="valueExternalLink">
-      <a :href="valueExternalLink">
-        Yes<v-icon small right color="primary">mdi-open-in-new</v-icon>
+      <a :href="valueExternalLink" target="_blank">
+<!--        {{ valueExternalLink.replace("https://", "") }} -->
+        Yes
+        <v-icon small style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
       </a>
     </span>
     <span v-else-if="valueString">
@@ -49,12 +51,26 @@
         {{ valueLinkedCount | toPrecision }}
       </router-link>
     </span>
+    <span v-else-if="valueBoolean">
+      {{ valueBoolean }}
+    </span>
 
 
-    <a v-if="isValueTruncated" @click="isTruncateSet = false">more</a>
-    <a v-if="isValueSubjectToTruncation && !isValueTruncated" @click="isTruncateSet = true" class="ml-2">less</a>
+    <a
+        v-if="isValueTruncated"
+        @click="isTruncateSet = false"
+        class="font-weight-bold"
+    >
+      (more)
+    </a>
+    <a
+        v-if="isValueSubjectToTruncation && !isValueTruncated"
+        @click="isTruncateSet = true"
+        class="font-weight-bold"
+    >
+      (less)
+    </a>
 
-  </div>
   </div>
 </template>
 
@@ -76,7 +92,16 @@ export default {
     return {
       foo: 42,
       isTruncateSet: true,
+
+      // old
       maxStringLen: 200,
+      maxArrayLen: 5,
+
+      // new
+      maxLen: {
+        string: 200,
+        array: 5,
+      },
       url,
     }
   },
@@ -94,6 +119,10 @@ export default {
     myEntityType() {
       return entityTypeFromId(this.data.id)
     },
+    myValueType(){
+      if (Array.isArray(this.rawValue)) return "array"
+      return typeof this.rawValue
+    },
     rawValue() {
       return this.filterConfig.extractFn(this.data)
     },
@@ -105,7 +134,7 @@ export default {
     },
     isDisplayed() {
       if (this.isValueAnArray) return !!this.rawValue.length
-      return !!this.rawValue
+      return this.rawValue !== null && this.rawValue !== undefined
     },
     isValueAnArray() {
       return (Array.isArray(this.rawValue))
@@ -119,12 +148,16 @@ export default {
       if (this.rawValue?.id) {
         return [this.rawValue]
       } else if (this.isValueAnArray && this.rawValue.every(o => !!o.id)) {
-        return this.rawValue
+        return this.isValueTruncated ?
+            this.rawValue.slice(0, this.maxLen.array) :
+            this.rawValue
       }
     },
     valueListOfStrings() {
       if (this.isValueAnArray && !this.rawValue.every(o => !!o.id)) {
-        return this.rawValue
+        return this.isValueTruncated ?
+            this.rawValue.slice(0, this.maxLen.array) :
+            this.rawValue
       }
     },
     valueString() {
@@ -145,6 +178,14 @@ export default {
     valueExternalLink() {
       if (typeof this.rawValue !== "string") return // throws error without this for some reason
       if (this.rawValue?.indexOf("http") === 0) return this.rawValue
+      // .replace("https://", "")
+      // .replace("http://", "")
+    },
+    valueBoolean(){
+      if (typeof this.rawValue === "boolean") return this.rawValue ?
+          "Yes" :
+          "No"
+
     },
 
 
@@ -159,7 +200,9 @@ export default {
       return this.isValueSubjectToTruncation && this.isTruncateSet
     },
     isValueSubjectToTruncation() {
-      return typeof this.rawValue === "string" && this.rawValue.length > this.maxStringLen
+      const isTruncatableType = ["string", "array"].includes(this.myValueType)
+      const maxLen = this.maxLen[this.myValueType]
+      return isTruncatableType && this.rawValue.length > maxLen
     },
 
 

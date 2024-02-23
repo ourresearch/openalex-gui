@@ -1202,6 +1202,20 @@ const facetConfigs = function (entityType) {
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
+            key: "ids.issn",
+            entityType: "sources",
+            entityId: "sources",
+            pidPrefix: "issn",
+            displayName: "ISSNs",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "entity",
+            categories: ["other"],
+            icon: "mdi-book-open-outline",
+            extractFn: (e) => e.issn
+        },
+        {
             key: "display_name.search",
             entityType: "sources",
             isDefault: true,
@@ -1219,6 +1233,13 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             categories: ["popular"],
             icon: "mdi-book-open-outline",
+            extractFn: (e)=> {
+                if (e.type !== "journal") return
+                return {
+                    id: e.host_organization,
+                    display_name: e.host_organization_name,
+                }
+            },
         },
         {
             key: "type",
@@ -1227,6 +1248,19 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["popular"],
             icon: "mdi-book-open-outline",
+            extractFn: (e)=> e.type,
+        },
+        {
+            key: "apc_usd",
+            entityType: "sources",
+            displayName: "Article Processing Charge",
+            type: "select",
+            categories: ["popular"],
+            icon: "mdi-book-open-outline",
+            extractFn: (e)=> {
+                if (!e.apc_usd) return
+                return "$" + e.apc_usd.toLocaleString()
+            },
         },
         {
             key: "is_oa",
@@ -1235,6 +1269,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
+            extractFn: (e)=> e.is_oa,
         },
         {
             key: "is_in_doaj",
@@ -1243,6 +1278,18 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
+            extractFn: (entity) => entity.is_in_doaj,
+        },
+        {
+            key: "alternate_titles",
+            entityType: "sources",
+            displayName: "alternate names",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-book-open-outline",
+            isMultiple: true,
+            extractFn: (entity) => entity.alternate_titles,
         },
         {
             key: "x_concepts.id",
@@ -1325,6 +1372,21 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
+
+        {
+            key: "ids.ror",
+            entityType: "institutions",
+            entityId: "institutions",
+            pidPrefix: "ror",
+            displayName: "ROR",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-town-hall",
+            extractFn: (e) => e.ids.ror,
+        },
         {
             key: "display_name.search",
             entityType: "institutions",
@@ -1376,6 +1438,45 @@ const facetConfigs = function (entityType) {
             icon: "mdi-town-hall",
             isMultiple: true,
             extractFn: (entity) => entity.display_name_alternatives,
+        },
+        {
+            key: "parent_institutions",
+            entityType: "institutions",
+            displayName: "parent institutions",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+                return i.relationship === "parent"
+            }),
+        },
+        {
+            key: "child_institutions",
+            entityType: "institutions",
+            displayName: "child institutions",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+                return i.relationship === "child"
+            }),
+        },
+        {
+            key: "related_institutions",
+            entityType: "institutions",
+            displayName: "related institutions",
+            type: "select",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-town-hall",
+            isMultiple: true,
+            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+                return i.relationship === "related"
+            }),
         },
 
 
