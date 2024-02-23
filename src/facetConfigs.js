@@ -1513,6 +1513,183 @@ const facetConfigs = function (entityType) {
             categories: ["popular"],
             icon: "mdi-lightbulb-outline"
         },
+
+        // topics
+        {
+            key: "description",
+            entityType: "topics",
+            entityId: "topics",
+            displayName: "description",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "subfield",
+            entityType: "topics",
+            entityId: "topics",
+            displayName: "subfield (parent)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.subfield,
+        },
+        {
+            key: "field",
+            entityType: "topics",
+            entityId: "topics",
+            displayName: "field",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.field,
+        },
+        {
+            key: "domain",
+            entityType: "topics",
+            entityId: "topics",
+            displayName: "domain",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.domain,
+        },
+
+
+
+        // subfields
+        {
+            key: "description",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "description",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "display_name_alternatives",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "alternate names",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.display_name_alternatives,
+        },
+        {
+            key: "topics",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "topics (children)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.topics,
+        },
+        {
+            key: "field",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "field (parent)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.field,
+        },
+        {
+            key: "domain",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "domain",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.domain,
+        },
+
+
+        // fields
+        {
+            key: "description",
+            entityType: "fields",
+            entityId: "fields",
+            displayName: "description",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "display_name_alternatives",
+            entityType: "fields",
+            entityId: "fields",
+            displayName: "alternate names",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.display_name_alternatives,
+        },
+        {
+            key: "subfields",
+            entityType: "fields",
+            entityId: "fields",
+            displayName: "subfields (children)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.subfields,
+        },
+        {
+            key: "domain",
+            entityType: "fields",
+            entityId: "fields",
+            displayName: "domain (parent)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.domain,
+        },
+
+
+
+
+        // domains
+        {
+            key: "description",
+            entityType: "domains",
+            entityId: "domains",
+            displayName: "description",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "display_name_alternatives",
+            entityType: "domains",
+            entityId: "domains",
+            displayName: "alternate names",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.display_name_alternatives,
+        },
+        {
+            key: "fields",
+            entityType: "domains",
+            entityId: "domains",
+            displayName: "fields (children)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-lightbulb-outline",
+            extractFn: (e) => e.fields,
+        },
+
+
+
     ]
 
     const worksCountFilters = getEntityConfigs()

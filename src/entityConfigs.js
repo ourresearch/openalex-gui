@@ -122,8 +122,7 @@ const entityConfigs = {
         color: "pink",
         hasAutocomplete: true,
         isNative: true,
-        rowsToShowOnEntityPage: [
-        ],
+        rowsToShowOnEntityPage: [],
     },
     funders: {
         // icon: "mdi-book-outline",
@@ -140,8 +139,7 @@ const entityConfigs = {
         color: "brown",
         hasAutocomplete: true,
         isNative: true,
-        rowsToShowOnEntityPage: [
-        ],
+        rowsToShowOnEntityPage: [],
     },
     institutions: {
         icon: "mdi-town-hall",
@@ -180,8 +178,7 @@ const entityConfigs = {
         color: "blue-grey",
         hasAutocomplete: true,
         isNative: true,
-        rowsToShowOnEntityPage: [
-        ],
+        rowsToShowOnEntityPage: [],
     },
 
     topics: {
@@ -199,6 +196,11 @@ const entityConfigs = {
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [
+            "description",
+            null,
+            "domain",
+            "field",
+            "subfield",
         ],
     },
     subfields: {
@@ -216,6 +218,12 @@ const entityConfigs = {
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
+            "description",
+            "display_name_alternatives",
+            null,
+            "domain",
+            "field",
+            "topics",
         ],
     },
     fields: {
@@ -233,6 +241,11 @@ const entityConfigs = {
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
+            "description",
+            "display_name_alternatives",
+            null,
+            "domain",
+            "subfields",
         ],
     },
     domains: {
@@ -250,6 +263,10 @@ const entityConfigs = {
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
+            "description",
+            "display_name_alternatives",
+            null,
+            "fields",
         ],
     },
     sdgs: {
@@ -266,15 +283,14 @@ const entityConfigs = {
         color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [
-        ],
+        rowsToShowOnEntityPage: [],
     },
 }
 const rowsToShowOnAllEntityPagesExceptWorks = [
     "works_count",
     "cited_by_count",
 ]
-const getEntityConfigs = function(){
+const getEntityConfigs = function () {
     return Object.values(entityConfigs).map(c => {
         const rowsToShowOnEntityPage = c.name === "works" ?
             c.rowsToShowOnEntityPage :
