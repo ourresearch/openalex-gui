@@ -2,46 +2,43 @@
   <div v-if="data">
 
 
-    <!--   PDF anywhere -->
-    <v-btn
-        :href="pdfUrl"
-        target="_blank"
-        color="primary"
-        class="mr-3"
-        v-if="pdfUrl"
-        rounded
-    >
-      <v-icon left>mdi-file-pdf-box</v-icon>
-      PDF
-    </v-btn>
 
     <!--   HTML free at publisher -->
     <v-btn
         :href="htmlUrl"
         target="_blank"
         color="primary"
-        text
         class="mr-3"
-        rounded
         v-if="isOaAtPublisher"
     >
-      <v-icon left>mdi-web</v-icon>
-      Online
+<!--      <v-icon left>mdi-web</v-icon>-->
+      HTML
+      <v-icon small>mdi-open-in-new</v-icon>
     </v-btn>
 
 
     <!--   Paywalled at publisher-->
-    <v-btn
+    <v-chip
         :href="data.primary_location.landing_page_url"
         target="_blank"
         class="mr-3"
-        text
-        rounded
         v-if="!isOaAtPublisher"
     >
-      <v-icon left>mdi-web</v-icon>
-      Online (pay)
-    </v-btn>
+<!--      <v-icon left>mdi-web</v-icon>-->
+      HTML (paywalled)
+      <v-icon  small class="ml-1">mdi-open-in-new</v-icon>
+    </v-chip>
+
+    <!--   PDF anywhere -->
+    <v-chip
+        :href="pdfUrl"
+        target="_blank"
+        class="mr-3"
+        v-if="pdfUrl"
+    >
+<!--      <v-icon left>mdi-file-pdf-box</v-icon>-->
+      PDF
+    </v-chip>
 
 
 

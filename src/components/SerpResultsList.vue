@@ -6,7 +6,9 @@
       <v-icon left>mdi-format-list-checkbox</v-icon>
       <v-toolbar-title class="font-weight-bold">List</v-toolbar-title>
       <v-spacer/>
-      <action class="ml-2" action="sort"/>
+<!--      <action class="ml-2" action="sort"/>-->
+      <serp-results-sort-button />
+
       <serp-results-export-button />
     </v-toolbar>
 
@@ -98,6 +100,7 @@ import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import ExportButton from "@/components/ExportButtonOld.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
+import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
 
 export default {
   name: "Template",
@@ -108,6 +111,7 @@ export default {
     WorkAuthorsString,
     SerpResultsCount,
     SerpResultsExportButton,
+    SerpResultsSortButton,
   },
   props: {
     resultsObject: Object,

@@ -17,11 +17,16 @@
       </v-btn>
 
     </div>
-      <entity-body
-          :data="entityData"
-          :type="myEntityType"
-          v-if="entityData && myEntityType"
-      />
+<!--      <entity-body-->
+<!--          :data="entityData"-->
+<!--          :type="myEntityType"-->
+<!--          v-if="entityData && myEntityType"-->
+<!--      />-->
+
+    <entity-new
+      :data="entityData"
+      :type="myEntityType"
+    />
 
 <!--    <template v-if="isDataMatchingId">-->
 <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
@@ -50,6 +55,8 @@ import EntityFunder from "@/components/Entity/EntityFunder.vue";
 import EntityInstitution from "@/components/Entity/EntityInstitution.vue";
 import EntityConcept from "@/components/Entity/EntityConcept.vue";
 
+import EntityNew from "@/components/Entity/EntityNew.vue";
+
 
 import {api} from "@/api";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
@@ -70,6 +77,8 @@ export default {
     EntityFunder,
     EntityInstitution,
     EntityConcept,
+
+    EntityNew,
   },
   props: {},
   data() {
@@ -135,7 +144,6 @@ export default {
     'apiPath': {
       immediate: true,
       async handler(to, from) {
-        console.log("entityid change", this.apiPath)
         this.$store.state.isLoading = true
         this.entityData = await api.get(this.apiPath)
         this.myEntityType = this.$route.params.entityType

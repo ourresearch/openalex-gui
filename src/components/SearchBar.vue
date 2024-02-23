@@ -21,7 +21,8 @@
         <div
             v-on="on"
             v-shortkey="['meta', 'k']"
-            class="pr-2 ml-2"
+            class="pr-2 ml-2 color-2 hover-color-1"
+            style="border-radius: 25px;"
             @shortkey="isMenuOpen = true"
         >
           <div class="fake-input-button"
@@ -33,6 +34,7 @@
             <v-spacer/>
             <div class="mr-6 px-1 caption grey--text" style="// border: 1px solid #ddd; border-radius: 5px">
               {{ shortcutSymbol }}K
+
             </div>
           </div>
 
@@ -76,18 +78,20 @@
               class="px-3 py-3 d-flex align-center"
               v-if="!searchString"
           >
-            <div class="mr-2 caption">Try:</div>
+            <div class="mr-2 grey--text font-weight-bold">Try:</div>
             <div>
-              <v-chip
-                  small
-                  v-for="example in exampleSearches"
-                  :key="example"
-                  class="mr-1 mb-1"
-                  color="blue lighten-5"
-                  @click="searchString = example"
-              >
-                {{ example }}
-              </v-chip>
+              <template v-for="(example, i) in exampleSearches">
+                <v-chip
+                    label
+                    color="white"
+                    :key="example"
+                    class="px-1"
+                    @click="searchString = example"
+                >
+                  {{ example }}
+                </v-chip>
+                {{ i+1 < exampleSearches.length ? "·" : "" }}
+              </template>
             </div>
           </div>
 
@@ -176,7 +180,7 @@ const exampleSearches = [
   "Tim Berners-Lee",
   "Sorbonne",
   "Solar power",
-  "doi:10.7717/peerj.4375",
+  // "doi:10.7717/peerj.4375",
 ]
 
 import { VDialog, VMenu } from 'vuetify/lib'
@@ -432,7 +436,7 @@ $color-2: hsl(213, 69%, 95%);
   //background-color: #ddd;
   //background-color: hsl(214, 54%, 98%);
   //background-color: $color-2;
-  border: 1px solid #333;
+  //border: 1px solid #333;
 
   border-radius: 100px;
   height: 50px;

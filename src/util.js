@@ -1,5 +1,6 @@
 import sanitizeHtml from "sanitize-html";
 import _ from "lodash"
+import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
 
 async function sleep(ms) {
     return new Promise(resolve => {
@@ -94,12 +95,12 @@ const shortenOpenAlexId = function (longId) {
     if (typeof longId !== "string") return longId
     let ret = longId.replace("https://openalex.org/", "").toLowerCase()
     ret = ret.replace("openalex:", "").toLowerCase()
-    return ret
+    ret = ret.replace("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format
+    return ret.toLowerCase()
 }
 
 const entityTypeFromId = function (id) {
-    const firstLetter = shortenOpenAlexId(id).substr(0, 1)
-    return entityTypesDict[firstLetter]
+    return nativeEntityTypeFromId(id) ?? externalEntityTypeFromId(id)
 }
 const isOpenAlexId = function (str) {
     const regex = /^(?:https:\/\/openalex\.org\/)?(?:openalex:)?([WwAaSsPpFfIiCc]\d+)$/
@@ -192,6 +193,12 @@ function isToday(date) {
         date.getFullYear() === today.getFullYear()
 }
 
+const uniqueObjects = function (arrayOfObjects) {
+    return [...new Set(arrayOfObjects.map(o => JSON.stringify(o)))].map(str => {
+        return JSON.parse(str)
+    })
+}
+
 
 export {
     sortByKey,
@@ -208,4 +215,5 @@ export {
     compareByCount,
     toPrecision,
     isToday,
+    uniqueObjects,
 }

@@ -7,10 +7,10 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <div class="text-h5 ml-3">
+              <div class="text-h5 ml-3 mb-3">
                 Search and analyze the world's research.
               </div>
-              <FilterList class="mt-2"/>
+              <search-bar />
 
             </div>
 
