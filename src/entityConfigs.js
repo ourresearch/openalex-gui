@@ -33,14 +33,21 @@ const entityConfigs = {
             "primary_location.source.id",
             "authorships.author.id",
             "authorships.institutions.lineage",
+            null,
             "cites",
             "cited_by",
             "related_to",
+            null,
             "primary_topic.domain.id",
             "primary_topic.field.id",
             "primary_topic.subfield.id",
             "primary_topic.id",
             "sustainable_development_goals.id",
+            null,
+            "open_access.oa_status",
+            null,
+            "grants.funder",
+            "grants.award_id",
         ],
     },
     authors: {
@@ -66,6 +73,8 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "last_known_institution.id",
             "display_name_alternatives",
+            "ids.orcid",
+
         ],
     },
     sources: {
@@ -259,6 +268,7 @@ const getEntityConfigs = function(){
             c.rowsToShowOnEntityPage :
             [
                 ...c.rowsToShowOnEntityPage,
+                null,
                 ...rowsToShowOnAllEntityPagesExceptWorks
             ]
 

@@ -215,7 +215,12 @@ const facetConfigs = function (entityType) {
             isCore: true,
             icon: "mdi-cash-multiple",
             regex: /^(?:https:\/\/openalex\.org\/)?([fF]\d+)$/,
-            extractFn: (entity) => entity.grants.map(grant => grant.funder),
+            extractFn: (entity) => entity.grants.map(grant => {
+                return {
+                    id: grant.funder,
+                    display_name: grant.funder_display_name,
+                }
+            }),
             isMultiple: true,
         },
         {
@@ -498,7 +503,7 @@ const facetConfigs = function (entityType) {
         {
             key: "open_access.oa_status",
             entityType: "works",
-            displayName: "OA color",
+            displayName: "Open Access status",
             type: "select",
             categories: ["open access"],
             actions: ["filter", "column", "group_by",],
@@ -506,6 +511,7 @@ const facetConfigs = function (entityType) {
             isList: false,
             icon: "mdi-lock-open-outline",
             isMultiple: false,
+            extractFn: (entity) => entity.open_access.oa_status,
         },
         // {
         //     key: "best_oa_location.version",
@@ -1090,6 +1096,20 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             icon: "mdi-account-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
+        },
+        {
+            key: "ids.orcid",
+            entityType: "authors",
+            entityId: "authors",
+            pidPrefix: "orcid",
+            displayName: "ORCID",
+            isEntity: true,
+            isId: true,
+            noOptions: true,
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-account-outline",
+            extractFn: (e) => e.ids.orcid
         },
         {
             key: "display_name.search",

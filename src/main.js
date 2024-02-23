@@ -107,7 +107,9 @@ Vue.filter("toPrecision", function (number, precision = 4) {
 
 
 Vue.filter("capitalize", function (str) {
-    return _.capitalize(str)
+    if (typeof str !== "string") return str
+    const firstLetter = str[0]
+    return firstLetter.toUpperCase() + str.substring(1)
 });
 
 

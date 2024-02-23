@@ -1,8 +1,8 @@
 <template>
   <div v-if="data && isDisplayed">
     <span class="font-weight-bold">
-      <template v-if="valueEntityLinks">
-        {{ filterConfig.displayName | capitalize | pluralize(valueEntityLinks.length) }}:
+      <template v-if="isValueAnArray">
+        {{ filterConfig.displayName | capitalize | pluralize(valueLength) }}:
       </template>
       <template v-else>
         {{ filterConfig.displayName | capitalize }}:
@@ -28,6 +28,11 @@
         {{ str }}{{ i + 1 < valueListOfStrings.length ? ", " : "" }}
       </span>
     </span>
+    <span v-else-if="valueExternalLink">
+      <a :href="valueExternalLink">
+        Yes<v-icon small right color="primary">mdi-open-in-new</v-icon>
+      </a>
+    </span>
     <span v-else-if="valueString">
       <span>{{ valueString }}{{ isValueTruncated ? "..." : "" }}</span>
     </span>
@@ -49,6 +54,7 @@
     <a v-if="isValueTruncated" @click="isTruncateSet = false">more</a>
     <a v-if="isValueSubjectToTruncation && !isValueTruncated" @click="isTruncateSet = true" class="ml-2">less</a>
 
+  </div>
   </div>
 </template>
 
@@ -85,8 +91,8 @@ export default {
     filterConfig() {
       return getFacetConfig(this.myEntityType, this.filterKey)
     },
-    myEntityType(){
-     return entityTypeFromId(this.data.id)
+    myEntityType() {
+      return entityTypeFromId(this.data.id)
     },
     rawValue() {
       return this.filterConfig.extractFn(this.data)
@@ -97,21 +103,27 @@ export default {
       }
       return this.rawValue
     },
-    isDisplayed(){
-      if (Array.isArray(this.rawValue)) return !!this.rawValue.length
+    isDisplayed() {
+      if (this.isValueAnArray) return !!this.rawValue.length
       return !!this.rawValue
+    },
+    isValueAnArray() {
+      return (Array.isArray(this.rawValue))
+    },
+    valueLength() {
+      return this.rawValue?.length
     },
 
 
     valueEntityLinks() {
       if (this.rawValue?.id) {
         return [this.rawValue]
-      } else if (Array.isArray(this.rawValue) && this.rawValue.every(o => !!o.id)) {
+      } else if (this.isValueAnArray && this.rawValue.every(o => !!o.id)) {
         return this.rawValue
       }
     },
-    valueListOfStrings(){
-      if (Array.isArray(this.rawValue) && !this.rawValue.every(o => !!o.id)) {
+    valueListOfStrings() {
+      if (this.isValueAnArray && !this.rawValue.every(o => !!o.id)) {
         return this.rawValue
       }
     },
@@ -121,7 +133,7 @@ export default {
           this.rawValue.substring(0, this.maxStringLen) :
           this.rawValue
     },
-    valueWorksCount(){
+    valueWorksCount() {
       if (this.filterKey === "works_count") return this.rawValue
     },
     valueUnlinkedCount() {
@@ -129,6 +141,10 @@ export default {
     },
     valueLinkedCount() {
       if (typeof this.rawValue === "number" && this.filterConfig.type === "select") return this.rawValue
+    },
+    valueExternalLink() {
+      if (typeof this.rawValue !== "string") return // throws error without this for some reason
+      if (this.rawValue?.indexOf("http") === 0) return this.rawValue
     },
 
 

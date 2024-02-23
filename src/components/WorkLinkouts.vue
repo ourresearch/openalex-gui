@@ -4,7 +4,7 @@
 
 
     <!--   HTML free at publisher -->
-    <v-btn
+    <v-chip
         :href="htmlUrl"
         target="_blank"
         color="primary"
@@ -13,8 +13,8 @@
     >
 <!--      <v-icon left>mdi-web</v-icon>-->
       HTML
-      <v-icon small>mdi-open-in-new</v-icon>
-    </v-btn>
+      <v-icon small class="ml-1">mdi-open-in-new</v-icon>
+    </v-chip>
 
 
     <!--   Paywalled at publisher-->
