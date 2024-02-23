@@ -1,9 +1,10 @@
 <template>
   <div v-if="data">
 
-    <div class="text-h4 my-2">
-      {{ $prettyTitle(data.display_name) }}
-    </div>
+    <div
+        class="text-h4 mb-1"
+        v-html="$prettyTitle(data.display_name)"
+    />
     <div class="d-flex align-center">
       <link-entity-roles-list
           v-if="data.roles"
@@ -11,18 +12,27 @@
           :selected="myEntityConfig.nameSingular"
           style="margin-left:-13px;"
       />
-      <div v-else-if="type !== 'works'" class="">
+      <div v-else-if="type !== 'works'" class="grey--text">
         {{ myEntityConfig.displayNameSingular | capitalize }}
       </div>
       <work-linkouts v-if="type === 'works'" :data="data"/>
     </div>
     <div class="mt-10">
-      <entity-datum-row
-          v-for="filterKey in myEntityConfig.rowsToShowOnEntityPage"
-          :key="filterKey"
-          :filter-key="filterKey"
-          :data="data"
-      />
+      <template
+          v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
+      >
+        <v-divider
+            v-if="filterKey === null"
+            :key="'divider-'+i"
+            class="my-1"
+        />
+        <entity-datum-row
+            v-else
+            :key="'data-'+filterKey"
+            :filter-key="filterKey"
+            :data="data"
+        />
+      </template>
 
     </div>
 

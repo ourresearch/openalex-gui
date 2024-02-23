@@ -12,7 +12,7 @@
         <v-btn
             text
             rounded
-            class="font-weight-regular"
+            class="font-weight-regular "
             v-on="on"
         >
 <!--          <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>-->
