@@ -45,7 +45,7 @@ const entityConfigs = {
             "sustainable_development_goals.id",
             null,
             "open_access.oa_status",
-            null,
+            // null,
             "grants.funder",
             "grants.award_id",
         ],
@@ -97,6 +97,14 @@ const entityConfigs = {
             {key: "is_oa", value: true, displayName: "that are Open Access"},
         ],
         rowsToShowOnEntityPage: [
+            "ids.issn",
+            "type",
+            "publisher",
+            "alternate_titles",
+            null,
+            "is_oa",
+            "is_in_doaj",
+            "apc_usd",
         ],
     },
     publishers: {
@@ -152,6 +160,10 @@ const entityConfigs = {
         isNative: true,
         rowsToShowOnEntityPage: [
             "display_name_alternatives",
+            "parent_institutions",
+            "child_institutions",
+            "related_institutions",
+            "ids.ror",
         ],
     },
     concepts: {
