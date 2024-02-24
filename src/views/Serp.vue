@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <serp-toolbar :results-object="resultsObject"/>
+<!--    <serp-toolbar :results-object="resultsObject"/>-->
     <v-container fluid class="">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
       <v-card rounded flat class="white">

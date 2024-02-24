@@ -24,9 +24,9 @@
               v-on="on"
               rounded
               text
-              class="color-3"
+              class=""
           >
-            <v-icon class="mr-2">mdi-folder-outline</v-icon>
+<!--            <v-icon class="mr-2">mdi-folder-outline</v-icon>-->
             {{ activeSearchName || "Unsaved search" }}
             <v-icon class="ml-1">mdi-menu-down</v-icon>
           </v-btn>

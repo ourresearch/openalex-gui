@@ -132,7 +132,7 @@ const facetConfigs = function (entityType) {
             displayName: "topic",
             pidPrefix: "openalex",
             isEntity: true,
-            entityId: "topic",
+            entityId: "topics",
             type: "select",
             isManyOptions: true,
             categories: ["other",],

@@ -29,7 +29,7 @@
                @shortkey="isMenuOpen = true"
           >
             <v-icon style="margin: 10px 7px 9px 9px;" class="dark">mdi-magnify</v-icon>
-            <span class="grey--text" >Search and filter works</span>
+            <span class="grey--text">Search and filter works</span>
             <v-spacer/>
             <div class="mr-6 px-1 caption grey--text" style="// border: 1px solid #ddd; border-radius: 5px">
               {{ shortcutSymbol }}K
@@ -41,7 +41,7 @@
       </template>
       <v-card
       >
-<!--          height="450"-->
+        <!--          height="450"-->
         <v-text-field
             hide-details
             v-model="searchString"
@@ -89,41 +89,37 @@
                 >
                   {{ example }}
                 </v-chip>
-                {{ i+1 < exampleSearches.length ? "·" : "" }}
+                {{ i + 1 < exampleSearches.length ? "·" : "" }}
               </template>
             </div>
           </div>
 
           <v-list v-if="autocompleteSuggestions?.length">
             <v-list-item
-                v-for="(suggestion, i) in autocompleteSuggestions"
+                v-for="(filter, i) in autocompleteSuggestions"
                 :key="i"
-                class="text-h6 font-weight-regular"
+                class=""
                 :class="{'has-focus': myFocusIndex === i}"
-                @click="clickSuggestion(suggestion.id)"
+                @click="clickSuggestion(filter)"
             >
               <v-list-item-icon>
-                <v-icon left>{{ suggestion.icon }}</v-icon>
+                <v-icon left>{{ filter.icon }}</v-icon>
               </v-list-item-icon>
 
-              <v-list-item-content>
-                <v-list-item-title class="" style="white-space: unset; max-width: 600px;">
-                  {{ suggestion.hint }} {{ suggestion.display_name }}
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action v-if="suggestion.entity_type === 'work'">
-                <v-icon color="grey">mdi-arrow-right</v-icon>
-              </v-list-item-action>
-              <v-list-item-action-text v-else class="body-1 pt-2 align-self-start grey--text">
-                {{ suggestion.works_count | toPrecision }} works
-              </v-list-item-action-text>
+              <div class="" style="white-space: unset; max-width: 600px;">
+                {{ filter.displayName | pluralize(filter.isMultiple ? 2 : 1) }}
+                {{ filter.isMultiple ? "include" : "is" }}:
+                {{ filter.displayValue }}
+              </div>
+              <!--              <v-list-item-action-text class="body-1 pt-2 align-self-start grey&#45;&#45;text">-->
+              <!--                {{ filter.worksCount | toPrecision }} works-->
+              <!--              </v-list-item-action-text>-->
 
             </v-list-item>
           </v-list>
         </v-card-text>
-        <v-divider v-if="searchString" />
+        <v-divider v-if="searchString"/>
         <v-card-actions class="px-0">
-
 
 
           <v-list-item v-if="searchString" @click="onEnter">
@@ -180,7 +176,7 @@ const exampleSearches = [
   // "doi:10.7717/peerj.4375",
 ]
 
-import { VDialog, VMenu } from 'vuetify/lib'
+import {VDialog, VMenu} from 'vuetify/lib'
 
 export default {
   name: "Template",
@@ -202,6 +198,7 @@ export default {
   data() {
     return {
       foo: 42,
+      autocompleteSuggestions: [],
       searchString: "",
       isLoading: false,
       buttonText: "",
@@ -229,7 +226,7 @@ export default {
     filters() {
       return filtersFromUrlStr(this.entityType, this.$route.query.filter)
     },
-    mainComponentName(){
+    mainComponentName() {
       return this.$vuetify.breakpoint.mdAndDown ? "v-dialog" : "v-menu"
     },
     shortcutSymbol() {
@@ -261,12 +258,14 @@ export default {
     },
 
   },
-  asyncComputed: {
-    async autocompleteSuggestions() {
 
+  methods: {
+    ...mapMutations([
+      "snackbar",
+    ]),
+    ...mapActions([]),
+    async getAutocompleteResponses() {
       if (!this.searchString) return []
-
-
       const myEntityType = (this.entityType === "works") ?
           null :
           this.entityType
@@ -280,51 +279,44 @@ export default {
           .filter(r => !!r.id)
           .filter(r => r.entity_type !== "filter")
           .map(result => {
-            // const entityConfig = getEntityConfig(result.entity_type)
-            // const entityConfig = getEntityConfigs().find(c => {
-            //   const entityTypeMatch = c.nameSingular === result.entity_type
-            //   const filterKeyMatch = c.filterKey === result.filter_key
-            //   return entityTypeMatch || filterKeyMatch
-            // })
 
             let filterKey
             if (result.filter_key === "id") filterKey = "ids.openalex"
             else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
             else filterKey = result.filter_key
 
-            const filterConfig = getFacetConfig(this.entityType, filterKey)
+            // const filterConfig = getFacetConfig(this.entityType, filterKey)
+            const myFilter = createSimpleFilter(
+                this.entityType,
+                filterKey,
+                result.id
+            )
+            myFilter.displayValue = result.display_name
+            myFilter.worksCount = result.works_count
+            return myFilter
 
-
-            // const hint = (entityConfig.name === "works") ?
-            //     "View work" :
-            //     _.capitalize(entityConfig.displayNameSingular) + " filter"
-
-
-            return {
-              ...result,
-              icon: filterConfig.icon,
-              hint: filterConfig.displayName
-
-            }
+            // return {
+            //   ...result,
+            //   icon: filterConfig.icon,
+            //   hint: filterConfig.displayName
+            // }
           })
       const everySuggestionIsAWork = ret.every(f => f.entity_type === "work")
       const cleaned = everySuggestionIsAWork ?
           ret.slice(0, 3) :
           ret.filter(r => r.entity_type !== "work").slice(0, 5)
 
-      return cleaned
-
+      this.autocompleteSuggestions = cleaned
     },
-
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    clickSuggestion(id) {
+    clickSuggestion(filter) {
       this.isClicky = true
+      url.createFilter(
+          this.entityType,
+          filter.key,
+          filter.value,
+      )
+
+      return
       const entityType = entityTypeFromId(id)
       if (entityType === this.entityType) {
         this.goToEntityPage(id)
@@ -409,9 +401,15 @@ export default {
   mounted() {
   },
   watch: {
-    isMenuOpen(to){
+    isMenuOpen(to) {
       this.searchString = ""
     },
+    searchString(to) {
+      to ?
+          this.getAutocompleteResponses() :
+          this.autocompleteSuggestions = []
+    },
+
     '$route': {
       immediate: true,
       handler(to) {

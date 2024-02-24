@@ -37,7 +37,12 @@
 <!--          class="flex-grow-1 mx-12"-->
 <!--      />-->
 <!--      <v-spacer v-else />-->
-      <v-spacer />
+      <serp-toolbar
+          :results-object="$store.state.resultsObject"
+          class="flex-grow-1"
+      />
+<!--      <v-spacer />-->
+      <div style="height: 66%; border-left: 1px solid #ddd;" ></div>
 
       <user-toolbar-menu/>
 
@@ -138,6 +143,7 @@ import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
+import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 export default {
   name: 'App',
@@ -148,6 +154,7 @@ export default {
     meta: []
   },
   components: {
+    SerpToolbar,
     Template,
     SearchBox,
     SearchBoxNew,
