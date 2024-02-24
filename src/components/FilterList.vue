@@ -40,48 +40,52 @@
         />
 
         <!-- + ADD FILTER button -->
-        <v-menu offset-y key="new-filter-add-button" max-width="300">
-          <template v-slot:activator="{on}">
-            <v-card
-                flat
-                rounded
-                key="asdfasdrasdf"
-                class="d-flex primary--text font-weight-bold align-center text-h6 font-weight-regular pl-4 pr-1 py-3 hover-color-3"
-                v-on="on"
-            >
-              <v-icon color="primary" class="mr-3">mdi-plus-thick</v-icon>
-              Add {{ filters.length ? "another" : "a" }} filter
-              <v-icon color="primary" class="ml-1">mdi-menu-down</v-icon>
-            </v-card>
-          </template>
-          <v-list>
-            <v-list-item
-                v-for="filter in popularFilters"
-                :key="filter.key"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-<!--                  <span v-if="filter.disabled">(applied)</span>-->
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
-              <v-list-item-icon>
-                <v-icon>mdi-dots-horizontal</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>More</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <search-bar
+          class="flex-grow-1 "
+          key="search-bar"
+      />
+<!--        <v-menu offset-y key="new-filter-add-button" max-width="300">-->
+<!--          <template v-slot:activator="{on}">-->
+<!--            <v-card-->
+<!--                flat-->
+<!--                rounded-->
+<!--                key="asdfasdrasdf"-->
+<!--                class="d-flex primary&#45;&#45;text font-weight-bold align-center text-h6 font-weight-regular pl-4 pr-1 py-3 hover-color-3"-->
+<!--                v-on="on"-->
+<!--            >-->
+<!--              <v-icon color="primary" class="mr-3">mdi-plus-thick</v-icon>-->
+<!--              Add {{ filters.length ? "another" : "a" }} filter-->
+<!--              <v-icon color="primary" class="ml-1">mdi-menu-down</v-icon>-->
+<!--            </v-card>-->
+<!--          </template>-->
+<!--          <v-list>-->
+<!--            <v-list-item-->
+<!--                v-for="filter in popularFilters"-->
+<!--                :key="filter.key"-->
+<!--                @click="setNewFilterKey(filter.key)"-->
+<!--                :disabled="filter.disabled"-->
+<!--            >-->
+<!--              <v-list-item-icon>-->
+<!--                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>-->
+<!--              </v-list-item-icon>-->
+<!--              <v-list-item-content>-->
+<!--                <v-list-item-title>-->
+<!--                  {{ filter.displayName }}-->
+<!--&lt;!&ndash;                  <span v-if="filter.disabled">(applied)</span>&ndash;&gt;-->
+<!--                </v-list-item-title>-->
+<!--              </v-list-item-content>-->
+<!--            </v-list-item>-->
+<!--            <v-divider/>-->
+<!--            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">-->
+<!--              <v-list-item-icon>-->
+<!--                <v-icon>mdi-dots-horizontal</v-icon>-->
+<!--              </v-list-item-icon>-->
+<!--              <v-list-item-content>-->
+<!--                <v-list-item-title>More</v-list-item-title>-->
+<!--              </v-list-item-content>-->
+<!--            </v-list-item>-->
+<!--          </v-list>-->
+<!--        </v-menu>-->
 
         <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
         <component

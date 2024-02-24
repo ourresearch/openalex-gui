@@ -285,6 +285,26 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
+
+
+    countries: {
+        icon: "mdi-earth",
+        name: "countries",
+        nameSingular: "country",
+        displayName: "countries",
+        displayNameSingular: "country",
+        descr: "Countries",
+        eg: "Nigeria",
+        placeholder: "Search countries",
+        filterName: "countries",
+        filterKey: "authorships.countries",
+        color: "blue-grey",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [],
+    },
+
+
 }
 const rowsToShowOnAllEntityPagesExceptWorks = [
     "works_count",
