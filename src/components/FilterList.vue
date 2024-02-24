@@ -3,7 +3,7 @@
   <v-card rounded flat class="mb-12">
     <div class="">
       <v-toolbar flat rounded dense>
-<!--        <v-icon class=" mr-3">mdi-filter</v-icon>-->
+        <!--        <v-icon class=" mr-3">mdi-filter</v-icon>-->
         <div class="text-h6 font-weight-regular">
           <serp-results-count :results-object="resultsObject" class="mx-1"/>
           <template v-if="filters.length === 0">
@@ -38,54 +38,59 @@
             :index="i"
             @delete="url.deleteFilter(entityType, filter.key)"
         />
+        <div key="add-filter" class="d-flex align-center">
+          <div class="ma-2 ml-4 text-h6 font-weight-regular grey--text">
+            {{ filters.length + 1 }}.
+          </div>
+          <v-icon>mdi-plus-thick</v-icon>
+          <add-filter
+              class=""
+          />
+        </div>
 
         <!-- + ADD FILTER button -->
-        <search-bar
-          class="flex-grow-1 "
-          key="search-bar"
-      />
-<!--        <v-menu offset-y key="new-filter-add-button" max-width="300">-->
-<!--          <template v-slot:activator="{on}">-->
-<!--            <v-card-->
-<!--                flat-->
-<!--                rounded-->
-<!--                key="asdfasdrasdf"-->
-<!--                class="d-flex primary&#45;&#45;text font-weight-bold align-center text-h6 font-weight-regular pl-4 pr-1 py-3 hover-color-3"-->
-<!--                v-on="on"-->
-<!--            >-->
-<!--              <v-icon color="primary" class="mr-3">mdi-plus-thick</v-icon>-->
-<!--              Add {{ filters.length ? "another" : "a" }} filter-->
-<!--              <v-icon color="primary" class="ml-1">mdi-menu-down</v-icon>-->
-<!--            </v-card>-->
-<!--          </template>-->
-<!--          <v-list>-->
-<!--            <v-list-item-->
-<!--                v-for="filter in popularFilters"-->
-<!--                :key="filter.key"-->
-<!--                @click="setNewFilterKey(filter.key)"-->
-<!--                :disabled="filter.disabled"-->
-<!--            >-->
-<!--              <v-list-item-icon>-->
-<!--                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>-->
-<!--              </v-list-item-icon>-->
-<!--              <v-list-item-content>-->
-<!--                <v-list-item-title>-->
-<!--                  {{ filter.displayName }}-->
-<!--&lt;!&ndash;                  <span v-if="filter.disabled">(applied)</span>&ndash;&gt;-->
-<!--                </v-list-item-title>-->
-<!--              </v-list-item-content>-->
-<!--            </v-list-item>-->
-<!--            <v-divider/>-->
-<!--            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">-->
-<!--              <v-list-item-icon>-->
-<!--                <v-icon>mdi-dots-horizontal</v-icon>-->
-<!--              </v-list-item-icon>-->
-<!--              <v-list-item-content>-->
-<!--                <v-list-item-title>More</v-list-item-title>-->
-<!--              </v-list-item-content>-->
-<!--            </v-list-item>-->
-<!--          </v-list>-->
-<!--        </v-menu>-->
+        <!--        <v-menu offset-y key="new-filter-add-button" max-width="300">-->
+        <!--          <template v-slot:activator="{on}">-->
+        <!--            <v-card-->
+        <!--                flat-->
+        <!--                rounded-->
+        <!--                key="asdfasdrasdf"-->
+        <!--                class="d-flex primary&#45;&#45;text font-weight-bold align-center text-h6 font-weight-regular pl-4 pr-1 py-3 hover-color-3"-->
+        <!--                v-on="on"-->
+        <!--            >-->
+        <!--              <v-icon color="primary" class="mr-3">mdi-plus-thick</v-icon>-->
+        <!--              Add {{ filters.length ? "another" : "a" }} filter-->
+        <!--              <v-icon color="primary" class="ml-1">mdi-menu-down</v-icon>-->
+        <!--            </v-card>-->
+        <!--          </template>-->
+        <!--          <v-list>-->
+        <!--            <v-list-item-->
+        <!--                v-for="filter in popularFilters"-->
+        <!--                :key="filter.key"-->
+        <!--                @click="setNewFilterKey(filter.key)"-->
+        <!--                :disabled="filter.disabled"-->
+        <!--            >-->
+        <!--              <v-list-item-icon>-->
+        <!--                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>-->
+        <!--              </v-list-item-icon>-->
+        <!--              <v-list-item-content>-->
+        <!--                <v-list-item-title>-->
+        <!--                  {{ filter.displayName }}-->
+        <!--&lt;!&ndash;                  <span v-if="filter.disabled">(applied)</span>&ndash;&gt;-->
+        <!--                </v-list-item-title>-->
+        <!--              </v-list-item-content>-->
+        <!--            </v-list-item>-->
+        <!--            <v-divider/>-->
+        <!--            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">-->
+        <!--              <v-list-item-icon>-->
+        <!--                <v-icon>mdi-dots-horizontal</v-icon>-->
+        <!--              </v-list-item-icon>-->
+        <!--              <v-list-item-content>-->
+        <!--                <v-list-item-title>More</v-list-item-title>-->
+        <!--              </v-list-item-content>-->
+        <!--            </v-list-item>-->
+        <!--          </v-list>-->
+        <!--        </v-menu>-->
 
         <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
         <component
@@ -164,7 +169,7 @@
             <v-list-item-content>
               <v-list-item-title>
                 {{ filter.displayName }}
-<!--                <span v-if="filter.disabled">(applied)</span>-->
+                <!--                <span v-if="filter.disabled">(applied)</span>-->
               </v-list-item-title>
             </v-list-item-content>
             <!--            <v-icon left>mdi-check</v-icon>-->
@@ -186,7 +191,7 @@ import FilterPhraseSearch from "@/components/Filter/FilterSearch.vue";
 import FilterPhraseSelect from "@/components/Filter/FilterSelect.vue";
 import FilterPhraseRange from "@/components/Filter/FilterRange.vue";
 import FilterPhraseBoolean from "@/components/Filter/FilterBoolean.vue";
-
+import AddFilter from "@/components/AddFilter.vue";
 
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
@@ -208,6 +213,7 @@ export default {
     FilterPhraseSearch,
     FilterPhraseRange,
     FilterPhraseBoolean,
+    AddFilter,
 
 
     ExportButton,

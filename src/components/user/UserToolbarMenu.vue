@@ -1,8 +1,8 @@
 <template>
   <div>
-    <v-btn v-if="userId" icon to="/me/searches">
-      <v-icon>mdi-folder-outline</v-icon>
-    </v-btn>
+<!--    <v-btn v-if="userId" icon to="/me/searches">-->
+<!--      <v-icon>mdi-folder-outline</v-icon>-->
+<!--    </v-btn>-->
 
     <v-menu rounded offset-y v-if="userId">
       <template v-slot:activator="{on}">
