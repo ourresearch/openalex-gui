@@ -5,7 +5,6 @@
   >
     <!--    {{ focusNumberLine }}-->
 
-
     <component
         :is="mainComponentName"
         :close-on-content-click="false"
@@ -170,7 +169,7 @@ import FilterPhraseBoolean from "@/components/Filter/FilterBoolean.vue";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {api} from "@/api";
-import {getEntityConfig} from "@/entityConfigs";
+import {getEntityConfig, getEntityConfigs} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 import {VueTyper} from 'vue-typer'
@@ -283,17 +282,30 @@ export default {
           .filter(r => !!r.id)
           .filter(r => r.entity_type !== "filter")
           .map(result => {
-            const entityConfig = getEntityConfig(result.entity_type)
+            // const entityConfig = getEntityConfig(result.entity_type)
+            // const entityConfig = getEntityConfigs().find(c => {
+            //   const entityTypeMatch = c.nameSingular === result.entity_type
+            //   const filterKeyMatch = c.filterKey === result.filter_key
+            //   return entityTypeMatch || filterKeyMatch
+            // })
 
-            const hint = (entityConfig.name === "works") ?
-                "View work" :
-                _.capitalize(entityConfig.displayNameSingular) + " filter"
+            let filterKey
+            if (result.filter_key === "id") filterKey = "ids.openalex"
+            else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
+            else filterKey = result.filter_key
+
+            const filterConfig = getFacetConfig(this.entityType, filterKey)
+
+
+            // const hint = (entityConfig.name === "works") ?
+            //     "View work" :
+            //     _.capitalize(entityConfig.displayNameSingular) + " filter"
 
 
             return {
               ...result,
-              icon: entityConfig.icon,
-              hint
+              icon: filterConfig.icon,
+              hint: filterConfig.displayName
 
             }
           })
