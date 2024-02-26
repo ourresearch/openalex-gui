@@ -1,59 +1,53 @@
 <template>
-  <div class="">
-<!--    <serp-toolbar :results-object="resultsObject"/>-->
+  <div class="color-2">
+    <!--    <serp-toolbar :results-object="resultsObject"/>-->
     <v-container fluid class="">
       <!--      <serp-tabs :results-object="resultsObject"/>-->
-      <v-card rounded flat class="white">
 
-        <filter-list :results-object="resultsObject" class=""/>
-<!--        <v-divider class="mt-3"/>-->
-        <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>
-        <v-container fluid class="">
-<!--          <v-row>-->
-<!--            <v-col>-->
-<!--              <serp-results-count :results-object="resultsObject" include-time class="grey&#45;&#45;text"/>-->
-<!--            </v-col>-->
-<!--          </v-row>-->
+      <filter-list :results-object="resultsObject" class=""/>
+      <!--        <v-divider class="mt-3"/>-->
+      <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>
+      <!--          <v-row>-->
+      <!--            <v-col>-->
+      <!--              <serp-results-count :results-object="resultsObject" include-time class="grey&#45;&#45;text"/>-->
+      <!--            </v-col>-->
+      <!--          </v-row>-->
 
-          <!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
+      <!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
 
-          <v-row v-if="$vuetify.breakpoint.mdAndUp">
-            <v-col
-                :cols="!url.isViewSet($route, 'report') ? 12 : 8"
-                v-if="url.isViewSet($route, 'list')"
-            >
-              <serp-results-list :results-object="resultsObject"/>
-            </v-col>
-            <v-col
-                class="flex-grow-1"
-                v-if="url.isViewSet($route, 'report')"
-            >
-              <analytic-views :results-object="resultsObject" class=""/>
-            </v-col>
-          </v-row>
+      <v-row v-if="$vuetify.breakpoint.mdAndUp">
+        <v-col
+            :cols="!url.isViewSet($route, 'report') ? 12 : 8"
+            v-if="url.isViewSet($route, 'list')"
+        >
+          <serp-results-list :results-object="resultsObject"/>
+        </v-col>
+        <v-col
+            class="flex-grow-1"
+            v-if="url.isViewSet($route, 'report')"
+        >
+          <analytic-views :results-object="resultsObject" class=""/>
+        </v-col>
+      </v-row>
 
-          <template v-else>
-            <v-row>
-              <v-col>
-                <v-tabs v-model="resultsTab">
-                  <v-tab key="0">Results</v-tab>
-                  <v-tab key="1">Summaries</v-tab>
-                </v-tabs>
-                <v-tabs-items v-model="resultsTab">
-                  <v-tab-item key="0">
-                    <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-                  </v-tab-item>
-                  <v-tab-item key="1">
-                    <analytic-views/>
-                  </v-tab-item>
-                </v-tabs-items>
-              </v-col>
-            </v-row>
-          </template>
-
-
-        </v-container>
-      </v-card>
+      <template v-else>
+        <v-row>
+          <v-col>
+            <v-tabs v-model="resultsTab">
+              <v-tab key="0">Results</v-tab>
+              <v-tab key="1">Summaries</v-tab>
+            </v-tabs>
+            <v-tabs-items v-model="resultsTab">
+              <v-tab-item key="0">
+                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
+              </v-tab-item>
+              <v-tab-item key="1">
+                <analytic-views/>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-col>
+        </v-row>
+      </template>
 
 
     </v-container>

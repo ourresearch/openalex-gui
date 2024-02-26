@@ -207,7 +207,7 @@ const isFilterKeyAvailableToCreate = function (currentRoute, entityType, filterK
 
 
 const updateFilter = async function (entityType, index, newValue, isNegated) {
-    console.log("url.updateFilter", entityType, index, newValue)
+    console.log("url.updateFilter", entityType, index, newValue, isNegated)
     const filters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     filters[index] = createSimpleFilter(
         entityType,
@@ -320,6 +320,7 @@ const setIsFilterOptionNegated = function(entityType, filterKey, option, isNegat
 }
 
 const setIsFilterNegated = function (entityType, index, isNegated) {
+    console.log("setIsFilterNegated", isNegated)
     const myValue = readFilter(router.currentRoute, entityType, index)?.value
     // const newValue = setStringIsNegated(myValue, isNegated)
     updateFilter(entityType, index, myValue, isNegated)

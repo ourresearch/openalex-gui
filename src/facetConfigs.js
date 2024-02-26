@@ -121,7 +121,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: [],
             isCore: true,
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             extractFn: (entity) => entity.concepts,
             isMultiple: true,
@@ -139,7 +139,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: ["filter", "group_by",],
             actionsPopular: [],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic,
@@ -157,7 +157,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: ["filter", "group_by",],
             actionsPopular: [],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.subfield,
@@ -175,7 +175,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: ["filter", "group_by",],
             actionsPopular: [],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.field,
@@ -193,7 +193,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: ["filter", "group_by",],
             actionsPopular: [],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.domain,
@@ -1171,7 +1171,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isManyOptions: true,
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
         },
         {
             key: "display_name_alternatives",
@@ -1301,7 +1301,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isManyOptions: true,
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
         },
 
 
@@ -1426,7 +1426,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             isManyOptions: true,
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
         },
         {
             key: "display_name_alternatives",
@@ -1492,7 +1492,7 @@ const facetConfigs = function (entityType) {
             noOptions: true,
             type: "entity",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
@@ -1511,7 +1511,7 @@ const facetConfigs = function (entityType) {
             maxPotentialFiltersToShow: 10,
             type: "select",
             categories: ["popular"],
-            icon: "mdi-lightbulb-outline"
+            icon: "mdi-tag-outline"
         },
 
         // topics
@@ -1522,7 +1522,7 @@ const facetConfigs = function (entityType) {
             displayName: "description",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.description,
         },
         {
@@ -1532,7 +1532,7 @@ const facetConfigs = function (entityType) {
             displayName: "subfield (parent)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.subfield,
         },
         {
@@ -1542,7 +1542,7 @@ const facetConfigs = function (entityType) {
             displayName: "field",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.field,
         },
         {
@@ -1552,7 +1552,7 @@ const facetConfigs = function (entityType) {
             displayName: "domain",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
 
@@ -1566,7 +1566,7 @@ const facetConfigs = function (entityType) {
             displayName: "description",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.description,
         },
         {
@@ -1576,7 +1576,7 @@ const facetConfigs = function (entityType) {
             displayName: "alternate names",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.display_name_alternatives,
         },
         {
@@ -1586,7 +1586,7 @@ const facetConfigs = function (entityType) {
             displayName: "topics (children)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.topics,
         },
         {
@@ -1596,7 +1596,7 @@ const facetConfigs = function (entityType) {
             displayName: "field (parent)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.field,
         },
         {
@@ -1606,7 +1606,7 @@ const facetConfigs = function (entityType) {
             displayName: "domain",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
 
@@ -1619,7 +1619,7 @@ const facetConfigs = function (entityType) {
             displayName: "description",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.description,
         },
         {
@@ -1629,7 +1629,7 @@ const facetConfigs = function (entityType) {
             displayName: "alternate names",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.display_name_alternatives,
         },
         {
@@ -1639,7 +1639,7 @@ const facetConfigs = function (entityType) {
             displayName: "subfields (children)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.subfields,
         },
         {
@@ -1649,7 +1649,7 @@ const facetConfigs = function (entityType) {
             displayName: "domain (parent)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
 
@@ -1664,7 +1664,7 @@ const facetConfigs = function (entityType) {
             displayName: "description",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.description,
         },
         {
@@ -1674,7 +1674,7 @@ const facetConfigs = function (entityType) {
             displayName: "alternate names",
             type: "search",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.display_name_alternatives,
         },
         {
@@ -1684,7 +1684,7 @@ const facetConfigs = function (entityType) {
             displayName: "fields (children)",
             type: "select",
             categories: ["other"],
-            icon: "mdi-lightbulb-outline",
+            icon: "mdi-tag-outline",
             extractFn: (e) => e.fields,
         },
 

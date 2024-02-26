@@ -165,7 +165,7 @@ const entityConfigs = {
         ],
     },
     concepts: {
-        icon: "mdi-lightbulb-outline",
+        icon: "mdi-tag-outline",
         name: "concepts",
         nameSingular: "concept",
         displayName: "concepts",
@@ -182,7 +182,7 @@ const entityConfigs = {
     },
 
     topics: {
-        icon: "mdi-lightbulb-outline",
+        icon: "mdi-tag-outline",
         name: "topics",
         nameSingular: "topic",
         displayName: "topics",
@@ -204,7 +204,7 @@ const entityConfigs = {
         ],
     },
     subfields: {
-        icon: "mdi-lightbulb-outline",
+        icon: "mdi-tag-outline",
         name: "subfields",
         nameSingular: "subfield",
         displayName: "subfields",
@@ -227,7 +227,7 @@ const entityConfigs = {
         ],
     },
     fields: {
-        icon: "mdi-lightbulb-outline",
+        icon: "mdi-tag-outline",
         name: "fields",
         nameSingular: "field",
         displayName: "fields",
@@ -249,7 +249,7 @@ const entityConfigs = {
         ],
     },
     domains: {
-        icon: "mdi-lightbulb-outline",
+        icon: "mdi-tag-outline",
         name: "domains",
         nameSingular: "domain",
         displayName: "domains",

@@ -1,12 +1,7 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index" @click="isActive = true">
-    <div
-        :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
-        class="d-flex flex-wrap align-center"
-    >
-      <span class="font-weight-bold">
+  <filter-base :filter-key="filterKey" :index="index" @click="isActive = true" clickable>
+    <td>
         {{ value }}
-      </span>
 
       <v-dialog
           rounded
@@ -49,7 +44,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </div>
+    </td>
   </filter-base>
 
 </template>

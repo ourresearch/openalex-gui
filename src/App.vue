@@ -37,9 +37,11 @@
 <!--          class="flex-grow-1 mx-12"-->
 <!--      />-->
 <!--      <v-spacer v-else />-->
+      <v-spacer />
+      <shortcut-box v-if="$route.name === 'Serp'" dense />
       <serp-toolbar
           :results-object="$store.state.resultsObject"
-          class="flex-grow-1"
+          class="flex-grow-0"
       />
 <!--      <v-spacer />-->
       <div style="height: 66%; border-left: 1px solid #ddd;" ></div>
@@ -145,6 +147,8 @@ import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.
 import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
+import ShortcutBox from "@/components/ShortcutBox.vue";
+
 export default {
   name: 'App',
   metaInfo: {
@@ -166,6 +170,7 @@ export default {
     SavedSearchRenameDialog,
     SavedSearchSaveDialog,
     SavedSearchEditAlertDialog,
+    ShortcutBox,
   },
 
 
