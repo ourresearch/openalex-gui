@@ -1,10 +1,10 @@
 <template>
   <v-toolbar flat class="">
-    <serp-toolbar-title
-        @save="clickSave"
-        @toggle-alert="toggleAlert"
-        style="margin-left: -5px;"
-    />
+<!--    <serp-toolbar-title-->
+<!--        @save="clickSave"-->
+<!--        @toggle-alert="toggleAlert"-->
+<!--        style="margin-left: -5px;"-->
+<!--    />-->
     <v-spacer/>
     <serp-toolbar-menu
         @save="clickSave"

@@ -1,11 +1,11 @@
 <template>
   <span class="">
     <template v-if="$vuetify.breakpoint.smAndDown" class="">
-      <span class="font-weight-bold ">{{ resultsObject?.meta.count | millify }}</span> results
+      <span class="font-weight-bold ">{{ resultsObject?.meta.count | millify }}</span>
     </template>
     <template v-else class="">
       <!-- maybe use https://www.npmjs.com/package/vue-animate-number -->
-      <span v-if="resultsObject?.meta?.count >= 1000">About </span><span
+      <span class="font-weight-regular" v-if="resultsObject?.meta?.count >= 1000"></span><span
         class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span>
       <span v-if="includeTime">({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)</span>
     </template>

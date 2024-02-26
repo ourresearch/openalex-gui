@@ -1,35 +1,36 @@
 <template>
-  <v-card
-      flat
-      rounded
-      class="d-flex align-center text-h6  pl-4 pr-1 py-2 font-weight-regular hover-color-3"
+  <tr
       @click="$emit('click')"
+      class="hover-color-2"
+      :class="{clickable}"
   >
-    <div class="pr-2">
-      <span class="grey--text">
-        {{ index + 1 }}.
-      </span>
-      <span class="grey--text">
-        {{ index > 0 ? "and" : "" }}
-      </span>
+    <!--    <td class="grey&#45;&#45;text shrink pl-5">-->
+    <!--      {{ index + 1 }}.-->
+    <!--    </td>-->
+    <!--    <td class="grey&#45;&#45;text shrink">-->
+    <!--      {{ index > 0 ? "and" : "" }}-->
+    <!--    </td>-->
+    <td class="shrink pl-4">
       <v-icon class="mr-0">{{ myConfig.icon }}</v-icon>
-      <span v-if="myConfig.type !== 'boolean'">
-        <span class="">
-          {{ myConfig.displayName }}
-        </span>
-        <span class="">
-          <v-chip outlined @click="isNegated = !isNegated" class="text-h6">
-            {{ isNegated ? "is not" : "is"}}
-          </v-chip>
-        </span>
-      </span>
-
-    </div>
+    </td>
+    <td class="shrink">
+      {{ myConfig.type === 'boolean' ? "work" : myConfig.displayName }}
+    </td>
+    <td class="shrink" style="min-width: 5em;">
+      <span v-if="myConfig.type === 'search'" class="px-3">is</span>
+      <v-chip v-else outlined @click.stop="isNegated = !isNegated">
+        {{ isNegated ? "is not" : "is" }}
+      </v-chip>
+    </td>
     <slot></slot>
-    <v-btn icon @click.stop="url.deleteFilter(entityType, index)" v-if="myConfig.type !== 'select'">
-      <v-icon>mdi-close</v-icon>
-    </v-btn>
-  </v-card>
+    <td class="text-right">
+      <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+
+    </td>
+
+  </tr>
 </template>
 
 <script>
@@ -44,6 +45,7 @@ export default {
   props: {
     filterKey: String,
     index: Number,
+    clickable: Boolean,
   },
   data() {
     return {
@@ -65,11 +67,18 @@ export default {
       return getFacetConfig(this.entityType, this.filterKey)
     },
     isNegated: {
-      get(){
-        return url.readIsFilterNegated(this.$route, this.entityType, this.index)
+      get() {
+        const urlFilter = url.readFilter(this.$route, this.entityType, this.index)
+        console.log("isNegated getter()", urlFilter?.value)
+        return this.myConfig.type === "boolean" ?
+            !url.readFilter(this.$route, this.entityType, this.index)?.value :
+            url.readIsFilterNegated(this.$route, this.entityType, this.index)
       },
-      set(to){
-        return url.setIsFilterNegated(this.entityType, this.index, to)
+      set(to) {
+        console.log("isNegated setter()", to)
+        return this.myConfig.type === "boolean" ?
+            url.updateFilter(this.entityType, this.index, !to) :
+            url.setIsFilterNegated(this.entityType, this.index, to)
       }
     }
   },
@@ -92,5 +101,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
+tr {
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+td {
+  padding: 9px;
+  border-bottom: 1px solid #eee;
+}
+
+td.shrink {
+  white-space: nowrap;
+  width: 1px;
+}
 
 </style>

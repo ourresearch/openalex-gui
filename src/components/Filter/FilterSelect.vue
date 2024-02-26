@@ -1,13 +1,6 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index">
-    <div
-        :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
-        class="d-flex flex-wrap align-center"
-    >
-
-      <!--           style="margin-left: -11px;"-->
-
-
+  <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive" clickable>
+    <td class="d-flex">
       <template
           v-for="(id, i) in optionIds"
       >
@@ -24,29 +17,26 @@
             v-if="i < optionIds.length-1"
             class="mx-2"
         >
-        or
-      </span>
-
+          or
+        </span>
       </template>
-
 
       <v-btn class="" icon @click="isActive = true">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
 
-
-      <v-dialog scrollable :fullscreen="$vuetify.breakpoint.mobile" v-model="isActive" max-width="600">
-        <filter-select-add-option
-            :filter-key="filterKey"
-            :filter-index="index"
-            @close="isActive = false"
-            @add="addOption"
-
-        />
-      </v-dialog>
+    </td>
 
 
-    </div>
+    <v-dialog scrollable :fullscreen="$vuetify.breakpoint.mobile" v-model="isActive" max-width="600">
+      <filter-select-add-option
+          :filter-key="filterKey"
+          :filter-index="index"
+          @close="isActive = false"
+          @add="addOption"
+
+      />
+    </v-dialog>
   </filter-base>
 
 
@@ -135,18 +125,16 @@ export default {
     deleteOption(id) {
       url.deleteFilterOption(this.entityType, this.index, id)
     },
-    addOption(id){
+    addOption(id) {
       console.log("FilterSelect addOption()", id, this.optionIds)
       this.$emit("close") // shouldn't be necessary but it is
       this.isActive = false
       this.optionIds.length ?
-        url.addFilterOption(this.entityType, this.index, id) :
-        url.createFilter(this.entityType, this.filterKey, id)
-
+          url.addFilterOption(this.entityType, this.index, id) :
+          url.createFilter(this.entityType, this.filterKey, id)
 
 
     }
-
 
 
   },
@@ -155,7 +143,7 @@ export default {
   mounted() {
   },
   watch: {
-    isActive(to){
+    isActive(to) {
       this.searchString = ""
       if (!to) this.$emit("close")
     }

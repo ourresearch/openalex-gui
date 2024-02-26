@@ -1,45 +1,37 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive">
-    <div
-        :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
-        class="d-flex flex-wrap align-center"
-    >
-      <span class="font-weight-bold px-4 px-sm-0">
-        "{{ value }}"
-      </span>
-
-      <v-dialog rounded v-model="isActive" max-width="600">
-        <v-card rounded>
-          <v-toolbar flat>
-            <v-toolbar-title>
-              {{ config.displayName }}
-            </v-toolbar-title>
-            <v-spacer/>
-            <v-btn icon @click="isActive = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-toolbar>
-          <div class="pa-2">
-            <v-textarea
-                style="width: 100%;"
-                rounded
-                outlined
-                full-width
-                v-model="searchString"
-                hide-details
-                @keydown.enter="submit"
-                autofocus
-            >
-            </v-textarea>
-          </div>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text rounded @click="isActive = false">Cancel</v-btn>
-            <v-btn color="primary" rounded @click="submit">Apply</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </div>
+  <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive" clickable>
+    <td>"{{ value }}"</td>
+    <v-dialog rounded v-model="isActive" max-width="600">
+      <v-card rounded>
+        <v-toolbar flat>
+          <v-toolbar-title>
+            {{ config.displayName }}
+          </v-toolbar-title>
+          <v-spacer/>
+          <v-btn icon @click="isActive = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <div class="pa-2">
+          <v-textarea
+              style="width: 100%;"
+              rounded
+              outlined
+              full-width
+              v-model="searchString"
+              hide-details
+              @keydown.enter="submit"
+              autofocus
+          >
+          </v-textarea>
+        </div>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+          <v-btn color="primary" rounded @click="submit">Apply</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </filter-base>
 
 
@@ -114,7 +106,7 @@ export default {
     this.isActive = !this.value
   },
   watch: {
-    isActive(to){
+    isActive(to) {
       if (!to) this.$emit("close")
     }
   }

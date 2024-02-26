@@ -1,23 +1,9 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index" @click="value = !value">
-    <div
-        :width="$vuetify.breakpoint.xsOnly ? '100%' : undefined"
-        class="d-flex flex-wrap align-center"
-    >
-      <div>
-        <span class=" ">
-          the {{ entityType | pluralize(1) }}
-          <span class="font-weight-bold">
-            {{ value ? "is" : "is NOT"}}
-          </span>
-        </span>
-          <span class="">{{ config.displayName }}</span>
+  <filter-base :filter-key="filterKey" :index="index" >
+    <td>
+      {{ config.displayName }}
+    </td>
 
-
-
-      </div>
-
-    </div>
 
   </filter-base>
 

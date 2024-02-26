@@ -1,10 +1,12 @@
 <template>
   <v-card rounded flat class="">
     <v-toolbar flat class="">
-<!--      <serp-results-count :results-object="resultsObject" class=""/>-->
 <!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
       <v-icon left>mdi-format-list-checkbox</v-icon>
-      <v-toolbar-title class="font-weight-bold">List</v-toolbar-title>
+      <v-toolbar-title class="font-weight-bold mr-2">
+        {{ entityType | pluralize(2) | capitalize }}
+       (<serp-results-count :results-object="resultsObject" class=""/>)
+      </v-toolbar-title>
       <v-spacer/>
 <!--      <action class="ml-2" action="sort"/>-->
       <serp-results-sort-button />

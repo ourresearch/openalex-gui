@@ -6,6 +6,7 @@ const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 
 const createFilterId = function (key, value, isNegated) {
     key = key.toLowerCase()
+
     const negateSymbol = (isNegated) ? "!" : ""
 
     const openAlexUrlBase = "https://openalex.org/"
@@ -215,23 +216,29 @@ const createFilterValue = function (rawValue, filterType) {
 }
 
 const createSimpleFilter = function (entityType, key, value, isNegated) {
+    // console.log("createSimpleFilter", key, value, isNegated)
     if (!key) {
         throw Error(
             `OpenAlex: createSimpleFilter(): no key provided.`
         )
     }
     const facetConfig = getFacetConfig(entityType, key)
+    const myValue = createFilterValue(value, facetConfig.type)
+    if (!myValue) isNegated = true
 
-
-    const myValue = createFilterValue(value, facetConfig.type, isNegated)
     const nullValues = ["unknown", "null"]
     const apiValue = (nullValues.includes(myValue)) ? null : myValue
+
+    const negationSymbol = (isNegated && !!myValue) ?
+        "!" :
+        ""
+    const asStr = facetConfig.key + ":" + negationSymbol + apiValue
 
     return {
         ...facetConfig,
         // key,
         value: myValue,
-        asStr: createFilterId(key, apiValue, isNegated),
+        asStr,
         kv: createFilterId(key, apiValue),
         // isEntity: entityKeys.includes(key),
         isNegated: !!isNegated,

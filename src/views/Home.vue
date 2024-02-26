@@ -10,7 +10,7 @@
               <div class="text-h5 ml-3 mb-3">
                 Search and analyze the world's research.
               </div>
-              <search-bar />
+              <shortcut-box />
 
             </div>
 
@@ -165,6 +165,8 @@ import FilterList from "@/components/FilterListChips.vue";
 import {mapGetters} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 
+import ShortcutBox from "@/components/ShortcutBox.vue";
+
 export default {
   name: 'home',
   components: {
@@ -172,6 +174,7 @@ export default {
     SearchBar,
     FilterList,
     VueTyper,
+    ShortcutBox,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",
