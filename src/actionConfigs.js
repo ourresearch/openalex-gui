@@ -45,6 +45,7 @@ const actionConfigs = [
         getDefaultValues(query){return [
             "publication_year",
             "open_access.is_oa",
+            "primary_topic.id",
             "authorships.institutions.lineage",
             "type",
         ]},

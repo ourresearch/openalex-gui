@@ -1,6 +1,6 @@
 <template>
 
-  <v-card rounded flat class="mb-12">
+  <v-card rounded flat class="">
     <div class="">
       <v-toolbar flat rounded >
         <v-icon class=" mr-3">mdi-filter-outline</v-icon>
@@ -24,10 +24,10 @@
 <!--          </template>-->
 
         </v-toolbar-title>
-        <!--        <v-icon class="mr-3" >mdi-filter-outline</v-icon>-->
-        <!--        <v-toolbar-title>-->
-        <!--          Filters ({{ filters.length }}):-->
-        <!--        </v-toolbar-title>-->
+        <v-spacer />
+        <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
+          <v-icon>mdi-delete-outline</v-icon>
+        </v-btn>
       </v-toolbar>
 
 <!--      <v-divider/>-->
@@ -210,6 +210,7 @@ import SearchBar from "@/components/SearchBar.vue";
 import Action from "@/components/Action/Action.vue";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
+import {clear} from "core-js/internals/task";
 
 export default {
   name: "Template",
@@ -352,6 +353,7 @@ export default {
   },
 
   methods: {
+    clear,
     ...mapMutations([
       "snackbar",
     ]),

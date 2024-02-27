@@ -2,18 +2,8 @@
   <div class="color-2">
     <!--    <serp-toolbar :results-object="resultsObject"/>-->
     <v-container fluid class="">
-      <!--      <serp-tabs :results-object="resultsObject"/>-->
-
-      <filter-list :results-object="resultsObject" class=""/>
-      <!--        <v-divider class="mt-3"/>-->
-      <serp-api-editor v-if="url.isViewSet($route, 'api')" class=" mt-4"/>
-      <!--          <v-row>-->
-      <!--            <v-col>-->
-      <!--              <serp-results-count :results-object="resultsObject" include-time class="grey&#45;&#45;text"/>-->
-      <!--            </v-col>-->
-      <!--          </v-row>-->
-
-      <!--http://localhost:8080/login/magic-token/Cd4JDEp8gj66tnwmpJXWtwEWT1ceSpf2lREwOawXkvM-->
+      <filter-list :results-object="resultsObject" class="mb-6 mt-3"/>
+      <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="$vuetify.breakpoint.mdAndUp">
         <v-col
