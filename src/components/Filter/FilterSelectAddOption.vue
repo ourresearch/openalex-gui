@@ -109,8 +109,9 @@ export default {
     },
     filteredGroups() {
       return this.groups
+          .filter(group => group.displayValue)
           .filter(group => {
-            return group.displayValue.toLowerCase().includes(this.searchString.toLowerCase())
+            return group.displayValue?.toLowerCase()?.includes(this.searchString.toLowerCase())
           })
     },
     isMoreRows() {
