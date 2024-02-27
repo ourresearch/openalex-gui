@@ -459,6 +459,7 @@ const facetConfigs = function (entityType) {
         {
             key: "corresponding_author_ids",
             entityType: "works",
+            entityId: "authors",
             displayName: "corresponding author",
             type: "select",
             isManyOptions: true,
@@ -662,6 +663,7 @@ const facetConfigs = function (entityType) {
         {
             key: "corresponding_institution_ids",
             entityType: "works",
+            entityId: "institutions",
             displayName: "corresponding institution",
             category: "institution",
             isList: true,
