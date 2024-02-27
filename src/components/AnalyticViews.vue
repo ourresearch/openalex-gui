@@ -2,7 +2,7 @@
   <v-card rounded flat color="">
     <v-toolbar flat color="" class="">
       <v-icon left>mdi-clipboard-outline</v-icon>
-      <v-toolbar-title class="font-weight-bold">Report</v-toolbar-title>
+      <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
       <v-btn icon :href="csvUrl">

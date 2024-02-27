@@ -12,6 +12,7 @@
       filled
       hide-no-data
       hide-details
+      class="shortcut-box"
 
       @blur="suggestions = []"
       @change="goToEntity"
@@ -27,7 +28,8 @@
         </v-list-item-content>
         <v-list-item-action-text
             v-if="data.item.entityId !== 'works'"
-            class="body-1 grey--text"
+            class="body-1 grey--text pl-3"
+            :class="{'body-2': dense}"
         >
           {{ data.item.worksCount | toPrecision }} works
         </v-list-item-action-text>
@@ -153,6 +155,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style  lang="scss">
+.shortcut-box {
+  .v-icon.notranslate.mdi.mdi-menu-down.theme--light {
+    display:none !important;
+  }
+
+}
 
 </style>

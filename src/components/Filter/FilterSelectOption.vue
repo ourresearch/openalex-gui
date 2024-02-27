@@ -12,7 +12,7 @@
       <v-chip
           outlined
           label
-          class="font-weight-bold option d-block mr-1 text-h6 py-1"
+          class=" option d-block mr-1  py-1 mb-1 mt-1"
           style="height: unset;"
           v-on="on"
           close

@@ -1,43 +1,24 @@
 <template>
-  <div v-if="data">
-
-    <div
-        class="text-h4 mb-1"
-        v-html="$prettyTitle(data.display_name)"
-    />
-    <div class="d-flex align-center">
-      <link-entity-roles-list
-          v-if="data.roles"
-          :roles="data.roles"
-          :selected="myEntityConfig.nameSingular"
-          style="margin-left:-13px;"
+  <v-card flat rounded v-if="data" class="py-4">
+    <template
+        v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
+    >
+      <v-divider
+          v-if="filterKey === null"
+          :key="'divider-'+i"
+          class="my-1"
       />
-      <div v-else-if="type !== 'works'" class="grey--text">
-        {{ myEntityConfig.displayNameSingular | capitalize }}
-      </div>
-      <work-linkouts v-if="type === 'works'" :data="data"/>
-    </div>
-    <div class="mt-10">
-      <template
-          v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
-      >
-        <v-divider
-            v-if="filterKey === null"
-            :key="'divider-'+i"
-            class="my-1"
-        />
-        <entity-datum-row
-            v-else
-            :key="'data-'+filterKey"
-            :filter-key="filterKey"
-            :data="data"
-        />
-      </template>
-
-    </div>
+      <entity-datum-row
+          v-else
+          :key="'data-'+filterKey"
+          :filter-key="filterKey"
+          :data="data"
+          class="px-4 pb-1"
+      />
+    </template>
 
 
-  </div>
+  </v-card>
 
 </template>
 
