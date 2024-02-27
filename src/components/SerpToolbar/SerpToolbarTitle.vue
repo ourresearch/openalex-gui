@@ -9,8 +9,7 @@
     <!--      <v-icon>mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
     <div>
-      <v-btn v-if="!userId" rounded text class="text-h6" @click="clickTitle">
-        <v-icon class="mr-2">mdi-folder-outline</v-icon>
+      <v-btn v-if="!userId" rounded text class="font-weight-regular" @click="clickTitle">
         Unsaved search
         <v-icon class="ml-1">mdi-menu-down</v-icon>
       </v-btn>
