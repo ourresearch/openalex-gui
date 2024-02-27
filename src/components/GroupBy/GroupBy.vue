@@ -62,7 +62,7 @@
       </v-menu>
 
     </v-toolbar>
-    <div v-if="groups.length" class="card-body">
+    <div v-if="groups.length || selectedGroupIds.length" class="card-body">
 
       <div v-if="filterKey==='publication_year'" style="min-width: 200px">
         <bar-graph
@@ -107,7 +107,6 @@
 
 
       </div>
-
 
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>

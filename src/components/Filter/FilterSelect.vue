@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive" clickable>
-    <td class="d-flex flex-wrap">
+    <td class="d-flex flex-wrap align-center">
       <template
           v-for="(id, i) in optionIds"
       >
@@ -12,13 +12,13 @@
             :position="i"
             @delete="deleteOption(id)"
         />
-<!--        <span-->
-<!--            :key="'or'+i"-->
-<!--            v-if="i < optionIds.length-1"-->
-<!--            class="mx-2"-->
-<!--        >-->
-<!--          or-->
-<!--        </span>-->
+        <span
+            :key="'or'+i"
+            v-if="i < optionIds.length-1"
+            class="mx-1 mr-2 grey--text"
+        >
+          or
+        </span>
       </template>
 
       <v-btn class="" icon @click="isActive = true">
