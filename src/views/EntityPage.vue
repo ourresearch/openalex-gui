@@ -1,46 +1,91 @@
 <template>
-  <v-container>
-    <div class="d-flex">
-      <v-btn
-          color="primary"
-          rounded
-          class="my-2"
-          text
-          @click="$router.back()"
-      >
-        <v-icon left>mdi-arrow-left</v-icon>
-        back
-      </v-btn>
-      <v-spacer />
-      <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
+  <div class="color-2">
+  <v-container v-if="entityData" class="">
+    <v-row>
+      <v-col>
+        <div class="d-flex">
+          <v-btn
+              color="primary"
+              rounded
+              class="my-2"
+              text
+              @click="$router.back()"
+          >
+            <v-icon left>mdi-arrow-left</v-icon>
+            back
+          </v-btn>
+          <v-spacer/>
+          <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+            <v-icon>mdi-api</v-icon>
+          </v-btn>
+        </div>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <div
+            class="text-h4 mb-1"
+            v-html="$prettyTitle(entityData.display_name)"
+        />
+        <div class="d-flex align-center">
+          <link-entity-roles-list
+              v-if="entityData.roles"
+              :roles="entityData.roles"
+              :selected="myEntityConfig.nameSingular"
+              style="margin-left:-13px;"
+          />
+          <div v-else-if="myEntityType !== 'works'" class="grey--text">
+            {{ myEntityConfig.displayNameSingular | capitalize }}
+          </div>
+          <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+        </div>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12" md="4">
+        <entity-new
+            :data="entityData"
+            :type="myEntityType"
+        />
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-card flat rounded>
+          <v-list>
+            <serp-results-list-item-work
+              v-for="result in worksResultObject.results"
+              :key="result.id"
+              :result="result"
+            />
+          </v-list>
+        </v-card>
+      </v-col>
+      <v-col cols="12" md="4">
+        <analytic-views :results-object="worksResultObject" />
+      </v-col>
 
-    </div>
-<!--      <entity-body-->
-<!--          :data="entityData"-->
-<!--          :type="myEntityType"-->
-<!--          v-if="entityData && myEntityType"-->
-<!--      />-->
+    </v-row>
 
-    <entity-new
-      :data="entityData"
-      :type="myEntityType"
-    />
+    <!--      <entity-body-->
+    <!--          :data="entityData"-->
+    <!--          :type="myEntityType"-->
+    <!--          v-if="entityData && myEntityType"-->
+    <!--      />-->
 
-<!--    <template v-if="isDataMatchingId">-->
-<!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
-<!--      <entity-body v-else :data="entityData" />-->
 
-<!--    </template>-->
+    <!--    <template v-if="isDataMatchingId">-->
+    <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
+    <!--      <entity-body v-else :data="entityData" />-->
 
-<!--    <component-->
-<!--        class=""-->
-<!--        :is="myEntityComponentName"-->
-<!--        :data="entityData"-->
-<!--        v-if="isDataMatchingId"-->
-<!--    />-->
+    <!--    </template>-->
+
+    <!--    <component-->
+    <!--        class=""-->
+    <!--        :is="myEntityComponentName"-->
+    <!--        :data="entityData"-->
+    <!--        v-if="isDataMatchingId"-->
+    <!--    />-->
   </v-container>
+  </div>
 </template>
 
 <script>
@@ -56,11 +101,16 @@ import EntityInstitution from "@/components/Entity/EntityInstitution.vue";
 import EntityConcept from "@/components/Entity/EntityConcept.vue";
 
 import EntityNew from "@/components/Entity/EntityNew.vue";
+import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
+import AnalyticViews from "@/components/AnalyticViews.vue";
 
 
 import {api} from "@/api";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 import EntityBody from "@/components/Entity/EntityBody.vue";
+import {getEntityConfig} from "@/entityConfigs";
+import entity from "@/components/Entity/Entity.vue";
+import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 
 export default {
   name: "EntityPage",
@@ -79,6 +129,8 @@ export default {
     EntityConcept,
 
     EntityNew,
+    SerpResultsListItemWork,
+    AnalyticViews,
   },
   props: {},
   data() {
@@ -86,9 +138,13 @@ export default {
       foo: 42,
       entityData: null,
       myEntityType: null,
+      worksResultObject: {},
     }
   },
   computed: {
+    entity() {
+      return entity
+    },
     ...mapGetters([
       "resultsFilters",
       "globalIsLoading",
@@ -100,22 +156,26 @@ export default {
       "userEmailAlerts",
       "userSavedSearches",
     ]),
+    myEntityConfig() {
+      return getEntityConfig(this.myEntityType)
+    },
     myEntityComponentName() {
       return "entity-" + this.$pluralize(
           this.$route.params.entityType,
           1
       )
     },
-    myEntityName(){
+    myEntityName() {
       return this.$route.params.entityType
     },
+
     apiPath() {
       return [
         this.$route.params.entityType,
         this.$route.params.entityId
       ].join("/")
     },
-    isDataMatchingId(){
+    isDataMatchingId() {
       const loadedId = shortenOpenAlexId(this.entityData?.id)
       const requestedId = this.$route.params.entityId
       return loadedId === requestedId
@@ -127,13 +187,35 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-
-
+    async getEntityData(){
+      this.$store.state.isLoading = true
+      this.entityData = await api.get(this.apiPath)
+      this.$store.state.isLoading = false
+    },
+    async getWorks(){
+      if (this.myEntityType === 'works') return
+      if (!this.myEntityConfig) return
+      const myWorksFilter = createSimpleFilter(
+          "works",
+          this.myEntityConfig.filterKey,
+          this.$route.params.entityId,
+      )
+      const filterString = filtersAsUrlStr([myWorksFilter])
+      const apiUrl = api.createUrl(
+          "works",
+          {filter: filterString},
+          true
+      )
+      console.log("getWorks() calling this url", apiUrl)
+      const resp = await api.getResultsList(apiUrl)
+      console.log("getWorks() got response back", resp)
+      this.worksResultObject = resp
+    },
   },
   created() {
   },
   async mounted() {
-    console.log("EntityPage mounted", this.$route.params.entityType,this.$route.params.entityId )
+    console.log("EntityPage mounted", this.$route.params.entityType, this.$route.params.entityId)
     // const path = [
     //   this.$route.params.entityType,
     //   this.$route.params.entityId
@@ -144,10 +226,9 @@ export default {
     'apiPath': {
       immediate: true,
       async handler(to, from) {
-        this.$store.state.isLoading = true
-        this.entityData = await api.get(this.apiPath)
         this.myEntityType = this.$route.params.entityType
-        this.$store.state.isLoading = false
+        this.getEntityData()
+        this.getWorks()
       }
     }
   }

@@ -51,16 +51,6 @@
 
 
     </v-container>
-    <v-dialog persistent v-model="dialogs.savedSearchDoesNotExist" max-width="300">
-      <v-card>
-        <v-card-title>Search does not exist</v-card-title>
-        <v-card-text>Sorry, but this saved search doesn't exist; it may have been deleted.</v-card-text>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn text rounded color="primary" @click="url.pushToRoute($router,{name: 'Serp'})">New search</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
   </div>
 
@@ -151,7 +141,6 @@ export default {
       dialogs: {
         export: false,
         createAlert: false,
-        savedSearchDoesNotExist: false,
       },
       resultsTab: 0,
       exportEmail: "",
@@ -366,10 +355,13 @@ export default {
       immediate: true,
       async handler(to, from) {
         // console.log("Serp $route watcher", to, from)
-        this.dialogs.savedSearchDoesNotExist = false
         if (this.$route.query.id && !this.userSavedSearches.find(s => s.id === this.$route.query.id)) {
           console.log("404 search id doesn't exist", this.$route.params.entityType)
-          this.dialogs.savedSearchDoesNotExist = true
+          const query = {
+            ...this.$route.query,
+            id: undefined,
+          }
+          url.pushToRoute(this.$router, {name: "Serp", query})
           return
 
         }

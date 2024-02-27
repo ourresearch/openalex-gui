@@ -552,8 +552,8 @@ const viewConfigs = [
     },
     {
         id: "report",
-        icon: "mdi-clipboard-pulse-outline",
-        displayName: "Report",
+        icon: "mdi-clipboard-outline",
+        displayName: "Stats",
         isDefault: true,
     },
     {
