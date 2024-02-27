@@ -1,117 +1,135 @@
 <template>
   <div class="color-2">
-  <v-container v-if="entityData" class="">
-    <v-row>
-      <v-col>
-        <div class="d-flex">
-          <v-btn
-              color="primary"
-              rounded
-              class="my-2"
-              text
-              @click="$router.back()"
-          >
-            <v-icon left>mdi-arrow-left</v-icon>
-            back
-          </v-btn>
-          <v-spacer/>
-          <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </div>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" lg="9">
-        <div
-            class="text-h4 mb-1"
-            v-html="$prettyTitle(entityData.display_name)"
-        />
-        <div class="d-flex align-center">
-          <link-entity-roles-list
-              v-if="entityData.roles"
-              :roles="entityData.roles"
-              :selected="myEntityConfig.nameSingular"
-              style="margin-left:-13px;"
-          />
-          <div class="mr-3">
-            {{ myEntityConfig.displayNameSingular | capitalize }}
-          </div>
-
-
-<!--          <div v-else-if="myEntityType !== 'works'" class="grey&#45;&#45;text">-->
-<!--            {{ myEntityConfig.displayNameSingular | capitalize }}-->
-<!--          </div>-->
-
-        </div>
-      </v-col>
-      <v-col cols="12" lg="3" class="text-right">
-        <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
-      </v-col>
-    </v-row>
-    <v-row v-if="myEntityType === 'works'">
-      <v-col>
-      <entity-new
-            :data="entityData"
-            :type="myEntityType"
-        />
-      </v-col>
-    </v-row>
-
-    <v-row v-else>
-      <v-col cols="12" md="4">
-        <entity-new
-            :data="entityData"
-            :type="myEntityType"
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-card flat rounded>
-          <v-toolbar flat>
-            <v-icon left>mdi-file-document-outline</v-icon>
-            <v-toolbar-title class="font-weight-bold">
-              Top works
-            </v-toolbar-title>
-            <v-spacer />
-            <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
-              View all
+    <v-container v-if="entityData" class="">
+      <v-row>
+        <v-col>
+          <div class="d-flex">
+            <v-btn
+                color="primary"
+                rounded
+                class="my-2"
+                text
+                @click="$router.back()"
+            >
+              <v-icon left>mdi-arrow-left</v-icon>
+              back
             </v-btn>
-          </v-toolbar>
-          <v-list>
-            <serp-results-list-item-work
-              v-for="result in worksResultObject.results"
-              :key="result.id"
-              :result="result"
+            <v-spacer/>
+            <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+              <v-icon>mdi-api</v-icon>
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12" lg="9">
+          <div
+              class="text-h4 mb-1"
+              v-html="$prettyTitle(entityData.display_name)"
+          />
+          <div class="d-flex align-center">
+            <link-entity-roles-list
+                v-if="entityData.roles"
+                :roles="entityData.roles"
+                :selected="myEntityConfig.nameSingular"
+                style="margin-left:-13px;"
             />
-          </v-list>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="4">
-        <analytic-views :results-object="worksResultObject" />
-      </v-col>
-
-    </v-row>
-
-    <!--      <entity-body-->
-    <!--          :data="entityData"-->
-    <!--          :type="myEntityType"-->
-    <!--          v-if="entityData && myEntityType"-->
-    <!--      />-->
+            <div class="mr-3">
+              {{ myEntityConfig.displayNameSingular | capitalize }}
+            </div>
 
 
-    <!--    <template v-if="isDataMatchingId">-->
-    <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
-    <!--      <entity-body v-else :data="entityData" />-->
+            <!--          <div v-else-if="myEntityType !== 'works'" class="grey&#45;&#45;text">-->
+            <!--            {{ myEntityConfig.displayNameSingular | capitalize }}-->
+            <!--          </div>-->
 
-    <!--    </template>-->
+          </div>
+        </v-col>
+        <v-col cols="12" lg="3" class="text-right">
+          <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+        </v-col>
+      </v-row>
+      <v-row v-if="myEntityType === 'works'">
+        <v-col>
+          <entity-new
+              :data="entityData"
+              :type="myEntityType"
+          />
+        </v-col>
+      </v-row>
 
-    <!--    <component-->
-    <!--        class=""-->
-    <!--        :is="myEntityComponentName"-->
-    <!--        :data="entityData"-->
-    <!--        v-if="isDataMatchingId"-->
-    <!--    />-->
-  </v-container>
+      <v-row v-else>
+        <v-col cols="12" md="4">
+          <entity-new
+              :data="entityData"
+              :type="myEntityType"
+          />
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card flat rounded>
+            <v-toolbar flat>
+              <v-icon left>mdi-file-document-outline</v-icon>
+              <v-toolbar-title class="font-weight-bold">
+                Top works
+              </v-toolbar-title>
+              <v-spacer/>
+              <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
+                View all
+              </v-btn>
+            </v-toolbar>
+            <v-list>
+              <serp-results-list-item-work
+                  v-for="result in worksResultObject.results"
+                  :key="result.id"
+                  :result="result"
+              />
+            </v-list>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card flat rounded class="px-2 pb-3">
+            <v-toolbar flat>
+              <v-icon left>mdi-clipboard-outline</v-icon>
+              <v-toolbar-title class="font-weight-bold">
+                Key stats
+              </v-toolbar-title>
+              <v-spacer/>
+              <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
+                View more
+              </v-btn>
+            </v-toolbar>
+            <group-by
+              v-for="groupByKey in groupByKeys"
+              :key="groupByKey"
+              :filter-key="groupByKey"
+              :filter-by="[myWorksFilter]"
+              class="mb-3"
+            />
+          </v-card>
+        </v-col>
+
+      </v-row>
+
+      <!--      <entity-body-->
+      <!--          :data="entityData"-->
+      <!--          :type="myEntityType"-->
+      <!--          v-if="entityData && myEntityType"-->
+      <!--      />-->
+
+
+      <!--    <template v-if="isDataMatchingId">-->
+      <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
+      <!--      <entity-body v-else :data="entityData" />-->
+
+      <!--    </template>-->
+
+      <!--    <component-->
+      <!--        class=""-->
+      <!--        :is="myEntityComponentName"-->
+      <!--        :data="entityData"-->
+      <!--        v-if="isDataMatchingId"-->
+      <!--    />-->
+    </v-container>
   </div>
 </template>
 
@@ -139,6 +157,7 @@ import EntityBody from "@/components/Entity/EntityBody.vue";
 import {getEntityConfig} from "@/entityConfigs";
 import entity from "@/components/Entity/Entity.vue";
 import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
+import GroupBy from "@/components/GroupBy/GroupBy.vue";
 
 export default {
   name: "EntityPage",
@@ -160,6 +179,7 @@ export default {
     SerpResultsListItemWork,
     AnalyticViews,
     WorkLinkouts,
+    GroupBy,
   },
   props: {},
   data() {
@@ -197,7 +217,13 @@ export default {
     myEntityName() {
       return this.$route.params.entityType
     },
-
+    myWorksFilter(){
+      return createSimpleFilter(
+          "works",
+          this.myEntityConfig.filterKey,
+          this.$route.params.entityId
+      )
+    },
     apiPath() {
       return [
         this.$route.params.entityType,
@@ -209,6 +235,14 @@ export default {
       const requestedId = this.$route.params.entityId
       return loadedId === requestedId
     },
+    groupByKeys() {
+      return [
+        "publication_year",
+        "open_access.is_oa",
+        "primary_topic.id",
+        "type",
+      ]
+    }
   },
 
   methods: {
@@ -216,12 +250,12 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    async getEntityData(){
+    async getEntityData() {
       this.$store.state.isLoading = true
       this.entityData = await api.get(this.apiPath)
       this.$store.state.isLoading = false
     },
-    async getWorks(){
+    async getWorks() {
       this.worksResultObject = {}
       if (this.myEntityType === 'works') return
       if (!this.myEntityConfig) return

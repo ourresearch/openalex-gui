@@ -125,6 +125,7 @@
             :value="row.value"
             :display-value="row.displayValue"
             :count="row.count"
+            :hide-checkbox="filterBy?.length"
         />
 
 
@@ -180,6 +181,7 @@ export default {
   },
   props: {
     filterKey: String,
+    filterBy: Array,
   },
   data() {
     return {
@@ -232,13 +234,18 @@ export default {
     myFilterConfig() {
       return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
     },
+    apiRequestFilters(){
+      return this.filterBy?.length ?
+          this.filterBy :
+          filtersFromUrlStr(this.entityType, this.$route.query.filter)
+    },
     apiUrl() {
       return url.makeGroupByUrl(
           this.entityType,
           this.filterKey,
           {
             includeEmail: false,
-            filters: filtersFromUrlStr(this.entityType, this.$route.query.filter),
+            filters: this.apiRequestFilters,
           }
       )
     },
@@ -249,7 +256,7 @@ export default {
           {
             includeEmail: false,
             formatCsv: true,
-            filters: filtersFromUrlStr(this.entityType, this.$route.query.filter),
+            filters: this.apiRequestFilters,
           }
       )
     },
@@ -295,13 +302,12 @@ export default {
     async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
-      const filters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
       const ret = await api.getGroups(
           this.entityType,
           this.filterKey,
           {
             hideUnknown: true,
-            filters,
+            filters: this.apiRequestFilters,
             searchString: this.searchString
           }
       )
