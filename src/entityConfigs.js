@@ -71,8 +71,8 @@ const entityConfigs = {
             {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
         ],
         rowsToShowOnEntityPage: [
-            "last_known_institution.id",
             "display_name_alternatives",
+            "last_known_institution.id",
             "ids.orcid",
 
         ],

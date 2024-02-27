@@ -17,15 +17,15 @@
         <div class="pb-2 px-4 body-2 grey--text">
           {{ userEmail }}
         </div>
-<!--        <v-divider></v-divider>-->
-<!--        <v-list-item exact-path to="/me/searches">-->
-<!--          <v-list-item-icon>-->
-<!--            <v-icon>mdi-folder-outline</v-icon>-->
-<!--          </v-list-item-icon>-->
-<!--          <v-list-item-content>-->
-<!--            Saved Searches-->
-<!--          </v-list-item-content>-->
-<!--        </v-list-item>-->
+        <v-divider></v-divider>
+        <v-list-item exact-path to="/me/searches">
+          <v-list-item-icon>
+            <v-icon>mdi-folder-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Saved Searches
+          </v-list-item-content>
+        </v-list-item>
 
 <!--        <v-list-item exact-path to="/me">-->
 <!--          <v-list-item-icon>-->

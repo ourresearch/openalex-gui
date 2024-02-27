@@ -22,7 +22,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col>
+      <v-col cols="12" lg="9">
         <div
             class="text-h4 mb-1"
             v-html="$prettyTitle(entityData.display_name)"
@@ -34,14 +34,31 @@
               :selected="myEntityConfig.nameSingular"
               style="margin-left:-13px;"
           />
-          <div v-else-if="myEntityType !== 'works'" class="grey--text">
+          <div class="mr-3">
             {{ myEntityConfig.displayNameSingular | capitalize }}
           </div>
-          <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+
+
+<!--          <div v-else-if="myEntityType !== 'works'" class="grey&#45;&#45;text">-->
+<!--            {{ myEntityConfig.displayNameSingular | capitalize }}-->
+<!--          </div>-->
+
         </div>
       </v-col>
+      <v-col cols="12" lg="3" class="text-right">
+        <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+      </v-col>
     </v-row>
-    <v-row>
+    <v-row v-if="myEntityType === 'works'">
+      <v-col>
+      <entity-new
+            :data="entityData"
+            :type="myEntityType"
+        />
+      </v-col>
+    </v-row>
+
+    <v-row v-else>
       <v-col cols="12" md="4">
         <entity-new
             :data="entityData"
@@ -50,6 +67,16 @@
       </v-col>
       <v-col cols="12" md="4">
         <v-card flat rounded>
+          <v-toolbar flat>
+            <v-icon left>mdi-file-document-outline</v-icon>
+            <v-toolbar-title class="font-weight-bold">
+              Top works
+            </v-toolbar-title>
+            <v-spacer />
+            <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
+              View all
+            </v-btn>
+          </v-toolbar>
           <v-list>
             <serp-results-list-item-work
               v-for="result in worksResultObject.results"
@@ -103,6 +130,7 @@ import EntityConcept from "@/components/Entity/EntityConcept.vue";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
+import WorkLinkouts from "@/components/WorkLinkouts.vue";
 
 
 import {api} from "@/api";
@@ -131,6 +159,7 @@ export default {
     EntityNew,
     SerpResultsListItemWork,
     AnalyticViews,
+    WorkLinkouts,
   },
   props: {},
   data() {
@@ -193,6 +222,7 @@ export default {
       this.$store.state.isLoading = false
     },
     async getWorks(){
+      this.worksResultObject = {}
       if (this.myEntityType === 'works') return
       if (!this.myEntityConfig) return
       const myWorksFilter = createSimpleFilter(

@@ -125,7 +125,7 @@ export default {
       })
       this.myIsOpen = false
       this.isLoading = false
-      this.snackbar("Search saved; changes will autosave.")
+      this.snackbar("Search saved.")
     },
     clickSignup(){
       this.myIsOpen = false
