@@ -86,7 +86,6 @@ export default {
       },
       set(to) {
         const newValue = setStringIsNegated(this.value, to)
-        console.log("isNegated", newValue)
         this.index >= 0 ?
             url.setIsFilterOptionNegated(this.entityType, this.filterKey, this.value, to) :
             url.createFilter(this.entityType, this.filterKey, newValue)
@@ -113,7 +112,10 @@ export default {
 
     },
     async getMyCount() {
-      // if (this?.myCount) return
+      if (this.count !== null) {
+        this.myCount = this.count
+        return
+      }
       const filters = url.readFilters(this.$route)
 
       const filtersWithoutMyFilter = filters.toSpliced(this.index, 1)

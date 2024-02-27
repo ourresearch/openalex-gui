@@ -116,6 +116,7 @@
 
             :filter-key="filterKey"
             :value="id"
+            :count="null"
         />
         <group-by-table-row
             v-for="row in groups"
@@ -283,6 +284,7 @@ export default {
     },
 
     groups() {
+
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
           this.maxResults
