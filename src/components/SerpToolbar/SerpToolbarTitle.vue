@@ -1,13 +1,9 @@
 <template>
-  <v-card rounded class="" flat>
-    <!--    <v-btn  icon class="mr-2">-->
-    <!--      <v-icon >mdi-folder-outline</v-icon>-->
-    <!--    </v-btn>-->
+  <div>
 
-    <!--            <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
-    <!--              {{ activeSearchDescription }}-->
-    <!--            </div>-->
-    <!--      <v-divider></v-divider>-->
+    <!--    <v-btn icon class="mr-2">-->
+    <!--      <v-icon>mdi-folder-outline</v-icon>-->
+    <!--    </v-btn>-->
 
     <!--    <v-btn icon to="/me/searches" v-if="userId" class="ml-3">-->
     <!--      <v-icon>mdi-folder-outline</v-icon>-->
@@ -22,11 +18,11 @@
         <template v-slot:activator="{on}">
           <v-btn
               v-on="on"
-              rounded
               text
-              class=""
+              rounded
+              class="font-weight-regular"
           >
-<!--            <v-icon class="mr-2">mdi-folder-outline</v-icon>-->
+            <!--                        <v-icon left>mdi-content-save-outline</v-icon>-->
             {{ activeSearchName || "Unsaved search" }}
             <v-icon class="ml-1">mdi-menu-down</v-icon>
           </v-btn>
@@ -39,6 +35,12 @@
       </v-menu>
 
     </div>
+
+<!--    <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
+<!--      <v-divider></v-divider>-->
+<!--      {{ activeSearchDescription }}-->
+<!--    </div>-->
+
 
     <v-dialog v-model="isLoginRequiredDialogOpen" max-width="500">
       <v-card rounded>
@@ -61,7 +63,7 @@
     />
 
 
-  </v-card>
+  </div>
 </template>
 
 <script>

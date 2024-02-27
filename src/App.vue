@@ -104,7 +104,7 @@
     </v-bottom-navigation>
 
     <v-snackbar
-        top
+        bottom
         v-model="$store.state.snackbarIsOpen"
     >
       <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>

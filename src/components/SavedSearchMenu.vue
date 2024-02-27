@@ -192,7 +192,7 @@ export default {
     ]),
     newSearch() {
       url.pushToRoute(this.$router, {name: "Serp"})
-      this.snackbar("New search created.")
+      // this.snackbar("New search created.")
     },
     openSearch(id) {
       this.openSavedSearch(id)
