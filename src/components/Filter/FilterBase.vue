@@ -1,7 +1,7 @@
 <template>
   <tr
       @click="$emit('click')"
-      class="hover-color-2"
+      class="hover-color-3"
       :class="{clickable}"
   >
     <!--    <td class="grey&#45;&#45;text shrink pl-5">-->
@@ -10,11 +10,9 @@
     <!--    <td class="grey&#45;&#45;text shrink">-->
     <!--      {{ index > 0 ? "and" : "" }}-->
     <!--    </td>-->
-    <td class="shrink pl-4">
-      <v-icon class="mr-0">{{ myConfig.icon }}</v-icon>
-    </td>
-    <td class="shrink">
-      {{ myConfig.type === 'boolean' ? "work" : myConfig.displayName }}
+    <td class="shrink font-weight-bold align-center pl-4">
+      <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
+      {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
     </td>
     <td class="shrink" style="min-width: 5em;">
       <span v-if="myConfig.type === 'search'" class="px-3">is</span>
@@ -108,7 +106,7 @@ tr {
 }
 
 td {
-  padding: 9px;
+  padding: 3px 9px;
   border-bottom: 1px solid #eee;
 }
 

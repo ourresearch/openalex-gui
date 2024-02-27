@@ -78,12 +78,16 @@
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
-        <v-card v-if="groups.find(g => g.count > 0)" flat class="pa-2 d-flex color-3 hover-color-2"
-                @click="isSelected = !isSelected">
-          <v-icon class="mr-4 ml-2" color="">{{
-              isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'
-            }}
-          </v-icon>
+        <v-card
+            v-if="groups.find(g => g.count > 0)"
+            flat
+            class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
+            @click="isSelected = !isSelected"
+        >
+          <!--          <v-icon class="mr-4 ml-2" color="">{{-->
+          <!--              isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'-->
+          <!--            }}-->
+          <!--          </v-icon>-->
 
           <v-progress-circular
               size="50"
@@ -91,14 +95,13 @@
               rotate="270"
               :value="groups?.find(g => g.value != 0).countScaled * 100"
           />
-          <div class="ml-3">
-            <div class="text-h4">
+            <div class="text-h4 ml-3">
               {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
             </div>
+            <v-spacer/>
             <div class="body-2">
               {{ groups?.find(g => g.value != 0).count | toPrecision }}
             </div>
-          </div>
 
         </v-card>
 
@@ -262,14 +265,14 @@ export default {
           true,
       )
     },
-    selectedGroupIds(){
+    selectedGroupIds() {
       return url.readFilterOptionsByKey(
           this.$route,
           this.entityType,
           this.filterKey,
       )
     },
-    unselectedGroups(){
+    unselectedGroups() {
       return this.allGroups.filter(g => !this.selectedGroupIds.includes(g.value))
     },
 
