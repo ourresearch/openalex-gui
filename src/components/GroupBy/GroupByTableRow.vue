@@ -1,6 +1,6 @@
 <template>
   <tr @click="clickRow" class="group-by-table-row hover-color-2">
-    <td class="pr-0" style="width: 1px; white-space: nowrap">
+    <td v-if="!hideCheckbox" class="pr-0" style="width: 1px; white-space: nowrap">
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
         <v-icon v-else>mdi-checkbox-marked</v-icon>
@@ -21,7 +21,7 @@
     <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
     </td>
-    <td class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
+    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
       <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">
         <v-icon small>mdi-minus-circle-outline</v-icon>
       </v-btn>
@@ -46,6 +46,7 @@ export default {
     value: String,
     displayValue: String || null,
     count: Number || null,
+    hideCheckbox: Boolean,
   },
   data() {
     return {
