@@ -13,6 +13,9 @@
       hide-no-data
       hide-details
       class="shortcut-box"
+      placeholder="Search OpenAlex"
+      prepend-inner-icon="mdi-magnify"
+
 
       @blur="suggestions = []"
       @change="goToEntity"
@@ -25,6 +28,9 @@
               v-html="$prettyTitle(data.item.displayValue)"
               style="white-space: normal;"
           />
+<!--          <v-list-item-subtitle>-->
+<!--            {{ data.item.key }}:{{ data.item.value }}-->
+<!--          </v-list-item-subtitle>-->
         </v-list-item-content>
         <v-list-item-action-text
             v-if="data.item.entityId !== 'works'"
@@ -116,11 +122,15 @@ export default {
             else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
             else filterKey = result.filter_key
 
+            let id
+            if (filterKey === "authorships.countries") id = "https://openalex.org/countries/" + result.id
+            else id = result.id
+
             // const filterConfig = getFacetConfig(this.entityType, filterKey)
             const myFilter = createSimpleFilter(
                 this.entityType,
                 filterKey,
-                result.id
+                id
             )
             myFilter.displayValue = result.display_name
             myFilter.worksCount = result.works_count

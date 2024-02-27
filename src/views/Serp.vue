@@ -1,8 +1,8 @@
 <template>
   <div class="color-2">
-    <!--    <serp-toolbar :results-object="resultsObject"/>-->
-    <v-container fluid class="">
-      <filter-list :results-object="resultsObject" class="mb-6 mt-3"/>
+    <v-container fluid class="pt-4">
+        <serp-toolbar :results-object="resultsObject"/>
+      <filter-list :results-object="resultsObject" class="mb-6 "/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="$vuetify.breakpoint.mdAndUp">

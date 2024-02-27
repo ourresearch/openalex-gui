@@ -38,13 +38,14 @@
 <!--      />-->
 <!--      <v-spacer v-else />-->
       <v-spacer />
-      <shortcut-box v-if="$route.name === 'Serp'" dense />
-      <serp-toolbar
-          :results-object="$store.state.resultsObject"
-          class="flex-grow-0"
-      />
+      <shortcut-box v-if="$route.name === 'Serp'" dense style="width: 40%;" />
+      <v-spacer />
+<!--      <serp-toolbar-->
+<!--          :results-object="$store.state.resultsObject"-->
+<!--          class="flex-grow-0"-->
+<!--      />-->
 <!--      <v-spacer />-->
-      <div style="height: 66%; border-left: 1px solid #ddd;" ></div>
+<!--      <div style="height: 66%; border-left: 1px solid #ddd;" ></div>-->
 
       <user-toolbar-menu/>
 

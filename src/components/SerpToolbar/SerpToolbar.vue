@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar flat class="">
+  <v-toolbar dense flat class="" color="transparent">
 <!--    <serp-toolbar-title-->
 <!--        @save="clickSave"-->
 <!--        @toggle-alert="toggleAlert"-->
