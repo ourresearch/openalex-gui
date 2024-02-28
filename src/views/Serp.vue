@@ -76,7 +76,6 @@ import FilterList from "@/components/FilterList.vue";
 import Action from "@/components/Action/Action.vue";
 import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
 import SiteNav from "@/components/SiteNav.vue";
-import EntityWork from "@/components/Entity/EntityWork.vue";
 import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
@@ -110,7 +109,6 @@ export default {
     GroupBy,
     AnalyticViews,
 
-    EntityWork,
 
     FilterList,
     SearchBar,

@@ -71,7 +71,7 @@
                 Top works
               </v-toolbar-title>
               <v-spacer/>
-              <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
+              <v-btn color="primary" rounded text @click="viewMyWorks">
                 View all
               </v-btn>
             </v-toolbar>
@@ -94,7 +94,7 @@
                 Key stats
               </v-toolbar-title>
               <v-spacer/>
-              <v-btn color="primary" rounded text :to="$route.params.entityId | entityWorksLink">
+              <v-btn color="primary" rounded text @click="viewMyWorks">
                 View more
               </v-btn>
             </v-toolbar>
@@ -136,28 +136,17 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import Entity from "@/components/Entity/Entity.vue";
-import EntityWork from "@/components/Entity/EntityWork.vue";
-import EntityAuthor from "@/components/Entity/EntityAuthor.vue";
-import EntitySource from "@/components/Entity/EntitySource.vue";
-import EntityPublisher from "@/components/Entity/EntityPublisher.vue";
-import EntityFunder from "@/components/Entity/EntityFunder.vue";
-import EntityInstitution from "@/components/Entity/EntityInstitution.vue";
-import EntityConcept from "@/components/Entity/EntityConcept.vue";
 
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
-import AnalyticViews from "@/components/AnalyticViews.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 
 
 import {api} from "@/api";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
-import EntityBody from "@/components/Entity/EntityBody.vue";
 import {getEntityConfig} from "@/entityConfigs";
-import entity from "@/components/Entity/Entity.vue";
 import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
+import {url} from "@/url";
 
 export default {
   name: "EntityPage",
@@ -165,19 +154,8 @@ export default {
     return {title: this.entityData?.display_name}
   },
   components: {
-    EntityBody,
-    Entity,
-    EntityWork,
-    EntityAuthor,
-    EntitySource,
-    EntityPublisher,
-    EntityFunder,
-    EntityInstitution,
-    EntityConcept,
-
     EntityNew,
     SerpResultsListItemWork,
-    AnalyticViews,
     WorkLinkouts,
     GroupBy,
   },
@@ -191,9 +169,6 @@ export default {
     }
   },
   computed: {
-    entity() {
-      return entity
-    },
     ...mapGetters([
       "resultsFilters",
       "globalIsLoading",
@@ -278,6 +253,9 @@ export default {
       const resp = await api.getResultsList(apiUrl)
       console.log("getWorks() got response back", resp)
       this.worksResultObject = resp
+    },
+    viewMyWorks(){
+      return url.pushNewFilters([this.myWorksFilter])
     },
   },
   created() {

@@ -13,6 +13,7 @@
           :key="'data-'+filterKey"
           :filter-key="filterKey"
           :data="data"
+          :type="type"
           class="px-4 pb-1"
       />
     </template>
