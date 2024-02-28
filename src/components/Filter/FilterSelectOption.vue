@@ -142,33 +142,20 @@ export default {
       return "subtitle"
     },
     locationStr(){
-      if (!this.filterData) return
-      return getLocationString(this.filterData)
+      if (!this.entityData) return
+      return getLocationString(this.entityData)
     },
 
     alternateNamesString() {
       return [
-        ...this.filterData?.display_name_alternatives ?? [],
-        ...this.filterData?.display_name_acronyms ?? [],
-        ...this.filterData?.alternate_titles ?? [],
+        ...this.entityData?.display_name_alternatives ?? [],
+        ...this.entityData?.display_name_acronyms ?? [],
+        ...this.entityData?.alternate_titles ?? [],
 
       ].join("; ")
     },
-  },
-  asyncComputed: {
-    filterDisplayValue: async function () {
-      this.isLoading = true
-      // const resp = await api.makeAutocompleteResponseFromId(this.filterId)
-      const displayName = await api.getFilterValueDisplayName(this.filterKey, this.filterId)
-      this.isLoading = false
-      return displayName
-    },
-    filterData: async function () {
-      if (!this.isEntity) return {}
-      this.isLoading = true
-      const resp = await api.getEntity(this.filterId)
-      this.isLoading = false
-      return resp
+    filterDisplayValue(){
+      return this.entityData?.display_name
     },
   },
 

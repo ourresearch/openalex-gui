@@ -321,7 +321,7 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [],
     },
 
-    type: {
+    types: {
         icon: "mdi-shape-outline",
         name: "types",
         nameSingular: "type",

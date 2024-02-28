@@ -14,7 +14,7 @@ import {
     setOptionIsNegated,
     setStringIsNegated,
 } from "./filterConfigs";
-import {entityConfigs} from "@/entityConfigs";
+import {entityConfigs, externalEntityTypeFromId} from "@/entityConfigs";
 import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
@@ -226,6 +226,10 @@ const updateFilter = async function (entityType, index, newValue, isNegated) {
 
 const deleteFilterOption = async function (entityType, index, optionToDelete) {
     console.log("url.deleteFilterOption", entityType, index, optionToDelete)
+    if (externalEntityTypeFromId(optionToDelete)) {
+        optionToDelete = optionToDelete.split("/")[1]
+    }
+
     const filters = readFilters(router.currentRoute)
     const myFilter = readFilter(router.currentRoute, entityType, index)
     const isMyFilterNegated = readIsFilterNegated(router.currentRoute, entityType, index)
@@ -362,7 +366,12 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
 const readFilterOptions = function (currentRoute, entityType, index) {
     const filter = readFilter(currentRoute, entityType, index)
     if (!filter) return []
-    return optionsFromString(filter.value)
+
+    return optionsFromString(filter.value).map(value => {
+        return filter.entityId ?
+            filter.entityId + "/" + value :
+            value
+    })
 }
 
 const isFilterOptionApplied = function (currentRoute, entityType, filterKey, option) {
