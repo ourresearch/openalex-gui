@@ -368,6 +368,9 @@ const readFilterOptions = function (currentRoute, entityType, index) {
     if (!filter) return []
 
     return optionsFromString(filter.value).map(value => {
+
+        // jason start here :)
+
         return filter.entityId ?
             filter.entityId + "/" + value :
             value

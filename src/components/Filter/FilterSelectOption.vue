@@ -32,6 +32,10 @@
       <v-card-title>
         {{ filterDisplayValue }}
       </v-card-title>
+      <v-card-subtitle class="mb-0 pb-0">
+        {{ filterValue }}
+      </v-card-subtitle>
+      <v-divider class="my-2" />
       <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
 <!--      <div class="pa-3 d-flex">-->
 <!--        <div class="content">-->
@@ -57,18 +61,20 @@
 <!--          <span>{{ locationStr }}</span>-->
 <!--        </div>-->
 <!--      </v-card-text>-->
-<!--      <v-divider/>-->
-      <v-card-actions>
-        <v-spacer/>
+      <v-divider/>
+<!--      <v-card-actions>-->
+<!--        <v-spacer/>-->
 <!--        <v-btn-->
 <!--               class="ml-4"-->
-<!--               text rounded-->
-<!--               :to="filterConfig | entityZoomLink"-->
+<!--               color="primary"-->
+<!--               rounded-->
+<!--               exact-path-->
+<!--               :to="myEntityId | entityZoomLink"-->
+<!--               v-if="myEntityId"-->
 <!--        >-->
 <!--          View profile-->
-<!--          <v-icon right>mdi-arrow-right</v-icon>-->
 <!--        </v-btn>-->
-      </v-card-actions>
+<!--      </v-card-actions>-->
 
 
     </v-card>
@@ -132,7 +138,7 @@ export default {
       return this.filterKey + '-' + this.filterId
     },
     myEntityId(){
-      if (!this.isEntity) return
+      if (!this.filterId) return
       return shortenOpenAlexId(this.filterId)
     },
     myEntityConfig(){
