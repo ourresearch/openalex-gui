@@ -509,7 +509,15 @@ const setSort = function (filterKey) {
         undefined :
         filterKey + appendVerb
 
-    pushQueryParam("sort", myNewKey)
+    pushToRoute(router, {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.query,
+            sort: myNewKey,
+            page: 1,
+        },
+    })
+
 
 }
 const getSort = function (currentRoute) {
