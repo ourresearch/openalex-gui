@@ -356,9 +356,9 @@ export default {
 
         }
 
+
         if (this.userId) {
           this.$store.commit("user/setActiveSearchId", this.$route.query.id)
-
         }
 
 
