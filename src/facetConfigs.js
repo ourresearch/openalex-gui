@@ -820,6 +820,7 @@ const facetConfigs = function (entityType) {
         {
             key: "type",
             entityType: "works",
+            entityId: "types",
             displayName: "type",
             type: "select",
             categories: ["popular", "other"],
@@ -956,6 +957,7 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "sustainable_development_goals.id",
+            entityId: "sdgs",
             entityType: "works",
             displayName: "Sustainable Development Goals",
             type: "select",

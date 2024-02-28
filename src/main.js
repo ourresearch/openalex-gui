@@ -55,10 +55,18 @@ Vue.filter("entityWorksLink", function (id) {
     const entityType = entityTypeFromId(id)
     if (!id || !entityType) return
 
+    const shortId = shortenOpenAlexId(id)
+
+    const idForFilter = externalEntityTypeFromId(id) ?
+        shortId.split("/")[1] :
+       shortId
+
+    console.log("entityWorksLink", id, idForFilter)
+
     const filter = createSimpleFilter(
           "works",
           entityConfigs[entityType].filterKey,
-          shortenOpenAlexId(id),
+          idForFilter,
       )
       return {
         name: "Serp",
