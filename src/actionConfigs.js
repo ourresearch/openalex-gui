@@ -14,7 +14,9 @@ const actionConfigs = [
             "sustainable_development_goals.id",
         ],
         defaultValues: [],
-        getDefaultValues(){return []},
+        getDefaultValues() {
+            return []
+        },
         appendToValues: "",
         icon: "mdi-filter-outline",
         color: "primary",
@@ -42,13 +44,15 @@ const actionConfigs = [
             "type",
 
         ],
-        getDefaultValues(query){return [
-            "publication_year",
-            "open_access.is_oa",
-            "primary_topic.id",
-            "authorships.institutions.lineage",
-            "type",
-        ]},
+        getDefaultValues(query) {
+            return [
+                "publication_year",
+                "open_access.is_oa",
+                "primary_topic.id",
+                "authorships.institutions.lineage",
+                "type",
+            ]
+        },
         appendToValues: "",
         icon: "mdi-poll",
         isIconRotated: true,
@@ -73,14 +77,14 @@ const actionConfigs = [
                 return f.split(":")[0]?.indexOf(".search") > -1
             })
             // return [ isSearchFilterApplied ? "relevance_score" : "cited_by_count" ]
-            return [ isSearchFilterApplied ? "relevance_score" : "cited_by_count" ]
+            return [isSearchFilterApplied ? "relevance_score" : "cited_by_count"]
         },
 
         // this is too complicated for a config file...you need to look in the URL
         // to see if a search is set or not. so it's handled via a function url.js
         defaultValues: [],
         appendToValues: ":desc",
-        icon:"mdi-sort",
+        icon: "mdi-sort",
         color: "deep-orange",
         closeMenuOnContentClick: false,
 
@@ -101,13 +105,15 @@ const actionConfigs = [
             "open_access.is_oa",
             "cited_by_count",
         ],
-        getDefaultValues(query){return [
-            "display_name",
-            "publication_year",
-            "type",
-            "open_access.is_oa",
-            "cited_by_count",
-        ]},
+        getDefaultValues(query) {
+            return [
+                "display_name",
+                "publication_year",
+                "type",
+                "open_access.is_oa",
+                "cited_by_count",
+            ]
+        },
         appendToValues: "",
         icon: "mdi-view-column-outline",
         color: "green",
@@ -118,16 +124,16 @@ const actionConfigs = [
 const getActionConfig = function (id) {
     return actionConfigs.find(c => c.id === id)
 }
-const getActionDefaultValues = function(id, query){
+const getActionDefaultValues = function (id, query) {
     return getActionConfig(id).getDefaultValues(query)
 }
-const getActionDefaultsStr = function(id, query){
+const getActionDefaultsStr = function (id, query) {
     const myConfig = getActionConfig(id)
     return getActionDefaultValues(id, query)
         .map(v => v + myConfig.appendToValues)
         .join(",")
-
 }
+
 
 
 export {

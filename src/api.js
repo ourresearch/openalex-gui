@@ -74,7 +74,7 @@ const autocompleteCountry = function (searchString) {
 const makeUrl = function (pathName, searchParams, includeEmail = true) {
     const params = new URLSearchParams(searchParams);
     (includeEmail) && params.set("mailto", "team@ourresearch.org");
-    params.set("per-page", 10)
+    !params.get("per-page") && params.set("per-page", 10)
 
     if (pathName.indexOf("/") !== 0) {
         pathName = "/" + pathName
