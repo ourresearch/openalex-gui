@@ -304,6 +304,40 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [],
     },
 
+    languages: {
+        icon: "mdi-translate",
+        name: "languages",
+        nameSingular: "language",
+        displayName: "languages",
+        displayNameSingular: "language",
+        descr: "Languages",
+        eg: "Swahili",
+        placeholder: "Search languages",
+        filterName: "languages",
+        filterKey: "language",
+        color: "blue-grey",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [],
+    },
+
+    type: {
+        icon: "mdi-shape-outline",
+        name: "types",
+        nameSingular: "type",
+        displayName: "types",
+        displayNameSingular: "type",
+        descr: "Work type",
+        eg: "article",
+        placeholder: "Search work types",
+        filterName: "type",
+        filterKey: "type",
+        color: "blue-grey",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [],
+    },
+
 
 }
 const rowsToShowOnAllEntityPagesExceptWorks = [

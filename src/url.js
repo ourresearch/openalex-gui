@@ -15,7 +15,6 @@ import {
     setStringIsNegated,
 } from "./filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
-import entity from "@/components/Entity/Entity.vue";
 import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";

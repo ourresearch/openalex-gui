@@ -80,12 +80,14 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import {entityTypeFromId} from "../../util";
+import {getEntityConfig} from "@/entityConfigs";
 
 export default {
   name: "Template",
   components: {},
   props: {
     filterKey: String,
+    type: String, // my entity type
     data: Object,
   },
   data() {
@@ -117,7 +119,10 @@ export default {
       return getFacetConfig(this.myEntityType, this.filterKey)
     },
     myEntityType() {
-      return entityTypeFromId(this.data.id)
+      return this.type
+    },
+    myEntityConfig(){
+      return getEntityConfig(this.type)
     },
     myValueType(){
       if (Array.isArray(this.rawValue)) return "array"

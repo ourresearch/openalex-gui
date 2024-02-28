@@ -29,6 +29,9 @@
       </v-chip>
     </template>
     <v-card :loading="isLoading">
+      <v-card-title>
+        {{ filterDisplayValue }}
+      </v-card-title>
       <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
 <!--      <div class="pa-3 d-flex">-->
 <!--        <div class="content">-->
@@ -55,17 +58,17 @@
 <!--        </div>-->
 <!--      </v-card-text>-->
 <!--      <v-divider/>-->
-<!--      <v-card-actions>-->
-<!--        <v-spacer/>-->
+      <v-card-actions>
+        <v-spacer/>
 <!--        <v-btn-->
 <!--               class="ml-4"-->
 <!--               text rounded-->
-<!--               :to="filterId | entityZoomLink"-->
-<!--               v-if="isEntity">-->
-<!--          Learn more-->
+<!--               :to="filterConfig | entityZoomLink"-->
+<!--        >-->
+<!--          View profile-->
 <!--          <v-icon right>mdi-arrow-right</v-icon>-->
 <!--        </v-btn>-->
-<!--      </v-card-actions>-->
+      </v-card-actions>
 
 
     </v-card>

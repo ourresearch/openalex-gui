@@ -50,12 +50,6 @@ import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId
 Vue.use(AsyncComputed)
 
 
-Vue.filter("idLink", function (fullId) {
-    if (!fullId) return
-    const shortId = fullId.replace("https://openalex.org/", "")
-    const myEntityType = entityTypeFromId(shortId)
-    return `/${myEntityType}/${shortId}`
-})
 
 Vue.filter("entityWorksLink", function (id) {
     const entityType = entityTypeFromId(id)
