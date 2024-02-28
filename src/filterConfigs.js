@@ -1,5 +1,6 @@
 import {facetConfigs, getFacetConfig} from "./facetConfigs";
 import {api} from "./api";
+import {shortenOpenAlexId} from "@/util";
 
 const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
 
@@ -62,7 +63,9 @@ const optionsToString = function (options) {
 const optionsFromString = function (str) {
     const strWithoutNegation = str.replace(/^!/, "")
     const regex = /[+|]/
-    return strWithoutNegation.split(regex)
+    return strWithoutNegation.split(regex).map(option => {
+        return option.toLowerCase()
+    })
 }
 
 
@@ -202,7 +205,8 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 
 const createFilterValue = function (rawValue, filterType) {
     if (typeof rawValue === "string") {
-        rawValue = rawValue.replace("https://openalex.org/", "")
+        // rawValue = rawValue.replace("https://openalex.org/", "")
+        rawValue = shortenOpenAlexId(rawValue)
         // rawValue = rawValue.replace("unknown", null)
     }
     if (filterType === "boolean") {

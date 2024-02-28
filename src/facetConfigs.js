@@ -138,7 +138,7 @@ const facetConfigs = function (entityType) {
             categories: ["other",],
             category: "other",
             actions: ["filter", "group_by",],
-            actionsPopular: [],
+            actionsPopular: ["filter", "group_by"],
             icon: "mdi-tag-outline",
             regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
