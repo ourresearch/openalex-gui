@@ -90,18 +90,20 @@
           <!--          </v-icon>-->
 
           <v-progress-circular
-              size="50"
-              width="17"
+              size="60"
+              width="20"
               rotate="270"
               :value="groups?.find(g => g.value != 0).countScaled * 100"
           />
-            <div class="text-h4 ml-3">
+          <div class="ml-3">
+            <div class="text-h4">
               {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
             </div>
-            <v-spacer/>
             <div class="body-2">
-              {{ groups?.find(g => g.value != 0).count | toPrecision }}
+              {{ groups?.find(g => g.value != 0).count | toPrecision }} works
             </div>
+
+          </div>
 
         </v-card>
 
