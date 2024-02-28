@@ -183,14 +183,19 @@ const router = new VueRouter({
 })
 
 const redirectFromOldFilters = function (to, from, next) {
-    if (to.name === 'Serp' && to.query?.filter?.indexOf("institutions.country_code") > -1) {
-        console.log("redirectFromOldFilters() found an old filter; redirecting", to.query.filter)
-        const entityType = to.params.entityType
-        const query = {
-            ...to.query,
-            filter: to.query.filter.replace("institutions.country_code", "authorships.countries")
-        }
-        return next({name: "Serp", params: {entityType}, query})
+    const redirects = {
+        "institutions.country_code": "institutions.country_code",
+        "topics.id": "primary_topic.id",
+    }
+    const isRedirectNeeded = Object.keys(redirects).some(key => {
+        return to.name === "Serp" && to.fullPath.includes(key)
+    })
+    if (isRedirectNeeded){
+        let newFullPath = to.fullPath
+        Object.keys(redirects).forEach(k => {
+            newFullPath = newFullPath.replace(k, redirects[k])
+        })
+        return next(newFullPath)
     }
 }
 
