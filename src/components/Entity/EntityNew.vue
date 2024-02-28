@@ -1,5 +1,5 @@
 <template>
-  <v-card flat rounded v-if="data" class="py-4">
+  <v-card flat rounded v-if="data" class="">
     <template
         v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
     >
