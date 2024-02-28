@@ -185,7 +185,6 @@ export default {
       dialogs: {
         showAlpha: false
       },
-      resultsFilters: [],
       url,
     }
   },
@@ -243,10 +242,7 @@ export default {
     '$route': {
       immediate: true,
       handler(to, from) {
-        this.resultsFilters = filtersFromUrlStr(
-            this.entityType,
-            to?.query?.filter
-        )
+
       }
     }
   }

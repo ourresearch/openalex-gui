@@ -23,6 +23,7 @@ import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
+import {url} from "@/url";
 
 
 Vue.use(VueRouter)
@@ -58,7 +59,7 @@ const routes = [
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
-    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches,  meta: {requiresAuth: true}},
+    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},
 
@@ -145,7 +146,6 @@ const routes = [
     },
 
 
-
     {
         path: `/:entityType/:entityId`,
         name: 'EntityPage',
@@ -182,6 +182,19 @@ const router = new VueRouter({
     },
 })
 
+const redirectFromOldFilters = function (to, from, next) {
+    if (to.name === 'Serp' && to.query?.filter?.indexOf("institutions.country_code") > -1) {
+        console.log("redirectFromOldFilters() found an old filter; redirecting", to.query.filter)
+        const entityType = to.params.entityType
+        const query = {
+            ...to.query,
+            filter: to.query.filter.replace("institutions.country_code", "authorships.countries")
+        }
+        return next({name: "Serp", params: {entityType}, query})
+    }
+}
+
+
 router.beforeEach(async (to, from, next) => {
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
@@ -191,9 +204,11 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
+    redirectFromOldFilters(to, from, next)
+
     if (to.matched.some(record => record.meta.requiresAuth)) {
         // this page requires authentication
-        if ( store.getters["user/userId"]) {  // you're logged in great. proceed.
+        if (store.getters["user/userId"]) {  // you're logged in great. proceed.
             next()
         } else { // sorry, you can't view this page. go log in.
             next("/login")
