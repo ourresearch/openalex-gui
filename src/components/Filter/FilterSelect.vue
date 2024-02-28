@@ -21,7 +21,7 @@
         </span>
       </template>
 
-      <v-btn class="" icon @click="isActive = true">
+      <v-btn class="" icon @click.stop="isActive = true">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
 
