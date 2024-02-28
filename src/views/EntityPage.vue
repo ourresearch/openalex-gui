@@ -59,14 +59,12 @@
       </v-row>
 
       <v-row v-else>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="7">
           <entity-new
               :data="entityData"
               :type="myEntityType"
           />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-card flat rounded>
+          <v-card flat rounded class="mt-3">
             <v-toolbar flat>
               <v-icon left>mdi-file-document-outline</v-icon>
               <v-toolbar-title class="font-weight-bold">
@@ -86,7 +84,9 @@
             </v-list>
           </v-card>
         </v-col>
-        <v-col cols="12" md="4">
+<!--        <v-col cols="12" md="4">-->
+<!--        </v-col>-->
+        <v-col cols="12" md="5">
           <v-card flat rounded class="px-2 pb-3">
             <v-toolbar flat>
               <v-icon left>mdi-clipboard-outline</v-icon>
@@ -267,7 +267,11 @@ export default {
       const filterString = filtersAsUrlStr([myWorksFilter])
       const apiUrl = api.createUrl(
           "works",
-          {filter: filterString},
+          {
+            filter: filterString,
+            sort: "cited_by_count:desc",
+            "per-page": 3,
+          },
           true
       )
       console.log("getWorks() calling this url", apiUrl)

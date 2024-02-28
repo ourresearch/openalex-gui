@@ -191,8 +191,8 @@ const isFilterKeyApplied = function (currentRoute, entityType, filterKey) {
     return myFilterKeys.includes(filterKey)
 }
 
-const isSearchFilterApplied = function () {
-    return router.currentRoute.query?.filter?.split(",")?.some(f => {
+const isSearchFilterApplied = function (currentRoute) {
+    return currentRoute.query?.filter?.split(",")?.some(f => {
         return f.split(":")[0]?.indexOf(".search") > -1
     })
 }
@@ -496,8 +496,14 @@ const getActionValueKeys = function (currentRoute, action) {
     })
 }
 
+const getDefaultSortValueForRoute = function(currentRoute){
+    return isSearchFilterApplied(currentRoute) ?
+        "relevance_score" :
+        "cited_by_count"
+}
+
 const setSort = function (filterKey) {
-    const defaultValue = getActionDefaultValues("sort", router.currentRoute.query)[0]
+    const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
     const appendVerb = (filterKey === "display_name") ? "" : ":desc"
     const myNewKey = (filterKey === defaultValue) ?
         undefined :
@@ -506,9 +512,9 @@ const setSort = function (filterKey) {
     pushQueryParam("sort", myNewKey)
 
 }
-const getSort = function (route) {
-    const defaultValue = getActionDefaultValues("sort", route.query)[0]
-    return route.query.sort?.replace(":desc", "") ?? defaultValue
+const getSort = function (currentRoute) {
+    const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
+    return currentRoute.query.sort?.replace(":desc", "") ?? defaultValue
 }
 
 const toggleSort = function (filterKey) {
