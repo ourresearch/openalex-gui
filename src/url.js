@@ -14,11 +14,12 @@ import {
     setOptionIsNegated,
     setStringIsNegated,
 } from "./filterConfigs";
-import {entityConfigs, externalEntityTypeFromId} from "@/entityConfigs";
+import {entityConfigs, externalEntityTypeFromId, getEntityConfig} from "@/entityConfigs";
 import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigs";
+import app from "@/App.vue";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -363,18 +364,24 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     return await pushNewFilters(newFilters)
 }
 
+const createFilterOptions = function(filter){
+    const entityConfig = getEntityConfig(filter.entityId)
+    const filterNamespace = entityConfig && !entityConfig.isNative ?
+        filter.entityId + "/" :
+        undefined
+
+    return optionsFromString(filter.value).map(o => {
+        const appendToFilterOption = filterNamespace && !o.includes("/") ?
+            filterNamespace :
+            ""
+        return appendToFilterOption + o
+    })
+}
+
 const readFilterOptions = function (currentRoute, entityType, index) {
     const filter = readFilter(currentRoute, entityType, index)
     if (!filter) return []
-
-    return optionsFromString(filter.value).map(value => {
-
-        // jason start here :)
-
-        return filter.entityId ?
-            filter.entityId + "/" + value :
-            value
-    })
+    return createFilterOptions(filter)
 }
 
 const isFilterOptionApplied = function (currentRoute, entityType, filterKey, option) {
