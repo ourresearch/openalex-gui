@@ -1,5 +1,5 @@
 <template>
-  <v-card flat rounded v-if="data" class="">
+  <div v-if="data" class="">
     <template
         v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
     >
@@ -19,7 +19,7 @@
     </template>
 
 
-  </v-card>
+  </div>
 
 </template>
 
