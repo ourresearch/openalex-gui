@@ -128,7 +128,7 @@
             :value="row.value"
             :display-value="row.displayValue"
             :count="row.count"
-            :hide-checkbox="filterBy?.length"
+            :hide-checkbox="$route.name !== 'Serp'"
         />
 
 

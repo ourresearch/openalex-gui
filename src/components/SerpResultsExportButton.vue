@@ -43,7 +43,7 @@
           <v-spacer/>
         </v-toolbar>
         <div class="pa-5" v-if="exportObj.progress === null">
-          The export will take around {{ exportEstimatedTime }}. Continue?
+          The export will take up to {{ exportEstimatedTime }}. Continue?
         </div>
         <div v-else-if="exportObj.progress < 1" class="pa-5">
           Export in progress...
@@ -123,6 +123,7 @@ export default {
     },
     exportEstimatedTime() {
       const count = this.$store.state?.resultsObject?.meta?.count
+      if (count < 6600) return "one minute"
       if (count < 33000) return "five minutes"
       else if (count < 66000) return "ten minutes"
       return "fifteen minutes"

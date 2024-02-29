@@ -27,14 +27,14 @@
               class="text-h4 mb-1"
               v-html="$prettyTitle(entityData.display_name)"
           />
-          <div class="d-flex align-center">
+          <div class="d-flex align-center" v-if="entityData.roles">
             <link-entity-roles-list
                 v-if="entityData.roles"
                 :roles="entityData.roles"
                 :selected="myEntityConfig.nameSingular"
                 style="margin-left:-13px;"
             />
-            <div class="mr-3">
+            <div class="mr-3" v-else>
               {{ myEntityConfig.displayNameSingular | capitalize }}
             </div>
 
@@ -140,7 +140,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
-
+import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
@@ -158,6 +158,8 @@ export default {
     SerpResultsListItemWork,
     WorkLinkouts,
     GroupBy,
+    LinkEntityRolesList,
+
   },
   props: {},
   data() {
