@@ -184,16 +184,16 @@ const router = new VueRouter({
 
 const redirectFromOldFilters = function (to, from, next) {
     const redirects = {
-        "institutions.country_code": "institutions.country_code",
+        "institutions.country_code": "authorships.countries",
         "topics.id": "primary_topic.id",
     }
     const isRedirectNeeded = Object.keys(redirects).some(key => {
         return to.name === "Serp" && to.fullPath.includes(key)
     })
-    if (isRedirectNeeded){
+    if (isRedirectNeeded) {
         let newFullPath = to.fullPath
         Object.keys(redirects).forEach(k => {
-            newFullPath = newFullPath.replace(k, redirects[k])
+            newFullPath = newFullPath.replaceAll(k, redirects[k])
         })
         return next(newFullPath)
     }
