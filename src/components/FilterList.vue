@@ -1,65 +1,113 @@
 <template>
 
   <v-card rounded flat class="">
-    <div class="">
-      <v-toolbar flat rounded >
-        <v-icon class=" mr-3">mdi-filter-outline</v-icon>
-        <v-toolbar-title class="font-weight-bold">
-          Filters
-          <span>({{ filters.length }})</span>
+    <v-toolbar flat rounded>
+      <v-icon class=" mr-3">mdi-filter-outline</v-icon>
+      <v-toolbar-title class="font-weight-bold">
+        Filters
+        <span>({{ filters.length }})</span>
 
-<!--          <serp-results-count :results-object="resultsObject" class="mx-1"/>-->
-<!--          <template v-if="filters.length === 0">-->
-<!--            works, with no filters applied-->
-<!--          </template>-->
-<!--          <template v-else-if="filters.length === 1">-->
-<!--            works match this <span class="font-weight-bold">1</span> filter:-->
-<!--          </template>-->
-<!--          <template v-else-if="filters.length === 2">-->
-<!--            works match both these <span class="font-weight-bold">2</span> filters:-->
-<!--          </template>-->
-<!--          <template v-else>-->
-<!--            works match all <span class="font-weight-bold">{{ filters.length }}</span>-->
-<!--            of these filters:-->
-<!--          </template>-->
+        <!--          <serp-results-count :results-object="resultsObject" class="mx-1"/>-->
+        <!--          <template v-if="filters.length === 0">-->
+        <!--            works, with no filters applied-->
+        <!--          </template>-->
+        <!--          <template v-else-if="filters.length === 1">-->
+        <!--            works match this <span class="font-weight-bold">1</span> filter:-->
+        <!--          </template>-->
+        <!--          <template v-else-if="filters.length === 2">-->
+        <!--            works match both these <span class="font-weight-bold">2</span> filters:-->
+        <!--          </template>-->
+        <!--          <template v-else>-->
+        <!--            works match all <span class="font-weight-bold">{{ filters.length }}</span>-->
+        <!--            of these filters:-->
+        <!--          </template>-->
 
-        </v-toolbar-title>
-        <v-spacer />
-        <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
-          <v-icon>mdi-delete-outline</v-icon>
-        </v-btn>
-      </v-toolbar>
+      </v-toolbar-title>
+      <v-spacer/>
 
-<!--      <v-divider/>-->
+      <v-menu  offset-y key="new-filter-add-button" max-width="300">
+          <template v-slot:activator="{on}">
+            <v-btn
+                icon
+                key="asdfasdrasdf"
+                class=""
+                v-on="on"
+            >
+              <v-icon color="" class="">mdi-plus</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-subheader>Add filter</v-subheader>
+            <v-divider />
+            <v-list-item
+                v-for="filter in popularFilters"
+                :key="filter.key"
+                @click="setNewFilterKey(filter.key)"
+                :disabled="filter.disabled"
+            >
+              <v-list-item-icon>
+                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>
+                  {{ filter.displayName }}
+                  <!--                  <span v-if="filter.disabled">(applied)</span>-->
+                </v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-divider/>
+            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
+              <v-list-item-icon>
+                <v-icon>mdi-dots-horizontal</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>More</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+
+      <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
+        <v-icon>mdi-delete-outline</v-icon>
+      </v-btn>
+
+      <v-btn icon @click="isCollapsed = !isCollapsed">
+        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>
+      </v-btn>
+    </v-toolbar>
+
+    <div v-if="!isCollapsed">
+      <!--      <v-divider/>-->
       <div v-if="filters.length === 0" class="ma-4 grey--text">
         No filters applied
       </div>
       <table style="width: 100%;">
         <tbody>
-            <component
-                class=""
-                style="width: 100%;"
-                v-for="(filter, i) in filters"
-                :key="i"
-                :is="'filter-phrase-' + filter.type"
-                :filter-key="filter.key"
-                :index="i"
-                @delete="url.deleteFilter(entityType, filter.key)"
-            />
+        <component
+            class=""
+            style="width: 100%;"
+            v-for="(filter, i) in filters"
+            :key="i"
+            :is="'filter-phrase-' + filter.type"
+            :filter-key="filter.key"
+            :index="i"
+            @delete="url.deleteFilter(entityType, filter.key)"
+        />
 
-            <!--         + ADD FILTER button-->
+        <!--         + ADD FILTER button-->
 
 
-            <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
-            <component
-                v-if="$store.state.newFilterKey"
-                :key="'new' + newFilterConfig.key + $route.query.filter"
-                style="display: none !important;"
-                :is="'filter-phrase-' + newFilterConfig.type"
-                :filter-key="newFilterConfig.key"
-                is-new
-                @close="setNewFilterKey(undefined)"
-            />
+        <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
+        <component
+            v-if="$store.state.newFilterKey"
+            :key="'new' + newFilterConfig.key + $route.query.filter"
+            style="display: none !important;"
+            :is="'filter-phrase-' + newFilterConfig.type"
+            :filter-key="newFilterConfig.key"
+            is-new
+            @close="setNewFilterKey(undefined)"
+        />
 
         </tbody>
       </table>
@@ -108,27 +156,25 @@
           </v-list>
         </v-menu>
       </v-card-actions>
-
-
-
-      <!--      <v-divider />-->
-      <!--      <div class="py-3 px-3 d-flex align-center">-->
-      <!--        <v-btn rounded color="primary" class="">-->
-      <!--          <v-icon left>mdi-plus</v-icon>-->
-      <!--          add filter-->
-      <!--        </v-btn>-->
-      <!--        <v-chip-->
-      <!--            v-for="filter in popularFilters"-->
-      <!--            :key="filter.id"-->
-      <!--            class="ml-2"-->
-      <!--            color="white"-->
-      <!--            @click="setActiveFilter(filter)"-->
-      <!--        >-->
-      <!--          {{ filter.displayName }}-->
-      <!--        </v-chip>-->
-      <!--      </div>-->
-
     </div>
+
+
+    <!--      <v-divider />-->
+    <!--      <div class="py-3 px-3 d-flex align-center">-->
+    <!--        <v-btn rounded color="primary" class="">-->
+    <!--          <v-icon left>mdi-plus</v-icon>-->
+    <!--          add filter-->
+    <!--        </v-btn>-->
+    <!--        <v-chip-->
+    <!--            v-for="filter in popularFilters"-->
+    <!--            :key="filter.id"-->
+    <!--            class="ml-2"-->
+    <!--            color="white"-->
+    <!--            @click="setActiveFilter(filter)"-->
+    <!--        >-->
+    <!--          {{ filter.displayName }}-->
+    <!--        </v-chip>-->
+    <!--      </div>-->
 
 
     <v-dialog
@@ -241,6 +287,7 @@ export default {
       },
       autocompleteResponses: [],
       isLoading: false,
+      isCollapsed: false,
     }
   },
   computed: {
