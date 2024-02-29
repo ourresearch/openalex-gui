@@ -16,6 +16,7 @@
       placeholder="Search OpenAlex"
       prepend-inner-icon="mdi-magnify"
       ref="shortcutBox"
+      :autofocus="autofocus"
 
       @blur="suggestions = []"
       @change="goToEntity"
@@ -92,6 +93,7 @@ export default {
   props: {
     dense: Boolean,
     showExamples: Boolean,
+    autofocus: Boolean,
   },
   data() {
     return {
