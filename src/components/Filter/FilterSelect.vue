@@ -132,8 +132,6 @@ export default {
       this.optionIds.length ?
           url.addFilterOption(this.entityType, this.index, id) :
           url.createFilter(this.entityType, this.filterKey, id)
-
-
     }
 
 

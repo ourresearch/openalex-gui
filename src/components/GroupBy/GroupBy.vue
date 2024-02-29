@@ -150,7 +150,11 @@
         max-width="600"
         scrollable
     >
-      <filter-select-edit :filter-key="filterKey" @close="isDialogOpen = false"/>
+      <filter-select-add-option
+          :filter-key="filterKey"
+          @close="isDialogOpen = false"
+          @add="addFilter"
+      />
     </v-dialog>
   </v-card>
 
@@ -170,7 +174,7 @@ import BarGraph from "@/components/BarGraph.vue";
 import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import {filter} from "core-js/internals/array-iteration";
-import FilterSelectEdit from "@/components/Filter/FilterSelectAddOption.vue";
+import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
@@ -178,7 +182,7 @@ export default {
   components: {
     BarGraph,
     GroupByTableRow,
-    FilterSelectEdit,
+    FilterSelectAddOption,
     filterMatchMode,
 
   },
@@ -301,8 +305,10 @@ export default {
       "setApiDialogUrl",
     ]),
     ...mapActions([]),
-
-
+    addFilter(id){
+      url.createFilter(this.entityType, this.filterKey, id)
+      this.isDialogOpen = false
+    },
     async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
