@@ -391,7 +391,7 @@ const externalEntityTypeFromId = function (id) {
     id = id.replace("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
 
     const shortId = shortenOpenAlexId(id)
-    const regex = /^(\w+)\/\w+$/
+    const regex = /^(\S+)\/\S+$/
     const wordBeforeSlash = shortId.match(regex)?.at(1)
 
     return getEntityConfigs()
