@@ -234,12 +234,15 @@ const api = (function () {
             const maxCount = Math.max(...groupCounts)
             const countSum = groupCounts.reduce((a, b) => a + b, 0)
 
+
             const groupDisplayFilters = truncatedGroups
                 .map(group => {
+                    const groupKey = group.key.replace("https://metadata.un.org/sdg/", "") // namespace hack
+
                     return createDisplayFilter(
                         entityType,
                         filterKey,
-                        group.key,
+                        groupKey,
                         false,
                         group.key_display_name,
                         group.count,

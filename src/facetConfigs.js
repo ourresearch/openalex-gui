@@ -944,6 +944,8 @@ const facetConfigs = function (entityType) {
         },
         {
             key: "language",
+            entityId: "languages",
+            entityType: "works",
             displayName: "language",
             type: "select",
             displayNullAs: "Unknown",
