@@ -62,19 +62,19 @@
 <!--        </div>-->
 <!--      </v-card-text>-->
       <v-divider/>
-<!--      <v-card-actions>-->
-<!--        <v-spacer/>-->
-<!--        <v-btn-->
-<!--               class="ml-4"-->
-<!--               color="primary"-->
-<!--               rounded-->
-<!--               exact-path-->
-<!--               :to="myEntityId | entityZoomLink"-->
-<!--               v-if="myEntityId"-->
-<!--        >-->
-<!--          View profile-->
-<!--        </v-btn>-->
-<!--      </v-card-actions>-->
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn
+               class="ml-4"
+               color="primary"
+               rounded
+               exact-path
+               :to="myEntityId | entityZoomLink"
+               v-if="myEntityId"
+        >
+          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
+        </v-btn>
+      </v-card-actions>
 
 
     </v-card>
