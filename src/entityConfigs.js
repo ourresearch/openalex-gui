@@ -388,7 +388,7 @@ const nativeEntityTypeFromId = function (id) {
         })
 }
 const externalEntityTypeFromId = function (id) {
-    id = id.replace("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
+    id = id.replaceAll("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
 
     const shortId = shortenOpenAlexId(id)
     const regex = /^(\S+)\/\S+$/
