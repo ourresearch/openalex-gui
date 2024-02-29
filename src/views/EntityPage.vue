@@ -60,10 +60,12 @@
 
       <v-row v-else>
         <v-col cols="12" md="7">
-          <entity-new
-              :data="entityData"
-              :type="myEntityType"
-          />
+          <v-card flat rounded class="py-6">
+            <entity-new
+                :data="entityData"
+                :type="myEntityType"
+            />
+          </v-card>
           <v-card flat rounded class="mt-3">
             <v-toolbar flat>
               <v-icon left>mdi-file-document-outline</v-icon>

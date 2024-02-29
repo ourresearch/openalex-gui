@@ -50,7 +50,6 @@ import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId
 Vue.use(AsyncComputed)
 
 
-
 Vue.filter("entityWorksLink", function (id) {
     const entityType = entityTypeFromId(id)
     if (!id || !entityType) return
@@ -59,23 +58,19 @@ Vue.filter("entityWorksLink", function (id) {
 
     const idForFilter = externalEntityTypeFromId(id) ?
         shortId.split("/")[1] :
-       shortId
-
-    console.log("entityWorksLink", id, idForFilter)
-
+        shortId
     const filter = createSimpleFilter(
-          "works",
-          entityConfigs[entityType].filterKey,
-          idForFilter,
-      )
-      return {
+        "works",
+        entityConfigs[entityType].filterKey,
+        idForFilter,
+    )
+    return {
         name: "Serp",
         params: {entityType: "works"},
         query: {filter: filter.asStr},
-      }
+    }
 
 })
-
 
 
 Vue.filter("entityZoomLink", function (id) {

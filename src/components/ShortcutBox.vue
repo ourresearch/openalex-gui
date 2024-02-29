@@ -1,31 +1,33 @@
 <template>
   <div>
     <v-autocomplete
-      v-model="select"
-      :items="suggestions"
-      :search-input.sync="searchString"
-      :filter="(item, queryText, itemText) => true"
-      item-text="displayValue"
-      return-object
-      rounded
-      :dense="dense"
-      filled
-      hide-no-data
-      hide-details
-      class="shortcut-box"
-      placeholder="Search OpenAlex"
-      prepend-inner-icon="mdi-magnify"
-      ref="shortcutBox"
-      :autofocus="autofocus"
+        v-model="select"
+        :items="suggestions"
+        :search-input.sync="searchString"
+        :filter="(item, queryText, itemText) => true"
+        item-text="displayValue"
+        return-object
+        rounded
+        :dense="dense"
+        filled
+        hide-no-data
+        hide-details
+        class="shortcut-box"
+        placeholder="Search OpenAlex"
+        prepend-inner-icon="mdi-magnify"
+        ref="shortcutBox"
+        :autofocus="autofocus"
 
-      @blur="suggestions = []"
-      @change="goToEntity"
-      @keyup.enter="submitSearchString"
+        @blur="suggestions = []"
+        @change="goToEntity"
+        @keyup.enter="submitSearchString"
 
 
     >
       <template v-slot:item="data">
-        <v-list-item-icon><v-icon>{{ data.item.icon }}</v-icon></v-list-item-icon>
+        <v-list-item-icon>
+          <v-icon>{{ data.item.icon }}</v-icon>
+        </v-list-item-icon>
         <template v-if="data.item.isFilterLink">
           <v-list-item-content>
             <v-list-item-title>
@@ -47,30 +49,36 @@
             />
             <v-list-item-subtitle>
               {{ data.item.displayName |capitalize }}
-  <!--            <span class="grey&#45;&#45;text">{{ data.item.value }}</span>-->
+              <!--            <span class="grey&#45;&#45;text">{{ data.item.value }}</span>-->
             </v-list-item-subtitle>
           </v-list-item-content>
-          <v-list-item-action-text
-              v-if="data.item.entityId !== 'works'"
-              class="body-1 grey--text pl-3"
-              :class="{'body-2': dense}"
+          <v-list-item-action
+              v-if="data.item.entityId !== 'works' && data.item.worksCount"
+              class=""
           >
-            {{ data.item.worksCount | toPrecision }} works
-          </v-list-item-action-text>
+            <v-btn
+                rounded
+                text
+                class="font-weight-regular grey--text"
+                @click.stop="viewWorks(data.item.value)"
+            >
+              {{ data.item.worksCount | toPrecision }} works
+            </v-btn>
+          </v-list-item-action>
 
         </template>
 
-<!--        {{ data.item }}-->
+        <!--        {{ data.item }}-->
       </template>
     </v-autocomplete>
     <div class="ml-2 mt-2" v-if="showExamples">
       <span>Try:</span>
       <v-chip
-        color="white"
-        v-for="search in searchesToTry"
-        :key="search"
-        @click="trySearch(search)"
-        class="body-1"
+          color="white"
+          v-for="search in searchesToTry"
+          :key="search"
+          @click="trySearch(search)"
+          class="body-1"
       >
         {{ search }}
       </v-chip>
@@ -84,8 +92,9 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {urlPartsFromId} from "@/entityConfigs";
+import {entityConfigs, externalEntityTypeFromId, urlPartsFromId} from "@/entityConfigs";
 import {findFacetConfig, findFacetConfigs} from "@/facetConfigs";
+import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 export default {
   name: "Template",
@@ -100,12 +109,12 @@ export default {
       foo: 42,
       isLoading: false,
       searchString: "",
-      select:null,
+      select: null,
       suggestions: [],
       searchesToTry: [
-          "Albert Einstein",
-          "Solar power",
-          "Author",
+        "Albert Einstein",
+        "Solar power",
+        "Author",
       ]
     }
   },
@@ -125,7 +134,7 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    submitSearchString(e){
+    submitSearchString(e) {
       if (this.select) return false // the user is hitting enter after highlighting an option using the arrow keys
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
@@ -135,16 +144,40 @@ export default {
       const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
       url.pushNewFilters([searchFilter])
     },
-    goToEntity(e){
+    viewWorks(id) {
+      console.log("view my works", id)
+      this.searchString = ""
+      this.select = null
+
+      // copies from main.js, horrible
+      const entityType = entityTypeFromId(id)
+      if (!id || !entityType) return
+
+      const shortId = shortenOpenAlexId(id)
+
+      const idForFilter = externalEntityTypeFromId(id) ?
+          shortId.split("/")[1] :
+          shortId
+      const filter = createSimpleFilter(
+          "works",
+          entityConfigs[entityType].filterKey,
+          idForFilter,
+      )
+      url.pushNewFilters([
+          ...url.readFilters(this.$route),
+          filter,
+      ])
+
+    },
+    goToEntity(e) {
       console.log("goToEntity()", e)
-      if (e.isFilterLink){
+      if (e.isFilterLink) {
         console.log("let's make a filter!")
         this.$store.state.newFilterKey = e.key
         this.select = null
         this.searchString = ""
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-      }
-      else{
+      } else {
         url.pushToRoute(this.$router, {
           name: "EntityPage",
           params: urlPartsFromId(this.select.value)
@@ -152,7 +185,7 @@ export default {
       }
 
     },
-    trySearch(str){
+    trySearch(str) {
       this.searchString = str
       this.$nextTick(() => {
         this.$refs.shortcutBox.focus()
@@ -212,8 +245,8 @@ export default {
           []
 
       const ret = [
-          ...filterLinks,
-          ...apiResults,
+        ...filterLinks,
+        ...apiResults,
       ]
       const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
       const cleaned = everySuggestionIsAWork ?
@@ -231,7 +264,7 @@ export default {
   mounted() {
   },
   watch: {
-    searchString(to){
+    searchString(to) {
       if (!to) this.suggestions = []
       to && this.getSuggestions(to)
     }
@@ -239,10 +272,10 @@ export default {
 }
 </script>
 
-<style  lang="scss">
+<style lang="scss">
 .shortcut-box {
   .v-icon.notranslate.mdi.mdi-menu-down.theme--light {
-    display:none !important;
+    display: none !important;
   }
 
 }
