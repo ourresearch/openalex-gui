@@ -10,7 +10,7 @@
               <div class="text-h5 ml-3 mb-3">
                 Search and analyze the world's research.
               </div>
-              <shortcut-box />
+              <shortcut-box show-examples />
 
             </div>
 

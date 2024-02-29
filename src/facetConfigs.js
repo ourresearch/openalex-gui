@@ -343,7 +343,7 @@ const facetConfigs = function (entityType) {
             key: "authorships.author.orcid",
             entityType: "works",
             entityId: "authors",
-            displayName: "ORCID (author)",
+            displayName: "ORCID",
             pidPrefix: "orcid",
             isEntity: true,
             isId: true,
@@ -596,7 +596,7 @@ const facetConfigs = function (entityType) {
         {
             key: "authorships.countries",
             entityType: "works",
-            displayName: "author country",
+            displayName: "Country",
             autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isManyOptions: true,
@@ -961,7 +961,7 @@ const facetConfigs = function (entityType) {
             key: "sustainable_development_goals.id",
             entityId: "sdgs",
             entityType: "works",
-            displayName: "Sustainable Development Goals",
+            displayName: "Sustainable Development Goal",
             type: "select",
             displayNullAs: "Unknown",
             categories: ["other", "popular"],
@@ -1810,16 +1810,13 @@ const makeFacet = function (key, isNegated, values) {
     }
 }
 
-const filtersList = function (entityType, resultsFilters, searchString) {
+const findFacetConfigs = function (entityType, searchString) {
     const ret = facetConfigs(entityType)
         .filter(c => {
             return c.entityType === entityType
         })
         .filter(c => {
             return c.displayName.toLowerCase().match(searchString?.toLowerCase())
-        })
-        .filter(c => {
-            return !c.noOptions
         })
 
     const sorted = sortByKey(ret, "displayName")
@@ -1873,7 +1870,7 @@ export {
     getFacetConfig,
     facetCategories,
     facetsByCategory,
-    filtersList,
+    findFacetConfigs,
 }
 
 
