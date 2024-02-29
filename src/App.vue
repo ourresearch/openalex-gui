@@ -10,6 +10,7 @@
     <v-app-bar
         app
         flat
+        height="70"
 
         color="transparent"
         class=""
@@ -38,7 +39,7 @@
 <!--      />-->
 <!--      <v-spacer v-else />-->
       <v-spacer />
-      <shortcut-box v-if="$route.name === 'Serp'" dense style="width: 40%;" />
+      <shortcut-box v-if="$route.name === 'Serp'"  style="width: 40%;" />
       <v-spacer />
 <!--      <serp-toolbar-->
 <!--          :results-object="$store.state.resultsObject"-->

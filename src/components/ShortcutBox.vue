@@ -6,7 +6,7 @@
       :search-input.sync="searchString"
       :filter="(item, queryText, itemText) => true"
       item-text="displayValue"
-      item-value="value"
+      return-object
       rounded
       :dense="dense"
       filled
@@ -15,33 +15,65 @@
       class="shortcut-box"
       placeholder="Search OpenAlex"
       prepend-inner-icon="mdi-magnify"
-
+      ref="shortcutBox"
 
       @blur="suggestions = []"
       @change="goToEntity"
       @keyup.enter="submitSearchString"
+
+
     >
       <template v-slot:item="data">
         <v-list-item-icon><v-icon>{{ data.item.icon }}</v-icon></v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title
-              v-html="$prettyTitle(data.item.displayValue)"
-              style="white-space: normal;"
-          />
-<!--          <v-list-item-subtitle>-->
-<!--            {{ data.item.key }}:{{ data.item.value }}-->
-<!--          </v-list-item-subtitle>-->
-        </v-list-item-content>
-        <v-list-item-action-text
-            v-if="data.item.entityId !== 'works'"
-            class="body-1 grey--text pl-3"
-            :class="{'body-2': dense}"
-        >
-          {{ data.item.worksCount | toPrecision }} works
-        </v-list-item-action-text>
+        <template v-if="data.item.isFilterLink">
+          <v-list-item-content>
+            <v-list-item-title>
+              <span class="font-weight-bold">{{ data.item.displayValue | capitalize }}</span>
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              Filter by {{ data.item.displayValue }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
+          <v-list-item-icon>
+            <v-icon>mdi-plus</v-icon>
+          </v-list-item-icon>
+        </template>
+        <template v-else>
+          <v-list-item-content>
+            <v-list-item-title
+                v-html="$prettyTitle(data.item.displayValue)"
+                style="white-space: normal;"
+            />
+            <v-list-item-subtitle>
+              {{ data.item.displayName |capitalize }}
+  <!--            <span class="grey&#45;&#45;text">{{ data.item.value }}</span>-->
+            </v-list-item-subtitle>
+          </v-list-item-content>
+          <v-list-item-action-text
+              v-if="data.item.entityId !== 'works'"
+              class="body-1 grey--text pl-3"
+              :class="{'body-2': dense}"
+          >
+            {{ data.item.worksCount | toPrecision }} works
+          </v-list-item-action-text>
+
+        </template>
+
 <!--        {{ data.item }}-->
       </template>
     </v-autocomplete>
+    <div class="ml-2 mt-2" v-if="showExamples">
+      <span>Try:</span>
+      <v-chip
+        color="white"
+        v-for="search in searchesToTry"
+        :key="search"
+        @click="trySearch(search)"
+        class="body-1"
+      >
+        {{ search }}
+      </v-chip>
+    </div>
   </div>
 </template>
 
@@ -52,20 +84,27 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {urlPartsFromId} from "@/entityConfigs";
+import {findFacetConfig, findFacetConfigs} from "@/facetConfigs";
 
 export default {
   name: "Template",
   components: {},
   props: {
     dense: Boolean,
+    showExamples: Boolean,
   },
   data() {
     return {
       foo: 42,
       isLoading: false,
-      searchString: null,
+      searchString: "",
       select:null,
-      suggestions: []
+      suggestions: [],
+      searchesToTry: [
+          "Albert Einstein",
+          "Solar power",
+          "Author",
+      ]
     }
   },
   computed: {
@@ -96,9 +135,25 @@ export default {
     },
     goToEntity(e){
       console.log("goToEntity()", e)
-      url.pushToRoute(this.$router, {
-        name: "EntityPage",
-        params: urlPartsFromId(this.select)
+      if (e.isFilterLink){
+        console.log("let's make a filter!")
+        this.$store.state.newFilterKey = e.key
+        this.select = null
+        this.searchString = ""
+        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
+      }
+      else{
+        url.pushToRoute(this.$router, {
+          name: "EntityPage",
+          params: urlPartsFromId(this.select.value)
+        })
+      }
+
+    },
+    trySearch(str){
+      this.searchString = str
+      this.$nextTick(() => {
+        this.$refs.shortcutBox.focus()
       })
     },
     async getSuggestions() {
@@ -112,9 +167,10 @@ export default {
       this.isLoading = false
 
 
-      const ret = resp.results
+      const apiResults = resp.results
           .filter(r => !!r.id)
           .filter(r => r.entity_type !== "filter")
+          .filter(r => !!r.display_name)
           .map(result => {
 
             let filterKey
@@ -142,10 +198,26 @@ export default {
             //   hint: filterConfig.displayName
             // }
           })
+
+      const filterLinks = this.searchString?.length > 3 ?
+          findFacetConfigs(this.entityType, this.searchString).map(f => {
+            return {
+              ...f,
+              isFilterLink: true,
+              displayValue: f.displayName,
+            }
+          }) :
+          []
+
+      const ret = [
+          ...filterLinks,
+          ...apiResults,
+      ]
       const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
       const cleaned = everySuggestionIsAWork ?
           ret.slice(0, 3) :
           ret.filter(f => f.entityId !== "works").slice(0, 5)
+
 
       this.suggestions = cleaned
     },
@@ -159,7 +231,7 @@ export default {
   watch: {
     searchString(to){
       if (!to) this.suggestions = []
-      to && to !== this.select && this.getSuggestions(to)
+      to && this.getSuggestions(to)
     }
   }
 }
