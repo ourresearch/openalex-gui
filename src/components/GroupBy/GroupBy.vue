@@ -62,24 +62,24 @@
       </v-menu>
 
     </v-toolbar>
-    <div v-if="groups.length || selectedGroupIds.length" class="card-body">
+    <div v-if="unselectedGroupsTruncated.length || selectedGroupIds.length" class="card-body">
 
       <div v-if="filterKey==='publication_year'" style="min-width: 200px">
         <bar-graph
-            v-if="groups.length > 1"
-            :bars="groups?.map(g => { return {key: g.value, count: g.count}})"
+            v-if="unselectedGroupsTruncated.length > 1"
+            :bars="unselectedGroupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
             style="height: 100px;"
             class="pa-2"
             @click="selectGroup"
         />
         <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
           <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
-          {{ groups[0].value }}
+          {{ unselectedGroupsTruncated[0].value }}
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
         <v-card
-            v-if="groups.find(g => g.count > 0)"
+            v-if="unselectedGroupsTruncated.find(g => g.count > 0)"
             flat
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
@@ -93,14 +93,14 @@
               size="60"
               width="20"
               rotate="270"
-              :value="groups?.find(g => g.value != 0).countScaled * 100"
+              :value="unselectedGroupsTruncated?.find(g => g.value != 0).countScaled * 100"
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ groups?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+              {{ unselectedGroupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
             </div>
             <div class="body-2">
-              {{ groups?.find(g => g.value != 0).count | toPrecision }} works
+              {{ unselectedGroupsTruncated?.find(g => g.value != 0).count | toPrecision }} works
             </div>
 
           </div>
@@ -121,7 +121,7 @@
             :count="null"
         />
         <group-by-table-row
-            v-for="row in groups"
+            v-for="row in unselectedGroupsTruncated"
             :key="row.value + row.count"
 
             :filter-key="filterKey"
@@ -194,9 +194,10 @@ export default {
       selectedValue: this.filterValue,
       searchString: "",
       isDialogOpen: false,
-      allGroups: [],
+      groups: [],
       maxResults: 5,
       maxResultsRange: 25,
+
 
 
     }
@@ -223,7 +224,7 @@ export default {
       }
     },
     isMoreToShow() {
-      return this.allGroups.length > this.groups.length
+      return this.groups.length > this.unselectedGroupsTruncated.length
     },
     minWidth() {
       return (this.myFilterConfig.type === "select") ?
@@ -282,11 +283,10 @@ export default {
       )
     },
     unselectedGroups() {
-      return this.allGroups.filter(g => !this.selectedGroupIds.includes(g.value))
+      return this.groups.filter(g => !this.selectedGroupIds.includes(g.value))
     },
 
-    groups() {
-
+    unselectedGroupsTruncated() {
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
           this.maxResults
@@ -320,7 +320,7 @@ export default {
           return (a.value > b.value) ? -1 : 1
         })
       }
-      this.allGroups = ret
+      this.groups = ret
       this.isLoading = false
 
     },

@@ -7,7 +7,9 @@
 
       <v-row v-if="$vuetify.breakpoint.mdAndUp">
         <v-col
-            :cols="!url.isViewSet($route, 'report') ? 12 : 7"
+            cols="6"
+            xl="4"
+
             v-if="url.isViewSet($route, 'list')"
         >
           <serp-results-list :results-object="resultsObject"/>
