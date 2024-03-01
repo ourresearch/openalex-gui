@@ -1531,6 +1531,16 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.description,
         },
         {
+            key: "siblings",
+            entityType: "topics",
+            entityId: "topics",
+            displayName: "related topics (siblings)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-tag-outline",
+            extractFn: (e) => e.siblings,
+        },
+        {
             key: "subfield",
             entityType: "topics",
             entityId: "topics",

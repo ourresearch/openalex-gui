@@ -19,26 +19,11 @@
           <v-btn
               icon
               v-on="on"
-              small
           >
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
-          <v-list-item @click="url.toggleGroupBy(filterKey)">
-            <v-list-item-icon>
-              <v-icon color="">mdi-playlist-remove</v-icon>
-              <!--              <v-icon>mdi-close-circle-outline</v-icon>-->
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="">
-                Remove from report
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider/>
-
-
           <v-list-item :href="csvUrl">
             <v-list-item-icon>
               <v-icon>mdi-tray-arrow-down</v-icon>
@@ -60,26 +45,29 @@
 
         </v-list>
       </v-menu>
+      <v-btn icon @click="url.toggleGroupBy(filterKey)">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
 
     </v-toolbar>
-    <div v-if="unselectedGroupsTruncated.length || selectedGroupIds.length" class="card-body">
+    <div v-if="groupsTruncated.length || selectedGroupIds.length" class="card-body">
 
       <div v-if="filterKey==='publication_year'" style="min-width: 200px">
         <bar-graph
-            v-if="unselectedGroupsTruncated.length > 1"
-            :bars="unselectedGroupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
+            v-if="groupsTruncated.length > 1"
+            :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
             style="height: 100px;"
             class="pa-2"
             @click="selectGroup"
         />
         <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
           <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
-          {{ unselectedGroupsTruncated[0].value }}
+          {{ groupsTruncated[0].value }}
         </div>
       </div>
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
         <v-card
-            v-if="unselectedGroupsTruncated.find(g => g.count > 0)"
+            v-if="groupsTruncated.find(g => g.count > 0)"
             flat
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
@@ -93,14 +81,14 @@
               size="60"
               width="20"
               rotate="270"
-              :value="unselectedGroupsTruncated?.find(g => g.value != 0).countScaled * 100"
+              :value="groupsTruncated?.find(g => g.value != 0).countScaled * 100"
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ unselectedGroupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
             </div>
             <div class="body-2">
-              {{ unselectedGroupsTruncated?.find(g => g.value != 0).count | toPrecision }} works
+              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }} works
             </div>
 
           </div>
@@ -113,15 +101,7 @@
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
-            v-for="id in selectedGroupIds"
-            :key="'selected-id-' + id "
-
-            :filter-key="filterKey"
-            :value="id"
-            :count="null"
-        />
-        <group-by-table-row
-            v-for="row in unselectedGroupsTruncated"
+            v-for="row in groupsTruncated"
             :key="row.value + row.count"
 
             :filter-key="filterKey"
@@ -136,9 +116,9 @@
       </v-simple-table>
     </div>
 
-    <v-card-actions v-if="isMoreToShow">
+    <v-card-actions >
       <v-spacer/>
-      <v-btn small rounded text @click="isDialogOpen = true">
+      <v-btn :disabled="!isMoreToShow" small rounded text @click="isDialogOpen = true">
         More...
       </v-btn>
 
@@ -228,7 +208,7 @@ export default {
       }
     },
     isMoreToShow() {
-      return this.groups.length > this.unselectedGroupsTruncated.length
+      return this.groups.length > this.groupsTruncated.length
     },
     minWidth() {
       return (this.myFilterConfig.type === "select") ?
@@ -289,13 +269,12 @@ export default {
     unselectedGroups() {
       return this.groups.filter(g => !this.selectedGroupIds.includes(g.value))
     },
-
-    unselectedGroupsTruncated() {
+    groupsTruncated(){
       const maxResults = (this.myFilterConfig.type === "range") ?
           this.maxResultsRange :
           this.maxResults
-      return this.unselectedGroups.slice(0, maxResults)
-    }
+      return this.groups.slice(0, maxResults)
+    },
   },
 
   methods: {
@@ -318,7 +297,6 @@ export default {
           {
             hideUnknown: true,
             filters: this.apiRequestFilters,
-            searchString: this.searchString
           }
       )
       if (this.filterKey === "publication_year") {

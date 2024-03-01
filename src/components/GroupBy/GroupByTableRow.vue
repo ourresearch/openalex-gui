@@ -10,13 +10,7 @@
 
     <td class="body-2">
       <template v-if="isNegated" class="font-weight-bold">NOT</template>
-      {{ myDisplayValue }}
-
-      <!--      <span class="d-inline-flex align-baseline">-->
-      <!--        <span v-if="isNegated" class="font-weight-bold">NOT </span>-->
-      <!--        <span>{{ myDisplayValue }}</span>-->
-      <!--      </span>-->
-
+      {{ displayValue }}
     </td>
     <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
@@ -44,7 +38,7 @@ export default {
   props: {
     filterKey: String,
     value: String,
-    displayValue: String || null,
+    displayValue: String,
     count: Number || null,
     hideCheckbox: Boolean,
   },
@@ -53,7 +47,6 @@ export default {
       isMenuOpen: false,
       foo: 42,
       myCount: this.count,
-      myDisplayValue: this.displayValue,
     }
   },
   computed: {
@@ -127,10 +120,6 @@ export default {
       const count = await api.getResultsCount(this.entityType, queryFilters)
       this.myCount = count
     },
-    async getMyDisplayValue() {
-      if (this?.myDisplayValue) return // no need to get it it we've got it already
-      this.myDisplayValue = await api.getFilterValueDisplayName(this.filterKey, this.valueId)
-    },
 
 
   },
@@ -144,7 +133,6 @@ export default {
       deep: true,
       handler(to, from) {
         this.getMyCount()
-        this.getMyDisplayValue()
       }
     }
   }
