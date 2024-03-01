@@ -8,8 +8,7 @@
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </td>
 
-    <td class="body-2">
-      <template v-if="isNegated" class="font-weight-bold">NOT</template>
+    <td class="body-2" :class="{isNegated}">
       {{ displayValue }}
     </td>
     <td class="range body-2 text-right align-baseline">
@@ -137,6 +136,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+.isNegated {
+  text-decoration: line-through !important;
+}
 .group-by-table-row {
   cursor: pointer;
 
