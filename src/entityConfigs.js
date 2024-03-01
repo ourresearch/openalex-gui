@@ -224,6 +224,7 @@ const entityConfigs = {
             "display_name_alternatives",
             null,
             "topics",
+            "siblings",
             "field",
             "domain",
         ],
@@ -246,8 +247,9 @@ const entityConfigs = {
             "description",
             "display_name_alternatives",
             null,
-            "domain",
             "subfields",
+            "siblings",
+            "domain",
         ],
     },
     domains: {
@@ -269,6 +271,7 @@ const entityConfigs = {
             "display_name_alternatives",
             null,
             "fields",
+            "siblings",
         ],
     },
     sdgs: {

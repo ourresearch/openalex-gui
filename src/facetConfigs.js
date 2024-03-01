@@ -1619,6 +1619,16 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.topics,
         },
         {
+            key: "siblings",
+            entityType: "subfields",
+            entityId: "subfields",
+            displayName: "related subfields (siblings)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-tag-outline",
+            extractFn: (e) => e.siblings,
+        },
+        {
             key: "field",
             entityType: "subfields",
             entityId: "subfields",
@@ -1660,6 +1670,16 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             icon: "mdi-tag-outline",
             extractFn: (e) => e.display_name_alternatives,
+        },
+        {
+            key: "siblings",
+            entityType: "fields",
+            entityId: "fields",
+            displayName: "related fields (siblings)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-tag-outline",
+            extractFn: (e) => e.siblings,
         },
         {
             key: "subfields",
@@ -1715,6 +1735,16 @@ const facetConfigs = function (entityType) {
             categories: ["other"],
             icon: "mdi-tag-outline",
             extractFn: (e) => e.fields,
+        },
+        {
+            key: "siblings",
+            entityType: "domains",
+            entityId: "domains",
+            displayName: "other domains (siblings)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-tag-outline",
+            extractFn: (e) => e.siblings,
         },
 
         // types
