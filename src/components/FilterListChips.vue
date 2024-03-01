@@ -356,7 +356,6 @@ export default {
         url.deleteAllFilters()
       }
       this.searchString = ""
-      this.$refs.mainTextarea.focus()
 
     },
     submitTextSearch() {

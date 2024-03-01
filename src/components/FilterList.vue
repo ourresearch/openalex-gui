@@ -25,47 +25,47 @@
       </v-toolbar-title>
       <v-spacer/>
 
-      <v-menu  offset-y key="new-filter-add-button" max-width="300">
-          <template v-slot:activator="{on}">
-            <v-btn
-                icon
-                key="asdfasdrasdf"
-                class=""
-                v-on="on"
-            >
-              <v-icon color="" class="">mdi-plus</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-subheader>Add filter</v-subheader>
-            <v-divider />
-            <v-list-item
-                v-for="filter in popularFilters"
-                :key="filter.key"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-                  <!--                  <span v-if="filter.disabled">(applied)</span>-->
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
-              <v-list-item-icon>
-                <v-icon>mdi-dots-horizontal</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>More</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+      <v-menu offset-y key="new-filter-add-button" max-width="300">
+        <template v-slot:activator="{on}">
+          <v-btn
+              icon
+              key="asdfasdrasdf"
+              class=""
+              v-on="on"
+          >
+            <v-icon color="" class="">mdi-plus</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>Add filter</v-subheader>
+          <v-divider/>
+          <v-list-item
+              v-for="filter in popularFilters"
+              :key="filter.key"
+              @click="setNewFilterKey(filter.key)"
+              :disabled="filter.disabled"
+          >
+            <v-list-item-icon>
+              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ filter.displayName }}
+                <!--                  <span v-if="filter.disabled">(applied)</span>-->
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-divider/>
+          <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
+            <v-list-item-icon>
+              <v-icon>mdi-dots-horizontal</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>More</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
 
       <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
@@ -79,7 +79,7 @@
 
     <div v-if="!isCollapsed">
       <!--      <v-divider/>-->
-      <div v-if="filters.length === 0" class="ma-4 grey--text">
+      <div v-if="filters.length === 0" class="mx-5 my-2 grey--text">
         No filters applied
       </div>
       <table style="width: 100%;">
@@ -95,7 +95,6 @@
             @delete="url.deleteFilter(entityType, filter.key)"
         />
 
-        <!--         + ADD FILTER button-->
 
 
         <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
@@ -155,26 +154,20 @@
             </v-list-item>
           </v-list>
         </v-menu>
+
+        <v-chip
+            v-for="filter in popularFilters"
+            :key="filter.id"
+            class="ml-2"
+            color="white"
+            @click="setNewFilterKey(filter.key)"
+        >
+          <v-icon left small>{{ filter.icon }}</v-icon>
+          {{ filter.displayName }}
+        </v-chip>
+
       </v-card-actions>
     </div>
-
-
-    <!--      <v-divider />-->
-    <!--      <div class="py-3 px-3 d-flex align-center">-->
-    <!--        <v-btn rounded color="primary" class="">-->
-    <!--          <v-icon left>mdi-plus</v-icon>-->
-    <!--          add filter-->
-    <!--        </v-btn>-->
-    <!--        <v-chip-->
-    <!--            v-for="filter in popularFilters"-->
-    <!--            :key="filter.id"-->
-    <!--            class="ml-2"-->
-    <!--            color="white"-->
-    <!--            @click="setActiveFilter(filter)"-->
-    <!--        >-->
-    <!--          {{ filter.displayName }}-->
-    <!--        </v-chip>-->
-    <!--      </div>-->
 
 
     <v-dialog
@@ -411,7 +404,6 @@ export default {
         url.deleteAllFilters()
       }
       this.searchString = ""
-      this.$refs.mainTextarea.focus()
 
     },
     submitTextSearch() {

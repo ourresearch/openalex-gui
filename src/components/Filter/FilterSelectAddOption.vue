@@ -8,13 +8,13 @@
         Add {{ filterConfig.displayName }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
-<!--      <filter-select-menu :filter-key="filterKey"/>-->
+      <!--      <filter-select-menu :filter-key="filterKey"/>-->
       <v-btn icon @click="$emit('close')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
 
-      <template v-slot:extension>
+      <template v-slot:extension v-if="hasAutocomplete">
         <v-text-field
             v-model="searchString"
             filled
@@ -30,17 +30,45 @@
     <v-card-text class="body-1 pa-0">
       <!--      <v-card> {{ autocompleteResponses }}</v-card>-->
       <v-list>
-        <filter-select-edit-row
-            v-for="row in rows"
-            :key="row.value"
+        <template v-if="searchString">
+          <v-subheader v-if="isLoading">
+            Searching...
+          </v-subheader>
+          <v-subheader v-else-if="autocompleteResponses.length">
+            Top search results ({{ autocompleteResponses.length }})
+          </v-subheader>
+          <v-subheader v-else>
+            No results found
+          </v-subheader>
+          <filter-select-edit-row
+              v-for="row in autocompleteResponses"
+              :key="row.value"
 
-            :filter-key="filterKey"
-            :value="row.value"
-            :display-value="row.displayValue"
-            :count="row.count"
-            :hint="row.hint"
-        />
-<!--            @add="(id) => {$emit('add', id)}"-->
+              :filter-key="filterKey"
+              :value="row.value"
+              :display-value="row.displayValue"
+              :hint="row.hint"
+              is-from-autocomplete
+          />
+        </template>
+        <template v-else>
+          <v-subheader>
+            {{ hasAutocomplete ? "Top" : "All" }}
+            {{ entityConfig?.name | pluralize(2) }}
+            ({{ groups.length }})
+          </v-subheader>
+          <filter-select-edit-row
+              v-for="row in groups"
+              :key="row.value + row.count"
+
+              :filter-key="filterKey"
+              :value="row.value"
+              :display-value="row.displayValue"
+              :count="row.count"
+          />
+
+        </template>
+        <!--            @add="(id) => {$emit('add', id)}"-->
 
 
       </v-list>
@@ -59,10 +87,9 @@ import FilterSelectMenu from "@/components/Filter/FilterSelectMenu.vue";
 import {url} from "@/url";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
-import {getEntityConfig} from "@/entityConfigs";
+import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 
 import _ from "lodash"
-
 
 
 export default {
@@ -96,7 +123,7 @@ export default {
     filterConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
-    isNewFilter(){
+    isNewFilter() {
       return this.filterIndex === undefined
       // const filtersCount = url.readFilters(this.$route)?.length ?? 0
       // return this.filterIndex + 1 > filtersCount
@@ -120,27 +147,6 @@ export default {
             return group.displayValue?.toLowerCase()?.includes(lowerCaseSearchString)
           })
     },
-    isMoreRows() {
-      return this.groups?.length >= 195
-    },
-    rows() {
-      const ret = (this.autocompleteResponses.length) ?
-          this.autocompleteResponsesInGroupFormat :
-          this.filteredGroups
-
-      return ret.map(group => {
-        const isApplied = url.isFilterOptionApplied(
-            this.$route,
-            this.entityType,
-            this.filterKey,
-            group.value,
-        )
-        return {
-          ...group,
-          isApplied,
-        }
-      })
-    },
 
     selectedGroups() {
       return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
@@ -150,6 +156,12 @@ export default {
         return val.indexOf("!") === 0
       })
     },
+    hasAutocomplete() {
+      return this.entityConfig?.hasAutocomplete
+    },
+    entityConfig() {
+      return getEntityConfig(this.filterConfig.entityId)
+    }
   },
 
   methods: {
@@ -189,16 +201,27 @@ export default {
       this.isLoading = false
 
     },
-    getAutocompleteResponses: _.debounce(async function() {
+    getAutocompleteResponses: _.debounce(async function () {
       this.isLoading = true
       const autocompleteResponses = await api.getAutocompleteResponses(
           this.entityType,
           this.filterKey,
           this.searchString,
       )
-      this.autocompleteResponses = autocompleteResponses.slice(0, 5)
+      this.autocompleteResponses = autocompleteResponses
+          .map(r => {
+            return {
+              key: r.filter_key,
+              displayValue: r.display_name,
+              value: r.id,
+              count: null,
+              hint: r.hint,
+            }
+          })
+          .slice(0, 5)
+
       this.isLoading = false
-    }, 500),
+    }, 300),
 
 
   },
@@ -210,14 +233,14 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
+        this.searchString = ""
         this.getGroups()
       }
     },
     searchString(to, from) {
-      console.log("FilterSelectAddOption searchString watcher", )
+      this.autocompleteResponses = []
       this.isLoading = true
-      const hasAutocomplete = getEntityConfig(this.filterConfig.entityId)?.hasAutocomplete
-      hasAutocomplete && this.getAutocompleteResponses()
+      this.hasAutocomplete && this.getAutocompleteResponses()
     },
     isOpen: {
       immediate: true,

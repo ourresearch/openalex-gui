@@ -161,7 +161,6 @@
 
 import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
-import FilterList from "@/components/FilterListChips.vue";
 import {mapGetters} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 
@@ -172,7 +171,6 @@ export default {
   components: {
     UserSavedSearch,
     SearchBar,
-    FilterList,
     VueTyper,
     ShortcutBox,
   },

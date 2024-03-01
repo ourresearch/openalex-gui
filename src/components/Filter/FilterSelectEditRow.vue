@@ -49,6 +49,7 @@ export default {
     count: Number || null,
     disabled: Boolean,
     hint: String,
+    isFromAutocomplete:Boolean,
   },
   data() {
     return {
@@ -89,8 +90,9 @@ export default {
     ...mapActions([]),
 
     async getMyCount() {
-      if (this?.myCount) return
+      if (!this.isFromAutocomplete) return
       this.isCountLoading = true
+      this.myCount = undefined
       const filters = url.upsertFilterOptionNoPush(this.entityType, this.filterKey, this.value)
       const count = await api.getResultsCount(this.entityType, filters)
       this.myCount = count
@@ -104,7 +106,13 @@ export default {
   mounted() {
   },
   watch: {
-    value: {
+    // value: {
+    //   immediate: true,
+    //   handler(to, from) {
+    //     this.getMyCount()
+    //   }
+    // },
+    "$route.query.filter": {
       immediate: true,
       handler(to, from) {
         this.getMyCount()

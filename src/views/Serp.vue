@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2">
+  <div class="color-2"  style="min-height: 80vh">
     <v-container fluid class="pt-4">
         <serp-toolbar :results-object="resultsObject"/>
       <filter-list :results-object="resultsObject" class="mb-6 "/>
