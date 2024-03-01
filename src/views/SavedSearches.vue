@@ -131,7 +131,6 @@
 import {url} from "@/url";
 import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
-import FilterList from "@/components/FilterListChips.vue";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import {isToday} from "@/util";
@@ -142,7 +141,6 @@ export default {
   components: {
     UserSavedSearch,
     SearchBar,
-    FilterList,
     VueTyper,
     SavedSearchMenu,
   },

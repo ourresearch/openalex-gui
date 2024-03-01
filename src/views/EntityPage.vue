@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2">
+  <div class="color-2" style="min-height: 80vh">
     <v-container v-if="entityData" class="">
       <div>
         <v-btn
@@ -53,10 +53,12 @@
       </v-row>
       <v-row v-if="myEntityType === 'works'">
         <v-col>
-          <entity-new
-              :data="entityData"
-              :type="myEntityType"
-          />
+          <v-card flat rounded class="py-6">
+            <entity-new
+                :data="entityData"
+                :type="myEntityType"
+            />
+          </v-card>
         </v-col>
       </v-row>
 

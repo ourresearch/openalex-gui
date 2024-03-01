@@ -22,6 +22,10 @@
     </td>
     <slot></slot>
     <td class="text-right">
+      <v-btn icon @click.stop="url.toggleGroupBy(filterKey)">
+        <v-icon v-if="url.getGroupBy($route).includes(filterKey)">mdi-clipboard-off</v-icon>
+        <v-icon v-else>mdi-clipboard-outline</v-icon>
+      </v-btn>
       <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
