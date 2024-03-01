@@ -49,6 +49,7 @@
             />
             <v-list-item-subtitle>
               {{ data.item.displayName |capitalize }}
+              {{ data.item.hint }}
               <!--            <span class="grey&#45;&#45;text">{{ data.item.value }}</span>-->
             </v-list-item-subtitle>
           </v-list-item-content>
@@ -92,7 +93,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {entityConfigs, externalEntityTypeFromId, urlPartsFromId} from "@/entityConfigs";
+import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId} from "@/entityConfigs";
 import {findFacetConfig, findFacetConfigs} from "@/facetConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
@@ -223,15 +224,21 @@ export default {
                 filterKey,
                 id
             )
-            myFilter.displayValue = result.display_name
-            myFilter.worksCount = result.works_count
-            return myFilter
 
-            // return {
-            //   ...result,
-            //   icon: filterConfig.icon,
-            //   hint: filterConfig.displayName
-            // }
+            const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
+            const myHintString = result.hint ?? ""
+            const tidyHintString = myHintString.replace("This cluster of papers ","")
+            const hint = tidyHintString ?
+                myHintVerb + " " + tidyHintString :
+                ""
+
+            return {
+              ...myFilter,
+              displayValue: result.display_name,
+              worksCount: result.works_count,
+              hint,
+            }
+
           })
 
       const filterLinks = this.searchString?.length > 3 ?
