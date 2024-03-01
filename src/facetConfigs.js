@@ -1703,6 +1703,28 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.fields,
         },
 
+        // types
+        {
+            key: "description",
+            entityType: "types",
+            entityId: "types",
+            displayName: "description",
+            type: "search",
+            categories: ["other"],
+            icon: "mdi-shape-outline",
+            extractFn: (e) => e.description,
+        },
+        {
+            key: "crossref_types",
+            entityType: "types",
+            entityId: "types",
+            displayName: "alternate names (Crossref)",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-shape-outline",
+            extractFn: (e) => e.crossref_types,
+        },
+
 
 
     ]

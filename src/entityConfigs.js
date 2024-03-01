@@ -336,7 +336,10 @@ const entityConfigs = {
         color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [],
+        rowsToShowOnEntityPage: [
+            "description",
+            "crossref_types",
+        ],
     },
 
 

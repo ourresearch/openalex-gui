@@ -27,7 +27,7 @@
               class="text-h4 mb-1"
               v-html="$prettyTitle(entityData.display_name)"
           />
-          <div class="d-flex align-center" v-if="entityData.roles">
+          <div class="d-flex align-center">
             <link-entity-roles-list
                 v-if="entityData.roles"
                 :roles="entityData.roles"
