@@ -72,18 +72,18 @@
         <!--        {{ data.item }}-->
       </template>
     </v-autocomplete>
-<!--    <div class="ml-2 mt-2" v-if="showExamples">-->
-<!--      <span>Try:</span>-->
-<!--      <v-chip-->
-<!--          color="white"-->
-<!--          v-for="search in searchesToTry"-->
-<!--          :key="search"-->
-<!--          @click="trySearch(search)"-->
-<!--          class="body-1"-->
-<!--      >-->
-<!--        {{ search }}-->
-<!--      </v-chip>-->
-<!--    </div>-->
+    <!--    <div class="ml-2 mt-2" v-if="showExamples">-->
+    <!--      <span>Try:</span>-->
+    <!--      <v-chip-->
+    <!--          color="white"-->
+    <!--          v-for="search in searchesToTry"-->
+    <!--          :key="search"-->
+    <!--          @click="trySearch(search)"-->
+    <!--          class="body-1"-->
+    <!--      >-->
+    <!--        {{ search }}-->
+    <!--      </v-chip>-->
+    <!--    </div>-->
   </div>
 </template>
 
@@ -135,20 +135,27 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
+    clear() {
+      this.searchString = ""
+      this.select = null
+      this.suggestions = []
+    },
     submitSearchString(e) {
       if (this.select) return false // the user is hitting enter after highlighting an option using the arrow keys
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-        return
+      }
+      else {
+        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+        url.pushNewFilters([
+            ...url.readFilters(this.$route),
+            searchFilter
+        ])
       }
 
-      const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
-      url.pushNewFilters([searchFilter])
     },
     viewWorks(id) {
       console.log("view my works", id)
-      this.searchString = ""
-      this.select = null
 
       // copies from main.js, horrible
       const entityType = entityTypeFromId(id)
@@ -165,8 +172,8 @@ export default {
           idForFilter,
       )
       url.pushNewFilters([
-          ...url.readFilters(this.$route),
-          filter,
+        ...url.readFilters(this.$route),
+        filter,
       ])
 
     },
@@ -227,7 +234,7 @@ export default {
 
             const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
             const myHintString = result.hint ?? ""
-            const tidyHintString = myHintString.replace("This cluster of papers ","")
+            const tidyHintString = myHintString.replace("This cluster of papers ", "")
             const hint = tidyHintString ?
                 myHintVerb + " " + tidyHintString :
                 ""
@@ -242,13 +249,17 @@ export default {
           })
 
       const filterLinks = this.searchString?.length > 3 ?
-          findFacetConfigs(this.entityType, this.searchString).map(f => {
-            return {
-              ...f,
-              isFilterLink: true,
-              displayValue: f.displayName,
-            }
-          }) :
+          findFacetConfigs(this.entityType, this.searchString)
+              .filter(f => {
+                return f.actions.includes("filter")
+              })
+              .map(f => {
+                return {
+                  ...f,
+                  isFilterLink: true,
+                  displayValue: f.displayName,
+                }
+              }) :
           []
 
       const ret = [
@@ -274,8 +285,15 @@ export default {
     searchString(to) {
       if (!to) this.suggestions = []
       to && this.getSuggestions(to)
-    }
-  }
+    },
+    "$route": {
+      handler(to, from) {
+        console.log("shortcut box route change", to)
+        this.clear()
+
+      }
+    },
+  },
 }
 </script>
 

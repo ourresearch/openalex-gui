@@ -230,7 +230,7 @@ export default {
   mounted() {
   },
   watch: {
-    "$route.query.filter": {
+    "$route": {
       handler(to, from) {
         this.searchString = ""
         this.$emit("close")
@@ -246,7 +246,7 @@ export default {
       immediate: true,
       handler(to, from) {
         this.searchString = ""
-        to && this.getGroups()
+        this.getGroups()
       }
     }
   }

@@ -12,7 +12,7 @@
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </v-list-item-icon>
     <v-list-item-content>
-      <v-list-item-title>
+      <v-list-item-title :class="{isNegated}">
         {{ displayValue }}
         {{ (disabled) ? "(applied)" : "" }}
       </v-list-item-title>
@@ -66,6 +66,9 @@ export default {
     valueId() {
       return this.value.replace("!", "")
     },
+    index(){
+      return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
+    },
     isApplied: {
       get() {
         return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
@@ -79,7 +82,7 @@ export default {
       }
     },
     isNegated(){
-      return false
+      return url.readIsFilterNegated(this.$route, this.entityType, this.index)
     }
   },
 
@@ -123,6 +126,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.isNegated {
+  text-decoration: line-through !important;
+}
 .v-list-item__icon {
   margin: 0;
   align-self: normal;

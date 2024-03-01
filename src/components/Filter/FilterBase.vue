@@ -15,7 +15,7 @@
       {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
     </td>
     <td class="shrink" style="min-width: 5em;">
-      <span v-if="myConfig.type === 'search'" class="px-3">is</span>
+      <span v-if="myConfig.type === 'search'" class="px-3">includes</span>
       <v-chip v-else outlined @click.stop="isNegated = !isNegated">
         {{ isNegated ? "is not" : "is" }}
       </v-chip>
