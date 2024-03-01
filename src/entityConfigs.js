@@ -198,6 +198,7 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "description",
             null,
+            "siblings",
             "subfield",
             "field",
             "domain",

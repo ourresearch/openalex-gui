@@ -83,7 +83,7 @@
     </v-list>
     <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
-          class="my-3 elevation-0"
+          class="pb-8 pt-3 elevation-0"
           circle
           v-model="page"
           :length="numPages"
