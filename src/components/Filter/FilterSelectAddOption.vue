@@ -38,10 +38,9 @@
             :value="row.value"
             :display-value="row.displayValue"
             :count="row.count"
-            :disabled="row.isApplied"
-
-            @add="(id) => {$emit('add', id)}"
+            :hint="row.hint"
         />
+<!--            @add="(id) => {$emit('add', id)}"-->
 
 
       </v-list>
@@ -62,6 +61,10 @@ import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
 import {getEntityConfig} from "@/entityConfigs";
 
+import _ from "lodash"
+
+
+
 export default {
   name: "Template",
   components: {
@@ -73,6 +76,7 @@ export default {
   props: {
     filterKey: String,
     filterIndex: Number,
+    isOpen: Boolean,
   },
   data() {
     return {
@@ -104,14 +108,16 @@ export default {
           displayValue: r.display_name,
           value: r.id,
           count: null,
+          hint: r.hint,
         }
       })
     },
     filteredGroups() {
+      const lowerCaseSearchString = this.searchString?.toLowerCase() ?? ""
       return this.groups
           .filter(group => group.displayValue)
           .filter(group => {
-            return group.displayValue?.toLowerCase()?.includes(this.searchString.toLowerCase())
+            return group.displayValue?.toLowerCase()?.includes(lowerCaseSearchString)
           })
     },
     isMoreRows() {
@@ -157,6 +163,7 @@ export default {
 
     },
     async getGroups() {
+      console.log("FilterSelectAddOption getGroups()")
       if (!this.filterKey) return []
       this.isLoading = true
       const filters = this.isNewFilter ?
@@ -182,16 +189,16 @@ export default {
       this.isLoading = false
 
     },
-    async getAutocompleteResponses() {
+    getAutocompleteResponses: _.debounce(async function() {
       this.isLoading = true
       const autocompleteResponses = await api.getAutocompleteResponses(
           this.entityType,
           this.filterKey,
           this.searchString,
       )
-      this.autocompleteResponses = autocompleteResponses
+      this.autocompleteResponses = autocompleteResponses.slice(0, 5)
       this.isLoading = false
-    }
+    }, 500),
 
 
   },
@@ -208,8 +215,15 @@ export default {
     },
     searchString(to, from) {
       console.log("FilterSelectAddOption searchString watcher", )
+      this.isLoading = true
       const hasAutocomplete = getEntityConfig(this.filterConfig.entityId)?.hasAutocomplete
       hasAutocomplete && this.getAutocompleteResponses()
+    },
+    isOpen: {
+      immediate: true,
+      handler(to, from) {
+        this.searchString = ""
+      }
     }
   }
 }

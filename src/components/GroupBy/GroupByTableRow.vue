@@ -15,13 +15,11 @@
     <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
     </td>
-    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">
-      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">
-        <v-icon small>mdi-minus-circle-outline</v-icon>
-      </v-btn>
-
-
-    </td>
+<!--    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">-->
+<!--      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">-->
+<!--        <v-icon small>mdi-minus-circle-outline</v-icon>-->
+<!--      </v-btn>-->
+<!--    </td>-->
   </tr>
 </template>
 
@@ -66,7 +64,6 @@ export default {
       },
       set(to) {
         if (to) {
-          // url.upsertFilterOption(this.entityType, this.filterKey, this.value)
           url.createFilter(this.entityType, this.filterKey, this.value)
         } else {
           url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
