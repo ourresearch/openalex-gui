@@ -228,9 +228,6 @@ const updateFilter = async function (entityType, index, newValue, isNegated) {
 
 const deleteFilterOption = async function (entityType, index, optionToDelete) {
     console.log("url.deleteFilterOption", entityType, index, optionToDelete)
-    if (externalEntityTypeFromId(optionToDelete)) {
-        optionToDelete = optionToDelete.split("/")[1]
-    }
 
     const filters = readFilters(router.currentRoute)
     const myFilter = readFilter(router.currentRoute, entityType, index)

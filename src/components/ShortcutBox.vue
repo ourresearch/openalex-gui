@@ -71,18 +71,18 @@
         <!--        {{ data.item }}-->
       </template>
     </v-autocomplete>
-    <div class="ml-2 mt-2" v-if="showExamples">
-      <span>Try:</span>
-      <v-chip
-          color="white"
-          v-for="search in searchesToTry"
-          :key="search"
-          @click="trySearch(search)"
-          class="body-1"
-      >
-        {{ search }}
-      </v-chip>
-    </div>
+<!--    <div class="ml-2 mt-2" v-if="showExamples">-->
+<!--      <span>Try:</span>-->
+<!--      <v-chip-->
+<!--          color="white"-->
+<!--          v-for="search in searchesToTry"-->
+<!--          :key="search"-->
+<!--          @click="trySearch(search)"-->
+<!--          class="body-1"-->
+<!--      >-->
+<!--        {{ search }}-->
+<!--      </v-chip>-->
+<!--    </div>-->
   </div>
 </template>
 
