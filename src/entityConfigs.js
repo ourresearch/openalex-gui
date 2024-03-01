@@ -192,6 +192,7 @@ const entityConfigs = {
         placeholder: "Search topics",
         filterName: "topics",
         filterKey: "primary_topic.id",
+        hintVerb: "that",
         color: "blue-grey",
         hasAutocomplete: true,
         isNative: true,
