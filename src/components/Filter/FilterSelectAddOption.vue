@@ -231,10 +231,10 @@ export default {
   },
   watch: {
     "$route.query.filter": {
-      immediate: true,
       handler(to, from) {
         this.searchString = ""
-        this.getGroups()
+        this.$emit("close")
+
       }
     },
     searchString(to, from) {
@@ -246,6 +246,7 @@ export default {
       immediate: true,
       handler(to, from) {
         this.searchString = ""
+        to && this.getGroups()
       }
     }
   }

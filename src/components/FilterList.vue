@@ -127,6 +127,7 @@
             </v-btn>
           </template>
           <v-list>
+
             <v-list-item
                 v-for="filter in popularFilters"
                 :key="filter.key"
