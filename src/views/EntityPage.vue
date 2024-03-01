@@ -1,26 +1,18 @@
 <template>
   <div class="color-2">
     <v-container v-if="entityData" class="">
-      <v-row>
-        <v-col>
-          <div class="d-flex">
-            <v-btn
-                color="primary"
-                rounded
-                class="my-2"
-                text
-                @click="$router.back()"
-            >
-              <v-icon left>mdi-arrow-left</v-icon>
-              back
-            </v-btn>
-            <v-spacer/>
-            <v-btn icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-              <v-icon>mdi-api</v-icon>
-            </v-btn>
-          </div>
-        </v-col>
-      </v-row>
+      <div>
+        <v-btn
+            color="primary"
+            rounded
+            class="my-2"
+            text
+            @click="$router.back()"
+        >
+          <v-icon left>mdi-arrow-left</v-icon>
+          back
+        </v-btn>
+      </div>
       <v-row>
         <v-col cols="12" lg="9">
           <div
@@ -46,7 +38,17 @@
           </div>
         </v-col>
         <v-col cols="12" lg="3" class="text-right">
-          <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+          <div class="d-flex">
+            <v-spacer></v-spacer>
+            <v-btn class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+              <v-icon>mdi-api</v-icon>
+            </v-btn>
+            <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
+            <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
+              <v-icon left>mdi-file-document-outline</v-icon>
+              View all works
+            </v-btn>
+          </div>
         </v-col>
       </v-row>
       <v-row v-if="myEntityType === 'works'">
@@ -86,8 +88,8 @@
             </v-list>
           </v-card>
         </v-col>
-<!--        <v-col cols="12" md="4">-->
-<!--        </v-col>-->
+        <!--        <v-col cols="12" md="4">-->
+        <!--        </v-col>-->
         <v-col cols="12" md="5">
           <v-card flat rounded class="px-2 pb-3">
             <v-toolbar flat>
@@ -101,11 +103,11 @@
               </v-btn>
             </v-toolbar>
             <group-by
-              v-for="groupByKey in groupByKeys"
-              :key="groupByKey"
-              :filter-key="groupByKey"
-              :filter-by="[myWorksFilter]"
-              class="mb-3"
+                v-for="groupByKey in groupByKeys"
+                :key="groupByKey"
+                :filter-key="groupByKey"
+                :filter-by="[myWorksFilter]"
+                class="mb-3"
             />
           </v-card>
         </v-col>
@@ -196,7 +198,7 @@ export default {
     myEntityName() {
       return this.$route.params.entityType
     },
-    myWorksFilter(){
+    myWorksFilter() {
       return createSimpleFilter(
           "works",
           this.myEntityConfig.filterKey,
@@ -258,7 +260,7 @@ export default {
       console.log("getWorks() got response back", resp)
       this.worksResultObject = resp
     },
-    viewMyWorks(){
+    viewMyWorks() {
       return url.pushNewFilters([this.myWorksFilter])
     },
   },

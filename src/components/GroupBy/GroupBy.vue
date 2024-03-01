@@ -130,8 +130,10 @@
         max-width="600"
         scrollable
     >
+
       <filter-select-add-option
           :filter-key="filterKey"
+          :isOpen="isDialogOpen"
           @close="isDialogOpen = false"
           @add="addFilter"
       />
