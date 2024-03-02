@@ -32,7 +32,7 @@
       <filter-select-add-option
           :filter-key="filterKey"
           :filter-index="index"
-          @close="isActive = false"
+          @close="close"
           @add="addOption"
 
       />
@@ -112,7 +112,12 @@ export default {
     },
     onDelete() {
       console.log("FilterPhraseSelect onDelete()")
-
+    },
+    close(){
+      console.log("FilterSelect close()")
+      this.$store.state.activeFilterKey = null
+      this.isActive = false
+      this.$emit("close") // shouldn't be necessary but it is
     },
     onClickOutside() {
       console.log("FilterPhraseSelect onClickOutside()")
@@ -127,8 +132,7 @@ export default {
     },
     addOption(id) {
       console.log("FilterSelect addOption()", id, this.optionIds)
-      this.$emit("close") // shouldn't be necessary but it is
-      this.isActive = false
+      this.close()
       this.optionIds.length ?
           url.addFilterOption(this.entityType, this.index, id) :
           url.createFilter(this.entityType, this.filterKey, id)
@@ -143,7 +147,6 @@ export default {
   watch: {
     isActive(to) {
       this.searchString = ""
-      if (!to) this.$emit("close")
     }
   }
 }
