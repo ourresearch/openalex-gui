@@ -25,48 +25,6 @@
       </v-toolbar-title>
       <v-spacer/>
 
-      <v-menu offset-y key="new-filter-add-button" max-width="300">
-        <template v-slot:activator="{on}">
-          <v-btn
-              icon
-              key="asdfasdrasdf"
-              class=""
-              v-on="on"
-          >
-            <v-icon color="" class="">mdi-plus</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-subheader>Add filter</v-subheader>
-          <v-divider/>
-          <v-list-item
-              v-for="filter in popularFilters"
-              :key="filter.key"
-              @click="setNewFilterKey(filter.key)"
-              :disabled="filter.disabled"
-          >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ filter.displayName }}
-                <!--                  <span v-if="filter.disabled">(applied)</span>-->
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider/>
-          <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
-            <v-list-item-icon>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>More</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-
 
       <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
         <v-icon>mdi-delete-outline</v-icon>
@@ -96,7 +54,6 @@
         />
 
 
-
         <!--     NEW filter (it's invisible; just here to use its dialog. ) -->
         <component
             v-if="$store.state.newFilterKey"
@@ -112,52 +69,11 @@
       </table>
 
       <v-card-actions>
-        <v-menu offset-y key="new-filter-add-button" max-width="300">
-          <template v-slot:activator="{on}">
-            <v-btn
-                rounded
-                color="primary"
-                key="asdfasdrasdf"
-                class="mt-2"
-                v-on="on"
-            >
-              <v-icon color="" class="mr-3">mdi-plus-thick</v-icon>
-              Add {{ filters.length ? "another" : "a" }} filter
-              <v-icon color="" class="ml-1">mdi-menu-down</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
+        <add-filter @select="setNewFilterKey" />
 
-            <v-list-item
-                v-for="filter in popularFilters"
-                :key="filter.key"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-                  <!--                  <span v-if="filter.disabled">(applied)</span>-->
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item key="open-more-filters" @click="dialogs.moreFilters = true">
-              <v-list-item-icon>
-                <v-icon>mdi-dots-horizontal</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>More</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
 
         <v-chip
-            v-for="filter in popularFilters"
+            v-for="filter in potentialFiltersPopular"
             :key="filter.id"
             class="ml-2"
             color="white"
@@ -171,61 +87,6 @@
     </div>
 
 
-    <v-dialog
-        v-model="dialogs.moreFilters"
-        scrollable
-        max-width="400"
-    >
-      <v-card rounded>
-        <v-toolbar extended extension-height="60" flat class="color-2">
-          <v-toolbar-title>Add filter</v-toolbar-title>
-          <v-spacer/>
-          <v-btn icon @click="dialogs.moreFilters = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-          <template v-slot:extension>
-            <v-text-field
-                v-model="moreFiltersSearchString"
-                filled
-                rounded
-                background-color="white"
-                prepend-inner-icon="mdi-magnify"
-                class="mx-2 mb-3"
-                hide-details
-                autofocus
-                clearable
-
-            />
-
-          </template>
-        </v-toolbar>
-        <v-card-text class="pa-0">
-          <div class="pa-6 grey--text" v-if="!moreFiltersOptions.length">
-            <v-icon left>mdi-magnify-close</v-icon>
-            No matching filters
-          </div>
-          <v-list-item
-              v-for="filter in moreFiltersOptions"
-              :key="filter.key"
-              color="primary"
-              @click="setNewFilterKey(filter.key)"
-              :disabled="filter.disabled"
-          >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ filter.displayName }}
-                <!--                <span v-if="filter.disabled">(applied)</span>-->
-              </v-list-item-title>
-            </v-list-item-content>
-            <!--            <v-icon left>mdi-check</v-icon>-->
-          </v-list-item>
-
-        </v-card-text>
-      </v-card>
-    </v-dialog>
   </v-card>
 
 
@@ -274,7 +135,7 @@ export default {
     return {
       foo: 42,
       searchString: "",
-      moreFiltersSearchString: "",
+
       url,
       dialogs: {
         moreFilters: false
@@ -289,48 +150,12 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
-    popularFilters() {
-      return facetConfigs(this.entityType)
-          .filter(conf => conf.actionsPopular?.includes("filter"))
-          .map(f => {
-            return {
-              ...f,
-              disabled: !url.isFilterKeyAvailableToCreate(this.$route, this.entityType, f.key)
-            }
-          })
-    },
     entityConfig() {
       return getEntityConfig(this.entityType)
     },
-    filterOptions() {
-      const filtersWithoutValues = this.allFilterOptions.filter(f => {
-        if (this.searchString) {
-          const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
-          return filterKeyWords.some(w => {
-            return w.toLowerCase().indexOf(this.searchString.toLowerCase()) === 0
-          })
-        } else {
-          return f.actionsPopular?.includes("filter")
-        }
-      })
-
-      const sliceTo = this.searchString ? 5 : 6
-      return [
-        ...filtersWithoutValues,
-        ...this.autocompleteResponses,
-      ].slice(0, sliceTo)
-    },
-
-    moreFiltersOptions() {
-      const mySearchString = this.moreFiltersSearchString?.toString() ?? ""
-
-      return this.allFilterOptions
-          .filter(f => {
-            const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
-            return filterKeyWords.some(w => {
-              return w.indexOf(mySearchString) === 0
-            })
-          })
+    potentialFilters() {
+      return facetConfigs(this.entityType)
+          .filter(conf => conf.actions?.includes("filter"))
           .map(f => {
             return {
               ...f,
@@ -338,6 +163,11 @@ export default {
             }
           })
     },
+    potentialFiltersPopular() {
+      return this.potentialFilters.filter(f => f.actionsPopular?.includes("filter"))
+    },
+
+
 
     filters() {
       return url.readFilters(this.$route)
@@ -421,8 +251,8 @@ export default {
     },
     setNewFilterKey(filterKey) {
       this.dialogs.moreFilters = false
+      this.$store.state.newFilterKey = undefined
       if (!filterKey) {
-        this.$store.state.newFilterKey = undefined
         return
       }
       const newFilterConfig = getFacetConfig(this.entityType, filterKey)
@@ -506,7 +336,7 @@ export default {
       this.getAutocompleteResponses()
     },
     "dialogs.moreFilters"(to) {
-      if (to) this.moreFiltersSearchString = ""
+      if (to) this.potentialFiltersSearchString = ""
     },
     '$route': {
       immediate: true,
