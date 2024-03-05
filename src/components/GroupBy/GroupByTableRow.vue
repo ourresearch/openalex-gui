@@ -14,11 +14,11 @@
     <td class="range body-2 text-right align-baseline">
       {{ myCount | toPrecision }}
     </td>
-<!--    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">-->
-<!--      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">-->
-<!--        <v-icon small>mdi-minus-circle-outline</v-icon>-->
-<!--      </v-btn>-->
-<!--    </td>-->
+    <!--    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">-->
+    <!--      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">-->
+    <!--        <v-icon small>mdi-minus-circle-outline</v-icon>-->
+    <!--      </v-btn>-->
+    <!--    </td>-->
   </tr>
 </template>
 
@@ -28,6 +28,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {createSimpleFilter, filtersFromUrlStr, setStringIsNegated} from "@/filterConfigs";
 import {api} from "@/api";
+import {getEntityConfig} from "@/entityConfigs";
 
 export default {
   name: "Template",
@@ -54,7 +55,7 @@ export default {
     valueId() {
       return this.value.replace("!", "")
     },
-    index(){
+    index() {
       return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
     },
     isApplied: {
@@ -63,7 +64,25 @@ export default {
       },
       set(to) {
         if (to) {
-          url.createFilter(this.entityType, this.filterKey, this.value)
+          if (this.$route.name === 'EntityPage') {
+            console.log("clicking on GroupByTableRow from entity page")
+            const myEntityType = this.$route.params.entityType
+            const myEntityId = this.$route.params.entityId
+            const myEntityConfig = getEntityConfig(myEntityType)
+            const myEntityWorksFilter = createSimpleFilter(
+                "works",
+                myEntityConfig.filterKey,
+                myEntityId,
+            )
+            const myRowFilter = createSimpleFilter(
+                "works",
+                this.filterKey,
+                this.value
+            )
+            url.pushNewFilters([myEntityWorksFilter, myRowFilter])
+          } else {
+            url.createFilter(this.entityType, this.filterKey, this.value)
+          }
         } else {
           url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
         }
@@ -81,7 +100,7 @@ export default {
 
       }
     },
-    doesMyFilterHaveOtherOptions(){
+    doesMyFilterHaveOtherOptions() {
       return url.readFilterOptions(this.$route, this.entityType, this.index)?.length > 1
     },
   },
@@ -92,12 +111,12 @@ export default {
     ]),
     ...mapActions([]),
     clickRow() {
-          this.isApplied = !this.isApplied
+      this.isApplied = !this.isApplied
       // return this.isNegated ?
       //     this.isNegated = false :
       //     this.isApplied = !this.isApplied
     },
-    filtersForCount(){
+    filtersForCount() {
 
     },
     async getMyCount() {
@@ -140,6 +159,7 @@ export default {
 .isNegated {
   text-decoration: line-through !important;
 }
+
 .group-by-table-row {
   cursor: pointer;
 

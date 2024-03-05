@@ -38,9 +38,16 @@
 <!--          class="flex-grow-1 mx-12"-->
 <!--      />-->
 <!--      <v-spacer v-else />-->
-      <v-spacer />
-      <shortcut-box v-if="$route.name === 'Serp'"  style="width: 40%;" />
-      <v-spacer />
+      <div
+          class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
+          v-if="$route.name === 'Serp'"
+      >
+        <shortcut-box
+            style="max-width: 800px;"
+            class="flex-grow-1"
+        />
+      </div>
+      <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
 <!--      <serp-toolbar-->
 <!--          :results-object="$store.state.resultsObject"-->
 <!--          class="flex-grow-0"-->

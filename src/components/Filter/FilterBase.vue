@@ -1,23 +1,50 @@
 <template>
   <tr
       @click="$emit('click')"
-      class="hover-color-3"
+      class="hover-color-3 text-h6 font-weight-regular"
       :class="{clickable}"
   >
-    <!--    <td class="grey&#45;&#45;text shrink pl-5">-->
-    <!--      {{ index + 1 }}.-->
-    <!--    </td>-->
-    <!--    <td class="grey&#45;&#45;text shrink">-->
-    <!--      {{ index > 0 ? "and" : "" }}-->
-    <!--    </td>-->
-    <td class="shrink font-weight-bold align-center pl-4">
+        <td class="grey--text shrink pl-5">
+          {{ index + 1 }}.
+        </td>
+        <td class="grey--text shrink">
+          {{ index > 0 ? "and" : "" }}
+        </td>
+    <td class="shrink align-center pl-4">
       <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
       {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
     </td>
-    <td class="shrink" style="min-width: 5em;">
-      <span v-if="myConfig.type === 'search'" class="px-3">includes</span>
-      <v-chip v-else outlined @click.stop="isNegated = !isNegated">
-        {{ isNegated ? "is not" : "is" }}
+    <td class="shrink pr-6" style="min-width: 5em; text-align: center;">
+<!--      <span-->
+<!--          v-if="myConfig.type === 'search'"-->
+<!--          class="px-3"-->
+<!--      >-->
+<!--        includes-->
+<!--      </span>-->
+      <v-chip
+          :disabled="myConfig.type === 'search' || myConfig.type === 'range'"
+          outlined
+          label
+          class="text-h6 font-weight-regular py-4"
+          @click.stop="isNegated = !isNegated"
+      >
+        <template v-if="myConfig.type === 'search'">
+          includes
+        </template>
+        <template v-else-if="myConfig.type === 'range'">
+          {{ myValue.includes("-") ? "is in range" : "is" }}
+        </template>
+        <template v-else-if="myConfig.type === 'select'">
+          <template v-if="isNegated">
+            {{ myValue.includes("|") ? "is none of" : "is not" }}
+          </template>
+          <template v-else>
+            {{ myValue.includes("|") ? "is any of" : "is" }}
+          </template>
+        </template>
+        <template v-else>
+          {{ isNegated ? "is not" : "is" }}
+        </template>
       </v-chip>
     </td>
     <slot></slot>
@@ -68,6 +95,9 @@ export default {
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
+    myValue(){
+      return url.readFilterValue(this.$route, this.entityType, this.index)
+    },
     isNegated: {
       get() {
         const urlFilter = url.readFilter(this.$route, this.entityType, this.index)
@@ -109,7 +139,7 @@ tr {
 }
 
 td {
-  padding: 3px 9px;
+  padding: 10px 9px;
   border-bottom: 1px solid #eee;
 }
 

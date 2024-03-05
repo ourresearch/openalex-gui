@@ -130,13 +130,35 @@
         max-width="600"
         scrollable
     >
+      <v-card rounded>
+        <v-text-field
+              v-model="searchString"
+              filled
+              rounded
+              background-color="white"
+              prepend-inner-icon="mdi-magnify"
+              hide-details
+              autofocus
+              :placeholder="searchStringPlaceholder"
+              style=""
+              class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+              append-outer-icon="mdi-close"
+              @click:append-outer="clickCloseSearch"
+          />
+        <v-divider />
+        <v-card-text class="pa-0" style="height: 80vh;">
+          <filter-select-add-option
+              :filter-key="filterKey"
+              :is-open="isDialogOpen"
+              :search-string="searchString"
+              :filters="url.readFilters($route)"
+              @close="closeDialog"
+              @add="addFilter"
+          />
+        </v-card-text>
 
-      <filter-select-add-option
-          :filter-key="filterKey"
-          :isOpen="isDialogOpen"
-          @close="isDialogOpen = false"
-          @add="addFilter"
-      />
+      </v-card>
+
     </v-dialog>
   </v-card>
 
@@ -208,6 +230,10 @@ export default {
           url.deleteFilter(this.entityType, this.filterKey)
         }
       }
+    },
+    searchStringPlaceholder(){
+      const pluralDisplayName = this.$pluralize(this.filterConfig.displayName, 2)
+      return "Search " + pluralDisplayName
     },
     isMoreToShow() {
       return this.groups.length > this.groupsTruncated.length
@@ -290,6 +316,15 @@ export default {
       url.createFilter(this.entityType, this.filterKey, id)
       this.isDialogOpen = false
     },
+    clickCloseSearch(){
+      this.searchString ?
+          this.searchString = "" :
+          this.closeDialog()
+    },
+    closeDialog(){
+      this.searchString = ""
+      this.isDialogOpen = false
+    },
     async getGroups() {
       if (!this.filterKey) return []
       this.isLoading = true
@@ -330,10 +365,13 @@ export default {
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
-
         this.getGroups()
-      }
+      },
+    },
+    isDialogOpen(to){
+      !to && this.closeDialog()
     }
+
   }
 }
 </script>

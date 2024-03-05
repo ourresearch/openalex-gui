@@ -118,7 +118,7 @@ const facetConfigs = function (entityType) {
             categories: ["other",],
             category: "other",
             isList: false,
-            actions: ["filter", "group_by",],
+            actions: [],
             actionsPopular: [],
             isCore: true,
             icon: "mdi-tag-outline",
@@ -233,7 +233,7 @@ const facetConfigs = function (entityType) {
             categories: ["funder"],
             category: "other",
             isList: true,
-            actions: ["filter",],
+            actions: [],
             isCore: true,
             icon: "mdi-cash-multiple",
             extractFn: (entity) => entity.grants.map(grant => grant.award_id),
@@ -1851,6 +1851,7 @@ const getFacetConfigFromPid = function (pid) {
 
 
 const getFacetConfig = function (entityType, key) {
+    if (!key || !entityType) return
     // hack time
     if (key === "relevance_score") {
         return {

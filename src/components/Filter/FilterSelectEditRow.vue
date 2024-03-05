@@ -3,7 +3,7 @@
       :disabled="disabled"
       @click="isApplied = !isApplied"
   >
-<!--      @click="$emit('add', value)"-->
+    <!--      @click="$emit('add', value)"-->
     <v-list-item-icon>
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
@@ -16,13 +16,14 @@
         {{ displayValue }}
         {{ (disabled) ? "(applied)" : "" }}
       </v-list-item-title>
-      <v-list-item-subtitle v-if="hint">
-        {{ hint }}
+      <v-list-item-subtitle v-if="hint" style="white-space: normal;">
+        <span v-if="myEntityConfig">{{ myEntityConfig.displayName | pluralize(1) |capitalize }} </span>
+        <span v-if="hint"> {{ hint | truncate(100)}}</span>
       </v-list-item-subtitle>
     </v-list-item-content>
-    <v-list-item-action-text>
+    <v-list-item-action-text class="body-1">
       <template v-if="isCountLoading">
-        <v-progress-circular indeterminate size="10" width="2" color="grey" />
+        <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>
       <template>
         {{ myCount | toPrecision }}
@@ -37,6 +38,8 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {api} from "@/api";
+import {getEntityConfig} from "@/entityConfigs";
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "Template",
@@ -49,7 +52,7 @@ export default {
     count: Number || null,
     disabled: Boolean,
     hint: String,
-    isFromAutocomplete:Boolean,
+    isFromAutocomplete: Boolean,
   },
   data() {
     return {
@@ -63,10 +66,16 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    myConfig(){
+      return getFacetConfig(this.entityType, this.filterKey)
+    },
+    myEntityConfig(){
+      return getEntityConfig(this.myConfig?.entityId)
+    },
     valueId() {
       return this.value.replace("!", "")
     },
-    index(){
+    index() {
       return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
     },
     isApplied: {
@@ -74,14 +83,18 @@ export default {
         return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
       },
       set(to) {
-        if (to) {
-          url.createFilter(this.entityType, this.filterKey, this.value)
-        } else {
-          url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
+        if (this.filterIndex >= 0){
+          console.log("FilterSelectEditRow set()", this.filterIndex)
+          to ? url.addFilterOption(this.entityType, this.filterIndex, this.value) :
+              url.deleteFilterOption(this.entityType, this.filterIndex, this.value)
+        }
+        else {
+          to ? url.createFilter(this.entityType, this.filterKey, this.value) :
+               url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
         }
       }
     },
-    isNegated(){
+    isNegated() {
       return url.readIsFilterNegated(this.$route, this.entityType, this.index)
     }
   },
@@ -129,6 +142,7 @@ export default {
 .isNegated {
   text-decoration: line-through !important;
 }
+
 .v-list-item__icon {
   margin: 0;
   align-self: normal;

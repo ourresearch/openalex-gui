@@ -10,20 +10,39 @@
         rounded
         :dense="dense"
         filled
+        clearable
         hide-no-data
         hide-details
         class="shortcut-box"
-        placeholder="Search OpenAlex"
+        :placeholder="placeholder"
         prepend-inner-icon="mdi-magnify"
         ref="shortcutBox"
         :autofocus="autofocus"
+        :loading="isLoading"
 
-        @blur="suggestions = []"
-        @change="goToEntity"
-        @keyup.enter="submitSearchString"
-
-
+        @change="onChange"
+        @click:clear="clear"
+        @keydown.enter="isEnterPressed = true"
+        @keyup.enter="onEnterKeyup"
     >
+<!--        @blur="clear"-->
+      <template v-slot:prepend-inner>
+        <v-chip
+            v-if="newFilter"
+            close
+            @click:close="clear"
+            class="pa-5"
+            style="margin: -9px 0 0 -9px; border-radius: 30px;"
+        >
+          <v-icon left>
+            {{ newFilter.icon }}
+
+          </v-icon>
+          {{ newFilter?.displayName }}
+        </v-chip>
+      </template>
+
+
       <template v-slot:item="data">
         <v-list-item-icon>
           <v-icon>{{ data.item.icon }}</v-icon>
@@ -38,7 +57,7 @@
             </v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-icon>
-            <v-icon>mdi-plus</v-icon>
+            <v-icon>mdi-filter-plus</v-icon>
           </v-list-item-icon>
         </template>
         <template v-else>
@@ -47,25 +66,31 @@
                 v-html="$prettyTitle(data.item.displayValue)"
                 style="white-space: normal;"
             />
-            <v-list-item-subtitle>
+            <v-list-item-subtitle style="white-space: normal;">
               {{ data.item.displayName |capitalize }}
-              {{ data.item.hint }}
-              <!--            <span class="grey&#45;&#45;text">{{ data.item.value }}</span>-->
+              <span v-if="data.item.hint">
+                {{ data.item.hint | truncate(100)}}
+              </span>
             </v-list-item-subtitle>
           </v-list-item-content>
-          <v-list-item-action
-              v-if="data.item.entityId !== 'works' && data.item.worksCount"
-              class=""
-          >
-            <v-btn
-                rounded
-                text
-                class="font-weight-regular grey--text"
-                @click.stop="viewWorks(data.item.value)"
-            >
-              {{ data.item.worksCount | toPrecision }} works
+          <v-list-item-action v-if="data.item.entityId" @click="goToEntity(data.item.value)">
+            <v-btn icon>
+              <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </v-list-item-action>
+          <!--          <v-list-item-action-->
+          <!--              v-if="data.item.entityId !== 'works' && data.item.count"-->
+          <!--              class=""-->
+          <!--          >-->
+          <!--            <v-btn-->
+          <!--                rounded-->
+          <!--                text-->
+          <!--                class="font-weight-regular grey&#45;&#45;text"-->
+          <!--                @click.stop="viewWorks(data.item.value)"-->
+          <!--            >-->
+          <!--              {{ data.item.count | toPrecision }} works-->
+          <!--            </v-btn>-->
+          <!--          </v-list-item-action>-->
 
         </template>
 
@@ -94,8 +119,11 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId} from "@/entityConfigs";
-import {findFacetConfig, findFacetConfigs} from "@/facetConfigs";
+import {findFacetConfig, findFacetConfigs, getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+
+import _ from "lodash"
+
 
 export default {
   name: "Template",
@@ -110,8 +138,14 @@ export default {
       foo: 42,
       isLoading: false,
       searchString: "",
-      select: null,
       suggestions: [],
+      newFilter: null,
+      select: null,
+      interval: null,
+
+      isEnterPressed: false,
+
+      selectStorage: null,
       searchesToTry: [
         "Albert Einstein",
         "Solar power",
@@ -127,6 +161,50 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    filterSuggestions() {
+      const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
+          .filter(f => {
+            return f.actions.includes("filter")
+          })
+          .map(f => {
+            return {
+              ...f,
+              isFilterLink: true,
+              displayValue: f.displayName,
+              isDisabled: url.isFilterKeyAvailableToCreate(this.$route, this.entityType, f.key)
+            }
+          })
+
+      suggestionsMatchingSearchString.sort((a, b)=> {
+        return (a.displayName.length > b.displayName.length) ? 1 : -1
+      })
+
+      return this.searchString?.length >= 3 ?
+          suggestionsMatchingSearchString :
+          []
+    },
+    placeholder() {
+      const displayName = this.newFilter?.displayName
+      const pluralizedDisplayName = displayName ?
+          this.$pluralize(displayName, 2) :
+          null
+      if (!this.newFilter) {
+        return "Search OpenAlex"
+      }
+      else if (this.newFilter.key === "publication_year") {
+        return "Enter year or range of years"
+      }
+      else if (this.newFilter.type === "range") {
+        return "Enter number or range"
+      }
+      else if (this.newFilter.type === "search") {
+        return "Search within " + pluralizedDisplayName
+      }
+      else {
+        return "Search " + pluralizedDisplayName
+      }
+    },
+
   },
 
   methods: {
@@ -137,170 +215,185 @@ export default {
     ...mapActions("user", []),
     clear() {
       this.searchString = ""
-      this.select = null
       this.suggestions = []
+      this.newFilter = null
+
     },
-    submitSearchString(e) {
-      if (this.select) return false // the user is hitting enter after highlighting an option using the arrow keys
-      if (!this.searchString) {
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-      }
-      else {
-        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+    selectFilter(filter) {
+      console.log("selectFilter()", filter)
+      if (filter.type === "boolean") {
+        const oldFilters = url.readFilters(this.$route)
+        console.log("push new filter", filter)
+        const newFilter = createSimpleFilter(
+            this.entityType,
+            filter.key,
+            true
+        )
+        filter.value = true
         url.pushNewFilters([
-            ...url.readFilters(this.$route),
-            searchFilter
+          ...oldFilters,
+          newFilter,
         ])
+      } else {
+        this.newFilter = filter
+      }
+    },
+    onChange(e) {
+      console.log('onChange()', e, this.select)
+      if (this.select) this.isEnterPressed = false
+      if (e?.isFilterLink) this.selectFilter(e)
+      else if (e?.value) this.viewWorks(e.value)
+      setTimeout(()=> { // no idea why this is necessary but it is
+        this.searchString = ""
+        this.select = null
+        this.suggestions = []
+      })
+    },
+    onEnterKeyup() {
+      if (!this.isEnterPressed) return
+      if (!this.searchString && this.showExamples) {
+        // we're on the landing page or something like it
+        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
+        return
       }
 
+      const filterKey = this.newFilter?.key ?? "default.search"
+      url.createFilter(this.entityType, filterKey, this.searchString)
+      this.isEnterPressed = false
+    },
+    submitSearchString() {
+      console.log("submitSearchString")
+      if (!this.searchString) {
+        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
+      } else {
+        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+        url.pushNewFilters([
+          ...url.readFilters(this.$route),
+          searchFilter
+        ])
+      }
     },
     viewWorks(id) {
       console.log("view my works", id)
-
-      // copies from main.js, horrible
       const entityType = entityTypeFromId(id)
       if (!id || !entityType) return
 
-      const shortId = shortenOpenAlexId(id)
-
-      const idForFilter = externalEntityTypeFromId(id) ?
-          shortId.split("/")[1] :
-          shortId
       const filter = createSimpleFilter(
           "works",
           entityConfigs[entityType].filterKey,
-          idForFilter,
+          id,
       )
       url.pushNewFilters([
         ...url.readFilters(this.$route),
         filter,
       ])
+      this.clear()
 
     },
-    goToEntity(e) {
-      console.log("goToEntity()", e)
-      if (e.isFilterLink) {
-        console.log("let's make a filter!")
-        this.$store.state.newFilterKey = e.key
-        this.select = null
-        this.searchString = ""
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-      } else {
-        url.pushToRoute(this.$router, {
-          name: "EntityPage",
-          params: urlPartsFromId(this.select.value)
-        })
-      }
+    goToEntity(id) {
+      console.log("goToEntity()", id)
+      url.pushToRoute(this.$router, {
+        name: "EntityPage",
+        params: urlPartsFromId(id)
+      })
 
     },
     trySearch(str) {
       this.searchString = str
-      this.$nextTick(() => {
+      setTimeout(() => {
         this.$refs.shortcutBox.focus()
-      })
+      }, 100)
     },
-    async getSuggestions() {
-      if (!this.searchString) return []
-      const myEntityType = (this.entityType === "works") ?
-          null :
-          this.entityType
-      const autocompleteUrl = url.makeAutocompleteUrl(myEntityType, this.searchString)
+
+    getSuggestions: _.debounce(async function() {
       this.isLoading = true
-      const resp = await api.getUrl(autocompleteUrl)
+      if (this.newFilter && this.searchString){
+        this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
+        this.isLoading = false
+        return
+      }
+      if (!this.newFilter && !this.searchString){
+        this.suggestions = [] // doesn't seem to work
+        this.isLoading = false
+        return // this is very important!!!!
+      }
+      const apiSuggestions = await api.getSuggestions(
+          "works",
+          this.newFilter?.key,
+          this.searchString,
+          url.readFilters(this.$route)
+      )
       this.isLoading = false
 
-
-      const apiResults = resp.results
-          .filter(r => !!r.id)
-          .filter(r => r.entity_type !== "filter")
-          .filter(r => !!r.display_name)
-          .map(result => {
-
-            let filterKey
-            if (result.filter_key === "id") filterKey = "ids.openalex"
-            else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
-            else filterKey = result.filter_key
-
-            let id
-            if (filterKey === "authorships.countries") id = "https://openalex.org/countries/" + result.id
-            else id = result.id
-
-            // const filterConfig = getFacetConfig(this.entityType, filterKey)
-            const myFilter = createSimpleFilter(
-                this.entityType,
-                filterKey,
-                id
-            )
-
-            const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
-            const myHintString = result.hint ?? ""
-            const tidyHintString = myHintString.replace("This cluster of papers ", "")
-            const hint = tidyHintString ?
-                myHintVerb + " " + tidyHintString :
-                ""
-
-            return {
-              ...myFilter,
-              displayValue: result.display_name,
-              worksCount: result.works_count,
-              hint,
-            }
-
-          })
-
-      const filterLinks = this.searchString?.length > 3 ?
-          findFacetConfigs(this.entityType, this.searchString)
-              .filter(f => {
-                return f.actions.includes("filter")
-              })
-              .map(f => {
-                return {
-                  ...f,
-                  isFilterLink: true,
-                  displayValue: f.displayName,
-                }
-              }) :
-          []
-
       const ret = [
-        ...filterLinks,
-        ...apiResults,
+        ...(this.newFilter ? [] : this.filterSuggestions),
+        ...apiSuggestions,
       ]
       const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
       const cleaned = everySuggestionIsAWork ?
           ret.slice(0, 3) :
           ret.filter(f => f.entityId !== "works").slice(0, 5)
 
-
       this.suggestions = cleaned
-    },
+    }, 100),
+
+    onKeyPress(event) {
+      if (event.key !== "/") {
+        return;
+      }
+
+      if (document.activeElement === this.$refs.shortcutBox) {
+        return;
+      }
+
+      event.preventDefault();
+      this.$refs.shortcutBox.focus();
+    }
 
 
   },
   created() {
   },
   mounted() {
+    window.addEventListener("keypress", this.onKeyPress);
+    this.interval = setInterval(()=>{
+      if (!this.newFilter && !this.searchString && this.suggestions.length) {
+        console.log("setInterval hackily clearing any leftover suggestions")
+        this.suggestions = []
+      }
+    }, 10)
+  },
+  beforeDestroy() {
+    clearInterval(this.interval)
+    window.removeEventListener("keypress", this.onKeyPress);
   },
   watch: {
-    searchString(to) {
-      if (!to) this.suggestions = []
-      to && this.getSuggestions(to)
+    searchString: function(to) {
+      if (this.newFilter && this.newFilter?.type !== "select") return
+      this.getSuggestions()
     },
     "$route": {
       handler(to, from) {
-        console.log("shortcut box route change", to)
         this.clear()
-
       }
     },
+    async select(to) {
+
+    }
   },
 }
 </script>
 
 <style lang="scss">
+
+.v-autocomplete__content {
+  max-width: 400px !important;
+}
+
+
 .shortcut-box {
-  .v-icon.notranslate.mdi.mdi-menu-down.theme--light {
-    display: none !important;
+  .v-input__append-inner:last-of-type {
+    display: none !important; // hide the down-caret icon
   }
 
 }

@@ -27,6 +27,7 @@
                 style="margin-left:-13px;"
             />
             <div class="mr-3" v-else>
+              <v-icon small>{{ myEntityConfig.icon }}</v-icon>
               {{ myEntityConfig.displayNameSingular | capitalize }}
             </div>
 
