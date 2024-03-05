@@ -15,7 +15,7 @@
             class="font-weight-regular "
             v-on="on"
         >
-<!--          <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>-->
+          <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>
           {{ selectedRoleConfig.nameSingular | capitalize }}
           <v-icon right>mdi-menu-down</v-icon>
         </v-btn>

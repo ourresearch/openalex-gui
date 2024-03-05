@@ -11,9 +11,7 @@
       <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
       <v-chip
           outlined
-          label
-          class=" option d-block mr-1  py-1 mb-1 mt-1"
-          style="height: unset;"
+          class="option mr-1 px-4 py-4 mb-1 mt-1 text-h6 font-weight-regular color-3"
           v-on="on"
           close
           @click:close="$emit('delete')"

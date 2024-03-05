@@ -13,6 +13,7 @@ import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
+import {sleep} from "./util";
 
 const cache = {}
 const entityCache = {}
@@ -34,7 +35,7 @@ const clearCache = function () {
         cache[k] = null
     })
 }
-const stockCache = function(url, ret){
+const stockCache = function (url, ret) {
     cache[url] = ret
 }
 
@@ -114,13 +115,13 @@ const api = (function () {
         cache[url] = res.data
         return res.data
     }
-    const getResultsList = async function(url){
+    const getResultsList = async function (url) {
         const ret = getUrl(url)
         return ret
     }
 
 
-    const getEntity = async function(id){
+    const getEntity = async function (id) {
         const myUrl = makeUrl(id)
         const resp = await getUrl(myUrl)
         return resp
@@ -138,29 +139,166 @@ const api = (function () {
 
         if (filterKey === "institutions.country_code") {
             return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
-        }
-        else if (filterKey === "sustainable_development_goals.id") {
+        } else if (filterKey === "sustainable_development_goals.id") {
             return openAlexSdgs.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
-        }
-        else if (filterKey === "language") {
-           return ISO6391.getName(filterValue.toLowerCase())
-        }
-        else if (entityId) {
-           return await getEntityDisplayName(entityId, filterValue)
-        }
-        else {
+        } else if (filterKey === "language") {
+            return ISO6391.getName(filterValue.toLowerCase())
+        } else if (entityId) {
+            return await getEntityDisplayName(entityId, filterValue)
+        } else {
             return filterValue
         }
     }
 
 
-    const getResultsCount = async function(entityType, filters){
+    const getResultsCount = async function (entityType, filters) {
         const searchParams = {
             filter: filtersAsUrlStr(filters)
         }
         const url = makeUrl(entityType, searchParams)
         const ret = await getUrl(url)
         return ret.meta.count
+    }
+
+    const getGroups = async function (entityType, filterKey, options) {
+        const myUrl = url.makeGroupByUrl(
+            entityType,
+            filterKey,
+            options,
+        )
+
+        const resp = await axios.get(myUrl)
+        const filteredGroups = resp.data.group_by.filter(g => {
+            const keyIsNullish = g.key === "unknown" || g.key === null
+            return !(keyIsNullish && options.hideUnknown)
+        })
+
+        // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
+        // const truncatedGroups = filteredGroups.splice(0, 25)
+        const truncatedGroups = filteredGroups
+
+        const groupCounts = truncatedGroups.map(g => g.count)
+
+        const maxCount = Math.max(...groupCounts)
+        const countSum = groupCounts.reduce((a, b) => a + b, 0)
+
+
+        const groupDisplayFilters = truncatedGroups
+            .map(group => {
+                const groupKey = group.key.replaceAll("https://metadata.un.org/sdg/", "") // namespace hack
+
+                return createDisplayFilter(
+                    entityType,
+                    filterKey,
+                    groupKey,
+                    false,
+                    group.key_display_name,
+                    group.count,
+                    group.count / countSum,
+                )
+            })
+
+        return groupDisplayFilters
+    }
+
+    const filterKeyFromAutocompleteResponse = function (result) {
+        let filterKey
+        if (result.filter_key === "id") filterKey = "ids.openalex"
+        else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
+        else filterKey = result.filter_key
+        return filterKey
+    }
+
+    const getAutocompleteResponses = async function (entityType, filterKey, searchString, filters) {
+        const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
+        const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
+
+
+
+        const myUrl = url.makeAutocompleteUrl(myEntityId, searchString)
+        const resp = await getUrl(myUrl)
+        const suggestionFilters = resp.results
+            .filter(r => !!r.id)
+            .filter(r => r.entity_type !== "filter")
+            .filter(r => !!r.display_name)
+            .map(result => {
+                const resultFilterKey = filterKeyFromAutocompleteResponse(result)
+
+                let id
+                if (resultFilterKey === "authorships.countries") id = "https://openalex.org/countries/" + result.id
+                else id = result.id
+
+                const myFilter = createSimpleFilter(
+                    entityType,
+                    resultFilterKey,
+                    id
+                )
+
+                const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
+                const myHintString = result.hint ?? ""
+                let tidyHintString = myHintString
+                if (myFilter.entityId === "topics") {
+                    tidyHintString = tidyHintString
+                        .replace("This cluster of papers ", "")
+                        .replace("covers a ", "")
+                        .replace("focuses on ", "")
+                        .replace("explores the ", "")
+                        .replace(/^the/, "")
+                        .split(".")[0]
+
+                    tidyHintString = tidyHintString.split(", including ")[0]
+                    tidyHintString = tidyHintString.split(", emphasizing ")[0]
+                    tidyHintString = tidyHintString.split(", particularly focusing ")[0]
+                    tidyHintString = tidyHintString.split(", focusing on ")[0]
+                    tidyHintString = tidyHintString.split(", particularly emphasizing ")[0]
+                    tidyHintString = tidyHintString.split(", with a particular emphasis on ")[0]
+                    tidyHintString = tidyHintString[0].toUpperCase() + tidyHintString.substring(1) + "."
+                }
+
+                const hint = tidyHintString ?
+                    myHintVerb + " " + tidyHintString :
+                    ""
+
+                return {
+                    ...myFilter,
+                    displayValue: result.display_name,
+                    worksCount: result.works_count,
+                    count: result.works_count,
+                    hint,
+                    isFromAutocomplete: true,
+                }
+
+            })
+        return suggestionFilters
+    }
+
+    const getSuggestions = async function(entityType, filterKey, searchString, filters) {
+        // await sleep(1000)
+        if (!searchString) {
+            return await getGroups(entityType, filterKey, {
+                searchString,
+                filters,
+            })
+        }
+
+        else if (!filterKey){
+             return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
+        }
+
+        else {
+            const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
+            const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
+            if (isAutocompleteEndpointAvailable && myEntityId){
+                return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
+            }
+            else {
+                return await getGroups(entityType, filterKey, {
+                    searchString,
+                    filters
+                })
+            }
+
+        }
     }
 
 
@@ -179,79 +317,9 @@ const api = (function () {
             const resp = await getUrl(url)
             return resp
         },
-        getAutocompleteResponses: async function (entityType, filterKey, searchString) {
-            const myConfig = getFacetConfig(entityType, filterKey)
-
-
-            const hasAutocomplete = getEntityConfig(myConfig.entityId)?.hasAutocomplete
-            if (hasAutocomplete) {
-                if (!searchString) return []
-                const myUrl = url.makeAutocompleteUrl(myConfig.entityId, searchString)
-                const resp = await getUrl(myUrl)
-                return resp.results.map(r => {
-                    return {
-                        ...r,
-                        id: r.id.replace("https://openalex.org/", "")
-                    }
-                })
-
-            }
-
-            // if it's not an entity filter, we have to use (slow) group-by
-            else {
-                const myUrl = url.makeGroupByUrl(entityType, filterKey, {
-                    searchString
-                })
-                const resp = await getUrl(myUrl)
-                return resp.group_by.map(group => {
-                    return {
-                        id: group.key,
-                        display_name: group.key_display_name
-                    }
-                })
-            }
-        },
-
-        getGroups: async function (entityType, filterKey, options) {
-            const myUrl = url.makeGroupByUrl(
-                entityType,
-                filterKey,
-                options,
-            )
-
-            const resp = await axios.get(myUrl)
-            const filteredGroups = resp.data.group_by.filter(g => {
-                const keyIsNullish = g.key === "unknown" || g.key === null
-                return !(keyIsNullish && options.hideUnknown)
-            })
-
-            // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
-            // const truncatedGroups = filteredGroups.splice(0, 25)
-            const truncatedGroups = filteredGroups
-
-            const groupCounts = truncatedGroups.map(g => g.count)
-
-            const maxCount = Math.max(...groupCounts)
-            const countSum = groupCounts.reduce((a, b) => a + b, 0)
-
-
-            const groupDisplayFilters = truncatedGroups
-                .map(group => {
-                    const groupKey = group.key.replaceAll("https://metadata.un.org/sdg/", "") // namespace hack
-
-                    return createDisplayFilter(
-                        entityType,
-                        filterKey,
-                        groupKey,
-                        false,
-                        group.key_display_name,
-                        group.count,
-                        group.count / countSum,
-                    )
-                })
-
-            return groupDisplayFilters
-        }
+        getAutocompleteResponses,
+        getGroups,
+        getSuggestions,
 
     }
 })()

@@ -709,12 +709,12 @@ const setSidebar = function (id) {
 }
 
 
-const makeAutocompleteUrl = function (entityType, searchString) {
+const makeAutocompleteUrl = function (entityId, searchString) {
     const url = new URL(`https://api.openalex.org`)
 
-    url.pathname = (entityType === null) ?
-        "autocomplete" :
-        `autocomplete/${entityType}`
+    url.pathname = entityId ?
+        `autocomplete/${entityId}` :
+        "autocomplete"
 
     // url.pathname = `autocomplete/${entityType}`
     url.searchParams.set("q", searchString)

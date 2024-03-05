@@ -62,6 +62,7 @@ import {filter} from "core-js/internals/array-iteration";
 import TryChips from "@/components/TryChips.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
+
 export default {
   name: "FilterValueRange",
   components: {

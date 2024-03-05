@@ -1,5 +1,5 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive" clickable>
+  <filter-base :filter-key="filterKey" :index="index">
     <td class="d-flex flex-wrap align-center">
       <template
           v-for="(id, i) in optionIds"
@@ -27,16 +27,43 @@
 
     </td>
 
+    <v-dialog
+        v-model="isActive"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        max-width="600"
+        scrollable
+    >
+      <v-card rounded>
+        <v-text-field
+            v-model="searchString"
+            filled
+            rounded
+            background-color="white"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            autofocus
+            :placeholder="searchStringPlaceholder"
+            style=""
+            class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+            append-outer-icon="mdi-close"
+            @click:append-outer="clickCloseSearch"
+        />
+        <v-divider/>
+        <v-card-text class="pa-0" style="height: 80vh;">
+          <filter-select-add-option
+              :filter-key="filterKey"
+              :filter-index="index"
+              :is-open="isActive"
+              :search-string="searchString"
 
-    <v-dialog scrollable :fullscreen="$vuetify.breakpoint.mobile" v-model="isActive" max-width="600">
-      <filter-select-add-option
-          :filter-key="filterKey"
-          :filter-index="index"
-          @close="close"
-          @add="addOption"
-
-      />
+              @close="close"
+              @add="addOption"
+          />
+        </v-card-text>
+      </v-card>
     </v-dialog>
+
+
   </filter-base>
 
 
@@ -73,7 +100,7 @@ export default {
   data() {
     return {
       foo: 42,
-      isActive: !!this.isNew,
+      isActive: false,
       searchString: "",
       isLoading: false,
       unselectedOptions: [],
@@ -88,6 +115,9 @@ export default {
     ]),
     config() {
       return getFacetConfig(this.entityType, this.filterKey)
+    },
+    searchStringPlaceholder() {
+      return "Search " + this.$pluralize(this.config.displayName, 2)
     },
     optionIds: {
       get() {
@@ -110,10 +140,15 @@ export default {
     submit() {
       console.log("FilterPhraseSelect submit()")
     },
+    clickCloseSearch() {
+      this.searchString ?
+          this.searchString = "" :
+          this.close()
+    },
     onDelete() {
       console.log("FilterPhraseSelect onDelete()")
     },
-    close(){
+    close() {
       console.log("FilterSelect close()")
       this.$store.state.activeFilterKey = null
       this.isActive = false

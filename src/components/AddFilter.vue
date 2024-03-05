@@ -1,122 +1,149 @@
 <template>
-  <div>
-    <v-menu
-        rounded
-        key="new-filter-add-button"
-        max-width="300"
-        max-height="400"
-        content-class="add-filter-menu"
-        v-model="isMenuOpen"
+  <div class="d-flex align-center">
+    <template>
+      <v-btn v-if="small" icon @click="isDialogOpen = true">
+        <v-icon>mdi-plus</v-icon>
+      </v-btn>
+      <v-btn
+          v-else
+          rounded
+          text
+          color="primary"
+          @click="isDialogOpen = true"
+      >
+        <v-icon left color="">mdi-filter-menu</v-icon>
+        All filters
+        <!--        <v-icon color="" class="ml-1">mdi-menu-down</v-icon>-->
+      </v-btn>
+    </template>
+
+    <template v-if="includeChips">
+      <v-chip
+          v-for="filter in potentialFiltersPopular"
+          :key="filter.id"
+          class="ml-2"
+          color="white"
+          @click="setNewFilterKey(filter.key)"
+          :disabled="!url.isFilterKeyAvailableToCreate($route, entityType, filter.key)"
+      >
+        <v-icon left small>{{ filter.icon }}</v-icon>
+        {{ filter.displayName }}
+      </v-chip>
+      <v-chip color="white" class="ml-2" key="more" @click="isDialogOpen = true">
+        <v-icon left small>mdi-dots-horizontal</v-icon>
+        more
+      </v-chip>
+    </template>
+
+
+    <v-dialog
+        v-model="isDialogOpen"
+        :fullscreen="$vuetify.breakpoint.mobile"
+        width="800"
+        scrollable
     >
-      <template v-slot:activator="{on}">
-        <v-btn
-            rounded
-            color="primary"
-            key="asdfasdrasdf"
-            class="mt-2"
-            v-on="on"
-        >
-          <v-icon color="" class="mr-3">mdi-plus-thick</v-icon>
-          Add filter
-          <v-icon color="" class="ml-1">mdi-menu-down</v-icon>
-        </v-btn>
-      </template>
-      <v-card flat max-height="400">
+      <v-card rounded>
         <v-text-field
             v-model="searchString"
             filled
             rounded
             background-color="white"
-            prepend-inner-icon="mdi-magnify"
+            :prepend-inner-icon="prependIcon"
             hide-details
             autofocus
-            clearable
-            placeholder="Add filter"
+            :placeholder="placeholder"
             style=""
-            class="add-filter-text-field"
+            class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+            append-outer-icon="mdi-close"
+
+            @keyup.enter="onEnter"
+            @click:append-outer="clickCloseSearch"
+            @click:prepend-inner="clickPrependIcon"
+
         />
         <v-divider/>
-        <v-card flat max-height="340" style="overflow-y: scroll">
-          <v-list v-if="searchString">
-            <v-subheader>Search results ({{ potentialFiltersSearchResults.length }})</v-subheader>
-            <v-list-item
-                v-for="filter in potentialFiltersSearchResults"
-                :key="filter.key"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
 
-          </v-list>
-          <v-list v-else>
-            <v-subheader>Popular filters ({{ potentialFiltersPopular.length }})</v-subheader>
-            <v-list-item
-                v-for="filter in potentialFiltersPopular"
-                :key="filter.key"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-                </v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-subheader>More filters ({{ potentialFiltersPopular.length }})</v-subheader>
-            <v-list-item
-                v-for="filter in potentialFiltersMore"
-                :key="filter.key"
-                color="primary"
-                @click="setNewFilterKey(filter.key)"
-                :disabled="filter.disabled"
-            >
-              <v-list-item-icon>
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ filter.displayName }}
-                  <!--                <span v-if="filter.disabled">(applied)</span>-->
-                </v-list-item-title>
-              </v-list-item-content>
-              <!--            <v-icon left>mdi-check</v-icon>-->
-            </v-list-item>
+        <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
+          <div v-if="newFilterKey" class="">
+            <filter-card-range v-if="newFilterConfig.type === 'range'" :filter-key="newFilterKey"/>
+            <filter-card-search v-if="newFilterConfig.type === 'search'" :filter-key="newFilterKey"/>
+            <filter-select-add-option
+                v-if="newFilterConfig.type === 'select'"
+                :filter-key="newFilterKey"
+                :is-open="isMenuOpen"
+                :search-string="searchString"
+                :filters="url.readFilters($route)"
+            />
+          </div>
 
+          <!--          POTENTIAL FILTERS-->
+          <div v-else>
+            <v-subheader>
+              {{ searchString ? "Search results" : "All filters" }}
+              ({{ potentialFiltersSearchResults.length }})
+            </v-subheader>
+            <v-list class="d-flex flex-wrap" nav>
+              <v-list-item
+                  v-for="filter in potentialFiltersSearchResults"
+                  :key="filter.key"
+                  @click="setNewFilterKey(filter.key)"
+                  :disabled="filter.disabled"
+                  style="flex-basis: 250px;"
+              >
+                <v-list-item-icon>
+                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ filter.displayName }}
+                  </v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-card-text>
 
-          </v-list>
-        </v-card>
       </v-card>
-    </v-menu>
+
+    </v-dialog>
+
+
   </div>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs} from "@/facetConfigs";
+import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+
+import FilterCardRange from "@/components/FilterCard/FilterCardRange.vue";
+import FilterCardSearch from "@/components/FilterCard/FilterCardSearch.vue";
+import FilterCardSelect from "@/components/FilterCard/FilterCardSelect.vue";
+
+import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
   name: "Template",
-  components: {},
-  props: {},
+  components: {
+    FilterCardRange,
+    FilterCardSearch,
+    FilterCardSelect,
+    FilterSelectAddOption,
+  },
+  props: {
+    includeChips: Boolean,
+    small: Boolean,
+  },
   data() {
     return {
       foo: 42,
       searchString: "",
       isMenuOpen: false,
-
+      isDialogOpen: false,
+      newFilterKey: null,
+      url,
     }
   },
   computed: {
@@ -127,6 +154,15 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    dialogBodyHeight(){
+      const fullHeight = !this.newFilterKey || this.newFilterConfig.type === "select"
+      return fullHeight ? "80vh" : 0
+    },
+    prependIcon() {
+      return this.newFilterKey ?
+          "mdi-arrow-left" :
+          "mdi-magnify"
+    },
     potentialFilters() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actions?.includes("filter"))
@@ -144,13 +180,40 @@ export default {
       return this.potentialFilters.filter(f => !f.actionsPopular?.includes("filter"))
     },
     potentialFiltersSearchResults() {
-      const mySearchString = this.searchString?.toString() ?? ""
+      const mySearchString = this.searchString?.toString()?.toLowerCase() ?? ""
       return this.potentialFilters.filter(f => {
-        const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
-        return filterKeyWords.some(w => {
-          return w.indexOf(mySearchString) === 0
-        })
+        return f.displayName.toLowerCase().includes(mySearchString)
+        // const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
+        // return filterKeyWords.some(w => {
+        //   return w.indexOf(mySearchString) === 0
+        // })
       })
+    },
+
+    newFilterConfig() {
+      if (!this.newFilterKey) return
+      return getFacetConfig(this.entityType, this.newFilterKey)
+    },
+    placeholder() {
+      const displayName = this.newFilterConfig?.displayName
+      const pluralizedDisplayName = displayName ?
+          this.$pluralize(displayName, 2) :
+          null
+      if (!this.newFilterKey) {
+        return "Search filters"
+      }
+      else if (this.newFilterKey === "publication_year") {
+        return "Enter year or range of years"
+      }
+      else if (this.newFilterConfig.type === "range") {
+        return "Enter number or range"
+      }
+      else if (this.newFilterConfig.type === "search") {
+        return "Search within " + pluralizedDisplayName
+      }
+      else {
+        return "Search " + pluralizedDisplayName
+      }
     },
   },
 
@@ -160,10 +223,51 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
+    onEnter(){
+      console.log("onEnter", this.searchString)
+      if (["search", "range"].includes(this.newFilterConfig?.type)) {
+        url.createFilter(this.entityType, this.newFilterKey, this.searchString)
+      }
+    },
     setNewFilterKey(filterKey) {
       console.log("AddFilter setNewFilterKey", filterKey)
-      this.isMenuOpen = false
-      this.$emit("select", filterKey)
+
+      const myConfig = getFacetConfig(this.entityType, filterKey)
+      if (myConfig.type === "boolean") {
+        const oldFilters = url.readFilters(this.$route)
+        const newFilter = createSimpleFilter(
+            this.entityType,
+            filterKey,
+            true
+        )
+        url.pushNewFilters([
+          ...oldFilters,
+          newFilter,
+        ])
+
+      } else {
+        this.newFilterKey = filterKey
+        if (filterKey) this.isDialogOpen = true
+      }
+      // this.isMenuOpen = false
+      // this.$emit("select", filterKey)
+    },
+    clickCloseSearch() {
+      console.log("clickCloseSearch()")
+      this.searchString ?
+          this.searchString = "" :
+          this.closeDialog()
+    },
+    closeDialog() {
+      this.searchString = ""
+      this.isDialogOpen = false
+      this.newFilterKey = null
+    },
+    clickPrependIcon() {
+      if (this.newFilterKey) {
+        this.newFilterKey = null
+        this.searchString = ""
+      }
     }
 
 
@@ -173,15 +277,28 @@ export default {
   mounted() {
   },
   watch: {
-    isMenuOpen(){
+    isMenuOpen() {
+      setTimeout(() => {
+        this.searchString = ""
+        this.newFilterKey = null
+      }, 100)
+    },
+    newFilterKey() {
       this.searchString = ""
+    },
+    "$route": {
+      deep: true,
+      handler() {
+        this.closeDialog()
+      }
     }
   }
 }
 </script>
 
 <style lang="scss">
-.add-filter-menu {
+.add-filter-dialog-body {
+  transition: height 300ms !important;
 }
 
 </style>
