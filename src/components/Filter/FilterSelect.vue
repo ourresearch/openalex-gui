@@ -22,7 +22,7 @@
       </template>
 
       <v-btn class="" icon @click.stop="isActive = true">
-        <v-icon>mdi-plus</v-icon>
+        <v-icon>mdi-plus-thick</v-icon>
       </v-btn>
 
     </td>

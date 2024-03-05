@@ -21,7 +21,7 @@
         :loading="isLoading"
 
         @change="onChange"
-        @click:clear="clear"
+        @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
     >
@@ -219,6 +219,16 @@ export default {
       this.newFilter = null
 
     },
+    clickClear(){
+      this.suggestions = []
+      if (this.searchString){
+        this.searchString = ""
+      }
+      else {
+        this.searchString = ""
+        this.newFilter = null
+      }
+    },
     selectFilter(filter) {
       console.log("selectFilter()", filter)
       if (filter.type === "boolean") {
@@ -307,7 +317,7 @@ export default {
 
     getSuggestions: _.debounce(async function() {
       this.isLoading = true
-      if (this.newFilter && this.searchString){
+      if (this.newFilter && !this.searchString){
         this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
         this.isLoading = false
         return
