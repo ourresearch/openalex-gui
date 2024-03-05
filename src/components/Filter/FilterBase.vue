@@ -1,7 +1,7 @@
 <template>
   <tr
       @click="$emit('click')"
-      class="hover-color-3 text-h6 font-weight-regular"
+      class="hover-color-3  font-weight-regular"
       :class="{clickable}"
   >
         <td class="grey--text shrink pl-5">
@@ -21,31 +21,12 @@
 <!--      >-->
 <!--        includes-->
 <!--      </span>-->
-      <v-chip
-          :disabled="myConfig.type === 'search' || myConfig.type === 'range'"
-          outlined
-          label
-          class="text-h6 font-weight-regular py-4"
-          @click.stop="isNegated = !isNegated"
-      >
-        <template v-if="myConfig.type === 'search'">
-          includes
-        </template>
-        <template v-else-if="myConfig.type === 'range'">
-          {{ myValue.includes("-") ? "is in range" : "is" }}
-        </template>
-        <template v-else-if="myConfig.type === 'select'">
-          <template v-if="isNegated">
-            {{ myValue.includes("|") ? "is none of" : "is not" }}
-          </template>
-          <template v-else>
-            {{ myValue.includes("|") ? "is any of" : "is" }}
-          </template>
-        </template>
-        <template v-else>
-          {{ isNegated ? "is not" : "is" }}
-        </template>
-      </v-chip>
+      <filter-verb
+          :is-negated="isNegated"
+          :value="myValue"
+          :type="myConfig?.type"
+          @set="(val) => isNegated = val"
+      />
     </td>
     <slot></slot>
     <td class="text-right">
@@ -67,10 +48,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+import FilterVerb from "@/components/Filter/FilterVerb.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    FilterVerb,
+  },
   props: {
     filterKey: String,
     index: Number,
