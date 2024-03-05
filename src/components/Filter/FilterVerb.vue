@@ -6,7 +6,8 @@
           :disabled="isDisabled"
           outlined
           label
-          class="font-weight-regular py-4"
+          style="width: 100%;"
+          class="font-weight-regular py-4 justify-center"
       >
         {{ selectedOption }}
         <v-icon right>mdi-menu-down</v-icon>

@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @click="isActive = true" clickable>
-    <td>
+    <td class="pl-6">
         {{ value }}
 
       <v-dialog

@@ -224,14 +224,11 @@ const api = (function () {
             .map(result => {
                 const resultFilterKey = filterKeyFromAutocompleteResponse(result)
 
-                let id
-                if (resultFilterKey === "authorships.countries") id = "https://openalex.org/countries/" + result.id
-                else id = result.id
 
                 const myFilter = createSimpleFilter(
                     entityType,
                     resultFilterKey,
-                    id
+                    result.id
                 )
 
                 const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
