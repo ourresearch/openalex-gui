@@ -41,7 +41,7 @@ export default {
   components: {},
   props: {
     isNegated: Boolean,
-    value: String,
+    value: [String, Boolean],
     type: String,
   },
   data() {
