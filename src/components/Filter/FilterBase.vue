@@ -34,6 +34,9 @@
 <!--        <v-icon v-if="url.getGroupBy($route).includes(filterKey)">mdi-clipboard-off</v-icon>-->
 <!--        <v-icon v-else>mdi-clipboard-outline</v-icon>-->
 <!--      </v-btn>-->
+      <v-btn icon @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+        <v-icon>mdi-plus-thick</v-icon>
+      </v-btn>
       <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
