@@ -277,11 +277,14 @@ export default {
   mounted() {
   },
   watch: {
-    isMenuOpen() {
-      setTimeout(() => {
+    isDialogOpen(to) {
+      if (!to){
         this.searchString = ""
         this.newFilterKey = null
-      }, 100)
+      }
+
+      setTimeout(() => {
+      }, 10)
     },
     newFilterKey() {
       this.searchString = ""
