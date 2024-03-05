@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" >
-    <td>
+    <td class="pl-6">
       {{ config.displayName }}
     </td>
 

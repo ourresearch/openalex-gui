@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @click="isActive = !isActive" clickable>
-    <td>"{{ value }}"</td>
+    <td class="pl-6">"{{ value }}"</td>
     <v-dialog rounded v-model="isActive" max-width="600">
       <v-card rounded>
         <v-toolbar flat>

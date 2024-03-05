@@ -14,6 +14,7 @@
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
           v-on="on"
           close
+          close-icon="mdi-close"
           @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
