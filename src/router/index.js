@@ -16,7 +16,6 @@ import Login from "@/views/Login.vue";
 import Me from "../views/Me.vue"
 
 import goTo from 'vuetify/es5/services/goto'
-import Pricing from "../views/Pricing.vue";
 import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
@@ -76,7 +75,6 @@ const routes = [
     {path: '/faq', component: Faq},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
-    {path: '/pricing', component: Pricing},
     {path: '/stats', component: OurStats},
 
 
@@ -125,6 +123,12 @@ const routes = [
     },
 
     {
+        path: '/pricing', beforeEnter() {
+            window.location.href = "https://help.openalex.org/pricing"
+        }
+    },
+
+    {
         path: '/help', beforeEnter() {
             window.location.href = "https://openalex.zendesk.com/hc/requests/new"
         }
@@ -139,12 +143,6 @@ const routes = [
             window.location.href = "https://openalex.zendesk.com/hc/requests/new"
         }
     },
-    {
-        path: '/contact', beforeEnter() {
-            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
-        }
-    },
-
 
     {
         path: `/:entityType/:entityId`,
