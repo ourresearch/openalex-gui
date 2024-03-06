@@ -1025,6 +1025,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cited_by",
             entityType: "works",
+            entityId: "works",
             displayName: "cited by",
             isVerb: true, // need to know how to display the name
             showNameInChip: true,
@@ -1045,6 +1046,7 @@ const facetConfigs = function (entityType) {
         {
             key: "cites",
             entityType: "works",
+            entityId: "works",
             displayName: "cites",
             isVerb: true, // need to know how to display the name
             isEntity: true,
@@ -1065,6 +1067,7 @@ const facetConfigs = function (entityType) {
         {
             key: "related_to",
             entityType: "works",
+            entityId: "works",
             displayName: "related to",
             isVerb: true, // need to know how to display the name
             isEntity: true,

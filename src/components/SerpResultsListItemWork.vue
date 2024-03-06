@@ -23,18 +23,15 @@
             </div>
           </v-list-item-subtitle>
           <div>
-            <span @click.prevent>
               <v-btn
                   text
                   small
                   class="px-1"
-                  :to="url.makeFilterRoute(entityType, 'cited_by', result.id)"
+                  @click.prevent="viewCitingPapers"
               >
-<!--                  @click.prevent="showCitingWorks(result.id)"-->
                 Cited by {{ result.cited_by_count | toPrecision }}
               </v-btn>
 
-            </span>
             <!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
             <!--              web-->
             <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
@@ -62,6 +59,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
+import {createSimpleFilter} from "@/filterConfigs";
 
 export default {
   name: "Template",
@@ -94,6 +92,9 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
+    viewCitingPapers(){
+      url.createFilter(this.entityType, "cites", this.result.id)
+    }
 
 
   },
