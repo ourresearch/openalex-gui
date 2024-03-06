@@ -95,7 +95,6 @@ const shortenOpenAlexId = function (longId) {
     if (typeof longId !== "string") return longId
     let ret = longId.replace("https://openalex.org/", "").toLowerCase()
     ret = ret.replace("openalex:", "").toLowerCase()
-    ret = ret.replaceAll("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format
     return ret.toLowerCase()
 }
 

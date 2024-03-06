@@ -5,6 +5,7 @@
         :items="suggestions"
         :search-input.sync="searchString"
         :filter="(item, queryText, itemText) => true"
+        :menu-props="{maxHeight: 600,}"
         item-text="displayValue"
         return-object
         rounded

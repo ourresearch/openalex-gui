@@ -204,6 +204,9 @@ const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
 
 
 const createFilterValue = function (rawValue, filterType) {
+    if (filterType === "search") {
+        return rawValue
+    }
     if (typeof rawValue === "string") {
         // rawValue = rawValue.replace("https://openalex.org/", "")
         rawValue = shortenOpenAlexId(rawValue)
