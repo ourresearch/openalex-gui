@@ -101,9 +101,9 @@
                 Key stats
               </v-toolbar-title>
               <v-spacer/>
-              <v-btn color="primary" rounded text @click="viewMyWorks">
-                View more
-              </v-btn>
+<!--              <v-btn color="primary" rounded text @click="viewMyWorks">-->
+<!--                View more-->
+<!--              </v-btn>-->
             </v-toolbar>
             <group-by
                 v-for="groupByKey in groupByKeys"

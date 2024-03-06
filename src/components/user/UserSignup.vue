@@ -14,46 +14,60 @@
         <p>
           Signing up for an OpenAlex account lets you create alerts and save searches.
         </p>
-        <v-text-field
-            filled
-            rounded
-            autofocus
-            hide-details
-            type="email"
-            class=""
-            v-model="name"
-            prepend-icon="mdi-account-outline"
-            placeholder="Your name"
-            @keyup.enter="submit"
-        >
-        </v-text-field>
+        <form>
+          <v-text-field
+              filled
+              rounded
+              autofocus
+              hide-details
 
-        <v-text-field
-            filled
-            rounded
-            type="email"
-            class="mt-3"
-            prepend-icon="mdi-email-outline"
-            v-model="email"
-            placeholder="Your email"
-            :messages="emailMsg"
-            :error="isEmailAlreadyInUse"
-        >
-        </v-text-field>
-        <v-text-field
-            hide-details
-            filled
-            rounded
-            class="mt-4"
-            prepend-icon="mdi-lock-outline"
-            v-model="password"
-            placeholder="Password"
-            :type="isPasswordVisible ? 'text' : 'password'"
-            :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append="isPasswordVisible = !isPasswordVisible"
-            @keydown.enter="submit"
-        >
-        </v-text-field>
+              type="text"
+              name="name"
+              id="name"
+
+              class=""
+              v-model="name"
+              prepend-icon="mdi-account-outline"
+              placeholder="Your name"
+              @keyup.enter="submit"
+          >
+          </v-text-field>
+
+          <v-text-field
+              filled
+              rounded
+
+              type="email"
+              id="email"
+              name="email"
+
+              class="mt-3"
+              prepend-icon="mdi-email-outline"
+              v-model="email"
+              placeholder="Your email"
+              :messages="emailMsg"
+              :error="isEmailAlreadyInUse"
+          >
+          </v-text-field>
+          <v-text-field
+              hide-details
+              filled
+              rounded
+              class="mt-4"
+              prepend-icon="mdi-lock-outline"
+              v-model="password"
+              placeholder="Password"
+
+              id="new-password"
+              name="new-password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+
+              :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append="isPasswordVisible = !isPasswordVisible"
+              @keydown.enter="submit"
+          >
+          </v-text-field>
+        </form>
       </v-card-text>
       <v-card-actions>
         <v-spacer/>

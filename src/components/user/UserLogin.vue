@@ -1,7 +1,6 @@
 <template>
   <v-dialog v-model="isOpen" max-width="500">
 
-
     <v-card outlined rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
         <div>
@@ -15,39 +14,48 @@
       </v-card-title>
       <!--      <v-divider></v-divider>-->
       <v-card-text>
+        <form>
+          <v-text-field
+              filled
+              rounded
+              class="mt-0"
 
-        <v-text-field
-            filled
-            rounded
-            type="email"
-            class="mt-0"
-            prepend-icon="mdi-email-outline"
-            v-model="email"
-            autofocus
-            placeholder="Your email"
-            :messages="isEmailUnrecognized ? 'Email not found' : undefined"
-            :error="isEmailUnrecognized"
-            :hide-details="!isEmailUnrecognized"
-        >
-        </v-text-field>
-        <v-text-field
-            filled
-            rounded
-            class="mt-3"
-            prepend-icon="mdi-lock-outline"
-            v-model="password"
-            placeholder="Password"
-            :type="isPasswordVisible ? 'text' : 'password'"
-            :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append="isPasswordVisible = !isPasswordVisible"
+              name="email"
+              id="email"
+              type="email"
 
-            :messages="isPasswordWrong ? 'Wrong password' : undefined"
-            :error="isPasswordWrong"
-            :hide-details="!isPasswordWrong"
+              prepend-icon="mdi-email-outline"
+              v-model="email"
+              autofocus
+              placeholder="Your email"
+              :messages="isEmailUnrecognized ? 'Email not found' : undefined"
+              :error="isEmailUnrecognized"
+              :hide-details="!isEmailUnrecognized"
+          >
+          </v-text-field>
+          <v-text-field
+              filled
+              rounded
+              class="mt-3"
+              prepend-icon="mdi-lock-outline"
+              v-model="password"
+              placeholder="Password"
 
-            @keyup.enter="submit"
-        >
-        </v-text-field>
+              name="current-password"
+              id="current-password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+
+              :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append="isPasswordVisible = !isPasswordVisible"
+
+              :messages="isPasswordWrong ? 'Wrong password' : undefined"
+              :error="isPasswordWrong"
+              :hide-details="!isPasswordWrong"
+
+              @keyup.enter="submit"
+          >
+          </v-text-field>
+        </form>
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
@@ -94,9 +102,11 @@ export default {
       "isLoginDialogOpen"
     ]),
     isFormDisabled() {
+
       const isDirty = !!this.email || !!this.password
       const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
       const isValid = emailRegex.test(this.email) && this.password?.length >= 5
+
       return this.isLoading || (isDirty && !isValid)
     },
     isOpen: {
