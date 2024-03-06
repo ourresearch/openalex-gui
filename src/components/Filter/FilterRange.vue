@@ -1,49 +1,33 @@
 <template>
-  <filter-base :filter-key="filterKey" :index="index" @click="isActive = true" clickable>
-    <td class="pl-6">
-        {{ value }}
-
-      <v-dialog
-          rounded
-          v-model="isActive"
-          max-width="600"
-          @keydown.enter="submit"
+  <filter-base :filter-key="filterKey" :index="index">
+    <td class="">
+      <v-chip
+          color="white"
+          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
+          @click="isActive = true"
+          v-if="!isActive"
       >
-        <v-card rounded>
-          <v-toolbar flat>
-            <v-toolbar-title>
-              {{ config.displayName }}
-            </v-toolbar-title>
-            <v-spacer/>
-            <v-btn icon @click="isActive = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-toolbar>
-          <div class="pa-2">
-            <v-text-field
-                style="width: 100%;"
-                rounded
-                outlined
-                full-width
-                v-model="searchString"
-                hide-details
-                @keydown.enter="submit"
-                autofocus
-            >
-            </v-text-field>
-            <try-chips
-                :ideas="['2023', '2020-', '2020-2024', '-2020']"
-                @select="idea => searchString = idea"
-            />
+        {{ value }}
+        <v-icon right small>mdi-pencil</v-icon>
+      </v-chip>
+      <template v-if="isActive">
+        <v-text-field
+            v-model="searchString"
+            rounded
+            dense
+            filled
+            hide-details
+            autofocus
+            placeholder="Enter number or range"
+            :append-icon="searchString && searchString !== value ? 'mdi-check-bold' : undefined"
 
-          </div>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn text rounded @click="isActive = false">Cancel</v-btn>
-            <v-btn color="primary" rounded @click="submit">Apply</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+            @keydown.enter="submit"
+            @click:append="submit"
+            @blur="cancel"
+            @keydown.esc="cancel"
+        />
+      </template>
+
     </td>
   </filter-base>
 
@@ -108,10 +92,13 @@ export default {
     ]),
     ...mapActions([]),
     submit() {
-      this.$emit("close") // i don't get why this is necessary
       this.isActive = false
       this.value = this.searchString
     },
+    cancel(){
+      this.isActive = false
+      this.searchString = this.value
+    }
 
 
   },
@@ -123,7 +110,6 @@ export default {
   },
   watch: {
     isActive(to) {
-      if (!to) this.$emit("close")
     }
   }
 }
