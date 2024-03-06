@@ -737,6 +737,7 @@ const facetConfigs = function (entityType) {
         {
             key: "primary_location.source.type",
             entityType: "works",
+            entityId: "sources",
             displayName: "source type",
             type: "select",
             categories: ["source"],
