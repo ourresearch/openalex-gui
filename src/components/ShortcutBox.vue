@@ -61,6 +61,20 @@
             <v-icon>mdi-filter-plus</v-icon>
           </v-list-item-icon>
         </template>
+
+        <template v-else-if="data.item.key === 'default.search'">
+          <v-list-item-content>
+            <v-list-item-title>
+              <span class="">Search for</span>
+              <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
+              <span class="mr-2">in fulltext</span>
+            </v-list-item-title>
+          </v-list-item-content>
+          <v-list-item-action-text>
+            press Enter
+          </v-list-item-action-text>
+        </template>
+
         <template v-else>
           <v-list-item-content>
             <v-list-item-title
@@ -79,37 +93,22 @@
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </v-list-item-action>
-          <!--          <v-list-item-action-->
-          <!--              v-if="data.item.entityId !== 'works' && data.item.count"-->
-          <!--              class=""-->
-          <!--          >-->
-          <!--            <v-btn-->
-          <!--                rounded-->
-          <!--                text-->
-          <!--                class="font-weight-regular grey&#45;&#45;text"-->
-          <!--                @click.stop="viewWorks(data.item.value)"-->
-          <!--            >-->
-          <!--              {{ data.item.count | toPrecision }} works-->
-          <!--            </v-btn>-->
-          <!--          </v-list-item-action>-->
 
         </template>
-
-        <!--        {{ data.item }}-->
       </template>
     </v-autocomplete>
-    <!--    <div class="ml-2 mt-2" v-if="showExamples">-->
-    <!--      <span>Try:</span>-->
-    <!--      <v-chip-->
-    <!--          color="white"-->
-    <!--          v-for="search in searchesToTry"-->
-    <!--          :key="search"-->
-    <!--          @click="trySearch(search)"-->
-    <!--          class="body-1"-->
-    <!--      >-->
-    <!--        {{ search }}-->
-    <!--      </v-chip>-->
-    <!--    </div>-->
+        <div class="ml-2 mt-2" v-if="showExamples">
+          <span class="body-2 grey--text">Try:</span>
+          <v-chip
+              color="white"
+              v-for="search in searchesToTry"
+              :key="search"
+              @click="trySearch(search)"
+              class=""
+          >
+            {{ search }}
+          </v-chip>
+        </div>
   </div>
 </template>
 
@@ -148,9 +147,9 @@ export default {
 
       selectStorage: null,
       searchesToTry: [
-        "Albert Einstein",
-        "Solar power",
-        "Author",
+        "Claudia Goldin",
+        "coriander OR cilantro",
+        "Institution",
       ]
     }
   },
@@ -252,8 +251,15 @@ export default {
     onChange(e) {
       console.log('onChange()', e, this.select)
       if (this.select) this.isEnterPressed = false
-      if (e?.isFilterLink) this.selectFilter(e)
-      else if (e?.value) this.viewWorks(e.value)
+      if (e.key === "default.search") {
+        this.submitSearchString()
+      }
+      else if (e?.isFilterLink) {
+        this.selectFilter(e)
+      }
+      else if (e?.value) {
+        this.viewWorks(e.value)
+      }
       setTimeout(()=> { // no idea why this is necessary but it is
         this.searchString = ""
         this.select = null
@@ -286,6 +292,7 @@ export default {
     },
     viewWorks(id) {
       console.log("view my works", id)
+
       const entityType = entityTypeFromId(id)
       if (!id || !entityType) return
 
@@ -310,8 +317,9 @@ export default {
 
     },
     trySearch(str) {
-      this.searchString = str
       setTimeout(() => {
+        this.searchString = str
+        console.log("trySearch", str)
         this.$refs.shortcutBox.focus()
       }, 100)
     },
@@ -344,6 +352,13 @@ export default {
       const cleaned = everySuggestionIsAWork ?
           ret.slice(0, 3) :
           ret.filter(f => f.entityId !== "works").slice(0, 5)
+
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+
+
+      if (!this.newFilter){
+        cleaned.push(fulltextSearchFilter)
+      }
 
       this.suggestions = cleaned
     }, 100),
