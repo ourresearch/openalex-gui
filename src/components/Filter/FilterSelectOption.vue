@@ -35,30 +35,6 @@
       </v-card-subtitle>
       <v-divider class="my-2" />
       <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
-<!--      <div class="pa-3 d-flex">-->
-<!--        <div class="content">-->
-<!--          <div class="text-h6">-->
-<!--            {{ filterDisplayValue }}-->
-<!--          </div>-->
-<!--          <div class="caption grey&#45;&#45;text">-->
-<!--            {{ myEntityType | pluralize(1)}}-->
-<!--            {{ isEntity ? " · " + myEntityId : "" }}-->
-<!--            <template v-if="0"></template>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <v-spacer></v-spacer>-->
-<!--      </div>-->
-<!--      <v-divider v-if="isEntity" />-->
-<!--      <v-card-text class="pa-4" v-if="isEntity">-->
-<!--        <div v-if="alternateNamesString">-->
-<!--          <span class="font-weight-bold">Alternate names: </span>-->
-<!--          <span>{{ alternateNamesString }}</span>-->
-<!--        </div>-->
-<!--        <div v-if="locationStr" class="mt-2">-->
-<!--          <span class="font-weight-bold">Location: </span>-->
-<!--          <span>{{ locationStr }}</span>-->
-<!--        </div>-->
-<!--      </v-card-text>-->
       <v-divider/>
       <v-card-actions>
         <v-spacer/>
@@ -67,8 +43,7 @@
                color="primary"
                rounded
                exact-path
-               :to="myEntityId | entityZoomLink"
-               v-if="myEntityId"
+               :to="filterValue | entityZoomLink"
         >
           {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
         </v-btn>
@@ -91,7 +66,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 
 export default {
-  name: "FilterOptionChip",
+  name: "FilterSelectOption",
   components: {
     EntityNew,
   },
@@ -122,9 +97,9 @@ export default {
       return getEntityConfigs().some(c => c.filterKey === this.filterId)
     },
     myEntityType(){
-      return (this.isEntity) ?
-          entityTypeFromId(this.filterId) :
-          this.filterConfig.displayName
+      return entityTypeFromId(this.filterValue)
+
+      // return (this.isEntity) ?s
     },
     filterConfig(){
       return getFacetConfig(this.entityType, this.filterKey)
@@ -135,12 +110,8 @@ export default {
     menuKey() {
       return this.filterKey + '-' + this.filterId
     },
-    myEntityId(){
-      if (!this.filterId) return
-      return shortenOpenAlexId(this.filterId)
-    },
     myEntityConfig(){
-      return getEntityConfigs().find(c => c.filterKey === this.filterKey)
+      return getEntityConfig(this.myEntityType)
     },
     subtitle(){
       return "subtitle"
@@ -174,7 +145,7 @@ export default {
   },
   async mounted() {
     this.isLoading = true
-    this.entityData = await api.getEntity(this.filterId)
+    this.entityData = await api.getEntity(this.filterValue)
     this.isLoading = false
 
     // setTimeout(()=>{

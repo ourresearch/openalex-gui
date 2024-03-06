@@ -180,15 +180,6 @@ export default {
     ]),
     ...mapActions([]),
 
-    showCitingWorks(id) {
-      const newFilter = createSimpleFilter(
-          this.entityType,
-          "cited_by",
-          id
-      )
-      url.setFilters(this.entityType, [newFilter], true)
-      return false
-    },
 
 
   },
