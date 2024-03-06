@@ -28,8 +28,7 @@
           Made by <a
             href="https://ourresearch.org">OurResearch</a> with support from
 
-          <a href="https://www.arcadiafund.org.uk/">Arcadia</a>&mdash;a
-          charitable fund of Lisbet Rausing and Peter Baldwin.
+          <a href="https://www.arcadiafund.org.uk/">Arcadia.</a>
         </v-col>
         <v-spacer/>
         <v-col
