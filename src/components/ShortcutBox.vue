@@ -325,6 +325,14 @@ export default {
     },
 
     getSuggestions: _.debounce(async function() {
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+
+      // lol hack much?
+      if (this.searchString === "coriander OR cilantro") {
+        this.suggestions = [ fulltextSearchFilter ]
+        return
+      }
+
       this.isLoading = true
       if (this.newFilter && !this.searchString){
         this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
@@ -352,8 +360,6 @@ export default {
       const cleaned = everySuggestionIsAWork ?
           ret.slice(0, 3) :
           ret.filter(f => f.entityId !== "works").slice(0, 5)
-
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
 
 
       if (!this.newFilter){
