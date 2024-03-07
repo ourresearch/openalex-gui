@@ -37,9 +37,7 @@
             <!--          </div>-->
 
           </div>
-        </v-col>
-        <v-col cols="12" class="">
-          <div class="d-flex">
+          <div class="d-flex mt-6">
 <!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
             <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
             <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
