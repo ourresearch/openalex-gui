@@ -1,5 +1,6 @@
 <template>
-  <div class="d-flex align-center">
+<!--  <div class="d-flex align-center">-->
+  <v-slide-group>
     <template>
       <v-btn v-if="small" icon @click="isDialogOpen = true">
         <v-icon>mdi-plus</v-icon>
@@ -108,7 +109,7 @@
     </v-dialog>
 
 
-  </div>
+  </v-slide-group>
 </template>
 
 <script>
