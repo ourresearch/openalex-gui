@@ -10,11 +10,13 @@
     <v-app-bar
         app
         flat
-        height="70"
+        :height="$vuetify.breakpoint.mobile ? undefined : 70"
 
         color="transparent"
         class=""
         absolute
+        :extended="$vuetify.breakpoint.mobile"
+        extension-height="70"
     >
 <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
@@ -44,20 +46,13 @@
       >
         <shortcut-box
             style="max-width: 800px;"
-            class="flex-grow-1"
+            class="flex-grow-1 d-none d-lg-block"
         />
       </div>
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
-<!--      <serp-toolbar-->
-<!--          :results-object="$store.state.resultsObject"-->
-<!--          class="flex-grow-0"-->
-<!--      />-->
-<!--      <v-spacer />-->
-<!--      <div style="height: 66%; border-left: 1px solid #ddd;" ></div>-->
-
       <user-toolbar-menu/>
 
-      <v-menu offset-y>
+      <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on">
             <v-icon>mdi-help-circle-outline</v-icon>
@@ -71,7 +66,6 @@
             <v-list-item-content>
               <v-list-item-title>
                 Contact support
-                <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
@@ -82,12 +76,16 @@
             <v-list-item-content>
               <v-list-item-title>
                 Visit help center
-                <!--              <v-icon small right>mdi-open-in-new</v-icon>-->
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
+      <template v-slot:extension v-if="$vuetify.breakpoint.mobile">
+        <shortcut-box
+            class="flex-grow-1"
+        />
+      </template>
     </v-app-bar>
     <div>
     </div>

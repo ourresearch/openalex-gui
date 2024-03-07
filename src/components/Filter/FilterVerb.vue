@@ -6,7 +6,7 @@
           :disabled="isDisabled"
           outlined
           label
-          style="width: 100%;"
+          style=""
           class="font-weight-regular py-4 justify-center"
       >
         {{ selectedOption }}

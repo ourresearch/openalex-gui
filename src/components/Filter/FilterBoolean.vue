@@ -1,8 +1,8 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" >
-    <td class="pl-6">
+    <span class="pl-6">
       {{ config.displayName }}
-    </td>
+    </span>
 
 
   </filter-base>

@@ -1,6 +1,5 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index">
-    <td class="">
       <v-chip
           color="transparent"
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
@@ -27,9 +26,6 @@
             @keydown.esc="cancel"
         />
       </template>
-
-    </td>
-
   </filter-base>
 
 
