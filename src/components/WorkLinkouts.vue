@@ -4,7 +4,8 @@
 
 
     <!--   HTML free at publisher -->
-    <v-chip
+    <v-btn
+        rounded
         :href="htmlUrl"
         target="_blank"
         color="primary"
@@ -14,11 +15,14 @@
 <!--      <v-icon left>mdi-web</v-icon>-->
       HTML
       <v-icon small class="ml-1">mdi-open-in-new</v-icon>
-    </v-chip>
+    </v-btn>
 
 
     <!--   Paywalled at publisher-->
-    <v-chip
+    <v-btn
+        rounded
+        color="grey darken-1"
+        dark
         :href="data.primary_location.landing_page_url"
         target="_blank"
         class="mr-3"
@@ -27,7 +31,7 @@
 <!--      <v-icon left>mdi-web</v-icon>-->
       HTML (paywalled)
       <v-icon  small class="ml-1">mdi-open-in-new</v-icon>
-    </v-chip>
+    </v-btn>
 
     <!--   PDF anywhere -->
     <v-chip
