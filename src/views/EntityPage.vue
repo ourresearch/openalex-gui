@@ -1,5 +1,5 @@
 <template>
-  <div class="color-3" style="min-height: 80vh">
+  <div class="color-2" style="min-height: 80vh">
     <v-container v-if="entityData" class="">
       <div>
         <v-btn
@@ -14,9 +14,9 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col cols="12" lg="9">
+        <v-col cols="12" lg="7">
           <div
-              class="text-h4 mb-1"
+              class="text-h6 mb-1"
               v-html="$prettyTitle(entityData.display_name)"
           />
           <div class="d-flex align-center">
@@ -38,9 +38,9 @@
 
           </div>
         </v-col>
-        <v-col cols="12" lg="3" class="">
+        <v-col cols="12" lg="5" class="">
           <div class="d-flex">
-            <v-spacer class="d-none d-lg-block"></v-spacer>
+<!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
             <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
             <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
               <v-icon left>mdi-file-document-outline</v-icon>
