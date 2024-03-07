@@ -1,11 +1,11 @@
 <template>
-  <div class="color-2"  style="min-height: 80vh">
+  <div class="color-2" style="min-height: 80vh">
     <v-container fluid class="pt-4">
-        <serp-toolbar :results-object="resultsObject"/>
+      <serp-toolbar :results-object="resultsObject"/>
       <filter-list :results-object="resultsObject" class="mb-6 "/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <v-row v-if="$vuetify.breakpoint.mdAndUp">
+      <v-row v-if="!$vuetify.breakpoint.mobile">
         <v-col
             cols="6"
             xl="4"
@@ -23,22 +23,29 @@
       </v-row>
 
 
-
       <template v-else>
-        <v-row>
+        <v-row class="mb-12">
           <v-col>
-            <v-tabs v-model="resultsTab">
+            <v-tabs
+                v-model="resultsTab"
+                background-color="transparent"
+                grow
+                class=""
+            >
               <v-tab key="0">Results</v-tab>
-              <v-tab key="1">Summaries</v-tab>
+              <v-tab key="1">Stats</v-tab>
             </v-tabs>
-            <v-tabs-items v-model="resultsTab">
-              <v-tab-item key="0">
-                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-              </v-tab-item>
-              <v-tab-item key="1">
-                <analytic-views/>
-              </v-tab-item>
-            </v-tabs-items>
+            <v-card rounded flat>
+              <v-tabs-items v-model="resultsTab">
+                <v-tab-item key="0">
+                  <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
+                </v-tab-item>
+                <v-tab-item key="1">
+                  <analytic-views :results-object="resultsObject" />
+                </v-tab-item>
+              </v-tabs-items>
+
+            </v-card>
           </v-col>
         </v-row>
       </template>

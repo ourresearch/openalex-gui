@@ -2,7 +2,7 @@
   <v-card
       min-height="100"
       :min-width="minWidth"
-      class="factoid-card fill-height"
+      class="factoid-card flex-grow-1"
       flat
       rounded
       :loading="isLoading"
