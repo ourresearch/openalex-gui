@@ -25,20 +25,34 @@
       <div v-if="filters.length === 0" class="mx-5 my-2 grey--text">
         No filters applied
       </div>
-      <table style="width: 100%;">
+      <table v-if="$vuetify.breakpoint.mdAndUp"  style="width: 100%;">
         <tbody>
         <component
             class=""
             style="width: 100%;"
             v-for="(filter, i) in filters"
             :key="i"
-            :is="'filter-phrase-' + filter.type"
+            :is="'filter-' + filter.type"
             :filter-key="filter.key"
             :index="i"
             @delete="url.deleteFilter(entityType, filter.key)"
         />
         </tbody>
       </table>
+      <div v-else>
+        <component
+            class=""
+            style="width: 100%;"
+            v-for="(filter, i) in filters"
+            :key="i"
+            :is="'filter-' + filter.type"
+            :filter-key="filter.key"
+            :index="i"
+            @delete="url.deleteFilter(entityType, filter.key)"
+        />
+      </div>
+
+
 
       <v-card-actions class="py-4">
         <add-filter include-chips  />
@@ -55,10 +69,10 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
-import FilterPhraseSearch from "@/components/Filter/FilterSearch.vue";
-import FilterPhraseSelect from "@/components/Filter/FilterSelect.vue";
-import FilterPhraseRange from "@/components/Filter/FilterRange.vue";
-import FilterPhraseBoolean from "@/components/Filter/FilterBoolean.vue";
+import FilterBoolean from "@/components/Filter/FilterBoolean.vue";
+import FilterRange from "@/components/Filter/FilterRange.vue";
+import FilterSearch from "@/components/Filter/FilterSearch.vue";
+import FilterSelect from "@/components/Filter/FilterSelect.vue";
 import AddFilter from "@/components/AddFilter.vue";
 
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
@@ -78,10 +92,10 @@ export default {
     Action,
     SerpResultsCount,
     SearchBar,
-    FilterPhraseSelect,
-    FilterPhraseSearch,
-    FilterPhraseRange,
-    FilterPhraseBoolean,
+    FilterBoolean,
+    FilterRange,
+    FilterSearch,
+    FilterSelect,
     AddFilter,
 
 
@@ -176,6 +190,9 @@ export default {
 table {
   border-top: 1px solid #eee;
   border-collapse: collapse !important;
+  //tr {
+  //  display: flex;
+  //}
 }
 
 

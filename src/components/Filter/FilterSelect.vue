@@ -1,6 +1,6 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @add-option="isActive = true">
-    <td class="d-flex flex-wrap align-center">
+    <div class="d-flex flex-wrap align-center">
       <template
           v-for="(id, i) in optionIds"
       >
@@ -25,7 +25,7 @@
 <!--        <v-icon>mdi-plus-thick</v-icon>-->
 <!--      </v-btn>-->
 
-    </td>
+    </div>
 
     <v-dialog
         v-model="isActive"
