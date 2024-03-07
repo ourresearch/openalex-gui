@@ -34,7 +34,9 @@
     </v-btn>
 
     <!--   PDF anywhere -->
-    <v-chip
+    <v-btn
+        rounded
+        color="primary"
         :href="pdfUrl"
         target="_blank"
         class="mr-3"
@@ -42,7 +44,7 @@
     >
 <!--      <v-icon left>mdi-file-pdf-box</v-icon>-->
       PDF
-    </v-chip>
+    </v-btn>
 
 
 
