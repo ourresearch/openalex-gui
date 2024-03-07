@@ -14,7 +14,7 @@
         </v-btn>
       </div>
       <v-row>
-        <v-col cols="12" lg="7">
+        <v-col cols="12">
           <div
               class="text-h6 mb-1"
               v-html="$prettyTitle(entityData.display_name)"
@@ -38,7 +38,7 @@
 
           </div>
         </v-col>
-        <v-col cols="12" lg="5" class="">
+        <v-col cols="12" class="">
           <div class="d-flex">
 <!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
             <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
