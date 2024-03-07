@@ -2,10 +2,9 @@
   <v-card rounded flat class="">
     <v-toolbar flat class="">
 <!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
-      <v-icon left>mdi-format-list-checkbox</v-icon>
       <v-toolbar-title class="font-weight-bold mr-2">
         {{ entityType | pluralize(2) | capitalize }}
-       (<serp-results-count :results-object="resultsObject" class=""/>)
+<!--       (<serp-results-count :results-object="resultsObject" class=""/>)-->
       </v-toolbar-title>
       <v-spacer/>
 <!--      <action class="ml-2" action="sort"/>-->
@@ -14,6 +13,9 @@
       <serp-results-export-button />
     </v-toolbar>
 
+<!--      <div class="grey&#45;&#45;text">-->
+<!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
+<!--      </div>-->
     <v-list v-if="resultsObject?.results" class="" color="">
       <serp-results-list-item-work
         v-for="result in resultsObject.results"

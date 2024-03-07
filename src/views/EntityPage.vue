@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2" style="min-height: 80vh">
+  <div class="color-3" style="min-height: 80vh">
     <v-container v-if="entityData" class="">
       <div>
         <v-btn
@@ -38,16 +38,16 @@
 
           </div>
         </v-col>
-        <v-col cols="12" lg="3" class="text-right">
+        <v-col cols="12" lg="3" class="">
           <div class="d-flex">
-            <v-spacer></v-spacer>
-            <v-btn class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-              <v-icon>mdi-api</v-icon>
-            </v-btn>
+            <v-spacer class="d-none d-lg-block"></v-spacer>
             <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
             <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
               <v-icon left>mdi-file-document-outline</v-icon>
               View all works
+            </v-btn>
+            <v-btn class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+              <v-icon>mdi-api</v-icon>
             </v-btn>
           </div>
         </v-col>

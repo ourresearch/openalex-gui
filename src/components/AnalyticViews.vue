@@ -1,7 +1,7 @@
 <template>
   <v-card rounded flat color="">
     <v-toolbar flat color="" class="">
-      <v-icon left>mdi-clipboard-outline</v-icon>
+<!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <Action class="ml-2" action="group_by"/>
@@ -50,10 +50,13 @@
 
       <v-row v-if="resultsObject?.meta?.count" dense class="">
         <v-col
-            v-for="key in groupByKeys"
+            v-for="(key, i) in groupByKeys"
             :key="key"
-
+            class="d-flex flex-column"
         >
+          <v-card v-if="i === 0" flat rounded color="color-3 pa-3 mb-3">
+            <serp-results-count :results-object="resultsObject" class="text-h5"/>
+          </v-card>
           <!--            cols="12"-->
           <!--            md="6"-->
           <!--            lg="4"-->
@@ -80,10 +83,12 @@ import GroupBy from "@/components/GroupBy/GroupBy.vue";
 import Action from "@/components/Action/Action.vue";
 import {url} from "@/url";
 import {filtersFromUrlStr} from "@/filterConfigs";
+import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
   name: "Template",
   components: {
+    SerpResultsCount,
     GroupBy,
     Action,
   },

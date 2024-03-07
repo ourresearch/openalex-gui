@@ -96,19 +96,6 @@
     <site-footer/>
 
 
-    <v-bottom-navigation color="primary" app v-if="$vuetify.breakpoint.xsOnly">
-      <v-btn text height="100%" to="/">
-        <span>Searches</span>
-        <v-icon>mdi-folder-outline</v-icon>
-      </v-btn>
-      <v-btn text height="100%" to="/me">
-        <span>Account</span>
-        <v-icon>mdi-account-outline</v-icon>
-      </v-btn>
-
-
-    </v-bottom-navigation>
-
     <v-snackbar
         bottom
         v-model="$store.state.snackbarIsOpen"

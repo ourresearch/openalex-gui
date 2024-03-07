@@ -2,7 +2,7 @@
 
   <v-card rounded flat class="">
     <v-toolbar flat rounded>
-      <v-icon class=" mr-3">mdi-filter-outline</v-icon>
+<!--      <v-icon class=" mr-3">mdi-filter-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">
         Filters
         <span>({{ filters.length }})</span>
