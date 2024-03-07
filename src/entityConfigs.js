@@ -175,7 +175,6 @@ const entityConfigs = {
         placeholder: "Search topics",
         filterName: "concepts",
         filterKey: "concepts.id",
-        color: "blue-grey",
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [],
@@ -193,7 +192,6 @@ const entityConfigs = {
         filterName: "topics",
         filterKey: "primary_topic.id",
         hintVerb: ":",
-        color: "blue-grey",
         hasAutocomplete: true,
         isNative: true,
         rowsToShowOnEntityPage: [
@@ -216,7 +214,6 @@ const entityConfigs = {
         placeholder: "Search subfields",
         filterName: "subfields",
         filterKey: "primary_topic.subfield.id",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
@@ -240,7 +237,6 @@ const entityConfigs = {
         placeholder: "Search fields",
         filterName: "fields",
         filterKey: "primary_topic.field.id",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
@@ -263,7 +259,6 @@ const entityConfigs = {
         placeholder: "Search domains",
         filterName: "domains",
         filterKey: "primary_topic.domain.id",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
@@ -285,7 +280,6 @@ const entityConfigs = {
         placeholder: "Search SDGs",
         filterName: "Sustainable Development Goals",
         filterKey: "sustainable_development_goals.id",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [],
@@ -303,7 +297,6 @@ const entityConfigs = {
         placeholder: "Search countries",
         filterName: "countries",
         filterKey: "authorships.countries",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [],
@@ -320,7 +313,6 @@ const entityConfigs = {
         placeholder: "Search languages",
         filterName: "languages",
         filterKey: "language",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [],
@@ -337,7 +329,6 @@ const entityConfigs = {
         placeholder: "Search work types",
         filterName: "type",
         filterKey: "type",
-        color: "blue-grey",
         hasAutocomplete: false,
         isNative: false,
         rowsToShowOnEntityPage: [
@@ -345,9 +336,26 @@ const entityConfigs = {
             "crossref_types",
         ],
     },
-
+    "source-types": {
+        icon: "mdi-shape-outline",
+        name: "source-types",
+        nameSingular: "source type",
+        displayName: "source types",
+        displayNameSingular: "source type",
+        descr: "Source type",
+        eg: "journal",
+        placeholder: "Search source types",
+        filterName: "source type",
+        filterKey: "primary_location.source.type",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
+    },
 
 }
+
+
 const rowsToShowOnAllEntityPagesExceptWorks = [
     "works_count",
     "cited_by_count",
@@ -423,9 +431,6 @@ const urlPartsFromId = function (id) {
         entityId,
     }
 }
-
-
-
 
 
 const getLocationString = function (entity) {
