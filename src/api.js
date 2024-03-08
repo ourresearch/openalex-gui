@@ -98,6 +98,10 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
 const api = (function () {
 
     const getUrl = async function (url) {
+        if (url.includes("filter=")) { // sdgs hack
+            url = url.replace("sdgs/", "")
+        }
+
         const cachedResponse = getFromCache(url)
         if (cachedResponse) {
             return cachedResponse
@@ -167,8 +171,9 @@ const api = (function () {
             options,
         )
 
-        const resp = await axios.get(myUrl)
-        const filteredGroups = resp.data.group_by.filter(g => {
+        // const resp = await axios.get(myUrl)
+        const respData = await getUrl(myUrl)
+        const filteredGroups = respData.group_by.filter(g => {
             const keyIsNullish = g.key === "unknown" || g.key === null
             return !(keyIsNullish && options.hideUnknown)
         })
