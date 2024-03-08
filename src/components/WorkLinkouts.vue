@@ -1,37 +1,27 @@
 <template>
   <div v-if="data">
-
-
-
-    <!--   HTML free at publisher -->
     <v-btn
         rounded
-        :href="htmlUrl"
+        :href="data.primary_location.landing_page_url"
         target="_blank"
-        color="primary"
+        :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
+        :dark="!data.primary_location?.is_oa"
         class="mr-3"
-        v-if="isOaAtPublisher"
     >
 <!--      <v-icon left>mdi-web</v-icon>-->
-      HTML
+      <template v-if="data.primary_location?.source?.display_name === 'PubMed'">
+        PubMed
+      </template>
+      <template v-else-if="isOaAtPublisher">
+        HTML
+      </template>
+      <template v-else>
+        <v-icon left>mdi-lock</v-icon>
+        HTML
+      </template>
       <v-icon small class="ml-1">mdi-open-in-new</v-icon>
     </v-btn>
 
-
-    <!--   Paywalled at publisher-->
-    <v-btn
-        rounded
-        color="grey darken-1"
-        dark
-        :href="data.primary_location.landing_page_url"
-        target="_blank"
-        class="mr-3"
-        v-if="!isOaAtPublisher"
-    >
-<!--      <v-icon left>mdi-web</v-icon>-->
-      HTML (paywalled)
-      <v-icon  small class="ml-1">mdi-open-in-new</v-icon>
-    </v-btn>
 
     <!--   PDF anywhere -->
     <v-btn
@@ -42,50 +32,9 @@
         class="mr-3"
         v-if="pdfUrl"
     >
-<!--      <v-icon left>mdi-file-pdf-box</v-icon>-->
       PDF
     </v-btn>
 
-
-
-    <!--       Has-PDF linkout -->
-    <!--    <v-btn-->
-    <!--        :href="data.primary_location.landing_page_url"-->
-    <!--        target="_blank"-->
-    <!--        v-if="pdfUrl"-->
-    <!--        text-->
-    <!--        rounded-->
-    <!--    >-->
-    <!--      <v-icon left>mdi-lock-open-variant-outline</v-icon>-->
-    <!--      View-->
-    <!--&lt;!&ndash;      <v-icon>mdi-open-in-new</v-icon>&ndash;&gt;-->
-    <!--    </v-btn>-->
-
-    <!--       No-PDF linkout -->
-    <!--    <v-btn-->
-    <!--        :href="data.primary_location.landing_page_url"-->
-    <!--        target="_blank"-->
-    <!--        v-if="!pdfUrl"-->
-    <!--        rounded-->
-    <!--        text-->
-    <!--    >-->
-    <!--      <v-icon left>mdi-lock-outline</v-icon>-->
-    <!--      Read-->
-    <!--    </v-btn>-->
-
-
-    <!--   HTML at repository, paywalled at publisher -->
-    <!--          <v-btn-->
-    <!--              :href="htmlUrl"-->
-    <!--              target="_blank"-->
-    <!--              color="primary"-->
-    <!--              class="mr-3"-->
-    <!--              icon-->
-    <!--              rounded-->
-    <!--              v-if="isGreenOa && !pdfUrl"-->
-    <!--          >-->
-    <!--            <v-icon>mdi-file-document</v-icon>-->
-    <!--          </v-btn>-->
 
 
   </div>
