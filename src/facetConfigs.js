@@ -223,6 +223,8 @@ const facetConfigs = function (entityType) {
             }),
             isMultiple: true,
         },
+
+        // disabled, waiting for entity
         {
             key: "grants.award_id",
             entityType: "works",
@@ -240,22 +242,6 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
         },
 
-        // {
-        //     key: "authorships.institutions.id",
-        //     entityType: "works",
-        //     displayName: "Exact Institution",
-        //     pidPrefix: "openalex",
-        //     isEntity: true,
-        //     showInSidebar: true,
-        //     entityId: "institutions",
-        //     autocompleteEndpoint: "autocomplete/institutions",
-        //     type: "select",
-        //     isManyOptions: true,
-        //     categories: ["institution",],
-        //     isCore: true,
-        //     icon: "mdi-town-hall",
-        //     regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
-        // },
 
         {
             key: "authorships.institutions.lineage",
@@ -502,26 +488,31 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
+
+        // disabled, waiting for entity
         {
             key: "best_oa_location.license",
             entityType: "works",
             displayName: "license",
             type: "select",
             categories: ["open access"],
-            actions: ["filter", "column", "group_by",],
+            actions: [],
             category: "open access",
             isList: false,
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
             isMultiple: false,
         },
+
+        // disabled, waiting for entity
         {
             key: "open_access.oa_status",
             entityType: "works",
             displayName: "Open Access status",
             type: "select",
             categories: ["open access"],
-            actions: ["filter", "column", "group_by",],
+            // actions: ["filter", "column", "group_by",],
+            actions: [],
             category: "open access",
             isList: false,
             icon: "mdi-lock-open-outline",
