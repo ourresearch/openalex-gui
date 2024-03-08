@@ -1,7 +1,7 @@
 <template>
   <tr
       @click="$emit('click')"
-      class="hover-color-3  font-weight-regular"
+      class="hover-color-3 font-weight-regular"
       :class="{clickable, card: $vuetify.breakpoint.smAndDown}"
   >
     <td class="grey--text shrink pl-5 d-none d-md-table-cell">
@@ -24,7 +24,7 @@
             @set="(val) => isNegated = val"
         />
       </td>
-      <td>
+      <td class="">
         <slot></slot>
       </td>
       <td class="text-right">
@@ -38,7 +38,7 @@
     </template>
     <template v-else>
       <div style="width: 100%;" class="pa-3">
-        <div class="d-flex">
+        <div class="d-flex align-center">
           <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
           <div>
             {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
@@ -50,15 +50,16 @@
               :type="myConfig?.type"
               @set="(val) => isNegated = val"
           />
-          <v-btn icon @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
-            <v-icon>mdi-plus-thick</v-icon>
-          </v-btn>
+
           <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
-        <div>
+        <div class="ml-3">
           <slot></slot>
+          <v-btn small rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+            <v-icon left>mdi-plus-thick</v-icon> add {{ myConfig.displayName }}
+          </v-btn>
         </div>
       </div>
     </template>
@@ -147,6 +148,14 @@ tr {
 
   &.card {
     display: flex;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    align-items: center;
+    align-content: center;
+    td {
+      display: block;
+
+    }
   }
 }
 
