@@ -39,10 +39,10 @@
 
     <v-dialog
         v-model="isDialogOpen"
-        :fullscreen="$vuetify.breakpoint.mobile"
         width="800"
         scrollable
     >
+<!--        :fullscreen="$vuetify.breakpoint.mobile"-->
       <v-card rounded>
         <v-text-field
             v-model="searchString"
@@ -54,7 +54,7 @@
             autofocus
             :placeholder="placeholder"
             style=""
-            class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+            class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
             append-outer-icon="mdi-close"
 
             @keyup.enter="onEnter"
