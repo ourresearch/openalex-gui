@@ -73,7 +73,11 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
             "display_name_alternatives",
             "last_known_institution.id",
+            "affiliations.id",
             "ids.orcid",
+            null,
+            "summary_stats.h_index",
+            "summary_stats.i10_index",
 
         ],
     },

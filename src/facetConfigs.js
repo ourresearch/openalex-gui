@@ -1136,9 +1136,26 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
+            key: "affiliations.id",
+            entityType: "authors",
+            displayName: "All institutions",
+            isEntity: true,
+            entityId: "institutions",
+            autocompleteEndpoint: "autocomplete/institutions",
+            type: "select",
+            isManyOptions: true,
+            categories: ["institution"],
+            icon: "mdi-town-hall",
+            extractFn: (entity) => {
+                return entity.affiliations.map(affil => {
+                    return affil.institution
+                })
+            },
+        },
+        {
             key: "last_known_institution.id",
             entityType: "authors",
-            displayName: "Institution",
+            displayName: "Most recent institutions",
             isEntity: true,
             entityId: "institutions",
             autocompleteEndpoint: "autocomplete/institutions",
@@ -1177,18 +1194,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
         },
         {
-            key: "x_concepts.id",
-            entityType: "authors",
-            displayName: "Concepts",
-            isEntity: true,
-            entityId: "concepts",
-            autocompleteEndpoint: "autocomplete/concepts",
-            type: "select",
-            isManyOptions: true,
-            categories: ["other"],
-            icon: "mdi-tag-outline",
-        },
-        {
             key: "display_name_alternatives",
             entityType: "authors",
             displayName: "alternate names",
@@ -1199,6 +1204,32 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
             extractFn: (entity) => entity.display_name_alternatives,
         },
+
+        // authors: summary_stats
+        {
+            key: "summary_stats.h_index",
+            entityType: "authors",
+            displayName: "h-index",
+            type: "range",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-chart-line",
+            isMultiple: true,
+            extractFn: (entity) => entity.summary_stats.h_index,
+        },
+        {
+            key: "summary_stats.i10_index",
+            entityType: "authors",
+            displayName: "i10-index",
+            type: "range",
+            actions: [],
+            actionsPopular: [],
+            icon: "mdi-chart-line",
+            isMultiple: true,
+            extractFn: (entity) => entity.summary_stats.i10_index,
+        },
+
+
 
 
         // sources
