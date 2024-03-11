@@ -20,6 +20,10 @@ const navConfigs = [
                 href: "https://github.com/ourresearch",
             },
             {
+                name: "Terms of Service",
+                href: "OpenAlex_termsofservice.pdf",
+            },
+            {
                 name: "Privacy",
                 href: "OpenAlex_privacy_policy.pdf",
             },
