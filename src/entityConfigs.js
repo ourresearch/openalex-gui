@@ -109,6 +109,11 @@ const entityConfigs = {
             "is_oa",
             "is_in_doaj",
             "apc_usd",
+            null,
+            "summary_stats.2yr_mean_citedness",
+            "summary_stats.h_index",
+            "summary_stats.i10_index",
+
         ],
     },
     publishers: {
