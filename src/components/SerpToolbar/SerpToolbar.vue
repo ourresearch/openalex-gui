@@ -4,7 +4,7 @@
     <serp-toolbar-title
         @save="clickSave"
         @toggle-alert="toggleAlert"
-        style="margin-left: -5px;"
+        style="margin-left: -19px;"
     />
     <v-spacer/>
     <serp-toolbar-menu

@@ -5,7 +5,8 @@
       :class="{clickable, card: $vuetify.breakpoint.smAndDown}"
   >
     <td class="grey--text shrink pl-5 d-none d-md-table-cell">
-      {{ index + 1 }}.
+<!--      {{ index + 1 }}.-->
+      <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
     </td>
     <td class="grey--text shrink d-none d-md-table-cell">
       {{ index > 0 ? "and" : "" }}

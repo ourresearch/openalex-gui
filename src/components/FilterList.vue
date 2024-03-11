@@ -1,66 +1,85 @@
 <template>
+  <div>
 
-  <v-card rounded flat class="">
-    <v-toolbar flat rounded>
-<!--      <v-icon class=" mr-3">mdi-filter-outline</v-icon>-->
+    <v-toolbar dense flat rounded color="transparent">
       <v-toolbar-title class="font-weight-bold">
-        Filters
-        <span>({{ filters.length }})</span>
+        <span>{{ filters.length }}</span>
+        {{ "Filter" | pluralize(filters.length) }}
       </v-toolbar-title>
+      <!--      <span class="grey&#45;&#45;text ml-6">-->
+      <!--        <span>{{ filters.length }}</span> filters-->
+      <!--      </span>-->
       <v-spacer/>
 
 
-      <add-filter small v-if="isCollapsed"  />
-      <v-btn :disabled="filters.length === 0" icon @click="clearEverything">
-        <v-icon>mdi-delete-outline</v-icon>
-      </v-btn>
+      <add-filter v-if="isCollapsed"/>
+<!--      <v-btn small rounded text :disabled="filters.length === 0"  @click="clearEverything">-->
+<!--        <v-icon small left>mdi-delete-outline</v-icon>-->
+<!--        clear-->
+<!--      </v-btn>-->
 
-      <v-btn icon @click="isCollapsed = !isCollapsed">
-        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>
-      </v-btn>
+      <!--      <v-btn icon @click="isCollapsed = !isCollapsed">-->
+      <!--        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>-->
+      <!--      </v-btn>-->
     </v-toolbar>
 
-    <div v-if="!isCollapsed">
-      <!--      <v-divider/>-->
-      <div v-if="filters.length === 0" class="mx-5 my-2 grey--text">
-        No filters applied
+    <v-card rounded flat class="mb-12">
+
+      <div class="px-2" v-if="!isCollapsed">
+        <!--      <v-divider/>-->
+        <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 grey--text">
+          No filters applied
+        </div>
+        <table v-if="$vuetify.breakpoint.mdAndUp" style="width: 100%;">
+          <tbody>
+          <component
+              class=""
+              style="width: 100%;"
+              v-for="(filter, i) in filters"
+              :key="i"
+              :is="'filter-' + filter.type"
+              :filter-key="filter.key"
+              :index="i"
+              @delete="url.deleteFilter(entityType, filter.key)"
+          />
+          </tbody>
+        </table>
+        <div v-else>
+          <component
+              class=""
+              style="width: 100%;"
+              v-for="(filter, i) in filters"
+              :key="i"
+              :is="'filter-' + filter.type"
+              :filter-key="filter.key"
+              :index="i"
+              @delete="url.deleteFilter(entityType, filter.key)"
+          />
+        </div>
+
+
+        <div class="d-flex" style="height: 40px;">
+          <add-filter class="ml-0" style="position: relative; top: 10px;"/>
+          <v-btn
+              @click="clearEverything"
+              v-if="filters.length"
+              fab
+              small
+              class="ml-3 elevation-0"
+              color="white"
+              style="position: relative; top: 15px; border: 2px solid #fff;"
+          >
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-btn>
+        </div>
+        <!--      <div class="" >-->
+        <!--        <add-filter class="ml-3 py-3"  :include-chips="false"  />-->
+        <!--      </div>-->
       </div>
-      <table v-if="$vuetify.breakpoint.mdAndUp"  style="width: 100%;">
-        <tbody>
-        <component
-            class=""
-            style="width: 100%;"
-            v-for="(filter, i) in filters"
-            :key="i"
-            :is="'filter-' + filter.type"
-            :filter-key="filter.key"
-            :index="i"
-            @delete="url.deleteFilter(entityType, filter.key)"
-        />
-        </tbody>
-      </table>
-      <div v-else>
-        <component
-            class=""
-            style="width: 100%;"
-            v-for="(filter, i) in filters"
-            :key="i"
-            :is="'filter-' + filter.type"
-            :filter-key="filter.key"
-            :index="i"
-            @delete="url.deleteFilter(entityType, filter.key)"
-        />
-      </div>
 
 
-
-      <v-card-actions class="py-4">
-        <add-filter include-chips  />
-      </v-card-actions>
-    </div>
-
-
-  </v-card>
+    </v-card>
+  </div>
 
 
 </template>
@@ -138,11 +157,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    clearEverything(){
+    clearEverything() {
       url.pushNewFilters([])
     }
-
-
 
 
   },

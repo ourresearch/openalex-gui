@@ -1549,6 +1549,12 @@ const facetConfigs = function (entityType) {
         },
 
 
+        // institutions: summary_stats
+        // none for now.
+
+
+
+
         // concepts
         {
             key: "ids.openalex",
