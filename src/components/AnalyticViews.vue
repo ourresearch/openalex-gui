@@ -1,6 +1,6 @@
 <template>
-  <v-card rounded flat color="">
-    <v-toolbar flat color="" class="">
+  <v-card rounded flat color="transparent">
+    <v-toolbar dense flat color="transparent" class="">
 <!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
@@ -54,7 +54,7 @@
             :key="key"
             class="d-flex flex-column"
         >
-          <v-card v-if="i === 0" flat rounded color="color-3 pa-3 mb-3">
+          <v-card v-if="i === 0" flat rounded color="white pa-3 mb-3">
             <serp-results-count :results-object="resultsObject" class="text-h5"/>
           </v-card>
           <!--            cols="12"-->

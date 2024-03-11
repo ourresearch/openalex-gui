@@ -1,8 +1,8 @@
 <template>
   <div class="color-2" style="min-height: 80vh">
-    <v-container fluid class="pt-4">
+    <v-container fluid class="pt-0">
       <serp-toolbar :results-object="resultsObject"/>
-      <filter-list :results-object="resultsObject" class="mb-6 "/>
+      <filter-list :results-object="resultsObject" class="mb-6 mt-6"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="!$vuetify.breakpoint.mobile">

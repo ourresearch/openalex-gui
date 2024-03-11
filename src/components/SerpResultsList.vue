@@ -1,6 +1,6 @@
 <template>
-  <v-card rounded flat class="">
-    <v-toolbar flat class="">
+  <div>
+    <v-toolbar dense flat class="" color="transparent">
 <!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold mr-2">
         {{ entityType | pluralize(2) | capitalize }}
@@ -13,10 +13,12 @@
       <serp-results-export-button />
     </v-toolbar>
 
+  <v-card rounded flat class="">
+
 <!--      <div class="grey&#45;&#45;text">-->
 <!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
 <!--      </div>-->
-    <v-list v-if="resultsObject?.results" class="" color="">
+    <v-list nav v-if="resultsObject?.results" class="" color="">
       <serp-results-list-item-work
         v-for="result in resultsObject.results"
         :key="result.id"
@@ -24,64 +26,6 @@
         show-icon
       />
 
-<!--      <v-list-item-->
-<!--          v-for="result in resultsObject.results"-->
-<!--          :key="result.id"-->
-<!--          :to="result.id | entityZoomLink"-->
-<!--          color="primary"-->
-<!--      >-->
-<!--        &lt;!&ndash;          @click="clickResult(result.id)"&ndash;&gt;-->
-<!--        <v-list-item-icon v-if="!$vuetify.breakpoint.mobile" class="">-->
-<!--          <v-icon class="">mdi-file-document-outline</v-icon>-->
-<!--        </v-list-item-icon>-->
-<!--        <v-list-item-content>-->
-<!--          <v-list-item-title style="white-space: normal; line-height: 1.5;">-->
-<!--            <div class="" v-html="$prettyTitle(result.display_name)"></div>-->
-<!--          </v-list-item-title>-->
-<!--          <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">-->
-<!--            <div>-->
-<!--              <span v-if="result.publication_year">{{ result.publication_year }}</span>-->
-<!--              <span v-if="result.publication_year && result.type"> · </span>-->
-<!--              <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>-->
-<!--              <span v-if="result.primary_location?.source?.display_name"> · </span>-->
-<!--              <span v-if="result.primary_location?.source?.display_name" class="font-italic">-->
-<!--                  {{ result.primary_location?.source?.display_name }}-->
-<!--                </span>-->
-<!--            </div>-->
-<!--          </v-list-item-subtitle>-->
-<!--          <div>-->
-<!--            <span @click.prevent>-->
-<!--              <v-btn-->
-<!--                  text-->
-<!--                  small-->
-<!--                  class="px-1"-->
-<!--                  :to="url.makeFilterRoute(entityType, 'cited_by', result.id)"-->
-<!--              >-->
-<!--&lt;!&ndash;                  @click.prevent="showCitingWorks(result.id)"&ndash;&gt;-->
-<!--                Cited by {{ result.cited_by_count | toPrecision }}-->
-<!--              </v-btn>-->
-
-<!--            </span>-->
-<!--            &lt;!&ndash;            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">&ndash;&gt;-->
-<!--            &lt;!&ndash;              web&ndash;&gt;-->
-<!--            &lt;!&ndash;              <v-icon x-small right>mdi-open-in-new</v-icon>&ndash;&gt;-->
-<!--            &lt;!&ndash;            </v-btn>&ndash;&gt;-->
-<!--            <span @click.stop>-->
-<!--              <v-btn-->
-<!--                  v-if="result?.best_oa_location?.pdf_url"-->
-<!--                  :href="result?.best_oa_location?.pdf_url"-->
-<!--                  target="_blank"-->
-<!--                  text-->
-<!--                  small-->
-<!--                  class="ml-2"-->
-<!--              >-->
-<!--                PDF-->
-<!--              </v-btn>-->
-
-<!--            </span>-->
-<!--          </div>-->
-<!--        </v-list-item-content>-->
-<!--      </v-list-item>-->
     </v-list>
     <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
@@ -97,6 +41,7 @@
       There are no results for this search.
     </v-card>
   </v-card>
+  </div>
 </template>
 
 <script>

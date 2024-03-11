@@ -1,40 +1,88 @@
 <template>
-<!--  <div class="d-flex align-center">-->
-  <v-slide-group>
-    <template>
-      <v-btn v-if="small" icon @click="isDialogOpen = true">
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
-      <v-btn
-          v-else
-          rounded
-          text
-          color="primary"
-          @click="isDialogOpen = true"
-      >
-        <v-icon left color="">mdi-filter-menu</v-icon>
-        All filters
-        <!--        <v-icon color="" class="ml-1">mdi-menu-down</v-icon>-->
-      </v-btn>
-    </template>
+  <!--  <div class="d-flex align-center">-->
+  <div>
+    <v-menu rounded>
+      <template v-slot:activator="{on}">
+        <v-fab-transition>
+          <v-btn
+              v-if="isFabShowing"
+              v-on="on"
+              fab
+              color="primary"
+              class=""
+          >
+            <v-icon>mdi-plus-thick</v-icon>
+          </v-btn>
 
-    <template v-if="includeChips">
-      <v-chip
-          v-for="filter in potentialFiltersPopular"
-          :key="filter.id"
-          class="ml-2"
-          color="white"
-          @click="setNewFilterKey(filter.key)"
-          :disabled="!url.isFilterKeyAvailableToCreate($route, entityType, filter.key)"
-      >
-        <v-icon left small>{{ filter.icon }}</v-icon>
-        {{ filter.displayName }}
-      </v-chip>
-      <v-chip color="white" class="ml-2" key="more" @click="isDialogOpen = true">
-        <v-icon left small>mdi-dots-horizontal</v-icon>
-        more
-      </v-chip>
-    </template>
+        </v-fab-transition>
+
+      </template>
+      <v-card>
+        <v-text-field
+            v-model="searchString"
+            filled
+            rounded
+            background-color="white"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            autofocus
+            placeholder="Search all filters"
+            style=""
+
+            @keyup.enter="onEnter"
+
+        />
+        <v-divider/>
+        <v-list v-if="searchString">
+          <v-list-item
+              v-for="filter in potentialFiltersSearchResults"
+              :key="filter.key"
+              @click="setNewFilterKey(filter.key)"
+              :disabled="filter.disabled"
+          >
+            <v-list-item-icon>
+              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ filter.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+        <v-list v-if="!searchString">
+          <v-list-item
+              v-for="filter in potentialFiltersPopular"
+              :key="filter.key"
+              @click="setNewFilterKey(filter.key)"
+              :disabled="filter.disabled"
+          >
+            <v-list-item-icon>
+              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ filter.displayName }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-divider/>
+          <v-list-item
+              key="more-filters"
+              @click="isDialogOpen = true"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-dots-horizontal</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title class="font-weight-bold">
+                More
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </v-menu>
 
 
     <v-dialog
@@ -42,7 +90,7 @@
         width="800"
         scrollable
     >
-<!--        :fullscreen="$vuetify.breakpoint.mobile"-->
+      <!--        :fullscreen="$vuetify.breakpoint.mobile"-->
       <v-card rounded>
         <v-text-field
             v-model="searchString"
@@ -98,6 +146,9 @@
                   <v-list-item-title>
                     {{ filter.displayName }}
                   </v-list-item-title>
+                  <!--                  <v-list-item-subtitle>-->
+                  <!--                    {{ filter.type }}-->
+                  <!--                  </v-list-item-subtitle>-->
                 </v-list-item-content>
               </v-list-item>
             </v-list>
@@ -109,7 +160,7 @@
     </v-dialog>
 
 
-  </v-slide-group>
+  </div>
 </template>
 
 <script>
@@ -135,7 +186,6 @@ export default {
   },
   props: {
     includeChips: Boolean,
-    small: Boolean,
   },
   data() {
     return {
@@ -144,6 +194,7 @@ export default {
       isMenuOpen: false,
       isDialogOpen: false,
       newFilterKey: null,
+      isFabShowing: false,
       url,
     }
   },
@@ -155,7 +206,7 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    dialogBodyHeight(){
+    dialogBodyHeight() {
       const fullHeight = !this.newFilterKey || this.newFilterConfig.type === "select"
       return fullHeight ? "80vh" : 0
     },
@@ -201,18 +252,14 @@ export default {
           this.$pluralize(displayName, 2) :
           null
       if (!this.newFilterKey) {
-        return "Search filters"
-      }
-      else if (this.newFilterKey === "publication_year") {
+        return "Search all filters"
+      } else if (this.newFilterKey === "publication_year") {
         return "Enter year or range of years"
-      }
-      else if (this.newFilterConfig.type === "range") {
+      } else if (this.newFilterConfig.type === "range") {
         return "Enter number or range"
-      }
-      else if (this.newFilterConfig.type === "search") {
+      } else if (this.newFilterConfig.type === "search") {
         return "Search within " + pluralizedDisplayName
-      }
-      else {
+      } else {
         return "Search " + pluralizedDisplayName
       }
     },
@@ -224,7 +271,7 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    onEnter(){
+    onEnter() {
       console.log("onEnter", this.searchString)
       if (["search", "range"].includes(this.newFilterConfig?.type)) {
         url.createFilter(this.entityType, this.newFilterKey, this.searchString)
@@ -276,10 +323,13 @@ export default {
   created() {
   },
   mounted() {
+    setTimeout(()=> {
+      this.isFabShowing = true
+    }, 1)
   },
   watch: {
     isDialogOpen(to) {
-      if (!to){
+      if (!to) {
         this.searchString = ""
         this.newFilterKey = null
       }
