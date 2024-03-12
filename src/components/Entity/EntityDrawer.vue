@@ -7,7 +7,7 @@
       temporary
       disable-route-watcher
   >
-    <v-card flat tile :loading="isLoading">
+    <v-card min-height="100" flat tile :loading="isLoading" >
 <!--      loading-->
 
       <!--      <v-toolbar-->
@@ -46,7 +46,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import EntityNew from "@/components/Entity/EntityNew.vue";
-import {entityTypeFromId} from "@/util";
+import {entityTypeFromId, sleep} from "@/util";
 import {api} from "@/api";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 
@@ -102,6 +102,7 @@ export default {
       }
       this.isLoading = true
       // console.log("EntityDrawer getEntityData() loading", this.isLoading)
+      await sleep(2000)
       this.entityData = await api.get(this.id)
       this.isLoading = false
       // console.log("EntityDrawer getEntityData() done loading", this.isLoading)
