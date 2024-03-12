@@ -22,8 +22,7 @@
       <!--          </div>-->
 
     </div>
-    <div class="d-flex mt-4">
-      <!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
+    <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
 <!--        <v-icon left>mdi-file-document-outline</v-icon>-->
@@ -31,7 +30,7 @@
       </v-btn>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon class="ml-3" href="https://openalex.zendesk.com/hc/en-us/requests/new"
+          <v-btn v-on="on" icon class="" href="https://openalex.zendesk.com/hc/en-us/requests/new"
                  target="_blank">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
@@ -40,13 +39,21 @@
       </v-tooltip>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" class="mx-3" icon :href="'https://api.openalex.org/' + shortId" target="_blank">
+          <v-btn v-on="on" class="" icon :href="'https://api.openalex.org/' + shortId" target="_blank">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
         View in API
       </v-tooltip>
-    </div>
+      <v-tooltip bottom v-if="showPermalinkButton">
+        <template v-slot:activator="{on}">
+          <v-btn v-on="on" class="" icon :to="shortId">
+            <v-icon>mdi-link</v-icon>
+          </v-btn>
+        </template>
+        View permalink page
+      </v-tooltip>
+    </v-toolbar>
   </div>
 </template>
 
@@ -63,6 +70,7 @@ export default {
   components: {WorkLinkouts, LinkEntityRolesList},
   props: {
     entityData: Object,
+    showPermalinkButton: Boolean,
   },
   data() {
     return {

@@ -1,21 +1,57 @@
 <template>
-  <v-chip
-      color="white"
-      class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
-      close
-      exact
-      close-icon="mdi-close"
-      :to="filterValue | entityZoomLink"
-      @click:close="$emit('delete')"
+  <v-menu
+      rounded
+      max-width="800"
+      class=""
+      offset-y
+      :close-on-content-click="false"
+      v-model="isMenuOpen"
   >
-    <template v-if="filterDisplayValue">
-      {{ filterDisplayValue | truncate(50) }}
+    <template v-slot:activator="{on}">
+      <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
+      <v-chip
+          color="white"
+          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
+          v-on="on"
+          close
+          close-icon="mdi-close"
+          @click:close="$emit('delete')"
+      >
+        <template v-if="filterDisplayValue">
+          {{ filterDisplayValue | truncate(50) }}
+        </template>
+        <template v-else>
+          loading...
+        </template>
+<!--        <v-icon>mdi-menu-down</v-icon>-->
+      </v-chip>
     </template>
-    <template v-else>
-      loading...
-    </template>
-    <!--        <v-icon>mdi-menu-down</v-icon>-->
-  </v-chip>
+    <v-card :loading="isLoading">
+      <v-card-title>
+        {{ filterDisplayValue }}
+      </v-card-title>
+      <v-card-subtitle class="mb-0 pb-0">
+        {{ filterValue }}
+      </v-card-subtitle>
+      <v-divider class="my-2" />
+      <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
+      <v-divider/>
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn
+               class="ml-4"
+               color="primary"
+               rounded
+               exact-path
+               :to="filterValue | entityZoomLink"
+        >
+          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
+        </v-btn>
+      </v-card-actions>
+
+
+    </v-card>
+  </v-menu>
 </template>
 
 <script>
@@ -60,12 +96,12 @@ export default {
       // if (!this.filterId) return false
       return getEntityConfigs().some(c => c.filterKey === this.filterId)
     },
-    myEntityType() {
+    myEntityType(){
       return entityTypeFromId(this.filterValue)
 
       // return (this.isEntity) ?s
     },
-    filterConfig() {
+    filterConfig(){
       return getFacetConfig(this.entityType, this.filterKey)
     },
     filterId() {
@@ -74,13 +110,13 @@ export default {
     menuKey() {
       return this.filterKey + '-' + this.filterId
     },
-    myEntityConfig() {
+    myEntityConfig(){
       return getEntityConfig(this.myEntityType)
     },
-    subtitle() {
+    subtitle(){
       return "subtitle"
     },
-    locationStr() {
+    locationStr(){
       if (!this.entityData) return
       return getLocationString(this.entityData)
     },
@@ -93,7 +129,7 @@ export default {
 
       ].join("; ")
     },
-    filterDisplayValue() {
+    filterDisplayValue(){
       return this.entityData?.display_name
     },
   },

@@ -76,11 +76,12 @@ Vue.filter("entityWorksLink", function (id) {
 Vue.filter("entityZoomLink", function (id) {
     if (!id) return
     const shortId = shortenOpenAlexId(id)
+    const idEntityType = entityTypeFromId(id)
     const newQuery = url.addToQuery(router.currentRoute.query, "zoom", shortId)
     const params = {...router.currentRoute.params}
-    console.log("entityZoomLink", params)
+    // console.log("entityZoomLink", params)
 
-    if (router.currentRoute.name === "Serp") {
+    if (router.currentRoute.name === "Serp" && idEntityType === "works") {
         return {
             name: "Serp",
             params,
