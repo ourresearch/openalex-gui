@@ -38,15 +38,29 @@
 
           </div>
           <div class="d-flex mt-6">
-<!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
+            <!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
             <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
             <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
               <v-icon left>mdi-file-document-outline</v-icon>
               View all works
             </v-btn>
-            <v-btn class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-              <v-icon>mdi-api</v-icon>
-            </v-btn>
+            <v-tooltip bottom>
+              <template v-slot:activator="{on}">
+                <v-btn v-on="on" icon class="ml-3" href="https://openalex.zendesk.com/hc/en-us/requests/new"
+                       target="_blank">
+                  <v-icon>mdi-message-alert-outline</v-icon>
+                </v-btn>
+              </template>
+              Send feedback
+            </v-tooltip>
+            <v-tooltip bottom>
+              <template v-slot:activator="{on}">
+                <v-btn v-on="on" class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
+                  <v-icon>mdi-api</v-icon>
+                </v-btn>
+              </template>
+                View in API
+            </v-tooltip>
           </div>
         </v-col>
       </v-row>
@@ -99,9 +113,9 @@
                 Key stats
               </v-toolbar-title>
               <v-spacer/>
-<!--              <v-btn color="primary" rounded text @click="viewMyWorks">-->
-<!--                View more-->
-<!--              </v-btn>-->
+              <!--              <v-btn color="primary" rounded text @click="viewMyWorks">-->
+              <!--                View more-->
+              <!--              </v-btn>-->
             </v-toolbar>
             <group-by
                 v-for="groupByKey in groupByKeys"
