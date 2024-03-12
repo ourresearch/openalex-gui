@@ -13,63 +13,15 @@
           back
         </v-btn>
       </div>
-      <v-row>
-        <v-col cols="12">
-          <div
-              class="text-h6 mb-1"
-              v-html="$prettyTitle(entityData.display_name)"
-          />
-          <div class="d-flex align-center">
-            <link-entity-roles-list
-                v-if="entityData.roles"
-                :roles="entityData.roles"
-                :selected="myEntityConfig.nameSingular"
-                style="margin-left:-13px;"
-            />
-            <div class="mr-3" v-else>
-              <v-icon small>{{ myEntityConfig.icon }}</v-icon>
-              {{ myEntityConfig.displayNameSingular | capitalize }}
-            </div>
-
-
-            <!--          <div v-else-if="myEntityType !== 'works'" class="grey&#45;&#45;text">-->
-            <!--            {{ myEntityConfig.displayNameSingular | capitalize }}-->
-            <!--          </div>-->
-
-          </div>
-          <div class="d-flex mt-6">
-            <!--            <v-spacer class="d-none d-lg-block"></v-spacer>-->
-            <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
-            <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
-              <v-icon left>mdi-file-document-outline</v-icon>
-              View all works
-            </v-btn>
-            <v-tooltip bottom>
-              <template v-slot:activator="{on}">
-                <v-btn v-on="on" icon class="ml-3" href="https://openalex.zendesk.com/hc/en-us/requests/new"
-                       target="_blank">
-                  <v-icon>mdi-message-alert-outline</v-icon>
-                </v-btn>
-              </template>
-              Send feedback
-            </v-tooltip>
-            <v-tooltip bottom>
-              <template v-slot:activator="{on}">
-                <v-btn v-on="on" class="mx-3" icon :href="'https://api.openalex.org/' + apiPath" target="_blank">
-                  <v-icon>mdi-api</v-icon>
-                </v-btn>
-              </template>
-                View in API
-            </v-tooltip>
-          </div>
-        </v-col>
-      </v-row>
+      <entity-header
+          :entity-data="entityData"
+          class="mb-4"
+      />
       <v-row v-if="myEntityType === 'works'">
         <v-col>
           <v-card flat rounded class="py-6">
             <entity-new
                 :data="entityData"
-                :type="myEntityType"
             />
           </v-card>
         </v-col>
@@ -80,7 +32,6 @@
           <v-card flat rounded class="py-6">
             <entity-new
                 :data="entityData"
-                :type="myEntityType"
             />
           </v-card>
           <v-card flat rounded class="mt-3">
@@ -149,6 +100,7 @@
       <!--        v-if="isDataMatchingId"-->
       <!--    />-->
     </v-container>
+    <entity-drawer />
   </div>
 </template>
 
@@ -166,6 +118,8 @@ import {getEntityConfig} from "@/entityConfigs";
 import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
 import {url} from "@/url";
+import EntityHeader from "@/components/Entity/EntityHeader.vue";
+import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
 
 export default {
   name: "EntityPage",
@@ -178,6 +132,9 @@ export default {
     WorkLinkouts,
     GroupBy,
     LinkEntityRolesList,
+    EntityHeader,
+
+    EntityDrawer,
 
   },
   props: {},

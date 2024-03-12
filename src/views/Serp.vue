@@ -53,6 +53,7 @@
 
     </v-container>
 
+    <entity-drawer />
   </div>
 
 
@@ -94,6 +95,7 @@ import SearchBar from "@/components/SearchBar.vue";
 import SerpTabs from "@/components/SerpTabs.vue";
 
 import QrcodeVue from 'qrcode.vue'
+import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
 
 const shortUuid = require('short-uuid');
 
@@ -126,6 +128,8 @@ export default {
 
     QrcodeVue,
     SerpTabs,
+
+    EntityDrawer,
 
   },
   props: {},
