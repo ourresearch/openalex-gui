@@ -2,6 +2,7 @@
   <v-list-item
           :to="result.id | entityZoomLink"
           color="primary"
+          exact
       >
         <!--          @click="clickResult(result.id)"-->
         <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">

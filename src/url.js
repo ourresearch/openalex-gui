@@ -112,6 +112,14 @@ const setPage = async function (page) {
 const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
+const setZoom = function (val) {
+    pushQueryParam("zoom", val)
+}
+
+const getZoom = function (route) {
+    return route.query.zoom
+}
+
 
 const setHideResults = function (val) {
     const urlVal = val ? true : undefined
@@ -907,6 +915,9 @@ const url = {
     viewConfigs,
     isViewSet,
     toggleView,
+
+    setZoom,
+    getZoom,
 }
 
 

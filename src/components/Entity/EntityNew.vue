@@ -31,6 +31,7 @@ import {getEntityConfig} from "@/entityConfigs";
 import EntityDatumRow from "@/components/Entity/EntityDatumRow.vue";
 import {filter} from "core-js/internals/array-iteration";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import {entityTypeFromId} from "@/util";
 
 
 export default {
@@ -42,7 +43,6 @@ export default {
   },
   props: {
     data: Object,
-    type: String,
   },
   data() {
     return {
@@ -60,6 +60,9 @@ export default {
     myEntityConfig() {
       return getEntityConfig(this.type)
     },
+    type(){
+      return entityTypeFromId(this.data.id)
+    }
   },
 
   methods: {
