@@ -3,7 +3,7 @@
       v-model="isOpen"
       app
       right
-      :width="$vuetify.breakpoint.mobile ? '100%' : '50%'"
+      :width="$vuetify.breakpoint.mobile ? '95%' : '50%'"
       temporary
       disable-route-watcher
   >
@@ -23,6 +23,7 @@
         <div class="d-flex pa-4">
           <entity-header
               :entity-data="entityData"
+              show-permalink-button
               class=" flex-grow-1"
           />
           <v-btn icon @click="isOpen = !isOpen">
