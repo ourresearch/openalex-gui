@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-menu offset-y max-width="300">
+    <v-menu rounded offset-y max-width="300">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on">
           <v-icon>mdi-tray-arrow-down</v-icon>
@@ -21,20 +21,24 @@
         <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('csv')">
           <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-table</v-icon></v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>Spreadsheet</v-list-item-title>
+            <v-list-item-title>Spreadsheet (.csv)</v-list-item-title>
           </v-list-item-content>
-          <v-list-item-action-text class="ml-4">csv</v-list-item-action-text>
+        </v-list-item>
+        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('ris')">
+          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-archive-arrow-down-outline</v-icon></v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Endnote format (.ris)</v-list-item-title>
+          </v-list-item-content>
         </v-list-item>
         <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('wos-plaintext')">
           <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-file-outline</v-icon></v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>WoS format</v-list-item-title>
+            <v-list-item-title>WoS format (.txt)</v-list-item-title>
           </v-list-item-content>
-          <v-list-item-action-text>txt</v-list-item-action-text>
         </v-list-item>
       </v-list>
     </v-menu>
-    <v-dialog v-model="isDialogOpen.exportResults" max-width="500" :persistent="exportObj.progress !== null">
+    <v-dialog v-model="isDialogOpen.exportResults" max-width="350" :persistent="exportObj.progress !== null">
       <v-card rounded>
         <v-toolbar flat class="">
           <v-toolbar-title>
@@ -42,8 +46,11 @@
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <div class="pa-5" v-if="exportObj.progress === null">
-          The export will take up to {{ exportEstimatedTime }}. Continue?
+        <div class="pa-5 pt-3" v-if="exportObj.progress === null">
+          <span>Export these {{ resultsCount | toPrecision }} records?</span>
+          <span v-if="exportEstimatedTime">
+            (This will take up to {{ exportEstimatedTime }}).
+          </span>
         </div>
         <div v-else-if="exportObj.progress < 1" class="pa-5">
           Export in progress...
@@ -121,17 +128,21 @@ export default {
     isExportFinished() {
       return !!this.exportObj.result_url
     },
+    resultsCount(){
+      return this.$store.state?.resultsObject?.meta?.count
+    },
     exportEstimatedTime() {
-      const count = this.$store.state?.resultsObject?.meta?.count
-      if (count < 6600) return "one minute"
-      if (count < 33000) return "five minutes"
-      else if (count < 66000) return "ten minutes"
+      if (this.resultsCount < 200) return null
+      if (this.resultsCount < 6600) return "one minute"
+      if (this.resultsCount < 33000) return "five minutes"
+      else if (this.resultsCount < 66000) return "ten minutes"
       return "fifteen minutes"
     },
     exportDialogTitle() {
       const formatConfig = {
-        "csv": "Export as spreadsheet (csv)",
-        "wos-plaintext": "Export in WoS format (txt)",
+        csv: "Export spreadsheet (.csv)",
+        "wos-plaintext": "Export WoS format (.txt)",
+        ris: "Export to Endnote (.ris)",
       }
       return formatConfig[this.exportFormat]
     },
