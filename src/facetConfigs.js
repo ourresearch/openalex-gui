@@ -394,6 +394,22 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
             isMultiple: false,
         },
+        {
+            key: "doi_starts_with",
+            entityType: "works",
+            displayName: "DOI prefix",
+            type: "search",
+            categories: ["other",],
+            actions: ["filter",],
+            actionsPopular: ["",],
+            category: "other",
+            isList: false,
+            isCore: true,
+            icon: "mdi-magnify",
+            isMultiple: false,
+            verb: "starts with",
+        },
+
         // {
         //     key: "display_name.search",
         //     isDefault: true,

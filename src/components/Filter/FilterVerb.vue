@@ -35,6 +35,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {getFacetConfig} from "@/facetConfigs";
 
 
 export default {
@@ -44,6 +45,7 @@ export default {
     isNegated: Boolean,
     value: [String, Boolean],
     type: String,
+    filterKey: String,
   },
   data() {
     return {
@@ -58,6 +60,9 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    myConfig(){
+      return getFacetConfig(this.entityType, this.filterKey)
+    },
     selectedOption(){
       return this.isNegated ?
           this.options[1] :
@@ -76,7 +81,7 @@ export default {
           return ["is"]
         }
       } else if (this.type === "search") {
-        return ["includes"]
+        return [this.myConfig.verb ?? "includes"]
       } else if (this.type === "select") {
         return this.value.includes("|") ?
             ["is any of", "is none of"] :
