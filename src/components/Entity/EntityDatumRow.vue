@@ -2,7 +2,7 @@
   <div v-if="data && isDisplayed">
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
-        {{ filterConfig.displayName | capitalize | pluralize(pluralizeCount) }}:
+          {{ filterConfig.displayName | capitalize | pluralize(pluralizeCount) }}
       </template>
       <template v-else>
         {{ filterConfig.displayName | capitalize }}:
@@ -61,7 +61,12 @@
         @click="isTruncateSet = false"
         class="font-weight-bold"
     >
-      (more)
+      <template v-if="isValueAnArray">
+        +{{ (valueLength - maxLen.array) | toPrecision }} more
+      </template>
+      <template v-else>
+        more
+      </template>
     </a>
     <a
         v-if="isValueSubjectToTruncation && !isValueTruncated"
@@ -121,10 +126,10 @@ export default {
     myEntityType() {
       return this.type
     },
-    myEntityConfig(){
+    myEntityConfig() {
       return getEntityConfig(this.type)
     },
-    myValueType(){
+    myValueType() {
       if (Array.isArray(this.rawValue)) return "array"
       return typeof this.rawValue
     },
@@ -186,7 +191,7 @@ export default {
       // .replace("https://", "")
       // .replace("http://", "")
     },
-    valueBoolean(){
+    valueBoolean() {
       if (typeof this.rawValue === "boolean") return this.rawValue ?
           "Yes" :
           "No"
