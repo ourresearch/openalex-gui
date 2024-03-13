@@ -311,6 +311,24 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [],
     },
 
+    continents: {
+        icon: "mdi-earth",
+        name: "continents",
+        nameSingular: "continent",
+        displayName: "continents",
+        displayNameSingular: "continent",
+        descr: "Continents",
+        eg: "Africa",
+        placeholder: "Search continents",
+        filterName: "continent",
+        filterKey: "authorships.institutions.continent",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+            "countries",
+        ],
+    },
+
     languages: {
         icon: "mdi-translate",
         name: "languages",
