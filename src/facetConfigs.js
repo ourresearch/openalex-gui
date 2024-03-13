@@ -627,7 +627,7 @@ const facetConfigs = function (entityType) {
             category: "institution",
             isList: true,
             isCore: true,
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-earth",
             isMultiple: true,
         },
         {
@@ -641,18 +641,21 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "sort", "column",],
             category: "institution",
             isList: false,
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-earth",
             isMultiple: false,
         },
-        // {
-        //     key: "institutions.continent",
-        //     entityType: "works",
-        //     displayName: "Continent",
-        //     type: "select",
-        //     categories: ["geo", "institution"],
-        //     isCore: true,
-        //     icon: "mdi-map-marker-outline",
-        // },
+        {
+            key: "authorships.institutions.continent",
+            entityType: "works",
+            entityId: "continents",
+            displayName: "Continent",
+            type: "select",
+            categories: ["geo", "institution"],
+            actions: ["filter", "column", "group_by",],
+            actionsPopular: [],
+            isCore: true,
+            icon: "mdi-earth",
+        },
         {
             key: "institutions.is_global_south",
             entityType: "works",
@@ -663,7 +666,7 @@ const facetConfigs = function (entityType) {
             category: "institution",
             isList: false,
             booleanValues: ["Global North", "Global South"],
-            icon: "mdi-map-marker-outline",
+            icon: "mdi-earth",
             // icon: "mdi-town-hall",
             isMultiple: true,
         },
@@ -1838,6 +1841,20 @@ const facetConfigs = function (entityType) {
             icon: "mdi-shape-outline",
             extractFn: (e) => e.crossref_types,
         },
+
+        // continents
+        {
+            key: "countries",
+            entityType: "continents",
+            entityId: "continents",
+            displayName: "countries",
+            type: "select",
+            categories: ["other"],
+            icon: "mdi-earth",
+            extractFn: (e) => e.countries,
+        },
+
+
 
 
 

@@ -44,6 +44,7 @@
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
           v-if="$route.name === 'Serp'"
       >
+        <entity-type-selector />
         <shortcut-box
             style="max-width: 800px;"
             class="flex-grow-1 d-none d-lg-block"
@@ -142,6 +143,7 @@ import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 import ShortcutBox from "@/components/ShortcutBox.vue";
+import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
 export default {
   name: 'App',
@@ -165,6 +167,7 @@ export default {
     SavedSearchSaveDialog,
     SavedSearchEditAlertDialog,
     ShortcutBox,
+    EntityTypeSelector,
   },
 
 
