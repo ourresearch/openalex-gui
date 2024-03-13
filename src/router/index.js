@@ -23,13 +23,19 @@ import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
+import {getEntityConfigs} from "@/entityConfigs";
 
 
 Vue.use(VueRouter)
 
 
-const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
+// const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
+
+const entityNames = getEntityConfigs().map(c => c.name).join("|")
+
 const routes = [
+
+
 
     // data pages
     {

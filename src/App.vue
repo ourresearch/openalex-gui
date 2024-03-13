@@ -44,7 +44,7 @@
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
           v-if="$route.name === 'Serp'"
       >
-<!--        <entity-type-selector />-->
+        <entity-type-selector />
         <shortcut-box
             style="max-width: 800px;"
             class="flex-grow-1 d-none d-lg-block"

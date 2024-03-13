@@ -5,7 +5,7 @@
         class="entity-type-select-btn"
         :id="myId"
     >
-      {{ selectedEntityTypeConfig.displayName }}
+      {{ entityTypeConfig.displayName }}
     </a>
     <v-btn
         v-else
@@ -16,12 +16,12 @@
         :id="myId"
 
     >
-      <v-icon>{{ selectedEntityTypeConfig.icon }}</v-icon>
+      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
       <span
           v-if="$vuetify.breakpoint.mdAndUp"
           class="ml-2"
       >
-        {{ selectedEntityTypeConfig.displayName }}
+        {{ entityTypeConfig.displayName }}
       </span>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
@@ -89,21 +89,20 @@
           <v-list
           >
             <v-list-item
-                v-for="entityType in entityTypeOptions"
-                :key="entityType.name"
-                :to="{name: 'Serp', params: {entityType: entityType.name}}"
+                v-for="entityOption in entityTypeOptions"
+                :key="entityOption.name"
                 class=""
-                @click="isDialogOpen = false"
+                @click="entityType = entityOption.name"
             >
               <v-list-item-icon>
-                <v-icon>{{ entityType.icon }}</v-icon>
+                <v-icon>{{ entityOption.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title class="text-capitalize">
-                  <span>{{ entityType.displayName }}</span>
+                  <span>{{ entityOption.displayName }}</span>
                 </v-list-item-title>
                 <v-list-item-subtitle class="">
-                  {{ entityType.descr }}
+                  {{ entityOption.descr }}
                 </v-list-item-subtitle>
 
               </v-list-item-content>
@@ -121,7 +120,7 @@
 
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {entityConfigs} from "../entityConfigs";
+import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
 import {VMenu} from "vuetify/lib";
 import {VDialog} from "vuetify/lib";
 
@@ -139,18 +138,29 @@ export default {
       select: "",
       isDialogOpen: false,
       entityConfigs,
-      selectedEntityType: "works",
       myId: "my-id-" + Math.random().toString().replace(".", "")
     }
   },
   computed: {
     ...mapGetters([]),
     entityTypeOptions() {
-      return [...Object.values(entityConfigs)]
+      return getEntityConfigs()
     },
-    selectedEntityTypeConfig() {
-      return entityConfigs[this.selectedEntityType]
+    entityTypeConfig() {
+      return getEntityConfig(this.entityType)
     },
+    entityType: {
+      get(){
+        return this.$route.params.entityType
+      },
+      set(to){
+        this.$router.push({
+          name: "Serp",
+          params: {entityType: to}
+        })
+
+      }
+    }
   },
   methods: {
     ...mapMutations([
@@ -160,9 +170,6 @@ export default {
       "removeAllInputFilters",
     ]),
 
-    setSelectedEntityType(value) {
-      this.selectedEntityType = value
-    },
     openEntityMenu() {
       this.items = []
 
@@ -172,7 +179,6 @@ export default {
 
     "$store.state.entityType": {
       handler(to, from) {
-        this.setSelectedEntityType(to)
       },
       immediate: true,
     },
