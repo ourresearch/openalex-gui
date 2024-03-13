@@ -125,6 +125,7 @@ const getActionConfig = function (id) {
     return actionConfigs.find(c => c.id === id)
 }
 const getActionDefaultValues = function (id, query) {
+    // return ["last_known_institution.id"] // hack!
     return getActionConfig(id).getDefaultValues(query)
 }
 const getActionDefaultsStr = function (id, query) {

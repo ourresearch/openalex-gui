@@ -354,6 +354,12 @@ export default {
         // this.snackbar(msg)
       }
     },
+    "$route.params.entityType": {
+      immediate: true,
+      handler(to){
+        this.$store.state.entityType = to
+      }
+    },
     "$route": {
       immediate: true,
       async handler(to, from) {

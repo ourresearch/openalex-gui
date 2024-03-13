@@ -1192,12 +1192,15 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.ids.orcid
         },
         {
-            key: "display_name.search",
+            key: "default.search",
             entityType: "authors",
+            entityId: "authors",
             isDefault: true,
             displayName: "Name search",
             type: "search",
             categories: ["search"],
+            actions: ["filter"],
+            actionsPopular: ["filter"],
             icon: "mdi-magnify",
         },
         {
