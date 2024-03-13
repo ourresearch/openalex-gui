@@ -138,6 +138,8 @@ const pushNewFilters = async function (newFilters) {
         filtersAsUrlStr(newFilters) :
         undefined
 
+    const entityType = router.currentRoute.params.entityType
+
     const query = {
         ...router.currentRoute.query,
         page: 1,
@@ -147,7 +149,7 @@ const pushNewFilters = async function (newFilters) {
 
     const newRoute = {
         name: "Serp",
-        params: {entityType: "works"},
+        params: {entityType},
         query
     }
     return pushToRoute(router, newRoute)
@@ -635,7 +637,8 @@ const toggleView = function (viewId) {
 
 
 const getGroupBy = function (route) {
-    const defaultValue = getActionDefaultValues("group_by", route.query)
+    // const defaultValue = getActionDefaultValues("group_by", route.query)
+    const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults
     return route.query.group_by?.split(",") ?? defaultValue
 }
 const setGroupBy = function (filterKeys) {

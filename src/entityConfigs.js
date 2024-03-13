@@ -49,6 +49,13 @@ const entityConfigs = {
             "grants.funder",
             "grants.award_id",
         ],
+        groupByDefaults: [
+            "publication_year",
+            "open_access.is_oa",
+            "primary_topic.id",
+            "authorships.institutions.lineage",
+            "type",
+        ],
     },
     authors: {
         // icon: "mdi-account-school-outline",
@@ -78,8 +85,13 @@ const entityConfigs = {
             null,
             "summary_stats.h_index",
             "summary_stats.i10_index",
-
         ],
+        groupByDefaults: [
+            "last_known_institution.id",
+            "last_known_institution.country_code",
+            "has_orcid",
+        ],
+
     },
     sources: {
         // icon: "mdi-book-outline",
@@ -376,8 +388,7 @@ const entityConfigs = {
         filterKey: "primary_location.source.type",
         hasAutocomplete: false,
         isNative: false,
-        rowsToShowOnEntityPage: [
-        ],
+        rowsToShowOnEntityPage: [],
     },
 
 }
