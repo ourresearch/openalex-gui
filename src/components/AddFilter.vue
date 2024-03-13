@@ -273,7 +273,7 @@ export default {
     ...mapActions("user", []),
     onEnter() {
       console.log("onEnter", this.searchString)
-      if (["search", "range"].includes(this.newFilterConfig?.type)) {
+      if (["search", "range"].includes(this.newFilterConfig?.type) && this.searchString) {
         url.createFilter(this.entityType, this.newFilterKey, this.searchString)
       }
     },
