@@ -129,7 +129,6 @@
 <script>
 
 import {url} from "@/url";
-import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
@@ -140,7 +139,6 @@ export default {
   name: 'home',
   components: {
     UserSavedSearch,
-    SearchBar,
     VueTyper,
     SavedSearchMenu,
   },

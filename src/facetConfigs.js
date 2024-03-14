@@ -60,26 +60,20 @@ const facetConfigs = function (entityType) {
     const ret = [
 
 
-        // works:  WASPFIC. test
+        // works:  WASPFIC.
 
         {
             key: "ids.openalex",
             entityType: "works",
             entityId: "works",
-            pidPrefix: "openalex",
             displayName: "Work",
-            isEntity: true,
             isSingleWork: true,
             isId: true,
-            showInSidebar: true,
-            noOptions: true,
             type: "select",
             categories: ["ids"],
             category: "ids",
-            isList: false,
             actions: [""],
             icon: "mdi-file-document-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
             extractFn: (entity) => entity.id,
             isMultiple: false,
         },
@@ -88,19 +82,13 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "works",
             displayName: "DOI",
-            isEntity: true,
             isSingleWork: true,
             isId: true,
-            pidPrefix: "doi",
-            showInSidebar: true,
-            noOptions: true,
             type: "select",
             categories: ["ids"],
-            isList: false,
             category: "ids",
             actions: [],
             icon: "mdi-file-document-outline",
-            regex: /(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/,
             extractFn: (entity) => entity.doi,
             isMultiple: false,
         },
@@ -108,21 +96,14 @@ const facetConfigs = function (entityType) {
             key: "concepts.id",
             entityType: "works",
             displayName: "concept",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "concepts",
-            autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
             isManyOptions: true,
             categories: ["other",],
             category: "other",
-            isList: false,
             actions: [],
             actionsPopular: [],
-            isCore: true,
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             extractFn: (entity) => entity.concepts,
             isMultiple: true,
         },
@@ -130,8 +111,6 @@ const facetConfigs = function (entityType) {
             key: "primary_topic.id",
             entityType: "works",
             displayName: "topic",
-            pidPrefix: "openalex",
-            isEntity: true,
             entityId: "topics",
             type: "select",
             isManyOptions: true,
@@ -140,7 +119,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic,
         },
@@ -148,8 +126,6 @@ const facetConfigs = function (entityType) {
             key: "primary_topic.subfield.id",
             entityType: "works",
             displayName: "subfield",
-            pidPrefix: "openalex",
-            isEntity: true,
             entityId: "subfields",
             type: "select",
             isManyOptions: true,
@@ -158,7 +134,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.subfield,
         },
@@ -166,8 +141,6 @@ const facetConfigs = function (entityType) {
             key: "primary_topic.field.id",
             entityType: "works",
             displayName: "field",
-            pidPrefix: "openalex",
-            isEntity: true,
             entityId: "fields",
             type: "select",
             isManyOptions: true,
@@ -176,7 +149,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.field,
         },
@@ -184,8 +156,6 @@ const facetConfigs = function (entityType) {
             key: "primary_topic.domain.id",
             entityType: "works",
             displayName: "domain",
-            pidPrefix: "openalex",
-            isEntity: true,
             entityId: "domains",
             type: "select",
             isManyOptions: true,
@@ -194,7 +164,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by",],
             actionsPopular: [],
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([cC]\d+)$/,
             isMultiple: false,
             extractFn: (entity) => entity.primary_topic.domain,
         },
@@ -202,19 +171,13 @@ const facetConfigs = function (entityType) {
             key: "grants.funder",
             entityType: "works",
             displayName: "funder",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "funders",
             type: "select",
             isManyOptions: true,
             categories: ["other"],
             category: "other",
-            isList: true,
             actions: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-cash-multiple",
-            regex: /^(?:https:\/\/openalex\.org\/)?([fF]\d+)$/,
             extractFn: (entity) => entity.grants.map(grant => {
                 return {
                     id: grant.funder,
@@ -228,14 +191,11 @@ const facetConfigs = function (entityType) {
             key: "grants.award_id",
             entityType: "works",
             displayName: "grant ID",
-            showInSidebar: true,
             type: "search",
             isManyOptions: true,
             categories: ["funder"],
             category: "other",
-            isList: true,
             actions: [],
-            isCore: true,
             icon: "mdi-cash-multiple",
             extractFn: (entity) => entity.grants.map(grant => grant.award_id),
             isMultiple: true,
@@ -246,21 +206,14 @@ const facetConfigs = function (entityType) {
             key: "authorships.institutions.lineage",
             entityType: "works",
             displayName: "institution",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "institutions",
-            autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
             isManyOptions: true,
             categories: ["institution", "popular"],
             category: "institution",
-            isList: true,
             actions: ["filter", "group_by",],
             actionsPopular: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-town-hall",
-            regex: /^(?:https:\/\/openalex\.org\/)?([iI]\d+)$/,
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions
@@ -275,18 +228,12 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "institutions",
             displayName: "ROR ID",
-            pidPrefix: "ror",
-            isEntity: true,
             isId: true,
-            showInSidebar: true,
-            noOptions: true,
             type: "entity",
             categories: ["ids"],
             category: "ids",
-            isList: true,
             actions: [],
             icon: "mdi-town-hall",
-            regex: /https?:\/\/ror\.org\/(0[a-zA-Z0-9]+)/,
             extractFn: (entity) => {
                 const nested = entity.authorships.map(authorship => {
                     return authorship.institutions.map(insti => insti.ror)
@@ -300,21 +247,14 @@ const facetConfigs = function (entityType) {
             key: "authorships.author.id",
             entityType: "works",
             displayName: "author",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "authors",
-            autocompleteEndpoint: "autocomplete/authors",
             type: "select",
             isManyOptions: true,
             categories: ["author", "popular"],
             category: "author",
-            isList: true,
             actions: ["filter", "group_by",],
             actionsPopular: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-account-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([aA]\d+)$/,
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
                     return authorship.author
@@ -329,17 +269,12 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "authors",
             displayName: "ORCID",
-            pidPrefix: "orcid",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["ids"],
             category: "ids",
-            isList: true,
             actions: [],
             icon: "mdi-account-outline",
-            regex: /https?:\/\/orcid\.org\/(\d{4}-\d{4}-\d{4}-\d{3}[\dX])/,
             extractFn: (entity) => {
                 return entity.authorships.map(authorship => {
                     return authorship.author.orcid
@@ -360,8 +295,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: ["filter",],
             category: "other",
-            isList: false,
-            isCore: true,
             icon: "mdi-magnify",
             isMultiple: false,
         },
@@ -374,22 +307,18 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: [],
             category: "other",
-            isList: false,
-            isCore: true,
             icon: "mdi-magnify",
             isMultiple: false,
         },
 
         {
             key: "display_name.search",
-            isDefault: true,
             entityType: "works",
             displayName: "title",
             actions: ["filter",],
             actionsPopular: [],
             type: "search",
             categories: ["search"],
-            isCore: true,
             icon: "mdi-magnify",
         },
         {
@@ -401,8 +330,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: ["",],
             category: "other",
-            isList: false,
-            isCore: true,
             icon: "mdi-magnify",
             isMultiple: false,
         },
@@ -415,8 +342,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter",],
             actionsPopular: [],
             category: "other",
-            isList: false,
-            isCore: true,
             icon: "mdi-magnify",
             isMultiple: false,
             verb: "starts with",
@@ -428,15 +353,13 @@ const facetConfigs = function (entityType) {
         //     displayName: "Abstract search",
         //     type: "search",
         //     categories: ["search"],
-        //     isCore: true,
-        //     icon: "mdi-magnify",
+        //             //     icon: "mdi-magnify",
         // },
 
         /// this is a wierd one, still working it into the schema
         {
             key: "display_name",
             isColumnMandatory: true,
-            isDefault: true,
             entityType: "works",
             displayName: "title",
             type: "search",
@@ -444,8 +367,6 @@ const facetConfigs = function (entityType) {
             actions: ["sort", "column",],
             actionsPopular: ["sort", "column",],
             category: "other",
-            isList: false,
-            isCore: true,
             icon: "mdi-file-document-outline",
             extractFn: (entity) => entity.display_name,
             isMultiple: false,
@@ -479,10 +400,8 @@ const facetConfigs = function (entityType) {
             displayName: "authors count",
             type: "range",
             sortByValue: true,
-            placeholders: ["min", "max"],
             categories: ["author"],
             category: "author",
-            isList: false,
             actions: ["filter", "sort", "column",],
             icon: "mdi-account-outline",
             extractFn: (entity) => entity.authors_count,
@@ -497,7 +416,6 @@ const facetConfigs = function (entityType) {
             isManyOptions: true,
             categories: ["author"],
             category: "author",
-            isList: true,
             actions: ["filter", "group_by",],
             icon: "mdi-email-outline",
             isMultiple: true,
@@ -515,8 +433,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["filter", "column", "group_by",],
             category: "open access",
-            isList: false,
-            isCore: true,
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
@@ -530,7 +446,6 @@ const facetConfigs = function (entityType) {
             categories: ["open access"],
             actions: [],
             category: "open access",
-            isList: false,
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
             isMultiple: false,
@@ -546,7 +461,6 @@ const facetConfigs = function (entityType) {
             // actions: ["filter", "column", "group_by",],
             actions: [],
             category: "open access",
-            isList: false,
             icon: "mdi-lock-open-outline",
             isMultiple: false,
             extractFn: (entity) => entity.open_access.oa_status,
@@ -568,8 +482,6 @@ const facetConfigs = function (entityType) {
             categories: ["open access"],
             actions: ["filter", "column", "group_by",],
             category: "open access",
-            isList: false,
-            isCore: true,
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
@@ -582,8 +494,6 @@ const facetConfigs = function (entityType) {
             categories: ["open access"],
             actions: ["filter", "column", "group_by",],
             category: "open access",
-            isList: false,
-            isCore: true,
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
@@ -596,10 +506,8 @@ const facetConfigs = function (entityType) {
         //     displayName: "APC list price",
         //     type: "range",
         //     sortByValue: true,
-        //     placeholders: ["min", "max"],
-        //     categories: ["apc"],
-        //     isCore: true,
-        //     icon: "mdi-cash"
+        //             //     categories: ["apc"],
+        //             //     icon: "mdi-cash"
         // },
 
 
@@ -610,11 +518,9 @@ const facetConfigs = function (entityType) {
         //     displayName: "APC paid",
         //     type: "range",
         //     sortByValue: true,
-        //     placeholders: ["min", "max"],
-        //     categories: ["apc"],
+        //             //     categories: ["apc"],
         //     actions: ["filter", ],
-        //     isCore: true,
-        //     icon: "mdi-cash"
+        //             //     icon: "mdi-cash"
         // },
 
 
@@ -624,8 +530,7 @@ const facetConfigs = function (entityType) {
         //     displayName: "APC paid: provenance",
         //     type: "select",
         //     categories: ["apc"],
-        //     isCore: true,
-        //     icon: "mdi-cash"
+        //             //     icon: "mdi-cash"
         // },
 
 
@@ -635,7 +540,6 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "countries",
             displayName: "Country",
-            autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isManyOptions: true,
             isCountry: true,
@@ -643,8 +547,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["group_by",],
             category: "institution",
-            isList: true,
-            isCore: true,
             icon: "mdi-earth",
             isMultiple: true,
         },
@@ -658,7 +560,6 @@ const facetConfigs = function (entityType) {
             categories: ["geo"],
             actions: ["filter", "sort", "column",],
             category: "institution",
-            isList: false,
             icon: "mdi-earth",
             isMultiple: false,
         },
@@ -672,7 +573,6 @@ const facetConfigs = function (entityType) {
             categories: ["geo"],
             actions: ["filter", "sort", "column",],
             category: "institution",
-            isList: false,
             icon: "mdi-earth",
             isMultiple: false,
         },
@@ -685,7 +585,6 @@ const facetConfigs = function (entityType) {
             categories: ["geo", "institution"],
             actions: ["filter", "column", "group_by",],
             actionsPopular: [],
-            isCore: true,
             icon: "mdi-earth",
         },
         {
@@ -696,7 +595,6 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "column", "group_by",],
             categories: ["geo", "institution"],
             category: "institution",
-            isList: false,
             booleanValues: ["Global North", "Global South"],
             icon: "mdi-earth",
             // icon: "mdi-town-hall",
@@ -707,8 +605,6 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             displayName: "institution type",
             category: "institution",
-            isList: true,
-            autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             categories: ["institution"],
             actions: ["filter", "group_by",],
@@ -721,7 +617,6 @@ const facetConfigs = function (entityType) {
             entityId: "institutions",
             displayName: "corresponding institution",
             category: "institution",
-            isList: true,
             type: "select",
             isManyOptions: true,
             categories: ["institution"],
@@ -737,20 +632,13 @@ const facetConfigs = function (entityType) {
             key: "primary_location.source.id",
             entityType: "works",
             displayName: "source",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "sources",
-            autocompleteEndpoint: "autocomplete/sources",
             type: "select",
             isManyOptions: true,
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-book-open-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([sS]\d+)$/,
             extractFn: (entity) => entity.primary_location.source,
             isMultiple: false,
         },
@@ -760,18 +648,12 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "sources",
             displayName: "ISSN",
-            isEntity: true,
             isId: true,
-            pidPrefix: "issn",
-            showInSidebar: true,
-            noOptions: true,
             type: "entity",
             categories: ["ids"],
             category: "ids",
-            isList: false,
             actions: [],
             icon: "mdi-book-open-outline",
-            regex: /^(\b\d{4}-\d{3}[\dX]\b)$/,
             isMultiple: false,
         },
         {
@@ -782,7 +664,6 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-book-open-outline",
             isMultiple: false,
@@ -795,7 +676,6 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Not in DOAJ", "In DOAJ"],
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-book-open-outline",
             isMultiple: false,
@@ -808,7 +688,6 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Not Open Access", "Open Access"],
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-book-open-outline",
             isMultiple: false,
@@ -819,20 +698,13 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "publishers",
             displayName: "publisher",
-            pidPrefix: "openalex",
-            isEntity: true,
-            showInSidebar: true,
             // entityId: "publishers",
-            autocompleteEndpoint: "autocomplete/publishers",
             type: "select",
             isManyOptions: true,
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-domain",
-            regex: /^(?:https:\/\/openalex\.org\/)?([pP]\d+)$/,
             isMultiple: false,
         },
 
@@ -843,16 +715,12 @@ const facetConfigs = function (entityType) {
             key: "repository",
             entityType: "works",
             displayName: "repository",
-            isEntity: true,
-            showInSidebar: true,
             entityId: "sources",
             type: "select",
             isManyOptions: true,
             categories: ["source"],
             category: "source",
-            isList: true,
             actions: ["filter", "group_by",],
-            isCore: true,
             icon: "mdi-book-open-outline",
             isMultiple: true,
         },
@@ -864,7 +732,6 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Not in any repository", "In a repository"],
             categories: ["source"],
             category: "source",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-tag-outline",
             isMultiple: true,
@@ -881,7 +748,6 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["popular", "other"],
             category: "other",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["filter", "column", "group_by",],
             icon: "mdi-shape-outline",
@@ -895,7 +761,6 @@ const facetConfigs = function (entityType) {
             type: "search",
             categories: ["search"],
             actions: [], // just for display
-            isCore: true,
             icon: "mdi-text",
             isMultiple: false,
             extractFn: (entity) => {
@@ -913,10 +778,8 @@ const facetConfigs = function (entityType) {
             examples: ["1999", "1999-", "1999-2020"],
             categories: ["popular", "other"],
             category: "other",
-            isList: false,
             actions: ["filter", "sort", "column", "group_by",],
             actionsPopular: ["filter", "sort", "column", "group_by",],
-            isCore: true,
             icon: "mdi-calendar-range",
             extractFn: (entity) => entity.publication_year,
             isMultiple: false,
@@ -931,9 +794,7 @@ const facetConfigs = function (entityType) {
             actions: ["sort",],
             sortByValue: true,
             category: "other",
-            isList: false,
             examples: ["1999", "1999-", "1999-2020"],
-            isCore: true,
             icon: "mdi-calendar-range",
             isMultiple: false,
         },
@@ -945,7 +806,6 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Has a DOI", "No DOI"],
             categories: ["ids"],
             category: "ids",
-            isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
             isMultiple: false,
@@ -957,7 +817,6 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             booleanValues: ["No ORCID", "At least one ORCID",],
             categories: ["ids"],
-            isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
             isMultiple: true,
@@ -969,7 +828,6 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             categories: ["ids"],
             category: "ids",
-            isList: false,
             actions: ["filter", "group_by",],
             icon: "mdi-tag-outline",
             booleanValues: ["No PubMed ID", "Has PubMed ID"],
@@ -993,7 +851,6 @@ const facetConfigs = function (entityType) {
             booleanValues: ["Isn't retracted", "Is retracted"],
             categories: ["other"],
             category: "other",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             icon: "mdi-close-octagon",
             isMultiple: false,
@@ -1007,7 +864,6 @@ const facetConfigs = function (entityType) {
             displayNullAs: "Unknown",
             categories: ["other"],
             category: "other",
-            isList: false,
             actions: ["filter", "column", "group_by",],
             actionsPopular: ["column", "group_by"],
             icon: "mdi-translate",
@@ -1022,7 +878,6 @@ const facetConfigs = function (entityType) {
             displayNullAs: "Unknown",
             categories: ["other", "popular"],
             category: "other",
-            isList: true,
             actions: ["filter", "group_by",],
             icon: "mdi-sprout-outline",
             isMultiple: true,
@@ -1036,13 +891,10 @@ const facetConfigs = function (entityType) {
             displayName: "citation count",
             type: "range",
             sortByValue: true,
-            placeholders: ["min", "max"],
             categories: ["citation"],
             category: "citation",
-            isList: false,
             actions: ["filter", "sort", "column",],
             actionsPopular: ["sort", "column",],
-            isCore: true,
             icon: "mdi-format-quote-close",
             isMultiple: false,
         },
@@ -1052,13 +904,10 @@ const facetConfigs = function (entityType) {
             displayName: "references count",
             type: "range",
             sortByValue: true,
-            placeholders: ["min", "max"],
             categories: ["citation"],
             category: "citation",
-            isList: false,
             actions: ["filter", "column",],
             actionsPopular: [],
-            isCore: true,
             icon: "mdi-format-quote-close",
             isMultiple: false,
         },
@@ -1068,13 +917,10 @@ const facetConfigs = function (entityType) {
             displayName: "Citation percentile (year)",
             type: "range",
             sortByValue: true,
-            placeholders: ["min", "max"],
             categories: ["citation"],
             category: "citation",
-            isList: false,
             actions: ["filter", "sort", "column",],
             actionsPopular: ["sort", "column",],
-            isCore: true,
             icon: "mdi-format-quote-close",
             isMultiple: false,
         },
@@ -1083,16 +929,9 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "works",
             displayName: "cited by",
-            isVerb: true, // need to know how to display the name
-            showNameInChip: true,
-            isEntity: true,
-            showInSidebar: true,
-            autocompleteEndpoint: "autocomplete/works",
-            noOptions: true,
             type: "select", // used to be "entity"
             categories: ["citation"],
             category: "citation",
-            isList: true,
             actions: [],
             icon: "mdi-format-quote-close",
             isMultiple: true,
@@ -1104,16 +943,9 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "works",
             displayName: "cites",
-            isVerb: true, // need to know how to display the name
-            isEntity: true,
-            showInSidebar: true,
-            showNameInChip: true,
-            autocompleteEndpoint: "autocomplete/works",
-            noOptions: true,
             type: "select", // used to be "entity"
             categories: ["citation"],
             category: "citation",
-            isList: true,
             actions: [],
             icon: "mdi-format-quote-close",
             isMultiple: true,
@@ -1125,16 +957,9 @@ const facetConfigs = function (entityType) {
             entityType: "works",
             entityId: "works",
             displayName: "related to",
-            isVerb: true, // need to know how to display the name
-            isEntity: true,
-            showInSidebar: true,
-            showNameInChip: true,
-            autocompleteEndpoint: "autocomplete/works",
-            noOptions: true,
             type: "select", // used to be "entity"
             categories: ["other"],
             category: "other",
-            isList: true,
             actions: ["filter",],
             isHidden: true,
             icon: "mdi-book-open-outline",
@@ -1144,48 +969,23 @@ const facetConfigs = function (entityType) {
         },
 
 
-        // works: other
-
-        // {
-        //     key: "locations_count",
-        //     entityType: "works",
-        //     displayName: "sources count",
-        //     type: "range",
-        //     sortByValue: true,
-        //     placeholders: ["min", "max"],
-        //     categories: ["other"],
-        //     category: "source",
-        //     isList: false,
-        //     actions: ["filter", "sort", "column",],
-        //     icon: "mdi-account-outline",
-        //     isMultiple: false,
-        // },
-
-
         // authors
         {
             key: "ids.openalex",
             entityType: "authors",
             entityId: "authors",
-            pidPrefix: "openalex",
             displayName: "Author",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-account-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "ids.orcid",
             entityType: "authors",
             entityId: "authors",
-            pidPrefix: "orcid",
             displayName: "ORCID",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "select",
             categories: ["other"],
             icon: "mdi-account-outline",
@@ -1195,7 +995,6 @@ const facetConfigs = function (entityType) {
             key: "default.search",
             entityType: "authors",
             entityId: "authors",
-            isDefault: true,
             displayName: "Name",
             type: "search",
             categories: ["search"],
@@ -1207,9 +1006,7 @@ const facetConfigs = function (entityType) {
             key: "affiliations.id",
             entityType: "authors",
             displayName: "All institutions",
-            isEntity: true,
             entityId: "institutions",
-            autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
             isManyOptions: true,
             categories: ["institution"],
@@ -1226,9 +1023,7 @@ const facetConfigs = function (entityType) {
             key: "last_known_institution.id",
             entityType: "authors",
             displayName: "Most recent institutions",
-            isEntity: true,
             entityId: "institutions",
-            autocompleteEndpoint: "autocomplete/institutions",
             type: "select",
             isManyOptions: true,
             categories: ["institution"],
@@ -1241,7 +1036,6 @@ const facetConfigs = function (entityType) {
             key: "last_known_institution.country_code",
             entityType: "authors",
             displayName: "Institution country",
-            autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isCountry: true,
             categories: ["geo"],
@@ -1253,7 +1047,6 @@ const facetConfigs = function (entityType) {
             key: "last_known_institution.type",
             entityType: "authors",
             displayName: "Institution type",
-            autocompleteEndpoint: "autocomplete/institutions/type",
             type: "select",
             categories: ["institution"],
             actions: ["filter", "group_by"],
@@ -1308,32 +1101,23 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
         // sources
         {
             key: "ids.openalex",
             entityType: "sources",
             entityId: "sources",
-            pidPrefix: "openalex",
             displayName: "Source",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-book-open-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "ids.issn",
             entityType: "sources",
             entityId: "sources",
-            pidPrefix: "issn",
             displayName: "ISSNs",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-book-open-outline",
@@ -1342,7 +1126,6 @@ const facetConfigs = function (entityType) {
         {
             key: "display_name.search",
             entityType: "sources",
-            isDefault: true,
             displayName: "Title search",
             type: "search",
             categories: ["search"],
@@ -1352,12 +1135,11 @@ const facetConfigs = function (entityType) {
             key: "publisher",
             entityType: "sources",
             displayName: "Publisher",
-            autocompleteEndpoint: "autocomplete/sources/publisher",
             type: "select",
             isManyOptions: true,
             categories: ["popular"],
             icon: "mdi-book-open-outline",
-            extractFn: (e)=> {
+            extractFn: (e) => {
                 if (e.type !== "journal") return
                 return {
                     id: e.host_organization,
@@ -1372,7 +1154,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["popular"],
             icon: "mdi-book-open-outline",
-            extractFn: (e)=> e.type,
+            extractFn: (e) => e.type,
         },
         {
             key: "apc_usd",
@@ -1381,7 +1163,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["popular"],
             icon: "mdi-book-open-outline",
-            extractFn: (e)=> {
+            extractFn: (e) => {
                 if (!e.apc_usd) return
                 return "$" + e.apc_usd.toLocaleString()
             },
@@ -1393,7 +1175,7 @@ const facetConfigs = function (entityType) {
             type: "boolean",
             categories: ["open access"],
             icon: "mdi-lock-open-outline",
-            extractFn: (e)=> e.is_oa,
+            extractFn: (e) => e.is_oa,
         },
         {
             key: "is_in_doaj",
@@ -1457,20 +1239,15 @@ const facetConfigs = function (entityType) {
             key: "ids.openalex",
             entityType: "publishers",
             entityId: "publishers",
-            pidPrefix: "openalex",
             displayName: "Publisher",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-domain",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "display_name.search",
             entityType: "publishers",
-            isDefault: true,
             displayName: "Name search",
             type: "search",
             categories: ["search"],
@@ -1483,20 +1260,15 @@ const facetConfigs = function (entityType) {
             key: "ids.openalex",
             entityType: "funders",
             entityId: "funders",
-            pidPrefix: "openalex",
             displayName: "Funder",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-cash-multiple",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "display_name.search",
             entityType: "funders",
-            isDefault: true,
             displayName: "Name search",
             type: "search",
             categories: ["search"],
@@ -1509,26 +1281,19 @@ const facetConfigs = function (entityType) {
             key: "ids.openalex",
             entityType: "institutions",
             entityId: "institutions",
-            pidPrefix: "openalex",
             displayName: "Institution",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-town-hall",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
 
         {
             key: "ids.ror",
             entityType: "institutions",
             entityId: "institutions",
-            pidPrefix: "ror",
             displayName: "ROR",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "select",
             categories: ["other"],
             icon: "mdi-town-hall",
@@ -1537,7 +1302,6 @@ const facetConfigs = function (entityType) {
         {
             key: "display_name.search",
             entityType: "institutions",
-            isDefault: true,
             displayName: "Name search",
             type: "search",
             categories: ["search"],
@@ -1547,7 +1311,6 @@ const facetConfigs = function (entityType) {
             key: "country_code",
             entityType: "institutions",
             displayName: "Country",
-            autocompleteEndpoint: "autocomplete/institutions/country",
             type: "select",
             isManyOptions: true,
             isCountry: true,
@@ -1558,7 +1321,6 @@ const facetConfigs = function (entityType) {
             key: "type",
             entityType: "institutions",
             displayName: "Institution type",
-            autocompleteEndpoint: "autocomplete/institutions/type",
             type: "select",
             categories: ["popular"],
             icon: "mdi-town-hall"
@@ -1567,9 +1329,7 @@ const facetConfigs = function (entityType) {
             key: "x_concepts.id",
             entityType: "institutions",
             displayName: "Concepts",
-            isEntity: true,
             entityId: "concepts",
-            autocompleteEndpoint: "autocomplete/concepts",
             type: "select",
             isManyOptions: true,
             categories: ["other"],
@@ -1595,7 +1355,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+            extractFn: (entity) => entity.associated_institutions.filter(i => {
                 return i.relationship === "parent"
             }),
         },
@@ -1608,7 +1368,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+            extractFn: (entity) => entity.associated_institutions.filter(i => {
                 return i.relationship === "child"
             }),
         },
@@ -1621,7 +1381,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-town-hall",
             isMultiple: true,
-            extractFn: (entity) => entity.associated_institutions.filter(i =>{
+            extractFn: (entity) => entity.associated_institutions.filter(i => {
                 return i.relationship === "related"
             }),
         },
@@ -1631,27 +1391,20 @@ const facetConfigs = function (entityType) {
         // none for now.
 
 
-
-
         // concepts
         {
             key: "ids.openalex",
             entityType: "concepts",
             entityId: "concepts",
-            pidPrefix: "openalex",
             displayName: "Concept",
-            isEntity: true,
             isId: true,
-            noOptions: true,
             type: "entity",
             categories: ["other"],
             icon: "mdi-tag-outline",
-            regex: /^(?:https:\/\/openalex\.org\/)?([wW]\d+)$/,
         },
         {
             key: "display_name.search",
             entityType: "concepts",
-            isDefault: true,
             displayName: "Name search",
             type: "search",
             categories: ["search"],
@@ -1718,7 +1471,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
-
 
 
         // subfields
@@ -1837,8 +1589,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
         // domains
         {
             key: "description",
@@ -1916,9 +1666,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
     ]
 
     const worksCountFilters = getEntityConfigs()
@@ -1987,16 +1734,6 @@ const facetConfigs = function (entityType) {
     return manipulated
 }
 
-const getFacetConfigFromPid = function (pid) {
-    const trimmedPid = pid.trim()
-    const x = facetConfigs().find(f => {
-
-    })
-    return x
-
-
-}
-
 
 const getFacetConfig = function (entityType, key) {
     if (!key || !entityType) return
@@ -2025,15 +1762,6 @@ const getFacetConfig = function (entityType, key) {
 }
 
 
-const makeFacet = function (key, isNegated, values) {
-    return {
-        key,
-        isNegated,
-        values,
-        config: facetConfigs()[key]
-
-    }
-}
 
 const findFacetConfigs = function (entityType, searchString) {
     const ret = facetConfigs(entityType)
@@ -2090,7 +1818,6 @@ const facetsByCategory = function (
 
 
 export {
-    makeFacet,
     facetConfigs,
     getFacetConfig,
     facetCategories,

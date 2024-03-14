@@ -159,7 +159,6 @@
 
 <script>
 
-import SearchBar from "@/components/SearchBar.vue";
 import {VueTyper} from 'vue-typer'
 import {mapGetters} from "vuex";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
@@ -170,7 +169,6 @@ export default {
   name: 'home',
   components: {
     UserSavedSearch,
-    SearchBar,
     VueTyper,
     ShortcutBox,
   },

@@ -2,8 +2,6 @@ import {facetConfigs, getFacetConfig} from "./facetConfigs";
 import {api} from "./api";
 import {shortenOpenAlexId} from "@/util";
 
-const entityKeys = facetConfigs().filter(f => f.isEntity).map(f => f.key)
-
 
 const createFilterId = function (key, value, isNegated) {
     key = key.toLowerCase()
@@ -263,45 +261,7 @@ const copySimpleFilter = function (filter, overwriteWith) {
     )
 }
 
-const createSimpleFilterFromPid = function (pid) {
-    if (!pid) return
-    const trimmedPid = pid.trim()
-    const pidFilters = facetConfigs().map(f => {
-        const matches = trimmedPid.match(f.regex)
-        if (matches?.length === 2) {
-            const value = matches[1] // first capture group
-            return createSimpleFilter(
-                f.entityType,
-                f.key,
-                value
-            )
-        } else {
-            return null
-        }
-    })
-    return pidFilters.find(f => !!f) // shoudld be only one not null
-}
 
-const createDisplayFilterFromPid = function (pid) {
-    if (!pid) return
-    const trimmedPid = pid.trim()
-    const pidFilters = facetConfigs().map(f => {
-        const matches = trimmedPid.match(f.regex)
-        if (matches?.length === 2) {
-            const value = matches[1] // first capture group
-            return createDisplayFilter(
-                f.entityType,
-                f.key,
-                value,
-                false,
-                value
-            )
-        } else {
-            return null
-        }
-    })
-    return pidFilters.find(f => !!f) // shoudld be only one not null
-}
 
 
 const convertYearRangeToPrettyWords = function (yearRange) {
@@ -398,8 +358,6 @@ export {
     filtersFromFiltersApiResponse,
     createSimpleFilter,
     copySimpleFilter,
-    createSimpleFilterFromPid,
-    createDisplayFilterFromPid,
     createDisplayFilter,
     createFilterId,
     displayYearRange,

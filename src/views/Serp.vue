@@ -69,7 +69,6 @@ import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
 
 import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
-import SerpResultsTable from "../components/SerpResultsTable.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 
 
@@ -78,7 +77,6 @@ import ApiDialog from "../components/ApiDialog.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
 import router from "../router";
 
-import ExportButton from "../components/ExportButtonOld.vue";
 import {facetConfigs, getFacetConfig} from "../facetConfigs";
 import GroupBy from "../components/GroupBy/GroupBy.vue";
 
@@ -91,7 +89,6 @@ import SiteNav from "@/components/SiteNav.vue";
 import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import SearchBar from "@/components/SearchBar.vue";
 import SerpTabs from "@/components/SerpTabs.vue";
 
 import QrcodeVue from 'qrcode.vue'
@@ -110,7 +107,6 @@ export default {
   components: {
     SerpToolbar,
     SiteNav,
-    SerpResultsTable,
     SerpResultsCount,
     SerpResultsList,
     ApiDialog,
@@ -118,13 +114,11 @@ export default {
 
     Action,
 
-    ExportButton,
     GroupBy,
     AnalyticViews,
 
 
     FilterList,
-    SearchBar,
 
     QrcodeVue,
     SerpTabs,

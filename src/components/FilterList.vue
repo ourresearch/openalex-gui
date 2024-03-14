@@ -98,8 +98,6 @@ import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import ExportButton from "@/components/ExportButtonOld.vue";
-import SearchBar from "@/components/SearchBar.vue";
 import Action from "@/components/Action/Action.vue";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
@@ -110,7 +108,6 @@ export default {
   components: {
     Action,
     SerpResultsCount,
-    SearchBar,
     FilterBoolean,
     FilterRange,
     FilterSearch,
@@ -118,7 +115,6 @@ export default {
     AddFilter,
 
 
-    ExportButton,
   },
   props: {
     resultsObject: Object,

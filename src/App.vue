@@ -128,12 +128,10 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 import axios from "axios";
 import {filtersFromUrlStr} from "@/filterConfigs";
-import SearchBoxNew from "@/components/SearchBoxNew.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
 import {url} from "@/url";
 import SearchBox from "@/components/EntityTypeSelector.vue";
-import SearchBar from "@/components/SearchBar.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
@@ -157,10 +155,8 @@ export default {
     SerpToolbar,
     Template,
     SearchBox,
-    SearchBoxNew,
     SiteFooter,
     SiteNav,
-    SearchBar,
     UserToolbarMenu,
 
     SavedSearchRenameDialog,
