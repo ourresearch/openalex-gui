@@ -98,8 +98,6 @@ export default {
     },
     myEntityType(){
       return entityTypeFromId(this.filterValue)
-
-      // return (this.isEntity) ?s
     },
     filterConfig(){
       return getFacetConfig(this.entityType, this.filterKey)

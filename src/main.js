@@ -10,7 +10,7 @@ import {idsAreEqual, setOrDelete, shortenOpenAlexId} from "./util";
 import {url} from "./url"
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
-import {createFilterId, createSimpleFilter, createSimpleFilterFromPid} from "./filterConfigs";
+import {createSimpleFilter} from "./filterConfigs";
 
 import _ from 'lodash'
 

@@ -53,7 +53,6 @@ import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import ExportButton from "@/components/ExportButtonOld.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
@@ -62,7 +61,6 @@ export default {
   name: "Template",
   components: {
     SerpApiEditor,
-    ExportButton,
     Action,
     WorkAuthorsString,
     SerpResultsCount,

@@ -56,7 +56,6 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import Action from "@/components/Action/Action.vue";
-import ExportButton from "@/components/ExportButtonOld.vue";
 import {url} from "@/url";
 import QrcodeVue from 'qrcode.vue'
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
@@ -66,7 +65,6 @@ export default {
   name: "SerpTabs",
   components: {
     Action,
-    ExportButton,
     QrcodeVue,
     UserSavedSearch,
     SerpTab,
