@@ -73,6 +73,7 @@
                 :key="groupByKey"
                 :filter-key="groupByKey"
                 :filter-by="[myWorksFilter]"
+                entity-type="works"
                 class="mb-3"
             />
           </v-card>
@@ -120,6 +121,7 @@ import GroupBy from "@/components/GroupBy/GroupBy.vue";
 import {url} from "@/url";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
+import {shortenOpenAlexId} from "@/util";
 
 export default {
   name: "EntityPage",
@@ -240,6 +242,7 @@ export default {
   },
   async mounted() {
     console.log("EntityPage mounted", this.$route.params.entityType, this.$route.params.entityId)
+    this.$store.state.entityType = this.$route.params.entityType
     // const path = [
     //   this.$route.params.entityType,
     //   this.$route.params.entityId

@@ -113,6 +113,7 @@
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
+          <!--  FILTER SELECTED, USER ENTERING VALUE -->
           <div v-if="newFilterKey" class="">
             <filter-card-range v-if="newFilterConfig.type === 'range'" :filter-key="newFilterKey"/>
             <filter-card-search v-if="newFilterConfig.type === 'search'" :filter-key="newFilterKey"/>
@@ -125,7 +126,7 @@
             />
           </div>
 
-          <!--          POTENTIAL FILTERS-->
+          <!--  NO FILTER SELECTED YET, WHAT ARE MY OPTIONS? -->
           <div v-else>
             <v-subheader>
               {{ searchString ? "Search results" : "All filters" }}

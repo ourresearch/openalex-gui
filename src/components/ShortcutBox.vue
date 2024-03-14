@@ -235,7 +235,7 @@ export default {
         const oldFilters = url.readFilters(this.$route)
         console.log("push new filter", filter)
         const newFilter = createSimpleFilter(
-            this.entityType,
+            "works",
             filter.key,
             true
         )
@@ -325,7 +325,7 @@ export default {
     },
 
     getSuggestions: _.debounce(async function() {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+      const fulltextSearchFilter = createSimpleFilter("works", "default.search", this.searchString)
 
       // lol hack much?
       if (this.searchString === "coriander OR cilantro") {

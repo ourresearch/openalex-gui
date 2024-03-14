@@ -192,6 +192,7 @@ export default {
   },
   props: {
     filterKey: String,
+    entityType: String,
     filterBy: Array,
   },
   data() {
@@ -216,7 +217,6 @@ export default {
     },
     ...mapGetters([
       "resultsFilters",
-      "entityType",
       "resultsCount",
     ]),
     isSelected: {
