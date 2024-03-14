@@ -1003,7 +1003,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
-            key: "affiliations.id",
+            key: "affiliations.institution.id",
             entityType: "authors",
             displayName: "All institutions",
             entityId: "institutions",
@@ -1035,7 +1035,8 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.country_code",
             entityType: "authors",
-            displayName: "Institution country",
+            entityId: "authors",
+            displayName: "institution country",
             type: "select",
             isCountry: true,
             categories: ["geo"],
@@ -1046,6 +1047,7 @@ const facetConfigs = function (entityType) {
         {
             key: "last_known_institution.type",
             entityType: "authors",
+            entityId: "authors",
             displayName: "Institution type",
             type: "select",
             categories: ["institution"],
@@ -1056,6 +1058,7 @@ const facetConfigs = function (entityType) {
         {
             key: "has_orcid",
             entityType: "authors",
+            entityId: "authors",
             displayName: "Indexed by ORCID",
             type: "boolean",
             booleanValues: ["No ORCID", "Has ORCID"],
@@ -1067,6 +1070,7 @@ const facetConfigs = function (entityType) {
         {
             key: "display_name_alternatives",
             entityType: "authors",
+            entityId: "authors",
             displayName: "alternate names",
             type: "select",
             actions: [],
@@ -1080,6 +1084,7 @@ const facetConfigs = function (entityType) {
         {
             key: "summary_stats.h_index",
             entityType: "authors",
+            entityId: "authors",
             displayName: "h-index",
             type: "range",
             actions: ["filter"],
@@ -1091,6 +1096,7 @@ const facetConfigs = function (entityType) {
         {
             key: "summary_stats.i10_index",
             entityType: "authors",
+            entityId: "authors",
             displayName: "i10-index",
             type: "range",
             actions: ["filter"],

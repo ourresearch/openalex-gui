@@ -207,6 +207,9 @@ const api = (function () {
     }
 
     const filterKeyFromAutocompleteResponse = function (result) {
+        // this currently looks in result.filter_key but i think in the future we shoudl ignore that
+        // and instead get the filterKey from the entity type, extracted from the ID?
+
         let filterKey
         if (result.filter_key === "id") filterKey = "ids.openalex"
         else if (result.filter_key === "topics.id") filterKey = "primary_topic.id"
@@ -215,8 +218,10 @@ const api = (function () {
     }
 
     const getAutocompleteResponses = async function (entityType, filterKey, searchString, filters) {
+        // console.log("getAutocompleteResponses", entityType, filterKey, searchString)
         const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
         const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
+
 
 
 
@@ -227,7 +232,8 @@ const api = (function () {
             .filter(r => r.entity_type !== "filter")
             .filter(r => !!r.display_name)
             .map(result => {
-                const resultFilterKey = filterKeyFromAutocompleteResponse(result)
+                const resultFilterKey = filterKey ??filterKeyFromAutocompleteResponse(result) //
+                // console.log("getAutocompleteResponses() map() resultFilterKey", resultFilterKey)
 
 
                 const myFilter = createSimpleFilter(
@@ -235,6 +241,8 @@ const api = (function () {
                     resultFilterKey,
                     result.id
                 )
+                // console.log("getAutocompleteResponses() map() myFilter", entityType, resultFilterKey, myFilter)
+
 
                 const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
                 const myHintString = result.hint ?? ""
@@ -274,26 +282,21 @@ const api = (function () {
         return suggestionFilters
     }
 
-    const getSuggestions = async function(entityType, filterKey, searchString, filters) {
+    const getSuggestions = async function (entityType, filterKey, searchString, filters) {
         // await sleep(1000)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,
                 filters,
             })
-        }
-
-        else if (!filterKey){
-             return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
-        }
-
-        else {
+        } else if (!filterKey) {
+            return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
+        } else {
             const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
             const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
-            if (isAutocompleteEndpointAvailable && myEntityId){
+            if (isAutocompleteEndpointAvailable && myEntityId) {
                 return await getAutocompleteResponses(entityType, filterKey, searchString, filters)
-            }
-            else {
+            } else {
                 return await getGroups(entityType, filterKey, {
                     searchString,
                     filters

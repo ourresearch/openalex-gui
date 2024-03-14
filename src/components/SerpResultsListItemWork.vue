@@ -5,9 +5,9 @@
           exact
       >
         <!--          @click="clickResult(result.id)"-->
-        <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">
-          <v-icon class="">mdi-file-document-outline</v-icon>
-        </v-list-item-icon>
+<!--        <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
+<!--          <v-icon class="">mdi-file-document-outline</v-icon>-->
+<!--        </v-list-item-icon>-->
         <v-list-item-content>
           <v-list-item-title style="white-space: normal; line-height: 1.5;">
             <div class="" v-html="$prettyTitle(result.display_name)"></div>
@@ -29,14 +29,11 @@
                   small
                   class="px-1"
                   @click.prevent="viewCitingPapers"
+                  :disabled="entityType !== 'work'"
               >
                 Cited by {{ result.cited_by_count | toPrecision }}
               </v-btn>
 
-            <!--            <v-btn text small class="ml-2" :href="result?.primary_location?.landing_page_url">-->
-            <!--              web-->
-            <!--              <v-icon x-small right>mdi-open-in-new</v-icon>-->
-            <!--            </v-btn>-->
             <span @click.stop>
               <v-btn
                   v-if="result?.best_oa_location?.pdf_url"

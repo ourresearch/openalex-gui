@@ -63,6 +63,7 @@
           <!--            xl="3"-->
           <group-by
               :filter-key="key"
+              :entity-type="entityType"
           />
 
         </v-col>
