@@ -218,21 +218,22 @@ const api = (function () {
     }
 
     const getAutocompleteResponses = async function (entityType, filterKey, searchString, filters) {
-        // console.log("getAutocompleteResponses", entityType, filterKey, searchString)
-        const myEntityId = getFacetConfig(entityType, filterKey)?.entityId
-        const isAutocompleteEndpointAvailable = getEntityConfig(myEntityId)?.hasAutocomplete
+        console.log("getAutocompleteResponses", entityType, filterKey, searchString)
+        if (!filterKey && entityType !== "works") {
+            filterKey = "ids.openalex"
+        }
 
+        const filterValueEntityId = getFacetConfig(entityType, filterKey)?.entityId
+        // console.log("getAutocompleteResponses autocompleteEntityName", filterValueEntityId)
 
-
-
-        const myUrl = url.makeAutocompleteUrl(myEntityId, searchString)
+        const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
         const resp = await getUrl(myUrl)
         const suggestionFilters = resp.results
             .filter(r => !!r.id)
             .filter(r => r.entity_type !== "filter")
             .filter(r => !!r.display_name)
             .map(result => {
-                const resultFilterKey = filterKey ??filterKeyFromAutocompleteResponse(result) //
+                const resultFilterKey = filterKey ?? filterKeyFromAutocompleteResponse(result) //
                 // console.log("getAutocompleteResponses() map() resultFilterKey", resultFilterKey)
 
 
