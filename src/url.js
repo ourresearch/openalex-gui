@@ -133,12 +133,12 @@ const setSerpTabName = function (val) {
 }
 
 
-const pushNewFilters = async function (newFilters, entityType="works") {
+const pushNewFilters = async function (newFilters) {
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined
 
-    // const entityType = router.currentRoute.params.entityType
+    const entityType = router.currentRoute.params.entityType ?? "works"
 
     const query = {
         ...router.currentRoute.query,

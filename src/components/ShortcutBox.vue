@@ -334,18 +334,25 @@ export default {
       }
 
       this.isLoading = true
+
+      // if a filter is selected but no search yet, show the available options
       if (this.newFilter && !this.searchString){
         this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
         this.isLoading = false
         return
       }
+
+      // if the search is empty, clear everything and leave
       if (!this.newFilter && !this.searchString){
         this.suggestions = [] // doesn't seem to work
         this.isLoading = false
         return // this is very important!!!!
       }
+
+
       const apiSuggestions = await api.getSuggestions(
-          "works",
+          this.entityType,
+          // "works",
           this.newFilter?.key,
           this.searchString,
           url.readFilters(this.$route)
