@@ -1,28 +1,31 @@
 <template>
   <div>
 
-    <v-toolbar dense flat rounded color="transparent">
-      <v-toolbar-title class="font-weight-bold">
-        <span>{{ filters.length }}</span>
-        {{ "Filter" | pluralize(filters.length) }}
-      </v-toolbar-title>
-      <!--      <span class="grey&#45;&#45;text ml-6">-->
-      <!--        <span>{{ filters.length }}</span> filters-->
-      <!--      </span>-->
-      <v-spacer/>
+<!--    <v-toolbar dense flat rounded color="transparent" height="30">-->
+<!--      &lt;!&ndash;      <v-toolbar-title class="font-weight-bold">&ndash;&gt;-->
+<!--      &lt;!&ndash;        <span>{{ filters.length }}</span>&ndash;&gt;-->
+<!--      &lt;!&ndash;        {{ "Filter" | pluralize(filters.length) }}&ndash;&gt;-->
+<!--      &lt;!&ndash;      </v-toolbar-title>&ndash;&gt;-->
+<!--      <v-subheader class=" ">-->
+<!--        Filter {{ entityType }} by:-->
+<!--      </v-subheader>-->
+<!--      <v-spacer/>-->
 
 
-      <add-filter v-if="isCollapsed"/>
-<!--      <v-btn small rounded text :disabled="filters.length === 0"  @click="clearEverything">-->
-<!--        <v-icon small left>mdi-delete-outline</v-icon>-->
-<!--        clear-->
-<!--      </v-btn>-->
+<!--      <add-filter v-if="isCollapsed"/>-->
+<!--      &lt;!&ndash;      <v-btn small rounded text :disabled="filters.length === 0"  @click="clearEverything">&ndash;&gt;-->
+<!--      &lt;!&ndash;        <v-icon small left>mdi-delete-outline</v-icon>&ndash;&gt;-->
+<!--      &lt;!&ndash;        clear&ndash;&gt;-->
+<!--      &lt;!&ndash;      </v-btn>&ndash;&gt;-->
 
-      <!--      <v-btn icon @click="isCollapsed = !isCollapsed">-->
-      <!--        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>-->
-      <!--      </v-btn>-->
-    </v-toolbar>
+<!--      &lt;!&ndash;      <v-btn icon @click="isCollapsed = !isCollapsed">&ndash;&gt;-->
+<!--      &lt;!&ndash;        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>&ndash;&gt;-->
+<!--      &lt;!&ndash;      </v-btn>&ndash;&gt;-->
+<!--    </v-toolbar>-->
 
+      <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
+        Show {{ entityType }} where:
+      </div>
     <v-card rounded flat class="mb-12">
 
       <div class="px-2" v-if="!isCollapsed">
@@ -56,10 +59,8 @@
               @delete="url.deleteFilter(entityType, filter.key)"
           />
         </div>
-
-
-        <div class="d-flex" style="height: 40px;">
-          <add-filter class="ml-0" style="position: relative; top: 10px;"/>
+        <div class="d-flex" style="height: 30px;">
+          <add-filter class="ml-0" style="position: relative; top: 0px;"/>
           <v-btn
               @click="clearEverything"
               v-if="filters.length"
@@ -67,14 +68,13 @@
               small
               class="ml-3 elevation-0"
               color="white"
-              style="position: relative; top: 15px; border: 2px solid #fff;"
+              style="position: relative; top: 5px; border: 2px solid #fff;"
           >
             <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
         </div>
-        <!--      <div class="" >-->
-        <!--        <add-filter class="ml-3 py-3"  :include-chips="false"  />-->
-        <!--      </div>-->
+
+
       </div>
 
 

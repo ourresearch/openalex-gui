@@ -26,7 +26,7 @@
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
     >
-<!--        @blur="clear"-->
+      <!--        @blur="clear"-->
       <template v-slot:prepend-inner>
         <v-chip
             v-if="newFilter"
@@ -67,7 +67,7 @@
             <v-list-item-title>
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
-              <span class="mr-2">in fulltext</span>
+              <span class="mr-2">in {{ entityType | pluralize(1) }} {{ data.item.displayName }}</span>
             </v-list-item-title>
           </v-list-item-content>
           <v-list-item-action-text>
@@ -84,7 +84,7 @@
             <v-list-item-subtitle style="white-space: normal;">
               {{ data.item.displayName |capitalize }}
               <span v-if="data.item.hint">
-                {{ data.item.hint | truncate(100)}}
+                {{ data.item.hint | truncate(100) }}
               </span>
             </v-list-item-subtitle>
           </v-list-item-content>
@@ -97,18 +97,18 @@
         </template>
       </template>
     </v-autocomplete>
-        <div class="ml-2 mt-2" v-if="showExamples">
-          <span class="body-2 grey--text">Try:</span>
-          <v-chip
-              color="white"
-              v-for="search in searchesToTry"
-              :key="search"
-              @click="trySearch(search)"
-              class=""
-          >
-            {{ search }}
-          </v-chip>
-        </div>
+    <div class="ml-2 mt-2" v-if="showExamples">
+      <span class="body-2 grey--text">Try:</span>
+      <v-chip
+          color="white"
+          v-for="search in searchesToTry"
+          :key="search"
+          @click="trySearch(search)"
+          class=""
+      >
+        {{ search }}
+      </v-chip>
+    </div>
   </div>
 </template>
 
@@ -164,7 +164,7 @@ export default {
     filterSuggestions() {
       const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
           .filter(f => {
-            return f.actions.includes("filter")
+            return f.actions?.includes("filter")
           })
           .map(f => {
             return {
@@ -175,7 +175,7 @@ export default {
             }
           })
 
-      suggestionsMatchingSearchString.sort((a, b)=> {
+      suggestionsMatchingSearchString.sort((a, b) => {
         return (a.displayName.length > b.displayName.length) ? 1 : -1
       })
 
@@ -190,17 +190,13 @@ export default {
           null
       if (!this.newFilter) {
         return "Search OpenAlex"
-      }
-      else if (this.newFilter.key === "publication_year") {
+      } else if (this.newFilter.key === "publication_year") {
         return "Enter year or range of years"
-      }
-      else if (this.newFilter.type === "range") {
+      } else if (this.newFilter.type === "range") {
         return "Enter number or range"
-      }
-      else if (this.newFilter.type === "search") {
+      } else if (this.newFilter.type === "search") {
         return "Search within " + pluralizedDisplayName
-      }
-      else {
+      } else {
         return "Search " + pluralizedDisplayName
       }
     },
@@ -219,12 +215,11 @@ export default {
       this.newFilter = null
 
     },
-    clickClear(){
+    clickClear() {
       this.suggestions = []
-      if (this.searchString){
+      if (this.searchString) {
         this.searchString = ""
-      }
-      else {
+      } else {
         this.searchString = ""
         this.newFilter = null
       }
@@ -248,19 +243,24 @@ export default {
         this.newFilter = filter
       }
     },
-    onChange(e) {
-      console.log('onChange()', e, this.select)
+    onChange(myFilterData) {
+      console.log('onChange()', myFilterData, this.select)
       if (this.select) this.isEnterPressed = false
-      if (e.key === "default.search") {
+      if (myFilterData.key === "default.search") {
         this.submitSearchString()
       }
-      else if (e?.isFilterLink) {
-        this.selectFilter(e)
+      else if (myFilterData?.isFilterLink) {
+        this.selectFilter(myFilterData)
       }
-      else if (e?.value) {
-        this.viewWorks(e.value)
+      else if (myFilterData?.value) {
+        url.pushNewFilters([
+          ...url.readFilters(this.$route),
+          myFilterData,
+        ])
+        this.clear()
       }
-      setTimeout(()=> { // no idea why this is necessary but it is
+
+      setTimeout(() => { // no idea why this is necessary but it is
         this.searchString = ""
         this.select = null
         this.suggestions = []
@@ -324,26 +324,26 @@ export default {
       }, 100)
     },
 
-    getSuggestions: _.debounce(async function() {
-      const fulltextSearchFilter = createSimpleFilter("works", "default.search", this.searchString)
+    getSuggestions: _.debounce(async function () {
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
 
       // lol hack much?
       if (this.searchString === "coriander OR cilantro") {
-        this.suggestions = [ fulltextSearchFilter ]
+        this.suggestions = [fulltextSearchFilter]
         return
       }
 
       this.isLoading = true
 
       // if a filter is selected but no search yet, show the available options
-      if (this.newFilter && !this.searchString){
+      if (this.newFilter && !this.searchString) {
         this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
         this.isLoading = false
         return
       }
 
       // if the search is empty, clear everything and leave
-      if (!this.newFilter && !this.searchString){
+      if (!this.newFilter && !this.searchString) {
         this.suggestions = [] // doesn't seem to work
         this.isLoading = false
         return // this is very important!!!!
@@ -369,7 +369,7 @@ export default {
           ret.filter(f => f.entityId !== "works").slice(0, 5)
 
 
-      if (!this.newFilter){
+      if (!this.newFilter) {
         cleaned.push(fulltextSearchFilter)
       }
 
@@ -395,7 +395,7 @@ export default {
   },
   mounted() {
     window.addEventListener("keypress", this.onKeyPress);
-    this.interval = setInterval(()=>{
+    this.interval = setInterval(() => {
       if (!this.newFilter && !this.searchString && this.suggestions.length) {
         console.log("setInterval hackily clearing any leftover suggestions")
         this.suggestions = []
@@ -407,7 +407,7 @@ export default {
     window.removeEventListener("keypress", this.onKeyPress);
   },
   watch: {
-    searchString: function(to) {
+    searchString: function (to) {
       if (this.newFilter && this.newFilter?.type !== "select") return
       this.getSuggestions()
     },

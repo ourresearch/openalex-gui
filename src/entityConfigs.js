@@ -21,6 +21,7 @@ const entityConfigs = {
         color: "blue",
         hasAutocomplete: true,
         isNative: true,
+        hasSerp: true,
         highlightFilters: [
             {key: "open_access.is_oa", value: true, displayName: "Open Access works"},
             {key: "institutions.is_global_south", value: true, displayName: "from the Global South"},
@@ -73,6 +74,7 @@ const entityConfigs = {
         color: "green",
         hasAutocomplete: true,
         isNative: true,
+        hasSerp: true,
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
             {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
@@ -109,6 +111,7 @@ const entityConfigs = {
         color: "orange",
         hasAutocomplete: true,
         isNative: true,
+        hasSerp: true,
         highlightFilters: [
             {key: "is_oa", value: true, displayName: "that are Open Access"},
         ],
@@ -125,7 +128,11 @@ const entityConfigs = {
             "summary_stats.2yr_mean_citedness",
             "summary_stats.h_index",
             "summary_stats.i10_index",
-
+        ],
+        groupByDefaults: [
+            "type",
+            "is_oa",
+            "is_in_doaj",
         ],
     },
     publishers: {
@@ -177,12 +184,17 @@ const entityConfigs = {
         color: "purple",
         hasAutocomplete: true,
         isNative: true,
+        hasSerp: true,
         rowsToShowOnEntityPage: [
             "display_name_alternatives",
             "parent_institutions",
             "child_institutions",
             "related_institutions",
             "ids.ror",
+        ],
+        groupByDefaults: [
+            "country_code",
+            "type",
         ],
     },
     concepts: {
@@ -390,6 +402,21 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
+    "institution-types": {
+        icon: "mdi-shape-outline",
+        name: "institution-types",
+        nameSingular: "institution type",
+        displayName: "institution types",
+        displayNameSingular: "institution type",
+        descr: "institution type",
+        eg: "company",
+        placeholder: "Search institution types",
+        filterName: "institution type",
+        filterKey: "authorships.institutions.type",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [],
+    },
 
 }
 
@@ -473,13 +500,15 @@ const urlPartsFromId = function (id) {
 
 const getLocationString = function (entity) {
     if (!entity || !entity?.country_code) return
-    const countryResult = countryCodeLookup.byIso(entity?.country_code)
-
+    const country = countryCodeLookup.byIso(entity?.country_code)
+        ?.country
+        ?.replace("United States", "USA")
+        ?.replace("United Kingdom", "UK")
 
     const locArr = [
         entity?.geo?.city,
         entity?.geo?.region,
-        countryResult?.country,
+        country,
     ].filter(x => x)
     return locArr.join(", ")
 }

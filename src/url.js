@@ -133,20 +133,21 @@ const setSerpTabName = function (val) {
 }
 
 
-const pushNewFilters = async function (newFilters) {
+const pushNewFilters = async function (newFilters, entityType) {
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined
 
-    const entityType = router.currentRoute.params.entityType ?? "works"
+    if (!entityType) {
+         entityType = router.currentRoute.params.entityType ?? "works"
+    }
 
     const query = {
         ...router.currentRoute.query,
         page: 1,
         filter,
+        sort: undefined, // not ideal, faster to implement this way tho
     }
-    query.sort = getActionDefaultsStr("sort", query)
-
     const newRoute = {
         name: "Serp",
         params: {entityType},
@@ -524,26 +525,30 @@ const getActionValueKeys = function (currentRoute, action) {
 const getDefaultSortValueForRoute = function(currentRoute){
     return isSearchFilterApplied(currentRoute) ?
         "relevance_score" :
-        "cited_by_count"
+        (currentRoute.params.entityType === "works") ?
+            "cited_by_count" :
+            "works_count"
 }
 
-const setSort = function (filterKey) {
-    const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
-    const appendVerb = (filterKey === "display_name") ? "" : ":desc"
-    const myNewKey = (filterKey === defaultValue) ?
+const setSortNoPush = function(sortByKey, route){
+    const defaultValue = getDefaultSortValueForRoute(route)
+    const appendVerb = (sortByKey === "display_name") ? "" : ":desc"
+    const myNewKey = (sortByKey === defaultValue) ?
         undefined :
-        filterKey + appendVerb
+        sortByKey + appendVerb;
 
-    pushToRoute(router, {
+    return {
         name: "Serp",
         query: {
-            ...router.currentRoute.query,
+            ...route.query,
             sort: myNewKey,
             page: 1,
         },
-    })
+    }
+}
 
-
+const setSort = function (filterKey) {
+    return pushToRoute(router, setSortNoPush(filterKey, router.currentRoute))
 }
 const getSort = function (currentRoute) {
     const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
@@ -637,7 +642,6 @@ const toggleView = function (viewId) {
 
 
 const getGroupBy = function (route) {
-    // const defaultValue = getActionDefaultValues("group_by", route.query)
     const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults
     return route.query.group_by?.split(",") ?? defaultValue
 }

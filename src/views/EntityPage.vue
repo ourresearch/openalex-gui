@@ -110,7 +110,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 import EntityNew from "@/components/Entity/EntityNew.vue";
-import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
+import SerpResultsListItemWork from "@/components/SerpResultsListItem.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 

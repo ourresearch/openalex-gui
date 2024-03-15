@@ -15,9 +15,10 @@
           :key="option.key"
           color="primary"
           @click="clickOption(option.key)"
+          :disabled="menuOptions.length === 1"
       >
         <v-list-item-icon>
-          <v-icon>{{ option.icon }}</v-icon>
+          <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>
