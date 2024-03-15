@@ -9,7 +9,7 @@
     >
       <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>
       <div class="flex-grow-1 mt-1">
-        https://api.openalex.org/works<span v-html="apiQuerySplittable"></span>
+        https://api.openalex.org/{{ entityType }}<span v-html="apiQuerySplittable"></span>
 <!--        <span v-for="part in apiQuerySplittable" :key="part">-->
 <!--        {{ part }}-->
 <!--      </span>-->

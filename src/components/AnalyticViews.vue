@@ -4,7 +4,7 @@
 <!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
-      <Action class="ml-2" action="group_by"/>
+      <Action v-if="entityType === 'works'" class="ml-2" action="group_by"/>
       <v-btn icon :href="csvUrl">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>

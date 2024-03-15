@@ -19,7 +19,7 @@
 <!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
 <!--      </div>-->
     <v-list nav v-if="resultsObject?.results" class="" color="">
-      <serp-results-list-item-work
+      <serp-results-list-item
         v-for="result in resultsObject.results"
         :key="result.id"
         :result="result"
@@ -56,7 +56,7 @@ import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
-import SerpResultsListItemWork from "@/components/SerpResultsListItemWork.vue";
+import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 export default {
   name: "Template",
   components: {
@@ -66,7 +66,7 @@ export default {
     SerpResultsCount,
     SerpResultsExportButton,
     SerpResultsSortButton,
-    SerpResultsListItemWork,
+    SerpResultsListItem,
   },
   props: {
     resultsObject: Object,

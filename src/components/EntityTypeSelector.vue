@@ -1,24 +1,30 @@
 <template>
   <span>
-    <a
-        v-if="inline"
-        class="entity-type-select-btn"
+<!--    <a-->
+<!--        v-if="inline"-->
+<!--        class="entity-type-select-btn"-->
+<!--        :id="myId"-->
+<!--    >-->
+<!--      {{ entityTypeConfig.displayName }}-->
+<!--    </a>-->
+    <v-btn
+        icon
+        v-if="$vuetify.breakpoint.mobile"
         :id="myId"
     >
-      {{ entityTypeConfig.displayName }}
-    </a>
+      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
+    </v-btn>
     <v-btn
         v-else
         rounded
-        x-large
         text
         class="text-capitalize elevation-0 entity-type-select-btn"
         :id="myId"
+        x-large
 
     >
       <v-icon>{{ entityTypeConfig.icon }}</v-icon>
       <span
-          v-if="$vuetify.breakpoint.mdAndUp"
           class="ml-2"
       >
         {{ entityTypeConfig.displayName }}
@@ -26,24 +32,13 @@
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 
-    <component
-        :is="$vuetify.breakpoint.mobile ? 'v-dialog' : 'v-menu'"
+    <v-menu
         v-model="isDialogOpen"
-        fullscreen
         :activator="'#' +  myId"
         rounded
+        offset-y
     >
       <v-card flat rounded>
-        <v-toolbar flat v-if="$vuetify.breakpoint.mobile">
-          <v-btn icon @click="isDialogOpen = false">
-            <v-icon>mdi-arrow-left</v-icon>
-          </v-btn>
-
-          <v-toolbar-title>
-            What are you looking for?
-          </v-toolbar-title>
-          <v-spacer/>
-        </v-toolbar>
         <v-card-text class="pa-0">
           <!--        <v-container>-->
           <!--          <v-row-->
@@ -88,6 +83,7 @@
 
           <v-list
           >
+            <v-subheader>What are you looking for?</v-subheader>
             <v-list-item
                 v-for="entityOption in entityTypeOptions"
                 :key="entityOption.name"
@@ -104,15 +100,17 @@
                 <v-list-item-subtitle class="">
                   {{ entityOption.descr }}
                 </v-list-item-subtitle>
-
               </v-list-item-content>
+              <v-list-item-icon v-if="entityType === entityOption.name">
+                <v-icon>mdi-check</v-icon>
+              </v-list-item-icon>
             </v-list-item>
           </v-list>
         </v-card-text>
 
       </v-card>
 
-    </component>
+    </v-menu>
 
   </span>
 </template>
@@ -123,6 +121,7 @@ import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
 import {VMenu} from "vuetify/lib";
 import {VDialog} from "vuetify/lib";
+import {url} from "@/url";
 
 export default {
   name: "SearchBox",
@@ -144,7 +143,7 @@ export default {
   computed: {
     ...mapGetters([]),
     entityTypeOptions() {
-      return getEntityConfigs()
+      return getEntityConfigs().filter(c => c.hasSerp)
     },
     entityTypeConfig() {
       return getEntityConfig(this.entityType)
@@ -154,7 +153,7 @@ export default {
         return this.$route.params.entityType
       },
       set(to){
-        this.$router.push({
+        url.pushToRoute(this.$router, {
           name: "Serp",
           params: {entityType: to}
         })
