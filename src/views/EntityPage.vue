@@ -235,7 +235,7 @@ export default {
       this.worksResultObject = resp
     },
     viewMyWorks() {
-      return url.pushNewFilters([this.myWorksFilter])
+      return url.pushNewFilters([this.myWorksFilter], "works")
     },
   },
   created() {
