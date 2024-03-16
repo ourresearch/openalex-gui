@@ -28,14 +28,14 @@
 <!--        <v-icon left>mdi-file-document-outline</v-icon>-->
         View works
       </v-btn>
-      <v-tooltip bottom>
+
+      <v-tooltip bottom v-if="entityData.homepage_url">
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon class="" href="https://openalex.zendesk.com/hc/en-us/requests/new"
-                 target="_blank">
-            <v-icon>mdi-message-alert-outline</v-icon>
+          <v-btn v-on="on" class="" icon :href="entityData.homepage_url" target="_blank">
+            <v-icon>mdi-home-outline</v-icon>
           </v-btn>
         </template>
-        Send feedback
+        Visit homepage
       </v-tooltip>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
@@ -52,6 +52,15 @@
           </v-btn>
         </template>
         View permalink page
+      </v-tooltip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{on}">
+          <v-btn v-on="on" icon class="" href="https://openalex.zendesk.com/hc/en-us/requests/new"
+                 target="_blank">
+            <v-icon>mdi-message-alert-outline</v-icon>
+          </v-btn>
+        </template>
+        Send feedback
       </v-tooltip>
     </v-toolbar>
   </div>
