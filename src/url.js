@@ -565,6 +565,27 @@ const toggleSort = function (filterKey) {
 }
 
 
+const perPageDefault = 10
+const setPerPage = function(val){
+    const perPage = val === perPageDefault ?
+        undefined :
+        val
+
+    const newRoute = {
+        name: "Serp",
+        query: {
+            ...router.currentRoute.query,
+            page: 1,
+            per_page: perPage,
+        }
+    }
+    return pushToRoute(router, newRoute)
+}
+const getPerPage = function(currentRoute){
+    return currentRoute.query.per_page ?? perPageDefault
+}
+
+
 const setColumn = function (filterKeys) {
     pushQueryParam("column", filterKeys.join(","))
 }
@@ -756,7 +777,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort
-        query.per_page = 10
+        query.per_page = currentRoute.query.per_page
     }
 
     const apiUrl = new URL("https://api.openalex.org")
@@ -887,6 +908,9 @@ const url = {
     setColumn,
     addColumn,
     toggleColumn,
+
+    getPerPage,
+    setPerPage,
 
     getSort,
     toggleSort,
