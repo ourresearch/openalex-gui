@@ -60,9 +60,11 @@ export default {
     },
     isApplied: {
       get() {
+        if (this.$route.name === 'EntityPage') return false // there are no filters set on the entity page
         return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
       },
       set(to) {
+        console.log("GroupByTableRow isApplied.set()", to)
         if (to) {
           if (this.$route.name === 'EntityPage') {
             console.log("clicking on GroupByTableRow from entity page")
@@ -79,7 +81,7 @@ export default {
                 this.filterKey,
                 this.value
             )
-            url.pushNewFilters([myEntityWorksFilter, myRowFilter])
+            url.pushNewFilters([myEntityWorksFilter, myRowFilter], "works")
           } else {
             url.createFilter(this.entityType, this.filterKey, this.value)
           }
@@ -111,6 +113,7 @@ export default {
     ]),
     ...mapActions([]),
     clickRow() {
+      console.log("GroupByTableRow clickRow()")
       this.isApplied = !this.isApplied
       // return this.isNegated ?
       //     this.isNegated = false :
