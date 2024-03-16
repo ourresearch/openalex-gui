@@ -11,6 +11,35 @@
       <serp-results-sort-button />
 
       <serp-results-export-button />
+      <v-menu offset-y rounded>
+        <template v-slot:activator="{on}">
+          <v-btn
+            v-on="on"
+            icon
+          >
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-subheader>Results per page:</v-subheader>
+          <v-list-item @click="url.setPerPage(10)">
+            <v-list-item-content>
+              <v-list-item-title>10</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-icon v-if="url.getPerPage($route) === 10">
+              <v-icon>mdi-check</v-icon>
+            </v-list-item-icon>
+          </v-list-item>
+          <v-list-item @click="url.setPerPage(100)">
+            <v-list-item-content>
+              <v-list-item-title>100</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-icon v-if="url.getPerPage($route) === 100">
+              <v-icon>mdi-check</v-icon>
+            </v-list-item-icon>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-toolbar>
 
   <v-card rounded flat class="">
