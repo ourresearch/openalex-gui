@@ -149,6 +149,11 @@ const routes = [
             window.location.href = "https://openalex.zendesk.com/hc/requests/new"
         }
     },
+    {
+        path: '/support', beforeEnter() {
+            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
+        }
+    },
 
     {
         path: `/:entityType/:entityId`,
