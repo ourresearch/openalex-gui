@@ -30,7 +30,7 @@
       </v-btn>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon class="" href="https://openalex.zendesk.com/hc/en-us/requests/new"
+          <v-btn v-on="on" icon class="" :href="feebackUrl"
                  target="_blank">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
@@ -96,6 +96,10 @@ export default {
     },
     myEntityConfig() {
       return getEntityConfig(this.myEntityType)
+    },
+    feebackUrl() {
+      const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${this.entityData.id}`
+      return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText
     },
   },
 
