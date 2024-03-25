@@ -108,12 +108,12 @@ const routes = [
 
     {
         path: '/author-change-request', beforeEnter() {
-            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link"
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
         }
     },
     {
         path: '/authorChangeRequest', beforeEnter() {
-            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSfp4nsh7WEn4aGYLzChKC4VFseVwN_trH9iAvcpGF6iSvQ7aQ/viewform?usp=sf_link"
+            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
         }
     },
 
