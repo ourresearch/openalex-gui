@@ -106,6 +106,10 @@ export default {
     myEntityConfig() {
       return getEntityConfig(this.myEntityType)
     },
+    feebackUrl() {
+      const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${this.entityData.id}`
+      return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText
+    },
   },
 
   methods: {
