@@ -127,6 +127,11 @@ const routes = [
             window.location.href = "https://help.openalex.org/events/open-houses"
         }
     },
+    {
+        path: '/user-meeting', beforeEnter() {
+            window.location.href = "https://help.openalex.org/events/user-meeting"
+        }
+    },
 
     {
         path: '/pricing', beforeEnter() {
