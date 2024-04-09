@@ -43,7 +43,7 @@
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
           v-if="$route.name === 'Serp'"
       >
-        <entity-type-selector v-if="!$vuetify.breakpoint.mobile" />
+<!--        <entity-type-selector v-if="!$vuetify.breakpoint.mobile" />-->
         <shortcut-box
             style="max-width: 800px;"
             class="flex-grow-1 d-none d-lg-block"
@@ -82,7 +82,7 @@
         </v-list>
       </v-menu>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'">
-        <entity-type-selector v-if="$vuetify.breakpoint.mobile" />
+<!--        <entity-type-selector v-if="$vuetify.breakpoint.mobile" />-->
         <shortcut-box
             class="flex-grow-1"
         />
