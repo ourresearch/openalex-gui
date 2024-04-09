@@ -45,7 +45,7 @@ const routes = [
     },
 
     {
-        path: `/:entityId([waspfic]\\d+)`,
+        path: `/:entityId([waspfict]\\d+)`,
         name: 'EntityPageShortcut',
         redirect: to => {
             const entityType = entityTypeFromId(to.params.entityId)

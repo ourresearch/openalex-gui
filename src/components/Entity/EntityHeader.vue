@@ -55,7 +55,7 @@
       </v-tooltip>
       <v-tooltip bottom>
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon class="" href="https://openalex.zendesk.com/hc/en-us/requests/new"
+          <v-btn v-on="on" icon class="" :href="feebackUrl"
                  target="_blank">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>
