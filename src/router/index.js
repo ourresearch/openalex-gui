@@ -159,6 +159,11 @@ const routes = [
             window.location.href = "https://openalex.zendesk.com/hc/requests/new"
         }
     },
+    {
+        path: '/webinars/api-notebook-01', beforeEnter() {
+            window.location.href = "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"
+        }
+    },
 
     {
         path: `/:entityType/:entityId`,
