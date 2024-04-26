@@ -54,14 +54,29 @@
             :key="key"
             class="d-flex flex-column"
         >
-          <v-card v-if="i === 0" flat rounded color="white pa-3 mb-3">
-            <serp-results-count :results-object="resultsObject" class="text-h5"/>
+          <template  v-if="i === 0" >
+            <v-card flat rounded color="white pa-3 mb-3">
+              <serp-results-count :results-object="resultsObject" class="text-h5"/>
+            </v-card>
+          </template>
+
+          <v-card v-if="key === 'apc_sums'">
+            <v-card flat rounded color="white pa-3 mb-3">
+              <span class="text-h5">
+                <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_paid_sum_usd | toPrecision }}</span>
+                <span>APC paid (est)</span>
+              </span>
+            </v-card>
+            <v-card flat rounded color="white pa-3 mb-3">
+              <span class="text-h5">
+                <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_list_sum_usd | toPrecision }}</span>
+                <span>APC list (est)</span>
+              </span>
+            </v-card>
           </v-card>
-          <!--            cols="12"-->
-          <!--            md="6"-->
-          <!--            lg="4"-->
-          <!--            xl="3"-->
+
           <group-by
+              v-else
               :filter-key="key"
               :entity-type="entityType"
           />
