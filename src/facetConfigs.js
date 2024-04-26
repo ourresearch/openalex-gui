@@ -811,6 +811,18 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
+            key: "mag_only",
+            entityType: "works",
+            displayName: "indexed by MAG only",
+            type: "boolean",
+            booleanValues: ["indexed by MAG only", "indexed beyond MAG"],
+            categories: ["ids"],
+            category: "ids",
+            actions: ["filter", "group_by",],
+            icon: "mdi-tag-outline",
+            isMultiple: false,
+        },
+        {
             key: "has_orcid",
             entityType: "works",
             displayName: "indexed by ORCID",
