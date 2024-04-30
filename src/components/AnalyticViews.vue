@@ -1,7 +1,7 @@
 <template>
   <v-card rounded flat color="transparent">
     <v-toolbar dense flat color="transparent" class="">
-<!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
+      <!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <Action v-if="entityType === 'works'" class="ml-2" action="group_by"/>
@@ -54,25 +54,32 @@
             :key="key"
             class="d-flex flex-column"
         >
-          <template  v-if="i === 0" >
-            <v-card flat rounded color="white pa-3 mb-3">
+          <template v-if="i === 0">
+            <v-card flat rounded class="white pa-3 mb-3">
               <serp-results-count :results-object="resultsObject" class="text-h5"/>
             </v-card>
           </template>
 
-          <v-card v-if="key === 'apc_sums'">
-            <v-card flat rounded color="white pa-3 mb-3">
-              <span class="text-h5">
+          <v-card flat rounded v-if="key === 'apc_sum'">
+            <v-toolbar flat>
+              <v-icon left>mdi-currency-usd</v-icon>
+              <v-toolbar-title>APC sums</v-toolbar-title>
+              <v-spacer />
+              <v-btn icon @click="url.toggleGroupBy('apc_sum')">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-toolbar>
+            <v-divider />
+            <div class="ma-4">
+              <div class="text-h5">
                 <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_paid_sum_usd | toPrecision }}</span>
-                <span>APC paid (est)</span>
-              </span>
-            </v-card>
-            <v-card flat rounded color="white pa-3 mb-3">
-              <span class="text-h5">
+              </div>
+              <div class="text-body-2">Sum APCs paid (est)</div>
+              <div class="mt-3">
                 <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_list_sum_usd | toPrecision }}</span>
-                <span>APC list (est)</span>
-              </span>
-            </v-card>
+              </div>
+              <div class="text-body-2">Sum APCs list (est)</div>
+            </div>
           </v-card>
 
           <group-by
@@ -84,9 +91,9 @@
         </v-col>
 
       </v-row>
-        <v-card v-else flat rounded class="grey--text mt-2 pa-4 color-3">
-          There are no results to analyze.
-        </v-card>
+      <v-card v-else flat rounded class="grey--text mt-2 pa-4 color-3">
+        There are no results to analyze.
+      </v-card>
 
     </v-container>
   </v-card>
@@ -123,11 +130,19 @@ export default {
       "entityType",
     ]),
     groupByKeys() {
-      return url.getGroupBy(this.$route)
+      const ret = url.getGroupBy(this.$route)
+      ret.sort((a, b) => {
+        return (a === 'apc_sum') ? -1 : 1
+      });
+      return ret
     },
     hideResults: {
-      get(){ return this.$route.query.hide_results },
-      set(to){ url.setHideResults(to) }
+      get() {
+        return this.$route.query.hide_results
+      },
+      set(to) {
+        url.setHideResults(to)
+      }
     },
     apiUrl() {
       const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
