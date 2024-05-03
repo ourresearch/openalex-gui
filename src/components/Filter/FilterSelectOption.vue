@@ -97,6 +97,7 @@ export default {
       return getEntityConfigs().some(c => c.filterKey === this.filterId)
     },
     myEntityType(){
+      console.log("FilterSelectOption filterValue", this.filterValue)
       return entityTypeFromId(this.filterValue)
     },
     filterConfig(){

@@ -123,6 +123,21 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.primary_topic,
         },
         {
+            key: "keywords.id",
+            entityType: "works",
+            displayName: "keyword",
+            entityId: "keywords",
+            type: "select",
+            isManyOptions: true,
+            categories: ["other",],
+            category: "other",
+            actions: ["filter", "group_by",],
+            actionsPopular: ["filter", "group_by"],
+            icon: "mdi-tag-outline",
+            isMultiple: false,
+            extractFn: (entity) => entity.keywords,
+        },
+        {
             key: "primary_topic.subfield.id",
             entityType: "works",
             displayName: "subfield",
@@ -1492,6 +1507,10 @@ const facetConfigs = function (entityType) {
             categories: ["popular"],
             icon: "mdi-tag-outline"
         },
+
+
+
+
 
         // topics
         {

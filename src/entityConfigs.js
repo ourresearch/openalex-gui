@@ -213,6 +213,24 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [],
     },
 
+    keywords: {
+        icon: "mdi-tag-outline",
+        name: "keywords",
+        nameSingular: "keyword",
+        displayName: "keywords",
+        displayNameSingular: "keyword",
+        descr: "what works are about",
+        eg: "Cardiac imaging",
+        placeholder: "Search keywords",
+        filterName: "keywords",
+        filterKey: "keywords.id",
+        hintVerb: ":",
+        hasAutocomplete: true,
+        isNative: false,
+        rowsToShowOnEntityPage: [
+        ],
+    },
+
     topics: {
         icon: "mdi-tag-outline",
         name: "topics",
