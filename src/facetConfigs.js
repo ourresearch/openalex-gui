@@ -527,16 +527,16 @@ const facetConfigs = function (entityType) {
 
 
         //
-        // {
-        //     key: "apc_paid.value_usd",
-        //     entityType: "works",
-        //     displayName: "APC paid",
-        //     type: "range",
-        //     sortByValue: true,
-        //             //     categories: ["apc"],
-        //     actions: ["filter", ],
-        //             //     icon: "mdi-cash"
-        // },
+        {
+            key: "apc_paid.value_usd",
+            entityType: "works",
+            displayName: "APC paid (est)",
+            type: "range",
+            sortByValue: true,
+            categories: ["apc"],
+            actions: ["filter",],
+            icon: "mdi-cash"
+        },
 
 
         // {
@@ -1509,9 +1509,6 @@ const facetConfigs = function (entityType) {
         },
 
 
-
-
-
         // topics
         {
             key: "description",
@@ -1852,7 +1849,6 @@ const getFacetConfig = function (entityType, key) {
     }
     return myFacetConfig
 }
-
 
 
 const findFacetConfigs = function (entityType, searchString) {
