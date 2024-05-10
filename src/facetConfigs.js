@@ -535,7 +535,8 @@ const facetConfigs = function (entityType) {
             sortByValue: true,
             categories: ["apc"],
             actions: ["filter",],
-            icon: "mdi-cash"
+            icon: "mdi-cash",
+            extractFn: (entity) => entity.apc_paid.value_usd,
         },
 
 

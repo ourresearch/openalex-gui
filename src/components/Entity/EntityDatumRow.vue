@@ -44,7 +44,7 @@
       </router-link>
     </span>
     <span v-else-if="valueUnlinkedCount">
-      <span>{{ valueUnlinkedCount | toPrecision }}</span>
+      <span>{{ isValueUsd ? "$"  : ""}}{{ valueUnlinkedCount | toPrecision }}</span>
     </span>
     <span v-else-if="valueLinkedCount">
       <router-link :to="url.makeFilterRoute(entityType, this.filterKeyForMakingLinks, data.id)">
@@ -181,6 +181,9 @@ export default {
     },
     valueUnlinkedCount() {
       if (typeof this.rawValue === "number" && this.filterConfig.type !== "select") return this.rawValue
+    },
+    isValueUsd() {
+      return this.filterKey === "apc_paid.value_usd"
     },
     valueLinkedCount() {
       if (typeof this.rawValue === "number" && this.filterConfig.type === "select") return this.rawValue
