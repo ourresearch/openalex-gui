@@ -135,7 +135,6 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import QrcodeVue from "qrcode.vue";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
-import ExportMenu from "@/components/ExportMenu.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 
