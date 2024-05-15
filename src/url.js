@@ -779,6 +779,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.sort = currentRoute.query.sort
         query.per_page = currentRoute.query.per_page
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
+        query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
 
     const apiUrl = new URL("https://api.openalex.org")
@@ -793,6 +794,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         "format",
         "per_page",
         "apc_sum",
+        "cited_by_count_sum",
     ]
     const searchParams = new URLSearchParams()
     validQueryKeys.forEach(k => {
