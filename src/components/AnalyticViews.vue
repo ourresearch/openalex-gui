@@ -64,12 +64,12 @@
             <v-toolbar flat>
               <v-icon left>mdi-currency-usd</v-icon>
               <v-toolbar-title>APC sums</v-toolbar-title>
-              <v-spacer />
+              <v-spacer/>
               <v-btn icon @click="url.toggleGroupBy('apc_sum')">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
             </v-toolbar>
-            <v-divider />
+            <v-divider/>
             <div class="ma-4">
               <div class="text-h5">
                 <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_paid_sum_usd | toPrecision }}</span>
@@ -80,6 +80,16 @@
               </div>
               <div class="text-body-2">Sum APCs list (est)</div>
             </div>
+          </v-card>
+
+          <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
+            <v-icon left>mdi-format-quote-close</v-icon>
+            <span class="text-h5 mr-2">{{ resultsObject?.meta?.cited_by_count_sum | toPrecision }}</span>
+            <div class="align-self-baseline ">citations</div>
+            <v-spacer/>
+            <v-btn icon @click="url.toggleGroupBy('cited_by_count_sum')">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card>
 
           <group-by
@@ -132,7 +142,7 @@ export default {
     groupByKeys() {
       const ret = url.getGroupBy(this.$route)
       ret.sort((a, b) => {
-        return (a === 'apc_sum') ? -1 : 1
+        return (['apc_sum', 'cited_by_count_sum'].includes(a)) ? -1 : 1
       });
       return ret
     },
