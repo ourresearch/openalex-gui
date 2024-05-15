@@ -218,7 +218,11 @@ export default {
       }
     }, 1000)
   },
-  watch: {}
+  watch: {
+    exportFormat() {
+      this.areColumnsTruncated = false
+    }
+  }
 }
 </script>
 
