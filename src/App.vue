@@ -92,7 +92,6 @@
     </div>
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
-      <!--        <v-footer app absolute>hi jason</v-footer>-->
     </v-main>
     <site-footer/>
 

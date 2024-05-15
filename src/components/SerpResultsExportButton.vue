@@ -1,56 +1,52 @@
 <template>
   <span>
-    <v-menu rounded offset-y max-width="300">
+    <v-tooltip top>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-btn>
+          <v-btn v-on="on" icon @click="openExportDialog('csv')">
+            <v-icon>mdi-tray-arrow-down</v-icon>
+          </v-btn>
       </template>
-      <v-list>
-        <v-list-item v-if="isResultsExportDisabled">
-          <v-list-item-icon><v-icon>mdi-alert-circle</v-icon></v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title class="font-weight-bold">Too many results to export</v-list-item-title>
-              <v-list-item-subtitle>Max 100k at a time</v-list-item-subtitle>
-            </v-list-item-content>
-        </v-list-item>
-        <v-divider v-if="isResultsExportDisabled"/>
-        <v-subheader v-if="!isResultsExportDisabled">
-          Export results as...
-        </v-subheader>
-        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('csv')">
-          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-table</v-icon></v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>Spreadsheet (.csv)</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('ris')">
-          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-archive-arrow-down-outline</v-icon></v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>Endnote format (.ris)</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item :disabled="isResultsExportDisabled" @click="openExportDialog('wos-plaintext')">
-          <v-list-item-icon><v-icon :disabled="isResultsExportDisabled">mdi-file-outline</v-icon></v-list-item-icon>
-          <v-list-item-content>
-            <v-list-item-title>WoS format (.txt)</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-menu>
+      <div v-if="isResultsExportDisabled">
+        Too many items to download (max 100k)
+      </div>
+      <div v-else>Export results</div>
+    </v-tooltip>
     <v-dialog v-model="isDialogOpen.exportResults" max-width="350" :persistent="exportObj.progress !== null">
       <v-card rounded>
         <v-toolbar flat class="">
           <v-toolbar-title>
-            {{ exportDialogTitle }}
+            Export results
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <div class="pa-5 pt-3" v-if="exportObj.progress === null">
-          <span>Export these {{ resultsCount | toPrecision }} records?</span>
-          <span v-if="exportEstimatedTime">
-            (This will take up to {{ exportEstimatedTime }}).
-          </span>
+        <div v-if="exportObj.progress === null" class="pa-4 py-0">
+<!--          <v-subheader>Select format:</v-subheader>-->
+<!--          <v-divider/>-->
+          <v-radio-group v-model="exportFormat">
+            <v-radio
+                label="Spreadsheet (.csv)"
+                value="csv"
+            />
+            <div class="pl-7 pb-4"  v-if="exportFormat==='csv'">
+              <v-checkbox
+                  style="margin-top: 0px;"
+                  hide-details
+                  v-model="areColumnsTruncated"
+                  label="Shorten column values for Excel compatibility?"
+              />
+            </div>
+            <v-radio
+                label="Endnote format (.ris)"
+                value="ris"
+            />
+            <v-radio
+                label="WoS format (.txt)"
+                value="wos-plaintext"
+            />
+          </v-radio-group>
+            <v-alert v-if="exportEstimatedTime" type="warning" text>
+              Since there are many records, the export will take up to {{ exportEstimatedTime }}.
+            </v-alert>
         </div>
         <div v-else-if="exportObj.progress < 1" class="pa-5">
           Export in progress...
@@ -107,6 +103,7 @@ export default {
         exportResults: false,
       },
       exportFormat: null,
+      areColumnsTruncated: false,
 
       exportProgressUrl: "",
       exportObj: {
@@ -128,7 +125,7 @@ export default {
     isExportFinished() {
       return !!this.exportObj.result_url
     },
-    resultsCount(){
+    resultsCount() {
       return this.$store.state?.resultsObject?.meta?.count
     },
     exportEstimatedTime() {
@@ -178,6 +175,7 @@ export default {
       const params = [
         `filter=${filterStr}`,
         `format=${this.exportFormat}`,
+        `truncate=${this.areColumnsTruncated}`,
       ]
       const url = `https://export.openalex.org/works?` + params.join("&")
       const resp = await axios.get(url)
