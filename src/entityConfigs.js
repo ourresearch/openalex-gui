@@ -437,6 +437,23 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [],
     },
 
+
+    "licenses": {
+        icon: "mdi-lock-open-outline",
+        name: "licenses",
+        nameSingular: "license",
+        displayName: "licenses",
+        displayNameSingular: "license",
+        descr: "license of best open copy",
+        eg: "CC-BY",
+        placeholder: "Search licenses",
+        filterName: "institution type",
+        filterKey: "best_oa_location.license",
+        hasAutocomplete: false,
+        isNative: false,
+        rowsToShowOnEntityPage: [],
+    },
+
 }
 
 
