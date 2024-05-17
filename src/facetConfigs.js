@@ -460,6 +460,7 @@ const facetConfigs = function (entityType) {
             type: "select",
             categories: ["open access"],
             actions: [],
+            // actions: ["filter", "column", "group_by"],
             category: "open access",
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
