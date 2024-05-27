@@ -337,7 +337,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
         {
-            key: "raw_affiliation_string.search",
+            key: "raw_affiliation_strings.search",
             entityType: "works",
             displayName: "raw affiliation string",
             type: "search",
