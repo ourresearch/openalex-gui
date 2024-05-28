@@ -452,15 +452,15 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
 
-        // disabled, waiting for entity
         {
             key: "best_oa_location.license",
             entityType: "works",
+            entityId: "licenses",
             displayName: "license",
             type: "select",
             categories: ["open access"],
-            actions: [],
-            // actions: ["filter", "column", "group_by"],
+            // actions: [],
+            actions: ["filter", "column", "group_by"],
             category: "open access",
             icon: "mdi-lock-open-outline",
             displayNullAs: "All rights reserved",
