@@ -17,7 +17,8 @@
         </template>
         <template v-else>
           {{ hasAutocomplete ? "Top" : "All" }}
-          {{ entityConfig?.name | pluralize(2) }}
+<!--          {{ entityConfig?.name | pluralize(2) }}-->
+          {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
       </v-subheader>
@@ -84,7 +85,9 @@ export default {
       "entityType",
     ]),
     filterConfig() {
-      return getFacetConfig(this.entityType, this.filterKey)
+      const ret = getFacetConfig(this.entityType, this.filterKey)
+      // console.log("FilterSelectAddOption filterConfig()", this.entityType, this.filterKey, ret)
+      return ret
     },
     searchPlaceholder() {
       const pluralValue = this.$pluralize(this.filterConfig.displayName, 2)

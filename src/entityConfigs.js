@@ -480,6 +480,9 @@ const getEntityConfigs = function () {
 
 
 const getEntityConfig = function (name) {
+    if (!name) {
+        throw new Error("OpenAlex: getEntityConfig(): you must provide a @name argument.")
+    }
     return getEntityConfigs().find(c => {
         return c.nameSingular === name || c.name === name
     })

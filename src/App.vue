@@ -14,7 +14,7 @@
         color="transparent"
         class=""
         absolute
-        :extended="$vuetify.breakpoint.mobile && $route.name !== 'Home'"
+        :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
         extension-height="70"
     >
 <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
@@ -81,7 +81,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name !== 'Home'">
+      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
 <!--        <entity-type-selector v-if="$vuetify.breakpoint.mobile" />-->
         <shortcut-box
             class="flex-grow-1"

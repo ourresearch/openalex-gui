@@ -5,7 +5,6 @@
       class="button-card pa-4 d-flex align-end"
       height="100"
   >
-<!--      :to="id | entityWorksLink"-->
     <bar-graph
         :bars="countsByYear.map(y => {return {key: y.year, count: y.works_count}})"
         style="height: 100%;"
