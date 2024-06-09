@@ -216,7 +216,7 @@ export default {
       return all
     },
     ...mapGetters([
-      "resultsFilters",
+
       "resultsCount",
     ]),
     isSelected: {

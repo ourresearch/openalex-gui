@@ -37,7 +37,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
   },
   asyncComputed: {

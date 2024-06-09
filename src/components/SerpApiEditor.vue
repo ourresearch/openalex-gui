@@ -81,7 +81,7 @@ export default {
       return api
     },
     ...mapGetters([
-      "resultsFilters",
+
       "entityType",
     ]),
     filters() {

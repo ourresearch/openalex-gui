@@ -58,7 +58,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
       "globalIsLoading",
     ]),
     ...mapGetters("user", [

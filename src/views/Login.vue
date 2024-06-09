@@ -23,7 +23,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
     ...mapGetters("user", [
       "userId",

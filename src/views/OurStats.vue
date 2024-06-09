@@ -102,7 +102,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
     cards(){
       const copy = _.cloneDeep(entityConfigs)
