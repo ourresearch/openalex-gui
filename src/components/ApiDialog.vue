@@ -117,7 +117,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
       "apiDialogUrl",
     ]),
     isSingletonApiCall(){

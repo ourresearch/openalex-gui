@@ -512,7 +512,7 @@ able to add crucial features to our tool and increase researchers' productivity,
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
     filteredItems() {
 

@@ -101,7 +101,6 @@ export default {
   name: "Serp",
   metaInfo() {
     const ret = {title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"}
-    if (this.entityZoomData?.display_name) ret.title = this.entityZoomData.display_name
     return ret
   },
   components: {
@@ -287,7 +286,6 @@ export default {
     ...mapMutations([
       "snackbar",
       "toggleFiltersDrawer",
-      "openFacetsDialog",
     ]),
     ...mapActions([
       "updateTextSearch",

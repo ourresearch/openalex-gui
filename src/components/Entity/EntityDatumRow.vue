@@ -114,7 +114,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
       "entityType",
     ]),
     ...mapGetters("user", [

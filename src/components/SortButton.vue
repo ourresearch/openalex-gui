@@ -174,7 +174,6 @@ export default {
       "snackbar",
     ]),
     ...mapActions([
-      "setSort",
     ]),
     async pushQueryChanges(query) {
       const pushTo = {

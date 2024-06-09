@@ -30,7 +30,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
     myEntityConfig() {
       return entityConfigs[this.role.role + "s"];

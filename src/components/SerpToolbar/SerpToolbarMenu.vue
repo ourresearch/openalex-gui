@@ -161,7 +161,7 @@ export default {
       return url
     },
     ...mapGetters([
-      "resultsFilters",
+
       "entityType",
     ]),
     ...mapGetters("user", [

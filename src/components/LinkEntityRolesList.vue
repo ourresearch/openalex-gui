@@ -69,7 +69,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
     ]),
     rolesToShow() {
       return this.roles.filter(r => {

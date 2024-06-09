@@ -27,7 +27,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
       "userId",
       "userName",
       "userEmail",

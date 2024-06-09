@@ -51,7 +51,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "resultsFilters",
+
       "entityType",
     ]),
     citesFilter() {

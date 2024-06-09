@@ -181,7 +181,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-      "searchFacetConfigs",
       "globalIsLoading",
       "entityType",
     ]),
@@ -199,8 +198,6 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "setFiltersZoom",
-      "openFacetsDialog",
       "snackbar",
     ]),
     ...mapActions([]),
