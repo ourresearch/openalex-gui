@@ -166,7 +166,6 @@ export default {
       "setEntityType",
     ]),
     ...mapActions([
-      "removeAllInputFilters",
     ]),
 
     openEntityMenu() {
