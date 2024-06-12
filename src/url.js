@@ -565,7 +565,7 @@ const toggleSort = function (filterKey) {
 }
 
 
-const perPageDefault = 10
+const perPageDefault = 25;
 const setPerPage = function(val){
     const perPage = val === perPageDefault ?
         undefined :

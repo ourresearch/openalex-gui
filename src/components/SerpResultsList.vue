@@ -1,22 +1,19 @@
 <template>
   <div>
     <v-toolbar dense flat class="" color="transparent">
-<!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
+      <!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold mr-2">
         {{ entityType | pluralize(2) | capitalize }}
-<!--       (<serp-results-count :results-object="resultsObject" class=""/>)-->
+        <!--       (<serp-results-count :results-object="resultsObject" class=""/>)-->
       </v-toolbar-title>
-      <v-spacer/>
-<!--      <action class="ml-2" action="sort"/>-->
+      <v-spacer />
+      <!--      <action class="ml-2" action="sort"/>-->
       <serp-results-sort-button />
 
       <serp-results-export-button />
       <v-menu offset-y rounded>
         <template v-slot:activator="{on}">
-          <v-btn
-            v-on="on"
-            icon
-          >
+          <v-btn v-on="on" icon>
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
@@ -27,6 +24,14 @@
               <v-list-item-title>10</v-list-item-title>
             </v-list-item-content>
             <v-list-item-icon v-if="url.getPerPage($route) === 10">
+              <v-icon>mdi-check</v-icon>
+            </v-list-item-icon>
+          </v-list-item>
+          <v-list-item @click="url.setPerPage(25)">
+            <v-list-item-content>
+              <v-list-item-title>25</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-icon v-if="url.getPerPage($route) === 25">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
@@ -42,34 +47,23 @@
       </v-menu>
     </v-toolbar>
 
-  <v-card rounded flat class="">
+    <v-card rounded flat class="">
 
-<!--      <div class="grey&#45;&#45;text">-->
-<!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
-<!--      </div>-->
-    <v-list nav v-if="resultsObject?.results" class="" color="">
-      <serp-results-list-item
-        v-for="result in resultsObject.results"
-        :key="result.id"
-        :result="result"
-        show-icon
-      />
+      <!--      <div class="grey&#45;&#45;text">-->
+      <!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
+      <!--      </div>-->
+      <v-list nav v-if="resultsObject?.results" class="" color="">
+        <serp-results-list-item v-for="result in resultsObject.results" :key="result.id" :result="result" show-icon />
 
-    </v-list>
-    <div class="serp-bottom" v-if="resultsObject?.results?.length">
-      <v-pagination
-          class="pb-8 pt-3 elevation-0"
-          circle
-          v-model="page"
-          :length="numPages"
-          :total-visible="10"
-          light
-      />
-    </div>
-    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
-      There are no results for this search.
+      </v-list>
+      <div class="serp-bottom" v-if="resultsObject?.results?.length">
+        <v-pagination class="pb-8 pt-3 elevation-0" circle v-model="page" :length="numPages"
+          :total-visible="totalVisible" light />
+      </div>
+      <v-card v-if="!resultsObject?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
+        There are no results for this search.
+      </v-card>
     </v-card>
-  </v-card>
   </div>
 </template>
 
@@ -104,7 +98,7 @@ export default {
     return {
       foo: 42,
       url,
-      resultsPerPage: 10, // not editable now, but could be in future
+      resultsPerPage: 25, // not editable now, but could be in future
     }
   },
   computed: {
@@ -112,15 +106,11 @@ export default {
       "resultsFilters",
       "entityType",
     ]),
+    totalVisible() {
+      return this.$vuetify.breakpoint.mobile ? 4 : 10
+    },
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ?
-          4 :
-          10
-
-      return Math.min(
-          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
-          maxToShow
-      )
+      return Math.ceil(this.resultsObject.meta.count / url.getPerPage(this.$route))
     },
     page: {
       get() {
