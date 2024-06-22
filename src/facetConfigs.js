@@ -1076,7 +1076,7 @@ const facetConfigs = function (entityType) {
             },
         },
         {
-            key: "last_known_institution.id",
+            key: "last_known_institutions.id",
             entityType: "authors",
             displayName: "institution",
             entityId: "institutions",
@@ -1086,10 +1086,10 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-town-hall",
-            extractFn: (entity) => entity.last_known_institution,
+            extractFn: (entity) => entity.last_known_institutions,
         },
         {
-            key: "last_known_institution.country_code",
+            key: "last_known_institutions.country_code",
             entityType: "authors",
             entityId: "countries",
             displayName: "institution country",
@@ -1099,9 +1099,14 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-earth",
+            extractFn: (entity) => {
+                return entity.last_known_institutions.map(insti => {
+                    return insti.institution
+                })
+            },
         },
         {
-            key: "last_known_institution.type",
+            key: "last_known_institutions.type",
             entityType: "authors",
             entityId: "institution-types",
             displayName: "Institution type",
