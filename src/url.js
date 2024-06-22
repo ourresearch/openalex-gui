@@ -14,7 +14,7 @@ import {
     setOptionIsNegated,
     setStringIsNegated,
 } from "./filterConfigs";
-import {entityConfigs, externalEntityTypeFromId, getEntityConfig} from "@/entityConfigs";
+import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {entityTypes, shortenOpenAlexId} from "./util";
 import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";

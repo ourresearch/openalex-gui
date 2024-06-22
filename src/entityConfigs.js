@@ -9,6 +9,7 @@ const entityConfigs = {
     works: {
         icon: "mdi-file-document-outline",
         name: "works",
+        entityType: "works",
         nameSingular: "work",
         displayName: "works",
         displayNameSingular: "work",
@@ -63,6 +64,7 @@ const entityConfigs = {
         // icon: "mdi-account-school-outline",
         icon: "mdi-account-outline",
         name: "authors",
+        entityType: "authors",
         nameSingular: "author",
         displayName: "authors",
         displayNameSingular: "author",
@@ -100,6 +102,7 @@ const entityConfigs = {
         // icon: "mdi-book-outline",
         icon: "mdi-book-open-outline",
         name: "sources",
+        entityType: "sources",
         nameSingular: "source",
         displayName: "sources",
         displayNameSingular: "source",
@@ -140,6 +143,7 @@ const entityConfigs = {
         // icon: "mdi-book-outline",
         icon: "mdi-domain",
         name: "publishers",
+        entityType: "publishers",
         nameSingular: "publisher",
         displayName: "publishers",
         displayNameSingular: "publisher",
@@ -157,6 +161,7 @@ const entityConfigs = {
         // icon: "mdi-book-outline",
         icon: "mdi-cash-multiple",
         name: "funders",
+        entityType: "funders",
         nameSingular: "funder",
         displayName: "funders",
         displayNameSingular: "funder",
@@ -173,6 +178,7 @@ const entityConfigs = {
     institutions: {
         icon: "mdi-town-hall",
         name: "institutions",
+        entityType: "institutions",
         nameSingular: "institution",
         displayName: "institutions",
         displayNameSingular: "institution",
@@ -201,6 +207,7 @@ const entityConfigs = {
     concepts: {
         icon: "mdi-tag-outline",
         name: "concepts",
+        entityType: "concepts",
         nameSingular: "concept",
         displayName: "concepts",
         displayNameSingular: "concept",
@@ -217,6 +224,7 @@ const entityConfigs = {
     keywords: {
         icon: "mdi-tag-outline",
         name: "keywords",
+        entityType: "keywords",
         nameSingular: "keyword",
         displayName: "keywords",
         displayNameSingular: "keyword",
@@ -235,6 +243,7 @@ const entityConfigs = {
     topics: {
         icon: "mdi-tag-outline",
         name: "topics",
+        entityType: "topics",
         nameSingular: "topic",
         displayName: "topics",
         displayNameSingular: "topics",
@@ -258,6 +267,7 @@ const entityConfigs = {
     subfields: {
         icon: "mdi-tag-outline",
         name: "subfields",
+        entityType: "subfields",
         nameSingular: "subfield",
         displayName: "subfields",
         displayNameSingular: "subfield",
@@ -281,6 +291,7 @@ const entityConfigs = {
     fields: {
         icon: "mdi-tag-outline",
         name: "fields",
+        entityType: "fields",
         nameSingular: "field",
         displayName: "fields",
         displayNameSingular: "field",
@@ -303,6 +314,7 @@ const entityConfigs = {
     domains: {
         icon: "mdi-tag-outline",
         name: "domains",
+        entityType: "domains",
         nameSingular: "domain",
         displayName: "domains",
         displayNameSingular: "domain",
@@ -324,6 +336,7 @@ const entityConfigs = {
     sdgs: {
         icon: "mdi-sprout-outline",
         name: "sdgs",
+        entityType: "sdgs",
         nameSingular: "sdg",
         displayName: "Sustainable Development Goals",
         displayNameSingular: "Sustainable Development Goal",
@@ -341,6 +354,7 @@ const entityConfigs = {
     countries: {
         icon: "mdi-earth",
         name: "countries",
+        entityType: "countries",
         nameSingular: "country",
         displayName: "countries",
         displayNameSingular: "country",
@@ -357,6 +371,7 @@ const entityConfigs = {
     continents: {
         icon: "mdi-earth",
         name: "continents",
+        entityType: "continents",
         nameSingular: "continent",
         displayName: "continents",
         displayNameSingular: "continent",
@@ -375,6 +390,7 @@ const entityConfigs = {
     languages: {
         icon: "mdi-translate",
         name: "languages",
+        entityType: "languages",
         nameSingular: "language",
         displayName: "languages",
         displayNameSingular: "language",
@@ -391,6 +407,7 @@ const entityConfigs = {
     types: {
         icon: "mdi-shape-outline",
         name: "types",
+        entityType: "types",
         nameSingular: "type",
         displayName: "types",
         displayNameSingular: "type",
@@ -409,6 +426,7 @@ const entityConfigs = {
     "source-types": {
         icon: "mdi-shape-outline",
         name: "source-types",
+        entityType: "source-types",
         nameSingular: "source type",
         displayName: "source types",
         displayNameSingular: "source type",
@@ -424,6 +442,7 @@ const entityConfigs = {
     "institution-types": {
         icon: "mdi-shape-outline",
         name: "institution-types",
+        entityType: "institution-types",
         nameSingular: "institution type",
         displayName: "institution types",
         displayNameSingular: "institution type",
@@ -441,6 +460,7 @@ const entityConfigs = {
     "licenses": {
         icon: "mdi-lock-open-outline",
         name: "licenses",
+        entityType: "licenses",
         nameSingular: "license",
         displayName: "licenses",
         displayNameSingular: "license",
@@ -487,13 +507,8 @@ const getEntityConfig = function (name) {
         return c.nameSingular === name || c.name === name
     })
 }
-const externalEntityNames = getEntityConfigs()
-    .filter(c => !c.isNative)
-    .map(c => c.name)
 
-const nativeEntityFirstLetters = getEntityConfigs()
-    .filter(c => c.isNative)
-    .map(c => c.name.substr(0, 1))
+
 
 const nativeEntityTypeFromId = function (id) {
     const shortId = shortenOpenAlexId(id)
@@ -522,6 +537,45 @@ const externalEntityTypeFromId = function (id) {
         })
 }
 
+// test cases:
+// openalex:W1234567 => { entityType: "works", name: "w1234567" }
+// openalex:a1234567 => { entityType: "authors", name: "a1234567" }
+// W1234567 => { entityType: "works", name: "w1234567" }
+// sdgs/1 => { entityType: "sdgs", name: "1" }
+// types/article => { entityType: "types", name: "article" }
+// https://openalex.org/works/W1234567 => { entityType: "works", name: "w1234567" }
+// https://openalex.org/types/article => { entityType: "types", name: "article" }
+const parseEntityId = function (id) {
+    if (!id) return
+    id = id.toLowerCase()
+    id = id.replaceAll("https://openalex.org/", "")
+    id = id.replaceAll("openalex:", "")
+
+
+    getEntityConfigs().filter(c => c.isNative).forEach(c => {
+        const entityTypeFirstLetter = c.entityType.substr(0, 1)
+        const regex = new RegExp(`^${entityTypeFirstLetter}\\d+$`)
+        if (regex.test(id)) {
+            id = c.entityType + "/" + id
+        }
+    })
+    const entityType = id.split("/")[0]
+    const validentityTypes = getEntityConfigs().map(c => c.entityType)
+    if (!validentityTypes.includes(entityType)) {
+        throw new Error(`OpenAlex: parseEntityId(): id has invalid entityType: ${entityType}`)
+    }
+
+    const entityKey = id.split()
+    if (!entityKey) {
+        throw new Error(`OpenAlex: parseEntityId(): id has no name. id: ${id}`)
+    }
+
+    return {
+        entityType,
+        entityKey,
+    }
+}
+
 const urlPartsFromId = function (id) {
     const shortId = shortenOpenAlexId(id)
     const entityType = entityTypeFromId(id)
@@ -535,6 +589,14 @@ const urlPartsFromId = function (id) {
         entityId,
     }
 }
+
+
+
+
+// maybe make something that parses an id, no matter what the format, and returns the entityType and entityId
+
+
+
 
 
 const getLocationString = function (entity) {
@@ -561,4 +623,5 @@ export {
     nativeEntityTypeFromId,
     externalEntityTypeFromId,
     urlPartsFromId,
+    parseEntityId,
 }

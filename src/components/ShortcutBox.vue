@@ -118,7 +118,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId} from "@/entityConfigs";
+import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
 import {findFacetConfig, findFacetConfigs, getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
