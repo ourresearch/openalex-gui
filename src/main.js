@@ -45,7 +45,7 @@ import VueShortkey from 'vue-shortkey'
 Vue.use(VueShortkey)
 
 import AsyncComputed from 'vue-async-computed'
-import {entityConfigs, externalEntityTypeFromId, getEntityConfig, urlPartsFromId} from "@/entityConfigs";
+import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
 
 Vue.use(AsyncComputed)
 
@@ -53,12 +53,6 @@ Vue.use(AsyncComputed)
 Vue.filter("entityWorksLink", function (id) {
     const entityType = entityTypeFromId(id)
     if (!id || !entityType) return
-
-    // const shortId = shortenOpenAlexId(id)
-    // const idForFilter = externalEntityTypeFromId(id) ?
-    //     shortId.split("/")[1] :
-    //     shortId
-    //
     const idForFilter = shortenOpenAlexId(id)
 
 

@@ -1,22 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import router from "../router";
-import sanitizeHtml from 'sanitize-html';
-
-
-import {api} from "../api";
-import {facetConfigs} from "../facetConfigs";
-import {
-    filtersFromUrlStr,
-    filtersAsUrlStr,
-    filtersFromFiltersApiResponse,
-    createSimpleFilter
-} from "../filterConfigs";
-import {entityTypes, entityTypeFromId, idsAreEqual} from "../util";
+// import router from "../router";
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
-import axios from "axios";
 
 Vue.use(Vuex)
 
