@@ -103,8 +103,8 @@ export default {
       const factsToShow = {
         works: undefined,
         authors: [
-          this.result.last_known_institution?.display_name,
-          getLocationString(this.result.last_known_institution),
+            this.result.last_known_institutions.map(i => i.display_name).join(", "),
+          // getLocationString(this.result.last_known_institution),
         ],
         sources: [
           this.result.type,

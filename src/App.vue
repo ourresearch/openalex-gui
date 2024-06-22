@@ -34,16 +34,11 @@
               </span>
 
       </router-link>
-<!--      <search-bar-->
-<!--          v-if="$route.name === 'Serp'"-->
-<!--          class="flex-grow-1 mx-12"-->
-<!--      />-->
-<!--      <v-spacer v-else />-->
       <div
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
           v-if="$route.name === 'Serp'"
       >
-<!--        <entity-type-selector v-if="!$vuetify.breakpoint.mobile" />-->
+        <entity-type-selector v-if="!$vuetify.breakpoint.mobile" />
         <shortcut-box
             style="max-width: 800px;"
             class="flex-grow-1 d-none d-lg-block"

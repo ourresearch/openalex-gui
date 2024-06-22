@@ -80,11 +80,11 @@ const entityConfigs = {
         hasSerp: true,
         highlightFilters: [
             {key: "has_orcid", value: true, displayName: "with ORCIDs"},
-            {key: "last_known_institution.is_global_south", value: true, displayName: "from the Global South"},
+            {key: "last_known_institutions.is_global_south", value: true, displayName: "from the Global South"},
         ],
         rowsToShowOnEntityPage: [
             "display_name_alternatives",
-            "last_known_institution.id",
+            "last_known_institutions.id",
             "affiliations.institution.id",
             "ids.orcid",
             null,
@@ -92,8 +92,8 @@ const entityConfigs = {
             "summary_stats.i10_index",
         ],
         groupByDefaults: [
-            "last_known_institution.id",
-            "last_known_institution.country_code",
+            "last_known_institutions.id",
+            "last_known_institutions.country_code",
             "has_orcid",
         ],
 
