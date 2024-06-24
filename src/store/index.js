@@ -62,6 +62,7 @@ const stateDefaults = function () {
                 query: undefined,
             }
         ],
+        isDevEnv: false,
 
     }
     return ret
