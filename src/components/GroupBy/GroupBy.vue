@@ -88,7 +88,7 @@
               {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
             </div>
             <div class="body-2">
-              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }} works
+              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
             </div>
 
           </div>
@@ -118,7 +118,7 @@
 
     <v-card-actions >
       <v-spacer/>
-      <v-btn :disabled="!isMoreToShow" small rounded text @click="isDialogOpen = true">
+      <v-btn v-if="isMoreToShow" small rounded text @click="isDialogOpen = true">
         More...
       </v-btn>
 

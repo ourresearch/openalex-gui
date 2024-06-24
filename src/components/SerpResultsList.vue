@@ -10,7 +10,7 @@
 <!--      <action class="ml-2" action="sort"/>-->
       <serp-results-sort-button />
 
-      <serp-results-export-button />
+      <serp-results-export-button v-if="entityType === 'works'" />
       <v-menu offset-y rounded>
         <template v-slot:activator="{on}">
           <v-btn

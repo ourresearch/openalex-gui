@@ -1275,7 +1275,7 @@ const facetConfigs = function (entityType) {
             key: "apc_usd",
             entityType: "sources",
             displayName: "Article Processing Charge",
-            type: "select",
+            type: "range",
             categories: ["popular"],
             actions: ["filter"],
             actionsPopular: ["filter"],

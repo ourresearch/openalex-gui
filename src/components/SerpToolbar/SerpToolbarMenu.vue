@@ -1,7 +1,12 @@
 <template>
   <div class="d-flex align-center pr-3">
 
-    <v-btn icon @click="$emit('toggle-alert')" >
+    <!-- you can only get alerts for new works -->
+    <v-btn
+        v-if="entityType === 'works'"
+        icon
+        @click="$emit('toggle-alert')"
+    >
       <template v-if="activeSearchHasAlert">
         <v-icon>mdi-bell-check</v-icon>
 <!--        Remove alert-->
