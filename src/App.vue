@@ -38,7 +38,9 @@
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
           v-if="$route.name === 'Serp'"
       >
-        <entity-type-selector v-if="!$vuetify.breakpoint.mobile" />
+        <entity-type-selector
+            v-if="!$vuetify.breakpoint.mobile"
+        />
         <shortcut-box
             style="max-width: 800px;"
             class="flex-grow-1 d-none d-lg-block"
@@ -225,6 +227,9 @@ export default {
     '$route': {
       immediate: true,
       handler(to, from) {
+        const isLocalHost = window.location.hostname === "localhost"
+        const isStaging = window.location.hostname === "staging.openalex.org"
+        this.$store.state.isDevEnv = isLocalHost || isStaging
 
       }
     }

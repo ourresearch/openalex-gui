@@ -1,5 +1,5 @@
 <template>
-  <span>
+  <span v-if="$store.state.isDevEnv">
 <!--    <a-->
 <!--        v-if="inline"-->
 <!--        class="entity-type-select-btn"-->
