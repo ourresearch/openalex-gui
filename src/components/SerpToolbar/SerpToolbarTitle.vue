@@ -8,9 +8,11 @@
     <!--    <v-btn icon to="/me/searches" v-if="userId" class="ml-3">-->
     <!--      <v-icon>mdi-folder-outline</v-icon>-->
     <!--    </v-btn>-->
-    <div>
+
+    <!-- you can only save works searches for now -->
+    <div v-if="entityType === 'works'">
       <v-btn v-if="!userId" rounded text class="font-weight-regular" @click="clickTitle">
-        Unsaved search
+         Unsaved search
         <v-icon class="ml-1">mdi-menu-down</v-icon>
       </v-btn>
       <v-menu v-else offset-y>
