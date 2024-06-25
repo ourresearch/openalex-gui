@@ -119,12 +119,12 @@ const routes = [
 
     {
         path: '/webinars', beforeEnter() {
-            window.location.href = "https://help.openalex.org/events/webinars"
+            window.location.href = "https://help.openalex.org/hc/en-us/articles/24428492324631-Webinars"
         }
     },
     {
         path: '/open-houses', beforeEnter() {
-            window.location.href = "https://help.openalex.org/events/open-houses"
+            window.location.href = "https://help.openalex.org/hc/en-us/articles/24428530346263-Open-houses"
         }
     },
     {
