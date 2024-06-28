@@ -8,11 +8,15 @@
 <!--      {{ entityTypeConfig.displayName }}-->
 <!--    </a>-->
     <v-btn
-        icon
+        rounded
+        text
+        x-large
         v-if="$vuetify.breakpoint.mobile"
         :id="myId"
+        class="pl-0 pr-0"
     >
       <v-icon>{{ entityTypeConfig.icon }}</v-icon>
+      <v-icon>mdi-menu-down</v-icon>
     </v-btn>
     <v-btn
         v-else

@@ -79,7 +79,7 @@
         </v-list>
       </v-menu>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-<!--        <entity-type-selector v-if="$vuetify.breakpoint.mobile" />-->
+        <entity-type-selector  />
         <shortcut-box
             class="flex-grow-1"
         />
