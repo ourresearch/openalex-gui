@@ -203,8 +203,8 @@ const router = new VueRouter({
 
 const redirectFromOldFilters = function (to, from, next) {
     const redirects = {
-        "institutions.country_code": "authorships.countries",
-        "topics.id": "primary_topic.id",
+        // "institutions.country_code": "authorships.countries",
+        // "topics.id": "primary_topic.id",
     }
     const isRedirectNeeded = Object.keys(redirects).some(key => {
         return to.name === "Serp" && to.fullPath.includes(key)
