@@ -1091,6 +1091,17 @@ const facetConfigs = function (entityType) {
             },
         },
         {
+            key: "affiliations.institution.type",
+            entityType: "authors",
+            entityId: "institution-types",
+            displayName: "Past institutions type",
+            type: "select",
+            categories: ["institution"],
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter",],
+            icon: "mdi-shape-outline",
+        },
+        {
             key: "last_known_institutions.id",
             entityType: "authors",
             displayName: "institution",
@@ -1114,7 +1125,7 @@ const facetConfigs = function (entityType) {
             actions: ["filter", "group_by"],
             actionsPopular: ["filter", "group_by"],
             icon: "mdi-earth",
-            extractFn: (entity) => {
+            extractFn: (entity) => { // i think this is wrong, but unused?
                 return entity.last_known_institutions.map(insti => {
                     return insti.institution
                 })
