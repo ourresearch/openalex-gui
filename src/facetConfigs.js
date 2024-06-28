@@ -1135,7 +1135,7 @@ const facetConfigs = function (entityType) {
             key: "has_orcid",
             entityType: "authors",
             entityId: "authors",
-            displayName: "Indexed by ORCID",
+            displayName: "Has an ORCID",
             type: "boolean",
             booleanValues: ["No ORCID", "Has ORCID"],
             actions: ["filter", "group_by"],
