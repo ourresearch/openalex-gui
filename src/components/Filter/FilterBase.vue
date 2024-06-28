@@ -15,7 +15,7 @@
     <template v-if="$vuetify.breakpoint.mdAndUp">
       <td class="shrink align-center pl-4">
         <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
-        {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
+        {{ myFilterName }}
       </td>
       <td class="shrink pr-6" style="min-width: 5em; text-align: center;">
         <filter-verb
@@ -43,7 +43,7 @@
         <div class="d-flex align-center">
           <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
           <div>
-            {{ (myConfig.type === 'boolean' ? "work" : myConfig.displayName) | capitalize }}
+            {{ myFilterName}}
           </div>
           <v-spacer />
           <filter-verb
@@ -105,6 +105,14 @@ export default {
     ]),
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
+    },
+    myFilterName(){
+      if (this.myConfig.type === "boolean") {
+        return this.$pluralize(this.entityType, 1)
+      }
+      else {
+        return this.myConfig.displayName
+      }
     },
     myValue() {
       return url.readFilterValue(this.$route, this.entityType, this.index)
