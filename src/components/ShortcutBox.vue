@@ -189,7 +189,7 @@ export default {
           this.$pluralize(displayName, 2) :
           null
       if (!this.newFilter) {
-        return "Search OpenAlex"
+        return this.entityType === 'works' ? "Search OpenAlex" : "Search " + this.entityType
       } else if (this.newFilter.key === "publication_year") {
         return "Enter year or range of years"
       } else if (this.newFilter.type === "range") {
