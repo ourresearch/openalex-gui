@@ -250,6 +250,7 @@ const entityConfigs = {
         descr: "what works are about",
         eg: "RNA sequencing",
         placeholder: "Search topics",
+        // hasSerp: true,
         filterName: "topics",
         filterKey: "primary_topic.id",
         hintVerb: ":",
