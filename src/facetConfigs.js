@@ -1299,7 +1299,7 @@ const facetConfigs = function (entityType) {
         {
             key: "is_oa",
             entityType: "sources",
-            displayName: "Open Access",
+            displayName: "Fully open access",
             type: "boolean",
             categories: ["open access"],
             actions: ["filter"],
