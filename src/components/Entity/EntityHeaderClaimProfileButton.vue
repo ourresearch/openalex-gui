@@ -11,15 +11,14 @@
     >
       Claim profile
     </v-btn>
-    <v-btn
+    <div
         v-if="userAuthorId && userAuthorId === authorId"
-        color="primary"
-        rounded
-        class="ml-3"
-        @click="deleteAuthorId"
+        class="ml-3 primary--text font-weight-bold"
+        @click.alt="deleteAuthorId"
     >
-        Profile claimed
-    </v-btn>
+      <v-icon color="primary">mdi-check-decagram</v-icon>
+        claimed
+    </div>
 
     <v-dialog rounded max-width="300" v-model="isDialogOpen">
       <v-card rounded>
