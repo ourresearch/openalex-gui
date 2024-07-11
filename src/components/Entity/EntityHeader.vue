@@ -28,6 +28,11 @@
 <!--        <v-icon left>mdi-file-document-outline</v-icon>-->
         View works
       </v-btn>
+      <entity-header-claim-profile-button
+          v-if="myEntityType === 'authors'"
+          :author-id="entityData.id"
+      />
+
 
       <v-tooltip bottom v-if="entityData.homepage_url">
         <template v-slot:activator="{on}">
@@ -71,12 +76,17 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import EntityHeaderClaimProfileButton from "@/components/Entity/EntityHeaderClaimProfileButton.vue";
 import {getEntityConfig} from "@/entityConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 export default {
   name: "Template",
-  components: {WorkLinkouts, LinkEntityRolesList},
+  components: {
+    WorkLinkouts,
+    LinkEntityRolesList,
+    EntityHeaderClaimProfileButton,
+  },
   props: {
     entityData: Object,
     showPermalinkButton: Boolean,

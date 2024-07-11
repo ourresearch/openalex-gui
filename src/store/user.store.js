@@ -31,6 +31,7 @@ export const user = {
         id: "",
         name: "",
         email: "",
+        authorId: "",
         savedSearches: [],
         serpTabs: [makeDefaultSerpTab()],
         serpTabIndex: 0,
@@ -70,12 +71,14 @@ export const user = {
             state.name = ""
             state.email = ""
             state.savedSearches = []
+            state.authorId = ""
             localStorage.removeItem("token")
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id
             state.name = apiResp.name
             state.email = apiResp.email
+            state.authorId = apiResp.author_id
         },
         removeSerpTab(state, index) {
             console.log("remove serp tab", index)
@@ -169,6 +172,35 @@ export const user = {
             return resp
         },
 
+
+        // **************************************************
+        // CLAIM PROFILE
+        // **************************************************
+
+        async setAuthorId({commit, dispatch, state, getters}, authorId) {
+            const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
+            console.log("user.store setAuthorId", authorId, myUrl)
+            const resp = await axios.post(
+                myUrl,
+                {},
+                axiosConfig()
+            )
+            console.log("user.store setAuthorId resp: ", resp)
+            await dispatch("fetchUser")
+            commit("snackbar", "Profile claimed", {root: true})
+        },
+        async deleteAuthorId({commit, dispatch, state, getters}) {
+            const authorId = state.authorId
+            const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
+            console.log("user.store deleteAuthorId", authorId, myUrl)
+            const resp = await axios.delete(
+                myUrl,
+                axiosConfig()
+            )
+            console.log("user.store deleteAuthorId resp: ", resp)
+            await dispatch("fetchUser")
+            commit("snackbar", "Profile unclaimed", {root: true})
+        },
 
         // **************************************************
         // SAVED SEARCHES
@@ -365,6 +397,8 @@ export const user = {
         userName: (state) => state.name,
         userId: (state) => state.id,
         userEmail: (state) => state.email,
+
+        userAuthorId: (state) => state.authorId,
 
         userSavedSearches: (state) => state.savedSearches,
 
