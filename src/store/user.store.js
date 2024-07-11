@@ -187,7 +187,6 @@ export const user = {
             )
             console.log("user.store setAuthorId resp: ", resp)
             await dispatch("fetchUser")
-            commit("snackbar", "Profile claimed", {root: true})
         },
         async deleteAuthorId({commit, dispatch, state, getters}) {
             const authorId = state.authorId
