@@ -28,10 +28,10 @@
 <!--        <v-icon left>mdi-file-document-outline</v-icon>-->
         View works
       </v-btn>
-      <entity-header-claim-profile-button
-          v-if="myEntityType === 'authors'"
-          :author-id="entityData.id"
-      />
+<!--      <entity-header-claim-profile-button-->
+<!--          v-if="myEntityType === 'authors'"-->
+<!--          :author-id="entityData.id"-->
+<!--      />-->
 
 
       <v-tooltip bottom v-if="entityData.homepage_url">
