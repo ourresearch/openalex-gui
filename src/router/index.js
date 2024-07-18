@@ -19,7 +19,7 @@ import Me from "../views/Me.vue"
 import goTo from 'vuetify/es5/services/goto'
 import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
-import {entityTypeFromId, isOpenAlexId} from "@/util";
+import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
@@ -51,16 +51,17 @@ const routes = [
     },
 
     {
-        path: `/:entityId([waspfict]\\d+)`,
+        path: `/:entityId(.+\\d+)`,
         name: 'EntityPageShortcut',
         redirect: to => {
             const entityType = entityTypeFromId(to.params.entityId)
+            const entityId = shortenOpenAlexId(to.params.entityId)
             console.log("routes EntityPageShortcut", to.params)
             return {
                 name: "EntityPage",
                 params: {
                     entityType,
-                    entityId: to.params.entityId,
+                    entityId,
                 },
             }
         }
