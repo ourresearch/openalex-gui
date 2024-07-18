@@ -94,6 +94,10 @@ import SerpTabs from "@/components/SerpTabs.vue";
 import QrcodeVue from 'qrcode.vue'
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
 
+import {ret1} from "@/data/mockResults1";
+
+console.log("serp ret1", ret1);
+
 const shortUuid = require('short-uuid');
 
 
