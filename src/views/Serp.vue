@@ -96,7 +96,7 @@ import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
 
 import {ret1} from "@/data/mockResults1";
 
-console.log("serp ret1", ret1);
+console.log("serp ret1 to staging", ret1);
 
 const shortUuid = require('short-uuid');
 
