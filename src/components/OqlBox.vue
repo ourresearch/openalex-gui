@@ -1,22 +1,35 @@
 <template>
   <div>
-    <v-textarea
-        v-model="query"
-        label="OQL"
+    <div class="mb-2">
+      <v-chip
+        v-for="suggestion in autocompleteSuggestions"
+        :key="suggestion"
         outlined
-        clearable
-        auto-grow
-        rounded
-        rows="5"
-        placeholder="Enter your OQL here"
-        @keydown.ctrl.enter="search"
-        @keydown.meta.enter="search"
-    >
-    </v-textarea>
-    <div class="d-flex justify-center">
-      <v-btn x-large color="primary" rounded @click="search">
-        <v-icon left>mdi-magnify</v-icon>
-        Search
+        class="mr-1"
+        @click="replaceLastWord(suggestion)"
+      >
+        {{ suggestion}}
+      </v-chip>
+    </div>
+
+    <div class="d-flex align-end">
+      <v-textarea
+          v-model="query"
+          autofocus
+          label="OQL"
+          outlined
+          clearable
+          auto-grow
+          rounded
+          rows="1"
+          placeholder="Enter your OQL here"
+          @keydown.ctrl.enter="search"
+          @keydown.meta.enter="search"
+          @keydown.tab="tab"
+      >
+      </v-textarea>
+      <v-btn x-large color="primary" rounded @click="search" class="px-4 mb-8 ml-2 fill-height" style="min-width: 0;">
+        <v-icon >mdi-magnify</v-icon>
       </v-btn>
     </div>
   </div>
@@ -25,6 +38,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import axios from "axios";
 
 export default {
   name: "Template",
@@ -34,6 +48,7 @@ export default {
     return {
       foo: 42,
       query: "",
+      autocompleteSuggestions: [],
     }
   },
   computed: {
@@ -54,14 +69,39 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    async search(){
+    async search() {
       const newRoute = {name: "results", query: {q: this.query}}
       await this.$router.push(newRoute)
-        .catch((e) => {
+          .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
-                throw e
+              throw e
             }
-        })
+          })
+    },
+    async getAutocompleteSuggestions(){
+      const url = "https://api.openalex.org/query?q=" + this.query
+      const resp = await axios.get(url)
+      this.autocompleteSuggestions = resp.data.autocomplete.suggestions
+      console.log("getAutocompleteSuggestions", resp.data)
+    },
+    tab(){
+      if (this.autocompleteSuggestions.length > 0){
+        this.replaceLastWord(this.autocompleteSuggestions[0])
+
+        return false
+      }
+    },
+    replaceLastWord(newWord){
+      const words = this.query.split(" ")
+      words.pop()
+      words.push(newWord)
+      this.query = words.join(" ") + " "
+      setTimeout(() => {
+        const textArea = document.getElementsByTagName("textarea")[0]
+        textArea.focus()
+        textArea.selectionStart = textArea.value.length
+      }, 0);
+
     }
 
 
@@ -76,6 +116,12 @@ export default {
         this.query = value
       },
       immediate: true
+    },
+    query: {
+      handler: function (value) {
+        this.getAutocompleteSuggestions()
+      },
+      immediate: false
     }
   }
 }
