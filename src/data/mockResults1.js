@@ -1,9 +1,8 @@
 
 
-// OQL: using all works, get works return columns ids.openalex, has_abstract, primary_location.source.id, publication_year, authorships.author.id
 const ret1  = {
     meta: {
-        // ignoring for now
+        q: "using all works, get works return columns ids.openalex, has_abstract, primary_location.source.id, publication_year, authorships.author.id"
     },
     results: {
         header: [
