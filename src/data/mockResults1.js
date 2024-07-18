@@ -119,7 +119,7 @@ const ret1  = {
                     type: "entity",
                     value: {
                         "id": "https://openalex.org/W1775749144",
-                        "display_name": "Journal of Biological Chemistry"
+                        "display_name": "PROTEIN MEASUREMENT WITH THE FOLIN PHENOL REAGENT"
                     }
                 },
 
@@ -133,7 +133,7 @@ const ret1  = {
                 {
                     type: "entity",
                     value: {
-                        "id": "https://openalex.org/S1234567890",
+                        "id": "https://openalex.org/S140251998",
                         "display_name": "Journal of Biological Chemistry"
                     }
                 },

@@ -6,7 +6,12 @@
       </v-col>
     </v-row>
     <v-row>
-      {{ results }}
+      <v-col>
+        <results-table :results="results" />
+
+
+
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -16,11 +21,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
 import {ret1} from "@/data/mockResults1";
+import ResultsTable from "@/components/Results/ResultsTable.vue";
 
 export default {
   name: "Template",
   components: {
     OqlBox,
+    ResultsTable,
   },
   props: {},
   data() {
@@ -49,7 +56,7 @@ export default {
       console.log("getResults", this.$route.query.q)
       this.$store.state.isLoading = true
       setTimeout(() => {
-        this.results = _.cloneDeep(ret1)
+        this.results = _.cloneDeep(ret1.results)
         this.$store.state.isLoading = false
       }, 500)
     }
