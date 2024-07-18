@@ -5,6 +5,9 @@
         <OqlBox/>
       </v-col>
     </v-row>
+    <v-row>
+      {{ results }}
+    </v-row>
   </v-container>
 </template>
 
@@ -12,6 +15,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
+import {ret1} from "@/data/mockResults1";
 
 export default {
   name: "Template",
@@ -22,6 +26,7 @@ export default {
   data() {
     return {
       foo: 42,
+      results: null,
     }
   },
   computed: {
@@ -40,6 +45,14 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
+    getResults(){
+      console.log("getResults", this.$route.query.q)
+      this.$store.state.isLoading = true
+      setTimeout(() => {
+        this.results = _.cloneDeep(ret1)
+        this.$store.state.isLoading = false
+      }, 500)
+    }
 
 
   },
@@ -47,7 +60,16 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    "$route.query.q": {
+      handler: function (value) {
+        this.getResults()
+      },
+      immediate: true
+    }
+
+
+  }
 }
 </script>
 
