@@ -7,10 +7,10 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <div class="text-h5 ml-3 mb-3">
-                Search and analyze the world's research.
-              </div>
-              <shortcut-box show-examples autofocus />
+<!--              <div class="text-h5 ml-3 mb-3">-->
+<!--                Search and analyze the world's research.-->
+<!--              </div>-->
+              <OqlBox />
 
             </div>
 
@@ -161,16 +161,14 @@
 
 import {VueTyper} from 'vue-typer'
 import {mapGetters} from "vuex";
-import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
+import OqlBox from "@/components/OqlBox.vue";
 
-import ShortcutBox from "@/components/ShortcutBox.vue";
 
 export default {
   name: 'home',
   components: {
-    UserSavedSearch,
+    OqlBox,
     VueTyper,
-    ShortcutBox,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",

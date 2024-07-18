@@ -7,6 +7,7 @@ import Help from "../views/Help.vue";
 import OpenAlexStats from "../views/OpenAlexStats.vue";
 
 import Serp from "../views/Serp";
+import Results from "@/components/Results.vue";
 import EntityPage from "@/views/EntityPage.vue";
 import About from "../views/About";
 import store from "@/store";
@@ -42,6 +43,11 @@ const routes = [
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
         component: Serp,
+    },
+    {
+        path: "/results",
+        name: "results",
+        component: Results,
     },
 
     {
