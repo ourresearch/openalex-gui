@@ -50,13 +50,13 @@ const routes = [
         component: Results,
     },
 
+    // improve this when we've got entity regexes
     {
         path: `/:entityId(.+\\d+)`,
         name: 'EntityPageShortcut',
         redirect: to => {
             const entityType = entityTypeFromId(to.params.entityId)
             const entityId = shortenOpenAlexId(to.params.entityId)
-            console.log("routes EntityPageShortcut", to.params)
             return {
                 name: "EntityPage",
                 params: {
@@ -66,6 +66,25 @@ const routes = [
             }
         }
     },
+    // improve this when we've got entity regexes
+    {
+        path: `/entity/:entityId`,
+        name: 'EntityPageRedirect',
+        redirect: to => {
+            const entityType = entityTypeFromId(to.params.entityId)
+            const entityId = shortenOpenAlexId(to.params.entityId)
+            return {
+                name: "EntityPage",
+                params: {
+                    entityType,
+                    entityId,
+                },
+            }
+        }
+    },
+
+
+
 
 
     // user pages and routes
