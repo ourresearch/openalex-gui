@@ -2,11 +2,16 @@
   <v-simple-table v-if="results">
     <thead>
 
+    <th key="selector" class="selector">
+      <v-btn icon>
+        <v-icon>mdi-checkbox-blank-outline</v-icon>
+      </v-btn>
+    </th>
     <th
         v-for="(header, i) in results.header"
         :key="'header-'+i"
     >
-      {{ header.displayName}}
+      {{ header.displayName }}
     </th>
     </thead>
     <tbody>
@@ -14,6 +19,11 @@
         v-for="(row, i) in rows"
         :key="'row-'+i"
     >
+      <td key="selector" class="selector">
+        <v-btn icon>
+          <v-icon>mdi-checkbox-blank-outline</v-icon>
+        </v-btn>
+      </td>
       <td
           v-for="(cell, i) in row"
           :key="'cell-'+i"
@@ -26,13 +36,13 @@
             Array of strings...
           </template>
           <template v-else>
-            {{ cell.value | truncate(100)}}
+            {{ cell.value | truncate(100) }}
           </template>
 
         </template>
         <template v-else-if="cell.type==='number'">
           <template v-if="cell.config.isCurrency">
-            ${{ cell.value | currency }}
+            ${{ cell.value | toPrecision }}
           </template>
           <template v-else-if="cell.config.isYear">
             {{ cell.value }}
@@ -51,11 +61,12 @@
                 :key="'entity-'+i"
                 :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: entity?.id}}"
             >
-              {{ entity?.display_name }}{{ i < cell.value.length - 1 ? ', ' : ''}}
+              {{ entity?.display_name }}{{ i < cell.value.length - 1 ? ', ' : '' }}
             </router-link>
           </template>
           <template v-else-if="cell.value.id">
-            <router-link :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: cell.value.id}}">
+            <router-link
+                :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: cell.value.id}}">
               {{ cell.value.display_name }}
             </router-link>
           </template>
@@ -83,6 +94,7 @@ export default {
   data() {
     return {
       foo: 42,
+      selectedRows: [],
     }
   },
   computed: {
@@ -93,7 +105,7 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    rows(){
+    rows() {
       return this.results.body.map((row) => {
         return row.map((cell, i) => {
           return {
@@ -124,8 +136,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
- a {
-   text-decoration: none;
- }
+a {
+  text-decoration: none;
+}
 
 </style>
