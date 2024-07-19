@@ -37,11 +37,15 @@
         </template>
         <template v-else-if="cell.type==='entity'">
           <template v-if="Array.isArray(cell.value)">
-            list of entities
+            <router-link
+                v-for="(entity, i) in cell.value"
+                :key="'entity-'+i"
+                :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: entity?.id}}"
+            >
+              {{ entity?.display_name }}{{ i < cell.value.length - 1 ? ', ' : ''}}
+            </router-link>
           </template>
           <template v-else-if="cell.value.id">
-<!--            {{ cell.value  }}-->
-
             <router-link :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: cell.value.id}}">
               {{ cell.value.display_name }}
             </router-link>
@@ -111,5 +115,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+ a {
+   text-decoration: none;
+ }
 
 </style>
