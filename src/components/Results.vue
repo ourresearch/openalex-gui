@@ -67,13 +67,20 @@ export default {
       this.$store.state.isLoading = true
       // const myUrl = "https://api.openalex.org/results?q=" + this.$route.query.q
 
-      const myUrl = "https://api.openalex.org/results?q=using%20works&format=ui" + "&page=" + this.page
+      // const myUrl = "https://api.openalex.org/results?q=using%20works&format=ui" + "&page=" + this.page
+      const myUrl = "https://api.openalex.org/results?"
+          + "q=" + this.$route.query.q
+          + "&format=ui"
+          + "&page=" + this.page
+
       const resp = await axios.get(myUrl)
       console.log("getResults", resp.data, this.$route.query.q)
-      const body = concat ? this.results.body.concat(resp.data.body) : resp.data.body
-      this.results = {header: resp.data.header, body }
+      const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
+      this.results = {header: resp.data.results.header, body }
 
       this.$store.state.isLoading = false
+
+
 
 
 
