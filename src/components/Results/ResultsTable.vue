@@ -11,15 +11,23 @@
     </thead>
     <tbody>
     <tr
-        v-for="(row, i) in results.body"
+        v-for="(row, i) in rows"
         :key="'row-'+i"
     >
       <td
           v-for="(cell, i) in row"
           :key="'cell-'+i"
       >
-        <template v-if="cell.type==='string'">
-          {{ cell.value }}
+        <template v-if="cell.value === null">
+          -
+        </template>
+        <template v-else-if="cell.type==='string'">
+          <template v-if="cell.config.id === 'abstract'">
+            {{ unravel(cell.value) | truncate(50)}}
+          </template>
+          <template v-else>
+            {{ cell.value }}
+          </template>
         </template>
         <template v-else-if="cell.type==='number'">
           {{ cell.value }}
@@ -28,13 +36,18 @@
           {{ cell.value }}
         </template>
         <template v-else-if="cell.type==='entity'">
-          <template v-if="cell.isList">
+          <template v-if="Array.isArray(cell.value)">
             list of entities
           </template>
-          <template v-else>
-            <router-link :to="{name: 'EntityPageShortcut', params: {entityId: cell.value.id}}">
+          <template v-else-if="cell.value.id">
+<!--            {{ cell.value  }}-->
+
+            <router-link :to="{name: 'EntityPage', params: {entityType: cell.config.objectEntity, entityId: cell.value.id}}">
               {{ cell.value.display_name }}
             </router-link>
+          </template>
+          <template v-else>
+            MISSING ID
           </template>
         </template>
       </td>
@@ -46,6 +59,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {unravel} from "../../util";
 
 export default {
   name: "Template",
@@ -66,9 +80,20 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    rows(){
+      return this.results.body.map((row) => {
+        return row.map((cell, i) => {
+          return {
+            ...cell,
+            config: this.results.header[i],
+          }
+        })
+      })
+    }
   },
 
   methods: {
+    unravel,
     ...mapMutations([
       "snackbar",
     ]),

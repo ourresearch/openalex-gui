@@ -123,6 +123,7 @@ const compareByCount = function (a, b) {
     return 0;
 }
 
+
 const unravel = function (invertedIndex) {
     if (!invertedIndex) return
     const unraveled = {}
