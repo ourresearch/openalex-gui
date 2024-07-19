@@ -22,12 +22,7 @@
           -
         </template>
         <template v-else-if="cell.type==='string'">
-          <template v-if="cell.config.id === 'abstract'">
-            {{ unravel(cell.value) | truncate(50)}}
-          </template>
-          <template v-else>
-            {{ cell.value }}
-          </template>
+            {{ cell.value | truncate(100)}}
         </template>
         <template v-else-if="cell.type==='number'">
           {{ cell.value }}

@@ -5,6 +5,9 @@
         <OqlBox/>
       </v-col>
     </v-row>
+    <div v-if="!$store.state.isLoading">
+      1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }} results
+    </div>
     <v-row>
       <v-col>
         <results-table :results="results" />
@@ -40,6 +43,7 @@ export default {
     return {
       foo: 42,
       page: 1,
+      meta: {},
       results: {
         header: [],
         body: []
@@ -73,7 +77,11 @@ export default {
       const resp = await axios.get(myUrl)
       console.log("getResults", resp.data, this.$route.query.q)
       const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
-      this.results = {header: resp.data.results.header, body }
+      this.meta = resp.data.meta,
+      this.results = {
+        header: resp.data.results.header,
+        body
+      }
 
       this.$store.state.isLoading = false
 
