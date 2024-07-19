@@ -22,10 +22,24 @@
           -
         </template>
         <template v-else-if="cell.type==='string'">
+          <template v-if="Array.isArray(cell.value)">
+            Array of strings...
+          </template>
+          <template v-else>
             {{ cell.value | truncate(100)}}
+          </template>
+
         </template>
         <template v-else-if="cell.type==='number'">
-          {{ cell.value }}
+          <template v-if="cell.config.isCurrency">
+            ${{ cell.value | currency }}
+          </template>
+          <template v-else-if="cell.config.isYear">
+            {{ cell.value }}
+          </template>
+          <template v-else>
+            {{ cell.value | toPrecision }}
+          </template>
         </template>
         <template v-else-if="cell.type==='boolean'">
           {{ cell.value }}
