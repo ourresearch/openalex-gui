@@ -65,11 +65,8 @@ export default {
     async getResults(concat){
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
-      // const myUrl = "https://api.openalex.org/results?q=" + this.$route.query.q
-
-      // const myUrl = "https://api.openalex.org/results?q=using%20works&format=ui" + "&page=" + this.page
       const myUrl = "https://api.openalex.org/results?"
-          + "q=" + this.$route.query.q
+          + (this.$route.query.q ? "q=" + this.$route.query.q : "")
           + "&format=ui"
           + "&page=" + this.page
 

@@ -70,7 +70,8 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     async search() {
-      const newRoute = {name: "results", query: {q: this.query}}
+      const q = (this.query) ? this.query : undefined
+      const newRoute = {name: "results", query: {q}}
       await this.$router.push(newRoute)
           .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
