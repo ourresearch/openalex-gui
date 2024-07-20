@@ -3,8 +3,8 @@
     <thead>
 
     <th key="selector" class="selector">
-      <v-btn icon>
-        <v-icon>mdi-checkbox-blank-outline</v-icon>
+      <v-btn icon @click="clickSelectAllButton">
+        <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
     </th>
     <th
@@ -20,8 +20,9 @@
         :key="'row-'+i"
     >
       <td key="selector" class="selector">
-        <v-btn icon>
-          <v-icon>mdi-checkbox-blank-outline</v-icon>
+        <v-btn icon @click="toggleSelectedId(row[0].value)">
+          <v-icon v-if="selectedIds.includes(row[0].value)" >mdi-checkbox-marked</v-icon>
+          <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
         </v-btn>
       </td>
       <td
@@ -85,6 +86,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
 
+
+
 export default {
   name: "Template",
   components: {},
@@ -94,7 +97,7 @@ export default {
   data() {
     return {
       foo: 42,
-      selectedRows: [],
+      selectedIds: [],
     }
   },
   computed: {
@@ -114,6 +117,17 @@ export default {
           }
         })
       })
+    },
+    selectAllIcon() {
+      if (this.selectedIds.length === this.results.body.length) {
+        return "mdi-checkbox-marked"
+      }
+      else if (this.selectedIds.length === 0) {
+        return "mdi-checkbox-blank-outline"
+      }
+      else {
+        return "mdi-minus-box-outline"
+      }
     }
   },
 
@@ -124,6 +138,28 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
+    addSelectedId(id) {
+      this.selectedIds.push(id)
+    },
+    removeSelectedId(id) {
+      this.selectedIds = this.selectedIds.filter((i) => i !== id)
+    },
+    toggleSelectedId(id) {
+      if (this.selectedIds.includes(id)) {
+        this.removeSelectedId(id)
+      } else {
+        this.addSelectedId(id)
+      }
+    },
+    clickSelectAllButton(){
+      if (this.selectedIds.length === 0) {
+        this.selectedIds = this.results.body.map((row) => row[0].value)
+      }
+      else {
+        this.selectedIds = []
+      }
+
+    }
 
 
   },
