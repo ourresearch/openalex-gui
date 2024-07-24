@@ -20,13 +20,13 @@
         :key="'row-'+i"
     >
       <td key="selector" class="selector">
-        <v-btn icon @click="toggleSelectedId(row[0].value)">
-          <v-icon v-if="selectedIds.includes(row[0].value)" >mdi-checkbox-marked</v-icon>
+        <v-btn icon @click="toggleSelectedId(row.id)">
+          <v-icon v-if="selectedIds.includes(row.id)" >mdi-checkbox-marked</v-icon>
           <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
         </v-btn>
       </td>
       <td
-          v-for="(cell, i) in row"
+          v-for="(cell, i) in row.cellsWithConfigs"
           :key="'cell-'+i"
       >
         <template v-if="cell.value === null">
@@ -110,12 +110,15 @@ export default {
     ]),
     rows() {
       return this.results.body.map((row) => {
-        return row.map((cell, i) => {
-          return {
-            ...cell,
-            config: this.results.header[i],
-          }
-        })
+        return {
+          ...row,
+          cellsWithConfigs: row.cells.map((cell, i) => {
+            return {
+              ...cell,
+              config: this.results.header[i],
+            }
+          })
+        }
       })
     },
     selectAllIcon() {
@@ -153,7 +156,7 @@ export default {
     },
     clickSelectAllButton(){
       if (this.selectedIds.length === 0) {
-        this.selectedIds = this.results.body.map((row) => row[0].value)
+        this.selectedIds = this.results.body.map((row) => row.id)
       }
       else {
         this.selectedIds = []
