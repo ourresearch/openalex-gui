@@ -209,6 +209,8 @@ export default {
     }
   },
   async mounted() {
+    this.$root.config = await axios.get("https://api.openalex.org/entities/config")
+
     setInterval(async () => {
       if (!this.$store.state.exportProgressUrl) return
       const resp = await axios.get(this.$store.state.exportProgressUrl)
