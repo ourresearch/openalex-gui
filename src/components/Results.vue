@@ -69,7 +69,7 @@ export default {
     async getResults(concat){
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
-      const myUrl = "https://api.openalex.org/results?"
+      const myUrl = "https://api.openalex.org/entities?"
           + (this.$route.query.q ? "q=" + this.$route.query.q : "")
           + "&format=ui"
           + "&page=" + this.page
