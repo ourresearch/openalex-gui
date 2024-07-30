@@ -70,7 +70,10 @@ export default {
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
       const myUrl = "https://api.openalex.org/entities?"
-          + (this.$route.query.q ? "q=" + this.$route.query.q : "")
+          + (this.$route.query.q ?
+              "q=" + this.$route.query.q.replace(/(\r\n|\n|\r)/g, " ") :
+              ""
+          )
           + "&format=ui"
           + "&page=" + this.page
 
