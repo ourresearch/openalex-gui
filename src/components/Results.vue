@@ -75,7 +75,6 @@ export default {
           + "&page=" + this.page
 
       const resp = await axios.get(myUrl)
-      console.log("getResults", resp.data, this.$route.query.q)
       const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
       this.meta = resp.data.meta,
       this.results = {
