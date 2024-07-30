@@ -1,6 +1,6 @@
 <template>
   <v-row class="">
-    <v-col cols="9">
+    <v-col cols="12">
 
     <v-simple-table v-if="results">
       <thead>
@@ -84,9 +84,9 @@
       </tbody>
     </v-simple-table>
     </v-col>
-    <v-col cols="3">
-      <entity v-if="zoomId" :id="zoomId"/>
-    </v-col>
+<!--    <v-col cols="3">-->
+<!--      <entity v-if="zoomId" :id="zoomId"/>-->
+<!--    </v-col>-->
 
   </v-row>
 </template>
@@ -178,7 +178,7 @@ export default {
     },
     clickRow(rowId){
       console.log("clickRow", rowId)
-      this.zoomId = rowId
+      // this.zoomId = rowId
     }
 
 
