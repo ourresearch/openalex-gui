@@ -62,6 +62,7 @@ const toPrecision = function (number, precision) {
     if (typeof number === 'undefined' || number === null) return ''
 
     if (number === 0) return '0'
+    if (typeof number === 'string') number = parseFloat(number);
 
     const roundedValue = round(precision, number)
     const floorValue = Math.floor(roundedValue)
