@@ -70,7 +70,7 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     async search() {
-      const q = (this.query) ? this.query : undefined
+      const q = (this.query?.replace(/\s/m, " ")) ? this.query : undefined
       const newRoute = {name: "results", query: {q}}
       await this.$router.push(newRoute)
           .catch((e) => {
