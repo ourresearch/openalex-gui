@@ -138,6 +138,7 @@ import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
+import {entity} from "@/entity";
 
 export default {
   name: 'App',
@@ -209,7 +210,9 @@ export default {
     }
   },
   async mounted() {
-    this.$root.config = await axios.get("https://api.openalex.org/entities/config")
+    const configResp = await axios.get("https://api.openalex.org/entities/config")
+    this.$root.config = configResp.data
+
 
     setInterval(async () => {
       if (!this.$store.state.exportProgressUrl) return

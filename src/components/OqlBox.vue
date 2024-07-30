@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div class="mb-2">
-      <v-chip
-        v-for="suggestion in autocompleteSuggestions"
-        :key="suggestion"
-        outlined
-        class="mr-1"
-        @click="replaceLastWord(suggestion)"
-      >
-        {{ suggestion}}
-      </v-chip>
-    </div>
+<!--    <div class="mb-2">-->
+<!--      <v-chip-->
+<!--        v-for="suggestion in autocompleteSuggestions"-->
+<!--        :key="suggestion"-->
+<!--        outlined-->
+<!--        class="mr-1"-->
+<!--        @click="replaceLastWord(suggestion)"-->
+<!--      >-->
+<!--        {{ suggestion}}-->
+<!--      </v-chip>-->
+<!--    </div>-->
 
     <div class="d-flex align-end">
       <v-textarea
@@ -126,7 +126,7 @@ export default {
     },
     query: {
       handler: function (value) {
-        this.getAutocompleteSuggestions()
+        // this.getAutocompleteSuggestions()
       },
       immediate: false
     }
