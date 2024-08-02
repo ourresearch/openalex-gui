@@ -5,12 +5,10 @@
         <OqlBox/>
       </v-col>
     </v-row>
-    <div v-if="!$store.state.isLoading">
-      1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }} results
-    </div>
+
     <v-row>
       <v-col>
-        <results-table :results="results" />
+        <results-table :results="results" :meta="meta" />
 
         <div v-if="results.body.length >= 20" class="d-flex py-1">
           <v-btn @click="page += 1">
