@@ -55,7 +55,7 @@
 
             <template v-else>
               PROPERTY WE DONT KNOW HOW TO HANDLE:
-              {{ property.value }} ({{ property.config.newType }})
+              {{ property }}
             </template>
           </template>
 

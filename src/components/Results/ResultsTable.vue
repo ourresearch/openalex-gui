@@ -1,48 +1,54 @@
 <template>
   <v-row class="">
     <v-col cols="9">
+      <div class="table-meta d-flex align-center">
 
-    <v-simple-table v-if="results">
-      <thead>
-
-      <th key="selector" class="selector">
         <v-btn icon @click="clickSelectAllButton">
           <v-icon>{{ selectAllIcon }}</v-icon>
         </v-btn>
-      </th>
-      <th
-          v-for="(header, i) in results.header"
-          :key="'header-'+i"
-      >
-        {{ header.displayName }}
-      </th>
-      </thead>
-      <tbody>
-      <tr
-          v-for="(row, i) in rows"
-          :key="'row-'+i"
-          @click="clickRow(row.id)"
-      >
-        <td key="selector" class="selector">
-          <v-btn icon @click="toggleSelectedId(row.id)">
-            <v-icon v-if="selectedIds.includes(row.id)" >mdi-checkbox-marked</v-icon>
-            <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-          </v-btn>
-        </td>
-        <td
-            v-for="(cell, i) in row.cellsWithConfigs"
-            :key="'cell-'+i"
+        <v-spacer/>
+        <div v-if="!$store.state.isLoading">
+          showing 1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }} results
+        </div>
+      </div>
+      <v-simple-table v-if="results">
+        <thead>
+        <th key="checkbox-placeholder"></th>
+        <th
+            v-for="(header, i) in results.header"
+            :key="'header-'+i"
         >
-          <prop-value :property="cell"/>
-        </td>
-      </tr>
-      </tbody>
-    </v-simple-table>
+          {{ header.displayName }}
+        </th>
+        </thead>
+        <tbody>
+        <tr
+            v-for="(row, i) in rows"
+            :key="'row-'+i"
+            @click="clickRow(row.id)"
+        >
+          <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
+            <v-btn icon @click="toggleSelectedId(row.id)">
+              <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+            </v-btn>
+          </td>
+          <td
+              v-for="(cell, i) in row.cellsWithConfigs"
+              :key="'cell-'+i"
+          >
+            <prop-value :property="cell"/>
+          </td>
+        </tr>
+        </tbody>
+      </v-simple-table>
     </v-col>
     <v-col cols="3">
       <div class="d-flex" v-if="zoomId">
-        <v-spacer />
-        <v-btn icon @click="zoomId=null"><v-icon>mdi-close</v-icon></v-btn>
+        <v-spacer/>
+        <v-btn icon @click="zoomId=null">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </div>
       <entity v-if="zoomId" :id="zoomId"/>
     </v-col>
@@ -58,7 +64,6 @@ import Entity from "@/components/Entity/Entity.vue";
 import PropValue from "@/components/PropValue.vue";
 
 
-
 export default {
   name: "Template",
   components: {
@@ -66,7 +71,8 @@ export default {
     PropValue,
   },
   props: {
-    results: Object
+    results: Object,
+    meta: Object,
   },
   data() {
     return {
@@ -99,11 +105,9 @@ export default {
     selectAllIcon() {
       if (this.selectedIds.length === this.results.body.length) {
         return "mdi-checkbox-marked"
-      }
-      else if (this.selectedIds.length === 0) {
+      } else if (this.selectedIds.length === 0) {
         return "mdi-checkbox-blank-outline"
-      }
-      else {
+      } else {
         return "mdi-minus-box-outline"
       }
     }
@@ -129,15 +133,14 @@ export default {
         this.addSelectedId(id)
       }
     },
-    clickSelectAllButton(){
+    clickSelectAllButton() {
       if (this.selectedIds.length === 0) {
         this.selectedIds = this.results.body.map((row) => row.id)
-      }
-      else {
+      } else {
         this.selectedIds = []
       }
     },
-    clickRow(rowId){
+    clickRow(rowId) {
       console.log("clickRow", rowId)
       this.zoomId = rowId.replace("https://openalex.org/", "")
     }
