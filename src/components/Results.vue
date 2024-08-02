@@ -8,7 +8,7 @@
 
     <v-row>
       <v-col>
-        <results-table :results="results" :meta="meta" />
+        <results-table :results="results" :meta="meta" :api-url="apiUrl" />
 
         <div v-if="results.body.length >= 20" class="d-flex py-1">
           <v-btn @click="page += 1">
@@ -46,6 +46,7 @@ export default {
         header: [],
         body: []
       },
+      apiUrl: "",
     }
   },
   computed: {
@@ -67,7 +68,7 @@ export default {
     async getResults(concat){
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
-      const myUrl = "https://api.openalex.org/entities?"
+      this.apiUrl = "https://api.openalex.org/entities?"
           + (this.$route.query.q ?
               "q=" + this.$route.query.q.replace(/(\r\n|\n|\r)/g, " ") :
               ""
@@ -75,7 +76,7 @@ export default {
           + "&format=ui"
           + "&page=" + this.page
 
-      const resp = await axios.get(myUrl)
+      const resp = await axios.get(this.apiUrl)
       const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
       this.meta = resp.data.meta,
       this.results = {

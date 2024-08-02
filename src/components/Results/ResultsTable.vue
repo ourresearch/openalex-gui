@@ -10,6 +10,9 @@
         <div v-if="!$store.state.isLoading">
           showing 1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }} results
         </div>
+        <v-btn :href="apiUrl" small icon target="_blank">
+          <v-icon small>mdi-api</v-icon>
+        </v-btn>
       </div>
       <v-simple-table v-if="results">
         <thead>
@@ -73,6 +76,7 @@ export default {
   props: {
     results: Object,
     meta: Object,
+    apiUrl: String,
   },
   data() {
     return {
