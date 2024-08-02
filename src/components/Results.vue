@@ -9,14 +9,11 @@
     <v-row>
       <v-col>
         <results-table :results="results" :meta="meta" :api-url="apiUrl" />
-
         <div v-if="results.body.length >= 20" class="d-flex py-1">
           <v-btn @click="page += 1">
             More results
           </v-btn>
         </div>
-
-
       </v-col>
     </v-row>
   </v-container>
