@@ -1,11 +1,14 @@
 <template>
   <span>
+<!--    <span class="grey&#45;&#45;text">{{ property.value }}</span>-->
         <template v-if="property.value === null">
             -
           </template>
           <template v-else-if="property.config.newType==='string'">
             <template v-if="Array.isArray(property.value)">
-              Array of strings...
+              <template v-for="(value, i) in property.value">
+                {{ value }}{{ i < property.value.length - 1 ? ', ' : '' }}
+              </template>
             </template>
             <template v-else-if="typeof property.value === 'String'">
               {{ property.value | truncate(100) }}
@@ -34,19 +37,20 @@
               <router-link
                   v-for="(entity, i) in property.value"
                   :key="'entity-'+i"
-                  :to="{name: 'EntityPage', params: {entityType: property.config.objectEntity, entityId: entity?.id}}"
+                  :to="{name: 'EntityPage', params: {namespace: property.config.objectEntity, identifier: entity?.id}}"
               >
                 {{ entity?.display_name }}{{ i < property.value.length - 1 ? ', ' : '' }}
               </router-link>
             </template>
             <template v-else-if="property.value.id">
               <router-link
-                  :to="{name: 'EntityPage', params: {entityType: property.config.objectEntity, entityId: property.value.id}}">
+                  :to="{name: 'EntityPage', params: {namespace: property.config.objectEntity, identifier: property.value.id}}">
                 {{ property.value.display_name }}
               </router-link>
             </template>
             <template v-else-if="property.config.isId">
-              <a :href="property.value" target="_blank">{{property.value}} <v-icon x-small>mdi-open-in-new</v-icon></a>
+              <a :href="property.value" target="_blank">{{ property.value }} <v-icon
+                  x-small>mdi-open-in-new</v-icon></a>
             </template>
 
             <template v-else>

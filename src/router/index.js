@@ -31,7 +31,6 @@ Vue.use(VueRouter)
 
 
 const entityNames = Object.keys(oaxConfigs).join("|")
-console.log("entityNames", entityNames)
 
 const routes = [
 
