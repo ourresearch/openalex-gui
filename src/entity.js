@@ -21,17 +21,11 @@ const getId = (id, config) => {
 const entity = {
     getType,
     getId,
-    async getEntityData(id, config) {
-        const myType = getType(id, config)
-        const myId = getId(id, config)
-
-        const myUrl = "https://api.openalex.org/entities?q="
-            + `get ${myType} where id is ${myId}`
-            + "&format=ui"
-
+    async getEntityData(id) {
+        const shortId = id.replace("https://openalex.org/", "")
+        const myUrl = `https://api.openalex.org/${shortId}?format=ui`
         const resp = await axios.get(myUrl)
-        return resp.results.header
-
+        return resp.data.props
     }
 }
 

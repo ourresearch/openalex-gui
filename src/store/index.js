@@ -13,6 +13,8 @@ const stateDefaults = function () {
         q: "",
         isLoading: false,
         isDevEnv: false,
+        snackbarIsOpen: false,
+        snackbarColor: undefined,
 
     }
     return ret
@@ -26,18 +28,20 @@ export default new Vuex.Store({
         user,
     },
     mutations: {
-        snackbar(state, arg, icon) {
-            state.snackbarIsOpen = true;
+        snackbar(state, arg) {
+            state.snackbarIsOpen = true
             if (typeof arg === "string") {
                 state.snackbarMsg = arg
-                return
             }
-            state.snackbarMsg = arg.msg
-            state.snackbarIcon = arg.icon
+            else {
+                state.snackbarMsg = arg.msg
+                state.snackbarColor = arg.color
+            }
         },
         closeSnackbar(state) {
             state.snackbarMsg = ""
             state.snackbarIsOpen = false
+            state.snackbarColor = undefined
         },
         setGlobalIsLoading(state, isLoading) {
             state.isLoading = !!isLoading

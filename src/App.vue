@@ -96,6 +96,7 @@
     <v-snackbar
         top
         v-model="$store.state.snackbarIsOpen"
+        :color="$store.state.snackbarColor"
     >
       <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
       {{ $store.state.snackbarMsg }}

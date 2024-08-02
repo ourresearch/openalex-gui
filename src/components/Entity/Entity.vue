@@ -1,12 +1,27 @@
 <template>
   <div>
-    <div>id: {{ id }}</div>
-    <div>{{ data }}</div>
     <div
-      v-for="(property, i) in data"
-      :key="i"
+        v-for="(property, i) in properties"
+        :key="i"
     >
-
+      <span class="font-weight-bold">
+        <template v-if="property.config.id === 'id'"><!-- hack for OpenAlex ID -->
+          OpenAlex ID
+        </template>
+        <template v-else>
+          {{ property.config.displayName }}:
+        </template>
+      </span>
+      <prop-value :property="property" />
+    </div>
+    <div class="pt-3 d-flex">
+      <v-spacer />
+      <v-btn icon :to="id">
+        <v-icon>mdi-link</v-icon>
+      </v-btn>
+      <v-btn icon :href="`https://api.openalex.org/${id}`" target="_blank">
+        <v-icon>mdi-api</v-icon>
+      </v-btn>
     </div>
 
   </div>
@@ -17,10 +32,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import axios from "axios";
 import {entity} from "@/entity";
+import PropValue from "@/components/PropValue.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    PropValue,
+  },
   props: {
     id: String,
   },
@@ -28,7 +46,7 @@ export default {
     return {
       foo: 42,
       isLoading: false,
-      data: {},
+      properties: [],
     }
   },
   computed: {
@@ -39,15 +57,12 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    entityType(){
+    entityType() {
       return entity.getType(this.id, this.$root.config)
     },
-    entityId(){
+    entityId() {
       return entity.getId(this.id, this.$root.config)
     },
-    properties(){
-      return this.data
-    }
   },
 
   methods: {
@@ -58,9 +73,14 @@ export default {
     ...mapActions("user", []),
     async getData() {
       this.isLoading = true
-      const resp = await entity.getEntityData(this.id, this.$root.config)
-      this.data = resp.data
-      this.isLoading = false
+      try {
+        this.properties = await entity.getEntityData(this.id)
+      } catch (e) {
+        console.error(e)
+        this.snackbar({msg: "Error fetching entity data", color: "error"})
+      } finally {
+        this.isLoading = false
+      }
     }
   },
   watch: {

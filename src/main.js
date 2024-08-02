@@ -19,8 +19,10 @@ import {
     filtersAsUrlStr,
 } from "./filterConfigs";
 
+
 Vue.config.productionTip = false
 Vue.prototype.$prettyTitle = prettyTitle
+
 
 // we have to globally register this or it throws errors.
 // https://stackoverflow.com/a/58875919
