@@ -25,14 +25,13 @@ import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
-
+import {oaxConfigs} from "@/oaxConfigs";
 
 Vue.use(VueRouter)
 
 
-// const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
-
-const entityNames = getEntityConfigs().map(c => c.name).join("|")
+const entityNames = Object.keys(oaxConfigs).join("|")
+console.log("entityNames", entityNames)
 
 const routes = [
 
@@ -50,38 +49,6 @@ const routes = [
         component: Results,
     },
 
-    // improve this when we've got entity regexes
-    {
-        path: `/:entityId(.+\\d+)`,
-        name: 'EntityPageShortcut',
-        redirect: to => {
-            const entityType = entityTypeFromId(to.params.entityId)
-            const entityId = shortenOpenAlexId(to.params.entityId)
-            return {
-                name: "EntityPage",
-                params: {
-                    entityType,
-                    entityId,
-                },
-            }
-        }
-    },
-    // improve this when we've got entity regexes
-    {
-        path: `/entity/:entityId`,
-        name: 'EntityPageRedirect',
-        redirect: to => {
-            const entityType = entityTypeFromId(to.params.entityId)
-            const entityId = shortenOpenAlexId(to.params.entityId)
-            return {
-                name: "EntityPage",
-                params: {
-                    entityType,
-                    entityId,
-                },
-            }
-        }
-    },
 
 
 
@@ -192,7 +159,7 @@ const routes = [
     },
 
     {
-        path: `/:entityType/:entityId`,
+        path: `/:namespace(${entityNames})/:identifier`,
         name: 'EntityPage',
         component: EntityPage,
         // redirect: to => {
