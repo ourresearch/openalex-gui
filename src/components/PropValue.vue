@@ -10,8 +10,20 @@
                 {{ value }}{{ i < property.value.length - 1 ? ', ' : '' }}
               </template>
             </template>
-            <template v-else-if="typeof property.value === 'String'">
-              {{ property.value | truncate(100) }}
+            <template v-else-if="typeof property.value === 'string'">
+              <template v-if="property.config.isId">
+                <template v-if="property.value.includes('https://openalex.org/')">
+                  {{ property.value.replace("https://openalex.org/", "")  }}
+                </template>
+                <template v-else>
+                  <a :href="property.value" target="_blank" style="white-space: nowrap">
+                    {{ property.value }}<v-icon color="primary" class="pl-1" x-small>mdi-open-in-new</v-icon>
+                  </a>
+                </template>
+              </template>
+              <template v-else>
+                {{ property.value | truncate(100) }}
+              </template>
             </template>
             <template v-else>
               {{ property.value }}
@@ -48,13 +60,8 @@
                 {{ property.value.display_name }}
               </router-link>
             </template>
-            <template v-else-if="property.config.isId">
-              <a :href="property.value" target="_blank">{{ property.value }} <v-icon
-                  x-small>mdi-open-in-new</v-icon></a>
-            </template>
-
             <template v-else>
-              PROPERTY WE DONT KNOW HOW TO HANDLE:
+              unknown entity:
               {{ property }}
             </template>
           </template>
