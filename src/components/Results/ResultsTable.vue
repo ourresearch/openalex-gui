@@ -40,6 +40,10 @@
     </v-simple-table>
     </v-col>
     <v-col cols="3">
+      <div class="d-flex" v-if="zoomId">
+        <v-spacer />
+        <v-btn icon @click="zoomId=null"><v-icon>mdi-close</v-icon></v-btn>
+      </div>
       <entity v-if="zoomId" :id="zoomId"/>
     </v-col>
 
