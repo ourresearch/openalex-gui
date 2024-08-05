@@ -2,7 +2,10 @@
   <div>
     <div class="table-meta d-flex align-center">
 
-      <v-btn icon @click="clickSelectAllButton">
+      <v-btn
+          icon
+          @click="clickSelectAllButton"
+      >
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
       <v-spacer/>
@@ -37,7 +40,7 @@
               <v-list-item class="pb-2 py-1">
                 <v-list-item-title style="font-family: monospace">{{ header.id }}</v-list-item-title>
               </v-list-item>
-              <v-divider />
+              <v-divider/>
               <v-list-item @click="removeColumn(header.id)">
                 <v-list-item-icon>
                   <v-icon>mdi-table-column-remove</v-icon>
@@ -69,7 +72,8 @@
       <tr
           v-for="(row, i) in rows"
           :key="'row-'+i"
-          @click="clickRow(row.id)"
+          @click.exact="clickRow(row.id)"
+          @click.meta.stop="metaClickRow(row.id)"
       >
         <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
           <v-btn icon @click="toggleSelectedId(row.id)">
@@ -180,6 +184,14 @@ export default {
     clickRow(rowId) {
       console.log("clickRow", rowId)
       this.$store.state.zoomId = rowId
+    },
+    metaClickRow(rowId) {
+      console.log("metaClickRow", rowId)
+      const newTab = window.open(this.apiUrl)
+      setTimeout(() => {
+        newTab.focus()
+      }, 1000)
+      return false
     },
     removeColumn(id) {
       console.log("removeColumn", id)
