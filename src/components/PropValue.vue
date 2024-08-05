@@ -49,14 +49,15 @@
               <router-link
                   v-for="(entity, i) in property.value"
                   :key="'entity-'+i"
-                  :to="{name: 'EntityPage', params: {namespace: property.config.objectEntity, identifier: entity?.id}}"
+                  :to="entity.id"
               >
                 {{ entity?.display_name }}{{ i < property.value.length - 1 ? ', ' : '' }}
               </router-link>
             </template>
             <template v-else-if="property.value.id">
               <router-link
-                  :to="{name: 'EntityPage', params: {namespace: property.config.objectEntity, identifier: property.value.id}}">
+                  :to="entity.id"
+              >
                 {{ property.value.display_name }}
               </router-link>
             </template>

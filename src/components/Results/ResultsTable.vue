@@ -1,6 +1,5 @@
 <template>
-  <v-row class="">
-    <v-col cols="9">
+    <div>
       <div class="table-meta d-flex align-center">
 
         <v-btn icon @click="clickSelectAllButton">
@@ -45,18 +44,9 @@
         </tr>
         </tbody>
       </v-simple-table>
-    </v-col>
-    <v-col cols="3">
-      <div class="d-flex" v-if="zoomId">
-        <v-spacer/>
-        <v-btn icon @click="zoomId=null">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-      <entity v-if="zoomId" :id="zoomId"/>
-    </v-col>
+    </div>
 
-  </v-row>
+
 </template>
 
 <script>
@@ -146,7 +136,7 @@ export default {
     },
     clickRow(rowId) {
       console.log("clickRow", rowId)
-      this.zoomId = rowId.replace("https://openalex.org/", "")
+      this.$store.state.zoomId = rowId
     }
 
 

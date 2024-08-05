@@ -15,6 +15,7 @@ const stateDefaults = function () {
         isDevEnv: false,
         snackbarIsOpen: false,
         snackbarColor: undefined,
+        zoomId: null,
 
     }
     return ret
@@ -51,8 +52,6 @@ export default new Vuex.Store({
     actions: {
     },
     getters: {
-        globalIsLoading(state) {
-            return state.isLoading
-        },
+        globalIsLoading(state) { return state.isLoading},
     },
 })
