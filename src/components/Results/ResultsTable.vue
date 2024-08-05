@@ -1,62 +1,93 @@
 <template>
-    <div>
-      <div class="table-meta d-flex align-center">
+  <div>
+    <div class="table-meta d-flex align-center">
 
-        <v-btn icon @click="clickSelectAllButton">
-          <v-icon>{{ selectAllIcon }}</v-icon>
-        </v-btn>
-        <v-spacer/>
-        <div v-if="!$store.state.isLoading">
-          showing 1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }} results
-        </div>
-        <v-btn :href="apiUrl" small icon target="_blank">
-          <v-icon small>mdi-api</v-icon>
-        </v-btn>
+      <v-btn icon @click="clickSelectAllButton">
+        <v-icon>{{ selectAllIcon }}</v-icon>
+      </v-btn>
+      <v-spacer/>
+      <div v-if="!$store.state.isLoading">
+        showing 1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }}
+        results
       </div>
-      <v-simple-table v-if="results">
-        <thead>
-        <th key="checkbox-placeholder"></th>
-        <th
-            v-for="(header, i) in results.header"
-            :key="'header-'+i"
-            style="text-align: left;"
+      <v-btn :href="apiUrl" small icon target="_blank">
+        <v-icon small>mdi-api</v-icon>
+      </v-btn>
+    </div>
+    <v-simple-table v-if="results">
+      <thead>
+      <th key="checkbox-placeholder"></th>
+      <th
+          v-for="(header, i) in results.header"
+          :key="'header-'+i"
+          style="text-align: left;"
+          class="px-1"
+      >
+        <div class="d-flex">
+          <div style="white-space: nowrap;">
+            {{ header.displayName }}
+          </div>
+          <v-menu>
+            <template v-slot:activator="{ on }">
+              <v-btn icon small v-on="on">
+                <v-icon>mdi-menu-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item class="pb-2 py-1">
+                <v-list-item-title style="font-family: monospace">{{ header.id }}</v-list-item-title>
+              </v-list-item>
+              <v-divider />
+              <v-list-item @click="removeColumn(header.id)">
+                <v-list-item-icon>
+                  <v-icon>mdi-table-column-remove</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Remove column</v-list-item-title>
+              </v-list-item>
+              <template v-if="header.actions?.includes('sort')">
+                <v-list-item>
+                  <v-list-item-icon>
+                    <v-icon>mdi-sort-descending</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>Sort descending</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-icon>
+                    <v-icon>mdi-sort-ascending</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>Sort ascending</v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-list>
+          </v-menu>
+          <v-spacer></v-spacer>
+
+        </div>
+      </th>
+      </thead>
+      <tbody>
+      <tr
+          v-for="(row, i) in rows"
+          :key="'row-'+i"
+          @click="clickRow(row.id)"
+      >
+        <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
+          <v-btn icon @click="toggleSelectedId(row.id)">
+            <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+            <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+          </v-btn>
+        </td>
+        <td
+            v-for="(cell, i) in row.cellsWithConfigs"
+            :key="'cell-'+i"
             class="px-1"
         >
-          <div class="d-flex">
-            <div>
-              {{ header.displayName }}
-            </div>
-            <v-btn icon small>
-              <v-icon>mdi-menu-down</v-icon>
-            </v-btn>
-            <v-spacer></v-spacer>
-
-          </div>
-        </th>
-        </thead>
-        <tbody>
-        <tr
-            v-for="(row, i) in rows"
-            :key="'row-'+i"
-            @click="clickRow(row.id)"
-        >
-          <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
-            <v-btn icon @click="toggleSelectedId(row.id)">
-              <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-            </v-btn>
-          </td>
-          <td
-              v-for="(cell, i) in row.cellsWithConfigs"
-              :key="'cell-'+i"
-              class="px-1"
-          >
-            <prop-value :property="cell"/>
-          </td>
-        </tr>
-        </tbody>
-      </v-simple-table>
-    </div>
+          <prop-value :property="cell"/>
+        </td>
+      </tr>
+      </tbody>
+    </v-simple-table>
+  </div>
 
 
 </template>
@@ -149,6 +180,10 @@ export default {
     clickRow(rowId) {
       console.log("clickRow", rowId)
       this.$store.state.zoomId = rowId
+    },
+    removeColumn(id) {
+      console.log("removeColumn", id)
+      this.$emit("setColumns", this.results.header.map(h => h.id).filter(h => h !== id))
     }
 
 
