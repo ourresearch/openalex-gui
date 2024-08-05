@@ -14,7 +14,7 @@
 
     <div class="d-flex align-end">
       <v-textarea
-          v-model="query"
+          v-model="queryString"
           autofocus
           label="OQL"
           outlined
@@ -23,12 +23,12 @@
           rounded
           rows="1"
           placeholder="Enter your OQL here"
-          @keydown.ctrl.enter="search"
-          @keydown.meta.enter="search"
+          @keydown.ctrl.enter="setQueryString"
+          @keydown.meta.enter="setQueryString"
           @keydown.tab="tab"
       >
       </v-textarea>
-      <v-btn x-large color="primary" rounded @click="search" class="px-4 mb-8 ml-2 fill-height" style="min-width: 0;">
+      <v-btn x-large color="primary" rounded @click="setQueryString" class="px-4 mb-8 ml-2 fill-height" style="min-width: 0;">
         <v-icon >mdi-magnify</v-icon>
       </v-btn>
     </div>
@@ -43,11 +43,13 @@ import axios from "axios";
 export default {
   name: "Template",
   components: {},
-  props: {},
+  props: {
+    canonicalQueryString: String,
+  },
   data() {
     return {
       foo: 42,
-      query: "",
+      queryString: "",
       autocompleteSuggestions: [],
     }
   },
@@ -69,19 +71,8 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    async search() {
-
-
-      const q = (this.query) ?
-          this.query :
-          undefined
-      const newRoute = {name: "results", query: {q}}
-      await this.$router.push(newRoute)
-          .catch((e) => {
-            if (e.name !== "NavigationDuplicated") {
-              throw e
-            }
-          })
+    setQueryString() {
+      this.$emit("setQueryString", this.queryString)
     },
     async getAutocompleteSuggestions(){
       const q = this.query ?? ""
@@ -122,18 +113,13 @@ export default {
   mounted() {
   },
   watch: {
-    "$route.query.q": {
+    canonicalQueryString: {
       handler: function (value) {
-        this.query = value
+        console.log("canonicalQueryString watcher fired", value)
+        this.queryString = value
       },
       immediate: true
     },
-    query: {
-      handler: function (value) {
-        // this.getAutocompleteSuggestions()
-      },
-      immediate: false
-    }
   }
 }
 </script>

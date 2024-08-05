@@ -2,18 +2,27 @@
   <v-container fluid class="pt-0">
     <v-row>
       <v-col>
-        <OqlBox/>
+        <OqlBox
+            @setQueryString="setQueryString"
+            :canonical-query-string="canonicalQueryString"
+        />
       </v-col>
     </v-row>
 
     <v-row>
       <v-col>
-        <results-table :results="results" :meta="meta" :api-url="apiUrl" />
-        <div v-if="results.body.length >= 20" class="d-flex py-1">
-          <v-btn @click="page += 1">
-            More results
-          </v-btn>
-        </div>
+        <results-table
+            :results="results"
+            :meta="meta"
+            :api-url="apiUrl"
+            @setColumns="setColumns"
+            @setSort="setSort"
+        />
+<!--        <div v-if="results.body.length >= 20" class="d-flex py-1">-->
+<!--          <v-btn @click="page += 1">-->
+<!--            More results-->
+<!--          </v-btn>-->
+<!--        </div>-->
       </v-col>
     </v-row>
   </v-container>
@@ -38,6 +47,8 @@ export default {
     return {
       foo: 42,
       page: 1,
+      queryString: "",
+      canonicalQueryString: "",
       meta: {},
       results: {
         header: [],
@@ -62,13 +73,26 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    async getResults(concat){
+    async setQueryString(newQueryString) {
+      const q = (newQueryString) ?
+          newQueryString :
+          undefined
+      const newRoute = {name: "results", query: {q}}
+      console.log("Results.setQueryString", newQueryString, newRoute)
+      await this.$router.push(newRoute)
+          .catch((e) => {
+            if (e.name !== "NavigationDuplicated") {
+              throw e
+            }
+          })
+    },
+    async getResults(concat) {
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
       this.apiUrl = "https://api.openalex.org/entities?"
           + (this.$route.query.q ?
-              "q=" + this.$route.query.q.replace(/(\r\n|\n|\r)/g, " ") :
-              ""
+                  "q=" + this.$route.query.q.replace(/(\r\n|\n|\r)/g, " ") :
+                  ""
           )
           + "&format=ui"
           + "&page=" + this.page
@@ -76,21 +100,18 @@ export default {
       const resp = await axios.get(this.apiUrl)
       const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
       this.meta = resp.data.meta,
-      this.results = {
-        header: resp.data.results.header,
-        body
-      }
-
+          this.results = {
+            header: resp.data.results.header,
+            body
+          }
+      this.canonicalQueryString = resp.data.meta.oql
       this.$store.state.isLoading = false
-
-
-
-
-
-      // setTimeout(() => {
-      //   this.results = _.cloneDeep(ret1.results)
-      //   this.$store.state.isLoading = false
-      // }, 500)
+    },
+    setColumns(ids) {
+      console.log("setColumns", ids)
+    },
+    setSort({id, isAsc}) {
+      console.log("setSort", id, isAsc)
     }
 
 
@@ -106,9 +127,9 @@ export default {
       },
       immediate: true
     },
-    page(){
-      this.getResults(true)
-    }
+    // page(){
+    //   this.getResults(true)
+    // }
 
 
   }
