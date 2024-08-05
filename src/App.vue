@@ -90,6 +90,15 @@
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
     </v-main>
+    <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="400">
+      <div class="d-flex">
+        <v-spacer/>
+        <v-btn icon @click="isNavDrawerOpen=false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
+      <entity class="pa-3" v-if="$store.state.zoomId" :id="$store.state.zoomId"/>
+    </v-navigation-drawer>
     <site-footer/>
 
 
@@ -140,6 +149,7 @@ import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import {entity} from "@/entity";
+import Entity from "@/components/Entity/Entity.vue";
 
 export default {
   name: 'App',
@@ -150,15 +160,11 @@ export default {
     meta: []
   },
   components: {
-    SerpToolbar,
-    Template,
-    SearchBox,
     SiteFooter,
-    SiteNav,
     UserToolbarMenu,
+    Entity,
 
     SavedSearchRenameDialog,
-    SavedSearchSaveDialog,
     SavedSearchEditAlertDialog,
     ShortcutBox,
     EntityTypeSelector,
@@ -193,6 +199,14 @@ export default {
     },
     exportIsFinished() {
       return this.exportObj.progress === 1
+    },
+    isNavDrawerOpen: {
+      get() {
+        return !!this.$store.state.zoomId
+      },
+      set(val) {
+        if (!val) this.$store.state.zoomId = null
+      }
     },
   },
   methods: {
