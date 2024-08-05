@@ -19,8 +19,19 @@
         <th
             v-for="(header, i) in results.header"
             :key="'header-'+i"
+            style="text-align: left;"
+            class="px-1"
         >
-          {{ header.displayName }}
+          <div class="d-flex">
+            <div>
+              {{ header.displayName }}
+            </div>
+            <v-btn icon small>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-btn>
+            <v-spacer></v-spacer>
+
+          </div>
         </th>
         </thead>
         <tbody>
@@ -38,6 +49,7 @@
           <td
               v-for="(cell, i) in row.cellsWithConfigs"
               :key="'cell-'+i"
+              class="px-1"
           >
             <prop-value :property="cell"/>
           </td>

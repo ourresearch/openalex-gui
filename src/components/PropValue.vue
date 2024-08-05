@@ -1,6 +1,6 @@
 <template>
   <span>
-<!--    <span class="grey&#45;&#45;text">{{ property.value }}</span>-->
+<!--    <span class="grey&#45;&#45;text">{{ property }}</span>-->
         <template v-if="property.value === null">
             -
           </template>
@@ -12,8 +12,8 @@
             </template>
             <template v-else-if="typeof property.value === 'string'">
               <template v-if="property.config.isId">
-                <template v-if="property.value.includes('https://openalex.org/')">
-                  {{ property.value.replace("https://openalex.org/", "")  }}
+                <template v-if="property.config.key === 'id'"> <!-- OpenAlex IDs -->
+                  {{ property.value }}
                 </template>
                 <template v-else>
                   <a :href="property.value" target="_blank" style="white-space: nowrap">
@@ -56,15 +56,15 @@
             </template>
             <template v-else-if="property.value.id">
               <router-link
-                  :to="entity.id"
+                  :to="property.value.id"
               >
                 {{ property.value.display_name }}
               </router-link>
             </template>
-            <template v-else>
-              unknown entity:
-              {{ property }}
-            </template>
+<!--            <template v-else>-->
+<!--              unknown entity:-->
+<!--              {{ property }}-->
+<!--            </template>-->
           </template>
 
       </span>
