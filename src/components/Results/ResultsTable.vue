@@ -67,6 +67,28 @@
 
         </div>
       </th>
+      <th key="add-column-button">
+        <v-menu rounded>
+          <template v-slot:activator="{ on }">
+            <v-btn icon v-on="on">
+              <v-icon>mdi-table-column-plus-after</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+                @click="addColumn(prop.id)"
+                v-for="prop in columnsToAdd"
+                :key="prop.id"
+                :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ prop.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </th>
       </thead>
       <tbody>
       <tr
@@ -88,6 +110,9 @@
         >
           <prop-value :property="cell"/>
         </td>
+        <td key="add-column-spacer-cell">
+
+        </td>
       </tr>
       </tbody>
     </v-simple-table>
@@ -102,6 +127,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
 import Entity from "@/components/Entity/Entity.vue";
 import PropValue from "@/components/PropValue.vue";
+import {oaxConfigs} from "@/oaxConfigs";
 
 
 export default {
@@ -152,6 +178,15 @@ export default {
       } else {
         return "mdi-minus-box-outline"
       }
+    },
+    columnsToAdd(){
+      const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
+      const subjectEntity = getGetKey(this.resultsMeta.oql)
+      const config = oaxConfigs[subjectEntity]
+      console.log("columnsToAdd", subjectEntity, config)
+      const columnsToShow = config.rowsToShowOnEntityPage
+      return Object.values(config.properties)
+          .filter(p => columnsToShow.includes(p.id))
     }
   },
 
@@ -196,7 +231,10 @@ export default {
     },
     removeColumn(id) {
       this.$emit("setColumns", this.resultsHeader.map(h => h.id).filter(h => h !== id))
-    }
+    },
+    addColumn(id) {
+      this.$emit("setColumns", this.resultsHeader.map(h => h.id).concat([id]))
+    },
 
 
   },
