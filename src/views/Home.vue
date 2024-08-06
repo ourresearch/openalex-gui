@@ -7,10 +7,7 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-<!--              <div class="text-h5 ml-3 mb-3">-->
-<!--                Search and analyze the world's research.-->
-<!--              </div>-->
-              <OqlBox />
+              <OqlBox @setQueryString="setQueryString" />
 
             </div>
 
@@ -200,7 +197,11 @@ export default {
           75
     }
   },
-  methods: {},
+  methods: {
+    setQueryString(newQueryString) {
+      this.$router.push({name: "results", query: {q: newQueryString}})
+    },
+  },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)
   },
