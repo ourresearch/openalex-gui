@@ -76,7 +76,7 @@
           @click.meta.stop="metaClickRow(row.id)"
       >
         <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
-          <v-btn icon @click="toggleSelectedId(row.id)">
+          <v-btn icon @click.stop="toggleSelectedId(row.id)">
             <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
             <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
           </v-btn>
