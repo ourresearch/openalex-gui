@@ -12,7 +12,6 @@ const stateDefaults = function () {
     const ret = {
         q: "",
         isLoading: false,
-        isDevEnv: false,
         snackbarIsOpen: false,
         snackbarColor: undefined,
         zoomId: null,
@@ -53,5 +52,8 @@ export default new Vuex.Store({
     },
     getters: {
         globalIsLoading(state) { return state.isLoading},
+        isLocalEnv(state) { return window.location.hostname === "localhost"},
+        isStagingEnv(state) { return window.location.hostname === "staging.openalex.org"},
+        isProductionEnv(state) { return window.location.hostname === "openalex.org"},
     },
 })

@@ -10,30 +10,30 @@
       </v-btn>
       <v-spacer/>
       <div v-if="!$store.state.isLoading">
-        showing 1-{{ results.body.length }} of {{ meta?.count > 10000 ? "about " : "" }}{{ meta?.count | toPrecision }}
+        showing 1-{{ resultsBody.length }} of {{
+          resultsMeta?.count > 10000 ? "about " : ""
+        }}{{ resultsMeta?.count | toPrecision }}
         results
       </div>
       <v-btn :href="apiUrl" small icon target="_blank">
         <v-icon small>mdi-api</v-icon>
       </v-btn>
     </div>
-    <v-simple-table v-if="results">
+    <v-simple-table v-if="resultsBody.length">
       <thead>
       <th key="checkbox-placeholder"></th>
       <th
-          v-for="(header, i) in results.header"
+          v-for="(header, i) in resultsHeader"
           :key="'header-'+i"
           style="text-align: left;"
-          class="px-1"
+          class=""
       >
         <div class="d-flex">
-          <div style="white-space: nowrap;">
-            {{ header.displayName }}
-          </div>
           <v-menu>
             <template v-slot:activator="{ on }">
-              <v-btn icon small v-on="on">
-                <v-icon>mdi-menu-down</v-icon>
+              <v-btn text v-on="on" style="white-space: nowrap;">
+                {{ header.displayName }}
+                <v-icon small>mdi-menu-down</v-icon>
               </v-btn>
             </template>
             <v-list dense>
@@ -48,13 +48,13 @@
                 <v-list-item-title>Remove column</v-list-item-title>
               </v-list-item>
               <template v-if="header.actions?.includes('sort')">
-                <v-list-item>
+                <v-list-item @click="$emit('setSort', {id: header.id, direction: 'desc'})">
                   <v-list-item-icon>
                     <v-icon>mdi-sort-descending</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>Sort descending</v-list-item-title>
                 </v-list-item>
-                <v-list-item>
+                <v-list-item @click="$emit('setSort', {id: header.id, direction: 'asc'})">
                   <v-list-item-icon>
                     <v-icon>mdi-sort-ascending</v-icon>
                   </v-list-item-icon>
@@ -111,8 +111,9 @@ export default {
     PropValue,
   },
   props: {
-    results: Object,
-    meta: Object,
+    resultsHeader: Array,
+    resultsBody: Array,
+    resultsMeta: Object,
     apiUrl: String,
   },
   data() {
@@ -131,20 +132,20 @@ export default {
       "userId",
     ]),
     rows() {
-      return this.results.body.map((row) => {
+      return this.resultsBody.map((row) => {
         return {
           ...row,
           cellsWithConfigs: row.cells.map((cell, i) => {
             return {
               ...cell,
-              config: this.results.header[i],
+              config: this.resultsHeader[i],
             }
           })
         }
       })
     },
     selectAllIcon() {
-      if (this.selectedIds.length === this.results.body.length) {
+      if (this.selectedIds.length === this.resultsBody.length) {
         return "mdi-checkbox-marked"
       } else if (this.selectedIds.length === 0) {
         return "mdi-checkbox-blank-outline"
@@ -176,7 +177,7 @@ export default {
     },
     clickSelectAllButton() {
       if (this.selectedIds.length === 0) {
-        this.selectedIds = this.results.body.map((row) => row.id)
+        this.selectedIds = this.resultsBody.map((row) => row.id)
       } else {
         this.selectedIds = []
       }
@@ -194,8 +195,7 @@ export default {
       return false
     },
     removeColumn(id) {
-      console.log("removeColumn", id)
-      this.$emit("setColumns", this.results.header.map(h => h.id).filter(h => h !== id))
+      this.$emit("setColumns", this.resultsHeader.map(h => h.id).filter(h => h !== id))
     }
 
 

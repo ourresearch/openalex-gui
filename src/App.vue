@@ -247,9 +247,6 @@ export default {
     '$route': {
       immediate: true,
       handler(to, from) {
-        const isLocalHost = window.location.hostname === "localhost"
-        const isStaging = window.location.hostname === "staging.openalex.org"
-        this.$store.state.isDevEnv = isLocalHost || isStaging
 
       }
     }

@@ -61,6 +61,13 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    cleanQueryString(){
+      const normalizeNewlines = (str) => str.replace(/\r\n|\r|\n/g, '\n');
+      const removeRedundantSpaces = (str) => str.replace(/[^\S\n]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+      return removeRedundantSpaces(
+          normalizeNewlines(this.queryString)
+      )
+    }
 
   },
 
@@ -72,7 +79,7 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     setQueryString() {
-      this.$emit("setQueryString", this.queryString)
+      this.$emit("setQueryString", this.cleanQueryString)
     },
     async getAutocompleteSuggestions(){
       const q = this.query ?? ""
@@ -115,7 +122,6 @@ export default {
   watch: {
     canonicalQueryString: {
       handler: function (value) {
-        console.log("canonicalQueryString watcher fired", value)
         this.queryString = value
       },
       immediate: true
