@@ -12,17 +12,18 @@
     <v-row>
       <v-col>
         <results-table
-            :results="results"
-            :meta="meta"
+            :results-body="resultsBody"
+            :results-header="resultsHeader"
+            :results-meta="resultsMeta"
             :api-url="apiUrl"
             @setColumns="setColumns"
             @setSort="setSort"
         />
-<!--        <div v-if="results.body.length >= 20" class="d-flex py-1">-->
-<!--          <v-btn @click="page += 1">-->
-<!--            More results-->
-<!--          </v-btn>-->
-<!--        </div>-->
+        <!--        <div v-if="results.body.length >= 20" class="d-flex py-1">-->
+        <!--          <v-btn @click="page += 1">-->
+        <!--            More results-->
+        <!--          </v-btn>-->
+        <!--        </div>-->
       </v-col>
     </v-row>
   </v-container>
@@ -49,7 +50,10 @@ export default {
       page: 1,
       queryString: "",
       canonicalQueryString: "",
-      meta: {},
+      submittedQueryString: "",
+      resultsMeta: {},
+      resultsHeader: [],
+      resultsBody: [],
       results: {
         header: [],
         body: []
@@ -59,7 +63,7 @@ export default {
   },
   computed: {
     ...mapGetters([
-
+      "isLocalEnv",
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -74,11 +78,16 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     async setQueryString(newQueryString) {
-      const q = (newQueryString) ?
-          newQueryString :
-          undefined
+      const normalizeNewlines = (str) => str.replace(/\r\n|\r|\n/g, '\n');
+      const removeRedundantSpaces = (str) => str.replace(/[^\S\n]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+      const q = removeRedundantSpaces(
+          normalizeNewlines(newQueryString)
+      )
+      // const q = (newQueryString) ?
+      //     newQueryString :
+      //     undefined
       const newRoute = {name: "results", query: {q}}
-      console.log("Results.setQueryString", newQueryString, newRoute)
+      console.log("Results.setQueryString", q, newRoute)
       await this.$router.push(newRoute)
           .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
@@ -97,21 +106,53 @@ export default {
           + "&format=ui"
           + "&page=" + this.page
 
-      const resp = await axios.get(this.apiUrl)
-      const body = concat ? this.results.body.concat(resp.data.results.body) : resp.data.results.body
-      this.meta = resp.data.meta,
-          this.results = {
-            header: resp.data.results.header,
-            body
-          }
-      this.canonicalQueryString = resp.data.meta.oql
+      try {
+        const resp = await axios.get(this.apiUrl)
+        this.setEverythingFromApiResp(resp, concat)
+      } catch (e) {
+        this.clearEverything()
+        this.snackbar({msg: "Error fetching results", color: "error"})
+        console.error(e)
+        return
+      } finally {
+        this.$store.state.isLoading = false
+      }
+
       this.$store.state.isLoading = false
     },
-    setColumns(ids) {
-      console.log("setColumns", ids)
+    setEverythingFromApiResp(resp, concat = false) {
+      const body = concat ? this.resultsBody.concat(resp.data.results.body) : resp.data.results.body
+      this.resultsMeta = resp.data.meta
+      this.resultsBody = body
+      this.resultsHeader = resp.data.results.header
+
+      const hackCanonicalQueryString = (str) => {
+        return this.isLocalEnv ? str.replace("using works\n", "") : str
+      }
+
+      this.canonicalQueryString = hackCanonicalQueryString(resp.data.meta.oql)
     },
-    setSort({id, isAsc}) {
-      console.log("setSort", id, isAsc)
+    clearEverything() {
+      this.resultsMeta = {}
+      this.resultsHeader = []
+      this.resultsBody = []
+      this.canonicalQueryString = ""
+    },
+    setColumns(ids) {
+      console.log("setColumns", this.canonicalQueryString, ids)
+      const replaceReturnFields = (query, fields) => query.replace(/return.*/, `return ${fields.join(', ')}`);
+      const newQueryString = replaceReturnFields(this.canonicalQueryString, ids)
+      this.setQueryString(newQueryString)
+    },
+    setSort({id, direction}) {
+      if (!["asc", "desc"].includes(direction)) {
+        console.error("setSort: invalid direction", direction)
+        throw new Error("setSort: invalid direction")
+      }
+      const replaceSortBy = (query, sortField, isAscending) => query.replace(/sort by.*/, `sort by ${sortField} ${direction}`);
+      const newQueryString = replaceSortBy(this.canonicalQueryString, id, direction)
+      console.log("setSort", id, direction, newQueryString)
+      this.setQueryString(newQueryString)
     }
 
 
