@@ -73,6 +73,7 @@ export const user = {
             state.savedSearches = []
             state.authorId = ""
             localStorage.removeItem("token")
+            router.push("/")
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id

@@ -26,6 +26,10 @@ import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
 import {oaxConfigs} from "@/oaxConfigs";
+import MeBase from "@/views/Me/MeBase.vue";
+import MeAbout from "@/views/Me/MeAbout.vue";
+import MeSearches from "@/views/Me/MeSearches.vue";
+import MeCollections from "@/views/Me/MeCollections.vue";
 
 Vue.use(VueRouter)
 
@@ -33,7 +37,6 @@ Vue.use(VueRouter)
 const entityNames = Object.keys(oaxConfigs).join("|")
 
 const routes = [
-
 
 
     // data pages
@@ -49,16 +52,38 @@ const routes = [
     },
 
 
-
-
-
-
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
-    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
+    // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},
+    {
+        path: '/me',
+        component: MeBase,
+        meta: {requiresAuth: true},
+        children: [
+            {
+                path: '',
+                name: 'me-home',
+                component: MeAbout,
+            },
+            {
+                path: '/me/about',
+                name: 'me-about',
+                component: MeAbout,
+            },
+            {
+                path: '/me/searches',
+                name: 'me-searches',
+                component: MeSearches,
+            },
+            {
+                path: '/me/collections',
+                name: 'me-collections',
+                component: MeCollections,
+            },
+        ]
+    },
 
 
     // static pages

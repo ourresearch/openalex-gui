@@ -126,11 +126,11 @@ export default {
       this.resultsBody = body
       this.resultsHeader = resp.data.results.header
 
-      const hackCanonicalQueryString = (str) => {
-        return this.isLocalEnv ? str.replace("using works\n", "") : str
-      }
-
-      this.canonicalQueryString = hackCanonicalQueryString(resp.data.meta.oql)
+      // const hackCanonicalQueryString = (str) => {
+      //   return this.isLocalEnv ? str.replace("using works\n", "") : str
+      // }
+      // this.canonicalQueryString = hackCanonicalQueryString(resp.data.meta.oql)
+      this.canonicalQueryString = resp.data.meta.oql
     },
     clearEverything() {
       this.resultsMeta = {}

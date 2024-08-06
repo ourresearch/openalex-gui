@@ -1,0 +1,85 @@
+<template>
+  <div>
+    <v-card rounded outlined class=" pb-10">
+      <v-card-title class="">Your account details</v-card-title>
+      <!--          <v-divider></v-divider>-->
+      <v-list color="transparent">
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>mdi-account</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ userName }}</v-list-item-title>
+            <v-list-item-subtitle>Name</v-list-item-subtitle>
+
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon>mdi-email</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ userEmail }}</v-list-item-title>
+            <v-list-item-subtitle>Email</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-card>
+    <v-card rounded outlined class="mt-6">
+      <v-card-title>Log out</v-card-title>
+      <v-card-text>
+        <v-btn @click="logout">Log out</v-btn>
+      </v-card-text>
+    </v-card>
+  </div>
+</template>
+
+<script>
+
+import {mapActions, mapGetters, mapMutations} from "vuex";
+
+export default {
+  name: "Template",
+  components: {},
+  props: {},
+  data() {
+    return {
+      foo: 42,
+    }
+  },
+  computed: {
+    ...mapGetters([
+
+      "entityType",
+    ]),
+    ...mapGetters("user", [
+      "userId",
+      "userName",
+      "userEmail",
+    ]),
+  },
+
+  methods: {
+    ...mapMutations([
+      "snackbar",
+    ]),
+    ...mapMutations("user", [
+      "logout",
+    ]),
+    ...mapActions([]),
+    ...mapActions("user", [
+    ]),
+
+
+  },
+  created() {
+  },
+  mounted() {
+  },
+  watch: {}
+}
+</script>
+
+<style scoped lang="scss">
+
+</style>
