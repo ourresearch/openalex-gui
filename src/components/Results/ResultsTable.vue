@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div>
+      collections: {{ }}
+    </div>
     <div class="table-meta d-flex align-center">
 
       <v-btn
@@ -7,6 +10,12 @@
           @click="clickSelectAllButton"
       >
         <v-icon>{{ selectAllIcon }}</v-icon>
+      </v-btn>
+      <v-btn icon :disabled="!selectedIds.length" @click="createCollection({ids: selectedIds, name: 'test'})">
+        <v-icon>mdi-tag-outline</v-icon>
+      </v-btn>
+      <v-btn icon :disabled="!selectedIds.length">
+        <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-spacer/>
       <div v-if="!$store.state.isLoading">
@@ -156,6 +165,7 @@ export default {
     ]),
     ...mapGetters("user", [
       "userId",
+      "userCollections",
     ]),
     rows() {
       return this.resultsBody.map((row) => {
@@ -179,7 +189,7 @@ export default {
         return "mdi-minus-box-outline"
       }
     },
-    columnsToAdd(){
+    columnsToAdd() {
       const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
       const subjectEntity = getGetKey(this.resultsMeta.oql)
       const config = oaxConfigs[subjectEntity]
@@ -196,7 +206,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-    ...mapActions("user", []),
+    ...mapActions("user", [
+        "createCollection"
+    ]),
     addSelectedId(id) {
       this.selectedIds.push(id)
     },
