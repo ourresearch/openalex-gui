@@ -26,6 +26,7 @@
         <!--        </div>-->
       </v-col>
     </v-row>
+    <v-dialog v-model="isPropSelectorDialogOpen"></v-dialog>
   </v-container>
 </template>
 
@@ -60,6 +61,7 @@ export default {
         body: []
       },
       apiUrl: "",
+      isPropSelectorDialogOpen: false,
     }
   },
   computed: {
