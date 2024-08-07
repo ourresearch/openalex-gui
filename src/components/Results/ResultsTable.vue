@@ -1,7 +1,6 @@
 <template>
   <div>
     <div>
-      collections: {{ }}
     </div>
     <div class="table-meta d-flex align-center">
 
@@ -95,6 +94,11 @@
               </v-list-item-icon>
               <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
             </v-list-item>
+            <v-divider/>
+            <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
+              <v-list-item-icon></v-list-item-icon>
+              <v-list-item-title>More</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </th>
@@ -125,6 +129,9 @@
       </tr>
       </tbody>
     </v-simple-table>
+    <v-dialog v-model="isPropSelectorDialogOpen" width="400">
+      <prop-selector />
+    </v-dialog>
   </div>
 
 
@@ -138,13 +145,14 @@ import Entity from "@/components/Entity/Entity.vue";
 import PropValue from "@/components/PropValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/components/oaxSearch";
-
+import PropSelector from "@/components/PropSelector.vue";
 
 export default {
   name: "Template",
   components: {
     Entity,
     PropValue,
+    PropSelector,
   },
   props: {
     resultsHeader: Array,
@@ -157,6 +165,7 @@ export default {
       foo: 42,
       selectedIds: [],
       zoomId: null,
+      isPropSelectorDialogOpen: false,
     }
   },
   computed: {
@@ -195,10 +204,10 @@ export default {
       const subjectEntity = getGetKey(this.resultsMeta.oql)
       const config = oaxConfigs[subjectEntity]
       console.log("columnsToAdd", subjectEntity, config)
-      const columnsToShow = config.rowsToShowOnEntityPage
+      const columnsToShow = config.rowsToShowOnTablePage
       return Object.values(config.properties)
           .filter(p => columnsToShow.includes(p.id))
-    }
+    },
   },
 
   methods: {

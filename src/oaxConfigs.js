@@ -881,8 +881,8 @@ export const oaxConfigs = {
         "hasSerp": true,
         "highlightFilters": [{"key": "is_oa", "value": true, "displayName": "that are Open Access"}],
         "idRegex": "(?i)(?:sources\\/)?(?:https:\\/\\/openalex\\.org\\/)?(s\\d+)",
-        "rowsToShowOnEntityPage": ["id", "display_name", "ids.issn", "type", "publisher", "alternate_titles", "is_oa", "is_in_doaj", "apc_usd"],
-        "rowsToShowOnTablePage": ["display_name", "ids.issn", "type", "publisher", "is_oa", "is_in_doaj"],
+        "rowsToShowOnEntityPage": ["id", "display_name", "ids.issn", "type", "host_organization", "alternate_titles", "is_oa", "is_in_doaj", "apc_usd"],
+        "rowsToShowOnTablePage": ["display_name", "ids.issn", "type", "host_organization", "is_oa", "is_in_doaj"],
         "groupByDefaults": ["type", "is_oa", "is_in_doaj"],
         "properties": {
             "id": {
@@ -933,8 +933,8 @@ export const oaxConfigs = {
                 "category": "other",
                 "icon": "mdi-account-outline"
             },
-            "publisher": {
-                "id": "publisher",
+            "host_organization": {
+                "id": "host_organization",
                 "subjectEntity": "sources",
                 "entityId": "publishers",
                 "objectEntity": "publishers",
@@ -950,6 +950,8 @@ export const oaxConfigs = {
                 "entityId": "source-types",
                 "displayName": "Source type",
                 "isId": true,
+                "isExternalId": true,
+                "externalIdPrefix": "source-types",
                 "newType": "entity",
                 "actions": ["filter"],
                 "actionsPopular": ["filter"],
