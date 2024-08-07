@@ -14,7 +14,7 @@
       <v-btn icon :disabled="!selectedIds.length" @click="createCollection({ids: selectedIds, name: 'test'})">
         <v-icon>mdi-tag-outline</v-icon>
       </v-btn>
-      <v-btn icon :disabled="!selectedIds.length">
+      <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-spacer/>
@@ -137,6 +137,7 @@ import {unravel} from "../../util";
 import Entity from "@/components/Entity/Entity.vue";
 import PropValue from "@/components/PropValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
+import * as oaxSearch from "@/components/oaxSearch";
 
 
 export default {
@@ -247,6 +248,17 @@ export default {
     addColumn(id) {
       this.$emit("setColumns", this.resultsHeader.map(h => h.id).concat([id]))
     },
+    exportSelectedAsCsv(){
+      const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
+      const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows)
+
+      const blob = new Blob([csv], {type: "text/csv"})
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "selected.csv"
+      a.click()
+    }
 
 
   },

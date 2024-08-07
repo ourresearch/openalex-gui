@@ -36,6 +36,7 @@ import OqlBox from "@/components/OqlBox.vue";
 import {ret1} from "@/data/mockResults1";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import axios from "axios";
+import * as oaxSearch from "@/components/oaxSearch";
 
 export default {
   name: "Template",
@@ -153,7 +154,7 @@ export default {
       const newQueryString = replaceSortBy(this.canonicalQueryString, id, direction)
       console.log("setSort", id, direction, newQueryString)
       this.setQueryString(newQueryString)
-    }
+    },
 
 
   },
