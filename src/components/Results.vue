@@ -37,6 +37,7 @@ import {ret1} from "@/data/mockResults1";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import axios from "axios";
 import * as oaxSearch from "@/oaxSearch";
+import {sleep} from "@/util";
 
 export default {
   name: "Template",
@@ -77,7 +78,9 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
+    ...mapActions([
+        "createSearch",
+    ]),
     ...mapActions("user", []),
     async getResults() {
       // if (!this.$route.query.q) return
@@ -85,12 +88,17 @@ export default {
       this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
       try {
         const resp = await axios.get(this.apiUrl)
+        if (!resp.data.is_ready) {
+          console.log("getResults: not ready, waiting")
+          await sleep(1000)
+          return this.getResults()
+        }
         this.setEverythingFromApiResp(resp)
+        this.$store.state.isLoading = false
       } catch (e) {
         this.clearEverything()
         this.snackbar({msg: "Error fetching results", color: "error"})
         console.error(e)
-      } finally {
         this.$store.state.isLoading = false
       }
 
@@ -100,11 +108,6 @@ export default {
       this.resultsMeta = resp.data.meta
       this.resultsBody = resp.data.results.body
       this.resultsHeader = resp.data.results.header
-
-      // const hackCanonicalQueryString = (str) => {
-      //   return this.isLocalEnv ? str.replace("using works\n", "") : str
-      // }
-      // this.canonicalQueryString = hackCanonicalQueryString(resp.data.meta.oql)
       this.canonicalQueryString = resp.data.meta.oql
     },
     clearEverything() {
@@ -117,7 +120,7 @@ export default {
       console.log("setColumns", this.canonicalQueryString, ids)
       const replaceReturnFields = (query, fields) => query.replace(/return.*/, `return ${fields.join(', ')}`);
       const newQueryString = replaceReturnFields(this.canonicalQueryString, ids)
-      this.setQueryString(newQueryString)
+      this.createSearch(newQueryString)
     },
     setSort({id, direction}) {
       if (!["asc", "desc"].includes(direction)) {
@@ -127,7 +130,7 @@ export default {
       const replaceSortBy = (query, sortField, isAscending) => query.replace(/sort by.*/, `sort by ${sortField} ${direction}`);
       const newQueryString = replaceSortBy(this.canonicalQueryString, id, direction)
       console.log("setSort", id, direction, newQueryString)
-      this.setQueryString(newQueryString)
+      this.createSearch(newQueryString)
     },
 
 
