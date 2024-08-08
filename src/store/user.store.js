@@ -334,7 +334,7 @@ export const user = {
             const resp = await axios.post(myUrl,{
                 ids,
                 name,
-                description: "test",
+                description,
             }, axiosConfig())
 
             await dispatch("fetchUser")
