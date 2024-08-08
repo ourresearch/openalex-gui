@@ -184,7 +184,7 @@
       <prop-selector/>
     </v-dialog>
 
-    <v-dialog v-model="isCreateLabelDialogOpen">
+    <v-dialog v-model="isCreateLabelDialogOpen" width="400">
       <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
     </v-dialog>
 

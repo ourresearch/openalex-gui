@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4">About</div>
+    <div class="text-h4">About me</div>
     <v-card rounded outlined class="my-4">
       <!--          <v-divider></v-divider>-->
       <v-list color="transparent">
