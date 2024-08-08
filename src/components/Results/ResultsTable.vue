@@ -201,7 +201,7 @@ import {unravel} from "../../util";
 import Entity from "@/components/Entity/Entity.vue";
 import PropValue from "@/components/PropValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
-import * as oaxSearch from "@/components/oaxSearch";
+import * as oaxSearch from "@/oaxSearch";
 import PropSelector from "@/components/PropSelector.vue";
 import LabelCreate from "@/components/Label/LabelCreate.vue";
 

@@ -49,6 +49,12 @@ const routes = [
     {
         path: "/results",
         name: "results",
+        params: {entityType: "works"},
+        component: Results,
+    },
+    {
+        path: "/s/:id",
+        name: "search",
         component: Results,
     },
 

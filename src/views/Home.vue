@@ -7,7 +7,7 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <OqlBox @setQueryString="setQueryString" />
+              <OqlBox  />
 
             </div>
 
@@ -157,7 +157,7 @@
 <script>
 
 import {VueTyper} from 'vue-typer'
-import {mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
 
 
@@ -198,9 +198,9 @@ export default {
     }
   },
   methods: {
-    setQueryString(newQueryString) {
-      this.$router.push({name: "results", query: {q: newQueryString}})
-    },
+    ...mapActions([
+        "createSearch",
+    ]),
   },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)

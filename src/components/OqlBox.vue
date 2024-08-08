@@ -1,16 +1,16 @@
 <template>
   <div>
-<!--    <div class="mb-2">-->
-<!--      <v-chip-->
-<!--        v-for="suggestion in autocompleteSuggestions"-->
-<!--        :key="suggestion"-->
-<!--        outlined-->
-<!--        class="mr-1"-->
-<!--        @click="replaceLastWord(suggestion)"-->
-<!--      >-->
-<!--        {{ suggestion}}-->
-<!--      </v-chip>-->
-<!--    </div>-->
+    <!--    <div class="mb-2">-->
+    <!--      <v-chip-->
+    <!--        v-for="suggestion in autocompleteSuggestions"-->
+    <!--        :key="suggestion"-->
+    <!--        outlined-->
+    <!--        class="mr-1"-->
+    <!--        @click="replaceLastWord(suggestion)"-->
+    <!--      >-->
+    <!--        {{ suggestion}}-->
+    <!--      </v-chip>-->
+    <!--    </div>-->
 
     <div class="d-flex align-end">
       <v-textarea
@@ -28,8 +28,9 @@
           @keydown.tab="tab"
       >
       </v-textarea>
-      <v-btn x-large color="primary" rounded @click="setQueryString" class="px-4 mb-8 ml-2 fill-height" style="min-width: 0;">
-        <v-icon >mdi-magnify</v-icon>
+      <v-btn x-large color="primary" rounded @click="setQueryString" class="px-4 mb-8 ml-2 fill-height"
+             style="min-width: 0;">
+        <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </div>
   </div>
@@ -61,7 +62,7 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    cleanQueryString(){
+    cleanQueryString() {
       const normalizeNewlines = (str) => str.replace(/\r\n|\r|\n/g, '\n');
       const removeRedundantSpaces = (str) => str.replace(/[^\S\n]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
       return removeRedundantSpaces(
@@ -76,12 +77,14 @@ export default {
       "snackbar",
 
     ]),
-    ...mapActions([]),
+    ...mapActions([
+        "createSearch",
+    ]),
     ...mapActions("user", []),
-    setQueryString() {
-      this.$emit("setQueryString", this.cleanQueryString)
+    async setQueryString() {
+      await this.createSearch(this.cleanQueryString)
     },
-    async getAutocompleteSuggestions(){
+    async getAutocompleteSuggestions() {
       const q = this.query ?? ""
       const url = "https://api.openalex.org/query?q=" + q
       try {
@@ -93,14 +96,14 @@ export default {
         return
       }
     },
-    tab(){
-      if (this.autocompleteSuggestions.length > 0){
+    tab() {
+      if (this.autocompleteSuggestions.length > 0) {
         this.replaceLastWord(this.autocompleteSuggestions[0])
 
         return false
       }
     },
-    replaceLastWord(newWord){
+    replaceLastWord(newWord) {
       const words = this.query.split(" ")
       words.pop()
       words.push(newWord)
