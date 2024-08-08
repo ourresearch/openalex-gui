@@ -1,6 +1,10 @@
 <template>
   <div>
-    <div class="text-h4">Labels</div>
+    <div class="text-h4 ml-1">My labels</div>
+    <v-btn rounded color="primary" class="my-4" @click="isLabelCreateDialogOpen = true">
+      <v-icon left>mdi-plus</v-icon>
+      Create Label
+    </v-btn>
     <v-card rounded outlined class="my-4">
       <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
       <v-list v-else color="transparent">
@@ -24,20 +28,28 @@
       </v-list>
     </v-card>
 
+    <v-dialog v-model="isLabelCreateDialogOpen" width="400">
+      <label-create @close="isLabelCreateDialogOpen = false" />
+    </v-dialog>
+
   </div>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import LabelCreate from "@/components/Label/LabelCreate.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    LabelCreate,
+  },
   props: {},
   data() {
     return {
       foo: 42,
+      isLabelCreateDialogOpen: false,
     }
   },
   computed: {

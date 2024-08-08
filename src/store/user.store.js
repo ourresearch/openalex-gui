@@ -2,6 +2,7 @@ import axios from "axios";
 import router from "../router";
 import {url} from "@/url";
 import {entity} from "@/entity";
+import {sleep} from "@/util";
 
 const shortUuid = require('short-uuid');
 
@@ -109,7 +110,6 @@ export const user = {
                 apiBaseUrl + "/user",
                 axiosConfig()
             )
-            console.log("user.store fetchUser done", resp.data)
             commit("setFromApiResp", resp.data)
 
             // hack for now, these should be in the user object
@@ -327,7 +327,8 @@ export const user = {
 
         // create
         async createCollection({commit, dispatch, state, rootState}, {ids, name, description}) {
-            if (!ids.length) return // don't create empty collections
+            if (!ids.length) ids = ["hack"]
+
             const id = shortUuid.generate()
             // const myEntityType = entity.getType(ids[0], rootState.config)
             const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`
@@ -338,8 +339,7 @@ export const user = {
                 description,
             }, axiosConfig())
 
-            console.log("user.store createCollection done", resp.data)
-
+            await sleep(500)  // hack to give the server time to update
             await dispatch("fetchUser")
         },
 
@@ -351,7 +351,6 @@ export const user = {
                 myUrl,
                 axiosConfig()
             )
-            console.log("user.store fetchCollections done", resp.data)
            state.collections = resp.data
         },
 

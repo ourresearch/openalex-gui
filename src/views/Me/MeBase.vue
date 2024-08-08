@@ -1,13 +1,13 @@
 <template>
   <v-container>
-    <v-row>
-      <div class="text-h4">
-        Profile
-      </div>
-    </v-row>
+<!--    <v-row>-->
+<!--      <div class="text-h4">-->
+<!--        Profile-->
+<!--      </div>-->
+<!--    </v-row>-->
     <v-row>
       <v-col cols="3">
-        <v-list nav>
+        <v-list  rounded>
           <v-list-item to="/me/about">
             <v-list-item-content>
               <v-list-item-title>
