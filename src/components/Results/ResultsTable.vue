@@ -10,14 +10,60 @@
       >
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
-      <v-btn
-          icon
-          :disabled="!selectedIds.length"
-          @click="createCollection({ids: selectedIds, name: 'test'})"
-          v-if="userId"
-      >
-        <v-icon>mdi-tag-outline</v-icon>
-      </v-btn>
+      <template v-if="userId">
+        <v-menu>
+          <template v-slot:activator="{ on }">
+            <v-btn icon v-on="on" :disabled="!selectedIds.length">
+              <v-icon>mdi-tag-outline</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-subheader>Apply label:</v-subheader>
+            <v-list-item
+                v-for="label in userCollections"
+                :key="label.id"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-tag-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>{{ label.name }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-divider/>
+            <v-list-item
+                key="create-label"
+                @click="isCreateLabelDialogOpen = true"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-tag-plus-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Create new label</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item
+                key="manage-labels"
+                to="/me/labels"
+            >
+              <v-list-item-icon>
+                <v-icon>mdi-tag-edit-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Manage labels</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </template>
+      <!--      <v-btn-->
+      <!--          icon-->
+      <!--          :disabled="!selectedIds.length"-->
+      <!--          @click="createCollection({ids: selectedIds, name: 'test'})"-->
+      <!--          v-if="userId"-->
+      <!--      >-->
+      <!--        <v-icon>mdi-tag-outline</v-icon>-->
+      <!--      </v-btn>-->
       <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
@@ -135,8 +181,14 @@
       </tbody>
     </v-simple-table>
     <v-dialog v-model="isPropSelectorDialogOpen" width="400">
-      <prop-selector />
+      <prop-selector/>
     </v-dialog>
+
+    <v-dialog v-model="isCreateLabelDialogOpen">
+      <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
+    </v-dialog>
+
+
   </div>
 
 
@@ -151,6 +203,7 @@ import PropValue from "@/components/PropValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/components/oaxSearch";
 import PropSelector from "@/components/PropSelector.vue";
+import LabelCreate from "@/components/Label/LabelCreate.vue";
 
 export default {
   name: "Template",
@@ -158,6 +211,7 @@ export default {
     Entity,
     PropValue,
     PropSelector,
+    LabelCreate,
   },
   props: {
     resultsHeader: Array,
@@ -171,6 +225,7 @@ export default {
       selectedIds: [],
       zoomId: null,
       isPropSelectorDialogOpen: false,
+      isCreateLabelDialogOpen: false,
     }
   },
   computed: {
@@ -208,7 +263,6 @@ export default {
       const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
       const subjectEntity = getGetKey(this.resultsMeta.oql)
       const config = oaxConfigs[subjectEntity]
-      console.log("columnsToAdd", subjectEntity, config)
       const columnsToShow = config.rowsToShowOnTablePage
       return Object.values(config.properties)
           .filter(p => columnsToShow.includes(p.id))
@@ -222,7 +276,7 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", [
-        "createCollection"
+      "createCollection"
     ]),
     addSelectedId(id) {
       this.selectedIds.push(id)
@@ -262,7 +316,7 @@ export default {
     addColumn(id) {
       this.$emit("setColumns", this.resultsHeader.map(h => h.id).concat([id]))
     },
-    exportSelectedAsCsv(){
+    exportSelectedAsCsv() {
       const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
       const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows)
 

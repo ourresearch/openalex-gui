@@ -1,7 +1,7 @@
 <template>
   <div>
-    <v-card rounded outlined class=" pb-10">
-      <v-card-title class="">Account details</v-card-title>
+    <div class="text-h4">About</div>
+    <v-card rounded outlined class="my-4">
       <!--          <v-divider></v-divider>-->
       <v-list color="transparent">
         <v-list-item>

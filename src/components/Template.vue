@@ -19,8 +19,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
-      "entityType",
     ]),
     ...mapGetters("user", [
       "userId",
