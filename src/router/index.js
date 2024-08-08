@@ -29,7 +29,8 @@ import {oaxConfigs} from "@/oaxConfigs";
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
-import MeCollections from "@/views/Me/MeCollections.vue";
+import MeCollections from "@/views/Me/MeLabels.vue";
+import MeLabels from "@/views/Me/MeLabels.vue";
 
 Vue.use(VueRouter)
 
@@ -78,9 +79,9 @@ const routes = [
                 component: MeSearches,
             },
             {
-                path: '/me/collections',
-                name: 'me-collections',
-                component: MeCollections,
+                path: '/me/labels',
+                name: 'me-labels',
+                component: MeLabels,
             },
         ]
     },
