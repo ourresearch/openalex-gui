@@ -10,7 +10,12 @@
       >
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
-      <v-btn icon :disabled="!selectedIds.length" @click="createCollection({ids: selectedIds, name: 'test'})">
+      <v-btn
+          icon
+          :disabled="!selectedIds.length"
+          @click="createCollection({ids: selectedIds, name: 'test'})"
+          v-if="userId"
+      >
         <v-icon>mdi-tag-outline</v-icon>
       </v-btn>
       <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
