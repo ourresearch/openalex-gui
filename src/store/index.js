@@ -4,6 +4,8 @@ import Vuex from 'vuex'
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
+import axios from "axios";
+import router from "@/router";
 
 Vue.use(Vuex)
 
@@ -32,8 +34,7 @@ export default new Vuex.Store({
             state.snackbarIsOpen = true
             if (typeof arg === "string") {
                 state.snackbarMsg = arg
-            }
-            else {
+            } else {
                 state.snackbarMsg = arg.msg
                 state.snackbarColor = arg.color
             }
@@ -49,11 +50,32 @@ export default new Vuex.Store({
 
     },
     actions: {
+        createSearch: async function (context, oql) {
+            const resp = await axios.post(
+                "https://api.openalex.org/searches",
+                {
+                    q: oql,
+                })
+            await router.push({name: 'search', params: {id: resp.data.id}})
+                .catch((e) => {
+                    if (e.name !== "NavigationDuplicated") {
+                        throw e
+                    }
+                })
+        },
     },
     getters: {
-        globalIsLoading(state) { return state.isLoading},
-        isLocalEnv(state) { return window.location.hostname === "localhost"},
-        isStagingEnv(state) { return window.location.hostname === "staging.openalex.org"},
-        isProductionEnv(state) { return window.location.hostname === "openalex.org"},
+        globalIsLoading(state) {
+            return state.isLoading
+        },
+        isLocalEnv(state) {
+            return window.location.hostname === "localhost"
+        },
+        isStagingEnv(state) {
+            return window.location.hostname === "staging.openalex.org"
+        },
+        isProductionEnv(state) {
+            return window.location.hostname === "openalex.org"
+        },
     },
 })

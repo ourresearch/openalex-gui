@@ -3,7 +3,6 @@
     <v-row>
       <v-col>
         <OqlBox
-            @setQueryString="setQueryString"
             :canonical-query-string="canonicalQueryString"
         />
       </v-col>
@@ -37,7 +36,7 @@ import OqlBox from "@/components/OqlBox.vue";
 import {ret1} from "@/data/mockResults1";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import axios from "axios";
-import * as oaxSearch from "@/components/oaxSearch";
+import * as oaxSearch from "@/oaxSearch";
 
 export default {
   name: "Template",
@@ -80,53 +79,26 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-    async setQueryString(newQueryString) {
-      const normalizeNewlines = (str) => str.replace(/\r\n|\r|\n/g, '\n');
-      const removeRedundantSpaces = (str) => str.replace(/[^\S\n]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
-      const q = removeRedundantSpaces(
-          normalizeNewlines(newQueryString)
-      )
-      // const q = (newQueryString) ?
-      //     newQueryString :
-      //     undefined
-      const newRoute = {name: "results", query: {q}}
-      console.log("Results.setQueryString", q, newRoute)
-      await this.$router.push(newRoute)
-          .catch((e) => {
-            if (e.name !== "NavigationDuplicated") {
-              throw e
-            }
-          })
-    },
-    async getResults(concat) {
+    async getResults() {
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
-      this.apiUrl = "https://api.openalex.org/entities?"
-          + (this.$route.query.q ?
-                  "q=" + this.$route.query.q.replace(/(\r\n|\n|\r)/g, " ") :
-                  ""
-          )
-          + "&format=ui"
-          + "&page=" + this.page
-
+      this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
       try {
         const resp = await axios.get(this.apiUrl)
-        this.setEverythingFromApiResp(resp, concat)
+        this.setEverythingFromApiResp(resp)
       } catch (e) {
         this.clearEverything()
         this.snackbar({msg: "Error fetching results", color: "error"})
         console.error(e)
-        return
       } finally {
         this.$store.state.isLoading = false
       }
 
-      this.$store.state.isLoading = false
     },
-    setEverythingFromApiResp(resp, concat = false) {
-      const body = concat ? this.resultsBody.concat(resp.data.results.body) : resp.data.results.body
+    setEverythingFromApiResp(resp) {
+      console.log("setEverythingFromApiResp", resp.data)
       this.resultsMeta = resp.data.meta
-      this.resultsBody = body
+      this.resultsBody = resp.data.results.body
       this.resultsHeader = resp.data.results.header
 
       // const hackCanonicalQueryString = (str) => {
@@ -165,7 +137,7 @@ export default {
   mounted() {
   },
   watch: {
-    "$route.query.q": {
+    "$route.params.id": {
       handler: function (value) {
         this.getResults()
       },
