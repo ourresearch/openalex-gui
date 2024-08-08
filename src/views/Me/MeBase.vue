@@ -22,10 +22,10 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item to="/me/collections">
+          <v-list-item to="/me/labels">
             <v-list-item-content>
               <v-list-item-title>
-                Collections
+                Labels
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>

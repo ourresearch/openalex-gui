@@ -28,6 +28,7 @@ export const user = {
         email: "",
         authorId: "",
         savedSearches: [],
+        collections: [],
         isSaving: false,
 
         renameId: null,
@@ -108,6 +109,7 @@ export const user = {
                 apiBaseUrl + "/user",
                 axiosConfig()
             )
+            console.log("user.store fetchUser done", resp.data)
             commit("setFromApiResp", resp.data)
 
             // hack for now, these should be in the user object
@@ -326,16 +328,17 @@ export const user = {
         // create
         async createCollection({commit, dispatch, state, rootState}, {ids, name, description}) {
             if (!ids.length) return // don't create empty collections
-
             const id = shortUuid.generate()
             // const myEntityType = entity.getType(ids[0], rootState.config)
-            "/user/{userId}/collections/{collectionId}"
-            const myUrl = `https://api.openalex.org/user/${state.id}/collections/${id}`
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`
             const resp = await axios.post(myUrl,{
                 ids,
+                entity:"works",
                 name,
                 description,
             }, axiosConfig())
+
+            console.log("user.store createCollection done", resp.data)
 
             await dispatch("fetchUser")
         },
@@ -348,6 +351,7 @@ export const user = {
                 myUrl,
                 axiosConfig()
             )
+            console.log("user.store fetchCollections done", resp.data)
            state.collections = resp.data
         },
 
@@ -356,19 +360,16 @@ export const user = {
 
 
         // delete
-        async deleteCollection({commit, dispatch, rootState}, id) {
+        async deleteCollection({commit, dispatch, state, rootState}, id) {
             rootState.isLoading = true
-            const myUrl = apiBaseUrl + `/saved-search/${id}`
+            const  myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`
             const resp = await axios.delete(
                 myUrl,
                 axiosConfig(),
             )
-            await dispatch("fetchSavedSearches") // have to update the list
-            commit("snackbar", "Search deleted", {root: true})
+            await dispatch("fetchUser") // have to update the list
+            commit("snackbar", "Label deleted", {root: true})
             rootState.isLoading = false
-            await url.pushToRoute(router, "/me/searches")
-            commit("setActiveSearchId", undefined)
-
         },
 
 
