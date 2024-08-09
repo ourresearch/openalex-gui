@@ -7,7 +7,7 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <OqlBox  />
+              <OqlBox arrow-direction="right" />
 
             </div>
 

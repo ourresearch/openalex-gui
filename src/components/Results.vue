@@ -8,7 +8,7 @@
       </v-col>
     </v-row>
 
-    <v-row>
+    <v-row class="mt-12">
       <v-col>
         <results-table
             v-if="isResultsReady"
