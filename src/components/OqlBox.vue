@@ -33,6 +33,7 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </div>
+
   </div>
 </template>
 
