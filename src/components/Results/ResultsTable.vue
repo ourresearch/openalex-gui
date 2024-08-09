@@ -67,7 +67,7 @@
       <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
-      <v-btn icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
+      <v-btn v-if="subjectEntity === 'works'" icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
         <v-icon>mdi-message-alert-outline</v-icon>
       </v-btn>
       <v-spacer/>
@@ -192,11 +192,11 @@
       </tbody>
     </v-simple-table>
 
-    <v-dialog v-model="isCreateLabelDialogOpen" width="400">
+    <v-dialog v-model="isCreateLabelDialogOpen" width="500">
       <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
     </v-dialog>
 
-    <v-dialog v-model="isCorrectionDialogOpen" width="400">
+    <v-dialog v-model="isCorrectionDialogOpen" width="500">
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false" />
     </v-dialog>
 
