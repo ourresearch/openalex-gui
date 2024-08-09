@@ -116,12 +116,12 @@ export default {
             return p.displayName.toLowerCase().includes(this.q.toLowerCase())
           })
           .filter(p => {
-            return p.actions.includes(this.action)
+            return p.actions?.includes(this.action)
           })
           .map(p => {
             return {
               ...p,
-              isDisabled: this.idsToDisable.includes(p.id)
+              isDisabled: this.idsToDisable?.includes(p.id)
             }
           })
     },

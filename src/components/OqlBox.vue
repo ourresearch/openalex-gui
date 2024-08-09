@@ -12,26 +12,35 @@
     <!--      </v-chip>-->
     <!--    </div>-->
 
-    <div class="d-flex align-end">
+    <div class="">
       <v-textarea
           v-model="queryString"
           autofocus
-          label="OQL"
-          outlined
+          filled
           clearable
           auto-grow
           rounded
-          rows="1"
+          rows="3"
           placeholder="Enter your OQL here"
           @keydown.ctrl.enter="setQueryString"
           @keydown.meta.enter="setQueryString"
           @keydown.tab="tab"
+          hide-details
       >
       </v-textarea>
-      <v-btn x-large color="primary" rounded @click="setQueryString" class="px-4 mb-8 ml-2 fill-height"
-             style="min-width: 0;">
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+      <div class="d-flex pr-2">
+        <v-spacer></v-spacer>
+        <v-btn
+            color="primary"
+            fab
+            @click="setQueryString"
+            class=""
+            style="margin-top:-30px;"
+        >
+          <v-icon>mdi-arrow-{{ arrowDirection }}</v-icon>
+        </v-btn>
+
+      </div>
     </div>
 
   </div>
@@ -47,6 +56,10 @@ export default {
   components: {},
   props: {
     canonicalQueryString: String,
+    arrowDirection: {
+      type: String,
+      default: "down"
+    }
   },
   data() {
     return {
@@ -79,7 +92,7 @@ export default {
 
     ]),
     ...mapActions([
-        "createSearch",
+      "createSearch",
     ]),
     ...mapActions("user", []),
     async setQueryString() {
