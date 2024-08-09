@@ -25,7 +25,9 @@
         <!--        </div>-->
       </v-col>
     </v-row>
-    <v-dialog v-model="isPropSelectorDialogOpen"></v-dialog>
+    <v-dialog scrollable v-model="isPropSelectorDialogOpen">
+      <prop-selector :entity-type="'works'" />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -38,12 +40,14 @@ import ResultsTable from "@/components/Results/ResultsTable.vue";
 import axios from "axios";
 import * as oaxSearch from "@/oaxSearch";
 import {sleep} from "@/util";
+import PropSelector from "@/components/PropSelector.vue";
 
 export default {
   name: "Template",
   components: {
     OqlBox,
     ResultsTable,
+    PropSelector,
   },
   props: {},
   data() {
@@ -61,7 +65,7 @@ export default {
         body: []
       },
       apiUrl: "",
-      isPropSelectorDialogOpen: false,
+      isPropSelectorDialogOpen: true,
     }
   },
   computed: {
