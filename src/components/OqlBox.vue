@@ -28,14 +28,15 @@
           hide-details
       >
       </v-textarea>
-      <div class="d-flex pr-2">
+      <div class="d-flex pr-4">
         <v-spacer></v-spacer>
         <v-btn
             color="primary"
             fab
+            small
             @click="setQueryString"
             class=""
-            style="margin-top:-30px;"
+            style="margin-top:-22px;"
         >
           <v-icon>mdi-arrow-{{ arrowDirection }}</v-icon>
         </v-btn>
