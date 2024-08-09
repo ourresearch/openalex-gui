@@ -1,34 +1,37 @@
 <template>
   <v-card rounded :loading="isLoading">
-    <v-toolbar flat>
-      <v-toolbar-title class="font-weight-bold">Apply a correction</v-toolbar-title>
-      <v-spacer></v-spacer>
-      <div>
-        <v-chip
-            v-if="currentStep"
-            small
-            outlined
-            label
-            class="mr-2"
-        >
-          Step {{ currentStep }} of 4
-        </v-chip>
-        <v-chip
-            v-if="isLoading"
-            color="primary"
-            class="mr-2"
-        >
-          Loading...
-        </v-chip>
-      </div>
-    </v-toolbar>
-    <v-card-text class="body-1">
-      <div>
-        Your correction will apply to {{ ids.length }} selected works.
-      </div>
+    <div>
+      <v-card-title class="d-flex">
+        <div>Apply a correction</div>
+        <v-spacer />
+        <div>
+          <v-chip
+              v-if="currentStep"
+              small
+              outlined
+              label
+              class="mr-2"
+          >
+            Step {{ currentStep }} of 4
+          </v-chip>
+          <v-chip
+              v-if="isLoading"
+              color="primary"
+              class="mr-2"
+          >
+            Loading...
+          </v-chip>
+        </div>
+
+      </v-card-title>
+      <v-card-subtitle class="pb-0">
+        to {{ ids.length }} selected works.
+      </v-card-subtitle>
+    </div>
+    <v-card-text class="body-1 pa-0">
 
       <v-divider class="my-4"></v-divider>
-      <div class="step step-1 d-flex">
+      <div class="step step-1 d-flex px-4">
         <div class="pr-2">
           <v-icon>mdi-numeric-1-circle</v-icon>
         </div>
@@ -64,7 +67,7 @@
       </div>
 
       <v-divider v-if="selectedPropToModify" class="my-4"></v-divider>
-      <div v-if="selectedPropToModify" class="step step-2 d-flex">
+      <div v-if="selectedPropToModify" class="step step-2 d-flex px-4">
         <div class="pr-2">
           <v-icon>mdi-numeric-2-circle</v-icon>
         </div>
@@ -106,7 +109,7 @@
 
       </div>
       <v-divider class="my-4" v-if="selectedAction"></v-divider>
-      <div class="step step-3 d-flex" v-if="selectedAction">
+      <div class="step step-3 d-flex px-4" v-if="selectedAction">
         <div class="pr-2">
           <v-icon>mdi-numeric-3-circle</v-icon>
         </div>
@@ -125,7 +128,7 @@
         </div>
       </div>
       <v-divider class="my-4" v-if="selectedValue"></v-divider>
-      <div class="step step-4 d-flex" v-if="selectedValue">
+      <div class="step step-4 d-flex px-4" v-if="selectedValue">
         <div class="pr-2">
           <v-icon>mdi-numeric-4-circle</v-icon>
         </div>
