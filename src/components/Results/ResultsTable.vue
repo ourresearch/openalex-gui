@@ -68,15 +68,53 @@
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-spacer/>
-      <div v-if="!$store.state.isLoading">
-        showing 1-{{ resultsBody.length }} of {{
+      <div v-if="!$store.state.isLoading" class="body-2 grey--text px-4">
+         1-{{ resultsBody.length }} of {{
           resultsMeta?.count > 10000 ? "about " : ""
         }}{{ resultsMeta?.count | toPrecision }}
         results
       </div>
-      <v-btn :href="apiUrl" small icon target="_blank">
-        <v-icon small>mdi-api</v-icon>
-      </v-btn>
+
+      <v-menu rounded>
+          <template v-slot:activator="{ on }">
+            <v-btn icon v-on="on">
+              <v-icon>mdi-table-plus</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+                @click="addColumn(prop.id)"
+                v-for="prop in columnsToAdd"
+                :key="prop.id"
+                :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ prop.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
+            </v-list-item>
+            <v-divider/>
+            <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
+              <v-list-item-icon></v-list-item-icon>
+              <v-list-item-title>More</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      <v-menu rounded>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item :href="apiUrl"  icon target="_blank">
+            <v-list-item-icon>
+              <v-icon>mdi-api</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>View in API</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
     <v-simple-table v-if="resultsBody.length">
       <thead>
@@ -126,33 +164,6 @@
 
         </div>
       </th>
-      <th key="add-column-button">
-        <v-menu rounded>
-          <template v-slot:activator="{ on }">
-            <v-btn icon v-on="on">
-              <v-icon>mdi-table-column-plus-after</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item
-                @click="addColumn(prop.id)"
-                v-for="prop in columnsToAdd"
-                :key="prop.id"
-                :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ prop.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
-              <v-list-item-icon></v-list-item-icon>
-              <v-list-item-title>More</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </th>
       </thead>
       <tbody>
       <tr
@@ -174,9 +185,6 @@
         >
           <prop-value :property="cell"/>
         </td>
-        <td key="add-column-spacer-cell">
-
-        </td>
       </tr>
       </tbody>
     </v-simple-table>
@@ -186,6 +194,16 @@
 
     <v-dialog v-model="isCreateLabelDialogOpen" width="400">
       <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
+    </v-dialog>
+
+    <v-dialog scrollable v-model="isPropSelectorDialogOpen">
+      <prop-selector
+          :subject-entity="subjectEntity"
+          :action="'column'"
+          :ids-to-disable="resultsHeader.map(h => h.id)"
+          @close="isPropSelectorDialogOpen = false"
+          @select="addColumn"
+      />
     </v-dialog>
 
 
@@ -260,13 +278,16 @@ export default {
       }
     },
     columnsToAdd() {
-      const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
-      const subjectEntity = getGetKey(this.resultsMeta.oql)
-      const config = oaxConfigs[subjectEntity]
+
+      const config = oaxConfigs[this.subjectEntity]
       const columnsToShow = config.rowsToShowOnTablePage
       return Object.values(config.properties)
           .filter(p => columnsToShow.includes(p.id))
     },
+    subjectEntity(){
+      const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
+      return getGetKey(this.resultsMeta.oql)
+    }
   },
 
   methods: {
@@ -315,6 +336,7 @@ export default {
     },
     addColumn(id) {
       this.$emit("setColumns", this.resultsHeader.map(h => h.id).concat([id]))
+      this.isPropSelectorDialogOpen = false
     },
     exportSelectedAsCsv() {
       const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
