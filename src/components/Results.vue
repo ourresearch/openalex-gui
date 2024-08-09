@@ -11,6 +11,7 @@
     <v-row>
       <v-col>
         <results-table
+            v-if="isResultsReady"
             :results-body="resultsBody"
             :results-header="resultsHeader"
             :results-meta="resultsMeta"
@@ -26,7 +27,10 @@
       </v-col>
     </v-row>
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
-      <prop-selector :entity-type="'works'" />
+      <prop-selector
+          :subject-entity="'works'"
+          @close="isPropSelectorDialogOpen = false"
+      />
     </v-dialog>
   </v-container>
 </template>
@@ -60,12 +64,13 @@ export default {
       resultsMeta: {},
       resultsHeader: [],
       resultsBody: [],
+      isResultsReady: false,
       results: {
         header: [],
         body: []
       },
       apiUrl: "",
-      isPropSelectorDialogOpen: true,
+      isPropSelectorDialogOpen: false,
     }
   },
   computed: {
@@ -89,6 +94,7 @@ export default {
     async getResults() {
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
+      // this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}?bypass_cache=true`
       this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
       try {
         const resp = await axios.get(this.apiUrl)
@@ -108,7 +114,7 @@ export default {
 
     },
     setEverythingFromApiResp(resp) {
-      console.log("setEverythingFromApiResp", resp.data)
+      this.isResultsReady = true
       this.resultsMeta = resp.data.meta
       this.resultsBody = resp.data.results.body
       this.resultsHeader = resp.data.results.header
