@@ -17,7 +17,7 @@
         :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
         extension-height="70"
     >
-<!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
+      <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
       <router-link
           :to="{name: 'Home'}"
@@ -47,6 +47,7 @@
         />
       </div>
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
+<!--      <v-btn @click="pinkMode">pink</v-btn>-->
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
@@ -79,7 +80,7 @@
         </v-list>
       </v-menu>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-        <entity-type-selector  />
+        <entity-type-selector/>
         <shortcut-box
             class="flex-grow-1"
         />
@@ -222,6 +223,11 @@ export default {
       this.exportObj = null
       this.$store.state.exportProgressUrl = null
       this.snackbar("Export cancelled.")
+    },
+    pinkMode() {
+      const newColor = '#FF69B4';
+      this.$vuetify.theme.themes.light.primary = newColor
+      this.$vuetify.theme.currentTheme.primary = newColor
     }
   },
   async mounted() {

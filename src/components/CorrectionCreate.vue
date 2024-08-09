@@ -1,17 +1,46 @@
 <template>
   <v-card rounded :loading="isLoading">
-    <v-card-title>Apply a correction</v-card-title>
+    <v-toolbar flat>
+      <v-toolbar-title class="font-weight-bold">Apply a correction</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <div>
+        <v-chip
+            v-if="currentStep"
+            small
+            outlined
+            label
+            class="mr-2"
+        >
+          Step {{ currentStep }} of 4
+        </v-chip>
+        <v-chip
+            v-if="isLoading"
+            color="primary"
+            class="mr-2"
+        >
+          Loading...
+        </v-chip>
+      </div>
+    </v-toolbar>
     <v-card-text class="body-1">
       <div>
-        You've selected {{ ids.length }} works. What about these works do you want to correct?
+        Your correction will apply to {{ ids.length }} selected works.
+      </div>
+
+      <v-divider class="my-4"></v-divider>
+      <div class="step step-1 d-flex">
+        <div class="pr-2">
+          <v-icon>mdi-numeric-1-circle</v-icon>
+        </div>
         <div>
+          What property to you want to change?
           <v-menu>
             <template v-slot:activator="{ on, attrs }">
               <v-btn
                   v-bind="attrs"
                   v-on="on"
                   text
-                  class=" px-2"
+                  class="d-block px-2"
               >
                 <!--            <v-icon left v-if="selectedPropToModify">{{ selectedPropToModify.icon }}</v-icon>-->
                 {{ selectedPropToModify?.displayName || "select property" }}
@@ -31,59 +60,23 @@
               </v-list-item>
             </v-list>
           </v-menu>
-
         </div>
       </div>
 
-      <div v-if="selectedPropToModify" class="">
-        <v-divider class="my-4"></v-divider>
-        <div>
-          How do you want to correct it?
+      <v-divider v-if="selectedPropToModify" class="my-4"></v-divider>
+      <div v-if="selectedPropToModify" class="step step-2 d-flex">
+        <div class="pr-2">
+          <v-icon>mdi-numeric-2-circle</v-icon>
         </div>
-
-        <!-- change a boolean prop -->
-        <template v-if="selectedPropToModify?.newType === 'boolean'">
-
+        <div>
+          What do you want to do?
           <v-menu>
             <template v-slot:activator="{ on, attrs }">
               <v-btn
                   v-bind="attrs"
                   v-on="on"
                   text
-                  class="d-inline"
-              >
-                <template v-if="selectedValue === null">Select an action</template>
-                <template v-else>
-                  set it to {{ selectedValue }}
-                </template>
-                <v-icon right>mdi-menu-down</v-icon>
-              </v-btn>
-            </template>
-            <v-list>
-              <v-list-item
-                  v-for="(myValue, i) in [true, false]"
-                  :key="i"
-                  @click="selectedValue = myValue"
-              >
-                <v-list-item-icon>
-                  <v-icon>{{ myValue ? "mdi-check" : "mdi-close" }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>set it to {{ myValue }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </template>
-
-
-        <!-- change a non-boolean prop -->
-        <template v-else>
-          <v-menu>
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  text
-                  class="d-inline px-2"
+                  class="d-block px-2"
               >
                 <!--            <v-icon left v-if="selectedAction">{{ selectedAction.icon }}</v-icon>-->
                 <template v-if="!selectedAction">Select an action</template>
@@ -109,71 +102,49 @@
               </v-list-item>
             </v-list>
           </v-menu>
-          <div v-if="selectedAction">
-            <v-divider class="my-4"></v-divider>
-            <div>
-              Which value do you want to {{ selectedAction.id }}?
-            </div>
-            <div>
-              <v-text-field
-                  filled
-                  dense
-                  rounded
-                  class="mt-4"
-                  v-model="value"
-                  label="Paste an OpenAlex ID"
-                  placeholder="Paste an OpenAlex ID"
-                  hide-details
-                  @keydown.enter.prevent="create"
-              ></v-text-field>
-            </div>
+        </div>
 
-          </div>
+      </div>
+      <v-divider class="my-4" v-if="selectedAction"></v-divider>
+      <div class="step step-3 d-flex" v-if="selectedAction">
+        <div class="pr-2">
+          <v-icon>mdi-numeric-3-circle</v-icon>
+        </div>
+        <div class="flex-grow-1">
+          What {{ selectedPropToModify.displayName | pluralize(1) }} do you want to {{ selectedAction.id }}?
+          <entity-autocomplete
+              class="mt-3"
+              :entity-type="selectedPropToModify.objectEntity"
+              @entity-selected="selectedValue = $event"
 
-        </template>
+          />
 
+<!--          <div>-->
+<!--            {{ selectedValue}}-->
+<!--          </div>-->
+        </div>
+      </div>
+      <v-divider class="my-4" v-if="selectedValue"></v-divider>
+      <div class="step step-4 d-flex" v-if="selectedValue">
+        <div class="pr-2">
+          <v-icon>mdi-numeric-4-circle</v-icon>
+        </div>
+        <div class="flex-grow-1">
+          Any comments (optional)?
+          <v-textarea
+              filled
+              dense
+              rounded
+              class="mt-4"
+              v-model="comments"
+              label="Comments"
+              placeholder="Comments"
+              hide-details
+              @keydown.enter.prevent="create"
+              full-width
+            ></v-textarea>
 
-        <!--      <form>-->
-        <!--        <v-select-->
-        <!--            filled-->
-        <!--            rounded-->
-        <!--            class="mt-0"-->
-        <!--            v-model="propToModify"-->
-        <!--            :items="propToModifyOptions"-->
-        <!--            label="Property to modify"-->
-        <!--            placeholder="Select a property"-->
-        <!--            hide-details-->
-        <!--        ></v-select>-->
-        <!--        <v-select-->
-        <!--            filled-->
-        <!--            rounded-->
-        <!--            class="mt-4"-->
-        <!--            v-model="action"-->
-        <!--            :items="actionsOptions"-->
-        <!--            label="Action"-->
-        <!--            placeholder="Select an action"-->
-        <!--            hide-details-->
-        <!--        ></v-select>-->
-
-        <!--        <v-text-field-->
-        <!--            filled-->
-        <!--            rounded-->
-        <!--            class="mt-4"-->
-
-        <!--            name="name"-->
-        <!--            id="name"-->
-        <!--            type="name"-->
-
-        <!--            v-model="value"-->
-        <!--            autofocus-->
-        <!--            :label=""-->
-        <!--            placeholder="Label name"-->
-        <!--            hide-details-->
-        <!--            @keydown.enter.prevent="create"-->
-        <!--        >-->
-        <!--        </v-text-field>-->
-        <!--      </form>-->
-
+        </div>
       </div>
     </v-card-text>
     <v-card-actions>
@@ -182,7 +153,7 @@
       <v-btn
           color="primary"
           rounded
-          :disabled="!propToModify || !value || isLoading"
+          :disabled="isLoading || currentStep < 4"
           @click="create">
         Submit correction
       </v-btn>
@@ -194,10 +165,13 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {oaxConfigs} from "@/oaxConfigs";
+import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    EntityAutocomplete,
+  },
   props: {
     ids: {
       type: Array,
@@ -212,13 +186,12 @@ export default {
       propToModify: null,
       action: "remove",
       value: null,
-      comments: "",
 
       selectedPropToModify: null,
       propToModifyOptionIds: [
         "authorships.institutions.id",
         "authorships.author.id",
-        "open_access.is_oa",
+        // "open_access.is_oa",
       ],
 
       selectedAction: null,
@@ -228,6 +201,8 @@ export default {
       ],
 
       selectedValue: null,
+      comments: "",
+
 
     }
   },
@@ -240,6 +215,12 @@ export default {
       return Object.values(oaxConfigs.works.properties)
           .filter(prop => this.propToModifyOptionIds.includes(prop.id))
     },
+    currentStep() {
+      if (!this.selectedPropToModify) return 1
+      if (!this.selectedAction) return 2
+      if (!this.selectedValue) return 3
+      if (!this.comments) return 4
+    }
   },
 
   methods: {
