@@ -29,6 +29,13 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+          <v-list-item to="/me/corrections">
+            <v-list-item-content>
+              <v-list-item-title>
+                Corrections
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-col>
       <v-col cols="9">

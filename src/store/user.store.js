@@ -377,7 +377,19 @@ export const user = {
 
 
         // create
+        async createCorrection({commit, dispatch, state, rootState}, correctionObj) {
+            console.log("user.store createCorrection", correctionObj)
 
+            // const myUrl = apiBaseUrl + `/user/${state.id}/collections`
+            // const resp = await axios.post(myUrl, {
+            //     ids,
+            //     name,
+            //     description,
+            // }, axiosConfig())
+            //
+            // await sleep(500)  // hack to give the server time to update
+            // await dispatch("fetchUser")
+        },
 
         // read
         async fetchCorrections({commit, state}) {
@@ -387,6 +399,9 @@ export const user = {
                 axiosConfig()
             )
             state.corrections = resp.data
+        },
+        async deleteCorrection({commit, dispatch, state, rootState}, id) {
+            console.log("user.store deleteCorrection", id)
         },
 
 
@@ -400,6 +415,7 @@ export const user = {
 
         userSavedSearches: (state) => state.savedSearches,
         userCollections: (state) => state.collections,
+        userCorrections: (state) => state.corrections,
 
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
