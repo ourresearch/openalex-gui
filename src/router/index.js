@@ -14,7 +14,6 @@ import store from "@/store";
 import UserSignup from "@/components/user/UserSignup.vue";
 import UserMagicToken from "../components/user/UserMagicToken.vue";
 import Login from "@/views/Login.vue";
-import Me from "../views/Me.vue"
 
 import goTo from 'vuetify/es5/services/goto'
 import Webinars from "../views/Webinars.vue";
@@ -31,6 +30,7 @@ import MeAbout from "@/views/Me/MeAbout.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
 import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
+import MeCorrections from "@/views/Me/MeCorrections.vue";
 
 Vue.use(VueRouter)
 
@@ -88,6 +88,11 @@ const routes = [
                 path: '/me/labels',
                 name: 'me-labels',
                 component: MeLabels,
+            },
+            {
+                path: '/me/corrections',
+                name: 'me-corrections',
+                component: MeCorrections,
             },
         ]
     },
