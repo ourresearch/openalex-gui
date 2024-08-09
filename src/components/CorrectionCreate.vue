@@ -238,6 +238,7 @@ export default {
       // await this.createCollection({ids: this.idsArray, name: this.name})
       // this.isLoading = false
       // this.snackbar({msg: "Label created" + (this.idsArray.length ? " and applied" : "")})
+      this.snackbar({msg: "this doesn't do anything yet..."})
       this.close()
     },
     close() {
