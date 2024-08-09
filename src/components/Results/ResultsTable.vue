@@ -67,6 +67,9 @@
       <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
+      <v-btn icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
+        <v-icon>mdi-message-alert-outline</v-icon>
+      </v-btn>
       <v-spacer/>
       <div v-if="!$store.state.isLoading" class="body-2 grey--text px-4">
          1-{{ resultsBody.length }} of {{
@@ -188,12 +191,13 @@
       </tr>
       </tbody>
     </v-simple-table>
-    <v-dialog v-model="isPropSelectorDialogOpen" width="400">
-      <prop-selector/>
-    </v-dialog>
 
     <v-dialog v-model="isCreateLabelDialogOpen" width="400">
       <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
+    </v-dialog>
+
+    <v-dialog v-model="isCorrectionDialogOpen" width="400">
+      <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false" />
     </v-dialog>
 
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
@@ -222,6 +226,7 @@ import {oaxConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
 import PropSelector from "@/components/PropSelector.vue";
 import LabelCreate from "@/components/Label/LabelCreate.vue";
+import CorrectionCreate from "@/components/CorrectionCreate.vue";
 
 export default {
   name: "Template",
@@ -230,6 +235,7 @@ export default {
     PropValue,
     PropSelector,
     LabelCreate,
+    CorrectionCreate,
   },
   props: {
     resultsHeader: Array,
@@ -244,6 +250,7 @@ export default {
       zoomId: null,
       isPropSelectorDialogOpen: false,
       isCreateLabelDialogOpen: false,
+      isCorrectionDialogOpen: false,
     }
   },
   computed: {

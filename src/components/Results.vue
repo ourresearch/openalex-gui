@@ -94,8 +94,8 @@ export default {
     async getResults() {
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
-      // this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}?bypass_cache=true`
-      this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
+      this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}?bypass_cache=true`
+      // this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
       try {
         const resp = await axios.get(this.apiUrl)
         if (!resp.data.is_ready) {
