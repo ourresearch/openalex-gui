@@ -11,6 +11,10 @@
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
       <template v-if="userId">
+
+        <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
+          <v-icon>mdi-tray-arrow-down</v-icon>
+        </v-btn>
         <v-menu>
           <template v-slot:activator="{ on }">
             <v-btn icon v-on="on" :disabled="!selectedIds.length">
@@ -55,6 +59,9 @@
             </v-list-item>
           </v-list>
         </v-menu>
+        <v-btn v-if="subjectEntity === 'works'" icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
+          <v-icon>mdi-pencil-outline</v-icon>
+        </v-btn>
       </template>
       <!--      <v-btn-->
       <!--          icon-->
@@ -64,12 +71,6 @@
       <!--      >-->
       <!--        <v-icon>mdi-tag-outline</v-icon>-->
       <!--      </v-btn>-->
-      <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
-        <v-icon>mdi-tray-arrow-down</v-icon>
-      </v-btn>
-      <v-btn v-if="subjectEntity === 'works'" icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
-        <v-icon>mdi-message-alert-outline</v-icon>
-      </v-btn>
       <v-spacer/>
       <div v-if="!$store.state.isLoading" class="body-2 grey--text px-4">
          1-{{ resultsBody.length }} of {{
