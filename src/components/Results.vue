@@ -10,15 +10,18 @@
 
     <v-row class="mt-12">
       <v-col>
-        <results-table
-            v-if="isResultsReady"
-            :results-body="resultsBody"
-            :results-header="resultsHeader"
-            :results-meta="resultsMeta"
-            :api-url="apiUrl"
-            @setColumns="setColumns"
-            @setSort="setSort"
-        />
+        <v-card flat rounded>
+          <results-table
+              v-if="isResultsReady"
+              :results-body="resultsBody"
+              :results-header="resultsHeader"
+              :results-meta="resultsMeta"
+              :api-url="apiUrl"
+              @setColumns="setColumns"
+              @setSort="setSort"
+          />
+
+        </v-card>
         <!--        <div v-if="results.body.length >= 20" class="d-flex py-1">-->
         <!--          <v-btn @click="page += 1">-->
         <!--            More results-->
