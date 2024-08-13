@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{ background: backgroundColor }">
 
     <v-progress-linear
         indeterminate
@@ -16,6 +16,7 @@
         absolute
         :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
         extension-height="70"
+        @click.meta.stop="pinkMode"
     >
       <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
@@ -47,7 +48,6 @@
         />
       </div>
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
-<!--      <v-btn @click="pinkMode">pink</v-btn>-->
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
@@ -175,6 +175,8 @@ export default {
   data: function () {
     return {
       exportProgress: 0,
+      backgroundColor: "#fff",
+
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {
         progress: 0,
@@ -226,6 +228,7 @@ export default {
     },
     pinkMode() {
       const newColor = '#FF69B4';
+      this.backgroundColor = "#FFCCDC"
       this.$vuetify.theme.themes.light.primary = newColor
       this.$vuetify.theme.currentTheme.primary = newColor
     }
@@ -267,7 +270,6 @@ $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
 .v-main {
-  background-color: #fff;
 }
 
 
@@ -455,7 +457,8 @@ body {
 
   .v-application {
     //background: #F7F9FC !important;
-    background: #fff !important;
+    //background: #fff !important;
+    //background: pink !important;
 
     .rounded {
       border-radius: 15px !important;
