@@ -50,7 +50,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {parseOQL} from "@/oql";
 import axios from "axios";
+import {oaxConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",
@@ -99,18 +101,18 @@ export default {
     async setQueryString() {
       await this.createSearch(this.cleanQueryString)
     },
-    async getAutocompleteSuggestions() {
-      const q = this.query ?? ""
-      const url = "https://api.openalex.org/query?q=" + q
-      try {
-        const resp = await axios.get(url)
-        this.autocompleteSuggestions = resp.data.autocomplete.suggestions
-        console.log("getAutocompleteSuggestions", resp.data)
-      } catch (e) {
-        console.error(e)
-        return
-      }
-    },
+    // async getAutocompleteSuggestions() {
+    //   const q = this.query ?? ""
+    //   const url = "https://api.openalex.org/query?q=" + q
+    //   try {
+    //     const resp = await axios.get(url)
+    //     this.autocompleteSuggestions = resp.data.autocomplete.suggestions
+    //     console.log("getAutocompleteSuggestions", resp.data)
+    //   } catch (e) {
+    //     console.error(e)
+    //     return
+    //   }
+    // },
     tab() {
       if (this.autocompleteSuggestions.length > 0) {
         this.replaceLastWord(this.autocompleteSuggestions[0])
@@ -144,6 +146,16 @@ export default {
       },
       immediate: true
     },
+    queryString: {
+      handler: function (value) {
+        const autocomplete = parseOQL(
+            value,
+        )
+        console.log("queryString changed", value, autocomplete)
+      }
+      },
+      immediate: true
+
   }
 }
 </script>
