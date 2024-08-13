@@ -175,7 +175,8 @@ export default {
   data: function () {
     return {
       exportProgress: 0,
-      backgroundColor: "#fff",
+      backgroundColor: "hsl(220, 60%, 96%)", // light blue
+      // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
 
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {

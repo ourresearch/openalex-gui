@@ -131,7 +131,7 @@ export default {
         textArea.selectionStart = textArea.value.length
       }, 0);
 
-    }
+    },
 
 
   },
@@ -148,10 +148,10 @@ export default {
     },
     queryString: {
       handler: function (value) {
-        const autocomplete = parseOQL(
-            value,
-        )
-        console.log("queryString changed", value, autocomplete)
+        // const autocomplete = parseOQL(
+        //     value,
+        // )
+        // console.log("queryString changed", value, autocomplete)
       }
       },
       immediate: true

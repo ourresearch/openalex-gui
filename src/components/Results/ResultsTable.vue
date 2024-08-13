@@ -2,7 +2,7 @@
   <div>
     <div>
     </div>
-    <div class="table-meta d-flex align-center">
+    <div class="table-meta d-flex align-center pa-2">
 
       <v-btn
           icon
