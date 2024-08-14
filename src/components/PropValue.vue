@@ -49,14 +49,14 @@
               <router-link
                   v-for="(entity, i) in property.value"
                   :key="'entity-'+i"
-                  :to="entity.id"
+                  :to="'/' + entity.id"
               >
                 {{ entity?.display_name }}{{ i < property.value.length - 1 ? ', ' : '' }}
               </router-link>
             </template>
             <template v-else-if="property.value.id">
               <router-link
-                  :to="property.value.id"
+                  :to="'/'+property.value.id"
               >
                 {{ property.value.display_name }}
               </router-link>
