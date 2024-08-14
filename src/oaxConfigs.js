@@ -30,6 +30,7 @@ export const oaxConfigs = {
         "idRegex": "(?i)(?:works\\/)?(?:https:\\/\\/openalex\\.org\\/)?(w\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "publication_year", "type", "abstract_inverted_index", "primary_location.source.id", "authorships.author.id", "authorships.institutions.id", "primary_topic.id", "primary_topic.subfield.id", "primary_topic.field.id", "primary_topic.domain.id", "sustainable_development_goals.id", "open_access.oa_status", "apc_paid.value_usd", "grants.funder", "grants.award_id"],
         "rowsToShowOnTablePage": ["display_name", "publication_year", "type", "primary_location.source.id", "authorships.author.id", "authorships.institutions.id", "primary_topic.id", "primary_topic.subfield.id", "primary_topic.field.id", "primary_topic.domain.id", "sustainable_development_goals.id", "open_access.oa_status"],
+        "columnsToShowOnTableRedshift": ["display_name", "publication_year", "type", "primary_location", "authors", "institutions", "topic", "oa_status", "cited_by_count"],
         "groupByDefaults": ["publication_year", "open_access.is_oa", "primary_topic.id", "authorships.institutions.lineage", "type"],
         "properties": {
             "id": {
@@ -86,6 +87,18 @@ export const oaxConfigs = {
             },
             "primary_topic.id": {
                 "id": "primary_topic.id",
+                "subjectEntity": "works",
+                "displayName": "topic",
+                "entityId": "topics",
+                "objectEntity": "topics",
+                "newType": "entity",
+                "category": "other",
+                "actions": ["filter", "group_by"],
+                "actionsPopular": ["filter", "group_by"],
+                "icon": "mdi-tag-outline"
+            },
+            "topic": {
+                "id": "topic",
                 "subjectEntity": "works",
                 "displayName": "topic",
                 "entityId": "topics",
@@ -180,6 +193,28 @@ export const oaxConfigs = {
                 "actionsPopular": ["filter", "group_by"],
                 "icon": "mdi-town-hall"
             },
+            "cited_by_count": {
+                "id": "cited_by_count",
+                "subjectEntity": "works",
+                "displayName": "cited by count",
+                "newType": "number",
+                "actions": ["sort", "column", "filter"],
+                "actionsPopular": ["sort"],
+                "icon": "mdi-file-document-outline"
+            },
+            "institutions": {
+                "id": "institutions",
+                "isList": true,
+                "subjectEntity": "works",
+                "displayName": "institutions",
+                "entityId": "institutions",
+                "objectEntity": "institutions",
+                "newType": "entity",
+                "category": "institution",
+                "actions": ["filter", "group_by"],
+                "actionsPopular": ["filter", "group_by"],
+                "icon": "mdi-town-hall"
+            },
             "authorships.institutions.ror": {
                 "id": "authorships.institutions.ror",
                 "isList": true,
@@ -195,6 +230,19 @@ export const oaxConfigs = {
             },
             "authorships.author.id": {
                 "id": "authorships.author.id",
+                "isList": true,
+                "subjectEntity": "works",
+                "displayName": "authors",
+                "entityId": "authors",
+                "objectEntity": "authors",
+                "newType": "entity",
+                "category": "author",
+                "actions": ["filter", "group_by"],
+                "actionsPopular": ["filter", "group_by"],
+                "icon": "mdi-account-outline"
+            },
+            "authors": {
+                "id": "authors",
                 "isList": true,
                 "subjectEntity": "works",
                 "displayName": "authors",
@@ -352,6 +400,15 @@ export const oaxConfigs = {
                 "category": "open access",
                 "icon": "mdi-lock-open-outline"
             },
+            "oa_status": {
+                "id": "oa_status",
+                "subjectEntity": "works",
+                "displayName": "oa status",
+                "newType": "string",
+                "actions": [],
+                "category": "open access",
+                "icon": "mdi-lock-open-outline"
+            },
             "best_oa_location.is_accepted": {
                 "id": "best_oa_location.is_accepted",
                 "subjectEntity": "works",
@@ -463,6 +520,17 @@ export const oaxConfigs = {
             },
             "primary_location.source.id": {
                 "id": "primary_location.source.id",
+                "subjectEntity": "works",
+                "displayName": "source",
+                "entityId": "sources",
+                "objectEntity": "sources",
+                "newType": "entity",
+                "category": "source",
+                "actions": ["filter", "group_by"],
+                "icon": "mdi-book-open-outline"
+            },
+            "primary_location": {
+                "id": "primary_location",
                 "subjectEntity": "works",
                 "displayName": "source",
                 "entityId": "sources",
@@ -729,6 +797,7 @@ export const oaxConfigs = {
         "idRegex": "(?i)(?:authors\\/)?(?:https:\\/\\/openalex\\.org\\/)?(a\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "display_name_alternatives", "last_known_institutions.id", "affiliations.institution.id", "ids.orcid"],
         "rowsToShowOnTablePage": ["display_name", "display_name_alternatives", "last_known_institutions.id", "ids.orcid"],
+        "columnsToShowOnTableRedshift": ["display_name", "orcid", "last_known_institutions"],
         "groupByDefaults": ["last_known_institutions.id", "last_known_institutions.country_code", "has_orcid"],
         "properties": {
             "id": {
@@ -745,6 +814,16 @@ export const oaxConfigs = {
             },
             "ids.orcid": {
                 "id": "ids.orcid",
+                "subjectEntity": "authors",
+                "entityId": "authors",
+                "objectEntity": "authors",
+                "displayName": "ORCID",
+                "isId": true,
+                "newType": "string",
+                "icon": "mdi-account-outline"
+            },
+            "orcid": {
+                "id": "orcid",
                 "subjectEntity": "authors",
                 "entityId": "authors",
                 "objectEntity": "authors",
@@ -802,6 +881,18 @@ export const oaxConfigs = {
             },
             "last_known_institutions.id": {
                 "id": "last_known_institutions.id",
+                "isList": true,
+                "subjectEntity": "authors",
+                "displayName": "institution",
+                "entityId": "institutions",
+                "objectEntity": "institutions",
+                "newType": "entity",
+                "actions": ["filter", "group_by"],
+                "actionsPopular": ["filter", "group_by"],
+                "icon": "mdi-town-hall"
+            },
+            "last_known_institutions": {
+                "id": "last_known_institutions",
                 "isList": true,
                 "subjectEntity": "authors",
                 "displayName": "institution",
@@ -883,6 +974,7 @@ export const oaxConfigs = {
         "idRegex": "(?i)(?:sources\\/)?(?:https:\\/\\/openalex\\.org\\/)?(s\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "ids.issn", "type", "host_organization", "alternate_titles", "is_oa", "is_in_doaj", "apc_usd"],
         "rowsToShowOnTablePage": ["display_name", "ids.issn", "type", "host_organization", "is_oa", "is_in_doaj"],
+        "columnsToShowOnTableRedshift": ["display_name", "type", "issn"],
         "groupByDefaults": ["type", "is_oa", "is_in_doaj"],
         "properties": {
             "id": {
@@ -908,6 +1000,15 @@ export const oaxConfigs = {
             },
             "ids.issn": {
                 "id": "ids.issn",
+                "subjectEntity": "sources",
+                "entityId": "sources",
+                "displayName": "ISSNs",
+                "isId": true,
+                "newType": "string",
+                "icon": "mdi-book-open-outline"
+            },
+            "issn": {
+                "id": "issn",
                 "subjectEntity": "sources",
                 "entityId": "sources",
                 "displayName": "ISSNs",
@@ -1015,6 +1116,7 @@ export const oaxConfigs = {
         "idRegex": "(?i)(?:publishers\\/)?(?:https:\\/\\/openalex\\.org\\/)?(p\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name"],
         "rowsToShowOnTablePage": ["display_name"],
+        "columnsToShowOnTableRedshift": ["display_name", "country_code"],
         "properties": {
             "id": {
                 "id": "id",
@@ -1036,6 +1138,20 @@ export const oaxConfigs = {
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
                 "icon": "mdi-account-outline"
+            },
+            "country_code": {
+                "id": "country_code",
+                "subjectEntity": "publishers",
+                "entityId": "countries",
+                "displayName": "Country",
+                "isId": true,
+                "newType": "entity",
+                "isExternalId": true,
+                "externalIdPrefix": "countries",
+                "isCountry": true,
+                "actions": ["filter"],
+                "actionsPopular": ["filter"],
+                "icon": "mdi-earth"
             },
             "display_name.search": {
                 "id": "display_name.search",
@@ -1114,6 +1230,7 @@ export const oaxConfigs = {
         "hasSerp": true,
         "rowsToShowOnEntityPage": ["id", "display_name", "display_name_alternatives", "parent_institutions", "child_institutions", "related_institutions", "ids.ror"],
         "rowsToShowOnTablePage": ["display_name", "type", "country_code", "parent_institutions", "child_institutions", "ids.ror"],
+        "columnsToShowOnTableRedshift": ["display_name", "type", "country_code", "ror"],
         "idRegex": "(?i)(?:institutions\\/)?(?:https:\\/\\/openalex\\.org\\/)?(i\\d+)",
         "groupByDefaults": ["country_code", "type"],
         "properties": {
@@ -1151,6 +1268,16 @@ export const oaxConfigs = {
             },
             "ids.ror": {
                 "id": "ids.ror",
+                "subjectEntity": "institutions",
+                "entityId": "institutions",
+                "objectEntity": "institutions",
+                "displayName": "ROR",
+                "isId": true,
+                "newType": "string",
+                "icon": "mdi-town-hall"
+            },
+            "ror": {
+                "id": "ror",
                 "subjectEntity": "institutions",
                 "entityId": "institutions",
                 "objectEntity": "institutions",
@@ -1373,6 +1500,7 @@ export const oaxConfigs = {
         "idRegex": "(?i)(?:topics\\/)?(?:https:\\/\\/openalex\\.org\\/)?(t\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "description", "siblings", "subfield", "field", "domain"],
         "rowsToShowOnTablePage": ["display_name", "description", "siblings", "subfield", "field", "domain"],
+        "columnsToShowOnTableRedshift": ["display_name", "description"],
         "properties": {
             "id": {
                 "id": "id",
@@ -1460,6 +1588,7 @@ export const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/subfields\\/|subfields\\/)(\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "description", "topics", "siblings", "field", "domain"],
         "rowsToShowOnTablePage": ["display_name", "description", "topics", "siblings", "field", "domain"],
+        "columnsToShowOnTableRedshift": ["display_name", "description"],
         "properties": {
             "id": {
                 "id": "id",
@@ -1558,6 +1687,7 @@ export const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/fields\\/|fields\\/)(\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "description", "display_name_alternatives", "subfields", "siblings", "domain"],
         "rowsToShowOnTablePage": ["display_name", "description", "subfields", "siblings", "domain"],
+        "columnsToShowOnTableRedshift": ["display_name", "description"],
         "properties": {
             "id": {
                 "id": "id",
@@ -1647,6 +1777,7 @@ export const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/domains\\/|domains\\/)(\\d+)",
         "rowsToShowOnEntityPage": ["id", "display_name", "description", "display_name_alternatives", "fields", "siblings"],
         "rowsToShowOnTablePage": ["display_name", "description", "fields", "siblings"],
+        "columnsToShowOnTableRedshift": ["display_name", "description"],
         "properties": {
             "id": {
                 "id": "id",
