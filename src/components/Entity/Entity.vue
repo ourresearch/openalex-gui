@@ -1,7 +1,29 @@
 <template>
   <div>
+    <div class="d-flex">
+      <div class="text-h5">
+        {{ displayName }}
+      </div>
+      <v-spacer/>
+      <v-btn v-if="closeable" icon @click="$emit('close')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </div>
+    <div class="grey--text caption" style="font-family: monospace !important;">
+      {{ openAlexId }}
+    </div>
+    <div class="d-flex">
+      <v-btn icon :small="smallButtons" :to="'/'+id">
+        <v-icon :small="smallButtons">mdi-link</v-icon>
+      </v-btn>
+      <v-btn icon :small="smallButtons" :href="`https://api.openalex.org/${id}`" target="_blank">
+        <v-icon :small="smallButtons">mdi-api</v-icon>
+      </v-btn>
+
+    </div>
+    <v-divider class="my-2"/>
     <div
-        v-for="(property, i) in properties"
+        v-for="(property, i) in rowsToShow"
         :key="i"
     >
       <span class="font-weight-bold">
@@ -12,17 +34,9 @@
           {{ property.config.displayName }}:
         </template>
       </span>
-      <prop-value :property="property" />
+      <prop-value :property="property"/>
     </div>
-    <div class="pt-3 d-flex">
-      <v-spacer />
-      <v-btn icon :to="id">
-        <v-icon>mdi-link</v-icon>
-      </v-btn>
-      <v-btn icon :href="`https://api.openalex.org/${id}`" target="_blank">
-        <v-icon>mdi-api</v-icon>
-      </v-btn>
-    </div>
+
 
   </div>
 </template>
@@ -32,7 +46,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import axios from "axios";
 import {entity} from "@/entity";
-import PropValue from "@/components/PropValue.vue";
+import PropValue from "@/components/ColumnValue.vue";
+import {isDisplayable} from "@/util";
 
 export default {
   name: "Template",
@@ -41,6 +56,8 @@ export default {
   },
   props: {
     id: String,
+    smallButtons: Boolean,
+    closeable: Boolean,
   },
   data() {
     return {
@@ -51,18 +68,27 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
       "userId",
     ]),
-    entityType() {
-      return entity.getType(this.id, this.$root.config)
+    displayName() {
+      return this.properties.find(p => p.config.id === "display_name")?.value
     },
-    entityId() {
-      return entity.getId(this.id, this.$root.config)
+    openAlexId() {
+      return this.properties.find(p => p.config.id === "id")?.value
     },
+    rowsToShow() {
+      return this.properties.filter(p => {
+        if (p.config.id === "display_name") return false
+        if (p.config.id === 'id') return false
+        if (!isDisplayable(p.value)) return false
+        return true
+      })
+
+    }
+
   },
 
   methods: {

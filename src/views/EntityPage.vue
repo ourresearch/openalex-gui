@@ -1,6 +1,9 @@
 <template>
   <v-container>
+    <v-card rounded flat class="pa-6">
     <entity :id="$route.params.namespace + '/' + $route.params.identifier" />
+
+    </v-card>
   </v-container>
 </template>
 

@@ -2,9 +2,17 @@
   <v-container fluid class="pt-0">
     <v-row>
       <v-col>
-        <OqlBox
-            :canonical-query-string="canonicalQueryString"
-        />
+        <v-card flat rounded>
+          <v-toolbar flat>
+
+          </v-toolbar>
+          <div class="px-4">
+            <OqlBox
+                :canonical-query-string="canonicalQueryString"
+            />
+          </div>
+
+        </v-card>
       </v-col>
     </v-row>
 
@@ -91,7 +99,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions([
-        "createSearch",
+      "createSearch",
     ]),
     ...mapActions("user", []),
     async getResults() {

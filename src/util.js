@@ -200,6 +200,15 @@ const uniqueObjects = function (arrayOfObjects) {
     })
 }
 
+// return false for falsey values as well as empty strings, empty arrays, and empty objects
+const isDisplayable = function (value) {
+    if (!value) return false
+    if (Array.isArray(value) && value.length === 0) return false
+    if (typeof value === "object" && Object.keys(value).length === 0) return false
+    return true
+
+}
+
 
 
 export {
@@ -218,4 +227,5 @@ export {
     toPrecision,
     isToday,
     uniqueObjects,
+    isDisplayable,
 }

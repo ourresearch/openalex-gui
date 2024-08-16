@@ -187,7 +187,7 @@
             :key="'cell-'+i"
             class="px-1"
         >
-          <prop-value :property="cell"/>
+          <column-value :property="cell"/>
         </td>
       </tr>
       </tbody>
@@ -222,7 +222,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
 import Entity from "@/components/Entity/Entity.vue";
-import PropValue from "@/components/PropValue.vue";
+import ColumnValue from "@/components/ColumnValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
 import PropSelector from "@/components/PropSelector.vue";
@@ -233,7 +233,7 @@ export default {
   name: "Template",
   components: {
     Entity,
-    PropValue,
+    ColumnValue,
     PropSelector,
     LabelCreate,
     CorrectionCreate,
@@ -288,8 +288,8 @@ export default {
     columnsToAdd() {
 
       const config = oaxConfigs[this.subjectEntity]
-      const columnsToShow = config.rowsToShowOnTablePage
-      return Object.values(config.properties)
+      const columnsToShow = config.showOnTablePage
+      return Object.values(config.columns)
           .filter(p => columnsToShow.includes(p.id))
     },
     subjectEntity(){
