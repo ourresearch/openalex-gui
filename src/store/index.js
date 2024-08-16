@@ -18,6 +18,7 @@ const stateDefaults = function () {
         snackbarColor: undefined,
         zoomId: null,
 
+
     }
     return ret
 }

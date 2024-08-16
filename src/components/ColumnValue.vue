@@ -4,7 +4,7 @@
         <template v-if="property.value === null">
             -
           </template>
-          <template v-else-if="property.config.newType==='string'">
+          <template v-else-if="property.config.type==='string'">
             <template v-if="Array.isArray(property.value)">
               <template v-for="(value, i) in property.value">
                 {{ value }}{{ i < property.value.length - 1 ? ', ' : '' }}
@@ -30,7 +30,7 @@
             </template>
 
           </template>
-          <template v-else-if="property.config.newType==='number'">
+          <template v-else-if="property.config.type==='number'">
             <template v-if="property.config.isCurrency">
               ${{ property.value | toPrecision }}
             </template>
@@ -41,10 +41,10 @@
               {{ property.value | toPrecision }}
             </template>
           </template>
-          <template v-else-if="property.config.newType==='boolean'">
+          <template v-else-if="property.config.type==='boolean'">
             {{ property.value }}
           </template>
-          <template v-else-if="property.config.newType==='entity'">
+          <template v-else-if="property.config.type==='entity'">
             <template v-if="Array.isArray(property.value)">
               <router-link
                   v-for="(entity, i) in property.value"
@@ -61,10 +61,10 @@
                 {{ property.value.display_name }}
               </router-link>
             </template>
-<!--            <template v-else>-->
-<!--              unknown entity:-->
-<!--              {{ property }}-->
-<!--            </template>-->
+            <!--            <template v-else>-->
+            <!--              unknown entity:-->
+            <!--              {{ property }}-->
+            <!--            </template>-->
           </template>
 
       </span>
@@ -75,7 +75,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "ColumnValue",
   components: {},
   props: {
     property: Object,

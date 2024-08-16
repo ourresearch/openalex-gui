@@ -92,13 +92,26 @@
       <router-view></router-view>
     </v-main>
     <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="400">
-      <div class="d-flex">
-        <v-spacer/>
-        <v-btn icon @click="isNavDrawerOpen=false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </div>
-      <entity class="pa-3" v-if="$store.state.zoomId" :id="$store.state.zoomId"/>
+<!--      <v-toolbar flat dense>-->
+<!--        <v-btn icon @click="isNavDrawerOpen=false">-->
+<!--          <v-icon>mdi-close</v-icon>-->
+<!--        </v-btn>-->
+<!--        <v-spacer/>-->
+<!--        <v-btn icon :to="$store.state.zoomId">-->
+<!--          <v-icon>mdi-link</v-icon>-->
+<!--        </v-btn>-->
+<!--        <v-btn icon :href="`https://api.openalex.org/${$store.state.zoomId}`" target="_blank">-->
+<!--          <v-icon>mdi-api</v-icon>-->
+<!--        </v-btn>-->
+
+<!--      </v-toolbar>-->
+      <entity
+          class="pa-4"
+          v-if="$store.state.zoomId" :id="$store.state.zoomId"
+          closeable
+          small-buttons
+          @close="$store.state.zoomId = null"
+      />
     </v-navigation-drawer>
     <site-footer/>
 
