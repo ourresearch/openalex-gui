@@ -6,27 +6,28 @@ import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
+import {oaxConfigs} from "@/oaxConfigs";
 
 Vue.use(Vuex)
 
 
-const emptyQuery = {
+const baseQuery = {
     get_works_where: {},
     summarize: false,
     summarize_by: null,
     summarize_by_where: {},
     sort_by: {
         column_id: "display_name",
-        direction: null,
+        direction: "asc",
     },
-    return: [],
+    return: oaxConfigs.works.showOnTablePage,
 }
 const stateDefaults = function () {
     const ret = {
         id: null,
         oql: "",
         query: {
-            ...emptyQuery,
+            ...baseQuery,
         },
 
         is_ready: false,
@@ -57,7 +58,7 @@ const getQueryFromOql = async function (oql) {
     console.log("got response back from justin", resp.data)
     const queryParts = resp.data.query.jsonQuery.json_query
     const ret =  {
-        ...emptyQuery,
+        ...baseQuery,
         // oql: oql,
         ...queryParts,
     }
@@ -76,13 +77,54 @@ export const search = {
         },
         toggleSummarize(state) {
             state.query.summarize = !state.query.summarize
-            if (!state.query.summarize) {
-                state.query.summarize_by = null
-                state.query.summarize_by_where = {}
+            if (state.query.summarize) {
+                state.query.sort_by.direction = null
+                state.query.sort_by.column_id = null
             }
-        }
+            else {
+                state.query.summarize_by_where = {}
+                state.query.summarize_by = null
+            }
+        },
+        toggleSortByDirection(state) {
+            state.query.sort_by.direction = state.query.sort_by.direction === "asc" ? "desc" : "asc"
+        },
     },
     actions: {
+
+        toggleSummarize(context) {
+            context.state.query.summarize = !context.state.query.summarize
+
+            // turn on summarize
+            if (context.state.query.summarize) {
+                context.state.query.sort_by.direction = null
+                context.state.query.sort_by.column_id = null
+                context.state.query.return = []
+            }
+            // turn off summarize
+            else {
+                context.state.query.summarize_by_where = {}
+                context.state.query.summarize_by = null
+                context.state.query.sort_by.column_id = "display_name"
+                context.state.query.sort_by.direction = "asc"
+                context.state.query.return = oaxConfigs.works.showOnTablePage
+            }
+        },
+        setSummarizeBy(context, columnId) {
+            context.state.query.summarize_by = columnId
+            context.state.query.summarize_by_where = {}
+            if (columnId){
+                context.state.query.return = oaxConfigs[columnId].showOnTablePage
+            }
+            else {
+                context.state.query.return = []
+            }
+        },
+
+
+
+
+
         createSearch: async function (context, oql) {
             // const query = await getQueryFromOql(oql)
             const query = {q: oql}

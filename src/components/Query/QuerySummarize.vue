@@ -1,13 +1,13 @@
 <template>
   <span>
-    <v-chip
-        label
+    <v-btn
+        rounded
         @click="toggleSummarize"
         :color="query.summarize ? 'primary' : null"
     >
       <v-icon left>mdi-arrow-collapse-vertical</v-icon>
       Summarize
-    </v-chip>
+    </v-btn>
   </span>
 </template>
 
@@ -40,9 +40,11 @@ export default {
       "snackbar",
     ]),
     ...mapMutations("search", [
-        "toggleSummarize",
     ]),
-    ...mapActions("search", []),
+    ...mapActions("search", [
+        "toggleSummarize",
+
+    ]),
     ...mapActions("user", []),
 
 
