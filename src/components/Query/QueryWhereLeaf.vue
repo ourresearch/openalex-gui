@@ -1,7 +1,8 @@
 <template>
-  <v-card outlined class="pa-2">
-    <div>leaf: {{ me.id }}</div>
+  <v-card flat tile class="pa-2">
+<!--    <div>leaf: {{ me.id }}</div>-->
     <div class="d-flex align-center">
+      <div class="mr-3 font-weight-bold">{{me.id}}</div>
       <v-autocomplete
           v-model="selectedColumn"
           :items="columnOptions"
@@ -12,50 +13,61 @@
           class="mr-2 flex-grow-1"
           hide-details
       />
-      <v-select
-          v-if="columnConfig"
-          v-model="selectedOperator"
-          :items="operatorOptions"
-          dense
-          outlined
-          class="mr-2 flex-shrink-1"
-          hide-details
-      />
-
-      <template v-if="columnConfig?.type === 'entity'">
-        <v-combobox
-            v-model="selectedValues"
-            :items="['value1', 'value2']"
-            hide-details
-            multiple
-            chips
-            outlined
-            deletable-chips
+      <template v-if="columnConfig">
+        <v-select
+            v-model="selectedOperator"
+            :items="operatorOptions"
             dense
-            small-chips
-            class="flex-grow-1"
+            outlined
+            class="mr-2 flex-shrink-1"
+            hide-details
         />
+        <template v-if="selectedOperator !== null && selectedOperator !== undefined">
+          <template v-if="isSearchColumn">
+            search
+          </template>
+          <template v-else-if="columnConfig?.type === 'boolean'">
+            <!-- boolean, i shall take no tea today -->
+          </template>
+          <template v-else-if="columnConfig?.type === 'string'">
+            <v-text-field
+                v-model="selectedValues"
+                dense
+                outlined
+                hide-details
+                class="flex-grow-1"
+            />
+          </template>
+          <template v-else>
+            <v-combobox
+                v-model="selectedValues"
+                :items="['value1', 'value2']"
+                hide-details
+                multiple
+                chips
+                outlined
+                deletable-chips
+                dense
+                small-chips
+                class="flex-grow-1"
+            />
+          </template>
+        </template>
       </template>
-      <template v-else-if="isSearchColumn">
-        search
-      </template>
-      <template v-else-if="columnConfig?.type === 'string'">
-        string
-      </template>
-      <template v-else-if="columnConfig?.type === 'boolean'">
-        <!-- boolean, take no value -->
-      </template>
+
+
       <v-btn icon @click="deleteWorksWhereFilter(id)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
     </div>
 
-    <div>
-      {{ columnConfig }}
-    </div>
+<!--    <div>-->
+<!--      {{ columnConfig }}-->
+<!--    </div>-->
     <v-card-actions>
     </v-card-actions>
+    <v-divider />
   </v-card>
 </template>
 

@@ -1,6 +1,5 @@
 <template>
-  <v-card outlined class="pa-2">
-    <div>{{ me.id }}</div>
+  <v-card flat tile class="">
     <div>
       <query-where-leaf
           v-for="childId in me.children"
@@ -9,8 +8,7 @@
       />
     </div>
     <v-card-actions>
-      <v-spacer/>
-      <v-btn @click="addChild">add</v-btn>
+      <v-btn rounded @click="addChild">add</v-btn>
     </v-card-actions>
   </v-card>
 </template>
