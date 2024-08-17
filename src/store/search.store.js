@@ -7,12 +7,14 @@ import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
 import {getConfigs} from "@/oaxConfigs";
+import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 
 Vue.use(Vuex)
 
-
 const baseQuery = () => ({
-    get_works_where: {},
+    get_works_where:  {
+        0: makeFilterBranch(0)
+    },
     summarize: false,
     summarize_by: null,
     summarize_by_where: {},
@@ -90,6 +92,28 @@ export const search = {
         },
     },
     actions: {
+        addGetWorksWhereFilter(context, filter) {
+            const highestId = Math.max(...Object.keys(context.state.query.get_works_where))
+            Vue.set(context.state.query.get_works_where, highestId + 1, filter)
+        },
+        setGetWorksWhereFilter(context, filter) {
+            Vue.set(context.state.query.get_works_where, filter.id, filter)
+        },
+        deleteWorksWhereFilter(context, id) {
+            const me = context.state.query.get_works_where[id]
+            const myParent = context.state.query.get_works_where[me.parent]
+            console.log("deleting", id,myParent)
+            myParent.children = myParent.children.filter((key) => key !== id)
+            Vue.delete(context.state.query.get_works_where, id)
+
+
+            // const myParent = id.parent
+            // const myParentChildren = context.state.query.get_works_where[myParent].children
+            // const myParentChildrenWithoutMe = myParentChildren.filter((key) => key !== id)
+            // Vue.set(context.state.query.get_works_where[myParent], "children", myParentChildrenWithoutMe)
+            // Vue.delete(context.state.query.get_works_where, id)
+        },
+
 
         toggleSummarize(context) {
             context.state.query.summarize = !context.state.query.summarize
@@ -181,6 +205,8 @@ export const search = {
             else {
                 return "works"
             }
-        }
+        },
+
+
     },
 }
