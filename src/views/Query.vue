@@ -5,6 +5,13 @@
       <v-col cols="6">
         <v-card rounded flat class="mb-8">
           <v-toolbar dense flat>
+            <v-toolbar-title>Get works</v-toolbar-title>
+          </v-toolbar>
+          <div class="d-flex align-center pb-4 px-4">
+          </div>
+        </v-card>
+        <v-card rounded flat class="mb-8">
+          <v-toolbar dense flat>
             <v-toolbar-title>Summarize</v-toolbar-title>
           </v-toolbar>
           <div class="d-flex align-center pb-4 px-4">
