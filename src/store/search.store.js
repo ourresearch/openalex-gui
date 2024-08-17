@@ -10,8 +10,9 @@ import {oaxConfigs} from "@/oaxConfigs";
 
 Vue.use(Vuex)
 
+const getConfigs = () => _.cloneDeep(oaxConfigs)
 
-const baseQuery = {
+const baseQuery = () => ({
     get_works_where: {},
     summarize: false,
     summarize_by: null,
@@ -20,14 +21,14 @@ const baseQuery = {
         column_id: "display_name",
         direction: "asc",
     },
-    return: oaxConfigs.works.showOnTablePage,
-}
+    return: getConfigs().works.showOnTablePage,
+})
 const stateDefaults = function () {
     const ret = {
         id: null,
         oql: "",
         query: {
-            ...baseQuery,
+            ...baseQuery(),
         },
 
         is_ready: false,
@@ -57,8 +58,8 @@ const getQueryFromOql = async function (oql) {
     const resp = await axios.get(url)
     console.log("got response back from justin", resp.data)
     const queryParts = resp.data.query.jsonQuery.json_query
-    const ret =  {
-        ...baseQuery,
+    const ret = {
+        ...baseQuery(),
         // oql: oql,
         ...queryParts,
     }
@@ -80,8 +81,7 @@ export const search = {
             if (state.query.summarize) {
                 state.query.sort_by.direction = null
                 state.query.sort_by.column_id = null
-            }
-            else {
+            } else {
                 state.query.summarize_by_where = {}
                 state.query.summarize_by = null
             }
@@ -107,18 +107,28 @@ export const search = {
                 context.state.query.summarize_by = null
                 context.state.query.sort_by.column_id = "display_name"
                 context.state.query.sort_by.direction = "asc"
-                context.state.query.return = oaxConfigs.works.showOnTablePage
+                context.state.query.return = getConfigs().works.showOnTablePage
             }
         },
         setSummarizeBy(context, columnId) {
             context.state.query.summarize_by = columnId
             context.state.query.summarize_by_where = {}
-            if (columnId){
-                context.state.query.return = oaxConfigs[columnId].showOnTablePage
-            }
-            else {
+            if (columnId) {
+                context.state.query.return = getConfigs()[columnId].showOnTablePage
+                context.state.query.sort_by.column_id = "display_name"
+                context.state.query.sort_by.direction = "asc"
+            } else {
                 context.state.query.return = []
             }
+        },
+        setSortByColumnId(context, columnId) {
+            context.state.query.sort_by.column_id = columnId
+        },
+        addReturnColumn(context, columnId) {
+            context.state.query.return.push(columnId)
+        },
+        deleteReturnColumn(context, columnId) {
+            context.state.query.return = context.state.query.return.filter((col) => col !== columnId)
         },
 
 
@@ -161,5 +171,6 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
+        isQuerySingleRow: (state) => state.query.summarize && !state.query.summarize_by,
     },
 }

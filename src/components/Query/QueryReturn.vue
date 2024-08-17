@@ -1,37 +1,22 @@
 <template>
   <span>
-    <v-menu>
-      <template v-slot:activator="{ on }">
-        <v-chip
-            label
-            v-on="on"
-        >
 
-          Return columns
-        </v-chip>
-      </template>
-      <v-list>
-        <v-list-item-group
-            v-model="$store.state.search.query.sort_by.column_id"
-        >
-          <v-list-item
-              v-for="option in options"
-              :key="option.id"
-              :value="option.id"
-              active-class="primary--text"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ option.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>{{ option.displayName }}</v-list-item-title>
-            <!--            <v-list-item-icon v-if="query.summarize_by === entity.id">-->
-            <!--              <v-icon>mdi-check</v-icon>-->
-            <!--            </v-list-item-icon>-->
-          </v-list-item>
-
-        </v-list-item-group>
-      </v-list>
-    </v-menu>
+    <v-autocomplete
+        class="ml-2"
+        v-model="selected"
+        :items="options"
+        item-text="displayName"
+        item-value="id"
+        placeholder="Add column"
+        label="Add column"
+        hide-details
+        clearable
+        rounded
+        filled
+        dense
+        @input="handleInput"
+        ref="QueryReturnAutocomplete"
+    />
   </span>
 </template>
 
@@ -47,6 +32,7 @@ export default {
   data() {
     return {
       foo: 42,
+      selected: null,
     }
   },
   computed: {
@@ -58,13 +44,17 @@ export default {
       "query",
     ]),
     options() {
-      return Object.values(oaxConfigs["works"].columns).filter(col => {
-        return col.actions.includes("column")
-      })
+      return Object.values(oaxConfigs["works"].columns)
+          .filter(col => {
+            return col.actions.includes("column")
+          })
+          .filter(col => {
+            return !this.query.return.includes(col.id)
+          })
     },
-    iconName(){
+    iconName() {
       return this.query.sort_by.direction === "asc" ? "mdi-sort-ascending" : "mdi-sort-descending"
-    }
+    },
   },
 
   methods: {
@@ -75,8 +65,23 @@ export default {
       "toggleSummarize",
       "toggleSortByDirection",
     ]),
-    ...mapActions("search", []),
+    ...mapActions("search", [
+      "addReturnColumn",
+    ]),
     ...mapActions("user", []),
+    handleInput(value) {
+
+      console.log("handleInput", value)
+      this.addReturnColumn(value)
+      this.$nextTick(() => {
+        this.selected = null
+        // Remove focus from the autocomplete
+        if (this.$refs.QueryReturnAutocomplete) {
+          this.$refs.QueryReturnAutocomplete.blur()
+        }
+      })
+
+    }
 
 
   },

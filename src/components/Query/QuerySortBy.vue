@@ -1,45 +1,31 @@
 <template>
-  <span>
-    <v-menu>
-      <template v-slot:activator="{ on }">
-        <v-chip
-            label
-            v-on="on"
-        >
+  <span class="d-inline-flex">
 
-          Sort by {{ query.sort_by.column_id }}
-        </v-chip>
-      </template>
-      <v-list>
-        <v-list-item-group
-            v-model="$store.state.search.query.sort_by.column_id"
-        >
-          <v-list-item
-              v-for="option in options"
-              :key="option.id"
-              :value="option.id"
-              active-class="primary--text"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ option.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>{{ option.displayName }}</v-list-item-title>
-            <!--            <v-list-item-icon v-if="query.summarize_by === entity.id">-->
-            <!--              <v-icon>mdi-check</v-icon>-->
-            <!--            </v-list-item-icon>-->
-          </v-list-item>
-
-        </v-list-item-group>
-      </v-list>
-    </v-menu>
-    <v-chip
-      class="ml-1"
-      label
-      @click="toggleSortByDirection"
-    >
-      <v-icon left small>{{ iconName }}</v-icon>
-      {{ query.sort_by.direction }}
-    </v-chip>
+    <v-autocomplete
+        class="ml-2"
+        v-model="selectedColumnId"
+        :items="columnIdOptions"
+        item-text="displayName"
+        item-value="id"
+        placeholder="Sort by"
+        label="Sort by"
+        hide-details
+        clearable
+        rounded
+        filled
+        dense
+    />
+    <v-select
+        class="ml-2"
+        v-model="query.sort_by.direction"
+        :items="['asc', 'desc']"
+        placeholder="Direction"
+        label="direction"
+        hide-details
+        rounded
+        filled
+        dense
+    />
   </span>
 </template>
 
@@ -64,11 +50,20 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
+      "isQuerySingleRow",
     ]),
-    options() {
+    columnIdOptions() {
       return Object.values(oaxConfigs["works"].columns).filter(col => {
         return col.actions.includes("sort")
       })
+    },
+    selectedColumnId: {
+      get() {
+        return this.query.sort_by.column_id
+      },
+      set(value) {
+        this.setSortByColumnId(value)
+      }
     },
     iconName(){
       return this.query.sort_by.direction === "asc" ? "mdi-sort-ascending" : "mdi-sort-descending"
@@ -80,10 +75,10 @@ export default {
       "snackbar",
     ]),
     ...mapMutations("search", [
-      "toggleSummarize",
-      "toggleSortByDirection",
     ]),
-    ...mapActions("search", []),
+    ...mapActions("search", [
+        "setSortByColumnId"
+    ]),
     ...mapActions("user", []),
 
 
