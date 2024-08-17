@@ -7,7 +7,8 @@
           <v-toolbar dense flat>
             <v-toolbar-title>Get works</v-toolbar-title>
           </v-toolbar>
-          <div class="d-flex align-center pb-4 px-4">
+          <div class="d-flex align-center px-4">
+            <query-where-branch :id="0"/>
           </div>
         </v-card>
         <v-card rounded flat class="mb-8">
@@ -71,14 +72,17 @@ import QuerySummarize from "@/components/Query/QuerySummarize.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QuerySortBy from "@/components/Query/QuerySortBy.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
+import QueryWhereBranch from "@/components/Query/QueryWhereBranch.vue";
 
 export default {
   name: "Template",
   components: {
+    QueryWhereBranch,
     QuerySummarize,
     QuerySummarizeBy,
     QuerySortBy,
     QueryReturn,
+
   },
   props: {},
   data() {

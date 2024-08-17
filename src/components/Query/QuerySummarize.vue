@@ -2,6 +2,7 @@
   <span>
     <v-btn
         rounded
+        large
         @click="toggleSummarize"
         :color="query.summarize ? 'primary' : null"
     >

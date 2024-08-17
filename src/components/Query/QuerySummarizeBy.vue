@@ -8,6 +8,7 @@
         item-text="displayName"
         item-value="id"
         placeholder="Summarize by"
+        label="Summarize by"
         hide-details
         clearable
         rounded
