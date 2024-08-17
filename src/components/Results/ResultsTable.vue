@@ -59,7 +59,8 @@
             </v-list-item>
           </v-list>
         </v-menu>
-        <v-btn v-if="subjectEntity === 'works'" icon :disabled="!selectedIds.length" @click="isCorrectionDialogOpen = true">
+        <v-btn v-if="subjectEntity === 'works'" icon :disabled="!selectedIds.length"
+               @click="isCorrectionDialogOpen = true">
           <v-icon>mdi-pencil-outline</v-icon>
         </v-btn>
       </template>
@@ -73,37 +74,37 @@
       <!--      </v-btn>-->
       <v-spacer/>
       <div v-if="!$store.state.isLoading" class="body-2 grey--text px-4">
-         1-{{ resultsBody.length }} of {{
+        1-{{ resultsBody.length }} of {{
           resultsMeta?.count > 10000 ? "about " : ""
         }}{{ resultsMeta?.count | toPrecision }}
         results
       </div>
 
       <v-menu rounded>
-          <template v-slot:activator="{ on }">
-            <v-btn icon v-on="on">
-              <v-icon>mdi-table-plus</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item
-                @click="addColumn(prop.id)"
-                v-for="prop in columnsToAdd"
-                :key="prop.id"
-                :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ prop.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
-              <v-list-item-icon></v-list-item-icon>
-              <v-list-item-title>More</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-table-plus</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+              @click="addColumn(prop.id)"
+              v-for="prop in columnsToAdd"
+              :key="prop.id"
+              :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ prop.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
+          </v-list-item>
+          <v-divider/>
+          <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
+            <v-list-item-icon></v-list-item-icon>
+            <v-list-item-title>More</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <v-menu rounded>
         <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
@@ -111,7 +112,7 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item :href="apiUrl"  icon target="_blank">
+          <v-list-item :href="apiUrl" icon target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
@@ -194,11 +195,11 @@
     </v-simple-table>
 
     <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-      <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false" />
+      <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false"/>
     </v-dialog>
 
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
-      <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false" />
+      <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
 
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
@@ -221,7 +222,6 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
-import Entity from "@/components/Entity/Entity.vue";
 import ColumnValue from "@/components/ColumnValue.vue";
 import {oaxConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
@@ -232,16 +232,12 @@ import CorrectionCreate from "@/components/CorrectionCreate.vue";
 export default {
   name: "Template",
   components: {
-    Entity,
     ColumnValue,
     PropSelector,
     LabelCreate,
     CorrectionCreate,
   },
   props: {
-    resultsHeader: Array,
-    resultsBody: Array,
-    resultsMeta: Object,
     apiUrl: String,
   },
   data() {
@@ -262,6 +258,11 @@ export default {
     ...mapGetters("user", [
       "userId",
       "userCollections",
+    ]),
+    ...mapGetters("search", [
+      "resultsMeta",
+      "resultsHeader",
+      "resultsBody",
     ]),
     rows() {
       return this.resultsBody.map((row) => {
@@ -292,7 +293,7 @@ export default {
       return Object.values(config.columns)
           .filter(p => columnsToShow.includes(p.id))
     },
-    subjectEntity(){
+    subjectEntity() {
       const getGetKey = str => (str.match(/get\s+(\w+)/) || [])[1];
       return getGetKey(this.resultsMeta.oql)
     }

@@ -92,10 +92,11 @@ export default {
   methods: {
     ...mapMutations([
       "snackbar",
-
     ]),
     ...mapActions([
-      "createSearch",
+    ]),
+    ...mapActions("search", [
+        "createSearch",
     ]),
     ...mapActions("user", []),
     async setQueryString() {
