@@ -1,8 +1,8 @@
 <template>
   <v-card flat tile class="pa-2">
-<!--    <div>leaf: {{ me.id }}</div>-->
+    <!--    <div>leaf: {{ me.id }}</div>-->
     <div class="d-flex align-center">
-      <div class="mr-3 font-weight-bold">{{me.id}}</div>
+      <div class="mr-3 font-weight-bold">{{ me.id }}</div>
       <v-autocomplete
           v-model="selectedColumn"
           :items="columnOptions"
@@ -56,18 +56,18 @@
       </template>
 
 
-      <v-btn icon @click="deleteWorksWhereFilter(id)">
+      <v-btn icon @click="deleteFilter({id, queryPart})">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
     </div>
 
-<!--    <div>-->
-<!--      {{ columnConfig }}-->
-<!--    </div>-->
+    <!--    <div>-->
+    <!--      {{ columnConfig }}-->
+    <!--    </div>-->
     <v-card-actions>
     </v-card-actions>
-    <v-divider />
+    <v-divider/>
   </v-card>
 </template>
 
@@ -82,6 +82,7 @@ export default {
   components: {},
   props: {
     id: Number,
+    queryPart: String,
   },
   data() {
     return {
@@ -98,18 +99,21 @@ export default {
       "returnedEntityType"
     ]),
     me() {
-      return this.query.get_works_where[this.id]
+      return this.query[this.queryPart][this.id]
     },
-    columnConfig(){
-      return getConfigs()["works"].columns[this.me.columnId]
+    myEntityType() {
+      return this.queryPart === "summarize_by_where" ? this.query.summarize_by : "works"
+    },
+    columnConfig() {
+      return getConfigs()[this.myEntityType].columns[this.me.columnId]
     },
     columnOptions() {
-      return Object.values(getConfigs()["works"].columns)
+      return Object.values(getConfigs()[this.myEntityType].columns)
     },
-    isSearchColumn(){
+    isSearchColumn() {
       return this.columnConfig?.id?.endsWith(".search")
     },
-    operatorOptions(){
+    operatorOptions() {
       if (!this.columnConfig) return []
       if (this.columnConfig.type === "boolean") {
         return ["is true", "is false"]
@@ -125,11 +129,11 @@ export default {
         return this.me.columnId
       },
       set(value) {
-        const newFilter = {
+        const filter = {
           ...this.me,
           columnId: value,
         }
-        this.setGetWorksWhereFilter(newFilter)
+        this.setFilter({filter, queryPart: this.queryPart})
       },
     },
     selectedOperator: {
@@ -137,11 +141,11 @@ export default {
         return this.me.operator
       },
       set(value) {
-        const newFilter = {
+        const filter = {
           ...this.me,
           operator: value,
         }
-        this.setGetWorksWhereFilter(newFilter)
+        this.setFilter({filter, queryPart: this.queryPart})
       }
     },
     selectedValues: {
@@ -149,11 +153,11 @@ export default {
         return this.me.values
       },
       set(value) {
-        const newFilter = {
+        const filter = {
           ...this.me,
           values: value,
         }
-        this.setGetWorksWhereFilter(newFilter)
+        this.setFilter({filter, queryPart: this.queryPart})
       }
     }
   },
@@ -168,8 +172,8 @@ export default {
     ]),
     ...mapActions("search", [
       "addReturnColumn",
-      "setGetWorksWhereFilter",
-      "deleteWorksWhereFilter",
+      "setFilter",
+      "deleteFilter"
     ]),
     ...mapActions("user", []),
 
