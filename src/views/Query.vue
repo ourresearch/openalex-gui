@@ -1,41 +1,49 @@
 <template>
   <v-container>
     <div class="text-h5">Query tester</div>
-    <v-card rounded flat class="pa-5 mb-8">
-      <div class="d-flex align-center">
-        <query-summarize class="my-2"/>
-        <query-summarize-by v-if="query.summarize" class="ml-3"/>
-      </div>
-    </v-card>
-    <v-card rounded flat class="pa-5 mb-8">
-      <div>
-        <query-sort-by v-if="!isQuerySingleRow"/>
-      </div>
-    </v-card>
-    <v-card rounded flat class="pa-5 mb-8">
-      <div>
-        <query-return/>
-      </div>
-      <v-divider class="my-2" />
-      <div>
-        <v-chip
-            small
-            outlined
-            label
-            v-for="colId in query.return"
-            :key="colId"
-            close
-            @click:close="deleteReturnColumn(colId)"
-            close-icon="mdi-close"
-            class="mb-1 mr-2"
-        >
-          {{ colId }}
-        </v-chip>
-      </div>
-    </v-card>
-    <v-card rounded flat class="pa-5 mb-8">
-      <pre>{{ $store.state.search.query }}</pre>
-    </v-card>
+    <v-row>
+      <v-col cols="6">
+        <v-card rounded flat class="pa-5 mb-8">
+          <div class="d-flex align-center">
+            <query-summarize class="my-2"/>
+            <query-summarize-by v-if="query.summarize" class="ml-3"/>
+          </div>
+        </v-card>
+        <v-card rounded flat class="pa-5 mb-8">
+          <div>
+            <query-sort-by v-if="!isQuerySingleRow"/>
+          </div>
+        </v-card>
+        <v-card rounded flat class="pa-5 mb-8">
+          <div>
+            <query-return/>
+          </div>
+          <v-divider class="my-2"/>
+          <div>
+            <v-chip
+                small
+                outlined
+                label
+                v-for="colId in query.return"
+                :key="colId"
+                close
+                @click:close="deleteReturnColumn(colId)"
+                close-icon="mdi-close"
+                class="mb-1 mr-2"
+            >
+              {{ colId }}
+            </v-chip>
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card rounded flat class="pa-5 mb-8">
+          <pre>{{ $store.state.search.query }}</pre>
+        </v-card>
+
+      </v-col>
+    </v-row>
+
   </v-container>
 </template>
 
@@ -77,7 +85,7 @@ export default {
       "snackbar",
     ]),
     ...mapActions("search", [
-        "deleteReturnColumn",
+      "deleteReturnColumn",
     ]),
     ...mapActions("user", []),
 

@@ -6,11 +6,10 @@ import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 
 Vue.use(Vuex)
 
-const getConfigs = () => _.cloneDeep(oaxConfigs)
 
 const baseQuery = () => ({
     get_works_where: {},
@@ -172,5 +171,16 @@ export const search = {
 
         query: (state) => state.query,
         isQuerySingleRow: (state) => state.query.summarize && !state.query.summarize_by,
+        returnedEntityType: (state) => {
+            if (state.query.summarize_by) {
+                return state.query.summarize_by
+            }
+            else if (state.query.summarize) {
+                return null
+            }
+            else {
+                return "works"
+            }
+        }
     },
 }

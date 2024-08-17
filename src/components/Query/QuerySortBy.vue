@@ -32,7 +32,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",
@@ -53,7 +53,7 @@ export default {
       "isQuerySingleRow",
     ]),
     columnIdOptions() {
-      return Object.values(oaxConfigs["works"].columns).filter(col => {
+      return Object.values(getConfigs()["works"].columns).filter(col => {
         return col.actions.includes("sort")
       })
     },

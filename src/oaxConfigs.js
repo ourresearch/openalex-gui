@@ -1,6 +1,21 @@
 // copy/pasted from https://api.openalex.org/entities/config
+const getConfigs = () => _.cloneDeep(oaxConfigs)
+export { getConfigs }
 
-export const oaxConfigs = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+const oaxConfigs = {
     "authors": {
         "id": "authors",
         "icon": "mdi-account-outline",
@@ -58,7 +73,8 @@ export const oaxConfigs = {
                 "displayName": "ORCID",
                 "isId": true,
                 "type": "string",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "actions": ["filter", "column"],
             },
             "default.search": {
                 "id": "default.search",

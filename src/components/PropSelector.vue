@@ -83,7 +83,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",
@@ -111,7 +111,7 @@ export default {
     ]),
     filteredProps() {
       if (!this.subjectEntity) return []
-      return Object.values(oaxConfigs[this.subjectEntity].properties)
+      return Object.values(getConfigs()[this.subjectEntity].properties)
           .filter(p => {
             return p.displayName.toLowerCase().includes(this.q.toLowerCase())
           })

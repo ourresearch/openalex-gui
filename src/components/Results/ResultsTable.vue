@@ -223,7 +223,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
 import ColumnValue from "@/components/ColumnValue.vue";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
 import PropSelector from "@/components/PropSelector.vue";
 import LabelCreate from "@/components/Label/LabelCreate.vue";
@@ -288,7 +288,7 @@ export default {
     },
     columnsToAdd() {
 
-      const config = oaxConfigs[this.subjectEntity]
+      const config = getConfigs()[this.subjectEntity]
       const columnsToShow = config.showOnTablePage
       return Object.values(config.columns)
           .filter(p => columnsToShow.includes(p.id))

@@ -55,7 +55,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",
@@ -75,7 +75,7 @@ export default {
       "query",
     ]),
     entities() {
-      return Object.values(oaxConfigs)
+      return Object.values(getConfigs())
     },
     selected: {
       get() {
