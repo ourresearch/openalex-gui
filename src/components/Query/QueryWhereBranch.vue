@@ -9,7 +9,10 @@
       />
     </div>
     <v-card-actions>
-      <v-btn rounded @click="addChild">add</v-btn>
+      <v-btn rounded @click="addChild">
+        <v-icon left>mdi-filter-plus-outline</v-icon>
+        Add {{ myEntityType }} filter
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -51,8 +54,10 @@ export default {
       return this.myQueryPart[this.id]
     },
     myQueryPart() {
-
       return this.query[this.queryPart]
+    },
+    myEntityType() {
+      return this.queryPart === "summarize_by_where" ? this.query.summarize_by : "works"
     },
   },
 
