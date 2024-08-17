@@ -5,9 +5,10 @@
       <v-col cols="6">
         <v-card rounded flat class="mb-8">
           <v-toolbar dense flat>
-            <v-toolbar-title>Get works where</v-toolbar-title>
+            <v-toolbar-title>Filter works</v-toolbar-title>
           </v-toolbar>
           <div class="pb-5">
+            <v-divider class=""/>
             <query-where-branch :id="0" query-part="get_works_where"/>
           </div>
         </v-card>
@@ -19,13 +20,14 @@
             <query-summarize class="my-2"/>
             <query-summarize-by v-if="query.summarize" class="ml-3"/>
           </div>
-        </v-card>
-        <v-card rounded flat class="mb-8" v-if="query.summarize_by">
-          <v-toolbar dense flat>
-            <v-toolbar-title>Get {{ returnedEntityType }} where</v-toolbar-title>
-          </v-toolbar>
-          <div class="pb-5">
-            <query-where-branch :id="0" query-part="summarize_by_where"/>
+          <div v-if="query.summarize_by">
+            <v-divider class="my-2"/>
+            <v-subheader>
+              <template>Filter {{ returnedEntityType }}</template>
+            </v-subheader>
+            <div class="pb-5">
+              <query-where-branch :id="0" query-part="summarize_by_where"/>
+            </div>
           </div>
         </v-card>
         <v-card rounded flat class="mb-8">
