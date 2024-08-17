@@ -52,7 +52,6 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {parseOQL} from "@/oql";
 import axios from "axios";
-import {oaxConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",

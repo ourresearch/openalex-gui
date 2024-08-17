@@ -24,7 +24,7 @@ import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
@@ -36,7 +36,7 @@ import Query from "@/views/Query.vue";
 Vue.use(VueRouter)
 
 
-const entityNames = Object.keys(oaxConfigs).join("|")
+const entityNames = Object.keys(getConfigs()).join("|")
 
 const routes = [
 

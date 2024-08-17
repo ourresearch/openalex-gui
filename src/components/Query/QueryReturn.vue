@@ -23,7 +23,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 
 export default {
   name: "Template",
@@ -42,11 +42,15 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
+      "returnedEntityType"
     ]),
     options() {
-      return Object.values(oaxConfigs["works"].columns)
+      if (!this.returnedEntityType) {
+        return []
+      }
+      return Object.values(getConfigs()[this.returnedEntityType].columns)
           .filter(col => {
-            return col.actions.includes("column")
+            return col.actions?.includes("column")
           })
           .filter(col => {
             return !this.query.return.includes(col.id)

@@ -167,7 +167,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oaxConfigs} from "@/oaxConfigs";
+import {getConfigs} from "@/oaxConfigs";
 import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
 
 export default {
@@ -215,7 +215,7 @@ export default {
       "userId",
     ]),
     propToModifyOptions() {
-      return Object.values(oaxConfigs.works.properties)
+      return Object.values(getConfigs().works.properties)
           .filter(prop => this.propToModifyOptionIds.includes(prop.id))
     },
     currentStep() {
