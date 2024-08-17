@@ -20,10 +20,7 @@
       <v-col>
         <v-card flat rounded>
           <results-table
-              v-if="isResultsReady"
-              :results-body="resultsBody"
-              :results-header="resultsHeader"
-              :results-meta="resultsMeta"
+              v-if="$store.state.search.is_ready"
               :api-url="apiUrl"
               @setColumns="setColumns"
               @setSort="setSort"
@@ -102,7 +99,19 @@ export default {
       "createSearch",
     ]),
     ...mapActions("user", []),
+    ...mapActions("search", [
+        "createSearch",
+        "getSearch",
+    ]),
     async getResults() {
+      await this.getSearch(this.$route.params.id)
+      // if (!this.$store.state.search.is_ready) {
+      //     console.log("getResults: not ready, waiting")
+      //     await sleep(500)
+      //     return this.getResults()
+      //   }
+
+      return
       // if (!this.$route.query.q) return
       this.$store.state.isLoading = true
       this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}?bypass_cache=true`
@@ -167,9 +176,6 @@ export default {
       },
       immediate: true
     },
-    // page(){
-    //   this.getResults(true)
-    // }
 
 
   }

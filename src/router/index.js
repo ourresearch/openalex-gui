@@ -31,6 +31,7 @@ import MeSearches from "@/views/Me/MeSearches.vue";
 import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
+import Query from "@/views/Query.vue";
 
 Vue.use(VueRouter)
 
@@ -111,6 +112,7 @@ const routes = [
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/stats', component: OurStats},
+    {path: '/query', component: Query},
 
 
     // redirects to gitbook docs
