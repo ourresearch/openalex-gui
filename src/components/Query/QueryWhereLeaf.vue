@@ -7,39 +7,52 @@
           :items="columnOptions"
           item-text="displayName"
           item-value="id"
-          label="Column"
           dense
-          class="mr-2"
+          outlined
+          class="mr-2 flex-grow-1"
           hide-details
       />
       <v-select
+          v-if="columnConfig"
           v-model="selectedOperator"
-          :items="['is', 'is not']"
-          label="Operator"
+          :items="operatorOptions"
           dense
-          class=""
+          outlined
+          class="mr-2 flex-shrink-1"
           hide-details
       />
+
+      <template v-if="columnConfig?.type === 'entity'">
+        <v-combobox
+            v-model="selectedValues"
+            :items="['value1', 'value2']"
+            hide-details
+            multiple
+            chips
+            outlined
+            deletable-chips
+            dense
+            small-chips
+            class="flex-grow-1"
+        />
+      </template>
+      <template v-else-if="isSearchColumn">
+        search
+      </template>
+      <template v-else-if="columnConfig?.type === 'string'">
+        string
+      </template>
+      <template v-else-if="columnConfig?.type === 'boolean'">
+        <!-- boolean, take no value -->
+      </template>
       <v-btn icon @click="deleteWorksWhereFilter(id)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
     </div>
-    <v-combobox
-        v-model="selectedValues"
-        :items="['value1', 'value2']"
-        label="Values"
-        filled
-        rounded
-        class="mb-2"
-        hide-details
-        multiple
-        chips
-        deletable-chips
-    />
 
     <div>
-
+      {{ columnConfig }}
     </div>
     <v-card-actions>
     </v-card-actions>
@@ -75,8 +88,25 @@ export default {
     me() {
       return this.query.get_works_where[this.id]
     },
+    columnConfig(){
+      return getConfigs()["works"].columns[this.me.columnId]
+    },
     columnOptions() {
       return Object.values(getConfigs()["works"].columns)
+    },
+    isSearchColumn(){
+      return this.columnConfig?.id?.endsWith(".search")
+    },
+    operatorOptions(){
+      if (!this.columnConfig) return []
+      if (this.columnConfig.type === "boolean") {
+        return ["is true", "is false"]
+
+      } else if (this.isSearchColumn) {
+        return ["contains", "does not contain"]
+      } else {
+        return ["is", "is not"]
+      }
     },
     selectedColumn: {
       get() {
