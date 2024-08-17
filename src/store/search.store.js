@@ -12,12 +12,14 @@ import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 Vue.use(Vuex)
 
 const baseQuery = () => ({
-    get_works_where:  {
+    get_works_where: {
         0: makeFilterBranch(0)
     },
     summarize: false,
     summarize_by: null,
-    summarize_by_where: {},
+    summarize_by_where: {
+        0: makeFilterBranch(0)
+    },
     sort_by: {
         column_id: "display_name",
         direction: "asc",
@@ -92,26 +94,31 @@ export const search = {
         },
     },
     actions: {
-        addGetWorksWhereFilter(context, filter) {
-            const highestId = Math.max(...Object.keys(context.state.query.get_works_where))
-            Vue.set(context.state.query.get_works_where, highestId + 1, filter)
+        addFilter(context, {filter, queryPart}) {
+            console.log("adding filter", queryPart)
+            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
+                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
+            }
+            const highestId = Math.max(...Object.keys(context.state.query[queryPart]))
+            Vue.set(context.state.query[queryPart], highestId + 1, filter)
         },
-        setGetWorksWhereFilter(context, filter) {
-            Vue.set(context.state.query.get_works_where, filter.id, filter)
+        setFilter(context, {filter, queryPart}) {
+            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
+                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
+            }
+            Vue.set(context.state.query[queryPart], filter.id, filter)
         },
-        deleteWorksWhereFilter(context, id) {
-            const me = context.state.query.get_works_where[id]
-            const myParent = context.state.query.get_works_where[me.parent]
-            console.log("deleting", id,myParent)
+        deleteFilter: function (context, {id, queryPart}) {
+            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
+                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
+            }
+
+            const me = context.state.query[queryPart][id]
+            const myParent = context.state.query[queryPart][me.parent]
+            console.log("deleting", id, myParent)
             myParent.children = myParent.children.filter((key) => key !== id)
-            Vue.delete(context.state.query.get_works_where, id)
+            Vue.delete(context.state.query[queryPart], id)
 
-
-            // const myParent = id.parent
-            // const myParentChildren = context.state.query.get_works_where[myParent].children
-            // const myParentChildrenWithoutMe = myParentChildren.filter((key) => key !== id)
-            // Vue.set(context.state.query.get_works_where[myParent], "children", myParentChildrenWithoutMe)
-            // Vue.delete(context.state.query.get_works_where, id)
         },
 
 
@@ -126,7 +133,9 @@ export const search = {
             }
             // turn off summarize
             else {
-                context.state.query.summarize_by_where = {}
+                context.state.query.summarize_by_where = {
+                    0: makeFilterBranch(0)
+                }
                 context.state.query.summarize_by = null
                 context.state.query.sort_by.column_id = "display_name"
                 context.state.query.sort_by.direction = "asc"
@@ -135,7 +144,9 @@ export const search = {
         },
         setSummarizeBy(context, columnId) {
             context.state.query.summarize_by = columnId
-            context.state.query.summarize_by_where = {}
+            context.state.query.summarize_by_where = {
+                0: makeFilterBranch(0)
+            }
             if (columnId) {
                 context.state.query.return = getConfigs()[columnId].showOnTablePage
                 context.state.query.sort_by.column_id = "display_name"
@@ -153,9 +164,6 @@ export const search = {
         deleteReturnColumn(context, columnId) {
             context.state.query.return = context.state.query.return.filter((col) => col !== columnId)
         },
-
-
-
 
 
         createSearch: async function (context, oql) {
@@ -198,11 +206,9 @@ export const search = {
         returnedEntityType: (state) => {
             if (state.query.summarize_by) {
                 return state.query.summarize_by
-            }
-            else if (state.query.summarize) {
+            } else if (state.query.summarize) {
                 return null
-            }
-            else {
+            } else {
                 return "works"
             }
         },

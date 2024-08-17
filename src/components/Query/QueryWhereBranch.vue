@@ -5,6 +5,7 @@
           v-for="childId in me.children"
           :key="childId"
           :id="childId"
+          :query-part="queryPart"
       />
     </div>
     <v-card-actions>
@@ -29,6 +30,7 @@ export default {
   },
   props: {
     id: Number,
+    queryPart: String,
   },
   data() {
     return {
@@ -46,7 +48,11 @@ export default {
       "returnedEntityType"
     ]),
     me() {
-      return this.query.get_works_where[this.id]
+      return this.myQueryPart[this.id]
+    },
+    myQueryPart() {
+
+      return this.query[this.queryPart]
     },
   },
 
@@ -60,16 +66,16 @@ export default {
     ]),
     ...mapActions("search", [
       "addReturnColumn",
-      "addGetWorksWhereFilter",
+      "addFilter",
     ]),
     ...mapActions("user", []),
     addChild() {
-      console.log("addChild", this.id, this.query.get_works_where)
-      const highestId = Math.max(...Object.keys(this.query.get_works_where))
+      const highestId = Math.max(...Object.keys(this.myQueryPart))
       const newFilterId = highestId + 1
       const newFilter = makeFilterLeaf(newFilterId, this.id)
-      this.addGetWorksWhereFilter(newFilter)
-      this.$store.state.search.query.get_works_where[this.id].children.push(newFilterId)
+      this.addFilter({filter: newFilter, queryPart: this.queryPart})
+
+      this.$store.state.search.query[this.queryPart][this.id].children.push(newFilterId)
 
     }
 
