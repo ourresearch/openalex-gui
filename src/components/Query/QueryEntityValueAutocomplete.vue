@@ -35,7 +35,6 @@ export default {
     entityType: {
       type: String,
       required: true,
-      validator: (value) => ['institutions', 'authors', 'works', 'venues', 'concepts'].includes(value)
     }
   },
   data() {
@@ -44,13 +43,6 @@ export default {
       entities: [],
       loading: false,
       search: null,
-      iconMap: {
-        institutions: 'mdi-school',
-        authors: 'mdi-account',
-        works: 'mdi-book-open-page-variant',
-        venues: 'mdi-newspaper',
-        concepts: 'mdi-lightbulb'
-      }
     };
   },
   watch: {

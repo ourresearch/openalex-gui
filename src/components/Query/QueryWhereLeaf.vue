@@ -46,8 +46,9 @@
                 class="flex-grow-1"
             />
           </template>
-          <template v-else>
+          <template v-else-if="selectedColumnConfig?.objectEntity">
             <v-autocomplete
+                v-if="localValueOptions.length"
                 v-model="selectedValue"
                 :items="valueOptions"
                 item-text="display_name"
@@ -61,6 +62,29 @@
                 small-chips
                 class="flex-grow-1"
             />
+            <v-autocomplete
+                v-else
+                v-model="selectedValue"
+                :items="valueOptions"
+                :loading="isLoading"
+                :search-input.sync="search"
+                item-text="display_name"
+                item-value="id"
+                hide-details
+                multiple
+                chips
+                outlined
+                deletable-chips
+                hide-no-data
+                dense
+                small-chips
+                class="flex-grow-1"
+            ></v-autocomplete>
+
+
+          </template>
+          <template v-else>
+            config error?
           </template>
         </template>
       </template>
@@ -86,6 +110,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 import {entityEndpointResults} from "@/extraConfigs";
+import axios from "axios";
 
 export default {
   name: "Template",
@@ -97,6 +122,9 @@ export default {
   data() {
     return {
       foo: 42,
+      search: "",
+      asyncValueOptions: [],
+      isLoading: false,
     }
   },
   computed: {
@@ -111,14 +139,14 @@ export default {
     me() {
       return this.query[this.queryPart][this.id]
     },
-    myEntityType() {
+    subjectEntity() {
       return this.queryPart === "summarize_by_where" ? this.query.summarize_by : "works"
     },
     selectedColumnConfig() {
-      return getConfigs()[this.myEntityType].columns[this.me.columnId]
+      return getConfigs()[this.subjectEntity].columns[this.me.columnId]
     },
     columnOptions() {
-      return Object.values(getConfigs()[this.myEntityType].columns)
+      return Object.values(getConfigs()[this.subjectEntity].columns)
     },
     isSearchColumn() {
       return this.selectedColumnConfig?.id?.endsWith(".search")
@@ -134,25 +162,28 @@ export default {
         return ["is", "is not"]
       }
     },
-    valueOptions() {
-      const objectEntityId = this.selectedColumnConfig?.entityId
-      console.log("getting valueOptions", objectEntityId, entityEndpointResults)
-
-      if (entityEndpointResults[objectEntityId]) {
-        return entityEndpointResults[objectEntityId].results.map(r => ({
+    objectEntity() {
+      return this.selectedColumnConfig?.entityId ?? this.selectedColumnConfig?.objectEntity
+    },
+    localValueOptions() {
+      if (!this.objectEntity) return []
+      if (entityEndpointResults[this.objectEntity]) {
+        return entityEndpointResults[this.objectEntity].results.map(r => ({
           id: r.id,
           display_name: r.display_name
         }))
       }
-
-      return ["foo", "bar"]
-
+      return []
+    },
+    valueOptions() {
+      return (this.localValueOptions.length) ? this.localValueOptions : this.asyncValueOptions
     },
     selectedColumn: {
       get() {
         return this.me.columnId
       },
       set(value) {
+        this.asyncValueOptions = []
         const filter = {
           ...this.me,
           operator: null,
@@ -202,6 +233,28 @@ export default {
       "deleteFilter"
     ]),
     ...mapActions("user", []),
+    getAsyncValueOptions: _.debounce(async function () {
+      this.loading = true;
+      try {
+        const response = await axios.get(`https://api.openalex.org/autocomplete/${this.objectEntity}`, {
+          params: {q: this.search}
+        });
+
+        // add the new options to the existing options
+        const extantIds = this.asyncValueOptions.map(o => o.id);
+        response.data.results.forEach(r => {
+          if (!extantIds.includes(r.id)) {
+            this.asyncValueOptions.push(r);
+          }
+        })
+
+      } catch (error) {
+        console.error(`Error fetching ${this.objectEntity}:`, error);
+        this.asyncValueOptions = [];
+      } finally {
+        this.loading = false;
+      }
+    }, 300, {leading: true}),
 
 
   },
@@ -209,7 +262,14 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    search(val) {
+      if (val) {
+        this.getAsyncValueOptions();
+      } else {
+      }
+    },
+  }
 }
 </script>
 
