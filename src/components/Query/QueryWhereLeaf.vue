@@ -1,6 +1,6 @@
 <template>
   <v-card flat tile class="pa-2">
-    <!--    <div>leaf: {{ me.id }}</div>-->
+    <!--        <div>{{ selectedColumnConfig }}</div>-->
     <div class="d-flex align-center">
       <div class="mr-3 font-weight-bold">{{ me.id }}</div>
       <v-autocomplete
@@ -13,7 +13,7 @@
           class="mr-2 flex-grow-1"
           hide-details
       />
-      <template v-if="columnConfig">
+      <template v-if="selectedColumnConfig">
         <v-select
             v-model="selectedOperator"
             :items="operatorOptions"
@@ -24,14 +24,22 @@
         />
         <template v-if="selectedOperator !== null && selectedOperator !== undefined">
           <template v-if="isSearchColumn">
-            search
+            <v-text-field
+                v-model="selectedValue"
+                placeholder="Search"
+                dense
+                outlined
+                hide-details
+                class="flex-grow-1"
+            />
+
           </template>
-          <template v-else-if="columnConfig?.type === 'boolean'">
+          <template v-else-if="selectedColumnConfig?.type === 'boolean'">
             <!-- boolean, i shall take no tea today -->
           </template>
-          <template v-else-if="columnConfig?.type === 'string'">
+          <template v-else-if="selectedColumnConfig?.type === 'string'">
             <v-text-field
-                v-model="selectedValues"
+                v-model="selectedValue"
                 dense
                 outlined
                 hide-details
@@ -39,9 +47,11 @@
             />
           </template>
           <template v-else>
-            <v-combobox
-                v-model="selectedValues"
-                :items="['value1', 'value2']"
+            <v-autocomplete
+                v-model="selectedValue"
+                :items="valueOptions"
+                item-text="display_name"
+                item-value="id"
                 hide-details
                 multiple
                 chips
@@ -63,7 +73,7 @@
     </div>
 
     <!--    <div>-->
-    <!--      {{ columnConfig }}-->
+    <!--      {{ selectedColumnConfig }}-->
     <!--    </div>-->
     <v-card-actions>
     </v-card-actions>
@@ -75,7 +85,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
-import QueryWhereBranch from "@/components/Query/QueryWhereBranch.vue";
+import {entityEndpointResults} from "@/extraConfigs";
 
 export default {
   name: "Template",
@@ -104,18 +114,18 @@ export default {
     myEntityType() {
       return this.queryPart === "summarize_by_where" ? this.query.summarize_by : "works"
     },
-    columnConfig() {
+    selectedColumnConfig() {
       return getConfigs()[this.myEntityType].columns[this.me.columnId]
     },
     columnOptions() {
       return Object.values(getConfigs()[this.myEntityType].columns)
     },
     isSearchColumn() {
-      return this.columnConfig?.id?.endsWith(".search")
+      return this.selectedColumnConfig?.id?.endsWith(".search")
     },
     operatorOptions() {
-      if (!this.columnConfig) return []
-      if (this.columnConfig.type === "boolean") {
+      if (!this.selectedColumnConfig) return []
+      if (this.selectedColumnConfig.type === "boolean") {
         return ["is true", "is false"]
 
       } else if (this.isSearchColumn) {
@@ -124,6 +134,20 @@ export default {
         return ["is", "is not"]
       }
     },
+    valueOptions() {
+      const objectEntityId = this.selectedColumnConfig?.entityId
+      console.log("getting valueOptions", objectEntityId, entityEndpointResults)
+
+      if (entityEndpointResults[objectEntityId]) {
+        return entityEndpointResults[objectEntityId].results.map(r => ({
+          id: r.id,
+          display_name: r.display_name
+        }))
+      }
+
+      return ["foo", "bar"]
+
+    },
     selectedColumn: {
       get() {
         return this.me.columnId
@@ -131,6 +155,8 @@ export default {
       set(value) {
         const filter = {
           ...this.me,
+          operator: null,
+          value: [],
           columnId: value,
         }
         this.setFilter({filter, queryPart: this.queryPart})
@@ -148,14 +174,14 @@ export default {
         this.setFilter({filter, queryPart: this.queryPart})
       }
     },
-    selectedValues: {
+    selectedValue: {
       get() {
-        return this.me.values
+        return this.me.value
       },
       set(value) {
         const filter = {
           ...this.me,
-          values: value,
+          value: value,
         }
         this.setFilter({filter, queryPart: this.queryPart})
       }
