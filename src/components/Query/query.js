@@ -1,21 +1,26 @@
-
-const makeFilterLeaf = function(id, parent){
+import shortUUID from 'short-uuid';
+const makeFilterLeaf = function(subjectEntity){
     return {
-        id,
+        id: "leaf_" + shortUUID.generate().slice(0,6),
+        subjectEntity,
         type: "leaf",
-        column_id: null,
         operator: null,
-        value: [],
-        parent,
+
+        // leafy properties
+        column_id: null,
+        value: null,
     }
 }
-const makeFilterBranch = function(id, parent){
+const makeFilterBranch = function(subjectEntity, isRoot=false){
     return {
-        id,
+        id: "br_" + shortUUID.generate().slice(0,6),
+        subjectEntity,
         type: "branch",
-        operator: "and",
+        operator: "and",  // can be either "and" or "or"
+
+        // branchy properties
         children: [],
-        parent,
+        isRoot
     }
 }
 

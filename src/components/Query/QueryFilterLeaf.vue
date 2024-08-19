@@ -1,8 +1,6 @@
 <template>
   <v-card flat tile class="pa-2">
-    <!--        <div>{{ selectedColumnConfig }}</div>-->
     <div class="d-flex align-center">
-      <div class="mr-3 font-weight-bold">{{ me.id }}</div>
       <v-autocomplete
           v-model="selectedColumn"
           :items="columnOptions"
@@ -90,7 +88,7 @@
       </template>
 
 
-      <v-btn icon @click="deleteFilter({id, queryPart})">
+      <v-btn icon @click="deleteFilter(id)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
@@ -99,9 +97,6 @@
     <!--    <div>-->
     <!--      {{ selectedColumnConfig }}-->
     <!--    </div>-->
-    <v-card-actions>
-    </v-card-actions>
-    <v-divider/>
   </v-card>
 </template>
 
@@ -116,8 +111,7 @@ export default {
   name: "Template",
   components: {},
   props: {
-    id: Number,
-    queryPart: String,
+    id: String,
   },
   data() {
     return {
@@ -137,16 +131,14 @@ export default {
       "returnedEntityType"
     ]),
     me() {
-      return this.query[this.queryPart][this.id]
-    },
-    subjectEntity() {
-      return this.queryPart === "summarize_by_where" ? this.query.summarize_by : "works"
+      return this.$store.state.search.query.filters.find(f => f.id === this.id)
     },
     selectedColumnConfig() {
-      return getConfigs()[this.subjectEntity].columns[this.me.columnId]
+      // will return null if user hasn't selected the column yet
+      return getConfigs()[this.me.subjectEntity].columns[this.selectedColumn]
     },
     columnOptions() {
-      return Object.values(getConfigs()[this.subjectEntity].columns)
+      return Object.values(getConfigs()[this.me.subjectEntity].columns)
     },
     isSearchColumn() {
       return this.selectedColumnConfig?.id?.endsWith(".search")
@@ -190,7 +182,7 @@ export default {
           value: [],
           columnId: value,
         }
-        this.setFilter({filter, queryPart: this.queryPart})
+        this.setFilter(filter)
       },
     },
     selectedOperator: {
@@ -202,7 +194,7 @@ export default {
           ...this.me,
           operator: value,
         }
-        this.setFilter({filter, queryPart: this.queryPart})
+        this.setFilter(filter)
       }
     },
     selectedValue: {
@@ -214,7 +206,7 @@ export default {
           ...this.me,
           value: value,
         }
-        this.setFilter({filter, queryPart: this.queryPart})
+        this.setFilter(filter)
       }
     }
   },
