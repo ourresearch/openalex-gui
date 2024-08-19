@@ -172,7 +172,7 @@ export default {
     },
     selectedColumn: {
       get() {
-        return this.me.columnId
+        return this.me.column_id
       },
       set(value) {
         this.asyncValueOptions = []
@@ -180,7 +180,7 @@ export default {
           ...this.me,
           operator: null,
           value: [],
-          columnId: value,
+          column_id: value,
         }
         this.setFilter(filter)
       },
