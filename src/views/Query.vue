@@ -9,7 +9,10 @@
           </v-toolbar>
           <div class="pb-5">
             <v-divider class=""/>
-            <query-where-branch :id="0" query-part="get_works_where"/>
+            <query-filter-branch
+                subject-entity="works"
+                :id="filterRoots.find(f => f.subjectEntity === 'works').id"
+            />
           </div>
         </v-card>
         <v-card rounded flat class="mb-8">
@@ -26,7 +29,11 @@
               <template>Filter {{ returnedEntityType }}</template>
             </v-subheader>
             <div class="pb-5">
-              <query-where-branch :id="0" query-part="summarize_by_where"/>
+              <query-filter-branch
+                  v-if="filterRoots.find(f => f.subjectEntity === query.summarize_by)?.id"
+                  :subject-entity="query.summarize_by"
+                  :id="filterRoots.find(f => f.subjectEntity === query.summarize_by)?.id"
+              />
             </div>
           </div>
         </v-card>
@@ -82,12 +89,12 @@ import QuerySummarize from "@/components/Query/QuerySummarize.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QuerySortBy from "@/components/Query/QuerySortBy.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
-import QueryWhereBranch from "@/components/Query/QueryWhereBranch.vue";
+import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
 
 export default {
   name: "Template",
   components: {
-    QueryWhereBranch,
+    QueryFilterBranch,
     QuerySummarize,
     QuerySummarizeBy,
     QuerySortBy,
@@ -108,7 +115,8 @@ export default {
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
-      "returnedEntityType"
+      "returnedEntityType",
+      "filterRoots",
     ]),
   },
 

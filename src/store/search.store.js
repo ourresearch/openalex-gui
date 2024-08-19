@@ -12,14 +12,11 @@ import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 Vue.use(Vuex)
 
 const baseQuery = () => ({
-    get_works_where: {
-        0: makeFilterBranch(0)
-    },
+    filters: [
+        makeFilterBranch("works", true)
+    ],
     summarize: false,
     summarize_by: null,
-    summarize_by_where: {
-        0: makeFilterBranch(0)
-    },
     sort_by: {
         column_id: "display_name",
         direction: "asc",
@@ -79,51 +76,35 @@ export const search = {
                 state[key] = newState[key];
             });
         },
-        toggleSummarize(state) {
-            state.query.summarize = !state.query.summarize
-            if (state.query.summarize) {
-                state.query.sort_by.direction = null
-                state.query.sort_by.column_id = null
-            } else {
-                state.query.summarize_by_where = {}
-                state.query.summarize_by = null
-            }
-        },
         toggleSortByDirection(state) {
             state.query.sort_by.direction = state.query.sort_by.direction === "asc" ? "desc" : "asc"
         },
     },
     actions: {
-        addFilter(context, {filter, queryPart}) {
-            console.log("adding filter", queryPart)
-            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
-                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
-            }
-            const highestId = Math.max(...Object.keys(context.state.query[queryPart]))
-            Vue.set(context.state.query[queryPart], highestId + 1, filter)
+        addFilter({state}, {filter, parent}) {
+            console.log("adding filter", filter, parent)
+            state.query.filters.push(filter)
+            state.query.filters.find(f => f.id === parent)?.children?.push(filter.id)
         },
-        setFilter(context, {filter, queryPart}) {
-            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
-                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
-            }
-            Vue.set(context.state.query[queryPart], filter.id, filter)
+        setFilter({state}, newFilter) {
+            const filterToChange = state.query.filters.find(f => f.id === newFilter.id)
+            Object.keys(newFilter).forEach(key => {
+                Vue.set(filterToChange, key, newFilter[key])
+                // filterToChange[key] = newFilter[key]
+            })
         },
-        deleteFilter: function (context, {id, queryPart}) {
-            if (!["summarize_by_where", "get_works_where"].includes(queryPart)) {
-                throw new Error("Invalid queryPart arg for search.store.actions addFilter")
-            }
-
-            const me = context.state.query[queryPart][id]
-            const myParent = context.state.query[queryPart][me.parent]
-            console.log("deleting", id, myParent)
-            myParent.children = myParent.children.filter((key) => key !== id)
-            Vue.delete(context.state.query[queryPart], id)
-
+        deleteFilter: function ({state}, id) {
+            console.log("deleteFilter", id)
+            const parent = state.query.filters.find(f => f.children.includes(id))
+            parent.children = parent.children.filter((key) => key !== id)
+            state.query.filters = state.query.filters.filter((f) => f.id !== id)
         },
 
 
         toggleSummarize(context) {
             context.state.query.summarize = !context.state.query.summarize
+            // no matter what, clear any summarize_by filters
+            context.state.query.filters = context.state.query.filters.filter(f => f.subjectEntity === "works")
 
             // turn on summarize
             if (context.state.query.summarize) {
@@ -133,9 +114,6 @@ export const search = {
             }
             // turn off summarize
             else {
-                context.state.query.summarize_by_where = {
-                    0: makeFilterBranch(0)
-                }
                 context.state.query.summarize_by = null
                 context.state.query.sort_by.column_id = "display_name"
                 context.state.query.sort_by.direction = "asc"
@@ -143,14 +121,15 @@ export const search = {
             }
         },
         setSummarizeBy(context, columnId) {
+            // clear any summarize_by filters
+            context.state.query.filters = context.state.query.filters.filter(f => f.subjectEntity === "works")
             context.state.query.summarize_by = columnId
-            context.state.query.summarize_by_where = {
-                0: makeFilterBranch(0)
-            }
             if (columnId) {
                 context.state.query.return = getConfigs()[columnId].showOnTablePage
                 context.state.query.sort_by.column_id = "display_name"
                 context.state.query.sort_by.direction = "asc"
+                const filter = makeFilterBranch(columnId, true)
+                context.dispatch("addFilter", {filter, parent: undefined})
             } else {
                 context.state.query.return = []
             }
@@ -212,6 +191,7 @@ export const search = {
                 return "works"
             }
         },
+        filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
 
 
     },
