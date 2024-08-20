@@ -195,6 +195,8 @@ export const search = {
             }
         },
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
+        worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
+        summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
 
 
     },

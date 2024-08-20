@@ -194,15 +194,15 @@
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
 
-<!--    <v-dialog scrollable v-model="isPropSelectorDialogOpen">-->
-<!--      <prop-selector-->
-<!--          :subject-entity="subjectEntity"-->
-<!--          :action="'column'"-->
-<!--          :ids-to-disable="resultsHeader.map(h => h.id)"-->
-<!--          @close="isPropSelectorDialogOpen = false"-->
-<!--          @select="addColumn"-->
-<!--      />-->
-<!--    </v-dialog>-->
+    <!--    <v-dialog scrollable v-model="isPropSelectorDialogOpen">-->
+    <!--      <prop-selector-->
+    <!--          :subject-entity="subjectEntity"-->
+    <!--          :action="'column'"-->
+    <!--          :ids-to-disable="resultsHeader.map(h => h.id)"-->
+    <!--          @close="isPropSelectorDialogOpen = false"-->
+    <!--          @select="addColumn"-->
+    <!--      />-->
+    <!--    </v-dialog>-->
 
 
   </div>
@@ -345,7 +345,25 @@ export default {
       a.href = url
       a.download = "selected.csv"
       a.click()
-    }
+    },
+
+    // setColumns(ids) {
+    //   console.log("setColumns", this.canonicalQueryString, ids)
+    //   const replaceReturnFields = (query, fields) => query.replace(/return.*/, `return ${fields.join(', ')}`);
+    //   const newQueryString = replaceReturnFields(this.canonicalQueryString, ids)
+    //   this.createSearch(newQueryString)
+    // },
+    // setSort({id, direction}) {
+    //   if (!["asc", "desc"].includes(direction)) {
+    //     console.error("setSort: invalid direction", direction)
+    //     throw new Error("setSort: invalid direction")
+    //   }
+    //   const replaceSortBy = (query, sortField, isAscending) => query.replace(/sort by.*/, `sort by ${sortField} ${direction}`);
+    //   const newQueryString = replaceSortBy(this.canonicalQueryString, id, direction)
+    //   console.log("setSort", id, direction, newQueryString)
+    //   this.createSearch(newQueryString)
+    // },
+
 
 
   },
