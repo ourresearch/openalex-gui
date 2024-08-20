@@ -8,6 +8,7 @@ import axios from "axios";
 import router from "@/router";
 import {getConfigs} from "@/oaxConfigs";
 import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
+import {oqlToQuery} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
 
@@ -155,6 +156,10 @@ export const search = {
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
+        createSearchFromOql: async function ({state}, oql) {
+            console.log("createSearchFromOql", oql, oqlToQuery(oql))
+        },
+
         getSearch: async function (context, id) {
             const url = `https://api.openalex.org/searches/${id}`
             const resp = await axios.get(url)
