@@ -145,13 +145,9 @@ export const search = {
         },
 
 
-        createSearch: async function (context, oql) {
-            // const query = await getQueryFromOql(oql)
-            const query = {q: oql}
-
-
+        createSearch: async function ({state}) {
             const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, query)
+            const resp = await axios.post(url, {query: state.query})
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
@@ -160,13 +156,12 @@ export const search = {
             const resp = await axios.get(url)
 
             // this part is a hack...in the future, we'll just get the query from the search
-            const query = await getQueryFromOql(resp.data.q)
             const searchResp = {
                 ...stateDefaults(),
                 id: id,
-                query,
-                results_header: resp.data.results.header,
-                results_body: resp.data.results.body,
+                query: resp.data.query,
+                results_header: resp.data.results.header ?? [],
+                results_body: resp.data.results.body ?? [],
                 results_meta: resp.data.meta,
                 is_ready: resp.data.is_ready,
             }
@@ -181,6 +176,14 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
+        querySubjectEntity: (state) => {
+            if (state.query.summarize_by) return state.query.summarize_by
+            else if (state.query.summarize) return null
+            else return "works"
+        },
+        querySubjectEntityConfig: (state, getters) => {
+            return getConfigs()[getters.querySubjectEntity]
+        },
         isQuerySingleRow: (state) => state.query.summarize && !state.query.summarize_by,
         returnedEntityType: (state) => {
             if (state.query.summarize_by) {
