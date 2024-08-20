@@ -1,20 +1,5 @@
 <template>
   <v-container fluid class="pt-0">
-    <v-row>
-      <v-col>
-        <v-card flat rounded>
-          <v-toolbar flat>
-
-          </v-toolbar>
-          <div class="px-4">
-            <OqlBox
-                :canonical-query-string="canonicalQueryString"
-            />
-          </div>
-
-        </v-card>
-      </v-col>
-    </v-row>
 
     <v-row class="mt-12">
       <v-col>
@@ -27,11 +12,6 @@
           />
 
         </v-card>
-        <!--        <div v-if="results.body.length >= 20" class="d-flex py-1">-->
-        <!--          <v-btn @click="page += 1">-->
-        <!--            More results-->
-        <!--          </v-btn>-->
-        <!--        </div>-->
       </v-col>
     </v-row>
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
@@ -104,32 +84,16 @@ export default {
         "getSearch",
     ]),
     async getResults() {
-      await this.getSearch(this.$route.params.id)
-      // if (!this.$store.state.search.is_ready) {
-      //     console.log("getResults: not ready, waiting")
-      //     await sleep(500)
-      //     return this.getResults()
-      //   }
-
-      return
-      // if (!this.$route.query.q) return
-      this.$store.state.isLoading = true
-      this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}?bypass_cache=true`
-      // this.apiUrl = `https://api.openalex.org/searches/${this.$route.params.id}`
       try {
-        const resp = await axios.get(this.apiUrl)
-        if (!resp.data.is_ready) {
+        await this.getSearch(this.$route.params.id)
+        if (!this.$store.state.search.is_ready) {
           console.log("getResults: not ready, waiting")
-          await sleep(1000)
+          await sleep(500)
           return this.getResults()
         }
-        this.setEverythingFromApiResp(resp)
-        this.$store.state.isLoading = false
       } catch (e) {
-        this.clearEverything()
         this.snackbar({msg: "Error fetching results", color: "error"})
         console.error(e)
-        this.$store.state.isLoading = false
       }
 
     },

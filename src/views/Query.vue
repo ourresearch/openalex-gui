@@ -1,6 +1,13 @@
 <template>
   <v-container>
-    <div class="text-h4 mb-4">Query creator</div>
+    <v-toolbar flat color="transparent" class="">
+
+      <v-toolbar-title>Query tester</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn rounded color="primary" @click="createSearch">
+        <v-icon left>mdi-play</v-icon> Do it
+      </v-btn>
+    </v-toolbar>
     <v-row>
       <v-col cols="6">
         <v-card rounded flat class="mb-8">
@@ -126,6 +133,7 @@ export default {
     ]),
     ...mapActions("search", [
       "deleteReturnColumn",
+        "createSearch",
     ]),
     ...mapActions("user", []),
 
