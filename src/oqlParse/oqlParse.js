@@ -157,4 +157,9 @@ function oqlToQuery(oql) {
 
     return query;
 }
-module.exports = oqlToQuery;
+// this seems to break for me? not sure why.
+// module.exports = oqlToQuery;
+
+export {
+    oqlToQuery
+}
