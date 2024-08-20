@@ -1,18 +1,6 @@
 // copy/pasted from https://api.openalex.org/entities/config
 const getConfigs = () => _.cloneDeep(oaxConfigs)
-export { getConfigs }
-
-
-
-
-
-
-
-
-
-
-
-
+export {getConfigs}
 
 
 const oaxConfigs = {
@@ -73,8 +61,7 @@ const oaxConfigs = {
                 "displayName": "ORCID",
                 "isId": true,
                 "type": "string",
-                "icon": "mdi-account-outline",
-                "actions": ["filter", "column"],
+                "icon": "mdi-account-outline"
             },
             "default.search": {
                 "id": "default.search",
@@ -194,6 +181,17 @@ const oaxConfigs = {
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-town-hall"
+            },
+            "count(works)": {
+                "id": "count(works)",
+                "subjectEntity": "authors",
+                "entityId": "works",
+                "objectEntity": "authors",
+                "displayName": "Works",
+                "type": "number",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant"
             }
         }
     },
@@ -811,6 +809,24 @@ const oaxConfigs = {
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-town-hall"
+            },
+            "mean(fwci)": {
+                "id": "mean(fwci)",
+                "subjectEntity": "institutions",
+                "displayName": "mean fwci",
+                "type": "number",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant"
+            },
+            "count(works)": {
+                "id": "count",
+                "subjectEntity": "institutions",
+                "displayName": "count",
+                "type": "number",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant"
             }
         }
     },
@@ -1525,6 +1541,8 @@ const oaxConfigs = {
         "showOnEntityPage": ["id", "display_name", "publication_year", "type", "abstract_inverted_index", "primary_location.source.id", "authorships.author.id", "authorships.institutions.id", "primary_topic.id", "primary_topic.subfield.id", "primary_topic.field.id", "primary_topic.domain.id", "sustainable_development_goals.id", "open_access.oa_status", "apc_paid.value_usd", "grants.funder", "grants.award_id"],
         "showOnTablePage": ["display_name", "publication_year", "type", "primary_location", "authors", "institutions", "topic", "oa_status", "cited_by_count"],
         "groupByDefaults": ["publication_year", "open_access.is_oa", "primary_topic.id", "authorships.institutions.lineage", "type"],
+        "sortByDefault": "cited_by_count",
+        "sortDirDefault": "desc",
         "columns": {
             "id": {
                 "id": "id",
