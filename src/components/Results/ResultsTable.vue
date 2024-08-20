@@ -1,7 +1,5 @@
 <template>
   <div>
-    <div>
-    </div>
     <div class="table-meta d-flex align-center pa-2">
 
       <v-btn
@@ -72,31 +70,7 @@
         results
       </div>
 
-      <v-menu rounded>
-        <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on">
-            <v-icon>mdi-table-plus</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
-              @click="addColumn(prop.id)"
-              v-for="prop in columnsToAdd"
-              :key="prop.id"
-              :disabled="resultsHeader.map(h => h.id).includes(prop.id)"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ prop.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
-          </v-list-item>
-          <v-divider/>
-          <v-list-item key="more" @click="isPropSelectorDialogOpen = true">
-            <v-list-item-icon></v-list-item-icon>
-            <v-list-item-title>More</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+
       <v-menu rounded>
         <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
@@ -113,42 +87,55 @@
         </v-list>
       </v-menu>
     </div>
-    <v-simple-table v-if="resultsBody.length">
+    <v-simple-table>
       <thead>
       <th key="checkbox-placeholder"></th>
       <th
-          v-for="(header, i) in resultsHeader"
+          v-for="(header, i) in queryColumns"
           :key="'header-'+i"
           style="text-align: left;"
           class=""
       >
         <div class="d-flex">
-          <v-menu>
+          <v-menu offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn text v-on="on" style="white-space: nowrap;">
+              <v-btn
+                  text
+                  v-on="on"
+                  style="white-space: nowrap;"
+              >
+                <template v-if="query.sort_by.column_id === header.id">
+                  <v-icon v-if="query.sort_by.direction==='desc'">mdi-arrow-down</v-icon>
+                  <v-icon v-if="query.sort_by.direction==='asc'">mdi-arrow-up</v-icon>
+                </template>
                 {{ header.displayName }}
                 <v-icon small>mdi-menu-down</v-icon>
               </v-btn>
             </template>
             <v-list dense>
               <v-list-item class="pb-2 py-1">
-                <v-list-item-title style="font-family: monospace">{{ header.id }}</v-list-item-title>
+                <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
               </v-list-item>
               <v-divider/>
-              <v-list-item @click="removeColumn(header.id)">
+              <v-list-item @click="deleteReturnColumn(header.id)">
                 <v-list-item-icon>
                   <v-icon>mdi-table-column-remove</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>Remove column</v-list-item-title>
               </v-list-item>
               <template v-if="header.actions?.includes('sort')">
-                <v-list-item @click="$emit('setSort', {id: header.id, direction: 'desc'})">
+                <v-divider/>
+                <v-list-item
+                    @click="setSortBy({column_id: header.id, direction: 'desc'})"
+                >
                   <v-list-item-icon>
                     <v-icon>mdi-sort-descending</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>Sort descending</v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="$emit('setSort', {id: header.id, direction: 'asc'})">
+                <v-list-item
+                    @click="setSortBy({column_id: header.id, direction: 'asc'})"
+                >
                   <v-list-item-icon>
                     <v-icon>mdi-sort-ascending</v-icon>
                   </v-list-item-icon>
@@ -160,6 +147,11 @@
           <v-spacer></v-spacer>
 
         </div>
+      </th>
+      <th key="column-adder">
+        <v-btn icon color="primary" @click="isPropSelectorDialogOpen = true">
+          <v-icon>mdi-plus-circle</v-icon>
+        </v-btn>
       </th>
       </thead>
       <tbody>
@@ -182,6 +174,7 @@
         >
           <column-value :property="cell"/>
         </td>
+        <td key="column-adder-placeholder"></td>
       </tr>
       </tbody>
     </v-simple-table>
@@ -194,15 +187,12 @@
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
 
-    <!--    <v-dialog scrollable v-model="isPropSelectorDialogOpen">-->
-    <!--      <prop-selector-->
-    <!--          :subject-entity="subjectEntity"-->
-    <!--          :action="'column'"-->
-    <!--          :ids-to-disable="resultsHeader.map(h => h.id)"-->
-    <!--          @close="isPropSelectorDialogOpen = false"-->
-    <!--          @select="addColumn"-->
-    <!--      />-->
-    <!--    </v-dialog>-->
+    <v-dialog scrollable v-model="isPropSelectorDialogOpen">
+      <v-card flat rounded>
+        <query-return @close="isPropSelectorDialogOpen = false"/>
+
+      </v-card>
+    </v-dialog>
 
 
   </div>
@@ -217,17 +207,17 @@ import {unravel} from "../../util";
 import ColumnValue from "@/components/ColumnValue.vue";
 import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
-import PropSelector from "@/components/PropSelector.vue";
 import LabelCreate from "@/components/Label/LabelCreate.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
+import QueryReturn from "@/components/Query/QueryReturn.vue";
 
 export default {
   name: "Template",
   components: {
     ColumnValue,
-    PropSelector,
     LabelCreate,
     CorrectionCreate,
+    QueryReturn,
   },
   props: {
     apiUrl: String,
@@ -257,6 +247,8 @@ export default {
       "resultsBody",
       "querySubjectEntity",
       "querySubjectEntityConfig",
+      "queryColumns",
+      "query",
     ]),
     rows() {
       return this.resultsBody.map((row) => {
@@ -294,7 +286,11 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", [
-      "createCollection"
+      "createCollection",
+    ]),
+    ...mapActions("search", [
+      "deleteReturnColumn",
+      "setSortBy",
     ]),
     addSelectedId(id) {
       this.selectedIds.push(id)
@@ -363,7 +359,6 @@ export default {
     //   console.log("setSort", id, direction, newQueryString)
     //   this.createSearch(newQueryString)
     // },
-
 
 
   },

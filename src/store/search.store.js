@@ -137,6 +137,10 @@ export const search = {
         setSortByColumnId(context, columnId) {
             context.state.query.sort_by.column_id = columnId
         },
+        setSortBy({state}, {column_id, direction}) {
+            state.query.sort_by.column_id = column_id
+            state.query.sort_by.direction = direction
+        },
         addReturnColumn(context, columnId) {
             context.state.query.return.push(columnId)
         },
@@ -176,6 +180,7 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
+        queryColumns: (state, getters) => state.query.return.map((col) => getters.querySubjectEntityConfig.columns[col]),
         querySubjectEntity: (state) => {
             if (state.query.summarize_by) return state.query.summarize_by
             else if (state.query.summarize) return null

@@ -1,23 +1,39 @@
 <template>
-  <span>
+  <div>
+    <v-list>
+        <v-list-item
+              v-for="option in options"
+              :key="option.id"
+              @click="clickListItem(option.id)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ option.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>{{ option.displayName | pluralize(1) }}</v-list-item-title>
+<!--            <v-list-item-icon v-if="selected.includes(option.id)">-->
+<!--              <v-icon>mdi-check</v-icon>-->
+<!--            </v-list-item-icon>-->
+          </v-list-item>
 
-    <v-autocomplete
-        class="ml-2"
-        v-model="selected"
-        :items="options"
-        item-text="displayName"
-        item-value="id"
-        placeholder="Add column"
-        label="Add column"
-        hide-details
-        clearable
-        rounded
-        filled
-        dense
-        @input="handleInput"
-        ref="QueryReturnAutocomplete"
-    />
-  </span>
+    </v-list>
+
+<!--    <v-autocomplete-->
+<!--        class="ml-2"-->
+<!--        v-model="selected"-->
+<!--        :items="options"-->
+<!--        item-text="displayName"-->
+<!--        item-value="id"-->
+<!--        placeholder="Add column"-->
+<!--        label="Add column"-->
+<!--        hide-details-->
+<!--        clearable-->
+<!--        rounded-->
+<!--        filled-->
+<!--        dense-->
+<!--        @input="handleInput"-->
+<!--        ref="QueryReturnAutocomplete"-->
+<!--    />-->
+  </div>
 </template>
 
 <script>
@@ -28,12 +44,14 @@ import {getConfigs} from "@/oaxConfigs";
 export default {
   name: "Template",
   components: {},
-  props: {},
+  props: {
+    index: Number
+  },
   data() {
     return {
       foo: 42,
-      selected: null,
     }
+
   },
   computed: {
     ...mapGetters([]),
@@ -42,22 +60,31 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType"
+      "returnedEntityType",
+        "querySubjectEntityConfig",
     ]),
+    // selected: {
+    //   get() {
+    //     return this.query.return
+    //   },
+    //   set(value) {
+    //     // this.handleInput(value)
+    //     console.log("selected set", value)
+    //     this.addReturnColumn(value.id)
+    //   }
+    //
+    // },
     options() {
       if (!this.returnedEntityType) {
         return []
       }
-      return Object.values(getConfigs()[this.returnedEntityType].columns)
+      return Object.values(this.querySubjectEntityConfig.columns)
           .filter(col => {
             return col.actions?.includes("column")
           })
           .filter(col => {
             return !this.query.return.includes(col.id)
           })
-    },
-    iconName() {
-      return this.query.sort_by.direction === "asc" ? "mdi-sort-ascending" : "mdi-sort-descending"
     },
   },
 
@@ -73,19 +100,23 @@ export default {
       "addReturnColumn",
     ]),
     ...mapActions("user", []),
-    handleInput(value) {
-
-      console.log("handleInput", value)
-      this.addReturnColumn(value)
-      this.$nextTick(() => {
-        this.selected = null
-        // Remove focus from the autocomplete
-        if (this.$refs.QueryReturnAutocomplete) {
-          this.$refs.QueryReturnAutocomplete.blur()
-        }
-      })
-
+    clickListItem(id) {
+      this.addReturnColumn(id)
+      this.$emit("close")
     }
+
+    // handleInput(value) {
+    //   console.log("handleInput", value)
+    //   this.addReturnColumn(value)
+    //   this.$nextTick(() => {
+    //     this.selected = null
+    //     // Remove focus from the autocomplete
+    //     if (this.$refs.QueryReturnAutocomplete) {
+    //       this.$refs.QueryReturnAutocomplete.blur()
+    //     }
+    //   })
+    //
+    // }
 
 
   },
