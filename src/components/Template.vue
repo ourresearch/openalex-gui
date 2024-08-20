@@ -10,18 +10,23 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "Template",
-  components: {},
-  props: {},
+  components: {
+  },
+  props: {
+  },
   data() {
     return {
       foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-    ]),
+    ...mapGetters([]),
     ...mapGetters("user", [
       "userId",
+    ]),
+    ...mapGetters("search", [
+      "query",
+      "returnedEntityType"
     ]),
   },
 
@@ -29,7 +34,10 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
+    ...mapMutations("search", [
+    ]),
+    ...mapActions("search", [
+    ]),
     ...mapActions("user", []),
 
 
