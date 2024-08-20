@@ -20,24 +20,29 @@
 
     <v-menu max-height="33vh" rounded offset-y>
       <template v-slot:activator="{ on }">
-        <v-chip
+        <v-btn
+            text
+            rounded
             v-on="on"
-            :color="query.summarize_by ? 'primary' : null"
-            class="ml-2"
+            :color="query.summarize ? 'primary' : null"
+            class="px-2"
         >
-          by
-          <template v-if="!query.summarize_by">...</template>
-          <span class="font-weight-bold ml-2" v-else>{{ query.summarize_by | pluralize(1) }}</span>
+<!--            style="font-size: 20px !important;"-->
+          <template v-if="!query.summarize_by">
+            <template v-if="query.summarize">everything</template>
+            <template v-else>none</template>
+          </template>
+          <span class="font-weight-bold ml-2" v-else>by {{ query.summarize_by | pluralize(1) }}</span>
           <v-icon right>mdi-menu-down</v-icon>
-        </v-chip>
+        </v-btn>
       </template>
 
       <v-list>
         <v-subheader>Summarize by</v-subheader>
         <v-list-item-group v-model="selected">
           <v-list-item
-              v-for="entity in entities"
-              :key="entity.id"
+              v-for="(entity, i) in entities"
+              :key="i"
               :value="entity.id"
               active-class="primary--text"
           >
@@ -53,6 +58,9 @@
         </v-list-item-group>
       </v-list>
     </v-menu>
+    <v-btn small v-if="query.summarize" icon @click="setSummarize(false)">
+      <v-icon small>mdi-close</v-icon>
+    </v-btn>
   </span>
 </template>
 
@@ -79,14 +87,17 @@ export default {
       "query",
     ]),
     entities() {
-      return Object.values(getConfigs())
+      return [
+        {id: "all", displayName: "Everything", icon: "mdi-file-document-outline"},
+          ...Object.values(getConfigs())
+      ]
     },
     selected: {
       get() {
         return this.query.summarize_by
       },
       set(value) {
-        this.setSummarizeBy(value)
+        this.setSummarize(value)
       }
     }
   },
@@ -98,7 +109,7 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     ...mapActions("search", [
-      "setSummarizeBy",
+      "setSummarize",
     ]),
 
 

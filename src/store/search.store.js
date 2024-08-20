@@ -121,7 +121,46 @@ export const search = {
                 context.state.query.return = getConfigs().works.showOnTablePage
             }
         },
+
+
+        setSummarize({state}, columnId) {
+            console.log("setSummarize", columnId)
+            // no matter what, clear all the summarize_by filters
+            state.query.filters = state.query.filters.filter(f => f.subjectEntity === "works")
+
+            if (!columnId) {
+                console.log("setSummarize: clear everything, we're listing all works", columnId)
+                state.query.summarize = false
+                state.query.summarize_by = null
+                state.query.sort_by.column_id = "display_name"
+                state.query.sort_by.direction = "asc"
+                state.query.return = getConfigs().works.showOnTablePage
+
+
+            } else if (columnId === "all") {
+                console.log("setSummarize: summarize all works together", columnId)
+                state.query.summarize = true
+                state.query.summarize_by = null
+                state.query.sort_by.direction = null
+                state.query.sort_by.column_id = null
+                state.query.return = []
+
+            } else {
+                console.log("setSummarize: summarize by a specific column", columnId)
+                state.query.summarize = true
+                state.query.summarize_by = columnId
+                state.query.sort_by.column_id = "display_name"
+                state.query.sort_by.direction = "asc"
+                state.query.return = getConfigs()[columnId].showOnTablePage
+                const filter = makeFilterBranch(columnId, true)
+                dispatch("addFilter", {filter, parent: undefined})
+            }
+        },
+
+
         setSummarizeBy(context, columnId) {
+
+
             // clear any summarize_by filters
             context.state.query.filters = context.state.query.filters.filter(f => f.subjectEntity === "works")
             context.state.query.summarize_by = columnId

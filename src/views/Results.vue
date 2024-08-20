@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pt-0">
     <div class="d-flex align-center">
-      <v-spacer />
+      <v-spacer/>
       Show:
       <v-chip-group
           class="ml-4"
@@ -23,39 +23,40 @@
 
 
     <v-row>
-      <v-col v-if="cardsToShowSelected.includes('naturalLanguage')">
-        <v-toolbar dense flat color="transparent">
-          <v-toolbar-title>
-            <v-icon>mdi-chat-outline</v-icon>
-            Natural language
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'naturalLanguage')">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
+      <v-col cols="6" v-if="cardsToShowSelected.includes('naturalLanguage')">
         <v-card rounded flat>
+          <v-toolbar dense flat color="transparent">
+            <v-toolbar-title>
+              <v-icon>mdi-chat-outline</v-icon>
+              Natural language
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'naturalLanguage')">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
           <v-card-text>
             natural language queries go here
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col v-if="cardsToShowSelected.includes('oql')">
-        <v-toolbar dense flat color="transparent">
-          <v-toolbar-title>
-            <v-icon>mdi-code-parentheses-box</v-icon>
-            OQL query
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'oql')">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card rounded flat class="pa-4">
-          <query-oql />
+      <v-col cols="6" v-if="cardsToShowSelected.includes('oql')">
+        <v-card rounded flat class="">
+          <v-toolbar dense flat color="transparent">
+            <v-toolbar-title>
+              <v-icon>mdi-code-parentheses-box</v-icon>
+              OQL query
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'oql')">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <query-oql class="pa-4"/>
         </v-card>
       </v-col>
     </v-row>
+
 
     <v-row class="">
       <v-col v-if="cardsToShowSelected.includes('queryJson')">
@@ -77,70 +78,65 @@
       </v-col>
 
 
-      <v-col v-if="cardsToShowSelected.includes('filters')">
-        <v-toolbar dense flat color="transparent">
-          <v-toolbar-title>
-            <v-icon>mdi-filter-outline</v-icon>
-            Filter
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'filters')">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card rounded flat>
-          <v-tabs
-              v-model="selectedFiltersTab"
-              background-color="transparent"
-              grow
-              class=""
-          >
-            <v-tab key="0" class="text-lowercase">
-              <v-icon left>mdi-file-document-outline</v-icon>
-              works
-            </v-tab>
-            <v-tab
-                key="1"
-                class="text-lowercase"
-                :disabled="!query.summarize_by"
-            >
-              <v-icon left>mdi-format-list-group</v-icon>
-              summaries
-            </v-tab>
-          </v-tabs>
-          <v-tabs-items v-model="selectedFiltersTab">
-            <v-tab-item key="0">
-              <query-filter-branch
-                  subject-entity="works"
-                  :id="worksFiltersRoot?.id"
-              />
-            </v-tab-item>
-            <v-tab-item key="1">
-              <query-filter-branch
-                  :subject-entity="query.summarize_by"
-                  :id="summarizeByFiltersRoot?.id"
-              />
-            </v-tab-item>
-          </v-tabs-items>
+      <v-col cols="4" v-if="cardsToShowSelected.includes('filters')">
+        <v-card rounded flat class="py-4">
+          <v-expansion-panels flat accordion>
+            <v-expansion-panel>
+              <v-expansion-panel-header class="text-h6 pa-4">
+                1. Filter works
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <query-filter-branch
+                    subject-entity="works"
+                    :id="worksFiltersRoot?.id"
+                />
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-divider class="my-4"/>
+            <div class="d-flex align-center" style="width: 100%;">
+              <div class="text-h6 pa-4 pr-0">
+                2. Summarize
+              </div>
+              <v-spacer></v-spacer>
+              <query-summarize-by  class="mr-4"/>
+<!--              <query-summarize-by v-if="query.summarize" class=""/>-->
+<!--              <query-summarize class="mx-2"/>-->
+            </div>
+            <v-expansion-panel v-if="query.summarize_by">
+              <v-expansion-panel-header class="text-h6 pa-4">
+                3. Filter {{ query.summarize_by }}
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+
+                <query-filter-branch
+                    :subject-entity="query.summarize_by"
+                    :id="summarizeByFiltersRoot?.id"
+                />
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+          </v-expansion-panels>
+
         </v-card>
       </v-col>
-      <v-col v-if="cardsToShowSelected.includes('results')">
-        <v-toolbar dense flat color="transparent">
-          <v-toolbar-title>
-            <v-icon>{{ querySubjectEntityConfig?.icon ?? "mdi-file-document-outline" }}</v-icon>
-            Works
-            <span v-if="query.summarize_by">by {{ query.summarize_by | pluralize(1)}}</span>
-            <span v-else-if="query.summarize">summary</span>
-          </v-toolbar-title>
-          <v-spacer></v-spacer>
-          <query-summarize />
-          <query-summarize-by v-if="query.summarize" />
-          <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-
-        </v-toolbar>
+      <v-col cols="8" v-if="cardsToShowSelected.includes('results')">
         <v-card flat rounded>
+
+          <v-toolbar dense flat color="transparent">
+            <v-toolbar-title>
+              <v-icon left>{{ querySubjectEntityConfig?.icon ?? "mdi-file-document-outline" }}</v-icon>
+              <span v-if="!query.summarize">Works</span>
+              <span v-if="query.summarize_by">{{ query.summarize_by  }}</span>
+              <span v-else-if="query.summarize">Works summary</span>
+            </v-toolbar-title>
+            <v-spacer></v-spacer>
+<!--            <query-summarize/>-->
+<!--            <query-summarize-by v-if="query.summarize"/>-->
+            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+
+          </v-toolbar>
+
           <results-table
               v-if="$store.state.search.is_ready"
           />
