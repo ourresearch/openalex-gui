@@ -1,13 +1,19 @@
 <template>
   <span>
-    <v-chip
+<!--    <v-chip-->
+<!--        @click="toggleSummarize"-->
+<!--        :color="query.summarize ? 'primary' : null"-->
+<!--        filter-->
+<!--        :input-value="query.summarize"-->
+<!--    >-->
+<!--      Summarize-->
+<!--    </v-chip>-->
+    <v-simple-checkbox
         @click="toggleSummarize"
-        :color="query.summarize ? 'primary' : null"
-        filter
-        :input-value="query.summarize"
-    >
-      Summarize
-    </v-chip>
+        label="Summarize"
+        class="ml-2"
+        :value="query.summarize"
+    />
   </span>
 </template>
 

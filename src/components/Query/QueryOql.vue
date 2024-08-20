@@ -67,7 +67,6 @@ export default {
   watch: {
     "$store.state.search.id": {
       handler: function (val) {
-        console.log("QueryOql.vue: watch: $store.state.search.id: val: ", val)
       },
       deep: true,
     }
