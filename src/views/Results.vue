@@ -144,10 +144,14 @@
       <v-col v-if="cardsToShowSelected.includes('results')">
         <v-toolbar dense flat color="transparent">
           <v-toolbar-title>
-            <v-icon>mdi-file-document-outline</v-icon>
+            <v-icon>{{ querySubjectEntityConfig?.icon ?? "mdi-file-document-outline" }}</v-icon>
             Works
+            <span v-if="query.summarize_by">by {{ query.summarize_by | pluralize(1)}}</span>
+            <span v-else-if="query.summarize">summary</span>
           </v-toolbar-title>
           <v-spacer></v-spacer>
+          <query-summarize />
+          <query-summarize-by v-if="query.summarize" />
           <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -178,6 +182,8 @@ import PropSelector from "@/components/PropSelector.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
 import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
+import QuerySummarize from "@/components/Query/QuerySummarize.vue";
+import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 
 export default {
   name: "Template",
@@ -187,6 +193,9 @@ export default {
     ResultsTable,
     PropSelector,
     QueryFilterBranch,
+
+    QuerySummarize,
+    QuerySummarizeBy,
   },
   props: {},
   data() {
@@ -220,6 +229,8 @@ export default {
     ...mapGetters("search", [
       "worksFiltersRoot",
       "summarizeByFiltersRoot",
+      "returnedEntityType",
+      "querySubjectEntityConfig",
       "query",
     ]),
   },

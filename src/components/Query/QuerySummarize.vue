@@ -1,14 +1,13 @@
 <template>
   <span>
-    <v-btn
-        rounded
-        large
+    <v-chip
         @click="toggleSummarize"
         :color="query.summarize ? 'primary' : null"
+        filter
+        :input-value="query.summarize"
     >
-      <v-icon left>mdi-arrow-collapse-vertical</v-icon>
       Summarize
-    </v-btn>
+    </v-chip>
   </span>
 </template>
 
