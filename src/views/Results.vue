@@ -1,21 +1,5 @@
 <template>
   <v-container fluid class="pt-0">
-    <!--    <div>-->
-    <!--      <v-select-->
-    <!--          v-model="cardsToShowSelected"-->
-    <!--          :items="cardsToShowOptions"-->
-    <!--          chips-->
-    <!--          multiple-->
-    <!--          clearable-->
-    <!--          deletable-chips-->
-    <!--          rounded-->
-    <!--          filled-->
-    <!--          ref="cardsToShow"-->
-    <!--          @input="$refs.cardsToShow.blur()"-->
-    <!--      >-->
-
-    <!--      </v-select>-->
-    <!--    </div>-->
     <div class="d-flex align-center">
       <v-spacer />
       Show:
@@ -37,8 +21,8 @@
       </v-chip-group>
     </div>
 
-    <v-row class="mt-12">
 
+    <v-row>
       <v-col v-if="cardsToShowSelected.includes('naturalLanguage')">
         <v-toolbar dense flat color="transparent">
           <v-toolbar-title>
@@ -56,8 +40,6 @@
           </v-card-text>
         </v-card>
       </v-col>
-
-
       <v-col v-if="cardsToShowSelected.includes('oql')">
         <v-toolbar dense flat color="transparent">
           <v-toolbar-title>
@@ -69,12 +51,13 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-        <v-card rounded flat>
-          OQL goes here
+        <v-card rounded flat class="pa-4">
+          <query-oql />
         </v-card>
       </v-col>
+    </v-row>
 
-
+    <v-row class="">
       <v-col v-if="cardsToShowSelected.includes('queryJson')">
         <v-toolbar dense flat color="transparent">
           <v-toolbar-title>
@@ -184,18 +167,17 @@ import AnalyticViews from "@/components/AnalyticViews.vue";
 import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
 import QuerySummarize from "@/components/Query/QuerySummarize.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
+import QueryOql from "@/components/Query/QueryOql.vue";
 
 export default {
   name: "Template",
   components: {
-    AnalyticViews, SerpResultsList,
-    OqlBox,
     ResultsTable,
-    PropSelector,
     QueryFilterBranch,
 
     QuerySummarize,
     QuerySummarizeBy,
+    QueryOql,
   },
   props: {},
   data() {
