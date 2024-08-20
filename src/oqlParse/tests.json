@@ -1,0 +1,192 @@
+[
+  {
+    "oql": "get works",
+    "query": {}
+  },
+  {
+    "oql": "get works; summarize",
+    "query": {
+      "summarize": true
+    }
+  },
+  {
+    "oql": "get works where type is article;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_1"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_1",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "type",
+          "value": [
+            "article"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "oql": "get works where publication_year is 2020;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_1"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_1",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "publication_year",
+          "value": [
+            2020
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "oql": "get works where type is article; summarize; return count;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_1"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_1",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "type",
+          "value": [
+            "article"
+          ]
+        }
+      ],
+      "summarize": true,
+      "return": [
+        "count"
+      ]
+    }
+  },
+  {
+    "oql": "get works where type is not article; summarize; return count;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_1"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_1",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is not",
+          "column_id": "type",
+          "value": [
+            "article"
+          ]
+        }
+      ],
+      "summarize": true,
+      "return": [
+        "count"
+      ]
+    }
+  },
+  {
+    "oql": "get works where institution is I4210120667 and type is article; summarize by publishers where display_name is test; sort by display_name asc; return display_name, country_code",
+    "query": {
+      "filters": [
+        {
+          "id": "br_jUyFzQ",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_8h8aqu",
+            "leaf_7WMZFN"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_8h8aqu",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "authorships.institutions.id",
+          "value": [
+            "I4210120667"
+          ]
+        },
+        {
+          "id": "br_wDTyaQ",
+          "subjectEntity": "publishers",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_s3XVSi"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_s3XVSi",
+          "subjectEntity": "publishers",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "display_name",
+          "value": "test"
+        },
+        {
+          "id": "leaf_7WMZFN",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "type",
+          "value": ["article"]
+        }
+      ],
+      "summarize": true,
+      "summarize_by": "publishers",
+      "sort_by": {
+        "column_id": "display_name",
+        "direction": "asc"
+      },
+      "return": [
+        "display_name",
+        "country_code"
+      ]
+    }
+  }
+]
