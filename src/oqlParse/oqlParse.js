@@ -1,9 +1,17 @@
+/*jshint esversion: 6 */
 
-const COLUMN_IDS_MAP = {
-    'institution': "authorships.institutions.id",
-    "funder": "grants.funder",
-    "name": "default.search"
-};
+import {getConfigs} from "../oaxConfigs.js";
+
+function makeColumnIDsMap() {
+    const map = {};
+    let configs = getConfigs();
+    for (const key in configs) {
+        map[configs[key].filterName] = configs[key].filterKey;
+    }
+    return map;
+}
+
+const COLUMN_IDS_MAP = makeColumnIDsMap();
 
 function generateId(prefix = "leaf") {
     return `${prefix}_${Math.random().toString(36).substr(2, 8)}`;
@@ -18,12 +26,14 @@ function parseCondition(condition, subjectEntity) {
         }
         let operator = match[2];
         let value = match[3].replace(/;/g, '').trim();
-
-        if (value.match(/^\d+$/)) {
-            value = parseInt(value, 10);
-        } else if (value.startsWith("'") && value.endsWith("'")) {
-            value = value.slice(1, -1);
-        }
+        let values = value.split(',').map(val => {
+            if (val.match(/^\d+$/)) {
+                return parseInt(val, 10);
+            } else if (val.startsWith("'") && val.endsWith("'")) {
+                return val.slice(1, -1);
+            }
+            return val;
+        }).filter(val => val !== '');
 
         return {
             id: generateId(),
@@ -31,7 +41,7 @@ function parseCondition(condition, subjectEntity) {
             type: "leaf",
             operator,
             column_id,
-            value: [value]
+            value: values
         };
     }
     return null;
@@ -162,4 +172,4 @@ function oqlToQuery(oql) {
 
 export {
     oqlToQuery
-}
+};
