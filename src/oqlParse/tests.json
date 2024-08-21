@@ -212,7 +212,9 @@
           "type": "leaf",
           "operator": "is not",
           "column_id": "grants.funder",
-          "value": ["test"]
+          "value": [
+            "test"
+          ]
         },
         {
           "id": "leaf_xgj1Fz",
@@ -220,7 +222,9 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "works",
-          "value": [34578964]
+          "value": [
+            34578964
+          ]
         },
         {
           "id": "br_vCF3JJ",
@@ -247,6 +251,59 @@
         "display_name",
         "type",
         "issn"
+      ]
+    }
+  },
+  {
+    "oql": "get works where publication_year is 2020,2021,2022,2023,2024; summarize by institution where country is fr; sort by sum(apc_paid_usd) desc; return display_name, sum(apc_paid_usd);",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1zTf4X",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_dXioYL"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_dXioYL",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "publication_year",
+          "value": [2020, 2021, 2022, 2023, 2024]
+        },
+        {
+          "id": "br_2GXzUE",
+          "subjectEntity": "institutions",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_gXa3zF"
+          ],
+          "isRoot": true
+        },
+        {
+          "id": "leaf_gXa3zF",
+          "subjectEntity": "institutions",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "country_code",
+          "value": ["fr"]
+        }
+      ],
+      "summarize": true,
+      "summarize_by": "institutions",
+      "sort_by": {
+        "column_id": "sum(apc_paid_usd)",
+        "direction": "desc"
+      },
+      "return": [
+        "display_name",
+        "sum(apc_paid_usd)"
       ]
     }
   }
