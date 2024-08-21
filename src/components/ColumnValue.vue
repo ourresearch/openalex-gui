@@ -29,6 +29,7 @@
               {{ property.value }}
             </template>
 
+
           </template>
           <template v-else-if="property.config.type==='number'">
             <template v-if="property.config.isCurrency">
