@@ -32,7 +32,7 @@ const stateDefaults = function () {
             ...baseQuery(),
         },
 
-        is_ready: false,
+        is_ready: null,
         results_header: [],
         results_body: [],
         results_meta: null,
@@ -123,7 +123,7 @@ export const search = {
         },
 
 
-        setSummarize({state}, columnId) {
+        setSummarize({state, dispatch}, columnId) {
             console.log("setSummarize", columnId)
             // no matter what, clear all the summarize_by filters
             state.query.filters = state.query.filters.filter(f => f.subjectEntity === "works")
@@ -190,6 +190,7 @@ export const search = {
 
 
         createSearch: async function ({state}) {
+            state.is_ready = false
             const url = "https://api.openalex.org/searches"
             const resp = await axios.post(url, {query: state.query})
             console.log("Created search", resp.data)
@@ -200,9 +201,9 @@ export const search = {
         },
 
         getSearch: async function (context, id) {
+            context.state.is_ready = false
             const url = `https://api.openalex.org/searches/${id}`
             const resp = await axios.get(url)
-
             // this part is a hack...in the future, we'll just get the query from the search
             const searchResp = {
                 ...stateDefaults(),
