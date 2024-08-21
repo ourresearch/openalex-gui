@@ -98,9 +98,9 @@
                 2. Summarize
               </div>
               <v-spacer></v-spacer>
-              <query-summarize-by  class="mr-4"/>
-<!--              <query-summarize-by v-if="query.summarize" class=""/>-->
-<!--              <query-summarize class="mx-2"/>-->
+              <query-summarize-by class="mr-4"/>
+              <!--              <query-summarize-by v-if="query.summarize" class=""/>-->
+              <!--              <query-summarize class="mx-2"/>-->
             </div>
             <v-expansion-panel v-if="query.summarize_by">
               <v-expansion-panel-header class="text-h6 pa-4">
@@ -125,12 +125,12 @@
             <v-toolbar-title>
               <v-icon left>{{ querySubjectEntityConfig?.icon ?? "mdi-file-document-outline" }}</v-icon>
               <span v-if="!query.summarize">Works</span>
-              <span v-if="query.summarize_by">{{ query.summarize_by  }}</span>
+              <span v-if="query.summarize_by">{{ query.summarize_by }}</span>
               <span v-else-if="query.summarize">Works summary</span>
             </v-toolbar-title>
             <v-spacer></v-spacer>
-<!--            <query-summarize/>-->
-<!--            <query-summarize-by v-if="query.summarize"/>-->
+            <!--            <query-summarize/>-->
+            <!--            <query-summarize-by v-if="query.summarize"/>-->
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
               <v-icon>mdi-close</v-icon>
             </v-btn>
@@ -237,9 +237,16 @@ export default {
         const parsedData = JSON.parse(savedData);
         this.cardsToShowSelected = parsedData.cardsToShowSelected;
       }
-    }
-
-
+    },
+    async pollSearch() {
+      await this.getSearch(this.$route.params.id);
+      if (!this.$store.state.search.is_ready) {
+        setTimeout(() => {
+          console.log("polling search")
+          this.pollSearch();
+        }, 500);
+      }
+    },
   },
   created() {
     this.loadFromLocalStorage();
@@ -248,16 +255,14 @@ export default {
   },
   watch: {
     "$route.params.id": {
-      handler: function (value) {
-        this.getSearch(value)
+      handler: function () {
+        this.pollSearch()
       },
       immediate: true
     },
     cardsToShowSelected() {
       this.saveToLocalStorage();
     }
-
-
   }
 }
 </script>
