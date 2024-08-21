@@ -1,14 +1,19 @@
-const fs = require('fs');
-const path = require('path');
-const assert = require('assert');
+/*jshint esversion: 6 */
 
 // Import the function to be tested
-const oqlToQuery = require('./oqlParse');
+import { oqlToQuery } from '../oqlParse/oqlParse.js';
 
-// Load test cases from the JSON file
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+
+// Convert import.meta.url to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Use __dirname as in CommonJS
 const testsFilePath = path.join(__dirname, 'tests.json');
 const testCases = JSON.parse(fs.readFileSync(testsFilePath, 'utf8'));
-
 
 function queriesEqual(query1, query2, path = '') {
   function logDifference(prop, value1, value2) {
