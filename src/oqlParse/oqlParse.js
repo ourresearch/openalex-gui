@@ -167,9 +167,66 @@ function oqlToQuery(oql) {
 
     return query;
 }
-// this seems to break for me? not sure why.
-// module.exports = oqlToQuery;
+
+function queryToOQL(query) {
+  let oql = '';
+
+  // Add the base OQL command
+  if (query.summarize) {
+    oql += 'get works; summarize';
+  } else {
+    oql += 'get works';
+  }
+
+  // Add the filters
+  const filters = query.filters;
+  if (filters && filters.length > 0) {
+    oql += '; ';
+    oql += buildFiltersOQL(filters);
+  }
+
+  // Add the sort
+  if (query.sort_by) {
+    oql += '; sort by ';
+    oql += `${query.sort_by.column_id} ${query.sort_by.direction}`;
+  }
+
+  // Add the return
+  if (query.return) {
+    oql += '; return ';
+    oql += query.return.join(', ');
+  }
+
+  return oql;
+}
+
+function buildFiltersOQL(filters, indent = '') {
+  let filtersOQL = '';
+
+  for (const filter of filters) {
+    if (filter.type === 'branch') {
+      filtersOQL += `${indent}where `;
+      filtersOQL += `${buildFiltersOQL(filter.children, `${indent}  `)}`;
+      if (filter.operator !== 'and') {
+        filtersOQL += ` ${filter.operator}`;
+      }
+      filtersOQL += '\n';
+    } else if (filter.type === 'leaf') {
+      filtersOQL += `${indent}${filter.column_id} `;
+      filtersOQL += `${filter.operator} `;
+      if (Array.isArray(filter.value)) {
+        filtersOQL += `${filter.value.join(', ')}`;
+      } else {
+        filtersOQL += `"${filter.value}"`;
+      }
+      filtersOQL += ';\n';
+    }
+  }
+
+  return filtersOQL.trim();
+}
 
 export {
-    oqlToQuery
+    oqlToQuery,
+    queryToOQL
 };
