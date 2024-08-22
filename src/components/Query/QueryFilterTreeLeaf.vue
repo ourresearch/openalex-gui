@@ -52,6 +52,7 @@
             rounded
             dense
             class="flex-grow-1"
+            autofocus
         />
         <v-autocomplete
             v-else
@@ -67,6 +68,7 @@
             hide-no-data
             dense
             class="flex-grow-1"
+            autofocus
         ></v-autocomplete>
 
       </template>
@@ -87,6 +89,7 @@
           hide-details
           full-width
           class="flex-grow-1"
+          autofocus
       >
 
       </v-text-field>
