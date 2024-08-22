@@ -6,45 +6,137 @@ function makeColumnIDsMap() {
     const map = {};
     let configs = getConfigs();
     for (const key in configs) {
-        map[configs[key].filterName] = configs[key].filterKey;
+        const columns = [];
+        for (const colKey in configs[key].columns) {
+            columns.push({[configs[key].columns[colKey].displayName.toLowerCase()]: colKey});
+        }
+        map[key] = columns;
+        // map[configs.works.columns[key].displayName] = key;
     }
     return map;
 }
 
 const COLUMN_IDS_MAP = makeColumnIDsMap();
 
+function getColumnId(name, subjectEntity = "works") {
+    if (!(subjectEntity in COLUMN_IDS_MAP)) {
+        throw new Error(`${subjectEntity} is not a valid subjectEntity`);
+    }
+    for (const pair of COLUMN_IDS_MAP[subjectEntity]) {
+        const value = Object.values(pair)[0];
+        if (name in pair) return pair[name];
+        else if (value === name) return value;
+    }
+    throw new Error(`${subjectEntity}.${name} is not a valid column`);
+}
+
+function parsePrimitive(str) {
+    str = str.trim();
+
+    if (str.toLowerCase() === 'true') {
+        return true;
+    } else if (str.toLowerCase() === 'false') {
+        return false;
+    }
+
+    if (/^\d+$/.test(str)) {
+        const num = parseFloat(str);
+        if (!isNaN(num) && isFinite(num)) {
+            return num;
+        }
+    }
+
+    return str;
+}
+
 function generateId(prefix = "leaf") {
     return `${prefix}_${Math.random().toString(36).substr(2, 8)}`;
 }
 
 function parseCondition(condition, subjectEntity) {
-    let match = condition.match(/(\S+)\s+(is not|is|contains|does not contain)\s+(.+)/);
+    // Remove unnecessary parentheses and split based on the first matching operator
+    condition = condition.trim().replace(/^\((.*?)\)$/, '$1');
+
+    let match = condition.match(/^(\S+)\s+(is not|is greater than|is less than|contains|does not contain|is)\s+(.+)$/);
     if (match) {
-        let column_id = match[1];
-        if (column_id in COLUMN_IDS_MAP) {
-            column_id = COLUMN_IDS_MAP[column_id];
-        }
-        let operator = match[2];
-        let value = match[3].replace(/;/g, '').trim();
-        let values = value.split(',').map(val => {
-            if (val.match(/^\d+$/)) {
-                return parseInt(val, 10);
-            } else if (val.startsWith("'") && val.endsWith("'")) {
-                return val.slice(1, -1);
-            }
-            return val;
-        }).filter(val => val !== '');
+        let columnName = match[1].trim();
+        let columnId = getColumnId(columnName, subjectEntity);
+
+        let operator = match[2].trim();
+        let value = match[3].trim().replace(/^\((.*?)\)$/, '$1').replace(/;/g, '');
+
+        value = parsePrimitive(value);
 
         return {
             id: generateId(),
             subjectEntity,
             type: "leaf",
             operator,
-            column_id,
-            value: values
+            columnId: columnId,
+            value
         };
     }
     return null;
+}
+
+function parseNestedConditions(expression) {
+    let index = 0;
+    const nodes = [];
+
+    function parse() {
+        const currentNode = {
+            id: generateId('br'),
+            operator: null,
+            children: []
+        };
+
+        let buffer = '';
+
+        function addBufferAsLeaf() {
+            if (buffer.trim()) {
+                const parsedCondition = parseCondition(buffer.trim());
+                const leafNode = {
+                    id: generateId('leaf'),
+                    ...parsedCondition
+                };
+                nodes.push(leafNode);
+                currentNode.children.push(leafNode.id);
+                buffer = ''; // Clear the buffer after adding
+            }
+        }
+
+        while (index < expression.length) {
+            const char = expression[index];
+
+            if (char === '(') {
+                index++; // Skip the opening parenthesis
+                const childBranch = parse();
+                nodes.push(childBranch);
+                currentNode.children.push(childBranch.id);
+            } else if (char === ')') {
+                addBufferAsLeaf();
+                return currentNode;
+            } else if (expression.substr(index, 3).toLowerCase() === ' or') {
+                addBufferAsLeaf();
+                currentNode.operator = 'or';
+                index += 2; // Skip 'or'
+            } else if (expression.substr(index, 4).toLowerCase() === ' and') {
+                addBufferAsLeaf();
+                currentNode.operator = 'and';
+                index += 3; // Skip 'and'
+            } else {
+                buffer += char;
+            }
+
+            index++;
+        }
+
+        addBufferAsLeaf(); // Add any remaining condition in the buffer
+        return currentNode;
+    }
+
+    parse();
+    return nodes;
 }
 
 function parseFilters(oql) {
@@ -58,7 +150,14 @@ function parseFilters(oql) {
     const worksMatch = oql.match(/where (.+?)(;|$)/);
     if (worksMatch) {
         const worksClause = worksMatch[1];
-        if (worksClause.includes(" or ")) {
+        if (worksClause.includes("(")) {
+            let nestedConditions = parseNestedConditions(worksClause);
+            for (const condition of nestedConditions) {
+                condition.subjectEntity = 'work';
+            }
+            filters.push(...nestedConditions);
+        }
+        else if (worksClause.includes(" or ")) {
             worksOperator = "or";
             worksConditions.push(...worksClause.split(" or "));
         } else {
@@ -83,6 +182,12 @@ function parseFilters(oql) {
         if (leaf) {
             filters.push(leaf);
             worksBranchChildren.push(leaf.id);
+        } else {
+            const branch = parseFilterExpression(condition.trim(), "works");
+            if (branch) {
+                filters.push(branch);
+                worksBranchChildren.push(branch.id);
+            }
         }
     });
 
@@ -93,31 +198,74 @@ function parseFilters(oql) {
             type: "branch",
             operator: worksOperator,
             children: worksBranchChildren,
-            isRoot: true
         });
     }
 
     if (summarizeByMatch) {
-        const summarizeByBranchId = generateId("br");
-        const summarizeByLeaves = summarizeByCondition.split(summarizeByOperator === "or" ? " or " : " and ")
-            .map(condition => parseCondition(condition.trim(), summarizeByEntity))
-            .filter(leaf => leaf !== null);
+        if (summarizeByCondition.includes("(")) {
+            let nestedConditions = parseNestedConditions(summarizeByCondition);
+            for (const condition of nestedConditions) {
+                condition.subjectEntity = summarizeByEntity;
+            }
+            filters.push(...nestedConditions);
+        } else {
+            const summarizeByBranchId = generateId("br");
+            const summarizeByLeaves = summarizeByCondition.split(summarizeByOperator === "or" ? " or " : " and ")
+                .map(condition => {
+                    const leaf = parseCondition(condition.trim(), summarizeByEntity);
+                    if (leaf) {
+                        return leaf;
+                    } else {
+                        const branch = parseFilterExpression(condition.trim(), summarizeByEntity);
+                        if (branch) {
+                            return branch;
+                        }
+                    }
+                    return null;
+                })
+                .filter(filter => filter !== null);
 
-        filters.push(...summarizeByLeaves);
+            filters.push(...summarizeByLeaves);
 
-        if (summarizeByLeaves.length > 0) {
-            filters.push({
-                id: summarizeByBranchId,
-                subjectEntity: summarizeByEntity,
-                type: "branch",
-                operator: summarizeByOperator,
-                children: summarizeByLeaves.map(leaf => leaf.id),
-                isRoot: true
-            });
+            if (summarizeByLeaves.length > 0) {
+                filters.push({
+                    id: summarizeByBranchId,
+                    subjectEntity: summarizeByEntity,
+                    type: "branch",
+                    operator: summarizeByOperator,
+                    children: summarizeByLeaves.map(leaf => leaf.id),
+                });
+            }
         }
     }
 
     return filters;
+}
+
+function parseFilterExpression(expression, subjectEntity) {
+    let match = expression.match(/\((.*?)\)/);
+    if (match) {
+        const operator = expression.includes(" or ") ? "or" : "and";
+        const children = match[1].split(operator === "or" ? " or " : " and ")
+            .map(condition => parseFilterExpression(condition.trim(), subjectEntity))
+            .filter(filter => filter !== null);
+
+        if (children.length > 0) {
+            return {
+                id: generateId("br"),
+                subjectEntity,
+                type: "branch",
+                operator,
+                children: children.map(child => child.id)
+            };
+        }
+    } else {
+        const leaf = parseCondition(expression, subjectEntity);
+        if (leaf) {
+            return leaf;
+        }
+    }
+    return null;
 }
 
 function oqlToQuery(oql) {
@@ -128,10 +276,6 @@ function oqlToQuery(oql) {
     }
 
     const query = {};
-
-    if (oql.includes("summarize")) {
-        query.summarize = true;
-    }
 
     if (oql.includes("return")) {
         const returnMatch = oql.match(/return (.+?)(;|$)/);
@@ -148,14 +292,11 @@ function oqlToQuery(oql) {
     }
 
     if (oql.includes("sort by")) {
-        const sortByMatch = oql.match(/sort by (\w+) (asc|desc)/);
+        const sortByMatch = oql.match(/sort by ([\w().]+) (asc|desc)/);
         if (sortByMatch) {
-            let column_id = sortByMatch[1];
-            if (column_id in COLUMN_IDS_MAP) {
-                column_id = COLUMN_IDS_MAP[column_id];
-            }
+            const columnId = getColumnId(sortByMatch[1]);
             query.sort_by = {
-                column_id: column_id,
+                column_id: columnId,
                 direction: sortByMatch[2]
             };
         }
@@ -169,20 +310,17 @@ function oqlToQuery(oql) {
 }
 
 function queryToOQL(query) {
-  let oql = '';
-
-  // Add the base OQL command
-  if (query.summarize) {
-    oql += 'get works; summarize';
-  } else {
-    oql += 'get works';
-  }
+  let oql = 'get works';
 
   // Add the filters
   const filters = query.filters;
   if (filters && filters.length > 0) {
-    oql += '; ';
-    oql += buildFiltersOQL(filters);
+    oql += '; ' + buildFiltersOQL(filters);
+  }
+
+  // Add the summarize
+  if (query.summarize) {
+    oql += '; summarize';
   }
 
   // Add the sort
@@ -200,26 +338,23 @@ function queryToOQL(query) {
   return oql;
 }
 
-function buildFiltersOQL(filters, indent = '') {
+function buildFiltersOQL(filters, operator = null) {
   let filtersOQL = '';
 
   for (const filter of filters) {
     if (filter.type === 'branch') {
-      filtersOQL += `${indent}where `;
-      filtersOQL += `${buildFiltersOQL(filter.children, `${indent}  `)}`;
-      if (filter.operator !== 'and') {
-        filtersOQL += ` ${filter.operator}`;
-      }
-      filtersOQL += '\n';
+        let prefix = operator === null ? "where " : operator + " ";
+      filtersOQL += prefix;
+      filtersOQL += buildFiltersOQL(filter.children, filter.operator);
+      // filtersOQL += ')';
     } else if (filter.type === 'leaf') {
-      filtersOQL += `${indent}${filter.column_id} `;
-      filtersOQL += `${filter.operator} `;
+      filtersOQL += `${filter.column_id} ${operator} `;
       if (Array.isArray(filter.value)) {
         filtersOQL += `${filter.value.join(', ')}`;
       } else {
         filtersOQL += `"${filter.value}"`;
       }
-      filtersOQL += ';\n';
+      filtersOQL += '; ';
     }
   }
 
