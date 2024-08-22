@@ -62,13 +62,12 @@ const baseQuery = () => ({
     filters: [
         makeFilterBranch("works", true)
     ],
-    summarize: false,
     summarize_by: null,
     sort_by: {
         column_id: "display_name",
         direction: "asc",
     },
-    return: getConfigs().works.showOnTablePage,
+    return_columns: getConfigs().works.showOnTablePage,
 })
 const stateDefaults = function () {
     const ret = {
@@ -146,25 +145,6 @@ export const search = {
         },
 
 
-        toggleSummarize(context) {
-            context.state.query.summarize = !context.state.query.summarize
-            // no matter what, clear any summarize_by filters
-            context.state.query.filters = context.state.query.filters.filter(f => f.subjectEntity === "works")
-
-            // turn on summarize
-            if (context.state.query.summarize) {
-                context.state.query.sort_by.direction = null
-                context.state.query.sort_by.column_id = null
-                context.state.query.return = []
-            }
-            // turn off summarize
-            else {
-                context.state.query.summarize_by = null
-                context.state.query.sort_by.column_id = "display_name"
-                context.state.query.sort_by.direction = "asc"
-                context.state.query.return = getConfigs().works.showOnTablePage
-            }
-        },
 
 
         setSummarize({state, dispatch}, columnId) {
@@ -174,28 +154,25 @@ export const search = {
 
             if (!columnId) {
                 console.log("setSummarize: clear everything, we're listing all works", columnId)
-                state.query.summarize = false
                 state.query.summarize_by = null
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
-                state.query.return = getConfigs().works.showOnTablePage
+                state.query.return_columns = getConfigs().works.showOnTablePage
 
 
             } else if (columnId === "all") {
                 console.log("setSummarize: summarize all works together", columnId)
-                state.query.summarize = true
                 state.query.summarize_by = null
                 state.query.sort_by.direction = null
                 state.query.sort_by.column_id = null
-                state.query.return = []
+                state.query.return_columns = []
 
             } else {
                 console.log("setSummarize: summarize by a specific column", columnId)
-                state.query.summarize = true
                 state.query.summarize_by = columnId
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
-                state.query.return = getConfigs()[columnId].showOnTablePage
+                state.query.return_columns = getConfigs()[columnId].showOnTablePage
                 const filter = makeFilterBranch(columnId, true)
                 dispatch("addFilter", {filter, parent: undefined})
             }
@@ -210,22 +187,19 @@ export const search = {
             state.query.sort_by.direction = direction
         },
         addReturnColumn(context, columnId) {
-            context.state.query.return.push(columnId)
+            context.state.query.return_columns.push(columnId)
         },
         deleteReturnColumn(context, columnId) {
-            context.state.query.return = context.state.query.return.filter((col) => col !== columnId)
+            context.state.query.return_columns = context.state.query.return_columns.filter((col) => col !== columnId)
         },
 
 
         setFromQueryObject({state, dispatch}, query) {
             console.log("setFromQueryObject", query)
-            const summarizeValue = query.summarize_by ?
-                query.summarize_by :
-                query.summarize ? "all" : null
 
-            dispatch("setSummarize", summarizeValue) // do this first because it sets defaults for the other stuff
+            dispatch("setSummarize", query.summarize_by) // do this first because it sets defaults for the other stuff
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
-            if (query.return) state.query.return = query.return
+            if (query.return_columns) state.query.return_columns = query.return_columns
             if (query.filters) state.query.filters = query.filters
 
             dispatch("createSearch")
@@ -268,25 +242,17 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
-        queryColumns: (state, getters) => state.query.return.map((col) => getters.querySubjectEntityConfig.columns[col]),
+        queryColumns: (state, getters) => state.query.return_columns.map((col) => getters.querySubjectEntityConfig.columns[col]),
         querySubjectEntity: (state) => {
-            if (state.query.summarize_by) return state.query.summarize_by
-            else if (state.query.summarize) return null
-            else return "works"
+            if (!state.query.summarize_by) return "works"
+            else if (state.query.summarize_by === "all") return null
+            else return state.query.summarize_by
+
         },
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity]
         },
-        isQuerySingleRow: (state) => state.query.summarize && !state.query.summarize_by,
-        returnedEntityType: (state) => {
-            if (state.query.summarize_by) {
-                return state.query.summarize_by
-            } else if (state.query.summarize) {
-                return null
-            } else {
-                return "works"
-            }
-        },
+        isQuerySingleRow: (state) => state.query.summarize_by === "all",
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
