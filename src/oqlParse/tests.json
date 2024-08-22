@@ -4,12 +4,6 @@
     "query": {}
   },
   {
-    "oql": "get works; summarize",
-    "query": {
-      "summarize": true
-    }
-  },
-  {
     "oql": "get works where type is article;",
     "query": {
       "filters": [
@@ -79,7 +73,6 @@
           "value": "article"
         }
       ],
-      "summarize": true,
       "return": [
         "count"
       ]
@@ -107,7 +100,6 @@
           "value": "article"
         }
       ],
-      "summarize": true,
       "return": [
         "count"
       ]
@@ -161,7 +153,6 @@
           "value": "article"
         }
       ],
-      "summarize": true,
       "summarize_by": "publishers",
       "sort_by": {
         "column_id": "display_name",
@@ -221,7 +212,6 @@
           "value": "test"
         }
       ],
-      "summarize": true,
       "summarize_by": "sources",
       "return": [
         "display_name",
@@ -231,7 +221,7 @@
     }
   },
   {
-    "oql": "get works where publication_year is 2020,2021,2022,2023,2024; summarize by institutions where country is fr; sort by apc_paid.value_usd desc; return display_name, apc_paid.value_usd;",
+    "oql": "get works where publication_year is 2021; summarize by institutions where country is fr; sort by apc_paid.value_usd desc; return display_name, apc_paid.value_usd;",
     "query": {
       "filters": [
         {
@@ -249,7 +239,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": "2020"
+          "value": "2021"
         },
         {
           "id": "br_2GXzUE",
@@ -326,7 +316,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": "2020,2021,2022,2023,2024"
+          "value": "2020"
         },
         {
           "id": "br_2GXzUE",
@@ -346,7 +336,6 @@
           "value": "fr"
         }
       ],
-      "summarize": true,
       "summarize_by": "institutions",
       "sort_by": {
         "column_id": "apc_paid.value_usd",
