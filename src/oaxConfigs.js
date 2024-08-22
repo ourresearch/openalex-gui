@@ -1,4 +1,5 @@
 // copy/pasted from https://api.openalex.org/entities/config
+import _ from "lodash"
 const getConfigs = () => _.cloneDeep(oaxConfigs)
 export {getConfigs}
 
