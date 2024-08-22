@@ -60,7 +60,7 @@ function deleteNode(tree, idToDelete) {
 
 const baseQuery = () => ({
     filters: [
-        makeFilterBranch("works", true)
+        makeFilterBranch("works")
     ],
     summarize_by: null,
     sort_by: {
@@ -76,6 +76,7 @@ const stateDefaults = function () {
         query: {
             ...baseQuery(),
         },
+        stagedFilters: _.cloneDeep(baseQuery().filters),
 
         is_ready: null,
         results_header: [],
@@ -127,21 +128,27 @@ export const search = {
         },
     },
     actions: {
-        addFilter({state}, {filter, parentId}) {
+        addStagedFilter({state}, {filter, parentId}) {
             console.log("adding filter", filter, parentId)
-            state.query.filters.push(filter)
-            state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
+            state.stagedFilters.push(filter)
+            state.stagedFilters.find(f => f.id === parentId)?.children?.push(filter.id)
         },
-        setFilter({state}, newFilter) {
-            const filterToChange = state.query.filters.find(f => f.id === newFilter.id)
+        setStagedFilter({state}, newFilter) {
+            const filterToChange = state.stagedFilters.find(f => f.id === newFilter.id)
             Object.keys(newFilter).forEach(key => {
                 Vue.set(filterToChange, key, newFilter[key])
-                // filterToChange[key] = newFilter[key]
             })
         },
-        deleteFilter: function ({state}, id) {
+        setAllFilters({state}, newFilters) {
+            state.query.filters = newFilters
+            state.stagedFilters = _.cloneDeep(newFilters)
+        },
+        deleteStagedFilter: function ({state, dispatch}, id) {
             console.log("deleteFilter", id)
-            state.query.filters = deleteNode(state.query.filters, id)
+            state.stagedFilters = deleteNode(state.stagedFilters, id)
+        },
+        saveStagedFilters({state}) {
+            state.query.filters = _.cloneDeep(state.stagedFilters)
         },
 
 
@@ -150,7 +157,7 @@ export const search = {
         setSummarize({state, dispatch}, columnId) {
             console.log("setSummarize", columnId)
             // no matter what, clear all the summarize_by filters
-            state.query.filters = state.query.filters.filter(f => f.subjectEntity === "works")
+            dispatch("setAllFilters", state.query.filters.filter(f => f.subjectEntity === "works"))
 
             if (!columnId) {
                 console.log("setSummarize: clear everything, we're listing all works", columnId)
@@ -200,7 +207,7 @@ export const search = {
             dispatch("setSummarize", query.summarize_by) // do this first because it sets defaults for the other stuff
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
             if (query.return_columns) state.query.return_columns = query.return_columns
-            if (query.filters) state.query.filters = query.filters
+            if (query.filters) dispatch("setAllFilters", query.filters)
 
             dispatch("createSearch")
         },
@@ -256,8 +263,9 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
-        queryFiltersRecursive: (state) => {
-            return convertFlatToRecursive(state.query.filters)
+        stagedFilters: (state) => state.stagedFilters,
+        stagedFiltersRecursive: (state) => {
+            return convertFlatToRecursive(state.stagedFilters)
         }
 
 
