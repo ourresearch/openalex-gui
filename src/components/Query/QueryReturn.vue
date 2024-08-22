@@ -60,8 +60,8 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType",
         "querySubjectEntityConfig",
+        "querySubjectEntity",
     ]),
     // selected: {
     //   get() {
@@ -75,7 +75,7 @@ export default {
     //
     // },
     options() {
-      if (!this.returnedEntityType) {
+      if (!this.querySubjectEntity) {
         return []
       }
       return Object.values(this.querySubjectEntityConfig.columns)
@@ -83,7 +83,7 @@ export default {
             return col.actions?.includes("column")
           })
           .filter(col => {
-            return !this.query.return.includes(col.id)
+            return !this.query.return_columns.includes(col.id)
           })
     },
   },

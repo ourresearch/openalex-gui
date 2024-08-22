@@ -107,7 +107,6 @@ import PropSelector from "@/components/PropSelector.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
 import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
-import QuerySummarize from "@/components/Query/QuerySummarize.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
@@ -118,7 +117,6 @@ export default {
     ResultsTable,
     QueryFilterBranch,
 
-    QuerySummarize,
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
@@ -155,7 +153,6 @@ export default {
     ...mapGetters("search", [
       "worksFiltersRoot",
       "summarizeByFiltersRoot",
-      "returnedEntityType",
       "querySubjectEntityConfig",
       "query",
     ]),
