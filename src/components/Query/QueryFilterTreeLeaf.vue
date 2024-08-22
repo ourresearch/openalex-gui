@@ -130,7 +130,6 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType",
       "querySubjectEntityConfig",
     ]),
     me() {
