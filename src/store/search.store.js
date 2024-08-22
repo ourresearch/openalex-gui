@@ -12,6 +12,52 @@ import {oqlToQuery} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
 
+function convertFlatToRecursive(flatTree) {
+  const treeMap = new Map(flatTree.map(item => [item.id, { ...item, children: [] }]));
+
+  const root = [];
+
+  flatTree.forEach(item => {
+    if (item?.children?.length > 0) {
+      item.children.forEach(childId => {
+        const childNode = treeMap.get(childId);
+        treeMap.get(item.id).children.push(childNode);
+      });
+    }
+  });
+
+  flatTree.forEach(item => {
+    if (!flatTree.some(node => node?.children?.includes(item.id))) {
+      root.push(treeMap.get(item.id));
+    }
+  });
+
+  return root;
+}
+
+function deleteNode(tree, idToDelete) {
+    const idsToDelete = new Set();
+
+    function findNodesToDelete(nodeId) {
+        idsToDelete.add(nodeId);
+        const node = tree.find(n => n.id === nodeId);
+        if (node) {
+            node.children.forEach(childId => findNodesToDelete(childId));
+        }
+    }
+
+    findNodesToDelete(idToDelete);
+
+    return tree
+        .filter(node => !idsToDelete.has(node.id))
+        .map(node => ({
+            ...node,
+            children: node.children.filter(childId => !idsToDelete.has(childId))
+        }));
+}
+
+
+
 const baseQuery = () => ({
     filters: [
         makeFilterBranch("works", true)
@@ -82,10 +128,10 @@ export const search = {
         },
     },
     actions: {
-        addFilter({state}, {filter, parent}) {
-            console.log("adding filter", filter, parent)
+        addFilter({state}, {filter, parentId}) {
+            console.log("adding filter", filter, parentId)
             state.query.filters.push(filter)
-            state.query.filters.find(f => f.id === parent)?.children?.push(filter.id)
+            state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
         },
         setFilter({state}, newFilter) {
             const filterToChange = state.query.filters.find(f => f.id === newFilter.id)
@@ -96,9 +142,7 @@ export const search = {
         },
         deleteFilter: function ({state}, id) {
             console.log("deleteFilter", id)
-            const parent = state.query.filters.find(f => f.children.includes(id))
-            parent.children = parent.children.filter((key) => key !== id)
-            state.query.filters = state.query.filters.filter((f) => f.id !== id)
+            state.query.filters = deleteNode(state.query.filters, id)
         },
 
 
@@ -247,6 +291,9 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
+        queryFiltersRecursive: (state) => {
+            return convertFlatToRecursive(state.query.filters)
+        }
 
 
     },

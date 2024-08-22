@@ -78,64 +78,23 @@
       </v-col>
 
 
-      <v-col cols="4" v-if="cardsToShowSelected.includes('filters')">
-        <v-card rounded flat class="py-4">
-          <v-expansion-panels flat accordion>
-            <v-expansion-panel>
-              <v-expansion-panel-header class="text-h6 pa-4">
-                1. Filter works
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
-                <query-filter-branch
-                    subject-entity="works"
-                    :id="worksFiltersRoot?.id"
-                />
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-            <v-divider class="my-4"/>
-            <div class="d-flex align-center" style="width: 100%;">
-              <div class="text-h6 pa-4 pr-0">
-                2. Summarize
-              </div>
-              <v-spacer></v-spacer>
-              <query-summarize-by class="mr-4"/>
-              <!--              <query-summarize-by v-if="query.summarize" class=""/>-->
-              <!--              <query-summarize class="mx-2"/>-->
-            </div>
-            <v-expansion-panel v-if="query.summarize_by">
-              <v-expansion-panel-header class="text-h6 pa-4">
-                3. Filter {{ query.summarize_by }}
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
+<!--      <v-col cols="4" v-if="cardsToShowSelected.includes('filters')">-->
+<!--        <v-card rounded flat class="py-4">-->
+<!--          <v-subheader>Filter works</v-subheader>-->
 
-                <query-filter-branch
-                    :subject-entity="query.summarize_by"
-                    :id="summarizeByFiltersRoot?.id"
-                />
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-
-        </v-card>
-      </v-col>
-      <v-col cols="8" v-if="cardsToShowSelected.includes('results')">
+<!--        </v-card>-->
+<!--      </v-col>-->
+      <v-col cols="12" v-if="cardsToShowSelected.includes('results')">
         <v-card flat rounded>
 
-          <v-toolbar dense flat color="transparent">
-            <v-toolbar-title>
-              <v-icon left>{{ querySubjectEntityConfig?.icon ?? "mdi-file-document-outline" }}</v-icon>
-              <span v-if="!query.summarize">Works</span>
-              <span v-if="query.summarize_by">{{ query.summarize_by }}</span>
-              <span v-else-if="query.summarize">Works summary</span>
-            </v-toolbar-title>
+          <div class="d-flex py-2 px-4 pr-2">
+            <query-summarize-by style="position: relative; left: -20px; z-index: 99999;"/>
             <v-spacer></v-spacer>
-            <!--            <query-summarize/>-->
-            <!--            <query-summarize-by v-if="query.summarize"/>-->
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
               <v-icon>mdi-close</v-icon>
             </v-btn>
 
-          </v-toolbar>
+          </div>
 
           <results-table
               v-if="$store.state.search.is_ready"
