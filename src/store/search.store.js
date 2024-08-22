@@ -12,6 +12,52 @@ import {oqlToQuery} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
 
+function convertFlatToRecursive(flatTree) {
+  const treeMap = new Map(flatTree.map(item => [item.id, { ...item, children: [] }]));
+
+  const root = [];
+
+  flatTree.forEach(item => {
+    if (item?.children?.length > 0) {
+      item.children.forEach(childId => {
+        const childNode = treeMap.get(childId);
+        treeMap.get(item.id).children.push(childNode);
+      });
+    }
+  });
+
+  flatTree.forEach(item => {
+    if (!flatTree.some(node => node?.children?.includes(item.id))) {
+      root.push(treeMap.get(item.id));
+    }
+  });
+
+  return root;
+}
+
+function deleteNode(tree, idToDelete) {
+    const idsToDelete = new Set();
+
+    function findNodesToDelete(nodeId) {
+        idsToDelete.add(nodeId);
+        const node = tree.find(n => n.id === nodeId);
+        if (node && Array.isArray(node.children)) {
+            node.children.forEach(childId => findNodesToDelete(childId));
+        }
+    }
+
+    findNodesToDelete(idToDelete);
+
+    return tree
+        .filter(node => !idsToDelete.has(node.id))
+        .map(node => ({
+            ...node,
+            children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
+        }));
+}
+
+
+
 const baseQuery = () => ({
     filters: [
         makeFilterBranch("works", true)
@@ -82,10 +128,10 @@ export const search = {
         },
     },
     actions: {
-        addFilter({state}, {filter, parent}) {
-            console.log("adding filter", filter, parent)
+        addFilter({state}, {filter, parentId}) {
+            console.log("adding filter", filter, parentId)
             state.query.filters.push(filter)
-            state.query.filters.find(f => f.id === parent)?.children?.push(filter.id)
+            state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
         },
         setFilter({state}, newFilter) {
             const filterToChange = state.query.filters.find(f => f.id === newFilter.id)
@@ -96,9 +142,7 @@ export const search = {
         },
         deleteFilter: function ({state}, id) {
             console.log("deleteFilter", id)
-            const parent = state.query.filters.find(f => f.children.includes(id))
-            parent.children = parent.children.filter((key) => key !== id)
-            state.query.filters = state.query.filters.filter((f) => f.id !== id)
+            state.query.filters = deleteNode(state.query.filters, id)
         },
 
 
@@ -158,22 +202,6 @@ export const search = {
         },
 
 
-        setSummarizeBy(context, columnId) {
-
-
-            // clear any summarize_by filters
-            context.state.query.filters = context.state.query.filters.filter(f => f.subjectEntity === "works")
-            context.state.query.summarize_by = columnId
-            if (columnId) {
-                context.state.query.return = getConfigs()[columnId].showOnTablePage
-                context.state.query.sort_by.column_id = "display_name"
-                context.state.query.sort_by.direction = "asc"
-                const filter = makeFilterBranch(columnId, true)
-                context.dispatch("addFilter", {filter, parent: undefined})
-            } else {
-                context.state.query.return = []
-            }
-        },
         setSortByColumnId(context, columnId) {
             context.state.query.sort_by.column_id = columnId
         },
@@ -186,6 +214,21 @@ export const search = {
         },
         deleteReturnColumn(context, columnId) {
             context.state.query.return = context.state.query.return.filter((col) => col !== columnId)
+        },
+
+
+        setFromQueryObject({state, dispatch}, query) {
+            console.log("setFromQueryObject", query)
+            const summarizeValue = query.summarize_by ?
+                query.summarize_by :
+                query.summarize ? "all" : null
+
+            dispatch("setSummarize", summarizeValue) // do this first because it sets defaults for the other stuff
+            if (query.sort_by) dispatch("setSortBy", query.sort_by)
+            if (query.return) state.query.return = query.return
+            if (query.filters) state.query.filters = query.filters
+
+            dispatch("createSearch")
         },
 
 
@@ -247,6 +290,9 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
+        queryFiltersRecursive: (state) => {
+            return convertFlatToRecursive(state.query.filters)
+        }
 
 
     },

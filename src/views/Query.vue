@@ -12,16 +12,15 @@
       <v-col cols="6">
         <v-card rounded flat class="mb-8">
           <v-toolbar dense flat>
-            <v-toolbar-title>Filter works</v-toolbar-title>
+            <v-toolbar-title>Filter works (tree)</v-toolbar-title>
           </v-toolbar>
           <div class="pb-5">
             <v-divider class=""/>
-            <query-filter-branch
-                subject-entity="works"
-                :id="filterRoots.find(f => f.subjectEntity === 'works').id"
-            />
+            <query-filter-tree />
           </div>
         </v-card>
+
+
         <v-card rounded flat class="mb-8">
           <v-toolbar dense flat>
             <v-toolbar-title>Summarize</v-toolbar-title>
@@ -97,6 +96,7 @@ import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QuerySortBy from "@/components/Query/QuerySortBy.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
+import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 
 export default {
   name: "Template",
@@ -106,6 +106,7 @@ export default {
     QuerySummarizeBy,
     QuerySortBy,
     QueryReturn,
+    QueryFilterTree,
 
   },
   props: {},
