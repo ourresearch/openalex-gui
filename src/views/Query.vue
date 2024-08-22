@@ -15,10 +15,12 @@
             <v-toolbar-title>Filters</v-toolbar-title>
             <v-spacer />
             <v-btn
-                icon
+                text
+                rounded
                 @click="saveStagedFilters"
             >
-              <v-icon>mdi-content-save</v-icon>
+              Apply to query
+              <v-icon right>mdi-arrow-right</v-icon>
             </v-btn>
           </v-toolbar>
           <div class="pb-5">
@@ -84,12 +86,12 @@
         </v-card>
       </v-col>
       <v-col cols="6">
-        <v-card rounded flat class="pa-5 mb-4">
-          <pre>{{ $store.state.search.stagedFilters }}</pre>
+<!--        <v-card rounded flat class="pa-5 mb-4">-->
+<!--          <pre>{{ $store.state.search.stagedFilters }}</pre>-->
 
-        </v-card>
+<!--        </v-card>-->
         <v-card rounded flat class="pa-5 mb-8">
-          <pre>{{ $store.state.search.query.filters }}</pre>
+          <pre>{{ $store.state.search.query }}</pre>
         </v-card>
 
       </v-col>
