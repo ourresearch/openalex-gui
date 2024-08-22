@@ -5,9 +5,11 @@
     <v-treeview
         :items="queryFiltersRecursive"
         v-model="tree"
-        :open="initiallyOpen"
+        :open="openNodes"
         :open-on-click="true"
+        item-key="id"
         dense
+        open-all
     >
 
       <template v-slot:prepend="{ item, open }">
@@ -112,7 +114,7 @@ export default {
     return {
       foo: 42,
       tree: [],
-      initiallyOpen: [],
+      openNodes: [],
     }
   },
   computed: {
@@ -182,7 +184,18 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    "query.filters": {
+      handler: function (filters) {
+        // get the last item in the filters array:
+        const lastFilter = filters[filters.length - 1]
+        this.openNodes.push(lastFilter.id)
+
+
+      },
+      immediate: true
+    }
+  }
 }
 </script>
 
