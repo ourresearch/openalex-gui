@@ -41,7 +41,7 @@ function deleteNode(tree, idToDelete) {
     function findNodesToDelete(nodeId) {
         idsToDelete.add(nodeId);
         const node = tree.find(n => n.id === nodeId);
-        if (node) {
+        if (node && Array.isArray(node.children)) {
             node.children.forEach(childId => findNodesToDelete(childId));
         }
     }
@@ -52,7 +52,7 @@ function deleteNode(tree, idToDelete) {
         .filter(node => !idsToDelete.has(node.id))
         .map(node => ({
             ...node,
-            children: node.children.filter(childId => !idsToDelete.has(childId))
+            children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
         }));
 }
 

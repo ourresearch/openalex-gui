@@ -7,49 +7,91 @@
         v-model="tree"
         :open="initiallyOpen"
         :open-on-click="true"
+        dense
     >
 
       <template v-slot:prepend="{ item, open }">
-        <v-icon v-if="item?.children">
-          {{ open ? 'mdi-folder-open' : 'mdi-folder' }}
+        <v-icon v-if="item.type === 'branch'">
+          {{ open ? 'mdi-folder-open-outline' : 'mdi-folder-outline' }}
         </v-icon>
         <v-icon v-else>
-          mdi-filter-outline
+          {{ querySubjectEntityConfig.columns[item.column_id].icon }}
         </v-icon>
       </template>
       <template v-slot:label="{ item, open }">
         <div class="d-flex py-4 align-center" style="width: 100%;">
-          {{ item.column_id}}
-          <v-spacer></v-spacer>
-          <template v-if="!item.column_id">
+          <template v-if="item.type === 'branch'">
+            <div>
+              <span class="">{{ item.children.length }} </span>
+              {{ "subfilter" | pluralize(item.children.length) }}
+            </div>
+            <v-spacer></v-spacer>
+            <v-chip
+                @click.stop="toggleBranchFilterOperator(item.id)"
+                v-if="item.children.length > 1"
+                outlined
+                class="mr-1"
+            >
+              <template v-if="item.children.length === 2">
+                {{ item.operator === "and" ? "Both" : "Either" }}
+              </template>
+              <template v-else>
+                {{ item.operator === "and" ? "All" : "Any" }}
+              </template>
+            </v-chip>
             <v-menu>
               <template v-slot:activator="{ on }">
                 <v-btn icon v-on="on">
-                  <v-icon>mdi-filter-plus-outline</v-icon>
+                  <v-icon>mdi-plus</v-icon>
                 </v-btn>
               </template>
               <v-list>
-                <v-list-item v-for="column in newFilterColumnOptions" :key="column.id"  @click="addLeafFilter(item.id, column.id)">
+                <v-list-item @click="addBranchFilter(item.id)">
+                  <v-list-item-icon>
+                    <v-icon>mdi-folder-plus-outline</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    Add branch
+                  </v-list-item-title>
+                </v-list-item>
+                <v-divider/>
+                <v-list-item
+                    v-for="column in newFilterColumnOptions"
+                    :key="column.id"
+                    @click="addLeafFilter(item.id, column.id)"
+                >
+                  <v-list-item-icon>
+                    <v-icon>{{ column.icon }}</v-icon>
+                  </v-list-item-icon>
                   <v-list-item-title>
                     {{ column.displayName }}
                   </v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-btn icon @click="addBranchFilter(item.id)">
-              <v-icon>mdi-folder-plus-outline</v-icon>
-            </v-btn>
           </template>
-          <v-btn icon @click="deleteFilter(item.id)">
-            <v-icon>mdi-delete-outline</v-icon>
-          </v-btn>
+
+
+          <query-filter-tree-leaf
+              v-else
+              :filter-id="item.id"
+
+          />
+
         </div>
       </template>
+      <template v-slot:append="{ item, open }">
+
+        <v-btn icon @click="deleteFilter(item.id)">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </template>
+
     </v-treeview>
-    <v-divider/>
-    <pre>
-      {{ queryFiltersRecursive }}
-    </pre>
+    <!--    <v-divider/>-->
+    <!--    <pre>-->
+    <!--      {{ queryFiltersRecursive }}-->
+    <!--    </pre>-->
   </div>
 </template>
 
@@ -58,10 +100,13 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 import {getConfigs} from "@/oaxConfigs";
+import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    QueryFilterTreeLeaf,
+  },
   props: {},
   data() {
     return {
@@ -79,7 +124,8 @@ export default {
       "query",
       "returnedEntityType",
       "querySubjectEntity",
-      "queryFiltersRecursive"
+      "queryFiltersRecursive",
+      "querySubjectEntityConfig",
 
     ]),
     newFilterColumnOptions() {
@@ -93,8 +139,9 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-        "addFilter",
-        "deleteFilter",
+      "addFilter",
+      "deleteFilter",
+      "setFilter",
 
     ]),
     ...mapActions("user", []),
@@ -106,7 +153,7 @@ export default {
         parentId
       })
     },
-    addLeafFilter(parentId, columnId){
+    addLeafFilter(parentId, columnId) {
       console.log("addLeafFilter", parentId, columnId)
       const filter = makeFilterLeaf("works")
       filter.column_id = columnId
@@ -114,7 +161,20 @@ export default {
         filter,
         parentId
       })
-    }
+    },
+    setBranchFilterOperator(filter, value) {
+      this.setFilter({
+        ...filter,
+        operator: value
+      })
+    },
+    toggleBranchFilterOperator(id) {
+      const filter = this.query.filters.find(f => f.id === id)
+      this.setFilter({
+        ...filter,
+        operator: filter.operator === "and" ? "or" : "and"
+      })
+    },
 
 
   },
