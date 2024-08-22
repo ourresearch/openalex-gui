@@ -1,7 +1,7 @@
 /*jshint esversion: 6 */
 
 // Import the function to be tested
-import { oqlToQuery } from '../oqlParse/oqlParse.js';
+import { oqlToQuery, queryToOQL } from '../oqlParse/oqlParse.js';
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -108,6 +108,10 @@ testCases.forEach((testCase, index) => {
     const { oql, query: expectedQuery } = testCase;
     let generatedQuery;
 
+    let generatedOQL = queryToOQL(expectedQuery);
+    console.log(generatedOQL);
+    console.log(oql);
+
     try {
         generatedQuery = oqlToQuery(oql);
 
@@ -116,6 +120,7 @@ testCases.forEach((testCase, index) => {
         } else {
             throw new Error('Objects are not equal');
         }
+
     } catch (error) {
         console.error(`Test case ${index + 1} failed.`);
         console.error(`OQL: ${oql}`);
