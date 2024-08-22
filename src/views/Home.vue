@@ -7,8 +7,19 @@
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
-              <OqlBox arrow-direction="right" />
 
+              <v-textarea
+                  v-model="natLangQuery"
+                  autofocus
+                  auto-grow
+                  filled
+                  rounded
+                  rows="1"
+                  placeholder="Search the research ecosystem with natural language"
+                  @keydown.enter.exact="createSearchFromNatLang"
+                  append-icon="mdi-arrow-right-circle"
+                  @click:append="createSearchFromNatLang"
+              />
             </div>
 
           </div>
@@ -159,6 +170,7 @@
 import {VueTyper} from 'vue-typer'
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
+import axios from "axios";
 
 
 export default {
@@ -175,6 +187,7 @@ export default {
     return {
       userEmail: "",
       errorMsg: "",
+      natLangQuery: "",
       textToType: [
         "the research ecosystem.",
         "researchers.",
@@ -199,11 +212,22 @@ export default {
   },
   methods: {
     ...mapActions([
-        "createSearch",
+      "createSearch",
     ]),
+    ...mapActions("search", [
+      "setFromQueryObject",
+    ]),
+    async createSearchFromNatLang() {
+      console.log("createSearchFromNatLang", this.natLangQuery)
+      const myURl = `https://api.openalex.org/text/oql?natural_language=${this.natLangQuery}`
+      const resp = await axios.get(myURl)
+      console.log("resp", resp)
+      this.setFromQueryObject(resp.data)
+    }
   },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)
+
 
   },
 }
