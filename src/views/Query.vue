@@ -26,13 +26,12 @@
             <v-toolbar-title>Summarize</v-toolbar-title>
           </v-toolbar>
           <div class="d-flex align-center pb-4 px-4">
-            <query-summarize class="my-2"/>
-            <query-summarize-by v-if="query.summarize" class="ml-3"/>
+            <query-summarize-by   class="ml-3"/>
           </div>
           <div v-if="query.summarize_by">
             <v-divider class="my-2"/>
             <v-subheader>
-              <template>Filter {{ returnedEntityType }}</template>
+              <template>Filter {{ querySubjectEntity }}</template>
             </v-subheader>
             <div class="pb-5">
               <query-filter-branch
@@ -45,7 +44,7 @@
         </v-card>
         <v-card rounded flat class="mb-8">
           <v-toolbar dense flat>
-            <v-toolbar-title>Sort {{ returnedEntityType }}</v-toolbar-title>
+            <v-toolbar-title>Sort {{ querySubjectEntity }}</v-toolbar-title>
           </v-toolbar>
           <div class="pb-4 px-4">
             <query-sort-by v-if="!isQuerySingleRow"/>
@@ -65,7 +64,7 @@
                 small
                 outlined
                 label
-                v-for="colId in query.return"
+                v-for="colId in query.return_columns"
                 :key="colId"
                 close
                 @click:close="deleteReturnColumn(colId)"
@@ -91,7 +90,6 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import QuerySummarize from "@/components/Query/QuerySummarize.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QuerySortBy from "@/components/Query/QuerySortBy.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
@@ -102,7 +100,6 @@ export default {
   name: "Template",
   components: {
     QueryFilterBranch,
-    QuerySummarize,
     QuerySummarizeBy,
     QuerySortBy,
     QueryReturn,
@@ -123,8 +120,8 @@ export default {
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
-      "returnedEntityType",
       "filterRoots",
+        "querySubjectEntity"
     ]),
   },
 

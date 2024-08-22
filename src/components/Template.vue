@@ -26,7 +26,6 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType"
     ]),
   },
 

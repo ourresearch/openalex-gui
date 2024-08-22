@@ -124,7 +124,6 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType",
       "querySubjectEntity",
       "queryFiltersRecursive",
       "querySubjectEntityConfig",

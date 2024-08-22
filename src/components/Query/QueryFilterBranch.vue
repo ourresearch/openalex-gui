@@ -69,7 +69,6 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType"
     ]),
     me() {
       return this.$store.state.search.query.filters.find(f => f.id === this.id)
