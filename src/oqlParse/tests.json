@@ -269,7 +269,6 @@
           "value": "fr"
         }
       ],
-      "summarize": true,
       "summarize_by": "institutions",
       "sort_by": {
         "column_id": "apc_paid.value_usd",
