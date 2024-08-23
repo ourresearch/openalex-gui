@@ -72,6 +72,9 @@ const baseQuery = () => ({
 const stateDefaults = function () {
     const ret = {
         id: null,
+        // when isInStagedQueryMode is true, all the query actions are saved locally, but we don't send them to the server
+        // this is good for testing but bad for production
+        isInStagedQueryMode: true,
         oql: "",
         query: {
             ...baseQuery(),
@@ -128,10 +131,18 @@ export const search = {
         },
     },
     actions: {
+
+        // FILTER
         addStagedFilter({state}, {filter, parentId}) {
-            console.log("adding filter", filter, parentId)
+            console.log("adding staged filter", filter, parentId)
             state.stagedFilters.push(filter)
             state.stagedFilters.find(f => f.id === parentId)?.children?.push(filter.id)
+        },
+        addQueryFilter({state, dispatch}, {filter, parentId}) {
+            console.log("adding query filter", filter, parentId)
+            state.query.filters.push(filter)
+            state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
+            dispatch("addStagedFilter", {filter, parentId})
         },
         setStagedFilter({state}, newFilter) {
             const filterToChange = state.stagedFilters.find(f => f.id === newFilter.id)
@@ -139,23 +150,32 @@ export const search = {
                 Vue.set(filterToChange, key, newFilter[key])
             })
         },
-        setAllFilters({state}, newFilters) {
-            state.query.filters = newFilters
-            state.stagedFilters = _.cloneDeep(newFilters)
-        },
         deleteStagedFilter: function ({state, dispatch}, id) {
             console.log("deleteFilter", id)
             state.stagedFilters = deleteNode(state.stagedFilters, id)
         },
-        saveStagedFilters({state}) {
+
+        // actually save the staged filters to the query and create a new search
+        applyStagedFilters({state}) {
             state.query.filters = _.cloneDeep(state.stagedFilters)
+            if (!state.isInStagedQueryMode) {
+                this.dispatch("createSearch")
+            }
+        },
+        setAllFilters({state}, newFilters) {
+            state.query.filters = newFilters
+            state.stagedFilters = _.cloneDeep(newFilters)
+        },
+        clearAllFilters({state}) {
+            state.query.filters = [makeFilterBranch("works")]
+            state.stagedFilters = [makeFilterBranch("works")]
         },
 
 
 
 
+        // SUMMARIZE
         setSummarize({state, dispatch}, columnId) {
-            console.log("setSummarize", columnId)
             // no matter what, clear all the summarize_by filters
             dispatch("setAllFilters", state.query.filters.filter(f => f.subjectEntity === "works"))
 
@@ -181,26 +201,42 @@ export const search = {
                 state.query.sort_by.direction = "asc"
                 state.query.return_columns = getConfigs()[columnId].showOnTablePage
                 const filter = makeFilterBranch(columnId, true)
-                dispatch("addFilter", {filter, parent: undefined})
+                dispatch("addQueryFilter", {filter, parentId: undefined})
+            }
+            if (!state.isInStagedQueryMode) {
+                this.dispatch("createSearch")
             }
         },
 
 
-        setSortByColumnId(context, columnId) {
-            context.state.query.sort_by.column_id = columnId
-        },
+        // SORT
         setSortBy({state}, {column_id, direction}) {
             state.query.sort_by.column_id = column_id
             state.query.sort_by.direction = direction
-        },
-        addReturnColumn(context, columnId) {
-            context.state.query.return_columns.push(columnId)
-        },
-        deleteReturnColumn(context, columnId) {
-            context.state.query.return_columns = context.state.query.return_columns.filter((col) => col !== columnId)
+            if (!state.isInStagedQueryMode) {
+                this.dispatch("createSearch")
+            }
         },
 
 
+
+        // RETURN COLUMNS
+        addReturnColumn({state}, columnId) {
+            state.query.return_columns.push(columnId)
+            if (!state.isInStagedQueryMode) {
+                this.dispatch("createSearch")
+            }
+        },
+        deleteReturnColumn({state}, columnId) {
+            state.query.return_columns = state.query.return_columns.filter((col) => col !== columnId)
+            if (!state.isInStagedQueryMode) {
+                this.dispatch("createSearch")
+            }
+        },
+
+
+
+        // SET MANY THINGS AT ONCE
         setFromQueryObject({state, dispatch}, query) {
             console.log("setFromQueryObject", query)
 
@@ -212,7 +248,13 @@ export const search = {
             dispatch("createSearch")
         },
 
+        createSearchFromOql: async function ({state}, oql) {
+            console.log("createSearchFromOql", oql, oqlToQuery(oql))
+        },
 
+
+
+        // CREATE AND READ SEARCH
         createSearch: async function ({state}) {
             state.is_ready = false
             const url = "https://api.openalex.org/searches"
@@ -220,9 +262,7 @@ export const search = {
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
-        createSearchFromOql: async function ({state}, oql) {
-            console.log("createSearchFromOql", oql, oqlToQuery(oql))
-        },
+
 
         getSearch: async function (context, id) {
             context.state.is_ready = false
