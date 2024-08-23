@@ -52,34 +52,42 @@
     }
   },
   {
-    "oql": "get works where type is article; summarize; return count;",
+    "oql": "get works where type is article; return open access, Country, Continent, from Global South, source type, in OA source, language;",
     "query": {
       "filters": [
         {
-          "id": "br_1",
+          "id": "br_3cbwuS",
           "subjectEntity": "works",
-          "type": "branch",
           "operator": "and",
+          "type": "branch",
           "children": [
-            "leaf_1"
+            "leaf_peHvhF"
           ]
         },
         {
-          "id": "leaf_1",
+          "id": "leaf_peHvhF",
           "subjectEntity": "works",
-          "type": "leaf",
           "operator": "is",
+          "type": "leaf",
           "column_id": "type",
-          "value": "article"
+          "value": "types/article"
         }
       ],
-      "return": [
-        "count"
+      "return_columns": [
+        "display_name",
+        "publication_year",
+        "type",
+        "primary_location.source.id",
+        "authorships.author.id",
+        "authorships.institutions.id",
+        "primary_topic.id",
+        "open_access.oa_status",
+        "cited_by_count"
       ]
     }
   },
   {
-    "oql": "get works where type is not article; summarize; return count;",
+    "oql": "get works where type is not article;",
     "query": {
       "filters": [
         {
@@ -100,7 +108,7 @@
           "value": "article"
         }
       ],
-      "return": [
+      "return_columns": [
         "count"
       ]
     }
@@ -158,7 +166,7 @@
         "column_id": "display_name",
         "direction": "asc"
       },
-      "return": [
+      "return_columns": [
         "display_name",
         "country_code"
       ]
@@ -213,7 +221,7 @@
         }
       ],
       "summarize_by": "sources",
-      "return": [
+      "return_columns": [
         "display_name",
         "type",
         "issn"
@@ -221,7 +229,7 @@
     }
   },
   {
-    "oql": "get works where publication_year is 2021; summarize by institutions where country is fr; sort by apc_paid.value_usd desc; return display_name, apc_paid.value_usd;",
+    "oql": "get works where publication_year is 2021; summarize by institutions where country is fr; sort by mean(fwci) desc; return display_name, mean(fwci);",
     "query": {
       "filters": [
         {
@@ -239,7 +247,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": "2021"
+          "value": 2021
         },
         {
           "id": "br_2GXzUE",
@@ -261,17 +269,17 @@
       ],
       "summarize_by": "institutions",
       "sort_by": {
-        "column_id": "apc_paid.value_usd",
+        "column_id": "mean(fwci)",
         "direction": "desc"
       },
-      "return": [
+      "return_columns": [
         "display_name",
-        "apc_paid.value_usd"
+        "mean(fwci)"
       ]
     }
   },
-    {
-    "oql": "get works where ((publication_year is 2020 or type is not article) and authors is 23424534); summarize by institutions where country is fr; sort by apc_paid.value_usd desc; return display_name, apc_paid.value_usd;",
+  {
+    "oql": "get works where ((publication_year is 2020 or type is not article) and authors is 23424534); summarize by institutions where country is fr; sort by count desc; return display_name, count;",
     "query": {
       "filters": [
         {
@@ -316,7 +324,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": "2020"
+          "value": 2020
         },
         {
           "id": "br_2GXzUE",
@@ -338,12 +346,43 @@
       ],
       "summarize_by": "institutions",
       "sort_by": {
-        "column_id": "apc_paid.value_usd",
+        "column_id": "count",
         "direction": "desc"
       },
-      "return": [
+      "return_columns": [
         "display_name",
-        "apc_paid.value_usd"
+        "count"
+      ]
+    }
+  },
+  {
+    "oql": "get works where authors is 123456; summarize by institutions; return display_name, ror, mean(fwci), count;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_nsax4s",
+          "subjectEntity": "works",
+          "operator": "and",
+          "type": "branch",
+          "children": [
+            "leaf_3baot5"
+          ]
+        },
+        {
+          "id": "leaf_3baot5",
+          "subjectEntity": "works",
+          "operator": null,
+          "type": "leaf",
+          "column_id": "authorships.institutions.id",
+          "value": 123456
+        }
+      ],
+      "summarize_by": "institutions",
+      "return_columns": [
+        "display_name",
+        "ror",
+        "mean(fwci)",
+        "count"
       ]
     }
   }
