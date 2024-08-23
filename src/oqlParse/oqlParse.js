@@ -11,7 +11,6 @@ function makeColumnIDsMap() {
             columns.push({[configs[key].columns[colKey].displayName.toLowerCase()]: configs[key].columns[colKey].id});
         }
         map[key] = columns;
-        // map[configs.works.columns[key].displayName] = key;
     }
     return map;
 }
@@ -24,7 +23,6 @@ function getColumnId(name, subjectEntity = "works") {
     if (!(subjectEntity in COLUMN_IDS_MAP)) {
         throw new Error(`${subjectEntity} is not a valid subjectEntity`);
     }
-    let columnId = null;
     for (const pair of COLUMN_IDS_MAP[subjectEntity]) {
         const value = Object.values(pair)[0];
         if (name in pair) return pair[name];
