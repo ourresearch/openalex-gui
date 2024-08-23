@@ -27,7 +27,7 @@
     <v-row class="">
 
 
-      <v-col cols="6" xl="4" v-if="cardsToShowSelected.includes('filters')">
+      <v-col cols="6" xl="4">
         <v-card rounded flat class="">
           <v-toolbar flat dense>
             <v-toolbar-title>
