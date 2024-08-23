@@ -77,6 +77,7 @@ const stateDefaults = function () {
         query: {
             ...baseQuery(),
         },
+        originalFilters: [],
 
         is_ready: null,
         results_header: [],
@@ -251,6 +252,7 @@ export const search = {
 
             // replace the state with the new search
             context.commit("replaceState", searchResp)
+            context.state.originalFilters = _.cloneDeep(context.state.query.filters)
         },
     },
     getters: {
@@ -275,6 +277,9 @@ export const search = {
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
         filtersRecursive: (state) => {
             return convertFlatToRecursive(state.query.filters)
+        },
+        filtersAreDirty: (state) => {
+            return !_.isEqual(state.query.filters, state.originalFilters)
         }
 
 

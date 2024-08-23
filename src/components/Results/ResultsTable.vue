@@ -117,7 +117,7 @@
                 <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
               </v-list-item>
               <v-divider/>
-              <v-list-item @click="deleteReturnColumn(header.id)">
+              <v-list-item @click="commitDeleteColumn(header.id)">
                 <v-list-item-icon>
                   <v-icon>mdi-table-column-remove</v-icon>
                 </v-list-item-icon>
@@ -126,18 +126,22 @@
               <template v-if="header.actions?.includes('sort')">
                 <v-divider/>
                 <v-list-item
-                    @click="setSortBy({column_id: header.id, direction: 'desc'})"
+                    active-class="primary--text"
+                    :input-value="query.sort_by.column_id === header.id && query.sort_by.direction === 'desc'"
+                    @click="commitSortBy({column_id: header.id, direction: 'desc'})"
                 >
                   <v-list-item-icon>
-                    <v-icon>mdi-sort-descending</v-icon>
+                    <v-icon>mdi-arrow-down</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>Sort descending</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                    @click="setSortBy({column_id: header.id, direction: 'asc'})"
+                    @click="commitSortBy({column_id: header.id, direction: 'asc'})"
+                    active-class="primary--text"
+                    :input-value="query.sort_by.column_id === header.id && query.sort_by.direction === 'asc'"
                 >
                   <v-list-item-icon>
-                    <v-icon>mdi-sort-ascending</v-icon>
+                    <v-icon>mdi-arrow-up</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>Sort ascending</v-list-item-title>
                 </v-list-item>
@@ -291,7 +295,16 @@ export default {
     ...mapActions("search", [
       "deleteReturnColumn",
       "setSortBy",
+      "createSearch",
     ]),
+    commitSortBy(sortBy) {
+      this.setSortBy(sortBy)
+      this.createSearch()
+    },
+    commitDeleteColumn(columnId) {
+      this.deleteReturnColumn(columnId)
+      this.createSearch()
+    },
     addSelectedId(id) {
       this.selectedIds.push(id)
     },

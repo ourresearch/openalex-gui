@@ -98,10 +98,12 @@ export default {
     ]),
     ...mapActions("search", [
       "addReturnColumn",
+        "createSearch",
     ]),
     ...mapActions("user", []),
     clickListItem(id) {
       this.addReturnColumn(id)
+      this.createSearch()
       this.$emit("close")
     }
 
