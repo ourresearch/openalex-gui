@@ -203,7 +203,7 @@ function parseFilters(oql) {
     }
 
     if (summarizeByMatch) {
-        if (summarizeByCondition.includes("(")) {
+        if (summarizeByCondition !== null && summarizeByCondition.includes("(")) {
             let nestedConditions = parseNestedConditions(summarizeByCondition);
             for (const condition of nestedConditions) {
                 condition.subjectEntity = summarizeByEntity;
@@ -314,55 +314,66 @@ function oqlToQuery(oql) {
 }
 
 function queryToOQL(query) {
-  let oql = 'get works';
-
-  // Add the filters
-  const filters = query.filters;
-  if (filters && filters.length > 0) {
-    oql += '; ' + buildFiltersOQL(filters);
+  if (!query.filters || query.filters.length === 0) {
+    return "get works";
   }
 
-  // Add the summarize
-  if (query.summarize) {
-    oql += '; summarize';
+  const rootFilter = findRootFilter(query.filters);
+  let oql = `get ${rootFilter.subjectEntity} where `;
+  oql += generateFilters(query.filters);
+
+  if (query.summarize_by) {
+    oql += `; summarize by ${query.summarize_by}`;
+
+    const summaryFilters = query.filters.filter(filter => filter.subjectEntity === query.summarize_by);
+    if (summaryFilters.length > 0) {
+      oql += ` where ${generateFilters(summaryFilters)}`;
+    }
   }
 
-  // Add the sort
   if (query.sort_by) {
-    oql += '; sort by ';
-    oql += `${query.sort_by.column_id} ${query.sort_by.direction}`;
+    oql += `; sort by ${query.sort_by.column_id} ${query.sort_by.direction}`;
   }
 
-  // Add the return
-  if (query.return) {
-    oql += '; return ';
-    oql += query.return.join(', ');
+  if (query.return_columns && query.return_columns.length > 0) {
+    oql += `; return ${query.return_columns.join(', ')}`;
   }
 
   return oql;
 }
 
-function buildFiltersOQL(filters, operator = null) {
-  let filtersOQL = '';
+function findRootFilter(filters) {
+  const childIds = new Set(filters.flatMap(filter => filter.children || []));
+  return filters.find(filter => !childIds.has(filter.id));
+}
 
-  for (const filter of filters) {
-    if (filter.type === 'branch') {
-        let prefix = operator === null ? "where " : operator + " ";
-      filtersOQL += prefix;
-      filtersOQL += buildFiltersOQL(filter.children, filter.operator);
-      // filtersOQL += ')';
-    } else if (filter.type === 'leaf') {
-      filtersOQL += `${filter.column_id} ${operator} `;
-      if (Array.isArray(filter.value)) {
-        filtersOQL += `${filter.value.join(', ')}`;
-      } else {
-        filtersOQL += `"${filter.value}"`;
-      }
-      filtersOQL += '; ';
-    }
+function generateFilters(filters) {
+  const rootFilter = findRootFilter(filters);
+  return generateFilterString(rootFilter, filters);
+}
+
+function generateFilterString(filter, allFilters) {
+  if (filter.type === 'leaf') {
+    return `${filter.column_id} ${filter.operator || 'is'} ${filter.value}`;
+  } else if (filter.type === 'branch') {
+    const childFilters = filter.children.map(childId => {
+      const childFilter = allFilters.find(f => f.id === childId);
+      return generateFilterString(childFilter, allFilters);
+    });
+
+    const needsParentheses = filter.children.length > 1 &&
+                             allFilters.some(f => f.type === 'branch' && f.id !== filter.id && f.subjectEntity === filter.subjectEntity);
+
+    const joinedFilters = childFilters.join(` ${filter.operator} `);
+    return needsParentheses ? `(${joinedFilters})` : joinedFilters;
   }
+}
 
-  return filtersOQL.trim();
+function formatValue(value) {
+  if (typeof value === 'string') {
+    return `"${value}"`;
+  }
+  return value;
 }
 
 export {
