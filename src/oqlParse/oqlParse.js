@@ -73,7 +73,7 @@ function parseCondition(condition, subjectEntity) {
             subjectEntity,
             type: "leaf",
             operator,
-            columnId: columnId,
+            column_id: columnId,
             value
         };
     }
