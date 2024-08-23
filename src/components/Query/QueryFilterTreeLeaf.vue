@@ -209,9 +209,16 @@ export default {
           params: {q: this.search}
         });
 
+        const autocompleteSuggestions = response.data.results.map(r => {
+          return {
+            ...r,
+            id: r.short_id,
+          }
+        })
+
         // add the new options to the existing options
         const extantIds = this.asyncValueOptions.map(o => o.id);
-        response.data.results.forEach(r => {
+        autocompleteSuggestions.forEach(r => {
           if (!extantIds.includes(r.id)) {
             this.asyncValueOptions.push(r);
           }
