@@ -16,7 +16,7 @@
                   rounded
                   rows="1"
                   placeholder="Search the research ecosystem with natural language"
-                  @keydown.enter.exact="createSearchFromNatLang"
+                  @keydown.enter.exact.prevent="createSearchFromNatLang"
                   append-icon="mdi-arrow-right-circle"
                   @click:append="createSearchFromNatLang"
               />

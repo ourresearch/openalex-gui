@@ -5,7 +5,7 @@
       <v-toolbar-title>Query tester</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-btn rounded color="primary" @click="createSearch">
-        <v-icon left>mdi-play</v-icon> Do it
+        <v-icon left>mdi-play</v-icon> Do it.
       </v-btn>
     </v-toolbar>
     <v-row>
@@ -17,7 +17,7 @@
             <v-btn
                 text
                 rounded
-                @click="saveStagedFilters"
+                @click="applyStagedFilters"
             >
               Apply to query
               <v-icon right>mdi-arrow-right</v-icon>
@@ -56,6 +56,7 @@
             <v-toolbar-title>Sort {{ querySubjectEntity }}</v-toolbar-title>
           </v-toolbar>
           <div class="pb-4 px-4">
+
             <query-sort-by v-if="!isQuerySingleRow"/>
             <div v-else class="my-3 grey--text">
               There's only one row in the result, no need to sort.
@@ -145,7 +146,7 @@ export default {
     ...mapActions("search", [
       "deleteReturnColumn",
         "createSearch",
-        "saveStagedFilters",
+        "applyStagedFilters",
     ]),
     ...mapActions("user", []),
 

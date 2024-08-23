@@ -1,26 +1,13 @@
 <template>
   <span class="d-inline-flex">
-
-    <v-autocomplete
-        class="ml-2"
-        v-model="selectedColumnId"
-        :items="columnIdOptions"
-        item-text="displayName"
-        item-value="id"
-        placeholder="Sort by"
-        label="Sort by"
-        hide-details
-        clearable
-        rounded
-        filled
-        dense
-    />
     <v-select
         class="ml-2"
-        v-model="query.sort_by.direction"
-        :items="['asc', 'desc']"
-        placeholder="Direction"
-        label="direction"
+        v-model="selectedSortBy"
+        :items="sortByOptions"
+        placeholder="Sort by.."
+        label="sort by"
+        item-text="label"
+        return-object
         hide-details
         rounded
         filled
@@ -51,23 +38,37 @@ export default {
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
+        "querySubjectEntity",
     ]),
     columnIdOptions() {
-      return Object.values(getConfigs()["works"].columns).filter(col => {
-        return col.actions.includes("sort")
+      const myColumns = getConfigs()[this.querySubjectEntity].columns
+      console.log("myColumns", myColumns)
+
+      return Object.values(myColumns).filter(col => {
+        return col.actions?.includes("sort")
       })
     },
-    selectedColumnId: {
+    sortByOptions(){
+      const ret = []
+      this.columnIdOptions.forEach(col => {
+        ["asc", "desc"].forEach(dir => {
+          ret.push({
+            column_id: col.id,
+            direction: dir,
+            label: `${col.displayName} ${dir}`
+          })
+        })
+      })
+      return ret
+    },
+    selectedSortBy: {
       get() {
-        return this.query.sort_by.column_id
+        return this.query.sort_by
       },
-      set(value) {
-        this.setSortByColumnId(value)
+      set({column_id, direction}) {
+        this.setSortBy({column_id, direction})
       }
     },
-    iconName(){
-      return this.query.sort_by.direction === "asc" ? "mdi-sort-ascending" : "mdi-sort-descending"
-    }
   },
 
   methods: {
@@ -77,7 +78,7 @@ export default {
     ...mapMutations("search", [
     ]),
     ...mapActions("search", [
-        "setSortByColumnId"
+        "setSortBy",
     ]),
     ...mapActions("user", []),
 
