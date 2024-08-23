@@ -219,8 +219,10 @@ export const search = {
             if (query.filters) dispatch("setAllFilters", query.filters)
         },
 
-        setSearchFromOql: async function ({state}, oql) {
-            console.log("setSearchFromOql", oql, oqlToQuery(oql))
+        setQueryFromOql: async function ({state, dispatch}, oql) {
+            console.log("setQueryFromOql", oql, oqlToQuery(oql))
+            const query = oqlToQuery(oql)
+            dispatch("setFromQueryObject", query)
         },
 
 

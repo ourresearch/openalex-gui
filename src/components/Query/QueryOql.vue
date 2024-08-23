@@ -8,8 +8,8 @@
         rows="1"
         auto-grow
         clearable
-        @keydown.ctrl.enter="setSearchFromOql(oql)"
-        @keydown.meta.enter="setSearchFromOql(oql)"
+        @keydown.ctrl.enter="setQueryFromOql(oql)"
+        @keydown.meta.enter="setQueryFromOql(oql)"
 
     />
     <v-btn
@@ -53,7 +53,7 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-      "setSearchFromOql",
+      "setQueryFromOql",
     ]),
     ...mapActions("user", []),
 
