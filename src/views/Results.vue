@@ -1,13 +1,27 @@
 <template>
   <v-container fluid class="pt-0">
-    <v-card flat rounded class="mb-3 d-flex" style="font-family: monospace;">
-      <div class="pa-3 font-weight-bold d-flex flex-column align-center">
+    <v-card flat rounded class="mb-3 pa-3 d-flex" style="font-family: monospace;">
+      <div class=" font-weight-bold d-flex flex-column align-center mr-6">
         <v-icon>mdi-code-parentheses-box</v-icon>
         <span style="font-size: 12px;">OQL</span>
       </div>
-      <div class="pa-3" style="font-size: 12px;" >
-        {{ queryAsOql }}
+      <div class=" flex-grow-1">
+        <v-textarea
+            style="font-size: 12px !important; line-height: 1.2 !important;"
+            v-model="oql"
+            :disabled="!$store.state.search.is_ready"
+            autofocus
+            auto-grow
+            rounded
+            filled
+            rows="1"
+            placeholder="OQL goes here"
+            @keydown.enter.exact.prevent="applyOql"
+        />
       </div>
+      <v-btn color="primary" icon @click="applyOql" :disabled="oql === queryAsOql">
+        <v-icon>mdi-arrow-down</v-icon>
+      </v-btn>
     </v-card>
 
     <v-row class="">
@@ -90,6 +104,7 @@ export default {
   data() {
     return {
       isPropSelectorDialogOpen: false,
+      oql: "",
 
       selectedFiltersTab: 0,
       selectedQueriesTab: 0,
@@ -136,9 +151,15 @@ export default {
     ...mapActions("search", [
       "createSearch",
       "getSearch",
+      "setQueryFromOql",
     ]),
     applyFilters() {
       this.createSearch()
+    },
+    applyOql() {
+      this.setQueryFromOql(this.oql)
+      // this.createSearch()
+
     },
     saveToLocalStorage() {
       const dataToSave = {
@@ -172,9 +193,11 @@ export default {
     "$route.params.id": {
       handler: function () {
         this.pollSearch()
+        this.oql = this.queryAsOql
       },
       immediate: true
     },
+
     cardsToShowSelected() {
       this.saveToLocalStorage();
     }
