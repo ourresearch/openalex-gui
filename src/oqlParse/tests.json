@@ -199,7 +199,7 @@
           "subjectEntity": "works",
           "type": "leaf",
           "operator": "is",
-          "column_id": "author",
+          "column_id": "authorships.author.id",
           "value": 34578964
         },
         {
@@ -307,7 +307,7 @@
           "subjectEntity": "works",
           "type": "leaf",
           "operator": "is",
-          "column_id": "author",
+          "column_id": "authorships.author.id",
           "value": 23424534
         },
         {
