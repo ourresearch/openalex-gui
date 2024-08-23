@@ -8,7 +8,7 @@ import axios from "axios";
 import router from "@/router";
 import {getConfigs} from "@/oaxConfigs";
 import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
-import {oqlToQuery} from "@/oqlParse/oqlParse";
+import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
 function convertFlatToRecursive(flatTree) {
@@ -280,7 +280,10 @@ export const search = {
         },
         filtersAreDirty: (state) => {
             return !_.isEqual(state.query.filters, state.originalFilters)
-        }
+        },
+        queryAsOql: (state) => {
+            return queryToOQL(state.query)
+        },
 
 
     },
