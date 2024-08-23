@@ -10,6 +10,8 @@
 
               <v-textarea
                   v-model="natLangQuery"
+                  :disabled="isNatLangLoading"
+                  :loading="isNatLangLoading"
                   autofocus
                   auto-grow
                   filled
@@ -188,6 +190,7 @@ export default {
       userEmail: "",
       errorMsg: "",
       natLangQuery: "",
+      isNatLangLoading: false,
       textToType: [
         "the research ecosystem.",
         "researchers.",
@@ -216,13 +219,18 @@ export default {
     ]),
     ...mapActions("search", [
       "setFromQueryObject",
+        "createSearch",
     ]),
     async createSearchFromNatLang() {
+      this.isNatLangLoading = true
       console.log("createSearchFromNatLang", this.natLangQuery)
       const myURl = `https://api.openalex.org/text/oql?natural_language=${this.natLangQuery}`
       const resp = await axios.get(myURl)
       console.log("resp", resp)
+      this.isNatLangLoading = false
+
       this.setFromQueryObject(resp.data)
+      this.createSearch()
     }
   },
   mounted() {
