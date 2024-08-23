@@ -107,9 +107,6 @@
           "column_id": "type",
           "value": "article"
         }
-      ],
-      "return_columns": [
-        "count"
       ]
     }
   },
