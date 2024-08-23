@@ -1,5 +1,14 @@
 <template>
   <v-container fluid class="pt-0">
+    <v-card flat rounded class="mb-3 d-flex" style="font-family: monospace;">
+      <div class="pa-3 font-weight-bold d-flex flex-column align-center">
+        <v-icon>mdi-code-parentheses-box</v-icon>
+        <span style="font-size: 12px;">OQL</span>
+      </div>
+      <div class="pa-3" style="font-size: 12px;" >
+        {{ queryAsOql }}
+      </div>
+    </v-card>
 
     <v-row class="">
 
@@ -22,7 +31,7 @@
           </v-toolbar>
           <query-filter-tree/>
         </v-card>
-         <v-card rounded flat class="pa-5 my-8">
+        <v-card rounded flat class="pa-5 my-8">
           <pre>{{ $store.state.search.query }}</pre>
         </v-card>
       </v-col>
@@ -112,6 +121,7 @@ export default {
       "querySubjectEntityConfig",
       "query",
       "filtersAreDirty",
+      "queryAsOql",
     ]),
   },
 
