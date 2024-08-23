@@ -8,7 +8,7 @@ function makeColumnIDsMap() {
     for (const key in configs) {
         const columns = [];
         for (const colKey in configs[key].columns) {
-            columns.push({[configs[key].columns[colKey].displayName.toLowerCase()]: colKey});
+            columns.push({[configs[key].columns[colKey].displayName.toLowerCase()]: configs[key].columns[colKey].id});
         }
         map[key] = columns;
         // map[configs.works.columns[key].displayName] = key;
@@ -18,10 +18,13 @@ function makeColumnIDsMap() {
 
 const COLUMN_IDS_MAP = makeColumnIDsMap();
 
+
 function getColumnId(name, subjectEntity = "works") {
+    name = name.toLowerCase();
     if (!(subjectEntity in COLUMN_IDS_MAP)) {
         throw new Error(`${subjectEntity} is not a valid subjectEntity`);
     }
+    let columnId = null;
     for (const pair of COLUMN_IDS_MAP[subjectEntity]) {
         const value = Object.values(pair)[0];
         if (name in pair) return pair[name];
@@ -274,27 +277,30 @@ function oqlToQuery(oql) {
     if (oql === '') {
         return {};
     }
+    let summarizeBy = "works";
 
     const query = {};
-
-    if (oql.includes("return")) {
-        const returnMatch = oql.match(/return (.+?)(;|$)/);
-        if (returnMatch) {
-            query.return = returnMatch[1].split(',').map(item => item.trim());
-        }
-    }
 
     if (oql.includes("summarize by")) {
         const summarizeByMatch = oql.match(/summarize by (.*?)(?:where|;|$)/);
         if (summarizeByMatch) {
             query.summarize_by = summarizeByMatch[1].trim();
+            summarizeBy = query.summarize_by;
+        }
+    }
+
+    if (oql.includes("return")) {
+        const returnMatch = oql.match(/return (.+?)(;|$)/);
+        if (returnMatch) {
+            let returnColumns = returnMatch[1].split(',').map(item => item.trim());
+            query.return_columns = returnColumns.map(column => getColumnId(column, summarizeBy));
         }
     }
 
     if (oql.includes("sort by")) {
         const sortByMatch = oql.match(/sort by ([\w().]+) (asc|desc)/);
         if (sortByMatch) {
-            const columnId = getColumnId(sortByMatch[1]);
+            const columnId = getColumnId(sortByMatch[1], summarizeBy);
             query.sort_by = {
                 column_id: columnId,
                 direction: sortByMatch[2]
