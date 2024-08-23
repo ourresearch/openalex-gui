@@ -107,25 +107,40 @@ function queriesEqual(query1, query2, path = '') {
 testCases.forEach((testCase, index) => {
     const { oql, query: expectedQuery } = testCase;
     let generatedQuery;
+    let generatedOQL;
+    let queryFromGeneratedOQL;
 
-    let generatedOQL = queryToOQL(expectedQuery);
-    console.log(generatedOQL);
-    console.log(oql);
+    try {
+        generatedOQL = queryToOQL(expectedQuery);
+
+        queryFromGeneratedOQL = oqlToQuery(generatedOQL);
+        if (queriesEqual(queryFromGeneratedOQL, expectedQuery)) {
+            console.log(`[Query -> OQL] Test case ${index + 1} passed.`);
+        } else {
+            throw new Error('[Query -> OQL] Objects are not equal');
+        }
+    } catch (error) {
+        console.error(`[Query -> OQL] Test case ${index + 1} failed.`);
+        console.error(`[Query -> OQL] OQL: ${oql}`);
+        console.error(`[Query -> OQL] Expected: ${JSON.stringify(expectedQuery, null, 2)}`);
+        console.error(`[Query -> OQL] Generated: ${JSON.stringify(generatedQuery, null, 2)}`);
+        console.error(`[Query -> OQL] Error: ${error.message}`);
+    }
 
     try {
         generatedQuery = oqlToQuery(oql);
 
         if (queriesEqual(generatedQuery, expectedQuery)) {
-            console.log(`Test case ${index + 1} passed.`);
+            console.log(`[OQL -> Query] Test case ${index + 1} passed.`);
         } else {
-            throw new Error('Objects are not equal');
+            throw new Error('[OQL -> Query] Objects are not equal');
         }
 
     } catch (error) {
-        console.error(`Test case ${index + 1} failed.`);
-        console.error(`OQL: ${oql}`);
-        console.error(`Expected: ${JSON.stringify(expectedQuery, null, 2)}`);
-        console.error(`Generated: ${JSON.stringify(generatedQuery, null, 2)}`);
-        console.error(`Error: ${error.message}`);
+        console.error(`[OQL -> Query] Test case ${index + 1} failed.`);
+        console.error(`[OQL -> Query] OQL: ${oql}`);
+        console.error(`[OQL -> Query] Expected: ${JSON.stringify(expectedQuery, null, 2)}`);
+        console.error(`[OQL -> Query] Generated: ${JSON.stringify(generatedQuery, null, 2)}`);
+        console.error(`[OQL -> Query] Error: ${error.message}`);
     }
 });
