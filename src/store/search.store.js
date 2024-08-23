@@ -11,9 +11,8 @@ import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 import {oqlToQuery} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
-
 function convertFlatToRecursive(flatTree) {
-  const treeMap = new Map(flatTree.map(item => [item.id, { ...item, children: [] }]));
+  const treeMap = new Map(flatTree.map(item => [item.id, { ...item, children: [], isRoot: false }]));
 
   const root = [];
 
@@ -28,7 +27,9 @@ function convertFlatToRecursive(flatTree) {
 
   flatTree.forEach(item => {
     if (!flatTree.some(node => node?.children?.includes(item.id))) {
-      root.push(treeMap.get(item.id));
+      const rootNode = treeMap.get(item.id);
+      rootNode.isRoot = true;
+      root.push(rootNode);
     }
   });
 
@@ -72,14 +73,10 @@ const baseQuery = () => ({
 const stateDefaults = function () {
     const ret = {
         id: null,
-        // when isInStagedQueryMode is true, all the query actions are saved locally, but we don't send them to the server
-        // this is good for testing but bad for production
-        isInStagedQueryMode: true,
         oql: "",
         query: {
             ...baseQuery(),
         },
-        stagedFilters: _.cloneDeep(baseQuery().filters),
 
         is_ready: null,
         results_header: [],
@@ -133,42 +130,29 @@ export const search = {
     actions: {
 
         // FILTER
-        addStagedFilter({state}, {filter, parentId}) {
-            console.log("adding staged filter", filter, parentId)
-            state.stagedFilters.push(filter)
-            state.stagedFilters.find(f => f.id === parentId)?.children?.push(filter.id)
-        },
-        addQueryFilter({state, dispatch}, {filter, parentId}) {
-            console.log("adding query filter", filter, parentId)
+        addFilter({state}, {filter, parentId}) {
+            console.log("adding  filter", filter, parentId)
             state.query.filters.push(filter)
             state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
-            dispatch("addStagedFilter", {filter, parentId})
         },
-        setStagedFilter({state}, newFilter) {
-            const filterToChange = state.stagedFilters.find(f => f.id === newFilter.id)
+        setFilter({state}, newFilter) {
+            const filterToChange = state.query.filters.find(f => f.id === newFilter.id)
             Object.keys(newFilter).forEach(key => {
                 Vue.set(filterToChange, key, newFilter[key])
             })
         },
-        deleteStagedFilter: function ({state, dispatch}, id) {
+        deleteFilter: function ({state, dispatch}, id) {
             console.log("deleteFilter", id)
-            state.stagedFilters = deleteNode(state.stagedFilters, id)
+            state.query.filters = deleteNode(state.query.filters, id)
         },
 
-        // actually save the staged filters to the query and create a new search
-        applyStagedFilters({state}) {
-            state.query.filters = _.cloneDeep(state.stagedFilters)
-            if (!state.isInStagedQueryMode) {
-                this.dispatch("createSearch")
-            }
-        },
         setAllFilters({state}, newFilters) {
             state.query.filters = newFilters
-            state.stagedFilters = _.cloneDeep(newFilters)
+            state.query.filters = _.cloneDeep(newFilters)
         },
         clearAllFilters({state}) {
             state.query.filters = [makeFilterBranch("works")]
-            state.stagedFilters = [makeFilterBranch("works")]
+            state.query.filters = [makeFilterBranch("works")]
         },
 
 
@@ -201,10 +185,7 @@ export const search = {
                 state.query.sort_by.direction = "asc"
                 state.query.return_columns = getConfigs()[columnId].showOnTablePage
                 const filter = makeFilterBranch(columnId, true)
-                dispatch("addQueryFilter", {filter, parentId: undefined})
-            }
-            if (!state.isInStagedQueryMode) {
-                this.dispatch("createSearch")
+                dispatch("addFilter", {filter, parentId: undefined})
             }
         },
 
@@ -213,9 +194,6 @@ export const search = {
         setSortBy({state}, {column_id, direction}) {
             state.query.sort_by.column_id = column_id
             state.query.sort_by.direction = direction
-            if (!state.isInStagedQueryMode) {
-                this.dispatch("createSearch")
-            }
         },
 
 
@@ -223,15 +201,9 @@ export const search = {
         // RETURN COLUMNS
         addReturnColumn({state}, columnId) {
             state.query.return_columns.push(columnId)
-            if (!state.isInStagedQueryMode) {
-                this.dispatch("createSearch")
-            }
         },
         deleteReturnColumn({state}, columnId) {
             state.query.return_columns = state.query.return_columns.filter((col) => col !== columnId)
-            if (!state.isInStagedQueryMode) {
-                this.dispatch("createSearch")
-            }
         },
 
 
@@ -244,12 +216,10 @@ export const search = {
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
             if (query.return_columns) state.query.return_columns = query.return_columns
             if (query.filters) dispatch("setAllFilters", query.filters)
-
-            dispatch("createSearch")
         },
 
-        createSearchFromOql: async function ({state}, oql) {
-            console.log("createSearchFromOql", oql, oqlToQuery(oql))
+        setSearchFromOql: async function ({state}, oql) {
+            console.log("setSearchFromOql", oql, oqlToQuery(oql))
         },
 
 
@@ -303,9 +273,8 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
-        stagedFilters: (state) => state.stagedFilters,
-        stagedFiltersRecursive: (state) => {
-            return convertFlatToRecursive(state.stagedFilters)
+        filtersRecursive: (state) => {
+            return convertFlatToRecursive(state.query.filters)
         }
 
 

@@ -3,7 +3,7 @@
     <div>
     </div>
     <v-treeview
-        :items="stagedFiltersRecursive"
+        :items="filtersRecursive"
         v-model="tree"
         :open="openNodes"
         :open-on-click="true"
@@ -85,8 +85,8 @@
       </template>
       <template v-slot:append="{ item, open }">
 
-        <v-btn icon @click="deleteStagedFilter(item.id)">
-          <v-icon>mdi-close</v-icon>
+        <v-btn :disabled="item.isRoot" icon @click="deleteFilter(item.id)">
+          <v-icon v-if="!item.isRoot">mdi-close</v-icon>
         </v-btn>
       </template>
 
@@ -125,10 +125,9 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "stagedFilters",
       "returnedEntityType",
       "querySubjectEntity",
-      "stagedFiltersRecursive",
+      "filtersRecursive",
       "querySubjectEntityConfig",
 
     ]),
@@ -143,16 +142,16 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-      "addStagedFilter",
-      "deleteStagedFilter",
-      "setStagedFilter",
+      "addFilter",
+      "deleteFilter",
+      "setFilter",
 
     ]),
     ...mapActions("user", []),
     addBranchFilter(parentId) {
       console.log("addBranchFilter")
       const filter = makeFilterBranch("works")
-      this.addStagedFilter({
+      this.addFilter({
         filter,
         parentId
       })
@@ -161,20 +160,20 @@ export default {
       console.log("addLeafFilter", parentId, columnId)
       const filter = makeFilterLeaf("works")
       filter.column_id = columnId
-      this.addStagedFilter({
+      this.addFilter({
         filter,
         parentId
       })
     },
     setBranchFilterOperator(filter, value) {
-      this.setStagedFilter({
+      this.setFilter({
         ...filter,
         operator: value
       })
     },
     toggleBranchFilterOperator(id) {
-      const filter = this.stagedFilters.find(f => f.id === id)
-      this.setStagedFilter({
+      const filter = this.query.filters.find(f => f.id === id)
+      this.setFilter({
         ...filter,
         operator: filter.operator === "and" ? "or" : "and"
       })
@@ -187,7 +186,7 @@ export default {
   mounted() {
   },
   watch: {
-    "stagedFilters": {
+    "query.filters": {
       handler: function (filters) {
         // get the last item in the filters array:
         const lastFilter = filters[filters.length - 1]

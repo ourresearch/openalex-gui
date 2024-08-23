@@ -130,11 +130,10 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "stagedFilters",
       "querySubjectEntityConfig",
     ]),
     me() {
-      return this.stagedFilters.find(f => f.id === this.filterId)
+      return this.query.filters.find(f => f.id === this.filterId)
     },
     columnConfig() {
       return this.querySubjectEntityConfig.columns[this.me.column_id]
@@ -176,7 +175,7 @@ export default {
           ...this.me,
           operator: value,
         }
-        this.setStagedFilter(filter)
+        this.setFilter(filter)
       }
     },
     selectedValue: {
@@ -188,7 +187,7 @@ export default {
           ...this.me,
           value: value,
         }
-        this.setStagedFilter(filter)
+        this.setFilter(filter)
       }
     }
   },
@@ -199,7 +198,7 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-      "setStagedFilter",
+      "setFilter",
     ]),
     ...mapActions("user", []),
     getAsyncValueOptions: _.debounce(async function () {
@@ -236,7 +235,7 @@ export default {
   },
   created() {
     if (this.columnConfig.type === "boolean") {
-      this.setStagedFilter({
+      this.setFilter({
         ...this.me,
         operator: "is",
         value: true,
