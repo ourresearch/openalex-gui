@@ -4,12 +4,6 @@
     "query": {}
   },
   {
-    "oql": "get works; summarize",
-    "query": {
-      "summarize": true
-    }
-  },
-  {
     "oql": "get works where type is article;",
     "query": {
       "filters": [
@@ -20,8 +14,7 @@
           "operator": "and",
           "children": [
             "leaf_1"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_1",
@@ -29,9 +22,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "type",
-          "value": [
-            "article"
-          ]
+          "value": "article"
         }
       ]
     }
@@ -47,8 +38,7 @@
           "operator": "and",
           "children": [
             "leaf_1"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_1",
@@ -56,46 +46,48 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": [
-            2020
-          ]
+          "value": 2020
         }
       ]
     }
   },
   {
-    "oql": "get works where type is article; summarize; return count;",
+    "oql": "get works where type is article; return open access, Country, Continent, from Global South, source type, in OA source, language;",
     "query": {
       "filters": [
         {
-          "id": "br_1",
+          "id": "br_3cbwuS",
           "subjectEntity": "works",
-          "type": "branch",
           "operator": "and",
+          "type": "branch",
           "children": [
-            "leaf_1"
-          ],
-          "isRoot": true
+            "leaf_peHvhF"
+          ]
         },
         {
-          "id": "leaf_1",
+          "id": "leaf_peHvhF",
           "subjectEntity": "works",
-          "type": "leaf",
           "operator": "is",
+          "type": "leaf",
           "column_id": "type",
-          "value": [
-            "article"
-          ]
+          "value": "types/article"
         }
       ],
-      "summarize": true,
-      "return": [
-        "count"
+      "return_columns": [
+        "display_name",
+        "publication_year",
+        "type",
+        "primary_location.source.id",
+        "authorships.author.id",
+        "authorships.institutions.id",
+        "primary_topic.id",
+        "open_access.oa_status",
+        "cited_by_count"
       ]
     }
   },
   {
-    "oql": "get works where type is not article; summarize; return count;",
+    "oql": "get works where type is not article;",
     "query": {
       "filters": [
         {
@@ -105,8 +97,7 @@
           "operator": "and",
           "children": [
             "leaf_1"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_1",
@@ -114,19 +105,13 @@
           "type": "leaf",
           "operator": "is not",
           "column_id": "type",
-          "value": [
-            "article"
-          ]
+          "value": "article"
         }
-      ],
-      "summarize": true,
-      "return": [
-        "count"
       ]
     }
   },
   {
-    "oql": "get works where institution is I4210120667 and type is article; summarize by publishers where display_name is test; sort by display_name asc; return display_name, country_code",
+    "oql": "get works where institutions is I4210120667 and type is article; summarize by publishers where display_name is test; sort by display_name asc; return display_name, country_code",
     "query": {
       "filters": [
         {
@@ -137,8 +122,7 @@
           "children": [
             "leaf_8h8aqu",
             "leaf_7WMZFN"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_8h8aqu",
@@ -146,9 +130,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "authorships.institutions.id",
-          "value": [
-            "I4210120667"
-          ]
+          "value": "I4210120667"
         },
         {
           "id": "br_wDTyaQ",
@@ -157,8 +139,7 @@
           "operator": "and",
           "children": [
             "leaf_s3XVSi"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_s3XVSi",
@@ -174,25 +155,22 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "type",
-          "value": [
-            "article"
-          ]
+          "value": "article"
         }
       ],
-      "summarize": true,
       "summarize_by": "publishers",
       "sort_by": {
         "column_id": "display_name",
         "direction": "asc"
       },
-      "return": [
+      "return_columns": [
         "display_name",
         "country_code"
       ]
     }
   },
   {
-    "oql": "get works where funder is not test or works is 34578964; summarize by sources where name contains test; return display_name, type, issn;",
+    "oql": "get works where funder is not test or authors is 34578964; summarize by sources where name contains test; return display_name, type, issn;",
     "query": {
       "filters": [
         {
@@ -203,8 +181,7 @@
           "children": [
             "leaf_8h8aqu",
             "leaf_xgj1Fz"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_8h8aqu",
@@ -212,19 +189,15 @@
           "type": "leaf",
           "operator": "is not",
           "column_id": "grants.funder",
-          "value": [
-            "test"
-          ]
+          "value": "test"
         },
         {
           "id": "leaf_xgj1Fz",
           "subjectEntity": "works",
           "type": "leaf",
           "operator": "is",
-          "column_id": "works",
-          "value": [
-            34578964
-          ]
+          "column_id": "authorships.author.id",
+          "value": 34578964
         },
         {
           "id": "br_vCF3JJ",
@@ -233,8 +206,7 @@
           "operator": "and",
           "children": [
             "leaf_dHuMiz"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_dHuMiz",
@@ -245,9 +217,8 @@
           "value": "test"
         }
       ],
-      "summarize": true,
       "summarize_by": "sources",
-      "return": [
+      "return_columns": [
         "display_name",
         "type",
         "issn"
@@ -255,7 +226,7 @@
     }
   },
   {
-    "oql": "get works where publication_year is 2020,2021,2022,2023,2024; summarize by institution where country is fr; sort by sum(apc_paid_usd) desc; return display_name, sum(apc_paid_usd);",
+    "oql": "get works where publication_year is 2021; summarize by institutions where country is fr; sort by mean(fwci) desc; return display_name, mean(fwci);",
     "query": {
       "filters": [
         {
@@ -265,8 +236,7 @@
           "operator": "and",
           "children": [
             "leaf_dXioYL"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_dXioYL",
@@ -274,7 +244,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "publication_year",
-          "value": [2020, 2021, 2022, 2023, 2024]
+          "value": 2021
         },
         {
           "id": "br_2GXzUE",
@@ -283,8 +253,7 @@
           "operator": "and",
           "children": [
             "leaf_gXa3zF"
-          ],
-          "isRoot": true
+          ]
         },
         {
           "id": "leaf_gXa3zF",
@@ -292,18 +261,125 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "country_code",
-          "value": ["fr"]
+          "value": "fr"
         }
       ],
-      "summarize": true,
       "summarize_by": "institutions",
       "sort_by": {
-        "column_id": "sum(apc_paid_usd)",
+        "column_id": "mean(fwci)",
         "direction": "desc"
       },
-      "return": [
+      "return_columns": [
         "display_name",
-        "sum(apc_paid_usd)"
+        "mean(fwci)"
+      ]
+    }
+  },
+  {
+    "oql": "get works where ((publication_year is 2020 or type is not article) and authors is 23424534); summarize by institutions where country is fr; sort by count desc; return display_name, count;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_1zTf4X",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_3",
+            "br_1"
+          ]
+        },
+        {
+          "id": "br_1",
+          "subjectEntity": "works",
+          "type": "branch",
+          "operator": "or",
+          "children": [
+            "leaf_dXioYL",
+            "leaf_2"
+          ]
+        },
+        {
+          "id": "leaf_3",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "authorships.author.id",
+          "value": 23424534
+        },
+        {
+          "id": "leaf_2",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is not",
+          "column_id": "type",
+          "value": "article"
+        },
+        {
+          "id": "leaf_dXioYL",
+          "subjectEntity": "works",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "publication_year",
+          "value": 2020
+        },
+        {
+          "id": "br_2GXzUE",
+          "subjectEntity": "institutions",
+          "type": "branch",
+          "operator": "and",
+          "children": [
+            "leaf_gXa3zF"
+          ]
+        },
+        {
+          "id": "leaf_gXa3zF",
+          "subjectEntity": "institutions",
+          "type": "leaf",
+          "operator": "is",
+          "column_id": "country_code",
+          "value": "fr"
+        }
+      ],
+      "summarize_by": "institutions",
+      "sort_by": {
+        "column_id": "count",
+        "direction": "desc"
+      },
+      "return_columns": [
+        "display_name",
+        "count"
+      ]
+    }
+  },
+  {
+    "oql": "get works where authors is 123456; summarize by institutions; return display_name, ror, mean(fwci), count;",
+    "query": {
+      "filters": [
+        {
+          "id": "br_nsax4s",
+          "subjectEntity": "works",
+          "operator": "and",
+          "type": "branch",
+          "children": [
+            "leaf_3baot5"
+          ]
+        },
+        {
+          "id": "leaf_3baot5",
+          "subjectEntity": "works",
+          "operator": null,
+          "type": "leaf",
+          "column_id": "authorships.institutions.id",
+          "value": 123456
+        }
+      ],
+      "summarize_by": "institutions",
+      "return_columns": [
+        "display_name",
+        "ror",
+        "mean(fwci)",
+        "count"
       ]
     }
   }
