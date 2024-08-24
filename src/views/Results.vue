@@ -1,5 +1,8 @@
 <template>
   <v-container fluid class="pt-0">
+<!--    <div>-->
+<!--      {{ $store.state.search.oql }}-->
+<!--    </div>-->
     <v-card flat rounded class="mb-3 pa-3 d-flex" style="font-family: monospace;">
       <div class=" font-weight-bold d-flex flex-column align-center mr-6">
         <v-icon>mdi-code-parentheses-box</v-icon>
@@ -19,7 +22,7 @@
             @keydown.enter.exact.prevent="applyOql"
         />
       </div>
-      <v-btn color="primary" icon @click="applyOql" :disabled="oql === queryAsOql">
+      <v-btn color="primary" icon @click="applyOql" :disabled="oql === query.oql">
         <v-icon>mdi-arrow-down</v-icon>
       </v-btn>
     </v-card>
@@ -136,7 +139,6 @@ export default {
       "querySubjectEntityConfig",
       "query",
       "filtersAreDirty",
-      "queryAsOql",
     ]),
   },
 
@@ -190,10 +192,15 @@ export default {
   mounted() {
   },
   watch: {
-    "$route.params.id": {
+    "query.id": {
       handler: function () {
         this.pollSearch()
-        this.oql = this.queryAsOql
+      },
+      immediate: true
+    },
+    "$store.state.search.oql": {
+      handler: function (newVal) {
+        this.oql = newVal
       },
       immediate: true
     },

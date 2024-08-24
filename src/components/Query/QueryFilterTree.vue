@@ -1,7 +1,8 @@
 <template>
   <div>
-    <div>
-    </div>
+<!--    <div>-->
+<!--      {{ querySubjectEntityConfig.columns }}-->
+<!--    </div>-->
     <v-treeview
         :items="filtersRecursive"
         v-model="tree"
@@ -104,6 +105,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 import {getConfigs} from "@/oaxConfigs";
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
+import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "Template",
@@ -137,6 +139,7 @@ export default {
   },
 
   methods: {
+    filter,
     ...mapMutations([
       "snackbar",
     ]),

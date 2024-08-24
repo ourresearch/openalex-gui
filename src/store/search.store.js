@@ -11,29 +11,30 @@ import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
+
 function convertFlatToRecursive(flatTree) {
-  const treeMap = new Map(flatTree.map(item => [item.id, { ...item, children: [], isRoot: false }]));
+    const treeMap = new Map(flatTree.map(item => [item.id, {...item, children: [], isRoot: false}]));
 
-  const root = [];
+    const root = [];
 
-  flatTree.forEach(item => {
-    if (item?.children?.length > 0) {
-      item.children.forEach(childId => {
-        const childNode = treeMap.get(childId);
-        treeMap.get(item.id).children.push(childNode);
-      });
-    }
-  });
+    flatTree.forEach(item => {
+        if (item?.children?.length > 0) {
+            item.children.forEach(childId => {
+                const childNode = treeMap.get(childId);
+                treeMap.get(item.id).children.push(childNode);
+            });
+        }
+    });
 
-  flatTree.forEach(item => {
-    if (!flatTree.some(node => node?.children?.includes(item.id))) {
-      const rootNode = treeMap.get(item.id);
-      rootNode.isRoot = true;
-      root.push(rootNode);
-    }
-  });
+    flatTree.forEach(item => {
+        if (!flatTree.some(node => node?.children?.includes(item.id))) {
+            const rootNode = treeMap.get(item.id);
+            rootNode.isRoot = true;
+            root.push(rootNode);
+        }
+    });
 
-  return root;
+    return root;
 }
 
 function deleteNode(tree, idToDelete) {
@@ -57,6 +58,16 @@ function deleteNode(tree, idToDelete) {
         }));
 }
 
+const prettifyFilters = function (filters) {
+    // const filtersCopy = _.cloneDeep(filters)
+
+    return filters
+        // remove branches that have no children
+        .filter((f) => {
+            return f.type === "leaf" || f.children?.length > 0
+        })
+
+}
 
 
 const baseQuery = () => ({
@@ -149,14 +160,11 @@ export const search = {
 
         setAllFilters({state}, newFilters) {
             state.query.filters = newFilters
-            state.query.filters = _.cloneDeep(newFilters)
         },
         clearAllFilters({state}) {
             state.query.filters = [makeFilterBranch("works")]
             state.query.filters = [makeFilterBranch("works")]
         },
-
-
 
 
         // SUMMARIZE
@@ -198,7 +206,6 @@ export const search = {
         },
 
 
-
         // RETURN COLUMNS
         addReturnColumn({state}, columnId) {
             state.query.return_columns.push(columnId)
@@ -208,10 +215,10 @@ export const search = {
         },
 
 
-
         // SET MANY THINGS AT ONCE
         setFromQueryObject({state, dispatch}, query) {
             console.log("setFromQueryObject", query)
+            state.oql = queryToOQL(query)
 
             dispatch("setSummarize", query.summarize_by) // do this first because it sets defaults for the other stuff
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
@@ -222,16 +229,19 @@ export const search = {
         setQueryFromOql: async function ({state, dispatch}, oql) {
             console.log("setQueryFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql)
-            dispatch("setFromQueryObject", query)
+            const url = "https://api.openalex.org/searches"
+            const resp = await axios.post(url, {query})
+            console.log("Created search", resp.data)
+            await pushSafe({name: 'search', params: {id: resp.data.id}})
+            // dispatch("setFromQueryObject", query)
         },
 
 
-
         // CREATE AND READ SEARCH
-        createSearch: async function ({state}) {
+        createSearch: async function ({state, getters}) {
             state.is_ready = false
             const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query: state.query})
+            const resp = await axios.post(url, {query: getters.query})
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
@@ -245,11 +255,16 @@ export const search = {
             const searchResp = {
                 ...stateDefaults(),
                 id: id,
+                oql: queryToOQL(resp.data.query),
                 query: resp.data.query,
                 results_header: resp.data.results.header ?? [],
                 results_body: resp.data.results.body ?? [],
                 results_meta: resp.data.meta,
                 is_ready: resp.data.is_ready,
+            }
+
+            if (!searchResp.query.summarize_by){
+                searchResp.query.summarize_by = null
             }
 
             // replace the state with the new search
@@ -282,9 +297,6 @@ export const search = {
         },
         filtersAreDirty: (state) => {
             return !_.isEqual(state.query.filters, state.originalFilters)
-        },
-        queryAsOql: (state) => {
-            return queryToOQL(state.query)
         },
 
 
