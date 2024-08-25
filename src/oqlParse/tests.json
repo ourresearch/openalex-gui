@@ -4,7 +4,7 @@
     "query": {}
   },
   {
-    "oql": "get works where type is article;",
+    "oql": "get works where type is types/article;",
     "query": {
       "filters": [
         {
@@ -22,7 +22,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "type",
-          "value": "article"
+          "value": "types/article"
         }
       ]
     }
@@ -105,13 +105,13 @@
           "type": "leaf",
           "operator": "is not",
           "column_id": "type",
-          "value": "article"
+          "value": "types/article"
         }
       ]
     }
   },
   {
-    "oql": "get works where institutions is I4210120667 and type is article; summarize by publishers where display_name is test; sort by display_name asc; return display_name, country_code",
+    "oql": "get works where authorships.institutions.id is institutions/I4210120667 and type is types/article; summarize by publishers where display_name is test; sort by display_name asc; return display_name, country_code",
     "query": {
       "filters": [
         {
@@ -130,7 +130,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "authorships.institutions.id",
-          "value": "I4210120667"
+          "value": "institutions/I4210120667"
         },
         {
           "id": "br_wDTyaQ",
@@ -155,7 +155,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "type",
-          "value": "article"
+          "value": "types/article"
         }
       ],
       "summarize_by": "publishers",
@@ -170,7 +170,7 @@
     }
   },
   {
-    "oql": "get works where funder is not test or authors is 34578964; summarize by sources where name contains test; return display_name, type, issn;",
+    "oql": "get works where grants.funder is not test or authorships.author.id is 34578964; summarize by sources where default.search contains test; return display_name, type, issn;",
     "query": {
       "filters": [
         {
@@ -226,7 +226,7 @@
     }
   },
   {
-    "oql": "get works where publication_year is 2021; summarize by institutions where country is fr; sort by mean(fwci) desc; return display_name, mean(fwci);",
+    "oql": "get works where publication_year is 2021; summarize by institutions where country_code is countries/fr; sort by mean(fwci) desc; return display_name, mean(fwci);",
     "query": {
       "filters": [
         {
@@ -261,7 +261,7 @@
           "type": "leaf",
           "operator": "is",
           "column_id": "country_code",
-          "value": "fr"
+          "value": "countries/fr"
         }
       ],
       "summarize_by": "institutions",
@@ -276,7 +276,7 @@
     }
   },
   {
-    "oql": "get works where ((publication_year is 2020 or type is not article) and authors is 23424534); summarize by institutions where country is fr; sort by count desc; return display_name, count;",
+    "oql": "get works where ((publication_year is 2020 or type is not types/article) and authorships.author.id is 23424534); summarize by institutions where country_code is fr; sort by count desc; return display_name, count;",
     "query": {
       "filters": [
         {
@@ -313,7 +313,7 @@
           "type": "leaf",
           "operator": "is not",
           "column_id": "type",
-          "value": "article"
+          "value": "types/article"
         },
         {
           "id": "leaf_dXioYL",
