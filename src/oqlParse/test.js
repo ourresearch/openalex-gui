@@ -22,7 +22,11 @@ function queriesEqual(query1, query2, path = '') {
     console.log(`  Query 2: ${JSON.stringify(value2)}`);
   }
 
-  // Helper function to compare two filters
+  function findRootFilters(filters) {
+    const childIds = new Set(filters.flatMap(filter => filter.children || []));
+    return filters.filter(filter => !childIds.has(filter.id));
+  }
+
   function compareFilters(filter1, filter2, filterPath) {
     if (!filter1 && !filter2) return true;
     if (!filter1 || !filter2) {
@@ -31,7 +35,7 @@ function queriesEqual(query1, query2, path = '') {
     }
 
     if (filter1.type !== filter2.type || filter1.subjectEntity !== filter2.subjectEntity) {
-      logDifference(`${filterPath}type/subjectEntity`,
+      logDifference(`${filterPath}.type/subjectEntity`,
         { type: filter1.type, subjectEntity: filter1.subjectEntity },
         { type: filter2.type, subjectEntity: filter2.subjectEntity });
       return false;
@@ -85,19 +89,20 @@ function queriesEqual(query1, query2, path = '') {
       return false;
     }
 
-    // Find and compare root filters
-    const rootFilter1 = query1.filters.find(f => f.isRoot);
-    const rootFilter2 = query2.filters.find(f => f.isRoot);
+    // Find root filters
+    const rootFilters1 = findRootFilters(query1.filters);
+    const rootFilters2 = findRootFilters(query2.filters);
 
-    if (!rootFilter1 && !rootFilter2) {
-      return true;
-    }
-    if (!rootFilter1 || !rootFilter2) {
-      logDifference('root filter', rootFilter1, rootFilter2);
+    if (rootFilters1.length !== rootFilters2.length) {
+      logDifference('root filters count', rootFilters1.length, rootFilters2.length);
       return false;
     }
 
-    return compareFilters(rootFilter1, rootFilter2, 'filters.root.');
+    // Compare all root filters
+    return rootFilters1.every((rootFilter1, index) => {
+      const rootFilter2 = rootFilters2[index];
+      return compareFilters(rootFilter1, rootFilter2, `filters.root[${index}].`);
+    });
   }
 
   return true;
