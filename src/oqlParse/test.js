@@ -27,43 +27,53 @@ function queriesEqual(query1, query2, path = '') {
     return filters.filter(filter => !childIds.has(filter.id));
   }
 
-  function compareFilters(filter1, filter2, filterPath) {
-    if (!filter1 && !filter2) return true;
-    if (!filter1 || !filter2) {
-      logDifference(filterPath, filter1, filter2);
+  function compareFilters(filters1, filters2, filterPath) {
+    const queue1 = [...filters1];
+    const queue2 = [...filters2];
+
+    while (queue1.length > 0 && queue2.length > 0) {
+      const filter1 = queue1.shift();
+      let matchFound = false;
+
+      for (let i = 0; i < queue2.length; i++) {
+        const filter2 = queue2[i];
+
+        if (filtersMatch(filter1, filter2)) {
+          queue2.splice(i, 1);
+          matchFound = true;
+          break;
+        }
+      }
+
+      if (!matchFound) {
+        logDifference(`${filterPath}unmatched filter`, filter1, null);
+        return false;
+      }
+    }
+
+    if (queue1.length > 0 || queue2.length > 0) {
+      logDifference(`${filterPath}remaining filters`, queue1, queue2);
       return false;
     }
 
-    if (filter1.type !== filter2.type || filter1.subjectEntity !== filter2.subjectEntity) {
-      logDifference(`${filterPath}.type/subjectEntity`,
-        { type: filter1.type, subjectEntity: filter1.subjectEntity },
-        { type: filter2.type, subjectEntity: filter2.subjectEntity });
+    return true;
+  }
+
+  function filtersMatch(filter1, filter2) {
+    if (filter1.type !== filter2.type ||
+        filter1.subjectEntity !== filter2.subjectEntity ||
+        filter1.operator !== filter2.operator) {
       return false;
     }
 
     if (filter1.type === 'leaf') {
-      if (filter1.operator !== filter2.operator ||
-          filter1.column_id !== filter2.column_id ||
-          JSON.stringify(filter1.value) !== JSON.stringify(filter2.value)) {
-        logDifference(`${filterPath}leaf properties`,
-          { operator: filter1.operator, column_id: filter1.column_id, value: filter1.value },
-          { operator: filter2.operator, column_id: filter2.column_id, value: filter2.value });
-        return false;
-      }
+      return filter1.column_id === filter2.column_id &&
+             JSON.stringify(filter1.value) === JSON.stringify(filter2.value);
     } else if (filter1.type === 'branch') {
-      if (filter1.operator !== filter2.operator || filter1.children.length !== filter2.children.length) {
-        logDifference(`${filterPath}branch properties`,
-          { operator: filter1.operator, childrenLength: filter1.children.length },
-          { operator: filter2.operator, childrenLength: filter2.children.length });
-        return false;
-      }
-      return filter1.children.every((childId, index) => {
-        const childFilter1 = query1.filters.find(f => f.id === childId);
-        const childFilter2 = query2.filters.find(f => f.id === filter2.children[index]);
-        return compareFilters(childFilter1, childFilter2, `${filterPath}children[${index}].`);
-      });
+      return filter1.children.length === filter2.children.length;
     }
-    return true;
+
+    return false;
   }
 
   // Handle empty objects
@@ -98,16 +108,12 @@ function queriesEqual(query1, query2, path = '') {
       return false;
     }
 
-    // Compare all root filters
-    return rootFilters1.every((rootFilter1, index) => {
-      const rootFilter2 = rootFilters2[index];
-      return compareFilters(rootFilter1, rootFilter2, `filters.root[${index}].`);
-    });
+    // Compare all filters
+    return compareFilters(query1.filters, query2.filters, 'filters.');
   }
 
   return true;
 }
-
 // Run the tests
 testCases.forEach((testCase, index) => {
     const { oql, query: expectedQuery } = testCase;
