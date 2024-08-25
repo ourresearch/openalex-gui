@@ -353,7 +353,7 @@
     }
   },
   {
-    "oql": "get works where authors is 123456; summarize by institutions; return display_name, ror, mean(fwci), count;",
+    "oql": "get works where authorships.institutions.id is 123456; summarize by institutions; return display_name, ror, mean(fwci), count;",
     "query": {
       "filters": [
         {
@@ -368,7 +368,7 @@
         {
           "id": "leaf_3baot5",
           "subjectEntity": "works",
-          "operator": null,
+          "operator": "is",
           "type": "leaf",
           "column_id": "authorships.institutions.id",
           "value": 123456
