@@ -70,7 +70,7 @@ function parseCondition(condition, subjectEntity) {
     // Remove unnecessary parentheses and split based on the first matching operator
     condition = condition.trim().replace(/^\((.*?)\)$/, '$1');
 
-    let match = condition.match(/^(\S+)\s+(is not|is greater than|is less than|contains|does not contain|is in|is not in|is)\s+(.+)$/);
+    let match = condition.match(/^(\S+)\s+(is not|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)$/);
     if (match) {
         let columnName = match[1].trim();
         let columnId = getColumnId(columnName, subjectEntity);
