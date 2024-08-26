@@ -1,6 +1,11 @@
 <template>
   <div class="d-flex align-center flex-grow-1">
 
+
+    <v-icon left>
+      {{ columnConfig.icon }}
+    </v-icon>
+
     <!--    The filter key-->
     <div class="font-weight-bold">
       {{ columnConfig.displayName }}
