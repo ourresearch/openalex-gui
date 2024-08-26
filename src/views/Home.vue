@@ -5,26 +5,7 @@
       <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>
         <v-col>
-          <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
-            <div class="flex-grow-1">
-
-              <v-textarea
-                  v-model="natLangQuery"
-                  :disabled="isNatLangLoading"
-                  :loading="isNatLangLoading"
-                  autofocus
-                  auto-grow
-                  filled
-                  rounded
-                  rows="1"
-                  placeholder="Search the research ecosystem with natural language"
-                  @keydown.enter.exact.prevent="createSearchFromNatLang"
-                  append-icon="mdi-arrow-right-circle"
-                  @click:append="createSearchFromNatLang"
-              />
-            </div>
-
-          </div>
+          <search-from-text />
 
 
         </v-col>
@@ -173,6 +154,7 @@ import {VueTyper} from 'vue-typer'
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
 import axios from "axios";
+import SearchFromText from "@/components/SearchFromText.vue";
 
 
 export default {
@@ -180,6 +162,7 @@ export default {
   components: {
     OqlBox,
     VueTyper,
+    SearchFromText,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",
