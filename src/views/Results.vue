@@ -30,7 +30,7 @@
           <pre>{{ $store.state.search.query }}</pre>
         </v-card>
       </v-col>
-      <v-col cols="12"  xl="8" v-if="cardsToShowSelected.includes('results')">
+      <v-col cols="12"  xl="8">
         <v-card flat rounded>
 
           <div class="d-flex py-2 px-4 pr-2">
