@@ -32,6 +32,7 @@ import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
+import OQOTests from "@/views/QueryTest.vue";
 
 Vue.use(VueRouter)
 
@@ -113,6 +114,7 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
+    {path: '/tests', component: OQOTests},
 
 
     // redirects to gitbook docs
