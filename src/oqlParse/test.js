@@ -127,24 +127,44 @@ class OQOTestRunner {
     }
 
     static runOQLToOQOFunc(oql, expectedQuery) {
-        const generatedOQO = oqlToQuery(oql);
-        const result = OQOTestRunner.queriesEqual(generatedOQO, expectedQuery);
-        return {
-            "case": "oqlToQuery",
-            isPassing: result.equal,
-            details: result,
-        };
+        try {
+            const generatedOQO = oqlToQuery(oql);
+            const result = OQOTestRunner.queriesEqual(generatedOQO, expectedQuery);
+            return {
+                "case": "oqlToQuery",
+                isPassing: result.equal,
+                details: result,
+            };
+        } catch (e) {
+            return {
+                "case": "oqlToQuery",
+                isPassing: false,
+                details: {
+                    error: e.message,
+                },
+            };
+        }
     }
 
     static runOQOToOQLFunc(expectedQuery) {
-        const generatedOQL = queryToOQL(expectedQuery);
-        const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
-        const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, expectedQuery);
-        return {
-            "case": "queryToOql",
-            isPassing: result.equal,
-            details: result
-        };
+        try {
+            const generatedOQL = queryToOQL(expectedQuery);
+            const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
+            const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, expectedQuery);
+            return {
+                "case": "queryToOql",
+                isPassing: result.equal,
+                details: result
+            };
+        } catch (e) {
+            return {
+                "case": "queryToOql",
+                isPassing: false,
+                details: {
+                    error: e.message,
+                },
+            };
+        }
     }
 
     static async getNatLangQuery(prompt) {
@@ -218,7 +238,7 @@ class OQOTestRunner {
 
                 if (result.is_ready) {
                     const elapsedTime = Date.now() - startTime;
-                    return { result, elapsedTime };
+                    return {result, elapsedTime};
                 }
 
                 if (Date.now() - startTime >= timeout) {
@@ -232,7 +252,10 @@ class OQOTestRunner {
 
         try {
             const searchId = await createSearchGetID(query);
-            const { result, elapsedTime } = pollSearchUntilReady(searchId, timeout);
+            const {
+                result,
+                elapsedTime
+            } = pollSearchUntilReady(searchId, timeout);
             const testResult = {
                 "case": "queryToSearch",
                 isPassing: true,
@@ -258,37 +281,48 @@ class OQOTestRunner {
     }
 
     async runAllTests() {
-        for (const test of tests) {
+        const testPromises = this.tests.map(async (test) => {
             const testId = objectMD5(test);
+
+            // Run OQL to Query test
             const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test.oql, test.query);
             oqlToQueryResult.id = testId;
             this.onTestResultCb(oqlToQueryResult);
+
+            // Run Query to OQL test
             const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test.query);
             queryToOqlResult.id = testId;
             this.onTestResultCb(queryToOqlResult);
+
+            // Run Natural Language test if applicable
             if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
                 const natLangResult = await OQOTestRunner.runNatLangFunc(test.natLang, test.query);
                 natLangResult.id = testId;
                 this.onTestResultCb(natLangResult);
             }
+
+            // Run Search test
             let searchTimeout = 30000;
             if ('searchTimeout' in test) {
                 searchTimeout = test.searchTimeout;
                 // convert to ms if in seconds
                 if (searchTimeout < 1000) {
-                    searchTimeout = searchTimeout * 1000;
+                    searchTimeout *= 1000;
                 }
             }
             const searchResult = await OQOTestRunner.runSearchFunc(test.query, searchTimeout);
             searchResult.id = testId;
             this.onTestResultCb(searchResult);
-        }
+        });
+
+        // Wait for all tests to complete
+        await Promise.all(testPromises);
     }
 }
 
 
 const tests = await getTests();
 const testRunner = new OQOTestRunner(tests, (test) => {
-        console.log(test);
-    });
+    console.log(test);
+});
 await testRunner.runAllTests();
