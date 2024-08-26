@@ -132,7 +132,7 @@ class OQOTestRunner {
         return {
             "case": "oqlToQuery",
             isPassing: result.equal,
-            meta: result,
+            details: result,
         };
     }
 
@@ -143,7 +143,7 @@ class OQOTestRunner {
         return {
             "case": "queryToOql",
             isPassing: result.equal,
-            meta: result
+            details: result
         };
     }
 
@@ -168,13 +168,13 @@ class OQOTestRunner {
                 results.push({
                     "case": "natLang",
                     isPassing: result.equal,
-                    meta: result,
+                    details: result,
                 });
             } catch (e) {
                 results.push({
                     "case": "natLang",
                     isPassing: false,
-                    meta: {
+                    details: {
                         error: e.message,
                     }
                 });
@@ -236,21 +236,21 @@ class OQOTestRunner {
             const testResult = {
                 "case": "queryToSearch",
                 isPassing: true,
-                meta: {
+                details: {
                     id: result.id,
                     elapsedTime,
-                    resultsCount: result.meta.count,
+                    resultsCount: result.details.count,
                 }
             };
-            if (result.meta.count === 0) {
-                result.meta.error = "no results";
+            if (result.details.count === 0) {
+                result.details.error = "no results";
             }
             return testResult;
         } catch (e) {
             return {
                 "case": "queryToSearch",
                 isPassing: false,
-                meta: {
+                details: {
                     error: "timeout"
                 }
             };
