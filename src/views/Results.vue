@@ -1,29 +1,20 @@
 <template>
   <v-container fluid class="pt-0">
-<!--    <div>-->
-<!--      {{ $store.state.search.oql }}-->
-<!--    </div>-->
-    <v-card flat rounded class="mb-3 pa-3 d-flex" style="font-family: monospace;">
-      <div class=" font-weight-bold d-flex flex-column align-center mr-6">
-        <v-icon>mdi-code-parentheses-box</v-icon>
-        <span style="font-size: 12px;">OQL</span>
-      </div>
+    <!--    <div>-->
+    <!--      {{ $store.state.search.oql }}-->
+    <!--    </div>-->
+    <v-card flat rounded class="mb-3 px-3 py-1 d-flex align-center">
+      <!--      <div class=" font-weight-bold d-flex flex-column align-center mr-6">-->
+      <!--        <v-icon>mdi-code-parentheses-box</v-icon>-->
+      <!--        <span style="font-size: 12px;">OQL</span>-->
+      <!--      </div>-->
       <div class=" flex-grow-1">
-        <v-textarea
-            style="font-size: 12px !important; line-height: 1.2 !important;"
-            v-model="oql"
-            :disabled="!$store.state.search.is_ready"
-            autofocus
-            auto-grow
-            rounded
-            filled
-            rows="1"
-            placeholder="OQL goes here"
-            @keydown.enter.exact.prevent="applyOql"
-        />
+        <div style="font-family: monospace; font-size: 11px; line-height: 1.2 !important;">
+          {{ $store.state.search.oql }}
+        </div>
       </div>
-      <v-btn color="primary" icon @click="applyOql" :disabled="oql === query.oql">
-        <v-icon>mdi-arrow-down</v-icon>
+      <v-btn small icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
+        <v-icon small>mdi-pencil</v-icon>
       </v-btn>
     </v-card>
 
@@ -56,7 +47,7 @@
         <v-card flat rounded>
 
           <div class="d-flex py-2 px-4 pr-2">
-            <query-summarize-by style="position: relative; left: -20px; z-index: 99999;"/>
+            <query-summarize-by />
             <v-spacer></v-spacer>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
               <v-icon>mdi-close</v-icon>
@@ -70,12 +61,41 @@
         </v-card>
       </v-col>
     </v-row>
-    <!--    <v-dialog scrollable v-model="isPropSelectorDialogOpen">-->
-    <!--      <prop-selector-->
-    <!--          :subject-entity="'works'"-->
-    <!--          @close="isPropSelectorDialogOpen = false"-->
-    <!--      />-->
-    <!--    </v-dialog>-->
+    <v-dialog scrollable v-model="isOqlEditDialogOpen" max-width="600">
+      <v-card flat rounded>
+        <v-toolbar flat>
+          <v-toolbar-title>Edit OQL</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="isOqlEditDialogOpen = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-card-text>
+
+          <v-textarea
+              v-model="oql"
+              :disabled="!$store.state.search.is_ready"
+              style="font-family: monospace; font-size: 12px; line-height: 1 !important;"
+              autofocus
+              auto-grow
+              rounded
+              filled
+              rows="1"
+              placeholder="OQL goes here"
+              @keydown.enter.exact.prevent="applyOql"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn rounded text @click="isOqlEditDialogOpen = false">
+            Cancel
+          </v-btn>
+          <v-btn color="primary" text @click="applyOql" :disabled="oql === $store.state.search.oql">
+            Apply
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -107,6 +127,7 @@ export default {
   data() {
     return {
       isPropSelectorDialogOpen: false,
+      isOqlEditDialogOpen: false,
       oql: "",
 
       selectedFiltersTab: 0,
@@ -159,6 +180,7 @@ export default {
       this.createSearch()
     },
     applyOql() {
+      this.isOqlEditDialogOpen = false
       this.setQueryFromOql(this.oql)
       // this.createSearch()
 
@@ -192,17 +214,14 @@ export default {
   mounted() {
   },
   watch: {
-    "query.id": {
+    "$route.params.id": {
       handler: function () {
         this.pollSearch()
       },
       immediate: true
     },
-    "$store.state.search.oql": {
-      handler: function (newVal) {
-        this.oql = newVal
-      },
-      immediate: true
+    isOqlEditDialogOpen(){
+      this.oql = this.$store.state.search.oql
     },
 
     cardsToShowSelected() {

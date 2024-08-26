@@ -7,80 +7,21 @@ import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
 import {getConfigs} from "@/oaxConfigs";
-import {makeFilterBranch, makeFilterLeaf} from "@/components/Query/query";
+import {
+    makeFilterBranch,
+    makeFilterLeaf,
+    baseQuery,
+    convertFlatToRecursive,
+    deleteNode,
+} from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex)
 
-function convertFlatToRecursive(flatTree) {
-    const treeMap = new Map(flatTree.map(item => [item.id, {...item, children: [], isRoot: false}]));
-
-    const root = [];
-
-    flatTree.forEach(item => {
-        if (item?.children?.length > 0) {
-            item.children.forEach(childId => {
-                const childNode = treeMap.get(childId);
-                treeMap.get(item.id).children.push(childNode);
-            });
-        }
-    });
-
-    flatTree.forEach(item => {
-        if (!flatTree.some(node => node?.children?.includes(item.id))) {
-            const rootNode = treeMap.get(item.id);
-            rootNode.isRoot = true;
-            root.push(rootNode);
-        }
-    });
-
-    return root;
-}
-
-function deleteNode(tree, idToDelete) {
-    const idsToDelete = new Set();
-
-    function findNodesToDelete(nodeId) {
-        idsToDelete.add(nodeId);
-        const node = tree.find(n => n.id === nodeId);
-        if (node && Array.isArray(node.children)) {
-            node.children.forEach(childId => findNodesToDelete(childId));
-        }
-    }
-
-    findNodesToDelete(idToDelete);
-
-    return tree
-        .filter(node => !idsToDelete.has(node.id))
-        .map(node => ({
-            ...node,
-            children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
-        }));
-}
-
-const prettifyFilters = function (filters) {
-    // const filtersCopy = _.cloneDeep(filters)
-
-    return filters
-        // remove branches that have no children
-        .filter((f) => {
-            return f.type === "leaf" || f.children?.length > 0
-        })
-
-}
 
 
-const baseQuery = () => ({
-    filters: [
-        makeFilterBranch("works")
-    ],
-    summarize_by: null,
-    sort_by: {
-        column_id: "display_name",
-        direction: "asc",
-    },
-    return_columns: getConfigs().works.showOnTablePage,
-})
+
+
 const stateDefaults = function () {
     const ret = {
         id: null,
@@ -94,10 +35,6 @@ const stateDefaults = function () {
         results_header: [],
         results_body: [],
         results_meta: null,
-
-        // reminder:
-        // Every time the URL changes, I get the search with that ID and
-        // keep pulling till I get results.
 
 
     }
@@ -218,12 +155,17 @@ export const search = {
         // SET MANY THINGS AT ONCE
         setFromQueryObject({state, dispatch}, query) {
             console.log("setFromQueryObject", query)
-            state.oql = queryToOQL(query)
 
-            dispatch("setSummarize", query.summarize_by) // do this first because it sets defaults for the other stuff
+             // do this first because it sets defaults for the other stuff
+            dispatch("setSummarize", query.summarize_by)
+
+            // now, if necessary, we overwrite the defaults that were set by setSummarize:
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
             if (query.return_columns) state.query.return_columns = query.return_columns
             if (query.filters) dispatch("setAllFilters", query.filters)
+
+            // we use these to check if the user has changed the filters
+            state.originalFilters = _.cloneDeep(state.query.filters)
         },
 
         setQueryFromOql: async function ({state, dispatch}, oql) {
@@ -233,7 +175,6 @@ export const search = {
             const resp = await axios.post(url, {query})
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
-            // dispatch("setFromQueryObject", query)
         },
 
 
@@ -247,29 +188,25 @@ export const search = {
         },
 
 
-        getSearch: async function (context, id) {
-            context.state.is_ready = false
+        getSearch: async function ({state, dispatch, commit}, id) {
+            state.is_ready = false
             const url = `https://api.openalex.org/searches/${id}`
             const resp = await axios.get(url)
-            // this part is a hack...in the future, we'll just get the query from the search
-            const searchResp = {
-                ...stateDefaults(),
-                id: id,
-                oql: queryToOQL(resp.data.query),
-                query: resp.data.query,
-                results_header: resp.data.results.header ?? [],
-                results_body: resp.data.results.body ?? [],
-                results_meta: resp.data.meta,
-                is_ready: resp.data.is_ready,
-            }
 
-            if (!searchResp.query.summarize_by){
-                searchResp.query.summarize_by = null
-            }
 
-            // replace the state with the new search
-            context.commit("replaceState", searchResp)
-            context.state.originalFilters = _.cloneDeep(context.state.query.filters)
+            // start from a clean slate:
+            commit("replaceState", stateDefaults())
+
+            // set the simple stuff from the response
+            state.id = id
+            state.oql = queryToOQL(resp.data.query)
+            state.results_header = resp.data.results.header ?? []
+            state.results_body = resp.data.results.body ?? []
+            state.results_meta = resp.data.meta
+            state.is_ready = resp.data.is_ready
+
+            // we have to be a bit careful because the server does't always return a full Query object
+            dispatch("setFromQueryObject", resp.data.query)
         },
     },
     getters: {
