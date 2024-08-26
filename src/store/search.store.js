@@ -168,8 +168,8 @@ export const search = {
             state.originalFilters = _.cloneDeep(state.query.filters)
         },
 
-        setQueryFromOql: async function ({state, dispatch}, oql) {
-            console.log("setQueryFromOql", oql, oqlToQuery(oql))
+        createSearchFromOql: async function ({state, dispatch}, oql) {
+            console.log("createSearchFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql)
             const url = "https://api.openalex.org/searches"
             const resp = await axios.post(url, {query})
@@ -180,6 +180,7 @@ export const search = {
 
         // CREATE AND READ SEARCH
         createSearch: async function ({state, getters}) {
+            console.log("createSearch", getters.query)
             state.is_ready = false
             const url = "https://api.openalex.org/searches"
             const resp = await axios.post(url, {query: getters.query})

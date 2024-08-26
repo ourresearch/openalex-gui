@@ -4,8 +4,8 @@
     <v-container class="">
       <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>
-        <v-col>
-          <search-from-text />
+        <v-col class="d-flex justify-center align-center">
+          <search-from-text class="flex-grow-1" />
 
 
         </v-col>
