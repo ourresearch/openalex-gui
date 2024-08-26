@@ -8,7 +8,11 @@ function makeColumnIDsMap() {
     for (const key in configs) {
         const columns = [];
         for (const colKey in configs[key].columns) {
-            columns.push({[configs[key].columns[colKey].displayName.toLowerCase()]: configs[key].columns[colKey].id});
+            columns.push(
+                {name: configs[key].columns[colKey].displayName.toLowerCase(),
+                id: configs[key].columns[colKey].id,
+                entityId: configs[key].columns[colKey].entityId}
+            );
         }
         map[key] = columns;
     }
@@ -17,16 +21,24 @@ function makeColumnIDsMap() {
 
 const COLUMN_IDS_MAP = makeColumnIDsMap();
 
+function getEntityId(subjectEntity, colName) {
+    if (!(subjectEntity in COLUMN_IDS_MAP)) {
+        throw new Error(`${subjectEntity} is not a valid subjectEntity`);
+    }
+        for (const m of COLUMN_IDS_MAP[subjectEntity]) {
+        if (colName === m.name || colName === m.value) return m.entityId;
+    }
+    return null;
+}
+
 
 function getColumnId(name, subjectEntity = "works") {
     name = name.toLowerCase();
     if (!(subjectEntity in COLUMN_IDS_MAP)) {
         throw new Error(`${subjectEntity} is not a valid subjectEntity`);
     }
-    for (const pair of COLUMN_IDS_MAP[subjectEntity]) {
-        const value = Object.values(pair)[0];
-        if (name in pair) return pair[name];
-        else if (value === name) return value;
+    for (const m of COLUMN_IDS_MAP[subjectEntity]) {
+        if (name === m.name || name === m.id) return name;
     }
     throw new Error(`${subjectEntity}.${name} is not a valid column`);
 }
@@ -58,7 +70,7 @@ function parseCondition(condition, subjectEntity) {
     // Remove unnecessary parentheses and split based on the first matching operator
     condition = condition.trim().replace(/^\((.*?)\)$/, '$1');
 
-    let match = condition.match(/^(\S+)\s+(is not|is greater than|is less than|contains|does not contain|is in|is not in|is)\s+(.+)$/);
+    let match = condition.match(/^(\S+)\s+(is not|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)$/);
     if (match) {
         let columnName = match[1].trim();
         let columnId = getColumnId(columnName, subjectEntity);
@@ -67,20 +79,22 @@ function parseCondition(condition, subjectEntity) {
         let value = match[3].trim().replace(/^\((.*?)\)$/, '$1').replace(/;/g, '');
 
         value = parsePrimitive(value);
+        let entityId = getEntityId(subjectEntity, columnName);
+        if (typeof value === "string" && entityId !== null && !value.includes(`${entityId}/`)) value = `${entityId}/${value}`;
 
         return {
             id: generateId(),
             subjectEntity,
             type: "leaf",
             operator,
-            columnId: columnId,
-            value
+            column_id: columnId,
+            value: value,
         };
     }
     return null;
 }
 
-function parseNestedConditions(expression) {
+function parseNestedConditions(expression, subjectEntity = "works") {
     let index = 0;
     const nodes = [];
 
@@ -88,6 +102,7 @@ function parseNestedConditions(expression) {
         const currentNode = {
             id: generateId('br'),
             operator: null,
+            type: "branch",
             children: []
         };
 
@@ -95,7 +110,7 @@ function parseNestedConditions(expression) {
 
         function addBufferAsLeaf() {
             if (buffer.trim()) {
-                const parsedCondition = parseCondition(buffer.trim());
+                const parsedCondition = parseCondition(buffer.trim(), subjectEntity);
                 const leafNode = {
                     id: generateId('leaf'),
                     ...parsedCondition
@@ -152,9 +167,9 @@ function parseFilters(oql) {
     if (worksMatch) {
         const worksClause = worksMatch[1];
         if (worksClause.includes("(")) {
-            let nestedConditions = parseNestedConditions(worksClause);
+            let nestedConditions = parseNestedConditions(worksClause, "works");
             for (const condition of nestedConditions) {
-                condition.subjectEntity = 'work';
+                condition.subjectEntity = 'works';
             }
             filters.push(...nestedConditions);
         }
@@ -204,7 +219,7 @@ function parseFilters(oql) {
 
     if (summarizeByMatch) {
         if (summarizeByCondition !== null && summarizeByCondition.includes("(")) {
-            let nestedConditions = parseNestedConditions(summarizeByCondition);
+            let nestedConditions = parseNestedConditions(summarizeByCondition, summarizeByEntity);
             for (const condition of nestedConditions) {
                 condition.subjectEntity = summarizeByEntity;
             }
