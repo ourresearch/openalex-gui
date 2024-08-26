@@ -319,10 +319,3 @@ class OQOTestRunner {
         await Promise.all(testPromises);
     }
 }
-
-
-const tests = await getTests();
-const testRunner = new OQOTestRunner(tests, (test) => {
-    console.log(test);
-});
-await testRunner.runAllTests();
