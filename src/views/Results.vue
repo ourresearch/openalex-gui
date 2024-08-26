@@ -3,18 +3,19 @@
     <!--    <div>-->
     <!--      {{ $store.state.search.oql }}-->
     <!--    </div>-->
-    <v-card flat rounded class="mb-3 px-3 py-1 d-flex align-center">
-      <!--      <div class=" font-weight-bold d-flex flex-column align-center mr-6">-->
-      <!--        <v-icon>mdi-code-parentheses-box</v-icon>-->
-      <!--        <span style="font-size: 12px;">OQL</span>-->
-      <!--      </div>-->
+    <v-card flat rounded class="mb-3 pa-3 d-flex align-start">
+            <div class=" font-weight-bold">
+<!--              <v-icon>mdi-code-parentheses-box</v-icon>-->
+              <span>OQL</span>
+            </div>
+      <v-divider vertical class="mx-3"></v-divider>
       <div class=" flex-grow-1">
-        <div style="font-family: monospace; font-size: 11px; line-height: 1.2 !important;">
+        <div style="font-family: monospace;">
           {{ $store.state.search.oql }}
         </div>
       </div>
-      <v-btn small icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
-        <v-icon small>mdi-pencil</v-icon>
+      <v-btn icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
+        <v-icon>mdi-pencil</v-icon>
       </v-btn>
     </v-card>
 
@@ -75,7 +76,7 @@
           <v-textarea
               v-model="oql"
               :disabled="!$store.state.search.is_ready"
-              style="font-family: monospace; font-size: 12px; line-height: 1 !important;"
+              style="font-family: monospace;"
               autofocus
               auto-grow
               rounded
@@ -174,14 +175,14 @@ export default {
     ...mapActions("search", [
       "createSearch",
       "getSearch",
-      "setQueryFromOql",
+      "createSearchFromOql",
     ]),
     applyFilters() {
       this.createSearch()
     },
     applyOql() {
       this.isOqlEditDialogOpen = false
-      this.setQueryFromOql(this.oql)
+      this.createSearchFromOql(this.oql)
       // this.createSearch()
 
     },
