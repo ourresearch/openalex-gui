@@ -36,18 +36,22 @@
 
       </router-link>
       <div
-          class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
-          v-if="$route.name === 'Serp'"
+          class="flex-grow-1 mx-3 justify-center d-flex "
+          v-if="$route.name === 'search'"
       >
-        <entity-type-selector
-            v-if="!$vuetify.breakpoint.mobile"
-        />
-        <shortcut-box
-            style="max-width: 800px;"
-            class="flex-grow-1 d-none d-lg-block"
+        <v-text-field
+            rounded
+            filled
+            dense
+            hide-details
+            style="max-width: 400px;"
+            placeholder="Search with natural language or OQL"
+            prepend-inner-icon="mdi-magnify"
+            readonly
+            @click="isSearchFromTextDialogOpen = true"
         />
       </div>
-      <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
+      <div v-if="$route.name !== 'search'" class="flex-grow-1"></div>
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
@@ -137,6 +141,10 @@
 
     <saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>
+    <v-dialog max-width="800" v-model="isSearchFromTextDialogOpen">
+        <search-from-text :reset-query="resetSearchFromTextDialog" />
+
+    </v-dialog>
 
   </v-app>
 </template>
@@ -164,6 +172,7 @@ import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import {entity} from "@/entity";
 import Entity from "@/components/Entity/Entity.vue";
+import SearchFromText from "@/components/SearchFromText.vue";
 
 export default {
   name: 'App',
@@ -178,6 +187,8 @@ export default {
     UserToolbarMenu,
     Entity,
 
+
+    SearchFromText,
     SavedSearchRenameDialog,
     SavedSearchEditAlertDialog,
     ShortcutBox,
@@ -192,6 +203,8 @@ export default {
       // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
 
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
+      isSearchFromTextDialogOpen: false,
+      resetSearchFromTextDialog: false,
       exportObj: {
         progress: 0,
       },
@@ -272,6 +285,9 @@ export default {
       handler(to, from) {
 
       }
+    },
+    isSearchFromTextDialogOpen(val) {
+      this.resetSearchFromTextDialog = !this.resetSearchFromTextDialog
     }
   }
 };
@@ -427,6 +443,10 @@ html, body {
 
 .theme--light.v-list-item--active::before {
   //opacity: 0;
+}
+
+.white-space-normal {
+    white-space: normal !important;
 }
 
 $logo-link-height: 35px;
