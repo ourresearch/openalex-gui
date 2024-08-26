@@ -1,8 +1,8 @@
 <template>
   <div>
-<!--    <div>-->
-<!--      {{ querySubjectEntityConfig.columns }}-->
-<!--    </div>-->
+    <!--    <div>-->
+    <!--      {{ querySubjectEntityConfig.columns }}-->
+    <!--    </div>-->
     <v-treeview
         :items="filtersRecursive"
         v-model="tree"
@@ -11,21 +11,30 @@
         item-key="id"
         dense
         open-all
-        
+
     >
 
-      <template v-slot:prepend="{ item, open }">
-        <v-icon v-if="item.type === 'branch'">
-          {{ open ? 'mdi-folder-open-outline' : 'mdi-folder-outline' }}
-        </v-icon>
-        <v-icon v-else>
-          {{ querySubjectEntityConfig.columns[item.column_id].icon }}
-        </v-icon>
-      </template>
+      <!--      <template v-slot:prepend="{ item, open }">-->
+      <!--        <v-icon v-if="item.type === 'branch'">-->
+      <!--          -->
+      <!--        </v-icon>-->
+      <!--        <v-icon v-if="item.type==='leaf'">-->
+      <!--          {{ querySubjectEntityConfig.columns[item.column_id].icon }}-->
+      <!--        </v-icon>-->
+      <!--      </template>-->
+
+
       <template v-slot:label="{ item, open }">
         <div class="d-flex py-4 align-center" style="width: 100%;">
           <template v-if="item.type === 'branch'">
-            <div>
+            <div v-if="item.isRoot" class="text-h6 d-flex">
+              Works filters ({{ query.filters.length - 1 }})
+            </div>
+            <div v-else>
+              <span class="grey--text" v-if="item.children.length === 0">
+              <v-icon>mdi-menu-down</v-icon>
+                Empty subquery:
+              </span>
               <span class="">{{ item.children.length }} </span>
               {{ "subfilter" | pluralize(item.children.length) }}
             </div>
@@ -86,8 +95,17 @@
       </template>
       <template v-slot:append="{ item, open }">
 
+<!--        <v-btn-->
+<!--            v-if="item.isRoot"-->
+<!--            :disabled="!filtersAreDirty || !$store.state.search.is_ready"-->
+<!--            rounded-->
+<!--            @click="applyFilters"-->
+<!--            color="primary"-->
+<!--        >-->
+<!--          Apply-->
+<!--        </v-btn>-->
         <v-btn :disabled="item.isRoot" icon @click="deleteFilter(item.id)">
-          <v-icon v-if="!item.isRoot">mdi-close</v-icon>
+          <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
 
@@ -131,6 +149,7 @@ export default {
       "querySubjectEntity",
       "filtersRecursive",
       "querySubjectEntityConfig",
+      "filtersAreDirty",
 
     ]),
     newFilterColumnOptions() {
@@ -148,6 +167,7 @@ export default {
       "addFilter",
       "deleteFilter",
       "setFilter",
+      "createSearch",
 
     ]),
     ...mapActions("user", []),
@@ -168,11 +188,9 @@ export default {
         parentId
       })
     },
-    setBranchFilterOperator(filter, value) {
-      this.setFilter({
-        ...filter,
-        operator: value
-      })
+
+    applyFilters() {
+      this.createSearch()
     },
     toggleBranchFilterOperator(id) {
       const filter = this.query.filters.find(f => f.id === id)

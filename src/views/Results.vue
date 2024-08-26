@@ -22,29 +22,15 @@
     <v-row class="">
 
 
-      <v-col cols="6" xl="4">
+      <v-col cols="12"  xl="4">
         <v-card rounded flat class="">
-          <v-toolbar flat dense>
-            <v-toolbar-title>
-              Filters
-            </v-toolbar-title>
-            <v-spacer/>
-            <v-btn
-                :disabled="!filtersAreDirty || !$store.state.search.is_ready"
-                rounded
-                @click="applyFilters"
-                color="primary"
-            >
-              Apply
-            </v-btn>
-          </v-toolbar>
           <query-filter-tree/>
         </v-card>
         <v-card rounded flat class="pa-5 my-8">
           <pre>{{ $store.state.search.query }}</pre>
         </v-card>
       </v-col>
-      <v-col cols="6" xl="8" v-if="cardsToShowSelected.includes('results')">
+      <v-col cols="12"  xl="8" v-if="cardsToShowSelected.includes('results')">
         <v-card flat rounded>
 
           <div class="d-flex py-2 px-4 pr-2">
@@ -177,9 +163,6 @@ export default {
       "getSearch",
       "createSearchFromOql",
     ]),
-    applyFilters() {
-      this.createSearch()
-    },
     applyOql() {
       this.isOqlEditDialogOpen = false
       this.createSearchFromOql(this.oql)
