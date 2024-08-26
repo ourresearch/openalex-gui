@@ -4,8 +4,10 @@
 import {oqlToQuery, queryToOQL} from '../oqlParse/oqlParse.js';
 import CryptoJS from 'crypto-js';
 
+
 const testsJsonUrl = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/tests.json";
 const natLangUrl = "https://api.openalex.org/text/oql";
+const searchUrl = "https://api.openalex.org/searches";
 
 async function getTests() {
     const response = await fetch(testsJsonUrl);
@@ -137,7 +139,7 @@ class OQOTestRunner {
     static runOQOToOQLFunc(expectedQuery) {
         const generatedOQL = queryToOQL(expectedQuery);
         const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
-        const result= OQOTestRunner.queriesEqual(queryFromGeneratedOQL, expectedQuery);
+        const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, expectedQuery);
         return {
             "case": "queryToOql",
             isPassing: result.equal,
@@ -160,13 +162,23 @@ class OQOTestRunner {
     static async runNatLangFunc(natLangPrompts, expectedQuery) {
         let results = [];
         for (const prompt of natLangPrompts) {
-            const oqo = await OQOTestRunner.getNatLangQuery(prompt);
-            const result = OQOTestRunner.queriesEqual(oqo, expectedQuery);
-            results.push({
-                "case": "natLang",
-                isPassing: result.equal,
-                meta: result,
-            });
+            try {
+                const oqo = await OQOTestRunner.getNatLangQuery(prompt);
+                const result = OQOTestRunner.queriesEqual(oqo, expectedQuery);
+                results.push({
+                    "case": "natLang",
+                    isPassing: result.equal,
+                    meta: result,
+                });
+            } catch (e) {
+                results.push({
+                    "case": "natLang",
+                    isPassing: false,
+                    meta: {
+                        error: e.message,
+                    }
+                });
+            }
         }
         return {
             "case": "natLang",
@@ -175,8 +187,78 @@ class OQOTestRunner {
         };
     }
 
+    static async runSearchFunc(query, timeout) {
+
+        async function createSearchGetID(q) {
+            const response = await fetch(searchUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(q),
+            });
+            if (!response.ok) {
+                throw new Error(`Bad status when creating search: ${response.status} - ${JSON.stringify(q)}`);
+            }
+            const j = await response.json();
+            return j.id;
+        }
+
+        async function getSearchState(id) {
+            const url = `${searchUrl}/${id}`;
+            return fetch(url).then(res => res.json());
+        }
+
+        async function pollSearchUntilReady(id, timeout) {
+            const pollingInterval = 1000;
+            const startTime = Date.now();
+
+            while (true) {
+                const result = await getSearchState(id);
+
+                if (result.is_ready) {
+                    const elapsedTime = Date.now() - startTime;
+                    return { result, elapsedTime };
+                }
+
+                if (Date.now() - startTime >= timeout) {
+                    throw new Error('Timeout occurred while waiting for search to be ready.');
+                }
+
+                // Wait for the specified polling interval before checking again
+                await new Promise(resolve => setTimeout(resolve, pollingInterval));
+            }
+        }
+
+        try {
+            const searchId = await createSearchGetID(query);
+            const { result, elapsedTime } = pollSearchUntilReady(searchId, timeout);
+            const testResult = {
+                "case": "queryToSearch",
+                isPassing: true,
+                meta: {
+                    id: result.id,
+                    elapsedTime,
+                    resultsCount: result.meta.count,
+                }
+            };
+            if (result.meta.count === 0) {
+                result.meta.error = "no results";
+            }
+            return testResult;
+        } catch (e) {
+            return {
+                "case": "queryToSearch",
+                isPassing: false,
+                meta: {
+                    error: "timeout"
+                }
+            };
+        }
+    }
+
     async runAllTests() {
-        this.tests.forEach((test) => {
+        for (const test of tests) {
             const testId = objectMD5(test);
             const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test.oql, test.query);
             oqlToQueryResult.id = testId;
@@ -185,17 +267,28 @@ class OQOTestRunner {
             queryToOqlResult.id = testId;
             this.onTestResultCb(queryToOqlResult);
             if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
-                const natLangResult = OQOTestRunner.runNatLangFunc(test.natLang, test.query);
+                const natLangResult = await OQOTestRunner.runNatLangFunc(test.natLang, test.query);
                 natLangResult.id = testId;
                 this.onTestResultCb(natLangResult);
             }
-        });
+            let searchTimeout = 30000;
+            if ('searchTimeout' in test) {
+                searchTimeout = test.searchTimeout;
+                // convert to ms if in seconds
+                if (searchTimeout < 1000) {
+                    searchTimeout = searchTimeout * 1000;
+                }
+            }
+            const searchResult = await OQOTestRunner.runSearchFunc(test.query, searchTimeout);
+            searchResult.id = testId;
+            this.onTestResultCb(searchResult);
+        }
     }
 }
 
 
 const tests = await getTests();
 const testRunner = new OQOTestRunner(tests, (test) => {
-    console.log(test);
-});
+        console.log(test);
+    });
 await testRunner.runAllTests();
