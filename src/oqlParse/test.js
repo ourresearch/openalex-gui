@@ -2,7 +2,7 @@
 
 // Import the function to be tested
 import {oqlToQuery, queryToOQL} from '../oqlParse/oqlParse.js';
-import CryptoJS from 'crypto-js';
+import {objectMD5} from '../oqlParse/util.js';
 
 
 const testsJsonUrl = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/tests.json";
@@ -15,11 +15,6 @@ async function getTests() {
         throw new Error(`Bad status fetching tests json: ${response.status}`);
     }
     return await response.json();
-}
-
-function objectMD5(obj) {
-    const jsonString = JSON.stringify(obj);
-    return CryptoJS.MD5(jsonString).toString();
 }
 
 class OQOTestRunner {
@@ -280,42 +275,51 @@ class OQOTestRunner {
         }
     }
 
-    async runAllTests() {
+    async runTests(cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
         const testPromises = this.tests.map(async (test) => {
             const testId = objectMD5(test);
 
-            // Run OQL to Query test
-            const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test.oql, test.query);
-            oqlToQueryResult.id = testId;
-            this.onTestResultCb(oqlToQueryResult);
+            if (cases.includes("oqlToQuery")) {
+                const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test.oql, test.query);
+                oqlToQueryResult.id = testId;
+                this.onTestResultCb(oqlToQueryResult);
+            }
 
-            // Run Query to OQL test
-            const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test.query);
-            queryToOqlResult.id = testId;
-            this.onTestResultCb(queryToOqlResult);
+
+            if (cases.includes("queryToOql")) {
+                const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test.query);
+                queryToOqlResult.id = testId;
+                this.onTestResultCb(queryToOqlResult);
+            }
 
             // Run Natural Language test if applicable
-            if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
+            if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0 && cases.includes("natLang")) {
                 const natLangResult = await OQOTestRunner.runNatLangFunc(test.natLang, test.query);
                 natLangResult.id = testId;
                 this.onTestResultCb(natLangResult);
             }
 
-            // Run Search test
-            let searchTimeout = 30000;
-            if ('searchTimeout' in test) {
-                searchTimeout = test.searchTimeout;
-                // convert to ms if in seconds
-                if (searchTimeout < 1000) {
-                    searchTimeout *= 1000;
+            if (cases.includes("queryToSearch")) {
+                let searchTimeout = 30000;
+                if ('searchTimeout' in test) {
+                    searchTimeout = test.searchTimeout;
+                    // convert to ms if in seconds
+                    if (searchTimeout < 1000) {
+                        searchTimeout *= 1000;
+                    }
                 }
+                const searchResult = await OQOTestRunner.runSearchFunc(test.query, searchTimeout);
+                searchResult.id = testId;
+                this.onTestResultCb(searchResult);
             }
-            const searchResult = await OQOTestRunner.runSearchFunc(test.query, searchTimeout);
-            searchResult.id = testId;
-            this.onTestResultCb(searchResult);
+
         });
 
         // Wait for all tests to complete
         await Promise.all(testPromises);
     }
 }
+
+export {
+    getTests, OQOTestRunner
+};
