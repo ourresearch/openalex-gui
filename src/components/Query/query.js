@@ -1,4 +1,5 @@
 import shortUUID from 'short-uuid';
+import {getConfigs} from "@/oaxConfigs";
 const makeFilterLeaf = function(subjectEntity){
     return {
         id: "leaf_" + shortUUID.generate().slice(0,6),
@@ -22,4 +23,99 @@ const makeFilterBranch = function(subjectEntity){
 }
 
 
-export {makeFilterLeaf, makeFilterBranch}
+const baseQuery = () => ({
+    filters: [
+        makeFilterBranch("works")
+    ],
+    summarize_by: null,
+    sort_by: {
+        column_id: "display_name",
+        direction: "asc",
+    },
+    return_columns: getConfigs().works.showOnTablePage,
+})
+
+
+const queryFactory = function(summarize_by, sort_by, return_columns, filters) {
+    if (!summarize_by) throw new Error("queryFactory: summarize_by is required")
+    const baseQuery = baseQuery()
+    baseQuery.summarize_by = summarize_by
+
+
+}
+
+
+
+
+
+
+// FILTER STUFF
+
+function convertFlatToRecursive(flatTree) {
+    const treeMap = new Map(flatTree.map(item => [item.id, {...item, children: [], isRoot: false}]));
+
+    const root = [];
+
+    flatTree.forEach(item => {
+        if (item?.children?.length > 0) {
+            item.children.forEach(childId => {
+                const childNode = treeMap.get(childId);
+                treeMap.get(item.id).children.push(childNode);
+            });
+        }
+    });
+
+    flatTree.forEach(item => {
+        if (!flatTree.some(node => node?.children?.includes(item.id))) {
+            const rootNode = treeMap.get(item.id);
+            rootNode.isRoot = true;
+            root.push(rootNode);
+        }
+    });
+
+    return root;
+}
+
+function deleteNode(tree, idToDelete) {
+    const idsToDelete = new Set();
+
+    function findNodesToDelete(nodeId) {
+        idsToDelete.add(nodeId);
+        const node = tree.find(n => n.id === nodeId);
+        if (node && Array.isArray(node.children)) {
+            node.children.forEach(childId => findNodesToDelete(childId));
+        }
+    }
+
+    findNodesToDelete(idToDelete);
+
+    return tree
+        .filter(node => !idsToDelete.has(node.id))
+        .map(node => ({
+            ...node,
+            children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
+        }));
+}
+
+
+const prettifyFilters = function (filters) {
+    // const filtersCopy = _.cloneDeep(filters)
+
+    return filters
+        // remove branches that have no children
+        .filter((f) => {
+            return f.type === "leaf" || f.children?.length > 0
+        })
+
+}
+
+
+
+
+export {
+    makeFilterLeaf,
+    makeFilterBranch,
+    baseQuery,
+    convertFlatToRecursive,
+    deleteNode,
+}
