@@ -27,27 +27,27 @@
       </v-chip>
     </template>
     <v-card :loading="isLoading">
-      <v-card-title>
-        {{ filterDisplayValue }}
-      </v-card-title>
-      <v-card-subtitle class="mb-0 pb-0">
-        {{ filterValue }}
-      </v-card-subtitle>
-      <v-divider class="my-2" />
-      <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
-      <v-divider/>
-      <v-card-actions>
-        <v-spacer/>
-        <v-btn
-               class="ml-4"
-               color="primary"
-               rounded
-               exact-path
-               :to="filterValue | entityZoomLink"
-        >
-          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
-        </v-btn>
-      </v-card-actions>
+<!--      <v-card-title>-->
+<!--        {{ filterDisplayValue }}-->
+<!--      </v-card-title>-->
+<!--      <v-card-subtitle class="mb-0 pb-0">-->
+<!--        {{ filterValue }}-->
+<!--      </v-card-subtitle>-->
+<!--      <v-divider class="my-2" />-->
+<!--      <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />-->
+<!--      <v-divider/>-->
+<!--      <v-card-actions>-->
+<!--        <v-spacer/>-->
+<!--        <v-btn-->
+<!--               class="ml-4"-->
+<!--               color="primary"-->
+<!--               rounded-->
+<!--               exact-path-->
+<!--               :to="filterValue | entityZoomLink"-->
+<!--        >-->
+<!--          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile-->
+<!--        </v-btn>-->
+<!--      </v-card-actions>-->
 
 
     </v-card>
@@ -68,7 +68,6 @@ import EntityNew from "@/components/Entity/EntityNew.vue";
 export default {
   name: "FilterSelectOption",
   components: {
-    EntityNew,
   },
   props: {
     disabled: Boolean,
@@ -77,11 +76,11 @@ export default {
     close: Boolean,
     openMenu: Boolean,
     position: Number,
+
   },
   data() {
     return {
       foo: 42,
-      displayValue: "",
       isLoading: false,
       isMenuOpen: false,
       entityData: null,
@@ -92,10 +91,6 @@ export default {
 
       "entityType",
     ]),
-    isEntity() {
-      // if (!this.filterId) return false
-      return getEntityConfigs().some(c => c.filterKey === this.filterId)
-    },
     myEntityType(){
       console.log("FilterSelectOption filterValue", this.filterValue)
       return entityTypeFromId(this.filterValue)

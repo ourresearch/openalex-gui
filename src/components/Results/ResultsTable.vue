@@ -117,7 +117,7 @@
                 <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
               </v-list-item>
               <v-divider/>
-              <v-list-item @click="commitDeleteColumn(header.id)">
+              <v-list-item @click="removeColumn(header.id)">
                 <v-list-item-icon>
                   <v-icon>mdi-table-column-remove</v-icon>
                 </v-list-item-icon>
@@ -153,9 +153,41 @@
         </div>
       </th>
       <th key="column-adder">
-        <v-btn icon color="primary" @click="isPropSelectorDialogOpen = true">
-          <v-icon>mdi-plus-circle</v-icon>
-        </v-btn>
+        <v-menu rounded max-height="50vh">
+          <template v-slot:activator="{ on }">
+            <v-btn icon v-on="on">
+              <v-icon>mdi-plus-circle</v-icon>
+            </v-btn>
+          </template>
+          <v-card flat rounded>
+            <v-text-field
+                v-model="columnSearch"
+                filled
+                rounded
+                background-color="white"
+                prepend-inner-icon="mdi-magnify"
+                hide-details
+                autofocus
+                placeholder="Add column"
+                style=""
+            />
+            <v-divider/>
+            <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
+              <v-list-item
+                  v-for="column in columnsToAddFiltered"
+                  :key="column.id"
+                  @click="addColumn(column.id)"
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ column.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{ column.displayName }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+
+          </v-card>
+
+        </v-menu>
       </th>
       </thead>
       <tbody>
@@ -234,6 +266,8 @@ export default {
       isPropSelectorDialogOpen: false,
       isCreateLabelDialogOpen: false,
       isCorrectionDialogOpen: false,
+
+      columnSearch: "",
     }
   },
   computed: {
@@ -276,10 +310,19 @@ export default {
         return "mdi-minus-box-outline"
       }
     },
+    columnsToAddFiltered() {
+      return this.columnsToAdd.filter(col => {
+        return col.displayName.toLowerCase().includes(this.columnSearch.toLowerCase())
+      })
+    },
     columnsToAdd() {
-      const columnsToShow = this.querySubjectEntityConfig.showOnTablePage
       return Object.values(this.querySubjectEntityConfig.columns)
-          .filter(p => columnsToShow.includes(p.id))
+          .filter(col => {
+            return col.actions?.includes("column")
+          })
+          .filter(col => {
+            return !this.query.return_columns.includes(col.id)
+          })
     },
   },
 
@@ -296,13 +339,11 @@ export default {
       "deleteReturnColumn",
       "setSortBy",
       "createSearch",
+        "addReturnColumn",
+        "deleteReturnColumn",
     ]),
     commitSortBy(sortBy) {
       this.setSortBy(sortBy)
-      this.createSearch()
-    },
-    commitDeleteColumn(columnId) {
-      this.deleteReturnColumn(columnId)
       this.createSearch()
     },
     addSelectedId(id) {
@@ -338,11 +379,14 @@ export default {
       return false
     },
     removeColumn(id) {
-      this.$emit("setColumns", this.resultsHeader.map(h => h.id).filter(h => h !== id))
+      console.log("removeColumn", id)
+      this.deleteReturnColumn(id)
+      this.createSearch()
     },
     addColumn(id) {
-      this.$emit("setColumns", this.resultsHeader.map(h => h.id).concat([id]))
-      this.isPropSelectorDialogOpen = false
+      console.log("addColumn", id)
+      this.addReturnColumn(id)
+      this.createSearch()
     },
     exportSelectedAsCsv() {
       const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
