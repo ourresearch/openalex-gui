@@ -21,13 +21,20 @@
               full-width
               @click="isSearchFromTextDialogOpen = true"
           />
-          <v-menu>
+          <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on" class="mt-2 mr-4 ml-2">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-list>
+              <v-list-item :href="searchApiUrl" target="_blank">
+                <v-list-item-icon>
+                  <v-icon>mdi-api</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>View search in API</v-list-item-title>
+              </v-list-item>
+              <v-divider />
               <v-list-item @click="toggleCard('oql')">
                 <v-list-item-icon>
                   <v-icon>mdi-code-parentheses-box</v-icon>
@@ -210,6 +217,7 @@ export default {
       "querySubjectEntityConfig",
       "query",
       "filtersAreDirty",
+        "searchApiUrl",
     ]),
   },
 
