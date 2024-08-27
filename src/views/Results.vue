@@ -3,38 +3,69 @@
     <!--    <div>-->
     <!--      {{ $store.state.search.oql }}-->
     <!--    </div>-->
-    <v-card flat rounded class="mb-3 pa-3 d-flex align-start">
-            <div class=" font-weight-bold">
-<!--              <v-icon>mdi-code-parentheses-box</v-icon>-->
-              <span>OQL</span>
-            </div>
-      <v-divider vertical class="mx-3"></v-divider>
-      <div class=" flex-grow-1">
-        <div style="font-family: monospace;">
-          {{ $store.state.search.oql }}
-        </div>
-      </div>
-      <v-btn icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
-        <v-icon>mdi-pencil</v-icon>
-      </v-btn>
-    </v-card>
+
 
     <v-row class="">
 
 
-      <v-col cols="12"  xl="4">
+      <v-col cols="12" xl="4">
+        <div class="d-flex align-start">
+          <v-text-field
+              rounded
+              filled
+              class="mb-2"
+              hide-details
+              placeholder="Search with natural language or OQL"
+              prepend-inner-icon="mdi-magnify"
+              readonly
+              full-width
+              @click="isSearchFromTextDialogOpen = true"
+          />
+          <v-btn icon class="mt-2">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+
+        </div>
+        <v-card flat rounded class="mb-2">
+          <v-card-title class="d-flex">
+            <v-icon left>mdi-code-parentheses-box</v-icon>
+            OQL
+            <v-spacer/>
+            <v-btn icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-card-text>
+            <div style="font-family: monospace;">
+              {{ $store.state.search.oql }}
+            </div>
+          </v-card-text>
+        </v-card>
+
+
         <v-card rounded flat class="">
           <query-filter-tree/>
         </v-card>
-        <v-card rounded flat class="pa-5 my-8">
-          <pre>{{ $store.state.search.query }}</pre>
+
+
+        <v-card flat rounded class="my-2">
+          <v-card-title class="d-flex">
+            <v-icon left>mdi-code-braces-box</v-icon>
+            Query object
+            <v-spacer/>
+          </v-card-title>
+<!--          <v-card-text>-->
+<!--            <pre>{{ $store.state.search.query }}</pre>-->
+<!--          </v-card-text>-->
         </v-card>
+
+
       </v-col>
-      <v-col cols="12"  xl="8">
+      <v-col cols="12" xl="8">
         <v-card flat rounded>
 
           <div class="d-flex py-2 px-4 pr-2">
-            <query-summarize-by />
+            <query-summarize-by/>
             <v-spacer></v-spacer>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
               <v-icon>mdi-close</v-icon>
@@ -83,6 +114,12 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog max-width="800" v-model="isSearchFromTextDialogOpen">
+        <search-from-text :reset-query="resetSearchFromTextDialog" />
+    </v-dialog>
+
+
   </v-container>
 </template>
 
@@ -99,10 +136,12 @@ import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import app from "@/App.vue";
+import SearchFromText from "@/components/SearchFromText.vue";
 
 export default {
   name: "Template",
   components: {
+    SearchFromText,
     ResultsTable,
     QueryFilterBranch,
 
@@ -117,8 +156,23 @@ export default {
       isOqlEditDialogOpen: false,
       oql: "",
 
-      selectedFiltersTab: 0,
-      selectedQueriesTab: 0,
+      isSearchFromTextDialogOpen: false,
+      resetSearchFromTextDialog: false,
+
+
+      cards: [
+        {
+          id: "oql",
+          isShowing: true,
+          isMinimized: true,
+        },
+        {
+          id: "queryJson",
+          isShowing: true,
+          isMinimized: true,
+        },
+
+      ],
       cardsToShowSelected: [
         "oql",
         "queryJson",
@@ -204,12 +258,15 @@ export default {
       },
       immediate: true
     },
-    isOqlEditDialogOpen(){
+    isOqlEditDialogOpen() {
       this.oql = this.$store.state.search.oql
     },
 
     cardsToShowSelected() {
-      this.saveToLocalStorage();
+      // this.saveToLocalStorage();
+    },
+    isSearchFromTextDialogOpen(val) {
+      this.resetSearchFromTextDialog = !this.resetSearchFromTextDialog
     }
   }
 }

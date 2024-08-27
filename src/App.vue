@@ -35,23 +35,7 @@
               </span>
 
       </router-link>
-      <div
-          class="flex-grow-1 mx-3 justify-center d-flex "
-          v-if="$route.name === 'search'"
-      >
-        <v-text-field
-            rounded
-            filled
-            dense
-            hide-details
-            style="max-width: 400px;"
-            placeholder="Search with natural language or OQL"
-            prepend-inner-icon="mdi-magnify"
-            readonly
-            @click="isSearchFromTextDialogOpen = true"
-        />
-      </div>
-      <div v-if="$route.name !== 'search'" class="flex-grow-1"></div>
+      <div class="flex-grow-1"></div>
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
@@ -141,10 +125,7 @@
 
     <saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>
-    <v-dialog max-width="800" v-model="isSearchFromTextDialogOpen">
-        <search-from-text :reset-query="resetSearchFromTextDialog" />
 
-    </v-dialog>
 
   </v-app>
 </template>
@@ -203,8 +184,6 @@ export default {
       // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
 
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
-      isSearchFromTextDialogOpen: false,
-      resetSearchFromTextDialog: false,
       exportObj: {
         progress: 0,
       },
@@ -286,9 +265,6 @@ export default {
 
       }
     },
-    isSearchFromTextDialogOpen(val) {
-      this.resetSearchFromTextDialog = !this.resetSearchFromTextDialog
-    }
   }
 };
 </script>
