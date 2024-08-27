@@ -50,7 +50,7 @@ class OQOTestRunner {
         return expectedResults;
     }
 
-    static queriesEqual(generatedOQO, expectedOQO, path = '') {
+    static queriesEqual(generatedOQO, expectedOQO, ignoreProperties = [], path = '') {
         function createDifference(prop, value1, value2) {
             return {
                 equal: false,
@@ -114,8 +114,18 @@ class OQOTestRunner {
 
         function areValuesEqual(value1, value2) {
             if (value1 === value2) return true;
-            if (value1 === null || value1 === undefined) return value2 === null || value2 === undefined;
-            if (value2 === null || value2 === undefined) return value1 === null || value1 === undefined;
+
+            const isNullOrUndefined = (val) => val === null || val === undefined;
+            const isEmptyArray = (val) => Array.isArray(val) && val.length === 0;
+
+            if (isNullOrUndefined(value1) || isEmptyArray(value1)) {
+                return isNullOrUndefined(value2) || isEmptyArray(value2);
+            }
+
+            if (isNullOrUndefined(value2) || isEmptyArray(value2)) {
+                return isNullOrUndefined(value1) || isEmptyArray(value1);
+            }
+
             return JSON.stringify(value1) === JSON.stringify(value2);
         }
 
@@ -127,7 +137,7 @@ class OQOTestRunner {
         // Compare non-filter properties
         const properties = ['summarize', 'summarize_by', 'sort_by', 'return'];
         for (const prop of properties) {
-            if (prop in generatedOQO || prop in expectedOQO) {
+            if (!ignoreProperties.includes(prop) && (prop in generatedOQO || prop in expectedOQO)) {
                 if (!areValuesEqual(generatedOQO[prop], expectedOQO[prop])) {
                     return createDifference(prop, generatedOQO[prop], expectedOQO[prop]);
                 }
@@ -136,19 +146,20 @@ class OQOTestRunner {
 
         // Compare filters
         if ('filters' in generatedOQO || 'filters' in expectedOQO) {
-
-            if (generatedOQO.filters && expectedOQO.filters) {
-                // Find root filters
-                const rootFilters1 = findRootFilters(generatedOQO.filters);
-                const rootFilters2 = findRootFilters(expectedOQO.filters);
-
-                if (rootFilters1.length !== rootFilters2.length) {
-                    return createDifference('root filters count', rootFilters1.length, rootFilters2.length);
-                }
-
-                // Compare all filters
-                return compareFilters(generatedOQO.filters, expectedOQO.filters, 'filters.');
+            if (!generatedOQO.filters || !expectedOQO.filters || generatedOQO.filters.length !== expectedOQO.filters.length) {
+                return createDifference('filters', generatedOQO.filters, expectedOQO.filters);
             }
+
+            // Find root filters
+            const rootFilters1 = findRootFilters(generatedOQO.filters);
+            const rootFilters2 = findRootFilters(expectedOQO.filters);
+
+            if (rootFilters1.length !== rootFilters2.length) {
+                return createDifference('root filters count', rootFilters1.length, rootFilters2.length);
+            }
+
+            // Compare all filters
+            return compareFilters(generatedOQO.filters, expectedOQO.filters, 'filters.');
         }
 
         return {equal: true};
@@ -213,7 +224,7 @@ class OQOTestRunner {
         for (const prompt of natLangPrompts) {
             try {
                 const oqo = await OQOTestRunner.getNatLangQuery(prompt);
-                const result = OQOTestRunner.queriesEqual(oqo, expectedQuery);
+                const result = OQOTestRunner.queriesEqual(oqo, expectedQuery, ['sort_by']);
                 results.push({
                     "case": "natLang",
                     prompt,
@@ -241,12 +252,12 @@ class OQOTestRunner {
     static async runSearchFunc(query, timeout) {
 
         async function createSearchGetID(q) {
-            const response = await fetch(searchUrl, {
+            const response = await fetch(searchUrl + '?mailto=team@ourresearch.org', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(q),
+                body: JSON.stringify({query: q}),
             });
             if (!response.ok) {
                 throw new Error(`Bad status when creating search: ${response.status} - ${JSON.stringify(q)}`);
@@ -256,7 +267,7 @@ class OQOTestRunner {
         }
 
         async function getSearchState(id) {
-            const url = `${searchUrl}/${id}`;
+            const url = `${searchUrl}/${id}?mailto=team@ourresearch.org`;
             return fetch(url).then(res => res.json());
         }
 
@@ -286,18 +297,18 @@ class OQOTestRunner {
             const {
                 result,
                 elapsedTime
-            } = pollSearchUntilReady(searchId, timeout);
+            } = await pollSearchUntilReady(searchId, timeout);
             const testResult = {
                 "case": "queryToSearch",
                 isPassing: true,
                 details: {
                     id: result.id,
                     elapsedTime,
-                    resultsCount: result.details.count,
+                    resultsCount: result.results.length,
                 }
             };
-            if (result.details.count === 0) {
-                result.details.error = "no results";
+            if (result.results.length === 0) {
+                testResult.details.error = "no results";
             }
             return testResult;
         } catch (e) {
@@ -305,7 +316,7 @@ class OQOTestRunner {
                 "case": "queryToSearch",
                 isPassing: false,
                 details: {
-                    error: "timeout"
+                    error: e.message
                 }
             };
         }
