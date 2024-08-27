@@ -21,18 +21,46 @@
               full-width
               @click="isSearchFromTextDialogOpen = true"
           />
-          <v-btn icon class="mt-2">
-            <v-icon>mdi-dots-vertical</v-icon>
-          </v-btn>
+          <v-menu>
+            <template v-slot:activator="{ on }">
+              <v-btn icon v-on="on" class="mt-2 mr-4 ml-2">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item @click="toggleCard('oql')">
+                <v-list-item-icon>
+                  <v-icon>mdi-code-parentheses-box</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Show OQL</v-list-item-title>
+                <v-list-item-icon v-if="cardsToShowSelected.includes('oql')">
+                  <v-icon>mdi-check</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+              <v-list-item @click="toggleCard('queryJson')">
+                <v-list-item-icon>
+                  <v-icon>mdi-code-braces-box</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Show Query object</v-list-item-title>
+                <v-list-item-icon v-if="cardsToShowSelected.includes('queryJson')">
+                  <v-icon>mdi-check</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+            </v-list>
+          </v-menu>
 
         </div>
-        <v-card flat rounded class="mb-2">
+        <v-card flat rounded class="mb-2" v-if="cardsToShowSelected.includes('oql')">
           <v-card-title class="d-flex">
             <v-icon left>mdi-code-parentheses-box</v-icon>
             OQL
             <v-spacer/>
             <v-btn icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
               <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'oql')">
+<!--              <v-icon>mdi-pin-off-outline</v-icon>-->
+              <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
           <v-card-text>
@@ -48,31 +76,29 @@
         </v-card>
 
 
-        <v-card flat rounded class="my-2">
+        <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
             <v-icon left>mdi-code-braces-box</v-icon>
             Query object
             <v-spacer/>
+            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
+<!--              <v-icon>mdi-pin-off-outline</v-icon>-->
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card-title>
-<!--          <v-card-text>-->
-<!--            <pre>{{ $store.state.search.query }}</pre>-->
-<!--          </v-card-text>-->
+          <v-card-text>
+            <pre>{{ $store.state.search.query }}</pre>
+          </v-card-text>
         </v-card>
 
 
       </v-col>
       <v-col cols="12" xl="8">
         <v-card flat rounded>
-
           <div class="d-flex py-2 px-4 pr-2">
             <query-summarize-by/>
             <v-spacer></v-spacer>
-            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'results')">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-
           </div>
-
           <results-table
               v-if="$store.state.search.is_ready"
           />
@@ -161,30 +187,13 @@ export default {
 
 
       cards: [
-        {
-          id: "oql",
-          isShowing: true,
-          isMinimized: true,
-        },
-        {
-          id: "queryJson",
-          isShowing: true,
-          isMinimized: true,
-        },
-
+          "oql",
+          "queryJson",
       ],
       cardsToShowSelected: [
         "oql",
         "queryJson",
-        "results",
       ],
-      cardsToShowOptions: [
-        "naturalLanguage",
-        "oql",
-        "queryJson",
-        "filters",
-        "results",
-      ]
     }
   },
   computed: {
@@ -221,7 +230,13 @@ export default {
       this.isOqlEditDialogOpen = false
       this.createSearchFromOql(this.oql)
       // this.createSearch()
-
+    },
+    toggleCard(cardId) {
+      if (this.cardsToShowSelected.includes(cardId)) {
+        this.cardsToShowSelected = this.cardsToShowSelected.filter(c => c !== cardId)
+      } else {
+        this.cardsToShowSelected.push(cardId)
+      }
     },
     saveToLocalStorage() {
       const dataToSave = {
@@ -263,7 +278,7 @@ export default {
     },
 
     cardsToShowSelected() {
-      // this.saveToLocalStorage();
+      this.saveToLocalStorage();
     },
     isSearchFromTextDialogOpen(val) {
       this.resetSearchFromTextDialog = !this.resetSearchFromTextDialog
