@@ -189,10 +189,10 @@ export const search = {
         },
 
 
-        getSearch: async function ({state, dispatch, commit}, id) {
+        getSearch: async function ({state, dispatch, commit, getters}, id) {
             state.is_ready = false
-            const url = `https://api.openalex.org/searches/${id}`
-            const resp = await axios.get(url)
+            state.id = id
+            const resp = await axios.get(getters.searchApiUrl)
 
 
             // start from a clean slate:
@@ -236,6 +236,9 @@ export const search = {
         filtersAreDirty: (state) => {
             return !_.isEqual(state.query.filters, state.originalFilters)
         },
+        searchApiUrl: (state) => {
+            return `https://api.openalex.org/searches/${state.id}`
+        }
 
 
     },
