@@ -44,39 +44,52 @@
 
 
     <!--    The filter value-->
+    <!--    first, entity values -->
     <div class="flex-grow-1">
       <template v-if="columnConfig.objectEntity">
-        <v-autocomplete
-            v-if="localValueOptions.length"
-            v-model="selectedValue"
-            :items="valueOptions"
-            item-text="display_name"
-            item-value="id"
-            hide-details
-            filled
-            rounded
-            dense
-            class="flex-grow-1"
-            autofocus
-        />
-        <v-autocomplete
-            v-else
-            v-model="selectedValue"
-            :items="valueOptions"
-            :loading="isLoading"
-            :search-input.sync="search"
-            item-text="display_name"
-            item-value="id"
-            filled
-            rounded
-            hide-details
-            hide-no-data
-            dense
-            class="flex-grow-1"
-            autofocus
-        ></v-autocomplete>
+        <template v-if="selectedValue">
+          <query-filter-value-chip
+            :column-config="columnConfig"
+            :value="selectedValue"
+          />
+        </template>
+        <template v-else>
+          <v-autocomplete
+              v-if="localValueOptions.length"
+              v-model="selectedValue"
+              :items="valueOptions"
+              item-text="display_name"
+              item-value="id"
+              hide-details
+              filled
+              rounded
+              dense
+              class="flex-grow-1"
+              autofocus
+          />
+          <v-autocomplete
+              v-else
+              v-model="selectedValue"
+              :items="valueOptions"
+              :loading="isLoading"
+              :search-input.sync="search"
+              item-text="display_name"
+              item-value="id"
+              filled
+              rounded
+              hide-details
+              hide-no-data
+              dense
+              class="flex-grow-1"
+              autofocus
+          ></v-autocomplete>
+
+        </template>
+
 
       </template>
+
+      <!--    second, boolean values -->
       <v-chip
           outlined
           v-else-if="columnConfig.type === 'boolean'"
@@ -85,6 +98,8 @@
         <v-icon left>{{ selectedValue ? "mdi-check" : "mdi-cancel" }}</v-icon>
         {{ selectedValue }}
       </v-chip>
+
+      <!--    third and finally, string  values -->
       <v-text-field
           v-else
           v-model="selectedValue"
@@ -110,10 +125,13 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {entityEndpointResults} from "@/extraConfigs";
 import {getConfigs} from "@/oaxConfigs";
 import axios from "axios";
+import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
 
 export default {
   name: "Template",
-  components: {},
+  components: {
+    QueryFilterValueChip,
+  },
   props: {
     filterId: String,
     joinOperator: String,

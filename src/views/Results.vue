@@ -9,18 +9,9 @@
 
 
       <v-col cols="12" xl="4">
-        <div class="d-flex align-start">
-          <v-text-field
-              rounded
-              filled
-              class="mb-2"
-              hide-details
-              placeholder="Search with natural language or OQL"
-              prepend-inner-icon="mdi-magnify"
-              readonly
-              full-width
-              @click="isSearchFromTextDialogOpen = true"
-          />
+        <div class="d-flex align-start mb-3">
+          <search-from-text />
+
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on" class="mt-2 mr-4 ml-2">
@@ -35,15 +26,6 @@
                 <v-list-item-title>View search in API</v-list-item-title>
               </v-list-item>
               <v-divider />
-              <v-list-item @click="toggleCard('oql')">
-                <v-list-item-icon>
-                  <v-icon>mdi-code-parentheses-box</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Show OQL</v-list-item-title>
-                <v-list-item-icon v-if="cardsToShowSelected.includes('oql')">
-                  <v-icon>mdi-check</v-icon>
-                </v-list-item-icon>
-              </v-list-item>
               <v-list-item @click="toggleCard('queryJson')">
                 <v-list-item-icon>
                   <v-icon>mdi-code-braces-box</v-icon>
@@ -57,25 +39,6 @@
           </v-menu>
 
         </div>
-        <v-card flat rounded class="mb-2" v-if="cardsToShowSelected.includes('oql')">
-          <v-card-title class="d-flex">
-            <v-icon left>mdi-code-parentheses-box</v-icon>
-            OQL
-            <v-spacer/>
-            <v-btn icon @click="isOqlEditDialogOpen = true" :disabled="!$store.state.search.is_ready">
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'oql')">
-<!--              <v-icon>mdi-pin-off-outline</v-icon>-->
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text>
-            <div style="font-family: monospace;">
-              {{ $store.state.search.oql }}
-            </div>
-          </v-card-text>
-        </v-card>
 
 
         <v-card rounded flat class="">

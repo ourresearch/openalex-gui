@@ -104,7 +104,7 @@
 <!--        >-->
 <!--          Apply-->
 <!--        </v-btn>-->
-        <v-btn :disabled="item.isRoot" icon @click="deleteFilter(item.id)">
+        <v-btn :disabled="item.isRoot" icon @click="applyDeleteFilter(item.id)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
@@ -178,6 +178,10 @@ export default {
         filter,
         parentId
       })
+    },
+    applyDeleteFilter(id){
+      this.deleteFilter(id)
+      this.createSearch()
     },
     addLeafFilter(parentId, columnId) {
       console.log("addLeafFilter", parentId, columnId)

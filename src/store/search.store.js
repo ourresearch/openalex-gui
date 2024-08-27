@@ -238,7 +238,7 @@ export const search = {
         },
         searchApiUrl: (state) => {
             return `https://api.openalex.org/searches/${state.id}`
-        }
+        },
 
 
     },
