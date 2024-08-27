@@ -44,37 +44,87 @@
             <nat-lang-to-json-cell :value="item.natLangToJson" :loading="isLoadingCell(item.id, 'natLang')"/>
           </template>
           <template v-slot:item.oqlToJson="{ item }">
-            <test-result-cell :value="item.oqlToJson" :loading="isLoadingCell(item.id, 'oqlToQuery')"/>
+            <test-result-cell
+              :value="item.oqlToJson.isPassing"
+              :loading="isLoadingCell(item.id, 'oqlToQuery')"
+              :details="item.oqlToJson.details"
+            />
           </template>
           <template v-slot:item.jsonToOql="{ item }">
-            <test-result-cell :value="item.jsonToOql" :loading="isLoadingCell(item.id, 'queryToOql')"/>
+            <test-result-cell
+              :value="item.jsonToOql.isPassing"
+              :loading="isLoadingCell(item.id, 'queryToOql')"
+              :details="item.jsonToOql.details"
+            />
           </template>
           <template v-slot:item.jsonToSearch="{ item }">
-            <test-result-cell :value="item.jsonToSearch" :loading="isLoadingCell(item.id, 'queryToSearch')"/>
+            <test-result-cell
+              :value="item.jsonToSearch.isPassing"
+              :loading="isLoadingCell(item.id, 'queryToSearch')"
+              :details="item.jsonToSearch.details"
+            />
           </template>
         </v-data-table>
       </v-card-text>
     </v-card>
+
+    <v-dialog v-model="dialog" max-width="800px">
+      <v-card>
+        <v-card-title>
+          Test Object
+          <v-spacer></v-spacer>
+          <v-btn icon @click="dialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <pre>{{ JSON.stringify(selectedTestObject, null, 2) }}</pre>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-menu v-model="showPopover" :close-on-content-click="false" :nudge-width="200" offset-y>
+      <template v-slot:activator="{ on, attrs }">
+        <span v-bind="attrs" v-on="on" style="display: none;"></span>
+      </template>
+      <v-card>
+        <v-card-text>
+          <pre>{{ popoverContent }}</pre>
+        </v-card-text>
+      </v-card>
+    </v-menu>
   </v-container>
 </template>
 
 <script>
-import { OQOTestRunner, getTests } from '@/oqlParse/test';
-import { objectMD5, invertMap } from '@/oqlParse/util';
-import { VProgressCircular } from 'vuetify/lib';
+import {getTests, OQOTestRunner} from '@/oqlParse/test';
+import {invertMap, objectMD5} from '@/oqlParse/util';
+import {VProgressCircular} from 'vuetify/lib';
 
 export default {
   name: "OQOTests",
   components: {
     TestResultCell: {
       components: { VProgressCircular },
-      props: ['value', 'loading'],
+      props: ['value', 'loading', 'details'],
+      data() {
+        return {
+          showPopover: false
+        };
+      },
       computed: {
         color() {
           return this.value === true ? 'green' : this.value === false ? 'red' : 'grey';
         },
         icon() {
           return this.value === true ? '✓' : this.value === false ? '✗' : '−';
+        }
+      },
+      methods: {
+        showDetails() {
+          if (this.value === false && this.details) {
+            this.$root.$emit('show-popover', JSON.stringify(this.details, null, 2));
+          }
         }
       },
       render(h) {
@@ -90,7 +140,12 @@ export default {
         return h('span', {
           style: {
             color: this.color,
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            cursor: this.value === false ? 'pointer' : 'default',
+            textDecoration: this.value === false ? 'underline' : 'none'
+          },
+          on: {
+            click: this.showDetails
           }
         }, [this.icon]);
       }
@@ -98,6 +153,18 @@ export default {
     NatLangToJsonCell: {
       components: { VProgressCircular },
       props: ['value', 'loading'],
+      data() {
+        return {
+          showPopover: false
+        };
+      },
+      methods: {
+        showDetails(subTest) {
+          if (!subTest.isPassing && subTest.details) {
+            this.$root.$emit('show-popover', JSON.stringify(subTest.details, null, 2));
+          }
+        }
+      },
       render(h) {
         if (this.loading) {
           return h(VProgressCircular, {
@@ -128,7 +195,12 @@ export default {
             h('span', {
               style: {
                 color: subTest.isPassing ? 'green' : 'red',
-                marginRight: '5px'
+                marginRight: '5px',
+                cursor: !subTest.isPassing ? 'pointer' : 'default',
+                textDecoration: !subTest.isPassing ? 'underline' : 'none'
+              },
+              on: {
+                click: () => this.showDetails(subTest)
               }
             }, [subTest.isPassing ? '✓' : '✗']),
             h('span', subTest.prompt)
@@ -184,10 +256,16 @@ export default {
       },
       isLoading: false,
       loadingCells: [],
+      showPopover: false,
+      popoverContent: '',
     }
   },
   created() {
     this.loadTests();
+    this.$root.$on('show-popover', this.openPopover);
+  },
+  beforeDestroy() {
+    this.$root.$off('show-popover', this.openPopover);
   },
   methods: {
     loadTests() {
@@ -197,9 +275,9 @@ export default {
           id: objectMD5(test),
           test: test,
           natLangToJson: [],
-          oqlToJson: '',
-          jsonToOql: '',
-          jsonToSearch: '',
+          oqlToJson: { isPassing: null, details: null },
+          jsonToOql: { isPassing: null, details: null },
+          jsonToSearch: { isPassing: null, details: null },
         }));
       });
     },
@@ -208,8 +286,7 @@ export default {
       const runner = new OQOTestRunner(this.tests, this.updateTestResult);
       const cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
       try {
-        const expectedResults = runner.expectedResults(this.tests, cases);
-        this.loadingCells = expectedResults;
+        this.loadingCells = runner.expectedResults(this.tests, cases);
         await runner.runTests(cases);
       } catch (error) {
         console.error('Error running tests:', error);
@@ -220,20 +297,24 @@ export default {
       }
     },
     updateTestResult(testResult) {
+      if (!testResult.isPassing) console.log(testResult);
       const rowIndex = this.tableItems.findIndex(item => item.id === testResult.id);
       if (rowIndex !== -1) {
         const tableKey = invertMap(this.testCasesMap)[testResult.case];
         if (tableKey === 'natLangToJson') {
           this.$set(this.tableItems[rowIndex], tableKey, testResult.subTests);
         } else {
-          this.$set(this.tableItems[rowIndex], tableKey, testResult.isPassing);
+          this.$set(this.tableItems[rowIndex], tableKey, {
+            isPassing: testResult.isPassing,
+            details: testResult.details
+          });
         }
       } else {
         console.error('No matching row found for test result:', testResult);
       }
       // Remove the completed test from loadingCells
       this.loadingCells = this.loadingCells.filter(cell =>
-        !(cell.id === testResult.id && cell.case === testResult.case)
+          !(cell.id === testResult.id && cell.case === testResult.case)
       );
     },
     showTestObject(id) {
@@ -245,6 +326,10 @@ export default {
     },
     isLoadingCell(id, testCase) {
       return this.loadingCells.some(cell => cell.id === id && cell.case === testCase);
+    },
+    openPopover(content) {
+      this.popoverContent = content;
+      this.showPopover = true;
     },
   },
 }
