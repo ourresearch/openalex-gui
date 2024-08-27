@@ -24,31 +24,31 @@ class OQOTestRunner {
     }
 
     expectedResults(tests, cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
-    let expectedResults = [];
-    for (const test of tests) {
-        for (const caseType of cases) {
-            switch (caseType) {
-                case "oqlToQuery":
-                case "queryToOql":
-                case "queryToSearch":
-                    expectedResults.push({
-                        "case": caseType,
-                        id: objectMD5(test),
-                    });
-                    break;
-                case "natLang":
-                    if (test && typeof test === 'object' && 'natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
+        let expectedResults = [];
+        for (const test of tests) {
+            for (const caseType of cases) {
+                switch (caseType) {
+                    case "oqlToQuery":
+                    case "queryToOql":
+                    case "queryToSearch":
                         expectedResults.push({
-                            "case": "natLang",
+                            "case": caseType,
                             id: objectMD5(test),
                         });
-                    }
-                    break;
+                        break;
+                    case "natLang":
+                        if (test && typeof test === 'object' && 'natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
+                            expectedResults.push({
+                                "case": "natLang",
+                                id: objectMD5(test),
+                            });
+                        }
+                        break;
+                }
             }
         }
+        return expectedResults;
     }
-    return expectedResults;
-}
 
     static queriesEqual(generatedOQO, expectedOQO, path = '') {
         function createDifference(prop, value1, value2) {
@@ -104,12 +104,19 @@ class OQOTestRunner {
 
             if (filter1.type === 'leaf') {
                 return filter1.column_id === filter2.column_id &&
-                    JSON.stringify(filter1.value) === JSON.stringify(filter2.value);
+                    areValuesEqual(filter1.value, filter2.value);
             } else if (filter1.type === 'branch') {
                 return filter1.children.length === filter2.children.length;
             }
 
             return false;
+        }
+
+        function areValuesEqual(value1, value2) {
+            if (value1 === value2) return true;
+            if (value1 === null || value1 === undefined) return value2 === null || value2 === undefined;
+            if (value2 === null || value2 === undefined) return value1 === null || value1 === undefined;
+            return JSON.stringify(value1) === JSON.stringify(value2);
         }
 
         // Handle empty objects
@@ -121,7 +128,7 @@ class OQOTestRunner {
         const properties = ['summarize', 'summarize_by', 'sort_by', 'return'];
         for (const prop of properties) {
             if (prop in generatedOQO || prop in expectedOQO) {
-                if (JSON.stringify(generatedOQO[prop]) !== JSON.stringify(expectedOQO[prop])) {
+                if (!areValuesEqual(generatedOQO[prop], expectedOQO[prop])) {
                     return createDifference(prop, generatedOQO[prop], expectedOQO[prop]);
                 }
             }
@@ -129,20 +136,19 @@ class OQOTestRunner {
 
         // Compare filters
         if ('filters' in generatedOQO || 'filters' in expectedOQO) {
-            if (!generatedOQO.filters || !expectedOQO.filters || generatedOQO.filters.length !== expectedOQO.filters.length) {
-                return createDifference('filters', generatedOQO.filters, expectedOQO.filters);
+
+            if (generatedOQO.filters && expectedOQO.filters) {
+                // Find root filters
+                const rootFilters1 = findRootFilters(generatedOQO.filters);
+                const rootFilters2 = findRootFilters(expectedOQO.filters);
+
+                if (rootFilters1.length !== rootFilters2.length) {
+                    return createDifference('root filters count', rootFilters1.length, rootFilters2.length);
+                }
+
+                // Compare all filters
+                return compareFilters(generatedOQO.filters, expectedOQO.filters, 'filters.');
             }
-
-            // Find root filters
-            const rootFilters1 = findRootFilters(generatedOQO.filters);
-            const rootFilters2 = findRootFilters(expectedOQO.filters);
-
-            if (rootFilters1.length !== rootFilters2.length) {
-                return createDifference('root filters count', rootFilters1.length, rootFilters2.length);
-            }
-
-            // Compare all filters
-            return compareFilters(generatedOQO.filters, expectedOQO.filters, 'filters.');
         }
 
         return {equal: true};
