@@ -23,6 +23,33 @@ class OQOTestRunner {
         this.tests = tests;
     }
 
+    expectedResults(tests, cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
+    let expectedResults = [];
+    for (const test of tests) {
+        for (const caseType of cases) {
+            switch (caseType) {
+                case "oqlToQuery":
+                case "queryToOql":
+                case "queryToSearch":
+                    expectedResults.push({
+                        "case": caseType,
+                        id: objectMD5(test),
+                    });
+                    break;
+                case "natLang":
+                    if (test && typeof test === 'object' && 'natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
+                        expectedResults.push({
+                            "case": "natLang",
+                            id: objectMD5(test),
+                        });
+                    }
+                    break;
+            }
+        }
+    }
+    return expectedResults;
+}
+
     static queriesEqual(generatedOQO, expectedOQO, path = '') {
         function createDifference(prop, value1, value2) {
             return {
@@ -165,6 +192,7 @@ class OQOTestRunner {
     static async getNatLangQuery(prompt) {
         const params = new URLSearchParams({
             natural_language: prompt,
+            mailto: 'team@ourresearch.org'
         });
         const fullUrl = `${natLangUrl}?${params.toString()}`;
         const response = await fetch(fullUrl);
@@ -182,12 +210,14 @@ class OQOTestRunner {
                 const result = OQOTestRunner.queriesEqual(oqo, expectedQuery);
                 results.push({
                     "case": "natLang",
+                    prompt,
                     isPassing: result.equal,
                     details: result,
                 });
             } catch (e) {
                 results.push({
                     "case": "natLang",
+                    prompt,
                     isPassing: false,
                     details: {
                         error: e.message,
@@ -284,7 +314,6 @@ class OQOTestRunner {
                 oqlToQueryResult.id = testId;
                 this.onTestResultCb(oqlToQueryResult);
             }
-
 
             if (cases.includes("queryToOql")) {
                 const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test.query);
