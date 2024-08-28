@@ -7,7 +7,7 @@
 
       <v-card-text>
         <v-row justify="center" align="center">
-          <v-col cols="12" sm="6" md="5">
+          <v-col cols="12" sm="4" md="3">
             <v-select
                 v-model="selectedTests"
                 :items="availableTests"
@@ -19,12 +19,24 @@
                 :disabled="isLoading"
             ></v-select>
           </v-col>
+          <v-col cols="12" sm="4" md="3">
+            <v-select
+                v-model="selectedTags"
+                :items="availableTags"
+                label="Select tags to run"
+                multiple
+                chips
+                persistent-hint
+                hint="Choose one or more tags"
+                :disabled="isLoading"
+            ></v-select>
+          </v-col>
           <v-col cols="12" sm="3" md="2">
             <v-btn
                 color="primary"
                 block
                 @click="runTests"
-                :disabled="!selectedTests.length || isLoading"
+                :disabled="(!selectedTests.length && !selectedTags.length) || isLoading"
                 :loading="isLoading"
             >
               Run Tests
@@ -40,11 +52,18 @@
             :hide-default-footer="false"
             :items-per-page="-1"
         >
-          <template v-slot:item.description="{ item }">
-            <span>{{ item.test.description }}</span>
-          </template>
           <template v-slot:item.test="{ item }">
             <span>{{ item.test.oql }}</span>
+          </template>
+          <template v-slot:item.tags="{ item }">
+            <v-chip
+                v-for="(tag, index) in item.test.tags"
+                :key="index"
+                small
+                class="mr-1 mb-1"
+            >
+              {{ tag }}
+            </v-chip>
           </template>
           <template v-slot:item.natLangToJson="{ item }">
             <nat-lang-to-json-cell :value="item.natLangToJson"
@@ -101,12 +120,13 @@
         </v-card-text>
       </v-card>
     </v-menu>
+
   </v-container>
 </template>
 
 <script>
-import {OQOTestRunner, getTests} from '@/oqlParse/test';
-import {objectMD5, invertMap} from '@/oqlParse/util';
+import {getTests, OQOTestRunner} from '@/oqlParse/test';
+import {invertMap, objectMD5} from '@/oqlParse/util';
 import {VProgressCircular} from 'vuetify/lib';
 
 export default {
@@ -220,6 +240,8 @@ export default {
   data() {
     return {
       tests: [],
+      selectedTags: [],
+      availableTags: [],
       selectedTests: [],
       availableTests: [
         {text: 'natLangToJson', value: 'natLangToJson'},
@@ -229,7 +251,7 @@ export default {
       ],
       headers: [
         {text: 'Test (OQL)', value: 'test', width: '25%'},
-        {text: 'Description', value: 'description', width: '25%'},
+        {text: 'Tags', value: 'tags', width: '25%'},
         {text: 'natLangToJson', value: 'natLangToJson'},
         {text: 'oqlToJson', value: 'oqlToJson'},
         {text: 'jsonToOql', value: 'jsonToOql'},
@@ -261,6 +283,7 @@ export default {
     loadTests() {
       getTests().then(tests => {
         this.tests = tests;
+        this.availableTags = this.getUniqueTags(tests);
         this.tableItems = this.tests.map(test => ({
           id: objectMD5(test),
           test: test,
@@ -271,13 +294,29 @@ export default {
         }));
       });
     },
+    getUniqueTags(tests) {
+      const tagSet = new Set();
+      tests.forEach(test => {
+        if (Array.isArray(test.tags)) {
+          test.tags.forEach(tag => tagSet.add(tag));
+        }
+      });
+      return Array.from(tagSet);
+    },
+    filterTestsByTags(tests, selectedTags) {
+      if (selectedTags.length === 0) return tests;
+      return tests.filter(test =>
+          Array.isArray(test.tags) &&
+          test.tags.some(tag => selectedTags.includes(tag))
+      );
+    },
     async runTests() {
       this.isLoading = true;
-      const runner = new OQOTestRunner(this.tests, this.updateTestResult);
+      const filteredTests = this.filterTestsByTags(this.tests, this.selectedTags);
+      const runner = new OQOTestRunner(filteredTests, this.updateTestResult);
       const cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
       try {
-        const expectedResults = runner.expectedResults(this.tests, cases);
-        this.loadingCells = expectedResults;
+        this.loadingCells = runner.expectedResults(filteredTests, cases);
         await runner.runTests(cases);
       } catch (error) {
         console.error('Error running tests:', error);
