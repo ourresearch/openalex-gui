@@ -1,27 +1,58 @@
 <template>
   <div class="d-flex align-center flex-grow-1">
-    <div v-if="filter.isRoot" class="text-h6 d-flex">
+    <div v-if="filter.isRoot" class="text-h6 d-flex py-4">
       Works filters
     </div>
     <div v-else>
-      <span class="grey--text" v-if="filter.children.length === 1">
+      <div class="grey--text" v-if="filter.children.length === 1">
         [Empty subquery]
-      </span>
-      <span v-else class="">
-        Subquery:
-      </span>
-<!--      {{ "subfilter" | pluralize(filter.children.length) }}-->
+      </div>
+      <div v-if="filter.children.length === 2">
+        1 subfilter
+      </div>
+      <div v-else class="d-flex align-baseline">
+        <v-menu offset-y>
+          <template v-slot:activator="{ on }">
+            <v-btn
+                text
+                v-on="on"
+                class="font-weight-bold px-1 "
+                style="min-width: 1px !important; min-height: 1px;"
+            >
+              {{ selectedOperator === "and" ? "all" : "any" }}
+              <v-icon>mdi-menu-down</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item-group v-model="selectedOperator">
+              <v-list-item
+                  v-for="operator in ['and', 'or']"
+                  :key="operator"
+                  :value="operator"
+                  @click="toggleBranchFilterOperator"
+                  active-class="primary--text"
+              >
+                <v-list-item-title class="py-3">
+                  {{ operator === "and" ? "all" : "any" }}
+                  ({{ operator }})
+                </v-list-item-title>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
+        </v-menu>
+        of {{ filter.children.length - 1 }} subfilters
+      </div>
     </div>
-    <v-spacer></v-spacer>
-    <v-chip
+    <!--    <v-spacer></v-spacer>-->
+    <!--    <v-chip-->
 
-        @click.stop="toggleBranchFilterOperator"
-        v-if="filter.children.length > 2 && !filter.isRoot"
-        outlined
-        class="mr-1"
-    >
-        {{ filter.operator }}
-    </v-chip>
+    <!--        @click.stop="toggleBranchFilterOperator"-->
+    <!--        v-if="filter.children.length > 2 && !filter.isRoot"-->
+    <!--        outlined-->
+    <!--        class="mr-1"-->
+    <!--    >-->
+    <!--        {{ filter.operator }}-->
+    <!--    </v-chip>-->
   </div>
 </template>
 
@@ -49,6 +80,14 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
+    selectedOperator: {
+      get() {
+        return this.filter.operator
+      },
+      set(value) {
+        this.setOperator(value)
+      }
+    }
   },
 
   methods: {
@@ -62,11 +101,14 @@ export default {
     toggleBranchFilterOperator() {
       console.log("toggleBranchFilterOperator", this.filter)
       this.$emit("setOperator", {
-        id: this.filter.id,
-        operator: this.filter.operator === "and" ? "or" : "and"
-      }
-    )
+            id: this.filter.id,
+            operator: this.filter.operator === "and" ? "or" : "and"
+          }
+      )
     },
+    setOperator(operator) {
+      console.log("setOperator", operator)
+    }
 
   },
   created() {

@@ -25,7 +25,19 @@
 
       <template v-slot:prepend="{item, open}">
         <span class="grey--text" v-if="!item.isRoot">
-          {{ item.siblingIndex + 1 }}.
+          <span class="number">
+            {{ item.siblingIndex + 1 }}.
+          </span>
+          <span class="d-inline-flex justify-center" style="min-width: 1.5em;">
+<!--          <span v-if="item.siblingIndex > 0">-->
+<!--          <span v-if="getFilterProperty(item.parentId, 'children')?.length > 2">-->
+            <template v-if="item.siblingIndex === 0">
+              The
+            </template>
+            <template v-else>
+              {{ getFilterProperty(item.parentId, "operator") }}
+            </template>
+          </span>
         </span>
         <v-icon left v-else>mdi-filter-outline</v-icon>
       </template>
@@ -34,14 +46,14 @@
       <template v-slot:label="{ item, open }">
         <query-filter-tree-branch
             v-if="item.type === 'branch'"
-            class="py-2"
+            class=""
             :filter="item"
             @setOperator="setFilterOperator"
 
         />
         <query-filter-tree-button
             v-else-if="item.type === 'button'"
-            class="py-2"
+            class=""
             :filter="item"
             @addBranchFilter="addBranchFilter"
             @addLeafFilter="addLeafFilter"
@@ -50,7 +62,7 @@
 
         <query-filter-tree-leaf
             v-else
-            class="py-2"
+            class=""
             :filter="item"
             @set="setFilter"
 
@@ -202,7 +214,6 @@ export default {
       filterToUpdate.operator = operator
     },
     setFilter(newFilter) {
-      console.log("set this filter from an event", newFilter)
       const filterToUpdate = this.myFlatFilters.find(f => f.id === newFilter.id)
 
       // filterToUpdate.foo = "bar"
@@ -210,6 +221,10 @@ export default {
         Vue.set(filterToUpdate, key, newFilter[key])
       })
 
+    },
+    getFilterProperty(id, key){
+      const myfilter = this.myFlatFilters.find(f => f.id === id)
+      return myfilter[key]
     },
     addBranchFilter(buttonId) {
       console.log("addBranchFilter", buttonId)
@@ -255,10 +270,12 @@ export default {
     "query.filters": {
       handler: function (filters) {
         this.myFlatFilters = addFilterButtons(filters)
+        this.openNodes = filters.map(f => f.id)
+
 
         // get the last item in the filters array:
-        const lastFilter = filters[filters.length - 1]
-        this.openNodes.push(lastFilter.id)
+        // const lastFilter = filters[filters.length - 1]
+        // this.openNodes.push(lastFilter.id)
 
 
       },
@@ -269,5 +286,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.invisible {
+  visibility: hidden !important;
+}
 
 </style>
