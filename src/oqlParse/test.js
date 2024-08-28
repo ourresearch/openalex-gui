@@ -135,7 +135,7 @@ class OQOTestRunner {
         }
 
         // Compare non-filter properties
-        const properties = ['summarize', 'summarize_by', 'sort_by', 'return'];
+        const properties = ['summarize', 'summarize_by', 'sort_by', 'return_columns'];
         for (const prop of properties) {
             if (!ignoreProperties.includes(prop) && (prop in generatedOQO || prop in expectedOQO)) {
                 if (!areValuesEqual(generatedOQO[prop], expectedOQO[prop])) {
