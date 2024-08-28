@@ -46,7 +46,7 @@
 
         <v-data-table
             :headers="headers"
-            :items="tableItems"
+            :items="filteredTableItems"
             class="elevation-1 mt-4"
             :disable-pagination="false"
             :hide-default-footer="false"
@@ -270,6 +270,17 @@ export default {
       loadingCells: [],
       showPopover: false,
       popoverContent: '',
+    }
+  },
+  computed: {
+    filteredTableItems() {
+      if (this.selectedTags.length === 0) {
+        return this.tableItems;
+      }
+      return this.tableItems.filter(item =>
+        Array.isArray(item.test.tags) &&
+        item.test.tags.some(tag => this.selectedTags.includes(tag))
+      );
     }
   },
   created() {
