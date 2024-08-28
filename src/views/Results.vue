@@ -127,7 +127,6 @@ import ResultsTable from "@/components/Results/ResultsTable.vue";
 import PropSelector from "@/components/PropSelector.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
-import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
@@ -139,7 +138,6 @@ export default {
   components: {
     SearchFromText,
     ResultsTable,
-    QueryFilterBranch,
 
     QuerySummarizeBy,
     QueryOql,

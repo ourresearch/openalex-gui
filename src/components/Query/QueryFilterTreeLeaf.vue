@@ -133,7 +133,7 @@ export default {
     QueryFilterValueChip,
   },
   props: {
-    filterId: String,
+    filter: Object,
     joinOperator: String,
   },
   data() {
@@ -156,7 +156,7 @@ export default {
       "querySubjectEntityConfig",
     ]),
     me() {
-      return this.query.filters.find(f => f.id === this.filterId)
+      return this.filter
     },
     columnConfig() {
       return this.querySubjectEntityConfig.columns[this.me.column_id]
@@ -221,8 +221,10 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-      "setFilter",
     ]),
+    setFilter(filter) {
+      this.$emit("set", filter)
+    },
     ...mapActions("user", []),
     getAsyncValueOptions: _.debounce(async function () {
       this.loading = true;

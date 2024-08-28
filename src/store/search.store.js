@@ -110,7 +110,6 @@ export const search = {
             dispatch("setAllFilters", state.query.filters.filter(f => f.subjectEntity === "works"))
 
             if (!columnId) {
-                console.log("setSummarize: clear everything, we're listing all works", columnId)
                 state.query.summarize_by = null
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
@@ -118,14 +117,12 @@ export const search = {
 
 
             } else if (columnId === "all") {
-                console.log("setSummarize: summarize all works together", columnId)
                 state.query.summarize_by = null
                 state.query.sort_by.direction = null
                 state.query.sort_by.column_id = null
                 state.query.return_columns = []
 
             } else {
-                console.log("setSummarize: summarize by a specific column", columnId)
                 state.query.summarize_by = columnId
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
@@ -154,7 +151,6 @@ export const search = {
 
         // SET MANY THINGS AT ONCE
         setFromQueryObject({state, dispatch}, query) {
-            console.log("setFromQueryObject", query)
 
              // do this first because it sets defaults for the other stuff
             dispatch("setSummarize", query.summarize_by)
@@ -230,9 +226,7 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
-        filtersRecursive: (state) => {
-            return convertFlatToRecursive(state.query.filters)
-        },
+
         filtersAreDirty: (state) => {
             return !_.isEqual(state.query.filters, state.originalFilters)
         },
