@@ -1,4 +1,4 @@
-/*jshint esversion: 8 */
+/*jshint esversion: 11 */
 
 // Import the function to be tested
 import {oqlToQuery, queryToOQL} from '../oqlParse/oqlParse.js';
@@ -165,10 +165,10 @@ class OQOTestRunner {
         return {equal: true};
     }
 
-    static runOQLToOQOFunc(oql, expectedQuery) {
+    static runOQLToOQOFunc(test) {
         try {
-            const generatedOQO = oqlToQuery(oql);
-            const result = OQOTestRunner.queriesEqual(generatedOQO, expectedQuery);
+            const generatedOQO = oqlToQuery(test.oql);
+            const result = OQOTestRunner.queriesEqual(generatedOQO, test.query, test.ignore ?? []);
             return {
                 "case": "oqlToQuery",
                 isPassing: result.equal,
@@ -185,11 +185,11 @@ class OQOTestRunner {
         }
     }
 
-    static runOQOToOQLFunc(expectedQuery) {
+    static runOQOToOQLFunc(test) {
         try {
-            const generatedOQL = queryToOQL(expectedQuery);
+            const generatedOQL = queryToOQL(test.query);
             const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
-            const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, expectedQuery);
+            const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, test.query, test.ignore ?? []);
             return {
                 "case": "queryToOql",
                 isPassing: result.equal,
@@ -219,12 +219,12 @@ class OQOTestRunner {
         return await response.json();
     }
 
-    static async runNatLangFunc(natLangPrompts, expectedQuery) {
+    static async runNatLangFunc(test) {
         let results = [];
-        for (const prompt of natLangPrompts) {
+        for (const prompt of test.natLang ?? []) {
             try {
                 const oqo = await OQOTestRunner.getNatLangQuery(prompt);
-                const result = OQOTestRunner.queriesEqual(oqo, expectedQuery, ['sort_by']);
+                const result = OQOTestRunner.queriesEqual(oqo, test.query, test.ignore ?? []);
                 results.push({
                     "case": "natLang",
                     prompt,
@@ -249,7 +249,7 @@ class OQOTestRunner {
         };
     }
 
-    static async runSearchFunc(query, timeout) {
+    static async runSearchFunc(test) {
 
         async function createSearchGetID(q) {
             const response = await fetch(searchUrl + '?mailto=team@ourresearch.org', {
@@ -293,7 +293,11 @@ class OQOTestRunner {
         }
 
         try {
-            const searchId = await createSearchGetID(query);
+            const searchId = await createSearchGetID(test.query);
+            let timeout = test.searchTimeout ?? 30000;
+            if (timeout < 1000) {
+                timeout *= 1000;
+            }
             const {
                 result,
                 elapsedTime
@@ -327,34 +331,26 @@ class OQOTestRunner {
             const testId = objectMD5(test);
 
             if (cases.includes("oqlToQuery")) {
-                const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test.oql, test.query);
+                const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test);
                 oqlToQueryResult.id = testId;
                 this.onTestResultCb(oqlToQueryResult);
             }
 
             if (cases.includes("queryToOql")) {
-                const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test.query);
+                const queryToOqlResult = OQOTestRunner.runOQOToOQLFunc(test);
                 queryToOqlResult.id = testId;
                 this.onTestResultCb(queryToOqlResult);
             }
 
             // Run Natural Language test if applicable
             if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0 && cases.includes("natLang")) {
-                const natLangResult = await OQOTestRunner.runNatLangFunc(test.natLang, test.query);
+                const natLangResult = await OQOTestRunner.runNatLangFunc(test);
                 natLangResult.id = testId;
                 this.onTestResultCb(natLangResult);
             }
 
             if (cases.includes("queryToSearch")) {
-                let searchTimeout = 30000;
-                if ('searchTimeout' in test) {
-                    searchTimeout = test.searchTimeout;
-                    // convert to ms if in seconds
-                    if (searchTimeout < 1000) {
-                        searchTimeout *= 1000;
-                    }
-                }
-                const searchResult = await OQOTestRunner.runSearchFunc(test.query, searchTimeout);
+                const searchResult = await OQOTestRunner.runSearchFunc(test);
                 searchResult.id = testId;
                 this.onTestResultCb(searchResult);
             }
