@@ -45,8 +45,11 @@
         </v-row>
 
         <v-data-table
+            v-model="selected"
             :headers="headers"
             :items="filteredTableItems"
+            item-key="id"
+            show-select
             class="elevation-1 mt-4"
             :disable-pagination="false"
             :hide-default-footer="false"
@@ -240,6 +243,7 @@ export default {
   data() {
     return {
       tests: [],
+      selected: [],
       selectedTags: [],
       availableTags: [],
       selectedTests: [],
@@ -278,8 +282,8 @@ export default {
         return this.tableItems;
       }
       return this.tableItems.filter(item =>
-        Array.isArray(item.test.tags) &&
-        item.test.tags.some(tag => this.selectedTags.includes(tag))
+          Array.isArray(item.test.tags) &&
+          item.test.tags.some(tag => this.selectedTags.includes(tag))
       );
     }
   },
@@ -323,11 +327,16 @@ export default {
     },
     async runTests() {
       this.isLoading = true;
-      const filteredTests = this.filterTestsByTags(this.tests, this.selectedTags);
-      const runner = new OQOTestRunner(filteredTests, this.updateTestResult);
+      let testsToRun;
+      if (this.selected.length > 0) {
+        testsToRun = this.selected.map(item => item.test);
+      } else {
+        testsToRun = this.filterTestsByTags(this.tests, this.selectedTags);
+      }
+      const runner = new OQOTestRunner(testsToRun, this.updateTestResult);
       const cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
       try {
-        this.loadingCells = runner.expectedResults(filteredTests, cases);
+        this.loadingCells = runner.expectedResults(testsToRun, cases);
         await runner.runTests(cases);
       } catch (error) {
         console.error('Error running tests:', error);
