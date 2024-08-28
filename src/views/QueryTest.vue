@@ -36,32 +36,39 @@
             :headers="headers"
             :items="tableItems"
             class="elevation-1 mt-4"
+            :disable-pagination="false"
+            :hide-default-footer="false"
+            :items-per-page="-1"
         >
+          <template v-slot:item.description="{ item }">
+            <span>{{ item.test.description }}</span>
+          </template>
           <template v-slot:item.test="{ item }">
-            <json-viewer :value="item.test" />
+            <span>{{ item.test.oql }}</span>
           </template>
           <template v-slot:item.natLangToJson="{ item }">
-            <nat-lang-to-json-cell :value="item.natLangToJson" :loading="isLoadingCell(item.id, 'natLang')"/>
+            <nat-lang-to-json-cell :value="item.natLangToJson"
+                                   :loading="isLoadingCell(item.id, 'natLang')"/>
           </template>
           <template v-slot:item.oqlToJson="{ item }">
             <test-result-cell
-              :value="item.oqlToJson.isPassing"
-              :loading="isLoadingCell(item.id, 'oqlToQuery')"
-              :details="item.oqlToJson.details"
+                :value="item.oqlToJson.isPassing"
+                :loading="isLoadingCell(item.id, 'oqlToQuery')"
+                :details="item.oqlToJson.details"
             />
           </template>
           <template v-slot:item.jsonToOql="{ item }">
             <test-result-cell
-              :value="item.jsonToOql.isPassing"
-              :loading="isLoadingCell(item.id, 'queryToOql')"
-              :details="item.jsonToOql.details"
+                :value="item.jsonToOql.isPassing"
+                :loading="isLoadingCell(item.id, 'queryToOql')"
+                :details="item.jsonToOql.details"
             />
           </template>
           <template v-slot:item.jsonToSearch="{ item }">
             <test-result-cell
-              :value="item.jsonToSearch.isPassing"
-              :loading="isLoadingCell(item.id, 'queryToSearch')"
-              :details="item.jsonToSearch.details"
+                :value="item.jsonToSearch.isPassing"
+                :loading="isLoadingCell(item.id, 'queryToSearch')"
+                :details="item.jsonToSearch.details"
             />
           </template>
         </v-data-table>
@@ -83,7 +90,8 @@
       </v-card>
     </v-dialog>
 
-    <v-menu v-model="showPopover" :close-on-content-click="false" :nudge-width="200" offset-y>
+    <v-menu v-model="showPopover" :close-on-content-click="false"
+            :nudge-width="200" offset-y>
       <template v-slot:activator="{ on, attrs }">
         <span v-bind="attrs" v-on="on" style="display: none;"></span>
       </template>
@@ -97,15 +105,15 @@
 </template>
 
 <script>
-import {getTests, OQOTestRunner} from '@/oqlParse/test';
-import {invertMap, objectMD5} from '@/oqlParse/util';
+import {OQOTestRunner, getTests} from '@/oqlParse/test';
+import {objectMD5, invertMap} from '@/oqlParse/util';
 import {VProgressCircular} from 'vuetify/lib';
 
 export default {
   name: "OQOTests",
   components: {
     TestResultCell: {
-      components: { VProgressCircular },
+      components: {VProgressCircular},
       props: ['value', 'loading', 'details'],
       data() {
         return {
@@ -151,7 +159,7 @@ export default {
       }
     },
     NatLangToJsonCell: {
-      components: { VProgressCircular },
+      components: {VProgressCircular},
       props: ['value', 'loading'],
       data() {
         return {
@@ -184,49 +192,30 @@ export default {
           }, '−');
         }
         return h('div', this.value.map((subTest, index) =>
-          h('div', {
-            key: index,
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              marginTop: '5px'
-            }
-          }, [
-            h('span', {
+            h('div', {
+              key: index,
               style: {
-                color: subTest.isPassing ? 'green' : 'red',
-                marginRight: '5px',
-                cursor: !subTest.isPassing ? 'pointer' : 'default',
-                textDecoration: !subTest.isPassing ? 'underline' : 'none'
-              },
-              on: {
-                click: () => this.showDetails(subTest)
+                display: 'flex',
+                alignItems: 'center',
+                marginTop: '5px'
               }
-            }, [subTest.isPassing ? '✓' : '✗']),
-            h('span', subTest.prompt)
-          ])
+            }, [
+              h('span', {
+                style: {
+                  color: subTest.isPassing ? 'green' : 'red',
+                  marginRight: '5px',
+                  cursor: !subTest.isPassing ? 'pointer' : 'default',
+                  textDecoration: !subTest.isPassing ? 'underline' : 'none'
+                },
+                on: {
+                  click: () => this.showDetails(subTest)
+                }
+              }, [subTest.isPassing ? '✓' : '✗']),
+              h('span', subTest.prompt)
+            ])
         ));
       }
     },
-    JsonViewer: {
-      props: ['value'],
-      render(h) {
-        return h('div', {
-          style: {
-            maxHeight: '200px',
-            overflow: 'auto',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            backgroundColor: '#f5f5f5',
-            padding: '8px',
-            borderRadius: '4px'
-          }
-        }, [
-          h('code', JSON.stringify(this.value, null, 2))
-        ]);
-      }
-    }
   },
   data() {
     return {
@@ -239,7 +228,8 @@ export default {
         {text: 'jsonToSearch', value: 'jsonToSearch'},
       ],
       headers: [
-        {text: 'Test', value: 'test', width: '30%'},
+        {text: 'Test (OQL)', value: 'test', width: '25%'},
+        {text: 'Description', value: 'description', width: '25%'},
         {text: 'natLangToJson', value: 'natLangToJson'},
         {text: 'oqlToJson', value: 'oqlToJson'},
         {text: 'jsonToOql', value: 'jsonToOql'},
@@ -275,9 +265,9 @@ export default {
           id: objectMD5(test),
           test: test,
           natLangToJson: [],
-          oqlToJson: { isPassing: null, details: null },
-          jsonToOql: { isPassing: null, details: null },
-          jsonToSearch: { isPassing: null, details: null },
+          oqlToJson: {isPassing: null, details: null},
+          jsonToOql: {isPassing: null, details: null},
+          jsonToSearch: {isPassing: null, details: null},
         }));
       });
     },
@@ -286,7 +276,8 @@ export default {
       const runner = new OQOTestRunner(this.tests, this.updateTestResult);
       const cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
       try {
-        this.loadingCells = runner.expectedResults(this.tests, cases);
+        const expectedResults = runner.expectedResults(this.tests, cases);
+        this.loadingCells = expectedResults;
         await runner.runTests(cases);
       } catch (error) {
         console.error('Error running tests:', error);
@@ -297,7 +288,6 @@ export default {
       }
     },
     updateTestResult(testResult) {
-      if (!testResult.isPassing) console.log(testResult);
       const rowIndex = this.tableItems.findIndex(item => item.id === testResult.id);
       if (rowIndex !== -1) {
         const tableKey = invertMap(this.testCasesMap)[testResult.case];
