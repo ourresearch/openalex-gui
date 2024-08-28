@@ -24,13 +24,14 @@
       <!--      </template>-->
 
       <template v-slot:prepend="{item, open}">
-        <span class="grey--text" v-if="!item.isRoot">
-          <span class="number">
+        <span class="" v-if="!item.isRoot">
+          <span class="number grey--text">
             {{ item.siblingIndex + 1 }}.
           </span>
-          <span class="d-inline-flex justify-center" style="min-width: 1.5em;">
-<!--          <span v-if="item.siblingIndex > 0">-->
-<!--          <span v-if="getFilterProperty(item.parentId, 'children')?.length > 2">-->
+          <span v-if="getFilterProperty(item.parentId, 'children')?.length > 1"
+                class="d-inline-flex justify-center"
+                style="min-width: 1.6em;"
+          >
             <template v-if="item.siblingIndex === 0">
               The
             </template>
@@ -48,6 +49,7 @@
             v-if="item.type === 'branch'"
             class=""
             :filter="item"
+            :is-open="open"
             @setOperator="setFilterOperator"
 
         />
