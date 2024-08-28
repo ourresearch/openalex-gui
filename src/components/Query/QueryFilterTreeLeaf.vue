@@ -106,7 +106,7 @@
 
       <!--    third, number  values -->
       <div
-          v-else-if="columnConfig.type === 'number'"
+          v-else-if="columnConfig.type === 'number' || columnConfig.type === 'string'"
       >
         <v-text-field
             v-if="isEditingValue"
@@ -128,25 +128,11 @@
           style="min-width: 1px !important;"
           @click="startEditingValue"
         >
-          {{ selectedValue }}
+          {{ (selectedValue || "click to edit") }}
           <v-icon right>mdi-pencil-outline</v-icon>
         </v-btn>
 
       </div>
-
-      <!--    fourth and finally, string  values -->
-      <v-text-field
-          v-else
-          v-model="selectedValue"
-          dense
-          rounded
-          filled
-          hide-details
-          full-width
-          class="flex-grow-1"
-          autofocus
-      >
-      </v-text-field>
 
     </div>
 
