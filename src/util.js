@@ -204,11 +204,30 @@ const uniqueObjects = function (arrayOfObjects) {
 const isDisplayable = function (value) {
     if (!value) return false
     if (Array.isArray(value) && value.length === 0) return false
-    if (typeof value === "object" && Object.keys(value).length === 0) return false
+    if (typeof value === "object") {
+        const keys = Object.keys(value)
+        if (keys.length === 0) return false
+        if (keys.includes("display_name") && !value.display_name) return false
+        if (keys.includes("id") && !value.id) return false
+    }
     return true
 
 }
 
+function ordinalize(i) {
+    let j = i % 10,
+        k = i % 100;
+    if (j === 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j === 2 && k !== 12) {
+        return i + "nd";
+    }
+    if (j === 3 && k !== 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
 
 
 export {
@@ -228,4 +247,5 @@ export {
     isToday,
     uniqueObjects,
     isDisplayable,
+    ordinalize,
 }

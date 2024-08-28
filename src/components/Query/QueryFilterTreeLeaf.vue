@@ -17,7 +17,11 @@
       <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
       <v-menu v-else offset-y>
         <template v-slot:activator="{ on }">
-          <v-btn text rounded v-on="on" class="font-weight-regular px-0 mx-1">
+          <v-btn
+              text
+              v-on="on" class="font-weight-regular px-1 mx-1"
+              style="min-width: 1px !important;"
+          >
             {{ selectedOperator ?? "select" }}
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>

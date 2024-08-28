@@ -10,11 +10,11 @@
 
       <v-col cols="12" xl="4">
         <div class="d-flex align-start mb-3">
-          <search-from-text />
+          <search-from-text :disabled="!$store.state.search.is_ready" />
 
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn icon v-on="on" class="mt-2 mr-4 ml-2">
+              <v-btn icon v-on="on" class="mt-2 ml-1">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
@@ -177,7 +177,6 @@ export default {
       "summarizeByFiltersRoot",
       "querySubjectEntityConfig",
       "query",
-      "filtersAreDirty",
         "searchApiUrl",
     ]),
   },
