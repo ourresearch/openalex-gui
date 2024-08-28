@@ -4,12 +4,11 @@
       <template v-slot:activator="{ on }">
         <v-btn
             text
-            rounded
             v-on="on"
             color="primary"
-            class="px-2"
+            class="px-1"
         >
-          Add {{ nthFilter }} filter
+          add a {{ nthFilter }} filter
         </v-btn>
       </template>
       <v-card flat rounded>

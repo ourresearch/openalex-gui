@@ -58,13 +58,14 @@ const queryFactory = function (summarize_by, sort_by, return_columns, filters) {
 
 // FILTER STUFF
 function convertFlatToRecursive(flatTree) {
-    const flatTreeCopy = _.cloneDeep(flatTree)
+    const flatTreeCopy = _.cloneDeep(flatTree);
 
     const treeMap = new Map(flatTreeCopy.map(item => [item.id, {
         ...item,
         children: [],
         isRoot: false,
         siblingIndex: null,
+        parentId: null,
     }]));
 
     const root = [];
@@ -73,6 +74,8 @@ function convertFlatToRecursive(flatTree) {
         if (item?.children?.length > 0) {
             item.children.forEach(childId => {
                 const childNode = treeMap.get(childId);
+                const parentNode = treeMap.get(item.id);
+                childNode.parentId = parentNode.id;
                 treeMap.get(item.id).children.push(childNode);
             });
         }
