@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex">
       <div class="text-h5">
-        {{ displayName }}
+        {{ displayName || "Untitled" }}
       </div>
       <v-spacer/>
       <v-btn v-if="closeable" icon @click="$emit('close')">
@@ -81,6 +81,7 @@ export default {
     },
     rowsToShow() {
       return this.properties.filter(p => {
+        if (!p.config) return false
         if (p.config.id === "display_name") return false
         if (p.config.id === 'id') return false
         if (!isDisplayable(p.value)) return false
@@ -100,7 +101,9 @@ export default {
     async getData() {
       this.isLoading = true
       try {
+        console.log("getting properties", this.id)
         this.properties = await entity.getEntityData(this.id)
+        console.log("got properties", this.properties)
       } catch (e) {
         console.error(e)
         this.snackbar({msg: "Error fetching entity data", color: "error"})

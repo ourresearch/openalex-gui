@@ -227,9 +227,6 @@ export const search = {
         worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
         summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
 
-        filtersAreDirty: (state) => {
-            return !_.isEqual(state.query.filters, state.originalFilters)
-        },
         searchApiUrl: (state) => {
             return `https://api.openalex.org/searches/${state.id}`
         },

@@ -375,7 +375,7 @@ export default {
       const newTab = window.open(this.apiUrl)
       setTimeout(() => {
         newTab.focus()
-      }, 1000)
+      }, 1000)``
       return false
     },
     removeColumn(id) {

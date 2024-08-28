@@ -35,6 +35,7 @@
 
             <!--        number: float or integer -->
             <template v-else>
+              number
               {{ property.value | toPrecision }}
             </template>
           </template>

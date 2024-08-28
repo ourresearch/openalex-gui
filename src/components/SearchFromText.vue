@@ -1,7 +1,7 @@
 <template>
   <v-textarea
       v-model="q"
-      :disabled="isNatLangLoading || !$store.state.search.is_ready"
+      :disabled="isNatLangLoading || disabled"
       autofocus
       auto-grow
       filled
@@ -29,12 +29,12 @@
               large
               rounded
               v-on="on"
-              style="margin: -10px 0 0 -17px;"
-              class="pr-1 mr-2"
-              outlined
+              style="margin: -11px 0 0 -17px;"
+              class="px-0 mr-2"
+              text
           >
-            <v-icon left>{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
-            {{ inputTypes.find(it => it.id === selectedInputType).displayName }}
+            <v-icon >{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
+<!--            {{ inputTypes.find(it => it.id === selectedInputType).displayName }}-->
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
         </template>
@@ -76,6 +76,7 @@ export default {
   name: 'SearchFromText',
   props: {
     resetQuery: Boolean,
+    disabled: Boolean,
   },
   data() {
     return {

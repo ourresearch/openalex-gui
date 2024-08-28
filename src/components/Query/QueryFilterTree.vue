@@ -11,6 +11,7 @@
         dense
         open-all
 
+
     >
 
       <!--      <template v-slot:prepend="{ item, open }">-->
@@ -22,89 +23,70 @@
       <!--        </v-icon>-->
       <!--      </template>-->
 
+      <template v-slot:prepend="{item, open}">
+        <span class="grey--text" v-if="!item.isRoot">
+          {{ item.siblingIndex + 1 }}.
+        </span>
+        <v-icon left v-else>mdi-filter-outline</v-icon>
+      </template>
+
 
       <template v-slot:label="{ item, open }">
-        <div >
-          <query-filter-tree-branch
-              v-if="item.type === 'branch'"
-              class="py-4"
-              :filter="item"
-              @set="setFilter"
+        <query-filter-tree-branch
+            v-if="item.type === 'branch'"
+            class="py-2"
+            :filter="item"
+            @setOperator="setFilterOperator"
 
-          />
-          <div v-else-if="item.type === 'button'" class="d-flex align-center" style="width: 100%;">
-            <v-menu>
-              <template v-slot:activator="{ on }">
-                <v-btn
-                    text
-                    rounded
-                    v-on="on"
-                    color="primary"
-                    class="py-6 my-1 pl-1 d-flex justify-end"
-                >
-                  <v-icon left>mdi-plus</v-icon>
-                  Add filter
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item @click="addBranchFilter(item.id)">
-                  <v-list-item-icon>
-                    <v-icon>mdi-folder-plus-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>
-                    Add branch
-                  </v-list-item-title>
-                </v-list-item>
-                <v-divider/>
-                <v-list-item
-                    v-for="column in newFilterColumnOptions"
-                    :key="column.id"
-                    @click="addLeafFilter(item.id, column.id)"
-                >
-                  <v-list-item-icon>
-                    <v-icon>{{ column.icon }}</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>
-                    {{ column.displayName }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
+        />
+        <query-filter-tree-button
+            v-else-if="item.type === 'button'"
+            class="py-2"
+            :filter="item"
+            @addBranchFilter="addBranchFilter"
+            @addLeafFilter="addLeafFilter"
+        />
 
 
-          <query-filter-tree-leaf
-              v-else
-              class="py-4"
-              :filter="item"
-              @set="setFilter"
+        <query-filter-tree-leaf
+            v-else
+            class="py-2"
+            :filter="item"
+            @set="setFilter"
 
-          />
+        />
 
-        </div>
       </template>
       <template v-slot:append="{ item, open }">
-
-        <!--        <v-btn-->
-        <!--            v-if="item.isRoot"-->
-        <!--            :disabled="!filtersAreDirty || !$store.state.search.is_ready"-->
-        <!--            rounded-->
-        <!--            @click="applyFilters"-->
-        <!--            color="primary"-->
-        <!--        >-->
-        <!--          Apply-->
-        <!--        </v-btn>-->
         <v-btn
-            v-if="item.type !== 'button'"
-            :disabled="item.isRoot"
+            v-if="item.isRoot"
+            :disabled="!isDirty || !$store.state.search.is_ready"
+            rounded
+            @click="applyFilters"
+            color="primary"
+        >
+          Apply
+        </v-btn>
+        <v-btn
+            v-else-if="item.type !== 'button'"
             icon
-            @click="applyDeleteFilter(item.id)"
+            @click="deleteFilter(item.id)"
         >
           <v-icon>mdi-delete-outline</v-icon>
         </v-btn>
       </template>
 
     </v-treeview>
+<!--    <v-row style="font-size: 11px !important;">-->
+<!--      <v-col >-->
+<!--        <div class="text-h6">Query</div>-->
+<!--        <pre>{{ query.filters}}</pre>-->
+<!--      </v-col>-->
+<!--      <v-col>-->
+<!--        <div class="text-h6">Component</div>-->
+<!--        <pre>{{ filtersToStore }}</pre>-->
+<!--      </v-col>-->
+<!--    </v-row>-->
   </div>
 </template>
 
@@ -113,7 +95,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {
   addFilterButtons,
-  convertFlatToRecursive,
+  convertFlatToRecursive, deleteNode,
   makeFilterBranch,
   makeFilterButton,
   makeFilterLeaf
@@ -122,12 +104,15 @@ import {getConfigs} from "@/oaxConfigs";
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 import {filter} from "core-js/internals/array-iteration";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
+import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
+import Vue from "vue";
 
 export default {
   name: "Template",
   components: {
     QueryFilterTreeLeaf,
     QueryFilterTreeBranch,
+    QueryFilterTreeButton,
   },
   props: {},
   data() {
@@ -151,13 +136,45 @@ export default {
       "filtersAreDirty",
 
     ]),
-    newFilterColumnOptions() {
-      return Object.values(getConfigs()["works"].columns)
-    },
 
     filtersRecursive() {
       return convertFlatToRecursive(this.myFlatFilters)
     },
+    filtersToStore() {
+      // work on a copy
+      const filtersCopy = _.cloneDeep(this.myFlatFilters)
+
+      // remove button filters
+      const buttonFilters = filtersCopy.filter(f => f.type === "button")
+      let noButtonFilters = filtersCopy
+      buttonFilters.forEach(buttonFilter => {
+        noButtonFilters = deleteNode(noButtonFilters, buttonFilter.id)
+      })
+
+      // remove useless "children" attribute from leaf nodes
+      const noChildrenOnLeafNodes = noButtonFilters.map(f => {
+        if (f.type === "leaf") {
+          delete f.children
+        }
+        return f
+      })
+
+      // remove empty branches
+      const noEmptyBranches = noChildrenOnLeafNodes.filter(f => f.type !== "branch" || f.children.length > 0)
+
+      // remove UI-only attributes
+      const noUiAttributes = noEmptyBranches.map(f => {
+        delete f.siblingIndex
+        delete f.isRoot
+        return f
+      })
+
+      // done
+      return noUiAttributes
+    },
+    isDirty(){
+      return !_.isEqual(this.query.filters, this.filtersToStore)
+    }
   },
 
   methods: {
@@ -167,33 +184,34 @@ export default {
     ]),
     ...mapMutations("search", []),
     ...mapActions("search", [
-      // "addFilter",
-      "deleteFilter",
-      // "setFilter",
       "createSearch",
+        "setAllFilters",
 
     ]),
     ...mapActions("user", []),
-    addFilter(filter, parentId){
+    addFilter(filter, parentId) {
 
     },
-    // deleteFilter(id){
-    //
-    // },
-    setFilter(filter){
-      console.log("set this filter from an event", filter)
+    deleteFilter(id){
+      console.log("deleteFilter", id)
+      this.myFlatFilters = deleteNode(this.myFlatFilters, id)
+    },
+    setFilterOperator({id, operator}) {
+      console.log("setFilterOperator", id, operator)
+      const filterToUpdate = this.myFlatFilters.find(f => f.id === id)
+      filterToUpdate.operator = operator
+    },
+    setFilter(newFilter) {
+      console.log("set this filter from an event", newFilter)
+      const filterToUpdate = this.myFlatFilters.find(f => f.id === newFilter.id)
+
+      // filterToUpdate.foo = "bar"
+      Object.keys(newFilter).forEach(key => {
+        Vue.set(filterToUpdate, key, newFilter[key])
+      })
 
     },
     addBranchFilter(buttonId) {
-      // console.log("addBranchFilter")
-      // const filter = makeFilterBranch("works")
-      // this.addFilter({
-      //   filter,
-      //   parentId
-      // })
-
-
-
       console.log("addBranchFilter", buttonId)
 
       const newBranchFilter = makeFilterBranch("works")
@@ -209,14 +227,8 @@ export default {
       parent.children.splice(parent.children.length - 1, 0, newBranchFilter.id)
 
 
-
-
     },
-    applyDeleteFilter(id) {
-      this.deleteFilter(id)
-      this.createSearch()
-    },
-    addLeafFilter(buttonId, columnId) {
+    addLeafFilter({buttonId, columnId}) {
       console.log("addLeafFilter", buttonId, columnId)
       const filter = makeFilterLeaf("works")
       filter.column_id = columnId
@@ -229,6 +241,7 @@ export default {
     },
 
     applyFilters() {
+      this.setAllFilters(this.filtersToStore)
       this.createSearch()
     },
 

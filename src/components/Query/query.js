@@ -1,8 +1,9 @@
 import shortUUID from 'short-uuid';
 import {getConfigs} from "@/oaxConfigs";
-const makeFilterLeaf = function(subjectEntity){
+
+const makeFilterLeaf = function (subjectEntity) {
     return {
-        id: "leaf_" + shortUUID.generate().slice(0,6),
+        id: "leaf_" + shortUUID.generate().slice(0, 6),
         subjectEntity,
         type: "leaf",
 
@@ -11,9 +12,9 @@ const makeFilterLeaf = function(subjectEntity){
         value: null,
     }
 }
-const makeFilterBranch = function(subjectEntity){
+const makeFilterBranch = function (subjectEntity) {
     return {
-        id: "br_" + shortUUID.generate().slice(0,6),
+        id: "br_" + shortUUID.generate().slice(0, 6),
         subjectEntity,
         type: "branch",
 
@@ -22,12 +23,12 @@ const makeFilterBranch = function(subjectEntity){
     }
 }
 
-const makeFilterButton = function(){
+const makeFilterButton = function () {
     // this is a button that will be used to add a new filter.
     // we're making a "filter" from it so that it can be added to the tree
     // but it's not really a filter.
     return {
-        id: "button_" + shortUUID.generate().slice(0,6),
+        id: "button_" + shortUUID.generate().slice(0, 6),
         type: "button",
     }
 }
@@ -46,7 +47,7 @@ const baseQuery = () => ({
 })
 
 
-const queryFactory = function(summarize_by, sort_by, return_columns, filters) {
+const queryFactory = function (summarize_by, sort_by, return_columns, filters) {
     if (!summarize_by) throw new Error("queryFactory: summarize_by is required")
     const baseQuery = baseQuery()
     baseQuery.summarize_by = summarize_by
@@ -55,18 +56,20 @@ const queryFactory = function(summarize_by, sort_by, return_columns, filters) {
 }
 
 
-
-
-
-
 // FILTER STUFF
-
 function convertFlatToRecursive(flatTree) {
-    const treeMap = new Map(flatTree.map(item => [item.id, {...item, children: [], isRoot: false}]));
+    const flatTreeCopy = _.cloneDeep(flatTree)
+
+    const treeMap = new Map(flatTreeCopy.map(item => [item.id, {
+        ...item,
+        children: [],
+        isRoot: false,
+        siblingIndex: null,
+    }]));
 
     const root = [];
 
-    flatTree.forEach(item => {
+    flatTreeCopy.forEach(item => {
         if (item?.children?.length > 0) {
             item.children.forEach(childId => {
                 const childNode = treeMap.get(childId);
@@ -75,11 +78,25 @@ function convertFlatToRecursive(flatTree) {
         }
     });
 
-    flatTree.forEach(item => {
-        if (!flatTree.some(node => node?.children?.includes(item.id))) {
+    flatTreeCopy.forEach(item => {
+        if (!flatTreeCopy.some(node => node?.children?.includes(item.id))) {
             const rootNode = treeMap.get(item.id);
             rootNode.isRoot = true;
             root.push(rootNode);
+        }
+    });
+
+    root.forEach((node, index) => {
+        node.siblingIndex = index;
+    });
+
+    treeMap.forEach(node => {
+        if (node.children.length > 0) {
+            node.children.forEach((child, index) => {
+                if (child) {
+                    child.siblingIndex = index;
+                }
+            });
         }
     });
 
@@ -106,6 +123,7 @@ function deleteNode(tree, idToDelete) {
             children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
         }));
 }
+
 /**
  * Adds a new "filter" button to the end of every filter branch's children.
  * This is used by the UI to add a new filter to the tree.
@@ -114,7 +132,8 @@ function deleteNode(tree, idToDelete) {
  */
 function addFilterButtons(filters) {
     const newFilters = [];
-    const ret = filters.map(f => {
+    const filtersCopy = _.cloneDeep(filters)
+    const ret = filtersCopy.map(f => {
         if (f.type === "branch") {
             const newFilter = makeFilterButton()
             newFilters.push(newFilter)
@@ -130,8 +149,6 @@ function addFilterButtons(filters) {
 }
 
 
-
-
 const prettifyFilters = function (filters) {
     // const filtersCopy = _.cloneDeep(filters)
 
@@ -142,8 +159,6 @@ const prettifyFilters = function (filters) {
         })
 
 }
-
-
 
 
 export {

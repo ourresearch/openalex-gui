@@ -1,6 +1,8 @@
 <template>
   <div>
     <v-chip
+        outlined
+        class="mr-1"
     >
       <template v-if="entityData">
         {{ entityData.display_name | truncate(50) }}

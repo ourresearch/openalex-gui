@@ -1,29 +1,26 @@
 <template>
   <div class="d-flex align-center flex-grow-1">
     <div v-if="filter.isRoot" class="text-h6 d-flex">
-      Works filters ({{ query.filters.length - 1 }})
+      Works filters
     </div>
     <div v-else>
-              <span class="grey--text" v-if="filter.children.length === 0">
-              <v-icon>mdi-menu-down</v-icon>
-                Empty subquery:
-              </span>
-      <span class="">{{ filter.children.length }} </span>
-      {{ "subfilter" | pluralize(filter.children.length) }}
+      <span class="grey--text" v-if="filter.children.length === 1">
+        [Empty subquery]
+      </span>
+      <span v-else class="">
+        Subquery:
+      </span>
+<!--      {{ "subfilter" | pluralize(filter.children.length) }}-->
     </div>
     <v-spacer></v-spacer>
     <v-chip
-        @click.stop="toggleBranchFilterOperator(filter.id)"
-        v-if="filter.children.length > 1"
+
+        @click.stop="toggleBranchFilterOperator"
+        v-if="filter.children.length > 2 && !filter.isRoot"
         outlined
         class="mr-1"
     >
-      <template v-if="filter.children.length === 2">
-        {{ filter.operator === "and" ? "Both" : "Either" }}
-      </template>
-      <template v-else>
-        {{ filter.operator === "and" ? "All" : "Any" }}
-      </template>
+        {{ filter.operator }}
     </v-chip>
   </div>
 </template>
@@ -34,8 +31,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "Template",
-  components: {
-  },
+  components: {},
   props: {
     filter: Object,
 
@@ -64,11 +60,12 @@ export default {
     ...mapActions("user", []),
 
     toggleBranchFilterOperator() {
-      const newFilter = {
-        ...this.filter,
+      console.log("toggleBranchFilterOperator", this.filter)
+      this.$emit("setOperator", {
+        id: this.filter.id,
         operator: this.filter.operator === "and" ? "or" : "and"
       }
-      this.$emit("set", newFilter)
+    )
     },
 
   },
