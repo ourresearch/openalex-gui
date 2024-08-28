@@ -31,16 +31,36 @@
                 :disabled="isLoading"
             ></v-select>
           </v-col>
-          <v-col cols="12" sm="3" md="2">
-            <v-btn
-                color="primary"
-                block
-                @click="runTests"
-                :disabled="(!selectedTests.length && !selectedTags.length) || isLoading"
-                :loading="isLoading"
-            >
-              Run Tests
-            </v-btn>
+          <v-col cols="12" sm="4" md="3">
+            <v-row no-gutters class="mb-4">
+              <v-col cols="12" class="text-center">
+                <div class="text-h6">
+                  % Passing: {{ passingPercentage }}
+                </div>
+              </v-col>
+            </v-row>
+            <v-row no-gutters class="mt-2">
+              <v-col cols="6" class="pr-1">
+                <v-btn
+                    color="primary"
+                    block
+                    @click="runTests"
+                    :disabled="(!selectedTests.length && !selectedTags.length) || isLoading"
+                    :loading="isLoading"
+                >
+                  Run Tests
+                </v-btn>
+              </v-col>
+              <v-col cols="6" class="pl-1">
+                <v-btn
+                    color="secondary"
+                    block
+                    @click="clearResults"
+                >
+                  Clear
+                </v-btn>
+              </v-col>
+        </v-row>
           </v-col>
         </v-row>
 
@@ -242,6 +262,7 @@ export default {
   },
   data() {
     return {
+      passingPercentage: '-',
       tests: [],
       selected: [],
       selectedTags: [],
@@ -309,6 +330,27 @@ export default {
         }));
       });
     },
+    calculatePassingPercentage() {
+      let totalTests = 0;
+      let passingTests = 0;
+      this.tableItems.forEach(item => {
+        ['natLangToJson', 'oqlToJson', 'jsonToOql', 'jsonToSearch'].forEach(key => {
+          if (key === 'natLangToJson') {
+            if (Array.isArray(item[key]) && item[key].length > 0) {
+              totalTests += item[key].length;
+              passingTests += item[key].filter(subTest => subTest.isPassing).length;
+            }
+          } else {
+            if (item[key].isPassing !== null) {
+              totalTests++;
+              if (item[key].isPassing) passingTests++;
+            }
+          }
+        });
+      });
+      this.passingPercentage = totalTests === 0 ? '-' :
+          (passingTests / totalTests * 100).toFixed(2) + '%';
+    },
     getUniqueTags(tests) {
       const tagSet = new Set();
       tests.forEach(test => {
@@ -338,6 +380,7 @@ export default {
       try {
         this.loadingCells = runner.expectedResults(testsToRun, cases);
         await runner.runTests(cases);
+        this.calculatePassingPercentage();
       } catch (error) {
         console.error('Error running tests:', error);
         // You might want to show an error message to the user here
@@ -365,6 +408,16 @@ export default {
       this.loadingCells = this.loadingCells.filter(cell =>
           !(cell.id === testResult.id && cell.case === testResult.case)
       );
+    },
+    clearResults() {
+      this.tableItems.forEach(item => {
+        item.natLangToJson = [];
+        item.oqlToJson = {isPassing: null, details: null};
+        item.jsonToOql = {isPassing: null, details: null};
+        item.jsonToSearch = {isPassing: null, details: null};
+      });
+      this.passingPercentage = '-';
+      this.selected = [];
     },
     showTestObject(id) {
       const item = this.tableItems.find(item => item.id === id);
