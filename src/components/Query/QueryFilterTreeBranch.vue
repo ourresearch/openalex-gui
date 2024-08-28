@@ -14,7 +14,6 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn
-                :disabled="!isOpen"
                 outlined
                 text
                 v-on="on"
