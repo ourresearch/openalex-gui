@@ -22,6 +22,16 @@ const makeFilterBranch = function(subjectEntity){
     }
 }
 
+const makeFilterButton = function(){
+    // this is a button that will be used to add a new filter.
+    // we're making a "filter" from it so that it can be added to the tree
+    // but it's not really a filter.
+    return {
+        id: "button_" + shortUUID.generate().slice(0,6),
+        type: "button",
+    }
+}
+
 
 const baseQuery = () => ({
     filters: [
@@ -96,6 +106,30 @@ function deleteNode(tree, idToDelete) {
             children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
         }));
 }
+/**
+ * Adds a new "filter" button to the end of every filter branch's children.
+ * This is used by the UI to add a new filter to the tree.
+ * @param {array} filters - A list of filter objects.
+ * @returns {array} A new list of filter objects with a new filter button added.
+ */
+function addFilterButtons(filters) {
+    const newFilters = [];
+    const ret = filters.map(f => {
+        if (f.type === "branch") {
+            const newFilter = makeFilterButton()
+            newFilters.push(newFilter)
+            return {
+                ...f,
+                children: [...f.children, newFilter.id]
+            }
+        } else {
+            return f
+        }
+    })
+    return [...ret, ...newFilters]
+}
+
+
 
 
 const prettifyFilters = function (filters) {
@@ -115,6 +149,10 @@ const prettifyFilters = function (filters) {
 export {
     makeFilterLeaf,
     makeFilterBranch,
+    makeFilterButton,
+
+    addFilterButtons,
+
     baseQuery,
     convertFlatToRecursive,
     deleteNode,

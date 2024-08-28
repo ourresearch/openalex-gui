@@ -18,6 +18,7 @@ const oaxConfigs = {
         "placeholder": "Search scholarly authors",
         "filterName": "author",
         "filterKey": "authorships.author.id",
+        "descrFull": "These are the creators of scholarly works. They can be affiliated with institutions, have ORCIDs, and have published works. Each author has a unique OpenAlex ID.",
         "hintVerb": "at",
         "color": "green",
         "hasAutocomplete": true,
@@ -45,7 +46,8 @@ const oaxConfigs = {
                 "actions": [],
                 "actionsPopular": [],
                 "isId": true,
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "A unique identifier for each author that can be used for filtering works by author."
             },
             "ids.orcid": {
                 "id": "ids.orcid",
@@ -58,7 +60,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "orcid",
                 "actions": ["column", "filter"],
                 "type": "string",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "A common identifier for researchers that can be used to link their works across databases."
             },
             "display_name": {
                 "id": "display_name",
@@ -72,7 +75,8 @@ const oaxConfigs = {
                 "category": "other",
                 "redshiftDisplayColumn": "display_name",
                 "redshiftFilterColumn": null,
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the author."
             },
             "affiliations.institution.id": {
                 "id": "affiliations.institution.id",
@@ -86,7 +90,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["column"],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The institutions that the author has been affiliated with."
             },
             "affiliations.institution.type": {
                 "id": "affiliations.institution.type",
@@ -101,7 +106,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["filter", "group_by"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The type of institutions that the author has been affiliated with which are taking from ROR."
             },
             "last_known_institutions.id": {
                 "id": "last_known_institutions.id",
@@ -115,7 +121,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The latest institution that the author has been affiliated with in OpenAlex."
             },
             "last_known_institutions.country_code": {
                 "id": "last_known_institutions.country_code",
@@ -131,7 +138,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["filter", "group_by"],
                 "actionsPopular": ["filter", "group_by"],
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The country of the latest institution that the author has been affiliated with in OpenAlex."
             },
             "last_known_institutions.type": {
                 "id": "last_known_institutions.type",
@@ -146,7 +154,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["filter", "group_by"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The type of the latest institution that the author has been affiliated with in OpenAlex."
             },
             "has_orcid": {
                 "id": "has_orcid",
@@ -159,7 +168,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["filter", "group_by"],
                 "actionsPopular": ["filter", "group_by"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Whether the author has an ORCID."
             },
             "display_name_alternatives": {
                 "id": "display_name_alternatives",
@@ -173,7 +183,8 @@ const oaxConfigs = {
                 "type": "array",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "Alternate names of the author which are determined from the raw author name of all works associated with an author."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -186,7 +197,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
-                "icon": "mdi-book-open-variant"
+                "icon": "mdi-book-open-variant",
+                "descr": "The number of works that the author has created."
             }
         },
         "values": null
@@ -197,11 +209,12 @@ const oaxConfigs = {
         "nameSingular": "concept",
         "displayName": "concepts",
         "displayNameSingular": "concept",
-        "descr": "Topics and fields of study",
+        "descr": "Concepts and fields of study",
         "eg": "History",
         "placeholder": "Search topics",
         "filterName": "concepts",
         "filterKey": "concepts.id",
+        "descrFull": "These are concepts or fields of study that were inherited from MAG (Microsoft Academic Graph). Each concept has a unique OpenAlex ID.",
         "hasAutocomplete": true,
         "isNative": true,
         "idRegex": "(?i)(?:concepts\\/)?(?:https:\\/\\/openalex\\.org\\/)?(c\\d+)",
@@ -216,7 +229,8 @@ const oaxConfigs = {
                 "displayName": "OpenAlex ID",
                 "isId": true,
                 "type": "string",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Unique identifier for this concept"
             },
             "display_name": {
                 "id": "display_name",
@@ -227,7 +241,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of this concept or field of study"
             },
             "description": {
                 "id": "description",
@@ -236,14 +251,16 @@ const oaxConfigs = {
                 "objectEntity": "concepts",
                 "displayName": "description",
                 "type": "string",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "A description of this concept or field of study"
             },
             "display_name.search": {
                 "id": "display_name.search",
                 "subjectEntity": "concepts",
                 "displayName": "Name search",
                 "type": "string",
-                "icon": "mdi-magnify"
+                "icon": "mdi-magnify",
+                "descr": "Display name for search"
             },
             "level": {
                 "id": "level",
@@ -251,7 +268,8 @@ const oaxConfigs = {
                 "displayName": "Level",
                 "maxPotentialFiltersToShow": 10,
                 "type": "number",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The level of this concept in the hierarchy of concepts from level 0 to level 6"
             }
         },
         "values": null
@@ -267,6 +285,7 @@ const oaxConfigs = {
         "placeholder": "Search continents",
         "filterName": "continent",
         "filterKey": "authorships.institutions.continent",
+        "descrFull": "These are the continents of the world. Each continent has a unique OpenAlex ID.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?i)(?:https:\\/\\/openalex\\.org\\/continents\\/|continents\\/)(q\\d+)",
@@ -285,7 +304,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "id",
                 "actions": ["filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "Unique identifier for the continent"
             },
             "display_name": {
                 "id": "display_name",
@@ -298,7 +318,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["column"],
                 "actionsPopular": [],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The name of the continent"
             }
         },
         "values": [{"id": "continents/Q15", "display_name": "Africa"}, {
@@ -323,6 +344,7 @@ const oaxConfigs = {
         "placeholder": "Search countries",
         "filterName": "countries",
         "filterKey": "authorships.countries",
+        "descrFull": "These are countries. Each country has a unique OpenAlex ID.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/countries\\/|countries\\/)([a-zA-Z]{2})",
@@ -339,7 +361,8 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Unique identifier for the country"
             },
             "display_name": {
                 "id": "display_name",
@@ -353,7 +376,8 @@ const oaxConfigs = {
                 "category": "other",
                 "redshiftDisplayColumn": "display_name",
                 "redshiftFilterColumn": null,
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the country"
             }
         },
         "values": [{"id": "countries/US", "display_name": "United States of America"}, {
@@ -741,6 +765,7 @@ const oaxConfigs = {
         "placeholder": "Search domains",
         "filterName": "domains",
         "filterKey": "primary_topic.domain.id",
+        "descrFull": "These are the domains of scholarly works which are the highest level description for a subject area of a work. Each domain has a unique OpenAlex ID.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/domains\\/|domains\\/)(\\d+)",
@@ -757,7 +782,8 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Unique identifier for the domain"
             },
             "display_name": {
                 "id": "display_name",
@@ -771,7 +797,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the domain"
             },
             "description": {
                 "id": "description",
@@ -783,7 +810,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": null,
                 "actions": ["column"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the domain"
             },
             "fields": {
                 "id": "fields",
@@ -796,7 +824,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The set of fields that are children of this domain"
             },
             "siblings": {
                 "id": "siblings",
@@ -809,7 +838,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The set of domains that are siblings of this domain"
             }
         },
         "values": [{"id": "domains/3", "display_name": "Physical Sciences"}, {
@@ -828,6 +858,7 @@ const oaxConfigs = {
         "placeholder": "Search fields",
         "filterName": "fields",
         "filterKey": "primary_topic.field.id",
+        "descrFull": "Fields the second level of description of the subject area of works. Each field has a unique OpenAlex ID. Fields are above subfields but below domains in the hierarchy of research areas in OpenAlex.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/fields\\/|fields\\/)(\\d+)",
@@ -844,7 +875,8 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Unique identifier for the field"
             },
             "display_name": {
                 "id": "display_name",
@@ -858,7 +890,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the field"
             },
             "description": {
                 "id": "description",
@@ -870,7 +903,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": "description",
                 "actions": ["column"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the field"
             },
             "display_name_alternatives": {
                 "id": "display_name_alternatives",
@@ -883,7 +917,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Alternate names for the field"
             },
             "siblings": {
                 "id": "siblings",
@@ -896,7 +931,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Fields that are related to this field"
             },
             "subfields": {
                 "id": "subfields",
@@ -909,7 +945,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The set of subfields that are children of this field"
             },
             "domain": {
                 "id": "domain",
@@ -921,7 +958,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The domain that is the parent of this field"
             }
         },
         "values": [{"id": "fields/27", "display_name": "Medicine"}, {
@@ -976,6 +1014,7 @@ const oaxConfigs = {
         "placeholder": "Search research funders",
         "filterName": "grants.funder",
         "filterKey": "grants.funder",
+        "descrFull": "These are the organizations that fund research works via grants. Each funder has a unique OpenAlex ID.",
         "color": "brown",
         "hasAutocomplete": true,
         "isNative": true,
@@ -994,7 +1033,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-cash-multiple"
+                "icon": "mdi-cash-multiple",
+                "descr": "Unique identifier for the funder"
             },
             "display_name": {
                 "id": "display_name",
@@ -1008,7 +1048,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the funder"
             },
             "country_code": {
                 "id": "country_code",
@@ -1025,7 +1066,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "country_code",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The country in which the funder is based"
             },
             "doi": {
                 "id": "doi",
@@ -1039,7 +1081,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "doi",
                 "category": "ids",
                 "actions": ["column", "filter"],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The DOI of the funder"
             },
             "crossref_id": {
                 "id": "crossref_id",
@@ -1052,7 +1095,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "crossref_id",
                 "category": "ids",
                 "actions": ["column"],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The crossref id of the funder"
             },
             "description": {
                 "id": "description",
@@ -1065,7 +1109,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "description",
                 "category": "ids",
                 "actions": ["column"],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "A description of the funder"
             }
         },
         "values": null
@@ -1081,6 +1126,7 @@ const oaxConfigs = {
         "placeholder": "Search institution types",
         "filterName": "institution type",
         "filterKey": "authorships.institutions.type",
+        "descrFull": "The type of institution as seen in ROR",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/institution-types\\/|institution-types\\/)([a-zA-Z\\-]+)",
@@ -1098,7 +1144,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the institution type"
             },
             "display_name": {
                 "id": "display_name",
@@ -1112,7 +1159,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the institution type"
             }
         },
         "values": [{
@@ -1135,11 +1183,12 @@ const oaxConfigs = {
         "nameSingular": "institution",
         "displayName": "institutions",
         "displayNameSingular": "institution",
-        "descr": "Universities and research centers",
+        "descr": "Institutions (universities and research centers)",
         "eg": "Harvard University",
         "placeholder": "Search academic institutions",
         "filterName": "institutions",
         "filterKey": "authorships.institutions.lineage",
+        "descrFull": "The institution (university or research center) where an author is affiliated. All institutions have a Research Organization Registry (ROR) ID.",
         "hintVerb": "in",
         "color": "purple",
         "hasAutocomplete": true,
@@ -1160,7 +1209,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "id",
                 "isId": true,
                 "type": "string",
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The unique identifier for the institution in OpenAlex"
             },
             "display_name": {
                 "id": "display_name",
@@ -1174,7 +1224,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the institution"
             },
             "ids.ror": {
                 "id": "ids.ror",
@@ -1186,7 +1237,8 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "ror",
                 "redshiftFilterColumn": "ror",
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The unique identifier for the institution in the Research Organization Registry (ROR)"
             },
             "country_code": {
                 "id": "country_code",
@@ -1203,7 +1255,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "country_code",
                 "actions": ["filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The country where the institution is located"
             },
             "type": {
                 "id": "type",
@@ -1219,7 +1272,8 @@ const oaxConfigs = {
                 "type": "object",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The type of institution as seen in ROR"
             },
             "display_name_alternatives": {
                 "id": "display_name_alternatives",
@@ -1232,7 +1286,8 @@ const oaxConfigs = {
                 "type": "string",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "Alternative names or acronyms for the institution"
             },
             "parent_institutions": {
                 "id": "parent_institutions",
@@ -1245,7 +1300,8 @@ const oaxConfigs = {
                 "type": "array",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The parent institutions of the institution"
             },
             "child_institutions": {
                 "id": "child_institutions",
@@ -1258,7 +1314,8 @@ const oaxConfigs = {
                 "type": "array",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The child institutions of the institution"
             },
             "related_institutions": {
                 "id": "related_institutions",
@@ -1271,7 +1328,8 @@ const oaxConfigs = {
                 "type": "array",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "Other institutions that are related to the institution"
             },
             "mean(fwci)": {
                 "id": "mean(fwci)",
@@ -1283,7 +1341,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
-                "icon": "mdi-book-open-variant"
+                "icon": "mdi-book-open-variant",
+                "descr": "The mean Field-Weighted Citation Impact (FWCI) of the institution across all works"
             },
             "count(works)": {
                 "id": "count",
@@ -1295,7 +1354,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "count(works)",
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
-                "icon": "mdi-book-open-variant"
+                "icon": "mdi-book-open-variant",
+                "descr": "The number of works affiliated with the institution in OpenAlex"
             }
         },
         "values": null
@@ -1311,6 +1371,7 @@ const oaxConfigs = {
         "placeholder": "Search keywords",
         "filterName": "keywords",
         "filterKey": "keywords.id",
+        "descrFull": "Keywords are the lowest level of categorization for works. They are used to specifically describe a work.",
         "hintVerb": ":",
         "hasAutocomplete": true,
         "isNative": false,
@@ -1329,7 +1390,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the keyword in OpenAlex"
             },
             "display_name": {
                 "id": "display_name",
@@ -1343,7 +1405,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the keyword"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -1356,7 +1419,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The number of works that have this keyword"
             }
         },
         "values": null
@@ -1372,6 +1436,7 @@ const oaxConfigs = {
         "placeholder": "Search languages",
         "filterName": "languages",
         "filterKey": "language",
+        "descrFull": "Language that has been assigned to this work by OpenAlex. Languages are assigned to works based on the language of the work title or abstract.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/languages\\/|languages\\/)([a-zA-Z]{2})",
@@ -1389,7 +1454,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the language in OpenAlex"
             },
             "display_name": {
                 "id": "display_name",
@@ -1403,7 +1469,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the language"
             }
         },
         "values": [{"id": "languages/en", "display_name": "English"}, {
@@ -1692,6 +1759,7 @@ const oaxConfigs = {
         "placeholder": "Search licenses",
         "filterName": "institution type",
         "filterKey": "best_oa_location.license",
+        "descrFull": "The license of the best open copy of the work.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/licenses\\/|licenses\\/)([a-zA-Z0-9\\-]+)",
@@ -1709,7 +1777,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the license in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -1723,7 +1792,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the license."
             },
             "description": {
                 "id": "description",
@@ -1735,7 +1805,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": "description",
                 "actions": ["column"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "A description of the license."
             }
         },
         "values": [{"id": "licenses/cc-by", "display_name": "CC BY"}, {
@@ -1769,6 +1840,7 @@ const oaxConfigs = {
         "placeholder": "Search academic publishers",
         "filterName": "primary_location.source.publisher_lineage",
         "filterKey": "primary_location.source.publisher_lineage",
+        "descrFull": "The publisher of scholarly articles, usually a company or organization.",
         "color": "pink",
         "hasAutocomplete": true,
         "isNative": true,
@@ -1787,7 +1859,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-domain"
+                "icon": "mdi-domain",
+                "descr": "The unique identifier for the publisher in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -1801,7 +1874,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the publisher."
             },
             "country_code": {
                 "id": "country_code",
@@ -1818,7 +1892,8 @@ const oaxConfigs = {
                 "isCountry": true,
                 "actions": ["filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The country where the publisher is located."
             }
         },
         "values": null
@@ -1834,6 +1909,7 @@ const oaxConfigs = {
         "placeholder": "Search SDGs",
         "filterName": "Sustainable Development Goals",
         "filterKey": "sustainable_development_goals.id",
+        "descrFull": "The Sustainable Development Goals (SDGs) are a collection of 17 global goals set by the United Nations General Assembly in 2015 for the year 2030.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/sdgs\\/|sdgs\\/)(\\d+)",
@@ -1851,7 +1927,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "id",
                 "actions": [],
                 "type": "string",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the Sustainable Development Goa (SDG) in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -1865,7 +1942,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the Sustainable Development Goal (SDG)."
             }
         },
         "values": [{"id": "sdgs/3", "display_name": "Good health and well-being"}, {
@@ -1905,6 +1983,7 @@ const oaxConfigs = {
         "placeholder": "Search source types",
         "filterName": "source type",
         "filterKey": "primary_location.source.type",
+        "descrFull": "The type of source, such as a journal, repository, or conference.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/source-types\\/|source-types\\/)([a-zA-Z\\-]+)",
@@ -1923,7 +2002,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "id",
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The unique identifier for the source type in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -1936,7 +2016,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "display_name",
                 "actions": ["column", "sort"],
                 "actionsPopular": ["column"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The name of the source type."
             },
             "description": {
                 "id": "description",
@@ -1949,7 +2030,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": ["column"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "A description of the source type."
             }
         },
         "values": [{"id": "source-types/journal", "display_name": "journal"}, {
@@ -1974,6 +2056,7 @@ const oaxConfigs = {
         "placeholder": "Search academic journals & repositories",
         "filterName": "primary_location.source",
         "filterKey": "primary_location.source.id",
+        "descrFull": "The source or location of scholarly articles, such as a journal, conference, or repository.",
         "hintVerb": "published by",
         "color": "orange",
         "hasAutocomplete": true,
@@ -1996,7 +2079,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftSortColumn": "id",
                 "actions": [],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "The unique identifier for the source in OpenAlex."
             },
             "ids.issn": {
                 "id": "ids.issn",
@@ -2009,7 +2093,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "issn",
                 "redshiftSortColumn": "issn",
                 "actions": ["column", "filter"],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "The International Standard Serial Number (ISSN) of the source."
             },
             "display_name": {
                 "id": "display_name",
@@ -2023,7 +2108,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the source."
             },
             "host_organization": {
                 "id": "host_organization",
@@ -2036,7 +2122,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": null,
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-domain"
+                "icon": "mdi-domain",
+                "descr": "The organization or publisher that publishes the source."
             },
             "type": {
                 "id": "type",
@@ -2052,7 +2139,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": "type",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The type of source."
             },
             "apc_usd": {
                 "id": "apc_usd",
@@ -2065,7 +2153,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": null,
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-cash"
+                "icon": "mdi-cash",
+                "descr": "The Article Processing Charge (APC) in USD for the source."
             },
             "is_oa": {
                 "id": "is_oa",
@@ -2077,7 +2166,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": null,
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-lock-open-outline"
+                "icon": "mdi-lock-open-outline",
+                "descr": "Whether the source is fully open access."
             },
             "is_in_doaj": {
                 "id": "is_in_doaj",
@@ -2089,7 +2179,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": "is_in_doaj",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
-                "icon": "mdi-lock-open-outline"
+                "icon": "mdi-lock-open-outline",
+                "descr": "Whether the source is listed in the Directory of Open Access Journals (DOAJ)."
             },
             "alternate_titles": {
                 "id": "alternate_titles",
@@ -2102,7 +2193,8 @@ const oaxConfigs = {
                 "redshiftSortColumn": null,
                 "actions": [],
                 "actionsPopular": [],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "Alternate names for the source."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2114,7 +2206,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
-                "icon": "mdi-book-open-variant"
+                "icon": "mdi-book-open-variant",
+                "descr": "The number of works published by the source."
             }
         },
         "values": null
@@ -2130,6 +2223,7 @@ const oaxConfigs = {
         "placeholder": "Search subfields",
         "filterName": "subfields",
         "filterKey": "primary_topic.subfield.id",
+        "descrFull": "Subfields are the specific areas of research that a work is about. Subfields are below fields but above topics in the hierarchy of research areas in OpenAlex.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/subfields\\/|subfields\\/)(\\d+)",
@@ -2147,7 +2241,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the subfield in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -2161,7 +2256,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the subfield."
             },
             "description": {
                 "id": "description",
@@ -2173,7 +2269,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": "description",
                 "actions": ["column"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the subfield."
             },
             "topics": {
                 "id": "topics",
@@ -2186,7 +2283,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The topics that are children of this subfield."
             },
             "siblings": {
                 "id": "siblings",
@@ -2199,7 +2297,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The subfields that are related to this subfield."
             },
             "field": {
                 "id": "field",
@@ -2211,7 +2310,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The field that is the parent of this subfield."
             },
             "domain": {
                 "id": "domain",
@@ -2223,7 +2323,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The domain that is the parent of this subfield."
             }
         },
         "values": [{"id": "subfields/3312", "display_name": "Sociology and Political Science"}, {
@@ -2629,6 +2730,7 @@ const oaxConfigs = {
         "placeholder": "Search topics",
         "filterName": "topics",
         "filterKey": "primary_topic.id",
+        "descrFull": "Topics are the fourth level of description of the subject area of works. Each topic has a unique OpenAlex ID. Topics are above keywords but below domains, fields, and subfields in the hierarchy of research areas in OpenAlex.",
         "hintVerb": ":",
         "hasAutocomplete": true,
         "isNative": true,
@@ -2646,7 +2748,8 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Unique identifier for the topic in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -2660,7 +2763,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the topic."
             },
             "description": {
                 "id": "description",
@@ -2672,7 +2776,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": "description",
                 "actions": ["column"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the topic."
             },
             "siblings": {
                 "id": "siblings",
@@ -2685,7 +2790,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Other topics that are closely related to this topic."
             },
             "subfield": {
                 "id": "subfield",
@@ -2697,7 +2803,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The subfield that this topic belongs to."
             },
             "field": {
                 "id": "field",
@@ -2709,7 +2816,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The field that this topic belongs to."
             },
             "domain": {
                 "id": "domain",
@@ -2721,7 +2829,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The domain that this topic belongs to."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2732,7 +2841,8 @@ const oaxConfigs = {
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
                 "redshiftFilterColumn": null,
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The number of works that are tagged with this topic."
             }
         },
         "values": null
@@ -2748,6 +2858,7 @@ const oaxConfigs = {
         "placeholder": "Search work types",
         "filterName": "type",
         "filterKey": "type",
+        "descrFull": "The type of work, such as an article, book, or dataset.",
         "hasAutocomplete": false,
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/types\\/|types\\/)([a-zA-Z\\-]+)",
@@ -2765,7 +2876,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the work type in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -2779,7 +2891,8 @@ const oaxConfigs = {
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The name of the work type."
             },
             "description": {
                 "id": "description",
@@ -2791,7 +2904,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "description",
                 "redshiftFilterColumn": null,
                 "actions": ["column"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "A description of the work type."
             },
             "crossref_types": {
                 "id": "crossref_types",
@@ -2804,7 +2918,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "Alternate names for the work type from Crossref."
             }
         },
         "values": [{"id": "types/article", "display_name": "article"}, {
@@ -2847,6 +2962,7 @@ const oaxConfigs = {
         "placeholder": "Search scholarly papers, books, and more",
         "filterName": "work",
         "filterKey": "ids.openalex",
+        "descrFull": "Scholarly papers, books, datasets, and other works in OpenAlex.",
         "hintVerb": "by",
         "color": "blue",
         "hasAutocomplete": true,
@@ -2882,7 +2998,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "id",
                 "actions": [""],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The unique identifier for the work in OpenAlex."
             },
             "doi": {
                 "id": "doi",
@@ -2898,7 +3015,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "doi",
                 "redshiftFilterColumn": "doi_lower",
                 "actions": ["filter", "column"],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The Digital Object Identifier (DOI) of the work."
             },
             "primary_topic.id": {
                 "id": "primary_topic.id",
@@ -2913,7 +3031,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "topic_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": ["filter", "group_by"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The primary topic of the work."
             },
             "keywords.id": {
                 "id": "keywords.id",
@@ -2929,7 +3048,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "keyword_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": ["filter", "group_by"],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "Keywords associated with the work."
             },
             "primary_topic.subfield.id": {
                 "id": "primary_topic.subfield.id",
@@ -2944,7 +3064,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "subfield_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The subfield of the primary topic of the work."
             },
             "primary_topic.field.id": {
                 "id": "primary_topic.field.id",
@@ -2959,7 +3080,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "field_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The field of the primary topic of the work."
             },
             "primary_topic.domain.id": {
                 "id": "primary_topic.domain.id",
@@ -2974,7 +3096,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "domain_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": [],
-                "icon": "mdi-tag-outline"
+                "icon": "mdi-tag-outline",
+                "descr": "The domain of the primary topic of the work."
             },
             "authorships.institutions.id": {
                 "id": "authorships.institutions.id",
@@ -2990,7 +3113,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "institution_id",
                 "actions": ["filter", "return"],
                 "actionsPopular": ["filter", "column"],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The OpenAlex institution ID of the institutions associated with the work."
             },
             "cited_by_count": {
                 "id": "cited_by_count",
@@ -3003,7 +3127,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "cited_by_count",
                 "actions": ["sort", "column", "filter"],
                 "actionsPopular": ["sort"],
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The number of times the work has been cited by other works."
             },
             "authorships.institutions.ror": {
                 "id": "authorships.institutions.ror",
@@ -3019,7 +3144,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "ror_ids",
                 "redshiftFilterColumn": "ror_id",
                 "actions": [],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The Research Organization Registry (ROR) ID of the institutions associated with the work."
             },
             "authorships.author.id": {
                 "id": "authorships.author.id",
@@ -3035,7 +3161,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "author_id",
                 "actions": ["filter", "column"],
                 "actionsPopular": ["filter", "group_by"],
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The OpenAlex author ID of the authors associated with the work."
             },
             "authorships.author.orcid": {
                 "id": "authorships.author.orcid",
@@ -3051,7 +3178,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "orcid_ids",
                 "redshiftFilterColumn": "orcid_id",
                 "actions": [],
-                "icon": "mdi-account-outline"
+                "icon": "mdi-account-outline",
+                "descr": "The Open Researcher and Contributor ID (ORCID) of the authors associated with the work."
             },
             "display_name": {
                 "id": "display_name",
@@ -3066,7 +3194,8 @@ const oaxConfigs = {
                 "apiField": "display_name",
                 "redshiftDisplayColumn": "display_name",
                 "redshiftReturnColumn": "display_name",
-                "icon": "mdi-file-document-outline"
+                "icon": "mdi-file-document-outline",
+                "descr": "The title of the work."
             },
             "open_access.is_oa": {
                 "id": "open_access.is_oa",
@@ -3080,7 +3209,8 @@ const oaxConfigs = {
                 "apiField": "open_access.is_oa",
                 "redshiftDisplayColumn": "is_oa",
                 "redshiftFilterColumn": "is_oa",
-                "icon": "mdi-lock-open-outline"
+                "icon": "mdi-lock-open-outline",
+                "descr": "Whether the work is open access."
             },
             "open_access.oa_status": {
                 "id": "open_access.oa_status",
@@ -3093,7 +3223,8 @@ const oaxConfigs = {
                 "apiField": "open_access.oa_status",
                 "redshiftDisplayColumn": "oa_status",
                 "redshiftFilterColumn": "oa_status",
-                "icon": "mdi-lock-open-outline"
+                "icon": "mdi-lock-open-outline",
+                "descr": "The open access status of the work."
             },
             "apc_paid.value_usd": {
                 "id": "apc_paid.value_usd",
@@ -3107,7 +3238,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-cash"
+                "icon": "mdi-cash",
+                "descr": "The Article Processing Charge (APC) paid in USD for the work."
             },
             "authorships.countries": {
                 "id": "authorships.countries",
@@ -3124,7 +3256,8 @@ const oaxConfigs = {
                 "apiField": "authorships.countries",
                 "redshiftDisplayColumn": "authorships_countries",
                 "redshiftFilterColumn": "country_id",
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The countries of the institutions associated with the work."
             },
             "authorships.institutions.continent": {
                 "id": "authorships.institutions.continent",
@@ -3140,7 +3273,8 @@ const oaxConfigs = {
                 "apiField": "authorships.institutions.continent",
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "The continents of the institutions associated with the work."
             },
             "authorships.institutions.is_global_south": {
                 "id": "institutions.is_global_south",
@@ -3153,7 +3287,8 @@ const oaxConfigs = {
                 "apiField": "institutions.is_global_south",
                 "redshiftDisplayColumn": "is_global_south",
                 "redshiftReturnColumn": "is_global_south",
-                "icon": "mdi-earth"
+                "icon": "mdi-earth",
+                "descr": "Whether the institutions associated with the work are in the Global South."
             },
             "authorships.institutions.type": {
                 "id": "authorships.institutions.type",
@@ -3169,7 +3304,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "institution_type_id",
                 "type": "object",
                 "actions": ["filter"],
-                "icon": "mdi-town-hall"
+                "icon": "mdi-town-hall",
+                "descr": "The institution types associated with the work."
             },
             "primary_location.source.id": {
                 "id": "primary_location.source.id",
@@ -3183,7 +3319,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "primary_location",
                 "redshiftFilterColumn": "journal_id",
                 "actions": ["filter", "column"],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "The primary source or location of the work."
             },
             "primary_location.source.issn": {
                 "id": "primary_location.source.issn",
@@ -3198,7 +3335,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "primary_source_issn",
                 "redshiftFilterColumn": "primary_source_issn",
                 "actions": [],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "The International Standard Serial Number (ISSN) of the primary source of the work."
             },
             "primary_location.source.type": {
                 "id": "primary_location.source.type",
@@ -3213,7 +3351,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "primary_source_type",
                 "redshiftFilterColumn": "primary_source_type",
                 "actions": ["filter", "column"],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "The source type of the primary source of the work."
             },
             "primary_location.source.is_in_doaj": {
                 "id": "primary_location.source.is_in_doaj",
@@ -3226,7 +3365,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "primary_source_is_in_doaj",
                 "redshiftFilterColumn": "primary_source_is_in_doaj",
                 "actions": ["filter", "column"],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "Whether the primary source of the work is indexed by the Directory of Open Access Journals (DOAJ)."
             },
             "primary_location.source.is_oa": {
                 "id": "primary_location.source.is_oa",
@@ -3239,7 +3379,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-book-open-outline"
+                "icon": "mdi-book-open-outline",
+                "descr": "Whether the primary source of the work is an open access source."
             },
             "type": {
                 "id": "type",
@@ -3257,7 +3398,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "type",
                 "actions": ["filter", "column"],
                 "actionsPopular": ["filter", "column"],
-                "icon": "mdi-shape-outline"
+                "icon": "mdi-shape-outline",
+                "descr": "The OpenAlex work type of the work"
             },
             "grants.funder": {
                 "id": "grants.funder",
@@ -3272,7 +3414,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-cash-multiple"
+                "icon": "mdi-cash-multiple",
+                "descr": "The OpenAlex funder ID of the funders associated with the work."
             },
             "grants.award_id": {
                 "id": "grants.award_id",
@@ -3286,7 +3429,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-cash-multiple"
+                "icon": "mdi-cash-multiple",
+                "descr": "The award ID of the grants associated with the work."
             },
             "publication_year": {
                 "id": "publication_year",
@@ -3304,7 +3448,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": "year",
                 "actions": ["filter", "sort", "column"],
                 "actionsPopular": ["filter", "sort", "column", "group_by"],
-                "icon": "mdi-calendar-range"
+                "icon": "mdi-calendar-range",
+                "descr": "The publication year of the work."
             },
             "apc_sum": {
                 "id": "apc_sum",
@@ -3319,7 +3464,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": ["group_by"],
-                "icon": "mdi-cash"
+                "icon": "mdi-cash",
+                "descr": "The total Article Processing Charges (APC) paid in USD for the work."
             },
             "language": {
                 "id": "language",
@@ -3336,7 +3482,8 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": ["filter", "column"],
                 "actionsPopular": [],
-                "icon": "mdi-translate"
+                "icon": "mdi-translate",
+                "descr": "The language of the work."
             },
             "sustainable_development_goals.id": {
                 "id": "sustainable_development_goals.id",
@@ -3352,7 +3499,8 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
                 "actions": [],
-                "icon": "mdi-sprout-outline"
+                "icon": "mdi-sprout-outline",
+                "descr": "The Sustainable Development Goals (SDGs) associated with the work."
             },
             "referenced_works": {
                 "id": "referenced_works",
@@ -3369,7 +3517,22 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "actions": [],
                 "icon": "mdi-format-quote-close",
-                "isDisplayedAsCount": true
+                "isDisplayedAsCount": true,
+                "descr": "The works cited by the work."
+            },
+            "display_name.search": {
+                "id": "display_name.search",
+                "subjectEntity": "works",
+                "displayName": "search display_name",
+                "objectEntity": null,
+                "type": "search",
+                "category": "search",
+                "apiField": "display_name",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": "original_title",
+                "actions": ["filter"],
+                "icon": "mdi-file-document-outline",
+                "descr": "Searches the title of the work."
             }
         },
         "values": null

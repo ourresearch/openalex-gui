@@ -89,7 +89,6 @@
               recursive filters
             </v-toolbar-title>
           </v-toolbar>
-          <pre>{{ filtersRecursive }}</pre>
         </v-card>
 
       </v-col>
@@ -104,13 +103,11 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QuerySortBy from "@/components/Query/QuerySortBy.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
-import QueryFilterBranch from "@/components/Query/QueryFilterBranch.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 
 export default {
   name: "Template",
   components: {
-    QueryFilterBranch,
     QuerySummarizeBy,
     QuerySortBy,
     QueryReturn,
@@ -133,7 +130,6 @@ export default {
       "isQuerySingleRow",
       "filterRoots",
         "querySubjectEntity",
-        "filtersRecursive"
     ]),
   },
 
