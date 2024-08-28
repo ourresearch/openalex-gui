@@ -19,11 +19,12 @@
         <template v-slot:activator="{ on }">
           <v-btn
               text
-              v-on="on" class="font-weight-regular px-1 mx-1"
+              v-on="on" class="font-weight-regular px-1 pr-0 mx-1"
               style="min-width: 1px !important;"
+              outlined
           >
             {{ selectedOperator ?? "select" }}
-            <v-icon>mdi-menu-down</v-icon>
+            <v-icon small>mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <v-list>
@@ -103,7 +104,37 @@
         {{ selectedValue }}
       </v-chip>
 
-      <!--    third and finally, string  values -->
+      <!--    third, number  values -->
+      <div
+          v-else-if="columnConfig.type === 'number'"
+      >
+        <v-text-field
+            v-if="isEditingValue"
+            v-model="valueEditModel"
+            dense
+            rounded
+            filled
+            hide-details
+            autofocus
+            @keydown.escape="cancelEditingValue"
+            @blur="cancelEditingValue"
+            @keydown.enter="saveEditingValue"
+        >
+        </v-text-field>
+        <v-btn
+          v-else
+          class="px-1"
+          text
+          style="min-width: 1px !important;"
+          @click="startEditingValue"
+        >
+          {{ selectedValue }}
+          <v-icon right>mdi-pencil-outline</v-icon>
+        </v-btn>
+
+      </div>
+
+      <!--    fourth and finally, string  values -->
       <v-text-field
           v-else
           v-model="selectedValue"
@@ -115,7 +146,6 @@
           class="flex-grow-1"
           autofocus
       >
-
       </v-text-field>
 
     </div>
@@ -148,6 +178,8 @@ export default {
       asyncValueOptions: [],
       search: "",
       isLoading: false,
+      isEditingValue: false,
+      valueEditModel: null,
     }
   },
   computed: {
@@ -230,6 +262,19 @@ export default {
       this.$emit("set", filter)
     },
     ...mapActions("user", []),
+    startEditingValue(){
+      this.isEditingValue = true
+      this.valueEditModel = this.selectedValue
+    },
+    cancelEditingValue(){
+      this.isEditingValue = false
+      this.valueEditModel = null
+    },
+    saveEditingValue(){
+      this.isEditingValue = false
+      this.selectedValue = this.valueEditModel
+      this.valueEditModel = null
+    },
     getAsyncValueOptions: _.debounce(async function () {
       this.loading = true;
       try {

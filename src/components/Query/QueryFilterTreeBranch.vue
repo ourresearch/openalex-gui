@@ -5,22 +5,24 @@
     </div>
     <div v-else>
       <div class="grey--text" v-if="filter.children.length === 1">
-        [Empty subquery]
+        an empty subquery
       </div>
-      <div v-if="filter.children.length === 2">
+      <div v-else-if="filter.children.length === 2">
         1 subfilter
       </div>
       <div v-else class="d-flex align-baseline">
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-btn
+                :disabled="!isOpen"
+                outlined
                 text
                 v-on="on"
-                class="font-weight-bold px-1 "
+                class="px-1 mr-1"
                 style="min-width: 1px !important; min-height: 1px;"
             >
               {{ selectedOperator === "and" ? "all" : "any" }}
-              <v-icon>mdi-menu-down</v-icon>
+              <v-icon small>mdi-menu-down</v-icon>
             </v-btn>
           </template>
           <v-list>
@@ -40,7 +42,13 @@
             </v-list-item-group>
           </v-list>
         </v-menu>
-        of {{ filter.children.length - 1 }} subfilters
+        <template v-if="isOpen">
+          of these {{ filter.children.length - 1 }} subfilters
+        </template>
+        <template v-else>
+          of {{ filter.children.length - 1 }} hidden subfilters
+        </template>
+        {{ selectedOperator === "and" ? "are" : "is" }} true{{ isOpen ? ": " : "" }}
       </div>
     </div>
     <!--    <v-spacer></v-spacer>-->
@@ -59,12 +67,14 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {operation} from "retry";
 
 export default {
   name: "Template",
   components: {},
   props: {
     filter: Object,
+    isOpen: Boolean,
 
   },
   data() {
@@ -91,6 +101,7 @@ export default {
   },
 
   methods: {
+    operation,
     ...mapMutations([
       "snackbar",
     ]),
