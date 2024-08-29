@@ -55,8 +55,8 @@ class OQOTestRunner {
             return {
                 equal: false,
                 difference_path: `${path}${prop}`,
-                expected: JSON.stringify(value2),
-                actual: JSON.stringify(value1)
+                expected: value2,
+                actual: value1
             };
         }
 
@@ -169,6 +169,9 @@ class OQOTestRunner {
         try {
             const generatedOQO = oqlToQuery(test.oql);
             const result = OQOTestRunner.queriesEqual(generatedOQO, test.query, test.ignore ?? []);
+            if (!result.equal) {
+                result.test = test;
+            }
             return {
                 "case": "oqlToQuery",
                 isPassing: result.equal,
@@ -180,6 +183,7 @@ class OQOTestRunner {
                 isPassing: false,
                 details: {
                     error: e.message,
+                    test
                 },
             };
         }
@@ -190,6 +194,9 @@ class OQOTestRunner {
             const generatedOQL = queryToOQL(test.query);
             const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
             const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, test.query, test.ignore ?? []);
+            if (!result.equal) {
+                result.test = test;
+            }
             return {
                 "case": "queryToOql",
                 isPassing: result.equal,
@@ -201,6 +208,7 @@ class OQOTestRunner {
                 isPassing: false,
                 details: {
                     error: e.message,
+                    test
                 },
             };
         }
@@ -225,6 +233,9 @@ class OQOTestRunner {
             try {
                 const oqo = await OQOTestRunner.getNatLangQuery(prompt);
                 const result = OQOTestRunner.queriesEqual(oqo, test.query, test.ignore ?? []);
+                if (!result.equal) {
+                    result.test = test;
+                }
                 results.push({
                     "case": "natLang",
                     prompt,
@@ -238,6 +249,7 @@ class OQOTestRunner {
                     isPassing: false,
                     details: {
                         error: e.message,
+                        test
                     }
                 });
             }
@@ -313,6 +325,7 @@ class OQOTestRunner {
             };
             if (result.results.length === 0) {
                 testResult.details.error = "no results";
+                testResult.details.test = test;
             }
             return testResult;
         } catch (e) {
@@ -320,7 +333,8 @@ class OQOTestRunner {
                 "case": "queryToSearch",
                 isPassing: false,
                 details: {
-                    error: e.message
+                    error: e.message,
+                    test
                 }
             };
         }
