@@ -268,7 +268,7 @@
 
           <v-expansion-panels>
             <v-expansion-panel>
-              <v-expansion-panel-header>Query</v-expansion-panel-header>
+              <v-expansion-panel-header>OQO</v-expansion-panel-header>
               <v-expansion-panel-content>
                 <div class="scrollable-content">
                   <pre class="query-text">{{
