@@ -33,6 +33,7 @@ import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
+import OQOTestDetails from "@/views/QueryTestDetails.vue";
 
 Vue.use(VueRouter)
 
@@ -117,17 +118,17 @@ const routes = [
     {path: '/tests', component: OQOTests},
     {
         path: '/tests/:id',
-        component: OQOTests,
+        component: OQOTestDetails,
         props: (route) => ({
-          initialTestId: route.params.id,
+          testId: route.params.id,
           autoRun: route.path.endsWith('/run')
         })
     },
     {
         path: '/tests/:id/run',
-        component: OQOTests,
+        component: OQOTestDetails,
         props: (route) => ({
-          initialTestId: route.params.id,
+          testId: route.params.id,
           autoRun: true
         })
     },
