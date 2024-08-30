@@ -1358,6 +1358,19 @@ const oaxConfigs = {
                 "descr": "The number of works affiliated with the institution in OpenAlex"
             }
         },
+        "count(citations)": {
+            "id": "count(citations)",
+            "subjectEntity": "institutions",
+            "objectEntity": null,
+            "displayName": "citation count",
+            "type": "number",
+            "redshiftDisplayColumn": "count(citations)",
+            "redshiftFilterColumn": "count(citations)",
+            "actions": ["sort", "column"],
+            "actionsPopular": ["sort", "column"],
+            "icon": "mdi-book-open-variant",
+            "descr": "The count of citations for this institution in OpenAlex"
+        },
         "values": null
     }, "keywords": {
         "id": "keywords",
@@ -1914,7 +1927,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/sdgs\\/|sdgs\\/)(\\d+)",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -1944,6 +1957,21 @@ const oaxConfigs = {
                 "category": "other",
                 "icon": "mdi-account-outline",
                 "descr": "The name of the Sustainable Development Goal (SDG)."
+            },
+            "description": {
+                "id": "description",
+                "isColumnMandatory": true,
+                "subjectEntity": "sdgs",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "category": "other",
+                "icon": "mdi-account-outline",
+                "descr": "The description of the Sustainable Development Goal (SDG)."
             }
         },
         "values": [{"id": "sdgs/3", "display_name": "Good health and well-being"}, {
@@ -1988,7 +2016,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/source-types\\/|source-types\\/)([a-zA-Z\\-]+)",
         "showOnEntityPage": ["id", "display_name", "description"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -2018,20 +2046,6 @@ const oaxConfigs = {
                 "actionsPopular": ["column"],
                 "icon": "mdi-shape-outline",
                 "descr": "The name of the source type."
-            },
-            "description": {
-                "id": "description",
-                "subjectEntity": "source-types",
-                "entityId": "source-types",
-                "objectEntity": null,
-                "displayName": "Source type description",
-                "type": "string",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
-                "actions": [],
-                "actionsPopular": ["column"],
-                "icon": "mdi-shape-outline",
-                "descr": "A description of the source type."
             }
         },
         "values": [{"id": "source-types/journal", "display_name": "journal"}, {
@@ -2077,7 +2091,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftSortColumn": "id",
+                "redshiftFilterColumn": "id",
                 "actions": [],
                 "icon": "mdi-book-open-outline",
                 "descr": "The unique identifier for the source in OpenAlex."
@@ -2091,7 +2105,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "issn",
-                "redshiftSortColumn": "issn",
+                "redshiftFilterColumn": "issn",
                 "actions": ["column", "filter"],
                 "icon": "mdi-book-open-outline",
                 "descr": "The International Standard Serial Number (ISSN) of the source."
@@ -2104,7 +2118,7 @@ const oaxConfigs = {
                 "displayName": "name",
                 "type": "string",
                 "redshiftDisplayColumn": "display_name",
-                "redshiftSortColumn": "display_name",
+                "redshiftFilterColumn": "display_name",
                 "actions": ["sort", "column"],
                 "actionsPopular": ["sort", "column"],
                 "category": "other",
@@ -2119,7 +2133,7 @@ const oaxConfigs = {
                 "displayName": "Publisher",
                 "type": "object",
                 "redshiftDisplayColumn": null,
-                "redshiftSortColumn": null,
+                "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-domain",
@@ -2136,7 +2150,7 @@ const oaxConfigs = {
                 "externalIdPrefix": "source-types",
                 "type": "object",
                 "redshiftDisplayColumn": "type_formatted",
-                "redshiftSortColumn": "type",
+                "redshiftFilterColumn": "type",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
                 "icon": "mdi-shape-outline",
@@ -2150,7 +2164,7 @@ const oaxConfigs = {
                 "displayName": "Article Processing Charge",
                 "type": "number",
                 "redshiftDisplayColumn": null,
-                "redshiftSortColumn": null,
+                "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-cash",
@@ -2163,7 +2177,7 @@ const oaxConfigs = {
                 "displayName": "Fully open access",
                 "type": "boolean",
                 "redshiftDisplayColumn": null,
-                "redshiftSortColumn": null,
+                "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-lock-open-outline",
@@ -2176,7 +2190,7 @@ const oaxConfigs = {
                 "displayName": "In DOAJ",
                 "type": "boolean",
                 "redshiftDisplayColumn": "is_in_doaj",
-                "redshiftSortColumn": "is_in_doaj",
+                "redshiftFilterColumn": "is_in_doaj",
                 "actions": ["column", "filter"],
                 "actionsPopular": ["filter"],
                 "icon": "mdi-lock-open-outline",
@@ -2190,7 +2204,7 @@ const oaxConfigs = {
                 "displayName": "alternate names",
                 "type": "array",
                 "redshiftDisplayColumn": null,
-                "redshiftSortColumn": null,
+                "redshiftFilterColumn": null,
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-book-open-outline",
@@ -3525,7 +3539,7 @@ const oaxConfigs = {
                 "subjectEntity": "works",
                 "displayName": "search display_name",
                 "objectEntity": null,
-                "type": "search",
+                "type": "string",
                 "category": "search",
                 "apiField": "display_name",
                 "redshiftDisplayColumn": null,
