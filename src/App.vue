@@ -65,6 +65,9 @@
                 Local
                 <v-icon x-small>mdi-open-in-new</v-icon>
               </v-list-item-title>
+              <v-list-item-subtitle>
+                localhost:8080
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
           <v-list-item
@@ -80,6 +83,9 @@
                 Staging
                 <v-icon x-small>mdi-open-in-new</v-icon>
               </v-list-item-title>
+                <v-list-item-subtitle>
+                  staging.openalex.org
+                </v-list-item-subtitle>
             </v-list-item-content>
             <v-list-item-action>
               <v-btn icon @click.prevent.stop="copyToClipboard(stagingUrl)">
