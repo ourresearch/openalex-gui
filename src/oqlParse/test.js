@@ -2,7 +2,7 @@
 
 // Import the function to be tested
 import {oqlToQuery, queryToOQL} from '../oqlParse/oqlParse.js';
-import {objectMD5} from '../oqlParse/util.js';
+import {objectMD5ShortUUID} from '../oqlParse/util.js';
 
 
 const testsJsonUrl = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/tests.json";
@@ -33,14 +33,14 @@ class OQOTestRunner {
                     case "queryToSearch":
                         expectedResults.push({
                             "case": caseType,
-                            id: objectMD5(test),
+                            id: objectMD5ShortUUID(test),
                         });
                         break;
                     case "natLang":
                         if (test && typeof test === 'object' && 'natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0) {
                             expectedResults.push({
                                 "case": "natLang",
-                                id: objectMD5(test),
+                                id: objectMD5ShortUUID(test),
                             });
                         }
                         break;
@@ -55,8 +55,8 @@ class OQOTestRunner {
             return {
                 equal: false,
                 difference_path: `${path}${prop}`,
-                expected: value2,
-                actual: value1
+                path_expected: value2,
+                path_actual: value1
             };
         }
 
@@ -170,7 +170,8 @@ class OQOTestRunner {
             const generatedOQO = oqlToQuery(test.oql);
             const result = OQOTestRunner.queriesEqual(generatedOQO, test.query, test.ignore ?? []);
             if (!result.equal) {
-                result.test = test;
+                result.expected = test.query;
+                result.actual = generatedOQO;
             }
             return {
                 "case": "oqlToQuery",
@@ -183,7 +184,8 @@ class OQOTestRunner {
                 isPassing: false,
                 details: {
                     error: e.message,
-                    test
+                    expected: test.query,
+                    actual: null
                 },
             };
         }
@@ -195,7 +197,8 @@ class OQOTestRunner {
             const queryFromGeneratedOQL = oqlToQuery(generatedOQL);
             const result = OQOTestRunner.queriesEqual(queryFromGeneratedOQL, test.query, test.ignore ?? []);
             if (!result.equal) {
-                result.test = test;
+                result.expected = test.oql;
+                result.actual = generatedOQL;
             }
             return {
                 "case": "queryToOql",
@@ -208,7 +211,8 @@ class OQOTestRunner {
                 isPassing: false,
                 details: {
                     error: e.message,
-                    test
+                    expected: test.oql,
+                    actual: null
                 },
             };
         }
@@ -234,7 +238,8 @@ class OQOTestRunner {
                 const oqo = await OQOTestRunner.getNatLangQuery(prompt);
                 const result = OQOTestRunner.queriesEqual(oqo, test.query, test.ignore ?? []);
                 if (!result.equal) {
-                    result.test = test;
+                    result.expected = test.query;
+                    result.actual = oqo;
                 }
                 results.push({
                     "case": "natLang",
@@ -249,7 +254,8 @@ class OQOTestRunner {
                     isPassing: false,
                     details: {
                         error: e.message,
-                        test
+                        expected: test.query,
+                        actual: null
                     }
                 });
             }
@@ -318,7 +324,7 @@ class OQOTestRunner {
                 "case": "queryToSearch",
                 isPassing: true,
                 details: {
-                    id: result.id,
+                    searchId,
                     elapsedTime,
                     resultsCount: result.results.length,
                 }
@@ -334,7 +340,6 @@ class OQOTestRunner {
                 isPassing: false,
                 details: {
                     error: e.message,
-                    test
                 }
             };
         }
@@ -342,7 +347,7 @@ class OQOTestRunner {
 
     async runTests(cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
         const testPromises = this.tests.map(async (test) => {
-            const testId = objectMD5(test);
+            const testId = objectMD5ShortUUID(test);
 
             if (cases.includes("oqlToQuery")) {
                 const oqlToQueryResult = OQOTestRunner.runOQLToOQOFunc(test);
