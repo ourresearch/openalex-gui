@@ -197,8 +197,8 @@ export const search = {
             // set the simple stuff from the response
             state.id = id
             state.oql = queryToOQL(resp.data.query)
-            state.results_header = resp.data.results.header ?? []
-            state.results_body = resp.data.results.body ?? []
+            state.results_header = resp.data.results_header ?? []
+            state.results_body = resp.data.results ?? []
             state.results_meta = resp.data.meta
             state.is_ready = resp.data.is_ready
 
