@@ -115,6 +115,22 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
     {path: '/tests', component: OQOTests},
+    {
+        path: '/tests/:id',
+        component: OQOTests,
+        props: (route) => ({
+          initialTestId: route.params.id,
+          autoRun: route.path.endsWith('/run')
+        })
+    },
+    {
+        path: '/tests/:id/run',
+        component: OQOTests,
+        props: (route) => ({
+          initialTestId: route.params.id,
+          autoRun: true
+        })
+    },
 
 
     // redirects to gitbook docs
