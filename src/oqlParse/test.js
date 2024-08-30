@@ -322,7 +322,7 @@ class OQOTestRunner {
             } = await pollSearchUntilReady(searchId, timeout);
             const testResult = {
                 "case": "queryToSearch",
-                isPassing: true,
+                isPassing: result.results.length > 0,
                 details: {
                     searchId,
                     elapsedTime,
@@ -361,17 +361,17 @@ class OQOTestRunner {
                 this.onTestResultCb(queryToOqlResult);
             }
 
+            if (cases.includes("queryToSearch")) {
+                const searchResult = await OQOTestRunner.runSearchFunc(test);
+                searchResult.id = testId;
+                this.onTestResultCb(searchResult);
+            }
+
             // Run Natural Language test if applicable
             if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0 && cases.includes("natLang")) {
                 const natLangResult = await OQOTestRunner.runNatLangFunc(test);
                 natLangResult.id = testId;
                 this.onTestResultCb(natLangResult);
-            }
-
-            if (cases.includes("queryToSearch")) {
-                const searchResult = await OQOTestRunner.runSearchFunc(test);
-                searchResult.id = testId;
-                this.onTestResultCb(searchResult);
             }
 
         });
