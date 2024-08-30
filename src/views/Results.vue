@@ -19,15 +19,6 @@
               </v-btn>
             </template>
             <v-list>
-              <v-list-item :href="'https://staging.openalex.org/s/' + $store.state.search.id" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-flask-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  View on staging<v-icon x-small right>mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-
               <v-list-item :href="searchApiUrl" target="_blank">
                 <v-list-item-icon>
                   <v-icon>mdi-api</v-icon>
