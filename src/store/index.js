@@ -52,9 +52,7 @@ export default new Vuex.Store({
         },
 
     },
-    actions: {
-
-    },
+    actions: {},
     getters: {
         globalIsLoading(state) {
             return state.isLoading
@@ -67,6 +65,17 @@ export default new Vuex.Store({
         },
         isProductionEnv(state) {
             return window.location.hostname === "openalex.org"
+        },
+        environment(state, getters) {
+            if (getters.isLocalEnv) {
+                return "local"
+            } else if (getters.isStagingEnv) {
+                return "staging"
+            } else if (getters.isProductionEnv) {
+                return "production"
+            } else {
+                return "unknown"
+            }
         },
     },
 })

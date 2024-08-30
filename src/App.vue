@@ -36,6 +36,61 @@
 
       </router-link>
       <div class="flex-grow-1"></div>
+      <v-menu offset-y rounded>
+        <template v-slot:activator="{on}">
+          <v-chip
+              v-on="on"
+              outlined
+              class="ml-3 mt-1"
+              v-if="environment !== 'production'"
+              :color="environment === 'local' ? '' : 'warning'"
+          >
+            <v-icon left small v-if="environment === 'local'">mdi-cog-outline</v-icon>
+            <v-icon left small v-else-if="environment === 'staging'">mdi-flask-outline</v-icon>
+            {{ environment }}
+            <v-icon small right>mdi-menu-down</v-icon>
+          </v-chip>
+        </template>
+        <v-list>
+          <v-list-item
+              :href="localUrl"
+              target="_blank"
+              :class="{'v-list-item--active primary--text': environment === 'local'}"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-cog-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Local
+                <v-icon x-small>mdi-open-in-new</v-icon>
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+              :href="stagingUrl"
+              target="_blank"
+              :class="{'v-list-item--active primary--text': environment === 'staging'}"
+          >
+            <v-list-item-icon>
+              <v-icon>mdi-flask-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>
+                Staging
+                <v-icon x-small>mdi-open-in-new</v-icon>
+              </v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action>
+              <v-btn icon @click.prevent.stop="copyToClipboard(stagingUrl)">
+                <v-icon>mdi-content-copy</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
+
+      </v-menu>
+
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
@@ -80,19 +135,19 @@
       <router-view></router-view>
     </v-main>
     <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="400">
-<!--      <v-toolbar flat dense>-->
-<!--        <v-btn icon @click="isNavDrawerOpen=false">-->
-<!--          <v-icon>mdi-close</v-icon>-->
-<!--        </v-btn>-->
-<!--        <v-spacer/>-->
-<!--        <v-btn icon :to="$store.state.zoomId">-->
-<!--          <v-icon>mdi-link</v-icon>-->
-<!--        </v-btn>-->
-<!--        <v-btn icon :href="`https://api.openalex.org/${$store.state.zoomId}`" target="_blank">-->
-<!--          <v-icon>mdi-api</v-icon>-->
-<!--        </v-btn>-->
+      <!--      <v-toolbar flat dense>-->
+      <!--        <v-btn icon @click="isNavDrawerOpen=false">-->
+      <!--          <v-icon>mdi-close</v-icon>-->
+      <!--        </v-btn>-->
+      <!--        <v-spacer/>-->
+      <!--        <v-btn icon :to="$store.state.zoomId">-->
+      <!--          <v-icon>mdi-link</v-icon>-->
+      <!--        </v-btn>-->
+      <!--        <v-btn icon :href="`https://api.openalex.org/${$store.state.zoomId}`" target="_blank">-->
+      <!--          <v-icon>mdi-api</v-icon>-->
+      <!--        </v-btn>-->
 
-<!--      </v-toolbar>-->
+      <!--      </v-toolbar>-->
       <entity
           class="pa-4"
           v-if="$store.state.zoomId" :id="$store.state.zoomId"
@@ -154,6 +209,7 @@ import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import {entity} from "@/entity";
 import Entity from "@/components/Entity/Entity.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
+import router from "@/router";
 
 export default {
   name: 'App',
@@ -197,7 +253,15 @@ export default {
     ...mapGetters([
       "globalIsLoading",
       "entityType",
+      "environment",
     ]),
+
+    localUrl() {
+      return `http://localhost:8080${this.$route.fullPath}`;
+    },
+    stagingUrl() {
+      return `https://staging.openalex.org${this.$route.fullPath}`;
+    },
 
     logoStyle() {
       return "opacity: .7;"
@@ -237,7 +301,8 @@ export default {
       this.backgroundColor = "#FFCCDC"
       this.$vuetify.theme.themes.light.primary = newColor
       this.$vuetify.theme.currentTheme.primary = newColor
-    }
+    },
+
   },
   async mounted() {
     const configResp = await axios.get("https://api.openalex.org/entities/config")
@@ -422,7 +487,7 @@ html, body {
 }
 
 .white-space-normal {
-    white-space: normal !important;
+  white-space: normal !important;
 }
 
 $logo-link-height: 35px;
