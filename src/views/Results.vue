@@ -27,6 +27,7 @@
                   View on staging<v-icon x-small right>mdi-open-in-new</v-icon>
                 </v-list-item-title>
               </v-list-item>
+
               <v-list-item :href="searchApiUrl" target="_blank">
                 <v-list-item-icon>
                   <v-icon>mdi-api</v-icon>
