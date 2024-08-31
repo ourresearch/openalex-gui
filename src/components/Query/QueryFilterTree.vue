@@ -128,7 +128,9 @@ export default {
     QueryFilterTreeBranch,
     QueryFilterTreeButton,
   },
-  props: {},
+  props: {
+    isWorks: Boolean,
+  },
   data() {
     return {
       foo: 42,
@@ -271,7 +273,12 @@ export default {
   watch: {
     "query.filters": {
       handler: function (filters) {
-        this.myFlatFilters = addFilterButtons(filters)
+        const filtersWithCorrectSubject = filters.filter(f => {
+          return (this.isWorks) ? f.subjectEntity === "works" : f.subjectEntity !== "works"
+        })
+
+        const filtersWithButtons = addFilterButtons(filtersWithCorrectSubject)
+        this.myFlatFilters = filtersWithButtons
         this.openNodes = filters.map(f => f.id)
 
 
