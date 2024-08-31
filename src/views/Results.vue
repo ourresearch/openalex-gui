@@ -9,9 +9,9 @@
 
 
       <v-col cols="12" xl="4">
-        <div class="d-flex align-start mb-3">
-          <search-from-text :disabled="!$store.state.search.is_ready" />
-
+        <v-toolbar flat color="transparent">
+          <div class="text-h6">Query</div>
+          <v-spacer/>
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on" class="mt-2 ml-1">
@@ -28,7 +28,7 @@
                   <v-icon x-small right>mdi-open-in-new</v-icon>
                 </v-list-item-title>
               </v-list-item>
-              <v-divider />
+              <v-divider/>
               <v-list-item @click="toggleCard('queryJson')">
                 <v-list-item-icon>
                   <v-icon>mdi-code-braces-box</v-icon>
@@ -40,6 +40,10 @@
               </v-list-item>
             </v-list>
           </v-menu>
+        </v-toolbar>
+        <div class="d-flex align-start mb-3">
+          <search-from-text :disabled="!$store.state.search.is_ready"/>
+
 
         </div>
 
@@ -55,7 +59,7 @@
             Query object
             <v-spacer/>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
-<!--              <v-icon>mdi-pin-off-outline</v-icon>-->
+              <!--              <v-icon>mdi-pin-off-outline</v-icon>-->
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -67,11 +71,12 @@
 
       </v-col>
       <v-col cols="12" xl="8">
+        <v-toolbar color="transparent" flat>
+          <div class="text-h6">Results:</div>
+          <query-summarize-by/>
+          <v-spacer></v-spacer>
+        </v-toolbar>
         <v-card flat rounded>
-          <div class="d-flex py-2 px-4 pr-2">
-            <query-summarize-by/>
-            <v-spacer></v-spacer>
-          </div>
           <results-table
               v-if="$store.state.search.is_ready"
           />
@@ -115,7 +120,7 @@
     </v-dialog>
 
     <v-dialog max-width="800" v-model="isSearchFromTextDialogOpen">
-        <search-from-text :reset-query="resetSearchFromTextDialog" />
+      <search-from-text :reset-query="resetSearchFromTextDialog"/>
     </v-dialog>
 
 
@@ -158,8 +163,8 @@ export default {
 
 
       cards: [
-          "oql",
-          "queryJson",
+        "oql",
+        "queryJson",
       ],
       cardsToShowSelected: [
         "oql",
@@ -180,7 +185,7 @@ export default {
       "summarizeByFiltersRoot",
       "querySubjectEntityConfig",
       "query",
-        "searchApiUrl",
+      "searchApiUrl",
     ]),
   },
 

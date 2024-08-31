@@ -7,7 +7,7 @@
       filled
       rounded
       hide-details
-      rows="1"
+      rows="3"
       :placeholder="placeholder"
       @keydown.enter.exact.prevent="applyQ"
       :class="{oql: selectedInputType === 'oql'}"
@@ -161,7 +161,7 @@ export default {
 </script>
 <style lang="scss">
 textarea {
-  padding-top: 5px !important;
+  //padding-top: 5px !important;
 }
 .oql {
   textarea {
