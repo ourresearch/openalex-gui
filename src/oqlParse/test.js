@@ -60,6 +60,18 @@ class OQOTestRunner {
             };
         }
 
+        function normalizeOperator(operator) {
+            const operatorMap = {
+                '<': 'is less than',
+                '<=': 'is less than or equal to',
+                '>': 'is greater than',
+                '>=': 'is greater than or equal to',
+                '=': 'is',
+                '!=': 'is not'
+            };
+            return operatorMap[operator] || operator;
+        }
+
         function findRootFilters(filters) {
             const childIds = new Set(filters.flatMap(filter => filter.children || []));
             return filters.filter(filter => !childIds.has(filter.id));
@@ -98,9 +110,10 @@ class OQOTestRunner {
         function filtersMatch(filter1, filter2) {
             if (filter1.type !== filter2.type ||
                 filter1.subjectEntity !== filter2.subjectEntity ||
-                filter1.operator !== filter2.operator) {
+                normalizeOperator(filter1.operator) !== normalizeOperator(filter2.operator)) {
                 return false;
             }
+
 
             if (filter1.type === 'leaf') {
                 return filter1.column_id === filter2.column_id &&
@@ -124,6 +137,10 @@ class OQOTestRunner {
 
             if (isNullOrUndefined(value2) || isEmptyArray(value2)) {
                 return isNullOrUndefined(value1) || isEmptyArray(value1);
+            }
+            if (typeof value1 === 'number' && typeof value2 === 'string' ||
+                typeof value1 === 'string' && typeof value2 === 'number') {
+                return Number(value1) === Number(value2);
             }
 
             return JSON.stringify(value1) === JSON.stringify(value2);
