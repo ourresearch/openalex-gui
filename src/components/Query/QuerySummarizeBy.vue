@@ -24,7 +24,7 @@
             text
             rounded
             v-on="on"
-            class="text-h6  ml-2 text-capitalize"
+            class="text-h6 text-capitalize"
         >
           <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>
           <template v-if="!query.summarize_by">
