@@ -8,7 +8,7 @@
     <v-row class="">
 
 
-      <v-col cols="12" xl="4">
+      <v-col cols="12" lg="5" >
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
@@ -42,7 +42,10 @@
           </v-menu>
         </v-toolbar>
         <div class="d-flex align-start mb-3">
-          <search-from-text :disabled="!$store.state.search.is_ready"/>
+          <search-from-text
+              :disabled="!$store.state.search.is_ready"
+              format="oql"
+          />
 
 
         </div>
@@ -70,7 +73,7 @@
 
 
       </v-col>
-      <v-col cols="12" xl="8">
+      <v-col cols="12" lg="7">
         <v-toolbar color="transparent" flat>
           <div class="text-h6">Results:</div>
           <query-summarize-by/>

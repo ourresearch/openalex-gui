@@ -12,6 +12,7 @@
       @keydown.enter.exact.prevent="applyQ"
       :class="{oql: selectedInputType === 'oql'}"
   >
+<!--      prepend-inner-icon="mdi-code-parentheses-box"-->
     <template v-slot:append>
       <v-btn
           large icon style="margin-top: -11px; margin-right: -13px;"
@@ -22,7 +23,7 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </template>
-    <template v-slot:prepend-inner>
+    <template v-if="format !== 'oql'" v-slot:prepend-inner>
       <v-menu rounded max-width="300" offset-y>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -77,6 +78,7 @@ export default {
   props: {
     resetQuery: Boolean,
     disabled: Boolean,
+    format: String,
   },
   data() {
     return {
@@ -135,6 +137,11 @@ export default {
       this.isNatLangLoading = false
     }
   },
+  mounted() {
+    if (this.format === "oql") {
+      this.selectedInputType = "oql";
+    }
+  },
   watch: {
     resetQuery() {
       this.q = "";
@@ -162,11 +169,18 @@ export default {
 <style lang="scss">
 textarea {
   //padding-top: 5px !important;
+  margin-bottom: 15px;
+}
+.v-text-field--rounded {
+    border-radius: 15px !important;
 }
 .oql {
   textarea {
-  font-family: monospace !important;
+    font-family: "Consolas", monospace !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
 
   }
+
 }
 </style>
