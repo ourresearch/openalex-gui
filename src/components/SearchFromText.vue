@@ -7,7 +7,7 @@
       filled
       rounded
       hide-details
-      rows="3"
+      rows="2"
       :placeholder="placeholder"
       @keydown.enter.exact.prevent="applyQ"
       :class="{oql: selectedInputType === 'oql'}"

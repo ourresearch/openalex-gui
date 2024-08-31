@@ -181,6 +181,8 @@ export default {
       return this.filter
     },
     columnConfig() {
+
+      // @todo i think we're not getting the querySubjectEntityConfig
       return this.querySubjectEntityConfig.columns[this.me.column_id]
     },
     isSearchColumn() {

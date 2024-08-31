@@ -52,7 +52,7 @@
 
 
         <v-card rounded flat class="">
-          <query-filter-tree/>
+          <query-filter-tree is-works />
         </v-card>
 
 
