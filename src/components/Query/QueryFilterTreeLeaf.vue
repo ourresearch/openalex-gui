@@ -180,9 +180,10 @@ export default {
       return this.filter
     },
     columnConfig() {
-      const mySubjectEntity = this.filter.subjectEntity
+      const mySubjectEntity = this.me.subjectEntity
       const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
-      return mySubjectEntityConfig.columns[this.me.column_id]
+      const columnConfig = mySubjectEntityConfig.columns[this.me.column_id]
+      return columnConfig
     },
     isSearchColumn() {
       return this.columnConfig?.id?.endsWith(".search")

@@ -8,7 +8,7 @@
     <v-row class="">
 
 
-      <v-col cols="12" lg="5" >
+      <v-col cols="12" lg="5">
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
@@ -44,21 +44,23 @@
         <div class="d-flex align-start mb-3">
           <search-from-text
               :disabled="!$store.state.search.is_ready"
+              selected="oql"
           />
 
 
         </div>
 
 
-
-          <query-filter-tree
+        <query-filter-tree
             subject-entity="works"
             :filters="worksFilters"
-          />
-          <query-filter-tree
+        />
+        <query-filter-tree
+            class="mt-3"
+            v-if="query.summarize_by"
             :subject-entity="query.summarize_by"
             :filters="entityFilters"
-          />
+        />
 
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
@@ -79,8 +81,9 @@
       </v-col>
       <v-col cols="12" lg="7">
         <v-toolbar color="transparent" flat>
-<!--          <div class="text-h6">Results:</div>-->
-          <query-summarize-by/>
+          <!--          <div class="text-h6">Results:</div>-->
+          <query-summarize-by style="margin-left: -13px;"/>
+
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card flat rounded>
