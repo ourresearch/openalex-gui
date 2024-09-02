@@ -23,7 +23,7 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </template>
-    <template v-if="format !== 'oql'" v-slot:prepend-inner>
+    <template v-slot:prepend-inner>
       <v-menu rounded max-width="300" offset-y>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -77,7 +77,7 @@ export default {
   props: {
     resetQuery: Boolean,
     disabled: Boolean,
-    format: String,
+    selected: String,
   },
   data() {
     return {
@@ -137,9 +137,7 @@ export default {
     }
   },
   mounted() {
-    if (this.format === "oql") {
-      this.selectedInputType = "oql";
-    }
+      this.selectedInputType = this.selected
   },
   watch: {
     resetQuery() {

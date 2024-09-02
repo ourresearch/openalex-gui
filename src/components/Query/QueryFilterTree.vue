@@ -4,39 +4,27 @@
       <v-toolbar-title class="text-h6">
         {{ subjectEntity }} filters
       </v-toolbar-title>
-      <v-spacer />
+      <v-spacer/>
       <query-filter-tree-button
-            :filter="item"
-            :subject-entity="subjectEntity"
-            :parent-id="null"
-            @addBranchFilter="addBranchFilter"
-            @addLeafFilter="addLeafFilter"
-        />
-      <v-btn icon color="primary" @click="applyFilters">
-        <v-icon>mdi-check</v-icon>
-      </v-btn>
+          :subject-entity="subjectEntity"
+          :parent-id="null"
+          @addBranchFilter="addBranchFilter"
+          @addLeafFilter="addLeafFilter"
+      />
+<!--      <v-btn icon color="primary" @click="applyFilters">-->
+<!--        <v-icon>mdi-check</v-icon>-->
+<!--      </v-btn>-->
     </v-toolbar>
-    <!--    <div>-->
-    <!--      {{ querySubjectEntityConfig.columns }}-->
-    <!--    </div>-->
+
+
     <v-treeview
         :items="filtersRecursive"
         v-model="tree"
         :open.sync="openNodes"
         item-key="id"
-        dense
         open-all
-
-
     >
-
       <!--      <template v-slot:prepend="{ item, open }">-->
-      <!--        <v-icon v-if="item.type === 'branch'">-->
-      <!--          -->
-      <!--        </v-icon>-->
-      <!--        <v-icon v-if="item.type==='leaf'">-->
-      <!--          {{ querySubjectEntityConfig.columns[item.column_id].icon }}-->
-      <!--        </v-icon>-->
       <!--      </template>-->
 
       <template v-slot:prepend="{item, open}">
@@ -45,18 +33,17 @@
             {{ item.siblingIndex + 1 }}.
           </span>
           <span
-                class="d-inline-flex justify-center"
-                style="min-width: 1.6em;"
+              class="d-inline-flex justify-center"
+              style="min-width: 1.6em;"
           >
             <template v-if="item.siblingIndex === 0">
               The
             </template>
             <template v-else>
-              {{ item.parentOperator}}
+              {{ item.parentOperator }}
             </template>
           </span>
         </span>
-<!--        <v-icon left v-else>mdi-filter-outline</v-icon>-->
       </template>
 
 
@@ -67,44 +54,53 @@
             :filter="item"
             :is-open="open"
             @setOperator="setFilterOperator"
-
         />
         <query-filter-tree-leaf
             v-else
-            class="py-1"
+            class=""
             :filter="item"
             @set="setFilter"
-
         />
-
       </template>
       <template v-slot:append="{ item, open }">
-        <v-btn
-            v-if="item.type !== 'button'"
-            icon
-            @click="deleteFilter(item.id)"
-        >
-          <v-icon>mdi-delete-outline</v-icon>
-        </v-btn>
+        <div class="d-flex">
+          <query-filter-tree-button
+              v-if="item.type === 'branch'"
+              :subject-entity="subjectEntity"
+              :parent-id="item.id"
+              @addBranchFilter="addBranchFilter"
+              @addLeafFilter="addLeafFilter"
+          />
+          <v-btn
+              icon
+              @click="deleteFilter(item.id)"
+          >
+            <v-icon>mdi-delete-outline</v-icon>
+          </v-btn>
+
+        </div>
       </template>
 
     </v-treeview>
-    <v-row style="font-size: 11px !important;">
-      <v-col>
-        <div class="text-h6">filters recursive</div>
-        <pre>{{ filtersRecursive }}</pre>
-      </v-col>
-    </v-row>
-<!--    <v-row style="font-size: 11px !important;">-->
-<!--      <v-col >-->
-<!--        <div class="text-h6">Query</div>-->
-<!--        <pre>{{ query.filters}}</pre>-->
-<!--      </v-col>-->
-<!--      <v-col>-->
-<!--        <div class="text-h6">Component</div>-->
-<!--        <pre>{{ filtersToStore }}</pre>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
+    <!--    <v-row style="font-size: 11px !important;">-->
+    <!--      <v-col>-->
+    <!--        <div class="text-h6">filters recursive</div>-->
+    <!--        <pre>{{ filtersRecursive }}</pre>-->
+    <!--      </v-col>-->
+    <!--    </v-row>-->
+    <!--    <v-row style="font-size: 11px !important;">-->
+    <!--      <v-col >-->
+    <!--        <div class="text-h6">Query</div>-->
+    <!--        <pre>{{ query.filters}}</pre>-->
+    <!--      </v-col>-->
+    <!--      <v-col>-->
+    <!--        <div class="text-h6">Component</div>-->
+    <!--        <pre>{{ filtersToStore }}</pre>-->
+    <!--      </v-col>-->
+    <!--    </v-row>-->
+    <v-card-text v-if="filters.length === 0" class="">
+      No filters yet
+    </v-card-text>
   </v-card>
 </template>
 
@@ -112,7 +108,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {
-  addFilterButtons, cleanFiltersForServer,
+  cleanFiltersForServer,
   convertFlatToRecursive, deleteNode,
   makeFilterBranch,
   makeFilterButton,
@@ -164,7 +160,7 @@ export default {
     filtersToStore() {
       return cleanFiltersForServer(this.myFlatFilters)
     },
-    isDirty(){
+    isDirty() {
       return !_.isEqual(this.query.filters, this.filtersToStore)
     }
   },
@@ -177,11 +173,11 @@ export default {
     ...mapMutations("search", []),
     ...mapActions("search", [
       "createSearch",
-        "setAllFilters",
+      "setAllFilters",
 
     ]),
     ...mapActions("user", []),
-    deleteFilter(id){
+    deleteFilter(id) {
       console.log("deleteFilter", id)
       this.myFlatFilters = deleteNode(this.myFlatFilters, id)
     },
@@ -191,35 +187,41 @@ export default {
       filterToUpdate.operator = operator
     },
     setFilter(newFilter) {
+      console.log("FilterTree setFilter()", newFilter)
       const filterToUpdate = this.myFlatFilters.find(f => f.id === newFilter.id)
 
       // filterToUpdate.foo = "bar"
       Object.keys(newFilter).forEach(key => {
         Vue.set(filterToUpdate, key, newFilter[key])
       })
-
+      if (newFilter.value !== null){
+        this.applyFilters()
+      }
     },
-    getFilterProperty(id, key){
+    getFilterProperty(id, key) {
       const myfilter = this.myFlatFilters.find(f => f.id === id)
       return myfilter[key]
     },
     addBranchFilter(parentId) {
       console.log("addBranchFilter to this parent: ", parentId)
       const newBranchFilter = makeFilterBranch(this.subjectEntity)
-      this.addFilter(newBranchFilter)
+      this.addFilter(newBranchFilter, parentId)
     },
     addLeafFilter({parentId, columnId}) {
       console.log("addLeafFilter to this parent", parentId, columnId)
       const filter = makeFilterLeaf(this.subjectEntity)
       filter.column_id = columnId
-      this.addFilter(filter)
+      this.addFilter(filter, parentId)
 
     },
-    addFilter(filter){
+    addFilter(filter, parentId) {
       this.myFlatFilters.push(filter)
       // add this filter's id to the parent's children array, second from the end
-      const parent = this.myFlatFilters.find(f => f.children?.includes(buttonId))
-      parent.children.splice(parent.children.length - 1, 0, filter.id)
+      const parent = this.myFlatFilters.find(f => f.id === parentId)
+      if (parent){
+        parent.children.push(filter.id)
+      }
+      this.openNodes.push(parentId)
     },
 
     applyFilters() {
@@ -236,12 +238,12 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        const filtersWithCorrectSubject = filters.filter(f => {
+        const filtersCopy = _.cloneDeep(filters)
+        const filtersWithCorrectSubject = filtersCopy.filter(f => {
           return f.subjectEntity === this.subjectEntity
         })
 
-        const filtersWithButtons = addFilterButtons(filtersWithCorrectSubject)
-        this.myFlatFilters = filtersWithButtons
+        this.myFlatFilters = filtersWithCorrectSubject
         this.openNodes = filters.map(f => f.id)
 
 

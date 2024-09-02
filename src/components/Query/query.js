@@ -226,7 +226,6 @@ export {
     makeFilterBranch,
     makeFilterButton,
 
-    addFilterButtons,
     cleanFiltersForServer,
     deleteRootNodes,
 

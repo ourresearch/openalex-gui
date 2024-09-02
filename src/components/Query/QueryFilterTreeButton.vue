@@ -75,7 +75,6 @@ export default {
   name: "Template",
   components: {},
   props: {
-    filter: Object,
     parentId: {
       type: [String, null],
     },
