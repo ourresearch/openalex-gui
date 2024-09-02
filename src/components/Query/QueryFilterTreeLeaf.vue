@@ -17,15 +17,15 @@
       <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
       <v-menu v-else offset-y>
         <template v-slot:activator="{ on }">
-          <v-btn
-              text
+          <v-chip
+              outlined
+              label
               v-on="on" class="font-weight-regular px-1 pr-0 mx-1"
               style="min-width: 1px !important;"
-              outlined
           >
             {{ selectedOperator ?? "select" }}
             <v-icon small>mdi-menu-down</v-icon>
-          </v-btn>
+          </v-chip>
         </template>
         <v-list>
           <v-list-item-group

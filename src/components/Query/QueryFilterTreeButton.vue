@@ -1,5 +1,4 @@
 <template>
-  <div>
     <v-menu rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
@@ -62,7 +61,6 @@
         </v-list>
       </v-card>
     </v-menu>
-  </div>
 </template>
 
 <script>

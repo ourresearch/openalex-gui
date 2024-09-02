@@ -108,7 +108,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {
-  cleanFiltersForServer,
+  cleanFilters,
   convertFlatToRecursive, deleteNode,
   makeFilterBranch,
   makeFilterButton,
@@ -158,7 +158,7 @@ export default {
       return convertFlatToRecursive(this.myFlatFilters)
     },
     filtersToStore() {
-      return cleanFiltersForServer(this.myFlatFilters)
+      return cleanFilters(this.myFlatFilters)
     },
     isDirty() {
       return !_.isEqual(this.query.filters, this.filtersToStore)
@@ -177,14 +177,18 @@ export default {
 
     ]),
     ...mapActions("user", []),
+
+    // things that update the server
     deleteFilter(id) {
       console.log("deleteFilter", id)
       this.myFlatFilters = deleteNode(this.myFlatFilters, id)
+      this.applyFilters()
     },
     setFilterOperator({id, operator}) {
       console.log("setFilterOperator", id, operator)
       const filterToUpdate = this.myFlatFilters.find(f => f.id === id)
       filterToUpdate.operator = operator
+      this.applyFilters()
     },
     setFilter(newFilter) {
       console.log("FilterTree setFilter()", newFilter)
@@ -198,10 +202,13 @@ export default {
         this.applyFilters()
       }
     },
-    getFilterProperty(id, key) {
-      const myfilter = this.myFlatFilters.find(f => f.id === id)
-      return myfilter[key]
+    applyFilters() {
+      this.setAllFilters(this.filtersToStore)
+      this.createSearch()
     },
+
+
+    // these only update local state
     addBranchFilter(parentId) {
       console.log("addBranchFilter to this parent: ", parentId)
       const newBranchFilter = makeFilterBranch(this.subjectEntity)
@@ -224,10 +231,6 @@ export default {
       this.openNodes.push(parentId)
     },
 
-    applyFilters() {
-      this.setAllFilters(this.filtersToStore)
-      this.createSearch()
-    },
 
 
   },

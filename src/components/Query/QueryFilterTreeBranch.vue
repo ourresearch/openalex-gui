@@ -9,16 +9,16 @@
     <div v-else class="d-flex align-baseline">
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
-          <v-btn
+          <v-chip
+              label
               outlined
-              text
               v-on="on"
               class="px-1 mr-1"
               style="min-width: 1px !important; min-height: 1px;"
           >
             {{ selectedOperator === "and" ? "all" : "any" }}
             <v-icon small>mdi-menu-down</v-icon>
-          </v-btn>
+          </v-chip>
         </template>
         <v-list>
           <v-list-item-group v-model="selectedOperator">
