@@ -28,10 +28,9 @@
         <template v-slot:activator="{ on }">
           <v-btn
               large
-              rounded
               v-on="on"
-              style="margin: -11px 0 0 -17px;"
-              class="px-0 mr-2"
+              style="margin: -11px 0 0 -19px; min-width: 1px; border-radius: 10px;"
+              class="pl-1 pr-0"
               text
           >
             <v-icon >{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
