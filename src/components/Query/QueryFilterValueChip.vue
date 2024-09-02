@@ -2,6 +2,7 @@
   <div>
     <v-chip
         outlined
+        label
         class="mr-1"
     >
       <template v-if="entityData">

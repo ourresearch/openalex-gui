@@ -1,5 +1,7 @@
 import shortUUID from 'short-uuid';
 import {getConfigs} from "@/oaxConfigs";
+import {queryToOQL} from "@/oqlParse/oqlParse";
+
 
 const makeFilterLeaf = function (subjectEntity) {
     return {
@@ -17,7 +19,6 @@ const makeFilterBranch = function (subjectEntity) {
         id: "br_" + shortUUID.generate().slice(0, 6),
         subjectEntity,
         type: "branch",
-
         operator: "and",  // can be either "and" or "or"
         children: [],
     }
@@ -187,37 +188,68 @@ function addFilterButtons(filters) {
     return [...ret, ...newFilters]
 }
 
+const queryToOqlWrapper = function (query) {
+    return queryCopy
 
-const cleanFiltersForServer = function (filters) {
-    const filtersCopy = _.cloneDeep(filters)
+    // Add a root-level wrapper branch filter to the works filters
+    const worksFilters = queryCopy.filters.filter(f => f.subjectEntity === "works");
+    if (worksFilters.length > 0) {
+        const worksBranch = makeFilterBranch("works");
+        worksBranch.children = worksFilters.map(f => f.id);
+        queryCopy.filters = [...queryCopy.filters, worksBranch];
+    }
 
-    // remove button filters
-    const buttonFilters = filtersCopy.filter(f => f.type === "button")
-    let noButtonFilters = filtersCopy
-    buttonFilters.forEach(buttonFilter => {
-        noButtonFilters = deleteNode(noButtonFilters, buttonFilter.id)
-    })
+    console.log("queryCopy.filters", queryCopy.filters)
 
-    // remove useless "children" attribute from leaf nodes
-    const noChildrenOnLeafNodes = noButtonFilters.map(f => {
-        if (f.type === "leaf") {
-            delete f.children
-        }
-        return f
-    })
+    // Add a root-level wrapper branch filter to the entity filters if there are any
+    // const entityFilters = queryCopy.filters.filter(f => f.subjectEntity !== "works");
+    // if (entityFilters.length > 0) {
+    //     const entityBranch = makeFilterBranch("entity");
+    //     entityBranch.children = entityFilters.map(f => f.id);
+    //     queryCopy.filters = [...queryCopy.filters, entityBranch];
+    // }
+
+    return queryToOQL(queryCopy);
+}
+
+const cleanFilters = function (filters) {
+
+    const filterBranchKeys = Object.keys(makeFilterBranch('works'))
+    const filterLeafKeys = Object.keys(makeFilterLeaf('works'))
+
+    let filtersCopy = _.cloneDeep(filters)
 
     // remove empty branches
-    const noEmptyBranches = noChildrenOnLeafNodes.filter(f => f.type !== "branch" || f.children.length > 0)
+    filtersCopy = filtersCopy.filter(f => f.type !== "branch" || f.children.length > 0)
 
-    // remove UI-only attributes
-    const noUiAttributes = noEmptyBranches.map(f => {
-        delete f.siblingIndex
-        delete f.isRoot
-        return f
-    })
+    // remove a root works branch if it has no siblings.
+    // this is a hack until the server can give us the filters in the correct format.
+    const rootBranchWorkFilterIds = getRootNodeBranchIds(filtersCopy.filter(f => f.subjectEntity === "works"))
+    if (rootBranchWorkFilterIds.length === 1 && filtersCopy.filter(f => f.subjectEntity === "works").length === 1) {
+        filtersCopy = filtersCopy.filter(f => f.id !== rootBranchWorkFilterIds[0])
+    }
 
-    // done
-    return noUiAttributes
+
+    // remove attributes that are only used by the UI, using the filterBranchKeys and filterLeafKeys
+    const ret = filtersCopy.map(f => {
+        if (f.type === "branch") {
+            return filterBranchKeys.reduce((acc, key) => {
+                if (f.hasOwnProperty(key)) {
+                    acc[key] = f[key];
+                }
+                return acc;
+            }, {});
+        } else if (f.type === "leaf") {
+            return filterLeafKeys.reduce((acc, key) => {
+                if (f.hasOwnProperty(key)) {
+                    acc[key] = f[key];
+                }
+                return acc;
+            }, {});
+        }
+        return f;
+    });
+    return ret
 }
 
 
@@ -226,10 +258,12 @@ export {
     makeFilterBranch,
     makeFilterButton,
 
-    cleanFiltersForServer,
+    cleanFilters,
     deleteRootNodes,
 
     baseQuery,
     convertFlatToRecursive,
     deleteNode,
+
+    queryToOqlWrapper,
 }

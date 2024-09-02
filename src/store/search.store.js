@@ -12,7 +12,7 @@ import {
     makeFilterLeaf,
     baseQuery,
     convertFlatToRecursive,
-    deleteNode, cleanFiltersForServer, deleteRootNodes,
+    deleteNode, cleanFilters, deleteRootNodes, oqlToQueryWrapper, queryToOqlWrapper,
 } from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
@@ -95,8 +95,7 @@ export const search = {
         },
 
         setAllFilters({state}, newFilters) {
-            const filtersWithoutRootNodes = deleteRootNodes(newFilters)
-            state.query.filters = filtersWithoutRootNodes
+            state.query.filters = _.cloneDeep(newFilters)
         },
         clearAllFilters({state}) {
             state.query.filters = [makeFilterBranch("works")]
@@ -158,7 +157,7 @@ export const search = {
             // now, if necessary, we overwrite the defaults that were set by setSummarize:
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
             if (query.return_columns) state.query.return_columns = query.return_columns
-            if (query.filters) dispatch("setAllFilters", query.filters)
+            if (query.filters) dispatch("setAllFilters", cleanFilters(query.filters))
 
             // we use these to check if the user has changed the filters
             state.originalFilters = _.cloneDeep(state.query.filters)
@@ -167,10 +166,13 @@ export const search = {
         createSearchFromOql: async function ({state, dispatch}, oql) {
             console.log("createSearchFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql)
-            const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query})
-            console.log("Created search", resp.data)
-            await pushSafe({name: 'search', params: {id: resp.data.id}})
+            dispatch("setFromQueryObject", query)
+            dispatch("createSearch")
+
+            // const url = "https://api.openalex.org/searches"
+            // const resp = await axios.post(url, {query})
+            // console.log("Created search", resp.data)
+            // await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
 
 
@@ -179,7 +181,7 @@ export const search = {
             console.log("createSearch", getters.query)
             const queryWithCleanFilters = {
                 ...getters.query,
-                filters: cleanFiltersForServer(getters.query.filters)
+                filters: cleanFilters(getters.query.filters)
             }
             state.is_ready = false
             const url = "https://api.openalex.org/searches"
