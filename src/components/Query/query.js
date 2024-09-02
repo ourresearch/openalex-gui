@@ -58,6 +58,8 @@ const queryFactory = function (summarize_by, sort_by, return_columns, filters) {
 
 
 // FILTER STUFF
+
+
 function convertFlatToRecursive(flatTree) {
     const flatTreeCopy = _.cloneDeep(flatTree);
 
@@ -67,6 +69,8 @@ function convertFlatToRecursive(flatTree) {
         isRoot: false,
         siblingIndex: null,
         parentId: null,
+        siblingsCount: 0,  // Initialize siblingsCount
+        parentOperator: "and",  // Initialize parentOperator
     }]));
 
     const root = [];
@@ -77,6 +81,7 @@ function convertFlatToRecursive(flatTree) {
                 const childNode = treeMap.get(childId);
                 const parentNode = treeMap.get(item.id);
                 childNode.parentId = parentNode.id;
+                childNode.parentOperator = parentNode.operator || "and";  // Set parentOperator
                 treeMap.get(item.id).children.push(childNode);
             });
         }
@@ -99,6 +104,7 @@ function convertFlatToRecursive(flatTree) {
             node.children.forEach((child, index) => {
                 if (child) {
                     child.siblingIndex = index;
+                    child.siblingsCount = node.children.length - 1;  // Set siblingsCount
                 }
             });
         }
@@ -127,6 +133,35 @@ function deleteNode(tree, idToDelete) {
             children: Array.isArray(node.children) ? node.children.filter(childId => !idsToDelete.has(childId)) : []
         }));
 }
+
+/**
+ * Gets a list of IDs of filters that are type "branch" and at the root.
+ * Note: this doesn't return root nodes that are of type "leaf".
+ * @param {array} filters - A flat list of filter objects, some of whom have children.
+ * @returns {array} A list of IDs of the root nodes that are of type "branch".
+ */
+const getRootNodeBranchIds = function (filters) {
+    const filtersCopy = _.cloneDeep(filters);
+    const ids = filtersCopy.map(f => f.id);
+    const children = filtersCopy.map(f => f.children).flat();
+    return ids.filter(id => {
+        const filter = filtersCopy.find(f => f.id === id);
+        return !children.includes(id) && filter.type === "branch";
+    });
+}
+
+/**
+ * Gets a copy of the filters list, with the root nodes of type "branch" deleted.
+ * This is a hack until the server gives it to us in this format.
+ * @param {array} filters - A flat list of filter objects, some of whom have children.
+ * @returns {array} A new list of filter objects with the root nodes deleted.
+ */
+const deleteRootNodes = function (filters) {
+    const filtersCopy = _.cloneDeep(filters)
+    const rootIds = getRootNodeBranchIds(filtersCopy)
+    return filtersCopy.filter(f => !rootIds.includes(f.id))
+}
+
 
 /**
  * Adds a new "filter" button to the end of every filter branch's children.
@@ -193,6 +228,7 @@ export {
 
     addFilterButtons,
     cleanFiltersForServer,
+    deleteRootNodes,
 
     baseQuery,
     convertFlatToRecursive,

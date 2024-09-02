@@ -1,14 +1,14 @@
 <template>
-  <div class="d-flex align-center flex-grow-1">
+  <div>
     <v-menu rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
-            text
+            icon
             v-on="on"
             color="primary"
             class="px-1"
         >
-          add a {{ nthFilter }} filter
+          <v-icon>mdi-plus</v-icon>
         </v-btn>
       </template>
       <v-card flat rounded>
@@ -28,7 +28,7 @@
         <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
           <v-list-item
               v-if="'subquery multiple'.includes(search.toLowerCase())"
-              @click="$emit('addBranchFilter', filter.id)"
+              @click="$emit('addBranchFilter', parentId)"
           >
             <v-list-item-icon>
               <v-icon>mdi-filter-multiple-outline</v-icon>
@@ -50,7 +50,7 @@
           <v-list-item
               v-for="column in newFilterColumnOptions"
               :key="column.id"
-              @click="$emit('addLeafFilter', { buttonId: filter.id, columnId: column.id })"
+              @click="$emit('addLeafFilter', { parentId, columnId: column.id })"
           >
             <v-list-item-icon>
               <v-icon>{{ column.icon }}</v-icon>
@@ -76,6 +76,10 @@ export default {
   components: {},
   props: {
     filter: Object,
+    parentId: {
+      type: [String, null],
+    },
+    subjectEntity: String,
   },
   data() {
     return {
@@ -92,16 +96,13 @@ export default {
       "query",
     ]),
     newFilterColumnOptions() {
-      const mySubjectEntity = this.filter.subjectEntity
+      const mySubjectEntity = this.subjectEntity
       const myConfig = getConfigs()[mySubjectEntity]
       const myPossibleColumns = Object.values(myConfig.columns)
 
       return myPossibleColumns.filter( f => {
         return f.displayName.toLowerCase().includes(this.search.toLowerCase())
       })
-    },
-    nthFilter() {
-      return ordinalize(this.filter.siblingIndex + 1)
     },
   },
 

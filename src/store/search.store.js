@@ -12,7 +12,7 @@ import {
     makeFilterLeaf,
     baseQuery,
     convertFlatToRecursive,
-    deleteNode, cleanFiltersForServer,
+    deleteNode, cleanFiltersForServer, deleteRootNodes,
 } from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
@@ -95,7 +95,8 @@ export const search = {
         },
 
         setAllFilters({state}, newFilters) {
-            state.query.filters = newFilters
+            const filtersWithoutRootNodes = deleteRootNodes(newFilters)
+            state.query.filters = filtersWithoutRootNodes
         },
         clearAllFilters({state}) {
             state.query.filters = [makeFilterBranch("works")]

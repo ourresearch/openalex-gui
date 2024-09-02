@@ -50,20 +50,15 @@
         </div>
 
 
-        <v-card rounded flat class="">
+
           <query-filter-tree
             subject-entity="works"
             :filters="worksFilters"
           />
-        </v-card>
-        <v-card rounded flat class="mt-3">
           <query-filter-tree
-              v-if="query.summarize_by"
             :subject-entity="query.summarize_by"
             :filters="entityFilters"
           />
-        </v-card>
-
 
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
