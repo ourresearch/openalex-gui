@@ -6,8 +6,6 @@ import {objectMD5ShortUUID} from '../oqlParse/util.js';
 
 
 const testsJsonUrl = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/tests.json";
-const bulkTestUrl = "https://api.openalex.org/bulk_test";
-// const bulkTestUrl = "http://localhost:5000/bulk_test";
 
 async function getTests() {
     const response = await fetch(testsJsonUrl);
@@ -22,7 +20,7 @@ class OQOTestRunner {
     constructor(tests, onTestResultCb) {
         this.tests = tests;
         this.onTestResultCb = onTestResultCb;
-        this.serverUrl = 'http://localhost:5000'; // Adjust this if your server is on a different URL
+        this.serverUrl = 'https://api.openalex.org';
         this.queueId = null;
     }
 
