@@ -44,7 +44,6 @@
         <div class="d-flex align-start mb-3">
           <search-from-text
               :disabled="!$store.state.search.is_ready"
-              format="oql"
           />
 
 
