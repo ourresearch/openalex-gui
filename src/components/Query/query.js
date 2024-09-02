@@ -23,13 +23,14 @@ const makeFilterBranch = function (subjectEntity) {
     }
 }
 
-const makeFilterButton = function () {
+const makeFilterButton = function (subjectEntity) {
     // this is a button that will be used to add a new filter.
     // we're making a "filter" from it so that it can be added to the tree
     // but it's not really a filter.
     return {
         id: "button_" + shortUUID.generate().slice(0, 6),
         type: "button",
+        subjectEntity,
     }
 }
 
@@ -138,7 +139,7 @@ function addFilterButtons(filters) {
     const filtersCopy = _.cloneDeep(filters)
     const ret = filtersCopy.map(f => {
         if (f.type === "branch") {
-            const newFilter = makeFilterButton()
+            const newFilter = makeFilterButton(f.subjectEntity)
             newFilters.push(newFilter)
             return {
                 ...f,
@@ -152,15 +153,36 @@ function addFilterButtons(filters) {
 }
 
 
-const prettifyFilters = function (filters) {
-    // const filtersCopy = _.cloneDeep(filters)
+const cleanFiltersForServer = function (filters) {
+    const filtersCopy = _.cloneDeep(filters)
 
-    return filters
-        // remove branches that have no children
-        .filter((f) => {
-            return f.type === "leaf" || f.children?.length > 0
-        })
+    // remove button filters
+    const buttonFilters = filtersCopy.filter(f => f.type === "button")
+    let noButtonFilters = filtersCopy
+    buttonFilters.forEach(buttonFilter => {
+        noButtonFilters = deleteNode(noButtonFilters, buttonFilter.id)
+    })
 
+    // remove useless "children" attribute from leaf nodes
+    const noChildrenOnLeafNodes = noButtonFilters.map(f => {
+        if (f.type === "leaf") {
+            delete f.children
+        }
+        return f
+    })
+
+    // remove empty branches
+    const noEmptyBranches = noChildrenOnLeafNodes.filter(f => f.type !== "branch" || f.children.length > 0)
+
+    // remove UI-only attributes
+    const noUiAttributes = noEmptyBranches.map(f => {
+        delete f.siblingIndex
+        delete f.isRoot
+        return f
+    })
+
+    // done
+    return noUiAttributes
 }
 
 
@@ -170,6 +192,7 @@ export {
     makeFilterButton,
 
     addFilterButtons,
+    cleanFiltersForServer,
 
     baseQuery,
     convertFlatToRecursive,

@@ -12,7 +12,7 @@ import {
     makeFilterLeaf,
     baseQuery,
     convertFlatToRecursive,
-    deleteNode,
+    deleteNode, cleanFiltersForServer,
 } from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
@@ -80,7 +80,6 @@ export const search = {
 
         // FILTER
         addFilter({state}, {filter, parentId}) {
-            console.log("adding  filter", filter, parentId)
             state.query.filters.push(filter)
             state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
         },
@@ -177,9 +176,13 @@ export const search = {
         // CREATE AND READ SEARCH
         createSearch: async function ({state, getters}) {
             console.log("createSearch", getters.query)
+            const queryWithCleanFilters = {
+                ...getters.query,
+                filters: cleanFiltersForServer(getters.query.filters)
+            }
             state.is_ready = false
             const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query: getters.query})
+            const resp = await axios.post(url, {query: queryWithCleanFilters})
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
@@ -224,8 +227,8 @@ export const search = {
         },
         isQuerySingleRow: (state) => state.query.summarize_by === "all",
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
-        worksFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity === "works" && f.isRoot),
-        summarizeByFiltersRoot: (state) => state.query.filters.find(f => f.subjectEntity !== "works"),
+        worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
+        entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),
 
         searchApiUrl: (state) => {
             return `https://api.openalex.org/searches/${state.id}`
