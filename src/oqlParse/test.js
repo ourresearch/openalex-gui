@@ -6,8 +6,8 @@ import {objectMD5ShortUUID} from '../oqlParse/util.js';
 
 
 const testsJsonUrl = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/tests.json";
-const natLangUrl = "https://api.openalex.org/text/oql";
-const searchUrl = "https://api.openalex.org/searches";
+const bulkTestUrl = "https://api.openalex.org/bulk_test";
+// const bulkTestUrl = "http://localhost:5000/bulk_test";
 
 async function getTests() {
     const response = await fetch(testsJsonUrl);
@@ -17,10 +17,13 @@ async function getTests() {
     return await response.json();
 }
 
+
 class OQOTestRunner {
     constructor(tests, onTestResultCb) {
-        this.onTestResultCb = onTestResultCb;
         this.tests = tests;
+        this.onTestResultCb = onTestResultCb;
+        this.serverUrl = 'http://localhost:5000'; // Adjust this if your server is on a different URL
+        this.queueId = null;
     }
 
     expectedResults(tests, cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
@@ -49,6 +52,7 @@ class OQOTestRunner {
         }
         return expectedResults;
     }
+
 
     static queriesEqual(generatedOQO, expectedOQO, ignoreProperties = [], path = '') {
         function createDifference(prop, value1, value2) {
@@ -235,135 +239,105 @@ class OQOTestRunner {
         }
     }
 
-    static async getNatLangQuery(prompt) {
-        const params = new URLSearchParams({
-            natural_language: prompt,
-            mailto: 'team@ourresearch.org'
+    async startServerTests(cases) {
+        const serverTests = this.tests.flatMap(test => {
+            const testId = objectMD5ShortUUID(test);
+            const serverTestCases = [];
+
+            if (test.query && cases.includes("queryToSearch")) {
+                serverTestCases.push({
+                    test_id: testId,
+                    query: test.query
+                });
+            }
+
+            if (test.hasOwnProperty("natLang") && test.natLang !== null && cases.includes("natLang")) {
+                test.natLang.forEach(prompt => {
+                    serverTestCases.push({
+                        test_id: testId,
+                        prompt: prompt
+                    });
+                });
+            }
+
+            return serverTestCases;
         });
-        const fullUrl = `${natLangUrl}?${params.toString()}`;
-        const response = await fetch(fullUrl);
+
+        const response = await fetch(`${this.serverUrl}/bulk_test`, {
+            method: 'POST',
+            body: JSON.stringify(serverTests),
+        });
+
         if (!response.ok) {
-            throw new Error(`Bad status fetching natural language response: ${response.status} - (${fullUrl})`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return await response.json();
+
+        const data = await response.json();
+        this.queueId = data.queue_id;
     }
 
-    static async runNatLangFunc(test) {
-        let results = [];
-        for (const prompt of test.natLang ?? []) {
-            try {
-                const oqo = await OQOTestRunner.getNatLangQuery(prompt);
-                const result = OQOTestRunner.queriesEqual(oqo, test.query, test.ignore ?? []);
-                if (!result.equal) {
-                    result.expected = test.query;
-                    result.actual = oqo;
+    listenForResults() {
+        return new Promise((resolve, reject) => {
+            const eventSource = new EventSource(`${this.serverUrl}/stream/${this.queueId}`);
+
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.status === 'processing') {
+                    // Optionally handle processing status
+                    return;
                 }
-                results.push({
-                    "case": "natLang",
-                    prompt,
-                    isPassing: result.equal,
-                    details: result,
-                });
-            } catch (e) {
-                results.push({
-                    "case": "natLang",
-                    prompt,
-                    isPassing: false,
-                    details: {
-                        error: e.message,
-                        expected: test.query,
-                        actual: null
+                if (data.status === 'all_completed') {
+                    eventSource.close();
+                    resolve();
+                    return;
+                }
+                if (data.status === 'error') {
+                    console.error(data.message);
+                    eventSource.close();
+                    reject(new Error(data.message));
+                    return;
+                }
+
+                if (data.hasOwnProperty('id') && data.id !== null) {
+                    if (data.case === 'natLang') {
+                        const results = [];
+                        const test = this.tests.find(test => objectMD5ShortUUID(test) === data.id);
+                        for (const _result of data.results) {
+                            const result = OQOTestRunner.queriesEqual(_result.oqo, test.query, test.ignore ?? []);
+                            if (!result.equal) {
+                                result.expected = test.query;
+                                result.actual = _result.oqo;
+                            }
+                            results.push({
+                                "case": "natLang",
+                                prompt: _result.prompt,
+                                isPassing: result.equal,
+                                details: result,
+                            });
+                        }
+                        this.onTestResultCb({
+                            "case": "natLang",
+                            id: data.id,
+                            isPassing: results.every((o) => o.isPassing),
+                            subTests: results
+                        });
+                    } else if (data.case === 'jsonToSearch') {
+                        this.onTestResultCb(data);
                     }
-                });
-            }
-        }
-        return {
-            "case": "natLang",
-            isPassing: results.every((o) => o.isPassing),
-            subTests: results
-        };
-    }
-
-    static async runSearchFunc(test) {
-
-        async function createSearchGetID(q) {
-            const response = await fetch(searchUrl + '?mailto=team@ourresearch.org', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({query: q}),
-            });
-            if (!response.ok) {
-                throw new Error(`Bad status when creating search: ${response.status} - ${JSON.stringify(q)}`);
-            }
-            const j = await response.json();
-            return j.id;
-        }
-
-        async function getSearchState(id) {
-            const url = `${searchUrl}/${id}?mailto=team@ourresearch.org`;
-            return fetch(url).then(res => res.json());
-        }
-
-        async function pollSearchUntilReady(id, timeout) {
-            const pollingInterval = 1000;
-            const startTime = Date.now();
-
-            while (true) {
-                const result = await getSearchState(id);
-
-                if (result.is_ready) {
-                    const elapsedTime = Date.now() - startTime;
-                    return {result, elapsedTime};
-                }
-
-                if (Date.now() - startTime >= timeout) {
-                    throw new Error('Timeout occurred while waiting for search to be ready.');
-                }
-
-                // Wait for the specified polling interval before checking again
-                await new Promise(resolve => setTimeout(resolve, pollingInterval));
-            }
-        }
-
-        try {
-            const searchId = await createSearchGetID(test.query);
-            let timeout = test.searchTimeout ?? 30000;
-            if (timeout < 1000) {
-                timeout *= 1000;
-            }
-            const {
-                result,
-                elapsedTime
-            } = await pollSearchUntilReady(searchId, timeout);
-            const testResult = {
-                "case": "queryToSearch",
-                isPassing: result.results.length > 0,
-                details: {
-                    searchId,
-                    elapsedTime,
-                    resultsCount: result.results.length,
                 }
             };
-            if (result.results.length === 0) {
-                testResult.details.error = "no results";
-                testResult.details.test = test;
-            }
-            return testResult;
-        } catch (e) {
-            return {
-                "case": "queryToSearch",
-                isPassing: false,
-                details: {
-                    error: e.message,
-                }
+
+            eventSource.onerror = (error) => {
+                console.error('EventSource failed:', error);
+                eventSource.close();
+                reject(error);
             };
-        }
+        });
     }
 
     async runTests(cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
-        const testPromises = this.tests.map(async (test) => {
+        // Run client-side tests
+        for (const test of this.tests) {
             const testId = objectMD5ShortUUID(test);
 
             if (cases.includes("oqlToQuery")) {
@@ -377,24 +351,13 @@ class OQOTestRunner {
                 queryToOqlResult.id = testId;
                 this.onTestResultCb(queryToOqlResult);
             }
+        }
 
-            if (cases.includes("queryToSearch")) {
-                const searchResult = await OQOTestRunner.runSearchFunc(test);
-                searchResult.id = testId;
-                this.onTestResultCb(searchResult);
-            }
-
-            // Run Natural Language test if applicable
-            if ('natLang' in test && Array.isArray(test.natLang) && test.natLang.length > 0 && cases.includes("natLang")) {
-                const natLangResult = await OQOTestRunner.runNatLangFunc(test);
-                natLangResult.id = testId;
-                this.onTestResultCb(natLangResult);
-            }
-
-        });
-
-        // Wait for all tests to complete
-        await Promise.all(testPromises);
+        // Run server-side tests
+        if (cases.includes("natLang") || cases.includes("queryToSearch")) {
+            await this.startServerTests(cases);
+            await this.listenForResults();
+        }
     }
 }
 

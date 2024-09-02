@@ -121,15 +121,15 @@
             />
           </template>
           <template v-slot:item.jsonToSearch="{ item }">
-  <test-result-cell
-    :value="item.jsonToSearch.isPassing"
-    :loading="isLoadingCell(item.id, 'queryToSearch')"
-    :testObject="item.test"
-    :details="item.jsonToSearch.details"
-    :isJsonToSearch="true"
-    @show-details="showTestDetails"
-  />
-</template>
+            <test-result-cell
+                :value="item.jsonToSearch.isPassing"
+                :loading="isLoadingCell(item.id, 'queryToSearch')"
+                :testObject="item.test"
+                :details="item.jsonToSearch.details"
+                :isJsonToSearch="true"
+                @show-details="showTestDetails"
+            />
+          </template>
         </v-data-table>
       </v-card-text>
     </v-card>
@@ -366,30 +366,36 @@
           <!-- jsonToSearch card -->
           <div class="scrollable-content">
             <v-card
-  outlined
-  class="mb-2"
-  :color="resultCardColor('jsonToSearch')"
->
-  <v-card-title>jsonToSearch</v-card-title>
-  <v-card-text>
-    <div v-if="currentTestResults && currentTestResults.jsonToSearch">
-      <div v-if="!currentTestResults.jsonToSearch.isPassing">
-        <pre class="error-details">{{ JSON.stringify(currentTestResults.jsonToSearch.details, null, 2) }}</pre>
-      </div>
-      <div v-else class="success-message">Test passed successfully</div>
-      <div v-if="currentTestResults.jsonToSearch.details && currentTestResults.jsonToSearch.details.searchId" class="mt-2">
-        <a
-          :href="`https://staging.openalex.org/s/${currentTestResults.jsonToSearch.details.searchId}`"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View Search
-        </a>
-      </div>
-    </div>
-    <span v-else>No results yet</span>
-  </v-card-text>
-</v-card>
+                outlined
+                class="mb-2"
+                :color="resultCardColor('jsonToSearch')"
+            >
+              <v-card-title>jsonToSearch</v-card-title>
+              <v-card-text>
+                <div
+                    v-if="currentTestResults && currentTestResults.jsonToSearch">
+                  <div v-if="!currentTestResults.jsonToSearch.isPassing">
+                    <pre class="error-details">{{
+                        JSON.stringify(currentTestResults.jsonToSearch.details, null, 2)
+                      }}</pre>
+                  </div>
+                  <div v-else class="success-message">Test passed successfully
+                  </div>
+                  <div
+                      v-if="currentTestResults.jsonToSearch.details && currentTestResults.jsonToSearch.details.searchId"
+                      class="mt-2">
+                    <a
+                        :href="`https://staging.openalex.org/s/${currentTestResults.jsonToSearch.details.searchId}`"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                      View Search
+                    </a>
+                  </div>
+                </div>
+                <span v-else>No results yet</span>
+              </v-card-text>
+            </v-card>
           </div>
 
         </v-card-text>
@@ -413,6 +419,10 @@ export default {
   name: "OQOTests",
   props: {
     initialTestId: {
+      type: String,
+      default: null
+    },
+    initialTag: {
       type: String,
       default: null
     },
@@ -442,6 +452,7 @@ export default {
           color: this.value === true || this.value === false ? 'rgba(0, 0, 0, 0.87)' : 'grey',
           fontWeight: 'bold',
           textDecoration: this.value === false ? 'underline' : 'none',
+          textAlign: 'center',
           cursor: this.value === false ? 'pointer' : 'default'
         };
 
@@ -450,7 +461,7 @@ export default {
 
         if (this.loading) {
           return h('div', {style: cellStyle}, [
-            h('v-progress-circular', {
+            h(VProgressCircular, {
               props: {
                 indeterminate: true,
                 size: 20,
@@ -505,7 +516,7 @@ export default {
 
         if (this.loading) {
           return h('div', {style: containerStyle}, [
-            h('v-progress-circular', {
+            h(VProgressCircular, {
               props: {
                 indeterminate: true,
                 size: 20,
@@ -584,23 +595,25 @@ export default {
   },
   computed: {
     currentTestResults() {
-      console.log('Computing currentTestResults', this.selectedTest);
       if (!this.selectedTest) return null;
       const results = this.testResultsMap[objectMD5ShortUUID(this.selectedTest)];
-      console.log('Current test results:', results);
       return results;
     },
     filteredTableItems() {
-      if (this.selectedTags.length === 0) {
-        return this.tableItems;
+      if (!this.tableItems) return []; // Add this check
+      if (this.initialTag) {
+        return this.tableItems.filter(item =>
+            item && item.test && Array.isArray(item.test.tags) && item.test.tags.includes(this.initialTag)
+        );
+      } else if (this.selectedTags.length > 0) {
+        return this.tableItems.filter(item =>
+            item && item.test && Array.isArray(item.test.tags) &&
+            item.test.tags.some(tag => this.selectedTags.includes(tag))
+        );
       }
-      return this.tableItems.filter(item =>
-          Array.isArray(item.test.tags) &&
-          item.test.tags.some(tag => this.selectedTags.includes(tag))
-      );
+      return this.tableItems;
     }
   },
-
   created() {
     this.loadTests();
     this.$root.$on('show-popover', this.openPopover);
@@ -618,10 +631,6 @@ export default {
       return ''; // default color
     },
     getTestResults(testId) {
-      console.log('GET TEST RESULTS KEY:');
-      console.log(testId);
-      console.log('GET TEST RESULTS MAP')
-      console.log(this.testResultsMap);
       if (!this.testResultsMap[testId]) {
         this.$set(this.testResultsMap, testId, {
           natLangToJson: null,
@@ -630,7 +639,6 @@ export default {
           jsonToSearch: null
         });
       }
-      console.log(`GET TEST RESULTS RETURN VALUE: ${JSON.stringify(this.testResultsMap[testId])}`);
       return this.testResultsMap[testId];
     },
     copyToClipboard(text, prependOrigin = false) {
@@ -651,8 +659,11 @@ export default {
           jsonToOql: {isPassing: null, details: null},
           jsonToSearch: {isPassing: null, details: null},
         }));
-        if (this.initialTestId) {
-          this.openInitialTest();
+        if (this.initialTag) {
+          this.selectedTags = [this.initialTag];
+        }
+        if (this.autoRun) {
+          this.runTests();
         }
       });
     },
@@ -678,7 +689,6 @@ export default {
       if (item && item.test) {
         this.selectedTest = {...item.test};  // Create a new object to trigger reactivity
         this.$nextTick(() => {
-          console.log('Selected test updated:', this.selectedTest);
           this.showInfoDrawer = true;
         });
       }
@@ -725,11 +735,22 @@ export default {
       let testsToRun;
       if (this.selected.length > 0) {
         testsToRun = this.selected.map(item => item.test);
+      } else if (this.initialTag) {
+        testsToRun = this.tests.filter(test =>
+            Array.isArray(test.tags) && test.tags.includes(this.initialTag)
+        );
       } else {
         testsToRun = this.filterTestsByTags(this.tests, this.selectedTags);
       }
+
       const runner = new OQOTestRunner(testsToRun, this.updateTestResult);
-      const cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
+      let cases;
+      if (this.selectedTests.length > 0) {
+        cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
+      } else {
+        cases = Object.values(this.testCasesMap);
+      }
+
       try {
         this.loadingCells = runner.expectedResults(testsToRun, cases);
         await runner.runTests(cases);
@@ -758,7 +779,6 @@ export default {
         return;
       }
 
-      console.log('Running test:', testToRun);
 
       this.isRunningTest = true;
       try {
@@ -811,7 +831,6 @@ export default {
       );
       if (this.selectedTest && this.selectedTest.id === testId) {
         this.$nextTick(() => {
-          console.log('Forcing update for selected test');
           this.$forceUpdate();
         });
       }
@@ -840,6 +859,11 @@ export default {
       initialTestId(newId) {
         if (newId && this.tableItems.length > 0) {
           this.openInitialTest();
+        }
+      },
+      initialTag(newTag) {
+        if (newTag) {
+          this.selectedTags = [newTag];
         }
       }
     }
