@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center flex-grow-1">
+  <div  class="d-flex align-center flex-grow-1">
 
 
 <!--    <v-icon left>-->
@@ -175,15 +175,14 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "querySubjectEntityConfig",
     ]),
     me() {
       return this.filter
     },
     columnConfig() {
-
-      // @todo i think we're not getting the querySubjectEntityConfig
-      return this.querySubjectEntityConfig.columns[this.me.column_id]
+      const mySubjectEntity = this.filter.subjectEntity
+      const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
+      return mySubjectEntityConfig.columns[this.me.column_id]
     },
     isSearchColumn() {
       return this.columnConfig?.id?.endsWith(".search")

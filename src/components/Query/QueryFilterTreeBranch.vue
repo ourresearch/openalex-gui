@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex align-center flex-grow-1">
     <div v-if="filter.isRoot" class="text-h6 d-flex py-4">
-      Works filters
+      {{ filter.subjectEntity }} filters
     </div>
     <div v-else>
       <div class="grey--text" v-if="filter.children.length === 1">

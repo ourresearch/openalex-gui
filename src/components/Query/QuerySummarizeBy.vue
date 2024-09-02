@@ -120,6 +120,8 @@ export default {
       },
       set(value) {
         this.setSummarize(value)
+        this.createSearch()
+
       }
     },
   },
@@ -132,6 +134,7 @@ export default {
     ...mapActions("user", []),
     ...mapActions("search", [
       "setSummarize",
+        "createSearch",
     ]),
 
 

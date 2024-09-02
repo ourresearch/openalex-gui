@@ -92,7 +92,11 @@ export default {
       "query",
     ]),
     newFilterColumnOptions() {
-      return Object.values(getConfigs()["works"].columns).filter( f => {
+      const mySubjectEntity = this.filter.subjectEntity
+      const myConfig = getConfigs()[mySubjectEntity]
+      const myPossibleColumns = Object.values(myConfig.columns)
+
+      return myPossibleColumns.filter( f => {
         return f.displayName.toLowerCase().includes(this.search.toLowerCase())
       })
     },

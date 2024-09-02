@@ -51,7 +51,17 @@
 
 
         <v-card rounded flat class="">
-          <query-filter-tree is-works />
+          <query-filter-tree
+            subject-entity="works"
+            :filters="worksFilters"
+          />
+        </v-card>
+        <v-card rounded flat class="mt-3">
+          <query-filter-tree
+              v-if="query.summarize_by"
+            :subject-entity="query.summarize_by"
+            :filters="entityFilters"
+          />
         </v-card>
 
 
@@ -74,7 +84,7 @@
       </v-col>
       <v-col cols="12" lg="7">
         <v-toolbar color="transparent" flat>
-          <div class="text-h6">Results:</div>
+<!--          <div class="text-h6">Results:</div>-->
           <query-summarize-by/>
           <v-spacer></v-spacer>
         </v-toolbar>
@@ -183,8 +193,8 @@ export default {
       "userId",
     ]),
     ...mapGetters("search", [
-      "worksFiltersRoot",
-      "summarizeByFiltersRoot",
+      "worksFilters",
+      "entityFilters",
       "querySubjectEntityConfig",
       "query",
       "searchApiUrl",

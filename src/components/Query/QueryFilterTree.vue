@@ -40,7 +40,7 @@
             </template>
           </span>
         </span>
-        <v-icon left v-else>mdi-filter-outline</v-icon>
+<!--        <v-icon left v-else>mdi-filter-outline</v-icon>-->
       </template>
 
 
@@ -55,7 +55,7 @@
         />
         <query-filter-tree-button
             v-else-if="item.type === 'button'"
-            class=""
+            class="py-1"
             :filter="item"
             @addBranchFilter="addBranchFilter"
             @addLeafFilter="addLeafFilter"
@@ -64,7 +64,7 @@
 
         <query-filter-tree-leaf
             v-else
-            class=""
+            class="py-1"
             :filter="item"
             @set="setFilter"
 
@@ -92,6 +92,12 @@
 
     </v-treeview>
 <!--    <v-row style="font-size: 11px !important;">-->
+<!--      <v-col>-->
+<!--        <div class="text-h6">filters recursive</div>-->
+<!--        <pre>{{ filtersRecursive }}</pre>-->
+<!--      </v-col>-->
+<!--    </v-row>-->
+<!--    <v-row style="font-size: 11px !important;">-->
 <!--      <v-col >-->
 <!--        <div class="text-h6">Query</div>-->
 <!--        <pre>{{ query.filters}}</pre>-->
@@ -108,7 +114,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {
-  addFilterButtons,
+  addFilterButtons, cleanFiltersForServer,
   convertFlatToRecursive, deleteNode,
   makeFilterBranch,
   makeFilterButton,
@@ -129,7 +135,8 @@ export default {
     QueryFilterTreeButton,
   },
   props: {
-    isWorks: Boolean,
+    subjectEntity: String,
+    filters: Array,
   },
   data() {
     return {
@@ -157,36 +164,7 @@ export default {
       return convertFlatToRecursive(this.myFlatFilters)
     },
     filtersToStore() {
-      // work on a copy
-      const filtersCopy = _.cloneDeep(this.myFlatFilters)
-
-      // remove button filters
-      const buttonFilters = filtersCopy.filter(f => f.type === "button")
-      let noButtonFilters = filtersCopy
-      buttonFilters.forEach(buttonFilter => {
-        noButtonFilters = deleteNode(noButtonFilters, buttonFilter.id)
-      })
-
-      // remove useless "children" attribute from leaf nodes
-      const noChildrenOnLeafNodes = noButtonFilters.map(f => {
-        if (f.type === "leaf") {
-          delete f.children
-        }
-        return f
-      })
-
-      // remove empty branches
-      const noEmptyBranches = noChildrenOnLeafNodes.filter(f => f.type !== "branch" || f.children.length > 0)
-
-      // remove UI-only attributes
-      const noUiAttributes = noEmptyBranches.map(f => {
-        delete f.siblingIndex
-        delete f.isRoot
-        return f
-      })
-
-      // done
-      return noUiAttributes
+      return cleanFiltersForServer(this.myFlatFilters)
     },
     isDirty(){
       return !_.isEqual(this.query.filters, this.filtersToStore)
@@ -233,8 +211,8 @@ export default {
     addBranchFilter(buttonId) {
       console.log("addBranchFilter", buttonId)
 
-      const newBranchFilter = makeFilterBranch("works")
-      const newButtonFilter = makeFilterButton()
+      const newBranchFilter = makeFilterBranch(this.subjectEntity)
+      const newButtonFilter = makeFilterButton(this.subjectEntity)
 
       newBranchFilter.children.push(newButtonFilter.id)
 
@@ -249,7 +227,7 @@ export default {
     },
     addLeafFilter({buttonId, columnId}) {
       console.log("addLeafFilter", buttonId, columnId)
-      const filter = makeFilterLeaf("works")
+      const filter = makeFilterLeaf(this.subjectEntity)
       filter.column_id = columnId
       this.myFlatFilters.push(filter)
 
@@ -271,10 +249,10 @@ export default {
   mounted() {
   },
   watch: {
-    "query.filters": {
+    "filters": {
       handler: function (filters) {
         const filtersWithCorrectSubject = filters.filter(f => {
-          return (this.isWorks) ? f.subjectEntity === "works" : f.subjectEntity !== "works"
+          return f.subjectEntity === this.subjectEntity
         })
 
         const filtersWithButtons = addFilterButtons(filtersWithCorrectSubject)
