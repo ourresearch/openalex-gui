@@ -1,5 +1,21 @@
 <template>
-  <div>
+  <v-card flat rounded>
+    <v-toolbar flat transparent>
+      <v-toolbar-title class="text-h6">
+        {{ subjectEntity }} filters
+      </v-toolbar-title>
+      <v-spacer />
+      <query-filter-tree-button
+            :filter="item"
+            :subject-entity="subjectEntity"
+            :parent-id="null"
+            @addBranchFilter="addBranchFilter"
+            @addLeafFilter="addLeafFilter"
+        />
+      <v-btn icon color="primary" @click="applyFilters">
+        <v-icon>mdi-check</v-icon>
+      </v-btn>
+    </v-toolbar>
     <!--    <div>-->
     <!--      {{ querySubjectEntityConfig.columns }}-->
     <!--    </div>-->
@@ -24,11 +40,11 @@
       <!--      </template>-->
 
       <template v-slot:prepend="{item, open}">
-        <span class="" v-if="!item.isRoot">
+        <span class="">
           <span class="number grey--text">
             {{ item.siblingIndex + 1 }}.
           </span>
-          <span v-if="getFilterProperty(item.parentId, 'children')?.length > 1"
+          <span
                 class="d-inline-flex justify-center"
                 style="min-width: 1.6em;"
           >
@@ -36,7 +52,7 @@
               The
             </template>
             <template v-else>
-              {{ getFilterProperty(item.parentId, "operator") }}
+              {{ item.parentOperator}}
             </template>
           </span>
         </span>
@@ -53,15 +69,6 @@
             @setOperator="setFilterOperator"
 
         />
-        <query-filter-tree-button
-            v-else-if="item.type === 'button'"
-            class="py-1"
-            :filter="item"
-            @addBranchFilter="addBranchFilter"
-            @addLeafFilter="addLeafFilter"
-        />
-
-
         <query-filter-tree-leaf
             v-else
             class="py-1"
@@ -73,16 +80,7 @@
       </template>
       <template v-slot:append="{ item, open }">
         <v-btn
-            v-if="item.isRoot"
-            :disabled="!isDirty || !$store.state.search.is_ready"
-            rounded
-            @click="applyFilters"
-            color="primary"
-        >
-          Apply
-        </v-btn>
-        <v-btn
-            v-else-if="item.type !== 'button'"
+            v-if="item.type !== 'button'"
             icon
             @click="deleteFilter(item.id)"
         >
@@ -91,12 +89,12 @@
       </template>
 
     </v-treeview>
-<!--    <v-row style="font-size: 11px !important;">-->
-<!--      <v-col>-->
-<!--        <div class="text-h6">filters recursive</div>-->
-<!--        <pre>{{ filtersRecursive }}</pre>-->
-<!--      </v-col>-->
-<!--    </v-row>-->
+    <v-row style="font-size: 11px !important;">
+      <v-col>
+        <div class="text-h6">filters recursive</div>
+        <pre>{{ filtersRecursive }}</pre>
+      </v-col>
+    </v-row>
 <!--    <v-row style="font-size: 11px !important;">-->
 <!--      <v-col >-->
 <!--        <div class="text-h6">Query</div>-->
@@ -107,7 +105,7 @@
 <!--        <pre>{{ filtersToStore }}</pre>-->
 <!--      </v-col>-->
 <!--    </v-row>-->
-  </div>
+  </v-card>
 </template>
 
 <script>
@@ -183,9 +181,6 @@ export default {
 
     ]),
     ...mapActions("user", []),
-    addFilter(filter, parentId) {
-
-    },
     deleteFilter(id){
       console.log("deleteFilter", id)
       this.myFlatFilters = deleteNode(this.myFlatFilters, id)
@@ -208,33 +203,23 @@ export default {
       const myfilter = this.myFlatFilters.find(f => f.id === id)
       return myfilter[key]
     },
-    addBranchFilter(buttonId) {
-      console.log("addBranchFilter", buttonId)
-
+    addBranchFilter(parentId) {
+      console.log("addBranchFilter to this parent: ", parentId)
       const newBranchFilter = makeFilterBranch(this.subjectEntity)
-      const newButtonFilter = makeFilterButton(this.subjectEntity)
-
-      newBranchFilter.children.push(newButtonFilter.id)
-
-      this.myFlatFilters.push(newButtonFilter)
-      this.myFlatFilters.push(newBranchFilter)
-
-      // add this filter's id to the parent's children array, second from the end
-      const parent = this.myFlatFilters.find(f => f.children?.includes(buttonId))
-      parent.children.splice(parent.children.length - 1, 0, newBranchFilter.id)
-
-
+      this.addFilter(newBranchFilter)
     },
-    addLeafFilter({buttonId, columnId}) {
-      console.log("addLeafFilter", buttonId, columnId)
+    addLeafFilter({parentId, columnId}) {
+      console.log("addLeafFilter to this parent", parentId, columnId)
       const filter = makeFilterLeaf(this.subjectEntity)
       filter.column_id = columnId
-      this.myFlatFilters.push(filter)
+      this.addFilter(filter)
 
+    },
+    addFilter(filter){
+      this.myFlatFilters.push(filter)
       // add this filter's id to the parent's children array, second from the end
       const parent = this.myFlatFilters.find(f => f.children?.includes(buttonId))
       parent.children.splice(parent.children.length - 1, 0, filter.id)
-
     },
 
     applyFilters() {

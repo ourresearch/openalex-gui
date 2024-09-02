@@ -1,13 +1,9 @@
 <template>
   <div class="d-flex align-center flex-grow-1">
-    <div v-if="filter.isRoot" class="text-h6 d-flex py-4">
-      {{ filter.subjectEntity }} filters
-    </div>
-    <div v-else>
-      <div class="grey--text" v-if="filter.children.length === 1">
+      <div class="grey--text" v-if="filter.children.length === 0">
         an empty subquery
       </div>
-      <div v-else-if="filter.children.length === 2">
+      <div v-else-if="filter.children.length === 1">
         1 subfilter
       </div>
       <div v-else class="d-flex align-baseline">
@@ -49,7 +45,6 @@
         </template>
         {{ selectedOperator === "and" ? "are" : "is" }} true{{ isOpen ? ": " : "" }}
       </div>
-    </div>
     <!--    <v-spacer></v-spacer>-->
     <!--    <v-chip-->
 
