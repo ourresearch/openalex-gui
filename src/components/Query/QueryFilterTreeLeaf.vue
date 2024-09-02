@@ -97,10 +97,11 @@
       <!--    second, boolean values -->
       <v-chip
           outlined
+          label
           v-else-if="columnConfig.type === 'boolean'"
           @click="selectedValue = !selectedValue"
       >
-        <v-icon left>{{ selectedValue ? "mdi-check" : "mdi-cancel" }}</v-icon>
+<!--        <v-icon left>{{ selectedValue ? "mdi-check" : "mdi-cancel" }}</v-icon>-->
         {{ selectedValue }}
       </v-chip>
 
@@ -296,15 +297,15 @@ export default {
 
   },
   created() {
-    if (this.columnConfig.type === "boolean") {
-      this.setFilter({
-        ...this.me,
-        operator: "is",
-        value: true,
-      })
-    } else {
-      this.selectedOperator = this.operatorOptions[0]
-    }
+    // if (this.columnConfig.type === "boolean") {
+    //   this.setFilter({
+    //     ...this.me,
+    //     operator: "is",
+    //     value: true,
+    //   })
+    // } else {
+    //   this.selectedOperator = this.operatorOptions[0]
+    // }
   },
   mounted() {
   },
