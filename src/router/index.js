@@ -117,7 +117,7 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
     {path: '/tests', component: OQOTestsOld},
-    {path: '/tests', component: OQOTests},
+    {path: '/tests_latest', component: OQOTests},
     {
         path: '/tests/:id',
         component: OQOTestDetails,
