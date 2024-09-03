@@ -264,9 +264,9 @@ async startServerTests(cases) {
 
         const response = await fetch(`${this.serverUrl}/bulk_test`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            // headers: {
+            //     'Content-Type': 'application/json',
+            // },
             body: JSON.stringify(serverTests),
         });
 
@@ -286,11 +286,11 @@ async startServerTests(cases) {
         while (attempts < maxAttempts) {
             const response = await fetch(`${this.serverUrl}/job_status/${this.jobId}`,{
             method: 'GET',
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            }
+            // headers: {
+            //     'Cache-Control': 'no-cache, no-store, must-revalidate',
+            //     'Pragma': 'no-cache',
+            //     'Expires': '0'
+            // }
         });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
