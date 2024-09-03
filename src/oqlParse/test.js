@@ -20,7 +20,7 @@ class OQOTestRunner {
     constructor(tests, onTestResultCb) {
         this.tests = tests;
         this.onTestResultCb = onTestResultCb;
-        this.serverUrl = window.location.origin.includes("openalex.org") ? "https://api.openalex.org" : "http://localhost:5000";
+        this.serverUrl = window.location.origin.includes("openalex.org") ? "https://openalex-elastic-api-herokuapp-com.global.ssl.fastly.net" : "http://localhost:8000";
         this.jobId = null;
     }
 
