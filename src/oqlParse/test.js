@@ -283,7 +283,7 @@ async startServerTests(cases) {
         let attempts = 0;
 
         while (attempts < maxAttempts) {
-            const response = await fetch(`${this.serverUrl}/test_stories/${this.jobId}?bypass_cache=true`,{
+            const response = await fetch(`${this.serverUrl}/test_stories/${this.jobId}`,{
             method: 'GET',
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
