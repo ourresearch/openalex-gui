@@ -2,6 +2,12 @@
   <v-container class="">
     <div class="text-h3 d-flex">
       Stories
+
+    </div>
+    <div v-if="stories.length">
+    </div>
+    <v-card rounded flat v-else class="pa-10 my-6 d-flex">
+      <v-card-text>No stories to show</v-card-text>
       <v-btn
           x-large
           rounded
@@ -12,11 +18,6 @@
       >
         Get stories
       </v-btn>
-    </div>
-    <div v-if="stories.length">
-    </div>
-    <v-card rounded flat v-else class="pa-10 my-6 d-flex">
-      <v-card-text>No stories to show</v-card-text>
     </v-card>
   </v-container>
 </template>
