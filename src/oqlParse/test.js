@@ -20,8 +20,7 @@ class OQOTestRunner {
     constructor(tests, onTestResultCb) {
         this.tests = tests;
         this.onTestResultCb = onTestResultCb;
-        this.serverUrl = 'https://api.openalex.org';
-        // this.serverUrl = 'http://localhost:5000';
+        this.serverUrl = window.location.origin.includes("openalex.org") ? "https://api.openalex.org" : "http://localhost:5000";
         this.jobId = null;
     }
 
@@ -262,7 +261,7 @@ async startServerTests(cases) {
             return serverTestCases;
         });
 
-        const response = await fetch(`${this.serverUrl}/bulk_test`, {
+        const response = await fetch(`${this.serverUrl}/test_stories`, {
             method: 'POST',
             // headers: {
             //     'Content-Type': 'application/json',
@@ -280,17 +279,15 @@ async startServerTests(cases) {
 
     async pollForResults() {
         const pollInterval = 5000; // 5 seconds
-        const maxAttempts = 60; // 5 minutes total polling time
+        const maxAttempts = 60*2*1000/pollInterval; // 2 minutes total polling time
         let attempts = 0;
 
         while (attempts < maxAttempts) {
-            const response = await fetch(`${this.serverUrl}/job_status/${this.jobId}`,{
+            const response = await fetch(`${this.serverUrl}/test_stories/${this.jobId}`,{
             method: 'GET',
-            // headers: {
-            //     'Cache-Control': 'no-cache, no-store, must-revalidate',
-            //     'Pragma': 'no-cache',
-            //     'Expires': '0'
-            // }
+            headers: {
+                'Cache-Control': 'no-cache',
+            }
         });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -298,8 +295,12 @@ async startServerTests(cases) {
 
             const data = await response.json();
 
+            if (data.results.length > 0) {
+                this.processResults(data.results);
+            }
+
             if (data.is_completed) {
-                return this.processResults(data.results);
+                return;
             }
 
             if (data.status === 'failed') {
