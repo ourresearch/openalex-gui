@@ -425,6 +425,7 @@
 
 <script>
 import {getTests, OQOTestRunner} from '@/oqlParse/test';
+import {OQOTestRunnerStable} from '@/oqlParse/test_stable';
 import {invertMap, objectMD5ShortUUID} from '@/oqlParse/util';
 import {VProgressCircular} from 'vuetify/lib';
 
@@ -755,19 +756,14 @@ export default {
       } else {
         testsToRun = this.filterTestsByTags(this.tests, this.selectedTags);
       }
-
-      const runner = new OQOTestRunner(testsToRun, this.updateTestResult);
-
-      // select cases to run based on user selection
-      const cases = [
-        // these always run, they're cheap
-        "oqlToQuery",
-        "queryToOql",
-
-        // run if user selects them
-        this.runQueryToSeaarch ? "queryToSearch" : null,
-        this.runNatLang ? "natLang" : null,
-      ].filter(Boolean); // remove nulls
+      let runner = new OQOTestRunner(testsToRun, this.updateTestResult);
+      if (this.$route.path.endsWith('old')) runner = new OQOTestRunnerStable(testsToRun, this.updateTestResult);
+      let cases;
+      if (this.selectedTests.length > 0) {
+        cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
+      } else {
+        cases = Object.values(this.testCasesMap);
+      }
 
       try {
         this.loadingCells = runner.expectedResults(testsToRun, cases);
