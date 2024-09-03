@@ -21,7 +21,8 @@ class OQOTestRunner {
         this.tests = tests;
         this.onTestResultCb = onTestResultCb;
         this.serverUrl = 'https://api.openalex.org';
-        this.queueId = null;
+        // this.serverUrl = 'http://localhost:5000';
+        this.jobId = null;
     }
 
     expectedResults(tests, cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
@@ -237,7 +238,7 @@ class OQOTestRunner {
         }
     }
 
-    async startServerTests(cases) {
+async startServerTests(cases) {
         const serverTests = this.tests.flatMap(test => {
             const testId = objectMD5ShortUUID(test);
             const serverTestCases = [];
@@ -263,6 +264,9 @@ class OQOTestRunner {
 
         const response = await fetch(`${this.serverUrl}/bulk_test`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(serverTests),
         });
 
@@ -271,66 +275,76 @@ class OQOTestRunner {
         }
 
         const data = await response.json();
-        this.queueId = data.queue_id;
+        this.jobId = data.job_id;
     }
 
-    listenForResults() {
-        return new Promise((resolve, reject) => {
-            const eventSource = new EventSource(`${this.serverUrl}/stream/${this.queueId}`);
+    async pollForResults() {
+        const pollInterval = 5000; // 5 seconds
+        const maxAttempts = 60; // 5 minutes total polling time
+        let attempts = 0;
 
-            eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.status === 'processing') {
-                    // Optionally handle processing status
-                    return;
-                }
-                if (data.status === 'all_completed') {
-                    eventSource.close();
-                    resolve();
-                    return;
-                }
-                if (data.status === 'error') {
-                    console.error(data.message);
-                    eventSource.close();
-                    reject(new Error(data.message));
-                    return;
-                }
-
-                if (data.hasOwnProperty('id') && data.id !== null) {
-                    if (data.case === 'natLang') {
-                        const results = [];
-                        const test = this.tests.find(test => objectMD5ShortUUID(test) === data.id);
-                        for (const _result of data.results) {
-                            const result = OQOTestRunner.queriesEqual(_result.oqo, test.query, test.ignore ?? []);
-                            if (!result.equal) {
-                                result.expected = test.query;
-                                result.actual = _result.oqo;
-                            }
-                            results.push({
-                                "case": "natLang",
-                                prompt: _result.prompt,
-                                isPassing: result.equal,
-                                details: result,
-                            });
-                        }
-                        this.onTestResultCb({
-                            "case": "natLang",
-                            id: data.id,
-                            isPassing: results.every((o) => o.isPassing),
-                            subTests: results
-                        });
-                    } else if (data.case === 'jsonToSearch') {
-                        this.onTestResultCb(data);
-                    }
-                }
-            };
-
-            eventSource.onerror = (error) => {
-                console.error('EventSource failed:', error);
-                eventSource.close();
-                reject(error);
-            };
+        while (attempts < maxAttempts) {
+            const response = await fetch(`${this.serverUrl}/job_status/${this.jobId}`,{
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
         });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.is_completed) {
+                return this.processResults(data.results);
+            }
+
+            if (data.status === 'failed') {
+                throw new Error(`Job failed: ${data.error || 'Unknown error'}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+            attempts++;
+        }
+
+        throw new Error('Polling timed out');
+    }
+
+    processResults(results) {
+        for (const result of results) {
+            if (result.case === 'natLang') {
+                const test = this.tests.find(test => objectMD5ShortUUID(test) === result.id);
+                const subTests = result.results.map(subResult => {
+                    let comparisonResult = {equal: false};
+                    try {
+                        comparisonResult = OQOTestRunner.queriesEqual(subResult.oqo, test.query, test.ignore ?? []);
+                    } catch (e) {}
+                    return {
+                        case: "natLang",
+                        prompt: subResult.prompt,
+                        isPassing: comparisonResult.equal && !subResult.hasOwnProperty("error"),
+                        details: comparisonResult.equal ? {} : {
+                            expected: test.query,
+                            actual: subResult.oqo,
+                            ...(subResult.hasOwnProperty("error") ? { error: subResult.error } : {}),
+                            ...comparisonResult
+                        }
+                    };
+                });
+
+                this.onTestResultCb({
+                    case: "natLang",
+                    id: result.id,
+                    isPassing: subTests.every(st => st.isPassing),
+                    subTests: subTests
+                });
+            } else if (result.case === 'queryToSearch') {
+                this.onTestResultCb(result);
+            }
+        }
     }
 
     async runTests(cases = ["oqlToQuery", "queryToOql", "natLang", "queryToSearch"]) {
@@ -354,7 +368,7 @@ class OQOTestRunner {
         // Run server-side tests
         if (cases.includes("natLang") || cases.includes("queryToSearch")) {
             await this.startServerTests(cases);
-            await this.listenForResults();
+            await this.pollForResults();
         }
     }
 }
