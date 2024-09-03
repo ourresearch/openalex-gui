@@ -34,6 +34,7 @@ import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
+import Stories from "@/views/Stories.vue";
 
 Vue.use(VueRouter)
 
@@ -116,6 +117,7 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
     {path: '/tests', component: OQOTests},
+    {path: '/stories', component: Stories},
     {path: '/tests_old', component: OQOTests},
     {
         path: '/tests/:id',
