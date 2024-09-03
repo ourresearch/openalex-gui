@@ -41,7 +41,7 @@
           <v-chip
               v-on="on"
               outlined
-              class="ml-3 mt-1"
+              class="ml-3 mt-1 mr-2"
               v-if="environment !== 'production'"
               :color="environment === 'local' ? '' : 'warning'"
           >
@@ -94,8 +94,10 @@
             </v-list-item-action>
           </v-list-item>
         </v-list>
-
       </v-menu>
+      <v-btn icon to="/tests">
+        <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
+      </v-btn>
 
       <user-toolbar-menu/>
 

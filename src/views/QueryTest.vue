@@ -1,138 +1,151 @@
 <template>
   <v-container>
-    <v-card flat>
-      <v-card-title class="text-h4 justify-center">
-        OQO Tests
-      </v-card-title>
-
-      <v-card-text>
-        <v-row justify="center" align="center">
-          <v-col cols="12" sm="4" md="3">
-            <v-select
-                v-model="selectedTests"
-                :items="availableTests"
-                label="Select cases to run"
-                multiple
-                chips
-                persistent-hint
-                hint="Choose one or more cases"
-                :disabled="isLoading"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="4" md="3">
-            <v-select
-                v-model="selectedTags"
-                :items="availableTags"
-                label="Select tags to run"
-                multiple
-                chips
-                persistent-hint
-                hint="Choose one or more tags"
-                :disabled="isLoading"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="4" md="3">
-            <v-row no-gutters class="mb-4">
-              <v-col cols="12" class="text-center">
-                <div class="text-h6">
-                  % Passing: {{ passingPercentage }}
-                </div>
-              </v-col>
-            </v-row>
-            <v-row no-gutters class="mt-2">
-              <v-col cols="6" class="pr-1">
-                <v-btn
-                    color="primary"
-                    block
-                    @click="runTests"
-                    :disabled="(!selectedTests.length && !selectedTags.length) || isLoading"
-                    :loading="isLoading"
-                >
-                  Run Tests
-                </v-btn>
-              </v-col>
-              <v-col cols="6" class="pl-1">
-                <v-btn
-                    color="secondary"
-                    block
-                    @click="clearResults"
-                >
-                  Clear
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-
-        <v-data-table
-            v-model="selected"
-            :headers="headers"
-            :items="filteredTableItems"
-            item-key="id"
-            show-select
-            class="elevation-1 mt-4"
-            :disable-pagination="false"
-            :hide-default-footer="false"
-            :items-per-page="-1"
-        >
-          <template v-slot:item.test="{ item }">
-        <span
-            class="primary--text text-decoration-underline"
-            style="cursor: pointer;"
-            @click="showInfoPane(item.id)"
-        >
-          {{ item.test.oql }}
-        </span>
-          </template>
-          <template v-slot:item.tags="{ item }">
-            <v-chip
-                v-for="(tag, index) in item.test.tags"
-                :key="index"
-                small
-                class="mr-1 mb-1"
+    <v-row>
+      <v-col cols="3">
+        <v-card rounded flat class="py-3">
+          <v-subheader>run tests:</v-subheader>
+          <v-checkbox
+              v-model="runNatLang"
+              label="NL → query"
+              class="pl-3"
+              hide-details
+              dense
+          />
+          <v-checkbox
+              v-model="runQueryToSeaarch"
+              label="query → results"
+              class="pl-3"
+              hide-details
+              dense
+          />
+        </v-card>
+      </v-col>
+      <v-col cols="9">
+        <v-card flat rounded>
+          <v-card-title class="">
+            OQO Tests
+            <v-spacer></v-spacer>
+            <v-btn
+                color="primary"
+                fab
+                @click="runTests"
+                :loading="isLoading"
             >
-              {{ tag }}
-            </v-chip>
-          </template>
-          <template v-slot:item.natLangToJson="{ item }">
-            <nat-lang-to-json-cell
-                :value="item.natLangToJson"
-                :testObject="item.test"
-                @show-details="showTestDetails"
-                :loading="isLoadingCell(item.id, 'natLang')"
-            />
-          </template>
-          <template v-slot:item.oqlToJson="{ item }">
-            <test-result-cell
-                :value="item.oqlToJson.isPassing"
-                :loading="isLoadingCell(item.id, 'oqlToQuery')"
-                :testObject="item.test"
-                :details="item.oqlToJson.details"
-                @show-details="showTestDetails"
-            />
-          </template>
-          <template v-slot:item.jsonToOql="{ item }">
-            <test-result-cell
-                :value="item.jsonToOql.isPassing"
-                :loading="isLoadingCell(item.id, 'queryToOql')"
-                :testObject="item.test"
-                :details="item.jsonToOql.details"
-                @show-details="showTestDetails"
-            />
-          </template>
-          <template v-slot:item.jsonToSearch="{ item }">
-            <test-result-cell
-                :value="item.jsonToSearch.isPassing"
-                :loading="isLoadingCell(item.id, 'queryToSearch')"
-                :testObject="item.test"
-                :details="item.jsonToSearch.details"
-                :isJsonToSearch="true"
-                @show-details="showTestDetails"
-            />
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
+              <v-icon>mdi-play</v-icon>
+            </v-btn>
+            <v-btn
+                color="secondary"
+                icon
+                @click="clearResults"
+            >
+              <v-icon>mdi-delete-outline</v-icon>
+            </v-btn>
+
+          </v-card-title>
+
+          <v-card-text>
+            <v-row justify="center" align="center">
+              <v-col cols="12" sm="4" md="3">
+
+              </v-col>
+              <v-col cols="12" sm="4" md="3">
+                <v-select
+                    v-model="selectedTags"
+                    :items="availableTags"
+                    label="Select tags to run"
+                    multiple
+                    chips
+                    persistent-hint
+                    hint="Choose one or more tags"
+                    :disabled="isLoading"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" sm="4" md="3">
+                <v-row no-gutters class="mb-4">
+                  <v-col cols="12" class="text-center">
+                    <div class="text-h6">
+                      % Passing: {{ passingPercentage }}
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+
+            <v-data-table
+                v-model="selected"
+                :headers="headers"
+                :items="filteredTableItems"
+                item-key="id"
+                show-select
+                class="elevation-1 mt-4"
+                :disable-pagination="false"
+                :hide-default-footer="false"
+                :items-per-page="-1"
+            >
+              <template  v-slot:item.test="{ item }">
+        <span
+            class="body-2"
+        >
+          <div>
+            {{ item.test.oql }}
+          </div>
+          <div>
+            <span
+                    v-for="(tag, index) in item.test.tags"
+                    :key="index"
+                    class="mr-1 mb-1 caption grey--text"
+                >
+                  {{ tag }}
+                </span>
+          </div>
+        </span>
+              </template>
+              <template v-slot:item.tags="{ item }">
+
+              </template>
+              <template v-slot:item.natLangToJson="{ item }">
+                <nat-lang-to-json-cell
+                    :value="item.natLangToJson"
+                    :testObject="item.test"
+                    @show-details="showTestDetails"
+                    :loading="isLoadingCell(item.id, 'natLang')"
+                />
+              </template>
+              <template v-slot:item.oqlToJson="{ item }">
+                <test-result-cell
+                    :value="item.oqlToJson.isPassing"
+                    :loading="isLoadingCell(item.id, 'oqlToQuery')"
+                    :testObject="item.test"
+                    :details="item.oqlToJson.details"
+                    @show-details="showTestDetails"
+                />
+              </template>
+              <template v-slot:item.jsonToOql="{ item }">
+                <test-result-cell
+                    :value="item.jsonToOql.isPassing"
+                    :loading="isLoadingCell(item.id, 'queryToOql')"
+                    :testObject="item.test"
+                    :details="item.jsonToOql.details"
+                    @show-details="showTestDetails"
+                />
+              </template>
+              <template v-slot:item.jsonToSearch="{ item }">
+                <test-result-cell
+                    :value="item.jsonToSearch.isPassing"
+                    :loading="isLoadingCell(item.id, 'queryToSearch')"
+                    :testObject="item.test"
+                    :details="item.jsonToSearch.details"
+                    :isJsonToSearch="true"
+                    @show-details="showTestDetails"
+                />
+              </template>
+            </v-data-table>
+          </v-card-text>
+        </v-card>
+
+      </v-col>
+    </v-row>
+
 
     <v-dialog v-model="showJsonDialog" max-width="800px">
       <v-card>
@@ -564,18 +577,18 @@ export default {
       availableTags: [],
       selectedTests: [],
       availableTests: [
-        {text: 'natLangToJson', value: 'natLangToJson'},
-        {text: 'oqlToJson', value: 'oqlToJson'},
-        {text: 'jsonToOql', value: 'jsonToOql'},
-        {text: 'jsonToSearch', value: 'jsonToSearch'},
+        {text: 'NL → query', value: 'natLangToJson'},
+        {text: 'query → results', value: 'jsonToSearch'},
       ],
+      runNatLang: false,
+      runQueryToSeaarch: false,
+
       headers: [
-        {text: 'Test (OQL)', value: 'test', width: '25%'},
-        {text: 'Tags', value: 'tags', width: '25%'},
-        {text: 'natLangToJson', value: 'natLangToJson'},
-        {text: 'oqlToJson', value: 'oqlToJson'},
-        {text: 'jsonToOql', value: 'jsonToOql'},
-        {text: 'jsonToSearch', value: 'jsonToSearch'},
+        {text: 'Test (OQL)', value: 'test'},
+        {text: 'NatLang', value: 'natLangToJson'},
+        {text: 'OQL to query', value: 'oqlToJson'},
+        {text: 'query to OQL', value: 'jsonToOql'},
+        {text: 'query to search', value: 'jsonToSearch'},
       ],
       showInfoDrawer: false,
       selectedTest: null,
@@ -744,12 +757,17 @@ export default {
       }
 
       const runner = new OQOTestRunner(testsToRun, this.updateTestResult);
-      let cases;
-      if (this.selectedTests.length > 0) {
-        cases = this.selectedTests.map(test => this.testCasesMap[test] || test);
-      } else {
-        cases = Object.values(this.testCasesMap);
-      }
+
+      // select cases to run based on user selection
+      const cases = [
+        // these always run, they're cheap
+        "oqlToQuery",
+        "queryToOql",
+
+        // run if user selects them
+        this.runQueryToSeaarch ? "queryToSearch" : null,
+        this.runNatLang ? "natLang" : null,
+      ].filter(Boolean); // remove nulls
 
       try {
         this.loadingCells = runner.expectedResults(testsToRun, cases);
