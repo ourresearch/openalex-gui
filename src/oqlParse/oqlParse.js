@@ -9,9 +9,11 @@ function makeColumnIDsMap() {
         const columns = [];
         for (const colKey in configs[key].columns) {
             columns.push(
-                {name: configs[key].columns[colKey].displayName.toLowerCase(),
-                id: configs[key].columns[colKey].id,
-                entityId: configs[key].columns[colKey].entityId}
+                {
+                    name: configs[key].columns[colKey].displayName.toLowerCase(),
+                    id: configs[key].columns[colKey].id,
+                    entityId: configs[key].columns[colKey].entityId
+                }
             );
         }
         map[key] = columns;
@@ -25,7 +27,7 @@ function getEntityId(subjectEntity, colName) {
     if (!(subjectEntity in COLUMN_IDS_MAP)) {
         throw new Error(`${subjectEntity} is not a valid subjectEntity`);
     }
-        for (const m of COLUMN_IDS_MAP[subjectEntity]) {
+    for (const m of COLUMN_IDS_MAP[subjectEntity]) {
         if (colName === m.name || colName === m.value) return m.entityId;
     }
     return null;
@@ -80,7 +82,7 @@ function parseCondition(condition, subjectEntity) {
 
         value = parsePrimitive(value);
         let entityId = getEntityId(subjectEntity, columnName);
-        if (typeof value === "string" && entityId !== null && !value.includes(`${entityId}/`)) value = `${entityId}/${value}`;
+        if (typeof value === "string" && entityId !== null && entityId !== "works" && !value.includes(`${entityId}/`)) value = `${entityId}/${value}`;
 
         return {
             id: generateId(),
@@ -163,7 +165,7 @@ function parseFilters(oql) {
     let worksOperator = "and";
     let summarizeByOperator = "and";
 
-    const worksMatch = oql.match(/where (.+?)(;|$)/);
+    const worksMatch = oql.match(/(?<!summarize by.*)where (.+?)(;|$)/);
     if (worksMatch) {
         const worksClause = worksMatch[1];
         if (worksClause.includes("(")) {
@@ -172,8 +174,7 @@ function parseFilters(oql) {
                 condition.subjectEntity = 'works';
             }
             filters.push(...nestedConditions);
-        }
-        else if (worksClause.includes(" or ")) {
+        } else if (worksClause.includes(" or ")) {
             worksOperator = "or";
             worksConditions.push(...worksClause.split(" or "));
         } else {
@@ -329,66 +330,68 @@ function oqlToQuery(oql) {
 }
 
 function queryToOQL(query) {
-  if (!query.filters || query.filters.length === 0) {
-    return "get works";
-  }
+    let oql = "get works";
 
-  const rootFilter = findRootFilter(query.filters);
-  let oql = `get ${rootFilter.subjectEntity} where `;
-  oql += generateFilters(query.filters);
-
-  if (query.summarize_by) {
-    oql += `; summarize by ${query.summarize_by}`;
-
-    const summaryFilters = query.filters.filter(filter => filter.subjectEntity === query.summarize_by);
-    if (summaryFilters.length > 0) {
-      oql += ` where ${generateFilters(summaryFilters)}`;
+    if (Array.isArray(query.filters) && query.filters.length > 0) {
+        const worksFilters = query.filters.filter(filter => filter.subjectEntity === "works");
+        if (worksFilters.length > 0) {
+            oql += ` where ${generateFilters(worksFilters, "works")}`;
+        }
     }
-  }
 
-  if (query.sort_by) {
-    oql += `; sort by ${query.sort_by.column_id} ${query.sort_by.direction}`;
-  }
 
-  if (query.return_columns && query.return_columns.length > 0) {
-    oql += `; return ${query.return_columns.join(', ')}`;
-  }
+    if (query.summarize_by) {
+        oql += `; summarize by ${query.summarize_by}`;
 
-  return oql;
+        const summaryFilters = (query.filters || []).filter(filter => filter.subjectEntity === query.summarize_by);
+        if (summaryFilters.length > 0) {
+            oql += ` where ${generateFilters(summaryFilters, query.summarize_by)}`;
+        }
+    }
+
+    if (query.sort_by) {
+        oql += `; sort by ${query.sort_by.column_id} ${query.sort_by.direction}`;
+    }
+
+    if (query.return_columns && query.return_columns.length > 0) {
+        oql += `; return ${query.return_columns.join(', ')}`;
+    }
+
+    return oql;
 }
 
-function findRootFilter(filters) {
-  const childIds = new Set(filters.flatMap(filter => filter.children || []));
-  return filters.find(filter => !childIds.has(filter.id));
+function findRootFilter(filters, subjEntity) {
+    const childIds = new Set(filters.flatMap(filter => filter.children || []));
+    return filters.find(filter => !childIds.has(filter.id) && filter.subjectEntity === subjEntity);
 }
 
-function generateFilters(filters) {
-  const rootFilter = findRootFilter(filters);
-  return generateFilterString(rootFilter, filters);
+function generateFilters(filters, subjEntity) {
+    const rootFilter = findRootFilter(filters, subjEntity);
+    return generateFilterString(rootFilter, filters);
 }
 
 function generateFilterString(filter, allFilters) {
-  if (filter.type === 'leaf') {
-    return `${filter.column_id} ${filter.operator || 'is'} ${filter.value}`;
-  } else if (filter.type === 'branch') {
-    const childFilters = filter.children.map(childId => {
-      const childFilter = allFilters.find(f => f.id === childId);
-      return generateFilterString(childFilter, allFilters);
-    });
+    if (filter.type === 'leaf') {
+        return `${filter.column_id} ${filter.operator || 'is'} ${filter.value}`;
+    } else if (filter.type === 'branch') {
+        const childFilters = filter.children.map(childId => {
+            const childFilter = allFilters.find(f => f.id === childId);
+            return generateFilterString(childFilter, allFilters);
+        });
 
-    const needsParentheses = filter.children.length > 1 &&
-                             allFilters.some(f => f.type === 'branch' && f.id !== filter.id && f.subjectEntity === filter.subjectEntity);
+        const needsParentheses = filter.children.length > 1 &&
+            allFilters.some(f => f.type === 'branch' && f.id !== filter.id && f.subjectEntity === filter.subjectEntity);
 
-    const joinedFilters = childFilters.join(` ${filter.operator} `);
-    return needsParentheses ? `(${joinedFilters})` : joinedFilters;
-  }
+        const joinedFilters = childFilters.join(` ${filter.operator} `);
+        return needsParentheses ? `(${joinedFilters})` : joinedFilters;
+    }
 }
 
 function formatValue(value) {
-  if (typeof value === 'string') {
-    return `"${value}"`;
-  }
-  return value;
+    if (typeof value === 'string') {
+        return `"${value}"`;
+    }
+    return value;
 }
 
 export {

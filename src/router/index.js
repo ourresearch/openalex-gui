@@ -121,15 +121,15 @@ const routes = [
         component: OQOTestDetails,
         props: (route) => ({
           testId: route.params.id,
-          autoRun: route.path.endsWith('/run')
+          autoRun: route.query.run
         })
     },
     {
-        path: '/tests/:id/run',
-        component: OQOTestDetails,
+        path: '/tests/tag/:tag',
+        component: OQOTests,
         props: (route) => ({
-          testId: route.params.id,
-          autoRun: true
+          initialTag: route.params.tag,
+          autoRun: route.query.run
         })
     },
 
