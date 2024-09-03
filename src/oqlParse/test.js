@@ -263,9 +263,9 @@ async startServerTests(cases) {
 
         const response = await fetch(`${this.serverUrl}/test_stories`, {
             method: 'POST',
-            // headers: {
-            //     'Content-Type': 'application/json',
-            // },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(serverTests),
         });
 
@@ -283,10 +283,10 @@ async startServerTests(cases) {
         let attempts = 0;
 
         while (attempts < maxAttempts) {
-            const response = await fetch(`${this.serverUrl}/test_stories/${this.jobId}`,{
+            const response = await fetch(`${this.serverUrl}/test_stories/${this.jobId}?bypass_cache=true`,{
             method: 'GET',
             headers: {
-                'Cache-Control': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
             }
         });
             if (!response.ok) {
