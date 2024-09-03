@@ -33,7 +33,6 @@ import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
-import OQOTestsOld from "@/views/QueryTestOld.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 
 Vue.use(VueRouter)
@@ -116,8 +115,8 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
-    {path: '/tests', component: OQOTestsOld},
-    {path: '/tests_latest', component: OQOTests},
+    {path: '/tests', component: OQOTests},
+    {path: '/tests_old', component: OQOTests},
     {
         path: '/tests/:id',
         component: OQOTestDetails,
@@ -128,7 +127,7 @@ const routes = [
     },
     {
         path: '/tests/tag/:tag',
-        component: OQOTestsOld,
+        component: OQOTests,
         props: (route) => ({
           initialTag: route.params.tag,
           autoRun: route.query.run
