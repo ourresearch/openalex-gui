@@ -60,11 +60,11 @@
               :href="'https://staging.openalex.org/s/' + searchId"
               target="_blank"
           >
-            <v-icon>mdi-cloud-search-outline</v-icon>
+            <v-icon>mdi-magnify</v-icon>
           </v-btn>
         </template>
         <span>
-          <span class="font-weight-bold">Query→search</span> (click to view)
+          <span class="font-weight-bold">Search</span> (click to view)
         </span>
       </v-tooltip>
 
