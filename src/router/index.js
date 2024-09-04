@@ -70,14 +70,22 @@ const routes = [
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {
         path: '/test-queries',
+        name: "queries",
         component: TestQueriesBase,
     },
     {
         path: '/test-queries/:queryId',
+        name: "query",
+        component: TestQueriesBase,
+    },
+    {
+        path: '/test-queries/:queryId/:testType',
+        name: "test-type",
         component: TestQueriesBase,
     },
     {
         path: '/test-queries/:queryId/:testType/:testId',
+        name: "test",
         component: TestQueriesBase,
     },
 

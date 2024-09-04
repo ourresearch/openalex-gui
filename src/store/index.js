@@ -63,7 +63,7 @@ export default new Vuex.Store({
             state.testQueries = YAML.parse(resp.data).map((testConfig, i) => {
                 return {
                     ...testConfig,
-                    id: i
+                    id: i,
                 }
             })
         }
