@@ -6,47 +6,40 @@
       class="fill-height d-flex flex-column"
   >
     <div class="font-weight-medium monospace body-2 pa-3">
-<!--      <span>{{ config.id }}.</span>-->
+      <!--      <span>{{ config.id }}.</span>-->
       {{ config.oql }}
     </div>
 
     <div class="pa-3 d-flex">
-      <v-tooltip
-          bottom
-          v-for="result in oqlTestResults"
-          :key="result.id"
-          :color="result.isPassing ? 'success' : 'error'"
-      >
-        <template v-slot:activator="{ on }">
-          <v-btn
-              small
-              icon
-              v-on="on"
-              :color="result.isPassing ? 'success' : 'error'"
-              :to="`/test-queries/${config.id}/oql/${result.id}`"
-          >
-            <v-icon>mdi-code-parentheses-box</v-icon>
-          </v-btn>
-        </template>
-        <span>
-          <span >{{ result.displayName }}</span>
-        </span>
-      </v-tooltip>
+      <test-query-oql
+          v-for="test in oqlTests"
+          :key="test.id"
 
+          :input="test.input"
+          :expected-response="test.expectedResponse"
 
+          :query-id="config.id"
+          :test-id="test.id"
 
-      <v-divider vertical class="mx-1" />
-
-
-
-      <test-query-nat-lang
-        v-for="(q, i) in config.natLang"
-        :key="q"
-        :q="q"
-        :expected-response="config.query"
+          icon
       />
 
-      <v-divider vertical class="mx-1" />
+      <v-divider vertical class="mx-1"/>
+
+      <test-query-nat-lang
+          v-for="(natLangString, i) in config.natLang"
+          :key="i"
+
+          :input="natLangString"
+          :expected-response="config.query"
+
+          :query-id="config.id"
+          :test-id="i"
+
+          icon
+      />
+
+      <v-divider vertical class="mx-1"/>
 
       <v-tooltip
           bottom
@@ -63,11 +56,17 @@
               :href="'https://staging.openalex.org/s/' + searchId"
               target="_blank"
           >
-            <v-icon>mdi-magnify</v-icon>
+            <v-icon v-if="isSearchPassing === null">mdi-timer-sand</v-icon>
+            <v-icon v-else>mdi-magnify</v-icon>
           </v-btn>
         </template>
         <span>
-          <span class="font-weight-bold">Search</span> (click to view)
+          <span v-if="searchError">
+            <span class="font-weight-bold">Search Error:</span>
+            {{ searchError }}
+          </span>
+          <span v-else class="font-weight-bold">Search passed</span>
+          (click to view)
         </span>
       </v-tooltip>
 
@@ -81,12 +80,14 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 import axios from "axios";
 import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
+import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
 
 
 export default {
-  name: "QueryTest",
+  name: "TestQuery",
   components: {
     TestQueryNatLang,
+    TestQueryOql,
   },
   props: {
     config: Object,
@@ -98,6 +99,7 @@ export default {
 
       searchId: null,
       isSearchPassing: null,
+      searchError: null,
     }
   },
   computed: {
@@ -108,25 +110,24 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    oqlTestResults() {
+    oqlTests() {
       return [
         {
           id: "from-query",
-          displayName: "from query",
-          isPassing: queryToOQL(this.config.query) === this.config.oql,
+          input: this.config.query,
+          expectedResponse: this.config.oql,
         },
         {
           id: "to-query",
-          displayName: "to query",
-          isPassing: oqlToQuery(this.config.oql) === this.config.query,
+          input: this.config.oql,
+          expectedResponse: this.config.query,
         }
       ]
     },
     searchTestColor() {
       if (!this.isSearchTestComplete) {
         return "grey"
-      }
-      else {
+      } else {
         return (this.isSearchPassing) ? "success" : "error"
       }
     },
@@ -145,11 +146,18 @@ export default {
     ...mapActions("user", []),
     async createSearch() {
       const url = "https://api.openalex.org/searches"
-      const resp = await axios.post(url, {query: this.config.query})
-      this.searchId = resp.data.id
+      try {
+        const resp = await axios.post(url, {query: this.config.query})
+        this.searchId = resp.data.id
+      } catch (e) {
+        this.isSearchPassing = false
+        this.searchError = "Could not create search: " + e
+
+        this.searchId = null
+      }
     },
     async getSearch() {
-      const url = "https://api.openalex.org/searches/" + this.searchId
+      const url = "https://api.openalex.org/searches/" + this.searchId + "?mailto=team@ourresearch.org"
       const resp = await axios.get(url)
       if (resp.data.is_ready) {
         if (resp.data.results.length > 0) {
@@ -160,6 +168,10 @@ export default {
       }
     },
     async pollSearch() {
+      if (!this.searchId) {
+        this.isSearchPassing = false
+        return
+      }
       console.log("polling search", this.searchId)
       await this.getSearch();
       if (this.isSearchPassing === null) {
@@ -168,7 +180,7 @@ export default {
         }, 500);
       }
     },
-    async run(){
+    async run() {
       await this.createSearch()
       this.pollSearch()
     }
@@ -178,10 +190,10 @@ export default {
   created() {
   },
   mounted() {
+    if (!this.config) throw new Error("config prop is required")
     this.run()
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 
