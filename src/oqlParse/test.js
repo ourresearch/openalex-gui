@@ -20,7 +20,7 @@ class OQOTestRunner {
     constructor(tests, onTestResultCb) {
         this.tests = tests;
         this.onTestResultCb = onTestResultCb;
-        this.serverUrl = window.location.origin.includes("openalex.org") ? "https://openalex-elastic-api-herokuapp-com.global.ssl.fastly.net" : "http://localhost:8000";
+        this.serverUrl = window.location.origin.includes("openalex.org") ? "https://openalex-elastic-api-herokuapp-com.global.ssl.fastly.net" : "http://localhost:5000";
         this.jobId = null;
     }
 
@@ -266,7 +266,10 @@ async startServerTests(cases) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(serverTests),
+            body: JSON.stringify({
+                timeout: 3*60,
+                tests: serverTests
+            }),
         });
 
         if (!response.ok) {
@@ -279,7 +282,7 @@ async startServerTests(cases) {
 
     async pollForResults() {
         const pollInterval = 5000; // 5 seconds
-        const maxAttempts = 60*2*1000/pollInterval; // 2 minutes total polling time
+        const maxAttempts = 60*10*1000/pollInterval; // 10 minutes total polling time
         let attempts = 0;
 
         while (attempts < maxAttempts) {
