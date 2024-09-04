@@ -6,9 +6,8 @@
       class="fill-height d-flex flex-column"
   >
     <div class="font-weight-medium monospace body-2 pa-3">
+<!--      <span>{{ config.id }}.</span>-->
       {{ config.oql }}
-    </div>
-    <div class="px-3 fill-height">
     </div>
 
     <div class="pa-3 d-flex">
@@ -24,19 +23,24 @@
               icon
               v-on="on"
               :color="result.isPassing ? 'success' : 'error'"
+              :to="`/test-queries/${config.id}/oql/${result.id}`"
           >
             <v-icon>mdi-code-parentheses-box</v-icon>
           </v-btn>
         </template>
         <span>
-<!--          <span>OQL: </span>-->
           <span >{{ result.displayName }}</span>
         </span>
       </v-tooltip>
+
+
+
       <v-divider vertical class="mx-1" />
 
+
+
       <test-query-nat-lang
-        v-for="q in config.natLang"
+        v-for="(q, i) in config.natLang"
         :key="q"
         :q="q"
         :expected-response="config.query"
@@ -44,7 +48,6 @@
 
       <v-divider vertical class="mx-1" />
 
-<!--      <v-spacer/>-->
       <v-tooltip
           bottom
           :color="searchTestColor"
@@ -108,12 +111,12 @@ export default {
     oqlTestResults() {
       return [
         {
-          id: "queryToOQL",
+          id: "from-query",
           displayName: "from query",
           isPassing: queryToOQL(this.config.query) === this.config.oql,
         },
         {
-          id: "oqlToQuery",
+          id: "to-query",
           displayName: "to query",
           isPassing: oqlToQuery(this.config.oql) === this.config.query,
         }
