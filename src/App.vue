@@ -95,7 +95,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon to="/tests">
+      <v-btn icon to="/test-queries">
         <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
       </v-btn>
 
@@ -476,6 +476,16 @@ html, body {
   font-size: 1rem;
 }
 
+.monospace {
+  font-family: monospace !important;
+  &.body-1 {
+    font-family: monospace !important;
+  }
+  &.body-2 {
+    font-family: monospace !important;
+  }
+}
+
 .v-btn {
   font-weight: 500;
   letter-spacing: normal;
@@ -635,6 +645,7 @@ img.site-footer-logo {
   font-size: 12px !important;
   text-transform: capitalize;
 }
+
 
 
 </style>
