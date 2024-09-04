@@ -9,6 +9,7 @@
       <!--      <span>{{ config.id }}.</span>-->
       {{ config.oql }}
     </div>
+    <div class="fill-height"></div>
 
     <div class="pa-3 d-flex">
       <test-query-oql
@@ -69,6 +70,10 @@
           (click to view)
         </span>
       </v-tooltip>
+      <v-spacer/>
+      <v-btn icon :to="`/test-queries/${config.id}`">
+        <v-icon>mdi-link</v-icon>
+      </v-btn>
 
     </div>
   </v-card>
