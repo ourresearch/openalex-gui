@@ -7,6 +7,8 @@ import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
 import {search} from "@/store/search.store";
+import YAML from 'yaml'
+
 
 Vue.use(Vuex)
 
@@ -18,6 +20,8 @@ const stateDefaults = function () {
         snackbarIsOpen: false,
         snackbarColor: undefined,
         zoomId: null,
+
+        testQueries: [],
 
 
     }
@@ -52,7 +56,13 @@ export default new Vuex.Store({
         },
 
     },
-    actions: {},
+    actions: {
+        async getTestQueries({state}) {
+            const url = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/new_tests.yaml"
+            const resp = await axios.get(url)
+            state.testQueries = YAML.parse(resp.data)
+        }
+    },
     getters: {
         globalIsLoading(state) {
             return state.isLoading

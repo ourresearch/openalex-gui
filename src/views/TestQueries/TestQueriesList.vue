@@ -1,22 +1,5 @@
 <template>
-  <v-container class="mt-6">
-    <div class="text-h3 d-flex mb-3">
-      Test Queries
-      <v-spacer />
-<!--      <v-btn-->
-<!--          large-->
-<!--          rounded-->
-<!--          color="primary"-->
-<!--          @click="runTests"-->
-<!--          class="ml-4"-->
-<!--          :loading="isLoading"-->
-<!--      >-->
-<!--        <v-icon left>mdi-play</v-icon>-->
-<!--        Run tests-->
-<!--      </v-btn>-->
-    </div>
-
-    <v-row v-if="queries.length" dense>
+    <v-row dense>
       <v-col
           cols="12"
           sm="6"
@@ -26,15 +9,8 @@
           :key="index"
       >
         <test-query :config="query"  />
-
       </v-col>
-
-
     </v-row>
-    <v-card rounded flat v-else class="pa-10 my-6 d-flex">
-      <v-card-text>Getting stories from GitHub...</v-card-text>
-    </v-card>
-  </v-container>
 </template>
 
 
