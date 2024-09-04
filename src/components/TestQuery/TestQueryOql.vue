@@ -69,7 +69,8 @@
             <v-card flat rounded>
               <v-card-title>Input</v-card-title>
               <v-card-text class="monospace">
-                {{ input }}
+                <pre>{{ input }}</pre>
+
               </v-card-text>
             </v-card>
           </v-col>
@@ -144,7 +145,7 @@ export default {
       }
     },
     isTestPassing() {
-      return this.actualResponse === this.expectedResponse
+      return _.isEqual(this.actualResponse, this.expectedResponse)
     }
   },
 
