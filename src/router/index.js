@@ -34,7 +34,10 @@ import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
-import TestQueries from "@/views/TestQueries.vue";
+import TestQueries from "@/views/TestQueries/TestQueriesBase.vue";
+import TestQuery from "@/views/TestQueries/TestQuery.vue";
+import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
+import TestQueriesList from "@/views/TestQueries/TestQueriesList.vue";
 
 Vue.use(VueRouter)
 
@@ -68,6 +71,24 @@ const routes = [
     {path: '/login', name: 'Login', component: Login},
     // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    {
+        path: '/test-queries',
+        component: TestQueriesBase,
+        children: [
+            {
+                path: '',
+                name: "test-queries-list",
+                component: TestQueriesList,
+            },
+            {
+                path: '/test-queries/:id',
+                name: "test-query",
+                component: TestQuery,
+            }
+        ]
+    },
+
+
     {
         path: '/me',
         component: MeBase,
@@ -117,22 +138,21 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
     {path: '/tests', component: OQOTests},
-    {path: '/test-queries', component: TestQueries},
     {path: '/tests_old', component: OQOTests},
     {
         path: '/tests/:id',
         component: OQOTestDetails,
         props: (route) => ({
-          testId: route.params.id,
-          autoRun: route.query.run
+            testId: route.params.id,
+            autoRun: route.query.run
         })
     },
     {
         path: '/tests/tag/:tag',
         component: OQOTests,
         props: (route) => ({
-          initialTag: route.params.tag,
-          autoRun: route.query.run
+            initialTag: route.params.tag,
+            autoRun: route.query.run
         })
     },
 
