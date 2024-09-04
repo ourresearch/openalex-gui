@@ -34,10 +34,7 @@ import MeCorrections from "@/views/Me/MeCorrections.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
-import TestQueries from "@/views/TestQueries/TestQueriesBase.vue";
-import TestQuery from "@/views/TestQueries/TestQuery.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
-import TestQueriesList from "@/views/TestQueries/TestQueriesList.vue";
 
 Vue.use(VueRouter)
 
@@ -74,18 +71,14 @@ const routes = [
     {
         path: '/test-queries',
         component: TestQueriesBase,
-        children: [
-            {
-                path: '',
-                name: "test-queries-list",
-                component: TestQueriesList,
-            },
-            {
-                path: '/test-queries/:id',
-                name: "test-query",
-                component: TestQuery,
-            }
-        ]
+    },
+    {
+        path: '/test-queries/:queryId',
+        component: TestQueriesBase,
+    },
+    {
+        path: '/test-queries/:queryId/:testType/:testId',
+        component: TestQueriesBase,
     },
 
 
