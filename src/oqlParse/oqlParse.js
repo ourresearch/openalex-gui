@@ -1,7 +1,6 @@
-/*jshint esversion: 8 */
+/*jshint esversion: 11 */
 
 import {getConfigs} from "../oaxConfigs.js";
-import YAML from "yaml";
 
 function makeColumnIDsMap() {
     const map = {};
@@ -146,14 +145,15 @@ function getColumnId(name, subjectEntity = "works") {
 
 function parseFilters(filterString, filterType) {
     return filterString.split(' and ').map(filter => {
-        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)/);
+        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than or equal to|>=|is less than or equal to|<=|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)/);
         if (match) {
             const [, column_id, operator, value] = match;
-            return {
+            const filter = {
                 column_id: getColumnId(column_id, filterType),
-                operator: operator,
+                ...(operator !== 'is' && { operator: operator }),
                 value: parsePrimitive(value)
             };
+            return filter;
         } else {
             throw new Error(`Invalid filter: ${filter}`);
         }
