@@ -66,7 +66,7 @@
                 small
                 outlined
                 label
-                v-for="colId in query.return_columns"
+                v-for="colId in query.show_columns"
                 :key="colId"
                 close
                 @click:close="deleteReturnColumn(colId)"

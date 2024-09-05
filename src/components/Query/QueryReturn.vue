@@ -83,7 +83,7 @@ export default {
             return col.actions?.includes("column")
           })
           .filter(col => {
-            return !this.query.return_columns.includes(col.id)
+            return !this.query.show_columns.includes(col.id)
           })
     },
   },
