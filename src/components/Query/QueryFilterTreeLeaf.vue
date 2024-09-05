@@ -236,11 +236,7 @@ export default {
         return this.value
       },
       set(value) {
-        const filter = {
-          ...this.me,
-          value: value,
-        }
-        this.setFilter(filter)
+        this.$emit("setValue", value)
       }
     }
   },
