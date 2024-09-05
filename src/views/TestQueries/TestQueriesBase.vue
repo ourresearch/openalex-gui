@@ -83,6 +83,9 @@ export default {
   props: {},
   data() {
     return {
+      passCount: 0,
+      failCount: 0,
+
       foo: 42,
       queries: [],
       isLoading: false,
@@ -96,6 +99,15 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
+    completeCount(){
+      return this.failCount + this.passCount
+    },
+    testsCount(){
+      return this.query.length
+    },
+    loadingCount(){
+      return this.testsCount - this.completeCount
+    },
     breadcrumbItems() {
       const items = [
         {text: 'Queries', to: '/test-queries', exact: true,}
