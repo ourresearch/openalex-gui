@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/*jshint esversion: 11 */
 
 import {getConfigs} from "../oaxConfigs.js";
 
@@ -23,26 +23,94 @@ function makeColumnIDsMap() {
 
 const COLUMN_IDS_MAP = makeColumnIDsMap();
 
-function getEntityId(subjectEntity, colName) {
-    if (!(subjectEntity in COLUMN_IDS_MAP)) {
-        throw new Error(`${subjectEntity} is not a valid subjectEntity`);
+function generateFilters(filters) {
+    return filters.map(filter =>
+        `${filter.column_id} ${filter.operator ?? 'is'} ${filter.value}`
+    ).join(' and ');
+}
+function oqlToQuery(oql) {
+    oql = oql.trim();
+    const query = {};
+
+    let getRowsMatch = oql.match(/^(?:using works where .+?;\s*)?get\s+(\w+)(?:\s+of\s+works)?/);
+    if (getRowsMatch) {
+        query.get_rows = getRowsMatch[1];
+        if (query.get_rows === "a" && oql.includes("summary of works")) {
+            query.get_rows = "summary";
+        }
+    } else {
+        throw new Error("Invalid OQL: missing 'get' statement");
     }
-    for (const m of COLUMN_IDS_MAP[subjectEntity]) {
-        if (colName === m.name || colName === m.value) return m.entityId;
+
+    const workFilters = [];
+    const aggFilters = [];
+
+    const usingWorksMatch = oql.match(/using works where (.+?);/);
+    if (usingWorksMatch) {
+        workFilters.push(...parseFilters(usingWorksMatch[1], 'works'));
     }
-    return null;
+
+    const whereClause = oql.match(/get .+?(?:of works)?(?:\s+where\s+(.*?)(?:;|$))/);
+    if (whereClause) {
+        const filters = parseFilters(whereClause[1], query.get_rows);
+        if (query.get_rows === 'works') {
+            workFilters.push(...filters);
+        } else {
+            aggFilters.push(...filters);
+        }
+    }
+
+    if (workFilters.length > 0) {
+        query.filter_works = workFilters;
+    }
+    if (aggFilters.length > 0) {
+        query.filter_aggs = aggFilters;
+    }
+
+    const sortMatch = oql.match(/sort by\s+([\w().]+)\s+(asc|desc)/);
+    if (sortMatch) {
+        query.sort_by_column = getColumnId(sortMatch[1], query.get_rows);
+        query.sort_by_order = sortMatch[2];
+    }
+
+    const showMatch = oql.match(/show\s+(.*?)(?:;|$)/);
+    if (showMatch) {
+        query.show_columns = showMatch[1].split(',').map(col => getColumnId(col.trim(), query.get_rows));
+    }
+
+    return query;
 }
 
+function queryToOQL(query) {
+    let oql = '';
 
-function getColumnId(name, subjectEntity = "works") {
-    name = name.toLowerCase();
-    if (!(subjectEntity in COLUMN_IDS_MAP)) {
-        throw new Error(`${subjectEntity} is not a valid subjectEntity`);
+    if (query.filter_works && query.get_rows !== 'works') {
+        oql += `using works where ${generateFilters(query.filter_works)}; `;
     }
-    for (const m of COLUMN_IDS_MAP[subjectEntity]) {
-        if (name === m.name || name === m.id) return name;
+
+    oql += `get ${query.get_rows}`;
+
+    if (query.get_rows === 'summary') {
+        oql += ' of works';
     }
-    throw new Error(`${subjectEntity}.${name} is not a valid column`);
+
+    if (query.filter_works && query.get_rows === 'works') {
+        oql += ` where ${generateFilters(query.filter_works)}`;
+    }
+
+    if (query.filter_aggs && query.get_rows !== 'works') {
+        oql += ` where ${generateFilters(query.filter_aggs)}`;
+    }
+
+    if (query.sort_by_column && query.sort_by_order) {
+        oql += `; sort by ${query.sort_by_column} ${query.sort_by_order}`;
+    }
+
+    if (query.show_columns && query.show_columns.length > 0) {
+        oql += `; show ${query.show_columns.join(', ')}`;
+    }
+    oql += ';';
+    return oql.trim();
 }
 
 function parsePrimitive(str) {
@@ -64,337 +132,36 @@ function parsePrimitive(str) {
     return str;
 }
 
-function generateId(prefix = "leaf") {
-    return `${prefix}_${Math.random().toString(36).substr(2, 8)}`;
-}
-
-function parseCondition(condition, subjectEntity) {
-    // Remove unnecessary parentheses and split based on the first matching operator
-    condition = condition.trim().replace(/^\((.*?)\)$/, '$1');
-
-    let match = condition.match(/^(\S+)\s+(is not|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)$/);
-    if (match) {
-        let columnName = match[1].trim();
-        let columnId = getColumnId(columnName, subjectEntity);
-
-        let operator = match[2].trim();
-        let value = match[3].trim().replace(/^\((.*?)\)$/, '$1').replace(/;/g, '');
-
-        value = parsePrimitive(value);
-        let entityId = getEntityId(subjectEntity, columnName);
-        if (typeof value === "string" && entityId !== null && entityId !== "works" && !value.includes(`${entityId}/`)) value = `${entityId}/${value}`;
-
-        return {
-            id: generateId(),
-            subjectEntity,
-            type: "leaf",
-            operator,
-            column_id: columnId,
-            value: value,
-        };
+function getColumnId(name, subjectEntity = "works") {
+    name = name.toLowerCase();
+    if (!(subjectEntity in COLUMN_IDS_MAP)) {
+        throw new Error(`${subjectEntity} is not a valid subjectEntity`);
     }
-    return null;
-}
-
-function parseNestedConditions(expression, subjectEntity = "works") {
-    let index = 0;
-    const nodes = [];
-
-    function parse() {
-        const currentNode = {
-            id: generateId('br'),
-            operator: null,
-            type: "branch",
-            children: []
-        };
-
-        let buffer = '';
-
-        function addBufferAsLeaf() {
-            if (buffer.trim()) {
-                const parsedCondition = parseCondition(buffer.trim(), subjectEntity);
-                const leafNode = {
-                    id: generateId('leaf'),
-                    ...parsedCondition
-                };
-                nodes.push(leafNode);
-                currentNode.children.push(leafNode.id);
-                buffer = ''; // Clear the buffer after adding
-            }
-        }
-
-        while (index < expression.length) {
-            const char = expression[index];
-
-            if (char === '(') {
-                index++; // Skip the opening parenthesis
-                const childBranch = parse();
-                nodes.push(childBranch);
-                currentNode.children.push(childBranch.id);
-            } else if (char === ')') {
-                addBufferAsLeaf();
-                return currentNode;
-            } else if (expression.substr(index, 3).toLowerCase() === ' or') {
-                addBufferAsLeaf();
-                currentNode.operator = 'or';
-                index += 2; // Skip 'or'
-            } else if (expression.substr(index, 4).toLowerCase() === ' and') {
-                addBufferAsLeaf();
-                currentNode.operator = 'and';
-                index += 3; // Skip 'and'
-            } else {
-                buffer += char;
-            }
-
-            index++;
-        }
-
-        addBufferAsLeaf(); // Add any remaining condition in the buffer
-        return currentNode;
+    for (const m of COLUMN_IDS_MAP[subjectEntity]) {
+        if (name === m.name || name === m.id) return name;
     }
-
-    parse();
-    return nodes;
+    throw new Error(`${subjectEntity}.${name} is not a valid column`);
 }
 
-function parseFilters(oql) {
-    const filters = [];
-    const worksConditions = [];
-    let summarizeByCondition = null;
-    let summarizeByEntity = null;
-    let worksOperator = "and";
-    let summarizeByOperator = "and";
-
-    const worksMatch = oql.match(/(?<!summarize by.*)where (.+?)(;|$)/);
-    if (worksMatch) {
-        const worksClause = worksMatch[1];
-        if (worksClause.includes("(")) {
-            let nestedConditions = parseNestedConditions(worksClause, "works");
-            for (const condition of nestedConditions) {
-                condition.subjectEntity = 'works';
-            }
-            filters.push(...nestedConditions);
-        } else if (worksClause.includes(" or ")) {
-            worksOperator = "or";
-            worksConditions.push(...worksClause.split(" or "));
+function parseFilters(filterString, filterType) {
+    return filterString.split(' and ').map(filter => {
+        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than or equal to|>=|is less than or equal to|<=|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)/);
+        if (match) {
+            const [, column_id, operator, value] = match;
+            const filter = {
+                column_id: getColumnId(column_id, filterType),
+                ...(operator !== 'is' && { operator: operator }),
+                value: parsePrimitive(value)
+            };
+            return filter;
         } else {
-            worksConditions.push(...worksClause.split(" and "));
-        }
-    }
-
-    const summarizeByMatch = oql.match(/summarize by (\w+) where (.+?)(;|$)/);
-    if (summarizeByMatch) {
-        summarizeByEntity = summarizeByMatch[1];
-        summarizeByCondition = summarizeByMatch[2];
-        if (summarizeByCondition.includes(" or ")) {
-            summarizeByOperator = "or";
-        }
-    }
-
-    const worksBranchId = generateId("br");
-    const worksBranchChildren = [];
-
-    worksConditions.forEach(condition => {
-        const leaf = parseCondition(condition.trim(), "works");
-        if (leaf) {
-            filters.push(leaf);
-            worksBranchChildren.push(leaf.id);
-        } else {
-            const branch = parseFilterExpression(condition.trim(), "works");
-            if (branch) {
-                filters.push(branch);
-                worksBranchChildren.push(branch.id);
-            }
+            throw new Error(`Invalid filter: ${filter}`);
         }
     });
-
-    if (worksBranchChildren.length > 0) {
-        filters.push({
-            id: worksBranchId,
-            subjectEntity: "works",
-            type: "branch",
-            operator: worksOperator,
-            children: worksBranchChildren,
-        });
-    }
-
-    if (summarizeByMatch) {
-        if (summarizeByCondition !== null && summarizeByCondition.includes("(")) {
-            let nestedConditions = parseNestedConditions(summarizeByCondition, summarizeByEntity);
-            for (const condition of nestedConditions) {
-                condition.subjectEntity = summarizeByEntity;
-            }
-            filters.push(...nestedConditions);
-        } else {
-            const summarizeByBranchId = generateId("br");
-            const summarizeByLeaves = summarizeByCondition.split(summarizeByOperator === "or" ? " or " : " and ")
-                .map(condition => {
-                    const leaf = parseCondition(condition.trim(), summarizeByEntity);
-                    if (leaf) {
-                        return leaf;
-                    } else {
-                        const branch = parseFilterExpression(condition.trim(), summarizeByEntity);
-                        if (branch) {
-                            return branch;
-                        }
-                    }
-                    return null;
-                })
-                .filter(filter => filter !== null);
-
-            filters.push(...summarizeByLeaves);
-
-            if (summarizeByLeaves.length > 0) {
-                filters.push({
-                    id: summarizeByBranchId,
-                    subjectEntity: summarizeByEntity,
-                    type: "branch",
-                    operator: summarizeByOperator,
-                    children: summarizeByLeaves.map(leaf => leaf.id),
-                });
-            }
-        }
-    }
-
-    return filters;
 }
 
-function parseFilterExpression(expression, subjectEntity) {
-    let match = expression.match(/\((.*?)\)/);
-    if (match) {
-        const operator = expression.includes(" or ") ? "or" : "and";
-        const children = match[1].split(operator === "or" ? " or " : " and ")
-            .map(condition => parseFilterExpression(condition.trim(), subjectEntity))
-            .filter(filter => filter !== null);
-
-        if (children.length > 0) {
-            return {
-                id: generateId("br"),
-                subjectEntity,
-                type: "branch",
-                operator,
-                children: children.map(child => child.id)
-            };
-        }
-    } else {
-        const leaf = parseCondition(expression, subjectEntity);
-        if (leaf) {
-            return leaf;
-        }
-    }
-    return null;
-}
-
-function oqlToQuery(oql) {
-    oql = oql.replace(/^get works\s*/, '').trim();
-
-    if (oql === '') {
-        return {};
-    }
-    let summarizeBy = "works";
-
-    const query = {};
-
-    if (oql.includes("summarize by")) {
-        const summarizeByMatch = oql.match(/summarize by (.*?)(?:where|;|$)/);
-        if (summarizeByMatch) {
-            query.summarize_by = summarizeByMatch[1].trim();
-            summarizeBy = query.summarize_by;
-        }
-    }
-
-    if (oql.includes("return")) {
-        const returnMatch = oql.match(/return (.+?)(;|$)/);
-        if (returnMatch) {
-            let returnColumns = returnMatch[1].split(',').map(item => item.trim());
-            query.return_columns = returnColumns.map(column => getColumnId(column, summarizeBy));
-        }
-    }
-
-    if (oql.includes("sort by")) {
-        const sortByMatch = oql.match(/sort by ([\w().]+) (asc|desc)/);
-        if (sortByMatch) {
-            const columnId = getColumnId(sortByMatch[1], summarizeBy);
-            query.sort_by = {
-                column_id: columnId,
-                direction: sortByMatch[2]
-            };
-        }
-    }
-
-    if (oql.includes("where")) {
-        query.filters = parseFilters(oql);
-    }
-
-    return query;
-}
-
-function queryToOQL(query) {
-    let oql = "get works";
-
-    if (Array.isArray(query.filters) && query.filters.length > 0) {
-        const worksFilters = query.filters.filter(filter => filter.subjectEntity === "works");
-        if (worksFilters.length > 0) {
-            oql += ` where ${generateFilters(worksFilters, "works")}`;
-        }
-    }
-
-
-    if (query.summarize_by) {
-        oql += `; summarize by ${query.summarize_by}`;
-
-        const summaryFilters = (query.filters || []).filter(filter => filter.subjectEntity === query.summarize_by);
-        if (summaryFilters.length > 0) {
-            oql += ` where ${generateFilters(summaryFilters, query.summarize_by)}`;
-        }
-    }
-
-    if (query.sort_by) {
-        oql += `; sort by ${query.sort_by.column_id} ${query.sort_by.direction}`;
-    }
-
-    if (query.return_columns && query.return_columns.length > 0) {
-        oql += `; return ${query.return_columns.join(', ')}`;
-    }
-
-    return oql;
-}
-
-function findRootFilter(filters, subjEntity) {
-    const childIds = new Set(filters.flatMap(filter => filter.children || []));
-    return filters.find(filter => !childIds.has(filter.id) && filter.subjectEntity === subjEntity);
-}
-
-function generateFilters(filters, subjEntity) {
-    const rootFilter = findRootFilter(filters, subjEntity);
-    return generateFilterString(rootFilter, filters);
-}
-
-function generateFilterString(filter, allFilters) {
-    if (filter.type === 'leaf') {
-        return `${filter.column_id} ${filter.operator || 'is'} ${filter.value}`;
-    } else if (filter.type === 'branch') {
-        const childFilters = filter.children.map(childId => {
-            const childFilter = allFilters.find(f => f.id === childId);
-            return generateFilterString(childFilter, allFilters);
-        });
-
-        const needsParentheses = filter.children.length > 1 &&
-            allFilters.some(f => f.type === 'branch' && f.id !== filter.id && f.subjectEntity === filter.subjectEntity);
-
-        const joinedFilters = childFilters.join(` ${filter.operator} `);
-        return needsParentheses ? `(${joinedFilters})` : joinedFilters;
-    }
-}
-
-function formatValue(value) {
-    if (typeof value === 'string') {
-        return `"${value}"`;
-    }
-    return value;
-}
 
 export {
     oqlToQuery,
     queryToOQL
-};
+}
