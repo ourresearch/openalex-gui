@@ -109,6 +109,23 @@ const oaxConfigs = {
                 "icon": "mdi-shape-outline",
                 "descr": "The type of institutions that the author has been affiliated with which are taking from ROR."
             },
+            "affiliations.institution.country_code": {
+                "id":"affiliations.institution.country_code",
+                "isList":true,
+                "subjectEntity":"authors",
+                "entityId":"countries",
+                "objectEntity":"countries",
+                "isId":true,
+                "displayName":"country",
+                "type":"array",
+                "isCountry":true,
+                "redshiftDisplayColumn":"country_code",
+                "redshiftFilterColumn":"country_code",
+                "actions":["filter", "group_by"],
+                    "actionsPopular":["filter"],
+                    "icon":"mdi-earth",
+                    "descr":"The countries of the institutions that the author has been affiliated with."
+            },
             "last_known_institutions.id": {
                 "id": "last_known_institutions.id",
                 "isList": true,
@@ -1356,6 +1373,19 @@ const oaxConfigs = {
                 "actionsPopular": ["sort", "column"],
                 "icon": "mdi-book-open-variant",
                 "descr": "The number of works affiliated with the institution in OpenAlex"
+            },
+            "percent(is_open_access)": {
+                "id": "percent(is_open_access)",
+                "subjectEntity": "institutions",
+                "objectEntity": null,
+                "displayName": "is open access %",
+                "type": "number",
+                "redshiftDisplayColumn": "percent(is_open_access)",
+                "redshiftFilterColumn": "percent(is_open_access)",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant",
+                "descr": "The percentage of works affiliated with the institution that are open access"
             }
         },
         "count(citations)": {
