@@ -31,7 +31,7 @@ const oaxConfigs = {
         }, {"key": "last_known_institutions.is_global_south", "value": true, "displayName": "from the Global South"}],
         "idRegex": "(?i)(?:authors\\/)?(?:https:\\/\\/openalex\\.org\\/)?(a\\d+)",
         "showOnEntityPage": ["id", "display_name", "display_name_alternatives", "last_known_institutions.id", "affiliations.institution.id", "ids.orcid"],
-        "showOnTablePage": ["display_name", "ids.orcid", "last_known_institutions.id"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "groupByDefaults": ["last_known_institutions.id", "last_known_institutions.country_code", "has_orcid"],
         "columns": {
             "id": {
@@ -109,6 +109,23 @@ const oaxConfigs = {
                 "icon": "mdi-shape-outline",
                 "descr": "The type of institutions that the author has been affiliated with which are taking from ROR."
             },
+            "affiliations.institution.country_code": {
+                "id": "affiliations.institution.country_code",
+                "isList": true,
+                "subjectEntity": "authors",
+                "entityId": "countries",
+                "objectEntity": "countries",
+                "isId": true,
+                "displayName": "country",
+                "type": "array",
+                "isCountry": true,
+                "redshiftDisplayColumn": "country_code",
+                "redshiftFilterColumn": "country_code",
+                "actions": ["filter", "group_by"],
+                "actionsPopular": ["filter"],
+                "icon": "mdi-earth",
+                "descr": "The countries of the institutions that the author has been affiliated with."
+            },
             "last_known_institutions.id": {
                 "id": "last_known_institutions.id",
                 "isList": true,
@@ -164,8 +181,8 @@ const oaxConfigs = {
                 "objectEntity": null,
                 "displayName": "Has an ORCID",
                 "type": "boolean",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftDisplayColumn": "has_orcid",
+                "redshiftFilterColumn": "has_orcid",
                 "actions": ["filter", "group_by"],
                 "actionsPopular": ["filter", "group_by"],
                 "icon": "mdi-tag-outline",
@@ -349,7 +366,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/countries\\/|countries\\/)([a-zA-Z]{2})",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "columns": {
             "id": {
                 "id": "id",
@@ -378,6 +395,20 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "icon": "mdi-account-outline",
                 "descr": "The name of the country"
+            },
+            "count(works)": {
+                "id": "count(works)",
+                "subjectEntity": "countries",
+                "entityId": "works",
+                "objectEntity": null,
+                "displayName": "works count",
+                "type": "number",
+                "redshiftDisplayColumn": "count(works)",
+                "redshiftFilterColumn": null,
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant",
+                "descr": "The number of works created by this country."
             }
         },
         "values": [{"id": "countries/US", "display_name": "United States of America"}, {
@@ -770,7 +801,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/domains\\/|domains\\/)(\\d+)",
         "showOnEntityPage": ["id", "display_name", "description", "display_name_alternatives", "fields", "siblings"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -863,7 +894,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/fields\\/|fields\\/)(\\d+)",
         "showOnEntityPage": ["id", "display_name", "description", "display_name_alternatives", "subfields", "siblings", "domain"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -1020,7 +1051,7 @@ const oaxConfigs = {
         "isNative": true,
         "idRegex": "(?i)(?:funders\\/)?(?:https:\\/\\/openalex\\.org\\/)?(f\\d+)",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name", "doi", "country_code", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -1195,7 +1226,7 @@ const oaxConfigs = {
         "isNative": true,
         "hasSerp": true,
         "showOnEntityPage": ["id", "display_name", "display_name_alternatives", "parent_institutions", "child_institutions", "related_institutions", "ids.ror"],
-        "showOnTablePage": ["display_name", "type", "country_code", "ids.ror"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "idRegex": "(?i)(?:institutions\\/)?(?:https:\\/\\/openalex\\.org\\/)?(i\\d+)",
         "groupByDefaults": ["country_code", "type"],
         "columns": {
@@ -1356,20 +1387,33 @@ const oaxConfigs = {
                 "actionsPopular": ["sort", "column"],
                 "icon": "mdi-book-open-variant",
                 "descr": "The number of works affiliated with the institution in OpenAlex"
+            },
+            "count(citations)": {
+                "id": "count(citations)",
+                "subjectEntity": "institutions",
+                "objectEntity": null,
+                "displayName": "citation count",
+                "type": "number",
+                "redshiftDisplayColumn": "count(citations)",
+                "redshiftFilterColumn": "count(citations)",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant",
+                "descr": "The count of citations for this institution in OpenAlex"
+            },
+            "percent(is_open_access)": {
+                "id": "percent(is_open_access)",
+                "subjectEntity": "institutions",
+                "objectEntity": null,
+                "displayName": "is open access %",
+                "type": "number",
+                "redshiftDisplayColumn": "percent(is_open_access)",
+                "redshiftFilterColumn": "percent(is_open_access)",
+                "actions": ["sort", "column"],
+                "actionsPopular": ["sort", "column"],
+                "icon": "mdi-book-open-variant",
+                "descr": "The percentage of works affiliated with the institution that are open access"
             }
-        },
-        "count(citations)": {
-            "id": "count(citations)",
-            "subjectEntity": "institutions",
-            "objectEntity": null,
-            "displayName": "citation count",
-            "type": "number",
-            "redshiftDisplayColumn": "count(citations)",
-            "redshiftFilterColumn": "count(citations)",
-            "actions": ["sort", "column"],
-            "actionsPopular": ["sort", "column"],
-            "icon": "mdi-book-open-variant",
-            "descr": "The count of citations for this institution in OpenAlex"
         },
         "values": null
     }, "keywords": {
@@ -1390,7 +1434,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/keywords\\/|keywords\\/)([a-zA-Z0-9\\-]+)",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "columns": {
             "id": {
                 "id": "id",
@@ -1777,7 +1821,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/licenses\\/|licenses\\/)([a-zA-Z0-9\\-]+)",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -1859,7 +1903,7 @@ const oaxConfigs = {
         "isNative": true,
         "idRegex": "(?i)(?:publishers\\/)?(?:https:\\/\\/openalex\\.org\\/)?(p\\d+)",
         "showOnEntityPage": ["id", "display_name"],
-        "showOnTablePage": ["display_name", "country_code"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -2079,7 +2123,7 @@ const oaxConfigs = {
         "highlightFilters": [{"key": "is_oa", "value": true, "displayName": "that are Open Access"}],
         "idRegex": "(?i)(?:sources\\/)?(?:https:\\/\\/openalex\\.org\\/)?(s\\d+)",
         "showOnEntityPage": ["id", "display_name", "ids.issn", "type", "host_organization", "alternate_titles", "is_oa", "is_in_doaj", "apc_usd"],
-        "showOnTablePage": ["display_name", "type", "ids.issn"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "groupByDefaults": ["type", "is_oa", "is_in_doaj"],
         "columns": {
             "id": {
@@ -2242,7 +2286,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/subfields\\/|subfields\\/)(\\d+)",
         "showOnEntityPage": ["id", "display_name", "description", "topics", "siblings", "field", "domain"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",
@@ -2750,7 +2794,7 @@ const oaxConfigs = {
         "isNative": true,
         "idRegex": "(?i)(?:topics\\/)?(?:https:\\/\\/openalex\\.org\\/)?(t\\d+)",
         "showOnEntityPage": ["id", "display_name", "description", "siblings", "subfield", "field", "domain"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name", "count(works)"],
         "columns": {
             "id": {
                 "id": "id",
@@ -2877,7 +2921,7 @@ const oaxConfigs = {
         "isNative": false,
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/types\\/|types\\/)([a-zA-Z\\-]+)",
         "showOnEntityPage": ["id", "display_name", "description", "crossref_types"],
-        "showOnTablePage": ["display_name", "description"],
+        "showOnTablePage": ["display_name"],
         "columns": {
             "id": {
                 "id": "id",

@@ -164,7 +164,7 @@ export default {
     async getSearch() {
       const url = "https://api.openalex.org/searches/" + this.searchId + "?mailto=team@ourresearch.org"
       const resp = await axios.get(url)
-      if (resp.data.is_ready) {
+      if (resp.data.is_completed) {
         if (resp.data.results.length > 0) {
           this.isSearchPassing = true
         } else {

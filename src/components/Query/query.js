@@ -37,15 +37,12 @@ const makeFilterButton = function (subjectEntity) {
 
 
 const baseQuery = () => ({
-    filters: [
-        makeFilterBranch("works")
-    ],
-    summarize_by: null,
-    sort_by: {
-        column_id: "display_name",
-        direction: "asc",
-    },
-    return_columns: getConfigs().works.showOnTablePage,
+    get_rows: "works",
+    filter_works: [],
+    filter_aggs: [],
+    show_columns: [],
+    sort_by_column: null,
+    sort_by_order: null,
 })
 
 

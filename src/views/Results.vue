@@ -43,7 +43,7 @@
         </v-toolbar>
         <div class="d-flex align-start mb-3">
           <search-from-text
-              :disabled="!$store.state.search.is_ready"
+              :disabled="!$store.state.search.is_completed"
               selected="oql"
           />
 
@@ -51,21 +51,21 @@
         </div>
 
 
-        <query-filter-tree
-            subject-entity="works"
-            :filters="worksFilters"
-        />
-        <query-filter-tree
-            class="mt-3"
-            v-if="query.summarize_by"
-            :subject-entity="query.summarize_by"
-            :filters="entityFilters"
-        />
+<!--        <query-filter-tree-->
+<!--            subject-entity="works"-->
+<!--            :filters="worksFilters"-->
+<!--        />-->
+<!--        <query-filter-tree-->
+<!--            class="mt-3"-->
+<!--            v-if="query.summarize_by"-->
+<!--            :subject-entity="query.summarize_by"-->
+<!--            :filters="entityFilters"-->
+<!--        />-->
 
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
             <v-icon left>mdi-code-braces-box</v-icon>
-            Query object
+            State object
             <v-spacer/>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
               <!--              <v-icon>mdi-pin-off-outline</v-icon>-->
@@ -73,7 +73,7 @@
             </v-btn>
           </v-card-title>
           <v-card-text>
-            <pre>{{ $store.state.search.query }}</pre>
+            <pre>{{ $store.state.search }}</pre>
           </v-card-text>
         </v-card>
 
@@ -88,7 +88,7 @@
         </v-toolbar>
         <v-card flat rounded>
           <results-table
-              v-if="$store.state.search.is_ready"
+              v-if="$store.state.search.is_completed"
           />
         </v-card>
       </v-col>
@@ -106,7 +106,7 @@
 
           <v-textarea
               v-model="oql"
-              :disabled="!$store.state.search.is_ready"
+              :disabled="!$store.state.search.is_completed"
               style="font-family: monospace;"
               autofocus
               auto-grow
@@ -239,7 +239,7 @@ export default {
     },
     async pollSearch() {
       await this.getSearch(this.$route.params.id);
-      if (!this.$store.state.search.is_ready) {
+      if (!this.$store.state.search.is_completed) {
         setTimeout(() => {
           console.log("polling search")
           this.pollSearch();

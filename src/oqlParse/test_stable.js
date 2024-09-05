@@ -313,7 +313,7 @@ class OQOTestRunnerStable {
             while (true) {
                 const result = await getSearchState(id);
 
-                if (result.is_ready) {
+                if (result.is_completed) {
                     const elapsedTime = Date.now() - startTime;
                     return {result, elapsedTime};
                 }

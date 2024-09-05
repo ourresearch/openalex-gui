@@ -5,7 +5,7 @@
         indeterminate
         fixed color="primary"
         style="z-index: 9999"
-        v-if="$store.state.search.is_ready === false"
+        v-if="$store.state.search.is_completed === false"
     />
     <v-app-bar
         app
