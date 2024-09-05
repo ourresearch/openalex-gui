@@ -160,8 +160,26 @@ function parseFilters(filterString, filterType) {
     });
 }
 
+function validateOql(oql, returnError=false) {
+    const endTermsBlacklist = ['and', 'where', 'or', 'is', 'not', 'show', 'using', 'sort', 'by'];
+    const badTrailingTerm = endTermsBlacklist.find(substring => oql.endsWith(substring)) || null;
+    if (badTrailingTerm) {
+        if (returnError) {
+            return `Malformed OQL`;
+        } else return false;
+    }
+    try {
+        oqlToQuery(oql);
+        return true;
+    } catch (error) {
+        if (returnError) return error.message;
+        return false;
+    }
+}
+
 
 export {
     oqlToQuery,
-    queryToOQL
-}
+    queryToOQL,
+    validateOql
+};
