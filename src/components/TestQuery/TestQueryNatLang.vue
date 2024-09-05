@@ -157,7 +157,11 @@ export default {
   mounted() {
     this.run()
   },
-  watch: {}
+  watch: {
+    isTestPassing(newVal){
+      this.$emit(newVal ? "pass" : "fail")
+    }
+  }
 }
 </script>
 
