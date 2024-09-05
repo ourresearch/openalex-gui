@@ -103,6 +103,7 @@
                   text
                   v-on="on"
                   style="white-space: nowrap;"
+                  class="px-0"
               >
                 <template v-if="query.sort_by_column === header.id">
                   <v-icon v-if="query.sort_by_order==='desc'">mdi-arrow-down</v-icon>
@@ -207,6 +208,7 @@
             v-for="(cell, i) in row.cellsWithConfigs"
             :key="'cell-'+i"
             class="px-1"
+            :class="`data-type-${cell.config.type} is-date-${cell.config.isDate}`"
         >
           <column-value :property="cell"/>
         </td>
@@ -428,6 +430,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
+td.data-type-number {
+  text-align: right;
+  font-family: monospace;
+  font-size: 0.9em;
+  &.is-date-true {
+    text-align: unset;
+    font-family: unset;
+  }
+}
 a {
   text-decoration: none;
 }

@@ -202,8 +202,6 @@ export default {
       } else if (this.columnConfig.type === "string") {
         if (this.isSearchColumn) {
           return ["contains", "does not contain"]
-        } else {
-          return ["is", "is not", "is in", "is not in"]
         }
       } else {
         return ["is", "is not"]

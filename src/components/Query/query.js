@@ -3,6 +3,14 @@ import {getConfigs} from "@/oaxConfigs";
 import {queryToOQL} from "@/oqlParse/oqlParse";
 
 
+const getDefaultFilterOperator = function (subjectEntity, column_id) {
+    const configs = getConfigs()
+    const entity = configs.entities.find(e => e.name === subjectEntity)
+    const column = entity.columns.find(c => c.id === column_id)
+    return column.defaultFilterOperator
+
+}
+
 const makeFilterLeaf = function (subjectEntity) {
     return {
         id: "leaf_" + shortUUID.generate().slice(0, 6),
@@ -252,6 +260,7 @@ const cleanFilters = function (filters) {
 
 export {
     makeFilterLeaf,
+
     makeFilterBranch,
     makeFilterButton,
 

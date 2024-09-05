@@ -8,25 +8,15 @@
       <query-filter-tree-button
           :subject-entity="subjectEntity"
           :parent-id="null"
-          @addBranchFilter="addBranchFilter"
-          @addLeafFilter="addLeafFilter"
+          @addFilter="addFilter"
       />
-      <!--      <v-btn icon color="primary" @click="applyFilters">-->
-      <!--        <v-icon>mdi-check</v-icon>-->
-      <!--      </v-btn>-->
     </v-toolbar>
 
-
     <v-treeview
-        :items="filtersRecursive"
-        v-model="tree"
+        :items="displayFilters"
         :open.sync="openNodes"
-        item-key="id"
         open-all
     >
-      <!--      <template v-slot:prepend="{ item, open }">-->
-      <!--      </template>-->
-
       <template v-slot:prepend="{item, open}">
         <span class="">
           <span class="number grey--text">
@@ -48,39 +38,23 @@
 
 
       <template v-slot:label="{ item, open }">
-        <!--        <query-filter-tree-branch-->
-        <!--            v-if="item.type === 'branch'"-->
-        <!--            class=""-->
-        <!--            :filter="item"-->
-        <!--            :is-open="open"-->
-        <!--            @setOperator="setFilterOperator"-->
-        <!--        />-->
-        <!--            v-else-->
         <query-filter-tree-leaf
             class=""
-            :filter="item"
 
             :column_id="item.column_id"
-            :operator="item.operator ?? 'is'"
+            :operator="item.operator"
             :value="item.value"
             :subject-entity="subjectEntity"
 
-            @set="setFilter"
-            @setValue="(value) => setFilterValue(item.id, value)"
+            @setOperator="(operator) => setFilterOperator(item.path, operator)"
+            @setValue="(value) => setFilterValue(item.path, value)"
         />
       </template>
       <template v-slot:append="{ item, open }">
         <div class="d-flex">
-          <query-filter-tree-button
-              v-if="item.type === 'branch'"
-              :subject-entity="subjectEntity"
-              :parent-id="item.id"
-              @addBranchFilter="addBranchFilter"
-              @addLeafFilter="addLeafFilter"
-          />
           <v-btn
               icon
-              @click="deleteFilter(item.id)"
+              @click="deleteFilter(item.path)"
           >
             <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
@@ -91,22 +65,22 @@
     </v-treeview>
     <!--    <v-row style="font-size: 11px !important;">-->
     <!--      <v-col>-->
-    <!--        <div class="text-h6">filters recursive</div>-->
-    <!--        <pre>{{ filtersRecursive }}</pre>-->
+    <!--        <div class="text-h6">displayFilters</div>-->
+    <!--        <pre>{{ displayFilters }}</pre>-->
     <!--      </v-col>-->
     <!--    </v-row>-->
-    <!--    <v-row style="font-size: 11px !important;">-->
-    <!--      <v-col >-->
-    <!--        <div class="text-h6">Query</div>-->
-    <!--        <pre>{{ query.filters}}</pre>-->
-    <!--      </v-col>-->
-    <!--      <v-col>-->
-    <!--        <div class="text-h6">Component</div>-->
-    <!--        <pre>{{ filtersToStore }}</pre>-->
-    <!--      </v-col>-->
-    <!--    </v-row>-->
-    <v-card-text v-if="filters.length === 0" class="">
-      No filters yet
+        <v-row style="font-size: 11px !important;">
+<!--          <v-col >-->
+<!--            <div class="text-h6">Query</div>-->
+<!--            <pre>{{ query.filters}}</pre>-->
+<!--          </v-col>-->
+          <v-col>
+            <div class="text-h6">Component</div>
+            <pre>{{ myFilters }}</pre>
+          </v-col>
+        </v-row>
+    <v-card-text v-if="myFilters.length === 0" class="">
+      No filters applied
     </v-card-text>
   </v-card>
 </template>
@@ -142,9 +116,7 @@ export default {
   data() {
     return {
       foo: 42,
-      tree: [],
       openNodes: [],
-      myFlatFilters: [],
 
       myFilters: [],
     }
@@ -156,19 +128,26 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-      "returnedEntityType",
       "querySubjectEntity",
       "querySubjectEntityConfig",
-      "filtersAreDirty",
 
     ]),
 
-    filtersRecursive() {
-      return this.myFilters
-      // return convertFlatToRecursive(this.myFlatFilters)
+    displayFilters() {
+      return this.myFilters.map((f, i) => {
+        return {
+          ...f,
+          id: i, // for the treeview to know which nodes are open
+          path: [i], // so we can find which nodes to update and delete
+          siblingIndex: i, // just for display
+          parentOperator: "and", // just for display
+        }
+
+      })
+
     },
     filtersToStore() {
-      return cleanFilters(this.myFlatFilters)
+      return this.myFilters
     },
     isDirty() {
       return !_.isEqual(this.query.filters, this.filtersToStore)
@@ -188,61 +167,57 @@ export default {
     ]),
     ...mapActions("user", []),
 
-    // things that update the server
-    deleteFilter(id) {
-      console.log("deleteFilter", id)
-      this.myFlatFilters = deleteNode(this.myFlatFilters, id)
-      this.applyFilters()
-    },
-    setFilterOperator({id, operator}) {
-      console.log("setFilterOperator", id, operator)
-      const filterToUpdate = this.myFlatFilters.find(f => f.id === id)
-      filterToUpdate.operator = operator
-      this.applyFilters()
+
+    // create
+    addFilter(columnId) {
+      this.myFilters.push({
+        column_id: columnId,
+        operator: null,
+        value: null,
+      })
     },
 
-    setFilterValue(id, value) {
-      console.log("setFilterValue", id, value)
-      const filterToUpdate = this.myFilters.find(f => f.id === id)
+
+    // read
+    getFilterFromPath(path){
+      // for now we just assume there is only a flat array of filters
+      const index = path[0]
+      return this.myFilters[index]
+    },
+
+
+    // update
+    setFilterOperator(pathToFilter, operator) {
+      console.log("setFilterOperator", pathToFilter, operator)
+      const filterToUpdate = this.getFilterFromPath(pathToFilter)
+      Vue.set(filterToUpdate, "operator", operator)
+    },
+
+    setFilterValue(pathToFilter, value) {
+      console.log("setFilterValue", pathToFilter, value)
+      const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
     },
 
 
-    setFilter(newFilter) {
-      console.log("FilterTree setFilter()", newFilter)
-      const filterToUpdate = this.myFlatFilters.find(f => f.id === newFilter.id)
 
-      // filterToUpdate.foo = "bar"
-      Object.keys(newFilter).forEach(key => {
-        Vue.set(filterToUpdate, key, newFilter[key])
-      })
-      if (newFilter.value !== null) {
-        this.applyFilters()
-      }
+    // delete
+    deleteFilter(path){
+      // for now we just assume there is only a flat array of filters
+      const index = path[0]
+      this.myFilters.splice(index, 1)
     },
+
+
+
+    // apply
     applyFilters() {
       this.setAllFilters(this.filtersToStore)
       this.createSearch()
     },
 
 
-    // these only update local state
-    addBranchFilter(parentId) {
-      console.log("addBranchFilter to this parent: ", parentId)
-      const newBranchFilter = makeFilterBranch(this.subjectEntity)
-      this.addFilter(newBranchFilter, parentId)
-    },
-    addLeafFilter({parentId, columnId}) {
-      console.log("addLeafFilter to this parent", parentId, columnId)
-      const filter = makeFilterLeaf(this.subjectEntity)
-      filter.column_id = columnId
-      this.addFilter(filter, parentId)
 
-    },
-    addFilter(filter, parentId) {
-      this.myFilters.push(filter)
-      // this.openNodes.push(parentId)
-    },
 
 
   },
@@ -253,30 +228,8 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        this.myFilters = _.cloneDeep(filters).map((f, i) => {
-          return {
-            ...f,
-            id: i,
-            siblingIndex: i,
-            parentOperator: "and",
-          }
-        })
-
-
-        // const filtersCopy = _.cloneDeep(filters)
-        // const filtersWithCorrectSubject = filtersCopy.filter(f => {
-        //   return f.subjectEntity === this.subjectEntity
-        // })
-        //
-        // this.myFlatFilters = filtersWithCorrectSubject
+        this.myFilters =  _.cloneDeep(filters)
         this.openNodes = filters.map(f => f.id)
-
-
-        // get the last item in the filters array:
-        // const lastFilter = filters[filters.length - 1]
-        // this.openNodes.push(lastFilter.id)
-
-
       },
       immediate: true
     }

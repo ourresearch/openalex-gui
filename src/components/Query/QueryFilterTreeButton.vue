@@ -25,31 +25,24 @@
         <v-divider/>
 
         <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-          <v-list-item
-              v-if="'subquery multiple'.includes(search.toLowerCase())"
-              @click="$emit('addBranchFilter', parentId)"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-filter-multiple-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Subquery
-                <span class="grey--text">(multiple filters)</span>
-              </v-list-item-title>
-<!--              <v-list-item-subtitle>-->
-<!--                Group multiple filters together-->
-<!--              </v-list-item-subtitle>-->
-            </v-list-item-content>
-          </v-list-item>
-<!--          <v-divider/>-->
-<!--          <v-subheader>-->
-<!--            Individual filters:-->
-<!--          </v-subheader>-->
+<!--          <v-list-item-->
+<!--              v-if="'subquery multiple'.includes(search.toLowerCase())"-->
+<!--              @click="$emit('addBranchFilter', parentId)"-->
+<!--          >-->
+<!--            <v-list-item-icon>-->
+<!--              <v-icon>mdi-filter-multiple-outline</v-icon>-->
+<!--            </v-list-item-icon>-->
+<!--            <v-list-item-content>-->
+<!--              <v-list-item-title>-->
+<!--                Subquery-->
+<!--                <span class="grey&#45;&#45;text">(multiple filters)</span>-->
+<!--              </v-list-item-title>-->
+<!--            </v-list-item-content>-->
+<!--          </v-list-item>-->
           <v-list-item
               v-for="column in newFilterColumnOptions"
               :key="column.id"
-              @click="$emit('addLeafFilter', { parentId, columnId: column.id })"
+              @click="$emit('addFilter', column.id)"
           >
             <v-list-item-icon>
               <v-icon>{{ column.icon }}</v-icon>
