@@ -11,9 +11,9 @@
           @addBranchFilter="addBranchFilter"
           @addLeafFilter="addLeafFilter"
       />
-<!--      <v-btn icon color="primary" @click="applyFilters">-->
-<!--        <v-icon>mdi-check</v-icon>-->
-<!--      </v-btn>-->
+      <!--      <v-btn icon color="primary" @click="applyFilters">-->
+      <!--        <v-icon>mdi-check</v-icon>-->
+      <!--      </v-btn>-->
     </v-toolbar>
 
 
@@ -48,14 +48,14 @@
 
 
       <template v-slot:label="{ item, open }">
-<!--        <query-filter-tree-branch-->
-<!--            v-if="item.type === 'branch'"-->
-<!--            class=""-->
-<!--            :filter="item"-->
-<!--            :is-open="open"-->
-<!--            @setOperator="setFilterOperator"-->
-<!--        />-->
-<!--            v-else-->
+        <!--        <query-filter-tree-branch-->
+        <!--            v-if="item.type === 'branch'"-->
+        <!--            class=""-->
+        <!--            :filter="item"-->
+        <!--            :is-open="open"-->
+        <!--            @setOperator="setFilterOperator"-->
+        <!--        />-->
+        <!--            v-else-->
         <query-filter-tree-leaf
             class=""
             :filter="item"
@@ -66,6 +66,7 @@
             :subject-entity="subjectEntity"
 
             @set="setFilter"
+            @setValue="(value) => setFilterValue(item.id, value)"
         />
       </template>
       <template v-slot:append="{ item, open }">
@@ -163,14 +164,7 @@ export default {
     ]),
 
     filtersRecursive() {
-      return this.myFilters.map((f, i) => {
-        return {
-          ...f,
-          siblingIndex: i,
-        }
-
-      })
-
+      return this.myFilters
       // return convertFlatToRecursive(this.myFlatFilters)
     },
     filtersToStore() {
@@ -206,6 +200,14 @@ export default {
       filterToUpdate.operator = operator
       this.applyFilters()
     },
+
+    setFilterValue(id, value) {
+      console.log("setFilterValue", id, value)
+      const filterToUpdate = this.myFilters.find(f => f.id === id)
+      Vue.set(filterToUpdate, "value", value)
+    },
+
+
     setFilter(newFilter) {
       console.log("FilterTree setFilter()", newFilter)
       const filterToUpdate = this.myFlatFilters.find(f => f.id === newFilter.id)
@@ -214,7 +216,7 @@ export default {
       Object.keys(newFilter).forEach(key => {
         Vue.set(filterToUpdate, key, newFilter[key])
       })
-      if (newFilter.value !== null){
+      if (newFilter.value !== null) {
         this.applyFilters()
       }
     },
@@ -238,15 +240,9 @@ export default {
 
     },
     addFilter(filter, parentId) {
-      this.myFlatFilters.push(filter)
-      // add this filter's id to the parent's children array, second from the end
-      const parent = this.myFlatFilters.find(f => f.id === parentId)
-      if (parent){
-        parent.children.push(filter.id)
-      }
-      this.openNodes.push(parentId)
+      this.myFilters.push(filter)
+      // this.openNodes.push(parentId)
     },
-
 
 
   },
@@ -257,7 +253,14 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        this.myFilters =  _.cloneDeep(filters)
+        this.myFilters = _.cloneDeep(filters).map((f, i) => {
+          return {
+            ...f,
+            id: i,
+            siblingIndex: i,
+            parentOperator: "and",
+          }
+        })
 
 
         // const filtersCopy = _.cloneDeep(filters)
