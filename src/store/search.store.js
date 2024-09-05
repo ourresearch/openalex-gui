@@ -176,30 +176,23 @@ export const search = {
         // CREATE AND READ SEARCH
         createSearch: async function ({state, getters}) {
             console.log("createSearch", getters.query)
-            const queryWithCleanFilters = {
-                ...getters.query,
-                filters: cleanFilters(getters.query.filters)
-            }
             state.is_completed = false
             const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query: queryWithCleanFilters})
+            const resp = await axios.post(url, {query: state.query})
             console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
 
 
         getSearch: async function ({state, dispatch, commit, getters}, id) {
-            state.is_completed = false
             state.id = id
-            // const resp = await axios.get(getters.searchApiUrl)
-            const resp = {data: mockSearchResponse}
-
+            state.is_completed = false
+            const resp = await axios.get(getters.searchApiUrl)
 
             // start from a clean slate:
             commit("replaceState", stateDefaults())
 
             // set the simple stuff from the response
-            state.id = id
             state.is_completed = true
             state.oql = queryToOQL(resp.data.query)
             state.results_header = resp.data.results_header ?? []
