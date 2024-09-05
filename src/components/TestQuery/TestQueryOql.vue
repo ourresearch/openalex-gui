@@ -145,11 +145,8 @@ export default {
       }
     },
     // trim ; character from end of oql strings when comparing for equality (sometimes one has it at the end, sometimes not)
-    cleanUpOQL(oql) {
-      return oql.replace(/;$/, '');
-    },
     isTestPassing() {
-      if (this.testId === 'from-query') return _.isEqual(this.cleanUpOQL(this.actualResponse), this.cleanUpOQL(this.expectedResponse));
+      if (this.testId === 'from-query') return _.isEqual(this.actualResponse.replace(/;$/, ''), this.expectedResponse.replace(/;$/, ''));
       return _.isEqual(this.actualResponse, this.expectedResponse);
     }
   },
