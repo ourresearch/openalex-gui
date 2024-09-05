@@ -51,10 +51,10 @@
         </div>
 
 
-<!--        <query-filter-tree-->
-<!--            subject-entity="works"-->
-<!--            :filters="worksFilters"-->
-<!--        />-->
+        <query-filter-tree
+            subject-entity="works"
+            :filters="$store.state.search.query.filter_works"
+        />
 <!--        <query-filter-tree-->
 <!--            class="mt-3"-->
 <!--            v-if="query.summarize_by"-->

@@ -151,18 +151,8 @@ export const search = {
 
 
         // SET MANY THINGS AT ONCE
-        setFromQueryObject({state, dispatch}, query) {
-
-             // do this first because it sets defaults for the other stuff
-            dispatch("setSummarize", query.summarize_by)
-
-            // now, if necessary, we overwrite the defaults that were set by setSummarize:
-            if (query.sort_by) dispatch("setSortBy", query.sort_by)
-            if (query.show_columns) state.query.show_columns = query.show_columns
-            if (query.filters) dispatch("setAllFilters", cleanFilters(query.filters))
-
-            // we use these to check if the user has changed the filters
-            state.originalFilters = _.cloneDeep(state.query.filters)
+        setFromQueryObject({state}, query) {
+            state.query = query
         },
 
         createSearchFromOql: async function ({state, dispatch}, oql) {
@@ -175,7 +165,6 @@ export const search = {
 
         // CREATE AND READ SEARCH
         createSearch: async function ({state, getters}) {
-            console.log("createSearch", getters.query)
             state.is_completed = false
             const url = "https://api.openalex.org/searches"
             const resp = await axios.post(url, {query: state.query})
@@ -187,23 +176,20 @@ export const search = {
         getSearch: async function ({state, dispatch, commit, getters}, id) {
             state.id = id
             state.is_completed = false
+
+            // get the search from the API
             const resp = await axios.get(getters.searchApiUrl)
 
             // start from a clean slate:
             commit("replaceState", stateDefaults())
 
-            // set the simple stuff from the response
-            state.is_completed = true
+            // set the state from the response
+            state.is_completed = resp.data.is_completed
             state.oql = queryToOQL(resp.data.query)
             state.results_header = resp.data.results_header ?? []
             state.results_body = resp.data.results ?? []
             state.results_meta = resp.data.meta
             state.query = resp.data.query
-
-            // state.is_completed = resp.data.is_completed
-
-            // we have to be a bit careful because the server does't always return a full Query object
-            // dispatch("setFromQueryObject", resp.data.query)
         },
     },
     getters: {
