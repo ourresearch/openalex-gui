@@ -69,16 +69,16 @@
     <!--        <pre>{{ displayFilters }}</pre>-->
     <!--      </v-col>-->
     <!--    </v-row>-->
-        <v-row style="font-size: 11px !important;">
+<!--        <v-row style="font-size: 11px !important;">-->
 <!--          <v-col >-->
 <!--            <div class="text-h6">Query</div>-->
 <!--            <pre>{{ query.filters}}</pre>-->
 <!--          </v-col>-->
-          <v-col>
-            <div class="text-h6">Component</div>
-            <pre>{{ myFilters }}</pre>
-          </v-col>
-        </v-row>
+<!--          <v-col>-->
+<!--            <div class="text-h6">Component</div>-->
+<!--            <pre>{{ myFilters }}</pre>-->
+<!--          </v-col>-->
+<!--        </v-row>-->
     <v-card-text v-if="myFilters.length === 0" class="">
       No filters applied
     </v-card-text>
@@ -147,7 +147,10 @@ export default {
 
     },
     filtersToStore() {
-      return this.myFilters
+      return this.myFilters.filter(f => {
+        const valueIsSet = f.value !== null && f.value !== "" && f.value !== undefined
+        return f.operator && valueIsSet
+      })
     },
     isDirty() {
       return !_.isEqual(this.query.filters, this.filtersToStore)
@@ -191,12 +194,14 @@ export default {
       console.log("setFilterOperator", pathToFilter, operator)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "operator", operator)
+      this.applyFilters()
     },
 
     setFilterValue(pathToFilter, value) {
       console.log("setFilterValue", pathToFilter, value)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
+      this.applyFilters()
     },
 
 
@@ -206,14 +211,15 @@ export default {
       // for now we just assume there is only a flat array of filters
       const index = path[0]
       this.myFilters.splice(index, 1)
+      this.applyFilters()
     },
 
 
 
     // apply
     applyFilters() {
-      this.setAllFilters(this.filtersToStore)
-      this.createSearch()
+      this.$store.state.query.filter_works = this.filtersToStore
+      // this.createSearch()
     },
 
 
