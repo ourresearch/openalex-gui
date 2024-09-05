@@ -147,10 +147,14 @@ export default {
 
     },
     filtersToStore() {
-      return this.myFilters.filter(f => {
+      const ret = this.myFilters.filter(f => {
+        // don't save filters unless the value is set
         const valueIsSet = f.value !== null && f.value !== "" && f.value !== undefined
-        return f.operator && valueIsSet
+
+        // but it's ok to save filters with no operator set, it'll just use the default.
+        return valueIsSet
       })
+      return _.cloneDeep(ret)
     },
     isDirty() {
       return !_.isEqual(this.query.filters, this.filtersToStore)
@@ -175,7 +179,7 @@ export default {
     addFilter(columnId) {
       this.myFilters.push({
         column_id: columnId,
-        operator: null,
+        // operator is not required, it'll use the default if not supplied later
         value: null,
       })
     },
@@ -218,8 +222,8 @@ export default {
 
     // apply
     applyFilters() {
-      this.$store.state.query.filter_works = this.filtersToStore
-      // this.createSearch()
+      this.$store.state.search.query.filter_works = this.filtersToStore
+      this.createSearch()
     },
 
 

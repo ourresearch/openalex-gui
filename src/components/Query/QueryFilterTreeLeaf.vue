@@ -195,17 +195,7 @@ export default {
       return this.columnConfig?.id?.endsWith(".search")
     },
     operatorOptions() {
-      if (this.columnConfig.type === "boolean") {
-        return ["is"]
-      } else if (this.columnConfig.type === "number") {
-        return ["is", "is not", "is greater than", "is less than"]
-      } else if (this.columnConfig.type === "string") {
-        if (this.isSearchColumn) {
-          return ["contains", "does not contain"]
-        }
-      } else {
-        return ["is", "is not"]
-      }
+      return this.columnConfig.operators
     },
 
     localValueOptions() {
@@ -219,14 +209,10 @@ export default {
 
     selectedOperator: {
       get() {
-        return this.operator
+        return this.operator ?? this.columnConfig.defaultOperator
       },
       set(value) {
-        const filter = {
-          ...this.me,
-          operator: value,
-        }
-        this.setFilter(filter)
+        this.$emit("setOperator", value)
       }
     },
     selectedValue: {
