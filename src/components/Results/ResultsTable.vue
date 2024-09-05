@@ -104,9 +104,9 @@
                   v-on="on"
                   style="white-space: nowrap;"
               >
-                <template v-if="query.sort_by.column_id === header.id">
-                  <v-icon v-if="query.sort_by.direction==='desc'">mdi-arrow-down</v-icon>
-                  <v-icon v-if="query.sort_by.direction==='asc'">mdi-arrow-up</v-icon>
+                <template v-if="query.sort_by_column === header.id">
+                  <v-icon v-if="query.sort_by_order==='desc'">mdi-arrow-down</v-icon>
+                  <v-icon v-if="query.sort_by_order==='asc'">mdi-arrow-up</v-icon>
                 </template>
                 {{ header.displayName }}
                 <v-icon small>mdi-menu-down</v-icon>
@@ -127,7 +127,7 @@
                 <v-divider/>
                 <v-list-item
                     active-class="primary--text"
-                    :input-value="query.sort_by.column_id === header.id && query.sort_by.direction === 'desc'"
+                    :input-value="query.sort_by_column === header.id && query.sort_by_order === 'desc'"
                     @click="commitSortBy({column_id: header.id, direction: 'desc'})"
                 >
                   <v-list-item-icon>
@@ -138,7 +138,7 @@
                 <v-list-item
                     @click="commitSortBy({column_id: header.id, direction: 'asc'})"
                     active-class="primary--text"
-                    :input-value="query.sort_by.column_id === header.id && query.sort_by.direction === 'asc'"
+                    :input-value="query.sort_by_column === header.id && query.sort_by_order === 'asc'"
                 >
                   <v-list-item-icon>
                     <v-icon>mdi-arrow-up</v-icon>
@@ -321,7 +321,7 @@ export default {
             return col.actions?.includes("column")
           })
           .filter(col => {
-            return !this.query.return_columns.includes(col.id)
+            return !this.query.show_columns.includes(col.id)
           })
     },
   },

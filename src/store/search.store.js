@@ -114,20 +114,20 @@ export const search = {
                 state.query.summarize_by = null
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
-                state.query.return_columns = getConfigs().works.showOnTablePage
+                state.query.show_columns = getConfigs().works.showOnTablePage
 
 
             } else if (columnId === "all") {
                 state.query.summarize_by = null
                 state.query.sort_by.direction = null
                 state.query.sort_by.column_id = null
-                state.query.return_columns = []
+                state.query.show_columns = []
 
             } else {
                 state.query.summarize_by = columnId
                 state.query.sort_by.column_id = "display_name"
                 state.query.sort_by.direction = "asc"
-                state.query.return_columns = getConfigs()[columnId].showOnTablePage
+                state.query.show_columns = getConfigs()[columnId].showOnTablePage
                 const filter = makeFilterBranch(columnId, true)
                 dispatch("addFilter", {filter, parentId: undefined})
             }
@@ -136,17 +136,17 @@ export const search = {
 
         // SORT
         setSortBy({state}, {column_id, direction}) {
-            state.query.sort_by.column_id = column_id
-            state.query.sort_by.direction = direction
+            state.query.sort_by_column = column_id
+            state.query.sort_by_order = direction
         },
 
 
         // RETURN COLUMNS
         addReturnColumn({state}, columnId) {
-            state.query.return_columns.push(columnId)
+            state.query.show_columns.push(columnId)
         },
         deleteReturnColumn({state}, columnId) {
-            state.query.return_columns = state.query.return_columns.filter((col) => col !== columnId)
+            state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId)
         },
 
 
@@ -158,7 +158,7 @@ export const search = {
 
             // now, if necessary, we overwrite the defaults that were set by setSummarize:
             if (query.sort_by) dispatch("setSortBy", query.sort_by)
-            if (query.return_columns) state.query.return_columns = query.return_columns
+            if (query.show_columns) state.query.show_columns = query.show_columns
             if (query.filters) dispatch("setAllFilters", cleanFilters(query.filters))
 
             // we use these to check if the user has changed the filters
@@ -205,6 +205,8 @@ export const search = {
             state.results_header = resp.data.results_header ?? []
             state.results_body = resp.data.results ?? []
             state.results_meta = resp.data.meta
+            state.query = resp.data.query
+
             // state.is_completed = resp.data.is_completed
 
             // we have to be a bit careful because the server does't always return a full Query object
@@ -217,7 +219,7 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
-        queryColumns: (state, getters) => state.query.return_columns.map((col) => getters.querySubjectEntityConfig.columns[col]),
+        queryColumns: (state, getters) => state.query.show_columns.map((col) => getters.querySubjectEntityConfig.columns[col]),
         querySubjectEntity: (state) => {
             if (!state.query.summarize_by) return "works"
             else if (state.query.summarize_by === "all") return null

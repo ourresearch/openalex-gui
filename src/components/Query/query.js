@@ -46,7 +46,7 @@ const baseQuery = () => ({
 })
 
 
-const queryFactory = function (summarize_by, sort_by, return_columns, filters) {
+const queryFactory = function (summarize_by, sort_by, show_columns, filters) {
     if (!summarize_by) throw new Error("queryFactory: summarize_by is required")
     const baseQuery = baseQuery()
     baseQuery.summarize_by = summarize_by

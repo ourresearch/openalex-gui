@@ -65,7 +65,7 @@
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
             <v-icon left>mdi-code-braces-box</v-icon>
-            State object
+            Query object
             <v-spacer/>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
               <!--              <v-icon>mdi-pin-off-outline</v-icon>-->
@@ -73,7 +73,7 @@
             </v-btn>
           </v-card-title>
           <v-card-text>
-            <pre>{{ $store.state.search }}</pre>
+            <pre>{{ $store.state.search.query }}</pre>
           </v-card-text>
         </v-card>
 
