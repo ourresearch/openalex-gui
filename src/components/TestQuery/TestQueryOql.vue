@@ -144,8 +144,13 @@ export default {
         throw new Error(`Unknown OQL testId: ${this.testId}`)
       }
     },
+    // trim ; character from end of oql strings when comparing for equality (sometimes one has it at the end, sometimes not)
+    cleanUpOQL(oql) {
+      return oql.replace(/;$/, '');
+    },
     isTestPassing() {
-      return _.isEqual(this.actualResponse, this.expectedResponse)
+      if (this.testId === 'from-query') return _.isEqual(this.cleanUpOQL(this.actualResponse), this.cleanUpOQL(this.expectedResponse));
+      return _.isEqual(this.actualResponse, this.expectedResponse);
     }
   },
 
