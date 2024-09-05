@@ -48,17 +48,23 @@
 
 
       <template v-slot:label="{ item, open }">
-        <query-filter-tree-branch
-            v-if="item.type === 'branch'"
-            class=""
-            :filter="item"
-            :is-open="open"
-            @setOperator="setFilterOperator"
-        />
+<!--        <query-filter-tree-branch-->
+<!--            v-if="item.type === 'branch'"-->
+<!--            class=""-->
+<!--            :filter="item"-->
+<!--            :is-open="open"-->
+<!--            @setOperator="setFilterOperator"-->
+<!--        />-->
+<!--            v-else-->
         <query-filter-tree-leaf
-            v-else
             class=""
             :filter="item"
+
+            :column_id="item.column_id"
+            :operator="item.operator ?? 'is'"
+            :value="item.value"
+            :subject-entity="subjectEntity"
+
             @set="setFilter"
         />
       </template>
@@ -138,6 +144,8 @@ export default {
       tree: [],
       openNodes: [],
       myFlatFilters: [],
+
+      myFilters: [],
     }
   },
   computed: {
@@ -155,7 +163,15 @@ export default {
     ]),
 
     filtersRecursive() {
-      return convertFlatToRecursive(this.myFlatFilters)
+      return this.myFilters.map((f, i) => {
+        return {
+          ...f,
+          siblingIndex: i,
+        }
+
+      })
+
+      // return convertFlatToRecursive(this.myFlatFilters)
     },
     filtersToStore() {
       return cleanFilters(this.myFlatFilters)
@@ -241,12 +257,15 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        const filtersCopy = _.cloneDeep(filters)
-        const filtersWithCorrectSubject = filtersCopy.filter(f => {
-          return f.subjectEntity === this.subjectEntity
-        })
+        this.myFilters =  _.cloneDeep(filters)
 
-        this.myFlatFilters = filtersWithCorrectSubject
+
+        // const filtersCopy = _.cloneDeep(filters)
+        // const filtersWithCorrectSubject = filtersCopy.filter(f => {
+        //   return f.subjectEntity === this.subjectEntity
+        // })
+        //
+        // this.myFlatFilters = filtersWithCorrectSubject
         this.openNodes = filters.map(f => f.id)
 
 

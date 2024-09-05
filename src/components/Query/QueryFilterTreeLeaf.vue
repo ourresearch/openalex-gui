@@ -155,7 +155,12 @@ export default {
   },
   props: {
     filter: Object,
-    joinOperator: String,
+
+    column_id: String,
+    operator: String,
+    value: [String, Number, Boolean],
+
+    subjectEntity: String,
   },
   data() {
     return {
@@ -181,9 +186,9 @@ export default {
       return this.filter
     },
     columnConfig() {
-      const mySubjectEntity = this.me.subjectEntity
+      const mySubjectEntity = this.subjectEntity
       const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
-      const columnConfig = mySubjectEntityConfig.columns[this.me.column_id]
+      const columnConfig = mySubjectEntityConfig.columns[this.column_id]
       return columnConfig
     },
     isSearchColumn() {
@@ -216,7 +221,7 @@ export default {
 
     selectedOperator: {
       get() {
-        return this.me.operator
+        return this.operator
       },
       set(value) {
         const filter = {
@@ -228,7 +233,7 @@ export default {
     },
     selectedValue: {
       get() {
-        return this.me.value
+        return this.value
       },
       set(value) {
         const filter = {
