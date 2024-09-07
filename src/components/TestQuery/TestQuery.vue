@@ -42,21 +42,21 @@
 
       <v-divider vertical class="mx-1"/>
 
-      <test-query-nat-lang
-          v-for="(natLangString, i) in config.natLang"
-          :key="i"
+<!--      <test-query-nat-lang-->
+<!--          v-for="(natLangString, i) in config.natLang"-->
+<!--          :key="i"-->
 
-          :input="natLangString"
-          :expected-response="config.query"
-          :query-id="config.id"
-          :test-id="i"
+<!--          :input="natLangString"-->
+<!--          :expected-response="config.query"-->
+<!--          :query-id="config.id"-->
+<!--          :test-id="i"-->
 
-          icon
-          @pass="passCount += 1"
-          @fail="failCount += 1"
-      />
+<!--          icon-->
+<!--          @pass="passCount += 1"-->
+<!--          @fail="failCount += 1"-->
+<!--      />-->
 
-      <v-divider vertical class="mx-1"/>
+<!--      <v-divider vertical class="mx-1"/>-->
 
       <v-tooltip
           bottom
