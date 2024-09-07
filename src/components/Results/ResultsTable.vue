@@ -94,10 +94,10 @@
       <th
           v-for="(header, i) in queryColumns"
           :key="'header-'+i"
-          style="text-align: left;"
-          class=""
+          :class="`data-type-${header.type} is-date-${header.isDate}`"
       >
         <div class="d-flex">
+        <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
               <v-btn
@@ -150,7 +150,6 @@
               </template>
             </v-list>
           </v-menu>
-          <v-spacer></v-spacer>
 
         </div>
       </th>
