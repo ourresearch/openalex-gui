@@ -83,30 +83,11 @@ export const search = {
 
         // SUMMARIZE
         setSummarize({state, dispatch}, columnId) {
-            // no matter what, clear all the summarize_by filters
-            dispatch("setAllFilters", state.query.filters.filter(f => f.subjectEntity === "works"))
-
-            if (!columnId) {
-                state.query.summarize_by = null
-                state.query.sort_by.column_id = "display_name"
-                state.query.sort_by.direction = "asc"
-                state.query.show_columns = getConfigs().works.showOnTablePage
-
-
-            } else if (columnId === "all") {
-                state.query.summarize_by = null
-                state.query.sort_by.direction = null
-                state.query.sort_by.column_id = null
-                state.query.show_columns = []
-
-            } else {
-                state.query.summarize_by = columnId
-                state.query.sort_by.column_id = "display_name"
-                state.query.sort_by.direction = "asc"
-                state.query.show_columns = getConfigs()[columnId].showOnTablePage
-                const filter = makeFilterBranch(columnId, true)
-                dispatch("addFilter", {filter, parentId: undefined})
+            const newQuery = {
+                get_rows: columnId,
+                filter_works: state.query.filter_works,
             }
+            dispatch("createSearchFromQuery", newQuery)
         },
 
 
@@ -131,21 +112,24 @@ export const search = {
             state.query = query
         },
 
+        // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
             console.log("createSearchFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql)
-            dispatch("setFromQueryObject", query)
-            dispatch("createSearch")
+            return await dispatch("createSearchFromQuery", query)
+        },
+        createSearchFromQuery: async function ({state}, query) {
+            state.is_completed = false
+
+            const url = "https://api.openalex.org/searches"
+            const resp = await axios.post(url, {query})
+            console.log("Created search", resp.data)
+            await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
 
 
-        // CREATE AND READ SEARCH
-        createSearch: async function ({state}) {
-            state.is_completed = false
-            const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query: state.query})
-            console.log("Created search", resp.data)
-            await pushSafe({name: 'search', params: {id: resp.data.id}})
+        createSearch: async function ({dispatch, state}) {
+            return await dispatch("createSearchFromQuery", state.query)
         },
 
 
@@ -192,7 +176,7 @@ export const search = {
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity]
         },
-        isQuerySingleRow: (state) => state.query.summarize_by === "all",
+        isQuerySingleRow: (state) => state.query.get_rows === "summary",
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
         entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),

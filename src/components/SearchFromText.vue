@@ -114,6 +114,7 @@ export default {
       "setFromQueryObject",
       "createSearch",
       "createSearchFromOql",
+        "createSearchFromQuery",
     ]),
     applyQ() {
       return (this.selectedInputType === "natural-language") ?
@@ -127,8 +128,7 @@ export default {
       const resp = await axios.get(myURl);
       this.isNatLangLoading = false;
 
-      this.setFromQueryObject(resp.data);
-      this.createSearch();
+      this.createSearchFromQuery(resp.data);
     },
     applyOql() {
       this.isNatLangLoading = true;

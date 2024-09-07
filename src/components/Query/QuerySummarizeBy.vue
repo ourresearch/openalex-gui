@@ -28,12 +28,12 @@
         >
           <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>
           <span class=" text-capitalize">
-            <template v-if="!query.summarize_by">
+            <template v-if="query.get_rows === 'summary'">
               <template v-if="query.summarize">Works summary</template>
               <template v-else>Works</template>
             </template>
             <template v-else>
-              {{ query.summarize_by  }}
+              {{ query.get_rows  }}
             </template>
           </span>
 <!--          <span class="font-weight-regular ml-1">-->
@@ -121,11 +121,10 @@ export default {
     },
     selected: {
       get() {
-        return this.query.summarize_by
+        return this.query.get_rows
       },
       set(value) {
         this.setSummarize(value)
-        this.createSearch()
 
       }
     },
