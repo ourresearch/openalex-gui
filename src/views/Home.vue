@@ -205,20 +205,8 @@ export default {
       "createSearch",
     ]),
     ...mapActions("search", [
-      "setFromQueryObject",
         "createSearch",
     ]),
-    async createSearchFromNatLang() {
-      this.isNatLangLoading = true
-      console.log("createSearchFromNatLang", this.natLangQuery)
-      const myURl = `https://api.openalex.org/text/oql?natural_language=${this.natLangQuery}`
-      const resp = await axios.get(myURl)
-      console.log("resp", resp)
-      this.isNatLangLoading = false
-
-      this.setFromQueryObject(resp.data)
-      this.createSearch()
-    }
   },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)
