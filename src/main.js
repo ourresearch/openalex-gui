@@ -20,6 +20,15 @@ import {
 } from "./filterConfigs";
 
 
+// async function getConfigs() {
+//     const url = "https://api.openalex.org/entities/config?format=yaml"
+//     const ret = await axios.get(url)
+//     return YAML.parse(ret.data)
+// }
+// const configs = await getConfigs()
+// console.log("main.js got configs!", configs)
+
+
 Vue.config.productionTip = false
 Vue.prototype.$prettyTitle = prettyTitle
 
@@ -48,6 +57,8 @@ Vue.use(VueShortkey)
 
 import AsyncComputed from 'vue-async-computed'
 import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
+import axios from "axios";
+import YAML from "yaml";
 
 Vue.use(AsyncComputed)
 

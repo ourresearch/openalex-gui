@@ -12,9 +12,12 @@
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
+          <v-btn icon :href="searchApiUrl" target="_blank">
+            <v-icon>mdi-api</v-icon>
+          </v-btn>
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn icon v-on="on" class="mt-2 ml-1">
+              <v-btn icon v-on="on" class=" ml-1">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>

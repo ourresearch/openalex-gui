@@ -180,8 +180,6 @@ export const search = {
             // get the search from the API
             const resp = await axios.get(getters.searchApiUrl)
 
-            // start from a clean slate:
-            commit("replaceState", stateDefaults())
 
             // set the state from the response
             state.is_completed = resp.data.is_completed
