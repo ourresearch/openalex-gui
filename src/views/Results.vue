@@ -90,6 +90,7 @@
           <v-spacer></v-spacer>
         </v-toolbar>
         <v-card flat rounded>
+
           <results-table
               v-if="$store.state.search.is_completed"
           />
@@ -199,6 +200,7 @@ export default {
       "querySubjectEntityConfig",
       "query",
       "searchApiUrl",
+        "queryColumns",
     ]),
   },
 
