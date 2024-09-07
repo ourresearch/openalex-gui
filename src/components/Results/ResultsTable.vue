@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="table-meta d-flex align-center pa-2">
+    <div  class="table-meta d-flex align-center pa-2">
 
       <v-btn
           icon
@@ -87,6 +87,7 @@
         </v-list>
       </v-menu>
     </div>
+
     <v-simple-table>
       <thead>
       <th key="checkbox-placeholder"></th>
@@ -153,6 +154,8 @@
 
         </div>
       </th>
+
+
       <th key="column-adder">
         <v-menu rounded max-height="50vh">
           <template v-slot:activator="{ on }">

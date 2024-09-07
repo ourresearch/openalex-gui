@@ -172,12 +172,22 @@ export const search = {
         resultsMeta: (state) => state.results_meta,
 
         query: (state) => state.query,
-        queryColumns: (state, getters) => state.query.show_columns.map((col) => getters.querySubjectEntityConfig.columns[col]),
+        queryColumns: (state, getters) => {
+            const columnsToReturn = state.query.show_columns.map((col) => {
+                const ret = getters.querySubjectEntityConfig.columns[col]
+                if (!ret) {
+                    throw new Error(`No column found for ${getters.querySubjectEntity}.columns.${col}`)
+                }
+                return ret
+            });
+            if (!columnsToReturn?.length){
+                    throw new Error(`No columns at all found for ${getters.querySubjectEntity}`)
+            }
+            return columnsToReturn
+        },
         querySubjectEntity: (state) => {
-            if (!state.query.summarize_by) return "works"
-            else if (state.query.summarize_by === "all") return null
-            else return state.query.summarize_by
-
+            if (state.query.get_rows === "summary") return "works"
+            else return state.query.get_rows
         },
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity]
