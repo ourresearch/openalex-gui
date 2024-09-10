@@ -12,7 +12,7 @@
       @keydown.enter.exact.prevent="applyQ"
       :class="{oql: selectedInputType === 'oql'}"
   >
-<!--      prepend-inner-icon="mdi-code-parentheses-box"-->
+    <!--      prepend-inner-icon="mdi-code-parentheses-box"-->
     <template v-slot:append>
       <v-btn
           large icon style="margin-top: -11px; margin-right: -13px;"
@@ -23,7 +23,7 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
     </template>
-    <template v-slot:prepend-inner>
+    <template v-if="naturalLanguage" v-slot:prepend-inner>
       <v-menu rounded max-width="300" offset-y>
         <template v-slot:activator="{ on }">
           <v-btn
@@ -33,8 +33,8 @@
               class="pl-1 pr-0"
               text
           >
-            <v-icon >{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
-<!--            {{ inputTypes.find(it => it.id === selectedInputType).displayName }}-->
+            <v-icon>{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
+            <!--            {{ inputTypes.find(it => it.id === selectedInputType).displayName }}-->
             <v-icon>mdi-menu-down</v-icon>
           </v-btn>
         </template>
@@ -75,15 +75,16 @@ import {mapActions, mapGetters} from "vuex";
 export default {
   name: 'SearchFromText',
   props: {
-    resetQuery: Boolean,
     disabled: Boolean,
     selected: String,
+    naturalLanguage: Boolean,
+
   },
   data() {
     return {
       q: "",
       isNatLangLoading: false,
-      selectedInputType: "natural-language",
+      selectedInputType: "oql",
       inputTypes: [
         {
           id: "natural-language",
@@ -101,8 +102,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("search", [
-    ]),
+    ...mapGetters("search", []),
     placeholder() {
       return this.selectedInputType === "natural-language" ?
           "Enter natural language query" :
@@ -114,7 +114,7 @@ export default {
       "setFromQueryObject",
       "createSearch",
       "createSearchFromOql",
-        "createSearchFromQuery",
+      "createSearchFromQuery",
     ]),
     applyQ() {
       return (this.selectedInputType === "natural-language") ?
@@ -137,12 +137,8 @@ export default {
     }
   },
   mounted() {
-      this.selectedInputType = this.selected
   },
   watch: {
-    resetQuery() {
-      this.q = "";
-    },
     "$store.state.search.oql": {
       handler: function (newVal) {
         if (this.selectedInputType === "oql") {
@@ -154,8 +150,7 @@ export default {
     selectedInputType() {
       if (this.selectedInputType === "natural-language") {
         this.q = "";
-      }
-      else {
+      } else {
         this.q = this.$store.state.search.oql;
       }
     }
@@ -168,9 +163,11 @@ textarea {
   //padding-top: 5px !important;
   margin-bottom: 15px;
 }
+
 .v-text-field--rounded {
-    border-radius: 15px !important;
+  border-radius: 15px !important;
 }
+
 .oql {
   textarea {
     font-family: "Consolas", monospace !important;
