@@ -144,8 +144,9 @@ export default {
     testsCount() {
       const oqlCount = 2
       const searchCount = 1
-      const natLangCount = this.config.natLang.length
-      return oqlCount + searchCount + natLangCount
+      return oqlCount + searchCount
+      // const natLangCount = this.config.natLang.length
+      // return oqlCount + searchCount + natLangCount
     },
     completeCount() {
       return this.failCount + this.passCount
