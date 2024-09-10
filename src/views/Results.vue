@@ -47,7 +47,6 @@
         <div class="d-flex align-start mb-3">
           <search-from-text
               :disabled="!$store.state.search.is_completed"
-              selected="oql"
           />
 
 
@@ -133,9 +132,6 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog max-width="800" v-model="isSearchFromTextDialogOpen">
-      <search-from-text :reset-query="resetSearchFromTextDialog"/>
-    </v-dialog>
 
 
   </v-container>
@@ -172,7 +168,6 @@ export default {
       isOqlEditDialogOpen: false,
       oql: "",
 
-      isSearchFromTextDialogOpen: false,
       resetSearchFromTextDialog: false,
 
 
@@ -271,9 +266,6 @@ export default {
     cardsToShowSelected() {
       this.saveToLocalStorage();
     },
-    isSearchFromTextDialogOpen(val) {
-      this.resetSearchFromTextDialog = !this.resetSearchFromTextDialog
-    }
   }
 }
 </script>
