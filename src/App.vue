@@ -95,7 +95,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn icon to="/test-queries">
+      <v-btn icon to="/tests">
         <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
       </v-btn>
 
