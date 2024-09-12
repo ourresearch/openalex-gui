@@ -1,5 +1,5 @@
 <template>
-<!--      :color="status === 'fail' ? 'error lighten-5' : undefined"-->
+  <!--      :color="status === 'fail' ? 'error lighten-5' : undefined"-->
   <v-card
       rounded
       flat
@@ -7,30 +7,35 @@
       :loading="status === 'loading' ? 'grey lighten-2' : undefined"
   >
     <div>
-<!--      <v-progress-linear indeterminate height="10"/>-->
+      <!--      <v-progress-linear indeterminate height="10"/>-->
+
 
     </div>
+
 <!--    <div class="font-weight-bold">-->
 <!--      <span class="success&#45;&#45;text">pass: {{ passCount }}</span>-->
 <!--      <span class="error&#45;&#45;text mx-3">fail: {{ failCount }}</span>-->
 <!--      <span class="mx-3">complete: {{ completeCount }}</span>-->
 <!--      <span class="grey&#45;&#45;text">loading: {{ loadingCount }}</span>-->
 <!--    </div>-->
+
     <div class=" monospace body-2 pa-3">
-      <!--      <span>{{ config.id }}.</span>-->
+<!--            <span>{{ config.id }}.</span>-->
       <span v-if="status === 'pass'" class="success--text">{{ config.oql }}</span>
       <span v-else-if="status === 'fail'" class="error--text">{{ config.oql }}</span>
       <span v-else class="grey--text">{{ config.oql }}</span>
     </div>
     <div class="fill-height"></div>
 
-    <div class="px-3 py-0 pt-1 d-flex">
+    <div class="px-3 pt-1  d-flex">
       <test-query-oql
           v-for="test in oqlTests"
           :key="test.id"
 
           :input="test.input"
           :expected-response="test.expectedResponse"
+
+          :test-suite-id="$route.params.testSuiteId"
           :query-id="config.id"
           :test-id="test.id"
 
@@ -40,28 +45,28 @@
 
       />
 
-      <v-divider vertical class="mx-1"/>
 
-<!--      <test-query-nat-lang-->
-<!--          v-for="(natLangString, i) in config.natLang"-->
-<!--          :key="i"-->
+      <!--      <test-query-nat-lang-->
+      <!--          v-for="(natLangString, i) in config.natLang"-->
+      <!--          :key="i"-->
 
-<!--          :input="natLangString"-->
-<!--          :expected-response="config.query"-->
-<!--          :query-id="config.id"-->
-<!--          :test-id="i"-->
+      <!--          :input="natLangString"-->
+      <!--          :expected-response="config.query"-->
+      <!--          :query-id="config.id"-->
+      <!--          :test-id="i"-->
 
-<!--          icon-->
-<!--          @pass="passCount += 1"-->
-<!--          @fail="failCount += 1"-->
-<!--      />-->
+      <!--          icon-->
+      <!--          @pass="passCount += 1"-->
+      <!--          @fail="failCount += 1"-->
+      <!--      />-->
 
-<!--      <v-divider vertical class="mx-1"/>-->
+      <!--      <v-divider vertical class="mx-1"/>-->
 
       <v-tooltip
           bottom
           :color="searchTestColor"
           max-width="300"
+          v-if="runSearch"
       >
         <template v-slot:activator="{ on }">
           <v-btn
@@ -87,7 +92,7 @@
         </span>
       </v-tooltip>
       <v-spacer/>
-      <v-btn icon :to="`/test-queries/${config.id}`">
+      <v-btn icon :to="`/tests/${$route.params.testSuiteId}/${config.id}`">
         <v-icon>mdi-link</v-icon>
       </v-btn>
 
@@ -112,7 +117,7 @@ export default {
   },
   props: {
     config: Object,
-    runFlag: Boolean,
+    runSearch: Boolean,
   },
   data() {
     return {
@@ -134,7 +139,7 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    status(){
+    status() {
       return this.loadingCount ?
           'loading' :
           this.failCount ?
@@ -143,7 +148,7 @@ export default {
     },
     testsCount() {
       const oqlCount = 2
-      const searchCount = 1
+      const searchCount = this.runSearch ? 1 : 0
       return oqlCount + searchCount
       // const natLangCount = this.config.natLang.length
       // return oqlCount + searchCount + natLangCount
@@ -152,7 +157,7 @@ export default {
       return this.failCount + this.passCount
     },
     loadingCount() {
-      return this.testsCount - this.completeCount
+      return Math.max(this.testsCount - this.completeCount, 0)
     },
     oqlTests() {
       return [
@@ -225,11 +230,16 @@ export default {
         }, 500);
       }
     },
-    async run() {
+    run() {
       this.passCount = 0
       this.failCount = 0
-      await this.createSearch()
-      this.pollSearch()
+      if (this.runSearch) {
+        this.runSearchMethod()
+      }
+    },
+    async runSearchMethod(){
+        await this.createSearch()
+        this.pollSearch()
     }
 
 
@@ -241,6 +251,14 @@ export default {
   mounted() {
   },
   watch: {
+    runSearch: {
+      handler(newVal) {
+        if (newVal) {
+          this.runSearchMethod()
+        }
+      },
+      immediate: true
+    },
     isSearchPassing(newVal) {
       if (newVal) {
         this.passCount += 1

@@ -57,16 +57,6 @@ export default new Vuex.Store({
 
     },
     actions: {
-        async getTestQueries({state}) {
-            const url = "https://raw.githubusercontent.com/ourresearch/oqo-search-tests/main/new_tests.yaml"
-            const resp = await axios.get(url)
-            state.testQueries = YAML.parse(resp.data).map((testConfig, i) => {
-                return {
-                    ...testConfig,
-                    id: i,
-                }
-            })
-        }
     },
     getters: {
         globalIsLoading(state) {
