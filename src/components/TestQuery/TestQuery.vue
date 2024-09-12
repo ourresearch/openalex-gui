@@ -112,7 +112,7 @@ export default {
   },
   props: {
     config: Object,
-    runFlag: Boolean,
+    runSearch: Boolean,
   },
   data() {
     return {
@@ -228,8 +228,10 @@ export default {
     async run() {
       this.passCount = 0
       this.failCount = 0
-      await this.createSearch()
-      this.pollSearch()
+      if (this.runSearch){
+        await this.createSearch()
+        this.pollSearch()
+      }
     }
 
 
@@ -241,6 +243,14 @@ export default {
   mounted() {
   },
   watch: {
+    runSearch: {
+      handler(newVal){
+        if (newVal) {
+          this.run()
+        }
+      },
+      immediate: true
+    },
     isSearchPassing(newVal) {
       if (newVal) {
         this.passCount += 1

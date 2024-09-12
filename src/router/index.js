@@ -35,6 +35,11 @@ import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
+import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
+import TestQuery from "@/views/TestQueries/TestQuery.vue";
+import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
+import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
+import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
 
 Vue.use(VueRouter)
 
@@ -69,25 +74,57 @@ const routes = [
     // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {
-        path: '/test-queries',
-        name: "queries",
+        path: '/tests',
+        name: "tests",
         component: TestQueriesBase,
+        children: [
+            {
+                path: '',
+                name: 'test-suites-list',
+                component: TestQueriesSuitesList,
+            },
+            {
+                path: '/tests/:testSuiteId',
+                name: 'test-queries-suite',
+                component: TestQueriesSuite,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId',
+                name: 'test-query',
+                component: TestQuery,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId/:testType',
+                name: 'test-type',
+                component: TestQueriesTestType,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId/:testType/:testId',
+                name: 'test',
+                component: TestQueriesTest,
+            },
+        ]
     },
-    {
-        path: '/test-queries/:queryId',
-        name: "query",
-        component: TestQueriesBase,
-    },
-    {
-        path: '/test-queries/:queryId/:testType',
-        name: "test-type",
-        component: TestQueriesBase,
-    },
-    {
-        path: '/test-queries/:queryId/:testType/:testId',
-        name: "test",
-        component: TestQueriesBase,
-    },
+    // {
+    //     path: '/test-queries/:testSuiteId',
+    //     name: "query-suite",
+    //     component: TestQueriesBase,
+    // },
+    // {
+    //     path: '/test-queries/:suiteId/:queryId',
+    //     name: "query",
+    //     component: TestQueriesBase,
+    // },
+    // {
+    //     path: '/test-queries/:suiteId/:queryId/:testType',
+    //     name: "test-type",
+    //     component: TestQueriesBase,
+    // },
+    // {
+    //     path: '/test-queries/:suiteId/:queryId/:testType/:testId',
+    //     name: "test",
+    //     component: TestQueriesBase,
+    // },
 
 
     {
@@ -138,24 +175,7 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
-    {path: '/tests', component: OQOTests},
     {path: '/tests_old', component: OQOTests},
-    {
-        path: '/tests/:id',
-        component: OQOTestDetails,
-        props: (route) => ({
-            testId: route.params.id,
-            autoRun: route.query.run
-        })
-    },
-    {
-        path: '/tests/tag/:tag',
-        component: OQOTests,
-        props: (route) => ({
-            initialTag: route.params.tag,
-            autoRun: route.query.run
-        })
-    },
 
 
     // redirects to gitbook docs
