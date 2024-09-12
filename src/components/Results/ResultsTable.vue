@@ -71,21 +71,21 @@
       </div>
 
 
-      <v-menu rounded>
-        <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on">
-            <v-icon>mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item :href="apiUrl" icon target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>View in API</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+<!--      <v-menu rounded>-->
+<!--        <template v-slot:activator="{ on }">-->
+<!--          <v-btn icon v-on="on">-->
+<!--            <v-icon>mdi-dots-vertical</v-icon>-->
+<!--          </v-btn>-->
+<!--        </template>-->
+<!--        <v-list>-->
+<!--          <v-list-item :href="apiUrl" icon target="_blank">-->
+<!--            <v-list-item-icon>-->
+<!--              <v-icon>mdi-api</v-icon>-->
+<!--            </v-list-item-icon>-->
+<!--            <v-list-item-title>View in API</v-list-item-title>-->
+<!--          </v-list-item>-->
+<!--        </v-list>-->
+<!--      </v-menu>-->
     </div>
 
     <v-simple-table>

@@ -12,9 +12,7 @@
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
-          <v-btn icon :href="searchApiUrl" target="_blank">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
+
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on" class=" ml-1">
@@ -22,16 +20,16 @@
               </v-btn>
             </template>
             <v-list>
-              <v-list-item :href="searchApiUrl" target="_blank">
-                <v-list-item-icon>
-                  <v-icon>mdi-api</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>
-                  View in API
-                  <v-icon x-small right>mdi-open-in-new</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-divider/>
+<!--              <v-list-item :href="searchApiUrl" target="_blank">-->
+<!--                <v-list-item-icon>-->
+<!--                  <v-icon>mdi-api</v-icon>-->
+<!--                </v-list-item-icon>-->
+<!--                <v-list-item-title>-->
+<!--                  View in API-->
+<!--                  <v-icon x-small right>mdi-open-in-new</v-icon>-->
+<!--                </v-list-item-title>-->
+<!--              </v-list-item>-->
+<!--              <v-divider/>-->
               <v-list-item @click="toggleCard('queryJson')">
                 <v-list-item-icon>
                   <v-icon>mdi-code-braces-box</v-icon>
@@ -57,12 +55,12 @@
             subject-entity="works"
             :filters="$store.state.search.query.filter_works"
         />
-<!--        <query-filter-tree-->
-<!--            class="mt-3"-->
-<!--            v-if="query.summarize_by"-->
-<!--            :subject-entity="query.summarize_by"-->
-<!--            :filters="entityFilters"-->
-<!--        />-->
+        <query-filter-tree
+            class="mt-3"
+            v-if="querySubjectEntity !== 'works'"
+            :subject-entity="querySubjectEntity"
+            :filters="$store.state.search.query.filter_aggs"
+        />
 
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
@@ -87,6 +85,9 @@
           <query-summarize-by style="margin-left: -13px;"/>
 
           <v-spacer></v-spacer>
+          <v-btn icon :href="searchApiUrl" target="_blank">
+            <v-icon>mdi-api</v-icon>
+          </v-btn>
         </v-toolbar>
         <v-card flat rounded>
 
@@ -193,6 +194,7 @@ export default {
       "worksFilters",
       "entityFilters",
       "querySubjectEntityConfig",
+      "querySubjectEntity",
       "query",
       "searchApiUrl",
         "queryColumns",
