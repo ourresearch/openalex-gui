@@ -189,7 +189,7 @@ export default {
     ...mapActions("search", []),
     ...mapActions("user", []),
     async createSearch() {
-      const url = "https://api.openalex.org/searches"
+      const url = "https://api.openalex.org/searches?mailto=team@ourresearch.org"
       try {
         const resp = await axios.post(url, {query: this.config.query})
         this.searchId = resp.data.id
