@@ -2,7 +2,7 @@
   <div>
     <div>
       <v-checkbox
-          label="run searche"
+          label="run search"
           v-model="runSearch"
       />
     </div>
@@ -55,8 +55,12 @@ export default {
   },
   created() {
   },
-  mounted() {
-    this.myQueryConfig = getTestQuery(this.$route.params.testSuiteId, this.$route.params.queryId)
+  async mounted() {
+    const ret = await getTestQuery(
+        this.$route.params.testSuiteId,
+        this.$route.params.queryId,
+    )
+    this.myQueryConfig =ret
   },
   watch: {}
 }

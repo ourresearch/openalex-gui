@@ -52,7 +52,7 @@ export default {
 
       if (this.$route.params.testSuiteId) {
         items.push({
-          text: `Suite ${this.$route.params.testSuiteId}`,
+          text: `Suite: ${this.$route.params.testSuiteId}`,
           exact: true,
           to: `/tests/${this.$route.params.testSuiteId}`
         });
@@ -60,7 +60,7 @@ export default {
 
       if (this.$route.params.queryId) {
         items.push({
-          text: `Query #${this.$route.params.queryId}`,
+          text: `Query: ${this.$route.params.queryId}`,
           exact: true,
           to: `/tests/${this.$route.params.testSuiteId}/${this.$route.params.queryId}`
         });
@@ -83,27 +83,12 @@ export default {
       }
       return items
     },
+    pageTitle(){
+      // get the last item in the breadcrumbs list
+      return this.breadcrumbItems[this.breadcrumbItems.length - 1].text
+    }
 
-    pageType() {
-      if (this.$route.params.testId) {
-        return "test";
-      } else if (this.$route.params.testType) {
-        return "test-type";
-      } else if (this.$route.params.queryId) {
-        return "query";
-      } else {
-        return "queries";
-      }
-    },
 
-    pageTitle() {
-      return {
-        "queries": "Test Queries",
-        "query": `Query #${this.$route.params.queryId}`,
-        "test-type": `${this.$route.params.testType}`,
-        "test": `${this.$route.params.testId}`,
-      }[this.pageType]
-    },
 
   },
 

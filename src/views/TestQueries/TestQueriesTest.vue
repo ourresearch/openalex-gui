@@ -7,19 +7,20 @@
             :input="myTest.input"
             :expected-response="myTest.expectedResponse"
 
+            :test-suite-id="$route.params.testSuiteId"
             :query-id="Number($route.params.queryId)"
             :test-id="$route.params.testId"
         />
 
-        <test-query-nat-lang
-            v-if="myTestType === 'natlang'"
+<!--        <test-query-nat-lang-->
+<!--            v-if="myTestType === 'natlang'"-->
 
-            :input="myTest.input"
-            :expected-response="myTest.expectedResponse"
+<!--            :input="myTest.input"-->
+<!--            :expected-response="myTest.expectedResponse"-->
 
-            :query-id="Number($route.params.queryId)"
-            :test-id="Number($route.params.testId)"
-        />
+<!--            :query-id="Number($route.params.queryId)"-->
+<!--            :test-id="Number($route.params.testId)"-->
+<!--        />-->
     </template>
     <template v-else>
       loading....
@@ -43,6 +44,7 @@ export default {
   data() {
     return {
       foo: 42,
+      myQuery: null,
     }
   },
   computed: {
@@ -53,9 +55,6 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    myQuery() {
-      return getTestQuery(this.$route.params.testSuiteId, this.$route.params.queryId)
-    },
     myTestType() {
       return this.$route.params.testType
     },
@@ -100,7 +99,12 @@ export default {
   },
   created() {
   },
-  mounted() {
+  async mounted() {
+    this.myQuery = await getTestQuery(
+        this.$route.params.testSuiteId,
+        this.$route.params.queryId,
+    )
+
   },
   watch: {}
 }

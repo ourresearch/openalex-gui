@@ -12,7 +12,7 @@
             icon
             v-on="on"
             :color="testColor"
-            :to="`/test-queries/${queryId}/oql/${testId}`"
+            :to="`/tests/${testSuiteId}/${queryId}/oql/${testId}`"
         >
           <v-icon>mdi-code-parentheses-box</v-icon>
         </v-btn>
@@ -23,14 +23,14 @@
     </v-tooltip>
     <v-container v-else>
       <v-alert
-            text
-            rounded
-            :color="testColor"
-        >
-          <v-icon v-if="isTestPassing" left color="success">mdi-check-circle</v-icon>
-          <v-icon v-else left color="error">mdi-close-circle</v-icon>
-          {{ isTestPassing ? 'Passing' : 'Failing' }}
-        </v-alert>
+          text
+          rounded
+          :color="testColor"
+      >
+        <v-icon v-if="isTestPassing" left color="success">mdi-check-circle</v-icon>
+        <v-icon v-else left color="error">mdi-close-circle</v-icon>
+        {{ isTestPassing ? 'Passing' : 'Failing' }}
+      </v-alert>
 
 
       <template v-if="testId === 'to-query'">
@@ -113,6 +113,7 @@ export default {
 
     queryId: Number,
     testId: String,
+    testSuiteId: String,
 
     icon: Boolean,
   },
@@ -129,25 +130,29 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    isTestComplete() {
-      return this.isTestPassing !== null
-    },
     testColor() {
       return this.isTestPassing ? "green" : "red"
     },
     actualResponse() {
       if (this.testId === 'from-query') {
-        return queryToOQL(this.input)
+        try {
+          return queryToOQL(this.input)
+        } catch (e) {
+          return `test threw error: "${e.message}"`
+        }
       } else if (this.testId === 'to-query') {
-        return oqlToQuery(this.input)
+        try {
+          return oqlToQuery(this.input)
+        } catch (e) {
+          return `test threw error: "${e.message}"`
+        }
       } else {
         throw new Error(`Unknown OQL testId: ${this.testId}`)
       }
     },
     // trim ; character from end of oql strings when comparing for equality (sometimes one has it at the end, sometimes not)
     isTestPassing() {
-      if (this.testId === 'from-query') return _.isEqual(this.actualResponse.replace(/;$/, ''), this.expectedResponse.replace(/;$/, ''));
-      return _.isEqual(this.actualResponse, this.expectedResponse);
+      return _.isEqual(this.actualResponse, this.expectedResponse)
     }
   },
 

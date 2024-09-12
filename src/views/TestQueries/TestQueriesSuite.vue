@@ -1,13 +1,14 @@
 <template>
   <v-container v-if="queries.length">
-    <v-row>
-      <v-col>
-        <v-checkbox
-            label="run searches"
-            v-model="runSearch"
-        />
-      </v-col>
-    </v-row>
+    <div class="d-flex align-center pa-3">
+      {{queries.length}} queries
+      <v-spacer/>
+      <v-checkbox
+          label="run searches"
+          v-model="runSearch"
+          hide-details
+      />
+    </div>
     <v-row dense>
       <v-col
           cols="12"
@@ -78,8 +79,7 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([
-    ]),
+    ...mapActions([]),
     ...mapMutations("search", []),
     ...mapActions("search", []),
     ...mapActions("user", []),
@@ -89,7 +89,8 @@ export default {
   created() {
   },
   async mounted() {
-    this.queries = await getTestSuite(this.$route.params.testSuiteId)
+    const queries = await getTestSuite(this.$route.params.testSuiteId)
+    this.queries = queries
   },
   watch: {}
 }
