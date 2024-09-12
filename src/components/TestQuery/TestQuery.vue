@@ -12,15 +12,15 @@
 
     </div>
 
-<!--    <div class="font-weight-bold">-->
-<!--      <span class="success&#45;&#45;text">pass: {{ passCount }}</span>-->
-<!--      <span class="error&#45;&#45;text mx-3">fail: {{ failCount }}</span>-->
-<!--      <span class="mx-3">complete: {{ completeCount }}</span>-->
-<!--      <span class="grey&#45;&#45;text">loading: {{ loadingCount }}</span>-->
-<!--    </div>-->
+    <!--    <div class="font-weight-bold">-->
+    <!--      <span class="success&#45;&#45;text">pass: {{ passCount }}</span>-->
+    <!--      <span class="error&#45;&#45;text mx-3">fail: {{ failCount }}</span>-->
+    <!--      <span class="mx-3">complete: {{ completeCount }}</span>-->
+    <!--      <span class="grey&#45;&#45;text">loading: {{ loadingCount }}</span>-->
+    <!--    </div>-->
 
     <div class=" monospace body-2 pa-3">
-<!--            <span>{{ config.id }}.</span>-->
+      <!--            <span>{{ config.id }}.</span>-->
       <span v-if="status === 'pass'" class="success--text">{{ config.oql }}</span>
       <span v-else-if="status === 'fail'" class="error--text">{{ config.oql }}</span>
       <span v-else class="grey--text">{{ config.oql }}</span>
@@ -83,12 +83,17 @@
           </v-btn>
         </template>
         <span>
-          <span v-if="searchError">
-            <span class="font-weight-bold">Search Error:</span>
-            {{ searchError }}
+          <span v-if="isSearchPassing">
+            <span class="font-weight-bold">Search passed</span>
+            (click to view)
           </span>
-          <span v-else class="font-weight-bold">Search passed</span>
-          (click to view)
+          <span v-else-if="searchError">
+              <span class="font-weight-bold">Search Error:</span>
+              {{ searchError }}
+          </span>
+          <span v-else>
+            <span class="font-weight-bold">Search failed:</span> no results.
+          </span>
         </span>
       </v-tooltip>
       <v-spacer/>
@@ -237,9 +242,9 @@ export default {
         this.runSearchMethod()
       }
     },
-    async runSearchMethod(){
-        await this.createSearch()
-        this.pollSearch()
+    async runSearchMethod() {
+      await this.createSearch()
+      this.pollSearch()
     }
 
 

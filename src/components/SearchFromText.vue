@@ -142,7 +142,7 @@ export default {
     "$store.state.search.oql": {
       handler: function (newVal) {
         if (this.selectedInputType === "oql") {
-          this.q = newVal;
+          this.q = newVal
         }
       },
       immediate: true

@@ -69,16 +69,14 @@
     <!--        <pre>{{ displayFilters }}</pre>-->
     <!--      </v-col>-->
     <!--    </v-row>-->
-<!--        <v-row style="font-size: 11px !important;">-->
-<!--          <v-col >-->
-<!--            <div class="text-h6">Query</div>-->
-<!--            <pre>{{ query.filters}}</pre>-->
-<!--          </v-col>-->
-<!--          <v-col>-->
-<!--            <div class="text-h6">Component</div>-->
-<!--            <pre>{{ myFilters }}</pre>-->
-<!--          </v-col>-->
-<!--        </v-row>-->
+
+    <!--    <v-row style="font-size: 11px !important;">-->
+    <!--      <v-col>-->
+    <!--        <div class="font-weight-bold">Component.myFilters</div>-->
+    <!--        <pre>{{ myFilters }}</pre>-->
+    <!--      </v-col>-->
+    <!--    </v-row>-->
+
     <v-card-text v-if="myFilters.length === 0" class="">
       No filters applied
     </v-card-text>
@@ -156,9 +154,6 @@ export default {
       })
       return _.cloneDeep(ret)
     },
-    isDirty() {
-      return !_.isEqual(this.query.filters, this.filtersToStore)
-    }
   },
 
   methods: {
@@ -186,7 +181,7 @@ export default {
 
 
     // read
-    getFilterFromPath(path){
+    getFilterFromPath(path) {
       // for now we just assume there is only a flat array of filters
       const index = path[0]
       return this.myFilters[index]
@@ -209,9 +204,8 @@ export default {
     },
 
 
-
     // delete
-    deleteFilter(path){
+    deleteFilter(path) {
       // for now we just assume there is only a flat array of filters
       const index = path[0]
       this.myFilters.splice(index, 1)
@@ -219,15 +213,15 @@ export default {
     },
 
 
-
     // apply
     applyFilters() {
-      this.$store.state.search.query.filter_works = this.filtersToStore
+      if (this.subjectEntity === "works") {
+        this.$store.state.search.query.filter_works = this.filtersToStore
+      } else {
+        this.$store.state.search.query.filter_aggs = this.filtersToStore
+      }
       this.createSearch()
     },
-
-
-
 
 
   },
@@ -238,7 +232,7 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        this.myFilters =  _.cloneDeep(filters)
+        this.myFilters = _.cloneDeep(filters)
         this.openNodes = filters.map(f => f.id)
       },
       immediate: true
