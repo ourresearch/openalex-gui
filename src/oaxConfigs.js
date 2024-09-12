@@ -7486,7 +7486,7 @@ const oaxConfigs = {
                 "descr": "The continents of the institutions associated with the work."
             },
             "authorships.institutions.is_global_south": {
-                "id": "institutions.is_global_south",
+                "id": "authorships.institutions.is_global_south",
                 "subjectEntity": "works",
                 "operators": [
                     "is",
