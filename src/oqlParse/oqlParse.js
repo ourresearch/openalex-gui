@@ -83,8 +83,9 @@ function oqlToQuery(oql) {
 
 function queryToOQL(query) {
     let oql = '';
+    const filterWorks = query.filter_works ?? [];
 
-    if (query.filter_works && query.get_rows !== 'works') {
+    if (filterWorks.length > 0 && query.get_rows !== 'works') {
         oql += `using works where ${generateFilters(query.filter_works)}; `;
     }
 
@@ -94,11 +95,13 @@ function queryToOQL(query) {
         oql += ' of works';
     }
 
-    if (query.filter_works && query.get_rows === 'works') {
+    if (filterWorks.length > 0 && query.get_rows === 'works') {
         oql += ` where ${generateFilters(query.filter_works)}`;
     }
 
-    if (query.filter_aggs && query.get_rows !== 'works') {
+    const filterAggs = query.filter_aggs ?? [];
+
+    if (filterAggs.length > 0 && query.get_rows !== 'works') {
         oql += ` where ${generateFilters(query.filter_aggs)}`;
     }
 
