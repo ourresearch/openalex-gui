@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div  class="table-meta d-flex align-center pa-2">
+    <div class="table-meta d-flex align-center pa-2">
 
       <v-btn
           icon
@@ -8,11 +8,11 @@
       >
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
-      <template v-if="userId">
 
-        <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-btn>
+      <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
+        <v-icon>mdi-tray-arrow-down</v-icon>
+      </v-btn>
+      <template v-if="userId">
         <v-menu>
           <template v-slot:activator="{ on }">
             <v-btn icon v-on="on" :disabled="!selectedIds.length">
@@ -71,21 +71,47 @@
       </div>
 
 
-<!--      <v-menu rounded>-->
-<!--        <template v-slot:activator="{ on }">-->
-<!--          <v-btn icon v-on="on">-->
-<!--            <v-icon>mdi-dots-vertical</v-icon>-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--        <v-list>-->
-<!--          <v-list-item :href="apiUrl" icon target="_blank">-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon>mdi-api</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-title>View in API</v-list-item-title>-->
-<!--          </v-list-item>-->
-<!--        </v-list>-->
-<!--      </v-menu>-->
+      <!--      <v-menu rounded>-->
+      <!--        <template v-slot:activator="{ on }">-->
+      <!--          <v-btn icon v-on="on">-->
+      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
+      <!--          </v-btn>-->
+      <!--        </template>-->
+      <!--        <v-list>-->
+      <!--          <v-list-item :href="apiUrl" icon target="_blank">-->
+      <!--            <v-list-item-icon>-->
+      <!--              <v-icon>mdi-api</v-icon>-->
+      <!--            </v-list-item-icon>-->
+      <!--            <v-list-item-title>View in API</v-list-item-title>-->
+      <!--          </v-list-item>-->
+      <!--        </v-list>-->
+      <!--      </v-menu>-->
+    </div>
+    <div class="pa-3 d-flex align-center grey lighten-2"
+         v-if="isEveryRowSelected && rows.length < resultsMeta.count"
+    >
+      <template v-if="isEntireSearchSelected">
+        All <span class="font-weight-bold mx-1">{{ resultsMeta.count | millify }}</span> results are selected.
+        <v-btn
+            text
+            color="primary"
+            rounded
+            @click="unselectAll"
+        >
+          Clear selection
+        </v-btn>
+      </template>
+      <template v-else>
+        All <span class="font-weight-bold mx-1">{{ selectedIds.length }}</span> results on this page are selected.
+        <v-btn
+            text
+            color="primary"
+            rounded
+            @click="isEntireSearchSelected = true"
+        >
+          Select all {{ resultsMeta.count | millify }} results
+        </v-btn>
+      </template>
     </div>
 
     <v-simple-table>
@@ -95,9 +121,10 @@
           v-for="(header, i) in queryColumns"
           :key="'header-'+i"
           :class="`data-type-${header.type} is-date-${header.isDate}`"
+          class=""
       >
         <div class="d-flex">
-        <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
+          <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
               <v-btn
@@ -200,7 +227,7 @@
           @click.exact="clickRow(row.id)"
           @click.meta.stop="metaClickRow(row.id)"
       >
-        <td key="selector" class="selector px-0" style="width: 1px; white-space: nowrap;">
+        <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
           <v-btn icon @click.stop="toggleSelectedId(row.id)">
             <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
             <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
@@ -266,6 +293,8 @@ export default {
     return {
       foo: 42,
       selectedIds: [],
+      isEntireSearchSelected: false,
+
       zoomId: null,
       isPropSelectorDialogOpen: false,
       isCreateLabelDialogOpen: false,
@@ -305,8 +334,13 @@ export default {
         }
       })
     },
+    isEveryRowSelected() {
+      return this.selectedIds.length === this.resultsBody.length
+    },
+
+
     selectAllIcon() {
-      if (this.selectedIds.length === this.resultsBody.length) {
+      if (this.isEveryRowSelected) {
         return "mdi-checkbox-marked"
       } else if (this.selectedIds.length === 0) {
         return "mdi-checkbox-blank-outline"
@@ -343,8 +377,8 @@ export default {
       "deleteReturnColumn",
       "setSortBy",
       "createSearch",
-        "addReturnColumn",
-        "deleteReturnColumn",
+      "addReturnColumn",
+      "deleteReturnColumn",
     ]),
     commitSortBy(sortBy) {
       this.setSortBy(sortBy)
@@ -363,11 +397,16 @@ export default {
         this.addSelectedId(id)
       }
     },
+    unselectAll(){
+      this.selectedIds = []
+      this.isEntireSearchSelected = false
+    },
     clickSelectAllButton() {
+      this.isEntireSearchSelected = false
       if (this.selectedIds.length === 0) {
         this.selectedIds = this.resultsBody.map((row) => row.id)
       } else {
-        this.selectedIds = []
+        this.unselectAll()
       }
     },
     clickRow(rowId) {
@@ -393,6 +432,11 @@ export default {
       this.createSearch()
     },
     exportSelectedAsCsv() {
+      if (this.isEntireSearchSelected) {
+        this.snackbar("You can only export selected rows, not the entire search.")
+        return
+      }
+
       const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
       const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows)
 
@@ -436,11 +480,13 @@ td.data-type-number {
   text-align: right;
   font-family: monospace;
   font-size: 0.9em;
+
   &.is-date-true {
     text-align: unset;
     font-family: unset;
   }
 }
+
 a {
   text-decoration: none;
 }
