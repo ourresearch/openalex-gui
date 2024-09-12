@@ -14,7 +14,7 @@ const getTestSuite = async function (testSuiteId) {
 }
 const getTestQuery = async function (testSuiteId, queryId) {
     const testSuite = await getTestSuite(testSuiteId)
-    return testSuite.find(test => test.id === queryId)
+    return testSuite.find(test => test.id == queryId)
 }
 
 export {
