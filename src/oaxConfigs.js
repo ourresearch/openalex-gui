@@ -183,11 +183,10 @@ const oaxConfigs = {
                 "objectEntity": "institution-types",
                 "displayName": "Past institutions type",
                 "type": "array",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftDisplayColumn": "institution_type",
+                "redshiftFilterColumn": "institution_type",
                 "actions": [
-                    "filter",
-                    "group_by"
+                    "filter"
                 ],
                 "actionsPopular": [
                     "filter"
@@ -603,7 +602,7 @@ const oaxConfigs = {
                 "displayName": "Continent ID",
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "wikidata_id",
                 "actions": [
                     "filter"
                 ],
@@ -646,8 +645,8 @@ const oaxConfigs = {
                 "objectEntity": null,
                 "displayName": "search display_name",
                 "type": "string",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftDisplayColumn": "display_name",
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -832,8 +831,8 @@ const oaxConfigs = {
                     "filter"
                 ],
                 "category": "search",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftDisplayColumn": "display_name",
+                "redshiftFilterColumn": "display_name",
                 "icon": "mdi-account-outline",
                 "descr": "The name of the country",
                 "isSearchColumn": true
@@ -1953,7 +1952,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "domain_id",
                 "icon": "mdi-tag-outline",
                 "descr": "Unique identifier for the domain"
             },
@@ -1995,7 +1994,7 @@ const oaxConfigs = {
                 "displayName": "search display_name",
                 "type": "string",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -2151,7 +2150,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "field_id",
                 "icon": "mdi-tag-outline",
                 "descr": "Unique identifier for the field"
             },
@@ -2272,7 +2271,7 @@ const oaxConfigs = {
                 "displayName": "domain (parent)",
                 "type": "object",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "domain_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The domain that is the parent of this field"
@@ -2451,7 +2450,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "funder_id",
                 "actions": [],
                 "icon": "mdi-cash-multiple",
                 "descr": "Unique identifier for the funder"
@@ -2656,7 +2655,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "institution_type_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the institution type"
@@ -2699,7 +2698,7 @@ const oaxConfigs = {
                 "displayName": "search display_name",
                 "type": "string",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -3125,7 +3124,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "keyword_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the keyword in OpenAlex"
@@ -3168,7 +3167,7 @@ const oaxConfigs = {
                 "displayName": "search display_name",
                 "type": "string",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -3301,7 +3300,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "language_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the language in OpenAlex"
@@ -4213,7 +4212,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "license_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the license in OpenAlex."
@@ -4864,7 +4863,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "source_type_id",
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-shape-outline",
@@ -5387,7 +5386,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "subfield_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the subfield in OpenAlex."
@@ -5430,7 +5429,7 @@ const oaxConfigs = {
                 "displayName": "search display_name",
                 "type": "string",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -6595,7 +6594,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "topic_id",
                 "icon": "mdi-tag-outline",
                 "descr": "Unique identifier for the topic in OpenAlex."
             },
@@ -6781,7 +6780,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "type_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the work type in OpenAlex."
@@ -6824,7 +6823,7 @@ const oaxConfigs = {
                 "displayName": "search display_name",
                 "type": "string",
                 "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "display_name",
                 "actions": [
                     "filter"
                 ],
@@ -7379,7 +7378,7 @@ const oaxConfigs = {
                 "category": "other",
                 "apiField": "display_name",
                 "redshiftDisplayColumn": "display_name",
-                "redshiftReturnColumn": "display_name",
+                "redshiftFilterColumn": "display_name",
                 "icon": "mdi-file-document-outline",
                 "descr": "The title of the work."
             },
@@ -7489,8 +7488,7 @@ const oaxConfigs = {
                 "id": "authorships.institutions.is_global_south",
                 "subjectEntity": "works",
                 "operators": [
-                    "is",
-                    "is not"
+                    "is"
                 ],
                 "defaultOperator": "is",
                 "displayName": "from Global South",
@@ -7503,7 +7501,7 @@ const oaxConfigs = {
                 "category": "institution",
                 "apiField": "institutions.is_global_south",
                 "redshiftDisplayColumn": "is_global_south",
-                "redshiftReturnColumn": "is_global_south",
+                "redshiftFilterColumn": "is_global_south",
                 "icon": "mdi-earth",
                 "descr": "Whether the institutions associated with the work are in the Global South."
             },
@@ -7620,24 +7618,6 @@ const oaxConfigs = {
                 "icon": "mdi-book-open-outline",
                 "descr": "Whether the primary source of the work is indexed by the Directory of Open Access Journals (DOAJ)."
             },
-            "primary_location.source.is_oa": {
-                "id": "primary_location.source.is_oa",
-                "subjectEntity": "works",
-                "operators": [
-                    "is"
-                ],
-                "defaultOperator": "is",
-                "displayName": "in OA source",
-                "objectEntity": null,
-                "type": "boolean",
-                "category": "source",
-                "apiField": "primary_location.source.is_oa",
-                "redshiftDisplayColumn": null,
-                "redshiftFilterColumn": null,
-                "actions": [],
-                "icon": "mdi-book-open-outline",
-                "descr": "Whether the primary source of the work is an open access source."
-            },
             "type": {
                 "id": "type",
                 "subjectEntity": "works",
@@ -7658,12 +7638,10 @@ const oaxConfigs = {
                 "redshiftDisplayColumn": "type_formatted",
                 "redshiftFilterColumn": "type",
                 "actions": [
-                    "filter",
-                    "column"
+                    "filter"
                 ],
                 "actionsPopular": [
-                    "filter",
-                    "column"
+                    "filter"
                 ],
                 "icon": "mdi-shape-outline",
                 "descr": "The OpenAlex work type of the work"
@@ -7796,6 +7774,26 @@ const oaxConfigs = {
                 ],
                 "icon": "mdi-file-document-outline",
                 "descr": "Searches the title of the work."
+            },
+            "about": {
+                "id": "about",
+                "subjectEntity": "works",
+                "operators": [
+                    "is"
+                ],
+                "defaultOperator": "is",
+                "displayName": "about",
+                "objectEntity": null,
+                "type": "string",
+                "category": "other",
+                "apiField": "about",
+                "redshiftDisplayColumn": "about",
+                "redshiftFilterColumn": "about",
+                "actions": [
+                    "filter"
+                ],
+                "icon": "mdi-file-document-outline",
+                "descr": "Vector search across title and abstract."
             },
             "count": {
                 "id": "count",
