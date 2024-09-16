@@ -344,6 +344,28 @@ const oaxConfigs = {
                 "icon": "mdi-town-hall",
                 "descr": "Alternate names of the author which are determined from the raw author name of all works associated with an author."
             },
+            "related_to_text": {
+                "id": "related_to_text",
+                "subjectEntity": "authors",
+                "operators": [
+                    "is"
+                ],
+                "defaultOperator": "is",
+                "entityId": "authors",
+                "objectEntity": null,
+                "displayName": "related to text",
+                "type": "string",
+                "redshiftDisplayColumn": "related_to_text",
+                "redshiftFilterColumn": "related_to_text",
+                "actions": [
+                    "filter"
+                ],
+                "actionsPopular": [
+                    "filter"
+                ],
+                "icon": "mdi-text",
+                "descr": "Text that the author is related to."
+            },
             "count(works)": {
                 "id": "count(works)",
                 "subjectEntity": "authors",
@@ -4415,7 +4437,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "publisher_id",
                 "actions": [],
                 "icon": "mdi-domain",
                 "descr": "The unique identifier for the publisher in OpenAlex."
@@ -4617,7 +4639,7 @@ const oaxConfigs = {
                 "displayName": "SDG ID",
                 "isId": true,
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "sdg_id",
                 "actions": [],
                 "type": "string",
                 "icon": "mdi-tag-outline",
@@ -6780,7 +6802,7 @@ const oaxConfigs = {
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "type_id",
+                "redshiftFilterColumn": "work_type_id",
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The unique identifier for the work type in OpenAlex."
@@ -7775,20 +7797,20 @@ const oaxConfigs = {
                 "icon": "mdi-file-document-outline",
                 "descr": "Searches the title of the work."
             },
-            "about": {
-                "id": "about",
+            "related_to_text": {
+                "id": "related_to_text",
                 "subjectEntity": "works",
                 "operators": [
                     "is"
                 ],
                 "defaultOperator": "is",
-                "displayName": "about",
+                "displayName": "related to text",
                 "objectEntity": null,
                 "type": "string",
                 "category": "other",
-                "apiField": "about",
-                "redshiftDisplayColumn": "about",
-                "redshiftFilterColumn": "about",
+                "apiField": "related_to_text",
+                "redshiftDisplayColumn": "related_to_text",
+                "redshiftFilterColumn": "related_to_text",
                 "actions": [
                     "filter"
                 ],
