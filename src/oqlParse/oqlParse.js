@@ -32,7 +32,7 @@ function oqlToQuery(oql) {
     oql = oql.trim();
     const query = {};
 
-    let getRowsMatch = oql.match(/^(?:using works where .+?;\s*)?get\s+(\w+)(?:\s+of\s+works)?/);
+    let getRowsMatch = oql.match(/^(?:using works where .+?;\s*)?get\s+([\w-]+)(?:\s+of\s+works)?/);
     if (getRowsMatch) {
         query.get_rows = getRowsMatch[1];
         if (query.get_rows === "a" && oql.includes("summary of works")) {
