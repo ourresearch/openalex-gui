@@ -24,10 +24,17 @@ function makeColumnIDsMap() {
 const COLUMN_IDS_MAP = makeColumnIDsMap();
 
 function generateFilters(filters) {
-    return filters.map(filter =>
-        `${filter.column_id} ${filter.operator ?? 'is'} ${filter.value}`
-    ).join(' and ');
+    return filters.map(filter => {
+        let value = filter.value;
+
+        // Check if value is a string and contains a space
+        if (typeof value === 'string' && value.includes(' ')) {
+            value = `"${value}"`;
+        }
+        return `${filter.column_id} ${filter.operator ?? 'is'} ${value}`;
+    }).join(' and ');
 }
+
 function oqlToQuery(oql) {
     oql = oql.trim();
     const query = {};
@@ -131,8 +138,8 @@ function parsePrimitive(str) {
             return num;
         }
     }
-
-    return str;
+     // strip quotes from either side of string
+    return str.replace(/^"(.*)"$/, '$1');
 }
 
 function getColumnId(name, subjectEntity = "works") {
