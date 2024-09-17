@@ -68,7 +68,7 @@ const oaxConfigs = {
                 "displayName": "OpenAlex ID",
                 "type": "string",
                 "redshiftDisplayColumn": "id",
-                "redshiftFilterColumn": "id",
+                "redshiftFilterColumn": "author_id",
                 "actions": [],
                 "actionsPopular": [],
                 "isId": true,
@@ -834,6 +834,24 @@ const oaxConfigs = {
                 "redshiftFilterColumn": null,
                 "icon": "mdi-account-outline",
                 "descr": "The name of the country"
+            },
+            "continent": {
+                "id": "continent",
+                "subjectEntity": "countries",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "countries",
+                "objectEntity": "continents",
+                "displayName": "Continent ID",
+                "isId": true,
+                "type": "string",
+                "redshiftDisplayColumn": "continent_id",
+                "redshiftFilterColumn": "continent_id",
+                "icon": "mdi-tag-outline",
+                "descr": "ID of the continent that the country is on"
             },
             "display_name.search": {
                 "id": "display_name.search",
@@ -7640,6 +7658,24 @@ const oaxConfigs = {
                 "icon": "mdi-book-open-outline",
                 "descr": "Whether the primary source of the work is indexed by the Directory of Open Access Journals (DOAJ)."
             },
+            "primary_location.source.is_oa": {
+                "id": "primary_location.source.is_oa",
+                "subjectEntity": "works",
+                "operators": [
+                    "is"
+                ],
+                "defaultOperator": "is",
+                "displayName": "in OA source",
+                "objectEntity": null,
+                "type": "boolean",
+                "category": "source",
+                "apiField": "primary_location.source.is_oa",
+                "redshiftDisplayColumn": "primary_source_is_oa",
+                "redshiftFilterColumn": "primary_source_is_oa",
+                "actions": [],
+                "icon": "mdi-book-open-outline",
+                "descr": "Whether the primary source of the work is an open access source."
+            },
             "type": {
                 "id": "type",
                 "subjectEntity": "works",
@@ -7923,4 +7959,4 @@ const oaxConfigs = {
         },
         "values": null
     }
-}
+};
