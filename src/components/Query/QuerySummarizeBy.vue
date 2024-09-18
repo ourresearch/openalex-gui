@@ -58,7 +58,7 @@
              <!--            </v-list-item-icon>-->
           </v-list-item>
            <v-list-item
-               value="all"
+               value="summary"
                active-class="primary--text"
            >
             <v-list-item-icon>
