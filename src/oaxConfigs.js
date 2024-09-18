@@ -353,7 +353,7 @@ const oaxConfigs = {
                 "defaultOperator": "is",
                 "entityId": "authors",
                 "objectEntity": null,
-                "displayName": "related to text",
+                "displayName": "related text",
                 "type": "string",
                 "redshiftDisplayColumn": "related_to_text",
                 "redshiftFilterColumn": "related_to_text",
@@ -7840,7 +7840,7 @@ const oaxConfigs = {
                     "is"
                 ],
                 "defaultOperator": "is",
-                "displayName": "related to text",
+                "displayName": "related text",
                 "objectEntity": null,
                 "type": "string",
                 "category": "other",
