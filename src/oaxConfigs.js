@@ -381,7 +381,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -408,7 +408,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -734,7 +734,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -761,7 +761,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -991,7 +991,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -1018,7 +1018,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -1045,7 +1045,7 @@ const oaxConfigs = {
                 "displayName": "mean FWCI",
                 "type": "number",
                 "redshiftDisplayColumn": "mean_fwci",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "mean_fwci",
                 "actions": [
                     "sort",
                     "column"
@@ -2181,7 +2181,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -2208,7 +2208,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -2515,7 +2515,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -2542,7 +2542,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -2932,7 +2932,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -2959,7 +2959,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -3110,7 +3110,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -3137,7 +3137,7 @@ const oaxConfigs = {
                 "displayName": "citations sum",
                 "type": "number",
                 "redshiftDisplayColumn": "sum(citations)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "sum(citations)",
                 "actions": [
                     "sort",
                     "column"
@@ -5874,7 +5874,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -6148,7 +6148,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "actions": [
                     "sort",
                     "column"
@@ -7431,7 +7431,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "icon": "mdi-tag-outline",
                 "descr": "The number of works that are tagged with this topic."
             },
@@ -7640,7 +7640,7 @@ const oaxConfigs = {
                 "displayName": "works count",
                 "type": "number",
                 "redshiftDisplayColumn": "count(works)",
-                "redshiftFilterColumn": null,
+                "redshiftFilterColumn": "count(works)",
                 "icon": "mdi-tag-outline",
                 "descr": "The number of works of this type"
             },
