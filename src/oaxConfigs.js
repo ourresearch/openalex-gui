@@ -7490,18 +7490,18 @@ const oaxConfigs = {
         },
         "values": null
     },
-    "types": {
+    "work-types": {
         "id": "types",
         "icon": "mdi-shape-outline",
-        "name": "types",
-        "nameSingular": "type",
-        "displayName": "types",
-        "displayNameSingular": "type",
+        "name": "work types",
+        "nameSingular": "work type",
+        "displayName": "work types",
+        "displayNameSingular": "work type",
         "descr": "Work type",
         "eg": "article",
         "placeholder": "Search work types",
-        "filterName": "type",
-        "filterKey": "type",
+        "filterName": "work type",
+        "filterKey": "work type",
         "descrFull": "The type of work, such as an article, book, or dataset.",
         "hasAutocomplete": false,
         "isNative": false,
@@ -7519,15 +7519,15 @@ const oaxConfigs = {
         "columns": {
             "id": {
                 "id": "id",
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "is",
                     "is not"
                 ],
                 "defaultOperator": "is",
-                "entityId": "types",
+                "entityId": "work-types",
                 "objectEntity": null,
-                "displayName": "Type ID",
+                "displayName": "Work Type ID",
                 "isId": true,
                 "type": "string",
                 "redshiftDisplayColumn": "id",
@@ -7539,7 +7539,7 @@ const oaxConfigs = {
             "display_name": {
                 "id": "display_name",
                 "isColumnMandatory": true,
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "is",
                     "is not"
@@ -7564,7 +7564,7 @@ const oaxConfigs = {
             },
             "display_name.search": {
                 "id": "display_name.search",
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "contains",
                     "does not contain"
@@ -7588,13 +7588,13 @@ const oaxConfigs = {
             },
             "description": {
                 "id": "description",
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "is",
                     "is not"
                 ],
                 "defaultOperator": "is",
-                "entityId": "types",
+                "entityId": "work-types",
                 "objectEntity": null,
                 "displayName": "description",
                 "type": "string",
@@ -7609,13 +7609,13 @@ const oaxConfigs = {
             "crossref_types": {
                 "id": "crossref_types",
                 "isList": true,
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "is",
                     "is not"
                 ],
                 "defaultOperator": "is",
-                "entityId": "types",
+                "entityId": "work-types",
                 "objectEntity": null,
                 "displayName": "alternate names (Crossref)",
                 "type": "array",
@@ -7672,7 +7672,7 @@ const oaxConfigs = {
             },
             "mean(fwci)": {
                 "id": "mean(fwci)",
-                "subjectEntity": "types",
+                "subjectEntity": "work-types",
                 "operators": [
                     "is",
                     "is not",
