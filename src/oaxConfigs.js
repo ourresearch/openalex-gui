@@ -962,7 +962,7 @@ const oaxConfigs = {
         "values": [
             {
                 "id": "countries/US",
-                "display_name": "United States of America"
+                "display_name": "United States"
             },
             {
                 "id": "countries/CN",
@@ -970,7 +970,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/GB",
-                "display_name": "United Kingdom of Great Britain and Northern Ireland"
+                "display_name": "United Kingdom"
             },
             {
                 "id": "countries/DE",
@@ -1010,7 +1010,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/RU",
-                "display_name": "Russian Federation"
+                "display_name": "Russia"
             },
             {
                 "id": "countries/ID",
@@ -1022,7 +1022,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/KR",
-                "display_name": "Korea, Republic of"
+                "display_name": "South Korea"
             },
             {
                 "id": "countries/PL",
@@ -1046,11 +1046,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/IR",
-                "display_name": "Iran, Islamic Republic of"
+                "display_name": "Iran"
             },
             {
                 "id": "countries/TW",
-                "display_name": "Taiwan, Province of China"
+                "display_name": "Taiwan"
             },
             {
                 "id": "countries/MX",
@@ -1174,7 +1174,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/VN",
-                "display_name": "Viet Nam"
+                "display_name": "Vietnam"
             },
             {
                 "id": "countries/IQ",
@@ -1234,7 +1234,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/VE",
-                "display_name": "Venezuela, Bolivarian Republic of"
+                "display_name": "Venezuela"
             },
             {
                 "id": "countries/JO",
@@ -1306,7 +1306,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/TZ",
-                "display_name": "Tanzania, United Republic of"
+                "display_name": "Tanzania"
             },
             {
                 "id": "countries/UG",
@@ -1338,7 +1338,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/BA",
-                "display_name": "Bosnia and Herzegovina"
+                "display_name": "Bosnia & Herzegovina"
             },
             {
                 "id": "countries/TJ",
@@ -1354,7 +1354,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/BO",
-                "display_name": "Bolivia, Plurinational State of"
+                "display_name": "Bolivia"
             },
             {
                 "id": "countries/SD",
@@ -1378,11 +1378,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/MD",
-                "display_name": "Moldova, Republic of"
+                "display_name": "Moldova"
             },
             {
                 "id": "countries/CI",
-                "display_name": "C\u00f4te d'Ivoire"
+                "display_name": "Ivory Coast"
             },
             {
                 "id": "countries/YE",
@@ -1406,7 +1406,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/PS",
-                "display_name": "Palestine, State of"
+                "display_name": "Palestine"
             },
             {
                 "id": "countries/BJ",
@@ -1454,11 +1454,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/SY",
-                "display_name": "Syrian Arab Republic"
+                "display_name": "Syria"
             },
             {
                 "id": "countries/CD",
-                "display_name": "Congo, Democratic Republic of the"
+                "display_name": "DR Congo"
             },
             {
                 "id": "countries/BW",
@@ -1478,7 +1478,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/BN",
-                "display_name": "Brunei Darussalam"
+                "display_name": "Brunei"
             },
             {
                 "id": "countries/BI",
@@ -1486,7 +1486,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/VG",
-                "display_name": "Virgin Islands, British"
+                "display_name": "British Virgin Islands"
             },
             {
                 "id": "countries/RW",
@@ -1510,7 +1510,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/TT",
-                "display_name": "Trinidad and Tobago"
+                "display_name": "Trinidad & Tobago"
             },
             {
                 "id": "countries/NI",
@@ -1530,7 +1530,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/DO",
-                "display_name": "Dominican Republic"
+                "display_name": "Dominican Rep."
             },
             {
                 "id": "countries/NA",
@@ -1570,7 +1570,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/ST",
-                "display_name": "Sao Tome and Principe"
+                "display_name": "S\u00e3o Tom\u00e9 & Pr\u00edncipe"
             },
             {
                 "id": "countries/GA",
@@ -1582,7 +1582,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/LA",
-                "display_name": "Lao People's Democratic Republic"
+                "display_name": "Laos"
             },
             {
                 "id": "countries/GN",
@@ -1662,11 +1662,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/KN",
-                "display_name": "Saint Kitts and Nevis"
+                "display_name": "St. Kitts & Nevis"
             },
             {
                 "id": "countries/MF",
-                "display_name": "Saint Martin (French part)"
+                "display_name": "Saint Martin"
             },
             {
                 "id": "countries/LS",
@@ -1702,7 +1702,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/VI",
-                "display_name": "Virgin Islands, U.S."
+                "display_name": "US Virgin Islands"
             },
             {
                 "id": "countries/SR",
@@ -1738,7 +1738,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/KP",
-                "display_name": "Korea, Democratic People's Republic of"
+                "display_name": "North Korea"
             },
             {
                 "id": "countries/GI",
@@ -1790,7 +1790,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/BQ",
-                "display_name": "Bonaire, Sint Eustatius and Saba"
+                "display_name": "Caribbean Netherlands"
             },
             {
                 "id": "countries/BV",
@@ -1814,11 +1814,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/FK",
-                "display_name": "Falkland Islands (Malvinas)"
+                "display_name": "Falkland Islands"
             },
             {
                 "id": "countries/FM",
-                "display_name": "Micronesia, Federated States of"
+                "display_name": "Micronesia"
             },
             {
                 "id": "countries/GG",
@@ -1830,11 +1830,11 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/GS",
-                "display_name": "South Georgia and the South Sandwich Islands"
+                "display_name": "South Georgia & South Sandwich Is."
             },
             {
                 "id": "countries/HM",
-                "display_name": "Heard Island and McDonald Islands"
+                "display_name": "Heard & McDonald Islands"
             },
             {
                 "id": "countries/IM",
@@ -1866,7 +1866,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/MP",
-                "display_name": "Northern Mariana Islands"
+                "display_name": "Northern Mariana Is."
             },
             {
                 "id": "countries/MS",
@@ -1886,7 +1886,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/PM",
-                "display_name": "Saint Pierre and Miquelon"
+                "display_name": "St. Pierre & Miquelon"
             },
             {
                 "id": "countries/PN",
@@ -1902,7 +1902,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/SH",
-                "display_name": "Saint Helena, Ascension and Tristan da Cunha"
+                "display_name": "Saint Helena"
             },
             {
                 "id": "countries/SJ",
@@ -1914,7 +1914,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/TC",
-                "display_name": "Turks and Caicos Islands"
+                "display_name": "Turks & Caicos Islands"
             },
             {
                 "id": "countries/TK",
@@ -1930,7 +1930,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/VC",
-                "display_name": "Saint Vincent and the Grenadines"
+                "display_name": "St. Vincent & Grenadines"
             },
             {
                 "id": "countries/VU",
@@ -1938,7 +1938,7 @@ const oaxConfigs = {
             },
             {
                 "id": "countries/WF",
-                "display_name": "Wallis and Futuna"
+                "display_name": "Wallis & Futuna"
             },
             {
                 "id": "countries/WS",
