@@ -4713,7 +4713,9 @@ const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/sdgs\\/|sdgs\\/)(\\d+)",
         "showOnEntityPage": [
             "id",
-            "display_name"
+            "display_name",
+            "ids.un",
+            "description"
         ],
         "showOnTablePage": [
             "display_name",
@@ -4737,7 +4739,7 @@ const oaxConfigs = {
                 "actions": [],
                 "type": "string",
                 "icon": "mdi-tag-outline",
-                "descr": "The unique identifier for the Sustainable Development Goa (SDG) in OpenAlex."
+                "descr": "The unique identifier for the Sustainable Development Goal (SDG) in OpenAlex."
             },
             "display_name": {
                 "id": "display_name",
@@ -4788,6 +4790,45 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the Sustainable Development Goal (SDG).",
                 "isSearchColumn": true
+            },
+            "description": {
+                "id": "description",
+                "isColumnMandatory": false,
+                "subjectEntity": "sdgs",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [],
+                "actionsPopular": [],
+                "category": "other",
+                "icon": "mdi-account-outline",
+                "descr": "The description of the Sustainable Development Goal (SDG)."
+            },
+            "ids.un": {
+                "id": "ids.un",
+                "subjectEntity": "sdgs",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "sdgs",
+                "objectEntity": null,
+                "displayName": "SDG UN ID",
+                "isId": true,
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "type": "string",
+                "icon": "mdi-tag-outline",
+                "descr": "The unique identifier for the Sustainable Development Goal (SDG) in UN metadata."
             },
             "count(works)": {
                 "id": "count(works)",
