@@ -7356,7 +7356,7 @@ const oaxConfigs = {
         "values": null
     },
     "work-types": {
-        "id": "types",
+        "id": "work-types",
         "icon": "mdi-shape-outline",
         "name": "work types",
         "nameSingular": "work type",
@@ -8299,9 +8299,9 @@ const oaxConfigs = {
                     "is not"
                 ],
                 "defaultOperator": "is",
-                "entityId": "types",
+                "entityId": "work-types",
                 "displayName": "type",
-                "objectEntity": "types",
+                "objectEntity": "work-types",
                 "isExternalId": true,
                 "isId": true,
                 "externalIdPrefix": "work-types",
