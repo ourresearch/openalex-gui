@@ -56,7 +56,7 @@
           <template v-else-if="property.config.type==='array'">
 
 <!--        array: entity objects-->
-            <template v-if="property.config.subjectEntity">
+            <template v-if="isEntityArray(property.value)">
               <router-link
                   v-for="(entity, i) in property.value"
                   :key="'entity-'+i"
@@ -66,16 +66,16 @@
               </router-link>
             </template>
 
-            <!--        array: strings-->
-            <template v-else-if="property.value.id">
-              <span
-                  v-for="(string, i) in property.value"
-                  :key="'string-'+i"
-              >
-                {{ string }}{{ i < property.value.length - 1 ? ', ' : '' }}
-              </span>
-            </template>
+            <!--        array: primitives -->
+          <template v-else>
+            <span
+                v-for="(item, i) in property.value"
+                :key="'item-'+i"
+            >
+              {{ item }}{{ i < property.value.length - 1 ? ', ' : '' }}
+            </span>
           </template>
+        </template>
 
       </span>
 </template>
@@ -111,8 +111,11 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
+    isEntityArray(arr) {
+      return Array.isArray(arr) && arr.length > 0 &&
+             typeof arr[0] === 'object' && arr[0] !== null &&
+             'id' in arr[0] && 'display_name' in arr[0];
+    }
   },
   created() {
   },
