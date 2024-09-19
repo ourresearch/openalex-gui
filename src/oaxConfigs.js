@@ -608,7 +608,8 @@ const oaxConfigs = {
             "countries"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -822,7 +823,10 @@ const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/countries\\/|countries\\/)([a-zA-Z]{2})",
         "showOnEntityPage": [
             "id",
-            "display_name"
+            "display_name",
+            "description",
+            "display_name_alternatives",
+            "is_global_south"
         ],
         "showOnTablePage": [
             "display_name",
@@ -914,6 +918,63 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the country",
                 "isSearchColumn": true
+            },
+            "description": {
+                "id": "description",
+                "isColumnMandatory": false,
+                "subjectEntity": "countries",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [],
+                "actionsPopular": [],
+                "category": "other",
+                "icon": "mdi-account-outline",
+                "descr": "The description of the country"
+            },
+            "display_name_alternatives": {
+                "id": "display_name_alternatives",
+                "isList": true,
+                "subjectEntity": "countries",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "countries",
+                "objectEntity": null,
+                "displayName": "alternate names",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "Alternate names of the country"
+            },
+            "is_global_south": {
+                "id": "is_global_south",
+                "subjectEntity": "countries",
+                "operators": [
+                    "is"
+                ],
+                "defaultOperator": "is",
+                "displayName": "from Global South",
+                "objectEntity": null,
+                "type": "boolean",
+                "actions": [],
+                "category": "other",
+                "redshiftDisplayColumn": "is_global_south",
+                "redshiftFilterColumn": "is_global_south",
+                "icon": "mdi-earth",
+                "descr": "Whether the country is in the global south"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2013,7 +2074,8 @@ const oaxConfigs = {
             "siblings"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -2083,6 +2145,26 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the domain",
                 "isSearchColumn": true
+            },
+            "display_name_alternatives": {
+                "id": "display_name_alternatives",
+                "isList": true,
+                "subjectEntity": "domains",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "domains",
+                "objectEntity": null,
+                "displayName": "alternate names",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "Alternate names of the domain"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2164,6 +2246,64 @@ const oaxConfigs = {
                 ],
                 "icon": "mdi-book-open-variant",
                 "descr": "The mean FWCI of works under this domain"
+            },
+            "description": {
+                "id": "description",
+                "subjectEntity": "domains",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "domains",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": null,
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the domain"
+            },
+            "fields": {
+                "id": "fields",
+                "isList": true,
+                "subjectEntity": "domains",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "fields",
+                "objectEntity": null,
+                "displayName": "fields (children)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The set of fields that are children of this domain"
+            },
+            "siblings": {
+                "id": "siblings",
+                "isList": true,
+                "subjectEntity": "domains",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "domains",
+                "objectEntity": "domains",
+                "displayName": "other domains (siblings)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The set of domains that are siblings of this domain"
             }
         },
         "values": [
@@ -2211,7 +2351,8 @@ const oaxConfigs = {
             "domain"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -2281,6 +2422,83 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the field",
                 "isSearchColumn": true
+            },
+            "description": {
+                "id": "description",
+                "subjectEntity": "fields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "fields",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the field"
+            },
+            "display_name_alternatives": {
+                "id": "display_name_alternatives",
+                "isList": true,
+                "subjectEntity": "fields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "fields",
+                "objectEntity": null,
+                "displayName": "alternate names",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "Alternate names for the field"
+            },
+            "siblings": {
+                "id": "siblings",
+                "isList": true,
+                "subjectEntity": "fields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "fields",
+                "objectEntity": "fields",
+                "displayName": "related fields (siblings)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "Fields that are related to this field"
+            },
+            "subfields": {
+                "id": "subfields",
+                "isList": true,
+                "subjectEntity": "fields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "subfields",
+                "objectEntity": "subfields",
+                "displayName": "subfields (children)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The set of subfields that are children of this field"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2508,10 +2726,16 @@ const oaxConfigs = {
         "idRegex": "(?i)(?:funders\\/)?(?:https:\\/\\/openalex\\.org\\/)?(f\\d+)",
         "showOnEntityPage": [
             "id",
-            "display_name"
+            "display_name",
+            "description",
+            "homepage_url",
+            "ids.doi",
+            "ids.crossref",
+            "country_code"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -2529,7 +2753,7 @@ const oaxConfigs = {
                 "type": "string",
                 "redshiftDisplayColumn": "id",
                 "redshiftFilterColumn": "funder_id",
-                "actions": [],
+                "actions": null,
                 "icon": "mdi-cash-multiple",
                 "descr": "Unique identifier for the funder"
             },
@@ -2610,6 +2834,88 @@ const oaxConfigs = {
                 ],
                 "icon": "mdi-earth",
                 "descr": "The country in which the funder is based"
+            },
+            "ids.doi": {
+                "id": "ids.doi",
+                "subjectEntity": "funders",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "works",
+                "objectEntity": null,
+                "displayName": "DOI",
+                "isId": true,
+                "type": "string",
+                "redshiftDisplayColumn": "doi",
+                "redshiftFilterColumn": "doi",
+                "category": "ids",
+                "actions": [
+                    "column",
+                    "filter"
+                ],
+                "icon": "mdi-file-document-outline",
+                "descr": "The DOI of the funder"
+            },
+            "ids.crossref": {
+                "id": "ids.crossref",
+                "subjectEntity": "funders",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "crossref id",
+                "isId": true,
+                "type": "string",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "category": "ids",
+                "actions": null,
+                "icon": "mdi-file-document-outline",
+                "descr": "The crossref id of the funder"
+            },
+            "description": {
+                "id": "description",
+                "subjectEntity": "funders",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "description",
+                "isId": true,
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "category": "ids",
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-file-document-outline",
+                "descr": "A description of the funder"
+            },
+            "homepage_url": {
+                "id": "homepage_url",
+                "subjectEntity": "funders",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "Homepage URL",
+                "isId": false,
+                "type": "string",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "category": "ids",
+                "actions": null,
+                "icon": "mdi-file-document-outline",
+                "descr": "Homepage url of the funder"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -2716,7 +3022,8 @@ const oaxConfigs = {
             "display_name"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -2899,6 +3206,7 @@ const oaxConfigs = {
         "showOnEntityPage": [
             "id",
             "display_name",
+            "homepage_url",
             "display_name_alternatives",
             "parent_institutions",
             "child_institutions",
@@ -3068,11 +3376,30 @@ const oaxConfigs = {
                 "displayName": "alternate names",
                 "redshiftDisplayColumn": null,
                 "redshiftFilterColumn": null,
-                "type": "string",
+                "type": "array",
                 "actions": [],
                 "actionsPopular": [],
                 "icon": "mdi-town-hall",
                 "descr": "Alternative names or acronyms for the institution"
+            },
+            "homepage_url": {
+                "id": "homepage_url",
+                "subjectEntity": "institutions",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "Homepage URL",
+                "isId": false,
+                "type": "string",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "category": "ids",
+                "actions": [],
+                "icon": "mdi-file-document-outline",
+                "descr": "Homepage url of the institution"
             },
             "parent_institutions": {
                 "id": "parent_institutions",
@@ -4346,10 +4673,13 @@ const oaxConfigs = {
         "idRegex": "(?:https:\\/\\/openalex\\.org\\/licenses\\/|licenses\\/)([a-zA-Z0-9\\-]+)",
         "showOnEntityPage": [
             "id",
-            "display_name"
+            "display_name",
+            "url",
+            "description"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -4420,6 +4750,42 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the license.",
                 "isSearchColumn": true
+            },
+            "url": {
+                "id": "url",
+                "subjectEntity": "licenses",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "URL",
+                "type": "string",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "descr": "URL of the license"
+            },
+            "description": {
+                "id": "description",
+                "subjectEntity": "licenses",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "licenses",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-shape-outline",
+                "descr": "A description of the license."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -4549,10 +4915,13 @@ const oaxConfigs = {
         "idRegex": "(?i)(?:publishers\\/)?(?:https:\\/\\/openalex\\.org\\/)?(p\\d+)",
         "showOnEntityPage": [
             "id",
-            "display_name"
+            "display_name",
+            "homepage_url",
+            "alternate_titles"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -4650,6 +5019,39 @@ const oaxConfigs = {
                 ],
                 "icon": "mdi-earth",
                 "descr": "The country where the publisher is located."
+            },
+            "homepage_url": {
+                "id": "homepage_url",
+                "subjectEntity": "publishers",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "Homepage URL",
+                "isId": false,
+                "type": "string",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "category": "ids",
+                "actions": [],
+                "icon": "mdi-file-document-outline",
+                "descr": "Homepage url of the publisher"
+            },
+            "alternative_titles": {
+                "id": "alternative_titles",
+                "subjectEntity": "publishers",
+                "objectEntity": null,
+                "displayName": "Alternative titles",
+                "isId": false,
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "category": "ids",
+                "actions": [],
+                "icon": "mdi-file-document-outline",
+                "descr": "Alternative titles of the publisher"
             },
             "count(works)": {
                 "id": "count(works)",
@@ -5041,7 +5443,8 @@ const oaxConfigs = {
             "description"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -5564,7 +5967,8 @@ const oaxConfigs = {
             "domain"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -5636,6 +6040,64 @@ const oaxConfigs = {
                 "descr": "The name of the subfield.",
                 "isSearchColumn": true
             },
+            "description": {
+                "id": "description",
+                "subjectEntity": "subfields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "subfields",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the subfield."
+            },
+            "topics": {
+                "id": "topics",
+                "isList": true,
+                "subjectEntity": "subfields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "topics",
+                "objectEntity": "topics",
+                "displayName": "topics (children)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The topics that are children of this subfield."
+            },
+            "siblings": {
+                "id": "siblings",
+                "isList": true,
+                "subjectEntity": "subfields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "subfields",
+                "objectEntity": "subfields",
+                "displayName": "related subfields (siblings)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The subfields that are related to this subfield."
+            },
             "field": {
                 "id": "field",
                 "subjectEntity": "subfields",
@@ -5653,6 +6115,24 @@ const oaxConfigs = {
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The field that is the parent of this subfield."
+            },
+            "domain": {
+                "id": "domain",
+                "subjectEntity": "subfields",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "domains",
+                "objectEntity": "domains",
+                "displayName": "domain",
+                "type": "object",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The domain that is the parent of this subfield."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -6843,6 +7323,45 @@ const oaxConfigs = {
                 "descr": "The name of the topic.",
                 "isSearchColumn": true
             },
+            "description": {
+                "id": "description",
+                "subjectEntity": "topics",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "topics",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": "description",
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-tag-outline",
+                "descr": "A description of the topic."
+            },
+            "siblings": {
+                "id": "siblings",
+                "isList": true,
+                "subjectEntity": "topics",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "topics",
+                "objectEntity": "topics",
+                "displayName": "related topics (siblings)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "Other topics that are closely related to this topic."
+            },
             "subfield": {
                 "id": "subfield",
                 "subjectEntity": "topics",
@@ -6860,6 +7379,42 @@ const oaxConfigs = {
                 "actions": [],
                 "icon": "mdi-tag-outline",
                 "descr": "The subfield that this topic belongs to."
+            },
+            "field": {
+                "id": "field",
+                "subjectEntity": "topics",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "fields",
+                "objectEntity": "fields",
+                "displayName": "field",
+                "type": "object",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The field that this topic belongs to."
+            },
+            "domain": {
+                "id": "domain",
+                "subjectEntity": "topics",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "domains",
+                "objectEntity": "domains",
+                "displayName": "domain",
+                "type": "object",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-tag-outline",
+                "descr": "The domain that this topic belongs to."
             },
             "count(works)": {
                 "id": "count(works)",
@@ -6958,7 +7513,8 @@ const oaxConfigs = {
             "crossref_types"
         ],
         "showOnTablePage": [
-            "display_name"
+            "display_name",
+            "count(works)"
         ],
         "columns": {
             "id": {
@@ -7029,6 +7585,45 @@ const oaxConfigs = {
                 "icon": "mdi-account-outline",
                 "descr": "The name of the work type.",
                 "isSearchColumn": true
+            },
+            "description": {
+                "id": "description",
+                "subjectEntity": "types",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "types",
+                "objectEntity": null,
+                "displayName": "description",
+                "type": "string",
+                "redshiftDisplayColumn": "description",
+                "redshiftFilterColumn": null,
+                "actions": [
+                    "column"
+                ],
+                "icon": "mdi-shape-outline",
+                "descr": "A description of the work type."
+            },
+            "crossref_types": {
+                "id": "crossref_types",
+                "isList": true,
+                "subjectEntity": "types",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "types",
+                "objectEntity": null,
+                "displayName": "alternate names (Crossref)",
+                "type": "array",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "actions": [],
+                "icon": "mdi-shape-outline",
+                "descr": "Alternate names for the work type from Crossref."
             },
             "count(works)": {
                 "id": "count(works)",
