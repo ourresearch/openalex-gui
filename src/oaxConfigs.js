@@ -3017,6 +3017,82 @@ const oaxConfigs = {
                 "icon": "mdi-shape-outline",
                 "descr": "The type of institution as seen in ROR"
             },
+            "display_name_alternatives": {
+                "id": "display_name_alternatives",
+                "isList": true,
+                "subjectEntity": "institutions",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": null,
+                "displayName": "alternate names",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "string",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "Alternative names or acronyms for the institution"
+            },
+            "parent_institutions": {
+                "id": "parent_institutions",
+                "isList": true,
+                "subjectEntity": "institutions",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": "institutions",
+                "displayName": "parent institutions",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "The parent institutions of the institution"
+            },
+            "child_institutions": {
+                "id": "child_institutions",
+                "isList": true,
+                "subjectEntity": "institutions",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": "institutions",
+                "displayName": "child institutions",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "The child institutions of the institution"
+            },
+            "related_institutions": {
+                "id": "related_institutions",
+                "isList": true,
+                "subjectEntity": "institutions",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "objectEntity": "institutions",
+                "displayName": "related institutions",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "Other institutions that are related to the institution"
+            },
             "mean(fwci)": {
                 "id": "mean(fwci)",
                 "subjectEntity": "institutions",
