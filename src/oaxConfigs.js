@@ -604,6 +604,7 @@ const oaxConfigs = {
         "showOnEntityPage": [
             "id",
             "display_name",
+            "display_name_alternatives",
             "countries"
         ],
         "showOnTablePage": [
@@ -679,6 +680,43 @@ const oaxConfigs = {
                 "descr": "The name of the continent",
                 "isSearchColumn": true,
                 "category": "search"
+            },
+            "countries": {
+                "id": "countries",
+                "isList": true,
+                "subjectEntity": "continents",
+                "defaultOperator": "contains",
+                "entityId": "continents",
+                "objectEntity": "countries",
+                "displayName": "countries",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-shape-outline",
+                "descr": "Countries in the continent",
+                "isSearchColumn": false
+            },
+            "display_name_alternatives": {
+                "id": "display_name_alternatives",
+                "isList": true,
+                "subjectEntity": "continents",
+                "operators": [
+                    "is",
+                    "is not"
+                ],
+                "defaultOperator": "is",
+                "entityId": "continents",
+                "objectEntity": null,
+                "displayName": "alternate names",
+                "redshiftDisplayColumn": null,
+                "redshiftFilterColumn": null,
+                "type": "array",
+                "actions": [],
+                "actionsPopular": [],
+                "icon": "mdi-town-hall",
+                "descr": "Alternate names of the continent"
             },
             "count(works)": {
                 "id": "count(works)",
