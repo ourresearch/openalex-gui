@@ -24,8 +24,9 @@ const filtersFromUrlStr = function (entityType, str) {
     const filters = []
     filterStrings.forEach(filterString => {
         const regex = /(?<!http|https):/
-        const [key, valuesStr] = filterString.split(regex)
-        const value = valuesStr.replace(/^!/, "")
+        const [key, ...rest] = filterString.split(regex);
+        const valuesStr = rest.join(':');
+        const value = valuesStr.replace(/^!/, "");
         const isNegated = valuesStr[0] === "!"
         const myFilter = createSimpleFilter(
             entityType,
