@@ -1319,6 +1319,17 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.is_in_doaj,
         },
         {
+            key: "is_core",
+            entityType: "sources",
+            displayName: "CWTS Core source",
+            type: "boolean",
+            categories: [],
+            actions: ["filter", "group_by"],
+            actionsPopular: ["filter"],
+            icon: "mdi-book-open-outline",
+            extractFn: (entity) => entity.is_core,
+        },
+        {
             key: "alternate_titles",
             entityType: "sources",
             displayName: "alternate names",
