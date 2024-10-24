@@ -740,19 +740,19 @@ const facetConfigs = function (entityType) {
 
         // works: repository
 
-        {
-            key: "repository",
-            entityType: "works",
-            displayName: "repository",
-            entityId: "sources",
-            type: "select",
-            isManyOptions: true,
-            categories: ["source"],
-            category: "source",
-            actions: ["filter", "group_by",],
-            icon: "mdi-book-open-outline",
-            isMultiple: true,
-        },
+        // {
+        //     key: "repository",
+        //     entityType: "works",
+        //     displayName: "repository",
+        //     entityId: "sources",
+        //     type: "select",
+        //     isManyOptions: true,
+        //     categories: ["source"],
+        //     category: "source",
+        //     actions: ["filter", "group_by",],
+        //     icon: "mdi-book-open-outline",
+        //     isMultiple: true,
+        // },
         {
             key: "open_access.any_repository_has_fulltext",
             entityType: "works",
