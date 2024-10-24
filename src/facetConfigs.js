@@ -698,6 +698,18 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
+            key: "primary_location.source.is_core",
+            entityType: "works",
+            displayName: "CWTS Core source",
+            type: "boolean",
+            booleanValues: ["Not CWTS Core source", "CWTS Core source"],
+            categories: ["source"],
+            category: "source",
+            actions: ["filter", "group_by",],
+            icon: "mdi-book-open-outline",
+            isMultiple: false,
+        },
+        {
             key: "primary_location.source.is_oa",
             entityType: "works",
             displayName: "in OA source",
