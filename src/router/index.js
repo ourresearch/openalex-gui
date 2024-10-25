@@ -1,27 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import Faq from "../views/Faq.vue";
-import Testimonials from "../views/Testimonials.vue";
-import Help from "../views/Help.vue";
-import OpenAlexStats from "../views/OpenAlexStats.vue";
-
-import Serp from "../views/Serp";
-import EntityPage from "@/views/EntityPage.vue";
-import About from "../views/About";
 import store from "@/store";
-import UserSignup from "@/components/user/UserSignup.vue";
-import UserMagicToken from "../components/user/UserMagicToken.vue";
-import Login from "@/views/Login.vue";
-import Me from "../views/Me.vue"
 
 import goTo from 'vuetify/es5/services/goto'
-import Webinars from "../views/Webinars.vue";
-import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
-import PageNotFound from "@/views/PageNotFound.vue";
-import Signup from "@/views/Signup.vue";
-import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
 
@@ -41,7 +24,7 @@ const routes = [
     {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
-        component: Serp,
+        component: () => import('@/views/Serp.vue'),
     },
 
     {
@@ -62,11 +45,11 @@ const routes = [
 
 
     // user pages and routes
-    {path: '/signup', name: 'Signup', component: Signup},
-    {path: '/login', name: 'Login', component: Login},
-    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
-    {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},
+    {path: '/signup', name: 'Signup', component: () => import('@/views/Signup.vue')},
+    {path: '/login', name: 'Login', component: () => import('@/views/Login.vue')},
+    {path: '/me/searches', name: 'SavedSearches', component: () => import('@/views/SavedSearches.vue'), meta: {requiresAuth: true}},
+    {path: '/login/magic-token/:token', name: 'Magic-token', component: () => import('../components/user/UserMagicToken.vue')},
+    {path: '/me', name: 'Me', component: () => import('@/views/Me.vue'), meta: {requiresAuth: true}},
 
 
     // static pages
@@ -77,11 +60,11 @@ const routes = [
         name: 'Home',
         // component: Home
     },
-    {path: '/about', name: 'About', component: About},
-    {path: '/faq', component: Faq},
+    {path: '/about', name: 'About', component: () => import('@/views/About.vue')},
+    {path: '/faq', component: () => import('@/views/Faq.vue')},
     {path: '/users', redirect: {name: "testimonials"}},
-    {path: '/testimonials', name: "testimonials", component: Testimonials},
-    {path: '/stats', component: OurStats},
+    {path: '/testimonials', name: "testimonials", component: () => import('@/views/Testimonials.vue')},
+    {path: '/stats', component: () => import('@/views/OurStats.vue')},
 
 
     // redirects to gitbook docs
@@ -168,7 +151,7 @@ const routes = [
     {
         path: `/:entityType/:entityId`,
         name: 'EntityPage',
-        component: EntityPage,
+        component: () => import('@/views/EntityPage.vue'),
         // redirect: to => {
         //     return {
         //         name: "Serp",
@@ -178,7 +161,7 @@ const routes = [
         // }
     },
 
-    {path: '*', component: PageNotFound},
+    {path: '*', component: () => import('@/views/PageNotFound.vue')},
 
 
 ]
