@@ -98,7 +98,7 @@ import {ret1} from "@/data/mockResults1";
 
 console.log("serp ret1", ret1);
 
-const shortUuid = require('short-uuid');
+import shortUuid from 'short-uuid';
 
 
 export default {

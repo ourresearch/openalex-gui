@@ -1,56 +1,37 @@
 <template>
   <v-app>
-
     <v-progress-linear
-        indeterminate
-        fixed color="primary"
-        style="z-index: 9999"
-        v-if="globalIsLoading"
+      v-if="globalIsLoading"
+      indeterminate
+      fixed
+      color="primary"
+      style="z-index: 9999"
     />
+    
     <v-app-bar
-        app
-        flat
-        :height="$vuetify.breakpoint.mobile ? undefined : 70"
-        color="transparent"
-        class=""
-        absolute
-        :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
-        extension-height="70"
+      app
+      flat
+      :height="isMobile ? undefined : 70"
+      color="transparent"
+      absolute
+      :extended="isMobile && $route.name === 'Serp'"
+      extension-height="70"
     >
-<!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
-
-      <router-link
-          :to="{name: 'Home'}"
-          class="logo-link ml-3"
-      >
-        <img
-            src="@/assets/openalex-logo-icon-black-and-white.png"
-            class="logo-icon mr-0 colorizable"
-        />
-        <span
-            class="logo-text colorizable"
-        >
-                OpenAlex
-              </span>
-
+      <router-link :to="{ name: 'Home' }" class="logo-link ml-3">
+        <img src="@/assets/openalex-logo-icon-black-and-white.png" class="logo-icon mr-0 colorizable" />
+        <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
-      <div
-          class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
-          v-if="$route.name === 'Serp'"
-      >
-        <entity-type-selector
-            v-if="!$vuetify.breakpoint.mobile"
-        />
-        <shortcut-box
-            style="max-width: 800px;"
-            class="flex-grow-1 d-none d-lg-block"
-        />
+
+      <div class="flex-grow-1 mr-3 ml-6 d-flex justify-center" v-if="$route.name === 'Serp'">
+        <entity-type-selector v-if="!isMobile" />
+        <shortcut-box style="max-width: 800px;" class="flex-grow-1 d-none d-lg-block" />
       </div>
+
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
       <user-toolbar-menu/>
 
-      <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
-        <template v-slot:activator="{on}">
+      <v-menu v-if="!isMobile" offset-y>
+        <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
             <v-icon>mdi-help-circle-outline</v-icon>
           </v-btn>
@@ -61,9 +42,7 @@
               <v-icon>mdi-comment-question-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>
-                Contact support
-              </v-list-item-title>
+              <v-list-item-title>Contact support</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
           <v-list-item href="https://help.openalex.org/" target="_blank">
@@ -71,170 +50,130 @@
               <v-icon>mdi-help-circle-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>
-                Visit help center
-              </v-list-item-title>
+              <v-list-item-title>Visit help center</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
-      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-        <entity-type-selector  />
-        <shortcut-box
-            class="flex-grow-1"
-        />
+
+      <template v-slot:extension v-if="isMobile && $route.name === 'Serp'">
+        <entity-type-selector />
+        <shortcut-box class="flex-grow-1" />
       </template>
     </v-app-bar>
-    <div>
-    </div>
+
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
     </v-main>
-    <site-footer/>
+    <site-footer />
 
-
-    <v-snackbar
-        bottom
-        v-model="$store.state.snackbarIsOpen"
-    >
-      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
-      {{ $store.state.snackbarMsg }}
-
+    <v-snackbar bottom v-model="snackbarIsOpen">
+      <v-icon dark left v-if="snackbarIcon">{{ snackbarIcon }}</v-icon>
+      {{ snackbarMsg }}
       <template v-slot:action="{ attrs }">
-        <v-btn
-            icon
-            v-bind="attrs"
-            @click="$store.commit('closeSnackbar')"
-        >
+        <v-btn icon v-bind="attrs" @click="closeSnackbar">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </template>
     </v-snackbar>
 
-    <saved-search-rename-dialog/>
-    <saved-search-edit-alert-dialog/>
-
+    <saved-search-rename-dialog />
+    <saved-search-edit-alert-dialog />
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, computed, ref, watch, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { useDisplay } from 'vuetify';
+import axios from 'axios';
+import SiteFooter from './components/SiteFooter.vue';
+import UserToolbarMenu from '@/components/user/UserToolbarMenu.vue';
+import ShortcutBox from '@/components/ShortcutBox.vue';
+import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
+import SavedSearchRenameDialog from '@/components/SavedSearchRenameDialog.vue';
+import SavedSearchEditAlertDialog from '@/components/SavedSearchEditAlertDialog.vue';
 
-
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {sleep} from "./util";
-import axios from "axios";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import SiteFooter from "./components/SiteFooter.vue";
-import SiteNav from "@/components/SiteNav.vue";
-import {url} from "@/url";
-import SearchBox from "@/components/EntityTypeSelector.vue";
-import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
-
-import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
-import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
-import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
-import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
-
-import ShortcutBox from "@/components/ShortcutBox.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-
-export default {
+export default defineComponent({
   name: 'App',
-  metaInfo: {
-    titleTemplate: 'OpenAlex | %s',
-    link: [],
-
-    meta: []
-  },
   components: {
-    SerpToolbar,
-    Template,
-    SearchBox,
     SiteFooter,
-    SiteNav,
     UserToolbarMenu,
-
-    SavedSearchRenameDialog,
-    SavedSearchSaveDialog,
-    SavedSearchEditAlertDialog,
     ShortcutBox,
     EntityTypeSelector,
+    SavedSearchRenameDialog,
+    SavedSearchEditAlertDialog,
   },
+  setup() {
+    // Vuetify display breakpoints
+    const { xs, smAndDown } = useDisplay();
+    const isMobile = computed(() => xs.value || smAndDown.value);
 
+    // Vuex store and router
+    const store = useStore();
+    const route = useRoute();
 
-  data: function () {
-    return {
-      exportProgress: 0,
-      isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
-      exportObj: {
-        progress: 0,
-      },
-      dialogs: {
-        showAlpha: false
-      },
-      url,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "globalIsLoading",
-      "entityType",
-    ]),
+    // Reactive data
+    const exportProgress = ref(0);
+    const exportObj = ref<{ progress: number | null }>({ progress: 0 });
+    const snackbarIsOpen = computed(() => store.state.snackbarIsOpen);
+    const snackbarMsg = computed(() => store.state.snackbarMsg);
+    const snackbarIcon = computed(() => store.state.snackbarIcon);
+    const globalIsLoading = computed(() => store.getters.globalIsLoading);
 
-    logoStyle() {
-      return "opacity: .7;"
-      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
-    },
-    isLocalHost() {
-      return window.location.hostname === "localhost"
-    },
-    exportIsFinished() {
-      return this.exportObj.progress === 1
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    async copyToClipboard(content) {
+    // Methods
+    const copyToClipboard = async (content: string) => {
       await navigator.clipboard.writeText(content);
-      this.snackbar("Copied to clipboard.")
-    },
-    cancelExport() {
-      this.exportObj = null
-      this.$store.state.exportProgressUrl = null
-      this.snackbar("Export cancelled.")
-    }
-  },
-  async mounted() {
-    setInterval(async () => {
-      if (!this.$store.state.exportProgressUrl) return
-      const resp = await axios.get(this.$store.state.exportProgressUrl)
-      console.log(resp.data)
-      this.exportObj = resp.data
-      if (this.exportObj === 1) {
-        this.exportObj = null
-        this.$store.state.exportProgressUrl = null
-      }
-    }, 1000)
-    // await sleep(2000)
-    // console.log("disable body scroll")
-    // bodyScrollLock.disableBodyScroll()
-  },
-  watch: {
-    '$route': {
-      immediate: true,
-      handler(to, from) {
-        const isLocalHost = window.location.hostname === "localhost"
-        const isStaging = window.location.hostname === "staging.openalex.org"
-        this.$store.state.isDevEnv = isLocalHost || isStaging
+      store.commit('snackbar', 'Copied to clipboard.');
+    };
 
-      }
-    }
-  }
-};
+    const cancelExport = () => {
+      exportObj.value = { progress: 0 };
+      store.state.exportProgressUrl = null;
+      store.commit('snackbar', 'Export cancelled.');
+    };
+
+    const closeSnackbar = () => {
+      store.commit('closeSnackbar');
+    };
+
+    onMounted(() => {
+      setInterval(async () => {
+        if (!store.state.exportProgressUrl) return;
+        try {
+          const resp = await axios.get(store.state.exportProgressUrl);
+          exportObj.value = resp.data;
+          if (exportObj.value.progress === 1) {
+            exportObj.value = { progress: 0 };
+            store.state.exportProgressUrl = null;
+          }
+        } catch (error) {
+          console.error("Error fetching export progress:", error);
+        }
+      }, 1000);
+    });
+
+    watch(route, () => {
+      const isLocalHost = window.location.hostname === 'localhost';
+      const isStaging = window.location.hostname === 'staging.openalex.org';
+      store.state.isDevEnv = isLocalHost || isStaging;
+    });
+
+    return {
+      isMobile,
+      exportProgress,
+      exportObj,
+      snackbarIsOpen,
+      snackbarMsg,
+      snackbarIcon,
+      globalIsLoading,
+      copyToClipboard,
+      cancelExport,
+      closeSnackbar,
+    };
+  },
+});
 </script>
 <style lang="scss">
 

@@ -101,7 +101,7 @@ import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import Action from "@/components/Action/Action.vue";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
-import {clear} from "core-js/internals/task";
+// import {clear} from "core-js/internals/task";
 
 export default {
   name: "Template",

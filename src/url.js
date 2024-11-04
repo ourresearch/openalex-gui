@@ -10,13 +10,11 @@ import {
     toggleOptionIsNegated,
     getMatchModeFromSelectFilterValue,
     optionsToString,
-    setFilterStringOptionIsNegated,
     setOptionIsNegated,
     setStringIsNegated,
 } from "./filterConfigs";
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {entityTypes, shortenOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import app from "@/App.vue";

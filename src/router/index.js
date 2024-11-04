@@ -1,42 +1,35 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+// import Vue from 'vue'
+import {createRouter, createWebHistory} from 'vue-router'
 import Home from '../views/Home.vue'
 import Faq from "../views/Faq.vue";
 import Testimonials from "../views/Testimonials.vue";
-import Help from "../views/Help.vue";
-import OpenAlexStats from "../views/OpenAlexStats.vue";
+// import Help from "../views/Help.vue";
+// import OpenAlexStats from "../views/OpenAlexStats.vue";
 
 import Serp from "../views/Serp";
 import EntityPage from "@/views/EntityPage.vue";
 import About from "../views/About";
 import store from "@/store";
-import UserSignup from "@/components/user/UserSignup.vue";
+// import UserSignup from "@/components/user/UserSignup.vue";
 import UserMagicToken from "../components/user/UserMagicToken.vue";
 import Login from "@/views/Login.vue";
 import Me from "../views/Me.vue"
 
-import goTo from 'vuetify/es5/services/goto'
-import Webinars from "../views/Webinars.vue";
+// import goTo from 'vuetify/es5/services/goto'
+// import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
-import {url} from "@/url";
+// import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
-
-
-Vue.use(VueRouter)
-
 
 // const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
 
 const entityNames = getEntityConfigs().map(c => c.name).join("|")
 
 const routes = [
-
-
-
     // data pages
     {
         path: `/:entityType(${entityNames})`,
@@ -177,20 +170,19 @@ const routes = [
         //     }
         // }
     },
-
-    {path: '*', component: PageNotFound},
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: PageNotFound },
 
 
 ]
 
-const router = new VueRouter({
+const router = createRouter({
     routes,
-    mode: "history",
+    history: createWebHistory(),
     scrollBehavior: (to, from, savedPosition) => {
         if (to.hash) {
-            return goTo(to.hash, {
-                offset: 75,
-            })
+            return {x: 0, y: 0} //goTo(to.hash, {
+                //offset: 75,
+            //})
         } else if (savedPosition) {
             return savedPosition
         } else if (to.name === "Serp") {

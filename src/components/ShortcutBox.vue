@@ -119,7 +119,7 @@ import {url} from "@/url";
 import {api} from "@/api";
 import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
-import {findFacetConfig, findFacetConfigs, getFacetConfig} from "@/facetConfigs";
+import { findFacetConfigs, getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 import _ from "lodash"

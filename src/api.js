@@ -8,7 +8,6 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 import {isOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
 import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'

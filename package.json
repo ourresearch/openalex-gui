@@ -1,78 +1,66 @@
 {
-  "name": "ourresearch-website-2",
-  "version": "0.1.0",
-  "engines": {
-    "node": "17.2.0"
-  },
+  "name": "openalex-gui",
+  "version": "0.2.0",
   "private": true,
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@achrinza/node-ipc": "^10.1.9",
-    "axios": "^0.27.2",
-    "body-scroll-lock": "^2.7.1",
-    "core-js": "^3.6.5",
-    "country-code-lookup": "^0.0.20",
-    "express": "^4.17.1",
-    "heroku-ssl-redirect": "^0.0.4",
-    "iso-639-1": "^3.1.0",
-    "millify": "^5.0.0",
-    "qrcode.vue": "^1.7.0",
-    "sanitize-html": "^2.7.2",
-    "short-uuid": "^4.2.2",
+    "@achrinza/node-ipc": "^10.1.11",
+    "@types/resize-observer-browser": "^0.1.11",
+    "@unhead/vue": "^1.11.11",
+    "axios": "^1.7.7",
+    "body-scroll-lock": "^4.0.0-beta.0",
+    "country-code-lookup": "^0.1.3",
+    "express": "^4.21.1",
+    "heroku-ssl-redirect": "^0.1.1",
+    "iso-639-1": "^3.1.3",
+    "lodash": "^4.17.21",
+    "millify": "^6.1.0",
+    "pluralize": "^8.0.0",
+    "qrcode.vue": "^3.6.0",
+    "sanitize-html": "^2.13.1",
+    "short-uuid": "^5.2.0",
     "v-scroll-lock": "^1.3.1",
-    "vue": "^2.6.11",
-    "vue-async-computed": "^3.9.0",
+    "vue": "^3.5.12",
+    "vue-async-computed": "^4.0.1",
     "vue-click-outside": "^1.1.0",
     "vue-flag-icon": "^2.1.0",
-    "vue-json-pretty": "^1.9.4",
+    "vue-json-pretty": "^2.4.0",
     "vue-meta": "^2.4.0",
     "vue-pluralize": "^0.0.2",
-    "vue-router": "^3.2.0",
-    "vue-sanitize": "^0.2.2",
+    "vue-router": "^4.4.5",
+    "vue-sanitize": "^0.2.3",
     "vue-shortkey": "^3.1.7",
     "vue-truncate-filter": "^1.1.7",
     "vue-typer": "^1.2.0",
-    "vuetify": "^2.4.0",
-    "vuex": "^3.4.0"
+    "vuetify": "^3.7.3",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-optional-chaining": "^7.16.7",
-    "@mdi/font": "^7.2.96",
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-plugin-router": "^5.0.8",
-    "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "^5.0.8",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "sass": "~1.32.0",
-    "sass-loader": "^10.0.0",
-    "vue-cli-plugin-vuetify": "~2.4.1",
-    "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.7.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
-    },
-    "rules": {}
+    "@mdi/font": "^7.4.47",
+    "@types/lodash": "^4.17.13",
+    "@types/vue": "^2.0.0",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "eslint": "^9.14.0",
+    "eslint-plugin-vue": "^9.30.0",
+    "sass": "~1.80.6",
+    "sass-loader": "^16.0.3",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.10",
+    "vue-tsc": "^2.1.10"
   },
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "packageManager": "yarn@4.5.1"
 }

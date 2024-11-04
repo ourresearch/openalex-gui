@@ -40,8 +40,6 @@ import {url} from "@/url";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
 
-import {filter} from "core-js/internals/array-iteration";
-
 export default {
   name: "FilterValueSearch",
   components: {
@@ -80,7 +78,7 @@ export default {
   },
 
   methods: {
-    filter,
+    // filter,
     ...mapMutations([
       "snackbar",
     ]),

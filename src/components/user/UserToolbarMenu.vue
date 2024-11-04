@@ -58,7 +58,7 @@
 
 
     <div class="" v-else>
-      <template v-if="$vuetify.breakpoint.mobile">
+      <template v-if="isMobile">
         <v-menu offset-y>
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on">
@@ -140,72 +140,51 @@
   </div>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserSignup from "./UserSignup.vue";
-import UserLogin from "./UserLogin.vue";
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
+import UserSignup from './UserSignup.vue';
+import UserLogin from './UserLogin.vue';
 
-export default {
-  name: "UserToolbarMenu",
-  components: {
-    UserSignup,
-    UserLogin,
-  },
-  props: {},
-  data() {
-    return {
-      foo: 42,
-      dialogs: {
-        userSignup: false,
-        userLogin: false,
-      }
-    }
-  },
-  computed: {
-    ...mapGetters([
+const store = useStore();
+const { xs, smAndDown } = useDisplay();
 
-    ]),
-    ...mapGetters("user", [
-      "userName",
-      "userEmail",
-      "userAuthorId",
-      "userId",
-      "isSignupDialogOpen",
-      "isLoginDialogOpen"
-    ]),
-  },
+// Using the computed properties from Vuex
+const userName = computed(() => store.getters['user/userName']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+const userAuthorId = computed(() => store.getters['user/userAuthorId']);
+const userId = computed(() => store.getters['user/userId']);
+const isSignupDialogOpen = computed({
+  get: () => store.getters['user/isSignupDialogOpen'],
+  set: (val) => store.commit('user/setIsSignupDialogOpen', val),
+});
+const isLoginDialogOpen = computed({
+  get: () => store.getters['user/isLoginDialogOpen'],
+  set: (val) => store.commit('user/setIsLoginDialogOpen', val),
+});
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "logout",
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-    ]),
-    ...mapActions([]),
-    localLogout() {
-      this.logout()
-      // this.$router.push("/")
-      this.snackbar("You're logged out")
-    },
-    goToSavedSearches() {
-      this.$router.push("/me/searches")
-    }
+// Determine if it's mobile based on breakpoint
+const isMobile = computed(() => xs.value || smAndDown.value);
 
+// Methods
+const setIsSignupDialogOpen = (isOpen: boolean) => {
+  store.commit('user/setIsSignupDialogOpen', isOpen);
+};
+const setIsLoginDialogOpen = (isOpen: boolean) => {
+  store.commit('user/setIsLoginDialogOpen', isOpen);
+};
 
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen(to, from) {
-    }
-  }
-}
+const localLogout = () => {
+  store.commit('user/logout');
+  store.commit('snackbar', "You're logged out");
+};
+
+const entityZoomLink = (id: string) => {
+  // Assuming this function generates a route object or URL for "entityZoomLink"
+  return { name: 'EntityZoom', params: { id } };
+};
 </script>
 
 <style scoped lang="scss">

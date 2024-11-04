@@ -1,66 +1,46 @@
 <template>
-
   <div style="padding-bottom: 0px;">
-    <v-container class="">
+    <v-container>
       <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>
         <v-col>
-          <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
+          <div style="max-width: 800px; margin: 0 auto;" class="d-flex">
             <div class="flex-grow-1">
               <div class="text-h5 ml-3 mb-3">
                 Search and analyze the world's research.
               </div>
-              <shortcut-box show-examples autofocus />
-
+              <shortcut-box :show-examples="true" :autofocus="true" />
             </div>
-
           </div>
-
-
         </v-col>
         <v-spacer></v-spacer>
-        <v-btn text rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
+        <v-btn text rounded class="mb-3" @click="scrollToLearnMore">
           <v-icon>mdi-chevron-down</v-icon>
           Learn more
         </v-btn>
       </v-row>
-
     </v-container>
-    <v-divider id="learn-more" class=""/>
+
+    <v-divider id="learn-more" />
+    
     <div class="color-3 lighten-5 py-4 mb-12">
       <div class="text-center body-2 grey--text pb-2">
         Trusted by hundreds of institutions worldwide, including
       </div>
-      <div class="d-flex align-center justify-center flex-wrap user-logo-container"
-           :class="{mobile: $vuetify.breakpoint.mobile}">
-        <img class="user-logo"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
-             alt="">
-        <img class="user-logo"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Grammarly_logo.svg/320px-Grammarly_logo.svg.png"
-             alt="">
-        <img class="user-logo tall"
-             src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png"
-             alt="">
-        <!--          <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Bristol-Myers_Squibb_logo_%282020%29.svg/800px-Bristol-Myers_Squibb_logo_%282020%29.svg.png" alt="">-->
-        <img class="user-logo short"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Logo_EPFL_2019.svg/320px-Logo_EPFL_2019.svg.png"
-             alt="">
-        <img class="user-logo tall"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Logo_Bayer.svg/240px-Logo_Bayer.svg.png"
-             alt="">
+      <div class="d-flex align-center justify-center flex-wrap user-logo-container" :class="{ mobile: isMobile }">
+        <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png" alt="">
+        <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Grammarly_logo.svg/320px-Grammarly_logo.svg.png" alt="">
+        <img class="user-logo tall" src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png" alt="">
+        <img class="user-logo short" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Logo_EPFL_2019.svg/320px-Logo_EPFL_2019.svg.png" alt="">
+        <img class="user-logo tall" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Logo_Bayer.svg/240px-Logo_Bayer.svg.png" alt="">
         <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Jisc_logo.png" alt="">
-        <img class="user-logo"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Chan_Zuckerberg_Initiative.svg/320px-Chan_Zuckerberg_Initiative.svg.png"
-             alt="">
+        <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Chan_Zuckerberg_Initiative.svg/320px-Chan_Zuckerberg_Initiative.svg.png" alt="">
       </div>
-
     </div>
+
     <v-container>
-
-
-      <v-row class="">
-        <v-col cols="12" lg="4" class="">
+      <v-row>
+        <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-earth-plus</v-icon>
@@ -69,8 +49,7 @@
             <v-card-text class="body-1 flex-grow-1">
               <p>
                 We index over <strong>250M</strong> scholarly works from 250k sources, with extra coverage of
-                humanities,
-                non-English languages, and the Global South.
+                humanities, non-English languages, and the Global South.
               </p>
               <p>
                 We link these works to 90M disambiguated authors and 100k institutions, as well as enriching them with
@@ -78,7 +57,7 @@
               </p>
             </v-card-text>
             <v-card-actions>
-              <v-spacer/>
+              <v-spacer />
               <v-btn text rounded href="https://help.openalex.org" target="_blank">
                 <v-icon left>mdi-chart-bar</v-icon>
                 About the data
@@ -86,7 +65,8 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="12" lg="4" class="">
+
+        <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-lock-open-variant</v-icon>
@@ -102,13 +82,12 @@
               </p>
             </v-card-text>
             <v-card-actions>
-              <v-spacer/>
+              <v-spacer />
               <v-btn text rounded href="https://docs.openalex.org/" target="_blank">
                 <v-icon left>mdi-cog-outline</v-icon>
                 API
               </v-btn>
-              <v-btn text rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot"
-                     target="_blank">
+              <v-btn text rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot" target="_blank">
                 <v-icon left>mdi-database-outline</v-icon>
                 Data
               </v-btn>
@@ -119,7 +98,8 @@
             </v-card-actions>
           </v-card>
         </v-col>
-        <v-col cols="12" lg="4" class="">
+
+        <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon left color="black">mdi-hand-heart</v-icon>
@@ -128,15 +108,14 @@
             <v-card-text class="body-1 flex-grow-1">
               <p>
                 OpenAlex is made by OurResearch, a nonprofit dedicated to making research open. And we've got a
-                decade's
-                experience keeping tools like Unpaywall sustainably open with a freemium business model.
+                decade's experience keeping tools like Unpaywall sustainably open with a freemium business model.
               </p>
               <p>
                 If you'd like to upgrade your OpenAlex experience, check our our Premium subscription.
               </p>
             </v-card-text>
             <v-card-actions>
-              <v-spacer/>
+              <v-spacer />
               <v-btn text rounded href="https://ourresearch.org/" target="_blank">
                 <v-icon left>mdi-account-multiple-outline</v-icon>
                 About us
@@ -148,65 +127,24 @@
             </v-card-actions>
           </v-card>
         </v-col>
-
-
       </v-row>
     </v-container>
   </div>
-
-
 </template>
 
-<script>
 
-import {VueTyper} from 'vue-typer'
-import {mapGetters} from "vuex";
-import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
-
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import ShortcutBox from "@/components/ShortcutBox.vue";
 
-export default {
-  name: 'home',
-  components: {
-    UserSavedSearch,
-    VueTyper,
-    ShortcutBox,
-  },
-  metaInfo: {
-    title: "OpenAlex: The open catalog to the global research system",
-    titleTemplate: undefined, // have to override this or it'll get the site title template
-  },
-  data() {
-    return {
-      userEmail: "",
-      errorMsg: "",
-      textToType: [
-        "the research ecosystem.",
-        "researchers.",
-        "scholarly journals.",
-        "research institutions.",
-        "citations.",
-      ]
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userSavedSearches",
-    ]),
-    logoHeight() {
-      return 75
+const { xs, smAndDown } = useDisplay();
+const isMobile = computed(() => xs.value || smAndDown.value);
 
-      return this.$vuetify.breakpoint.mobile ?
-          50 :
-          75
-    }
-  },
-  methods: {},
-  mounted() {
-    this.$store.commit("user/setActiveSearchId", null)
-  },
-}
+const scrollToLearnMore = () => {
+  const element = document.getElementById('learn-more');
+  if (element) element.scrollIntoView({ behavior: 'smooth' });
+};
 </script>
 
 <style lang="scss" scoped>

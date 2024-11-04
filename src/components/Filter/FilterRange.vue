@@ -38,8 +38,6 @@ import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 import Template from "@/components/Filter/FilterSelect.vue";
 
-
-import {filter} from "core-js/internals/array-iteration";
 import TryChips from "@/components/TryChips.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
@@ -83,7 +81,7 @@ export default {
   },
 
   methods: {
-    filter,
+    // filter,
     ...mapMutations([
       "snackbar",
     ]),

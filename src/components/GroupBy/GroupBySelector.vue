@@ -92,7 +92,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import FilterKeySelector from "../Filters/FilterKeySelector.vue";
 import {url} from "../../url";
 import {facetsByCategory, getFacetConfig} from "../../facetConfigs";
-import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "Template",

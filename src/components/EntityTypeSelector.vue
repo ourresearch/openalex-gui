@@ -123,8 +123,8 @@
 <script>
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
-import {VMenu} from "vuetify/lib";
-import {VDialog} from "vuetify/lib";
+import {VMenu} from "vuetify/components/VMenu";
+import {VDialog} from "vuetify/components/VDialog";
 import {url} from "@/url";
 
 export default {

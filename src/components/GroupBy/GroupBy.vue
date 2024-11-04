@@ -171,13 +171,11 @@ import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
-import ActionMenuItem from "@/components/Action/Action.vue";
-import Template from "@/components/Action/Action.vue";
-import {getActionConfig} from "@/actionConfigs";
+// import ActionMenuItem from "@/components/Action/Action.vue";
+// import Template from "@/components/Action/Action.vue";
+// import {getActionConfig} from "@/actionConfigs";
 import BarGraph from "@/components/BarGraph.vue";
-import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
-import {filter} from "core-js/internals/array-iteration";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
@@ -212,9 +210,9 @@ export default {
     }
   },
   computed: {
-    all() {
-      return all
-    },
+    // all() {
+    //   return all
+    // },
     ...mapGetters([
 
       "resultsCount",
@@ -306,7 +304,7 @@ export default {
   },
 
   methods: {
-    filter,
+    // filter,
     ...mapMutations([
       "snackbar",
       "setApiDialogUrl",

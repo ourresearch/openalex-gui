@@ -1,0 +1,45 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"strict": true,
+		"jsx": "preserve",
+		"noImplicitAny": false,
+		"importHelpers": true,
+		"skipLibCheck": true,
+    "allowJs": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": true,
+		"isolatedModules": true,
+		"baseUrl": ".",
+		"moduleResolution": "node",
+		"paths": {
+			"@/*": [
+				"src/*"
+			]
+		},
+		"lib": [
+			"esnext",
+			"dom",
+			"dom.iterable",
+			"scripthost"
+		],
+		"types": [
+			"@types/resize-observer-browser",
+			"vite/client"
+		]
+	},
+	"include": [
+		"setup.ts",
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.vue"
+	],
+	"exclude": [
+		"vite.config.ts",
+		"node_modules",
+		"src/**/e2e/**",
+		"src/**/__tests__/**"
+	]
+}

@@ -2,7 +2,7 @@ import axios from "axios";
 import router from "../router";
 import {url} from "@/url";
 
-const shortUuid = require('short-uuid');
+import shortUuid from 'short-uuid';
 
 
 const axiosConfig = function () {
