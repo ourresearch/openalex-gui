@@ -43,7 +43,7 @@
         <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-earth-plus</v-icon>
+              <v-icon left color="black" icon="mdi-earth-plus"></v-icon>
               Industry-leading coverage
             </v-card-title>
             <v-card-text class="body-1 flex-grow-1">
@@ -59,7 +59,7 @@
             <v-card-actions>
               <v-spacer />
               <v-btn text rounded href="https://help.openalex.org" target="_blank">
-                <v-icon left>mdi-chart-bar</v-icon>
+                <v-icon left icon="mdi-chart-bar"></v-icon>
                 About the data
               </v-btn>
             </v-card-actions>
@@ -69,7 +69,7 @@
         <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-lock-open-variant</v-icon>
+              <v-icon left color="black" icon="mdi-lock-open-variant"></v-icon>
               Open, top to bottom
             </v-card-title>
             <v-card-text class="body-1 flex-grow-1">
@@ -84,15 +84,15 @@
             <v-card-actions>
               <v-spacer />
               <v-btn text rounded href="https://docs.openalex.org/" target="_blank">
-                <v-icon left>mdi-cog-outline</v-icon>
+                <v-icon left icon="mdi-cog-outline"></v-icon>
                 API
               </v-btn>
               <v-btn text rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot" target="_blank">
-                <v-icon left>mdi-database-outline</v-icon>
+                <v-icon left icon="mdi-database-outline"></v-icon>
                 Data
               </v-btn>
               <v-btn text rounded href="https://github.com/ourresearch" target="_blank">
-                <v-icon left>mdi-code-braces</v-icon>
+                <v-icon left icon="mdi-code-braces"></v-icon>
                 Code
               </v-btn>
             </v-card-actions>
@@ -102,7 +102,7 @@
         <v-col cols="12" lg="4">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-hand-heart</v-icon>
+              <v-icon left color="black" icon="mdi-hand-heart"></v-icon>
               Sustainably not-for-profit
             </v-card-title>
             <v-card-text class="body-1 flex-grow-1">
@@ -117,11 +117,11 @@
             <v-card-actions>
               <v-spacer />
               <v-btn text rounded href="https://ourresearch.org/" target="_blank">
-                <v-icon left>mdi-account-multiple-outline</v-icon>
+                <v-icon left icon="mdi-account-multiple-outline"></v-icon>
                 About us
               </v-btn>
               <v-btn text rounded href="https://help.openalex.org/pricing" target="_blank">
-                <v-icon left>mdi-diamond-stone</v-icon>
+                <v-icon left icon="mdi-diamond-stone"></v-icon>
                 Upgrade
               </v-btn>
             </v-card-actions>

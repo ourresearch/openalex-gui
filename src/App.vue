@@ -33,13 +33,13 @@
       <v-menu v-if="!isMobile" offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon v-on="on">
-            <v-icon>mdi-help-circle-outline</v-icon>
+            <v-icon icon="mdi-help-circle-outline"></v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
             <span>
-              <v-icon>mdi-comment-question-outline</v-icon>
+              <v-icon icon="mdi-comment-question-outline"></v-icon>
             </span>
             
               <v-list-item-title>Contact support</v-list-item-title>
@@ -47,7 +47,7 @@
           </v-list-item>
           <v-list-item href="https://help.openalex.org/" target="_blank">
             <span>
-              <v-icon>mdi-help-circle-outline</v-icon>
+              <v-icon icon="mdi-help-circle-outline"></v-icon>
             </span>
             
               <v-list-item-title>Visit help center</v-list-item-title>
@@ -72,7 +72,7 @@
       {{ snackbarMsg }}
       <template v-slot:action="{ attrs }">
         <v-btn icon v-bind="attrs" @click="closeSnackbar">
-          <v-icon>mdi-close</v-icon>
+          <v-icon icon="mdi-close"></v-icon>
         </v-btn>
       </template>
     </v-snackbar>

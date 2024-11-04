@@ -27,7 +27,8 @@
 		],
 		"types": [
 			"@types/resize-observer-browser",
-			"vite/client"
+			"vite/client",
+      "@vitest/browser/providers/playwright",
 		]
 	},
 	"include": [

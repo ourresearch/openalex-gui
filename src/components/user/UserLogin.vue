@@ -9,7 +9,7 @@
         </div>
         <v-spacer/>
         <v-btn icon @click="isOpen = false">
-          <v-icon>mdi-close</v-icon>
+          <v-icon icon="mdi-close"></v-icon>
         </v-btn>
       </v-card-title>
       <!--      <v-divider></v-divider>-->

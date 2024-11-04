@@ -27,7 +27,7 @@
         @keyup.enter="onEnterKeyup"
     >
       <!--        @blur="clear"-->
-      <template v-slot:prepend-inner>
+      <template v-slot:chip>
         <v-chip
             v-if="newFilter"
             close
@@ -56,7 +56,6 @@
             <v-list-item-subtitle>
               Filter by {{ data.item.displayValue }}
             </v-list-item-subtitle>
-          
           <span>
             <v-icon>mdi-filter-plus</v-icon>
           </span>
@@ -100,341 +99,266 @@
     <div class="ml-2 mt-2" v-if="showExamples">
       <span class="body-2 grey--text">Try:</span>
       <v-chip
-          color="white"
           v-for="search in searchesToTry"
           :key="search"
           @click="trySearch(search)"
-          class=""
-      >
+          class="chip"
+      > 
         {{ search }}
       </v-chip>
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { debounce } from 'lodash';
+import { url } from '@/url';
+import { api } from '@/api';
+import { createSimpleFilter } from '@/filterConfigs';
+import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
+import { findFacetConfigs } from '@/facetConfigs';
+import { entityTypeFromId } from '@/util';
+import { useStore } from 'vuex';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {api} from "@/api";
-import {createSimpleFilter} from "@/filterConfigs";
-import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
-import {findFacetConfigs} from "@/facetConfigs";
-import {entityTypeFromId} from "@/util";
-
-import {debounce, capitalize} from "lodash"
-
-
-export default {
-  name: "Template",
-  components: {},
-  props: {
-    dense: Boolean,
-    showExamples: Boolean,
-    autofocus: Boolean,
-  },
-  data() {
-    return {
-      foo: 42,
-      isLoading: false,
-      searchString: "",
-      suggestions: [],
-      newFilter: null,
-      select: null,
-      interval: null,
-
-      isEnterPressed: false,
-
-      selectStorage: null,
-      searchesToTry: [
-        "Claudia Goldin",
-        "coriander OR cilantro",
-        "Institution",
-      ]
-    }
-  },
-  computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    filterSuggestions() {
-      const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
-          .filter(f => {
-            return f.actions?.includes("filter")
-          })
-          .map(f => {
-            return {
-              ...f,
-              isFilterLink: true,
-              displayValue: f.displayName,
-              isDisabled: url.isFilterKeyAvailableToCreate(this.$route, this.entityType, f.key)
-            }
-          })
-
-      suggestionsMatchingSearchString.sort((a, b) => {
-        return (a.displayName.length > b.displayName.length) ? 1 : -1
-      })
-
-      return this.searchString?.length >= 3 ?
-          suggestionsMatchingSearchString :
-          []
-    },
-    placeholder() {
-      const displayName = this.newFilter?.displayName
-      const pluralizedDisplayName = displayName ?
-          this.$pluralize(displayName, 2) :
-          null
-      if (!this.newFilter) {
-        return this.entityType === 'works' ? "Search OpenAlex" : "Search " + this.entityType
-      } else if (this.newFilter.key === "publication_year") {
-        return "Enter year or range of years"
-      } else if (this.newFilter.type === "range") {
-        return "Enter number or range"
-      } else if (this.newFilter.type === "search") {
-        return "Search within " + pluralizedDisplayName
-      } else {
-        return "Search " + pluralizedDisplayName
-      }
-    },
-
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-    clear() {
-      this.searchString = ""
-      this.suggestions = []
-      this.newFilter = null
-
-    },
-    clickClear() {
-      this.suggestions = []
-      if (this.searchString) {
-        this.searchString = ""
-      } else {
-        this.searchString = ""
-        this.newFilter = null
-      }
-    },
-    selectFilter(filter) {
-      console.log("selectFilter()", filter)
-      if (filter.type === "boolean") {
-        const oldFilters = url.readFilters(this.$route)
-        console.log("push new filter", filter)
-        const newFilter = createSimpleFilter(
-            "works",
-            filter.key,
-            true
-        )
-        filter.value = true
-        url.pushNewFilters([
-          ...oldFilters,
-          newFilter,
-        ])
-      } else {
-        this.newFilter = filter
-      }
-    },
-    onChange(myFilterData) {
-      console.log('onChange()', myFilterData, this.select)
-      if (this.select) this.isEnterPressed = false
-      if (myFilterData.key === "default.search") {
-        this.submitSearchString()
-      }
-      else if (myFilterData?.isFilterLink) {
-        this.selectFilter(myFilterData)
-      }
-      else if (myFilterData?.value) {
-        url.pushNewFilters([
-          ...url.readFilters(this.$route),
-          myFilterData,
-        ])
-        this.clear()
-      }
-
-      setTimeout(() => { // no idea why this is necessary but it is
-        this.searchString = ""
-        this.select = null
-        this.suggestions = []
-      })
-    },
-    onEnterKeyup() {
-      if (!this.isEnterPressed) return
-      if (!this.searchString && this.showExamples) {
-        // we're on the landing page or something like it
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-        return
-      }
-
-      const filterKey = this.newFilter?.key ?? "default.search"
-      url.createFilter(this.entityType, filterKey, this.searchString)
-      this.isEnterPressed = false
-    },
-    submitSearchString() {
-      console.log("submitSearchString")
-      if (!this.searchString) {
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-      } else {
-        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
-        url.pushNewFilters([
-          ...url.readFilters(this.$route),
-          searchFilter
-        ])
-      }
-    },
-    viewWorks(id) {
-      console.log("view my works", id)
-
-      const entityType = entityTypeFromId(id)
-      if (!id || !entityType) return
-
-      const filter = createSimpleFilter(
-          "works",
-          entityConfigs[entityType].filterKey,
-          id,
-      )
-      url.pushNewFilters([
-        ...url.readFilters(this.$route),
-        filter,
-      ])
-      this.clear()
-
-    },
-    goToEntity(id) {
-      console.log("goToEntity()", id)
-      url.pushToRoute(this.$router, {
-        name: "EntityPage",
-        params: urlPartsFromId(id)
-      })
-
-    },
-    trySearch(str) {
-      setTimeout(() => {
-        this.searchString = str
-        console.log("trySearch", str)
-        this.$refs.shortcutBox.focus()
-      }, 100)
-    },
-
-    getSuggestions: debounce(async function () {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
-
-      // lol hack much?
-      if (this.searchString === "coriander OR cilantro") {
-        this.suggestions = [fulltextSearchFilter]
-        return
-      }
-
-      this.isLoading = true
-
-      // if a filter is selected but no search yet, show the available options
-      if (this.newFilter && !this.searchString) {
-        this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
-        this.isLoading = false
-        return
-      }
-
-      // if the search is empty, clear everything and leave
-      if (!this.newFilter && !this.searchString) {
-        this.suggestions = [] // doesn't seem to work
-        this.isLoading = false
-        return // this is very important!!!!
-      }
-
-
-      const apiSuggestions = await api.getSuggestions(
-          this.entityType,
-          // "works",
-          this.newFilter?.key,
-          this.searchString,
-          url.readFilters(this.$route)
-      )
-      this.isLoading = false
-
-      const ret = [
-        ...(this.newFilter ? [] : this.filterSuggestions),
-        ...apiSuggestions,
-      ]
-      const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
-      const cleaned = everySuggestionIsAWork ?
-          ret.slice(0, 3) :
-          ret.filter(f => f.entityId !== "works").slice(0, 5)
-
-
-      if (!this.newFilter) {
-        cleaned.push(fulltextSearchFilter)
-      }
-
-      this.suggestions = cleaned
-    }, 100),
-
-    onKeyPress(event) {
-      if (event.key !== "/") {
-        return;
-      }
-
-      if (document.activeElement === this.$refs.shortcutBox) {
-        return;
-      }
-
-      event.preventDefault();
-      this.$refs.shortcutBox.focus();
-    }
-
-
-  },
-  created() {
-  },
-  mounted() {
-    window.addEventListener("keypress", this.onKeyPress);
-    this.interval = setInterval(() => {
-      if (!this.newFilter && !this.searchString && this.suggestions.length) {
-        console.log("setInterval hackily clearing any leftover suggestions")
-        this.suggestions = []
-      }
-    }, 10)
-  },
-  beforeDestroy() {
-    clearInterval(this.interval)
-    window.removeEventListener("keypress", this.onKeyPress);
-  },
-  watch: {
-    searchString: function (to) {
-      if (this.newFilter && this.newFilter?.type !== "select") return
-      this.getSuggestions()
-    },
-    "$route": {
-      handler(to, from) {
-        this.clear()
-      }
-    },
-    async select(to) {
-
-    }
-  },
+interface SuggestionItem {
+  entityId?: string;
+  displayName: string;
+  key?: string;
+  icon?: string;
+  isFilterLink?: boolean;
+  displayValue: string;
+  isDisabled?: boolean;
+  hint?: string;
 }
+
+const props = defineProps<{
+  dense?: boolean;
+  showExamples?: boolean;
+  autofocus?: boolean;
+}>();
+
+// Vuex setup
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+const userId = computed(() => store.getters['user/userId']);
+
+// Local state
+const searchString = ref<string>('');
+const suggestions = ref<SuggestionItem[]>([]);
+const newFilter = ref<SuggestionItem | null>(null);
+const select = ref<any>(null);
+const isLoading = ref(false);
+const isEnterPressed = ref(false);
+const interval = ref<number | null>(null);
+
+// Sample searches
+const searchesToTry = ref(['Claudia Goldin', 'coriander OR cilantro', 'Institution']);
+
+// Computed properties
+const filterSuggestions = computed(() => {
+  const matches = findFacetConfigs(entityType.value, searchString.value)
+    .filter(f => f.actions?.includes('filter'))
+    .map(f => ({
+      ...f,
+      isFilterLink: true,
+      displayValue: f.displayName,
+      isDisabled: url.isFilterKeyAvailableToCreate(useRoute(), entityType.value, f.key),
+    }));
+  matches.sort((a, b) => (a.displayName.length > b.displayName.length ? 1 : -1));
+  return searchString.value.length >= 3 ? matches : [];
+});
+
+const placeholder = computed(() => {
+  const displayName = newFilter.value?.displayName;
+  const pluralizedDisplayName = displayName ? `${displayName}s` : null;
+  if (!newFilter.value) {
+    return entityType.value === 'works' ? 'Search OpenAlex' : `Search ${entityType.value}`;
+  } else if (newFilter.value.key === 'publication_year') {
+    return 'Enter year or range of years';
+  } else if (newFilter.value.type === 'range') {
+    return 'Enter number or range';
+  } else if (newFilter.value.type === 'search') {
+    return `Search within ${pluralizedDisplayName}`;
+  } else {
+    return `Search ${pluralizedDisplayName}`;
+  }
+});
+
+// Methods
+const clear = () => {
+  searchString.value = '';
+  suggestions.value = [];
+  newFilter.value = null;
+};
+
+const clickClear = () => {
+  suggestions.value = [];
+  searchString.value = '';
+  newFilter.value = null;
+};
+
+const selectFilter = (filter: SuggestionItem) => {
+  if (filter.type === 'boolean') {
+    const oldFilters = url.readFilters(useRoute());
+    const newFilter = createSimpleFilter('works', filter.key!, true);
+    url.pushNewFilters([...oldFilters, newFilter]);
+  } else {
+    newFilter.value = filter;
+  }
+};
+
+const onChange = (myFilterData: SuggestionItem) => {
+  if (select.value) isEnterPressed.value = false;
+  if (myFilterData.key === 'default.search') {
+    submitSearchString();
+  } else if (myFilterData.isFilterLink) {
+    selectFilter(myFilterData);
+  } else if (myFilterData.value) {
+    url.pushNewFilters([...url.readFilters(useRoute()), myFilterData]);
+    clear();
+  }
+
+  setTimeout(() => {
+    searchString.value = '';
+    select.value = null;
+    suggestions.value = [];
+  });
+};
+
+const onEnterKeyup = () => {
+  if (!isEnterPressed.value) return;
+  if (!searchString.value && props.showExamples) {
+    url.pushToRoute(useRouter(), { name: 'Serp', params: { entityType: entityType.value } });
+    return;
+  }
+
+  const filterKey = newFilter.value?.key ?? 'default.search';
+  url.createFilter(entityType.value, filterKey, searchString.value);
+  isEnterPressed.value = false;
+};
+
+const submitSearchString = () => {
+  if (!searchString.value) {
+    url.pushToRoute(useRouter(), { name: 'Serp', params: { entityType: entityType.value } });
+  } else {
+    const searchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
+    url.pushNewFilters([...url.readFilters(useRoute()), searchFilter]);
+  }
+};
+
+const goToEntity = (id: string) => {
+  url.pushToRoute(useRouter(), { name: 'EntityPage', params: urlPartsFromId(id) });
+};
+
+const trySearch = (str: string) => {
+  setTimeout(() => {
+    searchString.value = str;
+    getSuggestions();
+  }, 100);
+};
+
+const getSuggestions = debounce(async () => {
+  const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
+
+  if (searchString.value === 'coriander OR cilantro') {
+    suggestions.value = [fulltextSearchFilter];
+    return;
+  }
+
+  isLoading.value = true;
+
+  if (newFilter.value && !searchString.value) {
+    suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+    isLoading.value = false;
+    return;
+  }
+
+  if (!newFilter.value && !searchString.value) {
+    suggestions.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  const apiSuggestions = await api.getSuggestions(
+    entityType.value,
+    newFilter.value?.key,
+    searchString.value,
+    url.readFilters(useRoute())
+  );
+  isLoading.value = false;
+
+  const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
+  const everySuggestionIsAWork = ret.every(f => f.entityId === 'works');
+  const cleaned = everySuggestionIsAWork ? ret.slice(0, 3) : ret.filter(f => f.entityId !== 'works').slice(0, 5);
+
+  if (!newFilter.value) {
+    cleaned.push(fulltextSearchFilter);
+  }
+
+  suggestions.value = cleaned;
+}, 100);
+
+const onKeyPress = (event: KeyboardEvent) => {
+  if (event.key !== '/') return;
+  if (document.activeElement === document.getElementById('shortcutBox')) return;
+  event.preventDefault();
+  document.getElementById('shortcutBox')?.focus();
+};
+
+// Lifecycle Hooks
+onMounted(() => {
+  window.addEventListener('keypress', onKeyPress);
+  interval.value = setInterval(() => {
+    if (!newFilter.value && !searchString.value && suggestions.value.length) {
+      suggestions.value = [];
+    }
+  }, 10);
+});
+
+onBeforeUnmount(() => {
+  if (interval.value) clearInterval(interval.value);
+  window.removeEventListener('keypress', onKeyPress);
+});
+
+// Watchers
+watch(searchString, (newValue) => {
+  if (newFilter.value && newFilter.value.type !== 'select') return;
+  getSuggestions();
+});
+
+watch(
+  () => useRoute().fullPath,
+  () => clear()
+);
 </script>
 
-<style lang="scss">
+<style  lang="scss">
 
 .v-autocomplete__content {
   max-width: 400px !important;
 }
 
+.chip {
+  .v-chip__underlay{
+    opacity: 0;
+
+    &:hover{
+      opacity: .04;
+
+    }
+    
+  }
+}
 
 .shortcut-box {
   .v-input__append-inner:last-of-type {
     display: none !important; // hide the down-caret icon
   }
 
-}
+} 
+
+
 
 </style>

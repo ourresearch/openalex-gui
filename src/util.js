@@ -2,23 +2,23 @@ import {startCase, capitalize} from "lodash"
 import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
 
 async function sleep(ms) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise(resolve => {
+      setTimeout(resolve, ms);
+  });
 }
 
 const setOrDelete = function (obj, k, v) {
-    if (v) {
-        obj[k] = v
-    } else {
-        delete obj[k]
-    }
-    return obj
+  if (v) {
+      obj[k] = v
+  } else {
+      delete obj[k]
+  }
+  return obj
 }
 
 function hashCode(str) {
-    return Math.abs(str.split('').reduce((prevHash, currVal) =>
-        (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
+  return Math.abs(str.split('').reduce((prevHash, currVal) =>
+      (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
 }
 
 const toHexHash = function (str) {

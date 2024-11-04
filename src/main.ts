@@ -5,7 +5,10 @@ import store from './store';
 
 // Vuetify
 import 'vuetify/styles';
-import { createVuetify } from 'vuetify';
+import '@mdi/font/css/materialdesignicons.css'; // Import Material Design Icons CSS
+
+import { createVuetify } from 'vuetify'
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 
@@ -32,6 +35,13 @@ import _ from 'lodash';
 
 // Vuetify instance
 const vuetify = createVuetify({
+  icons: {
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi,
+    },
+  },
   components,
   directives,
 });
@@ -127,8 +137,7 @@ app.config.globalProperties.$prettyName = function (name: string): string {
     .replace('United Kingdom of Great Britain and Northern Ireland', 'United Kingdom');
 
   const typeRe = /[a-z]+-[a-z]+/;
-  if (typeRe.test(ret)) ret = ret.replace('-', ' ');
-
+  if (typeRe.test(ret)) return ret.replace('-', ' ');
   return ret;
 };
 

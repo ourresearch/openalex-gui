@@ -11,7 +11,7 @@
               color="primary"
               class=""
           >
-            <v-icon>mdi-plus-thick</v-icon>
+            <v-icon icon="mdi-plus-thick"></v-icon>
           </v-btn>
 
         </v-fab-transition>
@@ -41,7 +41,7 @@
               :disabled="filter.disabled"
           >
             <span>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+              <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
             </span>
             
               <v-list-item-title>
@@ -58,7 +58,7 @@
               :disabled="filter.disabled"
           >
             <span>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+              <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
             </span>
             
               <v-list-item-title>
@@ -72,7 +72,7 @@
               @click="isDialogOpen = true"
           >
             <span>
-              <v-icon>mdi-dots-horizontal</v-icon>
+              <v-icon icon="mdi-dots-horizontal"></v-icon>
             </span>
             
               <v-list-item-title class="font-weight-bold">
@@ -141,7 +141,7 @@
                   style="flex-basis: 250px;"
               >
                 <span>
-                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+                  <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
                 </span>
                 
                   <v-list-item-title>

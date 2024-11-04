@@ -6,18 +6,18 @@
       <v-spacer/>
       <Action v-if="entityType === 'works'" class="ml-2" action="group_by"/>
       <v-btn icon :href="csvUrl">
-        <v-icon>mdi-tray-arrow-down</v-icon>
+        <v-icon :icon="mdi-tray-arrow-down"></v-icon>
       </v-btn>
       <v-menu offset-y v-if="0">
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on">
-            <v-icon>mdi-dots-vertical</v-icon>
+            <v-icon :icon="mdi-dots-vertical"></v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item @click="url.setGroupBy(undefined)">
             <span>
-              <v-icon>mdi-restore</v-icon>
+              <v-icon :icon="mdi-restore"></v-icon>
             </span>
             
               <v-list-item-title>Restore report defaults</v-list-item-title>
@@ -27,7 +27,7 @@
           <v-divider/>
           <v-list-item :href="csvUrl">
             <span>
-              <v-icon>mdi-tray-arrow-down</v-icon>
+              <v-icon :icon="mdi-tray-arrow-down"></v-icon>
             </span>
             
               <v-list-item-title>Export all</v-list-item-title>
@@ -36,7 +36,7 @@
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
             <span>
-              <v-icon>mdi-api</v-icon>
+              <v-icon :icon="mdi-api"></v-icon>
             </span>
             
               <v-list-item-title>View in API</v-list-item-title>
@@ -66,7 +66,7 @@
               <v-toolbar-title>APC sums</v-toolbar-title>
               <v-spacer/>
               <v-btn icon @click="url.toggleGroupBy('apc_sum')">
-                <v-icon>mdi-close</v-icon>
+                <v-icon :icon="mdi-close"></v-icon>
               </v-btn>
             </v-toolbar>
             <v-divider/>
@@ -83,12 +83,12 @@
           </v-card>
 
           <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
-            <v-icon left>mdi-format-quote-close</v-icon>
+            <v-icon left icon="mdi-format-quote-close"></v-icon>
             <span class="text-h5 mr-2">{{ resultsObject?.meta?.cited_by_count_sum | toPrecision }}</span>
             <div class="align-self-baseline ">citations</div>
             <v-spacer/>
             <v-btn icon @click="url.toggleGroupBy('cited_by_count_sum')">
-              <v-icon>mdi-close</v-icon>
+              <v-icon :icon="mdi-close"></v-icon>
             </v-btn>
           </v-card>
 
