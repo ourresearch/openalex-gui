@@ -67,9 +67,9 @@
                     :key="category.displayName + filterConfig.key"
                     :value="filterConfig.key"
                 >
-                  <v-list-item-icon>
+                  <span>
                     <v-icon>{{ filterConfig.icon }}</v-icon>
-                  </v-list-item-icon>
+                  </span>
                   {{ filterConfig.displayName }}
 
                 </v-list-item>

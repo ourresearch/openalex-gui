@@ -15,17 +15,17 @@
         :href="idObj.url" target="_blank"
     >
       <!--            @click="copyToClipboard(idObj.id)"-->
-      <v-list-item-content>
+      
         <v-list-item-title>
           {{ idObj.displayNamespace }}
         </v-list-item-title>
         <!--            <v-list-item-subtitle class="grey&#45;&#45;text" style="">-->
         <!--              {{ idObj.simpleId }}-->
         <!--            </v-list-item-subtitle>-->
-      </v-list-item-content>
-      <v-list-item-icon>
+      
+      <span>
         <v-icon small class="mt-1">mdi-open-in-new</v-icon>
-      </v-list-item-icon>
+      </span>
 
       <!--          <v-list-item-action>-->
       <!--            <v-btn small icon @click="copyToClipboard(idObj.id)">-->

@@ -40,14 +40,14 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
         <v-list v-if="!searchString">
@@ -57,28 +57,28 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
           <v-divider/>
           <v-list-item
               key="more-filters"
               @click="isDialogOpen = true"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon>mdi-dots-horizontal</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title class="font-weight-bold">
                 More
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
       </v-card>
@@ -140,17 +140,17 @@
                   :disabled="filter.disabled"
                   style="flex-basis: 250px;"
               >
-                <v-list-item-icon>
+                <span>
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
+                </span>
+                
                   <v-list-item-title>
                     {{ filter.displayName }}
                   </v-list-item-title>
                   <!--                  <v-list-item-subtitle>-->
                   <!--                    {{ filter.type }}-->
                   <!--                  </v-list-item-subtitle>-->
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </div>

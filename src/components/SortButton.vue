@@ -35,14 +35,14 @@
             :key="sortConfig.key"
             :value="sortConfig.key"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon v-if="activeSortKey === sortConfig.key">mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               {{ sortConfig.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
       </v-list-item-group>

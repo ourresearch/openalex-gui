@@ -35,7 +35,7 @@
 
           ({{ items.filter(i => i.type === itemType.id).length }})
 
-          <!--          <v-list-item-content>-->
+          <!--          -->
           <!--            <div>-->
           <!--              <v-icon :color="itemType.color" left v-if="selectedItemTypes.includes(itemType.id)">-->
           <!--                mdi-checkbox-marked-->
@@ -47,10 +47,10 @@
 
           <!--            </div>-->
 
-          <!--          </v-list-item-content>-->
-          <!--          <v-list-item-action-text>-->
+          <!--          -->
+          <!--          <small>-->
           <!--            {{ items.filter(i => i.type === itemType.id).length }}-->
-          <!--          </v-list-item-action-text>-->
+          <!--          </small>-->
         </v-chip>
       </v-chip-group>
 

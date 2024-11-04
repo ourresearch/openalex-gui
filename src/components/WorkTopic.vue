@@ -16,17 +16,17 @@
           exact-path
           @click="clickLevel(level)"
         >
-          <v-list-item-icon >
+          <span >
             <v-icon>{{ i === 0 ? "mdi-lightbulb-outline" : "mdi-subdirectory-arrow-right" }} </v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title :class="{'font-weight-bold': level==='topic'}">
               {{ level !== 'topic' ? topic[level].display_name : topic.display_name}}
             </v-list-item-title>
             <v-list-item-subtitle >
               {{  level !== 'topic' ?  level : "topic" }}
             </v-list-item-subtitle>
-          </v-list-item-content>
+          
         </v-list-item>
 
 

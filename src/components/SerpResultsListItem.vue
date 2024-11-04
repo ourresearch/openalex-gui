@@ -5,10 +5,10 @@
       exact
   >
     <!--          @click="clickResult(result.id)"-->
-    <!--        <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
+    <!--        <span v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
     <!--          <v-icon class="">mdi-file-document-outline</v-icon>-->
-    <!--        </v-list-item-icon>-->
-    <v-list-item-content>
+    <!--        </span>-->
+    
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
         <div class="" v-html="$prettyTitle(result.display_name)"></div>
       </v-list-item-title>
@@ -60,7 +60,7 @@
 
             </span>
       </div>
-    </v-list-item-content>
+    
   </v-list-item>
 </template>
 

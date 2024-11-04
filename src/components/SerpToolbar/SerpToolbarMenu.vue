@@ -33,14 +33,14 @@
             :key="view.id"
             @click="url.toggleView(view.id)"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon>{{ view.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               {{ view.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-action class="pt-2">
             <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
           </v-list-item-action>
@@ -59,24 +59,24 @@
       </template>
       <v-list>
         <v-list-item @click="isDialogOpen.qrCode = true">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-qrcode</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               Get QR code to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
         <v-list-item @click="copyUrlToClipboard">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-link-variant</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               Copy link to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
     </v-menu>

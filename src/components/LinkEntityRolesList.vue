@@ -27,15 +27,15 @@
           :key="role.id"
           :to="role.id | entityZoomLink"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>{{ role.role }}</v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-icon>
+          
+          <span>
             <v-icon v-if="role.role === selected">mdi-check</v-icon>
-          </v-list-item-icon>
+          </span>
 
 
         </v-list-item>

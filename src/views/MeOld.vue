@@ -13,41 +13,41 @@
                 color="primary"
             >
               <v-list-item key="details" value="details" @click="setTab('details')">
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-account-outline</v-icon>
-                </v-list-item-icon>
+                </span>
                 <v-list-item-title>Details</v-list-item-title>
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-chevron-right</v-icon>
-                </v-list-item-icon>
+                </span>
               </v-list-item>
               <v-list-item key="alerts" value="alerts" @click="setTab('alerts')">
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-email-outline</v-icon>
-                </v-list-item-icon>
+                </span>
                 <v-list-item-title>
                   Alerts
                   <span>
                     ({{ userEmailAlerts.length }})
                   </span>
                 </v-list-item-title>
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-chevron-right</v-icon>
-                </v-list-item-icon>
+                </span>
               </v-list-item>
               <v-list-item key="saved" value="saved" @click="setTab('saved')">
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-content-save-outline</v-icon>
-                </v-list-item-icon>
+                </span>
                 <v-list-item-title>
                   Saved searches
                   <span>
                     ({{ userSavedSearches.length }})
                   </span>
                 </v-list-item-title>
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-chevron-right</v-icon>
-                </v-list-item-icon>
+                </span>
               </v-list-item>
 
             </v-list-item-group>
@@ -68,23 +68,23 @@
           <template v-if="selectedTab==='details'">
             <v-list>
               <v-list-item>
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-account</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
+                </span>
+                
                   <v-list-item-title>{{ userName }}</v-list-item-title>
                   <v-list-item-subtitle>Name</v-list-item-subtitle>
 
-                </v-list-item-content>
+                
               </v-list-item>
               <v-list-item>
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-email</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
+                </span>
+                
                   <v-list-item-title>{{ userEmail }}</v-list-item-title>
                   <v-list-item-subtitle>Email</v-list-item-subtitle>
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </template>
@@ -99,13 +99,13 @@
                   v-for="alert in userEmailAlerts"
                   :key="alert.id"
               >
-                <v-list-item-icon>
+                <span>
                   <v-icon>mdi-email-outline</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
+                </span>
+                
                   <v-list-item-title style="white-space: unset;">{{ alert.work_filter }}</v-list-item-title>
                   <v-list-item-subtitle>Filter</v-list-item-subtitle>
-                </v-list-item-content>
+                
                 <v-list-item-action>
                   <v-btn icon>
                     <v-icon>mdi-trash-outline</v-icon>

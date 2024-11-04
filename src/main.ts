@@ -1,5 +1,3 @@
-// main.ts
-
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
@@ -16,7 +14,7 @@ import { createHead } from '@unhead/vue'; // Replacement for vue-meta in Vue 3
 import VScrollLock from 'v-scroll-lock';
 import millify from 'millify';
 import FlagIcon from 'vue-flag-icon';
-import VuePluralize from 'vue-pluralize';
+// import VuePluralize from 'vue-pluralize';
 
 import pluralize from 'pluralize';
 
@@ -95,7 +93,8 @@ app.config.globalProperties.$entityZoomLink = function (id: string) {
   }
 };
 
-app.config.globalProperties.$pluralize = pluralize;
+app.config.globalProperties.pluralize = pluralize;
+// app.config.globalProperties.filter = filter;
 
 app.config.globalProperties.$zoomLink = function (fullId: string) {
   if (!fullId) return;
@@ -115,7 +114,7 @@ app.config.globalProperties.$toPrecision = function (number: number, precision =
   return toPrecision(number, precision);
 };
 
-app.config.globalProperties.$capitalize = function (str: string): string {
+app.config.globalProperties.capitalize = function (str: string): string {
   if (typeof str !== 'string') return str;
   const firstLetter = str[0];
   return firstLetter.toUpperCase() + str.substring(1);

@@ -1,5 +1,4 @@
-import sanitizeHtml from "sanitize-html";
-import _ from "lodash"
+import {startCase, capitalize} from "lodash"
 import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
 
 async function sleep(ms) {
@@ -155,11 +154,11 @@ const prettyTitle = function (title, facetKey) {
     if (!title) return "Untitled"
     if (/^\s+$/.test(title)) return "Untitled"
     if (title && title.toUpperCase() === title) {
-        title = _.startCase(title.toLowerCase());
+        title = startCase(title.toLowerCase());
     }
     if (facetKey && facetKey === "type") {
         title = title.replace("-", " ")
-        title = _.capitalize(title)
+        title = capitalize(title)
     }
     if (facetKey === "authorships.institutions.country_code") {
         title = title
@@ -169,10 +168,10 @@ const prettyTitle = function (title, facetKey) {
     }
 
 
-    const safeTitle = sanitizeHtml(title, {
-        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
-    })
-    return safeTitle
+    // const safeTitle = sanitizeHtml(title, {
+    //     allowedTags: ['b', 'i', 'em', 'strong', 'a'],
+    // })
+    // return safeTitle
 }
 
 /**

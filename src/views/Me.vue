@@ -8,23 +8,23 @@
 <!--          <v-divider></v-divider>-->
           <v-list color="transparent">
             <v-list-item>
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-account</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
+              
                 <v-list-item-title>{{ userName }}</v-list-item-title>
                 <v-list-item-subtitle>Name</v-list-item-subtitle>
 
-              </v-list-item-content>
+              
             </v-list-item>
             <v-list-item>
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-email</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
+              
                 <v-list-item-title>{{ userEmail }}</v-list-item-title>
                 <v-list-item-subtitle>Email</v-list-item-subtitle>
-              </v-list-item-content>
+              
             </v-list-item>
           </v-list>
         </v-card>

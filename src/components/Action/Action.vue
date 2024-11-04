@@ -70,23 +70,23 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>
           </v-list-item>
           <v-divider/>
           <v-list-item @click="openMoreDialog">
-            <v-list-item-content>
+            
               <v-list-item-title>More</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
 
         </v-list>
@@ -116,14 +116,14 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>

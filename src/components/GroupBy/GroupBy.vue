@@ -25,22 +25,22 @@
         </template>
         <v-list>
           <v-list-item :href="csvUrl">
-            <v-list-item-icon>
+            <span>
               <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>Export</v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-action-text>.csv</v-list-item-action-text>
+            
+            <small>.csv</small>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
-            <v-list-item-icon>
+            <span>
               <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>View in API</v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-action-text>.json</v-list-item-action-text>
+            
+            <small>.json</small>
           </v-list-item>
 
         </v-list>

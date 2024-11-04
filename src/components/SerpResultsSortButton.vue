@@ -17,14 +17,14 @@
           @click="clickOption(option.key)"
           :disabled="menuOptions.length === 1"
       >
-        <v-list-item-icon>
+        <span>
           <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
+        </span>
+        
           <v-list-item-title>
             {{ option.displayName }}
           </v-list-item-title>
-        </v-list-item-content>
+        
         <v-list-item-action class="pl-3 pt-2">
           <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
         </v-list-item-action>
@@ -32,9 +32,9 @@
       <!--          <v-divider/>-->
       <!--          <v-list-item @click="isDialogOpen.more = true">-->
       <!--            <v-icon>mdi-dots-horizontal</v-icon>-->
-      <!--            <v-list-item-content>-->
+      <!--            -->
       <!--              <v-list-item-title>More</v-list-item-title>-->
-      <!--            </v-list-item-content>-->
+      <!--            -->
       <!--          </v-list-item>-->
 
     </v-list>

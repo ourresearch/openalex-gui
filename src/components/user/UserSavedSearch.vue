@@ -1,9 +1,9 @@
 <template>
   <v-list-item :disabled="disabled" @click="open">
-    <v-list-item-icon>
+    <span>
       <v-icon>mdi-content-save-outline</v-icon>
-    </v-list-item-icon>
-    <v-list-item-content>
+    </span>
+    
       <v-list-item-title>
         {{ name }}
 <!--        {{ isOpenAsSerpTab ? "(open)" : "" }}-->
@@ -15,7 +15,7 @@
       </v-list-item-subtitle>
       <div>
       </div>
-    </v-list-item-content>
+    
     <v-list-item-action v-if="!isOpener">
       <v-btn icon @click.stop="deleteSavedSearch(id)" :disabled="disabled">
         <v-icon>mdi-delete-outline</v-icon>

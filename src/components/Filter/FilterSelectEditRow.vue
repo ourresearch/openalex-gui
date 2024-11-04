@@ -4,14 +4,14 @@
       @click="isApplied = !isApplied"
   >
     <!--      @click="$emit('add', value)"-->
-    <v-list-item-icon>
+    <span>
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
         <v-icon v-else>mdi-checkbox-marked</v-icon>
       </template>
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-    </v-list-item-icon>
-    <v-list-item-content>
+    </span>
+    
       <v-list-item-title :class="{isNegated}">
         {{ displayValue }}
         {{ (disabled) ? "(applied)" : "" }}
@@ -20,15 +20,15 @@
         <span v-if="myEntityConfig">{{ myEntityConfig.displayName | pluralize(1) |capitalize }} </span>
         <span v-if="hint"> {{ hint | truncate(100)}}</span>
       </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action-text class="body-1">
+    
+    <small class="body-1">
       <template v-if="isCountLoading">
         <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>
       <template>
         {{ myCount | toPrecision }}
       </template>
-    </v-list-item-action-text>
+    </small>
   </v-list-item>
 </template>
 

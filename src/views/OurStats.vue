@@ -53,7 +53,7 @@
                     v-for="highlightFilter in cardData.highlightFilters"
                     :key="highlightFilter.key"
                   >
-                    <v-list-item-content>
+                    
                       <v-list-item-title>
                           <our-stats-entry
                             :entity-type="cardData.name"
@@ -68,7 +68,7 @@
                           </span>
 
                       </v-list-item-title>
-                    </v-list-item-content>
+                    
                   </v-list-item>
                 </v-list>
               </div>

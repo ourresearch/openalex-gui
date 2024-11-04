@@ -45,49 +45,49 @@
 
 
       <template v-slot:item="data">
-        <v-list-item-icon>
+        <span>
           <v-icon>{{ data.item.icon }}</v-icon>
-        </v-list-item-icon>
+        </span>
         <template v-if="data.item.isFilterLink">
-          <v-list-item-content>
+          
             <v-list-item-title>
-              <span class="font-weight-bold">{{ data.item.displayValue | capitalize }}</span>
+              <span class="font-weight-bold">{{ capitalize(data.item.displayValue) }}</span>
             </v-list-item-title>
             <v-list-item-subtitle>
               Filter by {{ data.item.displayValue }}
             </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-icon>
+          
+          <span>
             <v-icon>mdi-filter-plus</v-icon>
-          </v-list-item-icon>
+          </span>
         </template>
 
         <template v-else-if="data.item.key === 'default.search'">
-          <v-list-item-content>
+          
             <v-list-item-title>
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
               <span class="mr-2">in {{ entityType | pluralize(1) }} {{ data.item.displayName }}</span>
             </v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-action-text>
+          
+          <small>
             press Enter
-          </v-list-item-action-text>
+          </small>
         </template>
 
         <template v-else>
-          <v-list-item-content>
+          
             <v-list-item-title
                 v-html="$prettyTitle(data.item.displayValue)"
                 style="white-space: normal;"
             />
             <v-list-item-subtitle style="white-space: normal;">
-              {{ data.item.displayName |capitalize }}
+              {{ capitalize(data.item.displayName) }}
               <span v-if="data.item.hint">
                 {{ data.item.hint | truncate(100) }}
               </span>
             </v-list-item-subtitle>
-          </v-list-item-content>
+          
           <v-list-item-action v-if="data.item.entityId" @click="goToEntity(data.item.value)">
             <v-btn icon>
               <v-icon>mdi-information-outline</v-icon>
@@ -117,12 +117,12 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
-import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
+import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
-import { findFacetConfigs, getFacetConfig} from "@/facetConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+import {findFacetConfigs} from "@/facetConfigs";
+import {entityTypeFromId} from "@/util";
 
-import _ from "lodash"
+import {debounce, capitalize} from "lodash"
 
 
 export default {
@@ -324,7 +324,7 @@ export default {
       }, 100)
     },
 
-    getSuggestions: _.debounce(async function () {
+    getSuggestions: debounce(async function () {
       const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
 
       // lol hack much?
