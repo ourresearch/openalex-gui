@@ -13,7 +13,7 @@
       <router-link
           v-for="(entityObj, i) in valueEntityLinks"
           :key="entityObj.id"
-          :to="entityObj.id | entityZoomLink"
+          :to="entityObj.id | $entityZoomLink"
           class="mr-1 pr-0"
       >
         {{ entityObj.display_name }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
@@ -40,15 +40,15 @@
     </span>
     <span v-else-if="valueWorksCount">
       <router-link :to="data.id | entityWorksLink">
-        {{ valueWorksCount | toPrecision }}
+        {{ valueWorksCount | $toPrecision }}
       </router-link>
     </span>
     <span v-else-if="valueUnlinkedCount">
-      <span>{{ isValueUsd ? "$"  : ""}}{{ valueUnlinkedCount | toPrecision }}</span>
+      <span>{{ isValueUsd ? "$"  : ""}}{{ valueUnlinkedCount | $toPrecision }}</span>
     </span>
     <span v-else-if="valueLinkedCount">
       <router-link :to="url.makeFilterRoute(entityType, this.filterKeyForMakingLinks, data.id)">
-        {{ valueLinkedCount | toPrecision }}
+        {{ valueLinkedCount | $toPrecision }}
       </router-link>
     </span>
     <span v-else-if="valueBoolean">
@@ -62,7 +62,7 @@
         class="font-weight-bold"
     >
       <template v-if="isValueAnArray">
-        +{{ (valueLength - maxLen.array) | toPrecision }} more
+        +{{ (valueLength - maxLen.array) | $toPrecision }} more
       </template>
       <template v-else>
         more
@@ -83,7 +83,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
-import {url} from "@/url";
+import {url } from "@/url";
 import {entityTypeFromId} from "../../util";
 import {getEntityConfig} from "@/entityConfigs";
 

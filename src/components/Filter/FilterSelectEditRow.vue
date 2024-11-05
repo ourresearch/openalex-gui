@@ -26,7 +26,7 @@
         <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>
       <template>
-        {{ myCount | toPrecision }}
+        {{ myCount | $toPrecision }}
       </template>
     </small>
   </v-list-item>

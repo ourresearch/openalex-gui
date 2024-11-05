@@ -1,7 +1,7 @@
 <template>
   <v-menu>
     <template v-slot:activator="{on}">
-      <a v-if="textMode" v-on="on">
+      <a v-if="textMode" v-bind="on">
         sort={{ activeSortKey }}
       </a>
       <v-btn
@@ -10,7 +10,7 @@
           :text="!$vuetify.breakpoint.mobile"
           rounded
           class="font-weight-regular"
-          v-on="on"
+          v-bind="on"
           :disabled="disabled"
       >
 <!--        <v-icon>mdi-sort</v-icon>-->

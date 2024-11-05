@@ -4,7 +4,7 @@
         rounded
     >
       <template v-slot:activator="{on}">
-        <v-btn v-on="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
+        <v-btn v-bind="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
 <!--          <v-icon class="">mdi-filter-plus-outline</v-icon>-->
 <!--          <v-icon left>mdi-plus-circle-outline</v-icon>-->
@@ -15,7 +15,7 @@
             icon
             rounded
             text
-            v-on="on"
+            v-bind="on"
             class=""
             :disabled="disabled"
         >

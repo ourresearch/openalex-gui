@@ -43,7 +43,7 @@
           color="primary"
           rounded
           exact-path
-          :to="filterValue | entityZoomLink"
+          :to="filterValue | $entityZoomLink"
         >
           {{ myEntityConfig.displayName | $pluralize(1) |$capitalize }} profile
         </v-btn>

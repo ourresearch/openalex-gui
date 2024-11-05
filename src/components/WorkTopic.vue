@@ -4,7 +4,7 @@
     <v-divider vertical class="ml-2" />
     <v-menu>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-menu-down</v-icon>
         </v-btn>
       </template>

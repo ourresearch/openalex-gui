@@ -18,7 +18,7 @@
         <template v-slot:activator="{on}">
           <v-btn
               icon
-              v-on="on"
+              v-bind="on"
           >
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
@@ -85,10 +85,10 @@
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | $toPrecision(3) }}%
             </div>
             <div class="body-2">
-              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
+              {{ groupsTruncated?.find(g => g.value != 0).count | $toPrecision }}
             </div>
 
           </div>
@@ -98,7 +98,7 @@
 
       </div>
 
-      <v-simple-table dense class="transparent" v-else style="width: 100%;">
+      <v-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
             v-for="row in groupsTruncated"
@@ -113,7 +113,7 @@
 
 
         </tbody>
-      </v-simple-table>
+      </v-table>
     </div>
 
     <v-card-actions >
@@ -126,7 +126,7 @@
 
     <v-dialog
         v-model="isDialogOpen"
-        :fullscreen="$vuetify.breakpoint.mobile"
+        :fullscreen="isMobile"
         max-width="600"
         scrollable
     >
@@ -178,6 +178,8 @@ import BarGraph from "@/components/BarGraph.vue";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
+import { useDisplay } from 'vuetify';
+
 
 export default {
   name: "GroupBy",
@@ -192,6 +194,13 @@ export default {
     filterKey: String,
     entityType: String,
     filterBy: Array,
+  },
+  setup(props) {
+    const { mobile } = useDisplay();
+
+    return {
+      isMobile: mobile,
+    };
   },
   data() {
     return {

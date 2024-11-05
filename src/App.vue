@@ -32,7 +32,7 @@
 
       <v-menu v-if="!isMobile" offset-y>
         <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on">
+          <v-btn icon v-bind="on">
             <v-icon icon="mdi-help-circle-outline"></v-icon>
           </v-btn>
         </template>

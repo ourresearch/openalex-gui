@@ -16,7 +16,7 @@
 
       <v-menu offset-x open-on-hover>
         <template v-slot:activator="{on}">
-          <v-list-item @click="placeholder" v-on="on" :disabled="!userId">
+          <v-list-item @click="placeholder" v-bind="on" :disabled="!userId">
             <span>
               <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
             </span>

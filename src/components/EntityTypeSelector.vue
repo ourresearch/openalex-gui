@@ -3,25 +3,23 @@
     <v-btn
       v-if="isMobile"
       rounded
-      text
       x-large
       :id="myId"
       class="pl-0 pr-0"
     >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
+      <v-icon>{{ entityTypeConfig?.icon }}</v-icon>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 
     <v-btn
       v-else
       rounded
-      text
       class="text-capitalize elevation-0 entity-type-select-btn"
       :id="myId"
       x-large
     >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
-      <span class="ml-2">{{ entityTypeConfig.displayName }}</span>
+      <v-icon>{{ entityTypeConfig?.icon }}</v-icon>
+      <span class="ml-2">{{ entityTypeConfig?.displayName }}</span>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 
@@ -82,6 +80,7 @@ export default defineComponent({
     const entityType = ref(route.params.entityType);
     const myId = `my-id-${Math.random().toString().replace(".", "")}`;
 
+    // @ts-expect-error
     const entityTypeOptions = computed(() => getEntityConfigs().filter(c => c.hasSerp));
     const entityTypeConfig = computed(() => getEntityConfig(entityType.value));
 

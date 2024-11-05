@@ -20,7 +20,7 @@
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
@@ -53,7 +53,7 @@
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-share-variant</v-icon>
         </v-btn>
       </template>
@@ -85,7 +85,7 @@
 
 <!--    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">-->
 <!--      <template v-slot:activator="{on}">-->
-<!--        <span v-on="on">-->
+<!--        <span v-bind="on">-->
 <!--          <v-chip-->
 <!--              :disabled="!!$route.query.id"-->
 <!--              class="mr-2 white black&#45;&#45;text"-->

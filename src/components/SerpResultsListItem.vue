@@ -1,6 +1,6 @@
 <template>
   <v-list-item
-      :to="result.id | entityZoomLink"
+      :to="result.id | $entityZoomLink"
       color="primary"
       exact
   >
@@ -34,7 +34,7 @@
             class="px-1"
             @click.prevent="viewWorks"
         >
-          {{ result.works_count | toPrecision }} works
+          {{ result.works_count | $toPrecision }} works
         </v-btn>
         <v-btn
             v-if="myEntityType === 'works'"
@@ -43,7 +43,7 @@
             class="px-1"
             @click.prevent="viewCitingPapers"
         >
-          Cited by {{ result.cited_by_count | toPrecision }}
+          Cited by {{ result.cited_by_count | $toPrecision }}
         </v-btn>
 
         <span @click.stop>

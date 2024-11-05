@@ -16,7 +16,7 @@
     <v-divider vertical class="mx-3"></v-divider>
     <div class="">
       <div class="text-h3">
-        {{ citedByCount | toPrecision }}
+        {{ citedByCount | $toPrecision }}
       </div>
       <div class="text-right">Citations</div>
     </div>

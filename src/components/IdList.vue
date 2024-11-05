@@ -35,7 +35,7 @@
       <!--          <v-list-item-action>-->
       <!--            <v-menu>-->
       <!--              <template v-slot:activator="{on}">-->
-      <!--                <v-btn v-on="on" small icon >-->
+      <!--                <v-btn v-bind="on" small icon >-->
       <!--                  <v-icon small>mdi-dots-horizontal</v-icon>-->
       <!--                </v-btn>-->
       <!--              </template>-->

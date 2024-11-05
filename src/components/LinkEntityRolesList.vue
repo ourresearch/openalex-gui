@@ -13,10 +13,10 @@
             text
             rounded
             class="font-weight-regular "
-            v-on="on"
+            v-bind="on"
         >
           <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>
-          {{ selectedRoleConfig.nameSingular | capitalize }}
+          {{ selectedRoleConfig.nameSingular | $capitalize }}
           <v-icon right>mdi-menu-down</v-icon>
         </v-btn>
       </template>
@@ -25,7 +25,7 @@
         <v-list-item
           v-for="role in roles"
           :key="role.id"
-          :to="role.id | entityZoomLink"
+          :to="role.id | $entityZoomLink"
         >
           <span>
             <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>

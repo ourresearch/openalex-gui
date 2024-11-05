@@ -6,7 +6,7 @@
 
     <v-menu rounded offset-y v-if="userId">
       <template #activator="{ on }">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-account-outline</v-icon>
         </v-btn>
       </template>
@@ -26,7 +26,7 @@
             Saved Searches
           
         </v-list-item>
-        <v-list-item exact-path :to="userAuthorId || entityZoomLink" v-if="userAuthorId">
+        <v-list-item exact-path :to="userAuthorId || $entityZoomLink" v-if="userAuthorId">
           <span>
             <v-icon>mdi-account-outline</v-icon>
           </span>

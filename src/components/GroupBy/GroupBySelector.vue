@@ -6,7 +6,7 @@
           :close="!!groupByKey"
           rounded
           text
-          v-on="on"
+          v-bind="on"
           :dark="!!groupByKey"
           :color="groupByKey ? '#333' : undefined"
           @click:close="groupByKey=undefined"

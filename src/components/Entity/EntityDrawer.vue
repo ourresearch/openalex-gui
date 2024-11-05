@@ -3,7 +3,7 @@
       v-model="isOpen"
       app
       right
-      :width="$vuetify.breakpoint.mobile ? '95%' : '50%'"
+      :width="isMobile ? '95%' : '50%'"
       temporary
       disable-route-watcher
   >
@@ -49,6 +49,8 @@ import EntityNew from "@/components/Entity/EntityNew.vue";
 import {entityTypeFromId, sleep} from "@/util";
 import {api} from "@/api";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
+import { useDisplay } from 'vuetify';
+
 
 export default {
   name: "Template",
@@ -57,6 +59,13 @@ export default {
     EntityHeader,
   },
   props: {},
+  setup(props) {
+    const { mobile } = useDisplay();
+
+    return {
+      isMobile: mobile,
+    };
+  },
   data() {
     return {
       foo: 42,

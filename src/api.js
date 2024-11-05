@@ -52,7 +52,7 @@ let urlBase = {
 if (window.location.port && parseInt(window.location.port) === 8081) {
     urlBase.api = "http://localhost:5004/"  // your locally-hosted API
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
-} else if (window.location.port && parseInt(window.location.port) === 5173) {
+} else if (window.location.port && parseInt(window.location.port) === 8082) {
     urlBase.api = "https://staging-jump-api.herokuapp.com/"  // staging heroku url
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
 }

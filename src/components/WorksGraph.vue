@@ -15,7 +15,7 @@
     <v-divider vertical class="mx-3"></v-divider>
     <div class="">
       <div class="text-h3">
-        {{ worksCount | toPrecision }}
+        {{ worksCount | $toPrecision }}
       </div>
       <div class="text-right">Works</div>
     </div>

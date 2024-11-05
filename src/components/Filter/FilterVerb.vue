@@ -2,7 +2,7 @@
   <v-menu>
     <template v-slot:activator="{on}">
       <v-chip
-          v-on="on"
+          v-bind="on"
           :disabled="isDisabled"
           outlined
           label

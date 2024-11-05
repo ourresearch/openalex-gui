@@ -14,7 +14,7 @@
       prepend-inner-icon="mdi-magnify"
       :autofocus="autofocus"
       :menu="menuOpen" 
-      :loading="isLoading"
+      :loading="!menuOpen"
       @click:clear="clickClear"
       @update:model-value="onChange"
       @keydown.enter="isEnterPressed = true"
@@ -100,271 +100,273 @@
 </template>
 
 <script setup lang="ts">
-import { ref,  useTemplateRef, computed, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { url } from '@/url';
-import { api } from '@/api';
-import { debounce } from 'lodash';
-import { createSimpleFilter } from '@/filterConfigs';
-import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
-import { findFacetConfigs } from '@/facetConfigs';
-import { entityTypeFromId } from '@/util';
-import { useStore } from 'vuex';
+  import { ref,  useTemplateRef, computed, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { url } from '@/url';
+  import { api } from '@/api';
+  import { debounce } from 'lodash';
+  import { createSimpleFilter } from '@/filterConfigs';
+  import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
+  import { findFacetConfigs } from '@/facetConfigs';
+  import { entityTypeFromId } from '@/util';
+  import { useStore } from 'vuex';
 
-type Filter = {
-  type: 'boolean' | string;
-  key?: string;
-};
+  type Filter = {
+    type: 'boolean' | string;
+    key?: string;
+  };
 
-interface SuggestionItem {
-  entityId?: string;
-  displayName: string;
-  key?: string;
-  icon?: string;
-  isFilterLink?: boolean;
-  displayValue: string;
-  isDisabled?: boolean;
-  hint?: string;
-  type?: string;
-  value?: string;
-}
-
-const props = defineProps<{
-  dense?: boolean;
-  showExamples?: boolean;
-  autofocus?: boolean;
-}>();
-
-const route = useRoute()
-const router = useRouter()
-const shortcutBox = useTemplateRef('shortcutBox');
-// Vuex setup
-const store = useStore();
-const entityType = computed(() => store.getters.entityType);
-const userId = computed(() => store.getters['user/userId']);
-
-// Local state
-const searchString = ref<string>('');
-const suggestions = ref<SuggestionItem[]>([]);
-  const staticSuggestions = ref([
-  { displayValue: 'Test Option 1' },
-  { displayValue: 'Test Option 2' },
-  { displayValue: 'Test Option 3' },
-]);
-
-const newFilter = ref<SuggestionItem | null>(null);
-const select = ref<any>(null);
-const isLoading = ref(false);
-const menuOpen = ref(false);
-const isEnterPressed = ref(false);
-const interval = ref<number | null>(null);
-
-// Sample searches
-const searchesToTry = ref(['Claudia Goldin', 'coriander OR cilantro', 'Institution']);
-
-// Computed properties
-const filterSuggestions = computed(() => {
-  const matches = findFacetConfigs(entityType.value, searchString.value)
-    .filter(f => f.actions?.includes('filter'))
-    .map(f => ({
-      ...f,
-      isFilterLink: true,
-      displayValue: f.displayName,
-      isDisabled: url.isFilterKeyAvailableToCreate(route, entityType.value, f.key),
-    }));
-  matches.sort((a, b) => (a.displayName.length > b.displayName.length ? 1 : -1));
-  return searchString.value.length >= 3 ? matches : [];
-});
-
-const placeholder = computed(() => {
-  const displayName = newFilter.value?.displayName;
-  const pluralizedDisplayName = displayName ? `${displayName}s` : null;
-  if (!newFilter.value) {
-    return entityType.value === 'works' ? 'Search OpenAlex' : `Search ${entityType.value}`;
-  } else if (newFilter.value.key === 'publication_year') {
-    return 'Enter year or range of years';
-  } else if (newFilter.value.type === 'range') {
-    return 'Enter number or range';
-  } else if (newFilter.value.type === 'search') {
-    return `Search within ${pluralizedDisplayName}`;
-  } else {
-    return `Search ${pluralizedDisplayName}`;
-  }
-});
-
-// Methods
-const clear = () => {
-  searchString.value = '';
-  suggestions.value = [];
-  newFilter.value = null;
-  menuOpen.value = false;
-
-  console.log("🚀 ~ clear ~ clear:")
-};
-
-const clickClear = () => {
-  clear();
-  console.log("🚀 ~ clickClear ~ clickClear:")
-};
-
-const selectFilter = (filter) => {
-  if (filter.type === 'boolean') {
-    const oldFilters = url.readFilters(route) as unknown as Filter[];
-    const newFilter = createSimpleFilter('works', filter.key!, true);
-    url.pushNewFilters([...oldFilters, newFilter]);
-  } else {
-    newFilter.value = filter;
-  }
-};
-
-const onChange = debounce((myFilterData) => {
-  console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
-  if (select.value) isEnterPressed.value = false;
-  if (toRaw(myFilterData).key === 'default.search') {
-    submitSearchString();
-    menuOpen.value = true;
-  } else if (toRaw(myFilterData).isFilterLink) {
-    selectFilter(toRaw(myFilterData));
-    menuOpen.value = true;
-  } else if (toRaw(myFilterData).value) {
-    const oldFilters = url.readFilters(route) as unknown as Filter[];
-
-    url.pushNewFilters([...oldFilters, toRaw(myFilterData)]);
-    clear();
+  interface SuggestionItem {
+    entityId?: string;
+    displayName: string;
+    key?: string;
+    icon?: string;
+    isFilterLink?: boolean;
+    displayValue: string;
+    isDisabled?: boolean;
+    hint?: string;
+    type?: string;
+    value?: string;
   }
 
-  setTimeout(() => {
-    searchString.value = '';
-    select.value = null;
-    suggestions.value = [];
+  const props = defineProps<{
+    dense?: boolean;
+    showExamples?: boolean;
+    autofocus?: boolean;
+  }>();
+
+  const route = useRoute()
+  const router = useRouter()
+  const shortcutBox = useTemplateRef('shortcutBox');
+  // Vuex setup
+  const store = useStore();
+  const entityType = computed(() => store.getters.entityType);
+  const userId = computed(() => store.getters['user/userId']);
+
+  // Local state
+  const searchString = ref<string>('');
+  const suggestions = ref<SuggestionItem[]>([]);
+    const staticSuggestions = ref([
+    { displayValue: 'Test Option 1' },
+    { displayValue: 'Test Option 2' },
+    { displayValue: 'Test Option 3' },
+  ]);
+
+  const newFilter = ref<SuggestionItem | null>(null);
+  const select = ref<any>(null);
+  const isLoading = ref(false);
+  const menuOpen = ref(false);
+  const isEnterPressed = ref(false);
+  const interval = ref<number | null>(null);
+
+  // Sample searches
+  const searchesToTry = ref(['Claudia Goldin', 'coriander OR cilantro', 'Institution']);
+
+  // Computed properties
+  const filterSuggestions = computed(() => {
+    const matches = findFacetConfigs(entityType.value, searchString.value)
+      .filter(f => f.actions?.includes('filter'))
+      .map(f => ({
+        ...f,
+        isFilterLink: true,
+        displayValue: f.displayName,
+        isDisabled: url.isFilterKeyAvailableToCreate(route, entityType.value, f.key),
+      }));
+    matches.sort((a, b) => (a.displayName.length > b.displayName.length ? 1 : -1));
+    return searchString.value.length >= 3 ? matches : [];
   });
-}, 100);
 
-const onEnterKeyup = () => {
-  if (!isEnterPressed.value) return;
-  if (!searchString.value && props.showExamples) {
-    url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
-    return;
-  }
+  const placeholder = computed(() => {
+    const displayName = newFilter.value?.displayName;
+    const pluralizedDisplayName = displayName ? `${displayName}s` : null;
+    if (!newFilter.value) {
+      return entityType.value === 'works' ? 'Search OpenAlex' : `Search ${entityType.value}`;
+    } else if (newFilter.value.key === 'publication_year') {
+      return 'Enter year or range of years';
+    } else if (newFilter.value.type === 'range') {
+      return 'Enter number or range';
+    } else if (newFilter.value.type === 'search') {
+      return `Search within ${pluralizedDisplayName}`;
+    } else {
+      return `Search ${pluralizedDisplayName}`;
+    }
+  });
 
-  const filterKey = newFilter.value?.key ?? 'default.search';
-  url.createFilter(entityType.value, filterKey, searchString.value);
-  isEnterPressed.value = false;
-};
+  // Methods
+  const clear = () => {
+    searchString.value = '';
+    suggestions.value = [];
+    newFilter.value = null;
+    menuOpen.value = false;
 
-const submitSearchString = () => {
-  if (!searchString.value) {
-    url.pushToRoute(router, {
-      name: 'Serp', params: { entityType: entityType.value }
+    console.log("🚀 ~ clear ~ clear:")
+  };
+
+  const clickClear = () => {
+    clear();
+    console.log("🚀 ~ clickClear ~ clickClear:")
+  };
+
+  const selectFilter = (filter) => {
+    if (filter.type === 'boolean') {
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
+      const newFilter = createSimpleFilter('works', filter.key!, true);
+      console.log("🚀 ~ selectFilter ~ newFilter:", newFilter)
+      url.pushNewFilters([...oldFilters, newFilter]);
+    } else {
+      newFilter.value = filter;
+    }
+  };
+
+  const onChange = debounce((myFilterData) => {
+    console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
+    if (select.value) isEnterPressed.value = false;
+    if (toRaw(myFilterData).key === 'default.search') {
+      submitSearchString();
+      menuOpen.value = true;
+    } else if (toRaw(myFilterData).isFilterLink) {
+      console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
+      selectFilter(toRaw(myFilterData));
+      menuOpen.value = true;
+    } else if (toRaw(myFilterData).value) {
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
+
+      url.pushNewFilters([...oldFilters, toRaw(myFilterData)]);
+      clear();
+    }
+
+    setTimeout(() => {
+      searchString.value = '';
+      select.value = null;
+      suggestions.value = [];
     });
-  } else {
-    const searchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
-    const oldFilters = url.readFilters(route) as unknown as Filter[];
-    url.pushNewFilters([...oldFilters, searchFilter]);
-  }
-};
+  }, 100);
 
-const goToEntity = (id: string) => {
-  url.pushToRoute(router, { name: 'EntityPage', params: urlPartsFromId(id) });
-};
+  const onEnterKeyup = () => {
+    console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
+    if (!isEnterPressed.value) return;
+    if (!searchString.value && props.showExamples) {
+      url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
+      return;
+    }
 
-const trySearch = (str: string) =>{
-  console.log("🚀 ~ trySearch ~ str:", str)
-  requestAnimationFrame(() => {
-    searchString.value = str;
-    
+    const filterKey = newFilter.value?.key ?? 'default.search';
+    url.createFilter(entityType.value, filterKey, searchString.value);
+    isEnterPressed.value = false;
+  };
+
+  const submitSearchString = () => {
+    if (!searchString.value) {
+      url.pushToRoute(router, {
+        name: 'Serp', params: { entityType: entityType.value }
+      });
+    } else {
+      const searchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
+      url.pushNewFilters([...oldFilters, searchFilter]);
+    }
+  };
+
+  const goToEntity = (id: string) => {
+    url.pushToRoute(router, { name: 'EntityPage', params: urlPartsFromId(id) });
+  };
+
+  const trySearch = (str: string) =>{
+    // console.log("🚀 ~ trySearch ~ str:", str)
+    requestAnimationFrame(() => {
+      searchString.value = str;
+      
+      getSuggestions();
+    });
+  };
+
+  const getSuggestions = async () => {
+    const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value) as unknown as SuggestionItem;
+    console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter , newFilter)
+    isLoading.value = true;
+
+    if (searchString.value === 'coriander OR cilantro') {
+      suggestions.value = [fulltextSearchFilter];
+      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+      isLoading.value = false;
+      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
+      return;
+    }
+
+
+    if (newFilter.value && !searchString.value) {
+      suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+      isLoading.value = false;
+      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
+      return;
+    }
+
+    if (!newFilter.value && !searchString.value) {
+      suggestions.value = [];
+      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+      isLoading.value = false;
+      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
+      return;
+    }
+
+    const apiSuggestions = await api.getSuggestions(
+      entityType.value,
+      newFilter.value?.key,
+      searchString.value,
+      url.readFilters(route)
+    );
+    // console.log("🚀 ~ getSuggestions ~ apiSuggestions:", apiSuggestions)
+    isLoading.value = false;
+
+    const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
+    const everySuggestionIsAWork = ret.every(f => f.entityId === 'works');
+    const cleaned = everySuggestionIsAWork ? ret.slice(0, 3) : ret.filter(f => f.entityId !== 'works').slice(0, 5);
+
+    if (!newFilter.value) {
+      cleaned.push(fulltextSearchFilter);
+    }
+
+    suggestions.value = cleaned.slice();
+    if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
+    console.log("Updated suggestions:", suggestions.value);// 
+    // return suggestions
+    // console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
+  };
+
+  const onKeyPress = (event: KeyboardEvent) => {
+    if (event.key !== '/') return;
+    console.log("🚀 ~ onKeyPress ~ shortcutBox.value:", shortcutBox.value)
+    if (document.activeElement === shortcutBox.value) return;
+    event.preventDefault();
+    shortcutBox.value?.focus();
+  };
+
+  // Lifecycle Hooks
+  onMounted(() => {
+    window.addEventListener('keypress', onKeyPress);
+    interval.value = setInterval(() => {
+      if (!newFilter.value && !searchString.value && suggestions.value.length) {
+        suggestions.value = [];
+      }
+    }, 10);
+  });
+
+  onBeforeUnmount(() => {
+    if (interval.value) clearInterval(interval.value);
+    window.removeEventListener('keypress', onKeyPress);
+  });
+
+  // Watchers
+  watch(searchString, (newValue) => {
+    if (newFilter.value && newFilter.value.type !== 'select') return;
     getSuggestions();
   });
-};
 
-const getSuggestions = async () => {
-  const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value) as unknown as SuggestionItem;
-  console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter
-      )
-  isLoading.value = true;
-
-  if (searchString.value === 'coriander OR cilantro') {
-    suggestions.value = [fulltextSearchFilter];
-    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
-    isLoading.value = false;
-     if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-    return;
-  }
-
-
-  if (newFilter.value && !searchString.value) {
-    suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
-    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
-    isLoading.value = false;
-     if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-    return;
-  }
-
-  if (!newFilter.value && !searchString.value) {
-    suggestions.value = [];
-    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
-    isLoading.value = false;
-     if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-    return;
-  }
-
-  const apiSuggestions = await api.getSuggestions(
-    entityType.value,
-    newFilter.value?.key,
-    searchString.value,
-    url.readFilters(route)
+  watch(
+    () => route.fullPath,
+    () => clear()
   );
-  // console.log("🚀 ~ getSuggestions ~ apiSuggestions:", apiSuggestions)
-  isLoading.value = false;
-
-  const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
-  const everySuggestionIsAWork = ret.every(f => f.entityId === 'works');
-  const cleaned = everySuggestionIsAWork ? ret.slice(0, 3) : ret.filter(f => f.entityId !== 'works').slice(0, 5);
-
-  if (!newFilter.value) {
-    cleaned.push(fulltextSearchFilter);
-  }
-
-  // console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
-  suggestions.value = cleaned;
-  if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-  // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
-  // await nextTick();  // Ensures the DOM updates after assigning suggestions
-  console.log("Updated suggestions:", suggestions.value);// return suggestions.values
-};
-
-const onKeyPress = (event: KeyboardEvent) => {
-  if (event.key !== '/') return;
-  if (document.activeElement === shortcutBox.value) return;
-  event.preventDefault();
-  shortcutBox.value.focus();
-};
-
-// Lifecycle Hooks
-onMounted(() => {
-  window.addEventListener('keypress', onKeyPress);
-  interval.value = setInterval(() => {
-    if (!newFilter.value && !searchString.value && suggestions.value.length) {
-      suggestions.value = [];
-    }
-  }, 10);
-});
-
-onBeforeUnmount(() => {
-  if (interval.value) clearInterval(interval.value);
-  window.removeEventListener('keypress', onKeyPress);
-});
-
-// Watchers
-watch(searchString, (newValue) => {
-  if (newFilter.value && newFilter.value.type !== 'select') return;
-  getSuggestions();
-});
-
-// watch(
-//   () => route.fullPath,
-//   () => clear()
-// );
 </script>
 
 <style  lang="scss">
@@ -384,6 +386,4 @@ watch(searchString, (newValue) => {
     
   }
 }
-
-
 </style>

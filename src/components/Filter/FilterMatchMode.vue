@@ -2,13 +2,13 @@
 
   <v-menu offset-y max-width="400">
     <template v-slot:activator="{on}">
-      <v-btn v-if="icon" icon v-on="on">
+      <v-btn v-if="icon" icon v-bind="on">
         <v-icon>{{ value === "all" ? "mdi-set-center" : "mdi-set-all" }}</v-icon>
       </v-btn>
 
       <v-chip
           v-else
-          v-on="on"
+          v-bind="on"
           outlined
           label
       >

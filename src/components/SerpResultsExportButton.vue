@@ -2,7 +2,7 @@
   <span>
     <v-tooltip top>
       <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon @click="openExportDialog('csv')">
+          <v-btn v-bind="on" icon @click="openExportDialog('csv')">
             <v-icon>mdi-tray-arrow-down</v-icon>
           </v-btn>
       </template>
@@ -50,7 +50,7 @@
         </div>
         <div v-else-if="exportObj.progress < 1" class="pa-5">
           Export in progress...
-          <span class="font-weight-bold">{{ exportObj.progress * 100 | toPrecision }}%</span> complete
+          <span class="font-weight-bold">{{ exportObj.progress * 100 | $toPrecision }}%</span> complete
         </div>
         <div v-else class="pa-5">
           Export complete!

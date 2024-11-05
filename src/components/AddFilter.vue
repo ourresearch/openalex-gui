@@ -6,7 +6,7 @@
         <v-fab-transition>
           <v-btn
               v-if="isFabShowing"
-              v-on="on"
+              v-bind="on"
               fab
               color="primary"
               class=""
