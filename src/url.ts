@@ -1,4 +1,5 @@
 import { RouteLocationNormalizedLoaded, Router, useRouter, useRoute } from 'vue-router';
+import router from '@/router'
 import {
   filtersAsUrlStr,
   filtersFromUrlStr,
@@ -15,18 +16,19 @@ import { shortenOpenAlexId } from './util';
 import { getActionConfig, getActionDefaultsStr, getActionDefaultValues } from '@/actionConfigs';
 import { getFacetConfig } from '@/facetConfigs';
 
-const router = useRouter();
-const route = useRoute();
-
+let route = router.currentRoute;
+function updateRouteHack(){
+  route = router.currentRoute;
+}
 interface UrlObject {
   name: string;
-  params: Record<string, any>;
-  query: Record<string, any>;
+  params?: Record<string, any>;
+  query?: Record<string, any>;
 }
 
 interface Filter {
-  key: string;
-  value: string;
+  key?: string;
+  value?: string;
   isNegated?: boolean;
 }
 
@@ -48,6 +50,7 @@ const pushToRoute = async (router: Router, newRoute: UrlObject) => {
   console.log('🚀 ~ pushToRoute ~ newRoute:', newRoute);
   try {
     await router.push(newRoute);
+    updateRouteHack();
   } catch (e: any) {
     if (e.name !== 'NavigationDuplicated') {
       throw e;
@@ -55,51 +58,55 @@ const pushToRoute = async (router: Router, newRoute: UrlObject) => {
   }
 };
 
-const replaceToRoute = async (router: Router, newRoute: UrlObject) => {
-  try {
-    await router.replace(newRoute);
-  } catch (e: any) {
-    if (e.name !== 'NavigationDuplicated') {
-      throw e;
-    }
-  }
-};
+// const replaceToRoute = async (router: Router, newRoute: UrlObject) => {
+//   try {
+//     await router.replace(newRoute);
+//   } catch (e: any) {
+//     if (e.name !== 'NavigationDuplicated') {
+//       throw e;
+//     }
+//   }
+// };
 
 const pushSearchUrlToRoute = async (router: Router, searchUrl: string) => {
   await pushToRoute(router, urlObjectFromSearchUrl(searchUrl));
+  updateRouteHack();
 };
 
 const addToQuery = (oldQuery: Record<string, any>, k: string, v: any): Record<string, any> => {
   return { ...oldQuery, [k]: v };
 };
-
+//only internal
 const pushQueryParam = (key: string, value: any) => {
+  updateRouteHack();
   const query = { ...route.query, [key]: value };
   pushToRoute(router, { name: 'Serp', query });
 };
 
-const replaceQueryParam = (key: string, value: any) => {
-  const query = { ...route.query, [key]: value };
-  replaceToRoute(router, { name: 'Serp', query });
-};
+// const replaceQueryParam = (key: string, value: any) => {
+//   const query = { ...route.query, [key]: value };
+//   replaceToRoute(router, { name: 'Serp', query });
+// };
 
 const nameFromUrl = (myUrl: string): string => {
   const urlObj = new URL(myUrl);
   return urlObj.searchParams.get('name') ?? 'Unsaved search';
 };
 
-const setUrlName = (myUrl: string, name: string): string => {
-  const urlObj = new URL(myUrl);
-  urlObj.searchParams.set('name', name);
-  return urlObj.toString();
-};
+// const setUrlName = (myUrl: string, name: string): string => {
+//   const urlObj = new URL(myUrl);
+//   urlObj.searchParams.set('name', name);
+//   return urlObj.toString();
+// };
 
 const setPage = async (page: number) => {
+  updateRouteHack();
   const query = { ...route.query, page };
   return await pushToRoute(router, { name: 'Serp', query });
 };
 
 const pushNewFilters = async (newFilters: Filters, entityType?: string) => {
+  updateRouteHack();
   const filter = newFilters.length ? filtersAsUrlStr(newFilters) : undefined;
   entityType = entityType ?? (route.params.entityType as string) ?? 'works';
 
@@ -109,65 +116,77 @@ const pushNewFilters = async (newFilters: Filters, entityType?: string) => {
 };
 
 const createFilter = async (entityType: string, key: string, newValue: string) => {
+  updateRouteHack();
   const newFilters = createFilterNoPush(entityType, key, newValue);
   return await pushNewFilters(newFilters, entityType);
 };
-
+//internal
 const createFilterNoPush = (entityType: string, key: string, newValue: string): Filters => {
+  updateRouteHack();
   const oldFilters = filtersFromUrlStr(entityType, route.query.filter as string);
   const newFilter = createSimpleFilter(entityType, key, newValue);
   return [...oldFilters, newFilter];
 };
 
 const readFilter = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, index: number) => {
+  updateRouteHack();
   return filtersFromUrlStr(entityType, currentRoute.query.filter as string)[index];
 };
 
 const readFilters = (currentRoute: RouteLocationNormalizedLoaded, isNegatedOnly = false): Filters => {
+  updateRouteHack();
   if (!currentRoute) return [];
   const filters = filtersFromUrlStr(currentRoute.params?.entityType as string, currentRoute.query?.filter as string);
   return isNegatedOnly ? filters.filter((f) => f.value[0] === '!') : filters;
 };
 
 const readFiltersLength = (): number => {
+  updateRouteHack();
   const entityType = route.params.entityType as string;
   const filters = filtersFromUrlStr(entityType, route.query.filter as string);
   return filters.length;
 };
 
 const readFilterValue = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, index: number): string | undefined => {
+  updateRouteHack();
   return readFilter(currentRoute, entityType, index)?.value;
 };
 
 const isFilterApplied = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, index: number): boolean => {
+  updateRouteHack();
   const filterValue = readFilterValue(currentRoute, entityType, index);
   return filterValue !== '' && filterValue !== undefined && filterValue !== null;
 };
 
 const isFilterKeyApplied = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, filterKey: string): boolean => {
+  updateRouteHack();
   const myFilters = readFilters(currentRoute);
   const myFilterKeys = myFilters.map(f => f.key);
   return myFilterKeys.includes(filterKey);
 };
 
 const isSearchFilterApplied = (currentRoute: RouteLocationNormalizedLoaded): boolean => {
+  updateRouteHack();
   return currentRoute.query?.filter?.toString().split(',').some(f => {
     return f.split(':')[0]?.includes('.search');
   });
 };
 
 const isFilterKeyAvailableToCreate = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, filterKey: string): boolean => {
+  updateRouteHack();
   const config = getFacetConfig(entityType, filterKey);
   return config.type === 'select' || !isFilterKeyApplied(currentRoute, entityType, filterKey);
 };
 
 const updateFilter = async (entityType: string, index: number, newValue: string, isNegated: boolean): Promise<void> => {
+  updateRouteHack();
   const filters = filtersFromUrlStr(entityType, route.query.filter as string);
   filters[index] = createSimpleFilter(entityType, filters[index].key, newValue, isNegated);
   await pushNewFilters(filters);
 };
 
 const deleteFilterOption = async (entityType: string, index: number, optionToDelete: string): Promise<void> => {
+  updateRouteHack();
   const filters = readFilters(route);
   const myFilter = readFilter(route, entityType, index);
   const isMyFilterNegated = readIsFilterNegated(route, entityType, index);
@@ -185,6 +204,7 @@ const deleteFilterOption = async (entityType: string, index: number, optionToDel
 };
 
 const deleteFilterOptionByKey = async (entityType: string, filterKey: string, optionToDelete: string): Promise<void> => {
+  updateRouteHack();
   const filters = readFilters(route);
   const newFilters = filters
     .map(f => {
@@ -197,11 +217,13 @@ const deleteFilterOptionByKey = async (entityType: string, filterKey: string, op
 };
 
 const addFilterOption = async (entityType: string, index: number, optionToAdd: string): Promise<void> => {
+  updateRouteHack();
   const newFilters = addFilterOptionNoPush(entityType, index, optionToAdd);
   await pushNewFilters(newFilters);
 };
 
 const addFilterOptionNoPush = (entityType: string, index: number, optionToAdd: string): any[] => {
+  updateRouteHack();
   const filters = filtersFromUrlStr(entityType, route.query.filter as string);
   const myFilter = filters[index];
   filters[index] = createSimpleFilter(
@@ -214,6 +236,7 @@ const addFilterOptionNoPush = (entityType: string, index: number, optionToAdd: s
 };
 
 const moveFilterOptionToOwnFilter = (entityType: string, index: number, option: string, isNegated: boolean): void => {
+  updateRouteHack();
   const myFilter = readFilter(route, entityType, index);
   const myNewFilter = createSimpleFilter(entityType, myFilter.key, option, isNegated);
   const oldFilters = readFilters(route);
@@ -229,6 +252,7 @@ const moveFilterOptionToOwnFilter = (entityType: string, index: number, option: 
 };
 
 const setIsFilterOptionNegated = (entityType: string, filterKey: string, option: string, isNegated: boolean): void => {
+  updateRouteHack();
   const myFilterIndex = findFilterIndex(route, entityType, filterKey, option);
   const myFilter = readFilter(route, entityType, myFilterIndex);
   const myFilterOptionsCount = optionsFromString(myFilter.value).length;
@@ -240,21 +264,25 @@ const setIsFilterOptionNegated = (entityType: string, filterKey: string, option:
 };
 
 const setIsFilterNegated = (entityType: string, index: number, isNegated: boolean): void => {
+  updateRouteHack();
   const myValue = readFilter(route, entityType, index)?.value;
   updateFilter(entityType, index, myValue, isNegated);
 };
 
 const readIsFilterNegated = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, index: number): boolean | undefined => {
+  updateRouteHack();
   const myFilter = readFilter(currentRoute, entityType, index);
   return myFilter?.isNegated;
 };
 
 const findFilterIndex = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, filterKey: string, option: string): number => {
+  updateRouteHack();
   const filters = readFilters(currentRoute);
   return filters.findIndex(f => f.key === filterKey && optionsFromString(f.value).includes(option));
 };
 
 const toggleFilterOptionIsNegated = async (entityType: string, key: string, option: string): Promise<void> => {
+  updateRouteHack();
   const oldFilters = filtersFromUrlStr(entityType, route.query.filter as string);
   const newFilters = oldFilters.map(oldFilter => {
     const newValue = oldFilter.key === key ? toggleOptionIsNegated(oldFilter.value, option) : oldFilter.value;
@@ -273,15 +301,18 @@ const createFilterOptions = (filter: { entityId: string; value: string }): strin
 };
 
 const readFilterOptions = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, index: number): string[] => {
+  updateRouteHack();
   const filter = readFilter(currentRoute, entityType, index);
   return filter ? createFilterOptions(filter) : [];
 };
 
 const isFilterOptionApplied = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, filterKey: string, option: string): boolean => {
+  updateRouteHack();
   return readFilterOptionsByKey(currentRoute, entityType, filterKey).includes(option);
 };
 
 const readFilterOptionsByKey = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, filterKey: string, isNegatedOnly = false): string[] => {
+  updateRouteHack();
   const allFilters = readFilters(currentRoute, isNegatedOnly);
   const config = getFacetConfig(entityType, filterKey);
   if (config.type !== 'select') return [];
@@ -291,11 +322,13 @@ const readFilterOptionsByKey = (currentRoute: RouteLocationNormalizedLoaded, ent
 };
 
 const readFilterMatchMode = (currentRoute: RouteLocationNormalizedLoaded, entityType: string, key: string): string | undefined => {
+  updateRouteHack();
   const filter = readFilter(currentRoute, entityType, key);
   return filter ? getMatchModeFromSelectFilterValue(filter.value) : undefined;
 };
 
 const setFilterMatchMode = (entityType: string, key: string, mode: string): void => {
+  updateRouteHack();
   const filter = readFilter(route, entityType, key);
   const options = optionsFromString(filter.value);
   const newValue = optionsToString(options, mode);
@@ -303,6 +336,7 @@ const setFilterMatchMode = (entityType: string, key: string, mode: string): void
 };
 
 const isGroupBy = (): boolean => {
+  updateRouteHack();
   return !!route.query.group_by;
 };
 
@@ -315,6 +349,7 @@ const updateOrDeleteFilter = (entityType: string, index: number, filterValue: st
 };
 
 const upsertFilter = (entityType: string, index: number, filterValue: string): void => {
+  updateRouteHack();
   if (isFilterApplied(route, entityType, index)) {
     updateOrDeleteFilter(entityType, index, filterValue);
   } else {
@@ -323,6 +358,7 @@ const upsertFilter = (entityType: string, index: number, filterValue: string): v
 };
 
 const upsertFilterOption = (entityType: string, index: number, filterOption: string): void => {
+  updateRouteHack();
   if (isFilterApplied(route, entityType, index)) {
     addFilterOption(entityType, index, filterOption);
   } else {
@@ -331,20 +367,24 @@ const upsertFilterOption = (entityType: string, index: number, filterOption: str
 };
 
 const upsertFilterOptionNoPush = (entityType: string, index: number, filterOption: string): any[] => {
+  updateRouteHack();
   const isExtant = isFilterApplied(route, entityType, index);
   return isExtant ? addFilterOptionNoPush(entityType, index, filterOption) : createFilterNoPush(entityType, index, filterOption);
 };
 
 const deleteFilter = async (entityType: string, index: number): Promise<void> => {
+  updateRouteHack();
   const oldFilters = filtersFromUrlStr(entityType, route.query.filter as string);
   await pushNewFilters(oldFilters.toSpliced(index, 1));
 };
 
 const deleteAllFilters = async (): Promise<void> => {
+  updateRouteHack();
   await pushNewFilters([]);
 };
 
 const makeFilterRoute = (entityType: string, key: string, value: string) => {
+  updateRouteHack();
   const newFilter = createSimpleFilter(entityType, key, value);
   return {
     name: 'Serp',
@@ -360,6 +400,7 @@ const makeFilterRoute = (entityType: string, key: string, value: string) => {
 };
 
 const setSearch = (entityType: string, searchString: string): void => {
+  updateRouteHack();
   const newRoute = {
     name: 'Serp',
     params: { entityType },
@@ -369,6 +410,7 @@ const setSearch = (entityType: string, searchString: string): void => {
 };
 
 const setDefaultActions = (): void => {
+  updateRouteHack();
   pushToRoute(router, {
     name: 'Serp',
     query: {
@@ -379,11 +421,13 @@ const setDefaultActions = (): void => {
 };
 
 const getActionValues = (action: string): string[] => {
+  updateRouteHack();
   const val = route.query[action];
   return val ? val.split(',').filter(Boolean) : [];
 };
 
 const getActionValueKeys = (currentRoute: RouteLocationNormalizedLoaded, action: string): string[] => {
+  updateRouteHack();
   const val = currentRoute.query[action];
   return val
     ? val.split(',').filter(Boolean).map(v => (v.includes(':') ? v.split(':')[0] : v))
@@ -391,6 +435,7 @@ const getActionValueKeys = (currentRoute: RouteLocationNormalizedLoaded, action:
 };
 
 const getDefaultSortValueForRoute = (currentRoute: RouteLocationNormalizedLoaded): string => {
+  updateRouteHack();
   return isSearchFilterApplied(currentRoute)
     ? 'relevance_score'
     : currentRoute.params.entityType === 'works'
@@ -399,6 +444,7 @@ const getDefaultSortValueForRoute = (currentRoute: RouteLocationNormalizedLoaded
 };
 
 const setSortNoPush = (sortByKey: string, route: RouteLocationNormalizedLoaded) => {
+  updateRouteHack();
   const defaultValue = getDefaultSortValueForRoute(route);
   const appendVerb = sortByKey === 'display_name' ? '' : ':desc';
   const myNewKey = sortByKey === defaultValue ? undefined : `${sortByKey}${appendVerb}`;
@@ -414,15 +460,18 @@ const setSortNoPush = (sortByKey: string, route: RouteLocationNormalizedLoaded) 
 };
 
 const setSort = (filterKey: string): void => {
+  updateRouteHack();
   pushToRoute(router, setSortNoPush(filterKey, route));
 };
 
 const getSort = (currentRoute: RouteLocationNormalizedLoaded): string => {
+  updateRouteHack();
   const defaultValue = getDefaultSortValueForRoute(route);
   return currentRoute.query.sort?.replace(':desc', '') ?? defaultValue;
 };
 
 const toggleSort = (filterKey: string): void => {
+  updateRouteHack();
   const currentSort = getSort(route);
   if (currentSort === filterKey) {
     setSort(undefined);
@@ -434,6 +483,7 @@ const toggleSort = (filterKey: string): void => {
 const perPageDefault = 10;
 
 const setPerPage = (val: number): void => {
+  updateRouteHack();
   const perPage = val === perPageDefault ? undefined : val;
   pushToRoute(router, {
     name: 'Serp',
@@ -442,20 +492,24 @@ const setPerPage = (val: number): void => {
 };
 
 const getPerPage = (currentRoute: RouteLocationNormalizedLoaded): number => {
+  updateRouteHack();
   return parseInt(currentRoute.query.per_page as string) || perPageDefault;
 };
 
 const setColumn = (filterKeys: string[]): void => {
+  updateRouteHack();
   pushQueryParam('column', filterKeys.join(','));
 };
 
 const addColumn = (filterKey: string): void => {
+  updateRouteHack();
   const extantKeys = getColumn(route);
   const newKeys = [...extantKeys, filterKey];
   pushQueryParam('column', newKeys.join(','));
 };
 
 const toggleColumn = (filterKey: string): void => {
+  updateRouteHack();
   const extantKeys = getColumn(route);
   const newKeys = extantKeys.includes(filterKey)
     ? extantKeys.filter(k => k !== filterKey)
@@ -464,6 +518,7 @@ const toggleColumn = (filterKey: string): void => {
 };
 
 const getColumn = (route: RouteLocationNormalizedLoaded): string[] => {
+  updateRouteHack();
   return route.query.column ? route.query.column.split(',') : [];
 };
 
@@ -476,18 +531,22 @@ const viewConfigs = [
 const defaultViewIds = viewConfigs.filter(v => v.isDefault).map(v => v.id).sort();
 
 const isViewDefault = (viewIds: string[]): boolean => {
+  updateRouteHack();
   return viewIds.sort().join(',') === defaultViewIds.join(',');
 };
 
 const getView = (route: RouteLocationNormalizedLoaded): string[] => {
+  updateRouteHack();
   return route.query.view ? route.query.view.split(',') : defaultViewIds;
 };
 
 const isViewSet = (route: RouteLocationNormalizedLoaded, viewId: string): boolean => {
+  updateRouteHack();
   return getView(route).includes(viewId);
 };
 
 const setView = (viewIds: string[]): void => {
+  updateRouteHack();
   const unsetViewParam = !viewIds.length || isViewDefault(viewIds);
   const newViewValue = unsetViewParam ? undefined : viewIds.join(',');
   pushQueryParam('view', newViewValue);
@@ -495,6 +554,7 @@ const setView = (viewIds: string[]): void => {
 
 
 const toggleView = (viewId: string): void => {
+  updateRouteHack();
   const selectedViewIds = getView(route);
   const newViewIds = selectedViewIds.includes(viewId)
     ? selectedViewIds.filter(id => id !== viewId) // remove it
@@ -503,27 +563,32 @@ const toggleView = (viewId: string): void => {
 };
 
 const getGroupBy = (route: RouteLocationNormalizedLoaded): string[] => {
+  updateRouteHack();
   const defaultValue = getEntityConfig(route.params.entityType as string)?.groupByDefaults || [];
   return route.query.group_by ? route.query.group_by.split(',') : defaultValue;
 };
 
 const setGroupBy = (filterKeys: string[]): void => {
+  updateRouteHack();
   pushQueryParam('group_by', filterKeys.join(','));
 };
 
 const addGroupBy = (filterKey: string): void => {
+  updateRouteHack();
   const extantKeys = getGroupBy(route);
   const newKeys = [...extantKeys, filterKey];
   pushQueryParam('group_by', newKeys.join(','));
 };
 
 const deleteGroupBy = (filterKey: string): void => {
+  updateRouteHack();
   const extantKeys = getGroupBy(route);
   const newKeys = extantKeys.filter(k => k !== filterKey);
   pushQueryParam('group_by', newKeys.join(','));
 };
 
 const toggleGroupBy = (filterKey: string): void => {
+  updateRouteHack();
   const extantKeys = getGroupBy(route);
   const newKeys = extantKeys.includes(filterKey)
     ? extantKeys.filter(k => k !== filterKey)
@@ -532,6 +597,7 @@ const toggleGroupBy = (filterKey: string): void => {
 };
 
 const setActionValueKeys = (actionName: string, keys: string[]): void => {
+  updateRouteHack();
   console.log('url.setActionValueKeys', actionName, keys);
   const actionConfig = getActionConfig(actionName);
 
@@ -557,12 +623,16 @@ const setActionValueKeys = (actionName: string, keys: string[]): void => {
 };
 
 const addActionKey = (actionName: string, actionKey: string): void => {
+  updateRouteHack(); 
+
   const current = getActionValueKeys(route, actionName);
   console.log('addActionKey', current);
   setActionValueKeys(actionName, [...current, actionKey]);
 };
 
 const deleteActionKey = (actionName: string, actionKey: string): void => {
+  updateRouteHack();
+
   const current = getActionValueKeys(route, actionName);
   console.log('deleteActionKey', actionName, actionKey);
   const newKeys = current.filter(k => k !== actionKey);
@@ -570,6 +640,8 @@ const deleteActionKey = (actionName: string, actionKey: string): void => {
 };
 
 const setSidebar = (id: string): void => {
+  updateRouteHack();
+
   const shortId = shortenOpenAlexId(id);
   console.log('setSidebar', shortId);
   pushToRoute(router, {
@@ -582,6 +654,8 @@ const setSidebar = (id: string): void => {
 };
 
 const makeAutocompleteUrl = (entityId: string, searchString: string): string => {
+  updateRouteHack();
+
   const url = new URL(`https://api.openalex.org`);
   url.pathname = entityId ? `autocomplete/${entityId}` : 'autocomplete';
   url.searchParams.set('q', searchString);
@@ -634,15 +708,18 @@ const makeApiUrl = (
 };
 
 const setShowApi = (val: boolean): void => {
+  updateRouteHack();
   pushQueryParam("show_api", val ? "true" : undefined);
 };
 
 const setHideResults = (val: boolean): void => {
+  updateRouteHack();
   const urlVal = val ? "true" : undefined;
   pushQueryParam("hide_results", urlVal);
 };
 
 const setSerpTabName = (val: string): void => {
+  updateRouteHack();
   pushQueryParam("name", val);
 };
 
@@ -690,10 +767,12 @@ const makeGroupByUrl = (
 };
 
 const setZoom = (val: string): void => {
+  updateRouteHack();
   pushQueryParam("zoom", val);
 };
 
 const getZoom = (currentRoute: ReturnType<typeof useRoute>): string | undefined => {
+  updateRouteHack();
   return currentRoute.query.zoom as string | undefined;
 };
 
@@ -784,10 +863,9 @@ const url = {
     setSerpTabName,
 
     pushQueryParam,
-    replaceQueryParam,
 
     nameFromUrl,
-    setUrlName,
+    
 
     viewConfigs,
     isViewSet,

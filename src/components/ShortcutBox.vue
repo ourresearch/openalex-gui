@@ -1,28 +1,5 @@
 <template>
   <div>
-    <!-- <v-autocomplete
-    v-model="select"
-    :items="suggestions"
-    v-model:search="searchString"
-    :menu-props="{ maxHeight: 600 }"
-    hide-no-data
-    :menu="menuOpen" 
-    clearable
-    hide-details
-    autofocus
-    prepend-inner-icon="mdi-magnify"
-    @update:model-value="onChange">
-    <template v-slot:item="{ props, item }">
-      <v-list-item
-                  v-bind="props"
-                  :prepend-avatar="item.raw.icon"
-                  :title="item.raw.displayValue"
-                ></v-list-item>
-    </template>
-  </v-autocomplete> -->
-
- 
-    <!-- {{ select.length }} -->
     <v-autocomplete
       ref="shortcutBox"
       v-model="select"
@@ -30,24 +7,21 @@
       v-model:search="searchString"
       :custom-filter="(item, queryText, itemText) => true"
       :menu-props="{ maxHeight: 600 }"
-      return-object
       rounded
       :dense="dense"
-      filled
-      clearable
       item-title="displayName"
-      hide-no-data
       :placeholder="placeholder"
       prepend-inner-icon="mdi-magnify"
-      autofocus
+      :autofocus="autofocus"
       :menu="menuOpen" 
       :loading="isLoading"
+      @click:clear="clickClear"
       @update:model-value="onChange"
       @keydown.enter="isEnterPressed = true"
       @keyup.enter="onEnterKeyup"
     > 
       <!-- Chip Slot -->
-       <template v-slot:chip> 
+      <template v-slot:chip> 
         <v-chip
           v-if="newFilter"
           close
@@ -73,13 +47,13 @@
               <span class="font-weight-bold">{{item.raw.displayValue}}</span>
             </v-list-item-title>
             <v-list-item-subtitle>
-              Filter by {{ item.raw.displayValue }}
+              Filter by {{ item.raw.displayValue }} 
             </v-list-item-subtitle>
             <span>
               <v-icon>mdi-filter-plus</v-icon>
             </span>
           </template>
-            <!-- {{ item.raw.key }} -->
+            
           <template v-else-if="item.raw.key === 'default.search'">
             <v-list-item-title>
               <span class="">Search for</span>
@@ -96,9 +70,9 @@
               style="white-space: normal;"
             >{{ item.raw.displayValue }}</v-list-item-title>
             <v-list-item-subtitle style="white-space: normal;">
-              {{ item.raw.displayName }}
+              {{ item.raw.displayName }} {{ item.raw.key }}
               <span v-if="item.raw.hint">
-                {{  item.raw.hint, 100 }}
+                {{  item.raw.hint }}
               </span>
             </v-list-item-subtitle>
 
@@ -126,11 +100,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref,  useTemplateRef, computed, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { truncate } from 'lodash';
 import { url } from '@/url';
 import { api } from '@/api';
+import { debounce } from 'lodash';
 import { createSimpleFilter } from '@/filterConfigs';
 import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
 import { findFacetConfigs } from '@/facetConfigs';
@@ -163,7 +137,7 @@ const props = defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const shortcutBox = ref(null);
+const shortcutBox = useTemplateRef('shortcutBox');
 // Vuex setup
 const store = useStore();
 const entityType = computed(() => store.getters.entityType);
@@ -223,19 +197,19 @@ const clear = () => {
   searchString.value = '';
   suggestions.value = [];
   newFilter.value = null;
+  menuOpen.value = false;
+
   console.log("🚀 ~ clear ~ clear:")
 };
 
 const clickClear = () => {
-  suggestions.value = [];
-  searchString.value = '';
-  newFilter.value = null;
+  clear();
   console.log("🚀 ~ clickClear ~ clickClear:")
 };
 
 const selectFilter = (filter) => {
   if (filter.type === 'boolean') {
-    const oldFilters = url.readFilters(route) as Filter[];
+    const oldFilters = url.readFilters(route) as unknown as Filter[];
     const newFilter = createSimpleFilter('works', filter.key!, true);
     url.pushNewFilters([...oldFilters, newFilter]);
   } else {
@@ -243,17 +217,19 @@ const selectFilter = (filter) => {
   }
 };
 
-const onChange = (myFilterData) => {
+const onChange = debounce((myFilterData) => {
   console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
   if (select.value) isEnterPressed.value = false;
-  if (myFilterData.key === 'default.search') {
+  if (toRaw(myFilterData).key === 'default.search') {
     submitSearchString();
-  } else if (myFilterData.isFilterLink) {
-    selectFilter(myFilterData);
-  } else if (myFilterData.value) {
-    const oldFilters = url.readFilters(route) as Filter[];
+    menuOpen.value = true;
+  } else if (toRaw(myFilterData).isFilterLink) {
+    selectFilter(toRaw(myFilterData));
+    menuOpen.value = true;
+  } else if (toRaw(myFilterData).value) {
+    const oldFilters = url.readFilters(route) as unknown as Filter[];
 
-    url.pushNewFilters([...oldFilters, myFilterData]);
+    url.pushNewFilters([...oldFilters, toRaw(myFilterData)]);
     clear();
   }
 
@@ -262,7 +238,7 @@ const onChange = (myFilterData) => {
     select.value = null;
     suggestions.value = [];
   });
-};
+}, 100);
 
 const onEnterKeyup = () => {
   if (!isEnterPressed.value) return;
@@ -278,10 +254,12 @@ const onEnterKeyup = () => {
 
 const submitSearchString = () => {
   if (!searchString.value) {
-    url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
+    url.pushToRoute(router, {
+      name: 'Serp', params: { entityType: entityType.value }
+    });
   } else {
     const searchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
-    const oldFilters = url.readFilters(route) as Filter[];
+    const oldFilters = url.readFilters(route) as unknown as Filter[];
     url.pushNewFilters([...oldFilters, searchFilter]);
   }
 };
@@ -301,12 +279,13 @@ const trySearch = (str: string) =>{
 
 const getSuggestions = async () => {
   const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value) as unknown as SuggestionItem;
-  console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter.value)
+  console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter
+      )
   isLoading.value = true;
 
   if (searchString.value === 'coriander OR cilantro') {
-    suggestions.value = [fulltextSearchFilter.value];
-    console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+    suggestions.value = [fulltextSearchFilter];
+    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
     isLoading.value = false;
      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
     return;
@@ -315,7 +294,7 @@ const getSuggestions = async () => {
 
   if (newFilter.value && !searchString.value) {
     suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
-    console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
     isLoading.value = false;
      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
     return;
@@ -323,7 +302,7 @@ const getSuggestions = async () => {
 
   if (!newFilter.value && !searchString.value) {
     suggestions.value = [];
-    console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+    // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
     isLoading.value = false;
      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
     return;
@@ -335,7 +314,7 @@ const getSuggestions = async () => {
     searchString.value,
     url.readFilters(route)
   );
-  console.log("🚀 ~ getSuggestions ~ apiSuggestions:", apiSuggestions)
+  // console.log("🚀 ~ getSuggestions ~ apiSuggestions:", apiSuggestions)
   isLoading.value = false;
 
   const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
@@ -346,11 +325,11 @@ const getSuggestions = async () => {
     cleaned.push(fulltextSearchFilter);
   }
 
-  console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
+  // console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
   suggestions.value = cleaned;
   if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-  console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
-  await nextTick();  // Ensures the DOM updates after assigning suggestions
+  // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
+  // await nextTick();  // Ensures the DOM updates after assigning suggestions
   console.log("Updated suggestions:", suggestions.value);// return suggestions.values
 };
 
@@ -358,7 +337,7 @@ const onKeyPress = (event: KeyboardEvent) => {
   if (event.key !== '/') return;
   if (document.activeElement === shortcutBox.value) return;
   event.preventDefault();
-   shortcutBox.value?.focus();
+  shortcutBox.value.focus();
 };
 
 // Lifecycle Hooks
@@ -405,17 +384,6 @@ watch(searchString, (newValue) => {
     
   }
 }
-
-// .shortcut-box {
-//   .v-input__append-inner:last-of-type {
-//     display: none !important; // hide the down-caret icon
-//   }
-
-// } 
-// .v-autocomplete__content {
-//   display: block !important;
-//   visibility: visible !important;
-// }
 
 
 </style>
