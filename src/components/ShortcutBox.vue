@@ -36,9 +36,7 @@
       filled
       clearable
       item-title="displayName"
-      item-value="displayValue"
       hide-no-data
-      class="shortcut-box"
       :placeholder="placeholder"
       prepend-inner-icon="mdi-magnify"
       autofocus
@@ -48,9 +46,6 @@
       @keydown.enter="isEnterPressed = true"
       @keyup.enter="onEnterKeyup"
     > 
-    <!-- <template v-slot:item="{ item }">
-      <v-list-item-title>{{ item.displayValue }}</v-list-item-title>
-    </template> -->
       <!-- Chip Slot -->
        <template v-slot:chip> 
         <v-chip
@@ -417,10 +412,10 @@ watch(searchString, (newValue) => {
 //   }
 
 // } 
-.v-autocomplete__content {
-  display: block !important;
-  visibility: visible !important;
-}
+// .v-autocomplete__content {
+//   display: block !important;
+//   visibility: visible !important;
+// }
 
 
 </style>

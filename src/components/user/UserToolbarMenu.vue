@@ -60,8 +60,10 @@
     <div class="" v-else>
       <template v-if="isMobile">
         <v-menu offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+            >
               <v-icon>mdi-menu</v-icon>
             </v-btn>
           </template>
@@ -70,14 +72,12 @@
               <span>
                 <v-icon>mdi-account-plus</v-icon>
               </span>
-              
                 <v-list-item-title class="font-weight-bold">
                   Sign up
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   Create a new account
                 </v-list-item-subtitle>
-              
             </v-list-item>
             <v-list-item @click="setIsLoginDialogOpen(true)">
               <span>

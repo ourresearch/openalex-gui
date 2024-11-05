@@ -5,12 +5,14 @@ import store from './store';
 
 // Vuetify
 import 'vuetify/styles';
+
 import '@mdi/font/css/materialdesignicons.css'; // Import Material Design Icons CSS
 
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
+import colors from 'vuetify/util/colors';
 
 // Plugins
 import { createHead } from '@unhead/vue'; // Replacement for vue-meta in Vue 3
@@ -31,10 +33,21 @@ import { url } from './url';
 import { prettyTitle, toPrecision, entityTypeFromId } from './util';
 import { createSimpleFilter, } from './filterConfigs';
 import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
-import _ from 'lodash';
 
 // Vuetify instance
 const vuetify = createVuetify({
+  theme: {
+    defaultTheme: 'light',
+    themes: {
+      light: {
+        colors: {
+          primary: colors.blue.darken2,
+          secondary: colors.blueGrey.darken4,
+          accent: colors.indigo.base,
+        },
+      },
+    },
+  },
   icons: {
     defaultSet: 'mdi',
     aliases,
@@ -103,7 +116,9 @@ app.config.globalProperties.$entityZoomLink = function (id: string) {
   }
 };
 
-app.config.globalProperties.$pluralize = pluralize;
+app.config.globalProperties.$pluralize = function (word: string, count: number): string {
+  return (count >= 2  || count <= -2 ) ? `${word}s` : word
+};
 // app.config.globalProperties.filter = filter;
 
 app.config.globalProperties.$zoomLink = function (fullId: string) {
@@ -124,7 +139,7 @@ app.config.globalProperties.$toPrecision = function (number: number, precision =
   return toPrecision(number, precision);
 };
 
-app.config.globalProperties.capitalize = function (str: string): string {
+app.config.globalProperties.$capitalize = function (str: string): string {
   if (typeof str !== 'string') return str;
   const firstLetter = str[0];
   return firstLetter.toUpperCase() + str.substring(1);
