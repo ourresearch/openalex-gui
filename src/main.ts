@@ -29,7 +29,7 @@ import AsyncComputed from 'vue-async-computed';
 
 // Utilities
 import { shortenOpenAlexId } from './util';
-import { url } from './url';
+import { url } from '@/url';
 import { prettyTitle, toPrecision, entityTypeFromId } from './util';
 import { createSimpleFilter, } from './filterConfigs';
 import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
