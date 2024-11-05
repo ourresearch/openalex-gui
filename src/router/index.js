@@ -16,7 +16,9 @@ import Login from "@/views/Login.vue";
 import Me from "../views/Me.vue"
 
 // import goTo from 'vuetify/es5/services/goto'
-// import Webinars from "../views/Webinars.vue";
+// import { useGoTo } from 'vuetify';
+
+import Webinars from "../views/Webinars.vue";
 import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
@@ -29,6 +31,7 @@ import {getEntityConfigs} from "@/entityConfigs";
 
 const entityNames = getEntityConfigs().map(c => c.name).join("|")
 
+// const goto = useGoTo();
 const routes = [
     // data pages
     {

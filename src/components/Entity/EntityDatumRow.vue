@@ -2,10 +2,10 @@
   <div v-if="data && isDisplayed">
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
-          {{ filterConfig.displayName | capitalize | pluralize(pluralizeCount) }}
+          {{ filterConfig.displayName | $capitalize | $pluralize(pluralizeCount) }}
       </template>
       <template v-else>
-        {{ filterConfig.displayName | capitalize }}:
+        {{ filterConfig.displayName | $capitalize }}:
       </template>
     </span>
 

@@ -3,7 +3,7 @@
     <v-toolbar dense flat class="" color="transparent">
 <!--      <v-icon left>mdi-checkbox-blank-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold mr-2">
-        {{ entityType | pluralize(2) | capitalize }}
+        {{ entityType | $pluralize(2) | capitalize }}
 <!--       (<serp-results-count :results-object="resultsObject" class=""/>)-->
       </v-toolbar-title>
       <v-spacer/>

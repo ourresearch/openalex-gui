@@ -158,7 +158,7 @@ const prettyTitle = function (title, facetKey) {
     }
     if (facetKey && facetKey === "type") {
         title = title.replace("-", " ")
-        title = capitalize(title)
+        title = $capitalize(title)
     }
     if (facetKey === "authorships.institutions.country_code") {
         title = title

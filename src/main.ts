@@ -103,7 +103,7 @@ app.config.globalProperties.$entityZoomLink = function (id: string) {
   }
 };
 
-app.config.globalProperties.pluralize = pluralize;
+app.config.globalProperties.$pluralize = pluralize;
 // app.config.globalProperties.filter = filter;
 
 app.config.globalProperties.$zoomLink = function (fullId: string) {

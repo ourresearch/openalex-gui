@@ -45,7 +45,7 @@
                exact-path
                :to="filterValue | entityZoomLink"
         >
-          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
+          {{ myEntityConfig.displayName | $pluralize(1) |$capitalize }} profile
         </v-btn>
       </v-card-actions>
 

@@ -36,7 +36,7 @@ export default {
       return entityConfigs[this.role.role + "s"];
     },
     displayName() {
-      const name = capitalize(this.role.role.trim())
+      const name = $capitalize(this.role.role.trim())
       return name
     },
     myFilter(){

@@ -17,7 +17,7 @@
         {{ (disabled) ? "(applied)" : "" }}
       </v-list-item-title>
       <v-list-item-subtitle v-if="hint" style="white-space: normal;">
-        <span v-if="myEntityConfig">{{ myEntityConfig.displayName | pluralize(1) |capitalize }} </span>
+        <span v-if="myEntityConfig">{{ myEntityConfig.displayName | $pluralize(1) |capitalize }} </span>
         <span v-if="hint"> {{ hint | truncate(100)}}</span>
       </v-list-item-subtitle>
     
