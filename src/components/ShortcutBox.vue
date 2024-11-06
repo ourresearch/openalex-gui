@@ -217,7 +217,7 @@
   };
 
   const onChange = debounce((myFilterData) => {
-    console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
+    // console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
     if (select.value) isEnterPressed.value = false;
     if (toRaw(myFilterData).key === 'default.search') {
       submitSearchString();
@@ -233,7 +233,7 @@
       clear();
     }
 
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       searchString.value = '';
       select.value = null;
       suggestions.value = [];
@@ -241,7 +241,7 @@
   }, 100);
 
   const onEnterKeyup = () => {
-    console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
+    // console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
     if (!searchString.value && props.showExamples) {
       url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
       return;

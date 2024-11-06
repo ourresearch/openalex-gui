@@ -14,7 +14,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {filtersAsUrlStr} from "@/filterConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
-import {capitalize} from "lodash"
 
 export default {
   name: "LinkEntityRole",
