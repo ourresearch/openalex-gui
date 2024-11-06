@@ -2,17 +2,17 @@
   <div>
     <v-autocomplete
       ref="shortcutBox"
-      v-model="select"
-      :items="suggestions"
-      v-model:search="searchString"
-      :custom-filter="(item, queryText, itemText) => true"
-      :menu-props="{ maxHeight: 600 }"
+      prepend-inner-icon="mdi-magnify"
       return-object
       rounded
-      :dense="dense"
+      v-model="select"
+      v-model:search="searchString"
+      :items="suggestions"
       item-title="displayName"
+      :custom-filter="(item, queryText, itemText) => true"
+      :menu-props="{ maxHeight: 600 }"
+      :density="dense ? 'compact' : 'default'"
       :placeholder="placeholder"
-      prepend-inner-icon="mdi-magnify"
       :autofocus="autofocus"
       :menu="menuOpen" 
       :loading="isLoading"
@@ -37,11 +37,9 @@
       </template> 
 
       <!-- Item Slot -->
-      <template v-slot:item="{ props, item }">
-        <v-list-item v-bind="props">
-          <span>
-            <v-icon :icon="item.raw.icon"/>
-          </span>
+      <template #item="{ props, item }">
+        <v-list-item  class="ac-list-item" v-bind="props">
+            <v-icon class="icon" :icon="item.raw.icon"/>
           <template v-if="item.raw.isFilterLink">
             <v-list-item-title>
               <span class="font-weight-bold">{{item.raw.displayValue}}</span>
@@ -66,18 +64,17 @@
           </template>
           <!-- {{ item.raw.displayName }} -->
           <template v-else>
-            <v-list-item-title
-              style="white-space: normal;"
-            >{{ item.raw.displayValue }}</v-list-item-title>
+            <div class="content-wrap">
+            <v-list-item-title >{{ item.raw.displayValue }}</v-list-item-title>
             <v-list-item-subtitle style="white-space: normal;">
               {{ item.raw.displayName }} {{ item.raw.key }}
               <span v-if="item.raw.hint">
                 {{  item.raw.hint }}
               </span>
             </v-list-item-subtitle>
-
+          </div>
             <v-list-item-action v-if="item.raw.entityId" @click="goToEntity(item.raw.value)">
-              <v-btn icon>
+              <v-btn elevation="0" icon>
                 <v-icon>mdi-information-outline</v-icon>
               </v-btn>
             </v-list-item-action>
@@ -85,6 +82,7 @@
         </v-list-item>
       </template>
     </v-autocomplete> 
+    
     <div class="ml-2 mt-2" v-if="showExamples">
       <span class="body-2 grey--text">Try:</span>
       <v-chip
@@ -244,7 +242,6 @@
 
   const onEnterKeyup = () => {
     console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
-    // if (!isEnterPressed.value) return;
     if (!searchString.value && props.showExamples) {
       url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
       return;
@@ -272,7 +269,6 @@
   };
 
   const trySearch = (str: string) =>{
-    // console.log("🚀 ~ trySearch ~ str:", str)
     requestAnimationFrame(() => {
       searchString.value = str;
       
@@ -287,7 +283,6 @@
 
     if (searchString.value === 'coriander OR cilantro') {
       suggestions.value = [fulltextSearchFilter];
-      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
       isLoading.value = false;
       if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
@@ -296,7 +291,6 @@
 
     if (newFilter.value && !searchString.value) {
       suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
-      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
       isLoading.value = false;
       if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
@@ -304,7 +298,6 @@
 
     if (!newFilter.value && !searchString.value) {
       suggestions.value = [];
-      // console.log("🚀 ~ getSuggestions ~ suggestions.value:", suggestions.value)
       isLoading.value = false;
       if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
@@ -316,7 +309,6 @@
       searchString.value,
       url.readFilters(route)
     );
-    // console.log("🚀 ~ getSuggestions ~ apiSuggestions:", apiSuggestions)
     isLoading.value = false;
 
     const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
@@ -329,9 +321,6 @@
 
     menuOpen.value = true; 
     suggestions.value = cleaned;
-    // if(suggestions.value.length >= 1 ) {}
-    // console.log("Updated suggestions:", suggestions.value)
-    // return suggestions
     console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
   };
 
@@ -371,6 +360,39 @@
 </script>
 
 <style  lang="scss">
+// Hack to avoid using important
+:is(.ac-list-item, #increase#specificity) > .v-list-item__content{
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+
+  .content-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: 5px;
+
+    .v-list-item-title,
+    .v-list-item-subtitle {
+      width: 100%;
+    }
+  }
+
+
+  
+  > .v-list-item-title:first-of-type {
+    display: none;
+  }
+  .v-list-item-action {
+    align-self: end;
+    margin-left: auto;
+  }
+}
+
+.icon {
+  display:flex;
+  justify-self: unset;
+}
 
 .v-autocomplete__content {
   max-width: 400px !important;
