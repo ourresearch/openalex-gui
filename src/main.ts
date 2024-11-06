@@ -5,7 +5,6 @@ import store from './store';
 
 // Vuetify
 import 'vuetify/styles';
-
 import '@mdi/font/css/materialdesignicons.css'; // Import Material Design Icons CSS
 
 import { createVuetify } from 'vuetify'

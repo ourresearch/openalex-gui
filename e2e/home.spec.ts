@@ -7,9 +7,8 @@ const ScreenshotOptions  = {
 
 test('Home Page Top', async ({ page }) => {
   await page.goto('/');
-
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/OpenAlex: The open catalog to the global research system/);
+  await expect(page).toHaveTitle(/Search and analyze the world\'s research/);
   await expect(page).toHaveScreenshot('home-top.png', ScreenshotOptions);
 });
 
@@ -17,7 +16,6 @@ test('Home Page Bottom', async ({ page }) => {
   await page.goto('/');
   await page.getByText('Learn more').click();
   await expect(page).toHaveScreenshot('home-bottom.png', ScreenshotOptions);
-
 });
 
 test('Home Page Login Button', async ({ page }) => {

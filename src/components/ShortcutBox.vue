@@ -41,24 +41,24 @@
         <v-list-item  class="ac-list-item" v-bind="props">
             <v-icon class="icon" :icon="item.raw.icon"/>
           <template v-if="item.raw.isFilterLink">
-            <v-list-item-title>
-              <span class="font-weight-bold">{{item.raw.displayValue}}</span>
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              Filter by {{ item.raw.displayValue }} 
-            </v-list-item-subtitle>
-            <span>
-              <v-icon>mdi-filter-plus</v-icon>
-            </span>
+            <div class="content-wrap">
+              <v-list-item-title>
+                <span class="font-weight-bold">{{item.raw.displayValue}}</span>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Filter by {{ item.raw.displayValue }} 
+              </v-list-item-subtitle>
+            </div>
+              <v-icon class="filter-icon">mdi-filter-plus</v-icon>
           </template>
             
           <template v-else-if="item.raw.key === 'default.search'">
-            <v-list-item-title>
+            <v-list-item-title class="content-wrap">
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
               <span class="mr-2">in {{entityType}} {{ item.raw.displayName }}</span>
             </v-list-item-title>
-            <small>
+            <small class="enter-action">
               press Enter
             </small>
           </template>
@@ -383,7 +383,9 @@
   > .v-list-item-title:first-of-type {
     display: none;
   }
-  .v-list-item-action {
+  .v-list-item-action, 
+  .filter-icon, 
+  .enter-action {
     align-self: end;
     margin-left: auto;
   }
