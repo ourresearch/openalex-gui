@@ -48,7 +48,7 @@
       <!--      </v-card>-->
       <v-card flat class="">
         <v-list>
-          <v-subheader>
+          <v-list-subheader>
             <template v-if="myConfig.id === 'sort'">
               Sort by:
             </template>
@@ -60,7 +60,7 @@
               <!--              <v-icon left>mdi-filter-plus-outline</v-icon>-->
               Add filter:
             </template>
-          </v-subheader>
+          </v-list-subheader>
           <v-divider/>
           <v-list-item
               v-for="key in menuOptions"

@@ -6,9 +6,9 @@
 <!--      &lt;!&ndash;        <span>{{ filters.length }}</span>&ndash;&gt;-->
 <!--      &lt;!&ndash;        {{ "Filter" | pluralize(filters.length) }}&ndash;&gt;-->
 <!--      &lt;!&ndash;      </v-toolbar-title>&ndash;&gt;-->
-<!--      <v-subheader class=" ">-->
+<!--      <v-list-subheader class=" ">-->
 <!--        Filter {{ entityType }} by:-->
-<!--      </v-subheader>-->
+<!--      </v-list-subheader>-->
 <!--      <v-spacer/>-->
 
 
@@ -33,7 +33,7 @@
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 grey--text">
           No filters applied
         </div>
-        <table v-if="$vuetify.breakpoint.mdAndUp" style="width: 100%;">
+        <table v-if="isMdAndUp" style="width: 100%;">
           <tbody>
           <component
               class=""
@@ -85,21 +85,21 @@
 </template>
 
 <script>
-
+import { computed } from "vue";
+import { useDisplay } from "vuetify";
 import {mapActions, mapGetters, mapMutations} from "vuex";
-
 import FilterBoolean from "@/components/Filter/FilterBoolean.vue";
 import FilterRange from "@/components/Filter/FilterRange.vue";
 import FilterSearch from "@/components/Filter/FilterSearch.vue";
 import FilterSelect from "@/components/Filter/FilterSelect.vue";
 import AddFilter from "@/components/AddFilter.vue";
 
-import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
+// import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
-import {facetConfigs, getFacetConfig} from "@/facetConfigs";
+// import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import Action from "@/components/Action/Action.vue";
-import {api} from "@/api";
+// import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 // import {clear} from "core-js/internals/task";
 
@@ -118,6 +118,14 @@ export default {
   },
   props: {
     resultsObject: Object,
+  },
+  setup(props) {
+    const { mdAndUp } = useDisplay();
+    const isMdAndUp = computed(() => mdAndUp.value)
+
+    return {
+      isMdAndUp
+    };
   },
   data() {
     return {

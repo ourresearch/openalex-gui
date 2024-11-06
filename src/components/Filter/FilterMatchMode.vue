@@ -17,10 +17,10 @@
     </template>
 
     <v-list>
-      <v-subheader>Combine
+      <v-list-subheader>Combine
 <!--        {{ count }}-->
 <!--        <span class=" mx-1"> {{ filterConfig.displayName |capitalize }}</span> -->
-        values using:</v-subheader>
+        values using:</v-list-subheader>
       <v-divider />
 
       <v-list-item @click="value = 'all'">

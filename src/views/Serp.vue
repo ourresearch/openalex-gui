@@ -17,19 +17,22 @@
       <template v-else>
         <v-row class="mb-12">
           <v-col>
+            <!-- Tabs -->
             <v-tabs v-model="resultsTab" background-color="transparent" grow>
               <v-tab key="0">Results</v-tab>
               <v-tab key="1">Stats</v-tab>
             </v-tabs>
+            
             <v-card rounded flat>
-              <v-tabs-items v-model="resultsTab">
-                <v-tab-item key="0">
+              <!-- Tab Contents using v-window and v-window-item -->
+              <v-window v-model="resultsTab">
+                <v-window-item value="0">
                   <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject" />
-                </v-tab-item>
-                <v-tab-item key="1">
+                </v-window-item>
+                <v-window-item value="1">
                   <analytic-views :results-object="resultsObject" />
-                </v-tab-item>
-              </v-tabs-items>
+                </v-window-item>
+              </v-window>
             </v-card>
           </v-col>
         </v-row>
@@ -77,6 +80,7 @@ const lastGroupByValue = ref(null);
 const groupByKeys = ref([]);
 const groupBySearchString = ref("");
 const savedActions = ref([]);
+const resultsFilters = ref([]);
 const listResultsCount = ref(null);
 const selectedActionTab = ref("filter");
 const searchString = ref("");
@@ -101,7 +105,7 @@ const popularFilterOptions = computed(() => {
   return facetConfigs(entityType.value).filter(conf => conf.actionsPopular?.includes("filter"));
 });
 
-// Number of pages for pagination
+// // Number of pages for pagination
 const numPages = computed(() => {
   const maxToShow = isMobile.value ? 4 : 10;
   return Math.min(

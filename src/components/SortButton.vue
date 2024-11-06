@@ -24,7 +24,7 @@
       </v-btn>
     </template>
     <v-list>
-      <v-subheader>Sort by</v-subheader>
+      <v-list-subheader>Sort by</v-list-subheader>
       <v-divider></v-divider>
       <v-list-item-group
           mandatory

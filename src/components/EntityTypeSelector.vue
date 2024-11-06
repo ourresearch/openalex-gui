@@ -32,7 +32,7 @@
       <v-card flat rounded>
         <v-card-text class="pa-0">
           <v-list>
-            <v-subheader>What are you looking for?</v-subheader>
+            <v-list-subheader>What are you looking for?</v-list-subheader>
             <v-list-item
               v-for="entityOption in entityTypeOptions"
               :key="entityOption.name"

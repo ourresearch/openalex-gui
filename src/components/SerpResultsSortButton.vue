@@ -6,9 +6,9 @@
       </v-btn>
     </template>
     <v-list>
-      <v-subheader>
+      <v-list-subheader>
         Sort by:
-      </v-subheader>
+      </v-list-subheader>
       <v-divider/>
       <v-list-item
           v-for="option in menuOptions"

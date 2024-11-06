@@ -5,7 +5,7 @@
       :loading="isLoading"
   >
     <v-list class="mt-0 pt-0">
-      <v-subheader>
+      <v-list-subheader>
         <template v-if="isLoading">
           Searching...
         </template>
@@ -21,7 +21,7 @@
           {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
-      </v-subheader>
+      </v-list-subheader>
 
       <filter-select-edit-row
           v-for="row in suggestions"

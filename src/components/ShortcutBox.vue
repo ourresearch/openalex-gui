@@ -7,6 +7,7 @@
       v-model:search="searchString"
       :custom-filter="(item, queryText, itemText) => true"
       :menu-props="{ maxHeight: 600 }"
+      return-object
       rounded
       :dense="dense"
       item-title="displayName"
@@ -14,10 +15,9 @@
       prepend-inner-icon="mdi-magnify"
       :autofocus="autofocus"
       :menu="menuOpen" 
-      :loading="!menuOpen"
+      :loading="isLoading"
       @click:clear="clickClear"
-      @update:model-value="onChange"
-      @keydown.enter="isEnterPressed = true"
+      @update:modelValue="onChange"
       @keyup.enter="onEnterKeyup"
     > 
       <!-- Chip Slot -->
@@ -244,7 +244,7 @@
 
   const onEnterKeyup = () => {
     console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
-    if (!isEnterPressed.value) return;
+    // if (!isEnterPressed.value) return;
     if (!searchString.value && props.showExamples) {
       url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
       return;
@@ -282,7 +282,7 @@
 
   const getSuggestions = async () => {
     const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value) as unknown as SuggestionItem;
-    console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter , newFilter)
+    console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter , toRaw(newFilter), searchString.value)
     isLoading.value = true;
 
     if (searchString.value === 'coriander OR cilantro') {
@@ -327,11 +327,12 @@
       cleaned.push(fulltextSearchFilter);
     }
 
-    suggestions.value = cleaned.slice();
-    if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
-    console.log("Updated suggestions:", suggestions.value);// 
+    menuOpen.value = true; 
+    suggestions.value = cleaned;
+    // if(suggestions.value.length >= 1 ) {}
+    // console.log("Updated suggestions:", suggestions.value)
     // return suggestions
-    // console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
+    console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
   };
 
   const onKeyPress = (event: KeyboardEvent) => {

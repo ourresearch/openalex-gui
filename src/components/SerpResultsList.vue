@@ -21,7 +21,7 @@
           </v-btn>
         </template>
         <v-list>
-          <v-subheader>Results per page:</v-subheader>
+          <v-list-subheader>Results per page:</v-list-subheader>
           <v-list-item @click="url.setPerPage(10)">
             
               <v-list-item-title>10</v-list-item-title>
@@ -47,7 +47,7 @@
 <!--      <div class="grey&#45;&#45;text">-->
 <!--        <serp-results-count :results-object="resultsObject" class="ml-4"/>-->
 <!--      </div>-->
-    <v-list nav v-if="resultsObject?.results" class="" color="">
+    <v-list nav v-if="resultsObject.value?.results" class="" color="">
       <serp-results-list-item
         v-for="result in resultsObject.results"
         :key="result.id"
@@ -56,7 +56,7 @@
       />
 
     </v-list>
-    <div class="serp-bottom" v-if="resultsObject?.results?.length">
+    <div class="serp-bottom" v-if="resultsObject.value?.results?.length">
       <v-pagination
           class="pb-8 pt-3 elevation-0"
           circle
@@ -66,7 +66,7 @@
           light
       />
     </div>
-    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
+    <v-card v-if="!resultsObject.value?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
       There are no results for this search.
     </v-card>
   </v-card>
@@ -76,9 +76,10 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { useDisplay } from "vuetify";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
-import {shortenOpenAlexId} from "@/util";
-import {createSimpleFilter} from "@/filterConfigs";
+// import {shortenOpenAlexId} from "@/util";
+// import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
@@ -100,6 +101,13 @@ export default {
   props: {
     resultsObject: Object,
   },
+  setup(props) {
+    const { mobile } = useDisplay();
+
+    return {
+      isMobile: mobile.value
+    };
+  },
   data() {
     return {
       foo: 42,
@@ -113,7 +121,7 @@ export default {
       "entityType",
     ]),
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ?
+      const maxToShow = this.isMobile ?
           4 :
           10
 
@@ -160,6 +168,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("🚀 ~ mounted ~ this.resultsObject:", this.resultsObject.value)
   },
   watch: {}
 }

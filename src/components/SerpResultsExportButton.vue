@@ -20,7 +20,7 @@
           <v-spacer/>
         </v-toolbar>
         <div v-if="exportObj.progress === null" class="pa-4 py-0">
-<!--          <v-subheader>Select format:</v-subheader>-->
+<!--          <v-list-subheader>Select format:</v-list-subheader>-->
 <!--          <v-divider/>-->
           <v-radio-group v-model="exportFormat">
             <v-radio

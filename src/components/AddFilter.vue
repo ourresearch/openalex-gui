@@ -128,10 +128,10 @@
 
           <!--  NO FILTER SELECTED YET, WHAT ARE MY OPTIONS? -->
           <div v-else>
-            <v-subheader>
+            <v-list-subheader>
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
-            </v-subheader>
+            </v-list-subheader>
             <v-list class="d-flex flex-wrap" nav>
               <v-list-item
                   v-for="filter in potentialFiltersSearchResults"

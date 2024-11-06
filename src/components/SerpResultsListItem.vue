@@ -145,6 +145,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("🚀 ~ mounted ~ this.result:", this.result.value)
   },
   watch: {}
 }

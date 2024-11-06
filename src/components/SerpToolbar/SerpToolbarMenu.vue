@@ -25,9 +25,9 @@
         </v-btn>
       </template>
       <v-list>
-        <v-subheader>
+        <v-list-subheader>
           Show on page:
-        </v-subheader>
+        </v-list-subheader>
         <v-list-item
             v-for="view in url.viewConfigs"
             :key="view.id"
@@ -138,8 +138,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { useDisplay } from "vuetify";
 import QrcodeVue from "qrcode.vue";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
+// import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 
@@ -149,6 +150,13 @@ export default {
     QrcodeVue,
   },
   props: {},
+  setup(props) {
+    const { mdAndUp } = useDisplay();
+
+    return {
+      isMdAndUp: mdAndUp.value
+    };
+  },
   data() {
     return {
       foo: 42,
@@ -180,7 +188,7 @@ export default {
       return `https://openalex.org` + this.$route.fullPath
     },
     qrCodeSize() {
-      return this.$vuetify.breakpoint.mdAndUp ?
+      return this.isMdAndUp ?
           400 :
           300
     },

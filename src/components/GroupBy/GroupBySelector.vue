@@ -61,7 +61,7 @@
               <template
                   v-for="category in facetsByCategory"
               >
-                <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
+                <v-list-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-list-subheader>
                 <v-list-item
                     v-for="filterConfig in category.filterConfigs"
                     :key="category.displayName + filterConfig.key"
