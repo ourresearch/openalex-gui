@@ -336,7 +336,8 @@ $logo-link-height: 35px;
   text-decoration: none;
   display: flex;
   align-items: center;
-  //padding-left: 30px;
+  // margin-left: 25px !important;
+  padding-left: 17px;
   .logo-icon {
     height: $logo-link-height;
     //margin-top: -5px;
@@ -365,11 +366,132 @@ $logo-link-height: 35px;
   //text-decoration: underline !important;
   //border-bottom: 3px solid #333;
 }
+.v-messages{
+  min-height: 0;
+}
 
 body {
   //font-size: 16px;
+  .v-application--wrap {
+    flex: 1 1 auto;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 100%;
+    position: relative;
+  }
+  .v-btn__content {
+    align-items: center;
+    color: inherit;
+    display: flex;
+    flex: 1 0 auto;
+    justify-content: inherit;
+    line-height: normal;
+    position: relative;
+    transition: inherit;
+    transition-property: opacity;
+  }
+  .v-btn--size-default{
+      font-size: 1rem;
+  }
+
+  .v-select {
+    position: relativel;
+
+    &:not(.v-select--is-multi).v-text-field--single-line .v-select__selections {
+        flex-wrap: nowrap
+    }
+
+    &>.v-input__control>.v-input__slot {
+          cursor: pointer
+    }
+
+    .v-chip {
+      flex: 0 1 auto;
+      margin: 4px
+    }
+
+
+    .v-chip--selected:after {
+      opacity: .22
+    }
+
+    .fade-transition-leave-active {
+      position: absolute;
+      left: 0
+    }
+
+    &.v-input--is-dirty ::-moz-placeholder {
+      color: transparent!important
+    }
+
+    &.v-input--is-dirty ::placeholder {
+      color: transparent!important
+    }
+    &:not(.v-input--is-dirty):not(.v-input--is-focused) .v-text-field__prefix {
+      line-height: 20px;
+      top: 7px;
+      transition: .3s cubic-bezier(.25,.8,.5,1)
+    }
+  }
+
 
   .v-application {
+    .text-h5,  
+    .text-h6 {
+      line-height: 2rem;
+      font-family: Roboto, sans-serif !important;
+    }
+    .text-h5 {
+      font-size: 1.5rem !important;
+      font-weight: 400;
+      letter-spacing: normal !important;
+    }
+    .ml-3 {
+      margin-left: 12px !important;
+    }
+    .mb-3 {
+      margin-bottom: 12px !important;
+    }
+    
+    a {
+        color: #1976d2;
+    }
+    .v-card-actions a{
+      color: rgba(0, 0, 0, 0.87);
+    }
+    a {
+        cursor: pointer;
+    }
+    .v-btn.v-btn--icon .v-icon {
+      color: rgba(0, 0, 0, .54);
+    }
+    .v-field--focused .mdi-magnify, .mdi-close{
+      color: #1976d2 !important;
+      caret-color: #1976d2 !important;
+      opacity: 1;
+    }
+
+    .text-h5, .text-h6 {
+        line-height: 2rem;
+        font-family: Roboto, sans-serif !important;
+    }
+
+    .text-h5 {
+        font-size: 1.5rem !important;
+        font-weight: 400;
+        letter-spacing: normal !important;
+    }
+    .ml-3 {
+        margin-left: 12px !important;
+    }
+    .mb-3 {
+        margin-bottom: 12px !important;
+    }
+    a {
+      color: #1976d2;
+    }
     //background: #F7F9FC !important;
     background: #fff !important;
 

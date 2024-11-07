@@ -5,6 +5,8 @@
       prepend-inner-icon="mdi-magnify"
       return-object
       rounded
+      clearable
+      clear-icon="mdi-close"
       v-model="select"
       v-model:search="searchString"
       :items="suggestions"
@@ -13,11 +15,13 @@
       :menu-props="{ maxHeight: 600 }"
       :density="dense ? 'compact' : 'default'"
       :placeholder="placeholder"
-      :autofocus="autofocus"
+      hide-no-data 
+      autofocus
       :menu="menuOpen" 
       :loading="isLoading"
       @click:clear="clickClear"
       @update:modelValue="onChange"
+      @keydown.enter="isEnterPressed = true"
       @keyup.enter="onEnterKeyup"
     > 
       <!-- Chip Slot -->
@@ -83,7 +87,7 @@
       </template>
     </v-autocomplete> 
     
-    <div class="ml-2 mt-2" v-if="showExamples">
+    <div class="ml-2 mt-1" v-if="showExamples">
       <span class="body-2 grey--text">Try:</span>
       <v-chip
           v-for="search in searchesToTry"
@@ -153,7 +157,9 @@
   const newFilter = ref<SuggestionItem | null>(null);
   const select = ref<any>(null);
   const isLoading = ref(false);
-  const menuOpen = ref(false);
+  const menuOpen = computed(()=>{
+    return suggestions.value.length >= 1;
+  })
   const isEnterPressed = ref(false);
   const interval = ref<number | null>(null);
 
@@ -195,7 +201,6 @@
     searchString.value = '';
     suggestions.value = [];
     newFilter.value = null;
-    menuOpen.value = false;
 
     console.log("🚀 ~ clear ~ clear:")
   };
@@ -221,11 +226,9 @@
     if (select.value) isEnterPressed.value = false;
     if (toRaw(myFilterData).key === 'default.search') {
       submitSearchString();
-      menuOpen.value = true;
     } else if (toRaw(myFilterData).isFilterLink) {
       console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
       selectFilter(toRaw(myFilterData));
-      menuOpen.value = true;
     } else if (toRaw(myFilterData).value) {
       const oldFilters = url.readFilters(route) as unknown as Filter[];
 
@@ -269,11 +272,8 @@
   };
 
   const trySearch = (str: string) =>{
-    requestAnimationFrame(() => {
       searchString.value = str;
-      
       getSuggestions();
-    });
   };
 
   const getSuggestions = async () => {
@@ -284,7 +284,6 @@
     if (searchString.value === 'coriander OR cilantro') {
       suggestions.value = [fulltextSearchFilter];
       isLoading.value = false;
-      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
     }
 
@@ -292,14 +291,12 @@
     if (newFilter.value && !searchString.value) {
       suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
       isLoading.value = false;
-      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
     }
 
     if (!newFilter.value && !searchString.value) {
       suggestions.value = [];
       isLoading.value = false;
-      if(suggestions.value.length >= 1 ) {menuOpen.value = true;}
       return;
     }
 
@@ -319,7 +316,6 @@
       cleaned.push(fulltextSearchFilter);
     }
 
-    menuOpen.value = true; 
     suggestions.value = cleaned;
     console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
   };
@@ -360,6 +356,57 @@
 </script>
 
 <style  lang="scss">
+.v-field--variant-filled.v-field--focused .v-field__overlay {
+  opacity: 1;
+}
+.v-field--variant-filled .v-field__overlay {
+  background-color: rgba(0, 0, 0, .07);
+  opacity: 1;
+}
+.v-field__input input::placeholder, input.v-field__input::placeholder, textarea.v-field__input::placeholder {
+    color: rgba(0, 0, 0, 1);
+}
+
+.v-field--rounded {
+    border-radius: 35px;
+}
+
+.v-field--appended {
+    padding-inline-end: 24px;
+}
+
+.v-field--prepended {
+    padding-inline-start: 24px;
+}
+.v-autocomplete .v-field__outline {
+  opacity: 0;
+  // transition: opacity .2s linear;
+}
+body .v-application .body-2 {
+    font-size: 14px !important;
+}
+body .v-application .body-1, body .v-application .body-2 {
+    letter-spacing: normal !important;
+}
+.v-input__details{
+  min-height: 0;
+}
+.v-application .body-2 {
+    font-size: .875rem !important;
+    letter-spacing: .0178571429em !important;
+    line-height: 1.25rem;
+}
+.v-application .body-2, .v-application .subtitle-1 {
+    font-weight: 400;
+    font-family: Roboto, sans-serif !important;
+}
+.v-application .grey--text {
+    color: #9e9e9e !important;
+    caret-color: #9e9e9e !important;
+}
+.v-autocomplete .v-autocomplete--active-menu .v-field__outline {
+  opacity: 1;
+}
 // Hack to avoid using important
 :is(.ac-list-item, #increase#specificity) > .v-list-item__content{
   display: flex;
@@ -394,6 +441,10 @@
 .icon {
   display:flex;
   justify-self: unset;
+}
+
+.v-autocomplete__menu-icon{
+  display: none;
 }
 
 .v-autocomplete__content {

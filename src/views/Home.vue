@@ -1,8 +1,8 @@
 <template>
   <div style="padding-bottom: 0px;">
     <v-container>
-      <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
-        <v-col cols="3"></v-col>
+      <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 70px);">
+        <v-col cols="3" style="margin-bottom: -3px"></v-col>
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex">
             <div class="flex-grow-1">
@@ -14,15 +14,17 @@
           </div>
         </v-col>
         <v-spacer></v-spacer>
-        <v-btn text rounded class="mb-3" @click="scrollToLearnMore">
+        
+        <v-btn id="learn-more" text rounded elevation="0" style="" class="mb-3" @click="scrollToLearnMore">
           <v-icon>mdi-chevron-down</v-icon>
           Learn more
         </v-btn>
+        
       </v-row>
     </v-container>
 
-    <v-divider id="learn-more" />
     
+    <v-divider />
     <div class="color-3 lighten-5 py-4 mb-12">
       <div class="text-center body-2 grey--text pb-2">
         Trusted by hundreds of institutions worldwide, including
@@ -143,11 +145,62 @@ const isMobile = computed(() => xs.value || smAndDown.value);
 
 const scrollToLearnMore = () => {
   const element = document.getElementById('learn-more');
-  if (element) element.scrollIntoView({ behavior: 'smooth' });
+  if (element) element.scrollIntoView({ behavior: 'smooth' , inline: 'start', block: 'start'});
 };
 </script>
 
 <style lang="scss" scoped>
+
+.v-application--is-ltr .v-card__actions>.v-btn.v-btn .v-icon--left {
+    margin-left: 4px;
+}
+.v-application--is-ltr .v-btn__content .v-icon--left {
+    margin-left: -4px;
+    margin-right: 8px;
+}
+.v-btn__content .v-icon.v-icon--left, .v-btn__content .v-icon.v-icon--right {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+}
+
+.v-icon[left] {
+    margin-right: 8px;
+}
+.v-divider {
+  border-color: rgba(0, 0, 0, .12);
+    display: block;
+    flex: 1 1 0px;
+    max-width: 100%;
+    height: 1px;
+    max-height: 0;
+    border: solid;
+    border-width: thin 0 0 0;
+    transition: inherit;
+    overflow: visible;
+    width: 100%;
+}
+
+
+.v-card-title {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: .0125em;
+    line-height: 2rem;
+    word-break: break-all;
+    padding: 16px;
+}
+
+body .v-application .v-card--rounded {
+    border-radius: 15px !important;
+}
+
+#learn-more{
+  scroll-margin-top: 15px;
+}
 .landing-page-logo {
   $logo-link-height: 77px;
   display: flex;
@@ -202,6 +255,51 @@ const scrollToLearnMore = () => {
 
 }
 
+.v-application p {
+    margin-bottom: 16px;
+} 
+
+.theme--light.v-card {
+    background-color: #fff;
+    color: rgba(0,0,0,.87)
+   
+}
+.v-card .v-card-text {
+  line-height: 24px;
+}
+
+.v-theme--light .v-card-text {
+    color: rgba(0,0,0,.6);
+    
+    
+}
+.v-icon.v-icon {
+    align-items: center;
+    display: inline-flex;
+    font-feature-settings: "liga";
+    font-size: 24px;
+    justify-content: center;
+    letter-spacing: normal;
+    line-height: 1;
+    /* position: relative; */
+    text-indent: 0;
+    transition: .3s cubic-bezier(.25,.8,.5,1), visibility 0s;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+.v-card__title {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: .0125em;
+    line-height: 2rem;
+    word-break: break-all;
+}
 
 // .above-the-fold {
 //   /*background: linear-gradient(0deg, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100%);*/
