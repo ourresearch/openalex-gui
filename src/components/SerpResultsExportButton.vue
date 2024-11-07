@@ -40,7 +40,7 @@
                 value="ris"
             />
             <v-radio
-                label="WoS format (.txt)"
+                label="Text format (.txt)"
                 value="wos-plaintext"
             />
           </v-radio-group>
@@ -138,7 +138,7 @@ export default {
     exportDialogTitle() {
       const formatConfig = {
         csv: "Export spreadsheet (.csv)",
-        "wos-plaintext": "Export WoS format (.txt)",
+        "wos-plaintext": "Export text format (.txt)",
         ris: "Export to Endnote (.ris)",
       }
       return formatConfig[this.exportFormat]
