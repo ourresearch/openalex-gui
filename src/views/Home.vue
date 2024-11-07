@@ -150,19 +150,14 @@ const scrollToLearnMore = () => {
 </script>
 
 <style lang="scss" scoped>
+.v-application .v-card-actions .v-btn {
+    margin-left: 8px;
+}
 
-.v-application--is-ltr .v-card__actions>.v-btn.v-btn .v-icon--left {
+.v-application .v-card-actions>.v-btn.v-btn .v-icon--left {
     margin-left: 4px;
 }
-.v-application--is-ltr .v-btn__content .v-icon--left {
-    margin-left: -4px;
-    margin-right: 8px;
-}
-.v-btn__content .v-icon.v-icon--left, .v-btn__content .v-icon.v-icon--right {
-    font-size: 18px;
-    height: 18px;
-    width: 18px;
-}
+
 
 .v-icon[left] {
     margin-right: 8px;
@@ -180,7 +175,6 @@ const scrollToLearnMore = () => {
     overflow: visible;
     width: 100%;
 }
-
 
 .v-card-title {
     align-items: center;
@@ -260,9 +254,8 @@ body .v-application .v-card--rounded {
 } 
 
 .theme--light.v-card {
-    background-color: #fff;
-    color: rgba(0,0,0,.87)
-   
+  background-color: #fff;
+  color: rgba(0,0,0,.87)
 }
 .v-card .v-card-text {
   line-height: 24px;
@@ -288,6 +281,12 @@ body .v-application .v-card--rounded {
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
+}
+
+.v-card-actions .v-icon.v-icon{
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
 }
 
 .v-card__title {
