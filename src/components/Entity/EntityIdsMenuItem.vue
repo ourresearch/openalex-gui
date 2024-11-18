@@ -1,7 +1,7 @@
 <template>
   <v-menu>
     <template v-slot:activator="{on}">
-      <v-btn icon v-on="on">
+      <v-btn icon v-bind="on">
         <v-icon>mdi-dots-horizontal</v-icon>
         <!--        <v-icon>mdi-barcode</v-icon>-->
         <!--        <v-icon small>mdi-menu-down</v-icon>-->
@@ -14,7 +14,7 @@
           :href="id.url"
           target="_blank"
       >
-        <v-list-item-content>
+        
           <v-list-item-title>
             <span>{{ id.displayNamespace }}</span>
               <!--              {{ id.shortValue | truncate(50) }}-->
@@ -22,10 +22,10 @@
           <!--          <v-list-item-subtitle>-->
           <!--            {{ id.displayNamespace }}-->
           <!--          </v-list-item-subtitle>-->
-        </v-list-item-content>
-        <v-list-item-icon>
+        
+        <span>
           <v-icon>mdi-open-in-new</v-icon>
-        </v-list-item-icon>
+        </span>
         <!--        <v-list-item-action>-->
         <!--          <v-btn icon small>-->
         <!--            <v-icon small>mdi-content-copy</v-icon>-->

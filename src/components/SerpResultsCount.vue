@@ -6,8 +6,8 @@
     <template  class="">
       <!-- maybe use https://www.npmjs.com/package/vue-animate-number -->
       <span class="font-weight-regular" v-if="resultsObject?.meta?.count >= 1000"></span><span
-        class="font-weight-bold">{{ resultsObject?.meta.count | toPrecision }}</span> results
-      <span v-if="includeTime">({{resultsObject?.meta?.db_response_time_ms / 1000 | toPrecision(2) }} seconds)</span>
+        class="font-weight-bold">{{ resultsObject?.meta.count | $toPrecision }}</span> results
+      <span v-if="includeTime">({{resultsObject?.meta?.db_response_time_ms / 1000 | $toPrecision(2) }} seconds)</span>
     </template>
   </span>
 </template>

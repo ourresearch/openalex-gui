@@ -1,440 +1,465 @@
 <template>
   <div>
     <v-autocomplete
-        v-model="select"
-        :items="suggestions"
-        :search-input.sync="searchString"
-        :filter="(item, queryText, itemText) => true"
-        :menu-props="{maxHeight: 600,}"
-        item-text="displayValue"
-        return-object
-        rounded
-        :dense="dense"
-        filled
-        clearable
-        hide-no-data
-        hide-details
-        class="shortcut-box"
-        :placeholder="placeholder"
-        prepend-inner-icon="mdi-magnify"
-        ref="shortcutBox"
-        :autofocus="autofocus"
-        :loading="isLoading"
-
-        @change="onChange"
-        @click:clear="clickClear"
-        @keydown.enter="isEnterPressed = true"
-        @keyup.enter="onEnterKeyup"
-    >
-      <!--        @blur="clear"-->
-      <template v-slot:prepend-inner>
+      ref="shortcutBox"
+      prepend-inner-icon="mdi-magnify"
+      return-object
+      rounded
+      clearable
+      clear-icon="mdi-close"
+      v-model="select"
+      v-model:search="searchString"
+      :items="suggestions"
+      item-title="displayName"
+      :custom-filter="(item, queryText, itemText) => true"
+      :menu-props="{ maxHeight: 600 }"
+      :density="dense ? 'compact' : 'default'"
+      :placeholder="placeholder"
+      hide-no-data 
+      autofocus
+      :menu="menuOpen" 
+      :loading="isLoading"
+      @click:clear="clickClear"
+      @update:modelValue="onChange"
+      @keydown.enter="isEnterPressed = true"
+      @keyup.enter="onEnterKeyup"
+    > 
+      <!-- Chip Slot -->
+      <template v-slot:chip> 
         <v-chip
-            v-if="newFilter"
-            close
-            @click:close="clear"
-            class="pa-5"
-            style="margin: -9px 0 0 -9px; border-radius: 30px;"
+          v-if="newFilter"
+          close
+          @click:close="clear"
+          class="pa-5"
+          style="margin: -9px 0 0 -9px; border-radius: 30px;"
         >
           <v-icon left>
             {{ newFilter.icon }}
-
           </v-icon>
-          {{ newFilter?.displayName }}
+          {{ newFilter.displayName }}
         </v-chip>
-      </template>
+      </template> 
 
-
-      <template v-slot:item="data">
-        <v-list-item-icon>
-          <v-icon>{{ data.item.icon }}</v-icon>
-        </v-list-item-icon>
-        <template v-if="data.item.isFilterLink">
-          <v-list-item-content>
-            <v-list-item-title>
-              <span class="font-weight-bold">{{ data.item.displayValue | capitalize }}</span>
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              Filter by {{ data.item.displayValue }}
-            </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-icon>
-            <v-icon>mdi-filter-plus</v-icon>
-          </v-list-item-icon>
-        </template>
-
-        <template v-else-if="data.item.key === 'default.search'">
-          <v-list-item-content>
-            <v-list-item-title>
+      <!-- Item Slot -->
+      <template #item="{ props, item }">
+        <v-list-item  class="ac-list-item" v-bind="props">
+            <v-icon class="icon" :icon="item.raw.icon"/>
+          <template v-if="item.raw.isFilterLink">
+            <div class="content-wrap">
+              <v-list-item-title>
+                <span class="font-weight-bold">{{item.raw.displayValue}}</span>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Filter by {{ item.raw.displayValue }} 
+              </v-list-item-subtitle>
+            </div>
+              <v-icon class="filter-icon">mdi-filter-plus</v-icon>
+          </template>
+            
+          <template v-else-if="item.raw.key === 'default.search'">
+            <v-list-item-title class="content-wrap">
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
-              <span class="mr-2">in {{ entityType | pluralize(1) }} {{ data.item.displayName }}</span>
+              <span class="mr-2">in {{entityType}} {{ item.raw.displayName }}</span>
             </v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-action-text>
-            press Enter
-          </v-list-item-action-text>
-        </template>
-
-        <template v-else>
-          <v-list-item-content>
-            <v-list-item-title
-                v-html="$prettyTitle(data.item.displayValue)"
-                style="white-space: normal;"
-            />
+            <small class="enter-action">
+              press Enter
+            </small>
+          </template>
+          <!-- {{ item.raw.displayName }} -->
+          <template v-else>
+            <div class="content-wrap">
+            <v-list-item-title >{{ item.raw.displayValue }}</v-list-item-title>
             <v-list-item-subtitle style="white-space: normal;">
-              {{ data.item.displayName |capitalize }}
-              <span v-if="data.item.hint">
-                {{ data.item.hint | truncate(100) }}
+              {{ item.raw.displayName }} {{ item.raw.key }}
+              <span v-if="item.raw.hint">
+                {{  item.raw.hint }}
               </span>
             </v-list-item-subtitle>
-          </v-list-item-content>
-          <v-list-item-action v-if="data.item.entityId" @click="goToEntity(data.item.value)">
-            <v-btn icon>
-              <v-icon>mdi-information-outline</v-icon>
-            </v-btn>
-          </v-list-item-action>
-
-        </template>
+          </div>
+            <v-list-item-action v-if="item.raw.entityId" @click="goToEntity(item.raw.value)">
+              <v-btn elevation="0" icon>
+                <v-icon>mdi-information-outline</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </template>
+        </v-list-item>
       </template>
-    </v-autocomplete>
-    <div class="ml-2 mt-2" v-if="showExamples">
+    </v-autocomplete> 
+    
+    <div class="ml-2 mt-1" v-if="showExamples">
       <span class="body-2 grey--text">Try:</span>
       <v-chip
-          color="white"
           v-for="search in searchesToTry"
           :key="search"
           @click="trySearch(search)"
-          class=""
-      >
+          class="chip"
+      > 
         {{ search }}
       </v-chip>
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+  import { ref,  useTemplateRef, computed, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { url } from '@/url';
+  import { api } from '@/api';
+  import { debounce } from 'lodash';
+  import { createSimpleFilter } from '@/filterConfigs';
+  import { entityConfigs, urlPartsFromId } from '@/entityConfigs';
+  import { findFacetConfigs } from '@/facetConfigs';
+  import { entityTypeFromId } from '@/util';
+  import { useStore } from 'vuex';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {api} from "@/api";
-import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
-import {findFacetConfig, findFacetConfigs, getFacetConfig} from "@/facetConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+  type Filter = {
+    type: 'boolean' | string;
+    key?: string;
+  };
 
-import _ from "lodash"
+  interface SuggestionItem {
+    entityId?: string;
+    displayName: string;
+    key?: string;
+    icon?: string;
+    isFilterLink?: boolean;
+    displayValue: string;
+    isDisabled?: boolean;
+    hint?: string;
+    type?: string;
+    value?: string;
+  }
 
+  const props = defineProps<{
+    dense?: boolean;
+    showExamples?: boolean;
+    autofocus?: boolean;
+  }>();
 
-export default {
-  name: "Template",
-  components: {},
-  props: {
-    dense: Boolean,
-    showExamples: Boolean,
-    autofocus: Boolean,
-  },
-  data() {
-    return {
-      foo: 42,
-      isLoading: false,
-      searchString: "",
-      suggestions: [],
-      newFilter: null,
-      select: null,
-      interval: null,
+  const route = useRoute()
+  const router = useRouter()
+  const shortcutBox = useTemplateRef('shortcutBox');
+  // Vuex setup
+  const store = useStore();
+  const entityType = computed(() => store.getters.entityType);
+  const userId = computed(() => store.getters['user/userId']);
 
-      isEnterPressed: false,
+  // Local state
+  const searchString = ref<string>('');
+  const suggestions = ref<SuggestionItem[]>([]);
+    const staticSuggestions = ref([
+    { displayValue: 'Test Option 1' },
+    { displayValue: 'Test Option 2' },
+    { displayValue: 'Test Option 3' },
+  ]);
 
-      selectStorage: null,
-      searchesToTry: [
-        "Claudia Goldin",
-        "coriander OR cilantro",
-        "Institution",
-      ]
+  const newFilter = ref<SuggestionItem | null>(null);
+  const select = ref<any>(null);
+  const isLoading = ref(false);
+  const menuOpen = computed(()=>{
+    return suggestions.value.length >= 1;
+  })
+  const isEnterPressed = ref(false);
+  const interval = ref<number | null>(null);
+
+  // Sample searches
+  const searchesToTry = ref(['Claudia Goldin', 'coriander OR cilantro', 'Institution']);
+
+  // Computed properties
+  const filterSuggestions = computed(() => {
+    const matches = findFacetConfigs(entityType.value, searchString.value)
+      .filter(f => f.actions?.includes('filter'))
+      .map(f => ({
+        ...f,
+        isFilterLink: true,
+        displayValue: f.displayName,
+        isDisabled: url.isFilterKeyAvailableToCreate(route, entityType.value, f.key),
+      }));
+    matches.sort((a, b) => (a.displayName.length > b.displayName.length ? 1 : -1));
+    return searchString.value.length >= 3 ? matches : [];
+  });
+
+  const placeholder = computed(() => {
+    const displayName = newFilter.value?.displayName;
+    const pluralizedDisplayName = displayName ? `${displayName}s` : null;
+    if (!newFilter.value) {
+      return entityType.value === 'works' ? 'Search OpenAlex' : `Search ${entityType.value}`;
+    } else if (newFilter.value.key === 'publication_year') {
+      return 'Enter year or range of years';
+    } else if (newFilter.value.type === 'range') {
+      return 'Enter number or range';
+    } else if (newFilter.value.type === 'search') {
+      return `Search within ${pluralizedDisplayName}`;
+    } else {
+      return `Search ${pluralizedDisplayName}`;
     }
-  },
-  computed: {
-    ...mapGetters([
+  });
 
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    filterSuggestions() {
-      const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
-          .filter(f => {
-            return f.actions?.includes("filter")
-          })
-          .map(f => {
-            return {
-              ...f,
-              isFilterLink: true,
-              displayValue: f.displayName,
-              isDisabled: url.isFilterKeyAvailableToCreate(this.$route, this.entityType, f.key)
-            }
-          })
+  // Methods
+  const clear = () => {
+    searchString.value = '';
+    suggestions.value = [];
+    newFilter.value = null;
 
-      suggestionsMatchingSearchString.sort((a, b) => {
-        return (a.displayName.length > b.displayName.length) ? 1 : -1
-      })
+    console.log("🚀 ~ clear ~ clear:")
+  };
 
-      return this.searchString?.length >= 3 ?
-          suggestionsMatchingSearchString :
-          []
-    },
-    placeholder() {
-      const displayName = this.newFilter?.displayName
-      const pluralizedDisplayName = displayName ?
-          this.$pluralize(displayName, 2) :
-          null
-      if (!this.newFilter) {
-        return this.entityType === 'works' ? "Search OpenAlex" : "Search " + this.entityType
-      } else if (this.newFilter.key === "publication_year") {
-        return "Enter year or range of years"
-      } else if (this.newFilter.type === "range") {
-        return "Enter number or range"
-      } else if (this.newFilter.type === "search") {
-        return "Search within " + pluralizedDisplayName
-      } else {
-        return "Search " + pluralizedDisplayName
-      }
-    },
+  const clickClear = () => {
+    clear();
+    console.log("🚀 ~ clickClear ~ clickClear:")
+  };
 
-  },
+  const selectFilter = (filter) => {
+    if (filter.type === 'boolean') {
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
+      const newFilter = createSimpleFilter('works', filter.key!, true);
+      console.log("🚀 ~ selectFilter ~ newFilter:", newFilter)
+      url.pushNewFilters([...oldFilters, newFilter]);
+    } else {
+      newFilter.value = filter;
+    }
+  };
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-    clear() {
-      this.searchString = ""
-      this.suggestions = []
-      this.newFilter = null
+  const onChange = debounce((myFilterData) => {
+    // console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
+    if (select.value) isEnterPressed.value = false;
+    if (toRaw(myFilterData).key === 'default.search') {
+      submitSearchString();
+    } else if (toRaw(myFilterData).isFilterLink) {
+      console.log("🚀 ~ onChange ~ myFilterData:", myFilterData)
+      selectFilter(toRaw(myFilterData));
+    } else if (toRaw(myFilterData).value) {
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
 
-    },
-    clickClear() {
-      this.suggestions = []
-      if (this.searchString) {
-        this.searchString = ""
-      } else {
-        this.searchString = ""
-        this.newFilter = null
-      }
-    },
-    selectFilter(filter) {
-      console.log("selectFilter()", filter)
-      if (filter.type === "boolean") {
-        const oldFilters = url.readFilters(this.$route)
-        console.log("push new filter", filter)
-        const newFilter = createSimpleFilter(
-            "works",
-            filter.key,
-            true
-        )
-        filter.value = true
-        url.pushNewFilters([
-          ...oldFilters,
-          newFilter,
-        ])
-      } else {
-        this.newFilter = filter
-      }
-    },
-    onChange(myFilterData) {
-      console.log('onChange()', myFilterData, this.select)
-      if (this.select) this.isEnterPressed = false
-      if (myFilterData.key === "default.search") {
-        this.submitSearchString()
-      }
-      else if (myFilterData?.isFilterLink) {
-        this.selectFilter(myFilterData)
-      }
-      else if (myFilterData?.value) {
-        url.pushNewFilters([
-          ...url.readFilters(this.$route),
-          myFilterData,
-        ])
-        this.clear()
-      }
+      url.pushNewFilters([...oldFilters, toRaw(myFilterData)]);
+      clear();
+    }
 
-      setTimeout(() => { // no idea why this is necessary but it is
-        this.searchString = ""
-        this.select = null
-        this.suggestions = []
-      })
-    },
-    onEnterKeyup() {
-      if (!this.isEnterPressed) return
-      if (!this.searchString && this.showExamples) {
-        // we're on the landing page or something like it
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-        return
-      }
+    requestAnimationFrame(() => {
+      searchString.value = '';
+      select.value = null;
+      suggestions.value = [];
+    });
+  }, 100);
 
-      const filterKey = this.newFilter?.key ?? "default.search"
-      url.createFilter(this.entityType, filterKey, this.searchString)
-      this.isEnterPressed = false
-    },
-    submitSearchString() {
-      console.log("submitSearchString")
-      if (!this.searchString) {
-        url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
-      } else {
-        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
-        url.pushNewFilters([
-          ...url.readFilters(this.$route),
-          searchFilter
-        ])
-      }
-    },
-    viewWorks(id) {
-      console.log("view my works", id)
+  const onEnterKeyup = () => {
+    // console.log("🚀 ~ onEnterKeyup ~ entityType.value:", entityType.value)
+    if (!searchString.value && props.showExamples) {
+      url.pushToRoute(router, { name: 'Serp', params: { entityType: entityType.value } });
+      return;
+    }
 
-      const entityType = entityTypeFromId(id)
-      if (!id || !entityType) return
+    const filterKey = newFilter.value?.key ?? 'default.search';
+    url.createFilter(entityType.value, filterKey, searchString.value);
+    isEnterPressed.value = false;
+  };
 
-      const filter = createSimpleFilter(
-          "works",
-          entityConfigs[entityType].filterKey,
-          id,
-      )
-      url.pushNewFilters([
-        ...url.readFilters(this.$route),
-        filter,
-      ])
-      this.clear()
+  const submitSearchString = () => {
+    if (!searchString.value) {
+      url.pushToRoute(router, {
+        name: 'Serp', params: { entityType: entityType.value }
+      });
+    } else {
+      const searchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value);
+      const oldFilters = url.readFilters(route) as unknown as Filter[];
+      url.pushNewFilters([...oldFilters, searchFilter]);
+    }
+  };
 
-    },
-    goToEntity(id) {
-      console.log("goToEntity()", id)
-      url.pushToRoute(this.$router, {
-        name: "EntityPage",
-        params: urlPartsFromId(id)
-      })
+  const goToEntity = (id: string) => {
+    url.pushToRoute(router, { name: 'EntityPage', params: urlPartsFromId(id) });
+  };
 
-    },
-    trySearch(str) {
-      setTimeout(() => {
-        this.searchString = str
-        console.log("trySearch", str)
-        this.$refs.shortcutBox.focus()
-      }, 100)
-    },
+  const trySearch = (str: string) =>{
+      searchString.value = str;
+      getSuggestions();
+  };
 
-    getSuggestions: _.debounce(async function () {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+  const getSuggestions = async () => {
+    const fulltextSearchFilter = createSimpleFilter(entityType.value, 'default.search', searchString.value) as unknown as SuggestionItem;
+    console.log("🚀 ~ getSuggestions ~ fulltextSearchFilter:", fulltextSearchFilter , toRaw(newFilter), searchString.value)
+    isLoading.value = true;
 
-      // lol hack much?
-      if (this.searchString === "coriander OR cilantro") {
-        this.suggestions = [fulltextSearchFilter]
-        return
-      }
-
-      this.isLoading = true
-
-      // if a filter is selected but no search yet, show the available options
-      if (this.newFilter && !this.searchString) {
-        this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
-        this.isLoading = false
-        return
-      }
-
-      // if the search is empty, clear everything and leave
-      if (!this.newFilter && !this.searchString) {
-        this.suggestions = [] // doesn't seem to work
-        this.isLoading = false
-        return // this is very important!!!!
-      }
-
-
-      const apiSuggestions = await api.getSuggestions(
-          this.entityType,
-          // "works",
-          this.newFilter?.key,
-          this.searchString,
-          url.readFilters(this.$route)
-      )
-      this.isLoading = false
-
-      const ret = [
-        ...(this.newFilter ? [] : this.filterSuggestions),
-        ...apiSuggestions,
-      ]
-      const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
-      const cleaned = everySuggestionIsAWork ?
-          ret.slice(0, 3) :
-          ret.filter(f => f.entityId !== "works").slice(0, 5)
-
-
-      if (!this.newFilter) {
-        cleaned.push(fulltextSearchFilter)
-      }
-
-      this.suggestions = cleaned
-    }, 100),
-
-    onKeyPress(event) {
-      if (event.key !== "/") {
-        return;
-      }
-
-      if (document.activeElement === this.$refs.shortcutBox) {
-        return;
-      }
-
-      event.preventDefault();
-      this.$refs.shortcutBox.focus();
+    if (searchString.value === 'coriander OR cilantro') {
+      suggestions.value = [fulltextSearchFilter];
+      isLoading.value = false;
+      return;
     }
 
 
-  },
-  created() {
-  },
-  mounted() {
-    window.addEventListener("keypress", this.onKeyPress);
-    this.interval = setInterval(() => {
-      if (!this.newFilter && !this.searchString && this.suggestions.length) {
-        console.log("setInterval hackily clearing any leftover suggestions")
-        this.suggestions = []
-      }
-    }, 10)
-  },
-  beforeDestroy() {
-    clearInterval(this.interval)
-    window.removeEventListener("keypress", this.onKeyPress);
-  },
-  watch: {
-    searchString: function (to) {
-      if (this.newFilter && this.newFilter?.type !== "select") return
-      this.getSuggestions()
-    },
-    "$route": {
-      handler(to, from) {
-        this.clear()
-      }
-    },
-    async select(to) {
-
+    if (newFilter.value && !searchString.value) {
+      suggestions.value = await api.getGroups(entityType.value, newFilter.value.key);
+      isLoading.value = false;
+      return;
     }
-  },
-}
+
+    if (!newFilter.value && !searchString.value) {
+      suggestions.value = [];
+      isLoading.value = false;
+      return;
+    }
+
+    const apiSuggestions = await api.getSuggestions(
+      entityType.value,
+      newFilter.value?.key,
+      searchString.value,
+      url.readFilters(route)
+    );
+    isLoading.value = false;
+
+    const ret = [...(newFilter.value ? [] : filterSuggestions.value), ...apiSuggestions];
+    const everySuggestionIsAWork = ret.every(f => f.entityId === 'works');
+    const cleaned = everySuggestionIsAWork ? ret.slice(0, 3) : ret.filter(f => f.entityId !== 'works').slice(0, 5);
+
+    if (!newFilter.value) {
+      cleaned.push(fulltextSearchFilter);
+    }
+
+    suggestions.value = cleaned;
+    console.log("🚀 ~ Final suggestions before assignment:", ret, cleaned);
+  };
+
+  const onKeyPress = (event: KeyboardEvent) => {
+    if (event.key !== '/') return;
+    console.log("🚀 ~ onKeyPress ~ shortcutBox.value:", shortcutBox.value)
+    if (document.activeElement === shortcutBox.value) return;
+    event.preventDefault();
+    shortcutBox.value?.focus();
+  };
+
+  // Lifecycle Hooks
+  onMounted(() => {
+    window.addEventListener('keypress', onKeyPress);
+    interval.value = setInterval(() => {
+      if (!newFilter.value && !searchString.value && suggestions.value.length) {
+        suggestions.value = [];
+      }
+    }, 10);
+  });
+
+  onBeforeUnmount(() => {
+    if (interval.value) clearInterval(interval.value);
+    window.removeEventListener('keypress', onKeyPress);
+  });
+
+  // Watchers
+  watch(searchString, (newValue) => {
+    if (newFilter.value && newFilter.value.type !== 'select') return;
+    getSuggestions();
+  });
+
+  watch(
+    () => route.fullPath,
+    () => clear()
+  );
 </script>
 
-<style lang="scss">
+<style  lang="scss">
+.v-field--variant-filled.v-field--focused .v-field__overlay {
+  opacity: 1;
+}
+.v-field--variant-filled .v-field__overlay {
+  background-color: rgba(0, 0, 0, .07);
+  opacity: 1;
+}
+.v-field__input input::placeholder, input.v-field__input::placeholder, textarea.v-field__input::placeholder {
+    color: rgba(0, 0, 0, 1);
+}
+
+.v-field--rounded {
+    border-radius: 35px;
+}
+
+.v-field--appended {
+    padding-inline-end: 24px;
+}
+
+.v-field--prepended {
+    padding-inline-start: 24px;
+}
+.v-autocomplete .v-field__outline {
+  opacity: 0;
+  // transition: opacity .2s linear;
+}
+body .v-application .body-2 {
+    font-size: 14px !important;
+}
+body .v-application .body-1, body .v-application .body-2 {
+    letter-spacing: normal !important;
+}
+.v-input__details{
+  min-height: 0;
+}
+.v-application .body-2 {
+    font-size: .875rem !important;
+    letter-spacing: .0178571429em !important;
+    line-height: 1.25rem;
+}
+.v-application .body-2, .v-application .subtitle-1 {
+    font-weight: 400;
+    font-family: Roboto, sans-serif !important;
+}
+.v-application .grey--text {
+    color: #9e9e9e !important;
+    caret-color: #9e9e9e !important;
+}
+.v-autocomplete .v-autocomplete--active-menu .v-field__outline {
+  opacity: 1;
+}
+// Hack to avoid using important
+:is(.ac-list-item, #increase#specificity) > .v-list-item__content{
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+
+  .content-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: 5px;
+
+    .v-list-item-title,
+    .v-list-item-subtitle {
+      width: 100%;
+    }
+  }
+
+
+  
+  > .v-list-item-title:first-of-type {
+    display: none;
+  }
+  .v-list-item-action, 
+  .filter-icon, 
+  .enter-action {
+    align-self: end;
+    margin-left: auto;
+  }
+}
+
+.icon {
+  display:flex;
+  justify-self: unset;
+}
+
+.v-autocomplete__menu-icon{
+  display: none;
+}
 
 .v-autocomplete__content {
   max-width: 400px !important;
 }
 
+.chip {
+  .v-chip__underlay{
+    opacity: 0;
 
-.shortcut-box {
-  .v-input__append-inner:last-of-type {
-    display: none !important; // hide the down-caret icon
+    &:hover{
+      opacity: .04;
+
+    }
+    
   }
-
 }
-
 </style>

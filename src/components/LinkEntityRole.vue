@@ -14,7 +14,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {filtersAsUrlStr} from "@/filterConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
-import _ from "lodash"
 
 export default {
   name: "LinkEntityRole",
@@ -36,7 +35,7 @@ export default {
       return entityConfigs[this.role.role + "s"];
     },
     displayName() {
-      const name = _.capitalize(this.role.role.trim())
+      const name = $capitalize(this.role.role.trim())
       return name
     },
     myFilter(){

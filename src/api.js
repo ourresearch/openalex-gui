@@ -3,13 +3,12 @@ import _ from 'lodash'
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
-import countryCodeLookup from "country-code-lookup";
+// import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
-import {isOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
-import {getActionDefaultsStr} from "@/actionConfigs";
+import { shortenOpenAlexId} from "@/util";
+// import {isOpenAlexId} from "./util";
+// import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
@@ -113,7 +112,7 @@ const api = (function () {
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
             // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-            console.log("api GET failure:", e.response)
+            console.warn("api GET failure:", e.response)
             throw e
         }
         cache[url] = res.data
@@ -218,7 +217,7 @@ const api = (function () {
     }
 
     const getAutocompleteResponses = async function (entityType, filterKey, searchString, filters) {
-        console.log("getAutocompleteResponses", entityType, filterKey, searchString)
+        // console.log("getAutocompleteResponses", entityType, filterKey, searchString)
         if (!filterKey && entityType !== "works") {
             filterKey = "ids.openalex"
         }
@@ -284,6 +283,7 @@ const api = (function () {
     }
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
+        console.log("🚀 ~ getSuggestions ~ entityType, filterKey, searchString, filters:", entityType, filterKey, searchString, filters)
         // await sleep(1000)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {

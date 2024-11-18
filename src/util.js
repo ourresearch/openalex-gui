@@ -1,25 +1,24 @@
-import sanitizeHtml from "sanitize-html";
-import _ from "lodash"
+import {startCase, capitalize} from "lodash"
 import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
 
 async function sleep(ms) {
-    return new Promise(resolve => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise(resolve => {
+      setTimeout(resolve, ms);
+  });
 }
 
 const setOrDelete = function (obj, k, v) {
-    if (v) {
-        obj[k] = v
-    } else {
-        delete obj[k]
-    }
-    return obj
+  if (v) {
+      obj[k] = v
+  } else {
+      delete obj[k]
+  }
+  return obj
 }
 
 function hashCode(str) {
-    return Math.abs(str.split('').reduce((prevHash, currVal) =>
-        (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
+  return Math.abs(str.split('').reduce((prevHash, currVal) =>
+      (((prevHash << 5) - prevHash) + currVal.charCodeAt(0)) | 0, 0));
 }
 
 const toHexHash = function (str) {
@@ -155,11 +154,11 @@ const prettyTitle = function (title, facetKey) {
     if (!title) return "Untitled"
     if (/^\s+$/.test(title)) return "Untitled"
     if (title && title.toUpperCase() === title) {
-        title = _.startCase(title.toLowerCase());
+        title = startCase(title.toLowerCase());
     }
     if (facetKey && facetKey === "type") {
         title = title.replace("-", " ")
-        title = _.capitalize(title)
+        title = $capitalize(title)
     }
     if (facetKey === "authorships.institutions.country_code") {
         title = title
@@ -169,10 +168,10 @@ const prettyTitle = function (title, facetKey) {
     }
 
 
-    const safeTitle = sanitizeHtml(title, {
-        allowedTags: ['b', 'i', 'em', 'strong', 'a'],
-    })
-    return safeTitle
+    // const safeTitle = sanitizeHtml(title, {
+    //     allowedTags: ['b', 'i', 'em', 'strong', 'a'],
+    // })
+    // return safeTitle
 }
 
 /**

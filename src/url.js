@@ -2,24 +2,20 @@ import router from "./router";
 import {
     filtersAsUrlStr,
     filtersFromUrlStr,
-    filtersAreEqual,
     createSimpleFilter,
     deleteOptionFromFilterValue,
     optionsFromString,
     addOptionToFilterValue,
     toggleOptionIsNegated,
     getMatchModeFromSelectFilterValue,
-    optionsToString,
-    setFilterStringOptionIsNegated,
-    setOptionIsNegated,
-    setStringIsNegated,
+    optionsToString
 } from "./filterConfigs";
-import {entityConfigs, getEntityConfig} from "@/entityConfigs";
-import {entityTypes, shortenOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
+import {getEntityConfig} from "@/entityConfigs";
+import {shortenOpenAlexId} from "./util";
+// import {filter} from "core-js/internals/array-iteration";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigs";
-import app from "@/App.vue";
+// import app from "@/App.vue";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -139,7 +135,7 @@ const pushNewFilters = async function (newFilters, entityType) {
         undefined
 
     if (!entityType) {
-         entityType = router.currentRoute.params.entityType ?? "works"
+      entityType = router.currentRoute.params.entityType ?? "works"
     }
 
     const query = {
@@ -896,6 +892,7 @@ const url = {
     readIsFilterNegated,
     setIsFilterNegated,
     setIsFilterOptionNegated,
+    
     findFilterIndex,
 
     setDefaultActions,

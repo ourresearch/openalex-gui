@@ -6,7 +6,7 @@
           :close="!!groupByKey"
           rounded
           text
-          v-on="on"
+          v-bind="on"
           :dark="!!groupByKey"
           :color="groupByKey ? '#333' : undefined"
           @click:close="groupByKey=undefined"
@@ -61,15 +61,15 @@
               <template
                   v-for="category in facetsByCategory"
               >
-                <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
+                <v-list-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-list-subheader>
                 <v-list-item
                     v-for="filterConfig in category.filterConfigs"
                     :key="category.displayName + filterConfig.key"
                     :value="filterConfig.key"
                 >
-                  <v-list-item-icon>
+                  <span>
                     <v-icon>{{ filterConfig.icon }}</v-icon>
-                  </v-list-item-icon>
+                  </span>
                   {{ filterConfig.displayName }}
 
                 </v-list-item>
@@ -92,7 +92,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import FilterKeySelector from "../Filters/FilterKeySelector.vue";
 import {url} from "../../url";
 import {facetsByCategory, getFacetConfig} from "../../facetConfigs";
-import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "Template",

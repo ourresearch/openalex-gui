@@ -2,13 +2,13 @@
 
   <v-menu offset-y max-width="400">
     <template v-slot:activator="{on}">
-      <v-btn v-if="icon" icon v-on="on">
+      <v-btn v-if="icon" icon v-bind="on">
         <v-icon>{{ value === "all" ? "mdi-set-center" : "mdi-set-all" }}</v-icon>
       </v-btn>
 
       <v-chip
           v-else
-          v-on="on"
+          v-bind="on"
           outlined
           label
       >
@@ -17,17 +17,17 @@
     </template>
 
     <v-list>
-      <v-subheader>Combine
+      <v-list-subheader>Combine
 <!--        {{ count }}-->
 <!--        <span class=" mx-1"> {{ filterConfig.displayName |capitalize }}</span> -->
-        values using:</v-subheader>
+        values using:</v-list-subheader>
       <v-divider />
 
       <v-list-item @click="value = 'all'">
-        <v-list-item-icon>
+        <span>
           <v-icon color="">mdi-set-center</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
+        </span>
+        
           <v-list-item-title class="">
             And
           </v-list-item-title>
@@ -38,27 +38,27 @@
             <v-icon x-small>mdi-information</v-icon>
             Mandatory when any option is negated
           </v-list-item-subtitle>
-        </v-list-item-content>
-        <v-list-item-icon>
+        
+        <span>
           <v-icon v-if="value === 'all'" color="">mdi-check</v-icon>
-        </v-list-item-icon>
+        </span>
       </v-list-item>
 
       <v-list-item @click="value = 'any'" :disabled="isAnyOptionNegated">
-        <v-list-item-icon>
+        <span>
           <v-icon :color="isAnyOptionNegated ? 'grey lighten-2' : ''">mdi-set-all</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
+        </span>
+        
           <v-list-item-title class="">
             Or
           </v-list-item-title>
           <v-list-item-subtitle>
             Match {{ count === 2 ? 'either' : 'any' }} option
           </v-list-item-subtitle>
-        </v-list-item-content>
-        <v-list-item-icon>
+        
+        <span>
           <v-icon v-if="value === 'any'" color="">mdi-check</v-icon>
-        </v-list-item-icon>
+        </span>
       </v-list-item>
 
     </v-list>

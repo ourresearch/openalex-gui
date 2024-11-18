@@ -2,7 +2,7 @@
   <v-menu>
     <template v-slot:activator="{on}">
       <v-chip
-          v-on="on"
+          v-bind="on"
           :disabled="isDisabled"
           outlined
           label
@@ -19,12 +19,12 @@
         :key="i"
         @click="setIsNegated(i)"
       >
-        <v-list-item-icon>
+        <span>
           <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
+        </span>
+        
           {{ str }}
-        </v-list-item-content>
+        
       </v-list-item>
     </v-list>
 

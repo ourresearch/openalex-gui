@@ -20,27 +20,27 @@
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
-        <v-subheader>
+        <v-list-subheader>
           Show on page:
-        </v-subheader>
+        </v-list-subheader>
         <v-list-item
             v-for="view in url.viewConfigs"
             :key="view.id"
             @click="url.toggleView(view.id)"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon>{{ view.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               {{ view.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-action class="pt-2">
             <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
           </v-list-item-action>
@@ -53,30 +53,30 @@
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-share-variant</v-icon>
         </v-btn>
       </template>
       <v-list>
         <v-list-item @click="isDialogOpen.qrCode = true">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-qrcode</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               Get QR code to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
         <v-list-item @click="copyUrlToClipboard">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-link-variant</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               Copy link to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
     </v-menu>
@@ -85,7 +85,7 @@
 
 <!--    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">-->
 <!--      <template v-slot:activator="{on}">-->
-<!--        <span v-on="on">-->
+<!--        <span v-bind="on">-->
 <!--          <v-chip-->
 <!--              :disabled="!!$route.query.id"-->
 <!--              class="mr-2 white black&#45;&#45;text"-->
@@ -138,8 +138,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { useDisplay } from "vuetify";
 import QrcodeVue from "qrcode.vue";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
+// import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 
@@ -149,6 +150,13 @@ export default {
     QrcodeVue,
   },
   props: {},
+  setup(props) {
+    const { mdAndUp } = useDisplay();
+
+    return {
+      isMdAndUp: mdAndUp.value
+    };
+  },
   data() {
     return {
       foo: 42,
@@ -180,7 +188,7 @@ export default {
       return `https://openalex.org` + this.$route.fullPath
     },
     qrCodeSize() {
-      return this.$vuetify.breakpoint.mdAndUp ?
+      return this.isMdAndUp ?
           400 :
           300
     },

@@ -21,7 +21,7 @@
         <template v-slot:activator="{ on, attrs }">
           <span
               v-bind="attrs"
-              v-on="on"
+              v-bind="on"
           >
             <v-icon
                 :left="left"

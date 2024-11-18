@@ -4,7 +4,7 @@
         rounded
     >
       <template v-slot:activator="{on}">
-        <v-btn v-on="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
+        <v-btn v-bind="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
 <!--          <v-icon class="">mdi-filter-plus-outline</v-icon>-->
 <!--          <v-icon left>mdi-plus-circle-outline</v-icon>-->
@@ -15,7 +15,7 @@
             icon
             rounded
             text
-            v-on="on"
+            v-bind="on"
             class=""
             :disabled="disabled"
         >
@@ -48,7 +48,7 @@
       <!--      </v-card>-->
       <v-card flat class="">
         <v-list>
-          <v-subheader>
+          <v-list-subheader>
             <template v-if="myConfig.id === 'sort'">
               Sort by:
             </template>
@@ -60,7 +60,7 @@
               <!--              <v-icon left>mdi-filter-plus-outline</v-icon>-->
               Add filter:
             </template>
-          </v-subheader>
+          </v-list-subheader>
           <v-divider/>
           <v-list-item
               v-for="key in menuOptions"
@@ -70,23 +70,23 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>
           </v-list-item>
           <v-divider/>
           <v-list-item @click="openMoreDialog">
-            <v-list-item-content>
+            
               <v-list-item-title>More</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
 
         </v-list>
@@ -116,14 +116,14 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
+            <span>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>

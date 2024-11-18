@@ -5,7 +5,7 @@
       :loading="isLoading"
   >
     <v-list class="mt-0 pt-0">
-      <v-subheader>
+      <v-list-subheader>
         <template v-if="isLoading">
           Searching...
         </template>
@@ -21,7 +21,7 @@
           {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
-      </v-subheader>
+      </v-list-subheader>
 
       <filter-select-edit-row
           v-for="row in suggestions"
@@ -48,15 +48,15 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
-import {filtersFromUrlStr} from "@/filterConfigs";
+// import {filtersFromUrlStr} from "@/filterConfigs";
 import {api} from "@/api";
-import FilterSelectMenu from "@/components/Filter/FilterSelectMenu.vue";
+// import FilterSelectMenu from "@/components/Filter/FilterSelectMenu.vue";
 import {url} from "@/url";
-import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
+// import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
-import {entityConfigs, getEntityConfig} from "@/entityConfigs";
+import { getEntityConfig} from "@/entityConfigs";
 
-import _ from "lodash"
+import {debounce} from "lodash"
 
 
 export default {
@@ -111,7 +111,7 @@ export default {
       url.upsertFilterOption(this.entityType, this.filterKey, value)
 
     },
-    getSuggestions: _.debounce(async function () {
+    getSuggestions: debounce(async function () {
       this.isLoading = true
       this.suggestions = await api.getSuggestions(
           this.entityType,

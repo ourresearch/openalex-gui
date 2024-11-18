@@ -12,7 +12,7 @@
       {{ displayValue }}
     </td>
     <td class="range body-2 text-right align-baseline">
-      {{ myCount | toPrecision }}
+      {{ myCount | $toPrecision }}
     </td>
     <!--    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">-->
     <!--      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">-->

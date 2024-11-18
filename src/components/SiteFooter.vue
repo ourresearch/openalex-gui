@@ -1,5 +1,5 @@
 <template>
-  <v-footer  color="#fff" class="site-footer" style="padding:0 0 100px;">
+  <v-footer  id="footer" color="#fff" class="site-footer" style="padding:0 0 96px;">
 <!--    <svg style="margin-bottom: 50px;" _ngcontent-vqb-c18="" aria-hidden="true" width="100%" height="8" fill="none"-->
 <!--         xmlns="http://www.w3.org/2000/svg">-->
 <!--      <pattern _ngcontent-vqb-c18="" id="a" width="91" height="8" patternUnits="userSpaceOnUse">-->
@@ -78,12 +78,23 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+footer .v-col-12{
+  margin-top: 8px !important;
+
+  &:first-of-type {
+    margin-left: 3px;
+  }
+}
 .site-footer {
   line-height: 1.8;
   //margin-top: 150px;
   //border-top: 1px solid #ddd !important;
   padding-top: 50px !important;
-
+>.v-container{
+    padding-top:0;
+    padding-bottom: 15 px;
+  }
   .body-2 {
     font-family: Inconsolata;
   }

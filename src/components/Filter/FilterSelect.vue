@@ -1,19 +1,16 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @add-option="isActive = true">
     <div class="d-flex flex-wrap align-center">
-      <template
-          v-for="(id, i) in optionIds"
-      >
+      <template v-for="(id, i) in optionIds" :key="id">
         <filter-select-option
             class=""
-            :key="id"
             :filter-value="id"
             :filter-key="filterKey"
             :position="i"
             @delete="deleteOption(id)"
         />
         <span
-            :key="'or'+i"
+            
             v-if="i < optionIds.length-1"
             class="mx-1 mr-2 grey--text"
         >
@@ -76,8 +73,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import {makeSelectFilterValue} from "@/filterConfigs";
 import {url} from "@/url";
-import {api} from "@/api";
-import {filter} from "core-js/internals/array-iteration";
+// import {api} from "@/api";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
@@ -88,9 +84,7 @@ export default {
     FilterSelectOption,
     FilterMatchMode,
     FilterSelectAddOption,
-    FilterBase,
-
-
+    FilterBase
   },
   props: {
     filterKey: String,
@@ -132,7 +126,7 @@ export default {
   },
 
   methods: {
-    filter,
+    // filter,
     ...mapMutations([
       "snackbar",
     ]),

@@ -1,196 +1,110 @@
 <template>
   <span>
-<!--    <a-->
-<!--        v-if="inline"-->
-<!--        class="entity-type-select-btn"-->
-<!--        :id="myId"-->
-<!--    >-->
-<!--      {{ entityTypeConfig.displayName }}-->
-<!--    </a>-->
     <v-btn
-        rounded
-        text
-        x-large
-        v-if="$vuetify.breakpoint.mobile"
-        :id="myId"
-        class="pl-0 pr-0"
+      v-if="isMobile"
+      rounded
+      x-large
+      :id="myId"
+      class="pl-0 pr-0"
     >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
+      <v-icon>{{ entityTypeConfig?.icon }}</v-icon>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
-    <v-btn
-        v-else
-        rounded
-        text
-        class="text-capitalize elevation-0 entity-type-select-btn"
-        :id="myId"
-        x-large
 
+    <v-btn
+      v-else
+      rounded
+      class="text-capitalize elevation-0 entity-type-select-btn"
+      :id="myId"
+      x-large
     >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
-      <span
-          class="ml-2"
-      >
-        {{ entityTypeConfig.displayName }}
-      </span>
+      <v-icon>{{ entityTypeConfig?.icon }}</v-icon>
+      <span class="ml-2">{{ entityTypeConfig?.displayName }}</span>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
 
     <v-menu
-        v-model="isDialogOpen"
-        :activator="'#' +  myId"
-        rounded
-        offset-y
+      v-model="isDialogOpen"
+      :activator="`#${myId}`"
+      rounded
+      offset-y
     >
       <v-card flat rounded>
         <v-card-text class="pa-0">
-          <!--        <v-container>-->
-          <!--          <v-row-->
-          <!--              v-if="$vuetify.breakpoint.mdAndUp"-->
-          <!--          >-->
-          <!--            <v-col-->
-          <!--                cols="6"-->
-          <!--                v-for="entityType in entityTypeOptions"-->
-          <!--                :key="entityType.name"-->
-          <!--                :to="{name: 'Serp', params: {entityType: entityType.name}}"-->
-          <!--                class=""-->
-          <!--                @click="isDialogOpen = false"-->
-          <!--            >-->
-          <!--              <v-card-->
-          <!--                  class="d-flex px-6 card-button"-->
-          <!--                  rounded-->
-          <!--                  flat-->
-          <!--                  :to="{name: 'Serp', params: {entityType: entityType.name}}"-->
-          <!--                  @click="isDialogOpen = false"-->
-          <!--                  :class="{selected: $route.params.entityType === entityType.name}"-->
-          <!--                  :dark="$route.params.entityType === entityType.name"-->
-          <!--              >-->
-          <!--                <v-list-item-icon>-->
-          <!--                  <v-icon large left>{{ entityType.icon }}</v-icon>-->
-          <!--                </v-list-item-icon>-->
-          <!--                <div>-->
-          <!--                  <v-card-title class="text-capitalize mb-0 pb-0">-->
-          <!--                    {{ entityType.name }}-->
-          <!--                  </v-card-title>-->
-          <!--                  <div class="mx-4 mb-4">-->
-          <!--                    {{ entityType.descr }}-->
-          <!--                  </div>-->
-
-          <!--                </div>-->
-
-          <!--              </v-card>-->
-
-          <!--            </v-col>-->
-          <!--          </v-row>-->
-
-          <!--        </v-container>-->
-
-          <v-list
-          >
-            <v-subheader>What are you looking for?</v-subheader>
+          <v-list>
+            <v-list-subheader>What are you looking for?</v-list-subheader>
             <v-list-item
-                v-for="entityOption in entityTypeOptions"
-                :key="entityOption.name"
-                class=""
-                @click="entityType = entityOption.name"
+              v-for="entityOption in entityTypeOptions"
+              :key="entityOption.name"
+              @click="setEntityType(entityOption.name)"
             >
-              <v-list-item-icon>
+              <span>
                 <v-icon>{{ entityOption.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title class="text-capitalize">
-                  <span>{{ entityOption.displayName }}</span>
-                </v-list-item-title>
-                <v-list-item-subtitle class="">
-                  {{ entityOption.descr }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-icon v-if="entityType === entityOption.name">
+              </span>
+              <v-list-item-title class="text-capitalize">
+                <span>{{ entityOption.displayName }}</span>
+              </v-list-item-title>
+              <v-list-item-subtitle>{{ entityOption.descr }}</v-list-item-subtitle>
+              <span v-if="entityType === entityOption.name">
                 <v-icon>mdi-check</v-icon>
-              </v-list-item-icon>
+              </span>
             </v-list-item>
           </v-list>
         </v-card-text>
-
       </v-card>
-
     </v-menu>
-
   </span>
 </template>
 
+<script lang="ts">
+import { defineComponent, ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useDisplay } from 'vuetify';
+import { entityConfigs, getEntityConfig, getEntityConfigs } from "../entityConfigs";
+import { url } from "@/url";
 
-<script>
-import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
-import {VMenu} from "vuetify/lib";
-import {VDialog} from "vuetify/lib";
-import {url} from "@/url";
-
-export default {
+export default defineComponent({
   name: "SearchBox",
   props: {
-    inline: Boolean,
+    inline: {
+      type: Boolean,
+      default: false,
+    },
   },
-  components: {
-    VMenu,
-    VDialog
-  },
-  data: function () {
+  setup(props) {
+    const route = useRoute();
+    const router = useRouter();
+    const { mobile } = useDisplay();
+
+    const isDialogOpen = ref(false);
+    const entityType = ref(route.params.entityType);
+    const myId = `my-id-${Math.random().toString().replace(".", "")}`;
+
+    // @ts-expect-error
+    const entityTypeOptions = computed(() => getEntityConfigs().filter(c => c.hasSerp));
+    const entityTypeConfig = computed(() => getEntityConfig(entityType.value));
+
+    const setEntityType = (type: string) => {
+      entityType.value = type;
+      url.pushToRoute(router, { name: "Serp", params: { entityType: type } });
+      isDialogOpen.value = false;
+    };
+
+    watch(() => route.params.entityType, (newEntityType) => {
+      entityType.value = newEntityType;
+    });
+
     return {
-      select: "",
-      isDialogOpen: false,
-      entityConfigs,
-      myId: "my-id-" + Math.random().toString().replace(".", "")
-    }
+      isDialogOpen,
+      entityType,
+      entityTypeOptions,
+      entityTypeConfig,
+      isMobile: mobile,
+      myId,
+      setEntityType,
+    };
   },
-  computed: {
-    ...mapGetters([]),
-    entityTypeOptions() {
-      return getEntityConfigs().filter(c => c.hasSerp)
-    },
-    entityTypeConfig() {
-      return getEntityConfig(this.entityType)
-    },
-    entityType: {
-      get(){
-        return this.$route.params.entityType
-      },
-      set(to){
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          params: {entityType: to}
-        })
-
-      }
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "setEntityType",
-    ]),
-    ...mapActions([
-    ]),
-
-    openEntityMenu() {
-      this.items = []
-
-    },
-  },
-  watch: {
-
-    "$store.state.entityType": {
-      handler(to, from) {
-      },
-      immediate: true,
-    },
-  },
-  mounted() {
-  },
-  beforeCreate() {
-
-  }
-}
+});
 </script>
 
 <style lang="scss" scoped>
@@ -203,8 +117,6 @@ export default {
 
   &.selected {
     background-color: #444 !important;
-
   }
 }
-
 </style>

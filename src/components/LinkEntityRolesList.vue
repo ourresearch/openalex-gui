@@ -13,29 +13,29 @@
             text
             rounded
             class="font-weight-regular "
-            v-on="on"
+            v-bind="on"
         >
           <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>
-          {{ selectedRoleConfig.nameSingular | capitalize }}
+          {{ selectedRoleConfig.nameSingular | $capitalize }}
           <v-icon right>mdi-menu-down</v-icon>
         </v-btn>
       </template>
       <v-list>
-<!--          <v-subheader>{{ roles.length }} roles:</v-subheader>-->
+<!--          <v-list-subheader>{{ roles.length }} roles:</v-list-subheader>-->
         <v-list-item
           v-for="role in roles"
           :key="role.id"
-          :to="role.id | entityZoomLink"
+          :to="role.id | $entityZoomLink"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>{{ role.role }}</v-list-item-title>
-          </v-list-item-content>
-          <v-list-item-icon>
+          
+          <span>
             <v-icon v-if="role.role === selected">mdi-check</v-icon>
-          </v-list-item-icon>
+          </span>
 
 
         </v-list-item>

@@ -1,15 +1,10 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-// import router from "../router";
+import { createStore } from 'vuex';
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
 
-Vue.use(Vuex)
-
-
 const stateDefaults = function () {
-    const ret = {
+    return {
         entityType: "works",
         activeFilter: null,
         activeFilterKey: null,
@@ -65,11 +60,9 @@ const stateDefaults = function () {
         isDevEnv: false,
 
     }
-    return ret
 }
 
-
-export default new Vuex.Store({
+export default createStore({
     // state: stateDefaults(),
     state: stateDefaults(),
     modules: {

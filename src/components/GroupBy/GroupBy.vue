@@ -18,29 +18,29 @@
         <template v-slot:activator="{on}">
           <v-btn
               icon
-              v-on="on"
+              v-bind="on"
           >
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item :href="csvUrl">
-            <v-list-item-icon>
+            <span>
               <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>Export</v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-action-text>.csv</v-list-item-action-text>
+            
+            <small>.csv</small>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
-            <v-list-item-icon>
+            <span>
               <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            </span>
+            
               <v-list-item-title>View in API</v-list-item-title>
-            </v-list-item-content>
-            <v-list-item-action-text>.json</v-list-item-action-text>
+            
+            <small>.json</small>
           </v-list-item>
 
         </v-list>
@@ -85,10 +85,10 @@
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | $toPrecision(3) }}%
             </div>
             <div class="body-2">
-              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
+              {{ groupsTruncated?.find(g => g.value != 0).count | $toPrecision }}
             </div>
 
           </div>
@@ -98,7 +98,7 @@
 
       </div>
 
-      <v-simple-table dense class="transparent" v-else style="width: 100%;">
+      <v-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
             v-for="row in groupsTruncated"
@@ -113,7 +113,7 @@
 
 
         </tbody>
-      </v-simple-table>
+      </v-table>
     </div>
 
     <v-card-actions >
@@ -126,7 +126,7 @@
 
     <v-dialog
         v-model="isDialogOpen"
-        :fullscreen="$vuetify.breakpoint.mobile"
+        :fullscreen="isMobile"
         max-width="600"
         scrollable
     >
@@ -171,15 +171,15 @@ import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
-import ActionMenuItem from "@/components/Action/Action.vue";
-import Template from "@/components/Action/Action.vue";
-import {getActionConfig} from "@/actionConfigs";
+// import ActionMenuItem from "@/components/Action/Action.vue";
+// import Template from "@/components/Action/Action.vue";
+// import {getActionConfig} from "@/actionConfigs";
 import BarGraph from "@/components/BarGraph.vue";
-import {all} from "core-js/internals/document-all";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
-import {filter} from "core-js/internals/array-iteration";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
+import { useDisplay } from 'vuetify';
+
 
 export default {
   name: "GroupBy",
@@ -194,6 +194,13 @@ export default {
     filterKey: String,
     entityType: String,
     filterBy: Array,
+  },
+  setup(props) {
+    const { mobile } = useDisplay();
+
+    return {
+      isMobile: mobile,
+    };
   },
   data() {
     return {
@@ -212,9 +219,9 @@ export default {
     }
   },
   computed: {
-    all() {
-      return all
-    },
+    // all() {
+    //   return all
+    // },
     ...mapGetters([
 
       "resultsCount",
@@ -306,7 +313,7 @@ export default {
   },
 
   methods: {
-    filter,
+    // filter,
     ...mapMutations([
       "snackbar",
       "setApiDialogUrl",

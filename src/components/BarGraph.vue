@@ -11,7 +11,7 @@
       >
         <template v-slot:activator="{on}">
           <div
-              v-on="on"
+              v-bind="on"
               class="bar-graph-bar-container"
               @click.prevent="$emit('click', bar.key)"
           >
@@ -31,7 +31,7 @@
           {{ bar.key }}:
         </span>
           <span class="">
-          {{ bar.count | toPrecision }}
+          {{ bar.count | $toPrecision }}
         </span>
         </div>
 

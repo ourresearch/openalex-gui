@@ -1,7 +1,7 @@
 <template>
   <v-menu>
     <template v-slot:activator="{on}">
-      <a v-if="textMode" v-on="on">
+      <a v-if="textMode" v-bind="on">
         sort={{ activeSortKey }}
       </a>
       <v-btn
@@ -10,7 +10,7 @@
           :text="!$vuetify.breakpoint.mobile"
           rounded
           class="font-weight-regular"
-          v-on="on"
+          v-bind="on"
           :disabled="disabled"
       >
 <!--        <v-icon>mdi-sort</v-icon>-->
@@ -24,7 +24,7 @@
       </v-btn>
     </template>
     <v-list>
-      <v-subheader>Sort by</v-subheader>
+      <v-list-subheader>Sort by</v-list-subheader>
       <v-divider></v-divider>
       <v-list-item-group
           mandatory
@@ -35,14 +35,14 @@
             :key="sortConfig.key"
             :value="sortConfig.key"
         >
-          <v-list-item-icon>
+          <span>
             <v-icon v-if="activeSortKey === sortConfig.key">mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             <v-list-item-title>
               {{ sortConfig.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
       </v-list-item-group>

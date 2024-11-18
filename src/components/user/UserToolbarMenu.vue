@@ -5,8 +5,8 @@
     <!--    </v-btn>-->
 
     <v-menu rounded offset-y v-if="userId">
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+      <template #activator="{ on }">
+        <v-btn icon v-bind="on">
           <v-icon>mdi-account-outline</v-icon>
         </v-btn>
       </template>
@@ -19,99 +19,99 @@
         </div>
         <v-divider></v-divider>
         <v-list-item exact-path to="/me/searches">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-folder-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             Saved Searches
-          </v-list-item-content>
+          
         </v-list-item>
-        <v-list-item exact-path :to="userAuthorId | entityZoomLink" v-if="userAuthorId">
-          <v-list-item-icon>
+        <v-list-item exact-path :to="userAuthorId || $entityZoomLink" v-if="userAuthorId">
+          <span>
             <v-icon>mdi-account-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             My author profile
-          </v-list-item-content>
+          
         </v-list-item>
 
         <!--        <v-list-item exact-path to="/me">-->
-        <!--          <v-list-item-icon>-->
+        <!--          <span>-->
         <!--            <v-icon>mdi-account-outline</v-icon>-->
-        <!--          </v-list-item-icon>-->
-        <!--          <v-list-item-content>-->
+        <!--          </span>-->
+        <!--          -->
         <!--            Account settings-->
-        <!--          </v-list-item-content>-->
+        <!--          -->
         <!--        </v-list-item>-->
 
 <!--        <v-divider/>-->
         <v-list-item @click="localLogout">
-          <v-list-item-icon>
+          <span>
             <v-icon>mdi-logout</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          </span>
+          
             Log out
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
     </v-menu>
 
 
     <div class="" v-else>
-      <template v-if="$vuetify.breakpoint.mobile">
+      <template v-if="isMobile">
         <v-menu offset-y>
-          <template v-slot:activator="{on}">
-            <v-btn icon v-on="on">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+            >
               <v-icon>mdi-menu</v-icon>
             </v-btn>
           </template>
           <v-list>
             <v-list-item @click="setIsSignupDialogOpen(true)">
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-account-plus</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
                 <v-list-item-title class="font-weight-bold">
                   Sign up
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   Create a new account
                 </v-list-item-subtitle>
-              </v-list-item-content>
             </v-list-item>
             <v-list-item @click="setIsLoginDialogOpen(true)">
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-account-arrow-right</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
+              
                 <v-list-item-title>
                   Log in
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   Access your existing account
                 </v-list-item-subtitle>
-              </v-list-item-content>
+              
             </v-list-item>
             <v-divider/>
             <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-comment-question-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
+              
                 <v-list-item-title>
                   Contact support
                 </v-list-item-title>
-              </v-list-item-content>
+              
             </v-list-item>
             <v-list-item href="https://help.openalex.org/" target="_blank">
-              <v-list-item-icon>
+              <span>
                 <v-icon>mdi-help-circle-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
+              </span>
+              
                 <v-list-item-title>
                   Visit help center
                 </v-list-item-title>
-              </v-list-item-content>
+              
             </v-list-item>
           </v-list>
         </v-menu>
@@ -140,72 +140,52 @@
   </div>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserSignup from "./UserSignup.vue";
-import UserLogin from "./UserLogin.vue";
-
-export default {
-  name: "UserToolbarMenu",
-  components: {
-    UserSignup,
-    UserLogin,
-  },
-  props: {},
-  data() {
-    return {
-      foo: 42,
-      dialogs: {
-        userSignup: false,
-        userLogin: false,
-      }
-    }
-  },
-  computed: {
-    ...mapGetters([
-
-    ]),
-    ...mapGetters("user", [
-      "userName",
-      "userEmail",
-      "userAuthorId",
-      "userId",
-      "isSignupDialogOpen",
-      "isLoginDialogOpen"
-    ]),
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "logout",
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-    ]),
-    ...mapActions([]),
-    localLogout() {
-      this.logout()
-      // this.$router.push("/")
-      this.snackbar("You're logged out")
-    },
-    goToSavedSearches() {
-      this.$router.push("/me/searches")
-    }
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
+import UserSignup from './UserSignup.vue';
+import UserLogin from './UserLogin.vue';
 
 
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen(to, from) {
-    }
-  }
-}
+const store = useStore();
+const { xs, smAndDown } = useDisplay();
+
+// Using the computed properties from Vuex
+const userName = computed(() => store.getters['user/userName']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+const userAuthorId = computed(() => store.getters['user/userAuthorId']);
+const userId = computed(() => store.getters['user/userId']);
+const isSignupDialogOpen = computed({
+  get: () => store.getters['user/isSignupDialogOpen'],
+  set: (val) => store.commit('user/setIsSignupDialogOpen', val),
+});
+const isLoginDialogOpen = computed({
+  get: () => store.getters['user/isLoginDialogOpen'],
+  set: (val) => store.commit('user/setIsLoginDialogOpen', val),
+});
+
+// Determine if it's mobile based on breakpoint
+const isMobile = computed(() => xs.value || smAndDown.value);
+
+// Methods
+const setIsSignupDialogOpen = (isOpen: boolean) => {
+  store.commit('user/setIsSignupDialogOpen', isOpen);
+};
+const setIsLoginDialogOpen = (isOpen: boolean) => {
+  store.commit('user/setIsLoginDialogOpen', isOpen);
+};
+
+const localLogout = () => {
+  store.commit('user/logout');
+  store.commit('snackbar', "You're logged out");
+};
+
+const entityZoomLink = (id: string) => {
+  // Assuming this function generates a route object or URL for "entityZoomLink"
+  return { name: 'EntityZoom', params: { id } };
+};
 </script>
 
 <style scoped lang="scss">

@@ -46,7 +46,7 @@
             </v-btn>
             <v-menu offset-y>
               <template v-slot:activator="{on}">
-                <v-btn icon v-on="on">
+                <v-btn icon v-bind="on">
                   <v-icon>mdi-dots-vertical</v-icon>
                 </v-btn>
               </template>
@@ -54,21 +54,21 @@
 
               <!--            <v-list>-->
               <!--              <v-list-item @click="openRenameDialog(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
+              <!--                <span>-->
               <!--                  <v-icon>mdi-pencil-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
+              <!--                </span>-->
               <!--                <v-list-item-title>Rename</v-list-item-title>-->
               <!--              </v-list-item>-->
               <!--              <v-list-item @click="deleteSavedSearch(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
+              <!--                <span>-->
               <!--                  <v-icon>mdi-delete-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
+              <!--                </span>-->
               <!--                <v-list-item-title>Delete</v-list-item-title>-->
               <!--              </v-list-item>-->
               <!--              <v-list-item @click="openAsCopy(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
+              <!--                <span>-->
               <!--                  <v-icon>mdi-folder-multiple-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
+              <!--                </span>-->
               <!--                <v-list-item-title>Open as copy</v-list-item-title>-->
               <!--              </v-list-item>-->
               <!--            </v-list>-->

@@ -6,12 +6,12 @@
         <v-fab-transition>
           <v-btn
               v-if="isFabShowing"
-              v-on="on"
+              v-bind="on"
               fab
               color="primary"
               class=""
           >
-            <v-icon>mdi-plus-thick</v-icon>
+            <v-icon icon="mdi-plus-thick"></v-icon>
           </v-btn>
 
         </v-fab-transition>
@@ -40,14 +40,14 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            <span>
+              <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
+            </span>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
         <v-list v-if="!searchString">
@@ -57,28 +57,28 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            <span>
+              <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
+            </span>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
           <v-divider/>
           <v-list-item
               key="more-filters"
               @click="isDialogOpen = true"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
+            <span>
+              <v-icon icon="mdi-dots-horizontal"></v-icon>
+            </span>
+            
               <v-list-item-title class="font-weight-bold">
                 More
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
       </v-card>
@@ -128,10 +128,10 @@
 
           <!--  NO FILTER SELECTED YET, WHAT ARE MY OPTIONS? -->
           <div v-else>
-            <v-subheader>
+            <v-list-subheader>
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
-            </v-subheader>
+            </v-list-subheader>
             <v-list class="d-flex flex-wrap" nav>
               <v-list-item
                   v-for="filter in potentialFiltersSearchResults"
@@ -140,17 +140,17 @@
                   :disabled="filter.disabled"
                   style="flex-basis: 250px;"
               >
-                <v-list-item-icon>
-                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
+                <span>
+                  <v-icon :disabled="filter.disabled" :icon="filter.icon"></v-icon>
+                </span>
+                
                   <v-list-item-title>
                     {{ filter.displayName }}
                   </v-list-item-title>
                   <!--                  <v-list-item-subtitle>-->
                   <!--                    {{ filter.type }}-->
                   <!--                  </v-list-item-subtitle>-->
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </div>

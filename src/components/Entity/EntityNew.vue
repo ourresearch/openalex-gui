@@ -29,7 +29,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import {getEntityConfig} from "@/entityConfigs";
 import EntityDatumRow from "@/components/Entity/EntityDatumRow.vue";
-import {filter} from "core-js/internals/array-iteration";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import {entityTypeFromId} from "@/util";
 

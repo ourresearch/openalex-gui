@@ -7,12 +7,12 @@
       :close-on-content-click="false"
       v-model="isMenuOpen"
   >
-    <template v-slot:activator="{on}">
+    <template v-slot:activator="{props}">
       <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
       <v-chip
           color="white"
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
-          v-on="on"
+          v-bind="props"
           close
           close-icon="mdi-close"
           @click:close="$emit('delete')"
@@ -39,13 +39,13 @@
       <v-card-actions>
         <v-spacer/>
         <v-btn
-               class="ml-4"
-               color="primary"
-               rounded
-               exact-path
-               :to="filterValue | entityZoomLink"
+          class="ml-4"
+          color="primary"
+          rounded
+          exact-path
+          :to="filterValue | $entityZoomLink"
         >
-          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
+          {{ myEntityConfig.displayName | $pluralize(1) |$capitalize }} profile
         </v-btn>
       </v-card-actions>
 

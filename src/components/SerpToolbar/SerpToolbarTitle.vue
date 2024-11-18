@@ -18,7 +18,7 @@
       <v-menu v-else offset-y>
         <template v-slot:activator="{on}">
           <v-btn
-              v-on="on"
+              v-bind="on"
               text
               rounded
               class="font-weight-regular"

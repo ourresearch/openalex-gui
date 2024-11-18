@@ -1,14 +1,14 @@
 <template>
   <v-list-item
-      :to="result.id | entityZoomLink"
+      :to="result.id | $entityZoomLink"
       color="primary"
       exact
   >
     <!--          @click="clickResult(result.id)"-->
-    <!--        <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
+    <!--        <span v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
     <!--          <v-icon class="">mdi-file-document-outline</v-icon>-->
-    <!--        </v-list-item-icon>-->
-    <v-list-item-content>
+    <!--        </span>-->
+    
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
         <div class="" v-html="$prettyTitle(result.display_name)"></div>
       </v-list-item-title>
@@ -34,7 +34,7 @@
             class="px-1"
             @click.prevent="viewWorks"
         >
-          {{ result.works_count | toPrecision }} works
+          {{ result.works_count | $toPrecision }} works
         </v-btn>
         <v-btn
             v-if="myEntityType === 'works'"
@@ -43,7 +43,7 @@
             class="px-1"
             @click.prevent="viewCitingPapers"
         >
-          Cited by {{ result.cited_by_count | toPrecision }}
+          Cited by {{ result.cited_by_count | $toPrecision }}
         </v-btn>
 
         <span @click.stop>
@@ -60,7 +60,7 @@
 
             </span>
       </div>
-    </v-list-item-content>
+    
   </v-list-item>
 </template>
 
@@ -145,6 +145,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("🚀 ~ mounted ~ this.result:", this.result.value)
   },
   watch: {}
 }
