@@ -50,6 +50,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("Chips")
   },
   watch: {}
 }

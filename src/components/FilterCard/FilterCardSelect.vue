@@ -27,7 +27,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "FilterCardSelect",
   components: {},
   props: {
     filterKey: String,

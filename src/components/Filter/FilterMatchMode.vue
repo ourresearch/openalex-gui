@@ -73,7 +73,7 @@ import {url} from "@/url";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
-  name: "Template",
+  name: "FilterMatchMode",
   components: {},
   props: {
     filterKey: String,

@@ -26,6 +26,7 @@
   </v-card>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -48,7 +49,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -69,7 +69,6 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -80,13 +79,12 @@ export default {
       this.$emit("close")
       this.value = this.searchString
     },
-
-
   },
   created() {
   },
   mounted() {
     this.searchString = this.value
+    console.log("FilterCardSearch: " + this.searchString)
   },
   watch: {}
 }

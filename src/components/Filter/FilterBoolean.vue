@@ -20,7 +20,7 @@ import {url} from "@/url";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
 export default {
-  name: "FilterValueSearch",
+  name: "FilterBoolean",
   components: {
     FilterBase,
   },

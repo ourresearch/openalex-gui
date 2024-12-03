@@ -60,7 +60,7 @@ import _ from "lodash"
 
 
 export default {
-  name: "Template",
+  name: "FilterSelectAddOption",
   components: {
     FilterSelectEditRow,
   },
@@ -77,11 +77,9 @@ export default {
       suggestions: [],
       isLoading: false,
     }
-
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     filterConfig() {
@@ -100,7 +98,6 @@ export default {
       return getEntityConfig(this.filterConfig.entityId)
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -109,7 +106,6 @@ export default {
     clickRow(value) {
       this.$emit("close")
       url.upsertFilterOption(this.entityType, this.filterKey, value)
-
     },
     getSuggestions: _.debounce(async function () {
       this.isLoading = true
@@ -130,7 +126,6 @@ export default {
     "$route": {
       handler(to, from) {
         this.$emit("close")
-
       }
     },
     searchString(to, from) {
@@ -147,6 +142,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

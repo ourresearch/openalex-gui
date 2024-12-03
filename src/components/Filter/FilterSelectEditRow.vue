@@ -42,7 +42,7 @@ import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
-  name: "Template",
+  name: "FilterSelectEditRow",
   components: {},
   props: {
     filterKey: String,

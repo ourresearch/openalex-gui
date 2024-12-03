@@ -51,7 +51,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 
 export default {
-  name: "Template",
+  name: "FilterSelectMenu",
   components: {},
   props: {
     filterKey: String,

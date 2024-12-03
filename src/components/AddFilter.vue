@@ -13,10 +13,9 @@
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>
-
         </v-fab-transition>
-
       </template>
+
       <v-card>
         <v-text-field
             v-model="searchString"
@@ -28,9 +27,7 @@
             autofocus
             placeholder="Search all filters"
             style=""
-
             @keyup.enter="onEnter"
-
         />
         <v-divider/>
         <v-list v-if="searchString">
@@ -164,6 +161,7 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -177,8 +175,9 @@ import FilterCardSelect from "@/components/FilterCard/FilterCardSelect.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import {createSimpleFilter} from "@/filterConfigs";
 
+
 export default {
-  name: "Template",
+  name: "AddFilter",
   components: {
     FilterCardRange,
     FilterCardSearch,
@@ -201,7 +200,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -234,15 +232,20 @@ export default {
     },
     potentialFiltersSearchResults() {
       const mySearchString = this.searchString?.toString()?.toLowerCase() ?? ""
-      return this.potentialFilters.filter(f => {
+      console.log("mySearchString " + mySearchString)
+      const filters = this.potentialFilters.filter(f => {
         return f.displayName.toLowerCase().includes(mySearchString)
         // const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
         // return filterKeyWords.some(w => {
         //   return w.indexOf(mySearchString) === 0
         // })
       })
+      //console.log("potentialFilters:")
+      //console.log(this.potentialFilters)
+      //console.log("filteredFilters:")
+      //console.log(filters)
+      return filters
     },
-
     newFilterConfig() {
       if (!this.newFilterKey) return
       return getFacetConfig(this.entityType, this.newFilterKey)
@@ -265,7 +268,6 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -318,8 +320,6 @@ export default {
         this.searchString = ""
       }
     }
-
-
   },
   created() {
   },
@@ -350,6 +350,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 .add-filter-dialog-body {

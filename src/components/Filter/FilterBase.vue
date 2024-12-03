@@ -78,7 +78,7 @@ import {url} from "@/url";
 import FilterVerb from "@/components/Filter/FilterVerb.vue";
 
 export default {
-  name: "Template",
+  name: "FilterBase",
   components: {
     FilterVerb,
   },

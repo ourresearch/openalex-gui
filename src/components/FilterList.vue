@@ -103,8 +103,9 @@ import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {clear} from "core-js/internals/task";
 
+
 export default {
-  name: "Template",
+  name: "FilterList",
   components: {
     Action,
     SerpResultsCount,
@@ -113,8 +114,6 @@ export default {
     FilterSearch,
     FilterSelect,
     AddFilter,
-
-
   },
   props: {
     resultsObject: Object,
@@ -134,7 +133,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     entityConfig() {
@@ -147,7 +145,6 @@ export default {
       return this.filters.map(f => f.key)
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -156,8 +153,6 @@ export default {
     clearEverything() {
       url.pushNewFilters([])
     }
-
-
   },
   created() {
   },
@@ -177,6 +172,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 
@@ -207,6 +203,5 @@ table {
   //  display: flex;
   //}
 }
-
 
 </style>

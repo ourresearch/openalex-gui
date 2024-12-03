@@ -126,7 +126,7 @@ import _ from "lodash"
 
 
 export default {
-  name: "Template",
+  name: "ShortcutBox",
   components: {},
   props: {
     dense: Boolean,

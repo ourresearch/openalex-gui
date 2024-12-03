@@ -55,19 +55,15 @@
               :filter-index="index"
               :is-open="isActive"
               :search-string="searchString"
-
               @close="close"
               @add="addOption"
           />
         </v-card-text>
       </v-card>
     </v-dialog>
-
-
   </filter-base>
-
-
 </template>
+
 
 <script>
 
@@ -82,15 +78,14 @@ import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
+
 export default {
-  name: "Template",
+  name: "FilterSelect",
   components: {
     FilterSelectOption,
     FilterMatchMode,
     FilterSelectAddOption,
     FilterBase,
-
-
   },
   props: {
     filterKey: String,
@@ -110,7 +105,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {
@@ -159,9 +153,7 @@ export default {
       if (this.filterKey === this.$store.state.activeFilter) {
         this.$store.state.activeFilter = null
       }
-
     },
-
     deleteOption(id) {
       url.deleteFilterOption(this.entityType, this.index, id)
     },
@@ -172,8 +164,6 @@ export default {
           url.addFilterOption(this.entityType, this.index, id) :
           url.createFilter(this.entityType, this.filterKey, id)
     }
-
-
   },
   created() {
   },

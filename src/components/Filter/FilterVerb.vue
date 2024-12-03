@@ -39,7 +39,7 @@ import {getFacetConfig} from "@/facetConfigs";
 
 
 export default {
-  name: "Template",
+  name: "FilterVerb",
   components: {},
   props: {
     isNegated: Boolean,
