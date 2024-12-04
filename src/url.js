@@ -142,6 +142,7 @@ const pushNewFilters = async function (newFilters, entityType) {
          entityType = router.currentRoute.params.entityType ?? "works"
     }
 
+
     const query = {
         ...router.currentRoute.query,
         page: 1,
@@ -159,7 +160,7 @@ const pushNewFilters = async function (newFilters, entityType) {
 
 const createFilter = async function (entityType, key, newValue) {
     const newFilters = createFilterNoPush(entityType, key, newValue)
-    return await pushNewFilters(newFilters)
+    return await pushNewFilters(newFilters, entityType)
 }
 
 const createFilterNoPush = function (entityType, key, newValue) {

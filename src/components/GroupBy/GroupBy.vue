@@ -225,7 +225,7 @@ export default {
       },
       set(to) {
         if (to) {
-          url.upsertFilter(this.entityType, this.filterKey, true)
+          url.upsertFilter("works", this.filterKey, true)
         } else {
           url.deleteFilter(this.entityType, this.filterKey)
         }
