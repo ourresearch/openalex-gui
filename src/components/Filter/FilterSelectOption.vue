@@ -89,7 +89,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     isEntity() {
@@ -119,7 +118,6 @@ export default {
       if (!this.entityData) return
       return getLocationString(this.entityData)
     },
-
     alternateNamesString() {
       return [
         ...this.entityData?.display_name_alternatives ?? [],
@@ -132,7 +130,6 @@ export default {
       return this.entityData?.display_name
     },
   },
-
   methods: {
     getEntityConfig,
     ...mapMutations([

@@ -467,14 +467,16 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
 
+
         // disabled, waiting for entity
         {
             key: "open_access.oa_status",
             entityType: "works",
+            // entityId: "oa-statuses",
             displayName: "Open Access status",
             type: "select",
             categories: ["open access"],
-            // actions: ["filter", "column", "group_by",],
+            //actions: ["filter", "column", "group_by",],
             actions: [],
             category: "open access",
             icon: "mdi-lock-open-outline",

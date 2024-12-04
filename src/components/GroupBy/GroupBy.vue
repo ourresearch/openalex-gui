@@ -65,6 +65,7 @@
           {{ groupsTruncated[0].value }}
         </div>
       </div>
+
       <div v-else-if="myFilterConfig.type === 'boolean'" class="">
         <v-card
             v-if="groupsTruncated.find(g => g.count > 0)"
@@ -103,7 +104,6 @@
         <group-by-table-row
             v-for="row in groupsTruncated"
             :key="row.value + row.count"
-
             :filter-key="filterKey"
             :value="row.value"
             :display-value="row.displayValue"
@@ -188,7 +188,6 @@ export default {
     GroupByTableRow,
     FilterSelectAddOption,
     filterMatchMode,
-
   },
   props: {
     filterKey: String,
@@ -206,9 +205,6 @@ export default {
       groups: [],
       maxResults: 5,
       maxResultsRange: 25,
-
-
-
     }
   },
   computed: {

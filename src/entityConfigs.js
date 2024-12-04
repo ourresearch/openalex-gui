@@ -220,7 +220,6 @@ const entityConfigs = {
         isNative: true,
         rowsToShowOnEntityPage: [],
     },
-
     keywords: {
         icon: "mdi-tag-outline",
         name: "keywords",
@@ -239,7 +238,6 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
         ],
     },
-
     topics: {
         icon: "mdi-tag-outline",
         name: "topics",
@@ -350,8 +348,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
-
     countries: {
         icon: "mdi-earth",
         name: "countries",
@@ -368,7 +364,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
     continents: {
         icon: "mdi-earth",
         name: "continents",
@@ -387,7 +382,6 @@ const entityConfigs = {
             "countries",
         ],
     },
-
     languages: {
         icon: "mdi-translate",
         name: "languages",
@@ -404,7 +398,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
     types: {
         icon: "mdi-shape-outline",
         name: "types",
@@ -456,8 +449,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
-
     "licenses": {
         icon: "mdi-lock-open-outline",
         name: "licenses",
@@ -474,7 +465,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
 }
 
 
