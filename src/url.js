@@ -76,8 +76,6 @@ const setUrlName = function (myUrl, name) {
     const urlObj = new URL(myUrl)
     urlObj.searchParams.set("name", name)
     return urlObj.toString()
-
-
 }
 
 
@@ -132,7 +130,6 @@ const setSerpTabName = function (val) {
 
 }
 
-
 const pushNewFilters = async function (newFilters, entityType) {
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
@@ -156,10 +153,9 @@ const pushNewFilters = async function (newFilters, entityType) {
     return pushToRoute(router, newRoute)
 }
 
-
 const createFilter = async function (entityType, key, newValue) {
     const newFilters = createFilterNoPush(entityType, key, newValue)
-    return await pushNewFilters(newFilters)
+    return await pushNewFilters(newFilters, entityType)
 }
 
 const createFilterNoPush = function (entityType, key, newValue) {
@@ -168,6 +164,7 @@ const createFilterNoPush = function (entityType, key, newValue) {
     return [...oldFilters, newFilter]
 
 }
+
 const readFilter = function (currentRoute, entityType, index) {
     return filtersFromUrlStr(entityType, currentRoute.query.filter)[index]
 }

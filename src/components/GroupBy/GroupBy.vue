@@ -343,15 +343,17 @@ export default {
     },
 
     selectGroup(val) {
+      // Assume clicking a groupBy section always land goes to works
+      const destinationEntityType = "works"
       if (this.myFilterConfig.type === "boolean") {
-        url.upsertFilter(this.entityType, this.filterKey, val != 0)
+        url.upsertFilter(destinationEntityType, this.filterKey, val != 0)
       } else if (this.myFilterConfig.type === "range") {
-        url.upsertFilter(this.entityType, this.filterKey, val)
+        url.upsertFilter(destinationEntityType, this.filterKey, val)
       } else {
         if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
-          url.addFilterOption(this.entityType, this.filterKey, val)
+          url.addFilterOption(destinationEntityType, this.filterKey, val)
         } else {
-          url.upsertFilter(this.entityType, this.filterKey, val)
+          url.upsertFilter(destinationEntityType, this.filterKey, val)
         }
       }
     },
