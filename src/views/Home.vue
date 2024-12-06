@@ -36,9 +36,6 @@
         <img class="user-logo"
              src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
              alt="">
-        <img class="user-logo"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Grammarly_logo.svg/320px-Grammarly_logo.svg.png"
-             alt="">
         <img class="user-logo tall"
              src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png"
              alt="">

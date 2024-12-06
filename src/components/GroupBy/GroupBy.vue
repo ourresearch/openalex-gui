@@ -204,8 +204,22 @@ export default {
     ...mapGetters([
       "resultsCount",
     ]),
+<<<<<<< HEAD
     isSelected() {
       return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
+=======
+    isSelected: {
+      get() {
+        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
+      },
+      set(to) {
+        if (to) {
+          url.upsertFilter("works", this.filterKey, true)
+        } else {
+          url.deleteFilter(this.entityType, this.filterKey)
+        }
+      }
+>>>>>>> 12c928d1bce17526c6adc3be56030c92296d84e3
     },
     searchStringPlaceholder(){
       const pluralDisplayName = this.$pluralize(this.filterConfig.displayName, 2)

@@ -151,6 +151,7 @@ const pushNewFilters = async function (newFilters, entityType) {
          entityType = router.currentRoute.params.entityType ?? "works"
     }
 
+
     const query = {
         ...router.currentRoute.query,
         page: 1,

@@ -40,7 +40,7 @@ const navConfigs = [
             },
             {
                 name: "Coverage",
-                href: "https://help.openalex.org/coverage",
+                href: "https://help.openalex.org/hc/en-us/articles/27190301279127-How-does-the-coverage-of-OpenAlex-compare-to-other-databases",
             },
             {
                 name: "Pricing",
