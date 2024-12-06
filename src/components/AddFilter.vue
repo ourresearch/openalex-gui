@@ -232,7 +232,7 @@ export default {
     },
     potentialFiltersSearchResults() {
       const mySearchString = this.searchString?.toString()?.toLowerCase() ?? ""
-      console.log("mySearchString " + mySearchString)
+      //console.log("mySearchString " + mySearchString)
       const filters = this.potentialFilters.filter(f => {
         return f.displayName.toLowerCase().includes(mySearchString)
         // const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())

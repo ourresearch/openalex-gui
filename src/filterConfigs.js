@@ -51,15 +51,19 @@ const filtersFromUrlStr = function (entityType, str) {
     return filters
 }
 
+
 const getMatchModeFromSelectFilterValue = function (valueStr) {
     return (valueStr?.indexOf(",") > -1) ? "all" : "any"
 }
+
 
 const optionsToString = function (options) {
     return options.join("|")
 }
 
+
 const optionsFromString = function (str) {
+    if (typeof(str) !== "string") { return [str] }
     const strWithoutNegation = str.replace(/^!/, "")
     const regex = /[+|]/
     return strWithoutNegation.split(regex).map(option => {
@@ -75,6 +79,8 @@ const deleteOptionFromFilterValue = function (valueStr, optionToDelete) {
     })
     return optionsToString(newOptions)
 }
+
+
 const addOptionToFilterValue = function (valueStr, optionToAdd) {
     // const matchMode = getMatchModeFromSelectFilterValue(valueStr)
     const oldOptions = optionsFromString(valueStr)
@@ -87,18 +93,23 @@ const toggleNegation = function (option) {
     return option[0] === "!" ?
         option.substr(1) :
         "!" + option
-
 }
+
+
 const negateOption = function (option) {
     return option[0] === "!" ?
         option :
         "!" + option
 }
+
+
 const removeNegationFromOption = function (option) {
     return option[0] === "!" ?
         option.substr(1) :
         option
 }
+
+
 const setOptionIsNegated = function(option, isNegated) {
     return isNegated ?
         negateOption(option) :
@@ -113,7 +124,6 @@ const setStringIsNegated = function(string, isNegated) {
 }
 
 
-
 const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
     const oldOptions = optionsFromString(valueStr)
     const newOptions = oldOptions.map(oldOption => {
@@ -126,8 +136,6 @@ const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
 }
 
 
-
-
 const makeSelectFilterValue = function (items, matchMode) {
     const sep = {
         any: "|",
@@ -137,6 +145,7 @@ const makeSelectFilterValue = function (items, matchMode) {
     const prepend = (matchMode === "none") ? "!" : ""
     return prepend + items.join(sep[matchMode])
 }
+
 
 const filtersAreEqual = function (f1, f2) {
     const sameKey = f1.key === f2.key
@@ -157,6 +166,7 @@ const filtersAsUrlStr = function (filters) {
     return [...dedupedFilterStrings].join(",")
 }
 
+
 const mergeFacetFilters = function (filters) {
     if (!filters.length) return []
     const positiveFilters = filters.filter(f => !f.isNegated)
@@ -171,6 +181,7 @@ const mergeFacetFilters = function (filters) {
     return ret
 }
 
+
 const mergePositiveFacetFilters = function (filters) {
     if (!filters.length) return
     const key = filters[0].key
@@ -179,6 +190,7 @@ const mergePositiveFacetFilters = function (filters) {
         filters.map(f => f.value).join("|")
     ].join(":")
 }
+
 
 const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
     let ret = []
@@ -221,6 +233,7 @@ const createFilterValue = function (rawValue, filterType) {
     return rawValue
 }
 
+
 const createSimpleFilter = function (entityType, key, value, isNegated) {
     // console.log("createSimpleFilter", key, value, isNegated)
     if (!key) {
@@ -252,8 +265,8 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     }
 }
 
-const copySimpleFilter = function (filter, overwriteWith) {
 
+const copySimpleFilter = function (filter, overwriteWith) {
     return createSimpleFilter(
         overwriteWith?.entityType ?? filter.entityType,
         overwriteWith?.key ?? filter.key,
@@ -261,8 +274,6 @@ const copySimpleFilter = function (filter, overwriteWith) {
         overwriteWith?.isNegated ?? filter.isNegated
     )
 }
-
-
 
 
 const convertYearRangeToPrettyWords = function (yearRange) {
@@ -278,6 +289,7 @@ const convertYearRangeToPrettyWords = function (yearRange) {
     }
 }
 
+
 const convertRangeToPrettyWords = function (range) {
     if (range[0] === range[1]) {
         return range[0] + " exactly"
@@ -290,6 +302,7 @@ const convertRangeToPrettyWords = function (range) {
         return range.join("-")
     }
 }
+
 
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, countScaled) {
 

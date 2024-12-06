@@ -115,7 +115,6 @@ export default {
     },
     optionIds: {
       get() {
-        console.log("FilterSelect readFilterOptions")
         return url.readFilterOptions(this.$route, this.entityType, this.index)
       },
       set(to) {

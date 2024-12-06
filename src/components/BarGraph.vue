@@ -15,14 +15,10 @@
               class="bar-graph-bar-container"
               @click.prevent="$emit('click', bar.key)"
           >
-            <!--            @click.exact="clickYear(filter.value)"-->
-            <!--            @click.shift="shiftClickYear(filter.value)"-->
             <div
                 class="bar-graph-bar caption"
                 :style="{height: bar.scaledCount * 100 + '%'}"
             >
-              <!--                    :class="{green: isWithinRange(filter.value)}"-->
-              <!--              v-ripple-->
             </div>
           </div>
         </template>
@@ -44,7 +40,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "BarGraph",
   components: {},
   props: {
     bars: Array, // [{key: "foo": count: 42} ...]
@@ -56,7 +52,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     scaledBars(){
@@ -69,14 +64,11 @@ export default {
       })
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
-
-
   },
   created() {
   },

@@ -135,9 +135,7 @@ export default {
     GroupBy,
     LinkEntityRolesList,
     EntityHeader,
-
     EntityDrawer,
-
   },
   props: {},
   data() {
@@ -150,7 +148,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "globalIsLoading",
     ]),
     ...mapGetters("user", [
@@ -199,7 +196,6 @@ export default {
       ]
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -235,6 +231,7 @@ export default {
       this.worksResultObject = resp
     },
     viewMyWorks() {
+      console.log(this.myWorksFilter)
       return url.pushNewFilters([this.myWorksFilter], "works")
     },
   },

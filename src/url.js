@@ -34,15 +34,18 @@ const urlObjectFromSearchUrl = function (searchUrl) {
     }
 }
 
+
 const pushSearchUrlToRoute = async function (router, searchUrl) {
     await pushToRoute(router, urlObjectFromSearchUrl(searchUrl))
 }
+
 
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
     return newQuery
 }
+
 
 const pushQueryParam = function (key, value) {
     const query = {
@@ -55,6 +58,7 @@ const pushQueryParam = function (key, value) {
     })
 }
 
+
 const replaceQueryParam = function (key, value) {
     const query = {
         ...router.currentRoute.query,
@@ -66,11 +70,13 @@ const replaceQueryParam = function (key, value) {
     })
 }
 
+
 const nameFromUrl = function (myUrl) {
     const urlObj = new URL(myUrl)
     const name = urlObj.searchParams.get("name") ?? "Unsaved search"
     return name
 }
+
 
 const setUrlName = function (myUrl, name) {
     const urlObj = new URL(myUrl)
@@ -87,6 +93,8 @@ const pushToRoute = async function (router, newRoute) {
             }
         })
 }
+
+
 const replaceToRoute = async function (router, newRoute) {
     return await router.replace(newRoute)
         .catch((e) => {
@@ -107,12 +115,16 @@ const setPage = async function (page) {
     })
 }
 
+
 const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
+
+
 const setZoom = function (val) {
     pushQueryParam("zoom", val)
 }
+
 
 const getZoom = function (route) {
     return route.query.zoom
@@ -122,13 +134,13 @@ const getZoom = function (route) {
 const setHideResults = function (val) {
     const urlVal = val ? true : undefined
     pushQueryParam("hide_results", urlVal)
-
 }
+
 
 const setSerpTabName = function (val) {
     pushQueryParam("name", val)
-
 }
+
 
 const pushNewFilters = async function (newFilters, entityType) {
     const filter = (newFilters.length) ?
@@ -153,21 +165,24 @@ const pushNewFilters = async function (newFilters, entityType) {
     return pushToRoute(router, newRoute)
 }
 
+
 const createFilter = async function (entityType, key, newValue) {
     const newFilters = createFilterNoPush(entityType, key, newValue)
     return await pushNewFilters(newFilters, entityType)
 }
 
+
 const createFilterNoPush = function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     const newFilter = createSimpleFilter(entityType, key, newValue)
     return [...oldFilters, newFilter]
-
 }
+
 
 const readFilter = function (currentRoute, entityType, index) {
     return filtersFromUrlStr(entityType, currentRoute.query.filter)[index]
 }
+
 
 const readFilters = function (currentRoute, isNegatedOnly = false) {
     const filters = filtersFromUrlStr(
@@ -179,25 +194,33 @@ const readFilters = function (currentRoute, isNegatedOnly = false) {
         filters
 }
 
+
 const readFiltersLength = function () {
     return filtersFromUrlStr(
         router.currentRoute.params.entityType,
         router.currentRoute.query.filter,
     ).length
 }
+
+
 const readFilterValue = function (currentRoute, entityType, index) {
     return readFilter(currentRoute, entityType, index)?.value
 }
 
+
 const isFilterApplied = function (currentRoute, entityType, index) {
     const filterValue = readFilterValue(currentRoute, entityType, index)
+    console.log("isFilterApplied entity: " + entityType + ", index: " + index + ", fiterValue: " + filterValue)
     return filterValue !== "" && filterValue !== undefined && filterValue !== null
 }
+
+
 const isFilterKeyApplied = function (currentRoute, entityType, filterKey) {
     const myFilters = readFilters(currentRoute)
     const myFilterKeys = myFilters.map(f => f.key)
     return myFilterKeys.includes(filterKey)
 }
+
 
 const isSearchFilterApplied = function (currentRoute) {
     return currentRoute.query?.filter?.split(",")?.some(f => {
@@ -233,6 +256,7 @@ const updateFilter = async function (entityType, index, newValue, isNegated) {
     return await pushNewFilters(filters)
 }
 
+
 const deleteFilterOption = async function (entityType, index, optionToDelete) {
     console.log("url.deleteFilterOption", entityType, index, optionToDelete)
 
@@ -254,6 +278,8 @@ const deleteFilterOption = async function (entityType, index, optionToDelete) {
         filters.splice(index, 1)
     return await pushNewFilters(filters)
 }
+
+
 const deleteFilterOptionByKey = async function (entityType, filterKey, optionToDelete) {
     console.log("url.deleteFilterOptionByKey", entityType, filterKey, optionToDelete)
     const filters = readFilters(router.currentRoute)
@@ -334,6 +360,8 @@ const setIsFilterNegated = function (entityType, index, isNegated) {
     // const newValue = setStringIsNegated(myValue, isNegated)
     updateFilter(entityType, index, myValue, isNegated)
 }
+
+
 const readIsFilterNegated = function (currentRoute, entityType, index) {
     const myFilter = readFilter(currentRoute, entityType, index)
     return myFilter?.isNegated
@@ -348,7 +376,6 @@ const findFilterIndex = function (currentRoute, entityType, filterKey, option) {
     })
     return index
 }
-
 
 
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
@@ -369,6 +396,7 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     return await pushNewFilters(newFilters)
 }
 
+
 const createFilterOptions = function(filter){
     const entityConfig = getEntityConfig(filter.entityId)
     const filterNamespace = entityConfig && !entityConfig.isNative ?
@@ -383,32 +411,43 @@ const createFilterOptions = function(filter){
     })
 }
 
+
 const readFilterOptions = function (currentRoute, entityType, index) {
     const filter = readFilter(currentRoute, entityType, index)
     if (!filter) return []
     return createFilterOptions(filter)
 }
 
+
 const isFilterOptionApplied = function (currentRoute, entityType, filterKey, option) {
     return readFilterOptionsByKey(currentRoute, entityType, filterKey).includes(option)
 }
+
+
 const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, isNegatedOnly = false) {
     const allFilters = readFilters(currentRoute, isNegatedOnly)
     const config = getFacetConfig(entityType, filterKey)
-    if (config.type !== "select") return []
+    //if (config.type !== "select") return []
+    //if (!["select", "boolean"].includes(config.type)) { return [] }
 
     const filtersWithKey = allFilters.filter(f => f.key == filterKey)
+
+    //console.log("readFilterOptionsByKey: " + filterKey)
+    //console.log(filtersWithKey)
+    
     const filterOptionsWithKey = filtersWithKey?.length ?
         [...filtersWithKey.map(f => optionsFromString(f.value)).flat()] :
         []
     return filterOptionsWithKey
 }
 
+
 const readFilterMatchMode = function (currentRoute, entityType, key) {
     const filter = readFilter(currentRoute, entityType, key)
 
     return getMatchModeFromSelectFilterValue(filter?.value)
 }
+
 
 const setFilterMatchMode = function (entityType, key, mode) {
     const filter = readFilter(router.currentRoute, entityType, key)
@@ -422,18 +461,22 @@ const isGroupBy = function () {
     return !!router.currentRoute.query.group_by
 }
 
+
 const updateOrDeleteFilter = function (entityType, index, filterValue) {
     (filterValue === "" || filterValue === "-") ?
         deleteFilter(entityType, index) :
         updateFilter(entityType, index, filterValue)
 }
 
+
 const upsertFilter = function (entityType, index, filterValue) {
     console.log("url.upsertFilter()", index, filterValue)
+    console.log("url.upsertFilter() isFilterApplied: " + isFilterApplied(router.currentRoute, entityType, index))
     return isFilterApplied(router.currentRoute, entityType, index) ?
         updateOrDeleteFilter(entityType, index, filterValue) :
         createFilter(entityType, index, filterValue)
 }
+
 
 const upsertFilterOption = function (entityType, index, filterOption) {
     if (isFilterApplied(router.currentRoute, entityType, index)) {

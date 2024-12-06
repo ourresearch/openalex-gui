@@ -60,7 +60,7 @@
             class="pa-2"
             @click="selectGroup"
         />
-        <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
+        <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="selectGroup(groupsTruncated[0].value)">
           <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
           {{ groupsTruncated[0].value }}
         </div>
@@ -71,13 +71,8 @@
             v-if="groupsTruncated.find(g => g.count > 0)"
             flat
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
-            @click="isSelected = !isSelected"
+            @click="selectGroup(!isSelected)"
         >
-          <!--          <v-icon class="mr-4 ml-2" color="">{{-->
-          <!--              isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'-->
-          <!--            }}-->
-          <!--          </v-icon>-->
-
           <v-progress-circular
               size="60"
               width="20"
@@ -91,27 +86,22 @@
             <div class="body-2">
               {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
             </div>
-
           </div>
-
         </v-card>
-
-
       </div>
 
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
         <tbody>
-        <group-by-table-row
-            v-for="row in groupsTruncated"
-            :key="row.value + row.count"
-            :filter-key="filterKey"
-            :value="row.value"
-            :display-value="row.displayValue"
-            :count="row.count"
-            :hide-checkbox="$route.name !== 'Serp'"
-        />
-
-
+          <group-by-table-row
+              v-for="row in groupsTruncated"
+              :key="row.value + row.count"
+              :filter-key="filterKey"
+              :value="row.value"
+              :display-value="row.displayValue"
+              :count="row.count"
+              :hide-checkbox="$route.name !== 'Serp'"
+              @click="selectGroup"
+          />
         </tbody>
       </v-simple-table>
     </div>
@@ -121,7 +111,6 @@
       <v-btn v-if="isMoreToShow" small rounded text @click="isDialogOpen = true">
         More...
       </v-btn>
-
     </v-card-actions>
 
     <v-dialog
@@ -169,8 +158,9 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import {url} from "../../url";
+import {getEntityConfig} from "@/entityConfigs";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {filtersFromUrlStr} from "../../filterConfigs";
+import {filtersFromUrlStr, createSimpleFilter} from "../../filterConfigs";
 import ActionMenuItem from "@/components/Action/Action.vue";
 import Template from "@/components/Action/Action.vue";
 import {getActionConfig} from "@/actionConfigs";
@@ -212,20 +202,10 @@ export default {
       return all
     },
     ...mapGetters([
-
       "resultsCount",
     ]),
-    isSelected: {
-      get() {
-        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
-      },
-      set(to) {
-        if (to) {
-          url.upsertFilter(this.entityType, this.filterKey, true)
-        } else {
-          url.deleteFilter(this.entityType, this.filterKey)
-        }
-      }
+    isSelected() {
+      return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
     },
     searchStringPlaceholder(){
       const pluralDisplayName = this.$pluralize(this.filterConfig.displayName, 2)
@@ -235,9 +215,7 @@ export default {
       return this.groups.length > this.groupsTruncated.length
     },
     minWidth() {
-      return (this.myFilterConfig.type === "select") ?
-          300 :
-          150
+      return (this.myFilterConfig.type === "select") ? 300 : 150
     },
     filterConfig() {
       if (!this.filterKey) return
@@ -300,7 +278,6 @@ export default {
       return this.groups.slice(0, maxResults)
     },
   },
-
   methods: {
     filter,
     ...mapMutations([
@@ -339,26 +316,32 @@ export default {
       }
       this.groups = ret
       this.isLoading = false
-
     },
-
     selectGroup(val) {
-      // Assume clicking a groupBy section always land goes to works
-      const destinationEntityType = "works"
-      if (this.myFilterConfig.type === "boolean") {
-        url.upsertFilter(destinationEntityType, this.filterKey, val != 0)
-      } else if (this.myFilterConfig.type === "range") {
-        url.upsertFilter(destinationEntityType, this.filterKey, val)
+      console.log("selectGroup val: "  + val)
+      if (this.$route.name === "EntityPage" ) {
+        this.openFilteredWorks(val)
+        return
+      }
+      const isApplied = url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, val)
+      console.log("selectGroup isApplied: " + isApplied)
+      if (isApplied) {
+        url.deleteFilterOptionByKey(this.entityType, this.filterKey, val)
       } else {
-        if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
-          url.addFilterOption(destinationEntityType, this.filterKey, val)
-        } else {
-          url.upsertFilter(destinationEntityType, this.filterKey, val)
-        }
+        url.upsertFilter(this.entityType, this.filterKey, val)
       }
     },
-  },
+    openFilteredWorks(val) {
+      const entityConfig  = getEntityConfig(this.$route.params.entityType)
+      const entityFilter  = createSimpleFilter("works", entityConfig.filterKey, this.$route.params.entityId)
+      const groupByFilter = createSimpleFilter("works", this.filterKey, val)
+      
+      console.log("openFilteredWorks")
+      console.log([entityFilter, groupByFilter])
 
+      url.pushNewFilters([entityFilter, groupByFilter], "works")
+    },
+  },
   watch: {
     "$route.query.filter": {
       immediate: true,
@@ -369,10 +352,10 @@ export default {
     isDialogOpen(to){
       !to && this.closeDialog()
     }
-
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -1,3 +1,6 @@
+<!-- SEEMS UNUSED -->
+
+
 <template>
   <div>
     <v-menu>
@@ -11,11 +14,7 @@
           :color="groupByKey ? '#333' : undefined"
           @click:close="groupByKey=undefined"
       >
-<!--          :outlined="!groupByKey"-->
-        <!--        <v-icon left>mdi-layers-triple-outline</v-icon>-->
-        <span class="font-weight-regular">Group</span>
-<!--        <span class="font-weight-bold ml-1" v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</span>-->
-<!--        <v-icon right>mdi-menu-down</v-icon>-->
+      <span class="font-weight-regular">Group</span>
       </v-btn>
     </template>
     </v-menu>
@@ -86,6 +85,7 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -95,7 +95,7 @@ import {facetsByCategory, getFacetConfig} from "../../facetConfigs";
 import {filter} from "core-js/internals/array-iteration";
 
 export default {
-  name: "Template",
+  name: "GroupBySelector",
   components: {
     FilterKeySelector
   },
@@ -109,7 +109,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     facetsByCategory() {
@@ -144,14 +143,11 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
-
-
   },
   created() {
   },
@@ -160,6 +156,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
