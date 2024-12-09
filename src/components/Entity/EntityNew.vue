@@ -35,7 +35,7 @@ import {entityTypeFromId} from "@/util";
 
 
 export default {
-  name: "Template",
+  name: "EntityNew",
   components: {
     WorkLinkouts,
     LinkEntityRolesList,
@@ -71,8 +71,6 @@ export default {
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
   },
   created() {
   },

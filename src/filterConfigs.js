@@ -35,18 +35,6 @@ const filtersFromUrlStr = function (entityType, str) {
             isNegated,
         )
         filters.push(myFilter)
-        // if (valuesStr[0] === "!") {
-        //     const value = valuesStr.replace("!", "")
-        //     filters.push(createSimpleFilter(entityType, key, value, true))
-        // } else {
-        //     filters.push(createSimpleFilter(entityType, key, valuesStr, false))
-
-
-        // const values = valuesStr.split("|")
-        // values.forEach(value => {
-        //     filters.push(createSimpleFilter(entityType, key, value, false))
-        // })
-        // }
     })
     return filters
 }
@@ -305,7 +293,6 @@ const convertRangeToPrettyWords = function (range) {
 
 
 const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, countScaled) {
-
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
     if (simpleFilter.valuesToShow === 'range' && /\d*-\d*/.test(value)) {
         if (key === "publication_year") {
@@ -317,7 +304,6 @@ const createDisplayFilter = function (entityType, key, value, isNegated, display
     }
     if (simpleFilter.displayNullAs && ["unknown", "null", null].includes(value)) {
         displayValue = simpleFilter.displayNullAs
-
     }
 
     return {

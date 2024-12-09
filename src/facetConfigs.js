@@ -199,6 +199,7 @@ const facetConfigs = function (entityType) {
                     display_name: grant.funder_display_name,
                 }
             }),
+            displayNullAs: "Unknown",
             isMultiple: true,
         },
 

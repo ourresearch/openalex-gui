@@ -23,9 +23,9 @@
 <!--      &lt;!&ndash;      </v-btn>&ndash;&gt;-->
 <!--    </v-toolbar>-->
 
-      <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
-        Show {{ entityType }} where:
-      </div>
+    <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
+      Show {{ entityType }} where:
+    </div>
     <v-card rounded flat class="mb-12">
 
       <div class="px-2" v-if="!isCollapsed">

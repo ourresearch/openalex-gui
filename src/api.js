@@ -124,7 +124,6 @@ const api = (function () {
         return ret
     }
 
-
     const getEntity = async function (id) {
         const myUrl = makeUrl(id)
         const resp = await getUrl(myUrl)

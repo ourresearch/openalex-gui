@@ -12,9 +12,9 @@
       <v-chip
           color="white"
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
-          v-on="on"
           close
           close-icon="mdi-close"
+          @click="toggleMenu"
           @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
@@ -48,11 +48,10 @@
           {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
         </v-btn>
       </v-card-actions>
-
-
     </v-card>
   </v-menu>
 </template>
+
 
 <script>
 
@@ -61,7 +60,7 @@ import {api} from "@/api";
 import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
 import {url} from "@/url";
 
-import {getEntityConfig, getEntityConfigs, getLocationString} from "@/entityConfigs";
+import {getEntityConfig, getEntityConfigs} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 
@@ -91,10 +90,6 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
-    isEntity() {
-      // if (!this.filterId) return false
-      return getEntityConfigs().some(c => c.filterKey === this.filterId)
-    },
     myEntityType(){
       console.log("FilterSelectOption filterValue", this.filterValue)
       return entityTypeFromId(this.filterValue)
@@ -114,10 +109,6 @@ export default {
     subtitle(){
       return "subtitle"
     },
-    locationStr(){
-      if (!this.entityData) return
-      return getLocationString(this.entityData)
-    },
     alternateNamesString() {
       return [
         ...this.entityData?.display_name_alternatives ?? [],
@@ -129,6 +120,12 @@ export default {
     filterDisplayValue(){
       return this.entityData?.display_name
     },
+    isValueNull() {
+      return this.filterValue.split("/").slice(-1)[0] === "null"
+    },
+    nullDisplayValue() {
+      return this.filterConfig.displayNullAs ?? "Unknown"
+    }
   },
   methods: {
     getEntityConfig,
@@ -136,12 +133,25 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
+    toggleMenu() {
+      if (!this.isValueNull) { // Don't try to show entity menu for null values
+        this.isMenuOpen = !this.isMenuOpen
+      }
+    }
   },
   created() {
   },
   async mounted() {
     this.isLoading = true
-    this.entityData = await api.getEntity(this.filterValue)
+    console.log("filterOptionSelect requesting entityData for: " + this.filterValue)
+    console.log("isValueNull: " + this.isValueNull)
+    if (this.isValueNull) {
+      this.entityData = {
+        display_name: this.nullDisplayValue
+      }
+    } else {
+      this.entityData = await api.getEntity(this.filterValue)
+    }
     this.isLoading = false
 
     // setTimeout(()=>{
@@ -157,6 +167,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 .option {

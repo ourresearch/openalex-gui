@@ -9,7 +9,6 @@
         <v-col
             cols="6"
             xl="4"
-
             v-if="url.isViewSet($route, 'list')"
         >
           <serp-results-list :results-object="resultsObject"/>
@@ -167,7 +166,6 @@ export default {
 
       selectedActionTab: "filter",
 
-
       searchString: "",
       url,
       actionConfigs,
@@ -268,7 +266,6 @@ export default {
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
     },
-
     entityType() {
       return this.$route.params.entityType
     },
@@ -283,8 +280,6 @@ export default {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("filter"))
     },
-
-
   },
   methods: {
     ...mapMutations([
@@ -327,7 +322,6 @@ export default {
 
     }
   },
-
   created() {
   },
   async mounted() {
@@ -368,14 +362,11 @@ export default {
           }
           url.pushToRoute(this.$router, {name: "Serp", query})
           return
-
         }
-
 
         if (this.userId) {
           this.$store.commit("user/setActiveSearchId", this.$route.query.id)
         }
-
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
@@ -387,7 +378,6 @@ export default {
         // this.count = this.meta.count
         //
         // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
-
 
         this.$store.state.resultsObject = resp
 
@@ -403,6 +393,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 .container {

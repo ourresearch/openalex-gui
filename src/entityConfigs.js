@@ -492,13 +492,13 @@ const getEntityConfigs = function () {
 
 const getEntityConfig = function (name) {
     if (!name) {
+        console.trace()
         throw new Error("OpenAlex: getEntityConfig(): you must provide a @name argument.")
     }
     return getEntityConfigs().find(c => {
         return c.nameSingular === name || c.name === name
     })
 }
-
 
 
 const nativeEntityTypeFromId = function (id) {
@@ -513,6 +513,8 @@ const nativeEntityTypeFromId = function (id) {
             return shortIdFirstLetter === entityNameFirstLetter
         })
 }
+
+
 const externalEntityTypeFromId = function (id) {
     id = id.replaceAll("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
 
@@ -542,7 +544,6 @@ const parseEntityId = function (id) {
     id = id.replaceAll("https://openalex.org/", "")
     id = id.replaceAll("openalex:", "")
 
-
     getEntityConfigs().filter(c => c.isNative).forEach(c => {
         const entityTypeFirstLetter = c.entityType.substr(0, 1)
         const regex = new RegExp(`^${entityTypeFirstLetter}\\d+$`)
@@ -567,6 +568,7 @@ const parseEntityId = function (id) {
     }
 }
 
+
 const urlPartsFromId = function (id) {
     const shortId = shortenOpenAlexId(id)
     const entityType = entityTypeFromId(id)
@@ -582,12 +584,7 @@ const urlPartsFromId = function (id) {
 }
 
 
-
-
 // maybe make something that parses an id, no matter what the format, and returns the entityType and entityId
-
-
-
 
 
 const getLocationString = function (entity) {

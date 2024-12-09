@@ -29,13 +29,9 @@ import {getEntityConfigs} from "@/entityConfigs";
 Vue.use(VueRouter)
 
 
-// const entityNames = "works|authors|sources|publishers|funders|institutions|concepts"
-
 const entityNames = getEntityConfigs().map(c => c.name).join("|")
 
 const routes = [
-
-
 
     // data pages
     {
@@ -179,9 +175,8 @@ const routes = [
     },
 
     {path: '*', component: PageNotFound},
-
-
 ]
+
 
 const router = new VueRouter({
     routes,
@@ -200,6 +195,7 @@ const router = new VueRouter({
         }
     },
 })
+
 
 const redirectFromOldFilters = function (to, from, next) {
     const redirects = {

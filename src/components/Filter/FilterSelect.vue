@@ -124,7 +124,6 @@ export default {
       }
     },
   },
-
   methods: {
     filter,
     ...mapMutations([
@@ -176,6 +175,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 input {
