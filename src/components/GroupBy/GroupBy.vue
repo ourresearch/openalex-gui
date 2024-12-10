@@ -45,7 +45,7 @@
 
         </v-list>
       </v-menu>
-      <v-btn icon @click="url.toggleGroupBy(filterKey)">
+      <v-btn v-if="!isEntityPage" icon @click="url.toggleGroupBy(filterKey)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
@@ -183,6 +183,7 @@ export default {
     filterKey: String,
     entityType: String,
     filterBy: Array,
+    isEntityPage: Boolean,
   },
   data() {
     return {

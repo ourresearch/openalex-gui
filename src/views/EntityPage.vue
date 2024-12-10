@@ -54,8 +54,6 @@
             </v-list>
           </v-card>
         </v-col>
-        <!--        <v-col cols="12" md="4">-->
-        <!--        </v-col>-->
         <v-col cols="12" md="5">
           <v-card flat rounded class="px-2 pb-3">
             <v-toolbar flat>
@@ -64,9 +62,6 @@
                 Key stats
               </v-toolbar-title>
               <v-spacer/>
-              <!--              <v-btn color="primary" rounded text @click="viewMyWorks">-->
-              <!--                View more-->
-              <!--              </v-btn>-->
             </v-toolbar>
             <group-by
                 v-for="groupByKey in groupByKeys"
@@ -74,32 +69,12 @@
                 :filter-key="groupByKey"
                 :filter-by="[myWorksFilter]"
                 entity-type="works"
+                :is-entity-page="true"
                 class="mb-3"
             />
           </v-card>
         </v-col>
-
       </v-row>
-
-      <!--      <entity-body-->
-      <!--          :data="entityData"-->
-      <!--          :type="myEntityType"-->
-      <!--          v-if="entityData && myEntityType"-->
-      <!--      />-->
-
-
-      <!--    <template v-if="isDataMatchingId">-->
-      <!--      <entity-work v-if="myEntityName === 'works'" :data="entityData" />-->
-      <!--      <entity-body v-else :data="entityData" />-->
-
-      <!--    </template>-->
-
-      <!--    <component-->
-      <!--        class=""-->
-      <!--        :is="myEntityComponentName"-->
-      <!--        :data="entityData"-->
-      <!--        v-if="isDataMatchingId"-->
-      <!--    />-->
     </v-container>
     <entity-drawer />
   </div>
