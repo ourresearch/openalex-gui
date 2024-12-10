@@ -563,20 +563,25 @@ const getActionValueKeys = function (currentRoute, action) {
     })
 }
 
-const getDefaultSortValueForRoute = function(currentRoute){
-    return isSearchFilterApplied(currentRoute) ?
-        "relevance_score" :
-        (currentRoute.params.entityType === "works") ?
-            "cited_by_count" :
-            "works_count"
+
+const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
+    let sort = ""
+    if (isSearchFilterApplied(currentRoute)) {
+        sort = "relevance_score"
+    } else {
+        sort = currentRoute.params.entityType === "works" ? "cited_by_count" : "works_count"
+    }
+
+    return sort + (withDirection ? ":desc" : "")
 }
+
 
 const setSortNoPush = function(sortByKey, route){
     const defaultValue = getDefaultSortValueForRoute(route)
     const appendVerb = (sortByKey === "display_name") ? "" : ":desc"
     const myNewKey = (sortByKey === defaultValue) ?
         undefined :
-        sortByKey + appendVerb;
+        sortByKey + appendVerb
 
     return {
         name: "Serp",
@@ -588,13 +593,17 @@ const setSortNoPush = function(sortByKey, route){
     }
 }
 
+
 const setSort = function (filterKey) {
     return pushToRoute(router, setSortNoPush(filterKey, router.currentRoute))
 }
+
+
 const getSort = function (currentRoute) {
     const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
     return currentRoute.query.sort?.replace(":desc", "") ?? defaultValue
 }
+
 
 const toggleSort = function (filterKey) {
     const currentSort = getSort(router.currentRoute)
@@ -800,11 +809,9 @@ const makeAutocompleteUrl = function (entityId, searchString) {
 }
 
 const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
-
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
-
 
     const query = {
         filter: filterString,
@@ -817,7 +824,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.group_by = groupBy
     } else {
         query.page = currentRoute.query.page
-        query.sort = currentRoute.query.sort
+        query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
         query.per_page = currentRoute.query.per_page
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
@@ -846,12 +853,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
 
     apiUrl.search = decodeURIComponent(searchParams.toString())
     return apiUrl.toString()
-
 }
 
 
 const makeGroupByUrl = function (entityType, groupByKey, options) {
-
     // set options from defaults and args
     const defaults = {
         searchString: null,
@@ -891,7 +896,6 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         url.search = url.search + "&filter=" + filtersAsUrlStr(options.filters)
     }
 
-
     // all done
     return url.toString()
 }
@@ -927,7 +931,6 @@ const url = {
     setFilterMatchMode,
     makeFilterRoute,
     pushNewFilters,
-
 
     deleteFilterOption,
     deleteFilterOptionByKey,
@@ -966,12 +969,10 @@ const url = {
 
     setSidebar,
 
-
     setSearch,
     setPage,
 
     isGroupBy,
-
 
     makeGroupByUrl,
     makeAutocompleteUrl,

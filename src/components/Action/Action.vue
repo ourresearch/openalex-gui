@@ -20,17 +20,7 @@
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <!--            <v-icon left>mdi-sort</v-icon>-->
-<!--            <template v-if="$vuetify.breakpoint.smAndUp">-->
-<!--              {{ selectedSortConfig.displayName }}-->
-<!--              <v-icon right>mdi-menu-down</v-icon>-->
-<!--            </template>-->
-<!--            <template v-else>-->
               <v-icon>mdi-sort</v-icon>
-
-<!--            </template>-->
-
-
           </template>
           <template v-if="myConfig.id === 'group_by'">
             <!--            Add-->
@@ -146,7 +136,7 @@ import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 
 export default {
-  name: "Template",
+  name: "Action",
   components: {},
   props: {
     action: String,
@@ -164,26 +154,6 @@ export default {
 
       "entityType",
     ]),
-    // selected: {
-    //   get() {
-    //     if (this.action === 'sort') {
-    //       return url.getSort(this.$route)
-    //     } else if (this.action === "group_by") {
-    //       return url.getGroupBy(this.$route)
-    //     } else if (this.action === "column") {
-    //       return url.getColumn(this.$route)
-    //     }
-    //   },
-    //   set(to) {
-    //     if (this.action === 'sort') {
-    //       url.setSort(to)
-    //     } else if (this.action === "group_by") {
-    //       url.setGroupBy(to)
-    //     } else if (this.action === "column") {
-    //       url.setColumn(to)
-    //     }
-    //   }
-    // },
     selectedOptions() {
       return url.getActionValueKeys(this.$route, this.action)
     },
@@ -206,18 +176,10 @@ export default {
       })
       return ret
     },
-    selectedSortConfig() {
-      if (this.action !== 'sort') return
-      const sortKey = url.getSort(this.$route)
-      return getFacetConfig(this.entityType, sortKey)
-    },
-
-
     myConfig() {
       return getActionConfig(this.action)
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
