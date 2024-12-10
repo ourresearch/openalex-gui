@@ -151,12 +151,10 @@ const pushNewFilters = async function (newFilters, entityType) {
          entityType = router.currentRoute.params.entityType ?? "works"
     }
 
-
     const query = {
         ...router.currentRoute.query,
         page: 1,
         filter,
-        sort: undefined, // not ideal, faster to implement this way tho
     }
     const newRoute = {
         name: "Serp",
@@ -175,6 +173,8 @@ const createFilter = async function (entityType, key, newValue) {
 
 const createFilterNoPush = function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    console.log("createFilterNoPush oldFilters")
+    console.log(oldFilters)
     const newFilter = createSimpleFilter(entityType, key, newValue)
     return [...oldFilters, newFilter]
 }

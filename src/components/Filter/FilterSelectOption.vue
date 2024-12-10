@@ -144,7 +144,7 @@ export default {
   async mounted() {
     this.isLoading = true
     console.log("filterOptionSelect requesting entityData for: " + this.filterValue)
-    console.log("isValueNull: " + this.isValueNull)
+    //console.log("isValueNull: " + this.isValueNull)
     if (this.isValueNull) {
       this.entityData = {
         display_name: this.nullDisplayValue
