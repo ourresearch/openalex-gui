@@ -283,7 +283,6 @@ const api = (function () {
     }
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
-        // await sleep(1000)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,

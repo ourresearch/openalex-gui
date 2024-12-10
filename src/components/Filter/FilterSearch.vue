@@ -31,6 +31,7 @@
 
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -38,7 +39,6 @@ import {facetConfigs, getFacetConfig} from "../../facetConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 import FilterBase from "@/components/Filter/FilterBase.vue";
-
 
 import {filter} from "core-js/internals/array-iteration";
 
@@ -60,7 +60,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {
@@ -78,7 +77,6 @@ export default {
       }
     }
   },
-
   methods: {
     filter,
     ...mapMutations([
@@ -93,8 +91,6 @@ export default {
       this.isActive = false
       this.searchString = this.value
     }
-
-
   },
   created() {
   },
@@ -108,6 +104,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 input {

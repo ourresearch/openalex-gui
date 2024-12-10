@@ -101,11 +101,9 @@
             style=""
             class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
             append-outer-icon="mdi-close"
-
             @keyup.enter="onEnter"
             @click:append-outer="clickCloseSearch"
             @click:prepend-inner="clickPrependIcon"
-
         />
         <v-divider/>
 
