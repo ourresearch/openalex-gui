@@ -4,10 +4,6 @@
       color="primary"
       exact
   >
-    <!--          @click="clickResult(result.id)"-->
-    <!--        <v-list-item-icon v-if="showIcon && !$vuetify.breakpoint.mobile" class="">-->
-    <!--          <v-icon class="">mdi-file-document-outline</v-icon>-->
-    <!--        </v-list-item-icon>-->
     <v-list-item-content>
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
         <div class="" v-html="$prettyTitle(result.display_name)"></div>
@@ -19,8 +15,8 @@
           <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
           <span v-if="result.primary_location?.source?.display_name"> · </span>
           <span v-if="result.primary_location?.source?.display_name" class="font-italic">
-                  {{ result.primary_location?.source?.display_name }}
-                </span>
+            {{ result.primary_location?.source?.display_name }}
+          </span>
         </div>
         <div v-else>
           {{ unworkSubheader }}
@@ -41,28 +37,28 @@
             text
             small
             class="px-1"
-            @click.prevent="viewCitingPapers"
+            @click.stop.prevent="viewCitingPapers"
         >
           Cited by {{ result.cited_by_count | toPrecision }}
         </v-btn>
 
         <span @click.stop>
-              <v-btn
-                  v-if="result?.best_oa_location?.pdf_url"
-                  :href="result?.best_oa_location?.pdf_url"
-                  target="_blank"
-                  text
-                  small
-                  class="ml-2"
-              >
-                PDF
-              </v-btn>
-
-            </span>
+          <v-btn
+              v-if="result?.best_oa_location?.pdf_url"
+              :href="result?.best_oa_location?.pdf_url"
+              target="_blank"
+              text
+              small
+              class="ml-2"
+          >
+            PDF
+          </v-btn>
+        </span>
       </div>
     </v-list-item-content>
   </v-list-item>
 </template>
+
 
 <script>
 
@@ -73,8 +69,9 @@ import {createSimpleFilter} from "@/filterConfigs";
 import {entityTypeFromId} from "@/util";
 import {getEntityConfig, getLocationString} from "@/entityConfigs";
 
+
 export default {
-  name: "Template",
+  name: "SerpResultsListItem",
   components: {
     WorkAuthorsString,
   },
@@ -90,7 +87,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -121,7 +117,6 @@ export default {
       return ret
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -129,7 +124,8 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     viewCitingPapers() {
-      url.createFilter(this.entityType, "cites", this.result.id)
+      const citesFilter = createSimpleFilter(this.entityType, "cites", this.result.id)
+      url.pushNewFilters([citesFilter], "works")
     },
     viewWorks() {
       const myWorksFilter = createSimpleFilter(
@@ -139,8 +135,6 @@ export default {
       )
       url.pushNewFilters([myWorksFilter], "works")
     },
-
-
   },
   created() {
   },
@@ -149,6 +143,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

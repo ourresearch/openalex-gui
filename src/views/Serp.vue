@@ -21,7 +21,6 @@
         </v-col>
       </v-row>
 
-
       <template v-else>
         <v-row class="mb-12">
           <v-col>
@@ -48,15 +47,11 @@
           </v-col>
         </v-row>
       </template>
-
-
     </v-container>
-
     <entity-drawer />
   </div>
-
-
 </template>
+
 
 <script>
 
