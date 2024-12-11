@@ -90,13 +90,11 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
         })
         .join("&")
 
-
     return [baseAndPath, paramsStr].join("?")
 }
 
 
 const api = (function () {
-
     const getUrl = async function (url) {
         if (url.includes("filter=")) { // sdgs hack
             url = url.replace("sdgs/", "")
@@ -304,7 +302,6 @@ const api = (function () {
 
         }
     }
-
 
     return {
         createUrl: function (pathName, searchParams, includeEmail) {

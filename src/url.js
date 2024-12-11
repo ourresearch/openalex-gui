@@ -639,8 +639,8 @@ const setPerPage = function(val){
 }
 
 
-const getPerPage = function(currentRoute){
-    return currentRoute.query.per_page ?? perPageDefault
+const getPerPage = function() {
+    return router.currentRoute.query.per_page ?? perPageDefault
 }
 
 
@@ -699,15 +699,20 @@ const isViewDefault = function (viewIds) {
     const viewIdsString = [...viewIds].sort().join(",")
     return defaultViewIdsString === viewIdsString
 }
+
+
 const getView = function (route) {
     return route.query.view ?
         route.query.view?.split(",") :
         defaultViewIds
 }
+
+
 const isViewSet = function (route, viewId) {
     const myViewOptions = getView(route)
     return myViewOptions.includes(viewId)
 }
+
 
 const setView = function (viewIds) {
     const unsetViewParam = !viewIds.length || isViewDefault(viewIds)
@@ -717,6 +722,7 @@ const setView = function (viewIds) {
         viewIds.join(",")
     pushQueryParam("view", newViewValue)
 }
+
 
 const toggleView = function (viewId) {
     const selectedViewIds = getView(router.currentRoute)
@@ -731,19 +737,27 @@ const getGroupBy = function (route) {
     const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults
     return route.query.group_by?.split(",") ?? defaultValue
 }
+
+
 const setGroupBy = function (filterKeys) {
     pushQueryParam("group_by", filterKeys?.join(","))
 }
+
+
 const addGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     const newKeys = [...extantKeys, filterKey]
     pushQueryParam("group_by", newKeys.join(","))
 }
+
+
 const deleteGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     const newKeys = extantKeys.filter(k => k !== filterKey)
     pushQueryParam("group_by", newKeys.join(","))
 }
+
+
 const toggleGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     let newKeys
@@ -781,19 +795,19 @@ const setActionValueKeys = function (actionName, keys) {
     })
 }
 
+
 const addActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("addActionKey", current)
     setActionValueKeys(actionName, [...current, actionKey])
-
 }
+
 
 const deleteActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("deleteActionKey", actionName, actionKey)
     const newKeys = current.filter(k => k !== actionKey)
     setActionValueKeys(actionName, newKeys)
-
 }
 
 
@@ -841,7 +855,7 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     } else {
         query.page = currentRoute.query.page
         query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
-        query.per_page = currentRoute.query.per_page
+        query.per_page = currentRoute.query.per_page ?? perPageDefault
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }

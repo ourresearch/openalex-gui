@@ -22,7 +22,7 @@
             <v-list-item-content>
               <v-list-item-title>10</v-list-item-title>
             </v-list-item-content>
-            <v-list-item-icon v-if="url.getPerPage($route) === 10">
+            <v-list-item-icon v-if="url.getPerPage() === 10">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
@@ -30,7 +30,7 @@
             <v-list-item-content>
               <v-list-item-title>100</v-list-item-title>
             </v-list-item-content>
-            <v-list-item-icon v-if="url.getPerPage($route) === 100">
+            <v-list-item-icon v-if="url.getPerPage() === 100">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
@@ -49,6 +49,7 @@
     </v-list>
     <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
+          v-if="showPagination"
           class="pb-8 pt-3 elevation-0"
           circle
           v-model="page"
@@ -97,7 +98,6 @@ export default {
     return {
       foo: 42,
       url,
-      resultsPerPage: 10, // not editable now, but could be in future
     }
   },
   computed: {
@@ -110,7 +110,7 @@ export default {
           10
 
       return Math.min(
-          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
+          Math.floor(this.resultsObject.meta.count / url.getPerPage()),
           maxToShow
       )
     },
@@ -122,6 +122,12 @@ export default {
         const valToUse = (val === 1) ? undefined : val
         url.setPage(valToUse)
       }
+    },
+    showPagination() {
+      console.log("showPagination results.perPage: " + this.resultsPerPage)
+      console.log("showPagination getPerPage: " + url.getPerPage())
+
+      return this.resultsObject.meta.count > url.getPerPage()
     },
     isShowApiSet: {
       get() {
