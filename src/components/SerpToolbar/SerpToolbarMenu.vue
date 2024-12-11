@@ -49,8 +49,6 @@
     </v-menu>
 
 
-
-
     <v-menu offset-y>
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on">
@@ -124,7 +122,12 @@
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <qrcode-vue :value="urlToShare" :size="qrCodeSize" class=""/>
+        <v-card-text v-if="isUrlTooBigForQR">
+          <v-alert  type="warning" text>
+            Your current URL is too long to create a QR code.
+          </v-alert>
+        </v-card-text>
+        <qrcode-vue v-else :value="urlToShare" :size="qrCodeSize" class=""/>
         <v-card-actions class="">
           <v-spacer/>
           <v-btn color="primary" rounded @click="isDialogOpen.qrCode = false">Dismiss</v-btn>
@@ -143,8 +146,9 @@ import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 
+
 export default {
-  name: "Template",
+  name: "SerpToolbarMenu",
   components: {
     QrcodeVue,
   },
@@ -166,7 +170,6 @@ export default {
       return url
     },
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -174,15 +177,15 @@ export default {
       "activeSearchHasAlert",
       "activeSearchObj",
       "isUserSaving",
-
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath
     },
+    isUrlTooBigForQR() {
+      return this.urlToShare.length > 3000
+    },
     qrCodeSize() {
-      return this.$vuetify.breakpoint.mdAndUp ?
-          400 :
-          300
+      return this.$vuetify.breakpoint.mdAndUp ? 400 : 300
     },
     groupByDownloadUrl() {
       const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
@@ -196,7 +199,6 @@ export default {
       )
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -212,8 +214,6 @@ export default {
       await navigator.clipboard.writeText(this.urlToShare);
       this.snackbar("URL copied to clipboard.")
     },
-
-
   },
   created() {
   },

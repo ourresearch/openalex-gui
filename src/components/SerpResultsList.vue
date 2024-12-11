@@ -124,9 +124,6 @@ export default {
       }
     },
     showPagination() {
-      console.log("showPagination results.perPage: " + this.resultsPerPage)
-      console.log("showPagination getPerPage: " + url.getPerPage())
-
       return this.resultsObject.meta.count > url.getPerPage()
     },
     isShowApiSet: {
