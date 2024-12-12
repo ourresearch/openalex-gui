@@ -8,7 +8,6 @@
       v-model="isMenuOpen"
   >
     <template v-slot:activator="{on}">
-      <!--    <v-progress-circular v-if="isLoading" size="10" indeterminate class="mr-2" />-->
       <v-chip
           color="white"
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
@@ -23,10 +22,9 @@
         <template v-else>
           loading...
         </template>
-<!--        <v-icon>mdi-menu-down</v-icon>-->
       </v-chip>
     </template>
-    <v-card :loading="isLoading">
+    <v-card :loading="isLoading" v-if="myEntityConfig">
       <v-card-title>
         {{ filterDisplayValue }}
       </v-card-title>
@@ -34,7 +32,7 @@
         {{ filterValue }}
       </v-card-subtitle>
       <v-divider class="my-2" />
-      <entity-new v-if="myEntityConfig" :data="entityData" :type="myEntityConfig.name" />
+      <entity-new :data="entityData" :type="myEntityConfig.name" />
       <v-divider/>
       <v-card-actions>
         <v-spacer/>
@@ -84,16 +82,13 @@ export default {
       isLoading: false,
       isMenuOpen: false,
       entityData: null,
+      myEntityConfig: null,
     }
   },
   computed: {
     ...mapGetters([
       "entityType",
     ]),
-    myEntityType(){
-      console.log("FilterSelectOption filterValue", this.filterValue)
-      return entityTypeFromId(this.filterValue)
-    },
     filterConfig(){
       return getFacetConfig(this.entityType, this.filterKey)
     },
@@ -103,9 +98,6 @@ export default {
     menuKey() {
       return this.filterKey + '-' + this.filterId
     },
-    myEntityConfig(){
-      return getEntityConfig(this.myEntityType)
-    },
     subtitle(){
       return "subtitle"
     },
@@ -114,7 +106,6 @@ export default {
         ...this.entityData?.display_name_alternatives ?? [],
         ...this.entityData?.display_name_acronyms ?? [],
         ...this.entityData?.alternate_titles ?? [],
-
       ].join("; ")
     },
     filterDisplayValue(){
@@ -134,7 +125,8 @@ export default {
     ]),
     ...mapActions([]),
     toggleMenu() {
-      if (!this.isValueNull) { // Don't try to show entity menu for null values
+      // Don't try to show entity menu for null values or values that failed to get data from entity endpoint
+      if (!this.entityData.hideMenu) {
         this.isMenuOpen = !this.isMenuOpen
       }
     }
@@ -143,26 +135,28 @@ export default {
   },
   async mounted() {
     this.isLoading = true
-    console.log("filterOptionSelect requesting entityData for: " + this.filterValue)
-    //console.log("isValueNull: " + this.isValueNull)
+    //console.log("filterOptionSelect requesting entityData for: " + this.filterValue)
     if (this.isValueNull) {
       this.entityData = {
-        display_name: this.nullDisplayValue
+        display_name: this.nullDisplayValue,
+        hideMenu : true
       }
     } else {
-      this.entityData = await api.getEntity(this.filterValue)
+      try {
+        this.entityData = await api.getEntity(this.filterValue)
+        // Don't try getting entityConfig on filterValue unless API calls return,
+        // when entity endpoint aren't available filterValue doesn't return from API will type included.
+        const myEntityType = entityTypeFromId(this.filterValue)
+        this.myEntityConfig = getEntityConfig(myEntityType)
+      } catch (e) {
+        // Mock data whenever API calls fails
+        this.entityData = {
+          display_name: this.filterValue,
+          hideMenu: true
+        }
+      }
     }
     this.isLoading = false
-
-    // setTimeout(()=>{
-    //   if (this.$store.state.filterOptionChipOpenMenu === this.menuKey){
-    // this.isMenuOpen = true
-    //
-    //   }
-    //
-    // }, 100)
-
-
   },
   watch: {}
 }

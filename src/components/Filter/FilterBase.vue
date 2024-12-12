@@ -5,7 +5,6 @@
       :class="{clickable, card: $vuetify.breakpoint.smAndDown}"
   >
     <td class="grey--text shrink pl-5 d-none d-md-table-cell">
-<!--      {{ index + 1 }}.-->
       <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
     </td>
     <td class="grey--text shrink d-none d-md-table-cell">
@@ -65,8 +64,6 @@
         </div>
       </div>
     </template>
-
-
   </tr>
 </template>
 
@@ -132,15 +129,12 @@ export default {
       }
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -149,6 +143,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 tr {
@@ -164,7 +159,6 @@ tr {
     align-content: center;
     td {
       display: block;
-
     }
   }
 }

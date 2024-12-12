@@ -20,11 +20,6 @@
           or
         </span>
       </template>
-
-<!--      <v-btn class="" icon @click.stop="isActive = true">-->
-<!--        <v-icon>mdi-plus-thick</v-icon>-->
-<!--      </v-btn>-->
-
     </div>
 
     <v-dialog

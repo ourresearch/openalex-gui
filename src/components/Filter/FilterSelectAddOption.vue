@@ -17,7 +17,6 @@
         </template>
         <template v-else>
           {{ hasAutocomplete ? "Top" : "All" }}
-<!--          {{ entityConfig?.name | pluralize(2) }}-->
           {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
@@ -26,7 +25,6 @@
       <filter-select-edit-row
           v-for="row in suggestions"
           :key="row.value + row.count"
-
           :filter-key="filterKey"
           :filter-index="filterIndex"
           :value="row.value"
@@ -35,14 +33,10 @@
           :hint="row.hint"
           :is-from-autocomplete="row.isFromAutocomplete"
       />
-
-
-      <!--            @add="(id) => {$emit('add', id)}"-->
-
-
     </v-list>
   </v-card>
 </template>
+
 
 <script>
 
