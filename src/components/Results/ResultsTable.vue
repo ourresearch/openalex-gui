@@ -69,8 +69,6 @@
         }}{{ resultsMeta?.count | toPrecision }}
         results
       </div>
-
-
       <!--      <v-menu rounded>-->
       <!--        <template v-slot:activator="{ on }">-->
       <!--          <v-btn icon v-on="on">-->
@@ -278,6 +276,7 @@ import LabelCreate from "@/components/Label/LabelCreate.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 
+
 export default {
   name: "Template",
   components: {
@@ -294,18 +293,15 @@ export default {
       foo: 42,
       selectedIds: [],
       isEntireSearchSelected: false,
-
       zoomId: null,
       isPropSelectorDialogOpen: false,
       isCreateLabelDialogOpen: false,
       isCorrectionDialogOpen: false,
-
       columnSearch: "",
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -337,8 +333,6 @@ export default {
     isEveryRowSelected() {
       return this.selectedIds.length === this.resultsBody.length
     },
-
-
     selectAllIcon() {
       if (this.isEveryRowSelected) {
         return "mdi-checkbox-marked"
@@ -363,7 +357,6 @@ export default {
           })
     },
   },
-
   methods: {
     unravel,
     ...mapMutations([
@@ -475,6 +468,7 @@ export default {
 }
 </script>
 
+
 <style scoped lang="scss">
 td.data-type-number {
   text-align: right;
@@ -490,5 +484,4 @@ td.data-type-number {
 a {
   text-decoration: none;
 }
-
 </style>
