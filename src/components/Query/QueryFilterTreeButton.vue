@@ -42,7 +42,7 @@
           <v-list-item
               v-for="column in newFilterColumnOptions"
               :key="column.id"
-              @click="$emit('addFilter', column.id)"
+              @click="$emit('addFilter', column.id, column.type)"
           >
             <v-list-item-icon>
               <v-icon>{{ column.icon }}</v-icon>

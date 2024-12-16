@@ -86,15 +86,15 @@
 
       <!--    second, boolean values -->
       <v-chip
+          v-else-if="columnConfig.type === 'boolean'"
           outlined
           label
-          v-else-if="columnConfig.type === 'boolean'"
           @click="selectedValue = !selectedValue"
       >
         {{ selectedValue }}
       </v-chip>
 
-      <!--    third, number  values -->
+      <!--    third, number values -->
       <div
           v-else-if="columnConfig.type === 'number' || columnConfig.type === 'string'"
       >
