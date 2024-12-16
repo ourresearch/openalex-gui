@@ -46,7 +46,6 @@
           >
             <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
-
         </div>
       </template>
 
@@ -67,6 +66,7 @@
       <query-filter-tree-button
           :subject-entity="subjectEntity"
           :parent-id="null"
+          :nameWorks="isWithAggs"
           @addFilter="addFilter"
       />
   </v-card>

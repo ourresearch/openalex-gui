@@ -1,16 +1,10 @@
 <template>
   <div  class="d-flex align-center flex-grow-1">
 
-
-<!--    <v-icon left>-->
-<!--      {{ columnConfig.icon }}-->
-<!--    </v-icon>-->
-
     <!--    The filter key-->
     <div class="font-weight-bold">
       {{ columnConfig.displayName }}
     </div>
-
 
     <!--    The filter operator-->
     <div>
@@ -46,7 +40,6 @@
         </v-list>
       </v-menu>
     </div>
-
 
     <!--    The filter value-->
     <!--    first, entity values -->
@@ -88,10 +81,7 @@
               class="flex-grow-1"
               autofocus
           ></v-autocomplete>
-
         </template>
-
-
       </template>
 
       <!--    second, boolean values -->
@@ -101,7 +91,6 @@
           v-else-if="columnConfig.type === 'boolean'"
           @click="selectedValue = !selectedValue"
       >
-<!--        <v-icon left>{{ selectedValue ? "mdi-check" : "mdi-cancel" }}</v-icon>-->
         {{ selectedValue }}
       </v-chip>
 
@@ -132,13 +121,13 @@
           {{ (selectedValue || "click to edit") }}
           <v-icon right>mdi-pencil-outline</v-icon>
         </v-btn>
-
       </div>
 
     </div>
 
   </div>
 </template>
+
 
 <script>
 
@@ -148,24 +137,22 @@ import {getConfigs} from "@/oaxConfigs";
 import axios from "axios";
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
 
+
 export default {
-  name: "Template",
+  name: "QueryFilterTreeLeaf",
   components: {
     QueryFilterValueChip,
   },
   props: {
     filter: Object,
-
     column_id: String,
     operator: String,
     value: [String, Number, Boolean],
-
     subjectEntity: String,
   },
   data() {
     return {
       foo: 42,
-
       // for the async autocomplete values
       asyncValueOptions: [],
       search: "",
@@ -197,7 +184,6 @@ export default {
     operatorOptions() {
       return this.columnConfig.operators
     },
-
     localValueOptions() {
       if (!this.columnConfig.objectEntity) return []
       const values = getConfigs()[this.columnConfig.objectEntity]?.values ?? []
@@ -206,7 +192,6 @@ export default {
     valueOptions() {
       return (this.localValueOptions.length) ? this.localValueOptions : this.asyncValueOptions
     },
-
     selectedOperator: {
       get() {
         return this.operator ?? this.columnConfig.defaultOperator
@@ -224,7 +209,6 @@ export default {
       }
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -278,8 +262,6 @@ export default {
         this.loading = false;
       }
     }, 300, {leading: true}),
-
-
   },
   created() {
     // if (this.columnConfig.type === "boolean") {
@@ -293,6 +275,7 @@ export default {
     // }
   },
   mounted() {
+    console.log(this.columnConfig)
   },
   watch: {
     search(val){
@@ -301,6 +284,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -1,5 +1,5 @@
 <template>
-    <v-menu rounded offset-y>
+    <v-menu rounded offset-y v-model="isMenuOpen">
       <template v-slot:activator="{ on }">
         <v-btn
             v-on="on"
@@ -7,10 +7,10 @@
             color="primary"
             small
         >
-          <v-icon>mdi-plus</v-icon> Add Filter
+          <v-icon>mdi-plus</v-icon> Add {{nameWorks ? "Works " : ""}}Filter
         </v-btn>
       </template>
-      <v-card flat rounded>
+      <v-card flat rounded v-if="isMenuOpen">
         <v-text-field
             v-model="search"
             filled
@@ -72,11 +72,13 @@ export default {
       type: [String, null],
     },
     subjectEntity: String,
+    nameWorks: Boolean,
   },
   data() {
     return {
       foo: 42,
       search: "",
+      isMenuOpen: false,
     }
   },
   computed: {
@@ -109,7 +111,13 @@ export default {
   },
   mounted() {
   },
-  watch: {}
+  watch: {
+    isMenuOpen(newValue) {
+      if (!newValue) {
+        this.search = ""
+      }
+    }
+  }
 }
 </script>
 
