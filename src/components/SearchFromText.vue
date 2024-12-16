@@ -68,9 +68,11 @@
   </v-textarea>
 </template>
 
+
 <script>
 import axios from "axios";
 import {mapActions, mapGetters} from "vuex";
+
 
 export default {
   name: 'SearchFromText',

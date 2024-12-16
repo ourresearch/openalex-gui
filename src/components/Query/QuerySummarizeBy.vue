@@ -14,23 +14,17 @@
     <!--        filled-->
     <!--        dense-->
     <!--    />-->
-
-
-
-
     <v-menu max-height="33vh" rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
-            text
             rounded
             v-on="on"
             class="text-h6 "
         >
-          <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>
+         <!-- <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>-->
           <span class=" text-capitalize">
             <template v-if="query.get_rows === 'summary'">
-              <template v-if="query.summarize">Works summary</template>
-              <template v-else>Works</template>
+               Works Summary
             </template>
             <template v-else>
               {{ query.get_rows  }}
@@ -64,7 +58,7 @@
             <v-list-item-icon>
               <v-icon>mdi-file-document</v-icon>
             </v-list-item-icon>
-            <v-list-item-title>Works summary</v-list-item-title>
+            <v-list-item-title>Works Summary</v-list-item-title>
              <!--            <v-list-item-icon v-if="selected === entity.id">-->
              <!--              <v-icon>mdi-check</v-icon>-->
              <!--            </v-list-item-icon>-->
@@ -93,13 +87,15 @@
   </span>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
+
 export default {
-  name: "Template",
+  name: "QuerySummarizeBy",
   components: {},
   props: {},
   data() {
@@ -129,7 +125,6 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -140,8 +135,6 @@ export default {
       "setSummarize",
       "createSearch",
     ]),
-
-
   },
   created() {
   },
@@ -150,6 +143,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

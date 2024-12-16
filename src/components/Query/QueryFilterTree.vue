@@ -1,16 +1,6 @@
 <template>
-  <v-card flat rounded>
-    <v-toolbar flat transparent>
-      <v-toolbar-title class="text-h6">
-        {{ subjectEntity }} filters
-      </v-toolbar-title>
-      <v-spacer/>
-      <query-filter-tree-button
-          :subject-entity="subjectEntity"
-          :parent-id="null"
-          @addFilter="addFilter"
-      />
-    </v-toolbar>
+  <v-card flat rounded style="margin-top: 28px !important">
+    <div v-html="topText" class="query-section-label"/>
 
     <v-treeview
         :items="displayFilters"
@@ -36,20 +26,18 @@
         </span>
       </template>
 
-
       <template v-slot:label="{ item, open }">
         <query-filter-tree-leaf
             class=""
-
             :column_id="item.column_id"
             :operator="item.operator"
             :value="item.value"
             :subject-entity="subjectEntity"
-
             @setOperator="(operator) => setFilterOperator(item.path, operator)"
             @setValue="(value) => setFilterValue(item.path, value)"
         />
       </template>
+
       <template v-slot:append="{ item, open }">
         <div class="d-flex">
           <v-btn
@@ -76,12 +64,14 @@
     <!--        <pre>{{ myFilters }}</pre>-->
     <!--      </v-col>-->
     <!--    </v-row>-->
-
-    <v-card-text v-if="myFilters.length === 0" class="">
-      No filters applied
-    </v-card-text>
+      <query-filter-tree-button
+          :subject-entity="subjectEntity"
+          :parent-id="null"
+          @addFilter="addFilter"
+      />
   </v-card>
 </template>
+
 
 <script>
 
@@ -100,8 +90,9 @@ import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue"
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
 import Vue from "vue";
 
+
 export default {
-  name: "Template",
+  name: "QueryFilterTree",
   components: {
     QueryFilterTreeLeaf,
     QueryFilterTreeBranch,
@@ -110,12 +101,12 @@ export default {
   props: {
     subjectEntity: String,
     filters: Array,
+    isWithAggs: Boolean,
   },
   data() {
     return {
       foo: 42,
       openNodes: [],
-
       myFilters: [],
     }
   },
@@ -128,9 +119,7 @@ export default {
       "query",
       "querySubjectEntity",
       "querySubjectEntityConfig",
-
     ]),
-
     displayFilters() {
       return this.myFilters.map((f, i) => {
         return {
@@ -142,7 +131,6 @@ export default {
         }
 
       })
-
     },
     filtersToStore() {
       const ret = this.myFilters.filter(f => {
@@ -154,8 +142,19 @@ export default {
       })
       return _.cloneDeep(ret)
     },
+    isEmpty() {
+      return this.myFilters.length === 0
+    },
+    topText() {
+      if (this.isWithAggs && !this.isEmpty) {
+        return "Based on <b>works</b> where"
+      } else if (this.isWithAggs && this.isEmpty) {
+        return "Based on <b>all works</b>"
+      } else {
+        return "Where"
+      }
+    }
   },
-
   methods: {
     filter,
     ...mapMutations([
@@ -168,8 +167,6 @@ export default {
 
     ]),
     ...mapActions("user", []),
-
-
     // create
     addFilter(columnId) {
       this.myFilters.push({
@@ -178,16 +175,12 @@ export default {
         value: null,
       })
     },
-
-
     // read
     getFilterFromPath(path) {
       // for now we just assume there is only a flat array of filters
       const index = path[0]
       return this.myFilters[index]
     },
-
-
     // update
     setFilterOperator(pathToFilter, operator) {
       console.log("setFilterOperator", pathToFilter, operator)
@@ -195,15 +188,12 @@ export default {
       Vue.set(filterToUpdate, "operator", operator)
       this.applyFilters()
     },
-
     setFilterValue(pathToFilter, value) {
       console.log("setFilterValue", pathToFilter, value)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
       this.applyFilters()
     },
-
-
     // delete
     deleteFilter(path) {
       // for now we just assume there is only a flat array of filters
@@ -211,8 +201,6 @@ export default {
       this.myFilters.splice(index, 1)
       this.applyFilters()
     },
-
-
     // apply
     applyFilters() {
       if (this.subjectEntity === "works") {
@@ -222,8 +210,6 @@ export default {
       }
       this.createSearch()
     },
-
-
   },
   created() {
   },
@@ -241,9 +227,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+
+<style lang="scss">
 .invisible {
   visibility: hidden !important;
 }
-
+.v-treeview-node__root .v-treeview-node__level {
+  width: 0px
+}
 </style>
