@@ -2,7 +2,7 @@
   <v-container fluid class="pt-0">
     <v-row class="">
       <v-col cols="12" lg="5">
-        <v-card flat rounded style="padding: 10px 16px">
+        <v-card flat rounded style="padding: 10px 14px 20px 14px">
         <div class="query-section-label">Show</div> 
         <query-summarize-by style="margin-left: 8px"/>
 
@@ -19,7 +19,6 @@
         />
         </v-card>
 
-
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
@@ -35,17 +34,8 @@
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
+
             <v-list>
-<!--              <v-list-item :href="searchApiUrl" target="_blank">-->
-<!--                <v-list-item-icon>-->
-<!--                  <v-icon>mdi-api</v-icon>-->
-<!--                </v-list-item-icon>-->
-<!--                <v-list-item-title>-->
-<!--                  View in API-->
-<!--                  <v-icon x-small right>mdi-open-in-new</v-icon>-->
-<!--                </v-list-item-title>-->
-<!--              </v-list-item>-->
-<!--              <v-divider/>-->
               <v-list-item @click="toggleCard('queryJson')">
                 <v-list-item-icon>
                   <v-icon>mdi-code-braces-box</v-icon>
@@ -80,15 +70,16 @@
       </v-col>
 
       <v-col cols="12" lg="7">
-
         <v-card flat rounded>
-
           <results-table
               v-if="$store.state.search.is_completed"
           />
+          <results-searching v-else />
         </v-card>
       </v-col>
+
     </v-row>
+
     <v-dialog scrollable v-model="isOqlEditDialogOpen" max-width="600">
       <v-card flat rounded>
         <v-toolbar flat>
@@ -132,6 +123,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
+import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 import PropSelector from "@/components/PropSelector.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
@@ -147,6 +139,7 @@ export default {
   components: {
     SearchFromText,
     ResultsTable,
+    ResultsSearching,
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
@@ -256,6 +249,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 .query-section-label {
