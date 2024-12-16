@@ -2,12 +2,12 @@
     <v-menu rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
-            icon
             v-on="on"
+            style="margin-left: 16px; margin-top: 8px"
             color="primary"
-            class="px-1"
+            small
         >
-          <v-icon>mdi-plus</v-icon>
+          <v-icon>mdi-plus</v-icon> Add Filter
         </v-btn>
       </template>
       <v-card flat rounded>
@@ -56,14 +56,16 @@
     </v-menu>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 import {ordinalize} from "../../util";
 
+
 export default {
-  name: "Template",
+  name: "QueryFilterTreeButton",
   components: {},
   props: {
     parentId: {
@@ -95,7 +97,6 @@ export default {
       })
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -103,8 +104,6 @@ export default {
     ...mapMutations("search", []),
     ...mapActions("search", []),
     ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -113,6 +112,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

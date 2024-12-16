@@ -1,20 +1,36 @@
 <template>
   <v-container fluid class="pt-0">
-    <!--    <div>-->
-    <!--      {{ $store.state.search.oql }}-->
-    <!--    </div>-->
-
-
     <v-row class="">
-
-
       <v-col cols="12" lg="5">
+        <v-card flat rounded style="padding: 10px 16px">
+        <div class="query-section-label">Show</div> 
+        <query-summarize-by style="margin-left: 8px"/>
+
+        <query-filter-tree
+            class="mt-3"
+            v-if="querySubjectEntity !== 'works'"
+            :subject-entity="querySubjectEntity"
+            :filters="$store.state.search.query.filter_aggs"
+        />
+        <query-filter-tree
+            subject-entity="works"
+            :isWithAggs="querySubjectEntity !== 'works'"
+            :filters="$store.state.search.query.filter_works"
+        />
+        </v-card>
+
+
         <v-toolbar flat color="transparent">
           <div class="text-h6">Query</div>
           <v-spacer/>
 
           <v-menu rounded offset-y>
             <template v-slot:activator="{ on }">
+              
+              <v-btn icon :href="searchApiUrl" target="_blank">
+                <v-icon>mdi-api</v-icon>
+              </v-btn>
+
               <v-btn icon v-on="on" class=" ml-1">
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
@@ -46,21 +62,7 @@
           <search-from-text
               :disabled="!$store.state.search.is_completed"
           />
-
-
         </div>
-
-
-        <query-filter-tree
-            subject-entity="works"
-            :filters="$store.state.search.query.filter_works"
-        />
-        <query-filter-tree
-            class="mt-3"
-            v-if="querySubjectEntity !== 'works'"
-            :subject-entity="querySubjectEntity"
-            :filters="$store.state.search.query.filter_aggs"
-        />
 
         <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
           <v-card-title class="d-flex">
@@ -68,7 +70,6 @@
             Query object
             <v-spacer/>
             <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
-              <!--              <v-icon>mdi-pin-off-outline</v-icon>-->
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-card-title>
@@ -76,19 +77,10 @@
             <pre>{{ $store.state.search.query }}</pre>
           </v-card-text>
         </v-card>
-
-
       </v-col>
-      <v-col cols="12" lg="7">
-        <v-toolbar color="transparent" flat>
-          <!--          <div class="text-h6">Results:</div>-->
-          <query-summarize-by style="margin-left: -13px;"/>
 
-          <v-spacer></v-spacer>
-          <v-btn icon :href="searchApiUrl" target="_blank">
-            <v-icon>mdi-api</v-icon>
-          </v-btn>
-        </v-toolbar>
+      <v-col cols="12" lg="7">
+
         <v-card flat rounded>
 
           <results-table
@@ -132,9 +124,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-
-
   </v-container>
 </template>
 
@@ -152,12 +141,12 @@ import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 
+
 export default {
-  name: "Template",
+  name: "Results",
   components: {
     SearchFromText,
     ResultsTable,
-
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
@@ -168,10 +157,7 @@ export default {
       isPropSelectorDialogOpen: false,
       isOqlEditDialogOpen: false,
       oql: "",
-
       resetSearchFromTextDialog: false,
-
-
       cards: [
         "oql",
         "queryJson",
@@ -197,10 +183,9 @@ export default {
       "querySubjectEntity",
       "query",
       "searchApiUrl",
-        "queryColumns",
+      "queryColumns",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -272,6 +257,10 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-
+<style lang="scss">
+.query-section-label {
+  font-size: 16px;
+  margin-bottom: 5px;
+  margin-left: 4px;
+}
 </style>

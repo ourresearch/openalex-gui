@@ -34,15 +34,18 @@ const urlObjectFromSearchUrl = function (searchUrl) {
     }
 }
 
+
 const pushSearchUrlToRoute = async function (router, searchUrl) {
     await pushToRoute(router, urlObjectFromSearchUrl(searchUrl))
 }
+
 
 const addToQuery = function (oldQuery, k, v) {
     const newQuery = {...oldQuery}
     newQuery[k] = v
     return newQuery
 }
+
 
 const pushQueryParam = function (key, value) {
     const query = {
@@ -55,6 +58,7 @@ const pushQueryParam = function (key, value) {
     })
 }
 
+
 const replaceQueryParam = function (key, value) {
     const query = {
         ...router.currentRoute.query,
@@ -66,18 +70,18 @@ const replaceQueryParam = function (key, value) {
     })
 }
 
+
 const nameFromUrl = function (myUrl) {
     const urlObj = new URL(myUrl)
     const name = urlObj.searchParams.get("name") ?? "Unsaved search"
     return name
 }
 
+
 const setUrlName = function (myUrl, name) {
     const urlObj = new URL(myUrl)
     urlObj.searchParams.set("name", name)
     return urlObj.toString()
-
-
 }
 
 
@@ -89,6 +93,8 @@ const pushToRoute = async function (router, newRoute) {
             }
         })
 }
+
+
 const replaceToRoute = async function (router, newRoute) {
     return await router.replace(newRoute)
         .catch((e) => {
@@ -109,12 +115,16 @@ const setPage = async function (page) {
     })
 }
 
+
 const setShowApi = function (val) {
     pushQueryParam("show_api", val)
 }
+
+
 const setZoom = function (val) {
     pushQueryParam("zoom", val)
 }
+
 
 const getZoom = function (route) {
     return route.query.zoom
@@ -124,12 +134,11 @@ const getZoom = function (route) {
 const setHideResults = function (val) {
     const urlVal = val ? true : undefined
     pushQueryParam("hide_results", urlVal)
-
 }
+
 
 const setSerpTabName = function (val) {
     pushQueryParam("name", val)
-
 }
 
 
@@ -146,7 +155,6 @@ const pushNewFilters = async function (newFilters, entityType) {
         ...router.currentRoute.query,
         page: 1,
         filter,
-        sort: undefined, // not ideal, faster to implement this way tho
     }
     const newRoute = {
         name: "Serp",
@@ -159,18 +167,23 @@ const pushNewFilters = async function (newFilters, entityType) {
 
 const createFilter = async function (entityType, key, newValue) {
     const newFilters = createFilterNoPush(entityType, key, newValue)
-    return await pushNewFilters(newFilters)
+    return await pushNewFilters(newFilters, entityType)
 }
+
 
 const createFilterNoPush = function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
+    console.log("createFilterNoPush oldFilters")
+    console.log(oldFilters)
     const newFilter = createSimpleFilter(entityType, key, newValue)
     return [...oldFilters, newFilter]
-
 }
+
+
 const readFilter = function (currentRoute, entityType, index) {
     return filtersFromUrlStr(entityType, currentRoute.query.filter)[index]
 }
+
 
 const readFilters = function (currentRoute, isNegatedOnly = false) {
     const filters = filtersFromUrlStr(
@@ -182,25 +195,33 @@ const readFilters = function (currentRoute, isNegatedOnly = false) {
         filters
 }
 
+
 const readFiltersLength = function () {
     return filtersFromUrlStr(
         router.currentRoute.params.entityType,
         router.currentRoute.query.filter,
     ).length
 }
+
+
 const readFilterValue = function (currentRoute, entityType, index) {
     return readFilter(currentRoute, entityType, index)?.value
 }
 
+
 const isFilterApplied = function (currentRoute, entityType, index) {
     const filterValue = readFilterValue(currentRoute, entityType, index)
+    console.log("isFilterApplied entity: " + entityType + ", index: " + index + ", fiterValue: " + filterValue)
     return filterValue !== "" && filterValue !== undefined && filterValue !== null
 }
+
+
 const isFilterKeyApplied = function (currentRoute, entityType, filterKey) {
     const myFilters = readFilters(currentRoute)
     const myFilterKeys = myFilters.map(f => f.key)
     return myFilterKeys.includes(filterKey)
 }
+
 
 const isSearchFilterApplied = function (currentRoute) {
     return currentRoute.query?.filter?.split(",")?.some(f => {
@@ -236,6 +257,7 @@ const updateFilter = async function (entityType, index, newValue, isNegated) {
     return await pushNewFilters(filters)
 }
 
+
 const deleteFilterOption = async function (entityType, index, optionToDelete) {
     console.log("url.deleteFilterOption", entityType, index, optionToDelete)
 
@@ -257,6 +279,8 @@ const deleteFilterOption = async function (entityType, index, optionToDelete) {
         filters.splice(index, 1)
     return await pushNewFilters(filters)
 }
+
+
 const deleteFilterOptionByKey = async function (entityType, filterKey, optionToDelete) {
     console.log("url.deleteFilterOptionByKey", entityType, filterKey, optionToDelete)
     const filters = readFilters(router.currentRoute)
@@ -283,6 +307,7 @@ const addFilterOption = async function (entityType, index, optionToAdd) {
     return await pushNewFilters(newFilters)
 }
 
+
 const addFilterOptionNoPush = function (entityType, index, optionToAdd) {
     const filters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
     const myFilter = filters[index]
@@ -294,6 +319,7 @@ const addFilterOptionNoPush = function (entityType, index, optionToAdd) {
     )
     return filters
 }
+
 
 const moveFilterOptionToOwnFilter = function(entityType, index, option, isNegated) {
     const myFilter = readFilter(router.currentRoute, entityType, index)
@@ -313,8 +339,8 @@ const moveFilterOptionToOwnFilter = function(entityType, index, option, isNegate
 
     const newFilters = [...oldFilters, myNewFilter]
     pushNewFilters(newFilters)
-
 }
+
 
 const setIsFilterOptionNegated = function(entityType, filterKey, option, isNegated){
     const myFilterIndex = findFilterIndex(
@@ -331,17 +357,21 @@ const setIsFilterOptionNegated = function(entityType, filterKey, option, isNegat
 
 }
 
+
 const setIsFilterNegated = function (entityType, index, isNegated) {
     console.log("setIsFilterNegated", isNegated)
     const myValue = readFilter(router.currentRoute, entityType, index)?.value
     // const newValue = setStringIsNegated(myValue, isNegated)
     updateFilter(entityType, index, myValue, isNegated)
 }
+
+
 const readIsFilterNegated = function (currentRoute, entityType, index) {
     const myFilter = readFilter(currentRoute, entityType, index)
     return myFilter?.isNegated
     // return myFilter?.value && myFilter?.value?.indexOf("!") === 0
 }
+
 
 const findFilterIndex = function (currentRoute, entityType, filterKey, option) {
     const filters = readFilters(currentRoute)
@@ -351,7 +381,6 @@ const findFilterIndex = function (currentRoute, entityType, filterKey, option) {
     })
     return index
 }
-
 
 
 const toggleFilterOptionIsNegated = async function (entityType, key, option) {
@@ -372,6 +401,7 @@ const toggleFilterOptionIsNegated = async function (entityType, key, option) {
     return await pushNewFilters(newFilters)
 }
 
+
 const createFilterOptions = function(filter){
     const entityConfig = getEntityConfig(filter.entityId)
     const filterNamespace = entityConfig && !entityConfig.isNative ?
@@ -386,32 +416,43 @@ const createFilterOptions = function(filter){
     })
 }
 
+
 const readFilterOptions = function (currentRoute, entityType, index) {
     const filter = readFilter(currentRoute, entityType, index)
     if (!filter) return []
     return createFilterOptions(filter)
 }
 
+
 const isFilterOptionApplied = function (currentRoute, entityType, filterKey, option) {
     return readFilterOptionsByKey(currentRoute, entityType, filterKey).includes(option)
 }
+
+
 const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, isNegatedOnly = false) {
     const allFilters = readFilters(currentRoute, isNegatedOnly)
     const config = getFacetConfig(entityType, filterKey)
-    if (config.type !== "select") return []
+    //if (config.type !== "select") return []
+    //if (!["select", "boolean"].includes(config.type)) { return [] }
 
     const filtersWithKey = allFilters.filter(f => f.key == filterKey)
+
+    //console.log("readFilterOptionsByKey: " + filterKey)
+    //console.log(filtersWithKey)
+    
     const filterOptionsWithKey = filtersWithKey?.length ?
         [...filtersWithKey.map(f => optionsFromString(f.value)).flat()] :
         []
     return filterOptionsWithKey
 }
 
+
 const readFilterMatchMode = function (currentRoute, entityType, key) {
     const filter = readFilter(currentRoute, entityType, key)
 
     return getMatchModeFromSelectFilterValue(filter?.value)
 }
+
 
 const setFilterMatchMode = function (entityType, key, mode) {
     const filter = readFilter(router.currentRoute, entityType, key)
@@ -425,18 +466,22 @@ const isGroupBy = function () {
     return !!router.currentRoute.query.group_by
 }
 
+
 const updateOrDeleteFilter = function (entityType, index, filterValue) {
     (filterValue === "" || filterValue === "-") ?
         deleteFilter(entityType, index) :
         updateFilter(entityType, index, filterValue)
 }
 
+
 const upsertFilter = function (entityType, index, filterValue) {
     console.log("url.upsertFilter()", index, filterValue)
+    console.log("url.upsertFilter() isFilterApplied: " + isFilterApplied(router.currentRoute, entityType, index))
     return isFilterApplied(router.currentRoute, entityType, index) ?
         updateOrDeleteFilter(entityType, index, filterValue) :
         createFilter(entityType, index, filterValue)
 }
+
 
 const upsertFilterOption = function (entityType, index, filterOption) {
     if (isFilterApplied(router.currentRoute, entityType, index)) {
@@ -493,7 +538,6 @@ const setSearch = function (entityType, searchString) {
 
 
 const setDefaultActions = function () {
-
     console.log("setDefaultActions")
     pushToRoute(router, {
         name: "Serp",
@@ -503,6 +547,7 @@ const setDefaultActions = function () {
         }
     })
 }
+
 
 const getActionValues = function (action) {
     const val = router.currentRoute.query[action]
@@ -522,20 +567,25 @@ const getActionValueKeys = function (currentRoute, action) {
     })
 }
 
-const getDefaultSortValueForRoute = function(currentRoute){
-    return isSearchFilterApplied(currentRoute) ?
-        "relevance_score" :
-        (currentRoute.params.entityType === "works") ?
-            "cited_by_count" :
-            "works_count"
+
+const getDefaultSortValueForRoute = function(currentRoute, withDirection=false){
+    let sort = ""
+    if (isSearchFilterApplied(currentRoute)) {
+        sort = "relevance_score"
+    } else {
+        sort = currentRoute.params.entityType === "works" ? "cited_by_count" : "works_count"
+    }
+
+    return sort + (withDirection ? ":desc" : "")
 }
+
 
 const setSortNoPush = function(sortByKey, route){
     const defaultValue = getDefaultSortValueForRoute(route)
     const appendVerb = (sortByKey === "display_name") ? "" : ":desc"
     const myNewKey = (sortByKey === defaultValue) ?
         undefined :
-        sortByKey + appendVerb;
+        sortByKey + appendVerb
 
     return {
         name: "Serp",
@@ -547,13 +597,17 @@ const setSortNoPush = function(sortByKey, route){
     }
 }
 
+
 const setSort = function (filterKey) {
     return pushToRoute(router, setSortNoPush(filterKey, router.currentRoute))
 }
+
+
 const getSort = function (currentRoute) {
     const defaultValue = getDefaultSortValueForRoute(router.currentRoute)
     return currentRoute.query.sort?.replace(":desc", "") ?? defaultValue
 }
+
 
 const toggleSort = function (filterKey) {
     const currentSort = getSort(router.currentRoute)
@@ -566,6 +620,8 @@ const toggleSort = function (filterKey) {
 
 
 const perPageDefault = 10
+
+
 const setPerPage = function(val){
     const perPage = val === perPageDefault ?
         undefined :
@@ -581,19 +637,25 @@ const setPerPage = function(val){
     }
     return pushToRoute(router, newRoute)
 }
-const getPerPage = function(currentRoute){
-    return currentRoute.query.per_page ?? perPageDefault
+
+
+const getPerPage = function() {
+    return router.currentRoute.query.per_page ?? perPageDefault
 }
 
 
 const setColumn = function (filterKeys) {
     pushQueryParam("column", filterKeys.join(","))
 }
+
+
 const addColumn = function (filterKey) {
     const extantKeys = getColumn(router.currentRoute)
     const newKeys = [...extantKeys, filterKey]
     pushQueryParam("column", newKeys.join(","))
 }
+
+
 const toggleColumn = function (filterKey) {
     const extantKeys = getColumn(router.currentRoute)
     let newKeys
@@ -604,9 +666,12 @@ const toggleColumn = function (filterKey) {
     }
     pushQueryParam("column", newKeys.join(","))
 }
+
+
 const getColumn = function (route) {
     return route.query.column.split(",")
 }
+
 
 const viewConfigs = [
     {
@@ -634,15 +699,20 @@ const isViewDefault = function (viewIds) {
     const viewIdsString = [...viewIds].sort().join(",")
     return defaultViewIdsString === viewIdsString
 }
+
+
 const getView = function (route) {
     return route.query.view ?
         route.query.view?.split(",") :
         defaultViewIds
 }
+
+
 const isViewSet = function (route, viewId) {
     const myViewOptions = getView(route)
     return myViewOptions.includes(viewId)
 }
+
 
 const setView = function (viewIds) {
     const unsetViewParam = !viewIds.length || isViewDefault(viewIds)
@@ -652,6 +722,7 @@ const setView = function (viewIds) {
         viewIds.join(",")
     pushQueryParam("view", newViewValue)
 }
+
 
 const toggleView = function (viewId) {
     const selectedViewIds = getView(router.currentRoute)
@@ -666,19 +737,27 @@ const getGroupBy = function (route) {
     const defaultValue = getEntityConfig(route.params.entityType).groupByDefaults
     return route.query.group_by?.split(",") ?? defaultValue
 }
+
+
 const setGroupBy = function (filterKeys) {
     pushQueryParam("group_by", filterKeys?.join(","))
 }
+
+
 const addGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     const newKeys = [...extantKeys, filterKey]
     pushQueryParam("group_by", newKeys.join(","))
 }
+
+
 const deleteGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     const newKeys = extantKeys.filter(k => k !== filterKey)
     pushQueryParam("group_by", newKeys.join(","))
 }
+
+
 const toggleGroupBy = function (filterKey) {
     const extantKeys = getGroupBy(router.currentRoute)
     let newKeys
@@ -716,19 +795,19 @@ const setActionValueKeys = function (actionName, keys) {
     })
 }
 
+
 const addActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("addActionKey", current)
     setActionValueKeys(actionName, [...current, actionKey])
-
 }
+
 
 const deleteActionKey = function (actionName, actionKey) {
     const current = getActionValueKeys(router.currentRoute, actionName)
     console.log("deleteActionKey", actionName, actionKey)
     const newKeys = current.filter(k => k !== actionKey)
     setActionValueKeys(actionName, newKeys)
-
 }
 
 
@@ -758,12 +837,11 @@ const makeAutocompleteUrl = function (entityId, searchString) {
     return url.toString()
 }
 
-const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
 
+const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
     const entityType = currentRoute.params.entityType
     const filtersFromUrl = filtersFromUrlStr(entityType, currentRoute.query.filter)
     const filterString = filtersAsUrlStr(filtersFromUrl)
-
 
     const query = {
         filter: filterString,
@@ -776,8 +854,8 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
         query.group_by = groupBy
     } else {
         query.page = currentRoute.query.page
-        query.sort = currentRoute.query.sort
-        query.per_page = currentRoute.query.per_page
+        query.sort = currentRoute.query.sort ?? getDefaultSortValueForRoute(currentRoute, true)
+        query.per_page = currentRoute.query.per_page ?? perPageDefault
         query.apc_sum = currentRoute.query.group_by?.split(",")?.includes("apc_sum")
         query.cited_by_count_sum = currentRoute.query.group_by?.split(",")?.includes("cited_by_count_sum")
     }
@@ -805,12 +883,10 @@ const makeApiUrl = function (currentRoute, formatCsv, groupBy) {
 
     apiUrl.search = decodeURIComponent(searchParams.toString())
     return apiUrl.toString()
-
 }
 
 
 const makeGroupByUrl = function (entityType, groupByKey, options) {
-
     // set options from defaults and args
     const defaults = {
         searchString: null,
@@ -850,7 +926,6 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         url.search = url.search + "&filter=" + filtersAsUrlStr(options.filters)
     }
 
-
     // all done
     return url.toString()
 }
@@ -886,7 +961,6 @@ const url = {
     setFilterMatchMode,
     makeFilterRoute,
     pushNewFilters,
-
 
     deleteFilterOption,
     deleteFilterOptionByKey,
@@ -925,12 +999,10 @@ const url = {
 
     setSidebar,
 
-
     setSearch,
     setPage,
 
     isGroupBy,
-
 
     makeGroupByUrl,
     makeAutocompleteUrl,

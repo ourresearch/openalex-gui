@@ -17,11 +17,9 @@
           class="px-4 pb-1"
       />
     </template>
-
-
   </div>
-
 </template>
+
 
 <script>
 
@@ -35,7 +33,7 @@ import {entityTypeFromId} from "@/util";
 
 
 export default {
-  name: "Template",
+  name: "EntityNew",
   components: {
     WorkLinkouts,
     LinkEntityRolesList,
@@ -64,15 +62,12 @@ export default {
       return entityTypeFromId(this.data.id)
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -81,6 +76,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
