@@ -62,7 +62,6 @@ export const search = {
         },
     },
     actions: {
-
         // FILTER
         addFilter({state}, {filter, parentId}) {
             state.query.filters.push(filter)
@@ -76,7 +75,6 @@ export const search = {
         setAllFilters({state}, newFilters) {
             state.query.filters = _.cloneDeep(newFilters)
         },
-
 
         // SUMMARIZE
         setSummarize({state, dispatch}, columnId) {
@@ -134,7 +132,6 @@ export const search = {
             // get the search from the API
             const resp = await axios.get(getters.searchApiUrl)
 
-
             // set the state from the response
             state.is_completed = resp.data.is_completed
             state.oql = queryToOQL(resp.data.query)
@@ -179,7 +176,5 @@ export const search = {
         searchApiUrl: (state) => {
             return `https://api.openalex.org/searches/${state.id}`
         },
-
-
     },
 }

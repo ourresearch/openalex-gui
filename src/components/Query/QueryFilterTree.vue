@@ -164,16 +164,19 @@ export default {
     ...mapActions("search", [
       "createSearch",
       "setAllFilters",
-
     ]),
     ...mapActions("user", []),
     // create
-    addFilter(columnId) {
+    addFilter(columnId, columnType) {
+      const initValue = columnType === "boolean" ? true : null
       this.myFilters.push({
         column_id: columnId,
         // operator is not required, it'll use the default if not supplied later
-        value: null,
+        value: initValue,
       })
+      if (columnType === "boolean") {
+        this.applyFilters()
+      }
     },
     // read
     getFilterFromPath(path) {
