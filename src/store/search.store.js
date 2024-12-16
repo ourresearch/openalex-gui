@@ -16,11 +16,8 @@ import {
 } from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
+
 Vue.use(Vuex)
-
-
-
-
 
 
 const stateDefaults = function () {
@@ -36,11 +33,11 @@ const stateDefaults = function () {
         results_header: [],
         results_body: [],
         results_meta: null,
-
-
+        backend_error: null,
     }
     return ret
 }
+
 
 const pushSafe = async function (route) {
     await router.push(route)
@@ -90,22 +87,20 @@ export const search = {
             dispatch("createSearchFromQuery", newQuery)
         },
 
-
         // SORT
         setSortBy({state}, {column_id, direction}) {
             state.query.sort_by_column = column_id
             state.query.sort_by_order = direction
         },
 
-
         // RETURN COLUMNS
         addReturnColumn({state}, columnId) {
             state.query.show_columns.push(columnId)
         },
+
         deleteReturnColumn({state}, columnId) {
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId)
         },
-
 
         // SET MANY THINGS AT ONCE
         setFromQueryObject({state}, query) {
@@ -118,6 +113,7 @@ export const search = {
             const query = oqlToQuery(oql)
             return await dispatch("createSearchFromQuery", query)
         },
+
         createSearchFromQuery: async function ({state}, query) {
             state.is_completed = false
 
@@ -127,11 +123,9 @@ export const search = {
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
 
-
         createSearch: async function ({dispatch, state}) {
             return await dispatch("createSearchFromQuery", state.query)
         },
-
 
         getSearch: async function ({state, getters}, id) {
             state.id = id
@@ -144,6 +138,7 @@ export const search = {
             // set the state from the response
             state.is_completed = resp.data.is_completed
             state.oql = queryToOQL(resp.data.query)
+            state.backend_error = resp.data.backend_error
             state.results_header = resp.data.results_header ?? []
             state.results_body = resp.data.results ?? []
             state.results_meta = resp.data.meta

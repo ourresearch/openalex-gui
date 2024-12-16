@@ -71,9 +71,8 @@
 
       <v-col cols="12" lg="7">
         <v-card flat rounded>
-          <results-table
-              v-if="$store.state.search.is_completed"
-          />
+          <results-error v-if="$store.state.search.backend_error" />
+          <results-table v-else-if="$store.state.search.is_completed" />
           <results-searching v-else />
         </v-card>
       </v-col>
@@ -124,6 +123,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
+import ResultsError from "@/components/Results/ResultsError.vue";
 import PropSelector from "@/components/PropSelector.vue";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
@@ -140,6 +140,7 @@ export default {
     SearchFromText,
     ResultsTable,
     ResultsSearching,
+    ResultsError,
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
