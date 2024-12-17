@@ -99,7 +99,7 @@
           v-else-if="columnConfig.type === 'number' || columnConfig.type === 'string'"
       >
         <v-text-field
-            v-if="isEditingValue"
+            v-if="isEditingValue || selectedValue === null"
             v-model="valueEditModel"
             dense
             rounded
@@ -275,7 +275,10 @@ export default {
     // }
   },
   mounted() {
+    console.log("QueryFilterTreeLeaf columnConfig")
     console.log(this.columnConfig)
+    console.log("QueryFilterTreeLeaf value")
+    console.log(this.value)
   },
   watch: {
     search(val){
