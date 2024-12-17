@@ -1,5 +1,5 @@
 <template>
-  <div  class="d-flex align-center flex-grow-1">
+  <div  class="d-flex align-center flex-grow-1 hover-color-3">
 
     <!--    The filter key-->
     <div class="font-weight-bold">
@@ -113,9 +113,8 @@
         </v-text-field>
         <v-btn
           v-else
-          class="px-1"
-          text
-          style="min-width: 1px !important;"
+          outlined          
+          style="min-width: 1px !important; font-size: 14px"
           @click="startEditingValue"
         >
           {{ (selectedValue || "click to edit") }}
@@ -290,5 +289,7 @@ export default {
 
 
 <style scoped lang="scss">
+.filter-line:hover {
 
+}
 </style>

@@ -28,7 +28,6 @@ const stateDefaults = function () {
             ...baseQuery(),
         },
         originalFilters: [],
-
         is_completed: null,
         results_header: [],
         results_body: [],
@@ -47,6 +46,7 @@ const pushSafe = async function (route) {
             }
         })
 }
+
 
 export const search = {
     namespaced: true,

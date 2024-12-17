@@ -2,73 +2,110 @@
   <v-container fluid class="pt-0">
     <v-row class="">
       <v-col cols="12" lg="5">
-        <v-card flat rounded style="padding: 10px 14px 20px 14px">
-        <div class="query-section-label">Show</div> 
-        <query-summarize-by style="margin-left: 8px"/>
+        <v-row>
+        <v-col cols="12" md="7" lg="12">
+          <v-card flat rounded style="padding: 10px 14px 10px 14px">
+            <div class="query-section-label">Show</div> 
+            <query-summarize-by style="margin-left: 8px"/>
 
-        <query-filter-tree
-            class="mt-3"
-            v-if="querySubjectEntity !== 'works'"
-            :subject-entity="querySubjectEntity"
-            :filters="$store.state.search.query.filter_aggs"
-        />
-        <query-filter-tree
-            subject-entity="works"
-            :isWithAggs="querySubjectEntity !== 'works'"
-            :filters="$store.state.search.query.filter_works"
-        />
-        </v-card>
+            <query-filter-tree
+                class="mt-3"
+                v-if="querySubjectEntity !== 'works'"
+                :subject-entity="querySubjectEntity"
+                :filters="$store.state.search.query.filter_aggs"
+            />
+            <query-filter-tree
+                subject-entity="works"
+                :isWithAggs="querySubjectEntity !== 'works'"
+                :filters="$store.state.search.query.filter_works"
+            />
 
-        <v-toolbar flat color="transparent">
-          <div class="text-h6">Query</div>
-          <v-spacer/>
 
-          <v-menu rounded offset-y>
-            <template v-slot:activator="{ on }">
-              
+           <!-- <v-toolbar flat color="transparent">
+              <div class="text-h6">Query</div>
+              <v-spacer/>
+
+              <v-menu rounded offset-y>
+                <template v-slot:activator="{ on }">
+                  
+                  <v-btn icon :href="searchApiUrl" target="_blank">
+                    <v-icon>mdi-api</v-icon>
+                  </v-btn>
+
+                  <v-btn icon v-on="on" class=" ml-1">
+                    <v-icon>mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+
+                <v-list>
+                  <v-list-item @click="toggleCard('queryJson')">
+                    <v-list-item-icon>
+                      <v-icon>mdi-code-braces-box</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Show Query object</v-list-item-title>
+                    <v-list-item-icon v-if="cardsToShowSelected.includes('queryJson')">
+                      <v-icon>mdi-check</v-icon>
+                    </v-list-item-icon>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </v-toolbar>
+
+
+            <div class="d-flex align-start mb-3">
+              <search-from-text :disabled="!$store.state.search.is_completed" />
+            </div>
+
+            <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
+              <v-card-title class="d-flex">
+                <v-icon left>mdi-code-braces-box</v-icon>
+                Query object
+                <v-spacer/>
+                <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </v-card-title>
+              <v-card-text>
+                <pre>{{ $store.state.search.query }}</pre>
+              </v-card-text>
+            </v-card>
+          -->
+
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" lg="12" md="5">
+        <v-card flat rounded>
+          <v-tabs v-model="tab"> 
+            <v-tab>Query</v-tab>
+            <v-tab>Object</v-tab>
+            <v-tab>API</v-tab>
+          </v-tabs>
+
+          <v-tabs-items v-model="tab"> 
+            <v-tab-item>
+              <search-from-text :disabled="!$store.state.search.is_completed" />
+            </v-tab-item>
+
+            <v-tab-item>
+              <v-card-text>
+                <pre>{{ $store.state.search.query }}</pre>
+              </v-card-text>
+            </v-tab-item>
+
+            <v-tab-item>
               <v-btn icon :href="searchApiUrl" target="_blank">
                 <v-icon>mdi-api</v-icon>
               </v-btn>
-
-              <v-btn icon v-on="on" class=" ml-1">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </template>
-
-            <v-list>
-              <v-list-item @click="toggleCard('queryJson')">
-                <v-list-item-icon>
-                  <v-icon>mdi-code-braces-box</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Show Query object</v-list-item-title>
-                <v-list-item-icon v-if="cardsToShowSelected.includes('queryJson')">
-                  <v-icon>mdi-check</v-icon>
-                </v-list-item-icon>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-toolbar>
-        <div class="d-flex align-start mb-3">
-          <search-from-text
-              :disabled="!$store.state.search.is_completed"
-          />
-        </div>
-
-        <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
-          <v-card-title class="d-flex">
-            <v-icon left>mdi-code-braces-box</v-icon>
-            Query object
-            <v-spacer/>
-            <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
-          </v-card-title>
-          <v-card-text>
-            <pre>{{ $store.state.search.query }}</pre>
-          </v-card-text>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-spacer>
         </v-card>
+        </v-col>
+        </v-row>
       </v-col>
 
+      <!-- Results Table -->
       <v-col cols="12" lg="7">
         <v-card flat rounded>
           <results-error v-if="$store.state.search.backend_error" />
@@ -160,6 +197,7 @@ export default {
         "oql",
         "queryJson",
       ],
+      tab: 0,
     }
   },
   computed: {
@@ -226,6 +264,9 @@ export default {
           this.pollSearch();
         }, 500);
       }
+    },
+    onTabChange(newValue) {
+      console.log("Tab changed to:", newValue);
     },
   },
   created() {

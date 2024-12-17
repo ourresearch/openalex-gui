@@ -14,7 +14,7 @@
     <!--        filled-->
     <!--        dense-->
     <!--    />-->
-    <v-menu max-height="33vh" rounded offset-y>
+    <v-menu max-height="70vh" rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
             rounded
