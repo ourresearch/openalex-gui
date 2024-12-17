@@ -5,6 +5,7 @@
             v-on="on"
             style="margin-left: 16px; margin-top: 8px"
             color="primary"
+            outlined
             small
         >
           <v-icon>mdi-plus</v-icon> Add {{nameWorks ? "Works " : ""}}Filter
@@ -40,8 +41,9 @@
 <!--            </v-list-item-content>-->
 <!--          </v-list-item>-->
           <v-list-item
-              v-for="column in newFilterColumnOptions"
+              v-for="(column, i) in filteredColumns"
               :key="column.id"
+              :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
               @click="$emit('addFilter', column.id, column.type)"
           >
             <v-list-item-icon>
@@ -89,15 +91,37 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    newFilterColumnOptions() {
+    possibleColumns() {
       const mySubjectEntity = this.subjectEntity
       const myConfig = getConfigs()[mySubjectEntity]
       const myPossibleColumns = Object.values(myConfig.columns)
-
-      return myPossibleColumns.filter( f => {
-        return f.displayName.toLowerCase().includes(this.search.toLowerCase())
+      return myPossibleColumns
+    },
+    popularColumns() {
+      return this.possibleColumns.filter( f => {
+        return (f.actionsPopular && f.actionsPopular.includes("column"))
       })
     },
+    nonpopularColumns() {
+      return this.possibleColumns.filter( f => {
+        return (!f.actionsPopular || !f.actionsPopular.includes("column"))
+      })
+    },
+    filteredPopularColumns() {
+      return this.filterColumnsBySearch(this.popularColumns)
+    },
+    filteredNonpopularColumns() {
+      return this.filterColumnsBySearch(this.nonpopularColumns)
+    },
+    filteredColumns() {
+      return this.filteredPopularColumns.concat(this.filteredNonpopularColumns)
+    },
+    lineBetweenPopularIndex() {
+      return (this.filteredPopularColumns.length === 0 
+              || this.filteredNonpopularColumns.length === 0)
+        ? -1
+        : this.filteredPopularColumns.length
+    }, 
   },
   methods: {
     ...mapMutations([
@@ -106,6 +130,12 @@ export default {
     ...mapMutations("search", []),
     ...mapActions("search", []),
     ...mapActions("user", []),
+    filterColumnsBySearch(columns) {
+      console.log(columns)
+      return columns.filter( f => {
+        return f.displayName.toLowerCase().includes(this.search.toLowerCase())
+      })
+    },  
   },
   created() {
   },
@@ -123,5 +153,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.line-above {
+  border-top: 1px #DDD solid;
+}
 </style>
