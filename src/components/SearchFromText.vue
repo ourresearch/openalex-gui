@@ -175,8 +175,6 @@ textarea {
     font-family: "Consolas", monospace !important;
     font-size: 14px !important;
     line-height: 1.5 !important;
-
   }
-
 }
 </style>

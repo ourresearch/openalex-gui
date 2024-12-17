@@ -25,21 +25,7 @@
         />
         <v-divider/>
 
-        <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-<!--          <v-list-item-->
-<!--              v-if="'subquery multiple'.includes(search.toLowerCase())"-->
-<!--              @click="$emit('addBranchFilter', parentId)"-->
-<!--          >-->
-<!--            <v-list-item-icon>-->
-<!--              <v-icon>mdi-filter-multiple-outline</v-icon>-->
-<!--            </v-list-item-icon>-->
-<!--            <v-list-item-content>-->
-<!--              <v-list-item-title>-->
-<!--                Subquery-->
-<!--                <span class="grey&#45;&#45;text">(multiple filters)</span>-->
-<!--              </v-list-item-title>-->
-<!--            </v-list-item-content>-->
-<!--          </v-list-item>-->
+        <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
           <v-list-item
               v-for="(column, i) in filteredColumns"
               :key="column.id"
