@@ -7,6 +7,7 @@
     >
       <template v-if="entityData">
         {{ entityData.display_name | truncate(50) }}
+        <v-icon v-if="isEditable" small right>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         loading...
@@ -24,12 +25,13 @@ import {api} from "@/api";
 import axios from "axios";
 
 export default {
-  name: "Template",
+  name: "QueryFilterValueChip",
   components: {
   },
   props: {
     columnConfig: Object,
     value: String,
+    isEditable: Boolean,
   },
   data() {
     return {
@@ -47,7 +49,6 @@ export default {
       "query",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -57,7 +58,7 @@ export default {
     ...mapActions("search", [
     ]),
     ...mapActions("user", []),
-    async getEntity(){
+    async getEntity() {
       this.isLoading = true
       const myUrl = "https://api.openalex.org/" + this.value
       const response = await axios.get(myUrl)

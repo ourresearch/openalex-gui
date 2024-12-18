@@ -117,7 +117,7 @@ export default {
     ...mapActions("search", []),
     ...mapActions("user", []),
     filterColumnsBySearch(columns) {
-      console.log(columns)
+      //console.log(columns)
       return columns.filter( f => {
         return f.displayName.toLowerCase().includes(this.search.toLowerCase())
       })
