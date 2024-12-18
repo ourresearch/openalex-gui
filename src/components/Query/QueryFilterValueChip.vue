@@ -15,6 +15,7 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -63,9 +64,6 @@ export default {
       this.entityData = response.data
       this.isLoading = false
     },
-
-
-
   },
   created() {
     if (!this.columnConfig.objectEntity) throw new Error(
@@ -89,6 +87,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -129,7 +129,6 @@ export default {
           siblingIndex: i, // just for display
           parentOperator: "and", // just for display
         }
-
       })
     },
     filtersToStore() {

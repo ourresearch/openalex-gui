@@ -20,10 +20,8 @@ const stateDefaults = function () {
         snackbarIsOpen: false,
         snackbarColor: undefined,
         zoomId: null,
-
+        uiVariant: null, // for testing UI variations
         testQueries: [],
-
-
     }
     return ret
 }

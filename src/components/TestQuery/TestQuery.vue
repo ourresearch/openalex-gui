@@ -190,7 +190,6 @@ export default {
     },
 
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -206,7 +205,6 @@ export default {
       } catch (e) {
         this.isSearchPassing = false
         this.searchError = "Could not create search: " + e
-
         this.searchId = null
       }
     },
