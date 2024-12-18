@@ -107,7 +107,7 @@ export const search = {
 
         // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
-            console.log("createSearchFromOql", oql, oqlToQuery(oql))
+            //console.log("createSearchFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql)
             return await dispatch("createSearchFromQuery", query)
         },
@@ -117,7 +117,7 @@ export const search = {
 
             const url = "https://api.openalex.org/searches"
             const resp = await axios.post(url, {query})
-            console.log("Created search", resp.data)
+            //console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
 

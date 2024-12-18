@@ -79,7 +79,7 @@ export default {
       } else if (this.isWithAggs && this.isEmpty) {
         return "Based on <b>all works</b>";
       } else {
-        return "";
+        return ""
       }
     },
     isEmpty() {

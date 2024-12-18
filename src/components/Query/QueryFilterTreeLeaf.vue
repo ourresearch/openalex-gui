@@ -22,9 +22,7 @@
           </v-chip>
         </template>
         <v-list>
-          <v-list-item-group
-              v-model="selectedOperator"
-          >
+          <v-list-item-group v-model="selectedOperator">
             <v-list-item
                 v-for="operator in operatorOptions"
                 :key="operator"
@@ -41,8 +39,8 @@
       </v-menu>
     </div>
 
-    <!--    The filter value-->
-    <!--    first, entity values -->
+    <!-- The Filter Value-->
+    <!-- Entity Values -->
     <div class="flex-grow-1">
       <template v-if="columnConfig.objectEntity">
         <template v-if="selectedValue">
@@ -84,9 +82,8 @@
         </template>
       </template>
 
-      <!--    second, boolean values -->
-      <v-chip
-          v-else-if="columnConfig.type === 'boolean'"
+      <!-- Boolean Values -->
+      <v-chip v-else-if="columnConfig.type === 'boolean'"
           outlined
           label
           @click="selectedValue = !selectedValue"
@@ -94,10 +91,8 @@
         {{ selectedValue }}
       </v-chip>
 
-      <!--    third, number values -->
-      <div
-          v-else-if="columnConfig.type === 'number' || columnConfig.type === 'string'"
-      >
+      <!-- Number, String, Array Values -->
+      <div v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
         <v-text-field
             v-if="isEditingValue || selectedValue === null"
             v-model="valueEditModel"
@@ -118,7 +113,7 @@
           @click="startEditingValue"
         >
           {{ (selectedValue || "click to edit") }}
-          <v-icon right>mdi-pencil-outline</v-icon>
+          <v-icon small right>mdi-pencil-outline</v-icon>
         </v-btn>
       </div>
 
@@ -274,10 +269,10 @@ export default {
     // }
   },
   mounted() {
-    console.log("QueryFilterTreeLeaf columnConfig")
-    console.log(this.columnConfig)
-    console.log("QueryFilterTreeLeaf value")
-    console.log(this.value)
+    //console.log("QueryFilterTreeLeaf columnConfig")
+    //console.log(this.columnConfig)
+    //console.log("QueryFilterTreeLeaf value")
+    //console.log(this.value)
   },
   watch: {
     search(val){
@@ -291,5 +286,8 @@ export default {
 <style scoped lang="scss">
 .filter-line:hover {
 
+}
+.editable-button .v-icon {
+  font-size: 16px;
 }
 </style>
