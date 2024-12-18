@@ -90,6 +90,7 @@
           </v-card>
         </v-col>
 
+        <!-- Query Tabs -->
         <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
           <v-card flat rounded>
             <v-tabs v-model="tab"> 
@@ -98,7 +99,7 @@
               <v-tab>API</v-tab>
             </v-tabs>
 
-            <v-tabs-items v-model="tab"> 
+            <v-tabs-items v-model="tab" style="padding: 10px"> 
               <v-tab-item>
                 <search-from-text :disabled="!$store.state.search.is_completed" />
               </v-tab-item>
@@ -118,8 +119,10 @@
           </v-spacer>
           </v-card>
         </v-col>
+
         </v-row>
       </v-col>
+
 
       <!-- Results Table -->
       <v-col cols="12" lg="7">
@@ -315,5 +318,11 @@ export default {
   font-size: 16px;
   margin-bottom: 2px;
   margin-left: 16px;
+}
+.v-tabs {
+  padding: 0 20px;
+}
+.v-tab {
+  text-transform: none;
 }
 </style>
