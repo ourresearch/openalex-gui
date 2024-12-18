@@ -93,7 +93,7 @@
         <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
           <v-card flat rounded>
             <v-tabs v-model="tab"> 
-              <v-tab>Query</v-tab>
+              <v-tab>String</v-tab>
               <v-tab>Object</v-tab>
               <v-tab>API</v-tab>
             </v-tabs>

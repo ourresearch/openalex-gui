@@ -100,7 +100,6 @@ export default {
       return parts.join("<wbr>")
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -113,8 +112,6 @@ export default {
     hideMe() {
 
     }
-
-
   },
   created() {
   },
