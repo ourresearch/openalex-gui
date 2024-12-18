@@ -279,7 +279,7 @@ export default {
       await this.getSearch(this.$route.params.id);
       if (!this.$store.state.search.is_completed) {
         setTimeout(() => {
-          console.log("polling search")
+          //console.log("polling search")
           this.pollSearch();
         }, 500);
       }

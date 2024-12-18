@@ -1,12 +1,13 @@
 <template>
   <div  class="d-flex align-center flex-grow-1 hover-color-3">
 
-    <!--    The filter key-->
+    <!--    The Filter Key-->
     <div class="font-weight-bold">
       {{ columnConfig.displayName }}
     </div>
 
-    <!--    The filter operator-->
+
+    <!--    The Filter Operator-->
     <div>
       <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
       <v-menu v-else offset-y>
@@ -14,8 +15,9 @@
           <v-chip
               outlined
               label
-              v-on="on" class="font-weight-regular px-1 pr-0 mx-1"
+              class="font-weight-regular px-1 pr-0 mx-1"
               style="min-width: 1px !important;"
+              v-on="on" 
           >
             {{ selectedOperator ?? "select" }}
             <v-icon small>mdi-menu-down</v-icon>
@@ -33,26 +35,28 @@
                 {{ operator }}
               </v-list-item-title>
             </v-list-item>
-
           </v-list-item-group>
         </v-list>
       </v-menu>
     </div>
 
+
     <!-- The Filter Value-->
     <!-- Entity Values -->
     <div class="flex-grow-1">
       <template v-if="columnConfig.objectEntity">
-        <template v-if="selectedValue">
+        <template v-if="selectedValue && !isEditingValue">
           <query-filter-value-chip
             :column-config="columnConfig"
             :value="selectedValue"
+            :is-editable="true"
+            @click.native="restartEditingValue"
           />
         </template>
         <template v-else>
           <v-autocomplete
               v-if="localValueOptions.length"
-              v-model="selectedValue"
+              v-model="valueEditModel"
               :items="valueOptions"
               item-text="display_name"
               item-value="id"
@@ -62,10 +66,12 @@
               dense
               class="flex-grow-1"
               autofocus
+              @change="saveEditingValue" 
+              @blur="cancelEditingValue"
           />
           <v-autocomplete
               v-else
-              v-model="selectedValue"
+              v-model="valueEditModel"
               :items="valueOptions"
               :loading="isLoading"
               :search-input.sync="search"
@@ -78,7 +84,9 @@
               dense
               class="flex-grow-1"
               autofocus
-          ></v-autocomplete>
+              @change="saveEditingValue" 
+              @blur="cancelEditingValue"
+          />
         </template>
       </template>
 
@@ -152,7 +160,7 @@ export default {
       search: "",
       isLoading: false,
       isEditingValue: false,
-      valueEditModel: null,
+      valueEditModel: this.value,
     }
   },
   computed: {
@@ -222,13 +230,18 @@ export default {
       this.isEditingValue = false
       this.valueEditModel = null
     },
+    restartEditingValue() {
+      this.isEditingValue = true
+      this.valueEditModel = null
+    },
     saveEditingValue(){
+      console.log("saving: " + this.valueEditModel)
       this.isEditingValue = false
       this.selectedValue = this.valueEditModel
       this.valueEditModel = null
     },
     getAsyncValueOptions: _.debounce(async function () {
-      this.loading = true;
+      this.isLoading = true;
       try {
         const response = await axios.get(`https://api.openalex.org/autocomplete/${this.columnConfig.objectEntity}`, {
           params: {q: this.search}
@@ -253,7 +266,7 @@ export default {
         console.error(`Error fetching ${this.columnConfig.objectEntity}:`, error);
         this.asyncValueOptions = [];
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     }, 300, {leading: true}),
   },
@@ -284,10 +297,5 @@ export default {
 
 
 <style scoped lang="scss">
-.filter-line:hover {
 
-}
-.editable-button .v-icon {
-  font-size: 16px;
-}
 </style>
