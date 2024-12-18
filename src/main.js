@@ -166,7 +166,7 @@ Vue.filter("millify", function (number) {
 
 Vue.use(vuetify)
 
-new Vue({
+window.vm = new Vue({
     router,
     store,
     vuetify,

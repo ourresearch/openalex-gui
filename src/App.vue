@@ -193,9 +193,8 @@
   </v-app>
 </template>
 
+
 <script>
-
-
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {sleep} from "./util";
 import axios from "axios";
@@ -219,34 +218,29 @@ import Entity from "@/components/Entity/Entity.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 import router from "@/router";
 
+
 export default {
   name: 'App',
   metaInfo: {
     titleTemplate: 'OpenAlex | %s',
     link: [],
-
     meta: []
   },
   components: {
     SiteFooter,
     UserToolbarMenu,
     Entity,
-
-
     SearchFromText,
     SavedSearchRenameDialog,
     SavedSearchEditAlertDialog,
     ShortcutBox,
     EntityTypeSelector,
   },
-
-
   data: function () {
     return {
       exportProgress: 0,
       backgroundColor: "hsl(220, 60%, 96%)", // light blue
       // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
-
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {
         progress: 0,
@@ -263,14 +257,12 @@ export default {
       "entityType",
       "environment",
     ]),
-
     localUrl() {
       return `http://localhost:8080${this.$route.fullPath}`;
     },
     stagingUrl() {
       return `https://staging.openalex.org${this.$route.fullPath}`;
     },
-
     logoStyle() {
       return "opacity: .7;"
       return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
@@ -310,12 +302,21 @@ export default {
       this.$vuetify.theme.themes.light.primary = newColor
       this.$vuetify.theme.currentTheme.primary = newColor
     },
-
+    setUIVariant() {
+      // Check if "ui" param exists on URL and if so set it's value on state.ui
+      const urlParams = new URLSearchParams(window.location.search);
+      const ui = urlParams.get('ui');
+      if (ui) {
+        this.$store.state.uiVariant = ui
+      }
+    }
+  },
+  created() {
+    this.setUIVariant()
   },
   async mounted() {
     const configResp = await axios.get("https://api.openalex.org/entities/config")
     this.$root.config = configResp.data
-
 
     setInterval(async () => {
       if (!this.$store.state.exportProgressUrl) return

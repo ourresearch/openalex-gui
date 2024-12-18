@@ -3,11 +3,12 @@
     <v-row class="">
       <v-col cols="12" lg="5">
         <v-row>
-        <v-col cols="12" md="7" lg="12">
+        <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
           <v-card flat rounded style="padding: 10px 14px 10px 14px">
             <div class="query-section-label">Show</div> 
             <query-summarize-by style="margin-left: 8px"/>
 
+            <div v-if="uiVariant === null">
             <query-filter-tree
                 class="mt-3"
                 v-if="querySubjectEntity !== 'works'"
@@ -19,6 +20,21 @@
                 :isWithAggs="querySubjectEntity !== 'works'"
                 :filters="$store.state.search.query.filter_works"
             />
+            </div>
+
+            <div v-if="uiVariant === 'chips'">
+            <query-filter-chips
+                class="mt-3"
+                v-if="querySubjectEntity !== 'works'"
+                :subject-entity="querySubjectEntity"
+                :filters="$store.state.search.query.filter_aggs"
+            />
+            <query-filter-chips
+                subject-entity="works"
+                :isWithAggs="querySubjectEntity !== 'works'"
+                :filters="$store.state.search.query.filter_works"
+            />
+            </div>
 
 
            <!-- <v-toolbar flat color="transparent">
@@ -74,33 +90,33 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" lg="12" md="5">
-        <v-card flat rounded>
-          <v-tabs v-model="tab"> 
-            <v-tab>Query</v-tab>
-            <v-tab>Object</v-tab>
-            <v-tab>API</v-tab>
-          </v-tabs>
+        <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
+          <v-card flat rounded>
+            <v-tabs v-model="tab"> 
+              <v-tab>Query</v-tab>
+              <v-tab>Object</v-tab>
+              <v-tab>API</v-tab>
+            </v-tabs>
 
-          <v-tabs-items v-model="tab"> 
-            <v-tab-item>
-              <search-from-text :disabled="!$store.state.search.is_completed" />
-            </v-tab-item>
+            <v-tabs-items v-model="tab"> 
+              <v-tab-item>
+                <search-from-text :disabled="!$store.state.search.is_completed" />
+              </v-tab-item>
 
-            <v-tab-item>
-              <v-card-text>
-                <pre>{{ $store.state.search.query }}</pre>
-              </v-card-text>
-            </v-tab-item>
+              <v-tab-item>
+                <v-card-text>
+                  <pre>{{ $store.state.search.query }}</pre>
+                </v-card-text>
+              </v-tab-item>
 
-            <v-tab-item>
-              <v-btn icon :href="searchApiUrl" target="_blank">
-                <v-icon>mdi-api</v-icon>
-              </v-btn>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-spacer>
-        </v-card>
+              <v-tab-item>
+                <v-btn icon :href="searchApiUrl" target="_blank">
+                  <v-icon>mdi-api</v-icon>
+                </v-btn>
+              </v-tab-item>
+            </v-tabs-items>
+          </v-spacer>
+          </v-card>
         </v-col>
         </v-row>
       </v-col>
@@ -167,6 +183,7 @@ import AnalyticViews from "@/components/AnalyticViews.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
+import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 
@@ -181,6 +198,7 @@ export default {
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
+    QueryFilterChips,
   },
   props: {},
   data() {
@@ -198,6 +216,7 @@ export default {
         "queryJson",
       ],
       tab: 0,
+      uiVariant: this.$store.state.uiVariant,
     }
   },
   computed: {
@@ -265,12 +284,11 @@ export default {
         }, 500);
       }
     },
-    onTabChange(newValue) {
-      console.log("Tab changed to:", newValue);
-    },
   },
   created() {
-    this.loadFromLocalStorage();
+    this.loadFromLocalStorage()
+    //console.log("Results state: ")
+    //console.log(this.$store.state)
   },
   mounted() {
   },
@@ -284,7 +302,6 @@ export default {
     isOqlEditDialogOpen() {
       this.oql = this.$store.state.search.oql
     },
-
     cardsToShowSelected() {
       this.saveToLocalStorage();
     },
