@@ -114,17 +114,17 @@
             @keydown.enter="saveEditingValue"
         >
         </v-text-field>
-        <v-btn
+        <v-chip
           v-else
-          outlined          
-          style="min-width: 1px !important; font-size: 14px"
+          outlined
+          label          
+          class="mr-1"
           @click="startEditingValue"
         >
           {{ (selectedValue || "click to edit") }}
           <v-icon small right>mdi-pencil-outline</v-icon>
-        </v-btn>
+        </v-chip>
       </div>
-
     </div>
 
   </div>

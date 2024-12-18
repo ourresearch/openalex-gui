@@ -3,7 +3,7 @@
       <template v-slot:activator="{ on }">
         <v-btn
             v-on="on"
-            style="margin-left: 16px; margin-top: 8px"
+            :class="{'add-filter': true, 'with-filters': withExistingFilters }"
             color="primary"
             outlined
             small
@@ -61,6 +61,7 @@ export default {
     },
     subjectEntity: String,
     nameWorks: Boolean,
+    withExistingFilters: Boolean,
   },
   data() {
     return {
@@ -141,5 +142,13 @@ export default {
 <style scoped lang="scss">
 .line-above {
   border-top: 1px #DDD solid;
+}
+.add-filter {
+  margin-top: 4px;
+  margin-left: 16px;
+}
+.add-filter.with-filters {
+  margin-top: 8px;
+  margin-left: 30px;
 }
 </style>

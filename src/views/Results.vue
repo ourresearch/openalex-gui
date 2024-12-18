@@ -4,9 +4,9 @@
       <v-col cols="12" lg="5">
         <v-row>
         <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
-          <v-card flat rounded style="padding: 10px 14px 10px 14px">
+          <v-card flat rounded style="padding: 10px">
             <div class="query-section-label">Show</div> 
-            <query-summarize-by style="margin-left: 8px"/>
+            <query-summarize-by style="margin-left: 4px"/>
 
             <div v-if="uiVariant === null">
             <query-filter-tree
@@ -313,7 +313,7 @@ export default {
 <style lang="scss">
 .query-section-label {
   font-size: 16px;
-  margin-bottom: 5px;
-  margin-left: 4px;
+  margin-bottom: 2px;
+  margin-left: 16px;
 }
 </style>

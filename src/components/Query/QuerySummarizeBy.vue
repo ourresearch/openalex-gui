@@ -1,19 +1,5 @@
 <template>
   <span class="d-inline-flex align-center">
-<!--    <v-autocomplete-->
-    <!--        class="ml-2"-->
-    <!--        v-model="selected"-->
-    <!--        :items="entities"-->
-    <!--        item-text="displayName"-->
-    <!--        item-value="id"-->
-    <!--        placeholder="Summarize by"-->
-    <!--        label="Summarize by"-->
-    <!--        hide-details-->
-    <!--        clearable-->
-    <!--        rounded-->
-    <!--        filled-->
-    <!--        dense-->
-    <!--    />-->
     <v-menu max-height="70vh" rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn
@@ -21,7 +7,7 @@
             v-on="on"
             class="text-h6 "
         >
-         <!-- <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>-->
+          <!-- <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>-->
           <span class=" text-capitalize">
             <template v-if="query.get_rows === 'summary'">
                Works Summary
@@ -30,9 +16,6 @@
               {{ query.get_rows  }}
             </template>
           </span>
-<!--          <span class="font-weight-regular ml-1">-->
-<!--            results-->
-<!--          </span>-->
           <v-icon right>mdi-menu-down</v-icon>
         </v-btn>
       </template>

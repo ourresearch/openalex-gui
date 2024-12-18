@@ -1,11 +1,12 @@
 <template>
-  <v-card flat rounded style="margin-top: 28px !important">
+  <v-card flat rounded style="margin-top: 20px !important">
     <div v-html="topText" class="query-section-label"/>
 
     <v-treeview
         :items="displayFilters"
         :open.sync="openNodes"
         open-all
+        dense
     >
       <template v-slot:prepend="{item, open}">
         <span class="">
@@ -67,6 +68,7 @@
           :subject-entity="subjectEntity"
           :parent-id="null"
           :nameWorks="isWithAggs"
+          :withExistingFilters="!isEmpty"
           @addFilter="addFilter"
       />
   </v-card>
@@ -235,6 +237,6 @@ export default {
   visibility: hidden !important;
 }
 .v-treeview-node__root .v-treeview-node__level {
-  width: 0px
+  width: 16px
 }
 </style>
