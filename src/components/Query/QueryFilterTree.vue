@@ -1,8 +1,9 @@
 <template>
-  <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': isTopLevelAndEmpty}">
-    <div v-html="topText" class="query-section-label"/>
+  <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
+    <div v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <v-treeview
+        v-if="!isEmpty"
         :items="displayFilters"
         :open.sync="openNodes"
         open-all
@@ -50,19 +51,8 @@
       </template>
 
     </v-treeview>
-    <!--    <v-row style="font-size: 11px !important;">-->
-    <!--      <v-col>-->
-    <!--        <div class="text-h6">displayFilters</div>-->
-    <!--        <pre>{{ displayFilters }}</pre>-->
-    <!--      </v-col>-->
-    <!--    </v-row>-->
 
-    <!--    <v-row style="font-size: 11px !important;">-->
-    <!--      <v-col>-->
-    <!--        <div class="font-weight-bold">Component.myFilters</div>-->
-    <!--        <pre>{{ myFilters }}</pre>-->
-    <!--      </v-col>-->
-    <!--    </v-row>-->
+    <div :class="{'button-wrapper': true, 'inline-block': displayButtonInline}">
       <query-filter-tree-button
           :subject-entity="subjectEntity"
           :parent-id="null"
@@ -70,6 +60,7 @@
           :withExistingFilters="!isEmpty"
           @addFilter="addFilter"
       />
+    </div>
   </v-card>
 </template>
 
@@ -145,8 +136,11 @@ export default {
     isEmpty() {
       return this.myFilters.length === 0
     },
-    isTopLevelAndEmpty() {
+    displayInline() {
       return this.isEmpty && !this.isWithAggs
+    },
+    displayButtonInline() {
+      return this.isEmpty && this.isWithAggs
     },
     topText() {
       if (this.isWithAggs && !this.isEmpty) {
@@ -243,11 +237,22 @@ export default {
 .query-filter-tree {
   margin-top: 28px
 }
+.query-section-label.inline-block {
+  display: inline-block;
+}
+.button-wrapper.inline-block {
+  display: inline-block;
+  position: relative;
+  top: -2px;
+}
 .query-filter-tree.inline-block {
   display: inline-block;
   margin-top: 0px;
   position: relative;
   top: -5px;
+}
+.query-filter-tree-button.inline-block {
+  display: inline-block;
 }
 .v-treeview-node__root .v-treeview-node__level {
   width: 16px
