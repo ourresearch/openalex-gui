@@ -8595,6 +8595,7 @@ oaxConfigs.countries.columns["continent"].actions = ["filter", "column", "sort"]
 oaxConfigs.countries.columns["continent"].displayName = "continent"
 oaxConfigs.countries.columns["id"].actions = ["filter", "column", "sort"]
 
+oaxConfigs.domains.columns["display_name.search"].displayName = "name"
 oaxConfigs.domains.columns["id"].actions = ["filter", "column", "sort"]
 
 oaxConfigs.fields.columns["display_name.search"].displayName = "name"
