@@ -8,12 +8,12 @@
             class="text-h6 "
         >
           <!-- <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>-->
-          <span class=" text-capitalize">
+          <span>
             <template v-if="query.get_rows === 'summary'">
                Works Summary
             </template>
             <template v-else>
-              {{ query.get_rows  }}
+              {{ displayName | titleCase }}
             </template>
           </span>
           <v-icon right>mdi-menu-down</v-icon>
@@ -98,13 +98,15 @@ export default {
     entities() {
       return Object.values(getConfigs())
     },
+    displayName() {
+      return getConfigs()[this.query.get_rows].displayName
+    },
     selected: {
       get() {
         return this.query.get_rows
       },
       set(value) {
         this.setSummarize(value)
-
       }
     },
   },

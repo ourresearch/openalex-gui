@@ -15,5 +15,8 @@ export default {
 
 
 <style scoped lang="scss">
+* {
+  color: #555;
+}
 
 </style>

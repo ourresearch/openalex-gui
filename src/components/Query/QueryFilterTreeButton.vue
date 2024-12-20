@@ -4,11 +4,9 @@
         <v-btn
             v-on="on"
             :class="{'add-filter': true, 'with-filters': withExistingFilters }"
-            color="primary"
-            outlined
-            small
+            small       
         >
-          <v-icon>mdi-plus</v-icon> Add {{nameWorks ? "Works " : ""}}Filter
+          <v-icon color="primary">mdi-plus</v-icon>  {{nameWorks ? "Works " : ""}}Filter
         </v-btn>
       </template>
       <v-card flat rounded v-if="isMenuOpen">
@@ -27,7 +25,7 @@
 
         <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
           <v-list-item
-              v-for="(column, i) in filteredColumns"
+              v-for="(column, i) in filteredFilters"
               :key="column.id"
               :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
               @click="$emit('addFilter', column.id, column.type)"
@@ -36,7 +34,7 @@
               <v-icon>{{ column.icon }}</v-icon>
             </v-list-item-icon>
             <v-list-item-title>
-              {{ column.displayName }}
+              {{ column.displayName | titleCase }}
             </v-list-item-title>
           </v-list-item>
         </v-list>
@@ -78,36 +76,47 @@ export default {
     ...mapGetters("search", [
       "query",
     ]),
-    possibleColumns() {
+    availableFilters() {
       const mySubjectEntity = this.subjectEntity
       const myConfig = getConfigs()[mySubjectEntity]
       const myPossibleColumns = Object.values(myConfig.columns)
-      return myPossibleColumns
+
+      //console.log(myPossibleColumns)
+
+      const availableFilters = myPossibleColumns.filter( f => {
+        if  (!f.actions) {console.log(f.displayName + " / " + f.id + " missing 'actions'"); return false}
+        return f.actions.includes("filter")
+      })
+      
+      return availableFilters
     },
-    popularColumns() {
-      return this.possibleColumns.filter( f => {
-        return (f.actionsPopular && f.actionsPopular.includes("column"))
+    popularFilters() {
+      return this.availableFilters.filter( f => {
+        return (f.actionsPopular && f.actionsPopular.includes("filter"))
       })
     },
-    nonpopularColumns() {
-      return this.possibleColumns.filter( f => {
-        return (!f.actionsPopular || !f.actionsPopular.includes("column"))
+    nonpopularFilters() {
+      return this.availableFilters.filter( f => {
+        return (!f.actionsPopular || !f.actionsPopular.includes("filter"))
       })
     },
-    filteredPopularColumns() {
-      return this.filterColumnsBySearch(this.popularColumns)
+    filteredPopularFilters() {
+      return this.filterFiltersBySearch(this.popularFilters)
+                  .sort((a, b) => a.displayName.localeCompare(b.displayName))
     },
-    filteredNonpopularColumns() {
-      return this.filterColumnsBySearch(this.nonpopularColumns)
+    filteredNonpopularFilters() {
+      return this.filterFiltersBySearch(this.nonpopularFilters)
+                  .sort((a, b) => a.displayName.localeCompare(b.displayName))
     },
-    filteredColumns() {
-      return this.filteredPopularColumns.concat(this.filteredNonpopularColumns)
+    filteredFilters() {
+      return this.filteredPopularFilters.concat(this.filteredNonpopularFilters)
     },
     lineBetweenPopularIndex() {
-      return (this.filteredPopularColumns.length === 0 
-              || this.filteredNonpopularColumns.length === 0)
+      // Location of the line between popular filters at top and remaining filters below, if any
+      return (this.filteredPopularFilters.length === 0 
+              || this.filteredNonpopularFilters.length === 0)
         ? -1
-        : this.filteredPopularColumns.length
+        : this.availableFilters.length > 5 ? this.filteredPopularFilters.length : -1
     }, 
   },
   methods: {
@@ -117,7 +126,7 @@ export default {
     ...mapMutations("search", []),
     ...mapActions("search", []),
     ...mapActions("user", []),
-    filterColumnsBySearch(columns) {
+    filterFiltersBySearch(columns) {
       //console.log(columns)
       return columns.filter( f => {
         return f.displayName.toLowerCase().includes(this.search.toLowerCase())
