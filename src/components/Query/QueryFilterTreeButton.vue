@@ -1,12 +1,12 @@
 <template>
-    <v-menu rounded offset-y v-model="isMenuOpen">
+    <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
       <template v-slot:activator="{ on }">
         <v-btn
             v-on="on"
             :class="{'add-filter': true, 'with-filters': withExistingFilters }"
             small       
         >
-          <v-icon color="primary">mdi-plus</v-icon>  {{nameWorks ? "Works " : ""}}Filter
+          <v-icon color="primary" small>mdi-plus</v-icon>Filter
         </v-btn>
       </template>
       <v-card flat rounded v-if="isMenuOpen">
@@ -151,6 +151,9 @@ export default {
 <style scoped lang="scss">
 .line-above {
   border-top: 1px #DDD solid;
+}
+.inline-block {
+  display: inline-block;
 }
 .add-filter {
   margin-top: 4px;
