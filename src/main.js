@@ -135,6 +135,14 @@ Vue.filter("capitalize", function (str) {
 });
 
 
+Vue.filter("titleCase", function (str) {
+    if (typeof str !== "string") return str
+    return str.split(" ")
+        .map(word => word[0].toUpperCase() + word.slice(1))
+        .join(" ")
+})
+
+
 Vue.filter("prettyName", function (name) {
     let ret = name
         .replace("ieee", "IEEE")
@@ -154,6 +162,9 @@ Vue.filter("idApiUrl", function (fullId) {
     const shortId = fullId.replace("https://openalex.org/", "")
     return `https://api.openalex.org/${shortId}`
 })
+
+
+
 Vue.filter("millify", function (number) {
     return millify(
         number,

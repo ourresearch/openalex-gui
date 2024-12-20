@@ -63,7 +63,7 @@
         </v-btn>
       </template>
       <v-spacer/>
-      <div v-if="!$store.state.isLoading" class="body-2 grey--text px-4">
+      <div v-if="!$store.state.isLoading" class="body-2 px-4">
         1-{{ resultsBody.length }} of {{
           resultsMeta?.count > 10000 ? "about " : ""
         }}{{ resultsMeta?.count | toPrecision }}
@@ -278,7 +278,7 @@ import QueryReturn from "@/components/Query/QueryReturn.vue";
 
 
 export default {
-  name: "Template",
+  name: "ResultsTable",
   components: {
     ColumnValue,
     LabelCreate,
@@ -440,7 +440,6 @@ export default {
       a.download = "selected.csv"
       a.click()
     },
-
     // setColumns(ids) {
     //   console.log("setColumns", this.canonicalQueryString, ids)
     //   const replaceReturnFields = (query, fields) => query.replace(/return.*/, `return ${fields.join(', ')}`);
@@ -457,8 +456,6 @@ export default {
     //   console.log("setSort", id, direction, newQueryString)
     //   this.createSearch(newQueryString)
     // },
-
-
   },
   created() {
   },

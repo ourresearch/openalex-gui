@@ -1,3 +1,5 @@
+<!--- Drafted by ChatGPT, don't trust it -->
+
 <template>
   <v-card flat rounded style="margin-top: 28px !important">
     <div v-html="topText" class="query-section-label"/>
@@ -134,6 +136,8 @@ export default {
   watch: {
     "filters": {
       handler: function(newFilters) {
+        // TODO check `actions` prop to only grab intended filters
+
         const availableColumns = getConfigs()[this.subjectEntity].columns;
         this.availableFilters = Object.values(availableColumns).map(column => ({
           displayName: column.displayName,
