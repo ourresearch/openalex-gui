@@ -1,5 +1,5 @@
 <template>
-  <v-card flat rounded style="margin-top: 20px !important">
+  <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': isTopLevelAndEmpty}">
     <div v-html="topText" class="query-section-label"/>
 
     <v-treeview
@@ -29,7 +29,6 @@
 
       <template v-slot:label="{ item, open }">
         <query-filter-tree-leaf
-            class=""
             :column_id="item.column_id"
             :operator="item.operator"
             :value="item.value"
@@ -146,11 +145,16 @@ export default {
     isEmpty() {
       return this.myFilters.length === 0
     },
+    isTopLevelAndEmpty() {
+      return this.isEmpty && !this.isWithAggs
+    },
     topText() {
       if (this.isWithAggs && !this.isEmpty) {
         return "Based on <b>works</b> where"
       } else if (this.isWithAggs && this.isEmpty) {
         return "Based on <b>all works</b>"
+      } else if (this.isEmpty) {
+        return ""
       } else {
         return "Where"
       }
@@ -235,6 +239,15 @@ export default {
 <style lang="scss">
 .invisible {
   visibility: hidden !important;
+}
+.query-filter-tree {
+  margin-top: 28px
+}
+.query-filter-tree.inline-block {
+  display: inline-block;
+  margin-top: 0px;
+  position: relative;
+  top: -5px;
 }
 .v-treeview-node__root .v-treeview-node__level {
   width: 16px

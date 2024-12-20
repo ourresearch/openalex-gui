@@ -4,36 +4,34 @@
       <v-col cols="12" lg="4">
         <v-row>
         <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
-          <v-card flat rounded style="padding: 10px">
-            <div class="query-section-label">Show</div> 
-            <query-summarize-by style="margin-left: 4px"/>
+          <v-card flat rounded style="padding: 16px 10px">
+            
+            <div class="query-section-label">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+            <query-summarize-by style="margin-left: 12px"/>
 
-            <div v-if="uiVariant === null">
             <query-filter-tree
-                class="mt-3"
-                v-if="querySubjectEntity !== 'works'"
+                v-if="uiVariant === null && querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
                 :filters="$store.state.search.query.filter_aggs"
             />
             <query-filter-tree
+                v-if="uiVariant === null"
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
                 :filters="$store.state.search.query.filter_works"
             />
-            </div>
 
             <div v-if="uiVariant === 'chips'">
-            <query-filter-chips
-                class="mt-3"
-                v-if="querySubjectEntity !== 'works'"
-                :subject-entity="querySubjectEntity"
-                :filters="$store.state.search.query.filter_aggs"
-            />
-            <query-filter-chips
-                subject-entity="works"
-                :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="$store.state.search.query.filter_works"
-            />
+              <query-filter-chips
+                  v-if="querySubjectEntity !== 'works'"
+                  :subject-entity="querySubjectEntity"
+                  :filters="$store.state.search.query.filter_aggs"
+              />
+              <query-filter-chips
+                  subject-entity="works"
+                  :isWithAggs="querySubjectEntity !== 'works'"
+                  :filters="$store.state.search.query.filter_works"
+              />
             </div>
 
 
@@ -239,6 +237,13 @@ export default {
       "searchApiUrl",
       "queryColumns",
     ]),
+    areTopLevelFiltersApplied() {
+      if (this.querySubjectEntity !== 'works') {
+        return this.$store.state.search.query.filter_aggs.length !== 0
+      } else {
+        return this.$store.state.search.query.filter_works.length !== 0
+      }
+    }
   },
   methods: {
     ...mapMutations([
@@ -316,7 +321,7 @@ export default {
 <style lang="scss">
 .query-section-label {
   font-size: 16px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   margin-left: 16px;
 }
 .v-tabs {
