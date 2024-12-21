@@ -1,6 +1,51 @@
 <template>
   <div  class="d-flex align-center flex-grow-1 hover-color-3">
 
+<!-- The Join Operator - and/or -->
+<span class="d-inline-flex justify-center" style="min-width: 1.6em; margin-right: 5px; flex-shrink: 0;">
+  <template v-if="siblingIndex === 0">The</template>
+  <template v-else>
+    <v-menu offset-y>
+      <template v-slot:activator="{ on }">
+        <v-chip
+          outlined
+          label
+          class="font-weight-regular px-1 pr-0 mx-1"
+          v-on="on"
+        >
+          {{ joinOperator }}
+          <v-icon small>mdi-menu-down</v-icon>
+        </v-chip>
+      </template>
+      <v-list>
+        <v-list-item-group v-model="selectedJoinOperator">
+          <v-list-item
+            v-for="operator in ['and', 'or']"
+            :key="operator"
+            :value="operator"
+            active-class="primary--text"
+          >
+            <v-list-item-title class="py-3">
+              {{ operator }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list-item-group>
+        
+        <!-- Conditionally show the divider and third item -->
+        <template v-if="canGroupAbove">
+          <v-divider class="my-2"></v-divider>
+          <v-list-item @click="handleGroupWithAbove">
+            <v-list-item-title class="py-3">
+              Group with Above
+            </v-list-item-title>
+          </v-list-item>
+        </template>
+      </v-list>
+    </v-menu>
+  </template>
+</span>
+
+
     <!--    The Filter Key-->
     <div class="font-weight-bold">
       {{ columnConfig.displayName }}
@@ -149,8 +194,12 @@ export default {
     filter: Object,
     column_id: String,
     operator: String,
+    joinOperator: {type: String, default: "and"},
+    depth: {type: Number, default: 0},
+    siblingIndex: Number,
     value: [String, Number, Boolean],
     subjectEntity: String,
+    canGroupAbove: Boolean,
   },
   data() {
     return {
@@ -202,6 +251,14 @@ export default {
         this.$emit("setOperator", value)
       }
     },
+    selectedJoinOperator: {
+      get() {
+        return this.joinOperator
+      },
+      set(value) {
+        this.$emit("setJoinOperator", value)
+      }
+    },
     selectedValue: {
       get() {
         return this.value
@@ -239,6 +296,9 @@ export default {
       this.isEditingValue = false
       this.selectedValue = this.valueEditModel
       this.valueEditModel = null
+    },
+    handleGroupWithAbove() {
+      this.$emit('setDepth', this.depth + 1)
     },
     getAsyncValueOptions: _.debounce(async function () {
       this.isLoading = true;

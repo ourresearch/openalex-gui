@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pt-0">
     <v-row class="">
-      <v-col cols="12" lg="4">
+      <v-col cols="12" lg="5">
         <v-row>
         <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
           <v-card flat rounded style="padding: 16px 10px">
@@ -123,7 +123,7 @@
 
 
       <!-- Results Table -->
-      <v-col cols="12" lg="8">
+      <v-col cols="12" lg="7">
         <v-card flat rounded>
           <results-error v-if="$store.state.search.backend_error" />
           <results-table v-else-if="$store.state.search.is_completed" />
