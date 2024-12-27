@@ -175,7 +175,7 @@ export default {
       this.myFilters.forEach((f, i) => {
         f.depth = f.depth ?? 0
         const prev = i > 0 ? results[i-1] : undefined
-        const canGroupAbove = prev && this.myFilters.length > 2 && prev.depth !== f.depth-1
+        const canGroupAbove = prev && prev.depth !== f.depth-1
 
         // Add a display path repsenting depth / groups like [1], [2,3]
         let displayPath = []
