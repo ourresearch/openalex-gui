@@ -7,7 +7,7 @@
           <v-card flat rounded style="padding: 16px 10px">
             
             <div class="query-section-label">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
-            <query-summarize-by style="margin-left: 12px"/>
+            <query-summarize-by style="margin-left: 8px"/>
 
             <query-filter-tree
                 v-if="uiVariant === null && querySubjectEntity !== 'works'"
@@ -33,6 +33,13 @@
                   :filters="$store.state.search.query.filter_works"
               />
             </div>
+
+            <query-columns-controls
+              :subject-entity="querySubjectEntity"
+              :show_columns="$store.state.search.query.show_columns"
+              :sort_by_column="$store.state.search.query.sort_by_column"
+              :sort_by_order="$store.state.search.query.sort_by_order"
+            />
 
 
            <!-- <v-toolbar flat color="transparent">
@@ -129,6 +136,7 @@
           <results-table v-else-if="$store.state.search.is_completed" />
           <results-searching v-else />
         </v-card>
+        <v-spacer />
       </v-col>
 
     </v-row>
@@ -184,6 +192,7 @@ import AnalyticViews from "@/components/AnalyticViews.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
+import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
@@ -199,6 +208,7 @@ export default {
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
+    QueryColumnsControls,
     QueryFilterChips,
   },
   props: {},
@@ -320,9 +330,12 @@ export default {
 
 <style lang="scss">
 .query-section-label {
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 4px;
   margin-left: 16px;
+}
+.query-section-label.inline {
+  display: inline-block;
 }
 .v-tabs {
   padding: 0 20px;
