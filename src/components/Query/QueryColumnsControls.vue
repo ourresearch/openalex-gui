@@ -3,55 +3,56 @@
     <div class="columns-controls-line" />
     <!-- Display -->
     <div class="query-section-label">Display</div>
+
+    <!-- Columns Button/Menu -->
+    <v-menu v-model="isColumnsMenuOpen" offset-y>
+      <template v-slot:activator="{ on }">
+        <v-btn small v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Columns</v-btn>
+      </template>
+      <v-card flat rounded>
+        <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
+          <v-list-item
+              v-for="(column, i) in availableColumns"
+              :key="column.id"
+              @click="toggleColumn(column)"
+          >
+            <v-list-item-icon>
+              <v-icon>{{ column.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>
+              {{ column.displayName | titleCase }}
+            </v-list-item-title>
+            <v-spacer />
+            <v-list-item-icon v-if="(show_columns.includes(column.column_id))">
+              <v-icon>mdi-check</v-icon>
+            </v-list-item-icon>
+          </v-list-item>
+        </v-list>
+      </v-card>
+    </v-menu>
+
     <div class="columns-controls-box" v-if="visibleColumns.length > 0">
       <!-- Visible Columns -->
       <div v-for="(column, index) in visibleColumns" :key="index" class="column-chip">
-        <v-chip>
+        <v-chip outlined>
           {{ columnConfig(column.column_id).displayName | titleCase }}
           <v-icon
             v-if="visibleColumns.length > 1" 
             @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
         </v-chip>
       </div>
-
-
-      <!-- Columns Menu -->
-      <v-menu v-model="isColumnsMenuOpen" offset-y>
-        <template v-slot:activator="{ on }">
-          <v-btn small v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Columns</v-btn>
-        </template>
-        <v-card flat rounded>
-          <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-            <v-list-item
-                v-for="(column, i) in availableColumns"
-                :key="column.id"
-                @click="toggleColumn(column)"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ column.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                {{ column.displayName | titleCase }}
-              </v-list-item-title>
-              <v-spacer />
-              <v-list-item-icon v-if="(show_columns.includes(column.column_id))">
-                <v-icon>mdi-check</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
     </div>
 
 
     <!-- Sort by -->
-    <div class="query-section-label" style="margin-top: 28px;">Sort by</div>
+    <div class="query-section-label" style="margin-top: 10px;">Sort by</div>
     <!-- Sort by Column -->
     <span class="sort-box" v-if="sortByColumn">
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
               style="min-width: 1px !important;"
+              outlined
               v-on="on" 
           >
             {{ sortByColumn.displayName | titleCase }}
@@ -82,6 +83,7 @@
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
+              outlined
               style="min-width: 1px !important;"
               v-on="on" 
           >
@@ -222,7 +224,7 @@ export default {
 <style scoped>
 .columns-controls-line {
   border-top: 1px #ddd solid;
-  margin: 0 20px 20px 20px;
+  margin: 0 20px 28px 20px;
 }
 .query-section-label {
   font-size: 16px;
@@ -238,6 +240,9 @@ export default {
 .v-chip {
   background-color: #f5f5f5 !important;
   cursor: pointer;
+} 
+.v-btn {
+  margin-left: 10px;
 }
 .sort-box .v-chip:first-child {
   margin-right: 0px;
@@ -245,7 +250,7 @@ export default {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   padding-right: 8px;
-  border-right: 1px #ddd solid;
+  border-right: none;
 }
 .sort-box .v-chip:last-child {
   margin-right: 0px;

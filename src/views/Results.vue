@@ -6,16 +6,16 @@
         <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
           <v-card flat rounded style="padding: 16px 10px">
             
-            <div class="query-section-label">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+            <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
             <query-summarize-by style="margin-left: 8px"/>
 
             <query-filter-tree
-                v-if="uiVariant === null && querySubjectEntity !== 'works'"
+                v-if="uiVariant !== 'chips' && querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
                 :filters="$store.state.search.query.filter_aggs"
             />
             <query-filter-tree
-                v-if="uiVariant === null"
+                v-if="uiVariant !== 'chips'"
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
                 :filters="$store.state.search.query.filter_works"
@@ -121,7 +121,7 @@
                 </v-btn>
               </v-tab-item>
             </v-tabs-items>
-          </v-spacer>
+          <v-spacer />
           </v-card>
         </v-col>
 
@@ -131,12 +131,11 @@
 
       <!-- Results Table -->
       <v-col cols="12" lg="8">
-        <v-card flat rounded>
+        <v-card flat rounded style="min-height: 100%;">
           <results-error v-if="$store.state.search.backend_error" />
           <results-table v-else-if="$store.state.search.is_completed" />
           <results-searching v-else />
         </v-card>
-        <v-spacer />
       </v-col>
 
     </v-row>

@@ -1,6 +1,6 @@
 <template>
   <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
-    <div v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
+    <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <v-treeview
         v-if="!isEmpty"
@@ -252,8 +252,8 @@ export default {
   top: -5px;
   margin-left: 0px;
 }
-.query-filter-tree-button.inline-block {
-  display: inline-block;
+.inline-block .v-btn {
+  margin-left: 10px;
 }
 .v-treeview-node__root .v-treeview-node__level {
   width: 16px
