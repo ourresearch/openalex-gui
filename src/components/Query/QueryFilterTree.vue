@@ -45,7 +45,7 @@
               icon
               @click="deleteFilter(item.path)"
           >
-            <v-icon>mdi-delete-outline</v-icon>
+            <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
       </template>
@@ -250,6 +250,7 @@ export default {
   margin-top: 0px;
   position: relative;
   top: -5px;
+  margin-left: 0px;
 }
 .query-filter-tree-button.inline-block {
   display: inline-block;
