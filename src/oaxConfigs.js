@@ -8580,6 +8580,9 @@ const oaxConfigs = {
 // UPDATES
 oaxConfigs.works.columns["display_name.search"].displayName = "title"
 oaxConfigs.works.columns["authorships.author.id"].displayName = "author" 
+oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
+oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
+
 
 oaxConfigs.authors.columns["display_name.search"].displayName = "name"
 oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
