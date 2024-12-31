@@ -100,6 +100,7 @@ export default {
       foo: 42,
       openNodes: [],
       myFilters: [],
+      isEditingFilters: false,
     }
   },
   computed: {
@@ -176,6 +177,7 @@ export default {
       if (columnType === "boolean") {
         this.applyFilters()
       }
+      this.isEditingFilters = true;
     },
     // read
     getFilterFromPath(path) {
@@ -185,13 +187,13 @@ export default {
     },
     // update
     setFilterOperator(pathToFilter, operator) {
-      console.log("setFilterOperator", pathToFilter, operator)
+      //console.log("setFilterOperator", pathToFilter, operator)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "operator", operator)
       this.applyFilters()
     },
     setFilterValue(pathToFilter, value) {
-      console.log("setFilterValue", pathToFilter, value)
+      //console.log("setFilterValue", pathToFilter, value)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
       this.applyFilters()
@@ -211,6 +213,7 @@ export default {
         this.$store.state.search.query.filter_aggs = this.filtersToStore
       }
       this.createSearch()
+      this.isEditingFilters = false
     },
   },
   created() {
@@ -220,7 +223,7 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        this.myFilters = _.cloneDeep(filters)
+        if (!this.isEditingFilters) { this.myFilters = _.cloneDeep(filters) }
         this.openNodes = filters.map(f => f.id)
       },
       immediate: true
