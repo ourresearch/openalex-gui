@@ -190,7 +190,7 @@ export default {
       //console.log("setFilterOperator", pathToFilter, operator)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "operator", operator)
-      this.applyFilters()
+      if (!this.isEditingFilters) { this.applyFilters() }
     },
     setFilterValue(pathToFilter, value) {
       //console.log("setFilterValue", pathToFilter, value)
