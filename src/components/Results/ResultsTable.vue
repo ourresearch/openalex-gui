@@ -132,7 +132,7 @@
                   <v-icon v-if="query.sort_by_order==='desc'">mdi-arrow-down</v-icon>
                   <v-icon v-if="query.sort_by_order==='asc'">mdi-arrow-up</v-icon>
                 </template>
-                {{ header.displayName }}
+                {{ header.displayName | titleCase }}
                 <v-icon small>mdi-menu-down</v-icon>
               </v-btn>
             </template>
@@ -145,7 +145,7 @@
                 <v-list-item-icon>
                   <v-icon>mdi-table-column-remove</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>Remove column</v-list-item-title>
+                <v-list-item-title>Remove Column</v-list-item-title>
               </v-list-item>
               <template v-if="header.actions?.includes('sort')">
                 <v-divider/>
@@ -157,7 +157,7 @@
                   <v-list-item-icon>
                     <v-icon>mdi-arrow-down</v-icon>
                   </v-list-item-icon>
-                  <v-list-item-title>Sort descending</v-list-item-title>
+                  <v-list-item-title>Sort Descending</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                     @click="commitSortBy({column_id: header.id, direction: 'asc'})"
@@ -167,7 +167,7 @@
                   <v-list-item-icon>
                     <v-icon>mdi-arrow-up</v-icon>
                   </v-list-item-icon>
-                  <v-list-item-title>Sort ascending</v-list-item-title>
+                  <v-list-item-title>Sort Ascending</v-list-item-title>
                 </v-list-item>
               </template>
             </v-list>
@@ -193,7 +193,7 @@
                 prepend-inner-icon="mdi-magnify"
                 hide-details
                 autofocus
-                placeholder="Add column"
+                placeholder="Add Column"
                 style=""
             />
             <v-divider/>
