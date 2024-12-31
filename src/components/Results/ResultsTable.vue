@@ -2,10 +2,7 @@
   <div>
     <div class="table-meta d-flex align-center pa-2">
 
-      <v-btn
-          icon
-          @click="clickSelectAllButton"
-      >
+      <v-btn icon @click="clickSelectAllButton">
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
 

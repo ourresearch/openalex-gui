@@ -41,57 +41,6 @@
               :sort_by_order="$store.state.search.query.sort_by_order"
             />
 
-
-           <!-- <v-toolbar flat color="transparent">
-              <div class="text-h6">Query</div>
-              <v-spacer/>
-
-              <v-menu rounded offset-y>
-                <template v-slot:activator="{ on }">
-                  
-                  <v-btn icon :href="searchApiUrl" target="_blank">
-                    <v-icon>mdi-api</v-icon>
-                  </v-btn>
-
-                  <v-btn icon v-on="on" class=" ml-1">
-                    <v-icon>mdi-dots-vertical</v-icon>
-                  </v-btn>
-                </template>
-
-                <v-list>
-                  <v-list-item @click="toggleCard('queryJson')">
-                    <v-list-item-icon>
-                      <v-icon>mdi-code-braces-box</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Show Query object</v-list-item-title>
-                    <v-list-item-icon v-if="cardsToShowSelected.includes('queryJson')">
-                      <v-icon>mdi-check</v-icon>
-                    </v-list-item-icon>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-toolbar>
-
-
-            <div class="d-flex align-start mb-3">
-              <search-from-text :disabled="!$store.state.search.is_completed" />
-            </div>
-
-            <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
-              <v-card-title class="d-flex">
-                <v-icon left>mdi-code-braces-box</v-icon>
-                Query object
-                <v-spacer/>
-                <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-card-text>
-                <pre>{{ $store.state.search.query }}</pre>
-              </v-card-text>
-            </v-card>
-          -->
-
           </v-card>
         </v-col>
 
