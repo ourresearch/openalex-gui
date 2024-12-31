@@ -1,13 +1,13 @@
 <template>
-  <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
-    <div v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
+  <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
+    <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <v-treeview
-        v-if="!isEmpty"
-        :items="displayFilters"
-        :open.sync="openNodes"
-        open-all
-        dense
+      v-if="!isEmpty"
+      :items="displayFilters"
+      :open.sync="openNodes"
+      open-all
+      dense
     >
       <template v-slot:prepend="{item, open}">
         <span class="number grey--text" :style="{'margin-left': item.depth ? (item.depth * 20) + 'px' : 0 }">
@@ -90,6 +90,7 @@ export default {
       foo: 42,
       openNodes: [],
       myFilters: [],
+      isEditingFilters: false,
     }
   },
   computed: {
@@ -102,6 +103,15 @@ export default {
       "querySubjectEntity",
       "querySubjectEntityConfig",
     ]),
+    hasAvailableFilters() {
+      const mySubjectEntity = this.subjectEntity
+      const myConfig = getConfigs()[mySubjectEntity]
+      const myPossibleColumns = Object.values(myConfig.columns)
+
+      const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"))
+            
+      return availableFilters.length > 0
+    },
     displayFilters() {
       const results = []
       this.myFilters.forEach((f, i) => 
@@ -168,6 +178,7 @@ export default {
       if (columnType === "boolean") {
         this.applyFilters()
       }
+      this.isEditingFilters = true;
     },
     decorateMyFilters() {
       // Adds values to `myFilters` that requre looking at them as a set.
@@ -216,10 +227,16 @@ export default {
       return this.myFilters.filter(f => {
         return testGroup === f.displayPath.slice(0, -1).join(".")
       })
+    // update
+    setFilterOperator(pathToFilter, operator) {
+      //console.log("setFilterOperator", pathToFilter, operator)
+      const filterToUpdate = this.getFilterFromPath(pathToFilter)
+      Vue.set(filterToUpdate, "operator", operator)
+      if (!this.isEditingFilters) { this.applyFilters() }
     },
     // update
     setFilterValue(pathToFilter, value) {
-      console.log("setFilterValue", pathToFilter, value)
+      //console.log("setFilterValue", pathToFilter, value)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
       this.applyFilters()
@@ -259,6 +276,7 @@ export default {
         this.$store.state.search.query.filter_aggs = this.filtersToStore
       }
       this.createSearch()
+      this.isEditingFilters = false
     },
   },
   created() {
@@ -268,7 +286,7 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        this.myFilters = _.cloneDeep(filters)
+        if (!this.isEditingFilters) { this.myFilters = _.cloneDeep(filters) }
         this.decorateMyFilters()
         this.openNodes = filters.map(f => f.id)
         console.log("filters update")
@@ -301,9 +319,10 @@ export default {
   margin-top: 0px;
   position: relative;
   top: -5px;
+  margin-left: 0px;
 }
-.query-filter-tree-button.inline-block {
-  display: inline-block;
+.inline-block .v-btn {
+  margin-left: 10px;
 }
 .v-treeview-node__prepend {
   min-width: 0;

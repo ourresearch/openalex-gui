@@ -1,8 +1,10 @@
-<template>
-  <div class="table-meta d-flex align-center pa-8"  style="height: 140px;">
-  <v-progress-circular indeterminate></v-progress-circular>
-  <span style="margin-left: 14px; font-style: italic;">Searching...</span>
-  </div>
+<template >
+  <v-container fluid>
+  <v-row class="box">
+    <v-progress-circular indeterminate />
+    <span class="msg">Searching...</span>
+  </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -16,7 +18,15 @@ export default {
 
 <style scoped lang="scss">
 * {
-  color: #555;
+  color: #666;
 }
-
+.box {
+  margin-top: 100px;
+  justify-content: center;
+}
+.msg {
+  margin-left: 14px;
+  margin-top: 4px;
+  font-style: italic;
+}
 </style>
