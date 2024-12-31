@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pt-0">
+  <v-container fluid class="results-box pt-0">
     <v-row class="">
       <v-col cols="12" lg="4">
         <v-row>
@@ -53,7 +53,7 @@
               <v-tab>API</v-tab>
             </v-tabs>
 
-            <v-tabs-items v-model="tab" style="padding: 10px"> 
+            <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
               <v-tab-item>
                 <search-from-text :disabled="!$store.state.search.is_completed" />
               </v-tab-item>
@@ -277,6 +277,9 @@ export default {
 
 
 <style lang="scss">
+.results-box {
+  margin-bottom: 20px;
+}
 .query-section-label {
   font-size: 18px;
   margin-bottom: 4px;

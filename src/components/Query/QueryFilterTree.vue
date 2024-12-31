@@ -1,13 +1,13 @@
 <template>
-  <v-card flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
+  <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
     <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <v-treeview
-        v-if="!isEmpty"
-        :items="displayFilters"
-        :open.sync="openNodes"
-        open-all
-        dense
+      v-if="!isEmpty"
+      :items="displayFilters"
+      :open.sync="openNodes"
+      open-all
+      dense
     >
       <template v-slot:prepend="{item, open}">
         <span class="">
@@ -113,6 +113,15 @@ export default {
       "querySubjectEntity",
       "querySubjectEntityConfig",
     ]),
+    hasAvailableFilters() {
+      const mySubjectEntity = this.subjectEntity
+      const myConfig = getConfigs()[mySubjectEntity]
+      const myPossibleColumns = Object.values(myConfig.columns)
+
+      const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"))
+            
+      return availableFilters.length > 0
+    },
     displayFilters() {
       return this.myFilters.map((f, i) => {
         return {
