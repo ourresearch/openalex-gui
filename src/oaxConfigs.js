@@ -8639,6 +8639,7 @@ oaxConfigs["source-types"].columns["display_name.search"].actions = []
 oaxConfigs.sources.columns["display_name.search"].displayName = "name"
 oaxConfigs.sources.columns["apc_usd"].actions = ["filter", "column", "sort"]
 oaxConfigs.sources.columns["host_organization"].actions = ["filter", "column", "sort"]
+
 //oaxConfigs.sources.columns["host_organization_name"].actions = ["filter", "column", "sort"]
 
 oaxConfigs.subfields.columns["display_name.search"].displayName = "name"

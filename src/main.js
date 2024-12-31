@@ -143,21 +143,20 @@ Vue.filter("titleCase", function (str) {
     "nor", "of", "on", "or", "so", "the", "to", "up", "yet"
   ]
 
-  const acronyms = ["ID", "ROR", "ORCID", "DOI", "OA", "ISSN", 
-        "DOAJ", "SDGS", "FWCI"]
+  const fixedWords = ["OpenAlex", "ID", "ROR", "ORCID", "DOI", "OA", "ISSN", 
+    "DOAJ", "SDGS", "FWCI"]
 
   return str
     .split(" ")
     .map((word, index) => {
-      const lowerCaseWord = word.toLowerCase();
-      // Capitalize the first word or non-stop words unless they are acronyms
+      if (fixedWords.includes(word)) { return word }  
+      const lowerCaseWord = word.toLowerCase()
+      // Capitalize the first word or non-stop words
       if (index === 0 || !stopWords.includes(lowerCaseWord)) {
-        return acronyms.includes(word.toUpperCase()) 
-          ? word.toUpperCase() // Keep acronyms in uppercase
-          : word[0].toUpperCase() + word.slice(1).toLowerCase();
+        return word[0].toUpperCase() + word.slice(1).toLowerCase()
       }
       // Return stop words in lowercase
-      return lowerCaseWord;
+      return lowerCaseWord
     })
     .join(" ");
 });
