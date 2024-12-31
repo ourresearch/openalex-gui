@@ -8580,6 +8580,9 @@ const oaxConfigs = {
 // UPDATES
 oaxConfigs.works.columns["display_name.search"].displayName = "title"
 oaxConfigs.works.columns["authorships.author.id"].displayName = "author" 
+oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
+oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
+
 
 oaxConfigs.authors.columns["display_name.search"].displayName = "name"
 oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
@@ -8589,6 +8592,8 @@ oaxConfigs.authors.columns["mean(fwci)"].defaultOperator = "is greater than"
 oaxConfigs.sources.columns["display_name.search"].displayName = "name"
 
 oaxConfigs.continents.columns["display_name.search"].displayName = "name"
+oaxConfigs.continents.columns["display_name.search"].actions = ["column", "sort"]
+oaxConfigs.continents.columns["id"].actions = []
 
 oaxConfigs.countries.columns["display_name.search"].displayName = "name"
 oaxConfigs.countries.columns["continent"].actions = ["filter", "column", "sort"]
@@ -8596,7 +8601,8 @@ oaxConfigs.countries.columns["continent"].displayName = "continent"
 oaxConfigs.countries.columns["id"].actions = ["filter", "column", "sort"]
 
 oaxConfigs.domains.columns["display_name.search"].displayName = "name"
-oaxConfigs.domains.columns["id"].actions = ["filter", "column", "sort"]
+oaxConfigs.domains.columns["display_name.search"].actions = []
+oaxConfigs.domains.columns["id"].actions = ["column", "sort"]
 
 oaxConfigs.fields.columns["display_name.search"].displayName = "name"
 oaxConfigs.fields.columns["id"].actions = ["filter", "column", "sort"]
@@ -8611,6 +8617,7 @@ oaxConfigs.institutions.columns["id"].actions = ["column", "filter"]
 oaxConfigs.institutions.columns["ids.ror"].actions = ["column", "filter"]
 
 oaxConfigs["institution-types"].columns["display_name.search"].displayName = "name"
+oaxConfigs["institution-types"].columns["display_name.search"].actions = []
 
 oaxConfigs.keywords.columns["display_name.search"].displayName = "name"
 
@@ -8624,12 +8631,15 @@ oaxConfigs.publishers.columns["country_code"].actions = ["filter", "column", "so
 oaxConfigs.publishers.columns["homepage_url"].actions = ["column"]
 
 oaxConfigs.sdgs.columns["display_name.search"].displayName = "name"
+oaxConfigs.sdgs.columns["display_name.search"].actions = []
 
 oaxConfigs["source-types"].columns["display_name.search"].displayName = "name"
+oaxConfigs["source-types"].columns["display_name.search"].actions = []
 
 oaxConfigs.sources.columns["display_name.search"].displayName = "name"
 oaxConfigs.sources.columns["apc_usd"].actions = ["filter", "column", "sort"]
 oaxConfigs.sources.columns["host_organization"].actions = ["filter", "column", "sort"]
+
 //oaxConfigs.sources.columns["host_organization_name"].actions = ["filter", "column", "sort"]
 
 oaxConfigs.subfields.columns["display_name.search"].displayName = "name"

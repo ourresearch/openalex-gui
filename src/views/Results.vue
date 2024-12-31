@@ -1,21 +1,21 @@
 <template>
-  <v-container fluid class="pt-0">
+  <v-container fluid class="results-box pt-0">
     <v-row class="">
       <v-col cols="12" lg="5">
         <v-row>
         <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
           <v-card flat rounded style="padding: 16px 10px">
             
-            <div class="query-section-label">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
-            <query-summarize-by style="margin-left: 12px"/>
+            <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+            <query-summarize-by style="margin-left: 8px"/>
 
             <query-filter-tree
-                v-if="uiVariant === null && querySubjectEntity !== 'works'"
+                v-if="uiVariant !== 'chips' && querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
                 :filters="$store.state.search.query.filter_aggs"
             />
             <query-filter-tree
-                v-if="uiVariant === null"
+                v-if="uiVariant !== 'chips'"
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
                 :filters="$store.state.search.query.filter_works"
@@ -34,56 +34,12 @@
               />
             </div>
 
-
-           <!-- <v-toolbar flat color="transparent">
-              <div class="text-h6">Query</div>
-              <v-spacer/>
-
-              <v-menu rounded offset-y>
-                <template v-slot:activator="{ on }">
-                  
-                  <v-btn icon :href="searchApiUrl" target="_blank">
-                    <v-icon>mdi-api</v-icon>
-                  </v-btn>
-
-                  <v-btn icon v-on="on" class=" ml-1">
-                    <v-icon>mdi-dots-vertical</v-icon>
-                  </v-btn>
-                </template>
-
-                <v-list>
-                  <v-list-item @click="toggleCard('queryJson')">
-                    <v-list-item-icon>
-                      <v-icon>mdi-code-braces-box</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Show Query object</v-list-item-title>
-                    <v-list-item-icon v-if="cardsToShowSelected.includes('queryJson')">
-                      <v-icon>mdi-check</v-icon>
-                    </v-list-item-icon>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-toolbar>
-
-
-            <div class="d-flex align-start mb-3">
-              <search-from-text :disabled="!$store.state.search.is_completed" />
-            </div>
-
-            <v-card flat rounded class="my-2" v-if="cardsToShowSelected.includes('queryJson')">
-              <v-card-title class="d-flex">
-                <v-icon left>mdi-code-braces-box</v-icon>
-                Query object
-                <v-spacer/>
-                <v-btn icon @click="cardsToShowSelected = cardsToShowSelected.filter(c => c !== 'queryJson')">
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </v-card-title>
-              <v-card-text>
-                <pre>{{ $store.state.search.query }}</pre>
-              </v-card-text>
-            </v-card>
-          -->
+            <query-columns-controls
+              :subject-entity="querySubjectEntity"
+              :show_columns="$store.state.search.query.show_columns"
+              :sort_by_column="$store.state.search.query.sort_by_column"
+              :sort_by_order="$store.state.search.query.sort_by_order"
+            />
 
           </v-card>
         </v-col>
@@ -97,7 +53,7 @@
               <v-tab>API</v-tab>
             </v-tabs>
 
-            <v-tabs-items v-model="tab" style="padding: 10px"> 
+            <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
               <v-tab-item>
                 <search-from-text :disabled="!$store.state.search.is_completed" />
               </v-tab-item>
@@ -114,7 +70,7 @@
                 </v-btn>
               </v-tab-item>
             </v-tabs-items>
-          </v-spacer>
+          <v-spacer />
           </v-card>
         </v-col>
 
@@ -123,8 +79,8 @@
 
 
       <!-- Results Table -->
-      <v-col cols="12" lg="7">
-        <v-card flat rounded>
+      <v-col cols="12" lg="8">
+        <v-card flat rounded style="min-height: 100%;">
           <results-error v-if="$store.state.search.backend_error" />
           <results-table v-else-if="$store.state.search.is_completed" />
           <results-searching v-else />
@@ -184,6 +140,7 @@ import AnalyticViews from "@/components/AnalyticViews.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
+import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
@@ -199,6 +156,7 @@ export default {
     QuerySummarizeBy,
     QueryOql,
     QueryFilterTree,
+    QueryColumnsControls,
     QueryFilterChips,
   },
   props: {},
@@ -319,10 +277,16 @@ export default {
 
 
 <style lang="scss">
+.results-box {
+  margin-bottom: 20px;
+}
 .query-section-label {
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 4px;
   margin-left: 16px;
+}
+.query-section-label.inline {
+  display: inline-block;
 }
 .v-tabs {
   padding: 0 20px;

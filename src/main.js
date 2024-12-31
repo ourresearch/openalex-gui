@@ -136,11 +136,30 @@ Vue.filter("capitalize", function (str) {
 
 
 Vue.filter("titleCase", function (str) {
-    if (typeof str !== "string") return str
-    return str.split(" ")
-        .map(word => word[0].toUpperCase() + word.slice(1))
-        .join(" ")
-})
+  if (typeof str !== "string") return str
+
+  const stopWords = [
+    "a", "an", "and", "as", "at", "but", "by", "for", "in", 
+    "nor", "of", "on", "or", "so", "the", "to", "up", "yet"
+  ]
+
+  const fixedWords = ["OpenAlex", "ID", "ROR", "ORCID", "DOI", "OA", "ISSN", 
+    "DOAJ", "SDGS", "FWCI"]
+
+  return str
+    .split(" ")
+    .map((word, index) => {
+      if (fixedWords.includes(word)) { return word }  
+      const lowerCaseWord = word.toLowerCase()
+      // Capitalize the first word or non-stop words
+      if (index === 0 || !stopWords.includes(lowerCaseWord)) {
+        return word[0].toUpperCase() + word.slice(1).toLowerCase()
+      }
+      // Return stop words in lowercase
+      return lowerCaseWord
+    })
+    .join(" ");
+});
 
 
 Vue.filter("prettyName", function (name) {
