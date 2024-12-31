@@ -144,7 +144,7 @@ Vue.filter("titleCase", function (str) {
   ]
 
   const acronyms = ["ID", "ROR", "ORCID", "DOI", "OA", "ISSN", 
-        "DOAJ", "SDGS"]
+        "DOAJ", "SDGS", "FWCI"]
 
   return str
     .split(" ")
