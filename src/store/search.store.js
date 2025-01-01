@@ -6,6 +6,7 @@ import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
 import axios from "axios";
 import router from "@/router";
+import {api} from "@/api";
 import {getConfigs} from "@/oaxConfigs";
 import {
     makeFilterBranch,
@@ -130,16 +131,16 @@ export const search = {
             state.is_completed = false
 
             // get the search from the API
-            const resp = await axios.get(getters.searchApiUrl)
+            const data = await api.getUrl(getters.searchApiUrl)
 
             // set the state from the response
-            state.is_completed = resp.data.is_completed
-            state.oql = queryToOQL(resp.data.query)
-            state.backend_error = resp.data.backend_error
-            state.results_header = resp.data.results_header ?? []
-            state.results_body = resp.data.results ?? []
-            state.results_meta = resp.data.meta
-            state.query = resp.data.query
+            state.is_completed = data.is_completed
+            state.oql = queryToOQL(data.query)
+            state.backend_error = data.backend_error
+            state.results_header = data.results_header ?? []
+            state.results_body = data.results ?? []
+            state.results_meta = data.meta
+            state.query = data.query
         },
     },
     getters: {

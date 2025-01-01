@@ -10,7 +10,7 @@
         <v-icon v-if="isEditable" small right>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
-        loading...
+        Loading...
       </template>
     </v-chip>
   </div>
@@ -61,8 +61,8 @@ export default {
     async getEntity() {
       this.isLoading = true
       const myUrl = "https://api.openalex.org/" + this.value
-      const response = await axios.get(myUrl)
-      this.entityData = response.data
+      const response = await api.getUrl(myUrl)
+      this.entityData = response
       this.isLoading = false
     },
   },
