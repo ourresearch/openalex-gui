@@ -116,7 +116,11 @@ const api = (function () {
             console.log("api GET failure:", e.response)
             throw e
         }
-        cache[url] = res.data
+        if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
+            console.log("caching " + url)
+            console.log(res.data)
+            cache[url] = res.data
+        }
         return res.data
     }
     const getResultsList = async function (url) {

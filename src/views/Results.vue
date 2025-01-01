@@ -89,6 +89,7 @@
 
     </v-row>
 
+    <!--
     <v-dialog scrollable v-model="isOqlEditDialogOpen" max-width="600">
       <v-card flat rounded>
         <v-toolbar flat>
@@ -124,6 +125,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    -->
   </v-container>
 </template>
 
@@ -242,6 +244,7 @@ export default {
       }
     },
     async pollSearch() {
+      console.log("pollSearch")
       await this.getSearch(this.$route.params.id);
       if (!this.$store.state.search.is_completed) {
         setTimeout(() => {
