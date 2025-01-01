@@ -7,7 +7,7 @@
       <div class="text-h3">
         Advanced Queries
       </div>
-      <v-btn color="primary" class="start-button" href="/s/f847ddf26aaa15e1a37159983c815980">
+      <v-btn color="primary" class="start-button" to="/s/f847ddf26aaa15e1a37159983c815980">
         Start a Query
         <v-icon>mdi-chevron-right</v-icon>
       </v-btn>
