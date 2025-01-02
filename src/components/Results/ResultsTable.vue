@@ -1,7 +1,8 @@
 <template>
   <div>
-    <div class="table-meta d-flex align-center pa-2">
 
+    <!-- Results Header / Actions -->
+    <div class="table-meta d-flex align-center pa-2">
       <v-btn icon @click="clickSelectAllButton">
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
@@ -55,7 +56,7 @@
           </v-list>
         </v-menu>
         <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
-               @click="isCorrectionDialogOpen = true">
+          @click="snackbar('Submitting data corections will be coming soon.')">
           <v-icon>mdi-pencil-outline</v-icon>
         </v-btn>
       </template>
@@ -66,23 +67,10 @@
         }}{{ resultsMeta?.count | toPrecision }}
         results
       </div>
-      <!--      <v-menu rounded>-->
-      <!--        <template v-slot:activator="{ on }">-->
-      <!--          <v-btn icon v-on="on">-->
-      <!--            <v-icon>mdi-dots-vertical</v-icon>-->
-      <!--          </v-btn>-->
-      <!--        </template>-->
-      <!--        <v-list>-->
-      <!--          <v-list-item :href="apiUrl" icon target="_blank">-->
-      <!--            <v-list-item-icon>-->
-      <!--              <v-icon>mdi-api</v-icon>-->
-      <!--            </v-list-item-icon>-->
-      <!--            <v-list-item-title>View in API</v-list-item-title>-->
-      <!--          </v-list-item>-->
-      <!--        </v-list>-->
-      <!--      </v-menu>-->
     </div>
-    <div class="pa-3 d-flex align-center grey lighten-2"
+
+    <!-- Row Selection Message -->
+    <div class="pa-3 d-flex align-center grey lighten-3"
          v-if="isEveryRowSelected && rows.length < resultsMeta.count"
     >
       <template v-if="isEntireSearchSelected">
@@ -109,9 +97,12 @@
       </template>
     </div>
 
+    <!-- Results Table -->
     <v-simple-table>
       <thead>
       <th key="checkbox-placeholder"></th>
+      
+      <!-- Results Table Headers -->
       <th
           v-for="(header, i) in queryColumns"
           :key="'header-'+i"
@@ -176,7 +167,7 @@
         </div>
       </th>
 
-
+      <!-- Add Column Button -->
       <th key="column-adder">
         <v-menu rounded max-height="50vh">
           <template v-slot:activator="{ on }">
@@ -216,7 +207,9 @@
       </th>
       </thead>
       <tbody>
-      <tr
+     
+    <!-- Results Rows -->
+     <tr
           v-for="(row, i) in rows"
           :key="'row-'+i"
           @click.exact="clickRow(row.id)"
@@ -241,6 +234,12 @@
       </tbody>
     </v-simple-table>
 
+    <v-card class="more-results-message" flat v-if="resultsMeta?.count > 100">
+      To view results beyond the first 100, download the full query set above.
+    </v-card>
+
+
+    <!-- Dialogs -->
     <v-dialog v-model="isCreateLabelDialogOpen" width="500">
       <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false"/>
     </v-dialog>
@@ -252,7 +251,6 @@
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
       <v-card flat rounded>
         <query-return @close="isPropSelectorDialogOpen = false"/>
-
       </v-card>
     </v-dialog>
 
@@ -287,7 +285,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       selectedIds: [],
       isEntireSearchSelected: false,
       zoomId: null,
@@ -400,7 +397,6 @@ export default {
       }
     },
     clickRow(rowId) {
-      console.log("clickRow", rowId)
       this.$store.state.zoomId = rowId
     },
     metaClickRow(rowId) {
@@ -423,7 +419,7 @@ export default {
     },
     exportSelectedAsCsv() {
       if (this.isEntireSearchSelected) {
-        this.snackbar("You can only export selected rows, not the entire search.")
+        this.snackbar("Downloading complete results sets will be coming soon.")
         return
       }
 
@@ -437,22 +433,6 @@ export default {
       a.download = "selected.csv"
       a.click()
     },
-    // setColumns(ids) {
-    //   console.log("setColumns", this.canonicalQueryString, ids)
-    //   const replaceReturnFields = (query, fields) => query.replace(/return.*/, `return ${fields.join(', ')}`);
-    //   const newQueryString = replaceReturnFields(this.canonicalQueryString, ids)
-    //   this.createSearch(newQueryString)
-    // },
-    // setSort({id, direction}) {
-    //   if (!["asc", "desc"].includes(direction)) {
-    //     console.error("setSort: invalid direction", direction)
-    //     throw new Error("setSort: invalid direction")
-    //   }
-    //   const replaceSortBy = (query, sortField, isAscending) => query.replace(/sort by.*/, `sort by ${sortField} ${direction}`);
-    //   const newQueryString = replaceSortBy(this.canonicalQueryString, id, direction)
-    //   console.log("setSort", id, direction, newQueryString)
-    //   this.createSearch(newQueryString)
-    // },
   },
   created() {
   },
@@ -474,8 +454,14 @@ td.data-type-number {
     font-family: unset;
   }
 }
-
 a {
   text-decoration: none;
+}
+.more-results-message {
+  padding: 20px;
+  border-top: 1px #ddd solid;
+  text-align: center;
+  font-size: 15px;
+  color: #666;
 }
 </style>
