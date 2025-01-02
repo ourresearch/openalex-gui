@@ -184,29 +184,23 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
       propToModify: null,
       action: "remove",
       value: null,
-
       selectedPropToModify: null,
       propToModifyOptionIds: [
         "authorships.institutions.id",
         "authorships.author.id",
         // "open_access.is_oa",
       ],
-
       selectedAction: null,
       actionOptions: [
         {id: "remove", displayName: "removing", icon: "mdi-delete"},
         {id: "add", displayName: "adding", icon: "mdi-plus"},
       ],
-
       selectedValue: null,
       comments: "",
-
-
     }
   },
   computed: {
@@ -225,7 +219,6 @@ export default {
       if (!this.comments) return 4
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -250,8 +243,6 @@ export default {
       // this.idsArray = []
       this.$emit('close')
     }
-
-
   },
   created() {
   },

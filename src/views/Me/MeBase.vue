@@ -50,12 +50,11 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "MeBase",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
@@ -67,15 +66,12 @@ export default {
       "userId",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -85,6 +81,14 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-
+<style lang="scss">
+.v-alert {
+  font-size: 18px;
+  margin: 10px;
+  border-radius: 15px !important;
+}
+.v-alert .v-icon {
+  font-size: 30px;
+  margin-top: 1px;
+}
 </style>

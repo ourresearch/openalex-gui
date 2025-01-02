@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-h4">About me</div>
+    <div class="text-h4">About Me</div>
     <v-card rounded outlined class="my-4">
       <!--          <v-divider></v-divider>-->
       <v-list color="transparent">
@@ -24,12 +24,10 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-    </v-card>
-    <v-card rounded outlined class="mt-6">
-      <v-card-title>Log out</v-card-title>
-      <v-card-text>
+
+      <div style="padding: 15px">
         <v-btn @click="logout">Log out</v-btn>
-      </v-card-text>
+      </div>
     </v-card>
   </div>
 </template>
