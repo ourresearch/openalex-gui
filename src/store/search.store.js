@@ -72,7 +72,6 @@ export const search = {
             console.log("deleteFilter", id)
             state.query.filters = deleteNode(state.query.filters, id)
         },
-
         setAllFilters({state}, newFilters) {
             state.query.filters = _.cloneDeep(newFilters)
         },
@@ -96,9 +95,11 @@ export const search = {
         addReturnColumn({state}, columnId) {
             state.query.show_columns.push(columnId)
         },
-
         deleteReturnColumn({state}, columnId) {
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId)
+            if (state.query.sort_by_column === columnId) {
+                state.query.sort_by_column = state.query.show_columns.slice(-1)[0]
+            }
         },
 
         // SET MANY THINGS AT ONCE
