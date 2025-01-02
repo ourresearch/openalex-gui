@@ -225,7 +225,7 @@ const exampleQueries = [
     question: "Which authors at the University of British Columbia have made their datasets open access?",
     type: "authors",
     category: "compliance",
-    url: "/s/032eae4bad444a0452ed6002a5d89620",
+    url: "/s/9ea5afe3aff2325242ff32ca154eb280",
   },
   {
     question: "How does Notre Dame University contribute to the Sustainable Development Goals?",
