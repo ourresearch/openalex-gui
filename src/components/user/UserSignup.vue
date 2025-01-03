@@ -161,6 +161,9 @@ export default {
           name: this.name,
           password: this.password
         })
+        if (["Signup"].includes(this.$router.currentRoute.name)) {
+          this.$router.push("/")
+        }
         this.snackbar(`Account created. Welcome, ${this.name}!`)
         this.isOpen = false
       } catch (e) {

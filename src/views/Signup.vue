@@ -1,47 +1,32 @@
 <template>
-  <v-container class="fill-height justify-center">
-    <user-signup class=""  style="max-width: 400px" />
-  </v-container>
 </template>
+
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserLogin from "@/components/user/UserLogin.vue";
-import UserSignup from "@/components/user/UserSignup.vue";
 
 export default {
-  name: "Login",
+  name: "Signup",
     metaInfo() {
         return {title: "Sign up" }
     },
-  components: {UserSignup},
+  components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
-      "userName",
-      "userEmail",
-      "userEmailAlerts",
-      "userSavedSearches",
-    ]),
+      "isSignupDialogOpen",
+    ])
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
+    ...mapMutations("user", [
+      "setIsSignupDialogOpen"
     ]),
-    ...mapActions([]),
-
-
   },
   created() {
   },
@@ -49,15 +34,17 @@ export default {
     if (this.userId) {
       this.$router.push("/")
     }
+    this.setIsSignupDialogOpen(true)
   },
-  watch: {}
+  watch: {
+    isSignupDialogOpen() {
+      this.setIsSignupDialogOpen(true)
+    }
+  }
 }
 </script>
 
-<style scoped lang="scss">
 
-.v-list .v-list-item--active {
-  color: #1976d2; // primary
-}
+<style scoped lang="scss">
 
 </style>

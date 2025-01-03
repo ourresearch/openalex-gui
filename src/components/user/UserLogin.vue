@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isOpen" max-width="500">
 
-    <v-card outlined rounded :loading="isLoading" :disabled="isLoading" class="">
+    <v-card v-if="!isForgotPassword" outlined rounded :loading="isLoading" :disabled="isLoading">
       <v-card-title>
         <div>
           <v-icon left>mdi-account</v-icon>
@@ -59,6 +59,9 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
+        <div class="forgot-password-link" @click="isForgotPassword = true">
+          Forgot your password?
+        </div>
         <v-btn
             :disabled="isFormDisabled"
             rounded
@@ -69,6 +72,9 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <v-card v-else-if="isForgotPassword">
+      <user-forgot-password />
+    </v-card>
   </v-dialog>
 
 </template>
@@ -76,10 +82,14 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import UserForgotPassword from "@/components/user/UserForgotPassword.vue";
+
 
 export default {
   name: "UserLogin",
-  components: {},
+  components: {
+    UserForgotPassword,
+  },
   props: {},
   data() {
     return {
@@ -87,22 +97,19 @@ export default {
       password: "",
       isPasswordVisible: false,
       isLoading: false,
-
       isEmailUnrecognized: false,
       isPasswordWrong: false,
+      isForgotPassword: false,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
       "userName",
-      "isLoginDialogOpen"
+      "isLoginDialogOpen",
+      "showPasswordResetErrorMessage",
     ]),
     isFormDisabled() {
-
       const isDirty = !!this.email || !!this.password
       const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
       const isValid = emailRegex.test(this.email) && this.password?.length >= 5
@@ -118,14 +125,13 @@ export default {
       },
     },
   },
-
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapMutations("user", [
       "setIsLoginDialogOpen",
+      "setShowPasswordResetErrorMessage",
     ]),
     ...mapActions("user", [
       "loginUser",
@@ -139,6 +145,10 @@ export default {
           password: this.password,
         })
         this.isOpen = false
+        if (["Login", "ResetPassword"].includes(this.$router.currentRoute.name)) {
+          this.$router.push("/")
+        }
+
         this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
       } catch (e) {
         if (e.message.includes("404")) {
@@ -166,6 +176,9 @@ export default {
 
       this.isEmailUnrecognized = false
       this.isPasswordWrong = false
+
+      this.isForgotPassword = this.showPasswordResetErrorMessage
+      this.setShowPasswordResetErrorMessage(false)
     },
     password(){
       this.isPasswordWrong = false
@@ -179,5 +192,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.forgot-password-link {
+  font-size: 13px;
+  color: #555;
+  margin-right: 15px;
+}
+.forgot-password-link:hover {
+  cursor: pointer;
+}
 </style>

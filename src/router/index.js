@@ -21,6 +21,7 @@ import OurStats from "../views/OurStats.vue";
 import {entityTypeFromId, isOpenAlexId} from "@/util";
 import PageNotFound from "@/views/PageNotFound.vue";
 import Signup from "@/views/Signup.vue";
+import ResetPassword from "@/views/ResetPassword.vue";
 import SavedSearches from "@/views/SavedSearches.vue";
 import {url} from "@/url";
 import {getEntityConfigs} from "@/entityConfigs";
@@ -60,6 +61,7 @@ const routes = [
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
+    {path: '/reset-password', name: 'ResetPassword', component: ResetPassword},
     {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {path: '/me', name: 'Me', component: Me, meta: {requiresAuth: true}},

@@ -1,37 +1,26 @@
 <template>
-  <v-container class="fill-height justify-center">
-    <user-login class=""  style="max-width: 400px" @close="$router.push('/')" />
-  </v-container>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserLogin from "@/components/user/UserLogin.vue";
 
 export default {
   name: "Login",
     metaInfo() {
         return {title: "Log in" }
     },
-  components: {UserLogin},
+  components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
-      "userName",
-      "userEmail",
-      "userEmailAlerts",
-      "userSavedSearches",
-    ]),
+      "isLoginDialogOpen",
+    ])
   },
 
   methods: {
@@ -39,8 +28,9 @@ export default {
       "snackbar",
     ]),
     ...mapActions([]),
-
-
+    ...mapMutations("user", [
+      "setIsLoginDialogOpen",
+    ]),
   },
   created() {
   },
@@ -48,15 +38,16 @@ export default {
     if (this.userId) {
       this.$router.push("/")
     }
+    this.setIsLoginDialogOpen(true)
   },
-  watch: {}
+  watch: {
+    isLoginDialogOpen() {
+      this.setIsLoginDialogOpen(true)
+    }
+  }
 }
 </script>
 
 <style scoped lang="scss">
-
-.v-list .v-list-item--active {
-  color: #1976d2; // primary
-}
 
 </style>

@@ -43,6 +43,7 @@ export const user = {
 
         isSignupDialogOpen: false,
         isLoginDialogOpen: false,
+        showPasswordResetErrorMessage: false,
     },
     mutations: {
         setToken(state, token) {
@@ -52,11 +53,13 @@ export const user = {
             state.isLoginDialogOpen = false
             state.isSignupDialogOpen = val
         },
+        setShowPasswordResetErrorMessage(state, val) {
+            state.showPasswordResetErrorMessage = val
+        },
         setIsLoginDialogOpen(state, val) {
             state.isSignupDialogOpen = false
             state.isLoginDialogOpen = val
         },
-
         setRenameId(state, id) {
             state.renameId = id
         },
@@ -86,16 +89,7 @@ export const user = {
                 state.serpTabs = [makeDefaultSerpTab()]
                 return
             }
-
         },
-        // createSerpTab(state, tabObj) {
-        //     const newTab = tabObj ?? makeDefaultSerpTab()
-        //
-        //     state.serpTabs = [...state.serpTabs, newTab]
-        //     state.serpTabIndex = state.serpTabs.length - 1
-        // },
-
-
     },
     actions: {
 
@@ -167,6 +161,27 @@ export const user = {
                 apiBaseUrl + "/user/magic-login-request",
                 {
                     email
+                }
+            )
+            return resp
+        },
+        async requestPasswordReset({commit, dispatch, getters}, email) {
+            const resp = await axios.post(
+                apiBaseUrl + "/password/request-reset",
+                {
+                    email
+                }
+            )
+            return resp
+        },
+        async resetPassword({commit, dispatch, getters}, {token, password}) {
+            console.log(password + " / " + token)
+
+            const resp = await axios.post(
+                apiBaseUrl + "/password/reset",
+                {
+                    token,
+                    password
                 }
             )
             return resp
@@ -381,8 +396,6 @@ export const user = {
             })
             dispatch("selectSerpTab", newIndex)
         },
-
-
         async updateCurrentSerpTab({state}, newQuery) {
             const currentTabObj = state.serpTabs[state.serpTabIndex]
             currentTabObj.searchUrl = 'https://openalex.org' + router.currentRoute.fullPath
@@ -412,6 +425,7 @@ export const user = {
 
         isSignupDialogOpen: (state) => state.isSignupDialogOpen,
         isLoginDialogOpen: (state) => state.isLoginDialogOpen,
+        showPasswordResetErrorMessage: (state) => state.showPasswordResetErrorMessage,
 
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),

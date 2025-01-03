@@ -1,0 +1,113 @@
+<template>
+  <v-container class="fill-height justify-center">
+
+    <v-card flat v-if="!isSubmitted">
+      <v-card-title class="text-h5">
+        Reset Your Password
+      </v-card-title>
+      <v-card-text>
+        <form>
+          <v-text-field
+            filled
+            rounded
+            class="mt-0"
+
+            name="password"
+            id="password"
+            type="password"
+
+            prepend-icon="mdi-lock-outline"
+            v-model="password"
+            autofocus
+            placeholder="New Password"
+          >
+          </v-text-field>
+        </form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn
+            :disabled="this.password.length < 5"
+            rounded
+            color="primary"
+            class="reset-btn"
+            @click="submit"
+        >
+          Reset Password
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+
+    <v-card flat v-else-if="isSubmitted">
+      <v-card-text class="text-h6">
+        Your password has been reset.
+      </v-card-text>
+      <v-card-actions class="d-flex justify-center">
+        <v-btn
+            rounded
+            color="primary"
+            @click="setIsLoginDialogOpen(true)"
+        >
+          Log in
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-container>
+</template>
+
+
+<script>
+
+import {mapActions, mapGetters, mapMutations} from "vuex";
+
+export default {
+  name: "ResetPassword",
+    metaInfo() {
+        return {title: "Reset Password"}
+    },
+  components: {},
+  props: {},
+  data() {
+    return {
+      token: null,
+      password: "",
+      isSubmitted: false
+    }
+  },
+  computed: {
+  },
+  methods: {
+    ...mapMutations("user", [
+      "setShowPasswordResetErrorMessage",
+      "setIsLoginDialogOpen",
+    ]),
+    ...mapActions("user", [
+      "resetPassword"
+    ]),
+    async submit() {
+      try {
+        await this.resetPassword({password: this.password, token: this.token})
+        this.isSubmitted = true
+      } catch (e) {
+        this.setShowPasswordResetErrorMessage(true)
+        this.setIsLoginDialogOpen(true)
+      } finally {
+      } 
+    },
+  },
+  created() {
+  },
+  mounted() {
+    this.token = this.$route.query.token
+  },
+  watch: {}
+}
+</script>
+
+
+<style scoped lang="scss">
+.v-btn.reset-btn {
+  margin-top: -45px;
+  margin-right: 10px;
+}
+</style>
