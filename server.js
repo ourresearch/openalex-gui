@@ -8,10 +8,15 @@ let app = express();
 // always redirect to https:
 app.use(sslRedirect(['production'], 301));
 
-// redirect alpha.openalex.org to openalex.org/works
+// redirect alpha.openalex.org to openalex.org
 app.use(function (req, res, next) {
     if (req.subdomains.includes('alpha') || req.hostname.split('.').includes('alpha')) {
-        res.redirect('https://openalex.org/works');
+        
+        const path = req.path; // Preserve the request path
+        const queryParams = new URLSearchParams(req.query).toString(); // Preserve query parameters
+        const redirectUrl = `https://openalex.org${path}${queryParams ? `?${queryParams}` : ''}`;
+
+        res.redirect(redirectUrl);
     } else {
         next();
     }
