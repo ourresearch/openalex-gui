@@ -17,7 +17,16 @@ const axiosConfig = function () {
         headers: headers
     }
 }
-const apiBaseUrl = "https://user.openalex.org"
+let apiBaseUrl = "https://user.openalex.org"
+
+// this lets you develop against a local API endpoint
+// to set the port, when you start your dev server, use: npm run serve -- --port <my port num>
+// example:
+// npm run serve -- --port 8083
+if (window.location.port && parseInt(window.location.port) === 8083) {
+    apiBaseUrl = "http://localhost:5106/"  // your locally-hosted User API
+    console.log("Setting API base URL to local machine (dev use only): " + apiBaseUrl)
+} 
 
 
 export const user = {
@@ -52,7 +61,6 @@ export const user = {
             state.isSignupDialogOpen = false
             state.isLoginDialogOpen = val
         },
-
         setRenameId(state, id) {
             state.renameId = id
         },
@@ -253,8 +261,6 @@ export const user = {
                 url.urlObjectFromSearchUrl(savedSearchToOpen?.search_url)
             )
         },
-
-
         // update
         async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
@@ -346,14 +352,31 @@ export const user = {
         // read
         async fetchCollections({commit, state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`
-            const resp = await axios.get(
-                myUrl,
-                axiosConfig()
-            )
+            const resp = await axios.get(myUrl, axiosConfig())
             state.collections = resp.data
+
+            // BANDAID for getting ids on all collections
+            const collectionPromises = state.collections.map((collection) =>
+                axios.get(
+                    `${apiBaseUrl}/user/${state.id}/collections/${collection.id}`,
+                    axiosConfig()
+                )
+            );
+            const detailedCollections = await Promise.all(collectionPromises);
+            state.collections = detailedCollections.map((response) => response.data);     
         },
 
-        // update: implement later
+        // update
+        async updateCollectionIds({commit, state}, {collectionId, ids}) {
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
+            const resp = await axios.patch(myUrl, {
+                ids,
+            }, axiosConfig())
+
+            state.collections = state.collections.map(coll => {
+                return coll.id === resp.data.id ? resp.data : coll
+            })
+        },
 
 
         // delete
@@ -366,13 +389,13 @@ export const user = {
             )
             await sleep(500)  // hack to give the server time to update
             await dispatch("fetchUser") // have to update the list
-            commit("snackbar", "Label deleted", {root: true})
+            commit("snackbar", "Label deleted.", {root: true})
             rootState.isLoading = false
         },
 
 
         // **************************************************
-        // COLLECTIONS
+        // CORRECTIONS
         // **************************************************
 
 

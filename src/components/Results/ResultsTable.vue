@@ -10,57 +10,18 @@
       <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
+
       <template v-if="userId">
-        <v-menu>
-          <template v-slot:activator="{ on }">
-            <v-btn icon v-on="on" :disabled="!selectedIds.length">
-              <v-icon>mdi-tag-outline</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-subheader>Apply label:</v-subheader>
-            <v-list-item
-                v-for="label in userCollections"
-                :key="label.id"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-tag-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ label.name }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-divider/>
-            <v-list-item
-                key="create-label"
-                @click="isCreateLabelDialogOpen = true"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-tag-plus-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>Create new label</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item
-                key="manage-labels"
-                to="/me/labels"
-            >
-              <v-list-item-icon>
-                <v-icon>mdi-tag-edit-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>Manage labels</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <label-menu :selectedIds="selectedIds" />
+
         <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
-          @click="snackbar('Submitting data corections will be coming soon.')">
+          @click="snackbar('Submitting data corrections will be coming soon.')">
           <v-icon>mdi-pencil-outline</v-icon>
         </v-btn>
       </template>
+      
       <v-spacer/>
+      
       <div v-if="!$store.state.isLoading" class="body-2 px-4">
         1-{{ resultsBody.length }} of {{
           resultsMeta?.count > 10000 ? "about " : ""
@@ -235,15 +196,11 @@
     </v-simple-table>
 
     <v-card class="more-results-message" flat v-if="resultsMeta?.count > 100">
-      To view results beyond the first 100, download the full query set above.
+      To view results beyond the first 100, download the full results set above.
     </v-card>
 
 
     <!-- Dialogs -->
-    <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-      <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false"/>
-    </v-dialog>
-
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
@@ -267,7 +224,7 @@ import {unravel} from "../../util";
 import ColumnValue from "@/components/ColumnValue.vue";
 import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
-import LabelCreate from "@/components/Label/LabelCreate.vue";
+import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 
@@ -276,7 +233,7 @@ export default {
   name: "ResultsTable",
   components: {
     ColumnValue,
-    LabelCreate,
+    LabelMenu,
     CorrectionCreate,
     QueryReturn,
   },
@@ -289,7 +246,6 @@ export default {
       isEntireSearchSelected: false,
       zoomId: null,
       isPropSelectorDialogOpen: false,
-      isCreateLabelDialogOpen: false,
       isCorrectionDialogOpen: false,
       columnSearch: "",
     }
@@ -300,7 +256,6 @@ export default {
     ]),
     ...mapGetters("user", [
       "userId",
-      "userCollections",
     ]),
     ...mapGetters("search", [
       "resultsMeta",
