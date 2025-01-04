@@ -40,7 +40,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "LabelCreate",
   components: {},
   props: {
     ids: {
@@ -50,7 +50,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
       name: "",
       description: "",
@@ -65,7 +64,6 @@ export default {
       "userId",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -89,8 +87,6 @@ export default {
       this.idsArray = []
       this.$emit('close')
     }
-
-
   },
   created() {
   },
@@ -99,6 +95,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
