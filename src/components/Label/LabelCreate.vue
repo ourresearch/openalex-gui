@@ -1,6 +1,6 @@
 <template>
   <v-card rounded :loading="isLoading">
-    <v-card-title>Create {{ idsArray.length ? "and apply" : "" }} label</v-card-title>
+    <v-card-title>Create {{ idsArray.length ? "and apply" : "" }} Label</v-card-title>
     <v-card-text>
       <form>
           <v-text-field

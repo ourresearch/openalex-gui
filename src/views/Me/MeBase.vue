@@ -1,10 +1,5 @@
 <template>
   <v-container>
-<!--    <v-row>-->
-<!--      <div class="text-h4">-->
-<!--        Profile-->
-<!--      </div>-->
-<!--    </v-row>-->
     <v-row>
       <v-col cols="3">
         <v-list  rounded>
@@ -39,11 +34,12 @@
         </v-list>
       </v-col>
       <v-col cols="9">
-        <router-view/>
+        <router-view />
       </v-col>
     </v-row>
   </v-container>
 </template>
+
 
 <script>
 
@@ -59,7 +55,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -80,6 +75,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style lang="scss">
 .v-alert {

@@ -31,6 +31,7 @@ import MeSearches from "@/views/Me/MeSearches.vue";
 import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
+import LabelDetails from "@/components/Label/LabelDetails.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
@@ -151,6 +152,12 @@ const routes = [
                 path: '/me/labels',
                 name: 'me-labels',
                 component: MeLabels,
+                children: [
+                    {
+                        path: '/me/labels/:labelId',
+                        component: LabelDetails,
+                    }
+                ]
             },
             {
                 path: '/me/corrections',
