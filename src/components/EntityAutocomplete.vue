@@ -1,7 +1,8 @@
 <template>
   <v-autocomplete
     v-model="selectedEntity"
-    @change="onEntitySelected"
+    ref="autocomplete"
+    @input="onEntitySelected"
     :items="entities"
     :loading="loading"
     :search-input.sync="search"
@@ -13,13 +14,12 @@
     filled
     hide-no-data
   >
-<!--    :label="`Select ${entityType}`"-->
     <template v-slot:item="{ item }">
       <v-list-item-content>
         <v-list-item-title v-text="item.display_name"></v-list-item-title>
         <v-list-item-subtitle v-text="item.hint || ''"></v-list-item-subtitle>
       </v-list-item-content>
-      <v-list-item-action>
+      <v-list-item-action v-if="showWorkCounts">
         <v-list-item-action-text v-text="`Works: ${item.works_count || 'N/A'}`"></v-list-item-action-text>
       </v-list-item-action>
     </template>
@@ -29,13 +29,19 @@
 <script>
 import axios from 'axios';
 import { debounce } from 'lodash';
+import {getConfigs} from "@/oaxConfigs";
+
 
 export default {
+  name: "EntityAutocomplete",
   props: {
     entityType: {
       type: String,
       required: true,
-      validator: (value) => ['institutions', 'authors', 'works', 'venues', 'concepts'].includes(value)
+    },
+    showWorkCounts: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -44,26 +50,13 @@ export default {
       entities: [],
       loading: false,
       search: null,
-      iconMap: {
-        institutions: 'mdi-school',
-        authors: 'mdi-account',
-        works: 'mdi-book-open-page-variant',
-        venues: 'mdi-newspaper',
-        concepts: 'mdi-lightbulb'
-      }
     };
   },
-  watch: {
-    search(val) {
-      if (val) {
-        this.debouncedSearchEntities(val);
-      } else {
-        this.entities = [];
-      }
+  computed: {
+    localValueOptions() {
+      const values = getConfigs()[this.entityType]?.values
+      return values
     },
-  },
-  created() {
-    this.debouncedSearchEntities = debounce(this.searchEntities, 300);
   },
   methods: {
     async searchEntities(query) {
@@ -81,7 +74,33 @@ export default {
       }
     },
     onEntitySelected(entity) {
-      this.$emit('entity-selected', entity);
+      if (!entity) { return }
+      console.log("onEntitySelected")
+      console.log(entity)
+      if (entity?.short_id) { entity.id = entity.short_id }
+      this.$emit('entity-selected', entity)
+      this.selectedEntity = null
+      this.search = ""
+
+      // Annoyingly use $nextTick to ensure that the DOM updates before resetting the input
+      this.$nextTick(() => {
+        this.$refs.autocomplete.reset();
+      })
+    },
+  },
+  created() {
+    this.debouncedSearchEntities = debounce(this.searchEntities, 300);
+  },
+  watch: {
+    search(val) {
+      if (this.localValueOptions) {
+        this.entities = this.localValueOptions
+      }
+      else if (val) {
+        this.debouncedSearchEntities(val);
+      } else {
+        this.entities = [];
+      }
     },
   },
 };

@@ -90,7 +90,6 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
         })
         .join("&")
 
-
     return [baseAndPath, paramsStr].join("?")
 }
 
@@ -117,8 +116,8 @@ const api = (function () {
             throw e
         }
         if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
-            console.log("caching " + url)
-            console.log(res.data)
+            //console.log("caching " + url)
+            //console.log(res.data)
             cache[url] = res.data
         }
         return res.data
@@ -128,11 +127,15 @@ const api = (function () {
         return ret
     }
 
-
     const getEntity = async function (id) {
         const myUrl = makeUrl(id)
         const resp = await getUrl(myUrl)
         return resp
+    }
+
+    const getEntityFromCache = function(id) {
+        const myUrl = makeUrl(id)
+        return _.cloneDeep(cache[myUrl])
     }
 
     const getEntityDisplayName = async function (entityName, id) {
@@ -157,7 +160,6 @@ const api = (function () {
             return filterValue
         }
     }
-
 
     const getResultsCount = async function (entityType, filters) {
         const searchParams = {
@@ -311,7 +313,6 @@ const api = (function () {
         }
     }
 
-
     return {
         createUrl: function (pathName, searchParams, includeEmail) {
             return makeUrl(pathName, searchParams, false)
@@ -322,6 +323,7 @@ const api = (function () {
         getResultsList,
         getResultsCount,
         getEntity,
+        getEntityFromCache,
         get: async function (pathName, searchParams) {
             const url = makeUrl(pathName, searchParams)
             const resp = await getUrl(url)

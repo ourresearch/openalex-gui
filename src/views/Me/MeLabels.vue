@@ -1,11 +1,18 @@
 <template>
   <div>
-    <div class="text-h4 ml-1">My Labels</div>
-    <v-btn rounded color="primary" class="my-4" @click="isLabelCreateDialogOpen = true">
+    <span class="text-h4 ml-1 mr-4">My Labels</span>
+    <v-btn rounded color="primary" v-if="!labelId" @click="isLabelCreateDialogOpen = true">
       <v-icon left>mdi-plus</v-icon>
-      Create Label
+      New Label
     </v-btn>
-    <v-card rounded outlined class="my-4">
+    <router-link v-else class="all-labels-link" to="/me/labels">« All Labels</router-link>
+
+
+    <v-card v-if="labelId" rounded outlined class="my-4">
+      <router-view />
+    </v-card>
+    
+    <v-card v-else rounded outlined class="my-4">
       
       <v-alert type="warning" icon="mdi-progress-wrench">
         Full support for creating and searching by labels will be coming soon.
@@ -13,11 +20,11 @@
 
       <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
       
-
       <v-list v-else color="transparent">
         <v-list-item
             v-for="label in userCollections"
             :key="label.id"
+            :to="'/me/labels/' + label.id"
         >
           <v-list-item-icon>
             <v-icon>mdi-tag-outline</v-icon>
@@ -61,13 +68,15 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
       "userId",
       "userCollections",
     ]),
+    labelId() {
+      return this.$route.params.labelId || null;
+    },
   },
   methods: {
     ...mapMutations([
@@ -76,7 +85,7 @@ export default {
     ...mapActions([]),
     ...mapActions("user", [
       "deleteCollection",
-    ]),
+    ]), 
   },
   created() {
   },
@@ -88,5 +97,10 @@ export default {
 
 
 <style scoped lang="scss">
-
+.all-labels-link {
+  text-decoration: none;
+  color: #555;
+  display: block;
+  padding: 5px 15px;
+}
 </style>

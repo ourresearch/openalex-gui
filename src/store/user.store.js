@@ -25,7 +25,7 @@ let apiBaseUrl = "https://user.openalex.org"
 // npm run serve -- --port 8083
 if (window.location.port && parseInt(window.location.port) === 8083) {
     apiBaseUrl = "http://localhost:5106/"  // your locally-hosted User API
-    console.log("Setting API base URL to local machine (dev use only): " + apiBaseUrl)
+    console.log("Setting User API base URL to local machine (dev use only): " + apiBaseUrl)
 } 
 
 
@@ -87,7 +87,17 @@ export const user = {
             state.email = apiResp.email
             state.authorId = apiResp.author_id
         },
-
+        decorateCollections(state) {
+            // BANDAID infer type
+            state.collections = state.collections.map(coll => {
+                if (coll.ids.length) {
+                    coll.entityType = coll.ids[0].split("/")[0]
+                } else {
+                    coll.entityType = "authors"
+                }
+                return coll
+            })
+        },
     },
     actions: {
 
@@ -354,16 +364,8 @@ export const user = {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`
             const resp = await axios.get(myUrl, axiosConfig())
             state.collections = resp.data
-
-            // BANDAID for getting ids on all collections
-            const collectionPromises = state.collections.map((collection) =>
-                axios.get(
-                    `${apiBaseUrl}/user/${state.id}/collections/${collection.id}`,
-                    axiosConfig()
-                )
-            );
-            const detailedCollections = await Promise.all(collectionPromises);
-            state.collections = detailedCollections.map((response) => response.data);     
+            
+            commit("decorateCollections")
         },
 
         // update
@@ -376,6 +378,8 @@ export const user = {
             state.collections = state.collections.map(coll => {
                 return coll.id === resp.data.id ? resp.data : coll
             })
+
+            commit("decorateCollections")
         },
 
 
