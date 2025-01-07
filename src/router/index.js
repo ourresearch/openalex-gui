@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import Faq from "../views/Faq.vue";
 import Testimonials from "../views/Testimonials.vue";
+import WorksCitingOpenAlex from "../views/WorksCitingOpenAlex.vue";
 import Help from "../views/Help.vue";
 import OpenAlexStats from "../views/OpenAlexStats.vue";
 
@@ -70,15 +71,14 @@ const routes = [
     // static pages
     {
         path: '/',
-        // redirect: {name: "Serp", params: {entityType: "works"}},
         component: Home,
         name: 'Home',
-        // component: Home
     },
     {path: '/about', name: 'About', component: About},
     {path: '/faq', component: Faq},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: Testimonials},
+    {path: '/works-citing-openalex', name: "WorksCitingOpenAlex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
 
 

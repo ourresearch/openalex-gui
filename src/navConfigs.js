@@ -46,6 +46,14 @@ const navConfigs = [
                 name: "Pricing",
                 href: "https://help.openalex.org/pricing",
             },
+            {
+                name: "Press",
+                href: "https://help.openalex.org/hc/en-us/articles/29039538348823-OpenAlex-in-the-News",
+            },
+                        {
+                name: "Citations",
+                href: "/works-citing-openalex",
+            },
         ],
 
     },
