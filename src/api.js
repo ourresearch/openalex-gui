@@ -39,7 +39,7 @@ const stockCache = function (url, ret) {
     cache[url] = ret
 }
 
-let urlBase = {
+const urlBase = {
     api: "https://api.openalex.org",
     web: "https://explore.openalex.org",
     relative: "",
@@ -51,10 +51,10 @@ let urlBase = {
 // example:
 // npm run serve -- --port 8081
 if (window.location.port && parseInt(window.location.port) === 8081) {
-    urlBase.api = "http://localhost:5004/"  // your locally-hosted API
+    urlBase.api = "http://localhost:5006"  // your locally-hosted API
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
 } else if (window.location.port && parseInt(window.location.port) === 8082) {
-    urlBase.api = "https://staging-jump-api.herokuapp.com/"  // staging heroku url
+    urlBase.api = "https://staging-jump-api.herokuapp.com"  // staging heroku url
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
 }
 
@@ -97,6 +97,10 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
 const api = (function () {
 
     const getUrl = async function (url) {
+        if (!url.startsWith("http")) { 
+            url = urlBase.api + url
+        }
+
         if (url.includes("filter=")) { // sdgs hack
             url = url.replace("sdgs/", "")
         }
@@ -122,6 +126,19 @@ const api = (function () {
         }
         return res.data
     }
+
+    const get =  async function (pathName, searchParams) {
+        const url = makeUrl(pathName, searchParams)
+        const resp = await getUrl(url)
+        return resp
+    }
+
+    const post = async function(pathName, data) {
+        const url = urlBase.api + pathName
+        const resp = await axios.post(url, data)
+        return resp
+    }
+
     const getResultsList = async function (url) {
         const ret = getUrl(url)
         return ret
@@ -313,6 +330,10 @@ const api = (function () {
         }
     }
 
+    const apiBaseUrl = function() {
+        return urlBase.api
+    }
+
     return {
         createUrl: function (pathName, searchParams, includeEmail) {
             return makeUrl(pathName, searchParams, false)
@@ -324,14 +345,12 @@ const api = (function () {
         getResultsCount,
         getEntity,
         getEntityFromCache,
-        get: async function (pathName, searchParams) {
-            const url = makeUrl(pathName, searchParams)
-            const resp = await getUrl(url)
-            return resp
-        },
+        get,
         getAutocompleteResponses,
         getGroups,
         getSuggestions,
+        apiBaseUrl,
+        post,
 
     }
 })()
