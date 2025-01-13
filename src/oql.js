@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 const entityConfig = {
     "works": ["id", "doi", "concepts.id", "primary_topic.id", "keywords.id", "grants.funder", "authorships.institutions.id", "authorships.author.id", "type", "publication_year", "open_access.is_oa"],
     "authors": ["id", "ids.orcid", "display_name", "affiliations.institution.id", "last_known_institutions.id", "last_known_institutions.country_code"],

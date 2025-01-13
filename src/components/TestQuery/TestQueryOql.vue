@@ -105,12 +105,11 @@ import {sleep} from "@/util";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 export default {
-  name: "Template",
+  name: "TestQueryOql",
   components: {},
   props: {
     input: [String, Object],
     expectedResponse: [Object, String],
-
     queryId: Number,
     testId: String,
     testSuiteId: String,
@@ -119,7 +118,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
@@ -155,7 +153,6 @@ export default {
       return _.isEqual(this.actualResponse, this.expectedResponse)
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -163,8 +160,6 @@ export default {
     ...mapMutations("search", []),
     ...mapActions("search", []),
     ...mapActions("user", []),
-
-
   },
   created() {
   },

@@ -3,11 +3,7 @@
     <div class="d-flex align-center pa-3">
       {{queries.length}} queries
       <v-spacer/>
-      <v-checkbox
-          label="run searches"
-          v-model="runSearch"
-          hide-details
-      />
+      <v-btn color="primary" @click="runSearch += 1">Run Searches</v-btn>
     </div>
     <v-row dense>
       <v-col
@@ -39,30 +35,21 @@ import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import {getTestSuite} from "@/components/TestQuery/testQuery";
 
 export default {
-  name: "Template",
+  name: "TestQueriesSuite",
   components: {
     TestQuery,
   },
   props: {},
   data() {
     return {
-      runSearch: false,
+      runSearch: 0,
       passCount: 0,
       failCount: 0,
-
-      foo: 42,
       queries: [],
       isLoading: false,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     completeCount() {
       return this.failCount + this.passCount
     },
@@ -72,19 +59,8 @@ export default {
     loadingCount() {
       return this.testsCount - this.completeCount
     },
-
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -95,6 +71,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

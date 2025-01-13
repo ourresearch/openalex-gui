@@ -1,16 +1,10 @@
 <template>
-  <!--      :color="status === 'fail' ? 'error lighten-5' : undefined"-->
   <v-card
       rounded
       flat
       class="fill-height d-flex flex-column"
       :loading="status === 'loading' ? 'grey lighten-2' : undefined"
   >
-    <div>
-      <!--      <v-progress-linear indeterminate height="10"/>-->
-
-
-    </div>
 
     <!--    <div class="font-weight-bold">-->
     <!--      <span class="success&#45;&#45;text">pass: {{ passCount }}</span>-->
@@ -20,11 +14,16 @@
     <!--    </div>-->
 
     <div class=" monospace body-2 pa-3">
-      <!--            <span>{{ config.id }}.</span>-->
       <span v-if="status === 'pass'" class="success--text">{{ config.oql }}</span>
       <span v-else-if="status === 'fail'" class="error--text">{{ config.oql }}</span>
       <span v-else class="grey--text">{{ config.oql }}</span>
     </div>
+
+    <div class=" monospace body-2 pa-3">
+      <span v-if="returnData?.meta?.count" class="success--text">{{ returnData.meta.count }} results</span>
+      <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
+    </div>
+
     <div class="fill-height"></div>
 
     <div class="px-3 pt-1  d-flex">
@@ -42,7 +41,6 @@
           icon
           @pass="passCount += 1"
           @fail="failCount += 1"
-
       />
 
 
@@ -75,7 +73,7 @@
               v-on="on"
               :color="searchTestColor"
               :disabled="!isSearchTestComplete"
-              :href="'https://staging.openalex.org/s/' + searchId"
+              :href="'/s/' + searchId"
               target="_blank"
           >
             <v-icon v-if="isSearchPassing === null">mdi-timer-sand</v-icon>
@@ -108,8 +106,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 import axios from "axios";
+import {api} from "@/api";
+import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
 
@@ -122,28 +121,19 @@ export default {
   },
   props: {
     config: Object,
-    runSearch: Boolean,
+    runSearch: Number,
   },
   data() {
     return {
-      foo: 42,
-
       failCount: 0,
       passCount: 0,
-
       searchId: null,
       isSearchPassing: null,
       searchError: null,
+      returnData: null,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     status() {
       return this.loadingCount ?
           'loading' :
@@ -188,19 +178,15 @@ export default {
     isSearchTestComplete() {
       return this.isSearchPassing !== null
     },
-
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
     async createSearch() {
-      const url = "https://api.openalex.org/searches?mailto=team@ourresearch.org"
+      const url = api.apiBaseUrl() + "/searches?mailto=team@ourresearch.org"
       try {
-        const resp = await axios.post(url, {query: this.config.query})
+        const resp = await axios.post(url, {
+          query: this.config.query,
+          bypass_cache: true,
+        })
         this.searchId = resp.data.id
       } catch (e) {
         this.isSearchPassing = false
@@ -209,13 +195,20 @@ export default {
       }
     },
     async getSearch() {
-      const url = "https://api.openalex.org/searches/" + this.searchId + "?mailto=team@ourresearch.org"
+      const url = api.apiBaseUrl() + "/searches/" + this.searchId + "?mailto=team@ourresearch.org"
       const resp = await axios.get(url)
       if (resp.data.is_completed) {
+        this.returnData = resp.data
+
+        if (resp.data.backend_error) {
+          this.isSearchPassing = false
+          this.searchError = resp.data.backend_error
+        } else 
         if (resp.data.results.length > 0) {
           this.isSearchPassing = true
         } else {
           this.isSearchPassing = false
+          this.searchError = "No results."
         }
       }
     },
@@ -225,7 +218,7 @@ export default {
         this.failCount += 1
         return
       }
-      console.log("polling search", this.searchId)
+      //console.log("polling search", this.searchId)
       await this.getSearch();
       if (this.isSearchPassing === null) {
         setTimeout(() => {
@@ -244,8 +237,6 @@ export default {
       await this.createSearch()
       this.pollSearch()
     }
-
-
   },
   created() {
     if (!this.config) throw new Error("config prop is required")
