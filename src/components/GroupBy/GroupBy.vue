@@ -308,7 +308,7 @@ export default {
       )
       if (this.filterKey === "publication_year") {
         ret.sort((a, b) => {
-          return (a.value > b.value) ? -1 : 1
+          return (parseInt(a.value) > parseInt(b.value)) ? -1 : 1
         })
       }
       this.groups = ret
