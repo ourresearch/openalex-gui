@@ -15,9 +15,8 @@ import axios from "axios";
 import {sleep} from "../../util";
 
 export default {
-  name: "Template",
+  name: "OurStatsEntry",
   components: {
-
   },
   props: {
     entityType: String,
@@ -31,7 +30,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
     }
   },
@@ -59,14 +57,7 @@ export default {
       return resp.data.meta.count
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
   created() {
   },
