@@ -137,11 +137,6 @@ const setHideResults = function (val) {
 }
 
 
-const setSerpTabName = function (val) {
-    pushQueryParam("name", val)
-}
-
-
 const pushNewFilters = async function (newFilters, entityType) {
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
@@ -1010,8 +1005,6 @@ const url = {
     makeApiUrl,
     setShowApi,
     setHideResults,
-
-    setSerpTabName,
 
     pushQueryParam,
     replaceQueryParam,
