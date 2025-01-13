@@ -155,14 +155,13 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
+    cleanedSearchString(){
+      return this.searchString ? this.searchString .replace(/[,:]/g, "") : this.searchString
+    },
     filterSuggestions() {
-      const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
+      const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.cleanedSearchString)
           .filter(f => {
             return f.actions?.includes("filter")
           })
@@ -275,7 +274,7 @@ export default {
       }
 
       const filterKey = this.newFilter?.key ?? "default.search"
-      url.createFilter(this.entityType, filterKey, this.searchString)
+      url.createFilter(this.entityType, filterKey, this.cleanedSearchString)
       this.isEnterPressed = false
     },
     submitSearchString() {
@@ -283,7 +282,7 @@ export default {
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
       } else {
-        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.cleanedSearchString)
         url.pushNewFilters([
           ...url.readFilters(this.$route),
           searchFilter
@@ -325,7 +324,7 @@ export default {
     },
 
     getSuggestions: _.debounce(async function () {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.cleanedSearchString)
 
       // lol hack much?
       if (this.searchString === "coriander OR cilantro") {
@@ -354,7 +353,7 @@ export default {
           this.entityType,
           // "works",
           this.newFilter?.key,
-          this.searchString,
+          this.cleanedSearchString,
           url.readFilters(this.$route)
       )
       this.isLoading = false
