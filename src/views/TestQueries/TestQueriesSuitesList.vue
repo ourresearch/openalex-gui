@@ -11,7 +11,14 @@
         <v-col cols="12" md="6" lg="4">
           <v-card class="clickable" rounded flat to="/tests/all_columns">
             <v-card-title>
-              All columns
+              All Columns
+            </v-card-title>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6" lg="4">
+          <v-card class="clickable" rounded flat to="/tests/disjunctions">
+            <v-card-title>
+              Disjunctions
             </v-card-title>
           </v-card>
         </v-col>
@@ -19,42 +26,24 @@
     </v-container>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "TestQueriesSuitesList",
   components: {
   },
   props: {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", [
-    ]),
-    ...mapActions("search", [
-    ]),
-    ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -63,6 +52,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

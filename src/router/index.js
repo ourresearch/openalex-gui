@@ -37,7 +37,7 @@ import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
-import TestQuery from "@/views/TestQueries/TestQuery.vue";
+import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
 import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
 import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
 import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
@@ -92,7 +92,7 @@ const routes = [
             {
                 path: '/tests/:testSuiteId/:queryId',
                 name: 'test-query',
-                component: TestQuery,
+                component: TestQueryView,
             },
             {
                 path: '/tests/:testSuiteId/:queryId/:testType',

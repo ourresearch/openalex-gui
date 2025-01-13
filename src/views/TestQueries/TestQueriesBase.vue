@@ -15,8 +15,6 @@
       <div class="text-h4 mb-5 mt-3">{{ pageTitle }}</div>
     </v-container>
     <router-view />
-
-
   </div>
 </template>
 
@@ -26,13 +24,12 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "TestQueriesBase",
   components: {
   },
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
@@ -87,11 +84,7 @@ export default {
       // get the last item in the breadcrumbs list
       return this.breadcrumbItems[this.breadcrumbItems.length - 1].text
     }
-
-
-
   },
-
   methods: {
     ...mapMutations([
       "snackbar",

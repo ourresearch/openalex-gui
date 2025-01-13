@@ -60,7 +60,7 @@ export default {
     ...mapActions("user", []),
     async getEntity() {
       this.isLoading = true
-      const myUrl = "https://api.openalex.org/" + this.value
+      const myUrl = "/" + this.value
       const response = await api.getUrl(myUrl)
       this.entityData = response
       this.isLoading = false
