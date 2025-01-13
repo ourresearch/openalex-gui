@@ -19,6 +19,7 @@
         {{ entityObj.display_name }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
       </router-link>
     </span>
+
     <span v-if="valueListOfStrings">
       <span
           v-for="(str, i) in valueListOfStrings"
@@ -28,29 +29,34 @@
         {{ str }}{{ i + 1 < valueListOfStrings.length ? ", " : "" }}
       </span>
     </span>
+
     <span v-else-if="valueExternalLink">
       <a :href="valueExternalLink" target="_blank">
-<!--        {{ valueExternalLink.replace("https://", "") }} -->
         Yes
         <v-icon small style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
       </a>
     </span>
+
     <span v-else-if="valueString">
       <span>{{ valueString }}{{ isValueTruncated ? "..." : "" }}</span>
     </span>
+
     <span v-else-if="valueWorksCount">
       <router-link :to="data.id | entityWorksLink">
         {{ valueWorksCount | toPrecision }}
       </router-link>
     </span>
+
     <span v-else-if="valueUnlinkedCount">
       <span>{{ isValueUsd ? "$"  : ""}}{{ valueUnlinkedCount | toPrecision }}</span>
     </span>
+
     <span v-else-if="valueLinkedCount">
       <router-link :to="url.makeFilterRoute(entityType, this.filterKeyForMakingLinks, data.id)">
         {{ valueLinkedCount | toPrecision }}
       </router-link>
     </span>
+
     <span v-else-if="valueBoolean">
       {{ valueBoolean }}
     </span>
@@ -88,7 +94,7 @@ import {entityTypeFromId} from "../../util";
 import {getEntityConfig} from "@/entityConfigs";
 
 export default {
-  name: "Template",
+  name: "EntityDatumRow",
   components: {},
   props: {
     filterKey: String,
@@ -114,7 +120,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -152,8 +157,6 @@ export default {
     valueLength() {
       return this.rawValue?.length
     },
-
-
     valueEntityLinks() {
       if (this.rawValue?.id) {
         return [this.rawValue]
@@ -198,16 +201,11 @@ export default {
       if (typeof this.rawValue === "boolean") return this.rawValue ?
           "Yes" :
           "No"
-
     },
-
-
     // what type of DatumRow are we making
     isValueAListOfEntityLinks() {
       return this.filterConfig.type === "select" && this.filterConfig.isMultiple
     },
-
-
     // truncation
     isValueTruncated() {
       return this.isValueSubjectToTruncation && this.isTruncateSet
@@ -217,8 +215,6 @@ export default {
       const maxLen = this.maxLen[this.myValueType]
       return isTruncatableType && this.rawValue.length > maxLen
     },
-
-
     // utility
     pluralizeCount() {
       if (this.filterKey === "cites") return 2
@@ -241,8 +237,6 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     entityTypeFromId,
-
-
   },
   created() {
   },
@@ -251,6 +245,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 a {
