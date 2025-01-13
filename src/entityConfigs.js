@@ -39,6 +39,7 @@ const entityConfigs = {
             "cites",
             "cited_by",
             "related_to",
+            "fwci",
             "citation_normalized_percentile.value",
             null,
             "primary_topic.id",
