@@ -136,12 +136,14 @@ export default {
         try {
           return queryToOQL(this.input)
         } catch (e) {
+          console.log(e.stack)
           return `test threw error: "${e.message}"`
         }
       } else if (this.testId === 'to-query') {
         try {
           return oqlToQuery(this.input)
         } catch (e) {
+          console.log(e.stack)
           return `test threw error: "${e.message}"`
         }
       } else {

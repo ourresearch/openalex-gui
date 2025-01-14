@@ -13,14 +13,23 @@
     <!--      <span class="grey&#45;&#45;text">loading: {{ loadingCount }}</span>-->
     <!--    </div>-->
 
+    <div v-if="config.title" class="pa-3" style="margin-bottom: -20px">
+      {{config.title}}
+    </div>
+
+
     <div class=" monospace body-2 pa-3">
-      <span v-if="status === 'pass'" class="success--text">{{ config.oql }}</span>
-      <span v-else-if="status === 'fail'" class="error--text">{{ config.oql }}</span>
+      <span v-if="status === 'pass'" class="success--text">
+        {{ config.oql }}
+      </span>
+      <span v-else-if="status === 'fail'" class="error--text">
+        {{ config.oql }}
+      </span>
       <span v-else class="grey--text">{{ config.oql }}</span>
     </div>
 
     <div class=" monospace body-2 pa-3">
-      <span v-if="returnData?.meta?.count" class="success--text">{{ returnData.meta.count }} results</span>
+      <span v-if="returnData?.meta" class="success--text">{{ returnData.meta.count }} results</span>
       <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
     </div>
 
@@ -203,9 +212,14 @@ export default {
         if (resp.data.backend_error) {
           this.isSearchPassing = false
           this.searchError = resp.data.backend_error
-        } else 
-        if (resp.data.results.length > 0) {
+        
+        } else if (resp.data.results.length > 0) {
           this.isSearchPassing = true
+        
+        } else if (this.config.expectsZeroResults && resp.data.results.length === 0) {
+          this.isSearchPassing = true
+
+
         } else {
           this.isSearchPassing = false
           this.searchError = "No results."
