@@ -66,10 +66,10 @@ function oqlToQuery(oql) {
 
     const whereClause = oql.match(/get .+?(?:of works)?(?:\s+where\s+(.*?)(?:;|$))/);
     if (whereClause) {
-        console.log("whereClause: " + whereClause[1])
+        //console.log("whereClause: " + whereClause[1])
         const filters = parseFilters(whereClause[1], query.get_rows);
-        console.log("filters")
-        console.log(filters)
+        //console.log("filters")
+        //console.log(filters)
         if (query.get_rows === 'works') {
             workFilters.push(...filters);
         } else {
@@ -167,33 +167,16 @@ function getColumnId(name, subjectEntity = "works") {
 }
 
 
-function XparseFilters(filterString, filterType) {
-    return filterString.split(' and ').map(filter => {
-        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than or equal to|>=|is less than or equal to|<=|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)/);
-        if (match) {
-            const [, column_id, operator, value] = match;
-            const filter = {
-                column_id: getColumnId(column_id, filterType),
-                ...(operator !== 'is' && { operator: operator }),
-                value: parsePrimitive(value)
-            };
-            return filter;
-        } else {
-            throw new Error(`Invalid filter: ${filter}`);
-        }
-    });
-}
-
 function parseFilters(filterString, filterType) {
     /**
-     * Written by GPT4.0 with onlu light edits - BLL
+     * Written by GPT4.0 with only light edits - BLL
      * Parses a filter string into an array of filter objects.
      * Handles parentheses, nested groups, and default joins (`and`/`or`).
      */
 
     // Helper to parse a single filter
     function parsePrimitiveFilter(filter) {
-        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than or equal to|>=|is less than or equal to|<=|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is)\s+(.+)/);
+        const match = filter.match(/(\w+(?:\.\w+)*)\s+(is not|is greater than or equal to|>=|is less than or equal to|<=|is greater than|>|is less than|<|contains|does not contain|is in|is not in|is|matches any item in label|matches every item in label)\s+(.+)/);
         if (!match) throw new Error(`Invalid filter: ${filter}`);
         const [, column_id, operator, value] = match;
         return {

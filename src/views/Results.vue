@@ -146,6 +146,7 @@ import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
+import {urlBase} from "@/apiConfig";
 
 
 export default {
@@ -194,7 +195,6 @@ export default {
       "querySubjectEntityConfig",
       "querySubjectEntity",
       "query",
-      "searchApiUrl",
       "queryColumns",
     ]),
     areTopLevelFiltersApplied() {
@@ -203,6 +203,9 @@ export default {
       } else {
         return this.$store.state.search.query.filter_works.length !== 0
       }
+    },
+    searchApiUrl() {
+      return urlBase.api + '/searches/' + this.$route.params.id
     }
   },
   methods: {
