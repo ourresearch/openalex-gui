@@ -190,12 +190,8 @@ export default {
   },
   methods: {
     async createSearch() {
-      const url = api.apiBaseUrl() + "/searches?mailto=team@ourresearch.org"
       try {
-        const resp = await axios.post(url, {
-          query: this.config.query,
-          bypass_cache: true,
-        })
+        const resp = await api.createSearch(this.config.query, true)
         this.searchId = resp.data.id
       } catch (e) {
         this.isSearchPassing = false
@@ -204,21 +200,20 @@ export default {
       }
     },
     async getSearch() {
-      const url = api.apiBaseUrl() + "/searches/" + this.searchId + "?mailto=team@ourresearch.org"
-      const resp = await axios.get(url)
-      if (resp.data.is_completed) {
-        this.returnData = resp.data
+      console.log("getSearch: " + this.searchId)
+      const resp = await api.getSearch(this.searchId)
+      if (resp.is_completed) {
+        this.returnData = resp
 
-        if (resp.data.backend_error) {
+        if (resp.backend_error) {
           this.isSearchPassing = false
-          this.searchError = resp.data.backend_error
+          this.searchError = resp.backend_error
         
-        } else if (resp.data.results.length > 0) {
+        } else if (resp.results.length > 0) {
           this.isSearchPassing = true
         
-        } else if (this.config.expectsZeroResults && resp.data.results.length === 0) {
+        } else if (this.config.expectsZeroResults && resp.results.length === 0) {
           this.isSearchPassing = true
-
 
         } else {
           this.isSearchPassing = false
@@ -243,6 +238,10 @@ export default {
     run() {
       this.passCount = 0
       this.failCount = 0
+      this.searchId = null
+      this.isSearchPassing = null
+      this.searchError = null
+      this.returnData = null
       if (this.runSearch) {
         this.runSearchMethod()
       }
@@ -262,7 +261,7 @@ export default {
     runSearch: {
       handler(newVal) {
         if (newVal) {
-          this.runSearchMethod()
+          this.run()
         }
       },
       immediate: true

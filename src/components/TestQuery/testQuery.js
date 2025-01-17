@@ -204,6 +204,38 @@ const localTestSuites = {
                 ],
             }
         },
+    ],
+    labels: [ 
+        {
+            title: "Works with Label of Authors",
+            oql: "get works where authorships.author.id matches any item in label col-eRqykNqf5oHnd4RxrwVGdL;",
+            query: {
+                get_rows: "works",
+                filter_works: [                
+                    {
+                        column_id: "authorships.author.id",
+                        operator: "matches any item in label",
+                        value: "col-eRqykNqf5oHnd4RxrwVGdL"
+                    },
+                            
+                ]
+            }
+        },
+        {
+            title: "Authors with Label of Authors",
+            oql: "get authors where id matches any item in label col-eRqykNqf5oHnd4RxrwVGdL;",
+            query: {
+                get_rows: "authors",
+                filter_aggs: [                
+                    {
+                        column_id: "id",
+                        operator: "matches any item in label",
+                        value: "col-eRqykNqf5oHnd4RxrwVGdL"
+                    },
+                            
+                ]
+            }
+        },
     ]
 }
 

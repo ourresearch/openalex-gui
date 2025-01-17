@@ -116,8 +116,7 @@ export const search = {
         createSearchFromQuery: async function ({state}, query) {
             state.is_completed = false
 
-            const path = "/searches"
-            const resp = await api.post(path, {query})
+            const resp = await api.createSearch(query)
             //console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
@@ -131,7 +130,7 @@ export const search = {
             state.is_completed = false
 
             // get the search from the API
-            const data = await api.getUrl(`/searches/${state.id}`)
+            const data = await api.getSearch(state.id)
 
             // set the state from the response
             state.is_completed = data.is_completed
@@ -173,7 +172,5 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
         entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),
-
-        searchApiUrl: (state) => api.apiBaseUrl() + "/searches/" + state.id,
     },
 }

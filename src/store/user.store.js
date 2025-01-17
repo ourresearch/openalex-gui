@@ -3,31 +3,12 @@ import router from "../router";
 import {url} from "@/url";
 import {entity} from "@/entity";
 import {sleep} from "@/util";
+import {urlBase, axiosConfig} from "@/apiConfig.js"
+
 
 const shortUuid = require('short-uuid');
 
-
-const axiosConfig = function () {
-    const token = localStorage.getItem("token")
-    const headers = {}
-    if (token) {
-        headers.Authorization = `Bearer ${token}`
-    }
-    return {
-        headers: headers
-    }
-}
-let apiBaseUrl = "https://user.openalex.org"
-
-// this lets you develop against a local API endpoint
-// to set the port, when you start your dev server, use: npm run serve -- --port <my port num>
-// example:
-// npm run serve -- --port 8083
-if (window.location.port && parseInt(window.location.port) === 8083) {
-    apiBaseUrl = "http://localhost:5106/"  // your locally-hosted User API
-    console.log("Setting User API base URL to local machine (dev use only): " + apiBaseUrl)
-} 
-
+const apiBaseUrl = urlBase.userApi
 
 export const user = {
     namespaced: true,
