@@ -32,7 +32,7 @@ import axios from "axios";
 import TestQuery from "@/components/TestQuery/TestQuery.vue";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
 import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
-import {getTestSuite} from "@/components/TestQuery/testQuery";
+import {getTestSuite} from "@/components/TestQuery/tests";
 
 export default {
   name: "TestQueriesSuite",

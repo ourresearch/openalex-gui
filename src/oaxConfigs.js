@@ -8646,7 +8646,6 @@ oaxConfigs.subfields.columns["display_name.search"].displayName = "name"
 
 oaxConfigs["work-types"].columns["display_name.search"].displayName = "name"
 
-
 oaxConfigs.topics.columns["count(works)"].actions = ["filter", "column", "sort"]
 oaxConfigs.topics.columns["field"].actions = ["filter", "column", "sort"]
 oaxConfigs.topics.columns["domain"].actions = ["filter", "column", "sort"]
@@ -8656,3 +8655,10 @@ oaxConfigs.topics.columns["id"].actions = ["filter", "column", "sort"]
 oaxConfigs.topics.columns["display_name.search"].displayName = "name"
 
 
+// LABELS UPDATES
+oaxConfigs.works.columns["authorships.author.id"].operators = [
+    "is",
+    "is not",
+    "matches any item in label",
+    "matches every item in label",
+] 
