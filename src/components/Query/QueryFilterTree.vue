@@ -34,8 +34,8 @@
             :operator="item.operator"
             :value="item.value"
             :subject-entity="subjectEntity"
-            @setOperator="(operator) => setFilterOperator(item.path, operator)"
-            @setValue="(value) => setFilterValue(item.path, value)"
+            @setOperator="(operator, dontApply) => setFilterOperator(item.path, operator, dontApply)"
+            @setValue="(value, dontApply) => setFilterValue(item.path, value, dontApply)"
         />
       </template>
 
@@ -97,22 +97,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       openNodes: [],
       myFilters: [],
       isEditingFilters: false,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-      "querySubjectEntity",
-      "querySubjectEntityConfig",
-    ]),
     hasAvailableFilters() {
       const mySubjectEntity = this.subjectEntity
       const myConfig = getConfigs()[mySubjectEntity]
@@ -166,15 +156,9 @@ export default {
   },
   methods: {
     filter,
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
     ...mapActions("search", [
       "createSearch",
-      "setAllFilters",
     ]),
-    ...mapActions("user", []),
     // create
     addFilter(columnId, columnType) {
       const initValue = columnType === "boolean" ? true : null
@@ -195,17 +179,28 @@ export default {
       return this.myFilters[index]
     },
     // update
-    setFilterOperator(pathToFilter, operator) {
-      //console.log("setFilterOperator", pathToFilter, operator)
+    setFilterOperator(pathToFilter, operator, dontApply) {
+      console.log("setFilterOperator", pathToFilter, operator)
+      console.log("dontApply: " + dontApply)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "operator", operator)
-      if (!this.isEditingFilters) { this.applyFilters() }
+      if (dontApply) {
+        console.log("setFilterOperator with dontApply")
+        this.isEditingFilters = true
+      } else if (!this.isEditingFilters) {
+        console.log("setFilterOperator and applyFilters")
+        this.applyFilters() 
+      }
     },
-    setFilterValue(pathToFilter, value) {
+    setFilterValue(pathToFilter, value, dontApply) {
       //console.log("setFilterValue", pathToFilter, value)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
-      this.applyFilters()
+      if (dontApply) {
+        this.isEditingFilters = true
+      } else {
+        this.applyFilters()
+      }
     },
     // delete
     deleteFilter(path) {

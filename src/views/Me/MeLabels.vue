@@ -1,10 +1,17 @@
 <template>
   <div>
-    <span class="text-h4 ml-1 mr-4">My Labels</span>
-    <v-btn rounded color="primary" v-if="!labelId" @click="isLabelCreateDialogOpen = true">
-      <v-icon left>mdi-plus</v-icon>
-      New Label
-    </v-btn>
+    <template v-if="!labelId">
+      <span class="text-h4 ml-1 mr-4">My Labels</span>
+      <v-btn 
+        v-if="!labelId" 
+        @click="isLabelCreateDialogOpen = true"
+        rounded 
+        color="primary"
+        class="new-label-button">
+        <v-icon left>mdi-plus</v-icon>
+        New Label
+      </v-btn>
+    </template>
     <router-link v-else class="all-labels-link" to="/me/labels">« All Labels</router-link>
 
 
@@ -14,10 +21,6 @@
     
     <v-card v-else rounded outlined class="my-4">
       
-      <v-alert type="warning" icon="mdi-progress-wrench">
-        Full support for creating and searching by labels will be coming soon.
-      </v-alert>
-
       <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
       
       <v-list v-else color="transparent">
@@ -67,11 +70,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
-      "userId",
       "userCollections",
     ]),
     labelId() {
@@ -82,7 +81,6 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "deleteCollection",
     ]), 
@@ -101,6 +99,9 @@ export default {
   text-decoration: none;
   color: #555;
   display: block;
-  padding: 5px 15px;
+  padding: 0px 5px;
+}
+.new-label-button {
+  margin-top: -13px;
 }
 </style>

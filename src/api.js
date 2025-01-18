@@ -315,9 +315,6 @@ const api = (function () {
 
     const createSearch = async function(query, bypass_cache=false) {
         // Crestes a new Redshit query, routing to user api if needed
-        console.log("api.createSearch")
-        console.log("urlBase")
-        console.log(urlBase)
         let url
         if (doesSearchContainUserData(query)) {
             console.log("search contains user data")
@@ -326,7 +323,7 @@ const api = (function () {
             url = urlBase.api + "/searches"
         }
 
-        console.log("posting create search to " + url)
+        console.log("api.createSearch to " + url)
         const resp = await post(url, {query, bypass_cache}, axiosConfig())
         return resp
     }

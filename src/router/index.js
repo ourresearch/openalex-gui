@@ -321,6 +321,8 @@ const redirectFromOldFilters = function (to, from, next) {
 
 
 router.beforeEach(async (to, from, next) => {
+    //store.dispatch('search/clearSearch')
+
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser")
