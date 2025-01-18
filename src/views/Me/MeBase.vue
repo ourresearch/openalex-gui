@@ -10,13 +10,7 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item to="/me/searches">
-            <v-list-item-content>
-              <v-list-item-title>
-                Searches
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+
           <v-list-item to="/me/labels">
             <v-list-item-content>
               <v-list-item-title>
@@ -24,6 +18,15 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item to="/me/searches">
+            <v-list-item-content>
+              <v-list-item-title>
+                Searches
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          
           <v-list-item to="/me/corrections">
             <v-list-item-content>
               <v-list-item-title>

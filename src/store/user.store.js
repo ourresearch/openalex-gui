@@ -68,17 +68,6 @@ export const user = {
             state.email = apiResp.email
             state.authorId = apiResp.author_id
         },
-        decorateCollections(state) {
-            // BANDAID infer type
-            state.collections = state.collections.map(coll => {
-                if (coll.ids.length) {
-                    coll.entityType = coll.ids[0].split("/")[0]
-                } else {
-                    coll.entityType = "authors"
-                }
-                return coll
-            })
-        },
     },
     actions: {
 
@@ -323,7 +312,6 @@ export const user = {
         // COLLECTIONS
         // **************************************************
 
-
         // create
         async createCollection({commit, dispatch, state, rootState}, {ids, name, description}) {
             // if (!ids.length) ids = ["hack"]
@@ -339,14 +327,11 @@ export const user = {
             await dispatch("fetchUser")
         },
 
-
         // read
         async fetchCollections({commit, state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`
             const resp = await axios.get(myUrl, axiosConfig())
             state.collections = resp.data
-            
-            commit("decorateCollections")
         },
 
         // update
@@ -359,10 +344,7 @@ export const user = {
             state.collections = state.collections.map(coll => {
                 return coll.id === resp.data.id ? resp.data : coll
             })
-
-            commit("decorateCollections")
         },
-
 
         // delete
         async deleteCollection({commit, dispatch, state, rootState}, id) {
@@ -422,8 +404,14 @@ export const user = {
         userAuthorId: (state) => state.authorId,
 
         userSavedSearches: (state) => state.savedSearches,
-        userCollections: (state) => state.collections,
         userCorrections: (state) => state.corrections,
+        userCollections: (state) => state.collections,
+        getCollection: (state) => (collectionId) => {
+            return state.collections.find(coll => coll.id === collectionId)
+        },
+        getCollectionsByType: (state) => (type) => {
+            return state.collections.filter(coll => coll.type === type)
+        },
 
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,

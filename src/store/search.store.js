@@ -115,7 +115,8 @@ export const search = {
 
         createSearchFromQuery: async function ({state}, query) {
             state.is_completed = false
-
+            state.query = query
+            state.oql = queryToOQL(query)
             const resp = await api.createSearch(query)
             //console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
@@ -141,6 +142,11 @@ export const search = {
             state.results_meta = data.meta
             state.query = data.query
         },
+
+        clearSearch({state}) {
+            console.log("Clearing Search")
+            Object.assign(state, stateDefaults())
+        }
     },
     getters: {
         resultsHeader: (state) => state.results_header,
