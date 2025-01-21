@@ -7,7 +7,7 @@
       <div class="text-h3">
         Advanced Queries
       </div>
-      <v-btn color="primary" class="start-button" href="/s/f847ddf26aaa15e1a37159983c815980">
+      <v-btn color="primary" class="start-button" to="/s/f847ddf26aaa15e1a37159983c815980">
         Start a Query
         <v-icon>mdi-chevron-right</v-icon>
       </v-btn>
@@ -225,7 +225,7 @@ const exampleQueries = [
     question: "Which authors at the University of British Columbia have made their datasets open access?",
     type: "authors",
     category: "compliance",
-    url: "/s/032eae4bad444a0452ed6002a5d89620",
+    url: "/s/9ea5afe3aff2325242ff32ca154eb280",
   },
   {
     question: "How does Notre Dame University contribute to the Sustainable Development Goals?",

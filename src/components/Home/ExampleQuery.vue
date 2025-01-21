@@ -1,7 +1,7 @@
 <template>
   <v-card flat rounded class="example-query fill-height d-flex flex-column">
     <v-card-title>
-      <a class="question-link" :href="url">{{ question }}</a>
+      <router-link class="question-link" :to="url">{{ question }}</router-link>
     </v-card-title>
     <div v-if="error" style="margin: 0 20px 10px;">
       <b>Error:</b> {{ error }}

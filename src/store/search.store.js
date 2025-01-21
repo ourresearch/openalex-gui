@@ -4,8 +4,8 @@ import Vuex from 'vuex'
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
-import axios from "axios";
 import router from "@/router";
+import {api} from "@/api";
 import {getConfigs} from "@/oaxConfigs";
 import {
     makeFilterBranch,
@@ -71,7 +71,6 @@ export const search = {
             console.log("deleteFilter", id)
             state.query.filters = deleteNode(state.query.filters, id)
         },
-
         setAllFilters({state}, newFilters) {
             state.query.filters = _.cloneDeep(newFilters)
         },
@@ -82,6 +81,7 @@ export const search = {
                 get_rows: columnId,
                 filter_works: state.query.filter_works,
             }
+            console.log("setSummarize", newQuery)
             dispatch("createSearchFromQuery", newQuery)
         },
 
@@ -95,14 +95,11 @@ export const search = {
         addReturnColumn({state}, columnId) {
             state.query.show_columns.push(columnId)
         },
-
         deleteReturnColumn({state}, columnId) {
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId)
-        },
-
-        // SET MANY THINGS AT ONCE
-        setFromQueryObject({state}, query) {
-            state.query = query
+            if (state.query.sort_by_column === columnId) {
+                state.query.sort_by_column = state.query.show_columns.slice(-1)[0]
+            }
         },
 
         // CREATE AND READ SEARCH
@@ -114,9 +111,9 @@ export const search = {
 
         createSearchFromQuery: async function ({state}, query) {
             state.is_completed = false
-
-            const url = "https://api.openalex.org/searches"
-            const resp = await axios.post(url, {query})
+            state.query = {...baseQuery(), ...query}
+            state.oql = queryToOQL(query)
+            const resp = await api.createSearch(query)
             //console.log("Created search", resp.data)
             await pushSafe({name: 'search', params: {id: resp.data.id}})
         },
@@ -130,17 +127,22 @@ export const search = {
             state.is_completed = false
 
             // get the search from the API
-            const resp = await axios.get(getters.searchApiUrl)
+            const data = await api.getSearch(state.id)
 
             // set the state from the response
-            state.is_completed = resp.data.is_completed
-            state.oql = queryToOQL(resp.data.query)
-            state.backend_error = resp.data.backend_error
-            state.results_header = resp.data.results_header ?? []
-            state.results_body = resp.data.results ?? []
-            state.results_meta = resp.data.meta
-            state.query = resp.data.query
+            state.is_completed = data.is_completed
+            state.oql = queryToOQL(data.query)
+            state.backend_error = data.backend_error
+            state.results_header = data.results_header ?? []
+            state.results_body = data.results ?? []
+            state.results_meta = data.meta
+            state.query = data.query
         },
+
+        clearSearch({state}) {
+            console.log("Clearing Search")
+            Object.assign(state, stateDefaults())
+        }
     },
     getters: {
         resultsHeader: (state) => state.results_header,
@@ -172,9 +174,5 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
         entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),
-
-        searchApiUrl: (state) => {
-            return `https://api.openalex.org/searches/${state.id}`
-        },
     },
 }

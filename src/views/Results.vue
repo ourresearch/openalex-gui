@@ -12,33 +12,33 @@
             <query-filter-tree
                 v-if="uiVariant !== 'chips' && querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
-                :filters="$store.state.search.query.filter_aggs"
+                :filters="query.filter_aggs"
             />
             <query-filter-tree
                 v-if="uiVariant !== 'chips'"
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="$store.state.search.query.filter_works"
+                :filters="query.filter_works"
             />
 
             <div v-if="uiVariant === 'chips'">
               <query-filter-chips
                   v-if="querySubjectEntity !== 'works'"
                   :subject-entity="querySubjectEntity"
-                  :filters="$store.state.search.query.filter_aggs"
+                  :filters="query.filter_aggs"
               />
               <query-filter-chips
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
-                  :filters="$store.state.search.query.filter_works"
+                  :filters="query.filter_works"
               />
             </div>
 
             <query-columns-controls
               :subject-entity="querySubjectEntity"
-              :show_columns="$store.state.search.query.show_columns"
-              :sort_by_column="$store.state.search.query.sort_by_column"
-              :sort_by_order="$store.state.search.query.sort_by_order"
+              :show_columns="query.show_columns"
+              :sort_by_column="query.sort_by_column"
+              :sort_by_order="query.sort_by_order"
             />
 
           </v-card>
@@ -60,7 +60,7 @@
 
               <v-tab-item>
                 <v-card-text>
-                  <pre>{{ $store.state.search.query }}</pre>
+                  <pre>{{ query }}</pre>
                 </v-card-text>
               </v-tab-item>
 
@@ -79,7 +79,7 @@
 
 
       <!-- Results Table -->
-      <v-col cols="12" lg="8">
+      <v-col cols="12" lg="7">
         <v-card flat rounded style="min-height: 100%;">
           <results-error v-if="$store.state.search.backend_error" />
           <results-table v-else-if="$store.state.search.is_completed" />
@@ -89,6 +89,7 @@
 
     </v-row>
 
+    <!--
     <v-dialog scrollable v-model="isOqlEditDialogOpen" max-width="600">
       <v-card flat rounded>
         <v-toolbar flat>
@@ -124,6 +125,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    -->
   </v-container>
 </template>
 
@@ -144,6 +146,7 @@ import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
 import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
+import {urlBase} from "@/apiConfig";
 
 
 export default {
@@ -183,34 +186,22 @@ export default {
       "isLocalEnv",
       "entityType",
     ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     ...mapGetters("search", [
-      "worksFilters",
-      "entityFilters",
-      "querySubjectEntityConfig",
-      "querySubjectEntity",
       "query",
-      "searchApiUrl",
-      "queryColumns",
+      "querySubjectEntity",
     ]),
     areTopLevelFiltersApplied() {
       if (this.querySubjectEntity !== 'works') {
-        return this.$store.state.search.query.filter_aggs.length !== 0
+        return this.query.filter_aggs.length !== 0
       } else {
-        return this.$store.state.search.query.filter_works.length !== 0
+        return this.query.filter_works.length !== 0
       }
+    },
+    searchApiUrl() {
+      return urlBase.api + '/searches/' + this.$route.params.id
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([
-      "createSearch",
-    ]),
-    ...mapActions("user", []),
     ...mapActions("search", [
       "createSearch",
       "getSearch",
@@ -242,6 +233,7 @@ export default {
       }
     },
     async pollSearch() {
+      console.log("pollSearch")
       await this.getSearch(this.$route.params.id);
       if (!this.$store.state.search.is_completed) {
         setTimeout(() => {

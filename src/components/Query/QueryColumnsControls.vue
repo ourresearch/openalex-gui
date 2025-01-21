@@ -35,7 +35,7 @@
       <!-- Visible Columns -->
       <div v-for="(column, index) in visibleColumns" :key="index" class="column-chip">
         <v-chip outlined>
-          {{ columnConfig(column.column_id).displayName | titleCase }}
+          {{ column.displayName | titleCase }}
           <v-icon
             v-if="visibleColumns.length > 1" 
             @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
@@ -62,11 +62,11 @@
         <v-list>
           <v-list-item-group>
             <v-list-item
-                v-for="column in visibleColumns"
+                v-for="column in availableSortByColumns"
                 :key="column.column_id"
                 :value="column.column_id"
                 active-class="primary--text"
-                @click="setSortBy(column.column_id)"
+                @click="setSortByColumn(column.column_id)"
             >
               <v-list-item-icon>
                 <v-icon v-if="column.column_id===sort_by_column">mdi-check</v-icon>
@@ -131,17 +131,53 @@ export default {
   data() {
     return {
       openNodes: [],
+      /*
       visibleColumns: [],
       availableColumns: [],
       sortByColumn: null,
+      availableSortByColumns: null,
+      */
       isColumnsMenuOpen: false,
-    };
+    }
   },
   computed: {
-
+    columnConfigs: function() {
+      return getConfigs()[this.subjectEntity].columns
+    },
+    availableColumns: function() {
+      return Object.values(this.columnConfigs)
+          .filter(column => column.actions.includes("column"))
+          .map(column => ({
+            displayName: column.displayName,
+            column_id: column.id,
+            icon: column.icon,
+        }))
+    },
+    visibleColumns: function() {
+      return this.show_columns.map(column => ({
+          displayName: this.columnConfigs[column].displayName,
+          column_id: column,
+        }))
+    },
+    availableSortByColumns: function() {
+      return Object.values(this.columnConfigs)
+          .filter(column => column.actions.includes("sort"))
+          .map(column => ({
+            displayName: column.displayName,
+            column_id: column.id,
+            icon: column.icon,
+        }))
+    },
+    sortByColumn: function() {
+      return this.columnConfigs[this.sort_by_column]
+    },
   },
   methods: {
-    ...mapActions("search", ["createSearch"]),
+    ...mapActions("search", [
+      "createSearch",
+      "addReturnColumn",
+      "deleteReturnColumn",
+      "setSortBy"]),
     openColumnsMenu(filter) {
       this.currentFilter = filter;
       this.isColumnsMenuOpen = true;
@@ -157,65 +193,25 @@ export default {
       }
     },
     addColumn(column) {
-      this.visibleColumns.push(column)
-      this.applyColumns()
+      this.addReturnColumn(column.column_id)
+      this.createSearch()
     },
     removeColumn(column) {
-      const index = this.visibleColumns.indexOf(column);
-      if (index > -1) {
-        this.visibleColumns.splice(index, 1);
-        this.applyColumns();
-      }
+      this.deleteReturnColumn(column.column_id)
+      this.createSearch()
     },
-    setSortBy(column) {
-      this.$store.state.search.query.sort_by_column = column;
+    setSortByColumn(column) {
+      this.setSortBy({column_id: column, direction: this.$store.state.search.query.sort_by_order })
       this.createSearch();
    },
     setOrder(order) {
-      this.$store.state.search.query.sort_by_order = order;
+      this.setSortBy({column_id: this.$store.state.search.query.sort_by_column, direction: order })
       this.createSearch();      
-    },
-    applyColumns() {
-      const columns = this.visibleColumns.map(column => column.column_id)
-      this.$store.state.search.query.show_columns = columns;
-      this.createSearch();
-    },
-    columnConfig(column_id) {
-      const mySubjectEntity = this.subjectEntity
-      const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
-      const columnConfig = mySubjectEntityConfig.columns[column_id]
-      return columnConfig
     },
   },
   mounted() {
   },
   watch: {
-    "show_columns": {
-      handler: function(newColumns) {
-
-        const availableColumns = getConfigs()[this.subjectEntity].columns
-
-        this.availableColumns = Object.values(availableColumns)
-          .filter(column => column.actions.includes("column"))
-          .map(column => ({
-            displayName: column.displayName,
-            column_id: column.id,
-            icon: column.icon,
-        }));
-
-        this.visibleColumns = newColumns.map(column => ({
-          displayName: availableColumns[column].displayName,
-          column_id: column,
-        }));
-      },
-      immediate: true,
-    },
-    "sort_by_column": {
-      handler: function(column) {
-        this.sortByColumn = getConfigs()[this.subjectEntity].columns[column]
-      },
-    immediate: true,
-    }
   }
 };
 </script>

@@ -113,7 +113,6 @@ export default {
   },
   methods: {
     ...mapActions("search", [
-      "setFromQueryObject",
       "createSearch",
       "createSearchFromOql",
       "createSearchFromQuery",

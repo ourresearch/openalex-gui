@@ -31,12 +31,13 @@ import MeSearches from "@/views/Me/MeSearches.vue";
 import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
+import LabelDetails from "@/components/Label/LabelDetails.vue";
 import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
-import TestQuery from "@/views/TestQueries/TestQuery.vue";
+import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
 import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
 import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
 import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
@@ -91,7 +92,7 @@ const routes = [
             {
                 path: '/tests/:testSuiteId/:queryId',
                 name: 'test-query',
-                component: TestQuery,
+                component: TestQueryView,
             },
             {
                 path: '/tests/:testSuiteId/:queryId/:testType',
@@ -151,6 +152,12 @@ const routes = [
                 path: '/me/labels',
                 name: 'me-labels',
                 component: MeLabels,
+                children: [
+                    {
+                        path: '/me/labels/:labelId',
+                        component: LabelDetails,
+                    }
+                ]
             },
             {
                 path: '/me/corrections',
@@ -314,6 +321,8 @@ const redirectFromOldFilters = function (to, from, next) {
 
 
 router.beforeEach(async (to, from, next) => {
+    //store.dispatch('search/clearSearch')
+
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser")

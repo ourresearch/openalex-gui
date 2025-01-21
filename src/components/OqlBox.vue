@@ -47,6 +47,7 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -54,7 +55,7 @@ import {parseOQL} from "@/oql";
 import axios from "axios";
 
 export default {
-  name: "Template",
+  name: "OqlBox",
   components: {},
   props: {
     canonicalQueryString: String,

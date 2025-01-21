@@ -1,57 +1,38 @@
 <template>
-  <div>
+  <v-container>
     <div>
-      <v-checkbox
-          label="run search"
-          v-model="runSearch"
-      />
+      <v-btn color="primary" class="ma-4" @click="runSearch += 1">Run Searches</v-btn>
     </div>
     <test-query
         v-if="myQueryConfig"
         :config="myQueryConfig"
         :run-search="runSearch"
     />
-  </div>
+  </v-container>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import TestQuery from "@/components/TestQuery/TestQuery.vue";
-import {getTestQuery} from "@/components/TestQuery/testQuery";
+import {getTestQuery} from "@/components/TestQuery/tests.js";
+
 
 export default {
-  name: "Template",
+  name: "TestQueryView",
   components: {
     TestQuery,
   },
   props: {},
   data() {
     return {
-      foo: 42,
-      runSearch: false,
+      runSearch: 0,
       myQueryConfig: null,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -65,6 +46,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -23,41 +23,23 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "QueryOql",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
       oql: "",
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", [
-      "createSearchFromOql",
-    ]),
-    ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -72,6 +54,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

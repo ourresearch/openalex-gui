@@ -1,13 +1,19 @@
 <template>
   <v-container v-if="queries.length">
     <div class="d-flex align-center pa-3">
-      {{queries.length}} queries
+      <div>
+        <div>
+          {{queries.length}} queries
+        </div>
+        <div v-if="passCount > 0" class="success--text">
+          {{ passCount }} passing
+        </div>
+        <div v-else-if="failCount > 0" class="error--text">
+          {{ failCount }} failing
+        </div>
+      </div>
       <v-spacer/>
-      <v-checkbox
-          label="run searches"
-          v-model="runSearch"
-          hide-details
-      />
+      <v-btn color="primary" @click="runSearchSuite">Run Searches</v-btn>
     </div>
     <v-row dense>
       <v-col
@@ -21,6 +27,8 @@
         <test-query
             :config="query"
             :run-search="runSearch"
+            @pass="passCount += 1"
+            @fail="failCount +=1"
         />
       </v-col>
     </v-row>
@@ -36,33 +44,23 @@ import axios from "axios";
 import TestQuery from "@/components/TestQuery/TestQuery.vue";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
 import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
-import {getTestSuite} from "@/components/TestQuery/testQuery";
+import {getTestSuite} from "@/components/TestQuery/tests";
 
 export default {
-  name: "Template",
+  name: "TestQueriesSuite",
   components: {
     TestQuery,
   },
   props: {},
   data() {
     return {
-      runSearch: false,
+      runSearch: 0,
       passCount: 0,
       failCount: 0,
-
-      foo: 42,
       queries: [],
-      isLoading: false,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     completeCount() {
       return this.failCount + this.passCount
     },
@@ -72,19 +70,13 @@ export default {
     loadingCount() {
       return this.testsCount - this.completeCount
     },
-
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
-
-
+    runSearchSuite() {
+      this.passCount = 0
+      this.failCount = 0
+      this.runSearch += 1
+    }
   },
   created() {
   },
@@ -95,6 +87,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
