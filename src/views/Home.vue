@@ -24,7 +24,7 @@ import HomeContent from "@/components/Home/HomeContent.vue";
 
 
 export default {
-  name: 'home',
+  name: 'Home',
   components: {
     OqlBox,
     VueTyper,

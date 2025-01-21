@@ -1,82 +1,67 @@
 <template>
   <v-container fluid class="results-box pt-0">
     <v-row class="">
+      <!-- Left Panel -->
       <v-col cols="12" lg="5">
         <v-row>
-        <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
-          <v-card flat rounded style="padding: 16px 10px">
-            
-            <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
-            <query-summarize-by style="margin-left: 8px"/>
+          <!-- Query Builder -->
+          <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
+            <v-card flat rounded style="padding: 16px 10px">
+              <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+              <query-summarize-by style="margin-left: 8px"/>
 
-            <query-filter-tree
-                v-if="uiVariant !== 'chips' && querySubjectEntity !== 'works'"
-                :subject-entity="querySubjectEntity"
-                :filters="query.filter_aggs"
-            />
-            <query-filter-tree
-                v-if="uiVariant !== 'chips'"
-                subject-entity="works"
-                :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="query.filter_works"
-            />
-
-            <div v-if="uiVariant === 'chips'">
-              <query-filter-chips
+              <query-filter-tree
                   v-if="querySubjectEntity !== 'works'"
                   :subject-entity="querySubjectEntity"
                   :filters="query.filter_aggs"
               />
-              <query-filter-chips
+              <query-filter-tree
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
                   :filters="query.filter_works"
               />
-            </div>
 
-            <query-columns-controls
-              :subject-entity="querySubjectEntity"
-              :show_columns="query.show_columns"
-              :sort_by_column="query.sort_by_column"
-              :sort_by_order="query.sort_by_order"
-            />
+              <query-columns-controls
+                :subject-entity="querySubjectEntity"
+                :show_columns="query.show_columns"
+                :sort_by_column="query.sort_by_column"
+                :sort_by_order="query.sort_by_order"
+              />
+            </v-card>
+          </v-col>
 
-          </v-card>
-        </v-col>
+          <!-- Query Tabs -->
+          <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
+            <v-card flat rounded>
+              <v-tabs v-model="tab"> 
+                <v-tab>String</v-tab>
+                <v-tab>Object</v-tab>
+                <v-tab>API</v-tab>
+              </v-tabs>
 
-        <!-- Query Tabs -->
-        <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
-          <v-card flat rounded>
-            <v-tabs v-model="tab"> 
-              <v-tab>String</v-tab>
-              <v-tab>Object</v-tab>
-              <v-tab>API</v-tab>
-            </v-tabs>
+              <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
+                <v-tab-item>
+                  <search-from-text :disabled="!$store.state.search.is_completed" />
+                </v-tab-item>
 
-            <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
-              <v-tab-item>
-                <search-from-text :disabled="!$store.state.search.is_completed" />
-              </v-tab-item>
+                <v-tab-item>
+                  <v-card-text>
+                    <pre>{{ query }}</pre>
+                  </v-card-text>
+                </v-tab-item>
 
-              <v-tab-item>
-                <v-card-text>
-                  <pre>{{ query }}</pre>
-                </v-card-text>
-              </v-tab-item>
-
-              <v-tab-item>
-                <v-btn icon :href="searchApiUrl" target="_blank">
-                  <v-icon>mdi-api</v-icon>
-                </v-btn>
-              </v-tab-item>
-            </v-tabs-items>
-          <v-spacer />
-          </v-card>
-        </v-col>
+                <v-tab-item>
+                  <v-btn icon :href="searchApiUrl" target="_blank">
+                    <v-icon>mdi-api</v-icon>
+                  </v-btn>
+                </v-tab-item>
+              </v-tabs-items>
+            <v-spacer />
+            </v-card>
+          </v-col>
 
         </v-row>
       </v-col>
-
 
       <!-- Results Table -->
       <v-col cols="12" lg="7">
@@ -88,50 +73,13 @@
       </v-col>
 
     </v-row>
-
-    <!--
-    <v-dialog scrollable v-model="isOqlEditDialogOpen" max-width="600">
-      <v-card flat rounded>
-        <v-toolbar flat>
-          <v-toolbar-title>Edit OQL</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="isOqlEditDialogOpen = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-toolbar>
-        <v-card-text>
-
-          <v-textarea
-              v-model="oql"
-              :disabled="!$store.state.search.is_completed"
-              style="font-family: monospace;"
-              autofocus
-              auto-grow
-              rounded
-              filled
-              rows="1"
-              placeholder="OQL goes here"
-              @keydown.enter.exact.prevent="applyOql"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn rounded text @click="isOqlEditDialogOpen = false">
-            Cancel
-          </v-btn>
-          <v-btn color="primary" text @click="applyOql" :disabled="oql === $store.state.search.oql">
-            Apply
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    -->
   </v-container>
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {urlBase} from "@/apiConfig";
 import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -143,10 +91,7 @@ import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
-import QueryFilterChips from "@/components/Query/QueryFilterChips.vue";
-import app from "@/App.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
-import {urlBase} from "@/apiConfig";
 
 
 export default {
@@ -160,7 +105,6 @@ export default {
     QueryOql,
     QueryFilterTree,
     QueryColumnsControls,
-    QueryFilterChips,
   },
   props: {},
   data() {

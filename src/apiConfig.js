@@ -1,6 +1,7 @@
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
+    exportApi: "https://export.openalex.org",
 }
 
 // Use port to change local API endpoints

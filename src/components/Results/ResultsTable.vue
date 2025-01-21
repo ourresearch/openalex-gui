@@ -7,7 +7,7 @@
         <v-icon>{{ selectAllIcon }}</v-icon>
       </v-btn>
 
-      <v-btn icon :disabled="!selectedIds.length" @click="exportSelectedAsCsv">
+      <v-btn icon :disabled="!selectedIds.length" @click="exportResults">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
 
@@ -201,6 +201,10 @@
 
 
     <!-- Dialogs -->
+    <v-dialog v-model="isDownloadDialogOpen" width="500">
+      <download-dialog :resultsCount="resultsMeta.count" @close="isDownloadDialogOpen = false"/>
+    </v-dialog>
+
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
@@ -226,6 +230,7 @@ import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
+import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 
 
@@ -236,6 +241,7 @@ export default {
     LabelMenu,
     CorrectionCreate,
     QueryReturn,
+    DownloadDialog
   },
   props: {
     apiUrl: String,
@@ -247,13 +253,11 @@ export default {
       zoomId: null,
       isPropSelectorDialogOpen: false,
       isCorrectionDialogOpen: false,
+      isDownloadDialogOpen: false,
       columnSearch: "",
     }
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -372,15 +376,16 @@ export default {
       this.addReturnColumn(id)
       this.createSearch()
     },
-    exportSelectedAsCsv() {
+    exportResults() {
       if (this.isEntireSearchSelected) {
-        this.snackbar("Downloading complete results sets will be coming soon.")
-        return
+        this.isDownloadDialogOpen = true
+      } else {
+        this.exportSelectedAsCsv()
       }
-
+    },
+    exportSelectedAsCsv() {
       const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
       const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows)
-
       const blob = new Blob([csv], {type: "text/csv"})
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")

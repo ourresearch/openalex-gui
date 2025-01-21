@@ -1,4 +1,5 @@
-<!--- Drafted by ChatGPT, don't trust it -->
+<!--- UNUSED/UNFINISHED, experimenting with a chips base fitler interface
+Drafted by ChatGPT -->
 
 <template>
   <v-card flat rounded style="margin-top: 28px !important">

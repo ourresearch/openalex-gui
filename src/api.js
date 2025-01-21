@@ -343,6 +343,14 @@ const api = (function () {
         return resp
     }
 
+    const createExport = async function(query, email) {
+        // Initiates a data export to CSV
+        const url = urlBase.exportApi + "/mega-csv?email=" + email
+
+        const resp = await post(url, {...query}, axiosConfig())
+        return resp
+    }
+
     const apiBaseUrl = function() {
         return urlBase.api
     }
@@ -366,6 +374,7 @@ const api = (function () {
         post,
         createSearch,
         getSearch,
+        createExport,
     }
 })()
 
