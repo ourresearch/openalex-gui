@@ -15,6 +15,8 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import TestQuery from "@/components/TestQuery/TestQuery.vue";
+import {getTestQuery} from "@/components/TestQuery/tests.js";
+
 
 export default {
   name: "TestQueryView",

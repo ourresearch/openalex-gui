@@ -6,17 +6,9 @@
       :loading="status === 'loading' ? 'grey lighten-2' : undefined"
   >
 
-    <!--    <div class="font-weight-bold">-->
-    <!--      <span class="success&#45;&#45;text">pass: {{ passCount }}</span>-->
-    <!--      <span class="error&#45;&#45;text mx-3">fail: {{ failCount }}</span>-->
-    <!--      <span class="mx-3">complete: {{ completeCount }}</span>-->
-    <!--      <span class="grey&#45;&#45;text">loading: {{ loadingCount }}</span>-->
-    <!--    </div>-->
-
     <div v-if="config.title" class="pa-3" style="margin-bottom: -20px">
       {{config.title}}
     </div>
-
 
     <div class=" monospace body-2 pa-3">
       <span v-if="status === 'pass'" class="success--text">
@@ -39,35 +31,16 @@
       <test-query-oql
           v-for="test in oqlTests"
           :key="test.id"
-
           :input="test.input"
           :expected-response="test.expectedResponse"
-
           :test-suite-id="$route.params.testSuiteId"
           :query-id="config.id"
           :test-id="test.id"
-
           icon
+          :runTest="runSearch+1"
           @pass="passCount += 1"
           @fail="failCount += 1"
       />
-
-
-      <!--      <test-query-nat-lang-->
-      <!--          v-for="(natLangString, i) in config.natLang"-->
-      <!--          :key="i"-->
-
-      <!--          :input="natLangString"-->
-      <!--          :expected-response="config.query"-->
-      <!--          :query-id="config.id"-->
-      <!--          :test-id="i"-->
-
-      <!--          icon-->
-      <!--          @pass="passCount += 1"-->
-      <!--          @fail="failCount += 1"-->
-      <!--      />-->
-
-      <!--      <v-divider vertical class="mx-1"/>-->
 
       <v-tooltip
           bottom
@@ -154,8 +127,6 @@ export default {
       const oqlCount = 2
       const searchCount = this.runSearch ? 1 : 0
       return oqlCount + searchCount
-      // const natLangCount = this.config.natLang.length
-      // return oqlCount + searchCount + natLangCount
     },
     completeCount() {
       return this.failCount + this.passCount
@@ -209,10 +180,8 @@ export default {
           this.isSearchPassing = false
           this.searchError = resp.backend_error
         
-        } else if (resp.results.length > 0) {
-          this.isSearchPassing = true
-        
-        } else if (this.config.expectsZeroResults && resp.results.length === 0) {
+        } else if (resp.results.length > 0 || 
+          (this.config.expectsZeroResults && resp.results.length === 0)) {
           this.isSearchPassing = true
 
         } else {
@@ -224,7 +193,6 @@ export default {
     async pollSearch() {
       if (!this.searchId) {
         this.isSearchPassing = false
-        this.failCount += 1
         return
       }
       //console.log("polling search", this.searchId)

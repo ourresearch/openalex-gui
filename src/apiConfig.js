@@ -8,10 +8,19 @@ const urlBase = {
 if (window.location.port && parseInt(window.location.port) === 8081) {
     urlBase.api = "http://localhost:5006"  // your locally-hosted API
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
+
 } else if (window.location.port && parseInt(window.location.port) === 8082) {
     urlBase.api = "https://staging-jump-api.herokuapp.com"  // staging heroku API
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
+
 } else if (window.location.port && parseInt(window.location.port) === 8083) {
+    urlBase.userApi = "http://localhost:5106"  // your locally-hosted User API
+    console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi)
+} 
+
+else if (window.location.port && parseInt(window.location.port) === 8084) {
+    urlBase.api = "http://localhost:5006"  // your locally-hosted API
+    console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
     urlBase.userApi = "http://localhost:5106"  // your locally-hosted User API
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi)
 } 
