@@ -102,7 +102,6 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       dialogs: {
         userSignup: false,
         userLogin: false,
@@ -110,19 +109,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
-      "userName",
-      "userEmail",
-      "userAuthorId",
       "userId",
-      "isSignupDialogOpen",
-      "isLoginDialogOpen"
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -135,25 +125,19 @@ export default {
     ...mapActions([]),
     localLogout() {
       this.logout()
-      // this.$router.push("/")
       this.snackbar("You're logged out")
     },
     goToSavedSearches() {
       this.$router.push("/me/searches")
     }
-
-
   },
   created() {
   },
   mounted() {
   },
-  watch: {
-    isOpen(to, from) {
-    }
-  }
 }
 </script>
+
 
 <style scoped lang="scss">
 

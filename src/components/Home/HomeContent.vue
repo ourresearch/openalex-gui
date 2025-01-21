@@ -5,7 +5,7 @@
     <v-col cols="12">
     <v-row class="">
       <div class="text-h3">
-        Advanced Queries
+        Analytics
       </div>
       <v-btn color="primary" class="start-button" to="/s/f847ddf26aaa15e1a37159983c815980">
         Start a Query
