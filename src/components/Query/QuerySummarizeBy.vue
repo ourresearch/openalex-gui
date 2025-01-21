@@ -2,12 +2,8 @@
   <span class="d-inline-flex align-center">
     <v-menu max-height="70vh" rounded offset-y>
       <template v-slot:activator="{ on }">
-        <v-btn
-            rounded
-            v-on="on"
-            class="text-h6 "
-        >
-          <!-- <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>-->
+        <v-btn rounded class="text-h6 " v-on="on">
+          <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>
           <span>
             <template v-if="query.get_rows === 'summary'">
                Works Summary
@@ -23,16 +19,13 @@
       <v-list>
         <v-list-item-group v-model="selected">
            <v-list-item
-               :value="false"
+               value="works"
                active-class="primary--text"
            >
             <v-list-item-icon>
               <v-icon>mdi-file-document-outline</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Works</v-list-item-title>
-             <!--            <v-list-item-icon v-if="selected === entity.id">-->
-             <!--              <v-icon>mdi-check</v-icon>-->
-             <!--            </v-list-item-icon>-->
           </v-list-item>
            <v-list-item
                value="summary"
@@ -42,9 +35,6 @@
               <v-icon>mdi-file-document</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Works Summary</v-list-item-title>
-             <!--            <v-list-item-icon v-if="selected === entity.id">-->
-             <!--              <v-icon>mdi-check</v-icon>-->
-             <!--            </v-list-item-icon>-->
           </v-list-item>
 
           <v-subheader>Summarize works by:</v-subheader>
@@ -83,14 +73,9 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     ...mapGetters("search", [
       "query",
       "querySubjectEntityConfig",
@@ -106,19 +91,14 @@ export default {
         return this.query.get_rows
       },
       set(value) {
+        console.log("setSummarize", value)
         this.setSummarize(value)
       }
     },
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     ...mapActions("search", [
       "setSummarize",
-      "createSearch",
     ]),
   },
   created() {

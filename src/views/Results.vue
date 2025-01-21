@@ -12,33 +12,33 @@
             <query-filter-tree
                 v-if="uiVariant !== 'chips' && querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
-                :filters="$store.state.search.query.filter_aggs"
+                :filters="query.filter_aggs"
             />
             <query-filter-tree
                 v-if="uiVariant !== 'chips'"
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="$store.state.search.query.filter_works"
+                :filters="query.filter_works"
             />
 
             <div v-if="uiVariant === 'chips'">
               <query-filter-chips
                   v-if="querySubjectEntity !== 'works'"
                   :subject-entity="querySubjectEntity"
-                  :filters="$store.state.search.query.filter_aggs"
+                  :filters="query.filter_aggs"
               />
               <query-filter-chips
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
-                  :filters="$store.state.search.query.filter_works"
+                  :filters="query.filter_works"
               />
             </div>
 
             <query-columns-controls
               :subject-entity="querySubjectEntity"
-              :show_columns="$store.state.search.query.show_columns"
-              :sort_by_column="$store.state.search.query.sort_by_column"
-              :sort_by_order="$store.state.search.query.sort_by_order"
+              :show_columns="query.show_columns"
+              :sort_by_column="query.sort_by_column"
+              :sort_by_order="query.sort_by_order"
             />
 
           </v-card>
@@ -60,7 +60,7 @@
 
               <v-tab-item>
                 <v-card-text>
-                  <pre>{{ $store.state.search.query }}</pre>
+                  <pre>{{ query }}</pre>
                 </v-card-text>
               </v-tab-item>
 
@@ -186,22 +186,15 @@ export default {
       "isLocalEnv",
       "entityType",
     ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     ...mapGetters("search", [
-      "worksFilters",
-      "entityFilters",
-      "querySubjectEntityConfig",
-      "querySubjectEntity",
       "query",
-      "queryColumns",
+      "querySubjectEntity",
     ]),
     areTopLevelFiltersApplied() {
       if (this.querySubjectEntity !== 'works') {
-        return this.$store.state.search.query.filter_aggs.length !== 0
+        return this.query.filter_aggs.length !== 0
       } else {
-        return this.$store.state.search.query.filter_works.length !== 0
+        return this.query.filter_works.length !== 0
       }
     },
     searchApiUrl() {
@@ -209,13 +202,6 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([
-      "createSearch",
-    ]),
-    ...mapActions("user", []),
     ...mapActions("search", [
       "createSearch",
       "getSearch",

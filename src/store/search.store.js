@@ -81,6 +81,7 @@ export const search = {
                 get_rows: columnId,
                 filter_works: state.query.filter_works,
             }
+            console.log("setSummarize", newQuery)
             dispatch("createSearchFromQuery", newQuery)
         },
 
@@ -101,11 +102,6 @@ export const search = {
             }
         },
 
-        // SET MANY THINGS AT ONCE
-        setFromQueryObject({state}, query) {
-            state.query = query
-        },
-
         // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
             //console.log("createSearchFromOql", oql, oqlToQuery(oql))
@@ -115,7 +111,7 @@ export const search = {
 
         createSearchFromQuery: async function ({state}, query) {
             state.is_completed = false
-            state.query = query
+            state.query = {...baseQuery(), ...query}
             state.oql = queryToOQL(query)
             const resp = await api.createSearch(query)
             //console.log("Created search", resp.data)
@@ -168,6 +164,8 @@ export const search = {
             return columnsToReturn
         },
         querySubjectEntity: (state) => {
+            console.log("querySubjectEntity query", state.query)
+
             if (state.query.get_rows === "summary") return "works"
             else return state.query.get_rows
         },
