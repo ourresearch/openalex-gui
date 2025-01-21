@@ -113,21 +113,14 @@ export default {
     queryId: Number,
     testId: String,
     testSuiteId: String,
-
     icon: Boolean,
+    runTest: Number,
   },
   data() {
     return {
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     testColor() {
       return this.isTestPassing ? "green" : "red"
     },
@@ -156,25 +149,27 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
   },
   created() {
   },
   mounted() {
   },
+  methods: {
+    runEvaluation() {
+      // Re-emit pass/fail based on the computed value
+      this.$emit(this.isTestPassing ? "pass" : "fail");
+    },
+  },
   watch: {
-    isTestPassing: {
+    runTest: {
       handler(newVal) {
-        this.$emit(newVal ? "pass" : "fail")
+        if (newVal) {
+          this.runEvaluation(); // Re-evaluate and emit when parent toggles runTest
+        }
       },
-      immediate: true,
-    }
-  }
+      immediate: true, // Only react when runTest changes
+    },
+  },
 }
 </script>
 

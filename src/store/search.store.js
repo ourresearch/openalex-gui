@@ -164,8 +164,6 @@ export const search = {
             return columnsToReturn
         },
         querySubjectEntity: (state) => {
-            console.log("querySubjectEntity query", state.query)
-
             if (state.query.get_rows === "summary") return "works"
             else return state.query.get_rows
         },

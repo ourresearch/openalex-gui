@@ -116,6 +116,7 @@ const api = (function () {
     }
 
     const post = async function(url, data, config) {
+        url += "?mailto=team@ourresearch.org"
         const resp = await axios.post(url, data, config)
         return resp
     }
@@ -336,6 +337,7 @@ const api = (function () {
         } else {
             url = urlBase.api + "/searches/" + searchId
         }
+        url += "?mailto=team@ourresearch.org"
 
         const resp = await getUrl(url, axiosConfig())
         return resp

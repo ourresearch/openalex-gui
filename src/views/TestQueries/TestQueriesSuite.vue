@@ -1,9 +1,19 @@
 <template>
   <v-container v-if="queries.length">
     <div class="d-flex align-center pa-3">
-      {{queries.length}} queries
+      <div>
+        <div>
+          {{queries.length}} queries
+        </div>
+        <div v-if="passCount > 0" class="success--text">
+          {{ passCount }} passing
+        </div>
+        <div v-else-if="failCount > 0" class="error--text">
+          {{ failCount }} failing
+        </div>
+      </div>
       <v-spacer/>
-      <v-btn color="primary" @click="runSearch += 1">Run Searches</v-btn>
+      <v-btn color="primary" @click="runSearchSuite">Run Searches</v-btn>
     </div>
     <v-row dense>
       <v-col
@@ -17,6 +27,8 @@
         <test-query
             :config="query"
             :run-search="runSearch"
+            @pass="passCount += 1"
+            @fail="failCount +=1"
         />
       </v-col>
     </v-row>
@@ -46,7 +58,6 @@ export default {
       passCount: 0,
       failCount: 0,
       queries: [],
-      isLoading: false,
     }
   },
   computed: {
@@ -61,6 +72,11 @@ export default {
     },
   },
   methods: {
+    runSearchSuite() {
+      this.passCount = 0
+      this.failCount = 0
+      this.runSearch += 1
+    }
   },
   created() {
   },
