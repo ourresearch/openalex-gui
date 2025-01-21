@@ -13,7 +13,9 @@ import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
+import {urlBase, axiosConfig} from "@/apiConfig";
 import {sleep} from "./util";
+
 
 const cache = {}
 const entityCache = {}
@@ -39,25 +41,6 @@ const stockCache = function (url, ret) {
     cache[url] = ret
 }
 
-let urlBase = {
-    api: "https://api.openalex.org",
-    web: "https://explore.openalex.org",
-    relative: "",
-}
-
-
-// this lets you develop against a local API endpoint
-// to set the port, when you start your dev server, use: npm run serve -- --port <my port num>
-// example:
-// npm run serve -- --port 8081
-if (window.location.port && parseInt(window.location.port) === 8081) {
-    urlBase.api = "http://localhost:5004/"  // your locally-hosted API
-    console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
-} else if (window.location.port && parseInt(window.location.port) === 8082) {
-    urlBase.api = "https://staging-jump-api.herokuapp.com/"  // staging heroku url
-    console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
-}
-
 // hack to get around the lack of an autocomplete endpoint for countries
 const autocompleteCountry = function (searchString) {
     return openAlexCountries
@@ -71,7 +54,6 @@ const autocompleteCountry = function (searchString) {
 //      {foo: 42, bar: 43}
 //      [["foo", 42], ["bar", 43]]
 //      ?foo=42&bar=43
-// @base is "web" or "api"
 const makeUrl = function (pathName, searchParams, includeEmail = true) {
     const params = new URLSearchParams(searchParams);
     (includeEmail) && params.set("mailto", "team@ourresearch.org");
@@ -90,14 +72,17 @@ const makeUrl = function (pathName, searchParams, includeEmail = true) {
         })
         .join("&")
 
-
     return [baseAndPath, paramsStr].join("?")
 }
 
 
 const api = (function () {
 
-    const getUrl = async function (url) {
+    const getUrl = async function (url, config) {
+        if (!url.startsWith("http")) { 
+            url = urlBase.api + url
+        }
+
         if (url.includes("filter=")) { // sdgs hack
             url = url.replace("sdgs/", "")
         }
@@ -109,26 +94,47 @@ const api = (function () {
 
         let res
         try {
-            res = await axios.get(url)
+            res = await axios.get(url, config)
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
             // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
             console.log("api GET failure:", e.response)
             throw e
         }
-        cache[url] = res.data
+        if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
+            //console.log("caching " + url)
+            //console.log(res.data)
+            cache[url] = res.data
+        }
         return res.data
     }
+
+    const get =  async function (pathName, searchParams) {
+        const url = makeUrl(pathName, searchParams)
+        const resp = await getUrl(url)
+        return resp
+    }
+
+    const post = async function(url, data, config) {
+        url += "?mailto=team@ourresearch.org"
+        const resp = await axios.post(url, data, config)
+        return resp
+    }
+
     const getResultsList = async function (url) {
         const ret = getUrl(url)
         return ret
     }
 
-
     const getEntity = async function (id) {
         const myUrl = makeUrl(id)
         const resp = await getUrl(myUrl)
         return resp
+    }
+
+    const getEntityFromCache = function(id) {
+        const myUrl = makeUrl(id)
+        return _.cloneDeep(cache[myUrl])
     }
 
     const getEntityDisplayName = async function (entityName, id) {
@@ -153,7 +159,6 @@ const api = (function () {
             return filterValue
         }
     }
-
 
     const getResultsCount = async function (entityType, filters) {
         const searchParams = {
@@ -307,28 +312,80 @@ const api = (function () {
         }
     }
 
+    // Redshift Searches
+
+    const createSearch = async function(query, bypass_cache=false) {
+        // Crestes a new Redshit query, routing to user api if needed
+        let url
+        if (doesSearchContainUserData(query)) {
+            console.log("search contains user data")
+            url = urlBase.userApi + "/searches"
+        } else {
+            url = urlBase.api + "/searches"
+        }
+
+        console.log("api.createSearch to " + url)
+        const resp = await post(url, {query, bypass_cache}, axiosConfig())
+        return resp
+    }
+
+    const getSearch = async function(searchId) {
+        // Gets the status/results of an existing redshift query, routing to user api if needed
+        let url
+        if (searchId.startsWith("us-")) {
+            url = urlBase.userApi + "/searches/" + searchId
+        } else {
+            url = urlBase.api + "/searches/" + searchId
+        }
+        url += "?mailto=team@ourresearch.org"
+
+        const resp = await getUrl(url, axiosConfig())
+        return resp
+    }
+
+    const apiBaseUrl = function() {
+        return urlBase.api
+    }
+
+    const userApiBaseUrl = function() {
+        return urlBase.userApi
+    }
 
     return {
-        createUrl: function (pathName, searchParams, includeEmail) {
-            return makeUrl(pathName, searchParams, false)
-        },
         getEntityDisplayName,
         getFilterValueDisplayName,
         getUrl,
         getResultsList,
         getResultsCount,
         getEntity,
-        get: async function (pathName, searchParams) {
-            const url = makeUrl(pathName, searchParams)
-            const resp = await getUrl(url)
-            return resp
-        },
+        getEntityFromCache,
+        get,
         getAutocompleteResponses,
         getGroups,
         getSuggestions,
-
+        post,
+        createSearch,
+        getSearch,
     }
 })()
+
+
+const doesSearchContainUserData = function(query) {
+// Returns true if a query contains references to user data like labels that
+// that require its search to be sent to Users API.
+    const doesFilterContainUserData = function(filter) {
+        const userOperators = [
+            "matches any item in label",
+            "matches every item in label"
+        ]
+        if ("filters" in filter) {
+            return filter["filters"].some(doesFilterContainUserData)
+        }
+        return userOperators.includes(filter.operator)
+    }
+    const filtersToCheck = (query.filter_works ?? []).concat(query.filter_aggs ?? [])
+    return filtersToCheck.some(doesFilterContainUserData)
+}
 
 
 export {

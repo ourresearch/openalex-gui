@@ -73,10 +73,11 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import axios from "axios";
+import {api} from "@/api";
 import {sleep} from "@/util";
 
 export default {
-  name: "Template",
+  name: "TestQueryNatLang",
   components: {},
   props: {
     input: String,
@@ -136,7 +137,7 @@ export default {
     ...mapActions("user", []),
     async run() {
       console.log("run natlang test", this.input);
-      const url = `https://api.openalex.org/text/oql?natural_language=${this.input}&mailto=team@ourresearch.org`;
+      const url = `${api.apiBaseUrl()}}/text/oql?natural_language=${this.input}&mailto=team@ourresearch.org`;
 
       // const randomTimeToSleep = Math.random() * 10000
       // await sleep(randomTimeToSleep)

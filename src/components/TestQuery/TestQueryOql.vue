@@ -105,31 +105,22 @@ import {sleep} from "@/util";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 export default {
-  name: "Template",
+  name: "TestQueryOql",
   components: {},
   props: {
     input: [String, Object],
     expectedResponse: [Object, String],
-
     queryId: Number,
     testId: String,
     testSuiteId: String,
-
     icon: Boolean,
+    runTest: Number,
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     testColor() {
       return this.isTestPassing ? "green" : "red"
     },
@@ -138,12 +129,14 @@ export default {
         try {
           return queryToOQL(this.input)
         } catch (e) {
+          console.log(e.stack)
           return `test threw error: "${e.message}"`
         }
       } else if (this.testId === 'to-query') {
         try {
           return oqlToQuery(this.input)
         } catch (e) {
+          console.log(e.stack)
           return `test threw error: "${e.message}"`
         }
       } else {
@@ -155,29 +148,28 @@ export default {
       return _.isEqual(this.actualResponse, this.expectedResponse)
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
-
-
   },
   created() {
   },
   mounted() {
   },
+  methods: {
+    runEvaluation() {
+      // Re-emit pass/fail based on the computed value
+      this.$emit(this.isTestPassing ? "pass" : "fail");
+    },
+  },
   watch: {
-    isTestPassing: {
+    runTest: {
       handler(newVal) {
-        this.$emit(newVal ? "pass" : "fail")
+        if (newVal) {
+          this.runEvaluation(); // Re-evaluate and emit when parent toggles runTest
+        }
       },
-      immediate: true,
-    }
-  }
+      immediate: true, // Only react when runTest changes
+    },
+  },
 }
 </script>
 

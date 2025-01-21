@@ -1,11 +1,13 @@
 <template>
   <div>
-    <div class="text-h4 ml-1">My corrections</div>
-<!--    <v-btn rounded color="primary" class="my-4" @click="isLabelCreateDialogOpen = true">-->
-<!--      <v-icon left>mdi-plus</v-icon>-->
-<!--      Create Label-->
-<!--    </v-btn>-->
+    <div class="text-h4 ml-1">My Corrections</div>
+
     <v-card rounded outlined class="my-4">
+
+      <v-alert type="warning" icon="mdi-progress-wrench">
+        Support for submitting data correction will be coming soon.
+      </v-alert>    
+
       <v-card-text v-if="!userCorrections.length">You haven't submitted any corrections yet.</v-card-text>
       <v-list v-else color="transparent">
         <v-list-item
@@ -31,24 +33,20 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import LabelCreate from "@/components/Label/LabelCreate.vue";
 
 export default {
-  name: "Template",
+  name: "MeCorrections",
   components: {
   },
   props: {},
   data() {
-    return {
-      foo: 42,
-    }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -56,7 +54,6 @@ export default {
       "userCorrections",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -65,8 +62,6 @@ export default {
     ...mapActions("user", [
       "deleteCorrection",
     ]),
-
-
   },
   created() {
   },
@@ -75,6 +70,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

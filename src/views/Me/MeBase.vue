@@ -1,10 +1,5 @@
 <template>
   <v-container>
-<!--    <v-row>-->
-<!--      <div class="text-h4">-->
-<!--        Profile-->
-<!--      </div>-->
-<!--    </v-row>-->
     <v-row>
       <v-col cols="3">
         <v-list  rounded>
@@ -15,13 +10,7 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
-          <v-list-item to="/me/searches">
-            <v-list-item-content>
-              <v-list-item-title>
-                Searches
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+
           <v-list-item to="/me/labels">
             <v-list-item-content>
               <v-list-item-title>
@@ -29,6 +18,15 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item to="/me/searches">
+            <v-list-item-content>
+              <v-list-item-title>
+                Searches
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          
           <v-list-item to="/me/corrections">
             <v-list-item-content>
               <v-list-item-title>
@@ -39,43 +37,39 @@
         </v-list>
       </v-col>
       <v-col cols="9">
-        <router-view/>
+        <router-view />
       </v-col>
     </v-row>
   </v-container>
 </template>
+
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "MeBase",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
       "userId",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions([]),
     ...mapActions("user", []),
-
-
   },
   created() {
   },
@@ -85,6 +79,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
 
+<style lang="scss">
+.v-alert {
+  font-size: 18px;
+  margin: 10px;
+  border-radius: 15px !important;
+}
+.v-alert .v-icon {
+  font-size: 30px;
+  margin-top: 1px;
+}
 </style>

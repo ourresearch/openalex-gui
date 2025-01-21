@@ -1,16 +1,33 @@
 <template>
   <div>
-    <div class="text-h4 ml-1">My labels</div>
-    <v-btn rounded color="primary" class="my-4" @click="isLabelCreateDialogOpen = true">
-      <v-icon left>mdi-plus</v-icon>
-      Create Label
-    </v-btn>
-    <v-card rounded outlined class="my-4">
+    <template v-if="!labelId">
+      <span class="text-h4 ml-1 mr-4">My Labels</span>
+      <v-btn 
+        v-if="!labelId" 
+        @click="isLabelCreateDialogOpen = true"
+        rounded 
+        color="primary"
+        class="new-label-button">
+        <v-icon left>mdi-plus</v-icon>
+        New Label
+      </v-btn>
+    </template>
+    <router-link v-else class="all-labels-link" to="/me/labels">« All Labels</router-link>
+
+
+    <v-card v-if="labelId" rounded outlined class="my-4">
+      <router-view />
+    </v-card>
+    
+    <v-card v-else rounded outlined class="my-4">
+      
       <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
+      
       <v-list v-else color="transparent">
         <v-list-item
             v-for="label in userCollections"
             :key="label.id"
+            :to="'/me/labels/' + label.id"
         >
           <v-list-item-icon>
             <v-icon>mdi-tag-outline</v-icon>
@@ -35,44 +52,38 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import LabelCreate from "@/components/Label/LabelCreate.vue";
 
 export default {
-  name: "Template",
+  name: "MeLabels",
   components: {
     LabelCreate,
   },
   props: {},
   data() {
     return {
-      foo: 42,
       isLabelCreateDialogOpen: false,
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
     ...mapGetters("user", [
-      "userId",
       "userCollections",
     ]),
+    labelId() {
+      return this.$route.params.labelId || null;
+    },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "deleteCollection",
-    ]),
-
-
+    ]), 
   },
   created() {
   },
@@ -82,6 +93,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
 
+<style scoped lang="scss">
+.all-labels-link {
+  text-decoration: none;
+  color: #555;
+  display: block;
+  padding: 0px 5px;
+}
+.new-label-button {
+  margin-top: -13px;
+}
 </style>

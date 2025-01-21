@@ -10,7 +10,7 @@
         <v-icon v-if="isEditable" small right>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
-        loading...
+        Loading...
       </template>
     </v-chip>
   </div>
@@ -31,39 +31,31 @@ export default {
   props: {
     columnConfig: Object,
     value: String,
+    operator: String,
+    isLabelFilter: Boolean,
     isEditable: Boolean,
   },
   data() {
     return {
-      foo: 42,
       entityData: null,
       isLoading: false,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", [
-    ]),
-    ...mapActions("search", [
-    ]),
-    ...mapActions("user", []),
     async getEntity() {
-      this.isLoading = true
-      const myUrl = "https://api.openalex.org/" + this.value
-      const response = await axios.get(myUrl)
-      this.entityData = response.data
-      this.isLoading = false
+      if (this.isLabelFilter) {
+        const collection = this.$store.getters['user/getCollection'](this.value)
+        this.entityData = {
+          display_name: collection.name
+        }
+      } else {
+        this.isLoading = true
+        const response = await api.getEntity(this.value)
+        this.entityData = response
+        this.isLoading = false        
+      }
     },
   },
   created() {

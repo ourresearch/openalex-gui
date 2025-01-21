@@ -3,22 +3,12 @@ import router from "../router";
 import {url} from "@/url";
 import {entity} from "@/entity";
 import {sleep} from "@/util";
+import {urlBase, axiosConfig} from "@/apiConfig.js"
+
 
 const shortUuid = require('short-uuid');
 
-
-const axiosConfig = function () {
-    const token = localStorage.getItem("token")
-    const headers = {}
-    if (token) {
-        headers.Authorization = `Bearer ${token}`
-    }
-    return {
-        headers: headers
-    }
-}
-const apiBaseUrl = "https://user.openalex.org"
-
+const apiBaseUrl = urlBase.userApi
 
 export const user = {
     namespaced: true,
@@ -52,7 +42,6 @@ export const user = {
             state.isSignupDialogOpen = false
             state.isLoginDialogOpen = val
         },
-
         setRenameId(state, id) {
             state.renameId = id
         },
@@ -79,7 +68,6 @@ export const user = {
             state.email = apiResp.email
             state.authorId = apiResp.author_id
         },
-
     },
     actions: {
 
@@ -253,8 +241,6 @@ export const user = {
                 url.urlObjectFromSearchUrl(savedSearchToOpen?.search_url)
             )
         },
-
-
         // update
         async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
@@ -326,7 +312,6 @@ export const user = {
         // COLLECTIONS
         // **************************************************
 
-
         // create
         async createCollection({commit, dispatch, state, rootState}, {ids, name, description}) {
             // if (!ids.length) ids = ["hack"]
@@ -342,19 +327,24 @@ export const user = {
             await dispatch("fetchUser")
         },
 
-
         // read
         async fetchCollections({commit, state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`
-            const resp = await axios.get(
-                myUrl,
-                axiosConfig()
-            )
+            const resp = await axios.get(myUrl, axiosConfig())
             state.collections = resp.data
         },
 
-        // update: implement later
+        // update
+        async updateCollectionIds({commit, state}, {collectionId, ids}) {
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
+            const resp = await axios.patch(myUrl, {
+                ids,
+            }, axiosConfig())
 
+            state.collections = state.collections.map(coll => {
+                return coll.id === resp.data.id ? resp.data : coll
+            })
+        },
 
         // delete
         async deleteCollection({commit, dispatch, state, rootState}, id) {
@@ -366,13 +356,13 @@ export const user = {
             )
             await sleep(500)  // hack to give the server time to update
             await dispatch("fetchUser") // have to update the list
-            commit("snackbar", "Label deleted", {root: true})
+            commit("snackbar", "Label deleted.", {root: true})
             rootState.isLoading = false
         },
 
 
         // **************************************************
-        // COLLECTIONS
+        // CORRECTIONS
         // **************************************************
 
 
@@ -414,8 +404,14 @@ export const user = {
         userAuthorId: (state) => state.authorId,
 
         userSavedSearches: (state) => state.savedSearches,
-        userCollections: (state) => state.collections,
         userCorrections: (state) => state.corrections,
+        userCollections: (state) => state.collections,
+        getCollection: (state) => (collectionId) => {
+            return state.collections.find(coll => coll.id === collectionId)
+        },
+        getCollectionsByType: (state) => (type) => {
+            return state.collections.filter(coll => coll.type === type)
+        },
 
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
