@@ -45,6 +45,7 @@ export default {
   name: "DownloadDialog",
   props: {
     resultsCount: Number,
+    isOpen: false,
   },
   data() {
     return {
@@ -61,18 +62,18 @@ export default {
       "query"
     ]),
     estimatedTime() {
-      if (this.resultsCount <= 10_000) return "5 minutes";
-      if (this.resultsCount <= 1_000_000) return "10 minutes";
-      if (this.resultsCount <= 10_000_000) return "20 minutes";
-      if (this.resultsCount <= 300_000_000) return "1 hour";
-      return "a long time"; // Default for extremely large datasets
+      if (this.resultsCount <= 10_000) return "5 minutes"
+      if (this.resultsCount <= 1_000_000) return "10 minutes"
+      if (this.resultsCount <= 10_000_000) return "20 minutes"
+      if (this.resultsCount <= 50_000_000) return "2 hours"
+      if (this.resultsCount <= 300_000_000) return "5 hour"
+      return "a day"; // Default for extremely large datasets
     },
   },
   methods: {
     ...mapMutations("user", [
       "setIsSignupDialogOpen",
       "setIsLoginDialogOpen",
-      "setIsDownloadDialogOpen",
     ]),
     closeDialog() {
       this.$emit("close");
@@ -82,6 +83,10 @@ export default {
     },
     openSignup() {
       this.setIsSignupDialogOpen(true);
+    },
+    resetState() {
+      this.exportStarted = false;
+      this.exportMessage = "";
     },
     async createExport() {
       try {
@@ -94,6 +99,13 @@ export default {
       } catch (error) {
         console.error("Export failed:", error);
         this.exportMessage = "An error occurred while processing your request. Please try again.";
+      }
+    },
+  },
+  watch: {
+    isOpen(newValue) {
+      if (!newValue) {
+        this.resetState()
       }
     },
   },
