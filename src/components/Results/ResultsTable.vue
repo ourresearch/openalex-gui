@@ -202,7 +202,11 @@
 
     <!-- Dialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
-      <download-dialog :resultsCount="resultsMeta.count" @close="isDownloadDialogOpen = false"/>
+      <download-dialog 
+        :resultsCount="resultsMeta.count" 
+        :isOpen="isDownloadDialogOpen"
+        @close="isDownloadDialogOpen = false"
+         />
     </v-dialog>
 
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
