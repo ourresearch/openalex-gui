@@ -116,7 +116,8 @@ const api = (function () {
     }
 
     const post = async function(url, data, config) {
-        url += "?mailto=team@ourresearch.org"
+        let op = url.includes("?") ? "&" : "?";
+        url += op + "mailto=team@ourresearch.org"
         const resp = await axios.post(url, data, config)
         return resp
     }
