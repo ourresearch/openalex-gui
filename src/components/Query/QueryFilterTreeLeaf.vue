@@ -31,7 +31,7 @@
           </v-list-item>
         </v-list-item-group>
         
-        <!-- Conditionally show the divider and third item -->
+        <!-- Conditionally show the divider and Grouping actions -->
         <template v-if="canGroupAbove">
           <v-divider class="my-2"></v-divider>
           <v-list-item @click="handleGroupWithAbove">
@@ -210,7 +210,7 @@
             autofocus
             @keydown.escape="cancelEditingValue"
             @blur="cancelEditingValue"
-            @keydown.enter="saveEditingValue"
+            @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
         <v-chip
