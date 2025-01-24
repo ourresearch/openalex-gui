@@ -1,3 +1,6 @@
+// Send bypass_cache params on API calls
+const DISABLE_SERVER_CACHE = true
+
 const urlBase = {
     api: "https://api.openalex.org",
     userApi: "https://user.openalex.org",
@@ -37,8 +40,8 @@ const axiosConfig =  () => {
     }
 }
 
-
 export {
     urlBase,
     axiosConfig,
+    DISABLE_SERVER_CACHE,
 }

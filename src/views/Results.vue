@@ -80,7 +80,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {urlBase} from "@/apiConfig";
-import {DISABLE_SERVER_CACHE} from "@/api";
+import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -182,7 +182,7 @@ export default {
       console.log("pollSearch")
       await this.getSearch({
         id: this.$route.params.id,
-        bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE
+        bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
       });
       this.hasPolledOnce = true;
       if (!this.$store.state.search.is_completed) {
