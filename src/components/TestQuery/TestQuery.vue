@@ -25,7 +25,8 @@
       <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
     </div>
     <div class=" monospace body-2 pa-3" v-if="returnData?.timestamps?.duration">
-      <span class="success--text">{{ returnData.timestamps.duration }} seconds</span>
+      <span class="success--text">{{ returnData.timestamps.duration | toPrecision(3) }} seconds</span>
+      <span v-if="returnData.timestamps.duration_core_percent" class="success--text"> / {{ returnData.timestamps.duration_core_percent * 100 | toPrecision(3) }}% core</span>
     </div>
 
     <div class="fill-height"></div>
