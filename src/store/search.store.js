@@ -122,12 +122,12 @@ export const search = {
             return await dispatch("createSearchFromQuery", state.query)
         },
 
-        getSearch: async function ({state, getters}, id) {
+        getSearch: async function ({state, getters}, {id, bypass_cache}) {
             state.id = id
             state.is_completed = false
 
             // get the search from the API
-            const data = await api.getSearch(state.id)
+            const data = await api.getSearch(state.id, {bypass_cache})
 
             // set the state from the response
             state.is_completed = data.is_completed

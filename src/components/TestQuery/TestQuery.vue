@@ -174,20 +174,20 @@ export default {
       console.log("getSearch: " + this.searchId)
       const resp = await api.getSearch(this.searchId)
       if (resp.is_completed) {
-        this.returnData = resp
+      this.returnData = resp
 
-        if (resp.backend_error) {
-          this.isSearchPassing = false
-          this.searchError = resp.backend_error
+      if (resp.backend_error) {
+        this.isSearchPassing = false
+        this.searchError = resp.backend_error
         
-        } else if (resp.results.length > 0 || 
-          (this.config.expectsZeroResults && resp.results.length === 0)) {
-          this.isSearchPassing = true
+      } else if (resp.results.length > 0 || 
+        (this.config.expectsZeroResults && resp.results.length === 0)) {
+        this.isSearchPassing = true
 
-        } else {
-          this.isSearchPassing = false
-          this.searchError = "No results."
-        }
+      } else {
+        this.isSearchPassing = false
+        this.searchError = "No results."
+      }
       }
     },
     async pollSearch() {

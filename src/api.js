@@ -16,9 +16,12 @@ import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig} from "@/apiConfig";
 import {sleep} from "./util";
 
+// Send bypass_cache params on API calls
+const DISABLE_SERVER_CACHE = true
 
 const cache = {}
 const entityCache = {}
+
 const getFromCache = function (url) {
     if (!cache[url]) return
     return _.cloneDeep(cache[url])
@@ -316,7 +319,7 @@ const api = (function () {
     // Redshift Searches
 
     const createSearch = async function(query, bypass_cache=false) {
-        // Crestes a new Redshit query, routing to user api if needed
+        // Creates a new Redshift query, routing to user api if needed
         let url
         if (doesSearchContainUserData(query)) {
             console.log("search contains user data")
@@ -325,12 +328,15 @@ const api = (function () {
             url = urlBase.api + "/searches"
         }
 
+        // Always bypass cache if DISABLE_SERVER_CACHE is true
+        bypass_cache = bypass_cache || DISABLE_SERVER_CACHE
+
         console.log("api.createSearch to " + url)
         const resp = await post(url, {query, bypass_cache}, axiosConfig())
         return resp
     }
 
-    const getSearch = async function(searchId) {
+    const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
         let url
         if (searchId.startsWith("us-")) {
@@ -338,7 +344,12 @@ const api = (function () {
         } else {
             url = urlBase.api + "/searches/" + searchId
         }
-        url += "?mailto=team@ourresearch.org"
+
+        const params = new URLSearchParams()
+        params.set("mailto", "team@ourresearch.org")
+        params.set("bypass_cache", options.bypass_cache)
+
+        url += "?" + params.toString()
 
         const resp = await getUrl(url, axiosConfig())
         return resp
@@ -400,4 +411,5 @@ const doesSearchContainUserData = function(query) {
 
 export {
     api,
+    DISABLE_SERVER_CACHE,
 }
