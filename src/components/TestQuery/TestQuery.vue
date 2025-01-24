@@ -24,6 +24,9 @@
       <span v-if="returnData?.meta" class="success--text">{{ returnData.meta.count }} results</span>
       <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
     </div>
+    <div class=" monospace body-2 pa-3" v-if="returnData?.timestamps?.duration">
+      <span class="success--text">{{ returnData.timestamps.duration }} seconds</span>
+    </div>
 
     <div class="fill-height"></div>
 
@@ -113,6 +116,7 @@ export default {
       isSearchPassing: null,
       searchError: null,
       returnData: null,
+      duration: null,
     }
   },
   computed: {
