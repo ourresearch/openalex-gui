@@ -80,6 +80,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {urlBase} from "@/apiConfig";
+import {DISABLE_SERVER_CACHE} from "@/api";
 import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -123,6 +124,7 @@ export default {
       ],
       tab: 0,
       uiVariant: this.$store.state.uiVariant,
+      hasPolledOnce: false
     }
   },
   computed: {
@@ -178,7 +180,11 @@ export default {
     },
     async pollSearch() {
       console.log("pollSearch")
-      await this.getSearch(this.$route.params.id);
+      await this.getSearch({
+        id: this.$route.params.id,
+        bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE
+      });
+      this.hasPolledOnce = true;
       if (!this.$store.state.search.is_completed) {
         setTimeout(() => {
           //console.log("polling search")

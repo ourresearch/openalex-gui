@@ -285,8 +285,8 @@ export default {
         if (!this.isEditingFilters) { this.myFilters = _.cloneDeep(filters) }
         this.decorateMyFilters()
         this.openNodes = filters.map(f => f.id)
-        console.log("filters update")
-        console.log(this.myFilters)
+        //console.log("filters update")
+        //console.log(this.myFilters)
       },
       immediate: true
     }
