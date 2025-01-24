@@ -237,12 +237,6 @@ export default {
         this.applyFilters()
       }
     },
-    setFilterOperator(pathToFilter, operator) {
-      console.log("setFilterOperator", pathToFilter, operator)
-      const filterToUpdate = this.getFilterFromPath(pathToFilter)
-      Vue.set(filterToUpdate, "operator", operator)
-      this.applyFilters()
-    },
     setFilterJoinOperator(pathToFilter, joinOperator) {
       console.log("setFilterJoin", pathToFilter, joinOperator)
       const filtersToUpdate = this.getFiltersInSameGroup(pathToFilter)

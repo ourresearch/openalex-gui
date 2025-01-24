@@ -306,7 +306,7 @@ export default {
         }
         this.labelMenuPositionHack();
       }
-    },
+    },  
     selectedJoinOperator: {
       get() {
         return this.joinOperator
