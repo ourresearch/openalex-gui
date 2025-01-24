@@ -13,11 +13,9 @@ import {getActionDefaultsStr} from "@/actionConfigs";
 
 import ISO6391 from 'iso-639-1'
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
-import {urlBase, axiosConfig} from "@/apiConfig";
+import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 import {sleep} from "./util";
 
-// Send bypass_cache params on API calls
-const DISABLE_SERVER_CACHE = true
 
 const cache = {}
 const entityCache = {}
@@ -411,5 +409,4 @@ const doesSearchContainUserData = function(query) {
 
 export {
     api,
-    DISABLE_SERVER_CACHE,
 }
