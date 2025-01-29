@@ -2,53 +2,25 @@
   <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
     <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
-    <v-treeview
-      v-if="!isEmpty"
-      :items="displayFilters"
-      :open.sync="openNodes"
-      open-all
-      dense
-    >
-      <template v-slot:prepend="{item, open}">
-        <span class="number grey--text" :style="{'margin-left': item.depth ? (item.depth * 20) + 'px' : 0 }">
-          {{ item.displayPath.join(".") }}.
-        </span>
-      </template>
-
-      <template v-slot:label="{ item, open }">
-        <query-filter-tree-leaf
-            :column_id="item.column_id"
-            :operator="item.operator"
-            :join-operator="item.joinOperator"
-            :value="item.value"
-            :depth="item.depth"
-            :subject-entity="subjectEntity"
-            :sibling-index="item.siblingIndex"
-            :can-group-above="item.canGroupAbove"
-            @setDepth="(depth) => setFilterDepth(item.path, depth)"
-            @setJoinOperator="(joinOperator) => setFilterJoinOperator(item.path, joinOperator)"
-            @setOperator="(operator, dontApply) => setFilterOperator(item.path, operator, dontApply)"
-            @setValue="(value, dontApply) => setFilterValue(item.path, value, dontApply)"
-        />
-      </template>
-
-      <template v-slot:append="{ item, open }">
-        <div class="d-flex">
-          <v-btn icon @click="deleteFilter(item.path)">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
-      </template>
-
-    </v-treeview>
+    <query-filter-tree-branch
+      :filters="myFilters"
+      join-operator="and"
+      :subject-entity="subjectEntity"
+      @setJoinOperator="setJoinOperator"
+      @setOperator="setOperator"
+      @setValue="setValue"
+      @deleteFilter="deleteFilter"
+      @groupWithAbove="groupWithAbove"
+      @ungroupFromAbove="ungroupFromAbove"
+    />
 
     <div :class="{'button-wrapper': true, 'inline-block': displayButtonInline}">
       <query-filter-tree-button
-          :subject-entity="subjectEntity"
-          :parent-id="null"
-          :nameWorks="isWithAggs"
-          :withExistingFilters="!isEmpty"
-          @addFilter="addFilter"
+        :subject-entity="subjectEntity"
+        :parent-id="null"
+        :nameWorks="isWithAggs"
+        :withExistingFilters="!isEmpty"
+        @addFilter="addFilter"
       />
     </div>
   </v-card>
@@ -58,25 +30,17 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {
-  cleanFilters,
-  convertFlatToRecursive, deleteNode,
-  makeFilterBranch,
-  makeFilterButton,
-  makeFilterLeaf
-} from "@/components/Query/query";
 import {getConfigs} from "@/oaxConfigs";
-import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 import {filter} from "core-js/internals/array-iteration";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
 import Vue from "vue";
+import _ from 'lodash'
 
 
 export default {
   name: "QueryFilterTree",
   components: {
-    QueryFilterTreeLeaf,
     QueryFilterTreeBranch,
     QueryFilterTreeButton,
   },
@@ -87,61 +51,83 @@ export default {
   },
   data() {
     return {
-      openNodes: [],
-      myFilters: [],
+      myFilters: [], // Local coppy of filters kept so we can represent filters as they're being edited before they are applied
       isEditingFilters: false,
     }
   },
   computed: {
     hasAvailableFilters() {
-      const mySubjectEntity = this.subjectEntity
-      const myConfig = getConfigs()[mySubjectEntity]
+      const myConfig = getConfigs()[this.subjectEntity]
       const myPossibleColumns = Object.values(myConfig.columns)
-
       const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"))
             
       return availableFilters.length > 0
     },
-    displayFilters() {
-      const results = []
-      this.myFilters.forEach((f, i) => 
-        results.push({
-          ...f,
-          id: i, // for the treeview to know which nodes are open
-          path: [i], // so we can find which nodes to update and delete
-          siblingIndex: i, // just for display
-        })
-      )
-      return results
-    },
     filtersToStore() {
-      const ret = this.myFilters.filter(f => {
-        // don't save filters unless the value is set
-        const valueIsSet = f.value !== null && f.value !== "" && f.value !== undefined
+      // Returns local filter state, cleaned of local props to be stored in Vuex store
+      const cleanFilter = (filter) => {
+        if (filter.filters) { // Branch
+          const cleanedChildFilters = filter.filters
+            .map(cleanFilter)
+            .filter((f) => f !== null);
 
-        // but it's ok to save filters with no operator set, it'll just use the default.
-        return valueIsSet
-      })
-      return _.cloneDeep(ret)
+          // If no valid child filters remain, discard this group
+          if (cleanedChildFilters.length === 0) { return null; }
+
+          return {
+            join: filter.join,
+            filters: cleanedChildFilters
+          };
+        }
+
+        // Leaf -- skip leaves with no value
+        if (
+          filter.value === null ||
+          filter.value === "" ||
+          filter.value === undefined
+        ) {
+          return null;
+        }
+
+        // Keep the basic leaf properties
+        const cleanedLeaf = {
+          column_id: filter.column_id,
+          value: filter.value
+        };
+
+        // Only include operator if it exists
+        if (filter.operator) {
+          cleanedLeaf.operator = filter.operator;
+        }
+
+        return cleanedLeaf;
+      };
+
+      // Process top-level array
+      const cleanedFilters = this.myFilters
+        .map(cleanFilter)
+        .filter((f) => f !== null);
+
+      return cleanedFilters;
     },
     isEmpty() {
-      return this.myFilters.length === 0
+      return this.myFilters.length === 0;
     },
     displayInline() {
-      return this.isEmpty && !this.isWithAggs
+      return this.isEmpty && !this.isWithAggs;
     },
     displayButtonInline() {
-      return this.isEmpty && this.isWithAggs
+      return this.isEmpty && this.isWithAggs;
     },
     topText() {
       if (this.isWithAggs && !this.isEmpty) {
-        return "Based on <b>works</b> where"
+        return "Based on <b>works</b> where";
       } else if (this.isWithAggs && this.isEmpty) {
-        return "Based on <b>all works</b>"
+        return "Based on <b>all works</b>";
       } else if (this.isEmpty) {
-        return ""
+        return "";
       } else {
-        return "Where"
+        return "Where";
       }
     }
   },
@@ -149,13 +135,86 @@ export default {
     filter,
     ...mapActions("search", [
       "createSearch",
+      "setFilterWorks",
+      "setFilterAggs",
     ]),
-    // create
+    decorateMyFilters() {
+      // Recursively decorates filters with path + grouping properties
+      const decorateFilters = (filters, parentPath = []) => {
+        return filters.map((filter, index) => {
+          const currentPath = [...parentPath, index];
+
+          const canGroupAbove = (parentPath.length === 0 && index > 0) 
+                                || (parentPath.length > 0 && index > 1);
+          const canUngroup = (currentPath.length > 1);
+
+          if (filter.filters) {
+            // Nested group
+            return {
+              join: filter.join,
+              filters: decorateFilters(filter.filters, currentPath),
+            };
+          } else {
+            // Leaf
+            return {
+              ...filter,
+              path: currentPath,
+              canGroupAbove,
+              canUngroup,
+            };
+          }
+        });
+      };
+
+      this.myFilters = decorateFilters(this.myFilters);
+      //console.log("decorated filters:", JSON.stringify(this.myFilters, null, 2));
+    },
+    getFilterFromPath(path) {
+      // Returns filter object give a path like [0], [1,2]
+      // If path is empty, interpret that as “the root array”
+      if (!path || path.length === 0) {
+        // Return a “fake” parent object that points to myFilters
+        return { join: "and", filters: this.myFilters, root: true };
+      }
+
+      let currentFilters = this.myFilters;
+      let currentFilter = null;
+
+      for (let i = 0; i < path.length; i++) {
+        const index = path[i]; // 0-based index
+        currentFilter = currentFilters[index];
+
+        if (!currentFilter) {
+          console.log("No filter found at index", index);
+          return null; // Path is invalid
+        }
+
+        // If we're not at the end, we go deeper
+        if (i < path.length - 1) {
+          if (!currentFilter.join || !Array.isArray(currentFilter.filters)) {
+            console.log("Cannot go deeper - not a nested filter");
+            return null;
+          }
+          currentFilters = currentFilter.filters;
+        }
+      }
+      return currentFilter;
+    },
+    getFiltersInSameGroup(path) {
+      // Returns all filters that are in the same group as the filter at `path`
+      const parentFilter = this.getParentFilter(path);
+      return parentFilter.filters;
+    },
+    getParentFilter(path) {
+      const parentPath = path.slice(0, -1);
+      const parentFilter = this.getFilterFromPath(parentPath);
+      return parentFilter;      
+    },
     addFilter(columnId, columnType) {
+      console.log("Adding filter", { columnId, columnType });
       const initValue = columnType === "boolean" ? true : null
       this.myFilters.push({
         column_id: columnId,
-        // operator is not required, it'll use the default if not supplied later
         value: initValue,
       })
       this.decorateMyFilters()
@@ -163,72 +222,24 @@ export default {
         this.applyFilters()
       }
       this.isEditingFilters = true;
+      // Log the state after adding
+      console.log("After adding filter:", this.myFilters);
     },
-    decorateMyFilters() {
-      // Adds values to `myFilters` that requre looking at them as a set.
-      const results = []
-      this.myFilters.forEach((f, i) => {
-        f.depth = f.depth ?? 0
-        const prev = i > 0 ? results[i-1] : undefined
-        const canGroupAbove = prev && prev.depth !== f.depth-1
-
-        // Add a display path repsenting depth / groups like [1], [2,3]
-        let displayPath = []
-        const prevDisplayPath = prev ? prev.displayPath : undefined
-        if (!prev) { 
-          displayPath = [1] 
-        } else if (prev.depth === f.depth-1) {
-          // Add a new level of depth
-          displayPath = [...prev.displayPath, 1] 
-        } else if (prev.depth > f.depth) {
-          // Removing levels of depth
-          displayPath = prev.displayPath.slice(0, -(prev.depth-f.depth))
-          displayPath[displayPath.length - 1] += 1
-        } else { 
-          // Adding to the exisiting level of depth
-          displayPath = [...prevDisplayPath.slice(0, -1), prevDisplayPath[prevDisplayPath.length - 1] + 1]
-        }
-
-        results.push({
-          ...f,
-          canGroupAbove,
-          displayPath,
-        })
-      })
-      this.myFilters = results
-    },
-    // read
-    getFilterFromPath(path) {
-      // for now we just assume there is only a flat array of filters
-      const index = path[0]
-      return this.myFilters[index]
-    },
-    getFiltersInSameGroup(path) {
-      // Returns an array of all filters in the same join group as `path`
-      const testFilter = this.getFilterFromPath(path)
-      const testGroup = testFilter.displayPath.slice(0, -1).join(".")
-
-      return this.myFilters.filter(f => {
-        return testGroup === f.displayPath.slice(0, -1).join(".")
-      })
-    },
-    // update
-    setFilterOperator(pathToFilter, operator, dontApply) {
-      console.log("setFilterOperator", pathToFilter, operator)
+    setOperator(pathToFilter, operator, dontApply) {
+      console.log("setOperator", pathToFilter, operator)
       console.log("dontApply: " + dontApply)
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "operator", operator)
       if (dontApply) {
-        console.log("setFilterOperator with dontApply")
+        console.log("setOperator with dontApply")
         this.isEditingFilters = true
       } else if (!this.isEditingFilters) {
-        console.log("setFilterOperator and applyFilters")
+        console.log("setOperator and applyFilters")
         this.applyFilters() 
       }
     },
-    // update
-    setFilterValue(pathToFilter, value, dontApply) {
-      //console.log("setFilterValue", pathToFilter, value)
+    setValue(pathToFilter, value, dontApply) {
+      console.log("Setting filter value", { pathToFilter, value, dontApply });
       const filterToUpdate = this.getFilterFromPath(pathToFilter)
       Vue.set(filterToUpdate, "value", value)
       if (dontApply) {
@@ -237,36 +248,178 @@ export default {
         this.applyFilters()
       }
     },
-    setFilterJoinOperator(pathToFilter, joinOperator) {
-      console.log("setFilterJoin", pathToFilter, joinOperator)
-      const filtersToUpdate = this.getFiltersInSameGroup(pathToFilter)
-      filtersToUpdate.forEach(f => {
-        Vue.set(f, "joinOperator", joinOperator)
-      })
-      this.applyFilters()
-    },
-    setFilterDepth(pathToFilter, depth) {
-      console.log("setFilterDepth", pathToFilter, depth)
-      const filterToUpdate = this.getFilterFromPath(pathToFilter)
-      Vue.set(filterToUpdate, "depth", depth)
-      this.applyFilters()
-    },          
-    // delete
-    deleteFilter(path) {
-      // for now we just assume there is only a flat array of filters
-      const index = path[0]
-      this.myFilters.splice(index, 1)
-      this.applyFilters()
-    },
-    // apply
-    applyFilters() {
-      if (this.subjectEntity === "works") {
-        this.$store.state.search.query.filter_works = this.filtersToStore
+    setJoinOperator(pathToFilter, joinOperator) {
+      console.log("setJoin", pathToFilter, joinOperator);
+      const currentFilter = this.getFilterFromPath(pathToFilter);
+      const parentFilter = this.getParentFilter(pathToFilter);
+
+      // Changing root from AND to OR, create a group
+      if (pathToFilter.length === 1 && joinOperator === "or") {
+        this.myFilters = [{
+          join: "or",
+          filters: this.myFilters
+        }];
+        this.decorateMyFilters();
+      // Changing single root OR group to AND, flatten group
+      } else if (joinOperator === "and" && 
+                this.myFilters.length === 1 && 
+                this.myFilters[0].join === "or") {
+        this.myFilters = this.myFilters[0].filters;
+        this.decorateMyFilters();
       } else {
-        this.$store.state.search.query.filter_aggs = this.filtersToStore
+        // Otherwise just change "join" on a group with no special casing
+        Vue.set(parentFilter, "join", joinOperator);
       }
-      this.createSearch()
+
+      this.applyFilters();
+    },
+    groupWithAbove(path) {
+      console.log("groupWithAbove path: " + path)
+      //this.isEditingFilters = true;
+
+      // The parent is the array containing this filter
+      const parentPath = path.slice(0, -1);
+      const index = path[path.length - 1];
+
+      if (index === 0) {
+        console.warn("No filter above to group with.");
+        return;
+      }
+
+      const parentFilter = this.getFilterFromPath(parentPath);
+
+      // Our parent's array
+      const parentArray = parentFilter.filters;
+      const sibling = parentArray[index - 1];
+      const current = parentArray[index];
+
+      // If sibling is already a group, push current into sibling
+      if (sibling.join && Array.isArray(sibling.filters)) {
+        parentArray.splice(index, 1);    // remove current
+        sibling.filters.push(current);   // add to sibling group
+      } else {
+        // Otherwise create a new group with sibling + current
+        const newGroup = {
+          join: "and",
+          filters: [sibling, current],
+        };
+        // Remove sibling & current, then insert the group
+        parentArray.splice(index - 1, 2);
+        parentArray.splice(index - 1, 0, newGroup);
+      }
+
+      // Log for debugging
+      // console.log("After grouping, myFilters:", JSON.stringify(this.myFilters, null, 2));
+
+      this.applyFilters();
+    },
+    ungroupFromAbove(path) {
+      console.log("ungroupFromAbove path:", path);
+
+      // 1) Identify the parent group and index
+      const parentPath = path.slice(0, -1);
+      const indexInParent = path[path.length - 1];
+
+      // 2) The parent group
+      const parentFilter = this.getFilterFromPath(parentPath);
+
+      // 3) Remove the 'removed' filter from parent's array
+      const [removed] = parentFilter.filters.splice(indexInParent, 1);
+
+      // 4) Insert the removed filter as a sibling in the grandparent
+      const grandParentPath = parentPath.slice(0, -1);
+      const parentIndexInGrand = parentPath[parentPath.length - 1];
+      const grandParentFilter = this.getFilterFromPath(grandParentPath);
+
+      if (!grandParentFilter || !grandParentFilter.filters) {
+        console.warn("Grandparent is invalid. Cannot ungroup.");
+        return;
+      }
+
+      // Insert below the parent group
+      grandParentFilter.filters.splice(parentIndexInGrand + 1, 0, removed);
+
+      // 5) If the parent group is empty, remove it entirely
+      if (parentFilter.filters.length === 0) {
+        this.removeEmptyGroup(parentPath);
+      }
+      // 6) Else if the parent group now has only one child, flatten it 
+      //    (i.e. remove the group, put the single child in its place)
+      else if (parentFilter.filters.length === 1) {
+        const [singleChild] = parentFilter.filters;  // the only remaining child
+
+        // Remove the parent group from the grandparent
+        grandParentFilter.filters.splice(parentIndexInGrand, 1);
+        // Insert the single child in its place
+        grandParentFilter.filters.splice(parentIndexInGrand, 0, singleChild);
+      }
+
+      this.applyFilters();
+    },
+    deleteFilter(path) {
+      console.log("deleteFilter at path:", path)
+      this.isEditingFilters = true;
+      // Get the parent path and the index to remove
+      const parentPath = path.slice(0, -1);
+      const indexToRemove = path[path.length - 1];
+
+      if (parentPath.length === 0) {
+        // Removing from root level
+        this.myFilters.splice(indexToRemove, 1);
+      } else {
+        // Get the parent filter that contains our target
+        const parentFilter = this.getFilterFromPath(parentPath);
+        
+        // If parent exists and has nested filters, remove the target
+        if (parentFilter && parentFilter.join && Array.isArray(parentFilter.filters)) {
+          parentFilter.filters.splice(indexToRemove, 1);
+
+          // If parent now has no filters, remove it from *its* parent too
+          if (parentFilter.filters.length === 0) {
+            // Clean up the parent from the grandparent
+            this.removeEmptyGroup(parentPath);
+          }
+        }
+      }
+      this.applyFilters();
+    },
+    removeEmptyGroup(path) {
+      // Remove an empty group from its parent's filters.
+      // If that empties the parent, bubble up again, etc.
+      if (path.length === 0) {
+        return;
+      }
+
+      const grandParentPath = path.slice(0, -1);
+      const emptyGroupIndex = path[path.length - 1];
+
+      if (grandParentPath.length === 0) {
+        // The group is itself in the root array
+        this.myFilters.splice(emptyGroupIndex, 1);
+      } else {
+        // Remove the group from its grandparent
+        const grandParentFilter = this.getFilterFromPath(grandParentPath);
+        if (grandParentFilter && grandParentFilter.join && Array.isArray(grandParentFilter.filters)) {
+          grandParentFilter.filters.splice(emptyGroupIndex, 1);
+
+          // If that made the grandparent empty, bubble up
+          if (grandParentFilter.filters.length === 0) {
+            this.removeEmptyGroup(grandParentPath);
+          }
+        }
+      }
+    },
+    async applyFilters() {
+      console.log("applyFilters:")
+      console.log(JSON.stringify(this.filtersToStore, null, 2));
+      if (this.subjectEntity === "works") {
+        this.setFilterWorks(this.filtersToStore)
+      } else {
+        this.setFilterAggs(this.filtersToStore)
+      }
+      await this.createSearch()
       this.isEditingFilters = false
+      //console.log("setting isEditingFilters false")
     },
   },
   created() {
@@ -276,13 +429,14 @@ export default {
   watch: {
     "filters": {
       handler: function (filters) {
-        if (!this.isEditingFilters) { this.myFilters = _.cloneDeep(filters) }
-        this.decorateMyFilters()
-        this.openNodes = filters.map(f => f.id)
-        //console.log("filters update")
-        //console.log(this.myFilters)
+        if (!this.isEditingFilters) {
+          this.myFilters = _.cloneDeep(filters);
+          this.decorateMyFilters();
+          console.log("Watcher updating filters:");
+          console.log(JSON.stringify(filters, null, 2));
+        }
       },
-      immediate: true
+      immediate: true,
     }
   }
 }

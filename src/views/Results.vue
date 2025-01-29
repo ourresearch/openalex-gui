@@ -34,8 +34,8 @@
           <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
             <v-card flat rounded>
               <v-tabs v-model="tab"> 
-                <v-tab>String</v-tab>
-                <v-tab>Object</v-tab>
+                <v-tab>OQL</v-tab>
+                <v-tab>Query Object</v-tab>
                 <v-tab>API</v-tab>
               </v-tabs>
 
@@ -122,7 +122,7 @@ export default {
         "oql",
         "queryJson",
       ],
-      tab: 0,
+      tab: 1,
       uiVariant: this.$store.state.uiVariant,
       hasPolledOnce: false
     }
@@ -179,7 +179,7 @@ export default {
       }
     },
     async pollSearch() {
-      console.log("pollSearch")
+      //console.log("pollSearch")
       await this.getSearch({
         id: this.$route.params.id,
         bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache

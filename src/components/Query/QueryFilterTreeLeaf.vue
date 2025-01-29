@@ -1,49 +1,59 @@
 <template>
-  <div  class="d-flex align-center flex-grow-1 hover-color-3">
+  <div :style="indentationStyle" class="d-flex align-center flex-grow-1 hover-color-3">
 
-<!-- The Join Operator - and/or -->
-<span class="d-inline-flex justify-center" style="min-width: 1.6em; margin-right: 5px; flex-shrink: 0;">
-  <template v-if="siblingIndex === 0">The</template>
-  <template v-else>
-    <v-menu offset-y>
-      <template v-slot:activator="{ on }">
-        <v-chip
-          outlined
-          label
-          class="font-weight-regular px-1 pr-0 mx-1"
-          v-on="on"
-        >
-          {{ joinOperator }}
-          <v-icon small>mdi-menu-down</v-icon>
-        </v-chip>
+    <!-- Path Label -->
+    <span class="path-label number grey--text">
+      {{ pathLabel }}.
+    </span>
+
+    <!-- The Join Operator - and/or -->
+    <span class="d-inline-flex justify-center" style="min-width: 1.6em; margin-right: 5px; flex-shrink: 0;">
+      <template v-if="isFirstFilter">The</template>
+      <template v-else>
+        <v-menu offset-y>
+          <template v-slot:activator="{ on }">
+            <v-chip
+              outlined
+              label
+              class="font-weight-regular px-1 pr-0 mx-1"
+              v-on="on"
+            >
+              {{ joinOperator }}
+              <v-icon small>mdi-menu-down</v-icon>
+            </v-chip>
+          </template>
+          <v-list>
+            <v-list-item-group v-model="selectedJoinOperator">
+              <v-list-item
+                v-for="operator in ['and', 'or']"
+                :key="operator"
+                :value="operator"
+                active-class="primary--text"
+              >
+                <v-list-item-title class="py-3">
+                  {{ operator }}
+                </v-list-item-title>
+              </v-list-item>
+            </v-list-item-group>
+            
+            <!-- Conditionally show the divider and Grouping actions -->
+            <template v-if="canGroupAbove || canUngroup">
+              <v-divider class="my-2"></v-divider>
+              <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
+                <v-list-item-title class="py-3">
+                  Group with Above
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
+                <v-list-item-title class="py-3">
+                  Ungroup from Above
+                </v-list-item-title>
+              </v-list-item>
+            </template>
+          </v-list>
+        </v-menu>
       </template>
-      <v-list>
-        <v-list-item-group v-model="selectedJoinOperator">
-          <v-list-item
-            v-for="operator in ['and', 'or']"
-            :key="operator"
-            :value="operator"
-            active-class="primary--text"
-          >
-            <v-list-item-title class="py-3">
-              {{ operator }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list-item-group>
-        
-        <!-- Conditionally show the divider and Grouping actions -->
-        <template v-if="canGroupAbove">
-          <v-divider class="my-2"></v-divider>
-          <v-list-item @click="handleGroupWithAbove">
-            <v-list-item-title class="py-3">
-              Group with Above
-            </v-list-item-title>
-          </v-list-item>
-        </template>
-      </v-list>
-    </v-menu>
-  </template>
-</span>
+    </span>
 
 
     <!--    The Filter Key-->
@@ -226,6 +236,11 @@
       </div>
     </div>
 
+    <!-- Delete Button -->
+    <v-btn icon @click="deleteFilter">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+
   </div>
 </template>
 
@@ -248,12 +263,13 @@ export default {
     column_id: String,
     operator: String,
     joinOperator: {type: String, default: "and"},
-    depth: {type: Number, default: 0},
-    siblingIndex: Number,
+    path: Array,
     value: [String, Number, Boolean],
     subjectEntity: String,
     canGroupAbove: Boolean,
+    canUngroup: Boolean,
   },
+  emits: ['setValue', 'setOperator', 'deleteFilter', 'setJoinOperator', 'groupWithAbove', 'ungroupFromAbove'],
   data() {
     return {
       asyncValueOptions: [], // for the async autocomplete values
@@ -267,16 +283,40 @@ export default {
   },
   computed: {
     columnConfig() {
-      const mySubjectEntity = this.subjectEntity
-      const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
-      const columnConfig = mySubjectEntityConfig.columns[this.column_id]
-      return columnConfig
+      const mySubjectEntityConfig = getConfigs()[this.subjectEntity];
+      const columnConfig = mySubjectEntityConfig.columns[this.column_id];
+      return columnConfig;
     },
     isSearchColumn() {
-      return this.columnConfig?.id?.endsWith(".search")
+      return this.columnConfig?.id?.endsWith(".search");
     },
     isLabelFilter() {
-      return this.labelOperators.includes(this.operator)
+      return this.labelOperators.includes(this.operator);
+    },
+    isFirstFilter() {
+      return (this.path.every(i => i === 0));
+    },
+    pathLabel() {
+      // 1) The top-level label is always (path[0] + 1)
+      let label = (this.path[0] + 1).toString();
+
+      // 2) For each subsequent index in the path, only append if it's not zero
+      for (let i = 1; i < this.path.length; i++) {
+        const subIndex = this.path[i];
+        if (subIndex !== 0) {
+          label += "." + subIndex;
+        }
+      }
+
+      return label;
+    },
+    indendationLevel() {
+      return this.pathLabel.split(".").length;
+    },
+    indentationStyle() {
+      return {
+        paddingLeft: `${this.indendationLevel * 20}px`
+      }
     },
     operatorOptions() {
       return this.columnConfig.operators
@@ -299,10 +339,10 @@ export default {
           // when switching between label and entity operators reset value and don't immediately apply
           console.log("operator change to/from label")
           this.restartEditingValue()
-          this.$emit("setOperator", newValue, true)
-          this.$emit("setValue", null, true)
+          this.$emit("setOperator", this.path, newValue, true)
+          this.$emit("setValue", this.path, null, true)
         } else {
-          this.$emit("setOperator", newValue)
+          this.$emit("setOperator", this.path, newValue)
         }
         this.labelMenuPositionHack();
       }
@@ -312,7 +352,9 @@ export default {
         return this.joinOperator
       },
       set(value) {
-        this.$emit("setJoinOperator", value)
+        if (value !== this.joinOperator) {
+          this.$emit("setJoinOperator", this.path, value);
+        }
       }
     },
     selectedValue: {
@@ -320,7 +362,7 @@ export default {
         return this.value
       },
       set(value) {
-        this.$emit("setValue", value)
+        this.$emit("setValue", this.path, value)
       }
     },
     applicableLabels() {
@@ -329,9 +371,6 @@ export default {
     },
   },
   methods: {
-    setFilter(filter) {
-      this.$emit("set", filter)
-    },
     startEditingValue() {
       this.isEditingValue = true
       this.valueEditModel = this.selectedValue
@@ -355,10 +394,17 @@ export default {
       this.selectedValue = value
       this.valueEditModel = null
     },
-    handleGroupWithAbove() {
-      this.$emit('setDepth', this.depth + 1)
+    deleteFilter() {
+      this.$emit("deleteFilter", this.path)
+    },
+    groupWithAbove() {
+      this.$emit("groupWithAbove", this.path)
+    },
+    ungroupFromAbove() {
+      this.$emit("ungroupFromAbove", this.path)
     },
     labelMenuPositionHack() {
+      // hacked needed to allow label menu to be rendered open intially in the correct location
       this.labelMenuOpen = false
       this.$nextTick(() => {
         this.labelMenuOpen = true
@@ -408,5 +454,7 @@ export default {
 
 
 <style scoped lang="scss">
-  
+.path-label {
+  margin-right: 5px;
+}
 </style>

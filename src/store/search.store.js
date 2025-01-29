@@ -63,16 +63,11 @@ export const search = {
     },
     actions: {
         // FILTER
-        addFilter({state}, {filter, parentId}) {
-            state.query.filters.push(filter)
-            state.query.filters.find(f => f.id === parentId)?.children?.push(filter.id)
+        setFilterWorks({state}, filters) {
+            state.query.filter_works = filters;
         },
-        deleteFilter: function ({state}, id) {
-            console.log("deleteFilter", id)
-            state.query.filters = deleteNode(state.query.filters, id)
-        },
-        setAllFilters({state}, newFilters) {
-            state.query.filters = _.cloneDeep(newFilters)
+        setFilterAggs({state}, filters) {
+            state.query.filter_aggs = filters;
         },
 
         // SUMMARIZE
@@ -110,12 +105,17 @@ export const search = {
         },
 
         createSearchFromQuery: async function ({state}, query) {
-            state.is_completed = false
-            state.query = {...baseQuery(), ...query}
-            state.oql = queryToOQL(query)
-            const resp = await api.createSearch(query)
+            query = {...baseQuery(), ...query};
+            
+            state.is_completed = false;
+            state.id = null;
+            state.query = query;
+            state.oql = queryToOQL(query);
+            
+            const resp = await api.createSearch(query);
             //console.log("Created search", resp.data)
-            await pushSafe({name: 'search', params: {id: resp.data.id}})
+            state.id = resp.data.id;
+            await pushSafe({name: 'search', params: {id: resp.data.id}});
         },
 
         createSearch: async function ({dispatch, state}) {
@@ -123,20 +123,28 @@ export const search = {
         },
 
         getSearch: async function ({state, getters}, {id, bypass_cache}) {
-            state.id = id
-            state.is_completed = false
+            state.id = id;
+            state.is_completed = false;
 
             // get the search from the API
-            const data = await api.getSearch(state.id, {bypass_cache})
+            const data = await api.getSearch(state.id, {bypass_cache});
+
+            if (state.id !== data.id) {
+                // A new id has been requested since this request started, so ignore
+                return;
+            }
 
             // set the state from the response
-            state.is_completed = data.is_completed
-            state.oql = queryToOQL(data.query)
-            state.backend_error = data.backend_error
-            state.results_header = data.results_header ?? []
-            state.results_body = data.results ?? []
-            state.results_meta = data.meta
-            state.query = data.query
+            state.is_completed = data.is_completed;
+            state.backend_error = data.backend_error;
+            state.results_header = data.results_header ?? [];
+            state.results_body = data.results ?? [];
+            state.results_meta = data.meta;
+            state.query = data.query;
+            state.oql = queryToOQL(data.query);
+
+            console.log("getSearch returned " + data.id + " with works filters:")
+            console.log(JSON.stringify(data.query.filter_works, null, 2))
         },
 
         clearSearch({state}) {
