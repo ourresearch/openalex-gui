@@ -63,13 +63,11 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       search: "",
       isMenuOpen: false,
     }
   },
   computed: {
-    ...mapGetters([]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -120,12 +118,6 @@ export default {
     }, 
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
     filterFiltersBySearch(columns) {
       //console.log(columns)
       return columns.filter( f => {
@@ -161,6 +153,6 @@ export default {
 }
 .add-filter.with-filters {
   margin-top: 8px;
-  margin-left: 30px;
+  margin-left: 20px;
 }
 </style>

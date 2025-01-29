@@ -39,7 +39,7 @@ const clearCache = function () {
     })
 }
 const stockCache = function (url, ret) {
-    cache[url] = ret
+    cache[url] = _.cloneDeep(ret)
 }
 
 // hack to get around the lack of an autocomplete endpoint for countries
@@ -105,7 +105,7 @@ const api = (function () {
         if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
             //console.log("caching " + url)
             //console.log(res.data)
-            cache[url] = res.data
+            stockCache(url, res.data)
         }
         return res.data
     }
@@ -331,6 +331,8 @@ const api = (function () {
 
         console.log("api.createSearch to " + url)
         const resp = await post(url, {query, bypass_cache}, axiosConfig())
+        console.log("Created Search: " + resp.data.id + " with filters:");
+        console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
         return resp
     }
 
@@ -349,6 +351,7 @@ const api = (function () {
 
         url += "?" + params.toString()
 
+        console.log("api.getSearch getting: " + searchId)
         const resp = await getUrl(url, axiosConfig())
         return resp
     }
