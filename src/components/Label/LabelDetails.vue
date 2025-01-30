@@ -1,8 +1,16 @@
 <template>
-  <div class="pa-3">
-    <div class="text-h5">
-      <v-icon>mdi-tag-outline</v-icon>
-      {{ labelData.name }}
+  <div class="py-6 ma-0">
+    <div class="label-details-header px-5 pb-5">
+      <div class="text-h5">
+        <v-icon>mdi-tag-outline</v-icon>
+        {{ labelData.name }}
+      </div>
+      <div class="subtitle">
+        {{ labelData.ids.length}} {{ labelData.type }}
+      </div>
+      <v-spacer />
+      <router-link class="all-labels-link" to="/me/labels">« All Labels</router-link>
+
     </div>
 
     <v-card-text v-if="!labelData.ids.length">
@@ -13,15 +21,18 @@
       Loading...
     </v-card-text>
 
-    <v-list v-else color="transparent">
+    <v-list v-else class="py-3 px-0">
       <v-list-item
           v-for="id in labelData.ids"
           :key="id"
+          class="px-8 ma-0"
+          @click="clickRow(id)"
+
       >
         <v-list-item-content>
           <v-list-item-title>{{ entityDisplayName(id) }}</v-list-item-title>
         </v-list-item-content>
-        <v-list-item-action>
+        <v-list-item-action class="my-0">
           <v-btn icon @click="removeId(id)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -29,11 +40,13 @@
       </v-list-item>
     </v-list>
 
-    Add to Label:
-    <entity-autocomplete
-      :entityType="labelData.entityType"
-      @entity-selected="addId($event.id)"
-    />
+    <div class="label-details-add-section px-6">
+      <div class="label">Add to Label:</div>
+      <entity-autocomplete
+        :entityType="labelData.type"
+        @entity-selected="addId($event.id)"
+      />
+    </div>
 
   </div>
 </template>
@@ -58,9 +71,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
       "userCollections",
@@ -99,6 +109,9 @@ export default {
       const newIds = this.labelData.ids.filter(existingId => existingId != id)
       await this.updateCollectionIds({collectionId: this.labelId, ids: newIds})
     },
+    clickRow(rowId) {
+      this.$store.state.zoomId = rowId;
+    },
   },
   created() {
     this.loadAllDisplayNames()
@@ -110,5 +123,29 @@ export default {
 
 
 <style scoped lang="scss">
-
+.label-details-header {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+.label-details-header .subtitle {
+  margin-left: 15px;
+  margin-bottom: 2px;
+  font-size: 14px;
+  color: #777;
+}
+.all-labels-link {
+  text-decoration: none;
+  color: #555;
+  padding: 0px 5px;
+  margin-bottom: 5px
+}
+.label-details-add-section{
+ padding-top: 20px;
+ border-top: 1px solid #ddd; 
+}
+.label-details-add-section .label {
+  margin-bottom: 10px;
+}
 </style>

@@ -13,6 +13,7 @@
     rounded
     filled
     hide-no-data
+    hide-details
   >
     <template v-slot:item="{ item }">
       <v-list-item-content>

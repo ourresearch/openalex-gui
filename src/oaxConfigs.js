@@ -125,7 +125,7 @@ const oaxConfigs = {
         ],
         "category": "other",
         "redshiftDisplayColumn": "display_name",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "display_name",
         "icon": "mdi-account-outline",
         "descr": "The name of the author."
       },

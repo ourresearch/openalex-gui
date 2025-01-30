@@ -2,14 +2,7 @@
   <v-container>
     <v-row>
       <v-col cols="3">
-        <v-list  rounded>
-          <v-list-item to="/me/about">
-            <v-list-item-content>
-              <v-list-item-title>
-                About
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+        <v-list rounded>
 
           <v-list-item to="/me/labels">
             <v-list-item-content>
@@ -34,6 +27,15 @@
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item to="/me/about">
+            <v-list-item-content>
+              <v-list-item-title>
+                About Me
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
         </v-list>
       </v-col>
       <v-col cols="9">
@@ -57,19 +59,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
   },
   created() {
   },
