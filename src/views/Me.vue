@@ -5,7 +5,6 @@
       <v-col cols="12" md="4"  xl="3" >
         <v-card rounded outlined class=" pb-10">
           <v-card-title class="">Your account details</v-card-title>
-<!--          <v-divider></v-divider>-->
           <v-list color="transparent">
             <v-list-item>
               <v-list-item-icon>
@@ -30,9 +29,6 @@
         </v-card>
       </v-col>
       <v-spacer />
-
-
-
     </v-row>
   </v-container>
 </template>

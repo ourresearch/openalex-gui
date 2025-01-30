@@ -12,10 +12,8 @@
         New Label
       </v-btn>
     </template>
-    <router-link v-else class="all-labels-link" to="/me/labels">« All Labels</router-link>
-
-
-    <v-card v-if="labelId" rounded outlined class="my-4">
+    
+    <v-card v-if="labelId" rounded outlined class="my-0">
       <router-view />
     </v-card>
     
@@ -23,7 +21,7 @@
       
       <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
       
-      <v-list v-else color="transparent">
+      <v-list v-else>
         <v-list-item
             v-for="label in userCollections"
             :key="label.id"
@@ -95,12 +93,6 @@ export default {
 
 
 <style scoped lang="scss">
-.all-labels-link {
-  text-decoration: none;
-  color: #555;
-  display: block;
-  padding: 0px 5px;
-}
 .new-label-button {
   margin-top: -13px;
 }
