@@ -20,13 +20,11 @@
         ref="shortcutBox"
         :autofocus="autofocus"
         :loading="isLoading"
-
         @change="onChange"
         @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
     >
-      <!--        @blur="clear"-->
       <template v-slot:prepend-inner>
         <v-chip
             v-if="newFilter"
@@ -62,7 +60,7 @@
           </v-list-item-icon>
         </template>
 
-        <template v-else-if="data.item.key === 'default.search'">
+        <template v-else-if="data.item.key === 'title_and_abstract.search'">
           <v-list-item-content>
             <v-list-item-title>
               <span class="">Search for</span>
@@ -161,6 +159,9 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    cleanedSearchString(){
+      return this.searchString ? this.searchString .replace(/[,:]/g, "") : this.searchString
+    },
     filterSuggestions() {
       const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.searchString)
           .filter(f => {
@@ -202,13 +203,10 @@ export default {
     },
 
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     clear() {
       this.searchString = ""
       this.suggestions = []
@@ -246,7 +244,7 @@ export default {
     onChange(myFilterData) {
       console.log('onChange()', myFilterData, this.select)
       if (this.select) this.isEnterPressed = false
-      if (myFilterData.key === "default.search") {
+      if (myFilterData.key === "title_and_abstract.search") {
         this.submitSearchString()
       }
       else if (myFilterData?.isFilterLink) {
@@ -274,8 +272,8 @@ export default {
         return
       }
 
-      const filterKey = this.newFilter?.key ?? "default.search"
-      url.createFilter(this.entityType, filterKey, this.searchString)
+      const filterKey = this.newFilter?.key ?? "title_and_abstract.search"
+      url.createFilter(this.entityType, filterKey, this.cleanedSearchString)
       this.isEnterPressed = false
     },
     submitSearchString() {
@@ -283,7 +281,7 @@ export default {
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
       } else {
-        const searchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+        const searchFilter = createSimpleFilter(this.entityType, "title_and_abstract.search", this.cleanedSearchString)
         url.pushNewFilters([
           ...url.readFilters(this.$route),
           searchFilter
@@ -306,7 +304,6 @@ export default {
         filter,
       ])
       this.clear()
-
     },
     goToEntity(id) {
       console.log("goToEntity()", id)
@@ -314,7 +311,6 @@ export default {
         name: "EntityPage",
         params: urlPartsFromId(id)
       })
-
     },
     trySearch(str) {
       setTimeout(() => {
@@ -323,9 +319,8 @@ export default {
         this.$refs.shortcutBox.focus()
       }, 100)
     },
-
     getSuggestions: _.debounce(async function () {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "default.search", this.searchString)
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, "title_and_abstract.search", this.cleanedSearchString)
 
       // lol hack much?
       if (this.searchString === "coriander OR cilantro") {
@@ -388,8 +383,6 @@ export default {
       event.preventDefault();
       this.$refs.shortcutBox.focus();
     }
-
-
   },
   created() {
   },
@@ -423,18 +416,16 @@ export default {
 }
 </script>
 
+
 <style lang="scss">
 
 .v-autocomplete__content {
   max-width: 400px !important;
 }
-
-
 .shortcut-box {
   .v-input__append-inner:last-of-type {
     display: none !important; // hide the down-caret icon
   }
-
 }
 
 </style>
