@@ -309,7 +309,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             categories: ["other", "popular"],
             actions: ["filter",],
-            actionsPopular: ["filter",],
+            actionsPopular: [],
             category: "other",
             icon: "mdi-magnify",
             isMultiple: false,
@@ -321,7 +321,7 @@ const facetConfigs = function (entityType) {
             type: "search",
             categories: ["other",],
             actions: ["filter",],
-            actionsPopular: [],
+            actionsPopular: ["filter"],
             category: "other",
             icon: "mdi-magnify",
             isMultiple: false,
@@ -1972,7 +1972,8 @@ const getFacetConfig = function (entityType, key) {
     if (!myFacetConfig) {
         const msg = `openAlex error: getFacetConfig(): no facet found for '${entityType}' filter "${key}"`
         console.log(msg)
-        throw new Error(msg)
+        //throw new Error(msg)
+        return null
 
     }
     return myFacetConfig
