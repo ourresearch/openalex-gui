@@ -320,7 +320,7 @@ const api = (function () {
         // Creates a new Redshift query, routing to user api if needed
         let url
         if (doesSearchContainUserData(query)) {
-            console.log("search contains user data")
+            //console.log("search contains user data")
             url = urlBase.userApi + "/searches"
         } else {
             url = urlBase.api + "/searches"
@@ -331,8 +331,8 @@ const api = (function () {
 
         console.log("api.createSearch to " + url)
         const resp = await post(url, {query, bypass_cache}, axiosConfig())
-        console.log("Created Search: " + resp.data.id + " with filters:");
-        console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
+        //console.log("Created Search: " + resp.data.id + " with filters:");
+        //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
         return resp
     }
 

@@ -1,3 +1,11 @@
+<!--
+UX for create a tree of filters fos a query.
+Stores a local copy of filter state with additional properties to help with manipulations.
+Local filter state maybe in progress with e.g. values not yet set.
+Calls this.applyFilters() whenver filter state is ready to be passed up to global state.
+Manipulations of current filter state occur locally and are passed to global state as a complete set.
+-->
+
 <template>
   <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
     <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
@@ -57,14 +65,14 @@ export default {
   },
   computed: {
     hasAvailableFilters() {
-      const myConfig = getConfigs()[this.subjectEntity]
-      const myPossibleColumns = Object.values(myConfig.columns)
-      const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"))
+      const myConfig = getConfigs()[this.subjectEntity];
+      const myPossibleColumns = Object.values(myConfig.columns);
+      const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"));
             
-      return availableFilters.length > 0
+      return availableFilters.length > 0;
     },
     filtersToStore() {
-      // Returns local filter state, cleaned of local props to be stored in Vuex store
+      // Returns local filter state, cleaned of local props, to be stored in Vuex store
       const cleanFilter = (filter) => {
         if (filter.filters) { // Branch
           const cleanedChildFilters = filter.filters
@@ -81,11 +89,7 @@ export default {
         }
 
         // Leaf -- skip leaves with no value
-        if (
-          filter.value === null ||
-          filter.value === "" ||
-          filter.value === undefined
-        ) {
+        if ([null, undefined, ""].includes(filter.value)) {
           return null;
         }
 
@@ -133,10 +137,12 @@ export default {
   },
   methods: {
     filter,
-    ...mapActions("search", [
-      "createSearch",
+    ...mapMutations("search", [
       "setFilterWorks",
       "setFilterAggs",
+    ]),
+    ...mapActions("search", [
+      "createSearch",
     ]),
     decorateMyFilters() {
       // Recursively decorates filters with path + grouping properties
@@ -210,51 +216,57 @@ export default {
       const parentFilter = this.getFilterFromPath(parentPath);
       return parentFilter;      
     },
+    getGroupParentPath(path) {
+      // Returns the oldest ancestor of path for which path is always the first child
+      while (path[path.length-1] === 0) {
+        path = path.slice(0, -1);
+      }
+      const groupParentPath = path.slice(0, -1);
+      return groupParentPath;
+    },
     addFilter(columnId, columnType) {
       console.log("Adding filter", { columnId, columnType });
       const initValue = columnType === "boolean" ? true : null
       this.myFilters.push({
         column_id: columnId,
         value: initValue,
-      })
-      this.decorateMyFilters()
+      });
+      this.decorateMyFilters();
       if (columnType === "boolean") {
-        this.applyFilters()
+        this.applyFilters();
       }
       this.isEditingFilters = true;
       // Log the state after adding
       console.log("After adding filter:", this.myFilters);
     },
-    setOperator(pathToFilter, operator, dontApply) {
-      console.log("setOperator", pathToFilter, operator)
-      console.log("dontApply: " + dontApply)
-      const filterToUpdate = this.getFilterFromPath(pathToFilter)
-      Vue.set(filterToUpdate, "operator", operator)
+    setOperator(path, operator, dontApply) {
+      console.log("setOperator", path, operator);
+      console.log("dontApply: " + dontApply);
+      const filterToUpdate = this.getFilterFromPath(path);
+      Vue.set(filterToUpdate, "operator", operator);
       if (dontApply) {
-        console.log("setOperator with dontApply")
-        this.isEditingFilters = true
+        console.log("setOperator with dontApply");
+        this.isEditingFilters = true;
       } else if (!this.isEditingFilters) {
-        console.log("setOperator and applyFilters")
-        this.applyFilters() 
+        console.log("setOperator and applyFilters");
+        this.applyFilters();
       }
     },
-    setValue(pathToFilter, value, dontApply) {
-      console.log("Setting filter value", { pathToFilter, value, dontApply });
-      const filterToUpdate = this.getFilterFromPath(pathToFilter)
-      Vue.set(filterToUpdate, "value", value)
+    setValue(path, value, dontApply) {
+      console.log("Setting filter value", { path, value, dontApply });
+      const filterToUpdate = this.getFilterFromPath(path);
+      Vue.set(filterToUpdate, "value", value);
       if (dontApply) {
-        this.isEditingFilters = true
+        this.isEditingFilters = true;
       } else {
-        this.applyFilters()
+        this.applyFilters();
       }
     },
-    setJoinOperator(pathToFilter, joinOperator) {
-      console.log("setJoin", pathToFilter, joinOperator);
-      const currentFilter = this.getFilterFromPath(pathToFilter);
-      const parentFilter = this.getParentFilter(pathToFilter);
+    setJoinOperator(path, joinOperator) {
+      console.log("setJoin", JSON.stringify(path), joinOperator);
 
       // Changing root from AND to OR, create a group
-      if (pathToFilter.length === 1 && joinOperator === "or") {
+      if (this.getGroupParentPath(path).length === 0 && joinOperator === "or") {
         this.myFilters = [{
           join: "or",
           filters: this.myFilters
@@ -267,15 +279,15 @@ export default {
         this.myFilters = this.myFilters[0].filters;
         this.decorateMyFilters();
       } else {
-        // Otherwise just change "join" on a group with no special casing
-        Vue.set(parentFilter, "join", joinOperator);
+        // Otherwise just change "join" prop on the correct group
+        const groupParentPath = this.getGroupParentPath(path);
+        const groupParentFilter = this.getFilterFromPath(groupParentPath);
+        Vue.set(groupParentFilter, "join", joinOperator);
       }
-
       this.applyFilters();
     },
     groupWithAbove(path) {
-      console.log("groupWithAbove path: " + path)
-      //this.isEditingFilters = true;
+      console.log("groupWithAbove path: " + path);
 
       // The parent is the array containing this filter
       const parentPath = path.slice(0, -1);
@@ -411,14 +423,14 @@ export default {
     },
     async applyFilters() {
       console.log("applyFilters:")
-      console.log(JSON.stringify(this.filtersToStore, null, 2));
+      //console.log(JSON.stringify(this.filtersToStore, null, 2));
       if (this.subjectEntity === "works") {
-        this.setFilterWorks(this.filtersToStore)
+        this.setFilterWorks(this.filtersToStore);
       } else {
-        this.setFilterAggs(this.filtersToStore)
+        this.setFilterAggs(this.filtersToStore);
       }
-      await this.createSearch()
-      this.isEditingFilters = false
+      await this.createSearch();
+      this.isEditingFilters = false;
       //console.log("setting isEditingFilters false")
     },
   },
@@ -432,8 +444,8 @@ export default {
         if (!this.isEditingFilters) {
           this.myFilters = _.cloneDeep(filters);
           this.decorateMyFilters();
-          console.log("Watcher updating filters:");
-          console.log(JSON.stringify(filters, null, 2));
+          //console.log("Watcher updating filters:");
+          //console.log(JSON.stringify(filters, null, 2));
         }
       },
       immediate: true,
