@@ -8815,7 +8815,6 @@ oaxConfigs.licenses.columns["url"].actions = ["column"]
 
 oaxConfigs.publishers.columns["display_name.search"].displayName = "name"
 oaxConfigs.publishers.columns["country_code"].actions = ["filter", "column", "sort"]
-oaxConfigs.publishers.columns["homepage_url"].actions = ["column"]
 
 oaxConfigs.sdgs.columns["display_name.search"].displayName = "name"
 oaxConfigs.sdgs.columns["display_name.search"].actions = []
@@ -8825,9 +8824,6 @@ oaxConfigs["source-types"].columns["display_name.search"].actions = []
 
 oaxConfigs.sources.columns["display_name.search"].displayName = "name"
 oaxConfigs.sources.columns["apc_usd"].actions = ["filter", "column", "sort"]
-oaxConfigs.sources.columns["host_organization"].actions = ["filter", "column", "sort"]
-
-//oaxConfigs.sources.columns["host_organization_name"].actions = ["filter", "column", "sort"]
 
 oaxConfigs.subfields.columns["display_name.search"].displayName = "name"
 
