@@ -133,18 +133,18 @@
                   :key="filter.key"
                   @click="setNewFilterKey(filter.key)"
                   :disabled="filter.disabled"
-                  style="flex-basis: 250px;"
+                  style="        
+                    flex: 1 1 250px; 
+                    min-width: 0;
+                    align-items: flex-start;"
               >
                 <v-list-item-icon>
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>
+                  <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
                     {{ filter.displayName }}
                   </v-list-item-title>
-                  <!--                  <v-list-item-subtitle>-->
-                  <!--                    {{ filter.type }}-->
-                  <!--                  </v-list-item-subtitle>-->
                 </v-list-item-content>
               </v-list-item>
             </v-list>
