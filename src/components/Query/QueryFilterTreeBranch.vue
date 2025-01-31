@@ -1,12 +1,13 @@
 <template>
   <div class="query-filter-tree-branch">
-    <template v-for="item in filters">
+    <template v-for="(item, index) in filters">
       <query-filter-tree-branch v-if="item.filters"
         :filters="item.filters"
         :join-operator="item.join"
+        :parent-join-operator="joinOperator"
         :subject-entity="subjectEntity"
-        @setValue="(path, value, dontApply) => $emit('setValue', value, dontApply)"
-        @setOperator="(path, operator, dontApply) => $emit('setOperator', operator, dontApply)"
+        @setValue="(path, value, dontApply) => $emit('setValue', path, value, dontApply)"
+        @setOperator="(path, operator, dontApply) => $emit('setOperator', path, operator, dontApply)"
         @deleteFilter="(path) => $emit('deleteFilter', path)"
         @setJoinOperator="(path, joinOperator) => $emit('setJoinOperator', path, joinOperator)"
         @groupWithAbove="(path) => $emit('groupWithAbove', path)"
@@ -17,7 +18,7 @@
         :column_id="item.column_id"
         :operator="item.operator"
         :value="item.value"
-        :join-operator="joinOperator"
+        :join-operator="index === 0 ? parentJoinOperator : joinOperator"
         :path="item.path"
         :can-group-above="item.canGroupAbove"
         :can-ungroup="item.canUngroup"
@@ -47,9 +48,11 @@ export default {
   props: {
     filters: Array,
     joinOperator: String,
+    parentJoinOperator: String,
     subjectEntity: String,
   },
-  emits: ['setValue', 'setOperator', 'deleteFilter', 'setJoinOperator', 'groupWithAbove', 'ungroupFromAbove'],  data() {
+  emits: ['setValue', 'setOperator', 'deleteFilter', 'setJoinOperator', 'groupWithAbove', 'ungroupFromAbove'],  
+  data() {
     return {
     }
   },
