@@ -11,6 +11,7 @@ Manipulations of current filter state occur locally and are passed to global sta
     <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <query-filter-tree-branch
+      v-if="!isEmpty"
       :filters="myFilters"
       join-operator="and"
       :subject-entity="subjectEntity"

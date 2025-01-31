@@ -47,7 +47,7 @@
     <!-- Sort by -->
     <div class="query-section-label" style="margin-top: 10px;">Sort by</div>
     <!-- Sort by Column -->
-    <span class="sort-box" v-if="sortByColumn">
+    <div class="sort-box" v-if="sortByColumn">
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
@@ -110,7 +110,7 @@
           </v-list-item-group>
         </v-list>
       </v-menu>
-    </span>
+    </div>
   </v-card>
 </template>
 
@@ -223,10 +223,10 @@ export default {
   margin: 0 20px 28px 20px;
 }
 .query-section-label {
-  font-size: 16px;
+  font-size: 18px;
   display: inline-block;
 }
-.columns-controls-box {
+.columns-controls-box, .sort-box {
   padding-left: 10px;
 }
 .column-chip {
@@ -241,8 +241,6 @@ export default {
   margin-left: 10px;
 }
 .sort-box .v-chip:first-child {
-  margin-right: 0px;
-  margin-left: 8px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   padding-right: 8px;
