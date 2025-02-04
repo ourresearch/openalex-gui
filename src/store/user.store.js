@@ -54,12 +54,20 @@ export const user = {
         setCollectionsData(state, collections) {
             state.collections = collections;
         },
-        addCollectionData(state, coll) {
+        addCollection(state, coll) {
             state.collections.push(coll);
         },
         updateCollectionData(state, coll) {
             state.collections = state.collections.map(existing => {
                 return existing.id === coll.id ? coll : existing
+            });
+        },
+        updateCollectionIds(state, collectionId, ids) {
+            state.collections = state.collections.map(existing => {
+                if (existing.id === collectionId) {
+                    existing.ids = ids;
+                }
+                return existing;
             });
         },
         deleteCollection(state, id) {
@@ -335,34 +343,38 @@ export const user = {
                 entity_type,
                 description,
             }, axiosConfig());
-
-            commit("addCollectionData", resp.data);
+            
+            commit("addCollection", resp.data);
         },
 
         // read
         async fetchCollections({commit, state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
             const resp = await axios.get(myUrl, axiosConfig());
+            
             commit("setCollectionsData", resp.data);
         },
 
         // update
         async updateCollectionIds({commit, state}, {collectionId, ids}) {
+            commit("updateCollectionIds", collectionId, ids);
             const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`;
             const resp = await axios.patch(myUrl, {
                 ids,
             }, axiosConfig());
-
-            commit("updateCollectionData", resp.data);
+            
+            // TODO Rollback on error
         },
 
         async updateCollection({commit, state}, {collectionId, name, description}) {
+            commit("updateCollectionData", resp.data);
             const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
             const resp = await axios.patch(myUrl, {
                 name,
                 description,
             }, axiosConfig())
-            commit("updateCollectionData", resp.data);
+            
+            // TODO Rollback on error
         },
         
         // delete
@@ -377,6 +389,9 @@ export const user = {
             );
             commit("snackbar", "Label deleted.", {root: true});
             rootState.isLoading = false;
+
+            // TODO Rollback on error
+
         },
 
 
@@ -426,8 +441,8 @@ export const user = {
         getCollection: (state) => (collectionId) => {
             return state.collections.find(coll => coll.id === collectionId);
         },
-        getCollectionsByType: (state) => (type) => {
-            return state.collections.filter(coll => coll.type === type);
+        getCollectionsByType: (state) => (entity_type) => {
+            return state.collections.filter(coll => coll.entity_type === entity_type);
         },
 
         isUserSaving: (state) => state.isSaving,

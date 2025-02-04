@@ -9,7 +9,7 @@
     <v-list>
       <v-subheader>Apply Label:</v-subheader>
       <v-list-item
-          v-for="label in userCollections"
+          v-for="label in availableLabels"
           :key="label.id"
           @click="toggle(label.id)"
       >
@@ -51,7 +51,7 @@
   </v-menu>
 
   <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-    <label-create :ids="selectedIds" @close="isCreateLabelDialogOpen = false"/>
+    <label-create :ids="selectedIds" :entity_type="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
   </v-dialog>
 </div>
 </template>
@@ -75,34 +75,42 @@ export default {
     }
   },
   computed: {
+    ...mapGetters("search", [
+      "querySubjectEntity",
+    ]),
     ...mapGetters("user", [
       "userCollections",
     ]),
+    availableLabels() {
+      const labels = this.$store.getters['user/getCollectionsByType'](this.querySubjectEntity);
+      console.log("availableLabels", labels);
+      return labels;
+    }
   },
   methods: {
     ...mapActions("user", [
       "updateCollectionIds",
     ]),
     collectionById(id) {
-      return this.userCollections.find(coll => coll.id === id)
+      return this.userCollections.find(coll => coll.id === id);
     },
     showCheck(collectionId) {
       // Show a check mark only if every selected ID has the label
-      const collection = this.collectionById(collectionId)
-      return this.selectedIds.every(selectedId => collection.ids.includes(selectedId))
+      const collection = this.collectionById(collectionId);
+      return this.selectedIds.every(selectedId => collection.ids.includes(selectedId));
     },
     addIds(collectionId) {
-      const collection = this.collectionById(collectionId)
-      const newIds = [...new Set([...collection.ids, ...this.selectedIds])]
-      this.updateCollectionIds({collectionId, ids: newIds})
+      const collection = this.collectionById(collectionId);
+      const newIds = [...new Set([...collection.ids, ...this.selectedIds])];
+      this.updateCollectionIds({collectionId, ids: newIds});
     },
     removeIds(collectionId) {
-      const collection = this.collectionById(collectionId)
-      const newIds = collection.ids.filter(id => !this.selectedIds.includes(id))
-      this.updateCollectionIds({collectionId, ids: newIds})
+      const collection = this.collectionById(collectionId);
+      const newIds = collection.ids.filter(id => !this.selectedIds.includes(id));
+      this.updateCollectionIds({collectionId, ids: newIds});
     },
     toggle(collectionId) {
-      this.showCheck(collectionId) ? this.removeIds(collectionId) : this.addIds(collectionId)
+      this.showCheck(collectionId) ? this.removeIds(collectionId) : this.addIds(collectionId);
     }
   }
 }
