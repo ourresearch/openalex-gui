@@ -8,8 +8,7 @@
         rounded 
         color="primary"
         class="new-label-button">
-        <v-icon left>mdi-plus</v-icon>
-        New Label
+        <v-icon left>mdi-plus</v-icon>New Label
       </v-btn>
     </template>
     
@@ -19,7 +18,7 @@
     
     <v-card v-else rounded outlined class="my-4">
       
-      <v-card-text v-if="!userCollections.length">You haven't created any labels yet.</v-card-text>
+      <v-card-text v-if="!userCollections.length">Create labels for authors, institutions, and more that you can use to fitler your searches.</v-card-text>
       
       <v-list v-else>
         <v-list-item
@@ -32,10 +31,10 @@
           </v-list-item-icon>
           <v-list-item-content>
             <v-list-item-title>{{ label.name }}</v-list-item-title>
-            <v-list-item-subtitle>{{ label.description }}</v-list-item-subtitle>
+            <v-list-item-subtitle>{{ label.ids.length + " " + label.entity_type}}</v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
-            <v-btn icon @click="deleteCollection(label.id)">
+            <v-btn icon @click.stop.prevent="deleteLabel(label.id)">
               <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
           </v-list-item-action>
@@ -44,7 +43,7 @@
     </v-card>
 
     <v-dialog v-model="isLabelCreateDialogOpen" width="400">
-      <label-create @close="isLabelCreateDialogOpen = false" />
+      <label-create @close="isLabelCreateDialogOpen = false" :full="true" />
     </v-dialog>
 
   </div>
@@ -81,7 +80,23 @@ export default {
     ]),
     ...mapActions("user", [
       "deleteCollection",
-    ]), 
+    ]),
+    getLabel(id) {
+      return this.$store.getters['user/getCollection'](id);
+    },
+    deleteLabel(id) {
+      const label = this.getLabel(id);
+      console.log(label);
+      if (!label) { return; }
+      let msg = "Are you sure you want to delete this label";
+      if (label.ids.length) {
+        msg += ` and its ${label.ids.length} ${label.entity_type}`;
+      } 
+      msg += "?";
+      if (confirm(msg)) {
+        this.deleteCollection(id);
+      }
+    },
   },
   created() {
   },

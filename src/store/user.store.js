@@ -51,6 +51,20 @@ export const user = {
         setActiveSearchId(state, id) {
             state.activeSearchId = id
         },
+        setCollectionsData(state, collections) {
+            state.collections = collections;
+        },
+        addCollectionData(state, coll) {
+            state.collections.push(coll);
+        },
+        updateCollectionData(state, coll) {
+            state.collections = state.collections.map(existing => {
+                return existing.id === coll.id ? coll : existing
+            });
+        },
+        deleteCollection(state, id) {
+            state.collections = state.collections.filter(coll => coll.id !== id);
+        },
         logout(state) {
             state.id = ""
             state.name = ""
@@ -165,6 +179,7 @@ export const user = {
             console.log("user.store setAuthorId resp: ", resp)
             await dispatch("fetchUser")
         },
+
         async deleteAuthorId({commit, dispatch, state, getters}) {
             const authorId = state.authorId
             const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
@@ -307,57 +322,61 @@ export const user = {
 
         },
 
-
         // **************************************************
         // COLLECTIONS
         // **************************************************
 
         // create
-        async createCollection({commit, dispatch, state, rootState}, {ids, name, description}) {
-            // if (!ids.length) ids = ["hack"]
-
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections`
+        async createCollection({commit, dispatch, state, rootState}, {ids, name, description, entity_type}) {
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
             const resp = await axios.post(myUrl, {
                 ids,
                 name,
+                entity_type,
                 description,
-            }, axiosConfig())
+            }, axiosConfig());
 
-            await sleep(500)  // hack to give the server time to update
-            await dispatch("fetchUser")
+            commit("addCollectionData", resp.data);
         },
 
         // read
         async fetchCollections({commit, state}) {
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections`
-            const resp = await axios.get(myUrl, axiosConfig())
-            state.collections = resp.data
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
+            const resp = await axios.get(myUrl, axiosConfig());
+            commit("setCollectionsData", resp.data);
         },
 
         // update
         async updateCollectionIds({commit, state}, {collectionId, ids}) {
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`;
             const resp = await axios.patch(myUrl, {
                 ids,
-            }, axiosConfig())
+            }, axiosConfig());
 
-            state.collections = state.collections.map(coll => {
-                return coll.id === resp.data.id ? resp.data : coll
-            })
+            commit("updateCollectionData", resp.data);
         },
 
+        async updateCollection({commit, state}, {collectionId, name, description}) {
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
+            const resp = await axios.patch(myUrl, {
+                name,
+                description,
+            }, axiosConfig())
+            commit("updateCollectionData", resp.data);
+        },
+        
         // delete
         async deleteCollection({commit, dispatch, state, rootState}, id) {
-            rootState.isLoading = true
-            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`
+            commit("deleteCollection", id); // Optimitic
+
+            rootState.isLoading = true;
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`;
             const resp = await axios.delete(
                 myUrl,
                 axiosConfig(),
-            )
-            await sleep(500)  // hack to give the server time to update
-            await dispatch("fetchUser") // have to update the list
-            commit("snackbar", "Label deleted.", {root: true})
-            rootState.isLoading = false
+            );
+            commit("snackbar", "Label deleted.", {root: true});
+            rootState.isLoading = false;
         },
 
 
@@ -393,8 +412,6 @@ export const user = {
         async deleteCorrection({commit, dispatch, state, rootState}, id) {
             console.log("user.store deleteCorrection", id)
         },
-
-
     },
     getters: {
         userName: (state) => state.name,
@@ -407,10 +424,10 @@ export const user = {
         userCorrections: (state) => state.corrections,
         userCollections: (state) => state.collections,
         getCollection: (state) => (collectionId) => {
-            return state.collections.find(coll => coll.id === collectionId)
+            return state.collections.find(coll => coll.id === collectionId);
         },
         getCollectionsByType: (state) => (type) => {
-            return state.collections.filter(coll => coll.type === type)
+            return state.collections.filter(coll => coll.type === type);
         },
 
         isUserSaving: (state) => state.isSaving,

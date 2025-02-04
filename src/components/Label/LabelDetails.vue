@@ -6,22 +6,18 @@
         {{ labelData.name }}
       </div>
       <div class="subtitle">
-        {{ labelData.ids.length}} {{ labelData.type }}
+        {{ labelData.ids.length}} {{ labelData.entity_type }}
       </div>
       <v-spacer />
       <router-link class="all-labels-link" to="/me/labels">« All Labels</router-link>
 
     </div>
-
-    <v-card-text v-if="!labelData.ids.length">
-      You haven't added anything to this label yet.
-    </v-card-text>
     
-    <v-card-text v-else-if="!this.displayNamesLoaded" >
+    <v-card-text v-if="!this.displayNamesLoaded" >
       Loading...
     </v-card-text>
 
-    <v-list v-else class="py-3 px-0">
+    <v-list v-else-if="labelData.ids.length" class="label-items py-3 px-0">
       <v-list-item
           v-for="id in labelData.ids"
           :key="id"
@@ -33,7 +29,7 @@
           <v-list-item-title>{{ entityDisplayName(id) }}</v-list-item-title>
         </v-list-item-content>
         <v-list-item-action class="my-0">
-          <v-btn icon @click="removeId(id)">
+          <v-btn icon @click.stop="removeId(id)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-list-item-action>
@@ -43,7 +39,7 @@
     <div class="label-details-add-section px-6">
       <div class="label">Add to Label:</div>
       <entity-autocomplete
-        :entityType="labelData.type"
+        :entityType="labelData.entity_type"
         @entity-selected="addId($event.id)"
       />
     </div>
@@ -72,21 +68,16 @@ export default {
   },
   computed: {
     ...mapGetters("user", [
-      "userId",
       "userCollections",
     ]),
     labelId() {
       return this.$route.params.labelId || null;
     },
     labelData() {
-      return this.userCollections.find(coll => coll.id === this.labelId)
+      return this.userCollections.find(coll => coll.id === this.labelId);
     },
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "updateCollectionIds",
       "deleteCollection",
@@ -141,9 +132,11 @@ export default {
   padding: 0px 5px;
   margin-bottom: 5px
 }
+.label-items {
+  border-bottom: 1px solid #ddd;
+}
 .label-details-add-section{
- padding-top: 20px;
- border-top: 1px solid #ddd; 
+  padding-top: 20px;
 }
 .label-details-add-section .label {
   margin-bottom: 10px;
