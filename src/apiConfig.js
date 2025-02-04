@@ -9,23 +9,27 @@ const urlBase = {
 
 // Use port to change local API endpoints
 // Example: npm run serve -- --port 8081
+
+// 8081: Local Elastic API
 if (window.location.port && parseInt(window.location.port) === 8081) {
-    urlBase.api = "http://localhost:5006"  // your locally-hosted API
+    urlBase.api = "http://localhost:5006" 
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
 
+// 8082: Staging Elastic API
 } else if (window.location.port && parseInt(window.location.port) === 8082) {
-    urlBase.api = "https://staging-jump-api.herokuapp.com"  // staging heroku API
+    urlBase.api = "https://staging-jump-api.herokuapp.com"  
     console.log("Setting API base URL to staging heroku (dev use only): " + urlBase.api)
 
+// 8083: Local User API
 } else if (window.location.port && parseInt(window.location.port) === 8083) {
-    urlBase.userApi = "http://localhost:5106"  // your locally-hosted User API
-    console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi)
-} 
+    urlBase.userApi = "http://localhost:5106" 
+    console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi) 
 
-else if (window.location.port && parseInt(window.location.port) === 8084) {
-    urlBase.api = "http://localhost:5006"  // your locally-hosted API
+// 8084: Local Elastic & User API
+} else if (window.location.port && parseInt(window.location.port) === 8084) {
+    urlBase.api = "http://localhost:5006"  
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api)
-    urlBase.userApi = "http://localhost:5106"  // your locally-hosted User API
+    urlBase.userApi = "http://localhost:5106" 
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi)
 } 
 
