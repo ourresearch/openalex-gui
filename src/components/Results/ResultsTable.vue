@@ -12,7 +12,7 @@
       </v-btn>
 
       <template v-if="userId">
-        <label-menu :selectedIds="selectedIds" />
+        <label-menu :selectedIds="longSelectedIds" />
 
         <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
           @click="snackbar('Submitting data corrections will be coming soon.')">
@@ -229,9 +229,11 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
-import ColumnValue from "@/components/ColumnValue.vue";
 import {getConfigs} from "@/oaxConfigs";
+import {entity} from "@/entity"
 import * as oaxSearch from "@/oaxSearch";
+
+import ColumnValue from "@/components/ColumnValue.vue";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import DownloadDialog from "@/components/Download/DownloadDialog.vue";
@@ -299,6 +301,10 @@ export default {
         return "mdi-minus-box-outline"
       }
     },
+    longSelectedIds() {
+      // Returns selected IDs in long format e.g. "topics/T123" instead of "123"
+      return this.selectedIds.map(id => entity.longId(id, this.querySubjectEntity));
+    },
     columnsToAddFiltered() {
       return this.columnsToAdd.filter(col => {
         return col.displayName.toLowerCase().includes(this.columnSearch.toLowerCase())
@@ -341,6 +347,7 @@ export default {
       this.selectedIds = this.selectedIds.filter((i) => i !== id)
     },
     toggleSelectedId(id) {
+      console.log("toggleSelectedId", id)
       if (this.selectedIds.includes(id)) {
         this.removeSelectedId(id)
       } else {
@@ -398,11 +405,6 @@ export default {
       a.click()
     },
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

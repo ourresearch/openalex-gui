@@ -74,6 +74,11 @@ export default {
     ids: {
       type: Array,
       required: false,
+    },
+    entity_type: {
+      type: String,
+      required: false,
+      default: "authors"
     }
   },
   data() {
@@ -81,9 +86,7 @@ export default {
       isLoading: false,
       name: "",
       description: "",
-      entity_type: "authors",
       idsArray: this.ids?.length ? this.ids : [],
-
     }
   },
   computed: {
@@ -110,10 +113,10 @@ export default {
       const payload = {
         ids: this.idsArray,
         name: this.name,
+        entity_type: this.entity_type,
       };
       
       if (this.full) {
-        payload.entity_type = this.entity_type;
         if (this.description) {
           payload.description = this.description;
         }
@@ -137,6 +140,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("LabelCreate with", this.ids)
   },
   watch: {}
 }

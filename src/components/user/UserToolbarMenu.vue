@@ -1,6 +1,6 @@
 <template>
   <div>
-      <v-btn v-if="userId" icon to="/me" exact>
+      <v-btn v-if="userId" icon to="/me/labels" exact>
         <v-icon>mdi-account-outline</v-icon>
       </v-btn>
 
