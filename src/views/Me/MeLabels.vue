@@ -34,7 +34,7 @@
             <v-list-item-subtitle>{{ label.ids.length + " " + label.entity_type}}</v-list-item-subtitle>
           </v-list-item-content>
           <v-list-item-action>
-            <v-btn icon @click.stop.prevent="deleteLabel(label.id)">
+            <v-btn icon @click.stop.prevent="deleteCollection(label.id)">
               <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
           </v-list-item-action>
@@ -83,19 +83,6 @@ export default {
     ]),
     getLabel(id) {
       return this.$store.getters['user/getCollection'](id);
-    },
-    deleteLabel(id) {
-      const label = this.getLabel(id);
-      console.log(label);
-      if (!label) { return; }
-      let msg = "Are you sure you want to delete this label";
-      if (label.ids.length) {
-        msg += ` and its ${label.ids.length} ${label.entity_type}`;
-      } 
-      msg += "?";
-      if (confirm(msg)) {
-        this.deleteCollection(id);
-      }
     },
   },
   created() {

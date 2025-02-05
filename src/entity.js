@@ -18,16 +18,18 @@ const getId = (id, config) => {
     return matches ? matches[1] : null
 }
 
-const longId = (id, entityType) => {
+const fullId = (id, entityType) => {
     // 123, topics => "topics/T123"
-    if (typeof id !== "string")
-    return `${entityType}/${entityType[0].toUpperCase()}${id}`
+    if (typeof id !== "string") {
+        return `${entityType}/${entityType[0].toUpperCase()}${id}`;
+    }
+    return id;
 }
 
 const entity = {
     getType,
     getId,
-    longId,
+    fullId,
     async getEntityData(id) {
         const shortId = id.replace("https://openalex.org/", "")
         // TODO probably remove bypass_cache=true when live. For now allows us to make quick changes to config and UI changes be immediately available

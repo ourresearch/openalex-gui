@@ -12,7 +12,7 @@
       </v-btn>
 
       <template v-if="userId">
-        <label-menu :selectedIds="longSelectedIds" />
+        <label-menu :selectedIds="fullSelectedIds" />
 
         <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
           @click="snackbar('Submitting data corrections will be coming soon.')">
@@ -301,9 +301,10 @@ export default {
         return "mdi-minus-box-outline"
       }
     },
-    longSelectedIds() {
-      // Returns selected IDs in long format e.g. "topics/T123" instead of "123"
-      return this.selectedIds.map(id => entity.longId(id, this.querySubjectEntity));
+    fullSelectedIds() {
+      // Returns selected IDs in full format e.g. "topics/T123" instead of "123"
+      const fullIds = this.selectedIds.map(id => entity.fullId(id, this.querySubjectEntity));
+      return fullIds;
     },
     columnsToAddFiltered() {
       return this.columnsToAdd.filter(col => {
@@ -312,12 +313,12 @@ export default {
     },
     columnsToAdd() {
       return Object.values(this.querySubjectEntityConfig.columns)
-          .filter(col => {
-            return col.actions?.includes("column")
-          })
-          .filter(col => {
-            return !this.query.show_columns.includes(col.id)
-          })
+        .filter(col => {
+          return col.actions?.includes("column")
+        })
+        .filter(col => {
+          return !this.query.show_columns.includes(col.id)
+        })
     },
   },
   methods: {

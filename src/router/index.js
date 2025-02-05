@@ -76,7 +76,6 @@ const routes = [
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
     {
         path: '/tests',
-        name: "tests",
         component: TestQueriesBase,
         children: [
             {

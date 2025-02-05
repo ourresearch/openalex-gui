@@ -51,7 +51,7 @@
   </v-menu>
 
   <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-    <label-create :ids="selectedIds" :entity_type="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
+    <label-create :ids="selectedIds" :entityType="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
   </v-dialog>
 </div>
 </template>
@@ -83,7 +83,6 @@ export default {
     ]),
     availableLabels() {
       const labels = this.$store.getters['user/getCollectionsByType'](this.querySubjectEntity);
-      console.log("availableLabels", labels);
       return labels;
     }
   },
