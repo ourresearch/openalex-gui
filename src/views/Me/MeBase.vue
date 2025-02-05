@@ -58,15 +58,6 @@ export default {
     return {
     }
   },
-  computed: {
-  },
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

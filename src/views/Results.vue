@@ -128,10 +128,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "isLocalEnv",
-      "entityType",
-    ]),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",

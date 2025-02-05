@@ -34,47 +34,31 @@
 
 <script>
 
+
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "MeAbout",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
       "userName",
       "userEmail",
     ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
     ...mapMutations("user", [
       "logout",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
     ]),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

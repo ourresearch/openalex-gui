@@ -18,7 +18,6 @@
 
 import {VueTyper} from 'vue-typer'
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import OqlBox from "@/components/OqlBox.vue";
 import axios from "axios";
 import HomeContent from "@/components/Home/HomeContent.vue";
 
@@ -26,7 +25,6 @@ import HomeContent from "@/components/Home/HomeContent.vue";
 export default {
   name: 'Home',
   components: {
-    OqlBox,
     VueTyper,
     HomeContent,
   },

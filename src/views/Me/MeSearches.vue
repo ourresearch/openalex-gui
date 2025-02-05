@@ -28,19 +28,11 @@ export default {
   data() {
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
     ]),
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
   },
   created() {
   },

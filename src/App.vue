@@ -133,7 +133,7 @@
         </v-list>
       </v-menu>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-        <entity-type-selector/>
+        <!-- <entity-type-selector/> -->
         <shortcut-box
             class="flex-grow-1"
         />
@@ -188,8 +188,8 @@
       </template>
     </v-snackbar>
 
-    <saved-search-rename-dialog/>
-    <saved-search-edit-alert-dialog/>
+    <!--<saved-search-rename-dialog/>
+    <saved-search-edit-alert-dialog/>-- removed to prevent mapgetters calling entityType which doesn't exist on RA> -->
 
 
   </v-app>
@@ -207,14 +207,12 @@ import {url} from "@/url";
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
-import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
-import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
+
 import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 import ShortcutBox from "@/components/ShortcutBox.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
+//import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import {entity} from "@/entity";
 import Entity from "@/components/Entity/Entity.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
@@ -233,10 +231,8 @@ export default {
     UserToolbarMenu,
     Entity,
     SearchFromText,
-    SavedSearchRenameDialog,
-    SavedSearchEditAlertDialog,
     ShortcutBox,
-    EntityTypeSelector,
+    //EntityTypeSelector,
   },
   data: function () {
     return {
@@ -256,7 +252,6 @@ export default {
   computed: {
     ...mapGetters([
       "globalIsLoading",
-      "entityType",
       "environment",
     ]),
     localUrl() {
