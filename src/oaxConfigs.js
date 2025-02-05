@@ -1,11 +1,11 @@
-// copy/pasted from https://api.openalex.org/entities/config
-// 20250124144251
 
 import _ from "lodash"
 
 const getConfigs = () => _.cloneDeep(oaxConfigs)
 export {getConfigs}
 
+// 20250204171717
+// https://api.openalex.org/entities/config
 
 const oaxConfigs = {
   "authors": {
@@ -526,7 +526,7 @@ const oaxConfigs = {
         "displayName": "Continent name",
         "type": "string",
         "redshiftDisplayColumn": "display_name",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "display_name",
         "actions": [
           "column"
         ],
@@ -733,8 +733,8 @@ const oaxConfigs = {
         "displayName": "Country ID",
         "isId": true,
         "type": "string",
-        "redshiftDisplayColumn": "id",
-        "redshiftFilterColumn": "id",
+        "redshiftDisplayColumn": "country_id",
+        "redshiftFilterColumn": "country_id",
         "icon": "mdi-tag-outline",
         "descr": "Unique identifier for the country"
       },
@@ -760,7 +760,7 @@ const oaxConfigs = {
         ],
         "category": "other",
         "redshiftDisplayColumn": "display_name",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "display_name",
         "icon": "mdi-account-outline",
         "descr": "The name of the country"
       },
@@ -2006,7 +2006,7 @@ const oaxConfigs = {
         "displayName": "name",
         "type": "string",
         "redshiftDisplayColumn": "display_name",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "display_name",
         "actions": [
           "sort",
           "column"
@@ -3405,7 +3405,7 @@ const oaxConfigs = {
         "displayName": "mean fwci",
         "type": "number",
         "redshiftDisplayColumn": "mean_fwci",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "mean_fwci",
         "actions": [
           "sort",
           "column"
@@ -5616,8 +5616,8 @@ const oaxConfigs = {
         "displayName": "OpenAlex ID",
         "isId": true,
         "type": "string",
-        "redshiftDisplayColumn": "id",
-        "redshiftFilterColumn": "id",
+        "redshiftDisplayColumn": "source_id",
+        "redshiftFilterColumn": "source_id",
         "actions": [
           
         ],
@@ -5708,10 +5708,12 @@ const oaxConfigs = {
         "objectEntity": "publishers",
         "displayName": "Publisher",
         "type": "object",
-        "redshiftDisplayColumn": null,
-        "redshiftFilterColumn": null,
+        "redshiftDisplayColumn": "publisher_id",
+        "redshiftFilterColumn": "publisher_id",
         "actions": [
-          
+          "filter",
+          "column",
+          "sort"
         ],
         "actionsPopular": [
           
@@ -5802,7 +5804,7 @@ const oaxConfigs = {
         ],
         "defaultOperator": "is",
         "objectEntity": null,
-        "displayName": "Fully open access",
+        "displayName": "fully open access",
         "type": "boolean",
         "redshiftDisplayColumn": null,
         "redshiftFilterColumn": null,
@@ -7363,10 +7365,12 @@ const oaxConfigs = {
         "objectEntity": "subfields",
         "displayName": "subfield (parent)",
         "type": "object",
-        "redshiftDisplayColumn": null,
-        "redshiftFilterColumn": null,
+        "redshiftDisplayColumn": "subfield_id",
+        "redshiftFilterColumn": "subfield_id",
         "actions": [
-          
+          "filter",
+          "sort",
+          "column"
         ],
         "icon": "mdi-tag-outline",
         "descr": "The subfield that this topic belongs to."
@@ -7403,8 +7407,8 @@ const oaxConfigs = {
         "objectEntity": "domains",
         "displayName": "domain",
         "type": "object",
-        "redshiftDisplayColumn": null,
-        "redshiftFilterColumn": null,
+        "redshiftDisplayColumn": "domain_id",
+        "redshiftFilterColumn": "domain_id",
         "actions": [
           
         ],
@@ -7546,8 +7550,9 @@ const oaxConfigs = {
         "displayName": "name",
         "type": "string",
         "redshiftDisplayColumn": "display_name",
-        "redshiftFilterColumn": null,
+        "redshiftFilterColumn": "display_name",
         "actions": [
+          "filter",
           "sort",
           "column"
         ],
@@ -8461,7 +8466,9 @@ const oaxConfigs = {
         "redshiftDisplayColumn": "type_formatted",
         "redshiftFilterColumn": "type",
         "actions": [
-          "filter"
+          "filter",
+          "column",
+          "sort"
         ],
         "actionsPopular": [
           "filter"
@@ -8547,9 +8554,9 @@ const oaxConfigs = {
         "type": "string",
         "sortByValue": true,
         "examples": [
-          "2020-12-03",
+          "2020-11-04",
           "1982-02-24",
-          "2001-04-19",
+          "2002-09-02"
         ],
         "category": "other",
         "apiField": "publication_date",
