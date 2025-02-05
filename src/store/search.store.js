@@ -29,6 +29,7 @@ const stateDefaults = function () {
         results_body: [],
         results_meta: null,
         backend_error: null,
+        redshift_sql: null,
     };
     return ret;
 };
@@ -129,6 +130,7 @@ export const search = {
             state.results_body = data.results ?? [];
             state.results_meta = data.meta;
             state.query = data.query;
+            state.redshift_sql = data.redshift_sql;
             state.oql = queryToOQL(data.query);
 
             //console.log("getSearch returned " + data.id + " with works filters:")
