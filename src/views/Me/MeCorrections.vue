@@ -46,19 +46,12 @@ export default {
   data() {
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
       "userCorrections",
     ]),
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "deleteCorrection",
     ]),

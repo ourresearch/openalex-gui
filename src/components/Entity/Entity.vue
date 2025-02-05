@@ -50,7 +50,7 @@ import PropValue from "@/components/ColumnValue.vue";
 import {isDisplayable} from "@/util";
 
 export default {
-  name: "Template",
+  name: "Entity",
   components: {
     PropValue,
   },
@@ -67,9 +67,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
     ]),

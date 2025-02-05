@@ -89,17 +89,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     user() {
       return user
     },
-    ...mapGetters([
-
-      "entityType",
-    ]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -114,14 +109,7 @@ export default {
       })
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
   created() {
   },
