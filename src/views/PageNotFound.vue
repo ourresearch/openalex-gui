@@ -9,41 +9,17 @@
   </v-container>
 </template>
 
+
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-
 export default {
-  name: "Template",
+  name: "PageNotFound",
   components: {},
   props: {},
-  data() {
-    return {
-      foo: 42,
-    }
-  },
-  computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
+  data() {},
 }
 </script>
+
 
 <style scoped lang="scss">
 

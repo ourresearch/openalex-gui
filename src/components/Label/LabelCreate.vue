@@ -1,6 +1,6 @@
 <template>
   <v-card rounded :loading="isLoading">
-    <v-card-title>Create {{ idsArray.length ? "and apply" : "" }} Label</v-card-title>
+    <v-card-title>{{ editId ? 'Edit Label' : `Create${idsArray.length ? ' and apply' : ''} Label` }}</v-card-title>
     <v-card-text>
       <form>
           <v-text-field
@@ -20,18 +20,26 @@
           >
           </v-text-field>
           <template v-if="full">
-            <v-select
-              v-model="entity_type"
-              :items="entity_types"
-              label="Type"
-              item-text="text"
-              item-value="value"
-              filled
-              rounded
-              class="mt-4"
-              required
-              hide-details
-            ></v-select>
+            <div style="position: relative;"> <!-- for catching events on a disabled select -->
+              <v-select
+                v-model="entity_type"
+                :items="entity_types"
+                label="Type"
+                item-text="text"
+                item-value="value"
+                filled
+                rounded
+                class="mt-4"
+                required
+                hide-details
+                :disabled="isChangeTypeDisabled"
+              ></v-select>
+              <div
+                v-if="isChangeTypeDisabled"
+                @click.prevent="handleDisabledSelectClick"
+                style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"
+              ></div>
+            </div>
             <v-textarea
               v-model="description"
               label="Description (optional)"
@@ -52,7 +60,7 @@
           rounded
           :disabled="!name || isLoading"
           @click="create">
-        Create
+        {{ editId ? "Save" : "Create" }}
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -75,10 +83,15 @@ export default {
       type: Array,
       required: false,
     },
-    entity_type: {
+    entityType: {
       type: String,
       required: false,
       default: "authors"
+    },
+    editId: {
+      type: String,
+      required: false,
+      default: null
     }
   },
   data() {
@@ -86,6 +99,7 @@ export default {
       isLoading: false,
       name: "",
       description: "",
+      entity_type: this.entityType,
       idsArray: this.ids?.length ? this.ids : [],
     }
   },
@@ -98,16 +112,27 @@ export default {
         value: entity_type
       }));
     },
+    isChangeTypeDisabled() {
+      const label = this.$store.getters['user/getCollection'](this.editId);
+      const val = this.editId && label.ids.length > 0;
+      return val;
+    }
   },
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapActions("user", [
-      "createCollection"
+      "createCollection",
+      "updateCollection"
     ]),
+    handleDisabledSelectClick() {
+      this.snackbar({
+        msg: "To change label type, please delete existing items first.",
+      });
+    },
     async create(){
-      if (!this.name) return;
+      if (!this.name) { return; }
 
       this.isLoading = true;
       const payload = {
@@ -116,18 +141,24 @@ export default {
         entity_type: this.entity_type,
       };
       
-      if (this.full) {
-        if (this.description) {
-          payload.description = this.description;
-        }
+      if (this.description) {
+        payload.description = this.description;
       }
 
-      console.log("Create payload")
-      console.log(payload)
+      if (this.editId) {
+        await this.updateCollection({
+          id: this.editId,
+          name: this.name,
+          description: this.description,
+          entity_type: this.entity_type,
+        });
+        this.snackbar({msg: "Label updated"});
+      } else {
+        await this.createCollection(payload);
+        this.snackbar({msg: "Label created" + (this.idsArray.length ? " and applied" : "")});
+      }
       
-      await this.createCollection(payload);
       this.isLoading = false;
-      this.snackbar({msg: "Label created" + (this.idsArray.length ? " and applied" : "")});
       this.close();
     },
     close(){
@@ -137,12 +168,16 @@ export default {
       this.$emit('close');
     }
   },
-  created() {
+  async created() {
+    if (this.editId) {
+      const collection = this.$store.getters['user/getCollection'](this.editId);
+      if (collection) {
+        this.name = collection.name;
+        this.description = collection.description || "";
+        this.entity_type = collection.entity_type;
+      }
+    }
   },
-  mounted() {
-    console.log("LabelCreate with", this.ids)
-  },
-  watch: {}
 }
 </script>
 
