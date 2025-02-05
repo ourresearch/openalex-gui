@@ -1,7 +1,9 @@
 <template>
   <v-card flat rounded class="example-query fill-height d-flex flex-column">
     <v-card-title>
-      <router-link class="question-link" :to="url">{{ question }}</router-link>
+      <div class="question-link" @click="createSearchFromQuery(query)">{{ question }}</div>
+
+      <!--<router-link class="question-link" to="url">{{ question }}</router-link>-->
     </v-card-title>
     <div v-if="error" style="margin: 0 20px 10px;">
       <b>Error:</b> {{ error }}
@@ -17,12 +19,14 @@
       <v-chip  :color="this.color('type')" :style="this.bgColorStyle('type')">{{type}}</v-chip>
       <v-chip  :color="this.color('category')" :style="this.bgColorStyle('category')">{{category}}</v-chip>
       -->
-          </v-card-actions>
+    </v-card-actions>
   </v-card>
 </template>
 
 
 <script>
+
+import {mapActions} from "vuex";
 
 export default {
   name: "ExampleQuery",
@@ -34,20 +38,17 @@ export default {
     category: String,
     error: String,
     url: String,
+    query: Object,
   },
   data() {
     return {
     }
   },
-  computed: {
-  },
   methods: {
+    ...mapActions("search", [
+      "createSearchFromQuery"
+    ]),
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
@@ -61,6 +62,8 @@ export default {
   text-decoration: none;
   word-break: normal;
   line-height: 1.6rem;
+  font-size: 16px;
+  cursor: pointer;
 }
 .v-card__actions {
   padding: 0px 15px 15px 15px;

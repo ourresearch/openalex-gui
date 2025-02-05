@@ -36,6 +36,7 @@
               <v-tabs v-model="tab"> 
                 <v-tab>OQL</v-tab>
                 <v-tab>Query Object</v-tab>
+                <v-tab>SQL</v-tab>
                 <v-tab>API</v-tab>
               </v-tabs>
 
@@ -51,9 +52,13 @@
                 </v-tab-item>
 
                 <v-tab-item>
-                  <v-btn icon :href="searchApiUrl" target="_blank">
-                    <v-icon>mdi-api</v-icon>
-                  </v-btn>
+                  <v-card-text>
+                    <pre class="redshift-sql">{{ formattedSql }}</pre>
+                  </v-card-text>
+                </v-tab-item>
+
+                <v-tab-item>
+                  <a class="api-link" :href="searchApiUrl" target="_blank">{{ searchApiUrl }}</a>
                 </v-tab-item>
               </v-tabs-items>
             <v-spacer />
@@ -79,6 +84,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { format } from 'sql-formatter';
 import {urlBase} from "@/apiConfig";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 import OqlBox from "@/components/OqlBox.vue";
@@ -140,7 +146,13 @@ export default {
       }
     },
     searchApiUrl() {
-      return urlBase.api + '/searches/' + this.$route.params.id
+      return urlBase.api + '/searches/' + this.$route.params.id;
+    },
+    formattedSql() {
+      const rawSql = this.$store.state.search.redshift_sql;
+      if (!rawSql) { return ""; }
+      console.log(rawSql);
+      return format(rawSql, {language: "redshift"});
     }
   },
   methods: {
@@ -231,5 +243,8 @@ export default {
 }
 .v-tab {
   text-transform: none;
+}
+.redshift-sql {
+  overflow-x: scroll;
 }
 </style>
