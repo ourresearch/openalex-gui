@@ -8,7 +8,7 @@
         <div v-if="passCount > 0" class="success--text">
           {{ passCount }} passing
         </div>
-        <div v-else-if="failCount > 0" class="error--text">
+        <div v-if="failCount > 0" class="error--text">
           {{ failCount }} failing
         </div>
       </div>

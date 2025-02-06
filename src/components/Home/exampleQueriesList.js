@@ -1,5 +1,73 @@
 const exampleQueries = [
   {
+    question: "What journals does OpenAlex index?",
+    type: "sources",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "sources",
+      "filter_works": [],
+      "filter_aggs": [
+        {
+          "column_id": "type",
+          "value": "source-types/journal"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What repositories does OpenAlex index?",
+    type: "sources",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "sources",
+      "filter_works": [],
+      "filter_aggs": [
+        {
+          "column_id": "type",
+          "value": "source-types/repository"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What work does Moss Landing Marine Labs produce?",
+    type: "works",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "works",
+      "filter_works": [
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I95850191"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "publication_year",
+        "type",
+        "cited_by_count"
+      ],
+      "sort_by_column": "cited_by_count",
+      "sort_by_order": "desc"
+    }
+  },
+  {
     question: "What topics does Kyle Demes work on?",
     type: "topics",
     category: "trend detection",
@@ -77,7 +145,7 @@ const exampleQueries = [
     category: "discovery",
     url: "/s/8c6d197386e1a445d0fea7367769a012",
     broken: true,
-    error: "'NoneType' object has no attribute 'startswith'",
+    error: "Sources.apc_usd not in Redshift",
     query: {
       get_rows: "sources",
       filter_works: [],
@@ -100,8 +168,6 @@ const exampleQueries = [
     question: "Who are Stephen Hawking's top co-authors?",
     type: "authors",
     category: "discovery",
-    broken: true,
-    error: "Only one result",
     url: "/s/b9da0ead143263c4f05888011d13acce",
     query: {
       get_rows: "authors",
@@ -196,8 +262,6 @@ const exampleQueries = [
     type: "institutions",
     category: "discovery",
     url: "/s/84920125f599817c11dce73ab60b9adf",
-    broken: true,
-    error: "There are multiple institutions within NASA",
     query: {
       get_rows: "institutions",
       filter_works: [
@@ -243,7 +307,7 @@ const exampleQueries = [
     category: "discovery",
     url: "/s/ee25f465d0907f66d8b1638629df55af",
     broken: true,
-    error: "This get institutions for all co-authors of Claudia Goldin as well.",
+    error: "This gets institutions for all co-authors of Claudia Goldin as well.",
     query: {
       get_rows: "institutions",
       filter_works: [
@@ -291,7 +355,7 @@ const exampleQueries = [
     category: "compliance",
     url: "/s/e66189a2c349622d80dede22dfdd9bd0",
     broken: true,
-    error: "Lots of Chinese authors, getting authors who co-author with someone in Brazil?",
+    error: "Mostly Chinese authors, getting all authors who co-author with someone in Brazil?",
     query: {
       get_rows: "authors",
       filter_works: [],
@@ -567,7 +631,7 @@ const exampleQueries = [
     type: "institutions",
     category: "expert discovery",
     broken: true,
-    error: "No results - works for global south false",
+    error: "No results - but works for global south == false",
     url: "/s/9ce42c599fe7278fe7a1a0f5c9888bd1",
     query: {
       get_rows: "institutions",
@@ -733,7 +797,208 @@ const exampleQueries = [
       sort_by_column: "cited_by_count",
       sort_by_order: "desc"
     }
-  }
+  },
+  {
+    question: "Are there publications in the last five years from the University of Victoria that NSERC funded which are not open access?",
+    type: "works",
+    category: "compliance",
+    url: "",
+    broken: true,
+    error: "Can't find a Funder entity for NSERC",
+    query: {
+      "get_rows": "works",
+      "filter_works": [
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I212119943"
+        },
+        {
+          "column_id": "grants.funder",
+          "value": "funders/F4320332161"
+        },
+        {
+          "column_id": "publication_year",
+          "value": "2019-2025"
+        },
+        {
+          "column_id": "open_access.is_oa",
+          "value": false
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "publication_year",
+        "type",
+        "cited_by_count"
+      ],
+      "sort_by_column": "cited_by_count",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Does anyone at the university of toronto work on research that spans gender equality and public health policy?",
+    type: "authors",
+    category: "expert discovery",
+    url: "",
+    broken: true,
+    error: "Disjunction of keyword filters not completing",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/gender-equality"
+            },
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/public-health-policy"
+            },
+          ]
+        },
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I185261750"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which researchers in the UK work on social science aspects of space exploration?",
+    type: "authors",
+    category: "expert discovery",
+    url: "",
+    broken: true,
+    error: "Keyword of disjunction filters returning not completing",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/space-exploration"
+            },
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/social-sciences"
+            },
+          ]
+        },
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/GB"
+        } 
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which authors at UNC Chapel Hill are experts in fields relating to climate change?",
+    type: "authors",
+    category: "expert discovery",
+    url: "",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I114027177"
+        },
+        {
+          "column_id": "sustainable_development_goals.id",
+          "value": "sdgs/13"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which fisheries researchers in South Africa also work on governance?",
+    type: "authors",
+    category: "expert discovery",
+    url: "",
+    broken: true,
+    error: "Disjunction of keyword and topic getting not completing",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T14405"
+            },
+            {
+              "column_id": "keywords.id",
+              "value": "keywords/governance"
+            }
+          ]
+        },
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/ZA"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What types of climate change research does the university of Arizona do?",
+    type: "topics",
+    category: "trend detection",
+    url: "",
+    query: {
+      "get_rows": "topics",
+      "filter_works": [
+        {
+          "column_id": "sustainable_development_goals.id",
+          "value": "sdgs/13"
+        },
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I138006243"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
 ];
 
 

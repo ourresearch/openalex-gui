@@ -21,12 +21,18 @@
     </div>
 
     <div class=" monospace body-2 pa-3">
-      <span v-if="returnData?.meta" class="success--text">{{ returnData.meta.count }} results</span>
+      <span v-if="returnData?.meta.count > 0" class="success--text">{{ returnData.meta.count }} results</span>
+      <span v-else-if="returnData?.meta.count === 0" class="error--text">{{ returnData.meta.count }} results</span>
       <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
     </div>
+
     <div class=" monospace body-2 pa-3" v-if="returnData?.timestamps?.duration">
       <span class="success--text">{{ returnData.timestamps.duration | toPrecision(3) }} seconds</span>
       <span v-if="returnData.timestamps.duration_core_percent" class="success--text"> / {{ returnData.timestamps.duration_core_percent * 100 | toPrecision(3) }}% core</span>
+    </div>
+
+    <div v-if="config.error" class="monospace body-2 pa-3">
+      <span class="error--text"><b>Note:</b> {{ config.error }}</span>
     </div>
 
     <div class="fill-height"></div>
@@ -34,6 +40,7 @@
     <div class="px-3 pt-1  d-flex">
       <test-query-oql
           v-for="test in oqlTests"
+          v-if="test.oql"
           :key="test.id"
           :input="test.input"
           :expected-response="test.expectedResponse"
@@ -126,18 +133,18 @@ export default {
           'loading' :
           this.failCount ?
               "fail" :
-              "pass"
+              "pass";
     },
     testsCount() {
-      const oqlCount = 2
-      const searchCount = this.runSearch ? 1 : 0
+      const oqlCount = this.config.oql ? 2 : 0;
+      const searchCount = this.runSearch ? 1 : 0;
       return oqlCount + searchCount
     },
     completeCount() {
-      return this.failCount + this.passCount
+      return this.failCount + this.passCount;
     },
     loadingCount() {
-      return Math.max(this.testsCount - this.completeCount, 0)
+      return Math.max(this.testsCount - this.completeCount, 0);
     },
     oqlTests() {
       return [
@@ -151,53 +158,54 @@ export default {
           input: this.config.oql,
           expectedResponse: this.config.query,
         }
-      ]
+      ];
     },
     searchTestColor() {
       if (!this.isSearchTestComplete) {
-        return "grey"
+        return "grey";
       } else {
-        return (this.isSearchPassing) ? "success" : "error"
+        return (this.isSearchPassing) ? "success" : "error";
       }
     },
     isSearchTestComplete() {
-      return this.isSearchPassing !== null
+      return this.isSearchPassing !== null;
     },
   },
   methods: {
     async createSearch() {
       try {
-        const resp = await api.createSearch(this.config.query, true)
-        this.searchId = resp.data.id
+        const resp = await api.createSearch(this.config.query, true);
+        this.searchId = resp.data.id;
       } catch (e) {
-        this.isSearchPassing = false
-        this.searchError = "Could not create search: " + e
-        this.searchId = null
+        this.isSearchPassing = false;
+        this.searchError = "Could not create search: " + e;
+        this.searchId = null;
       }
     },
     async getSearch() {
-      console.log("getSearch: " + this.searchId)
-      const resp = await api.getSearch(this.searchId)
+      console.log("getSearch: " + this.searchId);
+      const resp = await api.getSearch(this.searchId);
       if (resp.is_completed) {
-      this.returnData = resp
+        this.returnData = resp;
 
-      if (resp.backend_error) {
-        this.isSearchPassing = false
-        this.searchError = resp.backend_error
-        
-      } else if (resp.results.length > 0 || 
-        (this.config.expectsZeroResults && resp.results.length === 0)) {
-        this.isSearchPassing = true
+        if (resp.backend_error) {
+          this.isSearchPassing = false;
+          this.searchError = resp.backend_error;
+          
+        } else if (this.config.expectsZeroResults && resp.results.length === 0) {
+          this.isSearchPassing = true;
 
-      } else {
-        this.isSearchPassing = false
-        this.searchError = "No results."
-      }
+        } else if (resp.results.length == 0) {
+          this.isSearchPassing = false;
+
+        } else {
+          this.isSearchPassing = true;
+        }
       }
     },
     async pollSearch() {
       if (!this.searchId) {
-        this.isSearchPassing = false
+        this.isSearchPassing = false;
         return
       }
       //console.log("polling search", this.searchId)
@@ -209,24 +217,24 @@ export default {
       }
     },
     run() {
-      this.passCount = 0
-      this.failCount = 0
-      this.searchId = null
-      this.isSearchPassing = null
-      this.searchError = null
-      this.returnData = null
+      this.passCount = 0;
+      this.failCount = 0;
+      this.searchId = null;
+      this.isSearchPassing = null;
+      this.searchError = null;
+      this.returnData = null;
       if (this.runSearch) {
-        this.runSearchMethod()
+        this.runSearchMethod();
       }
     },
     async runSearchMethod() {
-      await this.createSearch()
-      this.pollSearch()
+      await this.createSearch();
+      this.pollSearch();
     }
   },
   created() {
     if (!this.config) throw new Error("config prop is required")
-    this.run()
+    this.run();
   },
   mounted() {
   },
@@ -241,14 +249,14 @@ export default {
     },
     isSearchPassing(newVal) {
       if (newVal) {
-        this.passCount += 1
+        this.passCount += 1;
       } else {
-        this.failCount += 1
+        this.failCount += 1;
       }
     },
     loadingCount(newVal) {
       if (newVal === 0) { // no loading, we're done
-        this.$emit(this.failCount === 0 ? "pass" : "fail")
+        this.$emit(this.failCount === 0 ? "pass" : "fail");
       }
     },
   }

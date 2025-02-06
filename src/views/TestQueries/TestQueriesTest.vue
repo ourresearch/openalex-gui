@@ -11,16 +11,6 @@
             :query-id="Number($route.params.queryId)"
             :test-id="$route.params.testId"
         />
-
-<!--        <test-query-nat-lang-->
-<!--            v-if="myTestType === 'natlang'"-->
-
-<!--            :input="myTest.input"-->
-<!--            :expected-response="myTest.expectedResponse"-->
-
-<!--            :query-id="Number($route.params.queryId)"-->
-<!--            :test-id="Number($route.params.testId)"-->
-<!--        />-->
     </template>
     <template v-else>
       loading....

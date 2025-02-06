@@ -9,6 +9,13 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="6" lg="4">
+          <v-card class="clickable" rounded flat to="/tests/landing_page">
+            <v-card-title>
+              Landing Page
+            </v-card-title>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6" lg="4">
           <v-card class="clickable" rounded flat to="/tests/all_columns">
             <v-card-title>
               All Columns
@@ -40,23 +47,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "TestQueriesSuitesList",
-  components: {
-  },
-  props: {
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-  },
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
