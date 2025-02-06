@@ -841,8 +841,6 @@ const exampleQueries = [
     type: "authors",
     category: "expert discovery",
     url: "",
-    broken: true,
-    error: "Disjunction of keyword filters not completing",
     query: {
       "get_rows": "authors",
       "filter_works": [
@@ -878,8 +876,6 @@ const exampleQueries = [
     type: "authors",
     category: "expert discovery",
     url: "",
-    broken: true,
-    error: "Keyword of disjunction filters returning not completing",
     query: {
       "get_rows": "authors",
       "filter_works": [

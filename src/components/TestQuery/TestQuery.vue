@@ -21,7 +21,7 @@
     </div>
 
     <div class=" monospace body-2 pa-3">
-      <span v-if="returnData?.meta.count > 0" class="success--text">{{ returnData.meta.count }} results</span>
+      <span v-if="isSearchPassing === true" class="success--text">{{ returnData.meta.count }} results</span>
       <span v-else-if="returnData?.meta.count === 0" class="error--text">{{ returnData.meta.count }} results</span>
       <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
     </div>
@@ -38,20 +38,21 @@
     <div class="fill-height"></div>
 
     <div class="px-3 pt-1  d-flex">
-      <test-query-oql
-          v-for="test in oqlTests"
-          v-if="test.input"
-          :key="test.id"
-          :input="test.input"
-          :expected-response="test.expectedResponse"
-          :test-suite-id="$route.params.testSuiteId"
-          :query-id="config.id"
-          :test-id="test.id"
-          icon
-          :runTest="runSearch+1"
-          @pass="passCount += 1"
-          @fail="failCount += 1"
-      />
+      <template v-if="config.oql">
+        <test-query-oql
+            v-for="test in oqlTests"
+            :key="test.id"
+            :input="test.input"
+            :expected-response="test.expectedResponse"
+            :test-suite-id="$route.params.testSuiteId"
+            :query-id="config.id"
+            :test-id="test.id"
+            icon
+            :runTest="runSearch+1"
+            @pass="passCount += 1"
+            @fail="failCount += 1"
+        />
+      </template>
 
       <v-tooltip
           bottom
@@ -138,7 +139,7 @@ export default {
     testsCount() {
       const oqlCount = this.config.oql ? 2 : 0;
       const searchCount = this.runSearch ? 1 : 0;
-      return oqlCount + searchCount
+      return oqlCount + searchCount;
     },
     completeCount() {
       return this.failCount + this.passCount;
