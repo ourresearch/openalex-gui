@@ -40,7 +40,7 @@
     <div class="px-3 pt-1  d-flex">
       <test-query-oql
           v-for="test in oqlTests"
-          v-if="test.oql"
+          v-if="test.input"
           :key="test.id"
           :input="test.input"
           :expected-response="test.expectedResponse"
