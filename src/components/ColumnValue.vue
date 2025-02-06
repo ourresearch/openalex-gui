@@ -33,6 +33,13 @@
               {{ property.value }}
             </template>
 
+            <!--        number: ID -->
+            <template v-else-if="property.config.isId">
+              {{ property.value }}
+            </template>
+
+
+
             <!--        number: float or integer -->
             <template v-else>
               {{ property.value | toPrecision }}
