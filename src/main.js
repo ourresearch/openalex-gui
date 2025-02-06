@@ -11,6 +11,7 @@ import {url} from "./url"
 import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilter} from "./filterConfigs";
+import {getConfigs} from "./oaxConfigs";
 
 import _ from 'lodash'
 
@@ -195,6 +196,8 @@ Vue.filter("millify", function (number) {
 })
 
 Vue.use(vuetify)
+
+getConfigs().works;
 
 window.vm = new Vue({
     router,
