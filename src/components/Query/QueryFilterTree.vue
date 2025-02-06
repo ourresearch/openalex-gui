@@ -13,7 +13,7 @@ Manipulations of current filter state occur locally and are passed to global sta
     <query-filter-tree-branch
       v-if="!isEmpty"
       :filters="myFilters"
-      join-operator="and"
+      :join-operator="rootJoin"
       :subject-entity="subjectEntity"
       @setJoinOperator="setJoinOperator"
       @setOperator="setOperator"
@@ -60,7 +60,8 @@ export default {
   },
   data() {
     return {
-      myFilters: [], // Local coppy of filters kept so we can represent filters as they're being edited before they are applied
+      myFilters: [], // Local copy of filters kept so we can represent filters as they're being edited before they are applied
+      rootJoin: "and",
       isEditingFilters: false,
     }
   },
@@ -109,9 +110,16 @@ export default {
       };
 
       // Process top-level array
-      const cleanedFilters = this.myFilters
+      let cleanedFilters = this.myFilters
         .map(cleanFilter)
         .filter((f) => f !== null);
+
+      if (this.rootJoin == "or") {
+        cleanedFilters = [{
+          join: "or",
+          filters: cleanedFilters
+        }];
+      }
 
       return cleanedFilters;
     },
@@ -181,7 +189,7 @@ export default {
       // If path is empty, interpret that as “the root array”
       if (!path || path.length === 0) {
         // Return a “fake” parent object that points to myFilters
-        return { join: "and", filters: this.myFilters, root: true };
+        return { join: this.rootJoin, filters: this.myFilters, root: true };
       }
 
       let currentFilters = this.myFilters;
@@ -266,6 +274,7 @@ export default {
     setJoinOperator(path, joinOperator) {
       console.log("setJoin", JSON.stringify(path), joinOperator);
 
+      /*
       // Changing root from AND to OR, create a group
       if (this.getGroupParentPath(path).length === 0 && joinOperator === "or") {
         this.myFilters = [{
@@ -285,6 +294,18 @@ export default {
         const groupParentFilter = this.getFilterFromPath(groupParentPath);
         Vue.set(groupParentFilter, "join", joinOperator);
       }
+      */
+
+        // Otherwise just change "join" prop on the correct group
+        const groupParentPath = this.getGroupParentPath(path);
+        if (groupParentPath.length === 0) {
+          this.rootJoin = joinOperator;
+        } else {
+          const groupParentFilter = this.getFilterFromPath(groupParentPath);
+          Vue.set(groupParentFilter, "join", joinOperator);          
+        }
+
+
       this.applyFilters();
     },
     groupWithAbove(path) {
@@ -444,6 +465,13 @@ export default {
       handler: function (filters) {
         if (!this.isEditingFilters) {
           this.myFilters = _.cloneDeep(filters);
+
+          if (this.myFilters.length === 1 && this.myFilters[0].join === "or") {
+            // Special case single "or" group to appear at root level
+            this.rootJoin == "or";
+            this.myFilters = this.myFilters[0].filters;
+          }
+
           this.decorateMyFilters();
           //console.log("Watcher updating filters:");
           //console.log(JSON.stringify(filters, null, 2));
