@@ -33,13 +33,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     breadcrumbItems() {
       // /tests/:testSuiteId/:queryId/:testType/:testId
 
@@ -86,22 +79,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
