@@ -11,6 +11,9 @@
         <div v-if="failCount > 0" class="error--text">
           {{ failCount }} failing
         </div>
+        <div v-if="loadingCount > 0" class="">
+          {{ loadingCount }} loading
+        </div>
       </div>
       <v-spacer/>
       <v-btn color="primary" @click="runSearchSuite">Run Searches</v-btn>
@@ -62,13 +65,13 @@ export default {
   },
   computed: {
     completeCount() {
-      return this.failCount + this.passCount
+      return this.failCount + this.passCount;
     },
     testsCount() {
-      return this.queries.length
+      return this.queries.length;
     },
     loadingCount() {
-      return this.testsCount - this.completeCount
+      return this.runSearch ? this.testsCount - this.completeCount : 0;
     },
   },
   methods: {
