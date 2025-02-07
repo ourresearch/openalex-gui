@@ -81,7 +81,7 @@ export default {
       "querySubjectEntityConfig",
     ]),
     entities() {
-      return Object.values(getConfigs())
+      return Object.values(getConfigs());
     },
     displayName() {
       return getConfigs()[this.query.get_rows].displayName

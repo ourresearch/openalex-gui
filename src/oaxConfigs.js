@@ -2,43 +2,26 @@ import axios from 'axios'
 import _ from "lodash"
 import {urlBase} from "@/apiConfig"
 
-
-export {getConfigs}
-
-// 20250206125838
-// http://localhost:5006/entities/config
+// Load Entity Configs from server but allow other code to call getConfigs() synchronously 
+// getConfigs() is called in main.js to prime the cache
 
 let oaxConfigs = null;
-let loadPromise = null;
-
-// Create a proxy that will wait for configs to load when accessed
-const configsProxy = new Proxy({}, {
-    get: function(target, prop) {
-        if (!oaxConfigs) {
-            // If we're not already loading, start loading
-            if (!loadPromise) {
-                console.log("Loading Entity Configs...")
-                loadPromise = axios.get(urlBase.api + "/entities/config")
-                    .then(response => {
-                        oaxConfigs = configUpdates(response.data);
-                        console.log("Entity Configs loaded.")
-                        return oaxConfigs[prop];
-                    })
-                    .catch(error => {
-                        console.error("Failed to load configs:", error);
-                        loadPromise = null;
-                        throw error;
-                    });
-            }
-            // Return the promise for this property
-            return loadPromise.then(configs => _.cloneDeep(configs[prop]));
-        }
-        return _.cloneDeep(oaxConfigs[prop]);
-    }
-});
 
 function getConfigs() {
-    return configsProxy;
+    // If configs aren't loaded yet, load them synchronously
+    if (!oaxConfigs) {
+        console.log("Loading configs synchronously...");
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', urlBase.api + "/entities/config", false);  // false = synchronous
+        xhr.send();
+        
+        if (xhr.status === 200) {
+            oaxConfigs = configUpdates(JSON.parse(xhr.responseText));
+        } else {
+            throw new Error(`Failed to load configs: ${xhr.status}`);
+        }
+    }
+    return oaxConfigs;
 }
 
 const configUpdates = (oaxConfigs) => {
@@ -47,7 +30,6 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["authorships.author.id"].displayName = "author" 
   oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
   oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
-
 
   oaxConfigs.authors.columns["display_name.search"].displayName = "name"
   oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
@@ -170,5 +152,6 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["sustainable_development_goals.id"].operators = labelOperators;
 
   return oaxConfigs;
-
 }
+
+export {getConfigs}
