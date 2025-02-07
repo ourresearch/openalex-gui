@@ -31,7 +31,7 @@ const entity = {
     getId,
     fullId,
     async getEntityData(id) {
-        const shortId = id.replace("https://openalex.org/", "")
+        const shortId = fullId(id).replace("https://openalex.org/", "")
         // TODO probably remove bypass_cache=true when live. For now allows us to make quick changes to config and UI changes be immediately available
         const myUrl = `https://api.openalex.org/${shortId}?format=ui&bypass_cache=true`
         const resp = await axios.get(myUrl)

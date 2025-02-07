@@ -368,7 +368,8 @@ export default {
       }
     },
     clickRow(rowId) {
-      this.$store.state.zoomId = rowId
+      console.log("clickRow", rowId)
+      this.$store.state.zoomId = entity.fullId(rowId, this.querySubjectEntity);
     },
     metaClickRow(rowId) {
       console.log("metaClickRow", rowId)
