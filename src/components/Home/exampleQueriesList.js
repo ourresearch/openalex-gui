@@ -187,7 +187,7 @@ const exampleQueries = [
     }
   },
   {
-    question: "What topics does the University of Minnesota publish on in Business?",
+    question: "What topics does the University of Minnesota publish on in business?",
     type: "topics",
     category: "discovery",
     url: "/s/e4176eb0c00fc2b56064172880ec7d23",
@@ -971,7 +971,7 @@ const exampleQueries = [
     }
   },
   {
-    question: "What types of climate change research does the university of Arizona do?",
+    question: "What types of climate change research does the University of Arizona do?",
     type: "topics",
     category: "trend detection",
     url: "",
