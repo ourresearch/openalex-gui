@@ -837,7 +837,7 @@ const exampleQueries = [
     }
   },
   {
-    question: "Does anyone at the university of toronto work on research that spans gender equality and public health policy?",
+    question: "Does anyone at the University of Toronto work on research that spans gender equality and public health policy?",
     type: "authors",
     category: "expert discovery",
     url: "",
@@ -857,12 +857,13 @@ const exampleQueries = [
             },
           ]
         },
+      ],
+      "filter_aggs": [    
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "last_known_institutions.id",
           "value": "institutions/I185261750"
         }
       ],
-      "filter_aggs": [],
       "show_columns": [
         "display_name",
         "count(works)"
