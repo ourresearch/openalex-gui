@@ -93,7 +93,8 @@ export default {
       }
       
       if (!this.categoryFilter && !this.typeFilter) {
-        examples = examples.sort(() => Math.random() - 0.5);
+        examples = examples.reverse();
+        //examples = examples.sort(() => Math.random() - 0.5);
       }
       return examples;
     },
