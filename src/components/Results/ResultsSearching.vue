@@ -22,6 +22,7 @@ export default {
 }
 .box {
   margin-top: 100px;
+  min-height: 200px;
   justify-content: center;
 }
 .msg {

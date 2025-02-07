@@ -454,8 +454,8 @@ export const user = {
         getCollection: (state) => (collectionId) => {
             return state.collections.find(coll => coll.id === collectionId);
         },
-        getCollectionsByType: (state) => (entity_type) => {
-            return state.collections.filter(coll => coll.entity_type === entity_type);
+        getCollectionsByType: (state) => (entityType) => {
+            return state.collections.filter(coll => coll.entity_type === entityType);
         },
 
         isUserSaving: (state) => state.isSaving,
