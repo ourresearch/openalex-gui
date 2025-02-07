@@ -92,7 +92,9 @@ export default {
         examples = examples.filter(q => q.category === this.categoryFilter);
       }
       
-      //examples = examples.sort(() => Math.random() - 0.5);
+      if (!this.categoryFilter && !this.typeFilter) {
+        examples = examples.sort(() => Math.random() - 0.5);
+      }
       return examples;
     },
     typeTags: function() {
