@@ -151,7 +151,9 @@ export default {
             displayName: column.displayName,
             column_id: column.id,
             icon: column.icon,
-        }))
+          }))
+          .sort((a, b) => a.displayName.localeCompare(b.displayName))
+
     },
     visibleColumns: function() {
       return this.show_columns.map(column => ({
