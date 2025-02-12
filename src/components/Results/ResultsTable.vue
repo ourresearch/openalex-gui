@@ -84,7 +84,7 @@
                   <v-icon v-if="query.sort_by_order==='desc'">mdi-arrow-down</v-icon>
                   <v-icon v-if="query.sort_by_order==='asc'">mdi-arrow-up</v-icon>
                 </template>
-                {{ header.displayName | titleCase }}
+                {{ (header.displayNameForColumn || header.displayName) | titleCase }}
                 <v-icon small>mdi-menu-down</v-icon>
               </v-btn>
             </template>
@@ -158,7 +158,7 @@
                 <v-list-item-icon>
                   <v-icon>{{ column.icon }}</v-icon>
                 </v-list-item-icon>
-                <v-list-item-title>{{ column.displayName }}</v-list-item-title>
+                <v-list-item-title>{{ column.displayNameForColumn || column.displayName }}</v-list-item-title>
               </v-list-item>
             </v-list>
 
@@ -186,7 +186,7 @@
             v-for="(cell, i) in row.cellsWithConfigs"
             :key="'cell-'+i"
             class="px-1"
-            :class="`data-type-${cell.config.type} is-date-${cell.config.isDate}`"
+            :class="`data-type-${cell.config.type} is-date-${!!cell.config.isDate}`"
         >
           <column-value :property="cell"/>
         </td>
@@ -407,6 +407,9 @@ export default {
       a.click()
     },
   },
+  created() {
+   //console.log(this.rows);
+  }
 }
 </script>
 
