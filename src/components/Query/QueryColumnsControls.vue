@@ -55,7 +55,7 @@
               outlined
               v-on="on" 
           >
-            {{ sortByColumn.displayName | titleCase }}
+            {{ (sortByColumn.displayNameForColumn || sortByColumn.displayName) | titleCase }}
             <v-icon small>mdi-menu-down</v-icon>
           </v-chip>
         </template>
@@ -148,7 +148,7 @@ export default {
       return Object.values(this.columnConfigs)
           .filter(column => column.actions.includes("column"))
           .map(column => ({
-            displayName: column.displayName,
+            displayName: column.displayNameForColumn || column.displayName,
             column_id: column.id,
             icon: column.icon,
           }))
@@ -157,7 +157,7 @@ export default {
     },
     visibleColumns: function() {
       return this.show_columns.map(column => ({
-          displayName: this.columnConfigs[column].displayName,
+          displayName: this.columnConfigs[column].displayNameForColumn || this.columnConfigs[column].displayName,
           column_id: column,
         }))
     },
@@ -165,7 +165,7 @@ export default {
       return Object.values(this.columnConfigs)
           .filter(column => column.actions.includes("sort"))
           .map(column => ({
-            displayName: column.displayName,
+            displayName:  column.displayNameForColumn || column.displayName,
             column_id: column.id,
             icon: column.icon,
         }))

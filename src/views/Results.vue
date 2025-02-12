@@ -151,7 +151,6 @@ export default {
     formattedSql() {
       const rawSql = this.$store.state.search.redshift_sql;
       if (!rawSql) { return ""; }
-      console.log(rawSql);
       return format(rawSql, {language: "redshift"});
     }
   },

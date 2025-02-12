@@ -26,8 +26,6 @@ function getConfigs() {
 
 const configUpdates = (oaxConfigs) => {
 
-  oaxConfigs.works.columns["display_name.search"].displayName = "title"
-  oaxConfigs.works.columns["authorships.author.id"].displayName = "author" 
   oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
   oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
 
@@ -94,8 +92,6 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.topics.columns["domain"].actions = ["filter", "column", "sort"]
   oaxConfigs.topics.columns["subfield"].actions = ["filter", "column", "sort"]
   oaxConfigs.topics.columns["id"].actions = ["filter", "column", "sort"]
-
-  oaxConfigs.topics.columns["display_name.search"].displayName = "name"
 
 
   // LABELS UPDATES
