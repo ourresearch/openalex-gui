@@ -60,7 +60,7 @@
           </v-list-item-icon>
         </template>
 
-        <template v-else-if="data.item.key === 'title_and_abstract.search'">
+        <template v-else-if="data.item.key === defaultSearchType">
           <v-list-item-content>
             <v-list-item-title>
               <span class="">Search for</span>
@@ -155,8 +155,11 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
-    cleanedSearchString(){
+    cleanedSearchString() {
       return this.searchString ? this.searchString .replace(/[,:]/g, "") : this.searchString
+    },
+    defaultSearchType() {
+      return this.entityType === "works" ? "title_and_abstract.search" : "default.search";
     },
     filterSuggestions() {
       const suggestionsMatchingSearchString = findFacetConfigs(this.entityType, this.cleanedSearchString)
@@ -240,7 +243,7 @@ export default {
     onChange(myFilterData) {
       console.log('onChange()', myFilterData, this.select)
       if (this.select) this.isEnterPressed = false
-      if (myFilterData.key === "title_and_abstract.search") {
+      if (myFilterData.key === this.defaultSearchType) {
         this.submitSearchString()
       }
       else if (myFilterData?.isFilterLink) {
@@ -268,7 +271,7 @@ export default {
         return
       }
 
-      const filterKey = this.newFilter?.key ?? "title_and_abstract.search"
+      const filterKey = this.newFilter?.key ?? this.defaultSearchType
       url.createFilter(this.entityType, filterKey, this.cleanedSearchString)
       this.isEnterPressed = false
     },
@@ -277,7 +280,7 @@ export default {
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
       } else {
-        const searchFilter = createSimpleFilter(this.entityType, "title_and_abstract.search", this.cleanedSearchString)
+        const searchFilter = createSimpleFilter(this.entityType, this.defaultSearchType, this.cleanedSearchString)
         url.pushNewFilters([
           ...url.readFilters(this.$route),
           searchFilter
@@ -316,7 +319,7 @@ export default {
       }, 100)
     },
     getSuggestions: _.debounce(async function () {
-      const fulltextSearchFilter = createSimpleFilter(this.entityType, "title_and_abstract.search", this.cleanedSearchString)
+      const fulltextSearchFilter = createSimpleFilter(this.entityType, this.defaultSearchType, this.cleanedSearchString)
 
       // lol hack much?
       if (this.searchString === "coriander OR cilantro") {

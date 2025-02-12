@@ -230,6 +230,11 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
         )
     }
     const facetConfig = getFacetConfig(entityType, key)
+    if (!facetConfig) {
+        throw Error(
+            `OpenAlex: createSimpleFilter(): no facetConfig found for key: ${key}`
+        )
+    }
     const myValue = createFilterValue(value, facetConfig.type)
     if (!myValue) isNegated = true
 
