@@ -803,8 +803,6 @@ const exampleQueries = [
     type: "works",
     category: "compliance",
     url: "",
-    broken: true,
-    error: "Can't find a Funder entity for NSERC",
     query: {
       "get_rows": "works",
       "filter_works": [
@@ -814,7 +812,7 @@ const exampleQueries = [
         },
         {
           "column_id": "grants.funder",
-          "value": "funders/F4320332161"
+          "value": "funders/F4320334593"
         },
         {
           "column_id": "publication_year",

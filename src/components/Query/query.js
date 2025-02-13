@@ -48,9 +48,14 @@ const baseQuery = () => ({
     get_rows: "works",
     filter_works: [],
     filter_aggs: [],
-    show_columns: [],
-    sort_by_column: null,
-    sort_by_order: null,
+    show_columns:  [
+        "display_name",
+        "publication_year",
+        "type",
+        "cited_by_count"
+      ],
+    sort_by_column: "cited_by_count",
+    sort_by_order: "desc",
 })
 
 

@@ -130,36 +130,29 @@ export default {
   },
   data() {
     return {
-      openNodes: [],
-      /*
-      visibleColumns: [],
-      availableColumns: [],
-      sortByColumn: null,
-      availableSortByColumns: null,
-      */
       isColumnsMenuOpen: false,
     }
   },
   computed: {
     columnConfigs: function() {
-      return getConfigs()[this.subjectEntity].columns
+      return getConfigs()[this.subjectEntity].columns;
     },
     availableColumns: function() {
-      return Object.values(this.columnConfigs)
+      const availableColumns = Object.values(this.columnConfigs)
           .filter(column => column.actions.includes("column"))
           .map(column => ({
             displayName: column.displayNameForColumn || column.displayName,
             column_id: column.id,
             icon: column.icon,
           }))
-          .sort((a, b) => a.displayName.localeCompare(b.displayName))
-
+          .sort((a, b) => a.displayName.localeCompare(b.displayName));
+      return availableColumns;  
     },
     visibleColumns: function() {
       return this.show_columns.map(column => ({
           displayName: this.columnConfigs[column].displayNameForColumn || this.columnConfigs[column].displayName,
           column_id: column,
-        }))
+        }));
     },
     availableSortByColumns: function() {
       return Object.values(this.columnConfigs)
@@ -168,10 +161,10 @@ export default {
             displayName:  column.displayNameForColumn || column.displayName,
             column_id: column.id,
             icon: column.icon,
-        }))
+        }));
     },
     sortByColumn: function() {
-      return this.columnConfigs[this.sort_by_column]
+      return this.columnConfigs[this.sort_by_column];
     },
   },
   methods: {
@@ -188,18 +181,15 @@ export default {
       this.isColumnsMenuOpen = true;
     },
     toggleColumn(column) {
-      console.log(this.show_columns)
-      console.log(column)
       if (this.show_columns.includes(column.column_id)) {
-        console.log("remove")
-        this.removeColumn(column)
+        this.removeColumn(column);
       } else {
-        this.addColumn(column)
+        this.addColumn(column);
       }
     },
     addColumn(column) {
       this.addReturnColumn(column.column_id);
-      this.createSearch()
+      this.createSearch();
     },
     removeColumn(column) {
       this.deleteReturnColumn(column.column_id);

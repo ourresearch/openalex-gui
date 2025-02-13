@@ -34,21 +34,21 @@
           <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
             <v-card flat rounded>
               <v-tabs v-model="tab"> 
-                <v-tab>OQL</v-tab>
                 <v-tab>Query Object</v-tab>
+                <v-tab>OQL</v-tab>
                 <v-tab>SQL</v-tab>
                 <v-tab>API</v-tab>
               </v-tabs>
 
               <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
                 <v-tab-item>
-                  <search-from-text :disabled="!$store.state.search.is_completed" />
-                </v-tab-item>
-
-                <v-tab-item>
                   <v-card-text>
                     <pre>{{ query }}</pre>
                   </v-card-text>
+                </v-tab-item>
+                
+                <v-tab-item>
+                  <search-from-text :disabled="!$store.state.search.is_completed" />
                 </v-tab-item>
 
                 <v-tab-item>
@@ -128,7 +128,7 @@ export default {
         "oql",
         "queryJson",
       ],
-      tab: 1,
+      tab: 0,
       uiVariant: this.$store.state.uiVariant,
       hasPolledOnce: false
     }
@@ -215,7 +215,7 @@ export default {
       immediate: true
     },
     isOqlEditDialogOpen() {
-      this.oql = this.$store.state.search.oql
+      this.oql = this.$store.state.search.oql;
     },
     cardsToShowSelected() {
       this.saveToLocalStorage();

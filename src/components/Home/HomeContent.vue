@@ -25,12 +25,12 @@
       Example Questions
     </v-row>
       <vue-horizontal  class="example-filters horizontal" :displacement="0.5" :button-between="false">
-        <v-chip :outlined="typeFilter !== tag" v-for="tag in typeTags"
+        <v-chip :outlined="typeFilter !== tag" v-for="tag in typeTags" :key="tag"
           @click="typeFilter = typeFilter === tag ? null : tag"
         >
           {{ tag }}
         </v-chip>
-        <v-chip :outlined="categoryFilter !== tag" v-for="tag in categoryTags"
+        <v-chip :outlined="categoryFilter !== tag" v-for="tag in categoryTags" :key="tag"
           @click="categoryFilter = categoryFilter === tag ? null : tag"
         >
           {{ tag }}

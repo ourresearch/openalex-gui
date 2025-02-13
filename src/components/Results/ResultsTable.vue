@@ -32,10 +32,10 @@
 
     <!-- Row Selection Message -->
     <div class="pa-3 d-flex align-center grey lighten-3"
-         v-if="isEveryRowSelected && rows.length < resultsMeta.count"
+         v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
     >
       <template v-if="isEntireSearchSelected">
-        All <span class="font-weight-bold mx-1">{{ resultsMeta.count | millify }}</span> results are selected.
+        All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
         <v-btn
             text
             color="primary"
@@ -53,7 +53,7 @@
             rounded
             @click="isEntireSearchSelected = true"
         >
-          Select all {{ resultsMeta.count | millify }} results
+          Select all {{ resultsMeta?.count | millify }} results
         </v-btn>
       </template>
     </div>
@@ -65,7 +65,7 @@
       
       <!-- Results Table Headers -->
       <th
-          v-for="(header, i) in queryColumns"
+          v-for="(header, i) in queryColumnsConfigs"
           :key="'header-'+i"
           :class="`data-type-${header.type} is-date-${header.isDate}`"
           class=""
@@ -203,7 +203,7 @@
     <!-- Dialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
       <download-dialog 
-        :resultsCount="resultsMeta.count" 
+        :resultsCount="resultsMeta?.count" 
         :isOpen="isDownloadDialogOpen"
         @close="isDownloadDialogOpen = false"
          />
@@ -273,7 +273,7 @@ export default {
       "resultsBody",
       "querySubjectEntity",
       "querySubjectEntityConfig",
-      "queryColumns",
+      "queryColumnsConfigs",
       "query",
     ]),
     rows() {
