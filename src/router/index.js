@@ -320,27 +320,25 @@ const redirectFromOldFilters = function (to, from, next) {
 
 
 router.beforeEach(async (to, from, next) => {
-    //store.dispatch('search/clearSearch')
-
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
-            await store.dispatch("user/fetchUser")
+            await store.dispatch("user/fetchUser");
         } catch (e) {
-            store.commit("user/logout")
+            store.commit("user/logout");
         }
     }
 
-    redirectFromOldFilters(to, from, next)
+    redirectFromOldFilters(to, from, next);
 
     if (to.matched.some(record => record.meta.requiresAuth)) {
         // this page requires authentication
         if (store.getters["user/userId"]) {  // you're logged in great. proceed.
-            next()
+            next();
         } else { // sorry, you can't view this page. go log in.
-            next("/login")
+            next("/login");
         }
     } else { //  no auth required. proceed.
-        next()
+        next();
     }
 });
 

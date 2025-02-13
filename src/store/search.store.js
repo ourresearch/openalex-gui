@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import _ from "lodash"
 import {entityConfigs} from "../entityConfigs";
 import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
@@ -23,8 +24,8 @@ const stateDefaults = function () {
     const ret = {
         id: null,
         oql: "",
-        query: {...baseQuery()},
-        is_completed: null,
+        query: {...baseQuery()},  // What we get back from server
+        is_completed: false,
         results_header: [],
         results_body: [],
         results_meta: null,
@@ -56,85 +57,123 @@ export const search = {
         setFilterAggs(state, filters) {
             state.query.filter_aggs = filters;
         },
-        toggleSortByDirection(state) {
-            state.query.sort_by.direction = state.query.sort_by.direction === "asc" ? "desc" : "asc";
-        },
-        clearSearch({state}) {
-            console.log("Clearing Search");
+        setNewSearchByQuery(state, query) {
             Object.assign(state, stateDefaults());
+            state.query = query;
+        },
+        setNewSearchById(state, id) {
+            Object.assign(state, stateDefaults());
+            state.id = id;
+        },
+        setQuery(state, query) {
+            state.query = query;
+            state.oql = queryToOQL(query);
+        },
+        setSearchResults(state, { header, body, meta, redshift_sql }) {
+            state.results_header = header;
+            state.results_body = body;
+            state.results_meta = meta;
+            state.redshift_sql = redshift_sql;
+        },
+        setSearchCompleted(state, value) {
+            state.is_completed = value;
+        },
+        setBackendError(state, error) {
+            state.backend_error = error;
         }
     },
     actions: {
         // SUMMARIZE
-        setSummarize({state, dispatch}, columnId) {
+        setSummarize({state, commit}, columnId) {
             const newQuery = {
                 get_rows: columnId,
                 filter_works: state.query.filter_works,
             }
-            console.log("setSummarize", newQuery)
-            dispatch("createSearchFromQuery", newQuery)
+            console.log("setSummarize", newQuery);
+            commit('setNewSearchByQuery', newQuery);
         },
         // SORT
         setSortBy({state}, {column_id, direction}) {
-            state.query.sort_by_column = column_id
-            state.query.sort_by_order = direction
+            state.query.sort_by_column = column_id;
+            state.query.sort_by_order = direction;
         },
         // RETURN COLUMNS
-        addReturnColumn({state}, columnId) {
-            state.query.show_columns.push(columnId)
+        addReturnColumn({state, dispatch}, columnId) {
+            if (!state.query.show_columns.includes(columnId)) {
+                state.query.show_columns.push(columnId);
+            }
         },
         deleteReturnColumn({state}, columnId) {
-            state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId)
+            state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId);
             if (state.query.sort_by_column === columnId) {
-                state.query.sort_by_column = state.query.show_columns.slice(-1)[0]
+                state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
             }
         },
         // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
             //console.log("createSearchFromOql", oql, oqlToQuery(oql))
-            const query = oqlToQuery(oql)
-            return await dispatch("createSearchFromQuery", query)
+            const query = oqlToQuery(oql);
+            return await dispatch("createSearchFromQuery", query);
         },
-        createSearchFromQuery: async function ({state}, query) {
-            query = {...baseQuery(), ...query};
+        createSearchFromQuery: async function ({commit}, query) {
+            console.log("createSearchFromQuery", query);
+            commit('setNewSearchByQuery', query);
             
-            state.is_completed = false;
-            state.id = null;
-            state.query = query;
-            state.oql = queryToOQL(query);
-            
-            const resp = await api.createSearch(query);
-            //console.log("Created search", resp.data)
-            state.id = resp.data.id;
-            await pushSafe({name: 'search', params: {id: resp.data.id}});
+            try {
+                const response = await api.createSearch(query);
+                
+                if (response.data.id) {
+                    await pushSafe({
+                        name: 'search',
+                        params: {id: response.data.id}
+                    });
+                    commit('setQuery', response.data.query);
+                }
+            } catch (error) {
+                commit('setBackendError', error);
+                commit('setSearchCompleted', true);
+            }
         },
-        createSearch: async function ({dispatch, state}) {
-            return await dispatch("createSearchFromQuery", state.query)
+        createSearch: async function ({state, dispatch}) {
+            return await dispatch("createSearchFromQuery", state.query);
         },
-        getSearch: async function ({state, getters}, {id, bypass_cache}) {
-            state.id = id;
-            state.is_completed = false;
-
-            // get the search from the API
-            const data = await api.getSearch(state.id, {bypass_cache});
-
-            if (state.id !== data.id) {
-                // A new id has been requested since this request started, so ignore
-                return;
+        getSearch: async function ({state, commit}, {id, bypass_cache}) {
+            if (id !== state.id) {
+                // New ID first seen from server
+                commit('setNewSearchById', id);
             }
 
-            // set the state from the response
-            state.is_completed = data.is_completed;
-            state.backend_error = data.backend_error;
-            state.results_header = data.results_header ?? [];
-            state.results_body = data.results ?? [];
-            state.results_meta = data.meta;
-            state.query = data.query;
-            state.redshift_sql = data.redshift_sql;
-            state.oql = queryToOQL(data.query);
+            try {
+                const data = await api.getSearch(state.id, {bypass_cache});
 
-            //console.log("getSearch returned " + data.id + " with works filters:")
-            //console.log(JSON.stringify(data.query.filter_works, null, 2))
+                if (state.id !== data.id) {
+                    // A new id has been requested since this request started, so ignore
+                    return;
+                }
+                if (!_.isEqual(state.query, data.query)) {
+                    // Set query data from API if it's different
+                    commit('setQuery', data.query);
+                }
+
+                if (data.is_completed) {
+                    commit('setSearchResults', {
+                        header: data.results_header ?? [],
+                        body: data.results ?? [],
+                        meta: data.meta,
+                        redshift_sql: data.redshift_sql
+                    });
+                }
+
+                if (data.backend_error) {
+                    commit('setBackendError', data.backend_error);
+                }
+
+                commit('setSearchCompleted', data.is_completed);
+
+            } catch (error) {
+                commit('setBackendError', error);
+                commit('setSearchCompleted', true);
+            }
         },
     },
     getters: {
@@ -142,7 +181,11 @@ export const search = {
         resultsBody: (state) => state.results_body,
         resultsMeta: (state) => state.results_meta,
         query: (state) => state.query,
-        queryColumns: (state, getters) => {
+        querySubjectEntity: (state) => {
+            if (state.query.get_rows === "summary") return "works";
+            else return state.query.get_rows;
+        },
+        queryColumnsConfigs: (state, getters) => {
             const columnsToReturn = state.query.show_columns.map((col) => {
                 const ret = getters.querySubjectEntityConfig.columns[col]
                 if (!ret) {
@@ -154,10 +197,6 @@ export const search = {
                 throw new Error(`No columns at all found for ${getters.querySubjectEntity}`);
             }
             return columnsToReturn;
-        },
-        querySubjectEntity: (state) => {
-            if (state.query.get_rows === "summary") return "works";
-            else return state.query.get_rows;
         },
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity];

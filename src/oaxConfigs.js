@@ -29,18 +29,18 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
   oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
 
-  oaxConfigs.authors.columns["display_name.search"].displayName = "name"
+  oaxConfigs.authors.columns["display_name.search"].displayName = "author name"
   oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
   oaxConfigs.authors.columns["mean(fwci)"].operators = ["is greater than", "is less than", "is", "is not"]
   oaxConfigs.authors.columns["mean(fwci)"].defaultOperator = "is greater than"
 
-  oaxConfigs.sources.columns["display_name.search"].displayName = "name"
+  oaxConfigs.sources.columns["display_name.search"].displayName = "source name"
 
-  oaxConfigs.continents.columns["display_name.search"].displayName = "name"
+  oaxConfigs.continents.columns["display_name.search"].displayName = "continent name"
   oaxConfigs.continents.columns["display_name.search"].actions = ["column", "sort"]
   oaxConfigs.continents.columns["id"].actions = []
 
-  oaxConfigs.countries.columns["display_name.search"].displayName = "name"
+  oaxConfigs.countries.columns["display_name.search"].displayName = "country name"
   oaxConfigs.countries.columns["continent"].actions = ["filter", "column", "sort"]
   oaxConfigs.countries.columns["continent"].displayName = "continent"
   oaxConfigs.countries.columns["id"].actions = ["filter", "column", "sort"]

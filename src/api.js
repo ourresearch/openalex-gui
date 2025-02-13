@@ -340,20 +340,20 @@ const api = (function () {
         // Gets the status/results of an existing redshift query, routing to user api if needed
         let url
         if (searchId.startsWith("us-")) {
-            url = urlBase.userApi + "/searches/" + searchId
+            url = urlBase.userApi + "/searches/" + searchId;
         } else {
-            url = urlBase.api + "/searches/" + searchId
+            url = urlBase.api + "/searches/" + searchId;
         }
 
-        const params = new URLSearchParams()
-        params.set("mailto", "team@ourresearch.org")
-        params.set("bypass_cache", options.bypass_cache)
+        const params = new URLSearchParams();
+        params.set("mailto", "team@ourresearch.org");
+        params.set("bypass_cache", options.bypass_cache);
 
-        url += "?" + params.toString()
+        url += "?" + params.toString();
 
-        console.log("api.getSearch getting: " + searchId)
-        const resp = await getUrl(url, axiosConfig())
-        return resp
+        console.log("api.getSearch getting: " + searchId);
+        const resp = await getUrl(url, axiosConfig());
+        return resp;
     }
 
     const createExport = async function(query, email) {

@@ -84,21 +84,23 @@ export default {
       return Object.values(getConfigs());
     },
     displayName() {
-      return getConfigs()[this.query.get_rows].displayName
+      return getConfigs()[this.query.get_rows].displayName;
     },
     selected: {
       get() {
-        return this.query.get_rows
+        return this.query.get_rows;
       },
       set(value) {
-        console.log("setSummarize", value)
-        this.setSummarize(value)
+        console.log("setSummarize", value);
+        this.setSummarize(value);
+        this.createSearch();
       }
     },
   },
   methods: {
     ...mapActions("search", [
       "setSummarize",
+      "createSearch",
     ]),
   },
   created() {
