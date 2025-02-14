@@ -44,19 +44,19 @@ const makeFilterButton = function (subjectEntity) {
 }
 
 
-const baseQuery = () => ({
-    get_rows: "works",
-    filter_works: [],
-    filter_aggs: [],
-    show_columns:  [
-        "display_name",
-        "publication_year",
-        "type",
-        "cited_by_count"
-      ],
-    sort_by_column: "cited_by_count",
-    sort_by_order: "desc",
-})
+const baseQuery = (entity = 'works') => {
+    const config = getConfigs()[entity];    
+    const query = {
+        get_rows: entity,
+        filter_works: [],
+        filter_aggs: [],
+        show_columns: config.showOnTablePage,
+        sort_by_column: config.sortByDefault,
+        sort_by_order: config.sortDirDefault,
+    };
+    console.log("baseQuery", query);
+    return query;
+}
 
 
 const queryFactory = function (summarize_by, sort_by, show_columns, filters) {
