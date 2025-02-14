@@ -5,21 +5,30 @@
       <v-col cols="12" lg="5">
         <v-row>
           <!-- Query Builder -->
-          <v-col cols="12" :md="uiVariant === 'chips' ? 12 : 7" lg="12">
-            <v-card flat rounded style="padding: 16px 10px">
-              <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
-              <query-summarize-by style="margin-left: 8px"/>
+          <v-col cols="12" md="7" lg="12">
+            <v-card flat rounded class="px-5 pt-3 pb-5">
+              <div class="d-flex justify-space-between">
+                <div>
+                  <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+                  <query-summarize-by />
+                </div>
+              </div>
 
               <query-filter-tree
                   v-if="querySubjectEntity !== 'works'"
                   :subject-entity="querySubjectEntity"
                   :filters="query.filter_aggs"
               />
+
+              <div class="section-divider" v-if="querySubjectEntity !== 'works'"/>
+
               <query-filter-tree
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
                   :filters="query.filter_works"
               />
+
+              <div class="section-divider"/>
 
               <query-columns-controls
                 :subject-entity="querySubjectEntity"
@@ -27,6 +36,13 @@
                 :sort_by_column="query.sort_by_column"
                 :sort_by_order="query.sort_by_order"
               />
+
+              <div class="section-divider"/>
+
+              <div class="new-query-box">
+                <new-query-button size="small" rounded/>
+              </div>
+
             </v-card>
           </v-col>
 
@@ -91,14 +107,12 @@ import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
-import PropSelector from "@/components/PropSelector.vue";
-import SerpResultsList from "@/components/SerpResultsList.vue";
-import AnalyticViews from "@/components/AnalyticViews.vue";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
+import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 
 
 export default {
@@ -112,6 +126,7 @@ export default {
     QueryOql,
     QueryFilterTree,
     QueryColumnsControls,
+    NewQueryButton
   },
   props: {},
   data() {
@@ -231,11 +246,17 @@ export default {
 }
 .query-section-label {
   font-size: 18px;
-  margin-bottom: 4px;
-  margin-left: 16px;
+  margin-bottom: 6px;
 }
 .query-section-label.inline {
   display: inline-block;
+}
+.section-divider {
+  border-top: 1px #ddd solid;
+  margin: 24px 40px;
+}
+.new-query-button {
+  margin-top: 0px;
 }
 .v-tabs {
   padding: 0 20px;
