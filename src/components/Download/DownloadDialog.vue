@@ -10,7 +10,7 @@
     </v-toolbar>
 
     <!-- Dialog Body -->
-    <v-card-text class="text-body-1">
+    <v-card-text class="text-body-1" :loading="isLoading">
       <div v-if="!userId" class="text-center">
         <p>To download large datasets, please login or create an account.</p>
         <v-btn color="primary" class="mr-2" @click="openLogin">Login</v-btn>
@@ -24,11 +24,11 @@
         </p>
         <p v-if="exportStarted">{{ exportMessage }}</p>
         
-        <div v-if="!exportStarted" class="mt-6 text-center">
+        <div v-if="!exportStarted" class="mt-6 text-right">
           <v-btn color="primary" @click="createExport">Export</v-btn>
           <v-btn text @click="closeDialog">Cancel</v-btn>
         </div>
-        <div v-else class="mt-3 text-center">
+        <div v-else class="mt-3 text-right">
           <v-btn text @click="closeDialog">Close</v-btn>
         </div>
       </div>
@@ -51,6 +51,7 @@ export default {
     return {
       exportStarted: false,
       exportMessage: "",
+      isLoading: false,
     };
   },
   computed: {
@@ -91,8 +92,10 @@ export default {
     async createExport() {
       try {
         this.exportMessage = "Processing your export request...";
-        // Simulate API call
+        this.isLoading = true;
+        this.exportStarted = true;
         await api.createExport(this.query, this.userEmail);
+        this.isLoading = false;
         this.exportMessage =
           "Your export has been initiated. You will receive an email when it is ready to download.";
         this.exportStarted = true;
