@@ -81,7 +81,7 @@ export default {
       "querySubjectEntityConfig",
     ]),
     entities() {
-      return Object.values(getConfigs());
+      return Object.values(getConfigs()).filter(config => config.id !== 'works');
     },
     displayName() {
       return getConfigs()[this.query.get_rows].displayName;
@@ -98,8 +98,10 @@ export default {
     },
   },
   methods: {
-    ...mapActions("search", [
+    ...mapMutations("search", [
       "setSummarize",
+    ]),
+    ...mapActions("search", [
       "createSearch",
     ]),
   },

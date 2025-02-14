@@ -326,16 +326,16 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
+    ...mapMutations("search", [
+      "addReturnColumn",
+      "deleteReturnColumn",
+      "setSortBy",
+    ]),
     ...mapActions("user", [
       "createCollection",
     ]),
     ...mapActions("search", [
-      "deleteReturnColumn",
-      "setSortBy",
       "createSearch",
-      "addReturnColumn",
-      "deleteReturnColumn",
     ]),
     commitSortBy(sortBy) {
       this.setSortBy(sortBy)

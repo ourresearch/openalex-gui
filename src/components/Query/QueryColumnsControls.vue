@@ -115,7 +115,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 import { getConfigs } from "@/oaxConfigs";
 
 export default {
@@ -139,7 +139,7 @@ export default {
     },
     availableColumns: function() {
       const availableColumns = Object.values(this.columnConfigs)
-          .filter(column => column.actions.includes("column"))
+          .filter(column => column.actions?.includes("column"))
           .map(column => ({
             displayName: column.displayNameForColumn || column.displayName,
             column_id: column.id,
@@ -156,7 +156,7 @@ export default {
     },
     availableSortByColumns: function() {
       return Object.values(this.columnConfigs)
-          .filter(column => column.actions.includes("sort"))
+          .filter(column => column.actions?.includes("sort"))
           .map(column => ({
             displayName:  column.displayNameForColumn || column.displayName,
             column_id: column.id,
@@ -171,11 +171,14 @@ export default {
     ...mapGetters("search",[
       "query",
     ]),
-    ...mapActions("search", [
-      "createSearch",
+    ...mapMutations("search", [
       "addReturnColumn",
       "deleteReturnColumn",
-      "setSortBy"]),
+      "setSortBy"
+    ]),
+    ...mapActions("search", [
+      "createSearch",
+    ]),
     openColumnsMenu(filter) {
       this.currentFilter = filter;
       this.isColumnsMenuOpen = true;
@@ -205,6 +208,7 @@ export default {
     },
   },
   mounted() {
+    if  (!this.show_columns) { debugger; }
   },
   watch: {
   }

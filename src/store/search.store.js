@@ -7,13 +7,7 @@ import {user} from "@/store/user.store";
 import router from "@/router";
 import {api} from "@/api";
 import {getConfigs} from "@/oaxConfigs";
-import {
-    makeFilterBranch,
-    makeFilterLeaf,
-    baseQuery,
-    convertFlatToRecursive,
-    deleteNode, cleanFilters, deleteRootNodes, oqlToQueryWrapper, queryToOqlWrapper,
-} from "@/components/Query/query";
+import {baseQuery} from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 
@@ -24,7 +18,7 @@ const stateDefaults = function () {
     const ret = {
         id: null,
         oql: "",
-        query: {...baseQuery()},  // What we get back from server
+        query: {...baseQuery()},
         is_completed: false,
         results_header: [],
         results_body: [],
@@ -80,35 +74,35 @@ export const search = {
         },
         setBackendError(state, error) {
             state.backend_error = error;
-        }
-    },
-    actions: {
-        // SUMMARIZE
-        setSummarize({state, commit}, columnId) {
+        },
+        setSummarize(state, entity) {
+            console.log("setSummarize", entity);
             const newQuery = {
-                get_rows: columnId,
+                ...baseQuery(entity),
                 filter_works: state.query.filter_works,
-            }
+            };
             console.log("setSummarize", newQuery);
-            commit('setNewSearchByQuery', newQuery);
+            state.query = newQuery;
         },
         // SORT
-        setSortBy({state}, {column_id, direction}) {
+        setSortBy(state, {column_id, direction}) {
             state.query.sort_by_column = column_id;
             state.query.sort_by_order = direction;
         },
         // RETURN COLUMNS
-        addReturnColumn({state, dispatch}, columnId) {
+        addReturnColumn(state, columnId) {
             if (!state.query.show_columns.includes(columnId)) {
                 state.query.show_columns.push(columnId);
             }
         },
-        deleteReturnColumn({state}, columnId) {
+        deleteReturnColumn(state, columnId) {
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId);
             if (state.query.sort_by_column === columnId) {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
             }
         },
+    },
+    actions: {
         // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
             //console.log("createSearchFromOql", oql, oqlToQuery(oql))
@@ -186,6 +180,7 @@ export const search = {
             else return state.query.get_rows;
         },
         queryColumnsConfigs: (state, getters) => {
+            if (!state.query.show_columns) { return []; }
             const columnsToReturn = state.query.show_columns.map((col) => {
                 const ret = getters.querySubjectEntityConfig.columns[col]
                 if (!ret) {
