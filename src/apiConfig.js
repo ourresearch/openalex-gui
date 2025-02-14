@@ -31,6 +31,11 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
     urlBase.userApi = "http://localhost:5106";
     console.log("Setting User API base URL to local machine (dev use only): " + urlBase.userApi);
+
+// 8085: Local Export API
+} else if (window.location.port && parseInt(window.location.port) === 8085) {
+    urlBase.exportApi = "http://localhost:5006";
+    console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
 } 
 
 const axiosConfig =  () => {
