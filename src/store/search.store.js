@@ -128,6 +128,9 @@ export const search = {
                 commit('setSearchCompleted', true);
             }
         },
+        createNewSearch: async function ({dispatch}) {
+            return await dispatch("createSearchFromQuery", baseQuery());
+        },
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },

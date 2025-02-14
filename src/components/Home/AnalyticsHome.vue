@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container class="analytics-home">
     <v-row>
     <v-col cols="0" />
     <v-col cols="12">
@@ -7,10 +7,7 @@
       <div class="text-h3">
         Analytics
       </div>
-      <v-btn color="primary" class="start-button" to="/s/f847ddf26aaa15e1a37159983c815980">
-        Start a Query
-        <v-icon>mdi-chevron-right</v-icon>
-      </v-btn>
+      <new-query-button button-text="Start a Query" goTo="true" color="primary"/>
     </v-row>
     <v-row>
       <div class="tagline text-h6">
@@ -56,14 +53,16 @@
 <script>
 
 import VueHorizontal from 'vue-horizontal';
+import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import ExampleQuery from "@/components/Home/ExampleQuery.vue";
 import {exampleQueries} from "./exampleQueriesList";
 
 export default {
-  name: "HomeContent",
+  name: "AnalyticsHome",
   components: {
     VueHorizontal,
     ExampleQuery,
+    NewQueryButton,
   },
   props: {
   },
@@ -127,8 +126,8 @@ export default {
 </script>
 
 
-<style lang="scss">
-.start-button {
+<style lang="scss" scoped>
+.new-query-button {
   margin-top: 10px;
   margin-left: 18px
 }

@@ -1,5 +1,5 @@
 <template>
-  <span class="d-inline-flex align-center">
+  <span class="query-summarize-by d-inline-flex align-center">
     <v-menu max-height="70vh" rounded offset-y>
       <template v-slot:activator="{ on }">
         <v-btn rounded class="text-h6 " v-on="on">
@@ -115,5 +115,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.query-summarize-by {
+  margin-bottom: 10px;
+}
 </style>

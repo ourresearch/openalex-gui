@@ -4,9 +4,10 @@
         <v-btn
             v-on="on"
             :class="{'add-filter': true, 'with-filters': withExistingFilters }"
-            small       
+            small
+            rounded
         >
-          <v-icon color="primary" small>mdi-plus</v-icon>Filter
+          <v-icon color="primary" small>mdi-plus</v-icon>Add Filter
         </v-btn>
       </template>
       <v-card flat rounded v-if="isMenuOpen">
@@ -149,10 +150,8 @@ export default {
 }
 .add-filter {
   margin-top: 4px;
-  margin-left: 16px;
 }
 .add-filter.with-filters {
   margin-top: 8px;
-  margin-left: 20px;
 }
 </style>

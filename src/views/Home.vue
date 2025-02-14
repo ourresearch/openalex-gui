@@ -4,7 +4,7 @@
     <v-container class="">
       <v-row class="above-the-fold flex-column align-center" style="">
         <v-col class="d-flex justify-center align-center">
-          <home-content />
+          <analytics-home />
         </v-col>
       </v-row>
 
@@ -16,17 +16,15 @@
 
 <script>
 
-import {VueTyper} from 'vue-typer'
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import axios from "axios";
-import HomeContent from "@/components/Home/HomeContent.vue";
+import AnalyticsHome from "@/components/Home/AnalyticsHome.vue";
 
 
 export default {
   name: 'Home',
   components: {
-    VueTyper,
-    HomeContent,
+    AnalyticsHome,
   },
   metaInfo: {
     title: "OpenAlex: The open catalog to the global research system",

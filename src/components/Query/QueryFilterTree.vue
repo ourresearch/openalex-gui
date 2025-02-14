@@ -8,7 +8,10 @@ Manipulations of current filter state occur locally and are passed to global sta
 
 <template>
   <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
-    <div v-if="!displayInline" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
+
+    <div v-if="hasTopSpace" class="spacer my-2"></div>
+
+    <div v-if="!displayInline && topText" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
 
     <query-filter-tree-branch
       v-if="!isEmpty"
@@ -23,7 +26,7 @@ Manipulations of current filter state occur locally and are passed to global sta
       @ungroupFromAbove="ungroupFromAbove"
     />
 
-    <div :class="{'button-wrapper': true, 'inline-block': displayButtonInline}">
+    <div :class="{'button-wrapper': true, 'mx-4': !isEmpty, 'inline-block': displayButtonInline}">
       <query-filter-tree-button
         :subject-entity="subjectEntity"
         :parent-id="null"
@@ -72,6 +75,31 @@ export default {
       const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"));
             
       return availableFilters.length > 0;
+    },
+    isEmpty() {
+      return this.myFilters.length === 0;
+    },
+    displayInline() {
+      return false;
+      return this.isEmpty && !this.isWithAggs;
+    },
+    displayButtonInline() {
+      return false;
+      return this.isEmpty && this.isWithAggs;
+    },
+    hasTopSpace() {
+      return this.topText == "Where";
+    },
+    topText() {
+      if (this.isWithAggs && !this.isEmpty) {
+        return "Found in <b>works</b> where";
+      } else if (this.isWithAggs && this.isEmpty) {
+        return "Found in <b>all works</b>";
+      } else if (this.isEmpty) {
+        return null;
+      } else {
+        return "Where";
+      }
     },
     filtersToStore() {
       // Returns local filter state, cleaned of local props, to be stored in Vuex store
@@ -123,26 +151,6 @@ export default {
 
       return cleanedFilters;
     },
-    isEmpty() {
-      return this.myFilters.length === 0;
-    },
-    displayInline() {
-      return this.isEmpty && !this.isWithAggs;
-    },
-    displayButtonInline() {
-      return this.isEmpty && this.isWithAggs;
-    },
-    topText() {
-      if (this.isWithAggs && !this.isEmpty) {
-        return "Based on <b>works</b> where";
-      } else if (this.isWithAggs && this.isEmpty) {
-        return "Based on <b>all works</b>";
-      } else if (this.isEmpty) {
-        return "";
-      } else {
-        return "Where";
-      }
-    }
   },
   methods: {
     filter,
@@ -489,7 +497,6 @@ export default {
   visibility: hidden !important;
 }
 .query-filter-tree {
-  margin-top: 28px
 }
 .query-section-label.inline-block {
   display: inline-block;
