@@ -277,7 +277,7 @@ export default {
       "query",
     ]),
     rows() {
-      return this.resultsBody.map((row) => {
+      const rows = this.resultsBody.map((row) => {
         return {
           ...row,
           cellsWithConfigs: row.cells.map((cell, i) => {
@@ -287,7 +287,8 @@ export default {
             }
           })
         }
-      })
+      });
+      return rows;
     },
     isEveryRowSelected() {
       return this.selectedIds.length === this.resultsBody.length
