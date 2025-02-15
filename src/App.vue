@@ -145,29 +145,16 @@
       <router-view></router-view>
     </v-main>
     <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="400">
-      <!--      <v-toolbar flat dense>-->
-      <!--        <v-btn icon @click="isNavDrawerOpen=false">-->
-      <!--          <v-icon>mdi-close</v-icon>-->
-      <!--        </v-btn>-->
-      <!--        <v-spacer/>-->
-      <!--        <v-btn icon :to="$store.state.zoomId">-->
-      <!--          <v-icon>mdi-link</v-icon>-->
-      <!--        </v-btn>-->
-      <!--        <v-btn icon :href="`https://api.openalex.org/${$store.state.zoomId}`" target="_blank">-->
-      <!--          <v-icon>mdi-api</v-icon>-->
-      <!--        </v-btn>-->
-
-      <!--      </v-toolbar>-->
       <entity
+          v-if="$store.state.zoomId" 
+          :id="$store.state.zoomId"
           class="pa-4"
-          v-if="$store.state.zoomId" :id="$store.state.zoomId"
           closeable
-          small-buttons
-          @close="$store.state.zoomId = null"
-      />
+          small-buttons 
+          @close="clearZoom">
+      </entity>
     </v-navigation-drawer>
     <site-footer/>
-
 
     <v-snackbar
         top
@@ -204,6 +191,7 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import SiteFooter from "./components/SiteFooter.vue";
 import SiteNav from "@/components/SiteNav.vue";
 import {url} from "@/url";
+import {getConfigs} from "@/oaxConfigs";
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
@@ -288,6 +276,9 @@ export default {
       await navigator.clipboard.writeText(content);
       this.snackbar("Copied to clipboard.")
     },
+    clearZoom() {
+      this.$store.state.zoomId = null;
+    },
     cancelExport() {
       this.exportObj = null
       this.$store.state.exportProgressUrl = null
@@ -312,9 +303,8 @@ export default {
     this.setUIVariant()
   },
   async mounted() {
-    const configResp = await axios.get("https://api.openalex.org/entities/config")
-    this.$root.config = configResp.data
-
+    this.$root.configs = getConfigs();
+    
     setInterval(async () => {
       if (!this.$store.state.exportProgressUrl) return
       const resp = await axios.get(this.$store.state.exportProgressUrl)

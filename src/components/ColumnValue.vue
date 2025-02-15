@@ -117,7 +117,7 @@ export default {
   created() {
   },
   mounted() {
-    //console.log(this.property);
+    console.log(this.property);
   },
   watch: {}
 }

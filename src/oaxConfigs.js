@@ -27,7 +27,6 @@ function getConfigs() {
 const configUpdates = (oaxConfigs) => {
 
   oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
-  oaxConfigs.works.columns["grants.funder"].actions = ["column", "filter", "sort"] 
 
   oaxConfigs.authors.columns["display_name.search"].displayName = "author name"
   oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
