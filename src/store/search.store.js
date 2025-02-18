@@ -133,9 +133,7 @@ export const search = {
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },
-        getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
-            //commit("snackbar", `Polling search ${id}`, { root: true });
-
+        getSearch: async function ({state, commit}, {id, bypass_cache}) {
             if (id !== state.id) {
                 // New ID first seen from server
                 commit('setNewSearchById', id);

@@ -352,7 +352,7 @@ const api = (function () {
         url += "?" + params.toString();
 
         console.log("api.getSearch getting: " + searchId);
-        const resp = await getUrl(url, axiosConfig());
+        const resp = await getUrl(url, axiosConfig({noCache: true}));
         return resp;
     }
 
