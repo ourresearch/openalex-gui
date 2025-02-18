@@ -38,11 +38,15 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
 } 
 
-const axiosConfig =  () => {
+const axiosConfig =  (options ={}) => {
     const token = localStorage.getItem("token");
     const headers = {}
     if (token) {
         headers.Authorization = `Bearer ${token}`;
+    }
+    if (options.noCache) {
+        headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        headers["Pragma"] = "no-cache";
     }
     return {
         headers: headers
