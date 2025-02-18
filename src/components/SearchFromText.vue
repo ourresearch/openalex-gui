@@ -104,7 +104,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("search", []),
+    ...mapGetters("search", [
+    "queryOql"]),
     placeholder() {
       return this.selectedInputType === "natural-language" ?
           "Enter natural language query" :
@@ -140,7 +141,7 @@ export default {
   mounted() {
   },
   watch: {
-    "$store.state.search.oql": {
+    "queryOql": {
       handler: function (newVal) {
         if (this.selectedInputType === "oql") {
           this.q = newVal
@@ -152,7 +153,7 @@ export default {
       if (this.selectedInputType === "natural-language") {
         this.q = "";
       } else {
-        this.q = this.$store.state.search.oql;
+        this.q = this.queryOql;
       }
     }
 

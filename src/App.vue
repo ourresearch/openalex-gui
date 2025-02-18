@@ -1,14 +1,6 @@
 <template>
   <v-app :style="{ background: backgroundColor }">
 
-    <!--
-    <v-progress-linear
-        indeterminate
-        fixed color="primary"
-        style="z-index: 9999"
-        v-if="$store.state.search.is_completed === false"
-    />
-    -->
     <v-app-bar
         app
         flat

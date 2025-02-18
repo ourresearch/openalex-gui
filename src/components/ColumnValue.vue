@@ -105,8 +105,6 @@ export default {
     return {
     }
   },
-  computed: {
-  },
   methods: {
     isEntityArray(arr) {
       return Array.isArray(arr) && arr.length > 0 &&
@@ -114,12 +112,6 @@ export default {
              'id' in arr[0] && 'display_name' in arr[0];
     }
   },
-  created() {
-  },
-  mounted() {
-    console.log(this.property);
-  },
-  watch: {}
 }
 </script>
 
