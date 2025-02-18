@@ -13,7 +13,6 @@ import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex);
 
-
 const stateDefaults = function () {
     const ret = {
         id: null,
@@ -134,7 +133,9 @@ export const search = {
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },
-        getSearch: async function ({state, commit}, {id, bypass_cache}) {
+        getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
+            //commit("snackbar", `Polling search ${id}`, { root: true });
+
             if (id !== state.id) {
                 // New ID first seen from server
                 commit('setNewSearchById', id);
@@ -147,6 +148,7 @@ export const search = {
                     // A new id has been requested since this request started, so ignore
                     return;
                 }
+
                 if (!_.isEqual(state.query, data.query)) {
                     // Set query data from API if it's different
                     commit('setQuery', data.query);
@@ -199,6 +201,10 @@ export const search = {
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity];
         },
+        queryIsCompleted: (state) => state.is_completed,
+        queryBackendError: (state) => state.backend_error,
+        queryOql: (state) => state.oql,
+        querySql: (state) => state.redshift_sql,
         isQuerySingleRow: (state) => state.query.get_rows === "summary",
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),

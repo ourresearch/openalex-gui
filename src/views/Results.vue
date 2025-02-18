@@ -64,12 +64,12 @@
                 </v-tab-item>
                 
                 <v-tab-item>
-                  <search-from-text :disabled="!$store.state.search.is_completed" />
+                  <search-from-text :disabled="!queryIsCompleted" />
                 </v-tab-item>
 
                 <v-tab-item>
                   <v-card-text>
-                    <pre class="redshift-sql">{{ formattedSql }}</pre>
+                    <pre class="oql">{{ queryOql }}</pre>
                   </v-card-text>
                 </v-tab-item>
 
@@ -87,8 +87,8 @@
       <!-- Results Table -->
       <v-col cols="12" lg="7">
         <v-card flat rounded style="min-height: 100%;">
-          <results-error v-if="$store.state.search.backend_error" />
-          <results-table v-else-if="$store.state.search.is_completed" />
+          <results-error v-if="queryBackendError" />
+          <results-table v-else-if="queryIsCompleted" />
           <results-searching v-else />
         </v-card>
       </v-col>
@@ -99,7 +99,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import { format } from 'sql-formatter';
 import {urlBase} from "@/apiConfig";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
@@ -144,14 +144,19 @@ export default {
         "queryJson",
       ],
       tab: 0,
-      uiVariant: this.$store.state.uiVariant,
-      hasPolledOnce: false
+      hasPolledOnce: false,
+      pollCount: 0
     }
   },
   computed: {
+    ...mapState(['uiVariant']),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",
+      "queryIsCompleted",
+      "queryBackendError",
+      "querySql",
+      "queryOql",
     ]),
     areTopLevelFiltersApplied() {
       if (this.querySubjectEntity !== 'works') {
@@ -164,16 +169,22 @@ export default {
       return urlBase.api + '/searches/' + this.$route.params.id;
     },
     formattedSql() {
-      const rawSql = this.$store.state.search.redshift_sql;
+      const rawSql = this.querySql;
       if (!rawSql) { return ""; }
       return format(rawSql, {language: "redshift"});
     }
   },
   methods: {
+    ...mapMutations([
+      "snackbar",
+    ]),
     ...mapActions("search", [
       "createSearch",
       "getSearch",
       "createSearchFromOql",
+    ]),
+    ...mapMutations([
+      "snackbar",
     ]),
     applyOql() {
       this.isOqlEditDialogOpen = false
@@ -207,12 +218,13 @@ export default {
         bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
       });
       this.hasPolledOnce = true;
-      if (!this.$store.state.search.is_completed) {
+      this.pollCount++;
+      if (!this.queryIsCompleted) {
         setTimeout(() => {
           //console.log("polling search")
           this.pollSearch();
         }, 500);
-      }
+      } 
     },
   },
   created() {
@@ -225,12 +237,12 @@ export default {
   watch: {
     "$route.params.id": {
       handler: function () {
-        this.pollSearch()
+        this.pollSearch();
       },
       immediate: true
     },
     isOqlEditDialogOpen() {
-      this.oql = this.$store.state.search.oql;
+      this.oql = this.queryOql;
     },
     cardsToShowSelected() {
       this.saveToLocalStorage();

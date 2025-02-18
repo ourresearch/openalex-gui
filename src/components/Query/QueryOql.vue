@@ -1,16 +1,15 @@
 <template>
   <div class="d-flex align-baseline">
     <v-textarea
-        v-model="oql"
+        v-model="queryOql"
         label="OQL query"
         rounded
         filled
         rows="1"
         auto-grow
         clearable
-        @keydown.ctrl.enter="createSearchFromOql(oql)"
-        @keydown.meta.enter="createSearchFromOql(oql)"
-
+        @keydown.ctrl.enter="createSearchFromOql(queryOql)"
+        @keydown.meta.enter="createSearchFromOql(queryOql)"
     />
     <v-btn
         color="primary"
@@ -26,7 +25,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 
 export default {
   name: "QueryOql",
@@ -34,24 +33,13 @@ export default {
   props: {},
   data() {
     return {
-      oql: "",
     }
   },
   computed: {
+    ...mapGetters("search",[
+      'queryOql',
+    ]),
   },
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    "$store.state.search.id": {
-      handler: function (val) {
-      },
-      deep: true,
-    }
-  }
 }
 </script>
 

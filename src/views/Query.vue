@@ -80,7 +80,7 @@
       </v-col>
       <v-col cols="6">
         <v-card rounded flat class="pa-5 mb-8">
-          <pre>{{ $store.state.search.query }}</pre>
+          <pre>{{ query }}</pre>
         </v-card>
 
         <v-card rounded flat class="pa-5 mb-8">
@@ -112,24 +112,18 @@ export default {
     QuerySortBy,
     QueryReturn,
     QueryFilterTree,
-
   },
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
       "filterRoots",
-        "querySubjectEntity",
+      "querySubjectEntity",
     ]),
   },
 
@@ -141,15 +135,7 @@ export default {
       "deleteReturnColumn",
         "createSearch",
     ]),
-    ...mapActions("user", []),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

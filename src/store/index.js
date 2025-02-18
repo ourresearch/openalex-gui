@@ -10,8 +10,7 @@ import {search} from "@/store/search.store";
 import YAML from 'yaml'
 
 
-Vue.use(Vuex)
-
+Vue.use(Vuex);
 
 const stateDefaults = function () {
     const ret = {
@@ -23,12 +22,11 @@ const stateDefaults = function () {
         uiVariant: null, // for testing UI variations
         testQueries: [],
     }
-    return ret
+    return ret;
 }
 
 
 export default new Vuex.Store({
-    // state: stateDefaults(),
     state: stateDefaults(),
     modules: {
         user,
@@ -52,6 +50,9 @@ export default new Vuex.Store({
         setGlobalIsLoading(state, isLoading) {
             state.isLoading = !!isLoading
         },
+        setZoomId(state, id) {
+            state.zoomId = id;
+        }
 
     },
     actions: {

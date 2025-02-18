@@ -91,6 +91,7 @@ export default {
   },
   methods: {
     ...mapActions("search", ["createSearch"]),
+    ...mapMutations("search", ["setFilterWorks", "setFilterAggs"]),
     openFilterMenu(filter) {
       this.currentFilter = filter;
       this.isMenuOpen = true;
@@ -119,9 +120,9 @@ export default {
         value: filter.value
       }));
       if (this.subjectEntity === "works") {
-        this.$store.state.search.query.filter_works = filtersToStore;
+        this.setFilterWorks(filtersToStore);
       } else {
-        this.$store.state.search.query.filter_aggs = filtersToStore;
+        this.setFilterAggs(filtersToStore);
       }
       this.createSearch();
     },

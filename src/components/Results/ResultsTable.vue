@@ -22,7 +22,7 @@
       
       <v-spacer/>
       
-      <div v-if="!$store.state.isLoading" class="body-2 px-4">
+      <div class="body-2 px-4">
         1-{{ resultsBody.length }} of {{
           resultsMeta?.count > 10000 ? "about " : ""
         }}{{ resultsMeta?.count | toPrecision }}
@@ -326,6 +326,7 @@ export default {
     unravel,
     ...mapMutations([
       "snackbar",
+      "setZoomId",
     ]),
     ...mapMutations("search", [
       "addReturnColumn",
@@ -370,14 +371,14 @@ export default {
     },
     clickRow(rowId) {
       console.log("clickRow", rowId)
-      this.$store.state.zoomId = entity.fullId(rowId, this.querySubjectEntity);
+      this.setZoomId(entity.fullId(rowId, this.querySubjectEntity));
     },
     metaClickRow(rowId) {
       console.log("metaClickRow", rowId)
       const newTab = window.open(this.apiUrl)
       setTimeout(() => {
         newTab.focus()
-      }, 1000)``
+      }, 1000)
       return false
     },
     removeColumn(id) {

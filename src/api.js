@@ -321,24 +321,24 @@ const api = (function () {
         let url
         if (doesSearchContainUserData(query)) {
             //console.log("search contains user data")
-            url = urlBase.userApi + "/searches"
+            url = urlBase.userApi + "/searches";
         } else {
-            url = urlBase.api + "/searches"
+            url = urlBase.api + "/searches";
         }
 
         // Always bypass cache if DISABLE_SERVER_CACHE is true
-        bypass_cache = bypass_cache || DISABLE_SERVER_CACHE
+        bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
 
         console.log("api.createSearch to " + url)
-        const resp = await post(url, {query, bypass_cache}, axiosConfig())
+        const resp = await post(url, {query, bypass_cache}, axiosConfig());
         //console.log("Created Search: " + resp.data.id + " with filters:");
         //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
-        return resp
+        return resp;
     }
 
     const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
-        let url
+        let url;
         if (searchId.startsWith("us-")) {
             url = urlBase.userApi + "/searches/" + searchId;
         } else {
