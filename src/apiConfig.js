@@ -51,7 +51,6 @@ const axiosConfig =  (options={}) => {
 
     if (options.noCache) {
         headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
-        headers["Pragma"] = "no-cache";
     }
     return {
         headers: headers
