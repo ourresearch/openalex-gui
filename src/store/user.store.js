@@ -123,7 +123,7 @@ export const user = {
         async fetchUser({commit, dispatch, state, getters}) {
             const resp = await axios.get(
                 apiBaseUrl + "/user",
-                axiosConfig()
+                axiosConfig({userAuth: true})
             )
             commit("setFromApiResp", resp.data)
 
@@ -154,6 +154,7 @@ export const user = {
             commit("setToken", resp.data.access_token)
             await dispatch("fetchUser")
         },
+
         async requestSignupEmail({commit, dispatch, getters}, signupObj) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
@@ -185,7 +186,7 @@ export const user = {
             const resp = await axios.post(
                 myUrl,
                 {},
-                axiosConfig()
+                axiosConfig({userAuth: true})
             )
             console.log("user.store setAuthorId resp: ", resp)
             await dispatch("fetchUser")
@@ -197,7 +198,7 @@ export const user = {
             console.log("user.store deleteAuthorId", authorId, myUrl)
             const resp = await axios.delete(
                 myUrl,
-                axiosConfig()
+                axiosConfig({userAuth: true})
             )
             console.log("user.store deleteAuthorId resp: ", resp)
             await dispatch("fetchUser")
@@ -226,7 +227,7 @@ export const user = {
                     description,
                     has_alert: has_alert ?? false
                 },
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             await url.pushSearchUrlToRoute(router, search_url)
@@ -248,7 +249,7 @@ export const user = {
         async fetchSavedSearches({commit, state}) {
             const resp = await axios.get(
                 apiBaseUrl + "/saved-search",
-                axiosConfig()
+                axiosConfig({userAuth: true})
             )
             const sorted = [
                 ...resp.data
@@ -273,7 +274,7 @@ export const user = {
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {...oldSearchObj, description},
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Description updated", {root: true})
@@ -284,7 +285,7 @@ export const user = {
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {...oldSearchObj, name},
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search renamed", {root: true})
@@ -297,7 +298,7 @@ export const user = {
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {...oldSearchObj, search_url},
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search saved", {root: true})
@@ -309,7 +310,7 @@ export const user = {
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
                 {...oldSearchObj, has_alert},
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             const snackbarString = has_alert ? "Alert added" : "Alert removed"
@@ -323,7 +324,7 @@ export const user = {
             const myUrl = apiBaseUrl + `/saved-search/${id}`
             const resp = await axios.delete(
                 myUrl,
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search deleted", {root: true})
@@ -345,7 +346,7 @@ export const user = {
                 name,
                 entity_type,
                 description,
-            }, axiosConfig());
+            }, axiosConfig({userAuth: true}));
             
             commit("addCollection", resp.data);
         },
@@ -353,8 +354,7 @@ export const user = {
         // read
         async fetchCollections({commit, state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
-            const resp = await axios.get(myUrl, axiosConfig());
-            
+            const resp = await axios.get(myUrl, axiosConfig({userAuth: true}));
             commit("setCollectionsData", resp.data);
         },
 
@@ -364,7 +364,7 @@ export const user = {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections/${collectionId}`
             const resp = await axios.patch(myUrl, {
                 ids,
-            }, axiosConfig())
+            }, axiosConfig({userAuth: true}))
         
             // TODO Rollback on error
         },
@@ -376,14 +376,13 @@ export const user = {
                 name,
                 description,
                 entity_type,
-            }, axiosConfig())
+            }, axiosConfig({userAuth: true}))
             
             // TODO Rollback on error
         },
         
         // delete
         async deleteCollection({commit, dispatch, state, rootState, getters}, id) {
- 
             const label = getters.getCollection(id);
             if (!label) { return; }
             let msg = "Are you sure you want to delete this label";
@@ -399,7 +398,7 @@ export const user = {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections/${id}`;
             const resp = await axios.delete(
                 myUrl,
-                axiosConfig(),
+                axiosConfig({userAuth: true}),
             );
             return true;
 
@@ -433,7 +432,7 @@ export const user = {
             const myUrl = apiBaseUrl + `/user/${state.id}/corrections`
             const resp = await axios.get(
                 myUrl,
-                axiosConfig()
+                axiosConfig({userAuth: true})
             )
             state.corrections = resp.data
         },
@@ -445,9 +444,7 @@ export const user = {
         userName: (state) => state.name,
         userId: (state) => state.id,
         userEmail: (state) => state.email,
-
         userAuthorId: (state) => state.authorId,
-
         userSavedSearches: (state) => state.savedSearches,
         userCorrections: (state) => state.corrections,
         userCollections: (state) => state.collections,
@@ -461,10 +458,8 @@ export const user = {
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
-
         isSignupDialogOpen: (state) => state.isSignupDialogOpen,
         isLoginDialogOpen: (state) => state.isLoginDialogOpen,
-
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),
         activeSearchUrl: (state, getters) => getters.activeSearchObj?.search_url,

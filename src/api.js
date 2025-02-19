@@ -339,8 +339,10 @@ const api = (function () {
     const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
         let url;
+        let userAuth = false;
         if (searchId.startsWith("us-")) {
             url = urlBase.userApi + "/searches/" + searchId;
+            userAuth = true;
         } else {
             url = urlBase.api + "/searches/" + searchId;
         }
@@ -352,7 +354,7 @@ const api = (function () {
         url += "?" + params.toString();
 
         console.log("api.getSearch getting: " + searchId);
-        const resp = await getUrl(url, axiosConfig({noCache: true}));
+        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth}));
         return resp;
     }
 
