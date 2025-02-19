@@ -7,7 +7,7 @@
       <div class="text-h3">
         Analytics
       </div>
-      <new-query-button button-text="Start a Query" goTo="true" color="primary"/>
+      <new-query-button button-text="Start a Query" :goTo="true" color="primary"/>
     </v-row>
     <v-row>
       <div class="tagline text-h6">
