@@ -95,6 +95,7 @@ export const search = {
             }
         },
         deleteReturnColumn(state, columnId) {
+            if (state.query.show_columns.length === 1) { return; }
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId);
             if (state.query.sort_by_column === columnId) {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
