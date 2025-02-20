@@ -1,43 +1,40 @@
 import axios from 'axios'
 import _ from 'lodash'
+import ISO6391 from 'iso-639-1'
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
-import countryCodeLookup from "country-code-lookup";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
-import {isOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
-import {getActionDefaultsStr} from "@/actionConfigs";
-
-import ISO6391 from 'iso-639-1'
-import {entityConfigs, getEntityConfig} from "@/entityConfigs";
+import {shortenOpenAlexId} from "@/util";
+import {getEntityConfig} from "@/entityConfigs";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
-import {sleep} from "./util";
 
 
-const cache = {}
-const entityCache = {}
+const cache = {};
+const entityCache = {};
 
 const getFromCache = function (url) {
-    if (!cache[url]) return
-    return _.cloneDeep(cache[url])
+    if (!cache[url]) { return; }
+    return _.cloneDeep(cache[url]);
 }
+
 const getEntityFromCache = function (id) {
-    const myId = shortenOpenAlexId(id)
-    if (!myId) return
-    if (!entityCache[myId]) return
-    return _.cloneDeep(entityCache[myId])
+    const myId = shortenOpenAlexId(id);
+    if (!myId) { return; }
+    if (!entityCache[myId]) { return; }
+    return _.cloneDeep(entityCache[myId]);
 }
+
 const clearCache = function () {
     Object.keys(cache).forEach(k => {
-        cache[k] = null
+        cache[k] = null;
     })
     Object.keys(entityCache).forEach(k => {
-        cache[k] = null
+        entityCache[k] = null;
     })
 }
+
 const stockCache = function (url, ret) {
     cache[url] = _.cloneDeep(ret)
 }
@@ -46,8 +43,8 @@ const stockCache = function (url, ret) {
 const autocompleteCountry = function (searchString) {
     return openAlexCountries
         .filter(c => {
-            return c.display_name.toLowerCase().includes(searchString.toLowerCase())
-        })
+            return c.display_name.toLowerCase().includes(searchString.toLowerCase());
+        });
 }
 
 // @pathName is the path, like /works
@@ -58,22 +55,22 @@ const autocompleteCountry = function (searchString) {
 const makeUrl = function (pathName, searchParams, includeEmail = true) {
     const params = new URLSearchParams(searchParams);
     (includeEmail) && params.set("mailto", "team@ourresearch.org");
-    !params.get("per-page") && params.set("per-page", 10)
+    !params.get("per-page") && params.set("per-page", 10);
 
     if (pathName.indexOf("/") !== 0) {
-        pathName = "/" + pathName
+        pathName = "/" + pathName;
     }
     const baseAndPath = urlBase.api + pathName;
     const paramsStr = [...params.entries()]
         .filter(p => {
-            return p[1]
+            return p[1];
         })
         .map(p => {
-            return p[0] + "=" + p[1]
+            return p[0] + "=" + p[1];
         })
-        .join("&")
+        .join("&");
 
-    return [baseAndPath, paramsStr].join("?")
+    return [baseAndPath, paramsStr].join("?");
 }
 
 
@@ -81,51 +78,52 @@ const api = (function () {
 
     const getUrl = async function (url, config) {
         if (!url.startsWith("http")) { 
-            url = urlBase.api + url
+            url = urlBase.api + url;
         }
 
         if (url.includes("filter=")) { // sdgs hack
-            url = url.replace("sdgs/", "")
+            url = url.replace("sdgs/", "");
         }
 
-        const cachedResponse = getFromCache(url)
+        const cachedResponse = getFromCache(url);
         if (cachedResponse) {
-            return cachedResponse
+            return cachedResponse;
         }
 
-        let res
+        let res;
         try {
-            res = await axios.get(url, config)
+            console.log(`GET ${url}`);
+            res = await axios.get(url, config);
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
             // https://gist.github.com/fgilio/230ccd514e9381fafa51608fcf137253
-            console.log("api GET failure:", e.response)
+            console.log("api GET failure:", e.response);    
             throw e
         }
         if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
             //console.log("caching " + url)
             //console.log(res.data)
-            stockCache(url, res.data)
+            stockCache(url, res.data);
         }
-        return res.data
+        return res.data;
     }
 
     const get =  async function (pathName, searchParams) {
-        const url = makeUrl(pathName, searchParams)
-        const resp = await getUrl(url)
-        return resp
+        const url = makeUrl(pathName, searchParams);
+        const resp = await getUrl(url);
+        return resp;
     }
 
     const post = async function(url, data, config) {
         let op = url.includes("?") ? "&" : "?";
-        url += op + "mailto=team@ourresearch.org"
-        const resp = await axios.post(url, data, config)
-        return resp
+        url += op + "mailto=team@ourresearch.org";
+        const resp = await axios.post(url, data, config);
+        return resp;
     }
 
     const getResultsList = async function (url) {
-        const ret = getUrl(url)
-        return ret
+        const ret = await getUrl(url);
+        return ret;
     }
 
     const getEntity = async function (id) {

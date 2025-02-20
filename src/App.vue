@@ -136,7 +136,7 @@
     <v-main class="ma-0 pb-0">
       <router-view></router-view>
     </v-main>
-    <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="400">
+    <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="500">
       <entity
           v-if="$store.state.zoomId" 
           :id="$store.state.zoomId"

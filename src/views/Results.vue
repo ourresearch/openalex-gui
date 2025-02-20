@@ -69,7 +69,7 @@
 
                 <v-tab-item>
                   <v-card-text>
-                    <pre class="oql">{{ queryOql }}</pre>
+                    <pre class="sql">{{ formattedSql }}</pre>
                   </v-card-text>
                 </v-tab-item>
 

@@ -100,6 +100,12 @@ const configUpdates = (oaxConfigs) => {
       "matches any item in label",
       "matches every item in label"
   ];
+  const labelOperatorsIncludes = [
+    "includes",
+    "does not include",
+    "matches any item in label",
+    "matches every item in label"
+];
   oaxConfigs.authors.columns["id"].operators = labelOperators;
   oaxConfigs.authors.columns["affiliations.institution.id"].operators = labelOperators;
   oaxConfigs.authors.columns["affiliations.institution.type"].operators = labelOperators;
@@ -135,7 +141,7 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["primary_topic.field.id"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.domain.id"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.id"].operators = labelOperators;
-  oaxConfigs.works.columns["authorships.author.id"].operators = labelOperators;
+  oaxConfigs.works.columns["authorships.author.id"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["authorships.countries"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.continent"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.type"].operators = labelOperators;
