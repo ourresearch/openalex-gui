@@ -41,13 +41,14 @@
   </div>
 </template>
 
+
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import axios from "axios";
+import {mapMutations} from "vuex";
 import {entity} from "@/entity";
 import PropValue from "@/components/ColumnValue.vue";
 import {isDisplayable} from "@/util";
+
 
 export default {
   name: "Entity",
@@ -61,58 +62,47 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
       properties: [],
     }
   },
   computed: {
-    ...mapGetters("user", [
-      "userId",
-    ]),
     displayName() {
-      return this.properties.find(p => p.config.id === "display_name")?.value
+      return this.properties.find(p => p.config.id === "display_name")?.value;
     },
     openAlexId() {
-      return this.properties.find(p => p.config.id === "id")?.value
+      return this.properties.find(p => p.config.id === "id")?.value;
     },
     rowsToShow() {
       return this.properties.filter(p => {
-        if (!p.config) return false
-        if (p.config.id === "display_name") return false
-        if (p.config.id === 'id') return false
-        if (!isDisplayable(p.value)) return false
-        return true
+        if (!p.config) { return false; }
+        if (p.config.id === "display_name") { return false; }
+        if (p.config.id === 'id') { return false; }
+        if (!isDisplayable(p.value)) { return false; }
+        return true;
       })
-
     }
-
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     async getData() {
-      this.isLoading = true
+      this.isLoading = true;
       try {
-        console.log("getting properties", this.id)
-        this.properties = await entity.getEntityData(this.id)
-        console.log("got properties", this.properties)
+        this.properties = await entity.getEntityData(this.id);
       } catch (e) {
-        console.error(e)
-        this.snackbar({msg: "Error fetching entity data", color: "error"})
+        console.error(e);
+        this.snackbar({msg: "Error fetching entity data", color: "error"});
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     }
   },
   watch: {
     id: {
       handler: function (newVal, oldVal) {
-        this.getData()
+        this.getData();
       },
       immediate: true
     }

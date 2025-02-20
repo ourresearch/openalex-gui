@@ -8,17 +8,6 @@
       disable-route-watcher
   >
     <v-card min-height="100" flat tile :loading="isLoading" >
-<!--      loading-->
-
-      <!--      <v-toolbar-->
-      <!--          flat-->
-      <!--          dense-->
-      <!--      >-->
-      <!--        &lt;!&ndash;        absolute width="100%"&ndash;&gt;-->
-      <!--        <v-btn icon @click="isOpen = !isOpen">-->
-      <!--          <v-icon>mdi-close</v-icon>-->
-      <!--        </v-btn>-->
-      <!--      </v-toolbar>-->
       <template v-if="entityData">
         <div class="d-flex pa-4">
           <entity-header
@@ -43,15 +32,15 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import EntityNew from "@/components/Entity/EntityNew.vue";
-import {entityTypeFromId, sleep} from "@/util";
 import {api} from "@/api";
+import {url} from "@/url";
+import {entityTypeFromId} from "@/util";
+import EntityNew from "@/components/Entity/EntityNew.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 
+
 export default {
-  name: "Template",
+  name: "EntityDrawer",
   components: {
     EntityNew,
     EntityHeader,
@@ -59,67 +48,46 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       entityData: null,
       isLoading: false
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     id() {
-      return url.getZoom(this.$route)
+      return url.getZoom(this.$route);
     },
     myEntityType() {
-      if (!this.id) return
-      return entityTypeFromId(this.id)
+      if (!this.id) { return; }
+      return entityTypeFromId(this.id);
     },
     isOpen: {
       get() {
-        return !!this.id
+        return !!this.id;
       },
       set(to) {
-        !to && url.setZoom(undefined)
+        !to && url.setZoom(undefined);
       }
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     async getEntityData() {
       if (!this.id) {
         this.entityData = null
         return
       }
-      this.isLoading = true
+      this.isLoading = true;
       // console.log("EntityDrawer getEntityData() loading", this.isLoading)
-      await sleep(2000)
-      this.entityData = await api.get(this.id)
-      this.isLoading = false
+      this.entityData = await api.get(this.id);
+      this.isLoading = false;
       // console.log("EntityDrawer getEntityData() done loading", this.isLoading)
     },
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     id: {
-      immediate: true,
       handler(to) {
-        this.getEntityData()
-      }
+        this.getEntityData();
+      },
+      immediate: true
     }
   }
 }

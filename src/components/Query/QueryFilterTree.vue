@@ -241,20 +241,20 @@ export default {
       const groupParentPath = path.slice(0, -1);
       return groupParentPath;
     },
-    addFilter(columnId, columnType) {
-      console.log("Adding filter", { columnId, columnType });
-      const initValue = columnType === "boolean" ? true : null
+    addFilter(column) {
+      console.log("Adding filter", column.id, column.type);
+      const initValue = column.type === "boolean" ? true : null
       this.myFilters.push({
-        column_id: columnId,
+        column_id: column.id,
         value: initValue,
+        operator: column.defaultOperator,
       });
       this.decorateMyFilters();
-      if (columnType === "boolean") {
+      if (column.type === "boolean") {
         this.applyFilters();
       }
       this.isEditingFilters = true;
-      // Log the state after adding
-      console.log("After adding filter:", this.myFilters);
+      // console.log("After adding filter:", this.myFilters);
     },
     setOperator(path, operator, dontApply) {
       console.log("setOperator", path, operator);
@@ -280,39 +280,14 @@ export default {
       }
     },
     setJoinOperator(path, joinOperator) {
-      console.log("setJoin", JSON.stringify(path), joinOperator);
-
-      /*
-      // Changing root from AND to OR, create a group
-      if (this.getGroupParentPath(path).length === 0 && joinOperator === "or") {
-        this.myFilters = [{
-          join: "or",
-          filters: this.myFilters
-        }];
-        this.decorateMyFilters();
-      // Changing single root OR group to AND, flatten group
-      } else if (joinOperator === "and" && 
-                this.myFilters.length === 1 && 
-                this.myFilters[0].join === "or") {
-        this.myFilters = this.myFilters[0].filters;
-        this.decorateMyFilters();
+      //console.log("setJoin", JSON.stringify(path), joinOperator);
+      const groupParentPath = this.getGroupParentPath(path);
+      if (groupParentPath.length === 0) {
+        this.rootJoin = joinOperator;
       } else {
-        // Otherwise just change "join" prop on the correct group
-        const groupParentPath = this.getGroupParentPath(path);
         const groupParentFilter = this.getFilterFromPath(groupParentPath);
-        Vue.set(groupParentFilter, "join", joinOperator);
+        Vue.set(groupParentFilter, "join", joinOperator);          
       }
-      */
-
-        // Otherwise just change "join" prop on the correct group
-        const groupParentPath = this.getGroupParentPath(path);
-        if (groupParentPath.length === 0) {
-          this.rootJoin = joinOperator;
-        } else {
-          const groupParentFilter = this.getFilterFromPath(groupParentPath);
-          Vue.set(groupParentFilter, "join", joinOperator);          
-        }
-
 
       this.applyFilters();
     },
@@ -349,10 +324,7 @@ export default {
         parentArray.splice(index - 1, 2);
         parentArray.splice(index - 1, 0, newGroup);
       }
-
-      // Log for debugging
       // console.log("After grouping, myFilters:", JSON.stringify(this.myFilters, null, 2));
-
       this.applyFilters();
     },
     ungroupFromAbove(path) {

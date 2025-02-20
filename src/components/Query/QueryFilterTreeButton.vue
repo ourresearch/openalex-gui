@@ -29,7 +29,7 @@
               v-for="(column, i) in filteredFilters"
               :key="column.id"
               :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
-              @click="$emit('addFilter', column.id, column.type)"
+              @click="$emit('addFilter', column)"
           >
             <v-list-item-icon>
               <v-icon>{{ column.icon }}</v-icon>
@@ -48,7 +48,6 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
-import {ordinalize} from "../../util";
 
 
 export default {
@@ -126,14 +125,10 @@ export default {
       })
     },  
   },
-  created() {
-  },
-  mounted() {
-  },
   watch: {
     isMenuOpen(newValue) {
       if (!newValue) {
-        this.search = ""
+        this.search = "";
       }
     }
   }
