@@ -176,7 +176,7 @@
               class="flex-grow-1"
               autofocus
               @change="saveEditingValue" 
-              @blur="cancelEditingValue"
+              @blur="onInputBlur"
           />
           <v-autocomplete
               v-else
@@ -194,7 +194,7 @@
               class="flex-grow-1"
               autofocus
               @change="saveEditingValue" 
-              @blur="cancelEditingValue"
+              @blur="onInputBlur"
           />
         </template>
       </template>
@@ -219,7 +219,7 @@
             hide-details
             autofocus
             @keydown.escape="cancelEditingValue"
-            @blur="cancelEditingValue"
+            @blur="onInputBlur"
             @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
@@ -307,7 +307,6 @@ export default {
           label += "." + subIndex;
         }
       }
-
       return label;
     },
     indendationLevel() {
@@ -349,7 +348,7 @@ export default {
     },  
     selectedJoinOperator: {
       get() {
-        return this.joinOperator
+        return this.joinOperator;
       },
       set(value) {
         if (value !== this.joinOperator) {
@@ -359,15 +358,15 @@ export default {
     },
     selectedValue: {
       get() {
-        return this.value
+        return this.value;
       },
       set(value) {
-        this.$emit("setValue", this.path, value)
+        this.$emit("setValue", this.path, value);
       }
     },
     applicableLabels() {
-      const labels = this.$store.getters['user/getCollectionsByType'](this.columnConfig.objectEntity)
-      return labels
+      const labels = this.$store.getters['user/getCollectionsByType'](this.columnConfig.objectEntity);
+      return labels;
     },
   },
   methods: {
@@ -396,6 +395,14 @@ export default {
     },
     deleteFilter() {
       this.$emit("deleteFilter", this.path)
+    },
+    onInputBlur() {
+      console.log("onInputBlur", this.valueEditModel);
+      if (this.valueEditModel) {
+        this.saveEditingValue(this.valueEditModel);
+      } else {
+        this.cancelEditingValue();
+      }
     },
     groupWithAbove() {
       this.$emit("groupWithAbove", this.path)
@@ -439,10 +446,6 @@ export default {
         this.isLoading = false;
       }
     }, 300, {leading: true}),
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     search(val){
