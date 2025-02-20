@@ -140,7 +140,7 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["primary_topic.subfield.id"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.field.id"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.domain.id"].operators = labelOperators;
-  oaxConfigs.works.columns["authorships.institutions.id"].operators = labelOperators;
+  oaxConfigs.works.columns["authorships.institutions.id"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["authorships.author.id"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["authorships.countries"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.continent"].operators = labelOperators;
