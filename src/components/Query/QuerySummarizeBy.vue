@@ -105,11 +105,6 @@ export default {
       "createSearch",
     ]),
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

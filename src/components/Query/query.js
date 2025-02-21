@@ -45,8 +45,15 @@ const makeFilterButton = function (subjectEntity) {
 
 
 const baseQuery = (entity = 'works') => {
+    let query;
+    if (entity == "summary") {
+        query = {
+            get_rows: "summary",
+        }; 
+        return query;
+    } 
     const config = getConfigs()[entity];    
-    const query = {
+    query = {
         get_rows: entity,
         filter_works: [],
         filter_aggs: [],

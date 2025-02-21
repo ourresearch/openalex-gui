@@ -17,7 +17,7 @@
 
           <!-- string: list separated by "|" -->
           <template v-else-if="property.config.isList">
-            <div v-for="value in property.value.split('|')" :key="value">{{ value }}</div>
+            <div v-for="(value, i) in property.value.split('|')" :key="value+i">{{ value }}</div>
           </template>
 
           <!-- generic string (including openalex ids) -->

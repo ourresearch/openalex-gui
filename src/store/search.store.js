@@ -71,6 +71,9 @@ export const search = {
         setSearchCompleted(state, value) {
             state.is_completed = value;
         },
+        setSearchSql(state, sql) {
+            state.redshift_sql = sql;
+        },
         setBackendError(state, error) {
             state.backend_error = error;
         },
@@ -96,6 +99,7 @@ export const search = {
         },
         deleteReturnColumn(state, columnId) {
             if (state.query.show_columns.length === 1) { return; }
+            
             state.query.show_columns = state.query.show_columns.filter((col) => col !== columnId);
             if (state.query.sort_by_column === columnId) {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
@@ -152,6 +156,8 @@ export const search = {
                     // Set query data from API if it's different
                     commit('setQuery', data.query);
                 }
+
+                commit('setSearchSql', data.redshift_sql);
 
                 if (data.is_completed) {
                     commit('setSearchResults', {
