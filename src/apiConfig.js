@@ -39,6 +39,8 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
 } 
 
 const axiosConfig =  (options={}) => {
+    console.log("axiosConfig", options );
+
     const headers = {}
     if (options.userAuth) {
         const token = localStorage.getItem("token");
@@ -52,6 +54,7 @@ const axiosConfig =  (options={}) => {
     if (options.noCache) {
         headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     }
+    console.log("axiosConfig", headers);
     return {
         headers: headers
     };

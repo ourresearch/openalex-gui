@@ -316,19 +316,19 @@ const api = (function () {
 
     const createSearch = async function(query, bypass_cache=false) {
         // Creates a new Redshift query, routing to user api if needed
-        let url
+        const options = {};
+        let url = urlBase.api;
         if (doesSearchContainUserData(query)) {
-            //console.log("search contains user data")
-            url = urlBase.userApi + "/searches";
-        } else {
-            url = urlBase.api + "/searches";
+            url = urlBase.userApi;
+            options.userAuth = true;
         }
+        url = url + "/searches";
 
         // Always bypass cache if DISABLE_SERVER_CACHE is true
         bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
 
         console.log("api.createSearch to " + url)
-        const resp = await post(url, {query, bypass_cache}, axiosConfig());
+        const resp = await post(url, {query, bypass_cache}, axiosConfig(options));
         //console.log("Created Search: " + resp.data.id + " with filters:");
         //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
         return resp;

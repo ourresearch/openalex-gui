@@ -213,14 +213,14 @@ const localTestSuites = {
     labels: [ 
         {
             title: "Works with Label of Authors",
-            oql: "get works where authorships.author.id matches any item in label col-eRqykNqf5oHnd4RxrwVGdL;",
+            oql: "get works where authorships.author.id matches any item in label col-AnmE9Qtthw6kXJ86FdbJkM;",
             query: {
                 get_rows: "works",
                 filter_works: [                
                     {
                         column_id: "authorships.author.id",
                         operator: "matches any item in label",
-                        value: "col-eRqykNqf5oHnd4RxrwVGdL"
+                        value: "col-AnmE9Qtthw6kXJ86FdbJkM"
                     },
                             
                 ]
@@ -228,14 +228,14 @@ const localTestSuites = {
         },
         {
             title: "Authors with Label of Authors",
-            oql: "get authors where id matches any item in label col-eRqykNqf5oHnd4RxrwVGdL;",
+            oql: "get authors where id matches any item in label col-AnmE9Qtthw6kXJ86FdbJkM;",
             query: {
                 get_rows: "authors",
                 filter_aggs: [                
                     {
                         column_id: "id",
                         operator: "matches any item in label",
-                        value: "col-eRqykNqf5oHnd4RxrwVGdL"
+                        value: "col-AnmE9Qtthw6kXJ86FdbJkM"
                     },
                             
                 ]
