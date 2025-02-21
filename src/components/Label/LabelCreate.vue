@@ -68,7 +68,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 export default {
