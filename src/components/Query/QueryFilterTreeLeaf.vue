@@ -111,6 +111,7 @@
         </template>
         <!-- Editing Entity Value -->
         <template v-else>
+          <!-- Labels -->
           <template v-if="isLabelFilter">
             <v-menu
               v-model="labelMenuOpen"
@@ -163,6 +164,7 @@
               </v-list>
             </v-menu>
           </template>
+          <!-- Local Autocomplete -->
           <v-autocomplete
               v-else-if="localValueOptions.length"
               v-model="valueEditModel"
@@ -178,6 +180,7 @@
               @change="saveEditingValue" 
               @blur="onInputBlur"
           />
+          <!-- API Autocomplete -->
           <v-autocomplete
               v-else
               v-model="valueEditModel"

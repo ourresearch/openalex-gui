@@ -44,7 +44,7 @@
 
 
     <!-- Sort by -->
-    <div class="query-section-label" style="margin-top: 10px;">Sort by</div>
+    <div class="query-section-label" v-if="sortByColumn" style="margin-top: 10px;">Sort by</div>
     <!-- Sort by Column -->
     <div class="sort-box" v-if="sortByColumn">
       <v-menu offset-y>
@@ -165,7 +165,7 @@ export default {
         }));
     },
     sortByColumn: function() {
-      return this.columnConfigs[this.sort_by_column];
+      return this.columnConfigs?.[this.sort_by_column];
     },
   },
   methods: {
