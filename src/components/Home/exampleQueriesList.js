@@ -994,6 +994,199 @@ const exampleQueries = [
       "sort_by_order": "desc"
     }
   },
+  {
+    question: "Which institutions have the most retracted works?",
+    type: "institutions",
+    category: "discovery",
+    url: "",
+    query:{
+      "get_rows": "institutions",
+      "filter_works": [
+        {
+          "column_id": "type",
+          "value": "types/retraction",
+          "operator": "is"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which people worked on indigenous research management for their graduate work in australian universities?",
+    type: "authors",
+    category: "expert discovery",
+    url: "",
+    broken: true,
+    error: "This could be matching co-authors in Australia.",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "column_id": "type",
+          "value": "types/dissertation",
+          "operator": "is"
+        },
+        {
+          "column_id": "primary_topic.id",
+          "value": "topics/T10348",
+          "operator": "is"
+        },
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/AU",
+          "operator": "is"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What topics do France and Germany collaborate on with the highest FWCI?",
+    type: "topics",
+    category: "collaboration",
+    url: "",
+    query: {
+      "get_rows": "topics",
+      "filter_works": [
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/FR",
+          "operator": "includes"
+        },
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/DE",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "mean(fwci)"
+      ],
+      "sort_by_column": "mean(fwci)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which institutional collaborations does the Universtiy of British Columbia have the highest FWCI with?",
+    type: "institutions",
+    category: "rankings",
+    url: "",
+    query: {
+      "get_rows": "institutions",
+      "filter_works": [
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I141945490",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "mean(fwci)"
+      ],
+      "sort_by_column": "mean(fwci)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which reserchers at UCSB have had publications retracted?",
+    type: "authors",
+    category: "compliance",
+    url: "",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "column_id": "type",
+          "value": "types/retraction",
+          "operator": "is"
+        }
+      ],
+      "filter_aggs": [
+        {
+          "column_id": "last_known_institutions.id",
+          "value": "institutions/I154570441",
+          "operator": "is"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which researchers at the University of Florida have received funding from the chinese government?",
+    type: "authors",
+    category: "compliance",
+    url: "",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "column_id": "grants.funder",
+          "value": "funders/F4320335564",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [
+        {
+          "column_id": "last_known_institutions.id",
+          "value": "institutions/I33213144",
+          "operator": "is"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Where is Heather Piwowar at now?",
+    type: "authors",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [],
+      "filter_aggs": [
+        {
+          "column_id": "id",
+          "value": "authors/A5048491430",
+          "operator": "is"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "last_known_institutions.display_name"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
 ];
 
 
