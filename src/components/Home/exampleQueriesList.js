@@ -305,24 +305,24 @@ const exampleQueries = [
     question: "Which institutions has Claudia Goldin worked at?",
     type: "institutions",
     category: "discovery",
-    url: "/s/ee25f465d0907f66d8b1638629df55af",
-    broken: true,
-    error: "This gets institutions for all co-authors of Claudia Goldin as well.",
+    url: "",
     query: {
-      get_rows: "institutions",
-      filter_works: [
+      "get_rows": "authors",
+      "filter_works": [],
+      "filter_aggs": [
         {
-          column_id: "authorships.author.id",
-          value: "authors/A5000387389"
+          "column_id": "id",
+          "value": "authors/A5000387389",
+          "operator": "is"
         }
       ],
-      filter_aggs: [],
-      show_columns: [
+      "show_columns": [
         "display_name",
-        "count(works)"
+        "count(works)",
+        "affiliations.institution.display_name"
       ],
-      sort_by_column: "count(works)",
-      sort_by_order: "desc"
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
     }
   },
   {
@@ -1186,6 +1186,119 @@ const exampleQueries = [
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
     }
+  },
+  {
+    question: "How many authors are named Dugan O'Neil?",
+    type: "authors",
+    category: "discovery",
+    url: "",
+    query:{
+      "get_rows": "authors",
+      "filter_works": [],
+      "filter_aggs": [
+        {
+          "column_id": "display_name",
+          "value": "Dugan O'Neil",
+          "operator": "contains"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What institutions do resarchers who did their PhD at Leiden University work at now?",
+    type: "authors",
+    category: "trend detection",
+    url: "",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [
+        {
+          "column_id": "type",
+          "value": "types/dissertation",
+          "operator": "is"
+        },
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I121797337",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "last_known_institutions.display_name"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What topics of research does the Russian Government fund the most research on?",
+    type: "topics",
+    category: "discovery",
+    url: "",
+    broken: true,
+    error: "There are dozens of Russian funding agencies. Include all / more?",
+    query: {
+      "get_rows": "topics",
+      "filter_works": [
+        {
+          "column_id": "grants.funder",
+          "value": "funders/F4320324099",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "What is the full affiliation history of a list of authors throughout their entire career?", 
+    type: "authors",
+    category: "discovery",
+    url: "",
+    broken: true,
+    error: "Query working but bug in UI shows 'and' while query gets 'or'. Duplicates in past institutions.",
+    query: {
+      "get_rows": "authors",
+      "filter_works": [],
+      "filter_aggs": [
+        {
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "id",
+              "value": "authors/A5086928770",
+              "operator": "is"
+            },
+            {
+              "column_id": "id",
+              "value": "authors/A5023888391",
+              "operator": "is"
+            }
+          ]
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "affiliations.institution.display_name"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+   }
   },
 ];
 
