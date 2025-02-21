@@ -28,7 +28,6 @@ const configUpdates = (oaxConfigs) => {
 
   oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
 
-  oaxConfigs.authors.columns["display_name.search"].displayName = "author name"
   oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
   oaxConfigs.authors.columns["mean(fwci)"].operators = ["is greater than", "is less than", "is", "is not"]
   oaxConfigs.authors.columns["mean(fwci)"].defaultOperator = "is greater than"
@@ -55,10 +54,6 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.funders.columns["homepage_url"].actions = ["column"]
   oaxConfigs.funders.columns["id"].actions = ["column", "filter"]
   oaxConfigs.funders.columns["ids.crossref"].actions = ["column", "filter"]
-
-  oaxConfigs.institutions.columns["display_name.search"].displayName = "name"
-  oaxConfigs.institutions.columns["id"].actions = ["column", "filter"]
-  oaxConfigs.institutions.columns["ids.ror"].actions = ["column", "filter"]
 
   oaxConfigs["institution-types"].columns["display_name.search"].displayName = "name"
   oaxConfigs["institution-types"].columns["display_name.search"].actions = []
@@ -142,7 +137,7 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.works.columns["primary_topic.domain.id"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.id"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["authorships.author.id"].operators = labelOperatorsIncludes;
-  oaxConfigs.works.columns["authorships.countries"].operators = labelOperators;
+  oaxConfigs.works.columns["authorships.countries"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["authorships.institutions.continent"].operators = labelOperators;
   oaxConfigs.works.columns["authorships.institutions.type"].operators = labelOperators;
   oaxConfigs.works.columns["primary_location.source.id"].operators = labelOperators;
