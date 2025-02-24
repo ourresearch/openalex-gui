@@ -18,21 +18,29 @@
     </v-row>
     
     <v-row class="examples-header-line" />
-    <v-row class="examples-header text-h6">
-      Example Questions
+    <v-row class="examples-header text-h6 d-flex align-center">
+      <v-text-field
+        v-model="searchQuery"
+        label="Search Examples..."
+        placeholder=""
+        rounded
+        outlined
+        clearable
+        prepend-inner-icon="mdi-magnify"
+        class="search-field flex-grow-1"
+        hide-details
+        background-color="white"
+      ></v-text-field>
+      <v-select
+        v-model="selectedFilter"
+        :items="filterOptions"
+        rounded
+        outlined
+        hide-details
+        class="ml-4 filter-select"
+        background-color="white"
+      ></v-select>
     </v-row>
-      <vue-horizontal  class="example-filters horizontal" :displacement="0.5" :button-between="false">
-        <v-chip :outlined="typeFilter !== tag" v-for="tag in typeTags" :key="tag"
-          @click="typeFilter = typeFilter === tag ? null : tag"
-        >
-          {{ tag }}
-        </v-chip>
-        <v-chip :outlined="categoryFilter !== tag" v-for="tag in categoryTags" :key="tag"
-          @click="categoryFilter = categoryFilter === tag ? null : tag"
-        >
-          {{ tag }}
-        </v-chip>
-      </vue-horizontal>
 
     <v-row class="example-questions">
       <v-col cols="12" md="6" lg="4" v-for="query in showQueries" :key="query.question">
@@ -69,14 +77,33 @@ export default {
   data() {
     return {
       exampleQueries: exampleQueries,
+      searchQuery: "",
+      selectedFilter: "All Questions",
       typeFilter: null,
       categoryFilter: null,
       uiVariant: this.$store.state.uiVariant,
     }
   },
   methods: {
+    capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
   },
   computed: {
+    filterOptions() {
+      const types = this.typeTags.map(tag => ({ text: this.capitalize(tag), value: { type: tag } }));
+      const categories = this.categoryTags.map(tag => ({ text: this.capitalize(tag), value: { category: tag } }));
+      
+      return [
+        { text: "All Questions", value: "All Questions" },
+        { divider: true },
+        { header: "TYPES" },
+        ...types,
+        { divider: true },
+        { header: "CATEGORIES" },
+        ...categories
+      ];
+    },
     showQueries: function() {
       let examples = this.exampleQueries;
       if (this.uiVariant === "errors") {
@@ -84,16 +111,26 @@ export default {
       }
 
       examples = examples.filter(q => !q.broken);
-      if (this.typeFilter) {
-        examples = examples.filter(q => q.type === this.typeFilter);
+      
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase();
+        examples = examples.filter(q => 
+          q.question.toLowerCase().includes(query) ||
+          q.type.toLowerCase().includes(query) ||
+          q.category.toLowerCase().includes(query)
+        );
       }
-      if (this.categoryFilter) {
-        examples = examples.filter(q => q.category === this.categoryFilter);
+
+      if (this.selectedFilter && this.selectedFilter !== "All Questions") {
+        if (this.selectedFilter.type) {
+          examples = examples.filter(q => q.type === this.selectedFilter.type);
+        } else if (this.selectedFilter.category) {
+          examples = examples.filter(q => q.category === this.selectedFilter.category);
+        }
       }
       
-      if (!this.categoryFilter && !this.typeFilter) {
+      if (!this.searchQuery && this.selectedFilter === "All Questions") {
         examples = examples.reverse();
-        //examples = examples.sort(() => Math.random() - 0.5);
       }
       return examples;
     },
@@ -141,28 +178,27 @@ export default {
   border-bottom: 1px #ddd solid;
 }
 .row.examples-header {
-  margin: 10px 14px;
+  margin: 10px 0px;
 }
-.example-filters {
-  margin: 0px 10px 10px 10px;
-  height: 40px;
-  line-height: 40px;
+.search-field {
+  margin-top: -8px;
+  margin-bottom: -8px;
 }
-.v-hl-btn-next, .v-hl-btn-prev {
-  top: -8px !important;
-  transform: scale(0.9);
+.search-field :deep(.v-text-field__slot),
+.filter-select :deep(.v-text-field__slot) {
+  border-color: white;
 }
-.v-hl-btn-next {
-  right: -18px !important;
+.search-field :deep(.v-input__slot),
+.filter-select :deep(.v-input__slot) {
+  border-color: white !important;
+  fieldset {
+    border-color: white !important;
+  }
 }
-.v-hl-btn-prev {
-  left: -18px !important;
-}
-.v-hl-svg {
-  box-shadow: none !important;
-}
-.example-filters .v-chip {
-  margin: 3px;
+.filter-select {
+  max-width: 200px;
+  margin-top: -8px;
+  margin-bottom: -8px;
 }
 .example-questions {
   margin-bottom: 50px;
