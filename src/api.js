@@ -15,6 +15,9 @@ import ISO6391 from 'iso-639-1'
 import {entityConfigs, getEntityConfig} from "@/entityConfigs";
 import {sleep} from "./util";
 
+
+axios.defaults.headers.common['Authorization'] = `Bearer YWMKSvdNwfrknsOPtdqCPz`;
+
 const cache = {}
 const entityCache = {}
 const getFromCache = function (url) {
