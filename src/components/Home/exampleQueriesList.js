@@ -144,24 +144,28 @@ const exampleQueries = [
     type: "sources",
     category: "discovery",
     url: "/s/8c6d197386e1a445d0fea7367769a012",
-    broken: true,
-    error: "Sources.apc_usd not in Redshift",
     query: {
-      get_rows: "sources",
-      filter_works: [],
-      filter_aggs: [
+      "get_rows": "sources",
+      "filter_works": [],
+      "filter_aggs": [
         {
-          column_id: "type",
-          value: "source-types/journal"
+          "column_id": "type",
+          "value": "source-types/journal",
+          "operator": "is"
+        },
+        {
+          "column_id": "apc_usd",
+          "value": ">0",
+          "operator": "is"
         }
       ],
-      show_columns: [
+      "show_columns": [
         "display_name",
         "count(works)",
         "apc_usd"
       ],
-      sort_by_column: "apc_usd",
-      sort_by_order: "desc"
+      "sort_by_column": "apc_usd",
+      "sort_by_order": "desc"
     }
   },
   {
@@ -1299,6 +1303,46 @@ const exampleQueries = [
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
    }
+  },
+  {
+    question: "Which Diamond OA journals do researchers in Mexico publish in?", 
+    type: "sources",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "sources",
+      "filter_works": [
+        {
+          "column_id": "authorships.countries",
+          "value": "countries/MX",
+          "operator": "includes"
+        }
+      ],
+      "filter_aggs": [
+        {
+          "column_id": "type",
+          "value": "source-types/journal",
+          "operator": "is"
+        },
+        {
+          "column_id": "apc_usd",
+          "value": "0",
+          "operator": "is"
+        },
+        {
+          "column_id": "is_oa",
+          "value": true,
+          "operator": "is"
+        }
+      ],
+      "show_columns": [
+        "display_name",
+        "count(works)",
+        "apc_usd"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
   },
 ];
 
