@@ -52,10 +52,8 @@ const autocompleteCountry = function (searchString) {
 //      {foo: 42, bar: 43}
 //      [["foo", 42], ["bar", 43]]
 //      ?foo=42&bar=43
-const makeUrl = function (pathName, searchParams, includeEmail = true) {
+const makeUrl = function (pathName, searchParams) {
     const params = new URLSearchParams(searchParams);
-    (includeEmail) && params.set("mailto", "team@ourresearch.org");
-    !params.get("per-page") && params.set("per-page", 10);
 
     if (pathName.indexOf("/") !== 0) {
         pathName = "/" + pathName;
@@ -289,7 +287,6 @@ const api = (function () {
     }
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
-        // await sleep(1000)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,
@@ -310,7 +307,13 @@ const api = (function () {
             }
 
         }
-    }
+    };
+
+    const getAutocomplete = async function(entityType, params) {
+        const response = await get(`/autocomplete/${entityType}`, params);
+        console.log("getAutocomplete", response);
+        return response.results;
+    };
 
     // Redshift Searches
 
@@ -369,14 +372,6 @@ const api = (function () {
         return resp;
     };
 
-    const apiBaseUrl = function() {
-        return urlBase.api
-    }
-
-    const userApiBaseUrl = function() {
-        return urlBase.userApi
-    }
-
     return {
         getEntityDisplayName,
         getFilterValueDisplayName,
@@ -391,6 +386,7 @@ const api = (function () {
         getSuggestions,
         getEntityConfigs,
         post,
+        getAutocomplete,
         createSearch,
         getSearch,
         createExport,
