@@ -32,8 +32,6 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.authors.columns["mean(fwci)"].operators = ["is greater than", "is less than", "is", "is not"]
   oaxConfigs.authors.columns["mean(fwci)"].defaultOperator = "is greater than"
 
-  oaxConfigs.sources.columns["display_name.search"].displayName = "source name"
-
   oaxConfigs.continents.columns["display_name.search"].displayName = "continent name"
   oaxConfigs.continents.columns["display_name.search"].actions = ["column", "sort"]
   oaxConfigs.continents.columns["id"].actions = []
@@ -73,9 +71,6 @@ const configUpdates = (oaxConfigs) => {
 
   oaxConfigs["source-types"].columns["display_name.search"].displayName = "name"
   oaxConfigs["source-types"].columns["display_name.search"].actions = []
-
-  oaxConfigs.sources.columns["display_name.search"].displayName = "name"
-  oaxConfigs.sources.columns["apc_usd"].actions = ["filter", "column", "sort"]
 
   oaxConfigs.subfields.columns["display_name.search"].displayName = "name"
 
