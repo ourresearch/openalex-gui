@@ -10,6 +10,8 @@
     item-value="id"
     :placeholder="`Search ${entityType}`"
     return-object
+    v-bind="$attrs"
+    v-on="$listeners"
     rounded
     filled
     hide-no-data
@@ -17,24 +19,27 @@
   >
     <template v-slot:item="{ item }">
       <v-list-item-content>
-        <v-list-item-title v-text="item.display_name"></v-list-item-title>
-        <v-list-item-subtitle v-text="item.hint || ''"></v-list-item-subtitle>
+        <v-list-item-title>{{ item.display_name }}</v-list-item-title>
+        <v-list-item-subtitle v-if="item.hint || showWorkCounts">
+          {{ item.hint}}
+          <span v-if="item.hint && showWorkCounts">, </span>
+          <span v-if="showWorkCounts">{{ item.works_count}} works</span>
+        </v-list-item-subtitle>
       </v-list-item-content>
-      <v-list-item-action v-if="showWorkCounts">
-        <v-list-item-action-text v-text="`Works: ${item.works_count || 'N/A'}`"></v-list-item-action-text>
-      </v-list-item-action>
     </template>
   </v-autocomplete>
 </template>
 
 <script>
-import axios from 'axios';
-import { debounce } from 'lodash';
+
+import {api} from "@/api";
+import {debounce} from 'lodash';
 import {getConfigs} from "@/oaxConfigs";
 
 
 export default {
   name: "EntityAutocomplete",
+  inheritAttrs: false,
   props: {
     entityType: {
       type: String,
@@ -55,18 +60,16 @@ export default {
   },
   computed: {
     localValueOptions() {
-      const values = getConfigs()[this.entityType]?.values
-      return values
+      const values = getConfigs()[this.entityType]?.values;
+      return values;
     },
   },
   methods: {
     async searchEntities(query) {
       this.loading = true;
       try {
-        const response = await axios.get(`https://api.openalex.org/autocomplete/${this.entityType}`, {
-          params: { q: query }
-        });
-        this.entities = response.data.results;
+        const response = await api.getAutocomplete(this.entityType, {q: query});
+        this.entities = response;
       } catch (error) {
         console.error(`Error fetching ${this.entityType}:`, error);
         this.entities = [];
@@ -76,8 +79,8 @@ export default {
     },
     onEntitySelected(entity) {
       if (!entity) { return }
-      console.log("onEntitySelected")
-      console.log(entity)
+      //console.log("onEntitySelected")
+      //console.log(entity)
       if (entity?.short_id) { entity.id = entity.short_id }
       this.$emit('entity-selected', entity)
       this.selectedEntity = null
@@ -95,7 +98,7 @@ export default {
   watch: {
     search(val) {
       if (this.localValueOptions) {
-        this.entities = this.localValueOptions
+        this.entities = this.localValueOptions;
       }
       else if (val) {
         this.debouncedSearchEntities(val);

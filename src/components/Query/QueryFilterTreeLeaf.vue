@@ -181,23 +181,16 @@
               @blur="onInputBlur"
           />
           <!-- API Autocomplete -->
-          <v-autocomplete
+          <entity-autocomplete
               v-else
               v-model="valueEditModel"
-              :items="valueOptions"
-              :loading="isLoading"
-              :search-input.sync="search"
-              item-text="display_name"
-              item-value="id"
-              filled
-              rounded
-              hide-details
-              hide-no-data
-              dense
-              class="flex-grow-1"
-              autofocus
-              @change="saveEditingValue" 
+              :entity-type="columnConfig.objectEntity"
+              @entity-selected="saveEditingValue"
               @blur="onInputBlur"
+              class="flex-grow-1"
+              showWorkCounts
+              autofocus
+              dense
           />
         </template>
       </template>
@@ -249,18 +242,16 @@
 
 
 <script>
-
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {entityEndpointResults} from "@/extraConfigs";
 import {getConfigs} from "@/oaxConfigs";
 import axios from "axios";
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
-
+import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 
 export default {
   name: "QueryFilterTreeLeaf",
   components: {
     QueryFilterValueChip,
+    EntityAutocomplete,
   },
   props: {
     column_id: String,
@@ -391,9 +382,10 @@ export default {
       this.valueEditModel = null
     },
     saveEditingValue(value) {
-      console.log("saveEditingValue: " + value)
+      console.log("saveEditingValue: ", value)
       this.isEditingValue = false
-      this.selectedValue = value
+      // Handle both full entity objects and direct ID values
+      this.selectedValue = value?.id || value
       this.valueEditModel = null
     },
     deleteFilter() {
