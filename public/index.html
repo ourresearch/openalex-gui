@@ -10,6 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@100;200;300;400;500;600;700;800;900&display=swap"
           rel="stylesheet">
 
+    <!-- Plausible.io -->
+    <script>
+    window.onerror = function (message, source, lineno, colno, error) {
+        plausible('javascript-error', {
+        props: {
+            message: message,
+            source: source,
+            line: lineno,
+            column: colno,
+            stack: error ? error.stack : 'no stack'
+        }
+        });
+    };
+    </script>
     <script defer data-domain="staging.openalex.org" src="https://plausible.io/js/script.file-downloads.outbound-links.pageview-props.tagged-events.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
 </head>
