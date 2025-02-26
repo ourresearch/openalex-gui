@@ -1,17 +1,16 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import _ from "lodash"
-import {entityConfigs} from "../entityConfigs";
-import {facetsByCategory} from "../facetConfigs";
-import {user} from "@/store/user.store";
 import router from "@/router";
 import {api} from "@/api";
+import tracking from "@/tracking";
 import {getConfigs} from "@/oaxConfigs";
 import {baseQuery} from "@/components/Query/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 
 Vue.use(Vuex);
+
 
 const stateDefaults = function () {
     const ret = {
@@ -113,10 +112,10 @@ export const search = {
             const query = oqlToQuery(oql);
             return await dispatch("createSearchFromQuery", query);
         },
-        createSearchFromQuery: async function ({commit}, query) {
+        createSearchFromQuery: async function ({commit, dispatch}, query) {
             console.log("createSearchFromQuery", query);
             commit('setNewSearchByQuery', query);
-            
+
             try {
                 const response = await api.createSearch(query);
                 
@@ -166,6 +165,7 @@ export const search = {
                         meta: data.meta,
                         redshift_sql: data.redshift_sql
                     });
+                    tracking.trackSearch(data);
                 }
 
                 if (data.backend_error) {
