@@ -20,5 +20,28 @@
 </noscript>
 <div id="app"></div>
 <!-- built files will be auto injected -->
+<!-- Start of openalex Zendesk Widget script -->
+<script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=f448c93c-e2e1-4d7c-b344-683a586e69f7"> </script>
+<!-- End of openalex Zendesk Widget script -->
+ <script>
+    // Zendesk Widget Setup
+    window.zE = window.zE || function() { (zE.q = zE.q || []).push(arguments); };
+    // Wait for the widget to load before setting user details
+    zE('webWidget:on', 'open', function() {
+        zE('webWidget', 'identify', {
+        name: vm.$store.state.user.name, 
+        email: vm.$store.state.user.email,
+        });
+    });
+    zE('webWidget', 'updateSettings', {
+        webWidget: {
+            contactForm: {
+                attachments: false,
+                title: { '*': "Send us Feedback"},
+            }
+        }
+    });   
+ </script>
 </body>
+</html>
 </html>
