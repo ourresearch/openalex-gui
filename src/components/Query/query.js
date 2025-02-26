@@ -61,7 +61,6 @@ const baseQuery = (entity = 'works') => {
         sort_by_column: config.sortByDefault,
         sort_by_order: config.sortDirDefault,
     };
-    console.log("baseQuery", query);
     return query;
 }
 

@@ -13,7 +13,7 @@ import {mapGetters} from "vuex";
 export default {
   name: "ResultsError",
   computed: {
-    ...mapGetters([
+    ...mapGetters("search", [
       "queryBackendError",
     ]),
   }
