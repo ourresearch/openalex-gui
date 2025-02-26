@@ -26,63 +26,6 @@ function getConfigs() {
 
 const configUpdates = (oaxConfigs) => {
 
-  oaxConfigs.works.columns["sustainable_development_goals.id"].actions = ["column", "filter", "sort"] 
-
-  oaxConfigs.authors.columns["mean(fwci)"].actions = ["filter", "column", "sort"]
-  oaxConfigs.authors.columns["mean(fwci)"].operators = ["is greater than", "is less than", "is", "is not"]
-  oaxConfigs.authors.columns["mean(fwci)"].defaultOperator = "is greater than"
-
-  oaxConfigs.continents.columns["display_name.search"].displayName = "continent name"
-  oaxConfigs.continents.columns["display_name.search"].actions = ["column", "sort"]
-  oaxConfigs.continents.columns["id"].actions = []
-
-  oaxConfigs.countries.columns["display_name.search"].displayName = "country name"
-  oaxConfigs.countries.columns["continent"].actions = ["filter", "column", "sort"]
-  oaxConfigs.countries.columns["continent"].displayName = "continent"
-  oaxConfigs.countries.columns["id"].actions = ["filter", "column", "sort"]
-
-  oaxConfigs.domains.columns["display_name.search"].displayName = "name"
-  oaxConfigs.domains.columns["display_name.search"].actions = []
-  oaxConfigs.domains.columns["id"].actions = ["column", "sort"]
-
-  oaxConfigs.fields.columns["display_name.search"].displayName = "name"
-  oaxConfigs.fields.columns["id"].actions = ["filter", "column", "sort"]
-
-  oaxConfigs.funders.columns["display_name.search"].displayName = "name"
-  oaxConfigs.funders.columns["homepage_url"].actions = ["column"]
-  oaxConfigs.funders.columns["id"].actions = ["column", "filter"]
-  oaxConfigs.funders.columns["ids.crossref"].actions = ["column", "filter"]
-
-  oaxConfigs["institution-types"].columns["display_name.search"].displayName = "name"
-  oaxConfigs["institution-types"].columns["display_name.search"].actions = []
-
-  oaxConfigs.keywords.columns["display_name.search"].displayName = "name"
-
-  oaxConfigs.languages.columns["display_name.search"].displayName = "name"
-
-  oaxConfigs.licenses.columns["display_name.search"].displayName = "name"
-  oaxConfigs.licenses.columns["url"].actions = ["column"]
-
-  oaxConfigs.publishers.columns["display_name.search"].displayName = "name"
-  oaxConfigs.publishers.columns["country_code"].actions = ["filter", "column", "sort"]
-
-  oaxConfigs.sdgs.columns["display_name.search"].displayName = "name"
-  oaxConfigs.sdgs.columns["display_name.search"].actions = []
-
-  oaxConfigs["source-types"].columns["display_name.search"].displayName = "name"
-  oaxConfigs["source-types"].columns["display_name.search"].actions = []
-
-  oaxConfigs.subfields.columns["display_name.search"].displayName = "name"
-
-  oaxConfigs["work-types"].columns["display_name.search"].displayName = "name"
-
-  oaxConfigs.topics.columns["count(works)"].actions = ["filter", "column", "sort"]
-  oaxConfigs.topics.columns["field"].actions = ["filter", "column", "sort"]
-  oaxConfigs.topics.columns["domain"].actions = ["filter", "column", "sort"]
-  oaxConfigs.topics.columns["subfield"].actions = ["filter", "column", "sort"]
-  oaxConfigs.topics.columns["id"].actions = ["filter", "column", "sort"]
-
-
   // LABELS UPDATES
   const labelOperators = [
       "is",

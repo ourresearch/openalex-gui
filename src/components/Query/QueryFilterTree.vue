@@ -41,7 +41,7 @@ Manipulations of current filter state occur locally and are passed to global sta
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 import {filter} from "core-js/internals/array-iteration";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
