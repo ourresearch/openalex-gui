@@ -170,7 +170,6 @@
     <!--<saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>-- removed to prevent mapgetters calling entityType which doesn't exist on RA> -->
 
-
   </v-app>
 </template>
 
