@@ -144,20 +144,30 @@ Vue.filter("titleCase", function (str) {
     "nor", "of", "on", "or", "so", "the", "to", "up", "yet"
   ]
 
-  const fixedWords = ["OpenAlex", "ID", "ROR", "ORCID", "DOI", "OA", "ISSN", 
-    "DOAJ", "SDGS", "FWCI"]
+  const fixedWords = ["OpenAlex", "ID", "IDs", "ROR", "ORCID", "DOI", "OA", "ISSN", "ISSNs", 
+    "DOAJ", "SDG", "SDGs", "FWCI"]
+  
+  // Create a mapping of lowercase fixed words to their correct form
+  const fixedWordsMap = fixedWords.reduce((map, word) => {
+    map[word.toLowerCase()] = word;
+    return map;
+  }, {});
 
   return str
     .split(" ")
     .map((word, index) => {
-      if (fixedWords.includes(word)) { return word }  
-      const lowerCaseWord = word.toLowerCase()
+      // Check if the word (case-insensitive) is in our fixed words list
+      const lowerCaseWord = word.toLowerCase();
+      if (fixedWordsMap[lowerCaseWord]) {
+        return fixedWordsMap[lowerCaseWord]; // Return the correctly capitalized version
+      }
+      
       // Capitalize the first word or non-stop words
       if (index === 0 || !stopWords.includes(lowerCaseWord)) {
-        return word[0].toUpperCase() + word.slice(1).toLowerCase()
+        return word[0].toUpperCase() + word.slice(1).toLowerCase();
       }
       // Return stop words in lowercase
-      return lowerCaseWord
+      return lowerCaseWord;
     })
     .join(" ");
 });
