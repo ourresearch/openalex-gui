@@ -48,6 +48,7 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.authors.columns["last_known_institutions.type"].operators = labelOperators;
   oaxConfigs.fields.columns["subfields"].operators = labelOperators;
   oaxConfigs.fields.columns["domain"].operators = labelOperators;
+  oaxConfigs.funders.columns["id"].operators = labelOperatorsIncludes;
   oaxConfigs.institutions.columns["country_code"].operators = labelOperators;
   oaxConfigs.institutions.columns["type"].operators = labelOperators;
   oaxConfigs.institutions.columns["parent_institutions"].operators = labelOperators;
