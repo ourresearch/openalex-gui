@@ -39,12 +39,8 @@
         <img class="user-logo tall"
              src="https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/American_Chemical_Society_logo.svg/240px-American_Chemical_Society_logo.svg.png"
              alt="">
-        <!--          <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Bristol-Myers_Squibb_logo_%282020%29.svg/800px-Bristol-Myers_Squibb_logo_%282020%29.svg.png" alt="">-->
         <img class="user-logo short"
              src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Logo_EPFL_2019.svg/320px-Logo_EPFL_2019.svg.png"
-             alt="">
-        <img class="user-logo tall"
-             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Logo_Bayer.svg/240px-Logo_Bayer.svg.png"
              alt="">
         <img class="user-logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Jisc_logo.png" alt="">
         <img class="user-logo"
