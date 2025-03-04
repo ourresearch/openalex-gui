@@ -90,26 +90,54 @@ const exampleQueries = [
     }
   },
   {
-    question: "Which institutions in Austria have the highest percentage of Open Access works?",
+    question: "What keywords does Kyle Demes use in his work?",
+    type: "keywords",
+    category: "trend detection",
+    url: "",
+    query: {
+      "get_rows": "keywords",
+      "filter_works": [
+        {
+          "column_id": "authorships.author.id",
+          "value": "authors/A5086928770"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "id",
+        "count(works)"
+      ],
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
+    }
+  },
+  {
+    question: "Which universities in Austria have the highest percentage of Open Access works?",
     type: "institutions",
     category: "open access",
     url: "/s/cc7fffa97cdab1b7c115b599e29002cc",
     query: {
-      get_rows: "institutions",
-      filter_works: [],
-      filter_aggs: [
+      "get_rows": "institutions",
+      "filter_works": [],
+      "filter_aggs": [
         {
-          column_id: "country_code",
-          value: "countries/AT"
+          "column_id": "country_code",
+          "value": "countries/AT"
+        },
+        {
+          "column_id": "type",
+          "value": "institution-types/education",
+          "operator": "is"
         }
       ],
-      show_columns: [
+      "show_columns": [
         "display_name",
         "count(works)",
         "percent(is_open_access)"
       ],
-      sort_by_column: "percent(is_open_access)",
-      sort_by_order: "desc"
+      "sort_by_column": "percent(is_open_access)",
+      "sort_by_order": "desc"
     }
   },
   {
@@ -322,10 +350,9 @@ const exampleQueries = [
       ],
       "show_columns": [
         "display_name",
-        "count(works)",
         "affiliations.institution.display_name"
       ],
-      "sort_by_column": "count(works)",
+      "sort_by_column": "display_name",
       "sort_by_order": "desc"
     }
   },
