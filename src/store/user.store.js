@@ -12,7 +12,6 @@ const apiBaseUrl = urlBase.userApi
 
 export const user = {
     namespaced: true,
-
     state: {
         id: "",
         name: "",
@@ -22,25 +21,21 @@ export const user = {
         collections: [],
         corrections: [],
         isSaving: false,
-
         renameId: null,
         editAlertId: null,
         activeSearchId: null,
-
         isSignupDialogOpen: false,
         isLoginDialogOpen: false,
     },
     mutations: {
         setToken(state, token) {
-            localStorage.setItem("token", token)
+            localStorage.setItem("token", token);
         },
         setIsSignupDialogOpen(state, val) {
-            state.isLoginDialogOpen = false
-            state.isSignupDialogOpen = val
+            state.isSignupDialogOpen = val;
         },
         setIsLoginDialogOpen(state, val) {
-            state.isSignupDialogOpen = false
-            state.isLoginDialogOpen = val
+            state.isLoginDialogOpen = val;
         },
         setRenameId(state, id) {
             state.renameId = id

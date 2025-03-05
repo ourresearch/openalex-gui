@@ -1,12 +1,12 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500">
+  <v-dialog v-model="isOpen" max-width="500" :persistent="isFixed">
 
     <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
         <v-icon left>mdi-account-plus</v-icon>
         Sign up
         <v-spacer/>
-        <v-btn icon @click="isOpen = false">
+        <v-btn v-if="!isFixed" icon @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
@@ -20,12 +20,9 @@
               rounded
               autofocus
               hide-details
-
               type="text"
               name="name"
               id="name"
-
-              class=""
               v-model="name"
               prepend-icon="mdi-account-outline"
               placeholder="Your name"
@@ -36,11 +33,9 @@
           <v-text-field
               filled
               rounded
-
               type="email"
               id="email"
               name="email"
-
               class="mt-3"
               prepend-icon="mdi-email-outline"
               v-model="email"
@@ -57,11 +52,9 @@
               prepend-icon="mdi-lock-outline"
               v-model="password"
               placeholder="Password"
-
               id="new-password"
               name="new-password"
               :type="isPasswordVisible ? 'text' : 'password'"
-
               :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
               @click:append="isPasswordVisible = !isPasswordVisible"
               @keydown.enter="submit"
@@ -71,6 +64,9 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
+        <router-link @click.native.prevent="switchToLogin" class="mr-3 text-caption text-decoration-none" :to="{ name: 'Login', query: $route.query }">
+          Have an account? Login
+        </router-link>
         <v-btn
             :disabled="isFormDisabled"
             color="primary"
@@ -79,7 +75,6 @@
         >
           Sign up
         </v-btn>
-
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -102,14 +97,10 @@ export default {
       password: "",
       isPasswordVisible: false,
       isEmailAlreadyInUse: false,
-
       isLoading: false,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
       "userName",
@@ -130,74 +121,85 @@ export default {
 
       return this.isLoading || (isDirty && !isFormValid)
     },
+    isFixed() {
+      return this.$route.name == "Signup";
+    },
+    redirectPath() {
+      return this.$route.query.redirect;
+    },
     isOpen: {
       get() {
-        return this.isSignupDialogOpen
+        return this.isSignupDialogOpen;
       },
       set(val) {
-        this.setIsSignupDialogOpen(val)
+        this.setIsSignupDialogOpen(val);
       },
     }
   },
-
-
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
     ...mapMutations("user", [
       "setIsSignupDialogOpen",
+      "setIsLoginDialogOpen",
     ]),
     ...mapActions("user", [
       "requestSignupEmail",
       "createUser",
     ]),
+    switchToLogin() {
+      if (this.isFixed) {
+        this.$router.push({ name: 'Login', query: this.$route.query });
+      } else {
+        this.setIsLoginDialogOpen(true);
+        this.setIsSignupDialogOpen(false);
+      }
+    },
     async submit() {
-      if (this.isFormDisabled) return
-      this.isLoading = true
+      if (this.isFormDisabled) { return; }
+      this.isLoading = true;
       try {
         await this.createUser({
           email: this.email,
           name: this.name,
           password: this.password
-        })
-        this.snackbar(`Account created. Welcome, ${this.name}!`)
-        this.isOpen = false
+        });
+        if (this.redirectPath) {
+          this.$router.replace(this.redirectPath);
+        } 
+        this.snackbar(`Account created. Welcome, ${this.name}!`);
+        this.isOpen = false;
       } catch (e) {
         if (e.message.includes("409")) {
-          this.isEmailAlreadyInUse = true
+          this.isEmailAlreadyInUse = true;
         }
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     }
-
-  },
-  created() {
   },
   mounted() {
-
   },
   watch: {
-    isOpen() {
-      this.name = ""
-      this.email = ""
-      this.password = ""
-      this.isLoading = false
-      this.isPasswordVisible = false
-
-      this.isEmailAlreadyInUse = false
+    isOpen(to, from) {
+      this.name = "";
+      this.email = "";
+      this.password = "";
+      this.isLoading = false;
+      this.isPasswordVisible = false;
+      this.isEmailAlreadyInUse = false;
     },
     password() {
     },
     email() {
-      this.password = ""
-      this.isEmailAlreadyInUse = false
+      this.password = "";
+      this.isEmailAlreadyInUse = false;
     }
   }
 }
 </script>
 
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 </style>

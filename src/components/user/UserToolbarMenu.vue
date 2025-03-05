@@ -122,13 +122,12 @@ export default {
       "setIsSignupDialogOpen",
       "setIsLoginDialogOpen",
     ]),
-    ...mapActions([]),
     localLogout() {
-      this.logout()
-      this.snackbar("You're logged out")
+      this.logout();
+      this.snackbar("You're logged out");
     },
     goToSavedSearches() {
-      this.$router.push("/me/searches")
+      this.$router.push("/me/searches");
     }
   },
   created() {

@@ -1,12 +1,11 @@
 <template>
   <v-container class="fill-height justify-center">
-    <user-login class=""  style="max-width: 400px" @close="$router.push('/')" />
   </v-container>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import UserLogin from "@/components/user/UserLogin.vue";
 
 export default {
@@ -18,38 +17,31 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
-      "userName",
-      "userEmail",
-      "userEmailAlerts",
-      "userSavedSearches",
     ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
+    ...mapMutations("user", [
+      "setIsLoginDialogOpen",
+      "setIsSignupDialogOpen",
     ]),
-    ...mapActions([]),
-
-
   },
   created() {
+    this.setIsLoginDialogOpen(true);
+    this.setIsSignupDialogOpen(false);
   },
   mounted() {
     if (this.userId) {
-      this.$router.push("/")
+      this.$router.push(this.$route.query.redirect || '/');
     }
   },
-  watch: {}
+  beforeDestroy() {
+    this.setIsLoginDialogOpen(false);
+  },
 }
 </script>
 

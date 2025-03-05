@@ -43,13 +43,12 @@ import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
 import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
 import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
 
-Vue.use(VueRouter)
 
+Vue.use(VueRouter);
 
-const entityNames = Object.keys(getConfigs()).join("|")
+const entityNames = Object.keys(getConfigs()).join("|");
 
 const routes = [
-
 
     // data pages
     {
@@ -66,6 +65,7 @@ const routes = [
     {
         path: "/s/:id",
         name: "search",
+        meta: {requiresAuth: true},
         component: Results,
     },
 
@@ -82,39 +82,8 @@ const routes = [
     {path: '/login', name: 'Login', component: Login},
     // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
-    
-    //  tests
-    {
-        path: '/tests',
-        component: TestQueriesBase,
-        children: [
-            {
-                path: '',
-                name: 'test-suites-list',
-                component: TestQueriesSuitesList,
-            },
-            {
-                path: '/tests/:testSuiteId',
-                name: 'test-queries-suite',
-                component: TestQueriesSuite,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId',
-                name: 'test-query',
-                component: TestQueryView,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId/:testType',
-                name: 'test-type',
-                component: TestQueriesTestType,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId/:testType/:testId',
-                name: 'test',
-                component: TestQueriesTest,
-            },
-        ]
-    },
+
+    // Acounts Pages
     {
         path: '/me',
         component: MeBase,
@@ -154,14 +123,44 @@ const routes = [
         ]
     },
 
+    //  tests
+    {
+        path: '/tests',
+        component: TestQueriesBase,
+        children: [
+            {
+                path: '',
+                name: 'test-suites-list',
+                component: TestQueriesSuitesList,
+            },
+            {
+                path: '/tests/:testSuiteId',
+                name: 'test-queries-suite',
+                component: TestQueriesSuite,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId',
+                name: 'test-query',
+                component: TestQueryView,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId/:testType',
+                name: 'test-type',
+                component: TestQueriesTestType,
+            },
+            {
+                path: '/tests/:testSuiteId/:queryId/:testType/:testId',
+                name: 'test',
+                component: TestQueriesTest,
+            },
+        ]
+    },
 
     // static pages
     {
         path: '/',
-        // redirect: {name: "Serp", params: {entityType: "works"}},
         component: Home,
         name: 'Home',
-        // component: Home
     },
     {path: '/about', name: 'About', component: About},
     {path: '/faq', component: Faq},
@@ -194,7 +193,6 @@ const routes = [
             window.location.href = "https://docs.openalex.org/download-snapshot/mag-format"
         }
     },
-
     {
         path: '/author-change-request', beforeEnter() {
             window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
@@ -205,7 +203,6 @@ const routes = [
             window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
         }
     },
-
     {
         path: '/webinars', beforeEnter() {
             window.location.href = "https://help.openalex.org/hc/en-us/articles/24428492324631-Webinars"
@@ -255,9 +252,7 @@ const routes = [
     },
 
     {path: '*', component: PageNotFound},
-
-
-]
+];
 
 const router = new VueRouter({
     routes,
@@ -311,7 +306,10 @@ router.beforeEach(async (to, from, next) => {
         if (store.getters["user/userId"]) {  // you're logged in great. proceed.
             next();
         } else { // sorry, you can't view this page. go log in.
-            next("/login");
+            next({ 
+                name: 'Login',
+                query: { redirect: to.fullPath }
+            });
         }
     } else { //  no auth required. proceed.
         next();
@@ -319,4 +317,4 @@ router.beforeEach(async (to, from, next) => {
 });
 
 
-export default router
+export default router;
