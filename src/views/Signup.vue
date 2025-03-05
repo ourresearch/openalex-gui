@@ -1,54 +1,45 @@
 <template>
   <v-container class="fill-height justify-center">
-    <user-signup class=""  style="max-width: 400px" />
   </v-container>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserLogin from "@/components/user/UserLogin.vue";
+import {mapGetters, mapMutations} from "vuex";
 import UserSignup from "@/components/user/UserSignup.vue";
 
 export default {
-  name: "Login",
+  name: "Signup",
     metaInfo() {
         return {title: "Sign up" }
     },
   components: {UserSignup},
   props: {},
   data() {
-    return {
-      foo: 42,
-    }
+    return {}
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     ...mapGetters("user", [
       "userId",
-      "userName",
-      "userEmail",
-      "userEmailAlerts",
-      "userSavedSearches",
     ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
+    ...mapMutations("user", [
+      "setIsLoginDialogOpen",
+      "setIsSignupDialogOpen",
     ]),
-    ...mapActions([]),
-
-
   },
   created() {
+    this.setIsLoginDialogOpen(false);
+    this.setIsSignupDialogOpen(true);
   },
   mounted() {
     if (this.userId) {
-      this.$router.push("/")
+      this.$router.push(this.$route.query.redirect || '/');
     }
+  },
+  beforeDestroy() {
+    this.setIsSignupDialogOpen(false);
   },
   watch: {}
 }
