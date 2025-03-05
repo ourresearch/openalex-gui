@@ -13,7 +13,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import Entity from "@/components/Entity/Entity.vue";
 
 export default {
-  name: "Template",
+  name: "EntityPage",
   components: {
     Entity,
   },

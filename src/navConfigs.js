@@ -16,6 +16,10 @@ const navConfigs = [
                 href: "https://docs.openalex.org/",
             },
             {
+                name: "Analytics docs",
+                to: "/analytics-docs",
+            },
+            {
                 name: "Source Code",
                 href: "https://github.com/ourresearch",
             },
