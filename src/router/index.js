@@ -5,6 +5,7 @@ import Faq from "../views/Faq.vue";
 import Testimonials from "../views/Testimonials.vue";
 import Help from "../views/Help.vue";
 import OpenAlexStats from "../views/OpenAlexStats.vue";
+import AnalyticsDocs from "../views/AnalyticsDocs.vue";
 
 import Serp from "../views/Serp";
 import Results from "@/views/Results.vue";
@@ -68,12 +69,21 @@ const routes = [
         component: Results,
     },
 
+    // entity pages
+    {
+        path: `/:namespace(${entityNames})/:identifier`,
+        name: 'EntityPage',
+        component: EntityPage,
+    },
+
 
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
     // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
+    
+    //  tests
     {
         path: '/tests',
         component: TestQueriesBase,
@@ -105,28 +115,6 @@ const routes = [
             },
         ]
     },
-    // {
-    //     path: '/test-queries/:testSuiteId',
-    //     name: "query-suite",
-    //     component: TestQueriesBase,
-    // },
-    // {
-    //     path: '/test-queries/:suiteId/:queryId',
-    //     name: "query",
-    //     component: TestQueriesBase,
-    // },
-    // {
-    //     path: '/test-queries/:suiteId/:queryId/:testType',
-    //     name: "test-type",
-    //     component: TestQueriesBase,
-    // },
-    // {
-    //     path: '/test-queries/:suiteId/:queryId/:testType/:testId',
-    //     name: "test",
-    //     component: TestQueriesBase,
-    // },
-
-
     {
         path: '/me',
         component: MeBase,
@@ -182,6 +170,7 @@ const routes = [
     {path: '/stats', component: OurStats},
     {path: '/query', component: Query},
     {path: '/tests_old', component: OQOTests},
+    {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
 
 
     // redirects to gitbook docs
@@ -263,19 +252,6 @@ const routes = [
         path: '/webinars/api-notebook-01', beforeEnter() {
             window.location.href = "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"
         }
-    },
-
-    {
-        path: `/:namespace(${entityNames})/:identifier`,
-        name: 'EntityPage',
-        component: EntityPage,
-        // redirect: to => {
-        //     return {
-        //         name: "Serp",
-        //         params: {entityType: "works"},
-        //         query: {sidebar: to.params.entityId}
-        //     }
-        // }
     },
 
     {path: '*', component: PageNotFound},

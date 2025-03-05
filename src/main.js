@@ -145,7 +145,7 @@ Vue.filter("titleCase", function (str) {
   ]
 
   const fixedWords = ["OpenAlex", "ID", "IDs", "ROR", "ORCID", "DOI", "OA", "ISSN", "ISSNs", 
-    "DOAJ", "SDG", "SDGs", "FWCI"]
+    "DOAJ", "SDG", "SDGs", "FWCI", "URL", "CrossRef"]
   
   // Create a mapping of lowercase fixed words to their correct form
   const fixedWordsMap = fixedWords.reduce((map, word) => {
