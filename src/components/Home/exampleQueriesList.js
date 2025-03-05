@@ -360,9 +360,7 @@ const exampleQueries = [
     question: "Who are the world experts on macrocystis?",
     type: "authors",
     category: "expert discovery",
-    url: "/s/3c44e1c7b3231dd8b173b059ce3aa935",
-    broken: true,
-    error: "No results - query structure works, no data?",
+    url: "",
     query: {
       get_rows: "authors",
       filter_works: [
@@ -631,9 +629,7 @@ const exampleQueries = [
     question: "Which journals publish the highest cited research on coral bleaching?",
     type: "sources",
     category: "recommenders",
-    url: "/s/b2eb324e69e4e409011798a90d78ce0b",
-    broken: true,
-    error: "No results - query structure works, no data?",
+    url: "",
     query: {
       get_rows: "sources",
       filter_works: [
@@ -1118,21 +1114,29 @@ const exampleQueries = [
     category: "rankings",
     url: "",
     query: {
-      "get_rows": "institutions",
+      "get_rows": "authors",
       "filter_works": [
         {
-          "column_id": "authorships.institutions.id",
-          "value": "institutions/I141945490",
-          "operator": "includes"
+          "column_id": "type",
+          "value": "types/dataset"
+        },
+        {
+          "column_id": "open_access.is_oa",
+          "value": true
         }
       ],
-      "filter_aggs": [],
+      "filter_aggs": [
+        {
+          "column_id": "last_known_institutions.id",
+          "value": "institutions/I141945490",
+          "operator": "is"
+        }
+      ],
       "show_columns": [
         "display_name",
-        "count(works)",
-        "mean(fwci)"
+        "count(works)"
       ],
-      "sort_by_column": "mean(fwci)",
+      "sort_by_column": "count(works)",
       "sort_by_order": "desc"
     }
   },
