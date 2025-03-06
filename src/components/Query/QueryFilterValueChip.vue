@@ -19,10 +19,8 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {getConfigs} from "@/oaxConfigs";
 import {api} from "@/api";
-import axios from "axios";
+
 
 export default {
   name: "QueryFilterValueChip",
@@ -48,31 +46,33 @@ export default {
       if (this.isLabelFilter) {
         const collection = this.$store.getters['user/getCollection'](this.value)
         this.entityData = {
-          display_name: collection.name
+          display_name: collection.name,
         }
       } else {
-        this.isLoading = true
-        const response = await api.getEntity(this.value)
-        this.entityData = response
-        this.isLoading = false        
+        this.isLoading = true;
+        const response = await api.getEntity(this.value);
+        this.entityData = response;
+        this.isLoading = false;   
       }
     },
   },
   created() {
-    if (!this.columnConfig.objectEntity) throw new Error(
+    if (!this.columnConfig.objectEntity) { 
+      throw new Error(
         "QueryFilterValueChip only works if there's an objectEntity for the filter"
-    )
-    if (!this.value) throw new Error(
+      )
+    }
+    if (!this.value) { 
+      throw new Error(
         "QueryFilterValueChip only works if there's a value for the filter"
-    )
-  },
-  mounted() {
+      )
+    };
   },
   watch: {
     value: {
       handler: function (newValue, oldValue) {
         if (newValue) {
-          this.getEntity()
+          this.getEntity();
         }
       },
       immediate: true,

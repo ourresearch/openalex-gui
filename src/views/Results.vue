@@ -117,6 +117,11 @@ import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 
 export default {
   name: "Results",
+  metaInfo() {
+    return {
+      title: this.$store.state.search.pageTitle,
+    };
+  },
   components: {
     SearchFromText,
     ResultsTable,
