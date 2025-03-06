@@ -30,65 +30,7 @@
 
       </router-link>
       <div class="flex-grow-1"></div>
-      <v-menu offset-y rounded>
-        <template v-slot:activator="{on}">
-          <v-chip
-              v-on="on"
-              outlined
-              class="ml-3 mt-1 mr-2"
-              v-if="environment !== 'production'"
-              :color="environment === 'local' ? '' : 'warning'"
-          >
-            <v-icon left small v-if="environment === 'local'">mdi-cog-outline</v-icon>
-            <v-icon left small v-else-if="environment === 'staging'">mdi-flask-outline</v-icon>
-            {{ environment }}
-            <v-icon small right>mdi-menu-down</v-icon>
-          </v-chip>
-        </template>
-        <v-list>
-          <v-list-item
-              :href="localUrl"
-              target="_blank"
-              :class="{'v-list-item--active primary--text': environment === 'local'}"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-cog-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Local
-                <v-icon x-small>mdi-open-in-new</v-icon>
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                localhost:8080
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item
-              :href="stagingUrl"
-              target="_blank"
-              :class="{'v-list-item--active primary--text': environment === 'staging'}"
-          >
-            <v-list-item-icon>
-              <v-icon>mdi-flask-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>
-                Staging
-                <v-icon x-small>mdi-open-in-new</v-icon>
-              </v-list-item-title>
-                <v-list-item-subtitle>
-                  staging.openalex.org
-                </v-list-item-subtitle>
-            </v-list-item-content>
-            <v-list-item-action>
-              <v-btn icon @click.prevent.stop="copyToClipboard(stagingUrl)">
-                <v-icon>mdi-content-copy</v-icon>
-              </v-btn>
-            </v-list-item-action>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+
       <v-btn icon to="/tests">
         <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
       </v-btn>
