@@ -4,7 +4,7 @@
         <v-icon>mdi-account-outline</v-icon>
       </v-btn>
 
-    <div class="" v-else>
+    <div v-else>
       <template v-if="$vuetify.breakpoint.mobile">
         <v-menu offset-y>
           <template v-slot:activator="{on}">
@@ -89,7 +89,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import UserSignup from "./UserSignup.vue";
 import UserLogin from "./UserLogin.vue";
 
