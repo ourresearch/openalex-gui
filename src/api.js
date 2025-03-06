@@ -114,7 +114,6 @@ const api = (function () {
 
     const post = async function(url, data, config) {
         let op = url.includes("?") ? "&" : "?";
-        url += op + "mailto=team@ourresearch.org";
         const resp = await axios.post(url, data, config);
         return resp;
     }
@@ -122,28 +121,28 @@ const api = (function () {
     const getResultsList = async function (url) {
         const ret = await getUrl(url);
         return ret;
-    }
+    };
 
     const getEntity = async function (id) {
-        const myUrl = makeUrl(id)
-        const resp = await getUrl(myUrl)
-        return resp
-    }
+        const myUrl = makeUrl(id);
+        const resp = await getUrl(myUrl);
+        return resp;
+    };
 
     const getEntityFromCache = function(id) {
-        const myUrl = makeUrl(id)
-        return _.cloneDeep(cache[myUrl])
-    }
+        const myUrl = makeUrl(id);
+        return _.cloneDeep(cache[myUrl]);
+    };
 
     const getEntityDisplayName = async function (entityName, id) {
-        const path = entityName + "/" + id
-        const myUrl = makeUrl(path, {select: "display_name"})
-        const resp = await getUrl(myUrl)
-        return resp.display_name
-    }
+        const path = entityName + "/" + id;
+        const myUrl = makeUrl(path, {select: "display_name"});
+        const resp = await getUrl(myUrl);
+        return resp.display_name;
+    };
 
     const getFilterValueDisplayName = async function (filterKey, filterValue) {
-        const entityId = getFacetConfig("works", filterKey)?.entityId
+        const entityId = getFacetConfig("works", filterKey)?.entityId;
 
         if (filterKey === "institutions.country_code") {
             return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
@@ -189,7 +188,6 @@ const api = (function () {
 
         const maxCount = Math.max(...groupCounts)
         const countSum = groupCounts.reduce((a, b) => a + b, 0)
-
 
         const groupDisplayFilters = truncatedGroups
             .map(group => {
@@ -311,7 +309,7 @@ const api = (function () {
 
     const getAutocomplete = async function(entityType, params) {
         const response = await get(`/autocomplete/${entityType}`, params);
-        console.log("getAutocomplete", response);
+        //console.log("getAutocomplete", response);
         return response.results;
     };
 
@@ -330,7 +328,7 @@ const api = (function () {
         // Always bypass cache if DISABLE_SERVER_CACHE is true
         bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
 
-        console.log("api.createSearch to " + url)
+        //console.log("api.createSearch to " + url)
         const resp = await post(url, {query, bypass_cache}, axiosConfig(options));
         //console.log("Created Search: " + resp.data.id + " with filters:");
         //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
@@ -349,12 +347,11 @@ const api = (function () {
         }
 
         const params = new URLSearchParams();
-        params.set("mailto", "team@ourresearch.org");
         params.set("bypass_cache", options.bypass_cache);
 
         url += "?" + params.toString();
 
-        console.log("api.getSearch getting: " + searchId);
+        //console.log("api.getSearch getting: " + searchId);
         const resp = await getUrl(url, axiosConfig({noCache: true, userAuth}));
         return resp;
     }

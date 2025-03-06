@@ -242,7 +242,7 @@
 
 
 <script>
-import {getConfigs} from "@/oaxConfigs";
+import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 import axios from "axios";
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
@@ -277,12 +277,7 @@ export default {
   },
   computed: {
     columnConfig() {
-      const mySubjectEntityConfig = getConfigs()[this.subjectEntity];
-      const columnConfig = mySubjectEntityConfig.columns[this.column_id];
-      return columnConfig;
-    },
-    isSearchColumn() {
-      return this.columnConfig?.id?.endsWith(".search");
+      return getColumnConfig(this.subjectEntity, this.column_id);
     },
     isLabelFilter() {
       return this.labelOperators.includes(this.operator);
@@ -330,7 +325,7 @@ export default {
         const oldValue = this.operator
         if (this.labelOperators.includes(newValue) !== this.labelOperators.includes(oldValue)) {
           // when switching between label and entity operators reset value and don't immediately apply
-          console.log("operator change to/from label")
+          //console.log("operator change to/from label")
           this.restartEditingValue()
           this.$emit("setOperator", this.path, newValue, true)
           this.$emit("setValue", this.path, null, true)
@@ -369,20 +364,20 @@ export default {
       this.valueEditModel = this.selectedValue
     },
     cancelEditingValue() {
-      console.log("cancelEditingValue")
+      //console.log("cancelEditingValue")
       if (this.value !== null) {
         this.isEditingValue = false
         this.valueEditModel = null        
       }
     },
     restartEditingValue() {
-      console.log("restart edit")
+      //console.log("restart edit")
       this.labelMenuPositionHack()
       this.isEditingValue = true
       this.valueEditModel = null
     },
     saveEditingValue(value) {
-      console.log("saveEditingValue: ", value)
+      //console.log("saveEditingValue: ", value)
       this.isEditingValue = false
       // Handle both full entity objects and direct ID values
       this.selectedValue = value?.id || value
@@ -392,7 +387,7 @@ export default {
       this.$emit("deleteFilter", this.path)
     },
     onInputBlur() {
-      console.log("onInputBlur", this.valueEditModel);
+      //console.log("onInputBlur", this.valueEditModel);
       if (this.valueEditModel) {
         this.saveEditingValue(this.valueEditModel);
       } else {

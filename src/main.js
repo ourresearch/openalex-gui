@@ -136,8 +136,8 @@ Vue.filter("capitalize", function (str) {
 });
 
 
-Vue.filter("titleCase", function (str) {
-  if (typeof str !== "string") return str
+String.prototype.titleCase = function () {
+  const str = this;
 
   const stopWords = [
     "a", "an", "and", "as", "at", "but", "by", "for", "in", 
@@ -170,8 +170,10 @@ Vue.filter("titleCase", function (str) {
       return lowerCaseWord;
     })
     .join(" ");
+};
+Vue.filter("titleCase", str => {
+    return typeof str !== "string" ? str : str.titleCase();
 });
-
 
 Vue.filter("prettyName", function (name) {
     let ret = name

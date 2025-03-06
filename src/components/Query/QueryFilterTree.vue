@@ -208,14 +208,14 @@ export default {
         currentFilter = currentFilters[index];
 
         if (!currentFilter) {
-          console.log("No filter found at index", index);
+          //console.log("No filter found at index", index);
           return null; // Path is invalid
         }
 
         // If we're not at the end, we go deeper
         if (i < path.length - 1) {
           if (!currentFilter.join || !Array.isArray(currentFilter.filters)) {
-            console.log("Cannot go deeper - not a nested filter");
+            //console.log("Cannot go deeper - not a nested filter");
             return null;
           }
           currentFilters = currentFilter.filters;
@@ -242,7 +242,7 @@ export default {
       return groupParentPath;
     },
     addFilter(column) {
-      console.log("Adding filter", column.id, column.type);
+      //console.log("Adding filter", column.id, column.type);
       const initValue = column.type === "boolean" ? true : null
       this.myFilters.push({
         column_id: column.id,
@@ -257,20 +257,20 @@ export default {
       // console.log("After adding filter:", this.myFilters);
     },
     setOperator(path, operator, dontApply) {
-      console.log("setOperator", path, operator);
-      console.log("dontApply: " + dontApply);
+      //console.log("setOperator", path, operator);
+      //console.log("dontApply: " + dontApply);
       const filterToUpdate = this.getFilterFromPath(path);
       Vue.set(filterToUpdate, "operator", operator);
       if (dontApply) {
-        console.log("setOperator with dontApply");
+        //console.log("setOperator with dontApply");
         this.isEditingFilters = true;
       } else if (!this.isEditingFilters) {
-        console.log("setOperator and applyFilters");
+        //console.log("setOperator and applyFilters");
         this.applyFilters();
       }
     },
     setValue(path, value, dontApply) {
-      console.log("Setting filter value", { path, value, dontApply });
+      //console.log("Setting filter value", { path, value, dontApply });
       const filterToUpdate = this.getFilterFromPath(path);
       Vue.set(filterToUpdate, "value", value);
       if (dontApply) {
@@ -292,14 +292,14 @@ export default {
       this.applyFilters();
     },
     groupWithAbove(path) {
-      console.log("groupWithAbove path: " + path);
+      //console.log("groupWithAbove path: " + path);
 
       // The parent is the array containing this filter
       const parentPath = path.slice(0, -1);
       const index = path[path.length - 1];
 
       if (index === 0) {
-        console.warn("No filter above to group with.");
+        //console.warn("No filter above to group with.");
         return;
       }
 
@@ -328,7 +328,7 @@ export default {
       this.applyFilters();
     },
     ungroupFromAbove(path) {
-      console.log("ungroupFromAbove path:", path);
+      //console.log("ungroupFromAbove path:", path);
 
       // 1) Identify the parent group and index
       const parentPath = path.slice(0, -1);
@@ -371,7 +371,7 @@ export default {
       this.applyFilters();
     },
     deleteFilter(path) {
-      console.log("deleteFilter at path:", path)
+      //console.log("deleteFilter at path:", path)
       this.isEditingFilters = true;
       // Get the parent path and the index to remove
       const parentPath = path.slice(0, -1);
@@ -424,7 +424,7 @@ export default {
       }
     },
     async applyFilters() {
-      console.log("applyFilters:")
+      //console.log("applyFilters:")
       //console.log(JSON.stringify(this.filtersToStore, null, 2));
       if (this.subjectEntity === "works") {
         this.setFilterWorks(this.filtersToStore);

@@ -201,7 +201,7 @@ import router from "@/router";
 export default {
   name: 'App',
   metaInfo: {
-    titleTemplate: 'OpenAlex | %s',
+    titleTemplate: (title) => title ? `${title} | OpenAlex Analytics` : 'OpenAlex Analytics',
     link: [],
     meta: []
   },

@@ -5,7 +5,7 @@ import router from "@/router";
 import {api} from "@/api";
 import tracking from "@/tracking";
 import {getConfigs} from "@/oaxConfigs";
-import {baseQuery} from "@/components/Query/query";
+import {baseQuery, queryTitle} from "@/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 
@@ -23,6 +23,7 @@ const stateDefaults = function () {
         results_meta: null,
         backend_error: null,
         redshift_sql: null,
+        pageTitle: null,
     };
     return ret;
 };
@@ -53,8 +54,7 @@ export const search = {
             Object.assign(state, stateDefaults());
             state.query = query;
         },
-        setNewSearchById(state, id) {
-            Object.assign(state, stateDefaults());
+        setSearchId(state, id) {
             state.id = id;
         },
         setQuery(state, query) {
@@ -104,6 +104,9 @@ export const search = {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
             }
         },
+        setPageTitle(state, pageTitle) {
+            state.pageTitle = pageTitle;
+        },
     },
     actions: {
         // CREATE AND READ SEARCH
@@ -115,6 +118,7 @@ export const search = {
         createSearchFromQuery: async function ({commit, dispatch}, query) {
             console.log("createSearchFromQuery", query);
             commit('setNewSearchByQuery', query);
+            dispatch("makePageTitle");
 
             try {
                 const response = await api.createSearch(query);
@@ -124,6 +128,7 @@ export const search = {
                         name: 'search',
                         params: {id: response.data.id}
                     });
+                    commit('setSearchId', response.data.id);
                     commit('setQuery', response.data.query);
                 }
             } catch (error) {
@@ -137,11 +142,8 @@ export const search = {
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },
-        getSearch: async function ({state, commit}, {id, bypass_cache}) {
-            if (id !== state.id) {
-                // New ID first seen from server
-                commit('setNewSearchById', id);
-            }
+        getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
+            commit('setSearchId', id);
 
             try {
                 const data = await api.getSearch(state.id, {bypass_cache});
@@ -154,6 +156,7 @@ export const search = {
                 if (!_.isEqual(state.query, data.query)) {
                     // Set query data from API if it's different
                     commit('setQuery', data.query);
+                    dispatch("makePageTitle");
                 }
 
                 commit('setSearchSql', data.redshift_sql);
@@ -178,6 +181,11 @@ export const search = {
                 commit('setBackendError', error);
                 commit('setSearchCompleted', true);
             }
+        },
+        makePageTitle: async function ({state, commit}) {
+            const pageTitle = await queryTitle(state.query);
+            console.log("Setting Page Title: " + pageTitle);
+            commit('setPageTitle', pageTitle);
         },
     },
     getters: {

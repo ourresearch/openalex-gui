@@ -78,18 +78,18 @@ export default {
       }
     },
     onEntitySelected(entity) {
-      if (!entity) { return }
+      if (!entity) { return; }
       //console.log("onEntitySelected")
       //console.log(entity)
-      if (entity?.short_id) { entity.id = entity.short_id }
-      this.$emit('entity-selected', entity)
-      this.selectedEntity = null
-      this.search = ""
+      if (entity?.short_id) { entity.id = entity.short_id; }
+      this.$emit('entity-selected', entity);
+      this.selectedEntity = null;
+      this.search = "";
 
       // Annoyingly use $nextTick to ensure that the DOM updates before resetting the input
       this.$nextTick(() => {
-        this.$refs.autocomplete.reset();
-      })
+        this.$refs.autocomplete && this.$refs.autocomplete.reset();
+      });
     },
   },
   created() {

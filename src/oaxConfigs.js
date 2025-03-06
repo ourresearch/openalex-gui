@@ -24,6 +24,13 @@ function getConfigs() {
     return oaxConfigs;
 }
 
+
+const getColumnConfig = (entity, column) => {
+    //console.log("Getting column config", entity, column);
+    return oaxConfigs[entity].columns[column];
+};
+
+
 const configUpdates = (oaxConfigs) => {
 
   // LABELS UPDATES
@@ -89,4 +96,7 @@ const configUpdates = (oaxConfigs) => {
   return oaxConfigs;
 }
 
-export {getConfigs}
+export {
+    getConfigs,
+    getColumnConfig,
+}

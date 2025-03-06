@@ -52,30 +52,21 @@ const routes = [
 
     // data pages
     {
-        path: `/:entityType(${entityNames})`,
-        name: 'Serp',
-        component: Serp,
-    },
-    {
-        path: "/results",
-        name: "results",
-        params: {entityType: "works"},
-        component: Results,
-    },
-    {
         path: "/s/:id",
         name: "search",
         meta: {requiresAuth: true},
         component: Results,
     },
-
-    // entity pages
+    {
+        path: `/:entityType(${entityNames})`,
+        name: 'Serp',
+        component: Serp,
+    },
     {
         path: `/:namespace(${entityNames})/:identifier`,
         name: 'EntityPage',
         component: EntityPage,
     },
-
 
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
