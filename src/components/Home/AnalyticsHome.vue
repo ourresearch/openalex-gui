@@ -113,12 +113,15 @@ export default {
       examples = examples.filter(q => !q.broken);
       
       if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase();
-        examples = examples.filter(q => 
-          q.question.toLowerCase().includes(query) ||
-          q.type.toLowerCase().includes(query) ||
-          q.category.toLowerCase().includes(query)
-        );
+        const searchWords = this.searchQuery.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+        examples = examples.filter(q => {
+          const searchableText = [
+            q.question.toLowerCase(),
+            q.type.toLowerCase(),
+            q.category.toLowerCase()
+          ].join(' ');
+          return searchWords.every(word => searchableText.includes(word));
+        });
       }
 
       if (this.selectedFilter && this.selectedFilter !== "All Questions") {
