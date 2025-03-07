@@ -1,7 +1,7 @@
 <template >
   <v-container fluid>
   <v-row class="box">
-    <div class="loading-wrapper">
+    <div v-if="!isSearchCanceled" class="loading-wrapper">
       <div class="message-container">
         <div class="msg">Searching...</div>
         <div v-if="currentMessage" class="submsg">{{ currentMessage }}</div>
@@ -15,13 +15,15 @@
         style="width: 100%"
         :active="true"
       />
+      <v-btn class="mt-2" small @click="cancelSearch">Cancel</v-btn>
     </div>
   </v-row>
   </v-container>
 </template>
 
 <script>
-import {mapGetters} from "vuex";
+import _ from "lodash"
+import {mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "ResultsSearching",
@@ -42,7 +44,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("search", ["query"]),
+    ...mapGetters("search", [
+      "query",
+      "isSearchCanceled",
+    ]),
     currentMessage() {
       const seconds = Math.floor(this.elapsedTime / 1000);
       const timePoints = Object.keys(this.messages)
@@ -61,9 +66,17 @@ export default {
     this.startTimer();
   },
   beforeDestroy() {
-    this.stopTimer();
+    this.clearTimer();
   },
   methods: {
+    ...mapMutations("search", [
+      "setSearchCanceled"
+    ]),
+    cancelSearch() {
+      this.setSearchCanceled(true);
+      this.clearTimer();
+      this.resetTimer();
+    },
     startTimer() {
       this.timer = setInterval(() => {
         this.elapsedTime += 50;
@@ -74,17 +87,29 @@ export default {
       this.elapsedTime = 0;
       this.progressValue = 0;
     },
-    stopTimer() {
+    clearTimer() {
       if (this.timer) {
         clearInterval(this.timer);
         this.timer = null;
       }
-    }
+    },
+    restartTimer() {
+      this.clearTimer();
+      this.resetTimer();
+      this.startTimer();
+    },
   },
   watch: {
-    $route(to, from) {
-      if (to.params.id !== from.params.id) {
-        this.resetTimer();
+    query(to, from) {
+      console.log('Query changed', to, from);
+      console.log("equal?", _.isEqual(to, from));
+      if (!_.isEqual(to, from)) {
+        this.restartTimer();
+      }
+    },
+    isSearchCanceled(to, from) {
+      if (from === true && to === false) {
+        this.restartTimer();
       }
     }
   }

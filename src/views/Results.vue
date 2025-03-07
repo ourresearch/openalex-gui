@@ -2,10 +2,10 @@
   <v-container fluid class="results-box pt-0">
     <v-row class="">
       <!-- Left Panel -->
-      <v-col cols="12" lg="5">
+      <v-col cols="12" md="5">
         <v-row>
           <!-- Query Builder -->
-          <v-col cols="12" md="7" lg="12">
+          <v-col cols="12">
             <v-card flat rounded class="px-5 pt-3 pb-5">
               <div class="d-flex justify-space-between">
                 <div>
@@ -42,12 +42,11 @@
               <div class="new-query-box">
                 <new-query-button size="small" rounded/>
               </div>
-
             </v-card>
           </v-col>
 
           <!-- Query Tabs -->
-          <v-col cols="12" lg="12" md="5" v-if="uiVariant !== 'chips'">
+          <v-col class="d-none d-md-block" cols="12" v-if="uiVariant !== 'chips'">
             <v-card flat rounded>
               <v-tabs v-model="tab"> 
                 <v-tab>Query Object</v-tab>
@@ -85,7 +84,7 @@
       </v-col>
 
       <!-- Results Table -->
-      <v-col cols="12" lg="7">
+      <v-col cols="12" md="7">
         <v-card flat rounded style="min-height: 100%;">
           <results-error v-if="queryBackendError" />
           <results-table v-else-if="queryIsCompleted" />
@@ -162,6 +161,7 @@ export default {
       "queryBackendError",
       "querySql",
       "queryOql",
+      "isSearchCanceled",
     ]),
     areTopLevelFiltersApplied() {
       if (this.querySubjectEntity !== 'works') {
@@ -180,16 +180,10 @@ export default {
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
     ...mapActions("search", [
       "createSearch",
       "getSearch",
       "createSearchFromOql",
-    ]),
-    ...mapMutations([
-      "snackbar",
     ]),
     applyOql() {
       this.isOqlEditDialogOpen = false
@@ -217,6 +211,8 @@ export default {
       }
     },
     async pollSearch() {
+      if (this.queryIsCompleted || this.isSearchCanceled) { return; }
+      
       //console.log("pollSearch")
       await this.getSearch({
         id: this.$route.params.id,
@@ -224,12 +220,10 @@ export default {
       });
       this.hasPolledOnce = true;
       this.pollCount++;
-      if (!this.queryIsCompleted) {
-        setTimeout(() => {
-          //console.log("polling search")
-          this.pollSearch();
-        }, 500);
-      } 
+      setTimeout(() => {
+        //console.log("polling search")
+        this.pollSearch();
+      }, 500);
     },
   },
   created() {

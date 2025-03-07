@@ -24,6 +24,7 @@ const stateDefaults = function () {
         backend_error: null,
         redshift_sql: null,
         pageTitle: null,
+        searchCanceled: false,
     };
     return ret;
 };
@@ -106,6 +107,9 @@ export const search = {
         },
         setPageTitle(state, pageTitle) {
             state.pageTitle = pageTitle;
+        },
+        setSearchCanceled(state, value) {
+            state.searchCanceled = value;
         },
     },
     actions: {
@@ -222,5 +226,6 @@ export const search = {
         filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
         worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
         entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),
+        isSearchCanceled: (state) => state.searchCanceled,
     },
 };
