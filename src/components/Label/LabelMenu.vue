@@ -1,6 +1,6 @@
 <template>
 <div>
-  <v-menu>
+  <v-menu max-width="400px">
     <template v-slot:activator="{ on }">
       <v-btn icon v-on="on" :disabled="!selectedIds.length">
         <v-icon>mdi-tag-outline</v-icon>
@@ -13,16 +13,14 @@
           :key="label.id"
           @click="toggle(label.id)"
       >
-        <v-list-item-icon>
-          <v-icon>mdi-tag-outline</v-icon>
+        <v-list-item-icon @click="toggle(label.id)">
+          <v-icon v-if="showCheck(label.id)">mdi-checkbox-outline</v-icon>
+          <v-icon v-else-if="showHalfCheck(label.id)">mdi-minus-box-outline</v-icon>
+          <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-title>{{ label.name }}</v-list-item-title>
         </v-list-item-content>
-        <v-spacer />
-        <v-list-item-icon v-if="showCheck(label.id)">
-          <v-icon>mdi-check</v-icon>
-        </v-list-item-icon>
       </v-list-item>
       <v-divider/>
       <v-list-item
@@ -97,6 +95,10 @@ export default {
       // Show a check mark only if every selected ID has the label
       const collection = this.collectionById(collectionId);
       return this.selectedIds.every(selectedId => collection.ids.includes(selectedId));
+    },
+    showHalfCheck(collectionId) {
+      const collection = this.collectionById(collectionId);
+      return this.selectedIds.some(selectedId => collection.ids.includes(selectedId));
     },
     addIds(collectionId) {
       const collection = this.collectionById(collectionId);
