@@ -200,7 +200,7 @@ const exampleQueries = [
     question: "Who are Stephen Hawking's top co-authors?",
     type: "authors",
     category: "discovery",
-    url: "/s/b9da0ead143263c4f05888011d13acce",
+    url: "",
     query: {
       get_rows: "authors",
       filter_works: [
@@ -293,13 +293,13 @@ const exampleQueries = [
     question: "Who does NASA collaborate with most?",
     type: "institutions",
     category: "discovery",
-    url: "/s/84920125f599817c11dce73ab60b9adf",
+    url: "",
     query: {
       get_rows: "institutions",
       filter_works: [
         {
           column_id: "authorships.institutions.id",
-          value: "institutions/I2800713631"
+          value: "institutions/I4210124779"
         }
       ],
       filter_aggs: [],
@@ -382,15 +382,13 @@ const exampleQueries = [
     question: "How many authors in Brazil have an ORCID?",
     type: "authors",
     category: "compliance",
-    url: "/s/e66189a2c349622d80dede22dfdd9bd0",
-    broken: true,
-    error: "Mostly Chinese authors, getting all authors who co-author with someone in Brazil?",
+    url: "",
     query: {
       get_rows: "authors",
       filter_works: [],
       filter_aggs: [
         {
-          column_id: "affiliations.institution.country_code",
+          column_id: "last_known_institutions.country_code",
           value: "countries/BR"
         },
         {
@@ -1375,6 +1373,42 @@ const exampleQueries = [
       "sort_by_order": "desc"
     }
   },
+  {
+    question: "Which publications authored by the University of Chicago have a fulltext pdf available in a repository?",
+    type: "works",
+    category: "open access",
+    url: "",
+    query: {
+      "get_rows": "works",
+      "filter_works": [
+        {
+          "column_id": "authorships.institutions.id",
+          "value": "institutions/I40347166",
+          "operator": "includes"
+        },
+        {
+          "column_id": "open_access.has_fulltext",
+          "value": true,
+          "operator": "is"
+        },
+        {
+          "column_id": "primary_location.source.type",
+          "value": "source-types/repository",
+          "operator": "is"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "id",
+        "publication_year",
+        "type",
+        "cited_by_count"
+      ],
+      "sort_by_column": "cited_by_count",
+      "sort_by_order": "desc"
+    }
+  }
 ];
 
 
