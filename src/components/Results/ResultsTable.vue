@@ -1,203 +1,210 @@
 <template>
-  <div :class="{'dimmed': hasQueryChanged}">
+  <div>
 
     <!-- Results Header / Actions -->
-    <div class="table-meta d-flex align-center pa-2">
-      <v-btn icon @click="clickSelectAllButton">
-        <v-icon>{{ selectAllIcon }}</v-icon>
-      </v-btn>
-
-      <v-btn icon :disabled="!selectedIds.length" @click="exportResults">
-        <v-icon>mdi-tray-arrow-down</v-icon>
-      </v-btn>
-
-      <template v-if="userId">
-        <label-menu :selectedIds="fullSelectedIds" />
-
-        <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
-          @click="snackbar('Submitting data corrections will be coming soon.')">
-          <v-icon>mdi-pencil-outline</v-icon>
+    <div class="pa-2">
+      <query-search-controls />
+      
+      <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center">
+        <v-btn icon @click="clickSelectAllButton">
+          <v-icon>{{ selectAllIcon }}</v-icon>
         </v-btn>
-      </template>
-      
-      <v-spacer/>
-      
-      <div class="body-2 px-4">
-        1-{{ resultsBody.length }} of {{
-          resultsMeta?.count > 10000 ? "about " : ""
-        }}{{ resultsMeta?.count | toPrecision }}
-        results
+
+        <v-btn icon :disabled="!selectedIds.length" @click="exportResults">
+          <v-icon>mdi-tray-arrow-down</v-icon>
+        </v-btn>
+
+        <template v-if="userId">
+          <label-menu :selectedIds="fullSelectedIds" />
+
+          <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
+            @click="snackbar('Submitting data corrections will be coming soon.')">
+            <v-icon>mdi-pencil-outline</v-icon>
+          </v-btn>
+        </template>
+        
+        <v-spacer/>
+        
+        <div class="body-2 px-4">
+          1-{{ resultsBody.length }} of {{
+            resultsMeta?.count > 10000 ? "about " : ""
+          }}{{ resultsMeta?.count | toPrecision }}
+          results
+        </div>
       </div>
     </div>
 
-    <!-- Row Selection Message -->
-    <div class="pa-3 d-flex align-center grey lighten-3"
-         v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
-    >
-      <template v-if="isEntireSearchSelected">
-        All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
-        <v-btn
-            text
-            color="primary"
-            rounded
-            @click="unselectAll"
-        >
-          Clear selection
-        </v-btn>
-      </template>
-      <template v-else>
-        All <span class="font-weight-bold mx-1">{{ selectedIds.length }}</span> results on this page are selected.
-        <v-btn
-            text
-            color="primary"
-            rounded
-            @click="isEntireSearchSelected = true"
-        >
-          Select all {{ resultsMeta?.count | millify }} results
-        </v-btn>
-      </template>
-    </div>
-
-    <!-- Results Table -->
-    <v-simple-table>
-      <thead>
-      <th key="checkbox-placeholder"></th>
-      
-      <!-- Results Table Headers -->
-      <th
-          v-for="(header, i) in queryColumnsConfigs"
-          :key="'header-'+i"
-          :class="`data-type-${header.type} is-date-${header.isDate}`"
-          class=""
+    <div :class="{'dimmed': hasQueryChanged}">
+      <!-- Row Selection Message -->
+      <div class="pa-3 d-flex align-center grey lighten-3"
+          v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
       >
-        <div class="d-flex">
-          <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
-          <v-menu offset-y>
-            <template v-slot:activator="{ on }">
-              <v-btn
-                  text
-                  v-on="on"
-                  style="white-space: nowrap;"
-                  class="px-0"
-              >
-                <template v-if="submittedQuery.sort_by_column === header.id">
-                  <v-icon v-if="submittedQuery.sort_by_order==='desc'">mdi-arrow-down</v-icon>
-                  <v-icon v-if="submittedQuery.sort_by_order==='asc'">mdi-arrow-up</v-icon>
+        <template v-if="isEntireSearchSelected">
+          All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
+          <v-btn
+              text
+              color="primary"
+              rounded
+              @click="unselectAll"
+          >
+            Clear selection
+          </v-btn>
+        </template>
+        <template v-else>
+          All <span class="font-weight-bold mx-1">{{ selectedIds.length }}</span> results on this page are selected.
+          <v-btn
+              text
+              color="primary"
+              rounded
+              @click="isEntireSearchSelected = true"
+          >
+            Select all {{ resultsMeta?.count | millify }} results
+          </v-btn>
+        </template>
+      </div>
+
+      <!-- Results Table -->
+      <v-simple-table>
+        <thead>
+        <th key="checkbox-placeholder"></th>
+        
+        <!-- Results Table Headers -->
+        <th
+            v-for="(header, i) in queryColumnsConfigs"
+            :key="'header-'+i"
+            :class="`data-type-${header.type} is-date-${header.isDate}`"
+            class=""
+        >
+          <div class="d-flex">
+            <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
+            <v-menu offset-y>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                    text
+                    v-on="on"
+                    style="white-space: nowrap;"
+                    class="px-0"
+                >
+                  <template v-if="submittedQuery.sort_by_column === header.id">
+                    <v-icon v-if="submittedQuery.sort_by_order==='desc'">mdi-arrow-down</v-icon>
+                    <v-icon v-if="submittedQuery.sort_by_order==='asc'">mdi-arrow-up</v-icon>
+                  </template>
+                  {{ (header.displayNameForColumn || header.displayName) | titleCase }}
+                  <v-icon small>mdi-menu-down</v-icon>
+                </v-btn>
+              </template>
+              <v-list dense>
+                <v-list-item class="pb-2 py-1">
+                  <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
+                </v-list-item>
+                <v-divider/>
+                <v-list-item @click="removeColumn(header.id)">
+                  <v-list-item-icon>
+                    <v-icon>mdi-table-column-remove</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>Remove Column</v-list-item-title>
+                </v-list-item>
+                <template v-if="header.actions?.includes('sort')">
+                  <v-divider/>
+                  <v-list-item
+                      active-class="primary--text"
+                      :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
+                      @click="commitSortBy({column_id: header.id, direction: 'desc'})"
+                  >
+                    <v-list-item-icon>
+                      <v-icon>mdi-arrow-down</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Sort Descending</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item
+                      @click="commitSortBy({column_id: header.id, direction: 'asc'})"
+                      active-class="primary--text"
+                      :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
+                  >
+                    <v-list-item-icon>
+                      <v-icon>mdi-arrow-up</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-title>Sort Ascending</v-list-item-title>
+                  </v-list-item>
                 </template>
-                {{ (header.displayNameForColumn || header.displayName) | titleCase }}
-                <v-icon small>mdi-menu-down</v-icon>
+              </v-list>
+            </v-menu>
+
+          </div>
+        </th>
+
+        <!-- Add Column Button -->
+        <th key="column-adder">
+          <v-menu rounded max-height="50vh">
+            <template v-slot:activator="{ on }">
+              <v-btn icon v-on="on">
+                <v-icon>mdi-plus-circle</v-icon>
               </v-btn>
             </template>
-            <v-list dense>
-              <v-list-item class="pb-2 py-1">
-                <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
-              </v-list-item>
+            <v-card flat rounded>
+              <v-text-field
+                  v-model="columnSearch"
+                  filled
+                  rounded
+                  background-color="white"
+                  prepend-inner-icon="mdi-magnify"
+                  hide-details
+                  autofocus
+                  placeholder="Add Column"
+                  style=""
+              />
               <v-divider/>
-              <v-list-item @click="removeColumn(header.id)">
-                <v-list-item-icon>
-                  <v-icon>mdi-table-column-remove</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>Remove Column</v-list-item-title>
-              </v-list-item>
-              <template v-if="header.actions?.includes('sort')">
-                <v-divider/>
+              <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
                 <v-list-item
-                    active-class="primary--text"
-                    :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
-                    @click="commitSortBy({column_id: header.id, direction: 'desc'})"
+                    v-for="column in columnsToAddFiltered"
+                    :key="column.id"
+                    @click="addColumn(column.id)"
                 >
                   <v-list-item-icon>
-                    <v-icon>mdi-arrow-down</v-icon>
+                    <v-icon>{{ column.icon }}</v-icon>
                   </v-list-item-icon>
-                  <v-list-item-title>Sort Descending</v-list-item-title>
+                  <v-list-item-title>{{ column.displayNameForColumn || column.displayName }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item
-                    @click="commitSortBy({column_id: header.id, direction: 'asc'})"
-                    active-class="primary--text"
-                    :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
-                >
-                  <v-list-item-icon>
-                    <v-icon>mdi-arrow-up</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>Sort Ascending</v-list-item-title>
-                </v-list-item>
-              </template>
-            </v-list>
+              </v-list>
+
+            </v-card>
+
           </v-menu>
-
-        </div>
-      </th>
-
-      <!-- Add Column Button -->
-      <th key="column-adder">
-        <v-menu rounded max-height="50vh">
-          <template v-slot:activator="{ on }">
-            <v-btn icon v-on="on">
-              <v-icon>mdi-plus-circle</v-icon>
-            </v-btn>
-          </template>
-          <v-card flat rounded>
-            <v-text-field
-                v-model="columnSearch"
-                filled
-                rounded
-                background-color="white"
-                prepend-inner-icon="mdi-magnify"
-                hide-details
-                autofocus
-                placeholder="Add Column"
-                style=""
-            />
-            <v-divider/>
-            <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-              <v-list-item
-                  v-for="column in columnsToAddFiltered"
-                  :key="column.id"
-                  @click="addColumn(column.id)"
-              >
-                <v-list-item-icon>
-                  <v-icon>{{ column.icon }}</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title>{{ column.displayNameForColumn || column.displayName }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-
-          </v-card>
-
-        </v-menu>
-      </th>
-      </thead>
-      <tbody>
-     
-    <!-- Results Rows -->
-     <tr
-          v-for="(row, i) in rows"
-          :key="'row-'+i"
-          @click.exact="clickRow(row.id)"
-          @click.meta.stop="metaClickRow(row.id)"
-      >
-        <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
-          <v-btn icon @click.stop="toggleSelectedId(row.id)">
-            <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-            <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-          </v-btn>
-        </td>
-        <td
-            v-for="(cell, i) in row.cellsWithConfigs"
-            :key="'cell-'+i"
-            class="px-1"
-            :class="`data-type-${cell.config.type} is-date-${!!cell.config.isDate}`"
+        </th>
+        </thead>
+        <tbody>
+      
+      <!-- Results Rows -->
+      <tr
+            v-for="(row, i) in rows"
+            :key="'row-'+i"
+            @click.exact="clickRow(row.id)"
+            @click.meta.stop="metaClickRow(row.id)"
         >
-          <column-value :property="cell"/>
-        </td>
-        <td key="column-adder-placeholder"></td>
-      </tr>
-      </tbody>
-    </v-simple-table>
+          <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
+            <v-btn icon @click.stop="toggleSelectedId(row.id)">
+              <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+            </v-btn>
+          </td>
+          <td
+              v-for="(cell, i) in row.cellsWithConfigs"
+              :key="'cell-'+i"
+              class="px-1"
+              :class="`data-type-${cell.config.type} is-date-${!!cell.config.isDate}`"
+          >
+            <column-value :property="cell"/>
+          </td>
+          <td key="column-adder-placeholder"></td>
+        </tr>
+        </tbody>
+      </v-simple-table>
 
-    <v-card class="more-results-message" flat v-if="resultsMeta?.count > 100">
-      To view results beyond the first 100, download the full results set above.
-    </v-card>
+      <v-card class="more-results-message" flat v-if="resultsMeta?.count > 100">
+        To view results beyond the first 100, download the full results set above.
+      </v-card>
+
+    </div>
 
     <!-- Dialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
@@ -235,6 +242,7 @@ import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
+import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
 
 
 export default {
@@ -244,7 +252,8 @@ export default {
     LabelMenu,
     CorrectionCreate,
     QueryReturn,
-    DownloadDialog
+    DownloadDialog,
+    QuerySearchControls,
   },
   props: {
     apiUrl: String,
@@ -270,6 +279,8 @@ export default {
       "resultsBody",
       "submittedQuery",
       "hasQueryChanged",
+      "isSearchCanceled",
+      "queryIsCompleted",
     ]),
     querySubjectEntity() {
       return this.submittedQuery.get_rows === "summary" ? "works" : this.submittedQuery.get_rows;
@@ -341,12 +352,16 @@ export default {
       "deleteReturnColumn",
       "setSortBy",
     ]),
+    ...mapActions("search", [
+      "createSearch",
+      "resetToSubmittedQuery",
+    ]),
     ...mapActions("user", [
       "createCollection",
     ]),
-    ...mapActions("search", [
-      "createSearch",
-    ]),
+    cancelSearch() {
+      this.resetToSubmittedQuery();
+    },
     commitSortBy(sortBy) {
       this.setSortBy(sortBy);
       this.createSearch();
