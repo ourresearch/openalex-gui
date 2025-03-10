@@ -20,6 +20,7 @@ const stateDefaults = function () {
         snackbarColor: undefined,
         zoomId: null,
         uiVariant: null, // for testing UI variations
+        isIntialLoad: true, // used to for bypassing cache on freshloads
         testQueries: [],
     }
     return ret;
@@ -34,51 +35,53 @@ export default new Vuex.Store({
     },
     mutations: {
         snackbar(state, arg) {
-            state.snackbarIsOpen = true
+            state.snackbarIsOpen = true;
             if (typeof arg === "string") {
-                state.snackbarMsg = arg
+                state.snackbarMsg = arg;
             } else {
-                state.snackbarMsg = arg.msg
-                state.snackbarColor = arg.color
+                state.snackbarMsg = arg.msg;
+                state.snackbarColor = arg.color;
             }
         },
         closeSnackbar(state) {
-            state.snackbarMsg = ""
-            state.snackbarIsOpen = false
-            state.snackbarColor = undefined
+            state.snackbarMsg = "";
+            state.snackbarIsOpen = false;
+            state.snackbarColor = undefined;
         },
         setGlobalIsLoading(state, isLoading) {
-            state.isLoading = !!isLoading
+            state.isLoading = !!isLoading;
         },
         setZoomId(state, id) {
             state.zoomId = id;
-        }
-
+        },
+        setIsIntialLoad(state, isIntialLoad) {
+            state.isIntialLoad = isIntialLoad;
+        },
     },
     actions: {
     },
     getters: {
         globalIsLoading(state) {
-            return state.isLoading
+            return state.isLoading;
         },
         isLocalEnv(state) {
-            return window.location.hostname === "localhost"
+            return window.location.hostname === "localhost";
         },
         isStagingEnv(state) {
-            return window.location.hostname === "staging.openalex.org"
+            return window.location.hostname === "staging.openalex.org";
         },
         isProductionEnv(state) {
-            return window.location.hostname === "openalex.org"
+            return window.location.hostname === "openalex.org";
         },
         environment(state, getters) {
             if (getters.isLocalEnv) {
-                return "local"
+                return "local";
             } else if (getters.isStagingEnv) {
-                return "staging"
+                return "staging";
             } else if (getters.isProductionEnv) {
-                return "production"
+                return "production";
             } else {
-                return "unknown"
+                return "unknown";
             }
         },
     },
