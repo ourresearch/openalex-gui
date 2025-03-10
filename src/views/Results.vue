@@ -163,12 +163,11 @@ export default {
         "queryJson",
       ],
       tab: 0,
-      hasPolledOnce: false,
       pollCount: 0
     }
   },
   computed: {
-    ...mapState(['uiVariant']),
+    ...mapState(['uiVariant', 'isIntialLoad']),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",
@@ -197,6 +196,9 @@ export default {
     }
   },
   methods: {
+    ...mapMutations([
+      "setIsIntialLoad",
+    ]),
     ...mapActions("search", [
       "createSearch",
       "getSearch",
@@ -235,10 +237,10 @@ export default {
       
       await this.getSearch({
         id: this.$route.params.id,
-        bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
+        bypass_cache: this.isIntialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
       });
-      this.hasPolledOnce = true;
       this.pollCount++;
+      this.setIsIntialLoad(false);
       setTimeout(() => {
         //console.log("polling search")
         this.pollSearch();
@@ -254,7 +256,6 @@ export default {
   },
   created() {
     this.loadFromLocalStorage();
-    this.loadFromLocalStorage();
     //console.log("Results state: ")
     //console.log(this.$store.state)
   },
@@ -263,6 +264,7 @@ export default {
   watch: {
     "$route.params.id": {
       handler: function () {
+        this.pollCount = 0;
         this.pollSearch();
       },
       immediate: true

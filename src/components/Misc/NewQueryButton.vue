@@ -2,7 +2,7 @@
     <v-btn 
         v-bind="$attrs"
         class="new-query-button" 
-        @click="createNewSearch"
+        @click="onClick"
     >
         <template v-if="!goTo">
             <v-icon v-if="icon" left :color="$attrs.color === 'primary' ? undefined : 'primary'">{{ icon }}</v-icon>
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import {mapActions} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
     name: "NewQueryButton",
@@ -35,8 +35,17 @@ export default {
             default: false
         },
     },
+    computed: {
+        ...mapGetters("search",["isBaseQuery"]),
+    },
     methods: {
         ...mapActions("search",["createNewSearch"]),
+        onClick() {
+            if (this.$route.name === "Results" && this.isBaseQuery) {
+                return;
+            }   
+            this.createNewSearch();
+        }
     }
 }
 </script>

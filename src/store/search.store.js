@@ -117,21 +117,43 @@ export const search = {
             const query = oqlToQuery(oql);
             return await dispatch("createSearchFromQuery", query);
         },
-        createSearchFromQuery: async function ({commit, dispatch}, query) {
-            console.log("createSearchFromQuery", query);
+        createSearchFromQuery: async function ({state, commit, dispatch}, query) {
+            //console.log("createSearchFromQuery", query);
+            const cachedData = api.findQueryInCache(query);
+            
+            if (cachedData && cachedData.is_completed && cachedData.id) {                
+                // Set the search ID and data from cache without resetting the state
+                commit('setSearchId', cachedData.id);
+                dispatch('setSearchData', cachedData);
+                
+                await pushSafe({
+                    name: 'search',
+                    params: {id: cachedData.id}
+                });
+            
+                return;
+            }
+            
+            // If not in cache or not completed, reset the state and proceed normally
             commit('setNewSearchByQuery', query);
             dispatch("makePageTitle");
-
+            
             try {
+                // Create the search to get the ID
                 const response = await api.createSearch(query);
                 
                 if (response.data.id) {
+                    const searchId = response.data.id;
+                    
+                    // Set the search ID and query
+                    commit('setSearchId', searchId);
+                    commit('setQuery', response.data.query);
+                    
+                    // Navigate to the search results page
                     await pushSafe({
                         name: 'search',
-                        params: {id: response.data.id}
+                        params: {id: searchId}
                     });
-                    commit('setSearchId', response.data.id);
-                    commit('setQuery', response.data.query);
                 }
             } catch (error) {
                 commit('setBackendError', error);
@@ -149,7 +171,15 @@ export const search = {
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
             commit('setSearchId', id);
+            
+            // Check the cache first if we're not explicitly bypassing it
+            const cachedData = api.getSearchFromCache(id);
+            if (!bypass_cache && cachedData) {
+                dispatch('setSearchData', cachedData);
+                return;
+            }
 
+            // If not in cache or bypassing cache, proceed with the API call
             try {
                 const data = await api.getSearch(state.id, {bypass_cache});
 
@@ -158,33 +188,38 @@ export const search = {
                     return;
                 }
 
-                if (!_.isEqual(state.submittedQuery, data.query)) {
-                    // Set query data from API if it's different
-                    commit('setQuery', data.query);
-                    dispatch("makePageTitle");
-                }
-
-                commit('setSearchSql', data.redshift_sql);
-
-                if (data.is_completed) {
-                    commit('setSearchResults', {
-                        header: data.results_header ?? [],
-                        body: data.results ?? [],
-                        meta: data.meta,
-                        redshift_sql: data.redshift_sql
-                    });
-                    tracking.trackSearch(data);
-                }
-
-                if (data.backend_error) {
-                    commit('setBackendError', data.backend_error);
-                }
-
-                commit('setSearchCompleted', data.is_completed);
+                dispatch('setSearchData', data);
 
             } catch (error) {
                 commit('setBackendError', error);
                 commit('setSearchCompleted', true);
+            }
+        },
+        setSearchData: function({state, commit, dispatch}, data) {
+            if (!_.isEqual(state.submittedQuery, data.query)) {
+                commit('setQuery', data.query);
+                dispatch("makePageTitle");
+            }
+            
+            commit('setSearchSql', data.redshift_sql);
+            
+            if (data.is_completed) {
+                commit('setSearchResults', {
+                    header: data.results_header ?? [],
+                    body: data.results ?? [],
+                    meta: data.meta,
+                    redshift_sql: data.redshift_sql
+                });
+            }
+            
+            if (data.backend_error) {
+                commit('setBackendError', data.backend_error);
+            }
+            
+            commit('setSearchCompleted', data.is_completed);
+            
+            if (data.is_completed) {
+                tracking.trackSearch(data);
             }
         },
         makePageTitle: async function ({state, commit}) {

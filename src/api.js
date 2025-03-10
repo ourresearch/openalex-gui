@@ -68,7 +68,7 @@ const makeUrl = function (pathName, searchParams) {
         })
         .join("&");
 
-    return [baseAndPath, paramsStr].join("?");
+    return paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
 }
 
 
@@ -85,6 +85,7 @@ const api = (function () {
 
         const cachedResponse = getFromCache(url);
         if (cachedResponse) {
+            console.log("cache hit: " + url);
             return cachedResponse;
         }
 
@@ -99,7 +100,7 @@ const api = (function () {
             throw e
         }
         if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
-            //console.log("caching " + url)
+            console.log("caching " + url)
             //console.log(res.data)
             stockCache(url, res.data);
         }
@@ -325,7 +326,6 @@ const api = (function () {
         }
         url = url + "/searches";
 
-        // Always bypass cache if DISABLE_SERVER_CACHE is true
         bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
 
         //console.log("api.createSearch to " + url)
@@ -337,6 +337,23 @@ const api = (function () {
 
     const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
+        let url = getSearchUrl(searchId);
+        let userAuth = !!searchId.startsWith("us-");
+
+        const params = new URLSearchParams();
+        if (options.bypass_cache) {
+            params.set("bypass_cache", true);
+        }
+
+        const paramsStr = params.toString();
+        url += (paramsStr ? "?" + paramsStr : "");
+
+        //console.log("api.getSearch getting: " + searchId);
+        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth}));
+        return resp;
+    }
+
+    const getSearchUrl = function(searchId) {
         let url;
         let userAuth = false;
         if (searchId.startsWith("us-")) {
@@ -345,15 +362,25 @@ const api = (function () {
         } else {
             url = urlBase.api + "/searches/" + searchId;
         }
+        return url;
+    }
 
-        const params = new URLSearchParams();
-        params.set("bypass_cache", options.bypass_cache);
+    const getSearchFromCache = function(searchId) {
+        const url = getSearchUrl(searchId);
+        return getFromCache(url);
+    };
 
-        url += "?" + params.toString();
-
-        //console.log("api.getSearch getting: " + searchId);
-        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth}));
-        return resp;
+    const findQueryInCache = function(query) {
+        // Find cached query data by searching sequentially for matching query objects
+        const searchKeys = Object.keys(cache).filter(key => key.includes('/searches/'));
+        
+        for (const key of searchKeys) {
+            const cachedData = cache[key];
+            if (cachedData && _.isEqual(cachedData.query, query)) {
+                return cachedData;
+            }
+        }
+        return null;
     }
 
     const createExport = async function(query, email) {
@@ -386,6 +413,8 @@ const api = (function () {
         getAutocomplete,
         createSearch,
         getSearch,
+        getSearchFromCache,
+        findQueryInCache,
         createExport,
     }
 })()
