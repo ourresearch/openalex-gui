@@ -166,8 +166,10 @@ export const search = {
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },
-        resetToSubmittedQuery: function ({state, commit}) {
-            commit('setNewSearchByQuery', state.submittedQuery);
+        resetToSubmittedQuery: function ({state, commit, dispatch}) {
+            console.log("Resetting to submitted query");
+            commit('setQuery', state.submittedQuery);
+            dispatch('createSearchFromQuery', state.submittedQuery);
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
             commit('setSearchId', id);

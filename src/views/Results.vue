@@ -35,28 +35,7 @@
               <div class="section-divider"/>
 
               <div class="new-query-box">
-                <v-btn 
-                  v-if="(hasQueryChanged && queryIsCompleted) || isSearchCanceled"
-                  size="small" 
-                  rounded 
-                  color="primary" 
-                  class="mr-2" 
-                  @click="createSearch">
-                  Search
-                </v-btn>
-                <v-btn
-                  v-if="!queryIsCompleted || hasQueryChanged"
-                  size="small" 
-                  rounded 
-                  class="mr-2"
-                  @click="cancelSearch">
-                  Cancel
-                </v-btn>
-                <new-query-button 
-                  v-if="queryIsCompleted" 
-                  size="small" 
-                  :icon="null"
-                  rounded />
+                <new-query-button rounded />
               </div>
             </v-card>
           </v-col>

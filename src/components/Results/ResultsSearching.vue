@@ -1,32 +1,37 @@
 <template >
   <v-container fluid>
-  <v-row class="box">
-    <div v-if="!isSearchCanceled" class="loading-wrapper">
-      <div class="message-container">
-        <div class="msg">Searching...</div>
-        <div v-if="currentMessage" class="submsg">{{ currentMessage }}</div>
+    <query-search-controls />
+    <v-row class="box">
+      <div v-if="!isSearchCanceled" class="loading-wrapper">
+        <div class="message-container">
+          <div class="msg">Searching...</div>
+          <div v-if="currentMessage" class="submsg">{{ currentMessage }}</div>
+        </div>
+        <v-progress-linear
+          :key="elapsedTime === 0 ? 'reset' : 'progress'"
+          :value="progressValue"
+          height="8"
+          rounded
+          color="primary"
+          style="width: 100%"
+          :active="true"
+        />
+        <v-btn class="mt-2" small @click="cancelSearch">Cancel</v-btn>
       </div>
-      <v-progress-linear
-        :key="elapsedTime === 0 ? 'reset' : 'progress'"
-        :value="progressValue"
-        height="8"
-        rounded
-        color="primary"
-        style="width: 100%"
-        :active="true"
-      />
-      <v-btn class="mt-2" small @click="cancelSearch">Cancel</v-btn>
-    </div>
-  </v-row>
+    </v-row>
   </v-container>
 </template>
 
 <script>
 import _ from "lodash"
 import {mapGetters, mapMutations} from "vuex";
+import QuerySearchControls from '../Query/QuerySearchControls.vue';
 
 export default {
   name: "ResultsSearching",
+  components: {
+    QuerySearchControls,
+  },
   data() {
     return {
       elapsedTime: 0, // in milliseconds
