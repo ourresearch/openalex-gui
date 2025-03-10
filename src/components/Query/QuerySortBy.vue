@@ -38,7 +38,7 @@ export default {
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
-        "querySubjectEntity",
+      "querySubjectEntity",
     ]),
     columnIdOptions() {
       const myColumns = getConfigs()[this.querySubjectEntity].columns

@@ -11,12 +11,12 @@ import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 Vue.use(Vuex);
 
-
 const stateDefaults = function () {
     const ret = {
         id: null,
         oql: "",
-        query: {...baseQuery()},
+        submittedQuery: {...baseQuery()}, // query that has been submitted to the API
+        query: {...baseQuery()}, // In progress query, update with each UI change
         is_completed: false,
         results_header: [],
         results_body: [],
@@ -44,23 +44,18 @@ export const search = {
     namespaced: true,
     state: stateDefaults(),
     mutations: {
-        // FILTER
-        setFilterWorks(state, filters) {
-            state.query.filter_works = filters;
-        },
-        setFilterAggs(state, filters) {
-            state.query.filter_aggs = filters;
-        },
         setNewSearchByQuery(state, query) {
             Object.assign(state, stateDefaults());
-            state.query = query;
+            state.submittedQuery = _.cloneDeep(query);
+            state.query = _.cloneDeep(query);
+        },
+        setQuery(state, query) {
+            state.submittedQuery = _.cloneDeep(query);
+            state.query = _.cloneDeep(query);
+            state.oql = queryToOQL(query);  
         },
         setSearchId(state, id) {
             state.id = id;
-        },
-        setQuery(state, query) {
-            state.query = query;
-            state.oql = queryToOQL(query);
         },
         setSearchResults(state, { header, body, meta, redshift_sql }) {
             state.results_header = header;
@@ -77,21 +72,31 @@ export const search = {
         setBackendError(state, error) {
             state.backend_error = error;
         },
+        setSearchCanceled(state, value) {
+            state.searchCanceled = value;
+        },
+        setPageTitle(state, pageTitle) {
+            state.pageTitle = pageTitle;
+        },
         setSummarize(state, entity) {
-            console.log("setSummarize", entity);
+            //console.log("setSummarize", entity);
             const newQuery = {
                 ...baseQuery(entity),
                 filter_works: state.query.filter_works,
             };
-            console.log("setSummarize", newQuery);
+            //console.log("setSummarize", newQuery);
             state.query = newQuery;
         },
-        // SORT
+        setFilterWorks(state, filters) {
+            state.query.filter_works = filters;
+        },
+        setFilterAggs(state, filters) {
+            state.query.filter_aggs = filters;
+        },
         setSortBy(state, {column_id, direction}) {
             state.query.sort_by_column = column_id;
             state.query.sort_by_order = direction;
         },
-        // RETURN COLUMNS
         addReturnColumn(state, columnId) {
             if (!state.query.show_columns.includes(columnId)) {
                 state.query.show_columns.push(columnId);
@@ -105,15 +110,8 @@ export const search = {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
             }
         },
-        setPageTitle(state, pageTitle) {
-            state.pageTitle = pageTitle;
-        },
-        setSearchCanceled(state, value) {
-            state.searchCanceled = value;
-        },
     },
     actions: {
-        // CREATE AND READ SEARCH
         createSearchFromOql: async function ({dispatch}, oql) {
             //console.log("createSearchFromOql", oql, oqlToQuery(oql))
             const query = oqlToQuery(oql);
@@ -146,6 +144,9 @@ export const search = {
         createSearch: async function ({state, dispatch}) {
             return await dispatch("createSearchFromQuery", state.query);
         },
+        resetToSubmittedQuery: function ({state, commit}) {
+            commit('setNewSearchByQuery', state.submittedQuery);
+        },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
             commit('setSearchId', id);
 
@@ -157,7 +158,7 @@ export const search = {
                     return;
                 }
 
-                if (!_.isEqual(state.query, data.query)) {
+                if (!_.isEqual(state.submittedQuery, data.query)) {
                     // Set query data from API if it's different
                     commit('setQuery', data.query);
                     dispatch("makePageTitle");
@@ -187,7 +188,7 @@ export const search = {
             }
         },
         makePageTitle: async function ({state, commit}) {
-            const pageTitle = await queryTitle(state.query);
+            const pageTitle = await queryTitle(state.submittedQuery);
             console.log("Setting Page Title: " + pageTitle);
             commit('setPageTitle', pageTitle);
         },
@@ -196,15 +197,15 @@ export const search = {
         resultsHeader: (state) => state.results_header,
         resultsBody: (state) => state.results_body,
         resultsMeta: (state) => state.results_meta,
+        submittedQuery: (state) => state.submittedQuery,
         query: (state) => state.query,
         querySubjectEntity: (state) => {
-            if (state.query.get_rows === "summary") return "works";
-            else return state.query.get_rows;
+            return state.query.get_rows === "summary" ? "works" : state.query.get_rows;
         },
         queryColumnsConfigs: (state, getters) => {
             if (!state.query.show_columns) { return []; }
             const columnsToReturn = state.query.show_columns.map((col) => {
-                const ret = getters.querySubjectEntityConfig.columns[col]
+                const ret = getters.querySubjectEntityConfig.columns[col];
                 if (!ret) {
                     throw new Error(`No column found for ${getters.querySubjectEntity}.columns.${col}`);
                 }
@@ -218,14 +219,13 @@ export const search = {
         querySubjectEntityConfig: (state, getters) => {
             return getConfigs()[getters.querySubjectEntity];
         },
-        queryIsCompleted: (state) => state.is_completed,
-        queryBackendError: (state) => state.backend_error,
         queryOql: (state) => state.oql,
         querySql: (state) => state.redshift_sql,
+        hasQueryChanged: (state) => !(_.isEqual(state.query, state.submittedQuery)),
+        isBaseQuery: (state) => _.isEqual(state.submittedQuery, baseQuery()),
+        queryIsCompleted: (state) => state.is_completed,
+        queryBackendError: (state) => state.backend_error,
         isQuerySingleRow: (state) => state.query.get_rows === "summary",
-        filterRoots: (state) => state.query.filters.filter(f => f.isRoot),
-        worksFilters: (state) => state.query.filters.filter(f => f.subjectEntity === "works"),
-        entityFilters: (state) => state.query.filters.filter(f => f.subjectEntity !== "works"),
         isSearchCanceled: (state) => state.searchCanceled,
     },
 };

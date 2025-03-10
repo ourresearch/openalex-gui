@@ -63,7 +63,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 
@@ -71,10 +71,6 @@ export default {
   name: "QuerySummarizeBy",
   components: {},
   props: {},
-  data() {
-    return {
-    }
-  },
   computed: {
     ...mapGetters("search", [
       "query",
@@ -88,21 +84,17 @@ export default {
     },
     selected: {
       get() {
-        return this.query.get_rows;
+        return this.query.summarize;
       },
       set(value) {
         console.log("setSummarize", value);
         this.setSummarize(value);
-        this.createSearch();
       }
     },
   },
   methods: {
     ...mapMutations("search", [
       "setSummarize",
-    ]),
-    ...mapActions("search", [
-      "createSearch",
     ]),
   },
 }

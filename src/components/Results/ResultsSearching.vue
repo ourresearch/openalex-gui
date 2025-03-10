@@ -45,7 +45,6 @@ export default {
   },
   computed: {
     ...mapGetters("search", [
-      "query",
       "isSearchCanceled",
     ]),
     currentMessage() {
@@ -101,8 +100,8 @@ export default {
   },
   watch: {
     query(to, from) {
-      console.log('Query changed', to, from);
-      console.log("equal?", _.isEqual(to, from));
+      //console.log('Query changed', to, from);
+      //console.log("equal?", _.isEqual(to, from));
       if (!_.isEqual(to, from)) {
         this.restartTimer();
       }

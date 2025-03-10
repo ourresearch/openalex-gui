@@ -33,7 +33,7 @@
                 {{ column.displayName | titleCase }}
               </v-list-item-title>
               <v-spacer />
-              <v-list-item-icon v-if="(show_columns.includes(column.column_id))">
+              <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
                 <v-icon>mdi-check</v-icon>
               </v-list-item-icon>
             </v-list-item>
@@ -69,7 +69,7 @@
                 @click="setSortByColumn(column.column_id)"
             >
               <v-list-item-icon>
-                <v-icon v-if="column.column_id===sort_by_column">mdi-check</v-icon>
+                <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
               </v-list-item-icon>
               <v-list-item-title class="py-3">
                 {{ column.displayName | titleCase}}
@@ -88,7 +88,7 @@
               style="min-width: 1px !important;"
               v-on="on" 
           >
-            {{ {"desc": "Descending", "asc": "Ascending"}[sort_by_order] }}
+            {{ {"desc": "Descending", "asc": "Ascending"}[query.sort_by_order] }}
             <v-icon small>mdi-menu-down</v-icon>
           </v-chip>
         </template>
@@ -102,7 +102,7 @@
                 @click="setOrder(order)"
             >
               <v-list-item-icon>
-                <v-icon v-if="order===sort_by_order">mdi-check</v-icon>
+                <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
               </v-list-item-icon>
               <v-list-item-title class="py-3">
                 {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
@@ -116,29 +116,28 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapMutations } from "vuex";
+import {mapGetters, mapMutations } from "vuex";
 import { getConfigs } from "@/oaxConfigs";
 
 export default {
   name: "QueryColumnsControl",
   components: {
   },
-  props: {
-    subjectEntity: String,
-    show_columns: Array,
-    sort_by_column: String,
-    sort_by_order: String,
-  },
+  props: {},
   data() {
     return {
       isColumnsMenuOpen: false,
     }
   },
   computed: {
-    columnConfigs: function() {
-      return getConfigs()[this.subjectEntity].columns;
+    ...mapGetters("search",[
+      "query",
+      "querySubjectEntity",
+    ]),
+    columnConfigs() {
+      return getConfigs()[this.querySubjectEntity].columns;
     },
-    availableColumns: function() {
+    availableColumns() {
       const availableColumns = Object.values(this.columnConfigs)
           .filter(column => column.actions?.includes("column"))
           .map(column => ({
@@ -149,13 +148,13 @@ export default {
           .sort((a, b) => a.displayName.localeCompare(b.displayName));
       return availableColumns;  
     },
-    visibleColumns: function() {
-      return this.show_columns.map(column => ({
+    visibleColumns() {
+      return this.query.show_columns.map(column => ({
           displayName: this.columnConfigs[column].displayNameForColumn || this.columnConfigs[column].displayName,
           column_id: column,
         }));
     },
-    availableSortByColumns: function() {
+    availableSortByColumns() {
       return Object.values(this.columnConfigs)
           .filter(column => column.actions?.includes("sort"))
           .map(column => ({
@@ -164,28 +163,22 @@ export default {
             icon: column.icon,
         }));
     },
-    sortByColumn: function() {
-      return this.columnConfigs?.[this.sort_by_column];
+    sortByColumn() {
+      return this.columnConfigs?.[this.query.sort_by_column];
     },
   },
   methods: {
-    ...mapGetters("search",[
-      "query",
-    ]),
     ...mapMutations("search", [
       "addReturnColumn",
       "deleteReturnColumn",
       "setSortBy"
-    ]),
-    ...mapActions("search", [
-      "createSearch",
     ]),
     openColumnsMenu(filter) {
       this.currentFilter = filter;
       this.isColumnsMenuOpen = true;
     },
     toggleColumn(column) {
-      if (this.show_columns.includes(column.column_id)) {
+      if (this.query.show_columns.includes(column.column_id)) {
         this.removeColumn(column);
       } else {
         this.addColumn(column);
@@ -193,23 +186,19 @@ export default {
     },
     addColumn(column) {
       this.addReturnColumn(column.column_id);
-      this.createSearch();
     },
     removeColumn(column) {
       this.deleteReturnColumn(column.column_id);
-      this.createSearch();
     },
     setSortByColumn(column) {
       this.setSortBy({column_id: column, direction: this.query.sort_by_order });
-      this.createSearch();
    },
     setOrder(order) {
       this.setSortBy({column_id: this.query.sort_by_column, direction: order });
-      this.createSearch();      
     },
   },
   mounted() {
-    if  (!this.show_columns) { debugger; }
+    if (!this.query.show_columns) { debugger; }
   },
   watch: {
   }
@@ -222,8 +211,6 @@ export default {
 .query-section-label {
   font-size: 18px;
   display: inline-block;
-}
-.columns-controls-box, .sort-box {
 }
 .column-chip {
   display: inline-block;

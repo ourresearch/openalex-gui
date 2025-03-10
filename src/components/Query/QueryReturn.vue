@@ -60,8 +60,8 @@ export default {
     ]),
     ...mapGetters("search", [
       "query",
-        "querySubjectEntityConfig",
-        "querySubjectEntity",
+      "querySubjectEntityConfig",
+      "querySubjectEntity",
     ]),
     // selected: {
     //   get() {

@@ -71,9 +71,6 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     availableFilters() {
       const mySubjectEntity = this.subjectEntity
       const myConfig = getConfigs()[mySubjectEntity]
