@@ -1,7 +1,9 @@
 <template>
   <div class="query-filter-tree-branch">
     <template v-for="(item, index) in filters">
-      <query-filter-tree-branch v-if="item.filters"
+      <query-filter-tree-branch 
+        v-if="item.filters"
+        :key="item.path.join('.')"
         :filters="item.filters"
         :join-operator="item.join"
         :parent-join-operator="joinOperator"
@@ -13,7 +15,9 @@
         @groupWithAbove="(path) => $emit('groupWithAbove', path)"
         @ungroupFromAbove="(path) => $emit('ungroupFromAbove', path)"
       />
-      <query-filter-tree-leaf v-else
+      <query-filter-tree-leaf 
+        v-else
+        :key="item.path.join('.')"
         :subject-entity="subjectEntity"
         :column_id="item.column_id"
         :operator="item.operator"
@@ -36,7 +40,6 @@
 <script>
 
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 
 export default {

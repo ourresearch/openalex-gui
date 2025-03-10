@@ -5,7 +5,7 @@
         @click="createNewSearch"
     >
         <template v-if="!goTo">
-            <v-icon left :color="$attrs.color === 'primary' ? undefined : 'primary'">mdi-plus</v-icon>
+            <v-icon v-if="icon" left :color="$attrs.color === 'primary' ? undefined : 'primary'">{{ icon }}</v-icon>
             {{ buttonText }}
         </template>
         <template v-else>
@@ -26,11 +26,14 @@ export default {
             type: String,
             default: "New Query"
         },
-
+        icon: {
+            type: String,
+            default: "mdi-plus"
+        },
         goTo: {
             type: Boolean,
             default: false
-        }
+        },
     },
     methods: {
         ...mapActions("search",["createNewSearch"]),

@@ -39,8 +39,7 @@ export default {
       isLoading: false,
     }
   },
-  computed: {
-  },
+  computed: {},
   methods: {
     async getEntity() {
       if (this.isLabelFilter) {

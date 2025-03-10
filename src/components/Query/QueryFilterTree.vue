@@ -81,11 +81,11 @@ export default {
     },
     displayInline() {
       return false;
-      return this.isEmpty && !this.isWithAggs;
+      //return this.isEmpty && !this.isWithAggs;
     },
     displayButtonInline() {
       return false;
-      return this.isEmpty && this.isWithAggs;
+      //return this.isEmpty && this.isWithAggs;
     },
     hasTopSpace() {
       return this.topText == "Where";
@@ -157,9 +157,6 @@ export default {
     ...mapMutations("search", [
       "setFilterWorks",
       "setFilterAggs",
-    ]),
-    ...mapActions("search", [
-      "createSearch",
     ]),
     decorateMyFilters() {
       // Recursively decorates filters with path + grouping properties
@@ -289,7 +286,7 @@ export default {
         Vue.set(groupParentFilter, "join", joinOperator);          
       }
 
-      this.applyFilters();
+      //this.applyFilters();
     },
     groupWithAbove(path) {
       //console.log("groupWithAbove path: " + path);
@@ -431,14 +428,9 @@ export default {
       } else {
         this.setFilterAggs(this.filtersToStore);
       }
-      await this.createSearch();
       this.isEditingFilters = false;
       //console.log("setting isEditingFilters false")
     },
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     "filters": {
@@ -467,8 +459,6 @@ export default {
 <style lang="scss">
 .invisible {
   visibility: hidden !important;
-}
-.query-filter-tree {
 }
 .query-section-label.inline-block {
   display: inline-block;

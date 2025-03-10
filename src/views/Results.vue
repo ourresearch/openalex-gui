@@ -15,32 +15,48 @@
               </div>
 
               <query-filter-tree
-                  v-if="querySubjectEntity !== 'works'"
-                  :subject-entity="querySubjectEntity"
-                  :filters="query.filter_aggs"
+                v-if="querySubjectEntity !== 'works'"
+                :subject-entity="querySubjectEntity"
+                :filters="query.filter_aggs"
               />
 
               <div class="section-divider" v-if="querySubjectEntity !== 'works'"/>
 
               <query-filter-tree
-                  subject-entity="works"
-                  :isWithAggs="querySubjectEntity !== 'works'"
-                  :filters="query.filter_works"
+                subject-entity="works"
+                :isWithAggs="querySubjectEntity !== 'works'"
+                :filters="query.filter_works"
               />
 
               <div class="section-divider"/>
 
-              <query-columns-controls
-                :subject-entity="querySubjectEntity"
-                :show_columns="query.show_columns"
-                :sort_by_column="query.sort_by_column"
-                :sort_by_order="query.sort_by_order"
-              />
+              <query-columns-controls />
 
               <div class="section-divider"/>
 
               <div class="new-query-box">
-                <new-query-button size="small" rounded/>
+                <v-btn 
+                  v-if="(hasQueryChanged && queryIsCompleted) || isSearchCanceled"
+                  size="small" 
+                  rounded 
+                  color="primary" 
+                  class="mr-2" 
+                  @click="createSearch">
+                  Search
+                </v-btn>
+                <v-btn
+                  v-if="!queryIsCompleted || hasQueryChanged"
+                  size="small" 
+                  rounded 
+                  class="mr-2"
+                  @click="cancelSearch">
+                  Cancel
+                </v-btn>
+                <new-query-button 
+                  v-if="queryIsCompleted" 
+                  size="small" 
+                  :icon="null"
+                  rounded />
               </div>
             </v-card>
           </v-col>
@@ -102,7 +118,6 @@ import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import { format } from 'sql-formatter';
 import {urlBase} from "@/apiConfig";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
-import OqlBox from "@/components/OqlBox.vue";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
@@ -162,12 +177,14 @@ export default {
       "querySql",
       "queryOql",
       "isSearchCanceled",
+      "hasQueryChanged",
+      "isBaseQuery",
     ]),
     areTopLevelFiltersApplied() {
       if (this.querySubjectEntity !== 'works') {
-        return this.query.filter_aggs.length !== 0
+        return this.query.filter_aggs.length !== 0;
       } else {
-        return this.query.filter_works.length !== 0
+        return this.query.filter_works.length !== 0;
       }
     },
     searchApiUrl() {
@@ -184,17 +201,20 @@ export default {
       "createSearch",
       "getSearch",
       "createSearchFromOql",
+      "resetToSubmittedQuery",
+    ]),
+    ...mapMutations("search", [
+      "setSearchCanceled",
     ]),
     applyOql() {
-      this.isOqlEditDialogOpen = false
-      this.createSearchFromOql(this.oql)
-      // this.createSearch()
+      this.isOqlEditDialogOpen = false;
+      this.createSearchFromOql(this.oql);
     },
     toggleCard(cardId) {
       if (this.cardsToShowSelected.includes(cardId)) {
-        this.cardsToShowSelected = this.cardsToShowSelected.filter(c => c !== cardId)
+        this.cardsToShowSelected = this.cardsToShowSelected.filter(c => c !== cardId);
       } else {
-        this.cardsToShowSelected.push(cardId)
+        this.cardsToShowSelected.push(cardId);
       }
     },
     saveToLocalStorage() {
@@ -213,7 +233,6 @@ export default {
     async pollSearch() {
       if (this.queryIsCompleted || this.isSearchCanceled) { return; }
       
-      //console.log("pollSearch")
       await this.getSearch({
         id: this.$route.params.id,
         bypass_cache: !this.hasPolledOnce && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
@@ -225,9 +244,17 @@ export default {
         this.pollSearch();
       }, 500);
     },
+    cancelSearch() {
+      if (!this.queryIsCompleted) { 
+        this.setSearchCanceled(true);
+      } else {
+        this.resetToSubmittedQuery();
+      }
+    }
   },
   created() {
-    this.loadFromLocalStorage()
+    this.loadFromLocalStorage();
+    this.loadFromLocalStorage();
     //console.log("Results state: ")
     //console.log(this.$store.state)
   },

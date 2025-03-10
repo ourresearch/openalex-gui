@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{'dimmed': hasQueryChanged}">
 
     <!-- Results Header / Actions -->
     <div class="table-meta d-flex align-center pa-2">
@@ -80,9 +80,9 @@
                   style="white-space: nowrap;"
                   class="px-0"
               >
-                <template v-if="query.sort_by_column === header.id">
-                  <v-icon v-if="query.sort_by_order==='desc'">mdi-arrow-down</v-icon>
-                  <v-icon v-if="query.sort_by_order==='asc'">mdi-arrow-up</v-icon>
+                <template v-if="submittedQuery.sort_by_column === header.id">
+                  <v-icon v-if="submittedQuery.sort_by_order==='desc'">mdi-arrow-down</v-icon>
+                  <v-icon v-if="submittedQuery.sort_by_order==='asc'">mdi-arrow-up</v-icon>
                 </template>
                 {{ (header.displayNameForColumn || header.displayName) | titleCase }}
                 <v-icon small>mdi-menu-down</v-icon>
@@ -103,7 +103,7 @@
                 <v-divider/>
                 <v-list-item
                     active-class="primary--text"
-                    :input-value="query.sort_by_column === header.id && query.sort_by_order === 'desc'"
+                    :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
                     @click="commitSortBy({column_id: header.id, direction: 'desc'})"
                 >
                   <v-list-item-icon>
@@ -114,7 +114,7 @@
                 <v-list-item
                     @click="commitSortBy({column_id: header.id, direction: 'asc'})"
                     active-class="primary--text"
-                    :input-value="query.sort_by_column === header.id && query.sort_by_order === 'asc'"
+                    :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
                 >
                   <v-list-item-icon>
                     <v-icon>mdi-arrow-up</v-icon>
@@ -199,7 +199,6 @@
       To view results beyond the first 100, download the full results set above.
     </v-card>
 
-
     <!-- Dialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
       <download-dialog 
@@ -219,18 +218,16 @@
       </v-card>
     </v-dialog>
 
-
   </div>
-
-
 </template>
+
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {unravel} from "../../util";
+import {entity} from "@/entity";
 import {getConfigs} from "@/oaxConfigs";
-import {entity} from "@/entity"
 import * as oaxSearch from "@/oaxSearch";
 
 import ColumnValue from "@/components/ColumnValue.vue";
@@ -271,11 +268,22 @@ export default {
       "resultsMeta",
       "resultsHeader",
       "resultsBody",
-      "querySubjectEntity",
-      "querySubjectEntityConfig",
-      "queryColumnsConfigs",
-      "query",
+      "submittedQuery",
+      "hasQueryChanged",
     ]),
+    querySubjectEntity() {
+      return this.submittedQuery.get_rows === "summary" ? "works" : this.submittedQuery.get_rows;
+    },
+    querySubjectEntityConfig() {
+      return getConfigs()[this.querySubjectEntity];
+    },
+    queryColumnsConfigs() {
+      const columnsToReturn = this.submittedQuery.show_columns.map((col) => {
+        const ret = this.querySubjectEntityConfig.columns[col];
+        return ret;
+      });
+      return columnsToReturn;
+    },
     rows() {
       const rows = this.resultsBody.map((row) => {
         return {
@@ -291,15 +299,15 @@ export default {
       return rows;
     },
     isEveryRowSelected() {
-      return this.selectedIds.length === this.resultsBody.length
+      return this.selectedIds.length === this.resultsBody.length;
     },
     selectAllIcon() {
       if (this.isEveryRowSelected) {
-        return "mdi-checkbox-marked"
+        return "mdi-checkbox-marked";
       } else if (this.selectedIds.length === 0) {
-        return "mdi-checkbox-blank-outline"
+        return "mdi-checkbox-blank-outline";
       } else {
-        return "mdi-minus-box-outline"
+        return "mdi-minus-box-outline";
       }
     },
     fullSelectedIds() {
@@ -315,11 +323,11 @@ export default {
     columnsToAdd() {
       return Object.values(this.querySubjectEntityConfig.columns)
         .filter(col => {
-          return col.actions?.includes("column")
+          return col.actions?.includes("column");
         })
         .filter(col => {
-          return !this.query.show_columns.includes(col.id)
-        })
+          return !this.submittedQuery.show_columns.includes(col.id);
+        });
     },
   },
   methods: {
@@ -340,73 +348,72 @@ export default {
       "createSearch",
     ]),
     commitSortBy(sortBy) {
-      this.setSortBy(sortBy)
-      this.createSearch()
+      this.setSortBy(sortBy);
+      this.createSearch();
     },
     addSelectedId(id) {
-      this.selectedIds.push(id)
+      this.selectedIds.push(id);
     },
     removeSelectedId(id) {
-      this.selectedIds = this.selectedIds.filter((i) => i !== id)
+      this.selectedIds = this.selectedIds.filter((i) => i !== id);
     },
     toggleSelectedId(id) {
-      console.log("toggleSelectedId", id)
+      //console.log("toggleSelectedId", id);
       if (this.selectedIds.includes(id)) {
-        this.removeSelectedId(id)
+        this.removeSelectedId(id);
       } else {
-        this.addSelectedId(id)
+        this.addSelectedId(id);
       }
     },
     unselectAll(){
-      this.selectedIds = []
-      this.isEntireSearchSelected = false
+      this.selectedIds = [];
+      this.isEntireSearchSelected = false;
     },
     clickSelectAllButton() {
-      this.isEntireSearchSelected = false
+      this.isEntireSearchSelected = false;
       if (this.selectedIds.length === 0) {
-        this.selectedIds = this.resultsBody.map((row) => row.id)
+        this.selectedIds = this.resultsBody.map((row) => row.id);
       } else {
-        this.unselectAll()
+        this.unselectAll();
       }
     },
     clickRow(rowId) {
-      console.log("clickRow", rowId)
+      console.log("clickRow", rowId);
       this.setZoomId(entity.fullId(rowId, this.querySubjectEntity));
     },
     metaClickRow(rowId) {
-      console.log("metaClickRow", rowId)
-      const newTab = window.open(this.apiUrl)
+      const newTab = window.open(this.apiUrl);
       setTimeout(() => {
-        newTab.focus()
-      }, 1000)
-      return false
+        newTab.focus();
+      }, 1000);
+      return false;
     },
     removeColumn(id) {
-      console.log("removeColumn", id)
-      this.deleteReturnColumn(id)
-      this.createSearch()
+      console.log("removeColumn", id);
+      this.deleteReturnColumn(id);
+      this.createSearch();
     },
     addColumn(id) {
-      console.log("addColumn", id)
-      this.addReturnColumn(id)
-      this.createSearch()
+      console.log("addColumn", id);
+      this.addReturnColumn(id);
+      this.createSearch();
     },
     exportResults() {
       if (this.isEntireSearchSelected) {
-        this.isDownloadDialogOpen = true
+        this.isDownloadDialogOpen = true;
       } else {
-        this.exportSelectedAsCsv()
+        this.exportSelectedAsCsv();
       }
     },
     exportSelectedAsCsv() {
-      const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id))
-      const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows)
-      const blob = new Blob([csv], {type: "text/csv"})
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = "selected.csv"
-      a.click()
+      const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id));
+      const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows);
+      const blob = new Blob([csv], {type: "text/csv"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "selected.csv";
+      a.click();
     },
   },
   created() {
@@ -429,6 +436,9 @@ td.data-type-number {
 }
 a {
   text-decoration: none;
+}
+.dimmed {
+  opacity: 0.4;
 }
 .more-results-message {
   padding: 20px;

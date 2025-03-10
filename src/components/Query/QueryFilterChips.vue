@@ -127,9 +127,9 @@ export default {
       this.createSearch();
     },
     columnConfig(column_id) {
-      const mySubjectEntity = this.subjectEntity
-      const mySubjectEntityConfig = getConfigs()[mySubjectEntity]
-      const columnConfig = mySubjectEntityConfig.columns[column_id]
+      const mySubjectEntity = this.subjectEntity;
+      const mySubjectEntityConfig = getConfigs()[mySubjectEntity];
+      const columnConfig = mySubjectEntityConfig.columns[column_id];
       return columnConfig
     },
   },
