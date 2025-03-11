@@ -46,7 +46,7 @@ export default {
   name: "QueryFilterTreeBranch",
   components: {
     QueryFilterTreeBranch: () => import('./QueryFilterTreeBranch.vue'),
-    QueryFilterTreeLeaf
+    QueryFilterTreeLeaf,
   },
   props: {
     filters: Array,
@@ -54,11 +54,14 @@ export default {
     parentJoinOperator: String,
     subjectEntity: String,
   },
-  emits: ['setValue', 'setOperator', 'deleteFilter', 'setJoinOperator', 'groupWithAbove', 'ungroupFromAbove'],  
-  data() {
-    return {
-    }
-  },
+  emits: [
+    'setValue',
+    'setOperator',
+    'deleteFilter',
+    'setJoinOperator',
+    'groupWithAbove',
+    'ungroupFromAbove'
+  ],
 }
 </script>
 

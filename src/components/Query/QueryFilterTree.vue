@@ -41,13 +41,12 @@ Manipulations of current filter state occur locally and are passed to global sta
 
 <script>
 
-import {mapActions, mapMutations} from "vuex";
+import {mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
-import {filter} from "core-js/internals/array-iteration";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
 import Vue from "vue";
-import _ from 'lodash'
+import _ from 'lodash';
 
 
 export default {
@@ -65,7 +64,6 @@ export default {
     return {
       myFilters: [], // Local copy of filters kept so we can represent filters as they're being edited before they are applied
       rootJoin: "and",
-      isEditingFilters: false,
     }
   },
   computed: {
@@ -118,11 +116,6 @@ export default {
           };
         }
 
-        // Leaf -- skip leaves with no value
-        if ([null, undefined, ""].includes(filter.value)) {
-          return null;
-        }
-
         // Keep the basic leaf properties
         const cleanedLeaf = {
           column_id: filter.column_id,
@@ -153,7 +146,6 @@ export default {
     },
   },
   methods: {
-    filter,
     ...mapMutations("search", [
       "setFilterWorks",
       "setFilterAggs",
@@ -163,7 +155,6 @@ export default {
       const decorateFilters = (filters, parentPath = []) => {
         return filters.map((filter, index) => {
           const currentPath = [...parentPath, index];
-
           const canGroupAbove = (parentPath.length === 0 && index > 0) 
                                 || (parentPath.length > 0 && index > 1);
           const canUngroup = (currentPath.length > 1);
@@ -185,12 +176,14 @@ export default {
           }
         });
       };
-
       this.myFilters = decorateFilters(this.myFilters);
       //console.log("decorated filters:", JSON.stringify(this.myFilters, null, 2));
     },
+    hasSingleRootGroup() {
+      return this.myFilters.length === 1 && this.myFilters[0].filters;
+    },
     getFilterFromPath(path) {
-      // Returns filter object give a path like [0], [1,2]
+      // Returns filter object given a path like [0], [1,2]
       // If path is empty, interpret that as “the root array”
       if (!path || path.length === 0) {
         // Return a “fake” parent object that points to myFilters
@@ -247,41 +240,29 @@ export default {
         operator: column.defaultOperator,
       });
       this.decorateMyFilters();
-      if (column.type === "boolean") {
-        this.applyFilters();
-      }
-      this.isEditingFilters = true;
+      this.applyFilters();
       // console.log("After adding filter:", this.myFilters);
     },
-    setOperator(path, operator, dontApply) {
+    setOperator(path, operator) {
       //console.log("setOperator", path, operator);
-      //console.log("dontApply: " + dontApply);
       const filterToUpdate = this.getFilterFromPath(path);
       Vue.set(filterToUpdate, "operator", operator);
-      if (dontApply) {
-        //console.log("setOperator with dontApply");
-        this.isEditingFilters = true;
-      } else if (!this.isEditingFilters) {
-        //console.log("setOperator and applyFilters");
-        this.applyFilters();
-      }
+      this.applyFilters();
     },
-    setValue(path, value, dontApply) {
+    setValue(path, value) {
       //console.log("Setting filter value", { path, value, dontApply });
       const filterToUpdate = this.getFilterFromPath(path);
       Vue.set(filterToUpdate, "value", value);
-      if (dontApply) {
-        this.isEditingFilters = true;
-      } else {
-        this.applyFilters();
-      }
+      this.applyFilters();
     },
     setJoinOperator(path, joinOperator) {
       console.log("setJoin", JSON.stringify(path), joinOperator);
       const groupParentPath = this.getGroupParentPath(path);
       if (groupParentPath.length === 0) {
+        console.log("Setting root join to " + joinOperator);
         this.rootJoin = joinOperator;
       } else {
+        console.log("Setting group join to " + joinOperator + " at path " + JSON.stringify(groupParentPath));
         const groupParentFilter = this.getFilterFromPath(groupParentPath);
         Vue.set(groupParentFilter, "join", joinOperator);
       }
@@ -289,7 +270,6 @@ export default {
     },
     groupWithAbove(path) {
       //console.log("groupWithAbove path: " + path);
-
       // The parent is the array containing this filter
       const parentPath = path.slice(0, -1);
       const index = path[path.length - 1];
@@ -302,23 +282,27 @@ export default {
       const parentFilter = this.getFilterFromPath(parentPath);
 
       // Our parent's array
-      const parentArray = parentFilter.filters;
-      const sibling = parentArray[index - 1];
-      const current = parentArray[index];
+      const parentFilters = parentFilter.filters;
+      const sibling = parentFilters[index - 1];
+      const current = parentFilters[index];
 
-      // If sibling is already a group, push current into sibling
+      // If sibling above is already a group, push current into sibling
       if (sibling.join && Array.isArray(sibling.filters)) {
-        parentArray.splice(index, 1);    // remove current
+        parentFilters.splice(index, 1);    // remove current
         sibling.filters.push(current);   // add to sibling group
       } else {
         // Otherwise create a new group with sibling + current
         const newGroup = {
-          join: "and",
+          join: parentFilter.join,
           filters: [sibling, current],
         };
         // Remove sibling & current, then insert the group
-        parentArray.splice(index - 1, 2);
-        parentArray.splice(index - 1, 0, newGroup);
+        parentFilters.splice(index - 1, 2);
+        parentFilters.splice(index - 1, 0, newGroup);
+      }
+
+      if (parentPath.length === 0 && this.hasSingleRootGroup()) {
+        this.isRootGroupUserCreated = true;
       }
       // console.log("After grouping, myFilters:", JSON.stringify(this.myFilters, null, 2));
       this.applyFilters();
@@ -364,11 +348,13 @@ export default {
         grandParentFilter.filters.splice(parentIndexInGrand, 0, singleChild);
       }
 
+      if (parentPath.length === 1 && parentPath[0] === 0) {
+  this.isRootGroupUserCreated = false;
+}
       this.applyFilters();
     },
     deleteFilter(path) {
       //console.log("deleteFilter at path:", path)
-      this.isEditingFilters = true;
       // Get the parent path and the index to remove
       const parentPath = path.slice(0, -1);
       const indexToRemove = path[path.length - 1];
@@ -391,6 +377,9 @@ export default {
           }
         }
       }
+      if (parentPath.length === 1 && parentPath[0] === 0) {
+  this.isRootGroupUserCreated = false;
+}
       this.applyFilters();
     },
     removeEmptyGroup(path) {
@@ -427,26 +416,25 @@ export default {
       } else {
         this.setFilterAggs(this.filtersToStore);
       }
-      this.isEditingFilters = false;
-      //console.log("setting isEditingFilters false")
     },
   },
   watch: {
     "filters": {
       handler: function (filters) {
-        if (!this.isEditingFilters) {
-          this.myFilters = _.cloneDeep(filters);
+        this.myFilters = _.cloneDeep(filters);
 
-          if (this.myFilters.length === 1 && this.myFilters[0].join === "or") {
-            // Special case single "or" group to appear at root level
-            this.rootJoin == "or";
-            this.myFilters = this.myFilters[0].filters;
-          }
-
-          this.decorateMyFilters();
-          //console.log("Watcher updating filters:");
-          //console.log(JSON.stringify(filters, null, 2));
+        if (this.myFilters.length === 1 && 
+            this.myFilters[0].join === "or" &&
+            !this.isRootGroupUserCreated) {
+          // Special case single "or" group to appear at root level
+          console.log("Special case single \"or\" group to appear at root level");
+          this.rootJoin == "or";
+          this.myFilters = this.myFilters[0].filters;
         }
+
+        this.decorateMyFilters();
+        //console.log("Watcher updating filters:");
+        //console.log(JSON.stringify(filters, null, 2));
       },
       immediate: true,
     }

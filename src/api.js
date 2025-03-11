@@ -85,7 +85,7 @@ const api = (function () {
 
         const cachedResponse = getFromCache(url);
         if (cachedResponse) {
-            console.log("cache hit: " + url);
+            //console.log("cache hit: " + url);
             return cachedResponse;
         }
 
