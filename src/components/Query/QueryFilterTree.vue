@@ -277,16 +277,15 @@ export default {
       }
     },
     setJoinOperator(path, joinOperator) {
-      //console.log("setJoin", JSON.stringify(path), joinOperator);
+      console.log("setJoin", JSON.stringify(path), joinOperator);
       const groupParentPath = this.getGroupParentPath(path);
       if (groupParentPath.length === 0) {
         this.rootJoin = joinOperator;
       } else {
         const groupParentFilter = this.getFilterFromPath(groupParentPath);
-        Vue.set(groupParentFilter, "join", joinOperator);          
+        Vue.set(groupParentFilter, "join", joinOperator);
       }
-
-      //this.applyFilters();
+      this.applyFilters();
     },
     groupWithAbove(path) {
       //console.log("groupWithAbove path: " + path);
