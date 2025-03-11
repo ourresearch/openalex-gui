@@ -3,7 +3,7 @@
     <template v-for="(item, index) in filters">
       <query-filter-tree-branch 
         v-if="item.filters"
-        :key="item.path.join('.')"
+        :key="index"
         :filters="item.filters"
         :join-operator="item.join"
         :parent-join-operator="joinOperator"
@@ -17,7 +17,7 @@
       />
       <query-filter-tree-leaf 
         v-else
-        :key="item.path.join('.')"
+        :key="index"
         :subject-entity="subjectEntity"
         :column_id="item.column_id"
         :operator="item.operator"
@@ -37,8 +37,8 @@
   </div>
 </template>
 
-<script>
 
+<script>
 
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 
