@@ -263,7 +263,14 @@ export default {
     canGroupAbove: Boolean,
     canUngroup: Boolean,
   },
-  emits: ['setValue', 'setOperator', 'deleteFilter', 'setJoinOperator', 'groupWithAbove', 'ungroupFromAbove'],
+  emits: [
+    'setValue',
+    'setOperator',
+    'deleteFilter',
+    'setJoinOperator',
+    'groupWithAbove', 
+    'ungroupFromAbove'
+  ],
   data() {
     return {
       asyncValueOptions: [], // for the async autocomplete values
@@ -304,33 +311,33 @@ export default {
     indentationStyle() {
       return {
         paddingLeft: `${this.indendationLevel * 20}px`
-      }
+      };
     },
     operatorOptions() {
-      return this.columnConfig.operators
+      return this.columnConfig.operators;
     },
     localValueOptions() {
-      if (!this.columnConfig.objectEntity) return []
-      const values = getConfigs()[this.columnConfig.objectEntity]?.values ?? []
-      return values
+      if (!this.columnConfig.objectEntity) return [];
+      const values = getConfigs()[this.columnConfig.objectEntity]?.values ?? [];
+      return values;
     },
     valueOptions() {
-      return (this.localValueOptions.length) ? this.localValueOptions : this.asyncValueOptions
+      return (this.localValueOptions.length) ? this.localValueOptions : this.asyncValueOptions;
     },
     selectedOperator: {
       get() {
-        return this.operator ?? this.columnConfig.defaultOperator
+        return this.operator ?? this.columnConfig.defaultOperator;
       },
       set(newValue) {
         const oldValue = this.operator
         if (this.labelOperators.includes(newValue) !== this.labelOperators.includes(oldValue)) {
           // when switching between label and entity operators reset value and don't immediately apply
           //console.log("operator change to/from label")
-          this.restartEditingValue()
-          this.$emit("setOperator", this.path, newValue, true)
-          this.$emit("setValue", this.path, null, true)
+          this.restartEditingValue();
+          this.$emit("setOperator", this.path, newValue, true);
+          this.$emit("setValue", this.path, null, true);
         } else {
-          this.$emit("setOperator", this.path, newValue)
+          this.$emit("setOperator", this.path, newValue);
         }
         this.labelMenuPositionHack();
       }
@@ -360,31 +367,31 @@ export default {
   },
   methods: {
     startEditingValue() {
-      this.isEditingValue = true
-      this.valueEditModel = this.selectedValue
+      this.isEditingValue = true;
+      this.valueEditModel = this.selectedValue;
     },
     cancelEditingValue() {
       //console.log("cancelEditingValue")
       if (this.value !== null) {
-        this.isEditingValue = false
-        this.valueEditModel = null        
+        this.isEditingValue = false;
+        this.valueEditModel = null;  
       }
     },
     restartEditingValue() {
       //console.log("restart edit")
-      this.labelMenuPositionHack()
-      this.isEditingValue = true
-      this.valueEditModel = null
+      this.labelMenuPositionHack();
+      this.isEditingValue = true;
+      this.valueEditModel = null;
     },
     saveEditingValue(value) {
       //console.log("saveEditingValue: ", value)
-      this.isEditingValue = false
+      this.isEditingValue = false;
       // Handle both full entity objects and direct ID values
-      this.selectedValue = value?.id || value
-      this.valueEditModel = null
+      this.selectedValue = value?.id || value;
+      this.valueEditModel = null;
     },
     deleteFilter() {
-      this.$emit("deleteFilter", this.path)
+      this.$emit("deleteFilter", this.path);
     },
     onInputBlur() {
       //console.log("onInputBlur", this.valueEditModel);
@@ -395,10 +402,10 @@ export default {
       }
     },
     groupWithAbove() {
-      this.$emit("groupWithAbove", this.path)
+      this.$emit("groupWithAbove", this.path);
     },
     ungroupFromAbove() {
-      this.$emit("ungroupFromAbove", this.path)
+      this.$emit("ungroupFromAbove", this.path);
     },
     labelMenuPositionHack() {
       // hacked needed to allow label menu to be rendered open intially in the correct location
