@@ -1302,8 +1302,6 @@ const exampleQueries = [
     type: "authors",
     category: "discovery",
     url: "",
-    broken: true,
-    error: "Query working but bug in UI shows 'and' while query gets 'or'. Duplicates in past institutions.",
     query: {
       "get_rows": "authors",
       "filter_works": [],
@@ -1320,6 +1318,11 @@ const exampleQueries = [
               "column_id": "id",
               "value": "authors/A5023888391",
               "operator": "is"
+            },
+            {
+              "column_id": "id",
+              "value": "authors/A5108860022",
+              "operator": "is"
             }
           ]
         }
@@ -1331,7 +1334,7 @@ const exampleQueries = [
       ],
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
-   }
+    }
   },
   {
     question: "Which Diamond OA journals do researchers in Mexico publish in?", 
