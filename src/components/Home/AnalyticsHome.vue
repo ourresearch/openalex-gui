@@ -8,6 +8,11 @@
         Analytics
       </div>
       <new-query-button button-text="Start a Query" :goTo="true" color="primary"/>
+      <v-spacer />
+      <v-btn small color="white" to="/analytics-docs">
+        <v-icon left >mdi-book-open-outline</v-icon>
+        Read the Docs
+      </v-btn>
     </v-row>
     <v-row>
       <div class="tagline text-h6">

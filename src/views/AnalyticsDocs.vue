@@ -135,6 +135,10 @@ export default {
       {
         name: "Redshift Columns Unequal",
         filter: (col) => col.redshiftFilterColumn !== col.redshiftDisplayColumn
+      },
+      {
+        name: "Column Type is not String",
+        filter: (col) => col.type !== "string",
       }
     ],
     availableFields: [
@@ -187,7 +191,6 @@ export default {
         this.clickCount = 0;
       }, 1000);
     },
-    
     formatFieldValue(value) {
       if (value === null || value === undefined) {
         return 'null';
@@ -199,13 +202,11 @@ export default {
         return value.toString();
       }
     },
-    
     isDisplayedInDefault(field) {
       // These fields are already displayed in the default view
       const defaultFields = ['id', 'displayName', 'descr', 'actions'];
       return defaultFields.includes(field);
     },
-    
     shouldShowColumn(column) {
       // In normal mode, only show columns with actions
       if (!this.debugMode) {
@@ -223,12 +224,10 @@ export default {
         return filterFunc(column);
       });
     },
-    
     hasVisibleColumns(columns) {
       // Check if any columns in this section should be shown
       return Object.values(columns).some(column => this.shouldShowColumn(column));
     },
-    
     countVisibleColumns(columns) {
       // Count how many columns are visible in this section
       return Object.values(columns).filter(column => this.shouldShowColumn(column)).length;
