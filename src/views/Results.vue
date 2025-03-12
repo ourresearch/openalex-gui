@@ -283,7 +283,7 @@ export default {
 .v-tab {
   text-transform: none;
 }
-.redshift-sql {
+.sql {
   overflow-x: scroll;
 }
 </style>

@@ -655,8 +655,6 @@ const exampleQueries = [
     question: "Which institutions in Japan collaborate the most with researchers in the Global South?",
     type: "institutions",
     category: "expert discovery",
-    broken: true,
-    error: "No results - but works for global south == false",
     url: "/s/9ce42c599fe7278fe7a1a0f5c9888bd1",
     query: {
       get_rows: "institutions",
