@@ -771,26 +771,61 @@ const exampleQueries = [
     question: "Which countries does Spain collaborate with on cybersecurity?",
     type: "countries",
     category: "collaboration",
-    url: "/s/2d603c3b6041c84ca210917cca11efc5",
+    url: "",
     query: {
-      get_rows: "countries",
-      filter_works: [
+      "get_rows": "countries",
+      "filter_works": [
         {
-          column_id: "authorships.countries",
-          value: "countries/ES"
+          "column_id": "authorships.countries",
+          "value": "countries/ES"
         },
         {
-          column_id: "primary_topic.id",
-          value: "topics/T12221"
+          "join": "or",
+          "filters": [
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T12221"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T12519",
+              "operator": "is"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T13983",
+              "operator": "is"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T10734",
+              "operator": "is"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T10400",
+              "operator": "is"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T12479",
+              "operator": "is"
+            },
+            {
+              "column_id": "primary_topic.id",
+              "value": "topics/T10964",
+              "operator": "is"
+            }
+          ]
         }
       ],
-      filter_aggs: [],
-      show_columns: [
+      "filter_aggs": [],
+      "show_columns": [
         "display_name",
         "count(works)"
       ],
-      sort_by_column: "count(works)",
-      sort_by_order: "desc"
+      "sort_by_column": "count(works)",
+      "sort_by_order": "desc"
     }
   },
   {
