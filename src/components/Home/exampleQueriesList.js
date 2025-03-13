@@ -1292,7 +1292,6 @@ const exampleQueries = [
         {
           "column_id": "authorships.institutions.lineage",
           "value": "institutions/I121797337",
-          "operator": "includes"
         }
       ],
       "filter_aggs": [],
@@ -1420,7 +1419,6 @@ const exampleQueries = [
         {
           "column_id": "authorships.institutions.lineage",
           "value": "institutions/I40347166",
-          "operator": "includes"
         },
         {
           "column_id": "open_access.has_fulltext",
