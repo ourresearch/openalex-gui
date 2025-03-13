@@ -77,7 +77,7 @@ const configUpdates = (oaxConfigs) => {
   oaxConfigs.topics.columns["field"].operators = labelOperators;
   oaxConfigs.topics.columns["domain"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.id"].operators = labelOperators;
-  oaxConfigs.works.columns["keywords.id"].operators = labelOperators;
+  oaxConfigs.works.columns["keywords.id"].operators = labelOperatorsIncludes;
   oaxConfigs.works.columns["primary_topic.subfield.id"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.field.id"].operators = labelOperators;
   oaxConfigs.works.columns["primary_topic.domain.id"].operators = labelOperators;

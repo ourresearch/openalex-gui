@@ -129,7 +129,11 @@ export default {
         filter: (col) => !col.actions || col.actions.length === 0
       },
       {
-        name: "Actions Popular",
+        name: "Has Actions",
+        filter: (col) => col.actions && col.actions.length > 0
+      },
+      {
+        name: "Has Actions Popular",
         filter: (col) => col.actionsPopular && col.actionsPopular.length > 0
       },
       {
@@ -137,9 +141,13 @@ export default {
         filter: (col) => col.redshiftFilterColumn !== col.redshiftDisplayColumn
       },
       {
-        name: "Column Type is not String",
+        name: "Type is not 'string'",
         filter: (col) => col.type !== "string",
-      }
+      },
+      {
+        name: "Type is 'object' or 'array'",
+        filter: (col) => col.type === "object" || col.type === "array",
+      },
     ],
     availableFields: [
       'id', 'subjectEntity', 'operators', 'defaultOperator', 'entityId', 'objectEntity', 
@@ -219,7 +227,7 @@ export default {
       }
       
       // In debug mode with active filters, apply each selected filter
-      return this.activeFilters.some(filterName => {
+      return this.activeFilters.every(filterName => {
         const filterFunc = this.filterFunctions.find(f => f.name === filterName).filter;
         return filterFunc(column);
       });

@@ -901,20 +901,15 @@ const exampleQueries = [
       "get_rows": "authors",
       "filter_works": [
         {
-          "join": "or",
-          "filters": [
-            {
-              "column_id": "keywords.id",
-              "value": "keywords/gender-equality"
-            },
-            {
-              "column_id": "keywords.id",
-              "value": "keywords/public-health-policy"
-            },
-          ]
+          "column_id": "sustainable_development_goals.id",
+          "value": "sdgs/5",
         },
+        {
+          "column_id": "primary_topic.id",
+          "value": "topics/T13099",
+        }
       ],
-      "filter_aggs": [    
+      "filter_aggs": [
         {
           "column_id": "last_known_institutions.id",
           "value": "institutions/I185261750"
@@ -994,8 +989,6 @@ const exampleQueries = [
     type: "authors",
     category: "expert discovery",
     url: "",
-    broken: true,
-    error: "Disjunction of keyword and topic getting not completing",
     query: {
       "get_rows": "authors",
       "filter_works": [
@@ -1454,7 +1447,6 @@ const exampleQueries = [
         {
           "column_id": "keywords.id",
           "value": "keywords/pharmaceutical-sciences",
-          "operator": "is"
         },
         {
           "column_id": "open_access.has_fulltext",
