@@ -928,15 +928,17 @@ const exampleQueries = [
     type: "authors",
     category: "expert discovery",
     url: "",
+    broken: true,
+    error: "Can't find any topic/keyword pairs that have data",
     query: {
       "get_rows": "authors",
       "filter_works": [
         {
-          "join": "or",
+          "join": "and",
           "filters": [
             {
-              "column_id": "keywords.id",
-              "value": "keywords/space-exploration"
+              "column_id": "primary_topic.id",
+              "value": "topics/t14214"
             },
             {
               "column_id": "keywords.id",
