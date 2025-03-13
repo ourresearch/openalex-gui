@@ -52,7 +52,7 @@ const exampleQueries = [
       "get_rows": "works",
       "filter_works": [
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I95850191"
         }
       ],
@@ -231,7 +231,7 @@ const exampleQueries = [
           value: "fields/14"
         },
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I130238516"
         }
       ],
@@ -253,7 +253,7 @@ const exampleQueries = [
       get_rows: "fields",
       filter_works: [
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I86519309"
         }
       ],
@@ -298,7 +298,7 @@ const exampleQueries = [
       get_rows: "institutions",
       filter_works: [
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I4210124779"
         }
       ],
@@ -413,7 +413,7 @@ const exampleQueries = [
       get_rows: "works",
       filter_works: [
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I201448701"
         },
         {
@@ -482,7 +482,7 @@ const exampleQueries = [
         },
         {
           value: "institutions/I141945490",
-          column_id: "authorships.institutions.id"
+          column_id: "authorships.institutions.lineage"
         }
       ],
       filter_aggs: [],
@@ -503,7 +503,7 @@ const exampleQueries = [
       get_rows: "sdgs",
       filter_works: [
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I4210155817"
         }
       ],
@@ -583,7 +583,7 @@ const exampleQueries = [
           value: "funders/F4320334601"
         },
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I129902397"
         }
       ],
@@ -837,7 +837,7 @@ const exampleQueries = [
       get_rows: "works",
       filter_works: [
         {
-          column_id: "authorships.institutions.id",
+          column_id: "authorships.institutions.lineage",
           value: "institutions/I63966007"
         },
         {
@@ -865,7 +865,7 @@ const exampleQueries = [
       "get_rows": "works",
       "filter_works": [
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I212119943"
         },
         {
@@ -972,7 +972,7 @@ const exampleQueries = [
       "get_rows": "authors",
       "filter_works": [
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I114027177"
         },
         {
@@ -1039,7 +1039,7 @@ const exampleQueries = [
           "value": "sdgs/13"
         },
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I138006243"
         }
       ],
@@ -1290,7 +1290,7 @@ const exampleQueries = [
           "operator": "is"
         },
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I121797337",
           "operator": "includes"
         }
@@ -1418,7 +1418,7 @@ const exampleQueries = [
       "get_rows": "works",
       "filter_works": [
         {
-          "column_id": "authorships.institutions.id",
+          "column_id": "authorships.institutions.lineage",
           "value": "institutions/I40347166",
           "operator": "includes"
         },
@@ -1444,7 +1444,38 @@ const exampleQueries = [
       "sort_by_column": "cited_by_count",
       "sort_by_order": "desc"
     }
-  }
+  },
+  {
+    question: "Which works in pharmaceutical sciences have full text PDFs avaialble?",
+    type: "works",
+    category: "discovery",
+    url: "",
+    query: {
+      "get_rows": "works",
+      "filter_works": [
+        {
+          "column_id": "keywords.id",
+          "value": "keywords/pharmaceutical-sciences",
+          "operator": "is"
+        },
+        {
+          "column_id": "open_access.has_fulltext",
+          "value": true,
+          "operator": "is"
+        }
+      ],
+      "filter_aggs": [],
+      "show_columns": [
+        "display_name",
+        "id",
+        "publication_year",
+        "type",
+        "cited_by_count"
+      ],
+      "sort_by_column": "cited_by_count",
+      "sort_by_order": "desc"
+    }
+  },
 ];
 
 
