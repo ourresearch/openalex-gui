@@ -72,8 +72,10 @@
         <th
             v-for="(header, i) in queryColumnsConfigs"
             :key="'header-'+i"
-            :class="`data-type-${header.type} is-date-${header.isDate}`"
-            class=""
+            :class="[
+              'data-type-' + header.type, 
+              { 'is-date': header.isDate, 'metric': header.id && header.id.includes('(') }
+            ]"
         >
           <div class="d-flex">
             <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
@@ -134,7 +136,7 @@
         </th>
 
         <!-- Add Column Button -->
-        <th key="column-adder">
+        <th key="column-adder" :class="{'metric': hasMetricsColumns}">
           <v-menu rounded max-height="50vh">
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on">
@@ -191,11 +193,14 @@
               v-for="(cell, i) in row.cellsWithConfigs"
               :key="'cell-'+i"
               class="px-1"
-              :class="`data-type-${cell.config.type} is-date-${!!cell.config.isDate}`"
+              :class="[
+                'data-type-' + cell.config.type, 
+                {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
+              ]"
           >
             <column-value :property="cell"/>
           </td>
-          <td key="column-adder-placeholder"></td>
+          <td key="column-adder-placeholder" :class="{'metric': hasMetricsColumns}"></td>
         </tr>
         </tbody>
       </v-simple-table>
@@ -232,7 +237,6 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {unravel} from "../../util";
 import {entity} from "@/entity";
 import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
@@ -309,6 +313,9 @@ export default {
       });
       return rows;
     },
+    hasMetricsColumns() { 
+      return this.queryColumnsConfigs.some(col => col.id.includes('('));
+    },
     isEveryRowSelected() {
       return this.selectedIds.length === this.resultsBody.length;
     },
@@ -342,7 +349,6 @@ export default {
     },
   },
   methods: {
-    unravel,
     ...mapMutations([
       "snackbar",
       "setZoomId",
@@ -439,15 +445,24 @@ export default {
 
 
 <style scoped lang="scss">
+thead {
+  border-bottom: thin solid rgba(0, 0, 0, 0.12)
+}
 td.data-type-number {
   text-align: right;
   font-family: monospace;
   font-size: 0.9em;
 
-  &.is-date-true {
+  &.is-date {
     text-align: unset;
     font-family: unset;
   }
+}
+.metric {
+  background-color: #f8f8f8;
+}
+tr:hover .metric {
+  background-color: transparent;
 }
 a {
   text-decoration: none;

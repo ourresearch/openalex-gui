@@ -99,8 +99,11 @@ export const search = {
         },
         addReturnColumn(state, columnId) {
             if (!state.query.show_columns.includes(columnId)) {
-                state.query.show_columns.push(columnId);
-            }
+                state.query.show_columns.push(columnId)
+                state.query.show_columns.sort((a, b) => 
+                    // Sort metrics columns to the end
+                    (a.includes("(") - b.includes("(")) || a.localeCompare(b)
+                );            }
         },
         deleteReturnColumn(state, columnId) {
             if (state.query.show_columns.length === 1) { return; }
