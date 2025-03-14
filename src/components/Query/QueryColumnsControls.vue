@@ -1,28 +1,28 @@
 <template>
   <v-card flat rounded>
     <div class="columns-controls-line" />
+    
     <!-- Display -->
     <div class="query-section-label">Display</div>
-
-    <div class="columns-controls-box" v-if="visibleColumns.length > 0">
+    <div class="columns-controls-box" v-if="visibleDataColumns.length > 0">
       <!-- Visible Columns -->
-      <div v-for="(column, index) in visibleColumns" :key="index" class="column-chip">
+      <div v-for="(column, index) in visibleDataColumns" :key="index" class="column-chip">
         <v-chip small outlined>
           {{ column.displayName | titleCase }}
           <v-icon
-            v-if="visibleColumns.length > 1" 
+            v-if="visibleDataColumns.length > 1" 
             @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
         </v-chip>
       </div>
       <!-- Columns Button/Menu -->
-      <v-menu v-model="isColumnsMenuOpen" offset-y>
+      <v-menu v-model="isDataColumnsMenuOpen" offset-y>
         <template v-slot:activator="{ on }">
           <v-btn small rounded v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Column</v-btn>
         </template>
         <v-card flat rounded>
           <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
             <v-list-item
-                v-for="(column, i) in availableColumns"
+                v-for="column in availableDataColumns"
                 :key="column.id"
                 @click="toggleColumn(column)"
             >
@@ -42,6 +42,47 @@
       </v-menu>
     </div>
 
+    <!-- Metrics -->
+    <div v-if="availableMetricsColumns.length > 0">
+      <div class="query-section-label" style="margin-top: 10px;">Metrics</div>
+      <div class="columns-controls-box" v-if="visibleMetricsColumns.length > 0">
+        <!-- Visible Columns -->
+        <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="column-chip">
+          <v-chip small outlined>
+            {{ column.displayName | titleCase }}
+            <v-icon
+              v-if="visibleMetricsColumns.length > 1" 
+              @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
+          </v-chip>
+        </div>
+        <!-- Metrics Button/Menu -->
+        <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
+          <template v-slot:activator="{ on }">
+            <v-btn small rounded v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Metric</v-btn>
+          </template>
+          <v-card flat rounded>
+            <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
+              <v-list-item
+                  v-for="column in availableMetricsColumns"
+                  :key="column.id"
+                  @click="toggleColumn(column)"
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ column.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>
+                  {{ column.displayName | titleCase }}
+                </v-list-item-title>
+                <v-spacer />
+                <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
+                  <v-icon>mdi-check</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
+      </div>
+    </div>
 
     <!-- Sort by -->
     <div class="query-section-label" v-if="sortByColumn" style="margin-top: 10px;">Sort by</div>
@@ -69,11 +110,14 @@
                 @click="setSortByColumn(column.column_id)"
             >
               <v-list-item-icon>
-                <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
+                <v-icon>{{ column.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-title class="py-3">
                 {{ column.displayName | titleCase}}
               </v-list-item-title>
+              <v-list-item-icon>
+                <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
+              </v-list-item-icon>
             </v-list-item>
           </v-list-item-group>
         </v-list>
@@ -101,12 +145,12 @@
                 active-class="primary--text"
                 @click="setOrder(order)"
             >
-              <v-list-item-icon>
-                <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
-              </v-list-item-icon>
               <v-list-item-title class="py-3">
                 {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
               </v-list-item-title>
+              <v-list-item-icon>
+                <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
+              </v-list-item-icon>
             </v-list-item>
           </v-list-item-group>
         </v-list>
@@ -126,7 +170,8 @@ export default {
   props: {},
   data() {
     return {
-      isColumnsMenuOpen: false,
+      isDataColumnsMenuOpen: false,
+      isMetricsColumnsMenuOpen: false,
     }
   },
   computed: {
@@ -148,11 +193,23 @@ export default {
           .sort((a, b) => a.displayName.localeCompare(b.displayName));
       return availableColumns;  
     },
+    availableDataColumns() {
+      return this.availableColumns.filter(col => !col.column_id.includes("("));
+    },
+    availableMetricsColumns() {
+      return this.availableColumns.filter(col => col.column_id.includes("("));
+    },
     visibleColumns() {
       return this.query.show_columns.map(column => ({
           displayName: this.columnConfigs[column].displayNameForColumn || this.columnConfigs[column].displayName,
           column_id: column,
         }));
+    },
+    visibleDataColumns() {
+      return this.visibleColumns.filter(col => !col.column_id.includes("("));
+    },
+    visibleMetricsColumns() {
+      return this.visibleColumns.filter(col => col.column_id.includes("("));
     },
     availableSortByColumns() {
       return Object.values(this.columnConfigs)

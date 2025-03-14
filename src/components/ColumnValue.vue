@@ -91,9 +91,8 @@
       </span>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script>
 
 export default {
   name: "ColumnValue",
@@ -114,6 +113,7 @@ export default {
   },
 }
 </script>
+
 
 <style scoped lang="scss">
 

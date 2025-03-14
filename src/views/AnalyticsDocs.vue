@@ -148,13 +148,10 @@ export default {
         name: "Type is 'object' or 'array'",
         filter: (col) => col.type === "object" || col.type === "array",
       },
-    ],
-    availableFields: [
-      'id', 'subjectEntity', 'operators', 'defaultOperator', 'entityId', 'objectEntity', 
-      'displayName', 'displayNameForColumn', 'type', 'isId', 'isList', 'isColumnMandatory',
-      'isDate', 'isYear', 'isCountry', 'isExternalId', 'externalIdPrefix', 'isSingleWork',
-      'category', 'icon', 'actionsPopular', 'redshiftDisplayColumn', 'redshiftFilterColumn',
-      'apiField', 'sortByValue', 'displayNullAs', 'isSearchColumn'
+      {
+        name: "Name contains ()",
+        filter: (col) => col.id.includes("("),
+      },
     ]
   }),
   computed: {
@@ -169,12 +166,25 @@ export default {
         });
       return configsWithoutWorks;
     },
-    
+    availableFields() {
+      // Extract all unique field names from all columns in all configs
+      const fieldSet = new Set();
+      
+      // Iterate through all configs
+      Object.values(this.configs).forEach(config => {
+        // Iterate through all columns in each config
+        if (config.columns) {
+          Object.values(config.columns).forEach(column => {
+            Object.keys(column).forEach(key => fieldSet.add(key));
+          });
+        }
+      });      
+      return Array.from(fieldSet);
+    },
     sortedAvailableFields() {
       // Return alphabetically sorted available fields
       return [...this.availableFields].sort();
     },
-    
     sortedFilterFunctions() {
       // Return alphabetically sorted filter functions
       return [...this.filterFunctions].sort((a, b) => a.name.localeCompare(b.name));
