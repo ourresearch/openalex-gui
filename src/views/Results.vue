@@ -242,7 +242,8 @@ export default {
   },
   watch: {
     "$route.params.id": {
-      handler: function () {
+      handler: async function (id) {
+        await this.getSearch({id});
         this.pollCount = 0;
         this.pollSearch();
       },

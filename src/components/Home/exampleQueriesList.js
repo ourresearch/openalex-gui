@@ -949,7 +949,7 @@ const exampleQueries = [
         {
           "column_id": "authorships.countries",
           "value": "countries/GB"
-        } 
+        }
       ],
       "filter_aggs": [],
       "show_columns": [
