@@ -1,13 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-// import router from "../router";
-import {entityConfigs} from "../entityConfigs";
-import {facetsByCategory} from "../facetConfigs";
 import {user} from "@/store/user.store";
-import axios from "axios";
-import router from "@/router";
 import {search} from "@/store/search.store";
-import YAML from 'yaml'
 
 
 Vue.use(Vuex);

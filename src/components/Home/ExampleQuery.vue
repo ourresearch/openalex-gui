@@ -37,7 +37,6 @@ export default {
     type: String,
     category: String,
     error: String,
-    url: String,
     query: Object,
   },
   data() {

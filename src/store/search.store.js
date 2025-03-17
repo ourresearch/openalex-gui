@@ -31,7 +31,17 @@ const stateDefaults = function () {
 
 
 const pushSafe = async function (route) {
-    await router.push(route)
+    // Preserve `ui` param if it exists
+    const uiVariant = window.vm.$store.state.uiVariant;
+    const newRoute = {
+        ...route,
+        query: {
+            ...route.query,  // Keep any query params in the destination
+            ...(uiVariant ? { ui: uiVariant } : {})  // Add ui param only if it exists
+        }
+    };
+        
+    await router.push(newRoute)
         .catch((e) => {
             if (e.name !== "NavigationDuplicated") {
                 throw e;

@@ -263,25 +263,9 @@ const router = new VueRouter({
     },
 })
 
-const redirectFromOldFilters = function (to, from, next) {
-    const redirects = {
-        // "institutions.country_code": "authorships.countries",
-        // "topics.id": "primary_topic.id",
-    }
-    const isRedirectNeeded = Object.keys(redirects).some(key => {
-        return to.name === "Serp" && to.fullPath.includes(key)
-    })
-    if (isRedirectNeeded) {
-        let newFullPath = to.fullPath
-        Object.keys(redirects).forEach(k => {
-            newFullPath = newFullPath.replaceAll(k, redirects[k])
-        })
-        return next(newFullPath)
-    }
-}
-
 
 router.beforeEach(async (to, from, next) => {
+    // Fetch user session if a token exists but no user data is loaded
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
             await store.dispatch("user/fetchUser");
@@ -290,22 +274,14 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    redirectFromOldFilters(to, from, next);
-
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-        // this page requires authentication
-        if (store.getters["user/userId"]) {  // you're logged in great. proceed.
-            next();
-        } else { // sorry, you can't view this page. go log in.
-            next({ 
-                name: 'Login',
-                query: { redirect: to.fullPath }
-            });
-        }
-    } else { //  no auth required. proceed.
-        next();
+    // Enforce authentication for protected routes
+    if (to.matched.some(record => record.meta.requiresAuth) && !store.getters["user/userId"]) {
+        return next({
+            name: 'Login',
+            query: { redirect: to.fullPath }
+        });
     }
+    next();
 });
-
 
 export default router;
