@@ -2,12 +2,12 @@
     <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
       <template v-slot:activator="{ on }">
         <v-btn
-            v-on="on"
-            :class="{'add-filter': true, 'with-filters': withExistingFilters }"
-            small
-            rounded
+          v-on="on"
+          :class="{'add-filter': true, 'with-filters': withExistingFilters }"
+          :color="buttonColor"
+          small
         >
-          <v-icon color="primary" small>mdi-plus</v-icon>Add Filter
+          <v-icon small>mdi-plus</v-icon>Filter
         </v-btn>
       </template>
       <v-card flat rounded v-if="isMenuOpen">
@@ -46,7 +46,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 
@@ -54,11 +54,7 @@ export default {
   name: "QueryFilterTreeButton",
   components: {},
   props: {
-    parentId: {
-      type: [String, null],
-    },
     subjectEntity: String,
-    nameWorks: Boolean,
     withExistingFilters: Boolean,
   },
   data() {
@@ -71,54 +67,57 @@ export default {
     ...mapGetters("user", [
       "userId",
     ]),
+    buttonColor() {
+      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
+    },
     availableFilters() {
-      const mySubjectEntity = this.subjectEntity
-      const myConfig = getConfigs()[mySubjectEntity]
-      const myPossibleColumns = Object.values(myConfig.columns)
+      const mySubjectEntity = this.subjectEntity;
+      const myConfig = getConfigs()[mySubjectEntity];
+      const myPossibleColumns = Object.values(myConfig.columns);
 
       //console.log(myPossibleColumns)
 
       const availableFilters = myPossibleColumns.filter( f => {
         if  (!f.actions) {console.log(f.displayName + " / " + f.id + " missing 'actions'"); return false}
-        return f.actions.includes("filter")
-      })
+        return f.actions.includes("filter");
+      });
       
-      return availableFilters
+      return availableFilters;
     },
     popularFilters() {
       return this.availableFilters.filter( f => {
-        return (f.actionsPopular && f.actionsPopular.includes("filter"))
+        return (f.actionsPopular && f.actionsPopular.includes("filter"));
       })
     },
     nonpopularFilters() {
       return this.availableFilters.filter( f => {
-        return (!f.actionsPopular || !f.actionsPopular.includes("filter"))
+        return (!f.actionsPopular || !f.actionsPopular.includes("filter"));
       })
     },
     filteredPopularFilters() {
       return this.filterFiltersBySearch(this.popularFilters)
-                  .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                  .sort((a, b) => a.displayName.localeCompare(b.displayName));
     },
     filteredNonpopularFilters() {
       return this.filterFiltersBySearch(this.nonpopularFilters)
-                  .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                  .sort((a, b) => a.displayName.localeCompare(b.displayName));
     },
     filteredFilters() {
-      return this.filteredPopularFilters.concat(this.filteredNonpopularFilters)
+      return this.filteredPopularFilters.concat(this.filteredNonpopularFilters);
     },
     lineBetweenPopularIndex() {
       // Location of the line between popular filters at top and remaining filters below, if any
       return (this.filteredPopularFilters.length === 0 
               || this.filteredNonpopularFilters.length === 0)
         ? -1
-        : this.availableFilters.length > 5 ? this.filteredPopularFilters.length : -1
+        : this.availableFilters.length > 5 ? this.filteredPopularFilters.length : -1;
     }, 
   },
   methods: {
     filterFiltersBySearch(columns) {
       //console.log(columns)
       return columns.filter( f => {
-        return f.displayName.toLowerCase().includes(this.search.toLowerCase())
+        return f.displayName.toLowerCase().includes(this.search.toLowerCase());
       })
     },  
   },
@@ -139,11 +138,5 @@ export default {
 }
 .inline-block {
   display: inline-block;
-}
-.add-filter {
-  margin-top: 4px;
-}
-.add-filter.with-filters {
-  margin-top: 8px;
 }
 </style>

@@ -1,41 +1,40 @@
 <template>
   <v-container fluid class="results-box pt-0">
-    <v-row class="">
+    <v-row>
       <!-- Left Panel -->
       <v-col cols="12" md="5">
         <v-row>
           <!-- Query Builder -->
-          <v-col cols="12">
-            <v-card flat rounded class="px-5 pt-3 pb-5">
-              <div class="d-flex justify-space-between">
-                <div>
-                  <div :class="{'query-section-label': true, 'inline': uiVariant === 'inline'}">Show<span v-if="!areTopLevelFiltersApplied"> all</span></div> 
+          <v-col cols="12" class="query-builder">
+            <v-card flat rounded class="px-5 pt-5 pb-5">
+              <div style="display: inline-block;">
+                <span>
+                  <span :class="{'query-section-label': true, 'inline': true}">Show<span v-if="showAllLabel"> all</span></span> 
                   <query-summarize-by />
-                </div>
+                  <span v-if="areTopLevelFiltersApplied">where</span>
+                </span>
               </div>
 
+              <!-- Entity Filters -->
               <query-filter-tree
                 v-if="querySubjectEntity !== 'works'"
                 :subject-entity="querySubjectEntity"
                 :filters="query.filter_aggs"
               />
 
-              <div class="section-divider" v-if="querySubjectEntity !== 'works'"/>
-
+              <!-- Works Filters -->
               <query-filter-tree
                 subject-entity="works"
                 :isWithAggs="querySubjectEntity !== 'works'"
                 :filters="query.filter_works"
               />
 
-              <div class="section-divider"/>
-
-              <query-columns-controls />
+              <query-columns-controls class="mt-4" />
 
               <div class="section-divider"/>
 
               <div class="new-query-box">
-                <new-query-button rounded />
+                <new-query-button small />
               </div>
             </v-card>
           </v-col>
@@ -94,7 +93,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
-import { format } from 'sql-formatter';
+import {format} from 'sql-formatter';
 import {urlBase} from "@/apiConfig";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
@@ -106,7 +105,6 @@ import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
-
 
 export default {
   name: "Results",
@@ -159,11 +157,14 @@ export default {
       "isBaseQuery",
     ]),
     areTopLevelFiltersApplied() {
-      if (this.querySubjectEntity !== 'works') {
+      if (this.querySubjectEntity !== 'works' && this.querySubjectEntity !== 'summary') {
         return this.query.filter_aggs.length !== 0;
       } else {
         return this.query.filter_works.length !== 0;
       }
+    },
+    showAllLabel() {
+      return !this.areTopLevelFiltersApplied && this.query.get_rows !== 'summary';
     },
     searchApiUrl() {
       return urlBase.api + '/searches/' + this.$route.params.id;

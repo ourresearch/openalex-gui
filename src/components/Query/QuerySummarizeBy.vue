@@ -2,8 +2,7 @@
   <span class="query-summarize-by d-inline-flex align-center">
     <v-menu max-height="70vh" rounded offset-y>
       <template v-slot:activator="{ on }">
-        <v-btn rounded class="text-h6 " v-on="on">
-          <v-icon left>{{ querySubjectEntityConfig?.icon || "mdi-file-document" }}</v-icon>
+        <v-chip label class="text-h6 mx-1" compact :color="buttonColor" v-on="on">
           <span>
             <template v-if="query.get_rows === 'summary'">
                Works Summary
@@ -12,8 +11,8 @@
               {{ displayName | titleCase }}
             </template>
           </span>
-          <v-icon right>mdi-menu-down</v-icon>
-        </v-btn>
+          <v-icon>mdi-menu-down</v-icon>
+        </v-chip>
       </template>
 
       <v-list>
@@ -82,6 +81,9 @@ export default {
     displayName() {
       return getConfigs()[this.query.get_rows].displayName;
     },
+    buttonColor() {
+      return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
+    },
     selected: {
       get() {
         return this.query.summarize;
@@ -102,7 +104,5 @@ export default {
 
 
 <style scoped lang="scss">
-.query-summarize-by {
-  margin-bottom: 10px;
-}
+
 </style>

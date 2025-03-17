@@ -6,33 +6,15 @@ import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
-import {idsAreEqual, setOrDelete, shortenOpenAlexId} from "./util";
+import {shortenOpenAlexId} from "./util";
 import {url} from "./url"
-import sanitizeHtml from 'sanitize-html';
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilter} from "./filterConfigs";
-import {getConfigs} from "./oaxConfigs";
-
 import _ from 'lodash'
-
-
-import {
-    filtersAsUrlStr,
-} from "./filterConfigs";
-
-
-// async function getConfigs() {
-//     const url = "https://api.openalex.org/entities/config?format=yaml"
-//     const ret = await axios.get(url)
-//     return YAML.parse(ret.data)
-// }
-// const configs = await getConfigs()
-// console.log("main.js got configs!", configs)
 
 
 Vue.config.productionTip = false
 Vue.prototype.$prettyTitle = prettyTitle
-
 
 // we have to globally register this or it throws errors.
 // https://stackoverflow.com/a/58875919
@@ -58,8 +40,6 @@ Vue.use(VueShortkey)
 
 import AsyncComputed from 'vue-async-computed'
 import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
-import axios from "axios";
-import YAML from "yaml";
 
 Vue.use(AsyncComputed)
 
@@ -175,6 +155,7 @@ Vue.filter("titleCase", str => {
     return typeof str !== "string" ? str : str.titleCase();
 });
 
+
 Vue.filter("prettyName", function (name) {
     let ret = name
         .replace("ieee", "IEEE")
@@ -196,7 +177,6 @@ Vue.filter("idApiUrl", function (fullId) {
 })
 
 
-
 Vue.filter("millify", function (number) {
     return millify(
         number,
@@ -206,6 +186,7 @@ Vue.filter("millify", function (number) {
         }
     )
 })
+
 
 Vue.use(vuetify)
 

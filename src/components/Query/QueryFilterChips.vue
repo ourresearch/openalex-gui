@@ -171,11 +171,9 @@ export default {
 .query-section-label {
   font-size: 16px;
 }
-
 .v-chip {
   cursor: pointer;
 }
-
 .v-chip .mdi-close-circle {
   cursor: pointer;
 }

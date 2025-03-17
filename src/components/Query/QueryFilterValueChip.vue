@@ -1,9 +1,9 @@
 <template>
   <div>
     <v-chip
-        outlined
-        label
-        class="mr-1"
+      label
+      class="mr-1"
+      :color="buttonColor"
     >
       <template v-if="entityData">
         {{ entityData.display_name | truncate(50) }}
@@ -32,6 +32,7 @@ export default {
     operator: String,
     isLabelFilter: Boolean,
     isEditable: Boolean,
+    subjectEntity: String,
   },
   data() {
     return {
@@ -39,7 +40,11 @@ export default {
       isLoading: false,
     }
   },
-  computed: {},
+  computed: {
+    buttonColor() {
+      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
+    },
+  },
   methods: {
     async getEntity() {
       if (this.isLabelFilter) {
