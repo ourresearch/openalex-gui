@@ -7,11 +7,25 @@ Manipulations of current filter state occur locally and are passed to global sta
 -->
 
 <template>
-  <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline-block': displayInline}">
+  <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline': displayInline}">
+    <div v-if="this.isWithAggs" :class="{'query-section-label': true, 'inline-block': displayButtonInline}">
+      <div v-if="!this.isEmpty">
+        From <v-chip label color="catBlue" class="text-h6">Works</v-chip> where
+      </div>
+      <div v-else-if="this.isEmpty">
+        From all <v-chip label color="catBlue" class="text-h6 mr-1">Works</v-chip>
+      </div>
+    </div>
 
-    <div v-if="hasTopSpace" class="spacer my-2"></div>
-
-    <div v-if="!displayInline && topText" v-html="topText" :class="{'query-section-label': true, 'inline-block': displayButtonInline}"/>
+    <div :class="{'button-wrapper': true, 'ml-5': !isEmpty}">
+      <query-filter-tree-button
+        :subject-entity="subjectEntity"
+        :parent-id="null"
+        :nameWorks="isWithAggs"
+        :withExistingFilters="!isEmpty"
+        @addFilter="addFilter"
+      />
+    </div>
 
     <query-filter-tree-branch
       v-if="!isEmpty"
@@ -24,17 +38,12 @@ Manipulations of current filter state occur locally and are passed to global sta
       @deleteFilter="deleteFilter"
       @groupWithAbove="groupWithAbove"
       @ungroupFromAbove="ungroupFromAbove"
+      class="mt-2"
     />
 
-    <div :class="{'button-wrapper': true, 'mx-4': !isEmpty, 'inline-block': displayButtonInline}">
-      <query-filter-tree-button
-        :subject-entity="subjectEntity"
-        :parent-id="null"
-        :nameWorks="isWithAggs"
-        :withExistingFilters="!isEmpty"
-        @addFilter="addFilter"
-      />
-    </div>
+    <div v-if="!isEmpty" class="spacer"></div>
+    <div v-if="isEmpty" class="empty-spacer"></div>
+
   </v-card>
 </template>
 
@@ -78,26 +87,11 @@ export default {
       return this.myFilters.length === 0;
     },
     displayInline() {
-      return false;
-      //return this.isEmpty && !this.isWithAggs;
+      return !this.isWithAggs;
     },
     displayButtonInline() {
-      return false;
+      return true;
       //return this.isEmpty && this.isWithAggs;
-    },
-    hasTopSpace() {
-      return this.topText == "Where";
-    },
-    topText() {
-      if (this.isWithAggs && !this.isEmpty) {
-        return "Found in <b>works</b> where";
-      } else if (this.isWithAggs && this.isEmpty) {
-        return "Found in <b>all works</b>";
-      } else if (this.isEmpty) {
-        return null;
-      } else {
-        return "Where";
-      }
     },
     filtersToStore() {
       // Returns local filter state, cleaned of local props, to be stored in Vuex store
@@ -450,20 +444,22 @@ export default {
 .query-section-label.inline-block {
   display: inline-block;
 }
-.button-wrapper.inline-block {
+.button-wrapper{
   display: inline-block;
   position: relative;
   top: -2px;
 }
-.query-filter-tree.inline-block {
-  display: inline-block;
-  margin-top: 0px;
-  position: relative;
-  top: -5px;
+.query-filter-tree {
   margin-left: 0px;
 }
-.inline-block .v-btn {
-  margin-left: 10px;
+.query-filter-tree.inline {
+  display: inline;
+}
+.spacer {
+  height: 30px;
+}
+.empty-spacer {
+  height: 5px;
 }
 .v-treeview-node__prepend {
   min-width: 0;

@@ -3,67 +3,27 @@
     <div class="columns-controls-line" />
     
     <!-- Display -->
-    <div class="query-section-label">Display</div>
-    <div class="columns-controls-box" v-if="visibleDataColumns.length > 0">
+    <div class="columns-controls-box">
+      <div class="query-section-label">Display</div>
       <!-- Visible Columns -->
-      <div v-for="(column, index) in visibleDataColumns" :key="index" class="column-chip">
-        <v-chip small outlined>
-          {{ column.displayName | titleCase }}
-          <v-icon
-            v-if="visibleDataColumns.length > 1" 
-            @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
-        </v-chip>
-      </div>
-      <!-- Columns Button/Menu -->
-      <v-menu v-model="isDataColumnsMenuOpen" offset-y>
-        <template v-slot:activator="{ on }">
-          <v-btn small rounded v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Column</v-btn>
-        </template>
-        <v-card flat rounded>
-          <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-            <v-list-item
-                v-for="column in availableDataColumns"
-                :key="column.id"
-                @click="toggleColumn(column)"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ column.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title>
-                {{ column.displayName | titleCase }}
-              </v-list-item-title>
-              <v-spacer />
-              <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
-                <v-icon>mdi-check</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
-    </div>
-
-    <!-- Metrics -->
-    <div v-if="availableMetricsColumns.length > 0">
-      <div class="query-section-label" style="margin-top: 10px;">Metrics</div>
-      <div class="columns-controls-box" v-if="visibleMetricsColumns.length > 0">
-        <!-- Visible Columns -->
-        <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="column-chip">
-          <v-chip small outlined>
+      <div>
+        <div v-for="(column, index) in visibleDataColumns" :key="index" class="column-chip">
+          <v-chip label color="catDisplay" class="mt-0">
             {{ column.displayName | titleCase }}
             <v-icon
-              v-if="visibleMetricsColumns.length > 1" 
+              v-if="visibleDataColumns.length > 1" 
               @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
           </v-chip>
         </div>
-        <!-- Metrics Button/Menu -->
-        <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
+        <!-- Columns Button/Menu -->
+        <v-menu v-model="isDataColumnsMenuOpen" offset-y>
           <template v-slot:activator="{ on }">
-            <v-btn small rounded v-on="on"><v-icon color="primary" small>mdi-plus</v-icon>Metric</v-btn>
+            <v-btn small color="catDisplayDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
           </template>
           <v-card flat rounded>
             <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
               <v-list-item
-                  v-for="column in availableMetricsColumns"
+                  v-for="column in availableDataColumns"
                   :key="column.id"
                   @click="toggleColumn(column)"
               >
@@ -81,20 +41,65 @@
             </v-list>
           </v-card>
         </v-menu>
+    </div>
+    </div>
+
+    <!-- Metrics -->
+    <div v-if="availableMetricsColumns.length > 0">
+      <div class="columns-controls-box" v-if="visibleMetricsColumns.length > 0">
+        <div class="query-section-label">Metrics</div>
+        <!-- Visible Columns -->
+        <div>
+          <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="column-chip">
+            <v-chip label color="catMetrics">
+              {{ column.displayName | titleCase }}
+              <v-icon
+                v-if="visibleMetricsColumns.length > 1" 
+                @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
+            </v-chip>
+          </div>
+          <!-- Metrics Button/Menu -->
+          <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
+            <template v-slot:activator="{ on }">
+              <v-btn small color="catMetricsDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
+            </template>
+            <v-card flat rounded>
+              <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
+                <v-list-item
+                    v-for="column in availableMetricsColumns"
+                    :key="column.id"
+                    @click="toggleColumn(column)"
+                >
+                  <v-list-item-icon>
+                    <v-icon>{{ column.icon }}</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>
+                    {{ column.displayName | titleCase }}
+                  </v-list-item-title>
+                  <v-spacer />
+                  <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
+                    <v-icon>mdi-check</v-icon>
+                  </v-list-item-icon>
+                </v-list-item>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </div>
       </div>
     </div>
 
     <!-- Sort by -->
-    <div class="query-section-label" v-if="sortByColumn" style="margin-top: 10px;">Sort by</div>
     <!-- Sort by Column -->
-    <div class="sort-box" v-if="sortByColumn">
+    <div class="sort-box columns-controls-box" v-if="sortByColumn">
+      <div class="query-section-label" v-if="sortByColumn">Sort by</div>
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
-              style="min-width: 1px !important;"
-              outlined
-              small
-              v-on="on" 
+            style="min-width: 1px !important;"
+            class="mt-0 first"
+            label
+            color="catSort"
+            v-on="on" 
           >
             {{ (sortByColumn.displayNameForColumn || sortByColumn.displayName) | titleCase }}
             <v-icon small>mdi-menu-down</v-icon>
@@ -127,8 +132,9 @@
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
-              outlined
-              small
+              color="catSort"
+              label
+              class="last"
               style="min-width: 1px !important;"
               v-on="on" 
           >
@@ -264,14 +270,18 @@ export default {
 
 
 <style scoped>
-
 .query-section-label {
   font-size: 18px;
   display: inline-block;
+  margin-right: 5px;
+}
+.columns-controls-box {
+  display: flex;
+  margin-bottom: 5px;
 }
 .column-chip {
   display: inline-block;
-  margin: 8px 2px;
+  margin: 0px 2px 4px;
 }
 .v-chip {
   background-color: #f5f5f5 !important;
@@ -280,16 +290,16 @@ export default {
 .v-btn {
   margin-left: 2px;
 }
-.sort-box .v-chip:first-child {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  padding-right: 8px;
-  border-right: none;
+.sort-box .v-chip.first {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-right: 5px !important;
+  border-right: 1px solid #ccc !important;
 }
-.sort-box .v-chip:last-child {
+.sort-box .v-chip.last {
   margin-right: 0px;
-  padding-right: 0px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  padding-left: 7px;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 </style>

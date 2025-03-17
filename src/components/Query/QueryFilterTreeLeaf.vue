@@ -1,5 +1,5 @@
 <template>
-  <div :style="indentationStyle" class="d-flex align-center flex-grow-1 hover-color-3">
+  <div :style="indentationStyle" class="d-flex align-center flex-grow-1 mb-1">
 
     <!-- Path Label -->
     <span class="path-label number grey--text">
@@ -13,9 +13,9 @@
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-chip
-              outlined
+              text
               label
-              class="font-weight-regular px-1 pr-0 mx-1"
+              class="menu-chip font-weight-regular px-1 pr-0 mx-1"
               v-on="on"
             >
               {{ joinOperator }}
@@ -67,9 +67,9 @@
       <v-menu v-else offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
-            outlined
+            text
             label
-            class="font-weight-regular px-1 pr-0 mx-1"
+            class="menu-chip font-weight-regular px-1 pr-0 mx-1"
             style="min-width: 1px !important;"
             v-on="on" 
           >
@@ -106,6 +106,7 @@
             :operator="selectedOperator"
             :is-label-filter="isLabelFilter"
             :is-editable="true"
+            :subject-entity="subjectEntity"
             @click.native="restartEditingValue"
           />
         </template>
@@ -124,7 +125,7 @@
                 <v-chip
                   outlined
                   label
-                  class="font-weight-regular px-1 pr-0 mx-1"
+                  class="menu-chip font-weight-regular px-1 pr-0 mx-1"
                   style="min-width: 1px !important;"
                   v-on="on" 
                 >
@@ -166,39 +167,39 @@
           </template>
           <!-- Local Autocomplete -->
           <v-autocomplete
-              v-else-if="localValueOptions.length"
-              v-model="valueEditModel"
-              :items="valueOptions"
-              item-text="display_name"
-              item-value="id"
-              hide-details
-              filled
-              rounded
-              dense
-              class="flex-grow-1"
-              autofocus
-              @change="saveEditingValue" 
-              @blur="onInputBlur"
+            v-else-if="localValueOptions.length"
+            v-model="valueEditModel"
+            :items="valueOptions"
+            item-text="display_name"
+            item-value="id"
+            hide-details
+            outlined
+            dense
+            class="flex-grow-1"
+            autofocus
+            @change="saveEditingValue" 
+            @blur="onInputBlur"
           />
           <!-- API Autocomplete -->
           <entity-autocomplete
-              v-else
-              v-model="valueEditModel"
-              :entity-type="columnConfig.objectEntity"
-              @entity-selected="saveEditingValue"
-              @blur="onInputBlur"
-              class="flex-grow-1"
-              showWorkCounts
-              autofocus
-              dense
+            v-else
+            v-model="valueEditModel"
+            :entity-type="columnConfig.objectEntity"
+            @entity-selected="saveEditingValue"
+            @blur="onInputBlur"
+            class="flex-grow-1"
+            showWorkCounts
+            autofocus
+            dense
           />
         </template>
       </template>
 
       <!-- Boolean Values -->
       <v-chip v-else-if="columnConfig.type === 'boolean'"
-          outlined
+          text
           label
+          :color="buttonColor"
           @click="selectedValue = !selectedValue"
       >
         {{ selectedValue }}
@@ -221,9 +222,10 @@
         </v-text-field>
         <v-chip
           v-else
-          outlined
-          label          
-          class="mr-1"
+          text
+          label
+          :color="buttonColor"
+          class="menu-chip mr-1"
           @click="startEditingValue"
         >
           {{ (selectedValue || "click to edit") }}
@@ -292,6 +294,9 @@ export default {
     isFirstFilter() {
       return (this.path.every(i => i === 0));
     },
+    buttonColor() {
+      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
+    },
     pathLabel() {
       // 1) The top-level label is always (path[0] + 1)
       let label = (this.path[0] + 1).toString();
@@ -310,7 +315,7 @@ export default {
     },
     indentationStyle() {
       return {
-        paddingLeft: `${this.indendationLevel * 20}px`
+        paddingLeft: `${((this.indendationLevel-1) * 20)}px`
       };
     },
     operatorOptions() {
@@ -456,5 +461,12 @@ export default {
 <style scoped lang="scss">
 .path-label {
   margin-right: 5px;
+}
+.menu-chip {
+  background-color: transparent !important;
+  border-bottom: 1px solid #777;
+  border-radius: 0 !important;
+  padding: 2px 0px !important;
+  height: auto;
 }
 </style>

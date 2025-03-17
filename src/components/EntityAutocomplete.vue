@@ -12,8 +12,8 @@
     return-object
     v-bind="$attrs"
     v-on="$listeners"
-    rounded
     filled
+    dense
     hide-no-data
     hide-details
   >
