@@ -1,5 +1,5 @@
 <template>
-  <div :style="indentationStyle" class="d-flex align-center flex-grow-1 mb-1">
+  <div :style="indentationStyle" class="d-flex align-end flex-grow-1 mb-1">
 
     <!-- Path Label -->
     <span class="path-label number grey--text">
@@ -15,7 +15,7 @@
             <v-chip
               text
               label
-              class="menu-chip font-weight-regular px-1 pr-0 mx-1"
+              class="menu-chip font-weight-regular"
               v-on="on"
             >
               {{ joinOperator }}
@@ -173,7 +173,7 @@
             item-text="display_name"
             item-value="id"
             hide-details
-            outlined
+            filled
             dense
             class="flex-grow-1"
             autofocus
@@ -208,16 +208,15 @@
       <!-- Number, String, Array Values -->
       <div v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
         <v-text-field
-            v-if="isEditingValue || selectedValue === null"
-            v-model="valueEditModel"
-            dense
-            rounded
-            filled
-            hide-details
-            autofocus
-            @keydown.escape="cancelEditingValue"
-            @blur="onInputBlur"
-            @keydown.enter="saveEditingValue(valueEditModel)"
+          v-if="isEditingValue || selectedValue === null"
+          v-model="valueEditModel"
+          dense
+          filled
+          hide-details
+          autofocus
+          @keydown.escape="cancelEditingValue"
+          @blur="onInputBlur"
+          @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
         <v-chip
@@ -225,7 +224,7 @@
           text
           label
           :color="buttonColor"
-          class="menu-chip mr-1"
+          class="query-builder-chip mr-1"
           @click="startEditingValue"
         >
           {{ (selectedValue || "click to edit") }}
@@ -235,7 +234,7 @@
     </div>
 
     <!-- Delete Button -->
-    <v-btn icon @click="deleteFilter">
+    <v-btn icon small @click="deleteFilter">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -315,7 +314,7 @@ export default {
     },
     indentationStyle() {
       return {
-        paddingLeft: `${((this.indendationLevel-1) * 20)}px`
+        paddingLeft: `${((this.indendationLevel-1) * 15)}px`
       };
     },
     operatorOptions() {
@@ -461,6 +460,7 @@ export default {
 <style scoped lang="scss">
 .path-label {
   margin-right: 5px;
+  font-size: 14px;
 }
 .menu-chip {
   background-color: transparent !important;

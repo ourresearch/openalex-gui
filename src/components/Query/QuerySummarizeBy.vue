@@ -1,62 +1,53 @@
 <template>
-  <span class="query-summarize-by d-inline-flex align-center">
-    <v-menu max-height="70vh" rounded offset-y>
-      <template v-slot:activator="{ on }">
-        <v-chip label class="text-h6 mx-1" compact :color="buttonColor" v-on="on">
-          <span>
-            <template v-if="query.get_rows === 'summary'">
-               Works Summary
-            </template>
-            <template v-else>
-              {{ displayName | titleCase }}
-            </template>
-          </span>
-          <v-icon>mdi-menu-down</v-icon>
-        </v-chip>
-      </template>
+  <v-menu max-height="70vh" rounded offset-y>
+    <template v-slot:activator="{ on }">
+      <v-chip label class="entity-chip" compact :color="buttonColor" v-on="on">
+        {{ buttonName }}
+        <v-icon right>mdi-menu-down</v-icon>
+      </v-chip>
+    </template>
 
-      <v-list>
-        <v-list-item-group v-model="selected">
-           <v-list-item
-               value="works"
-               active-class="primary--text"
-           >
-            <v-list-item-icon>
-              <v-icon>mdi-file-document-outline</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>Works</v-list-item-title>
-          </v-list-item>
-           <v-list-item
-               value="summary"
-               active-class="primary--text"
-           >
-            <v-list-item-icon>
-              <v-icon>mdi-file-document</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>Works Summary</v-list-item-title>
-          </v-list-item>
+    <v-list>
+      <v-list-item-group v-model="selected">
+        <v-list-item
+          value="works"
+          active-class="primary--text"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-file-document-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          value="summary"
+          active-class="primary--text"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-file-document</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Works Summary</v-list-item-title>
+        </v-list-item>
 
-          <v-subheader>Summarize works by:</v-subheader>
-          <v-divider/>
-          <v-list-item
-              v-for="(entity, i) in entities"
-              :key="i"
-              :value="entity.id"
-              active-class="primary--text"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ entity.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-            <v-list-item-icon v-if="selected === entity.id">
-              <v-icon>mdi-check</v-icon>
-            </v-list-item-icon>
-          </v-list-item>
+        <v-subheader>Summarize works by:</v-subheader>
+        <v-divider/>
+        <v-list-item
+            v-for="(entity, i) in entities"
+            :key="i"
+            :value="entity.id"
+            active-class="primary--text"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ entity.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
+          <v-list-item-icon v-if="selected === entity.id">
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
+        </v-list-item>
 
-        </v-list-item-group>
-      </v-list>
-    </v-menu>
-  </span>
+      </v-list-item-group>
+    </v-list>
+  </v-menu>
 </template>
 
 
@@ -71,6 +62,7 @@ export default {
   components: {},
   props: {},
   computed: {
+    ...mapGetters(["uiVariant"]),
     ...mapGetters("search", [
       "query",
       "querySubjectEntityConfig",
@@ -78,10 +70,14 @@ export default {
     entities() {
       return Object.values(getConfigs()).filter(config => config.id !== 'works');
     },
-    displayName() {
-      return getConfigs()[this.query.get_rows].displayName;
+    buttonName() {
+      const entity = this.query.get_rows;
+      if (entity === 'summary') { return "Works Summary"; }
+      const name = getConfigs()[entity].displayName;
+      return this.uiVariant === 'worksfirst' && name === "works" ? 'none' : name.titleCase();
     },
     buttonColor() {
+      if (this.uiVariant === 'worksfirst') { return 'catEntity'; }
       return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
     },
     selected: {
@@ -104,5 +100,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.query-summarize-by-button {
+  padding-right: 4px;
+}
 </style>

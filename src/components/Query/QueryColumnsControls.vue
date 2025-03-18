@@ -7,7 +7,7 @@
       <div class="query-section-label">Display</div>
       <!-- Visible Columns -->
       <div>
-        <div v-for="(column, index) in visibleDataColumns" :key="index" class="column-chip">
+        <div v-for="(column, index) in visibleDataColumns" :key="index" class="query-builder-chip">
           <v-chip label color="catDisplay" class="mt-0">
             {{ column.displayName | titleCase }}
             <v-icon
@@ -18,7 +18,7 @@
         <!-- Columns Button/Menu -->
         <v-menu v-model="isDataColumnsMenuOpen" offset-y>
           <template v-slot:activator="{ on }">
-            <v-btn small color="catDisplayDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
+            <v-btn class="query-builder-button" small color="catDisplayDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
           </template>
           <v-card flat rounded>
             <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -50,7 +50,7 @@
         <div class="query-section-label">Metrics</div>
         <!-- Visible Columns -->
         <div>
-          <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="column-chip">
+          <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="query-builder-chip">
             <v-chip label color="catMetrics">
               {{ column.displayName | titleCase }}
               <v-icon
@@ -61,7 +61,7 @@
           <!-- Metrics Button/Menu -->
           <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn small color="catMetricsDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
+              <v-btn class="query-builder-button" small color="catMetricsDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
             </template>
             <v-card flat rounded>
               <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -96,7 +96,7 @@
         <template v-slot:activator="{ on }">
           <v-chip
             style="min-width: 1px !important;"
-            class="mt-0 first"
+            class="mt-0 first query-builder-chip"
             label
             color="catSort"
             v-on="on" 
@@ -108,11 +108,11 @@
         <v-list>
           <v-list-item-group>
             <v-list-item
-                v-for="column in availableSortByColumns"
-                :key="column.column_id"
-                :value="column.column_id"
-                active-class="primary--text"
-                @click="setSortByColumn(column.column_id)"
+              v-for="column in availableSortByColumns"
+              :key="column.column_id"
+              :value="column.column_id"
+              active-class="primary--text"
+              @click="setSortByColumn(column.column_id)"
             >
               <v-list-item-icon>
                 <v-icon>{{ column.icon }}</v-icon>
@@ -132,11 +132,11 @@
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
-              color="catSort"
-              label
-              class="last"
-              style="min-width: 1px !important;"
-              v-on="on" 
+            color="catSort"
+            label
+            class="last query-builder-chip"
+            style="min-width: 1px !important;"
+            v-on="on" 
           >
             {{ {"desc": "Descending", "asc": "Ascending"}[query.sort_by_order] }}
             <v-icon small>mdi-menu-down</v-icon>
@@ -145,11 +145,11 @@
         <v-list>
           <v-list-item-group>
             <v-list-item
-                v-for="order in ['desc', 'asc']"
-                :key="order"
-                :value="order"
-                active-class="primary--text"
-                @click="setOrder(order)"
+              v-for="order in ['desc', 'asc']"
+              :key="order"
+              :value="order"
+              active-class="primary--text"
+              @click="setOrder(order)"
             >
               <v-list-item-title class="py-3">
                 {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
@@ -271,7 +271,6 @@ export default {
 
 <style scoped>
 .query-section-label {
-  font-size: 18px;
   display: inline-block;
   margin-right: 5px;
 }
@@ -279,27 +278,25 @@ export default {
   display: flex;
   margin-bottom: 5px;
 }
-.column-chip {
-  display: inline-block;
-  margin: 0px 2px 4px;
-}
 .v-chip {
-  background-color: #f5f5f5 !important;
   cursor: pointer;
 } 
-.v-btn {
-  margin-left: 2px;
+.columns-controls-box .query-builder-chip {
+  margin-right: 4px;
+  margin-bottom: 4px;
 }
 .sort-box .v-chip.first {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   padding-right: 5px !important;
-  border-right: 1px solid #ccc !important;
+  border-right: 1px solid #B2DFDB  !important; /* teal lighten4 */
+  margin-right: 0;
 }
 .sort-box .v-chip.last {
   margin-right: 0px;
   padding-left: 7px;
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
+  margin-left: 0;
 }
 </style>

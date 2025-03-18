@@ -6,72 +6,12 @@
         <v-row>
           <!-- Query Builder -->
           <v-col cols="12" class="query-builder">
-            <v-card flat rounded class="px-5 pt-5 pb-5">
-              <div style="display: inline-block;">
-                <span>
-                  <span :class="{'query-section-label': true, 'inline': true}">Show<span v-if="showAllLabel"> all</span></span> 
-                  <query-summarize-by />
-                  <span v-if="areTopLevelFiltersApplied">where</span>
-                </span>
-              </div>
-
-              <!-- Entity Filters -->
-              <query-filter-tree
-                v-if="querySubjectEntity !== 'works'"
-                :subject-entity="querySubjectEntity"
-                :filters="query.filter_aggs"
-              />
-
-              <!-- Works Filters -->
-              <query-filter-tree
-                subject-entity="works"
-                :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="query.filter_works"
-              />
-
-              <query-columns-controls class="mt-4" />
-
-              <div class="section-divider"/>
-
-              <div class="new-query-box">
-                <new-query-button small />
-              </div>
-            </v-card>
+            <query-builder />
           </v-col>
 
           <!-- Query Tabs -->
           <v-col class="d-none d-md-block" cols="12" v-if="uiVariant !== 'chips'">
-            <v-card flat rounded>
-              <v-tabs v-model="tab"> 
-                <v-tab>Query Object</v-tab>
-                <v-tab>OQL</v-tab>
-                <v-tab>SQL</v-tab>
-                <v-tab>API</v-tab>
-              </v-tabs>
-
-              <v-tabs-items v-model="tab" style="padding: 10px; border-radius: 15px;"> 
-                <v-tab-item>
-                  <v-card-text>
-                    <pre>{{ query }}</pre>
-                  </v-card-text>
-                </v-tab-item>
-                
-                <v-tab-item>
-                  <search-from-text :disabled="!queryIsCompleted" />
-                </v-tab-item>
-
-                <v-tab-item>
-                  <v-card-text>
-                    <pre class="sql">{{ formattedSql }}</pre>
-                  </v-card-text>
-                </v-tab-item>
-
-                <v-tab-item>
-                  <a class="api-link" :href="searchApiUrl" target="_blank">{{ searchApiUrl }}</a>
-                </v-tab-item>
-              </v-tabs-items>
-            <v-spacer />
-            </v-card>
+            <query-tabs />
           </v-col>
 
         </v-row>
@@ -93,18 +33,13 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
-import {format} from 'sql-formatter';
-import {urlBase} from "@/apiConfig";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
-import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
+import QueryBuilder from "@/components/Query/QueryBuilder.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
-import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
-import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
-import SearchFromText from "@/components/SearchFromText.vue";
-import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
+import QueryTabs from "@/components/Query/QueryTabs.vue";
 
 export default {
   name: "Results",
@@ -114,15 +49,12 @@ export default {
     };
   },
   components: {
-    SearchFromText,
     ResultsTable,
     ResultsSearching,
     ResultsError,
-    QuerySummarizeBy,
     QueryOql,
-    QueryFilterTree,
-    QueryColumnsControls,
-    NewQueryButton
+    QueryBuilder,
+    QueryTabs,
   },
   props: {},
   data() {
@@ -139,7 +71,6 @@ export default {
         "oql",
         "queryJson",
       ],
-      tab: 0,
       pollCount: 0
     }
   },
@@ -156,24 +87,6 @@ export default {
       "hasQueryChanged",
       "isBaseQuery",
     ]),
-    areTopLevelFiltersApplied() {
-      if (this.querySubjectEntity !== 'works' && this.querySubjectEntity !== 'summary') {
-        return this.query.filter_aggs.length !== 0;
-      } else {
-        return this.query.filter_works.length !== 0;
-      }
-    },
-    showAllLabel() {
-      return !this.areTopLevelFiltersApplied && this.query.get_rows !== 'summary';
-    },
-    searchApiUrl() {
-      return urlBase.api + '/searches/' + this.$route.params.id;
-    },
-    formattedSql() {
-      const rawSql = this.querySql;
-      if (!rawSql) { return ""; }
-      return format(rawSql, {language: "redshift"});
-    }
   },
   methods: {
     ...mapMutations([
@@ -265,27 +178,5 @@ export default {
 .results-box {
   margin-bottom: 20px;
 }
-.query-section-label {
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-.query-section-label.inline {
-  display: inline-block;
-}
-.section-divider {
-  border-top: 1px #ddd solid;
-  margin: 24px 40px;
-}
-.new-query-button {
-  margin-top: 0px;
-}
-.v-tabs {
-  padding: 0 20px;
-}
-.v-tab {
-  text-transform: none;
-}
-.sql {
-  overflow-x: scroll;
-}
+
 </style>
