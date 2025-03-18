@@ -58,6 +58,9 @@ export default new Vuex.Store({
         globalIsLoading(state) {
             return state.isLoading;
         },
+        uiVariant(state) {
+            return state.uiVariant;
+        },
         isLocalEnv(state) {
             return window.location.hostname === "localhost";
         },

@@ -3,7 +3,7 @@
       <template v-slot:activator="{ on }">
         <v-btn
           v-on="on"
-          :class="{'add-filter': true, 'with-filters': withExistingFilters }"
+          class="query-builder-button"
           :color="buttonColor"
           small
         >
@@ -12,24 +12,24 @@
       </template>
       <v-card flat rounded v-if="isMenuOpen">
         <v-text-field
-            v-model="search"
-            filled
-            rounded
-            background-color="white"
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            autofocus
-            placeholder="Search filters"
-            style=""
+          v-model="search"
+          filled
+          rounded
+          background-color="white"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          autofocus
+          placeholder="Search filters"
+          style=""
         />
         <v-divider/>
 
         <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
           <v-list-item
-              v-for="(column, i) in filteredFilters"
-              :key="column.id"
-              :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
-              @click="$emit('addFilter', column)"
+            v-for="(column, i) in filteredFilters"
+            :key="column.id"
+            :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
+            @click="$emit('addFilter', column)"
           >
             <v-list-item-icon>
               <v-icon>{{ column.icon }}</v-icon>
@@ -46,7 +46,6 @@
 
 <script>
 
-import {mapActions, mapGetters} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 
@@ -55,7 +54,6 @@ export default {
   components: {},
   props: {
     subjectEntity: String,
-    withExistingFilters: Boolean,
   },
   data() {
     return {
@@ -64,9 +62,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters("user", [
-      "userId",
-    ]),
     buttonColor() {
       return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
     },

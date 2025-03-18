@@ -1,48 +1,73 @@
 <!--
-UX for create a tree of filters fos a query.
-Stores a local copy of filter state with additional properties to help with manipulations.
-Local filter state maybe in progress with e.g. values not yet set.
-Calls this.applyFilters() whenver filter state is ready to be passed up to global state.
-Manipulations of current filter state occur locally and are passed to global state as a complete set.
+UX for creating a tree of filters which are stored in either `filter_aggs` or `filter_works`.
 -->
-
 <template>
-  <v-card v-if="hasAvailableFilters" flat rounded :class="{'query-filter-tree': true, 'inline': displayInline}">
-    <div v-if="this.isWithAggs" :class="{'query-section-label': true, 'inline-block': displayButtonInline}">
-      <div v-if="!this.isEmpty">
-        From <v-chip label color="catBlue" class="text-h6">Works</v-chip> where
-      </div>
-      <div v-else-if="this.isEmpty">
-        From all <v-chip label color="catBlue" class="text-h6 mr-1">Works</v-chip>
-      </div>
-    </div>
+  <v-card  flat rounded :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-8': !isEmpty}">
+    <span class="query-section-label">
+      
+      <!-- Works First UI -->
+      <template v-if="uiVariant === 'worksfirst'">
+        <!-- Works Filters -->
+        <template v-if="isWorks">
+          Find
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
 
-    <div :class="{'button-wrapper': true, 'ml-5': !isEmpty}">
+        <!-- Entity Filters -->
+        <template v-else>
+          Group by
+          <query-summarize-by /> 
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+
+      <!-- Entity First UI -->
+      <template v-else>
+        <!-- Works Filters -->
+        <template v-if="isWorks && isWithAggs">
+          From
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+
+        <!-- Entity Filters -->
+        <template v-else>
+          Show
+          {{ isEmpty ? ' all' : '' }}
+          <query-summarize-by key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+    </span> 
+
+    <span class="top-button-wrapper" v-if="isEmpty && subjectEntity !== null && hasAvailableFilters">
       <query-filter-tree-button
         :subject-entity="subjectEntity"
-        :parent-id="null"
-        :nameWorks="isWithAggs"
-        :withExistingFilters="!isEmpty"
-        @addFilter="addFilter"
-      />
+        @addFilter="addFilter" />
+    </span>
+
+    <div class="query-wrapper" :style="{'border-color': borderColor}">
+      <query-filter-tree-branch
+        v-if="!isEmpty"
+        :filters="myFilters"
+        :join-operator="rootJoin"
+        :subject-entity="subjectEntity"
+        @setJoinOperator="setJoinOperator"
+        @setOperator="setOperator"
+        @setValue="setValue"
+        @deleteFilter="deleteFilter"
+        @groupWithAbove="groupWithAbove"
+        @ungroupFromAbove="ungroupFromAbove" />
+      
+      <div class="bottom-button-wrapper mt-2" v-if="!isEmpty">
+        <query-filter-tree-button
+          :subject-entity="subjectEntity"
+          @addFilter="addFilter" />
+      </div>
     </div>
-
-    <query-filter-tree-branch
-      v-if="!isEmpty"
-      :filters="myFilters"
-      :join-operator="rootJoin"
-      :subject-entity="subjectEntity"
-      @setJoinOperator="setJoinOperator"
-      @setOperator="setOperator"
-      @setValue="setValue"
-      @deleteFilter="deleteFilter"
-      @groupWithAbove="groupWithAbove"
-      @ungroupFromAbove="ungroupFromAbove"
-      class="mt-2"
-    />
-
-    <div v-if="!isEmpty" class="spacer"></div>
-    <div v-if="isEmpty" class="empty-spacer"></div>
 
   </v-card>
 </template>
@@ -50,8 +75,9 @@ Manipulations of current filter state occur locally and are passed to global sta
 
 <script>
 
-import {mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
+import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
 import Vue from "vue";
@@ -61,6 +87,7 @@ import _ from 'lodash';
 export default {
   name: "QueryFilterTree",
   components: {
+    QuerySummarizeBy,
     QueryFilterTreeBranch,
     QueryFilterTreeButton,
   },
@@ -76,6 +103,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["uiVariant"]),
     hasAvailableFilters() {
       const myConfig = getConfigs()[this.subjectEntity];
       const myPossibleColumns = Object.values(myConfig.columns);
@@ -83,15 +111,24 @@ export default {
             
       return availableFilters.length > 0;
     },
+    isWorks() {
+      return ["works", "summary"].includes(this.subjectEntity);
+    },
     isEmpty() {
       return this.myFilters.length === 0;
     },
     displayInline() {
-      return !this.isWithAggs;
+      return this.uiVariant === 'worksfirst' ? true : !this.isWithAggs;
     },
     displayButtonInline() {
       return true;
       //return this.isEmpty && this.isWithAggs;
+    },
+    borderColor() {
+      const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;
+      const entityColor = this.$vuetify.theme.themes.light.catEntityDarker;
+
+      return this.isWorks ? worksColor : entityColor;
     },
     filtersToStore() {
       // Returns local filter state, cleaned of local props, to be stored in Vuex store
@@ -120,7 +157,6 @@ export default {
         if (filter.operator) {
           cleanedLeaf.operator = filter.operator;
         }
-
         return cleanedLeaf;
       };
 
@@ -135,7 +171,6 @@ export default {
           filters: cleanedFilters
         }];
       }
-
       return cleanedFilters;
     },
   },
@@ -268,10 +303,7 @@ export default {
       const parentPath = path.slice(0, -1);
       const index = path[path.length - 1];
 
-      if (index === 0) {
-        //console.warn("No filter above to group with.");
-        return;
-      }
+      if (index === 0) { return; } //console.warn("No filter above to group with.");
 
       const parentFilter = this.getFilterFromPath(parentPath);
 
@@ -343,8 +375,8 @@ export default {
       }
 
       if (parentPath.length === 1 && parentPath[0] === 0) {
-  this.isRootGroupUserCreated = false;
-}
+        this.isRootGroupUserCreated = false;
+      }
       this.applyFilters();
     },
     deleteFilter(path) {
@@ -438,28 +470,14 @@ export default {
 
 
 <style lang="scss">
-.invisible {
-  visibility: hidden !important;
-}
-.query-section-label.inline-block {
-  display: inline-block;
-}
-.button-wrapper{
-  display: inline-block;
-  position: relative;
-  top: -2px;
-}
 .query-filter-tree {
   margin-left: 0px;
 }
-.query-filter-tree.inline {
-  display: inline;
-}
-.spacer {
-  height: 30px;
-}
-.empty-spacer {
-  height: 5px;
+.query-wrapper {
+  padding: 0px 0px 0px 15px;
+  margin-top: 10px;
+  border-left: 3px solid;
+  border-radius: 0px !important;
 }
 .v-treeview-node__prepend {
   min-width: 0;

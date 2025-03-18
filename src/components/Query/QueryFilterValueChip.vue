@@ -2,7 +2,7 @@
   <div>
     <v-chip
       label
-      class="mr-1"
+      class="mr-1 query-builder-chip"
       :color="buttonColor"
     >
       <template v-if="entityData">
