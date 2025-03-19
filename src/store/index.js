@@ -14,7 +14,7 @@ const stateDefaults = function () {
         snackbarColor: undefined,
         zoomId: null,
         uiVariant: null, // for testing UI variations
-        isIntialLoad: true, // used to for bypassing cache on freshloads
+        isInitialLoad: true, // used to for bypassing cache on freshloads
         testQueries: [],
     }
     return ret;
@@ -48,10 +48,10 @@ export default new Vuex.Store({
         setZoomId(state, id) {
             state.zoomId = id;
         },
-        setIsIntialLoad(state, isIntialLoad) {
-            state.isIntialLoad = isIntialLoad;
+        setIsInitialLoad(state, isInitialLoad) {
+            state.isInitialLoad = isInitialLoad;
         },
-    },
+    },  
     actions: {
     },
     getters: {

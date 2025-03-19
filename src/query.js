@@ -1,6 +1,6 @@
 import {api} from "@/api";
 import {getConfigs, getColumnConfig} from "@/oaxConfigs";
-
+import store from "@/store";
 
 const baseQuery = (entity = 'works') => {
     let query;
@@ -60,7 +60,7 @@ const queryTitle = async (query) => {
 
 const makeFilterString = (filter, entity) => {
     const columnConfig = getColumnConfig(entity, filter.column_id);
-    const value = columnConfig.objectEntity ? api.getEntityFromCache(filter.value).display_name : filter.value;
+    const value = getDisplayNameForValue(filter, columnConfig);
     return `${columnConfig.displayName} ${filter.operator} '${value}'`;
 };
 
@@ -77,6 +77,7 @@ const makeFilterGroupString = (filters, joinOperator, entity) => {
     return filterStrings.join(` ${joinOperator} `);
 };
 
+
 // Returns an array of all entity IDs in `query`
 const getEntitiesInQuery = (query) => {
     const entities = [];
@@ -86,7 +87,7 @@ const getEntitiesInQuery = (query) => {
                 walkFilters(filter.filters, entity);
             } else {
                 let columnConfig = getColumnConfig(entity, filter.column_id);
-                if (columnConfig.objectEntity) {
+                if (columnConfig.objectEntity && !isCollectionFilter(filter)) {
                     entities.push(filter.value);
                 }
             }
@@ -98,6 +99,37 @@ const getEntitiesInQuery = (query) => {
     }
     return [...new Set(entities)];
 };
+
+// Helper function to determine if a filter is for a collection
+const isCollectionFilter = (filter) => {
+    return filter.operator === "matches any item in label" || 
+           filter.operator === "matches all items in label";
+};
+
+
+// Get display name for a value (either from entity cache or collection)
+const getDisplayNameForValue = (filter, columnConfig) => {
+    if (columnConfig.objectEntity) {
+        if (isCollectionFilter(filter)) {
+            // Get collection name directly from the store state
+            try {
+                const collections = store.state.user.collections;
+                const collection = collections.find(coll => coll.id === filter.value);
+                return collection ? collection.name : filter.value;
+            } catch (e) {
+                console.error("Error getting collection:", e);
+                return filter.value;
+            }
+        } else {
+            // Get entity name from API cache
+            const entity = api.getEntityFromCache(filter.value);
+            return entity ? entity.display_name : filter.value;
+        }
+    }
+    return filter.value;
+};
+
+
 
 export {
     baseQuery,

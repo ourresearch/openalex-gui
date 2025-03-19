@@ -184,7 +184,7 @@ export const search = {
             commit('setQuery', state.submittedQuery);
             dispatch('createSearchFromQuery', state.submittedQuery);
         },
-        getSearch: async function ({state, commit, dispatch}, {id, bypass_cache}) {
+        getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
             commit('setSearchId', id);
             
             // Check the cache first if we're not explicitly bypassing it
@@ -196,7 +196,7 @@ export const search = {
 
             // If not in cache or bypassing cache, proceed with the API call
             try {
-                const data = await api.getSearch(state.id, {bypass_cache});
+                const data = await api.getSearch(state.id, {bypass_cache, is_polling});
 
                 if (state.id !== data.id) {
                     // A new id has been requested since this request started, so ignore
