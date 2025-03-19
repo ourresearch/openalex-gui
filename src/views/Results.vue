@@ -75,7 +75,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['uiVariant', 'isIntialLoad']),
+    ...mapState(['uiVariant', 'isInitialLoad']),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",
@@ -90,7 +90,7 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "setIsIntialLoad",
+      "setIsInitialLoad",
     ]),
     ...mapActions("search", [
       "createSearch",
@@ -130,10 +130,10 @@ export default {
       
       await this.getSearch({
         id: this.$route.params.id,
-        bypass_cache: this.isIntialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE // allow a fresh page load of a query to bypass cache
+        bypass_cache: this.isIntialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE,
+        is_polling: true,
       });
       this.pollCount++;
-      this.setIsIntialLoad(false);
       setTimeout(() => {
         //console.log("polling search")
         this.pollSearch();
@@ -157,9 +157,10 @@ export default {
   watch: {
     "$route.params.id": {
       handler: async function (id) {
-        await this.getSearch({id});
+        await this.getSearch({id, is_polling: !this.isInitialLoad});
         this.pollCount = 0;
         this.pollSearch();
+        this.setIsInitialLoad(false);
       },
       immediate: true
     },

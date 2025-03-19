@@ -318,13 +318,8 @@ const api = (function () {
 
     const createSearch = async function(query, bypass_cache=false) {
         // Creates a new Redshift query, routing to user api if needed
-        const options = {};
-        let url = urlBase.api;
-        if (doesSearchContainUserData(query)) {
-            url = urlBase.userApi;
-            options.userAuth = true;
-        }
-        url = url + "/searches";
+        const options = {userAuth: true};
+        const url = urlBase.userApi + "/searches";
 
         bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
 
@@ -338,31 +333,25 @@ const api = (function () {
     const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
         let url = getSearchUrl(searchId);
-        let userAuth = !!searchId.startsWith("us-");
 
         const params = new URLSearchParams();
         if (options.bypass_cache) {
             params.set("bypass_cache", true);
+        }
+        if (options.is_polling) {
+            params.set("is_polling", true);
         }
 
         const paramsStr = params.toString();
         url += (paramsStr ? "?" + paramsStr : "");
 
         //console.log("api.getSearch getting: " + searchId);
-        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth}));
+        const resp = await getUrl(url, axiosConfig({noCache: true, userAuth: true}));
         return resp;
     }
 
     const getSearchUrl = function(searchId) {
-        let url;
-        let userAuth = false;
-        if (searchId.startsWith("us-")) {
-            url = urlBase.userApi + "/searches/" + searchId;
-            userAuth = true;
-        } else {
-            url = urlBase.api + "/searches/" + searchId;
-        }
-        return url;
+        return urlBase.userApi + "/searches/" + searchId;
     }
 
     const getSearchFromCache = function(searchId) {
@@ -418,24 +407,6 @@ const api = (function () {
         createExport,
     }
 })()
-
-
-const doesSearchContainUserData = function(query) {
-// Returns true if a query contains references to user data like labels that
-// that require its search to be sent to Users API.
-    const doesFilterContainUserData = function(filter) {
-        const userOperators = [
-            "matches any item in label",
-            "matches every item in label"
-        ]
-        if ("filters" in filter) {
-            return filter["filters"].some(doesFilterContainUserData)
-        }
-        return userOperators.includes(filter.operator)
-    }
-    const filtersToCheck = (query.filter_works ?? []).concat(query.filter_aggs ?? [])
-    return filtersToCheck.some(doesFilterContainUserData)
-}
 
 
 export {
