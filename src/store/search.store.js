@@ -132,6 +132,10 @@ export const search = {
         },
         createSearchFromQuery: async function ({state, commit, dispatch}, query) {
             //console.log("createSearchFromQuery", query);
+            
+            // temporary loading state while waiting of ID from API call
+            await router.replace({name: 'search', params: {id: null}});
+            
             const cachedData = api.findQueryInCache(query);
             
             if (cachedData && cachedData.is_completed && cachedData.id) {                

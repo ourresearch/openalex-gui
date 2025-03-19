@@ -157,6 +157,7 @@ export default {
   watch: {
     "$route.params.id": {
       handler: async function (id) {
+        if (!id) { return; }
         await this.getSearch({id, is_polling: !this.isInitialLoad});
         this.pollCount = 0;
         this.pollSearch();
