@@ -114,7 +114,6 @@ const api = (function () {
     }
 
     const post = async function(url, data, config) {
-        let op = url.includes("?") ? "&" : "?";
         const resp = await axios.post(url, data, config);
         return resp;
     }
@@ -316,15 +315,20 @@ const api = (function () {
 
     // Redshift Searches
 
-    const createSearch = async function(query, bypass_cache=false) {
+    const createSearch = async function(query, options={}) {
         // Creates a new Redshift query, routing to user api if needed
-        const options = {userAuth: true};
         const url = urlBase.userApi + "/searches";
-
-        bypass_cache = bypass_cache || DISABLE_SERVER_CACHE;
+        const bypass_cache = options.bypass_cache || DISABLE_SERVER_CACHE;
+        const is_test = options.is_test || false;
+        
+        const data = {
+            query,
+            bypass_cache,
+            is_test,
+        };
 
         //console.log("api.createSearch to " + url)
-        const resp = await post(url, {query, bypass_cache}, axiosConfig(options));
+        const resp = await post(url, data, axiosConfig({noCache: true, userAuth: true}));
         //console.log("Created Search: " + resp.data.id + " with filters:");
         //console.log(JSON.stringify(resp.data.query.filter_works, null, 2));
         return resp;
@@ -335,12 +339,12 @@ const api = (function () {
         let url = getSearchUrl(searchId);
 
         const params = new URLSearchParams();
-        if (options.bypass_cache) {
-            params.set("bypass_cache", true);
-        }
-        if (options.is_polling) {
-            params.set("is_polling", true);
-        }
+        const boolParams = ["bypass_cache", "is_polling", "is_test"];
+        boolParams.forEach(param => {
+            if (options[param]) {
+                params.set(param, true);
+            }
+        });
 
         const paramsStr = params.toString();
         url += (paramsStr ? "?" + paramsStr : "");

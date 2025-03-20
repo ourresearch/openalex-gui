@@ -175,7 +175,7 @@ export default {
   methods: {
     async createSearch() {
       try {
-        const resp = await api.createSearch(this.config.query, true);
+        const resp = await api.createSearch(this.config.query, {bypass_cache: true, is_test: true});
         this.searchId = resp.data.id;
       } catch (e) {
         this.isSearchPassing = false;
@@ -185,7 +185,7 @@ export default {
     },
     async getSearch() {
       console.log("getSearch: " + this.searchId);
-      const resp = await api.getSearch(this.searchId);
+      const resp = await api.getSearch(this.searchId, {is_test: true});
       if (resp.is_completed) {
         this.returnData = resp;
 
