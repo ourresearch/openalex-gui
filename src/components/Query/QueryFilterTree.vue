@@ -2,7 +2,7 @@
 UX for creating a tree of filters which are stored in either `filter_aggs` or `filter_works`.
 -->
 <template>
-  <v-card  flat rounded :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-8': !isEmpty}">
+  <v-card  flat rounded :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-4': !isEmpty}">
     <span class="query-section-label">
       
       <!-- Works First UI -->
@@ -43,13 +43,13 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       </template>
     </span> 
 
-    <span class="top-button-wrapper" v-if="isEmpty && subjectEntity !== null && hasAvailableFilters">
+    <span :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty}" v-if="isEmpty &&hasAvailableFilters">
       <query-filter-tree-button
         :subject-entity="subjectEntity"
         @addFilter="addFilter" />
     </span>
 
-    <div class="query-wrapper" :style="{'border-color': borderColor}">
+    <div class="query-wrapper" :style="{'border-color': borderColor }">
       <query-filter-tree-branch
         v-if="!isEmpty"
         :filters="myFilters"
@@ -65,6 +65,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <div class="bottom-button-wrapper mt-2" v-if="!isEmpty">
         <query-filter-tree-button
           :subject-entity="subjectEntity"
+          text=""
           @addFilter="addFilter" />
       </div>
     </div>
@@ -473,11 +474,24 @@ export default {
 .query-filter-tree {
   margin-left: 0px;
 }
+.query-section-label {
+  font-size: 20px;
+}
 .query-wrapper {
   padding: 0px 0px 0px 15px;
-  margin-top: 10px;
+  margin-top: 5px;
   border-left: 3px solid;
   border-radius: 0px !important;
+}
+.query-filter-leaf {
+  line-height: 34px;
+  font-size: 15px;
+  vertical-align: middle;
+}
+.path-label {
+  margin-right: 5px;
+  font-size: 14px;
+  color: #999;
 }
 .v-treeview-node__prepend {
   min-width: 0;

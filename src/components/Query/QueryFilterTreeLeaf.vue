@@ -1,21 +1,22 @@
 <template>
-  <div :style="indentationStyle" class="d-flex align-end flex-grow-1 mb-1">
+  <div :style="indentationStyle" class="query-filter-leaf d-flex align-end flex-grow-1 mb-1">
 
     <!-- Path Label -->
-    <span class="path-label number grey--text">
+    <span class="path-label number">
       {{ pathLabel }}.
     </span>
 
     <!-- The Join Operator - and/or -->
-    <span class="d-inline-flex justify-center" style="min-width: 1.6em; margin-right: 5px; flex-shrink: 0;">
-      <template v-if="isFirstFilter">The</template>
+    <span>
+      <template v-if="isFirstFilter">The&nbsp;</template>
       <template v-else>
         <v-menu offset-y>
           <template v-slot:activator="{ on }">
             <v-chip
               text
               label
-              class="menu-chip font-weight-regular"
+              class="menu-chip"
+              :style="{'border-color': buttonColor}"
               v-on="on"
             >
               {{ joinOperator }}
@@ -57,7 +58,7 @@
 
 
     <!--    The Filter Key-->
-    <div class="font-weight-bold">
+    <div>
       {{ columnConfig.displayName }}
     </div>
 
@@ -69,8 +70,8 @@
           <v-chip
             text
             label
-            class="menu-chip font-weight-regular px-1 pr-0 mx-1"
-            style="min-width: 1px !important;"
+            class="menu-chip px-1 pr-0 mx-1"
+            :style="{'min-width': '1px !important', 'border-bottom-color': buttonColor}"
             v-on="on" 
           >
             {{ selectedOperator ?? "select" }}
@@ -80,10 +81,10 @@
         <v-list>
           <v-list-item-group v-model="selectedOperator">
             <v-list-item
-                v-for="operator in operatorOptions"
-                :key="operator"
-                :value="operator"
-                active-class="primary--text"
+              v-for="operator in operatorOptions"
+              :key="operator"
+              :value="operator"
+              active-class="primary--text"
             >
               <v-list-item-title class="py-3">
                 {{ operator }}
@@ -103,7 +104,6 @@
           <query-filter-value-chip
             :column-config="columnConfig"
             :value="selectedValue"
-            :operator="selectedOperator"
             :is-label-filter="isLabelFilter"
             :is-editable="true"
             :subject-entity="subjectEntity"
@@ -125,7 +125,7 @@
                 <v-chip
                   outlined
                   label
-                  class="menu-chip font-weight-regular px-1 pr-0 mx-1"
+                  class="menu-chip px-1 pr-0 mx-1"
                   style="min-width: 1px !important;"
                   v-on="on" 
                 >
@@ -196,14 +196,11 @@
       </template>
 
       <!-- Boolean Values -->
-      <v-chip v-else-if="columnConfig.type === 'boolean'"
-          text
-          label
-          :color="buttonColor"
-          @click="selectedValue = !selectedValue"
-      >
-        {{ selectedValue }}
-      </v-chip>
+      <query-filter-value-chip v-else-if="columnConfig.type === 'boolean'"
+        :column-config="columnConfig"
+        :subject-entity="subjectEntity"
+        :value="selectedValue"
+        @click="selectedValue = !selectedValue" />
 
       <!-- Number, String, Array Values -->
       <div v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
@@ -219,17 +216,12 @@
           @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
-        <v-chip
+        <query-filter-value-chip 
           v-else
-          text
-          label
-          :color="buttonColor"
-          class="query-builder-chip mr-1"
-          @click="startEditingValue"
-        >
-          {{ (selectedValue || "click to edit") }}
-          <v-icon small right>mdi-pencil-outline</v-icon>
-        </v-chip>
+          :column-config="columnConfig"
+          :value="selectedValue"
+          @click.native="startEditingValue"
+        />
       </div>
     </div>
 
@@ -294,7 +286,8 @@ export default {
       return (this.path.every(i => i === 0));
     },
     buttonColor() {
-      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
+      const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
+      return this.$vuetify.theme.themes.light[colorName];
     },
     pathLabel() {
       // 1) The top-level label is always (path[0] + 1)
@@ -457,16 +450,6 @@ export default {
 </script>
 
 
-<style scoped lang="scss">
-.path-label {
-  margin-right: 5px;
-  font-size: 14px;
-}
-.menu-chip {
-  background-color: transparent !important;
-  border-bottom: 1px solid #777;
-  border-radius: 0 !important;
-  padding: 2px 0px !important;
-  height: auto;
-}
+<style lang="scss">
+
 </style>

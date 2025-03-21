@@ -1,46 +1,46 @@
 <template>
-    <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
-      <template v-slot:activator="{ on }">
-        <v-btn
-          v-on="on"
-          class="query-builder-button"
-          :color="buttonColor"
-          small
-        >
-          <v-icon small>mdi-plus</v-icon>Filter
-        </v-btn>
-      </template>
-      <v-card flat rounded v-if="isMenuOpen">
-        <v-text-field
-          v-model="search"
-          filled
-          rounded
-          background-color="white"
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          autofocus
-          placeholder="Search filters"
-          style=""
-        />
-        <v-divider/>
+  <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
+    <template v-slot:activator="{ on }">
+      <v-btn
+        v-on="on"
+        :class="{'query-builder-button': true, 'tight': !text.length}"
+        :color="buttonColor"
+        small
+      >
+        <v-icon small>mdi-plus</v-icon>{{ text }}
+      </v-btn>
+    </template>
+    <v-card flat rounded v-if="isMenuOpen">
+      <v-text-field
+        v-model="search"
+        filled
+        rounded
+        background-color="white"
+        prepend-inner-icon="mdi-magnify"
+        hide-details
+        autofocus
+        placeholder="Search filters"
+        style=""
+      />
+      <v-divider/>
 
-        <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-          <v-list-item
-            v-for="(column, i) in filteredFilters"
-            :key="column.id"
-            :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
-            @click="$emit('addFilter', column)"
-          >
-            <v-list-item-icon>
-              <v-icon>{{ column.icon }}</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title>
-              {{ column.displayName | titleCase }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-menu>
+      <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
+        <v-list-item
+          v-for="(column, i) in filteredFilters"
+          :key="column.id"
+          :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
+          @click="$emit('addFilter', column)"
+        >
+          <v-list-item-icon>
+            <v-icon>{{ column.icon }}</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>
+            {{ column.displayName | titleCase }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-card>
+  </v-menu>
 </template>
 
 
@@ -54,6 +54,10 @@ export default {
   components: {},
   props: {
     subjectEntity: String,
+    text: {
+      type: String, 
+      default: "Filter"
+    }
   },
   data() {
     return {
@@ -63,7 +67,11 @@ export default {
   },
   computed: {
     buttonColor() {
-      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
+      let color =  ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
+      if (this.text.length > 0) {
+        color += 'Darker';
+      }
+      return color;
     },
     availableFilters() {
       const mySubjectEntity = this.subjectEntity;
@@ -128,6 +136,9 @@ export default {
 
 
 <style scoped lang="scss">
+button.query-builder-button.tight { 
+  min-width: 28px;
+}
 .line-above {
   border-top: 1px #DDD solid;
 }

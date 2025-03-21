@@ -7,10 +7,11 @@ Vue.use(Vuetify);
 import colors from 'vuetify/lib/util/colors'
 
 const baseWeight = "lighten5";
-const darkerWeight = "lighten3";
+const darkerWeight = "lighten4";
 
 export default new Vuetify({
-    theme: {
+  theme: {
+    options: { customProperties: true },
     themes: {
       light: {
         primary: colors.blue.darken2,
@@ -32,10 +33,13 @@ export default new Vuetify({
 
         catWorksDarker: colors.blue[darkerWeight],
         catEntityDarker: colors.green[darkerWeight],
-        catDisplayDarker: colors.purple[darkerWeight],
+        catDisplayDarker: colors.teal[darkerWeight],
         catMetricsDarker: colors.red[darkerWeight],
-        catSortDarker: colors.teal[darkerWeight],
+        catSortDarker: colors.purple[darkerWeight],
       },
     },
   },
+  options: {
+    customProperties: true
+  }
 });
