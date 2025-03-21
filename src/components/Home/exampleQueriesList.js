@@ -189,8 +189,8 @@ const exampleQueries = [
       ],
       "show_columns": [
         "display_name",
+        "apc_usd",
         "count(works)",
-        "apc_usd"
       ],
       "sort_by_column": "apc_usd",
       "sort_by_order": "desc"
@@ -1241,8 +1241,8 @@ const exampleQueries = [
       ],
       "show_columns": [
         "display_name",
+        "last_known_institutions.display_name",
         "count(works)",
-        "last_known_institutions.display_name"
       ],
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
@@ -1292,8 +1292,8 @@ const exampleQueries = [
       "filter_aggs": [],
       "show_columns": [
         "display_name",
+        "last_known_institutions.display_name",
         "count(works)",
-        "last_known_institutions.display_name"
       ],
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
@@ -1356,8 +1356,8 @@ const exampleQueries = [
       ],
       "show_columns": [
         "display_name",
+        "affiliations.institution.display_name",
         "count(works)",
-        "affiliations.institution.display_name"
       ],
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"
@@ -1396,8 +1396,8 @@ const exampleQueries = [
       ],
       "show_columns": [
         "display_name",
+        "apc_usd",
         "count(works)",
-        "apc_usd"
       ],
       "sort_by_column": "count(works)",
       "sort_by_order": "desc"

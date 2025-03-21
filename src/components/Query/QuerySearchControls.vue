@@ -3,7 +3,7 @@
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
       small 
-      color="primary" 
+      color="catWorksDarker" 
       class="mr-2" 
       @click="createSearch">
       Search

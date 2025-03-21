@@ -1,14 +1,14 @@
 <template>
-  <v-card flat rounded>
+  <v-card :class="{'expanded': isExpanded}" flat rounded>
     <div class="columns-controls-line" />
     
     <!-- Display -->
-    <div class="columns-controls-box">
+    <div v-if="showSections.includes('display')" class="columns-controls-box">
       <div class="query-section-label">Display</div>
       <!-- Visible Columns -->
-      <div>
+      <div class="columns-list" :style="{'border-color': displayColumnsColorHex}">
         <div v-for="(column, index) in visibleDataColumns" :key="index" class="query-builder-chip">
-          <v-chip label color="catDisplay" class="mt-0">
+          <v-chip label :color="displayColumnsColor" class="mt-0">
             {{ column.displayName | titleCase }}
             <v-icon
               v-if="visibleDataColumns.length > 1" 
@@ -18,14 +18,14 @@
         <!-- Columns Button/Menu -->
         <v-menu v-model="isDataColumnsMenuOpen" offset-y>
           <template v-slot:activator="{ on }">
-            <v-btn class="query-builder-button" small color="catDisplayDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
+            <v-btn class="query-builder-button small" small :color="displayColumnsColor + 'Darker'" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
           </template>
           <v-card flat rounded>
             <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
               <v-list-item
-                  v-for="column in availableDataColumns"
-                  :key="column.id"
-                  @click="toggleColumn(column)"
+                v-for="column in availableDataColumns"
+                :key="column.id"
+                @click="toggleColumn(column)"
               >
                 <v-list-item-icon>
                   <v-icon>{{ column.icon }}</v-icon>
@@ -44,24 +44,23 @@
     </div>
     </div>
 
-    <!-- Metrics -->
-    <div v-if="availableMetricsColumns.length > 0">
-      <div class="columns-controls-box" v-if="visibleMetricsColumns.length > 0">
-        <div class="query-section-label">Metrics</div>
+    <!-- Calculate -->
+    <div v-if="showSections.includes('calculate') && availableMetricsColumns.length > 0">
+      <div class="columns-controls-box">
+        <div class="query-section-label">Calculate</div>
         <!-- Visible Columns -->
-        <div>
+        <div class="columns-list" :style="{'border-color': catWorksHex}">
           <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="query-builder-chip">
-            <v-chip label color="catMetrics">
+            <v-chip label color="catWorks">
               {{ column.displayName | titleCase }}
               <v-icon
-                v-if="visibleMetricsColumns.length > 1" 
                 @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
             </v-chip>
           </div>
           <!-- Metrics Button/Menu -->
           <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
             <template v-slot:activator="{ on }">
-              <v-btn class="query-builder-button" small color="catMetricsDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
+              <v-btn class="query-builder-button small" small color="catWorksDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
             </template>
             <v-card flat rounded>
               <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -88,17 +87,19 @@
       </div>
     </div>
 
+    <div class="section-divider clear" />
+
     <!-- Sort by -->
+    <div v-if="showSections.includes('sort')" class="sort-box columns-controls-box">
     <!-- Sort by Column -->
-    <div class="sort-box columns-controls-box" v-if="sortByColumn">
       <div class="query-section-label" v-if="sortByColumn">Sort by</div>
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
             style="min-width: 1px !important;"
             class="mt-0 first query-builder-chip"
+            :color="sortColor"
             label
-            color="catSort"
             v-on="on" 
           >
             {{ (sortByColumn.displayNameForColumn || sortByColumn.displayName) | titleCase }}
@@ -132,14 +133,13 @@
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <v-chip
-            color="catSort"
             label
             class="last query-builder-chip"
+            :color="sortColor"
             style="min-width: 1px !important;"
             v-on="on" 
           >
-            {{ {"desc": "Descending", "asc": "Ascending"}[query.sort_by_order] }}
-            <v-icon small>mdi-menu-down</v-icon>
+            <v-icon small>{{ {"desc": "mdi-arrow-down", "asc": "mdi-arrow-up"}[query.sort_by_order] }}</v-icon>
           </v-chip>
         </template>
         <v-list>
@@ -161,6 +161,7 @@
           </v-list-item-group>
         </v-list>
       </v-menu>
+
     </div>
   </v-card>
 </template>
@@ -173,7 +174,16 @@ export default {
   name: "QueryColumnsControl",
   components: {
   },
-  props: {},
+  props: {
+    showSections: {
+      type: Array,
+      default: () => ["display", "calculate", "sort"]
+    },
+    isExpanded: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       isDataColumnsMenuOpen: false,
@@ -229,6 +239,21 @@ export default {
     sortByColumn() {
       return this.columnConfigs?.[this.query.sort_by_column];
     },
+    displayColumnsColor() {
+      return ['works', 'summary'].includes(this.querySubjectEntity) ? 'catWorks' : 'catEntity';
+    },
+    displayColumnsColorHex() {
+      const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;
+      const entityColor = this.$vuetify.theme.themes.light.catEntityDarker;
+      return ['works', 'summary'].includes(this.querySubjectEntity) ? worksColor : entityColor;
+    },
+    catWorksHex() {
+      return this.$vuetify.theme.themes.light.catWorksDarker;
+    },
+    sortColor() {
+      const sortColor = ['works', 'summary'].includes(this.querySubjectEntity) ? 'catWorks' : 'catEntity';
+      return this.query.sort_by_column.includes("(") ? 'catWorks' : sortColor;
+    }
   },
   methods: {
     ...mapMutations("search", [
@@ -278,23 +303,42 @@ export default {
   display: flex;
   margin-bottom: 5px;
 }
+.expanded .query-section-label {
+  margin-bottom: 10px;
+}
+.expanded .columns-list {
+  border-left-width: 3px;
+  border-left-style: solid;
+  padding-left: 15px;
+}
+.expanded .columns-controls-box {
+  display: block;
+}
 .v-chip {
   cursor: pointer;
 } 
+.query-builder-button.small {
+  height: 22px;
+  padding: 0px 5px !important;
+}
 .columns-controls-box .query-builder-chip {
   margin-right: 4px;
   margin-bottom: 4px;
+}
+.sort-box {
+  align-items: baseline;
 }
 .sort-box .v-chip.first {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   padding-right: 5px !important;
-  border-right: 1px solid #B2DFDB  !important; /* teal lighten4 */
+  border-right: 1px solid #eee !important;
   margin-right: 0;
 }
 .sort-box .v-chip.last {
   margin-right: 0px;
-  padding-left: 7px;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
   margin-left: 0;

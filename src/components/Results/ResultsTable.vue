@@ -1,11 +1,10 @@
 <template>
-  <div>
-
+  <div :class="{'results-table': true, 'works-query': querySubjectEntity === 'works'}">
     <!-- Results Header / Actions -->
-    <div class="pa-2">
+    <div class="results-table-controls pa-2">
       <query-search-controls />
       
-      <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center">
+      <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
         <v-btn icon @click="clickSelectAllButton">
           <v-icon>{{ selectAllIcon }}</v-icon>
         </v-btn>
@@ -37,7 +36,7 @@
     <div :class="{'dimmed': hasQueryChanged}">
       <!-- Row Selection Message -->
       <div class="pa-3 d-flex align-center grey lighten-3"
-          v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
+        v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
       >
         <template v-if="isEntireSearchSelected">
           All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
@@ -64,32 +63,32 @@
       </div>
 
       <!-- Results Table -->
-      <v-simple-table>
+      <v-simple-table class="mx-3">
         <thead>
         <th key="checkbox-placeholder"></th>
         
         <!-- Results Table Headers -->
         <th
-            v-for="(header, i) in queryColumnsConfigs"
-            :key="'header-'+i"
-            :class="[
-              'data-type-' + header.type, 
-              { 'is-date': header.isDate, 'metric': header.id && header.id.includes('(') }
-            ]"
+          v-for="(header, i) in queryColumnsConfigs"
+          :key="'header-'+i"
+          :class="[
+            'data-type-' + header.type, 
+            { 'is-date': header.isDate, 'metric': header.id && header.id.includes('(') }
+          ]"
         >
           <div class="d-flex">
             <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
             <v-menu offset-y>
               <template v-slot:activator="{ on }">
                 <v-btn
-                    text
-                    v-on="on"
-                    style="white-space: nowrap;"
-                    class="px-0"
+                  text
+                  v-on="on"
+                  style="white-space: nowrap;"
+                  class="px-0"
                 >
                   <template v-if="submittedQuery.sort_by_column === header.id">
-                    <v-icon v-if="submittedQuery.sort_by_order==='desc'">mdi-arrow-down</v-icon>
-                    <v-icon v-if="submittedQuery.sort_by_order==='asc'">mdi-arrow-up</v-icon>
+                    <v-icon v-if="submittedQuery.sort_by_order==='desc'" small>mdi-arrow-down</v-icon>
+                    <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
                   </template>
                   {{ (header.displayNameForColumn || header.displayName) | titleCase }}
                   <v-icon small>mdi-menu-down</v-icon>
@@ -176,12 +175,12 @@
         </thead>
         <tbody>
       
-      <!-- Results Rows -->
-      <tr
-            v-for="(row, i) in rows"
-            :key="'row-'+i"
-            @click.exact="clickRow(row.id)"
-            @click.meta.stop="metaClickRow(row.id)"
+        <!-- Results Rows -->
+        <tr
+          v-for="(row, i) in rows"
+          :key="'row-'+i"
+          @click.exact="clickRow(row.id)"
+          @click.meta.stop="metaClickRow(row.id)"
         >
           <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
             <v-btn icon @click.stop="toggleSelectedId(row.id)">
@@ -190,13 +189,13 @@
             </v-btn>
           </td>
           <td
-              v-for="(cell, i) in row.cellsWithConfigs"
-              :key="'cell-'+i"
-              class="px-1"
-              :class="[
-                'data-type-' + cell.config.type, 
-                {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
-              ]"
+            v-for="(cell, i) in row.cellsWithConfigs"
+            :key="'cell-'+i"
+            class="px-1"
+            :class="[
+              'data-type-' + cell.config.type, 
+              {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
+            ]"
           >
             <column-value :property="cell"/>
           </td>
@@ -211,7 +210,7 @@
 
     </div>
 
-    <!-- Dialogs -->
+    <!-- DownloadDialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
       <download-dialog 
         :resultsCount="resultsMeta?.count" 
@@ -220,10 +219,12 @@
          />
     </v-dialog>
 
+    <!-- Correction Dialog -->
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
 
+    <!-- Query Return Dialog -->
     <v-dialog scrollable v-model="isPropSelectorDialogOpen">
       <v-card flat rounded>
         <query-return @close="isPropSelectorDialogOpen = false"/>
@@ -444,9 +445,53 @@ export default {
 </script>
 
 
-<style scoped lang="scss">
-thead {
-  border-bottom: thin solid rgba(0, 0, 0, 0.12)
+<style lang="scss">
+.results-table-controls {
+  /*background-color: var(--v-catEntity-base);  */
+}
+.works-query .results-table-controls {
+  /*background-color: var(--v-catWorks-base);*/
+}
+table {
+  border-top: none;
+  border-collapse: separate !important;
+}
+th {
+  border-bottom: 4px solid;
+  border-color: var(--v-catEntityDarker-base);
+  background-color: var(--v-catEntity-base);
+}
+th.metric,
+.works-query th {
+  border-color: var(--v-catWorksDarker-base);
+  background-color: var(--v-catWorks-base);
+}
+.results-table td {
+  border-color: var(--v-catEntityDarker-base);
+}
+.results-table.works-query td {
+  border-color: var(--v-catWorksDarker-base);
+}
+td:first-child {
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+td:last-child {
+  border-right-width: 3px;
+  border-right-style: solid;
+}
+td.metric {
+  border-color: var(--v-catWorksDarker-base);
+}
+td:not(.metric) + td.metric {
+  border-left: 3px solid var(--v-catWorksDarker-base);
+}
+tr:last-child td {
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+}
+tr:hover .metric {
+  background-color: transparent;
 }
 td.data-type-number {
   text-align: right;
@@ -458,11 +503,8 @@ td.data-type-number {
     font-family: unset;
   }
 }
-.metric {
-  background-color: #f8f8f8;
-}
-tr:hover .metric {
-  background-color: transparent;
+th button {
+  font-size: 14px !important;
 }
 a {
   text-decoration: none;

@@ -1,5 +1,5 @@
 <template>
-  <v-card flat rounded class="px-5 pt-6 pb-5">
+  <v-card flat rounded class="px-5 pt-5 pb-5">
     
     <!-- Works First UI -->
     <div v-if="uiVariant === 'worksfirst'">
@@ -23,16 +23,24 @@
         :subject-entity="querySubjectEntity"
         :filters="query.filter_aggs" />
       
+      <query-columns-controls 
+        v-if="querySubjectEntity !== 'works'"
+        :isExpanded="query.filter_aggs.length > 0"
+        :show-sections="['display']" />
+ 
+      <div v-if="querySubjectEntity !== 'works'" class="section-divider clear" /> 
+
       <!-- Works Filters -->
       <query-filter-tree
         subject-entity="works"
         :isWithAggs="querySubjectEntity !== 'works'"
         :filters="query.filter_works" />
+
+      <query-columns-controls
+        :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
+        :isExpanded="query.filter_works.length > 0" />
+ 
     </div>
-
-    <div class="section-divider clear" />
-
-    <query-columns-controls />
 
     <div class="section-divider" />
 
@@ -104,7 +112,7 @@ export default {
   font-weight: bold;
   letter-spacing: 0.0125em;
   font-size: 18px !important;
-  margin: 0 5px;
+  margin: 0;
   height: 28px !important;
 }
 .query-builder-chip {
@@ -112,15 +120,31 @@ export default {
   margin: 0px;
   height: 28px;
 }
+.query-builder-chip .v-chip,
+.query-builder-chip.v-chip {
+  font-size: 12px !important;
+}
 .entity-chip,
 .entity-chip.v-chip,
 .query-builder-chip.v-chip,
 .query-builder-chip .v-chip,
 .query-builder-button {
-  height: 28px;
-  padding: 5px 10px !important;
+  height: 22px;
+  padding: 0px 10px !important;
+}
+.menu-chip {
+  cursor: pointer;
+  font-size: 15px !important; 
+  background-color: transparent !important;
+  border-bottom: 3px solid;
+  border-radius: 0 !important;
+  padding: 2px 2px !important;
+  height: auto;
 }
 .query-builder-button {
+}
+.query-builder-button.tight {
+  padding: 0px 0px !important;
 }
 .new-query-button {
   margin-top: 0px;

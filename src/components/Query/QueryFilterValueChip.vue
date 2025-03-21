@@ -1,19 +1,25 @@
 <template>
-  <div>
-    <v-chip
-      label
-      class="mr-1 query-builder-chip"
-      :color="buttonColor"
-    >
+  <v-chip
+    label
+    class="mr-1 menu-chip"
+    :style="{'font-size': '30px', 'border-bottom-color': buttonColor}"
+  >
+    <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
         {{ entityData.display_name | truncate(50) }}
-        <v-icon v-if="isEditable" small right>mdi-pencil-outline</v-icon>
+        <v-icon v-if="isEditable" class="ml-1" x-small>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         Loading...
       </template>
-    </v-chip>
-  </div>
+    </template>
+    <template v-else-if="columnConfig.type === 'boolean'">
+      {{ value ? 'true' : 'false' }}
+    </template>
+    <template v-else>
+      {{ value | truncate(50) }}
+    </template>
+  </v-chip>
 </template>
 
 
@@ -28,8 +34,7 @@ export default {
   },
   props: {
     columnConfig: Object,
-    value: String,
-    operator: String,
+    value: [String, Number,Boolean],
     isLabelFilter: Boolean,
     isEditable: Boolean,
     subjectEntity: String,
@@ -42,12 +47,15 @@ export default {
   },
   computed: {
     buttonColor() {
-      return ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
+      const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
+      return this.$vuetify.theme.themes.light[colorName];
     },
   },
   methods: {
     async getEntity() {
-      if (this.isLabelFilter) {
+      if (!this.columnConfig.objectEntity) { 
+        return;
+      } else if (this.isLabelFilter) {
         const collection = this.$store.getters['user/getCollection'](this.value)
         this.entityData = {
           display_name: collection.name,
@@ -61,11 +69,6 @@ export default {
     },
   },
   created() {
-    if (!this.columnConfig.objectEntity) { 
-      throw new Error(
-        "QueryFilterValueChip only works if there's an objectEntity for the filter"
-      )
-    }
     if (!this.value) { 
       throw new Error(
         "QueryFilterValueChip only works if there's a value for the filter"
