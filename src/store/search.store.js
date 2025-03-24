@@ -23,8 +23,10 @@ const stateDefaults = function () {
         results_meta: null,
         backend_error: null,
         redshift_sql: null,
+        selectedIds: [],
         pageTitle: null,
         searchCanceled: false,
+        metricsColumnPercentage: 40,
     };
     return ret;
 };
@@ -113,7 +115,8 @@ export const search = {
                 state.query.show_columns.sort((a, b) => 
                     // Sort metrics columns to the end
                     (a.includes("(") - b.includes("(")) || a.localeCompare(b)
-                );            }
+                );
+            }
         },
         deleteReturnColumn(state, columnId) {
             if (state.query.show_columns.length === 1) { return; }
@@ -122,6 +125,12 @@ export const search = {
             if (state.query.sort_by_column === columnId) {
                 state.query.sort_by_column = state.query.show_columns.slice(-1)[0];
             }
+        },
+        setSelectedIds(state, ids) {
+            state.selectedIds = ids;
+        },
+        setMetricsColumnPercentage(state, percentage) {
+            state.metricsColumnPercentage = percentage;
         },
     },
     actions: {
@@ -270,8 +279,9 @@ export const search = {
             }
             return columnsToReturn;
         },
-        querySubjectEntityConfig: (state, getters) => {
-            return getConfigs()[getters.querySubjectEntity];
+        querySubjectEntityConfig: (state) => {
+            const entity = state.query.get_rows === "summary" ? "works" : state.query.get_rows;
+            return getConfigs()[entity];
         },
         queryOql: (state) => state.oql,
         querySql: (state) => state.redshift_sql,
@@ -281,5 +291,7 @@ export const search = {
         queryBackendError: (state) => state.backend_error,
         isQuerySingleRow: (state) => state.query.get_rows === "summary",
         isSearchCanceled: (state) => state.searchCanceled,
+        selectedIds: (state) => state.selectedIds,
+        metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },
 };

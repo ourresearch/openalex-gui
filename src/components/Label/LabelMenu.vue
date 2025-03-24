@@ -1,57 +1,58 @@
 <template>
-<div>
-  <v-menu max-width="400px">
-    <template v-slot:activator="{ on }">
-      <v-btn icon v-on="on" :disabled="!selectedIds.length">
-        <v-icon>mdi-tag-outline</v-icon>
-      </v-btn>
-    </template>
-    <v-list>
-      <v-subheader>Apply Label:</v-subheader>
-      <v-list-item
-          v-for="label in availableLabels"
-          :key="label.id"
-          @click="toggle(label.id)"
-      >
-        <v-list-item-icon @click="toggle(label.id)">
-          <v-icon v-if="showCheck(label.id)">mdi-checkbox-outline</v-icon>
-          <v-icon v-else-if="showHalfCheck(label.id)">mdi-minus-box-outline</v-icon>
-          <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>{{ label.name }}</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-divider/>
-      <v-list-item
-          key="create-label"
-          @click="isCreateLabelDialogOpen = true"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-tag-plus-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>New Label</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      <v-list-item
-          key="manage-labels"
-          to="/me/labels"
-      >
-        <v-list-item-icon>
-          <v-icon>mdi-tag-edit-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>Manage Labels</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list>
-  </v-menu>
+  <div style="display: inline-block;">
+    <v-menu max-width="400px">
+      <template v-slot:activator="{ on }">
+        <v-btn :icon="icon" :x-small="!icon" v-on="on" :disabled="!selectedIds.length">
+          <v-icon :x-small="!icon">mdi-tag-outline</v-icon>
+          <span v-if="!icon">Labels</span>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-subheader>Apply Label:</v-subheader>
+        <v-list-item
+            v-for="label in availableLabels"
+            :key="label.id"
+            @click="toggle(label.id)"
+        >
+          <v-list-item-icon @click="toggle(label.id)">
+            <v-icon v-if="showCheck(label.id)">mdi-checkbox-outline</v-icon>
+            <v-icon v-else-if="showHalfCheck(label.id)">mdi-minus-box-outline</v-icon>
+            <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ label.name }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-divider/>
+        <v-list-item
+            key="create-label"
+            @click="isCreateLabelDialogOpen = true"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-tag-plus-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>New Label</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item
+            key="manage-labels"
+            to="/me/labels"
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-tag-edit-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>Manage Labels</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
-  <v-dialog v-model="isCreateLabelDialogOpen" width="500">
-    <label-create :ids="selectedIds" :entityType="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
-  </v-dialog>
-</div>
+    <v-dialog v-model="isCreateLabelDialogOpen" width="500">
+      <label-create :ids="selectedIds" :entityType="querySubjectEntity" @close="isCreateLabelDialogOpen = false"/>
+    </v-dialog>
+  </div>
 </template>
 
 
@@ -66,6 +67,10 @@ export default {
   },
   props: {
     selectedIds: Array,
+    icon: {
+      type: Boolean,
+      default: true
+    },
   },
   data() {
     return {

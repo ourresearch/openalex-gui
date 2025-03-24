@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid class="results-box pt-0">
+  <v-container fluid :class="{'results-box': true, 'ui-top': uiVariant === 'top'}">
     <v-row>
       <!-- Left Panel -->
-      <v-col cols="12" md="5">
+      <v-col cols="12" :md="uiVariant === 'top' ? 12 : 5" :class="{'py-0': uiVariant === 'top'}">
         <v-row>
           <!-- Query Builder -->
           <v-col cols="12" class="query-builder">
@@ -10,7 +10,7 @@
           </v-col>
 
           <!-- Query Tabs -->
-          <v-col class="d-none d-md-block" cols="12" v-if="uiVariant !== 'chips'">
+          <v-col v-if="uiVariant !== 'top'" class="d-none d-md-block" cols="12">
             <query-tabs />
           </v-col>
 
@@ -18,11 +18,9 @@
       </v-col>
 
       <!-- Results Table -->
-      <v-col cols="12" md="7">
-        <v-card flat rounded style="min-height: 100%;">
-          <results-error v-if="queryBackendError" />
-          <results-table v-else-if="queryIsCompleted" />
-          <results-searching v-else />
+      <v-col cols="12" :md="uiVariant === 'top' ? 12 : 7">
+        <v-card flat rounded class="results-table-box" style="min-height: 100%;">
+          <results-table/>
         </v-card>
       </v-col>
 
@@ -180,5 +178,22 @@ export default {
 .results-box {
   margin-bottom: 20px;
 }
-
+.ui-top {
+  padding-top: 0px;
+}
+body .results-box.ui-top .v-card.query-builder {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 10px;
+}
+body .results-box.ui-top .v-card.results-table-box {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+.results-box.ui-top .query-filter-tree {
+  margin-bottom: 0px !important;
+}
 </style>

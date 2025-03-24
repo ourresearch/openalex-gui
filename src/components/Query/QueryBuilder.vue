@@ -1,6 +1,28 @@
 <template>
-  <v-card flat rounded class="px-5 pt-5 pb-5">
+  <v-card v-if="uiVariant == 'top'" flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
+    <query-actions />
     
+    <!-- Top UI-->
+    <div class="query-builder-top">
+      <!-- Entity Filters -->
+      <div class="mr-4" v-if="querySubjectEntity !== 'works'">
+        <query-filter-tree
+          :subject-entity="querySubjectEntity"
+          :filters="query.filter_aggs" />
+      </div>
+
+      <!-- Works Filters -->
+      <div :style="metricsColStyle">
+        <query-filter-tree
+          subject-entity="works"
+          :isWithAggs="querySubjectEntity !== 'works'"
+          :filters="query.filter_works" />
+      </div>
+
+    </div>
+  </v-card>
+  <v-card v-else flat rounded class="query-builder px-5 pt-5 pb-5">
+
     <!-- Works First UI -->
     <div v-if="uiVariant === 'worksfirst'">
       <!-- Works Filters -->
@@ -58,6 +80,7 @@ import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
+import QueryActions from "@/components/Query/QueryActions.vue";
 
 export default {
   name: "QueryBuilder",
@@ -65,13 +88,15 @@ export default {
     QuerySummarizeBy,
     QueryFilterTree,
     QueryColumnsControls,
+    QueryActions,
     NewQueryButton
   },
   computed: {
     ...mapState(['uiVariant']),
     ...mapGetters("search", [
       "query",
-      "querySubjectEntity"
+      "querySubjectEntity",
+      "metricsColumnPercentage",
     ]),
     isWorks() {
       return this.querySubjectEntity === 'works';
@@ -91,19 +116,29 @@ export default {
     },
     showAllLabel() {
       return !this.areTopLevelFiltersApplied && this.query.get_rows !== 'summary';
-    }
+    },
+    metricsColStyle() {
+      return this.isWorks ? {} : {
+        flexBasis: `${this.metricsColumnPercentage}%`,
+        maxWidth: `${this.metricsColumnPercentage}%`,
+      };
+    },
   }
 }
 </script>
 
 <style>
-.section-divider {
-  border-top: 1px solid #eee;
-  margin: 20px 0;
+.results-box.ui-top .query-builder {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-bottom: 0 !important;
 }
-.section-divider.clear {
-  border: none;
-  margin: 30px 0;
+.query-builder-top {
+  display: flex;
+  align-items: stretch;
+}
+.query-builder-top > div {
+  flex: 1;
 }
 .query-section-label {
   font-size: 16px;
@@ -148,5 +183,13 @@ export default {
 }
 .new-query-button {
   margin-top: 0px;
+}
+.section-divider {
+  border-top: 1px solid #eee;
+  margin: 20px 0;
+}
+.section-divider.clear {
+  border: none;
+  margin: 30px 0;
 }
 </style>

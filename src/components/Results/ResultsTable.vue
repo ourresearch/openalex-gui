@@ -1,9 +1,7 @@
 <template>
   <div :class="{'results-table': true, 'works-query': querySubjectEntity === 'works'}">
     <!-- Results Header / Actions -->
-    <div class="results-table-controls pa-2">
-      <query-search-controls />
-      
+    <div class="results-table-controls pa-2" v-if="uiVariant !== 'top'">      
       <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
         <v-btn icon @click="clickSelectAllButton">
           <v-icon>{{ selectAllIcon }}</v-icon>
@@ -33,29 +31,29 @@
       </div>
     </div>
 
-    <div :class="{'dimmed': hasQueryChanged}">
+    <div>
       <!-- Row Selection Message -->
-      <div class="pa-3 d-flex align-center grey lighten-3"
+      <div class="selection-message py-1 mx-3"
         v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
       >
         <template v-if="isEntireSearchSelected">
           All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
           <v-btn
-              text
-              color="primary"
-              rounded
-              @click="unselectAll"
+            text
+            color="primary"
+            rounded
+            @click="unselectAll"
           >
             Clear selection
           </v-btn>
         </template>
         <template v-else>
-          All <span class="font-weight-bold mx-1">{{ selectedIds.length }}</span> results on this page are selected.
+          All <span class="font-weight-bold">{{ selectedIds.length }}</span> results on this page are selected.
           <v-btn
-              text
-              color="primary"
-              rounded
-              @click="isEntireSearchSelected = true"
+            text
+            color="primary"
+            rounded
+            @click="isEntireSearchSelected = true"
           >
             Select all {{ resultsMeta?.count | millify }} results
           </v-btn>
@@ -63,10 +61,15 @@
       </div>
 
       <!-- Results Table -->
-      <v-simple-table class="mx-3">
+      <v-simple-table class="mx-5 mb-5" ref="resultsTable">
         <thead>
-        <th key="checkbox-placeholder"></th>
-        
+        <th>
+          <span v-if="uiVariant === 'top'">
+            <v-btn icon @click="clickSelectAllButton">
+              <v-icon>{{ selectAllIcon }}</v-icon>
+            </v-btn>
+          </span>
+        </th>
         <!-- Results Table Headers -->
         <th
           v-for="(header, i) in queryColumnsConfigs"
@@ -173,38 +176,51 @@
           </v-menu>
         </th>
         </thead>
-        <tbody>
       
-        <!-- Results Rows -->
-        <tr
-          v-for="(row, i) in rows"
-          :key="'row-'+i"
-          @click.exact="clickRow(row.id)"
-          @click.meta.stop="metaClickRow(row.id)"
-        >
-          <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
-            <v-btn icon @click.stop="toggleSelectedId(row.id)">
-              <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-              <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-            </v-btn>
-          </td>
-          <td
-            v-for="(cell, i) in row.cellsWithConfigs"
-            :key="'cell-'+i"
-            class="px-1"
-            :class="[
-              'data-type-' + cell.config.type, 
-              {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
-            ]"
+      
+        <tbody v-if="hasQueryChanged || isSearchCanceled || !queryIsCompleted">
+          <tr class="search-controls-row">
+            <td colspan="100%">
+              <query-search-controls  v-if="hasQueryChanged || isSearchCanceled || queryBackendError" />
+              <results-error v-if="queryBackendError" />
+              <results-searching v-else-if="!queryIsCompleted" />
+            </td>
+          </tr>
+
+        </tbody>
+
+        <tbody v-else>
+          <!-- Results Rows -->
+          <tr
+            v-for="(row, i) in rows"
+            :key="'row-'+i"
+            :class="{'dimmed': hasQueryChanged}"
+            @click.exact="clickRow(row.id)"
+            @click.meta.stop="metaClickRow(row.id)"
           >
-            <column-value :property="cell"/>
-          </td>
-          <td key="column-adder-placeholder" :class="{'metric': hasMetricsColumns}"></td>
-        </tr>
+            <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
+              <v-btn icon @click.stop="toggleSelectedId(row.id)">
+                <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+                <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+              </v-btn>
+            </td>
+            <td
+              v-for="(cell, i) in row.cellsWithConfigs"
+              :key="'cell-'+i"
+              class="px-1"
+              :class="[
+                'data-type-' + cell.config.type, 
+                {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
+              ]"
+            >
+              <column-value :property="cell"/>
+            </td>
+            <td key="column-adder-placeholder" :class="{'metric': hasMetricsColumns}"></td>
+          </tr>
         </tbody>
       </v-simple-table>
 
-      <v-card class="more-results-message" flat v-if="resultsMeta?.count > 100">
+      <v-card class="more-results-message" flat v-if="!hasQueryChanged && resultsMeta?.count > 100">
         To view results beyond the first 100, download the full results set above.
       </v-card>
 
@@ -239,7 +255,6 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {entity} from "@/entity";
-import {getConfigs} from "@/oaxConfigs";
 import * as oaxSearch from "@/oaxSearch";
 
 import ColumnValue from "@/components/ColumnValue.vue";
@@ -248,11 +263,15 @@ import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
+import ResultsError from "@/components/Results/ResultsError.vue";
+import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 
 
 export default {
   name: "ResultsTable",
   components: {
+    ResultsError,
+    ResultsSearching,
     ColumnValue,
     LabelMenu,
     CorrectionCreate,
@@ -275,6 +294,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["uiVariant"]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -286,20 +306,11 @@ export default {
       "hasQueryChanged",
       "isSearchCanceled",
       "queryIsCompleted",
+      "queryBackendError",
+      "queryColumnsConfigs",
+      "querySubjectEntity",
+      "querySubjectEntityConfig",
     ]),
-    querySubjectEntity() {
-      return this.submittedQuery.get_rows === "summary" ? "works" : this.submittedQuery.get_rows;
-    },
-    querySubjectEntityConfig() {
-      return getConfigs()[this.querySubjectEntity];
-    },
-    queryColumnsConfigs() {
-      const columnsToReturn = this.submittedQuery.show_columns.map((col) => {
-        const ret = this.querySubjectEntityConfig.columns[col];
-        return ret;
-      });
-      return columnsToReturn;
-    },
     rows() {
       const rows = this.resultsBody.map((row) => {
         return {
@@ -358,6 +369,8 @@ export default {
       "addReturnColumn",
       "deleteReturnColumn",
       "setSortBy",
+      "setMetricsColumnPercentage",
+      "setSelectedIds",
     ]),
     ...mapActions("search", [
       "createSearch",
@@ -371,7 +384,6 @@ export default {
     },
     commitSortBy(sortBy) {
       this.setSortBy(sortBy);
-      this.createSearch();
     },
     addSelectedId(id) {
       this.selectedIds.push(id);
@@ -413,12 +425,10 @@ export default {
     removeColumn(id) {
       console.log("removeColumn", id);
       this.deleteReturnColumn(id);
-      this.createSearch();
     },
     addColumn(id) {
       console.log("addColumn", id);
       this.addReturnColumn(id);
-      this.createSearch();
     },
     exportResults() {
       if (this.isEntireSearchSelected) {
@@ -437,20 +447,101 @@ export default {
       a.download = "selected.csv";
       a.click();
     },
+    measureMetricColumns() {
+      this.$nextTick(() => {
+        const table = this.$refs.resultsTable.$el;
+        const metricHeaders = Array.from(table.querySelectorAll('th.metric'));
+        
+        if (!metricHeaders.length) return;
+
+        const totalWidth = table.getBoundingClientRect().width;
+        let metricsWidth = metricHeaders.reduce((sum, th) => 
+          sum + th.getBoundingClientRect().width, 0
+        );
+
+        let metricPercent = (metricsWidth / totalWidth) * 100;
+        const MIN_METRIC_PERCENT = 40;
+
+        if (metricPercent < MIN_METRIC_PERCENT) {
+          const requiredMetricsWidth = (MIN_METRIC_PERCENT / 100) * totalWidth;
+          const LAST_COLUMN_WIDTH = 36;
+          
+          // Always set the last column to fixed width
+          const lastMetricHeader = metricHeaders[metricHeaders.length - 1];
+          lastMetricHeader.style.width = `${LAST_COLUMN_WIDTH}px`;
+          
+          if (metricHeaders.length > 1) {
+            // For other metric columns, distribute remaining width evenly
+            const remainingWidth = requiredMetricsWidth - LAST_COLUMN_WIDTH;
+            const widthPerOtherColumn = remainingWidth / (metricHeaders.length - 1);
+            
+            metricHeaders.slice(0, -1).forEach(th => {
+              th.style.width = `${widthPerOtherColumn}px`;
+            });
+          } else {
+            // If there's only one metric column, it gets the minimum required width
+            lastMetricHeader.style.width = `${requiredMetricsWidth}px`;
+          }
+
+          // Verify the new total width meets minimum
+          metricsWidth = metricHeaders.reduce((sum, th) => 
+            sum + th.getBoundingClientRect().width, 0
+          );
+          metricPercent = (metricsWidth / totalWidth) * 100;
+        }
+
+        metricPercent = Math.max(parseFloat(metricPercent.toFixed(2)), MIN_METRIC_PERCENT);
+        this.setMetricsColumnPercentage(metricPercent);
+      });
+    },
+    handleResize: _.debounce(function() {
+      this.measureMetricColumns();
+    }, 5),
   },
   created() {
    //console.log(this.rows);
+  },
+  mounted() {
+    this.measureMetricColumns();
+    window.addEventListener('resize', this.handleResize);
+  },
+  updated() {
+    this.measureMetricColumns();
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
+  },
+  watch: {
+    selectedIds: {
+      handler(newIds) {
+        this.setSelectedIds(newIds);
+      },
+      deep: true
+    }
   }
 }
 </script>
 
 
 <style lang="scss">
-.results-table-controls {
-  /*background-color: var(--v-catEntity-base);  */
+.search-controls-row:hover {
+  background-color:
+   transparent !important;
 }
-.works-query .results-table-controls {
-  /*background-color: var(--v-catWorks-base);*/
+.search-controls-row td {
+  height: 500px !important;
+  vertical-align: top;
+}
+.search-controls {
+  padding: 70px 0px;
+  text-align: center;
+}
+.selection-message {
+  font-size: 14px;
+  line-height: 28px;;
+}
+.results-box.ui-top .selection-message {
+  padding: 10px 10px;
 }
 table {
   border-top: none;
@@ -480,10 +571,17 @@ td:last-child {
   border-right-width: 3px;
   border-right-style: solid;
 }
+.results-box.ui-top th:first-child {
+  border-left-width: 3px;
+  border-left-style: solid;
+}
 td.metric {
   border-color: var(--v-catWorksDarker-base);
 }
 td:not(.metric) + td.metric {
+  border-left: 3px solid var(--v-catWorksDarker-base);
+}
+.results-box.ui-top th:not(.metric) + th.metric {
   border-left: 3px solid var(--v-catWorksDarker-base);
 }
 tr:last-child td {

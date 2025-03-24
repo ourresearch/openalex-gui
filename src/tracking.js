@@ -55,8 +55,8 @@ const tracking = {
             filterCountEntity,
             booleanDepth,
             queryJson,
-            resultsCount: data.meta.count,
-            duration: data.timestamps.duration,
+            resultsCount: data.meta?.count,
+            duration: data.timestamps?.duration,
             sql: data.redshift_sql,
         };
         //console.log("search.store plausible props", props);
