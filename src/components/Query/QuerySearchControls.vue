@@ -1,21 +1,19 @@
 <template>
-  <div v-if="hasQueryChanged || isSearchCanceled" class="pa-2">
+  <v-sheet v-if="showDialog" class="search-controls">
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
-      small 
       color="catWorksDarker" 
-      class="mr-2" 
+      class="mr-2"
       @click="createSearch">
-      Search
+      Run Search
     </v-btn>
     <v-btn
       v-if="hasQueryChanged"
-      small  
       class="mr-2"
       @click="cancelSearch">
       Cancel
     </v-btn>
-  </div>
+  </v-sheet>
 </template>
 
 
@@ -29,7 +27,10 @@ export default {
       'hasQueryChanged',
       'isSearchCanceled',
       'queryIsCompleted'
-    ])
+    ]),
+    showDialog() {
+      return this.hasQueryChanged || this.isSearchCanceled;
+    }
   },
   methods: {
     ...mapActions('search', [
@@ -42,3 +43,7 @@ export default {
   }
 }
 </script>
+
+<style lang="scss"> 
+
+</style>

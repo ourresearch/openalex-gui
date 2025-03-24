@@ -1,11 +1,12 @@
 <template>
-  <div :style="indentationStyle" class="query-filter-leaf d-flex align-end flex-grow-1 mb-1">
+  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start flex-grow-1 mb-1">
 
     <!-- Path Label -->
     <span class="path-label number">
       {{ pathLabel }}.
     </span>
 
+    <div class="leaf-content flex-grow-1">
     <!-- The Join Operator - and/or -->
     <span>
       <template v-if="isFirstFilter">The&nbsp;</template>
@@ -55,7 +56,6 @@
         </v-menu>
       </template>
     </span>
-
 
     <!--    The Filter Key-->
     <div>
@@ -224,9 +224,10 @@
         />
       </div>
     </div>
+    </div>
 
     <!-- Delete Button -->
-    <v-btn icon small @click="deleteFilter">
+    <v-btn icon small @click="deleteFilter" class="mt-1 align-self-end">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -451,5 +452,10 @@ export default {
 
 
 <style lang="scss">
+
+.leaf-content {
+  display: flex;
+  flex-wrap: wrap;
+}
 
 </style>
