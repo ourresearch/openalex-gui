@@ -6,12 +6,16 @@ import vuetify from './plugins/vuetify'
 import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
+
+import tracking from "./tracking";
 import {shortenOpenAlexId} from "./util";
 import {url} from "./url"
 import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilter} from "./filterConfigs";
 import _ from 'lodash'
 
+
+tracking.setupJavaScriptErrorTracking();
 
 Vue.config.productionTip = false
 Vue.prototype.$prettyTitle = prettyTitle

@@ -62,6 +62,32 @@ const tracking = {
         //console.log("search.store plausible props", props);
         plausible('search', {props});
     },
+    trackJavaScriptError(message, source, lineno, colno, error) {
+        console.log("Tracking JavaScript error", message, source, lineno, colno, error);
+        plausible('javascript-error', {
+            props: {
+                message: message,
+                source: source,
+                line: lineno,
+                column: colno,
+                stack: error ? error.stack : 'no stack'
+            }
+        });
+    },
+    setupJavaScriptErrorTracking() {
+        //console.log("Setting up JavaScript error tracking");
+        window.onerror = (message, source, lineno, colno, error) => {
+            this.trackJavaScriptError(message, source, lineno, colno, error);
+        };
+    },       
+};
+
+// For testing
+window.generateError = function(message = "Test error") {
+    console.log("Generating error...");
+    setTimeout(() => {
+        throw new Error(message);
+    }, 0);
 };
 
 export default tracking;
