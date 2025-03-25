@@ -1,7 +1,7 @@
 <template>
   <div :class="{'results-table': true, 'works-query': querySubjectEntity === 'works'}">
     <!-- Results Header / Actions -->
-    <div class="results-table-controls pa-2" v-if="uiVariant !== 'top'">      
+    <div class="results-table-controls pa-2" v-if="uiVariant === 'side'">      
       <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
         <v-btn icon @click="clickSelectAllButton">
           <v-icon>{{ selectAllIcon }}</v-icon>
@@ -64,7 +64,7 @@
       <v-simple-table class="mx-5 mb-5" ref="resultsTable">
         <thead>
         <th>
-          <span v-if="uiVariant === 'top'">
+          <span v-if="uiVariant !== 'side'">
             <v-btn icon @click="clickSelectAllButton">
               <v-icon>{{ selectAllIcon }}</v-icon>
             </v-btn>
@@ -540,7 +540,7 @@ export default {
   font-size: 14px;
   line-height: 28px;;
 }
-.results-box.ui-top .selection-message {
+.results-box .selection-message {
   padding: 10px 10px;
 }
 table {
@@ -571,7 +571,7 @@ td:last-child {
   border-right-width: 3px;
   border-right-style: solid;
 }
-.results-box.ui-top th:first-child {
+.results-box th:first-child {
   border-left-width: 3px;
   border-left-style: solid;
 }
@@ -581,7 +581,7 @@ td.metric {
 td:not(.metric) + td.metric {
   border-left: 3px solid var(--v-catWorksDarker-base);
 }
-.results-box.ui-top th:not(.metric) + th.metric {
+.results-box th:not(.metric) + th.metric {
   border-left: 3px solid var(--v-catWorksDarker-base);
 }
 tr:last-child td {

@@ -2,25 +2,25 @@
   <v-chip
     label
     class="mr-1 menu-chip"
-    :style="{'font-size': '30px', 'border-bottom-color': buttonColor}"
+    :style="{'font-size': '30px', 'border-bottom-color': buttonColorHex}"
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
-        {{ entityData.display_name | truncate(50) }}
-        <v-icon v-if="isEditable" class="ml-1" x-small>mdi-pencil-outline</v-icon>
+        <b>{{ entityData.display_name | truncate(50) }}</b>
+        <v-icon v-if="isEditable && uiVariant !== 'sentence'" x-small>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         Loading...
       </template>
     </template>
     <template v-else-if="columnConfig.type === 'boolean'">
-      {{ value ? 'true' : 'false' }}
+      <b>{{ value ? 'true' : 'false' }}</b>
     </template>
     <template v-else-if="columnConfig.id === 'related_to_text'">
       {{ value }}
     </template> 
     <template v-else>
-      {{ value | truncate(50) }}
+      <b>{{ value | truncate(50) }}</b>
     </template>
   </v-chip>
 </template>
@@ -29,7 +29,7 @@
 <script>
 
 import {api} from "@/api";
-
+import {mapGetters} from "vuex";
 
 export default {
   name: "QueryFilterValueChip",
@@ -40,7 +40,7 @@ export default {
     value: [String, Number,Boolean],
     isLabelFilter: Boolean,
     isEditable: Boolean,
-    subjectEntity: String,
+    subjectEntity: String, 
   },
   data() {
     return {
@@ -49,7 +49,9 @@ export default {
     }
   },
   computed: {
-    buttonColor() {
+    ...mapGetters(['uiVariant']),
+    buttonColorHex() {
+      return "#999";
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
     },

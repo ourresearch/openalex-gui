@@ -8,6 +8,7 @@
         :join-operator="item.join"
         :parent-join-operator="joinOperator"
         :subject-entity="subjectEntity"
+        :is-sentence="isSentence"
         @setValue="(path, value, dontApply) => $emit('setValue', path, value, dontApply)"
         @setOperator="(path, operator, dontApply) => $emit('setOperator', path, operator, dontApply)"
         @deleteFilter="(path) => $emit('deleteFilter', path)"
@@ -26,6 +27,7 @@
         :path="item.path"
         :can-group-above="item.canGroupAbove"
         :can-ungroup="item.canUngroup"
+        :is-sentence="isSentence"
         @setValue="(path, value, dontApply) => $emit('setValue', path, value, dontApply)"
         @setOperator="(path, operator, dontApply) => $emit('setOperator', path, operator, dontApply)"
         @deleteFilter="(path) => $emit('deleteFilter', path)"
@@ -53,6 +55,7 @@ export default {
     joinOperator: String,
     parentJoinOperator: String,
     subjectEntity: String,
+    isSentence: Boolean,
   },
   emits: [
     'setValue',

@@ -1,28 +1,5 @@
 <template>
-  <v-card v-if="uiVariant == 'top'" flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
-    <query-actions />
-    
-    <!-- Top UI-->
-    <div class="query-builder-top">
-      <!-- Entity Filters -->
-      <div class="mr-4" v-if="querySubjectEntity !== 'works'">
-        <query-filter-tree
-          :subject-entity="querySubjectEntity"
-          :filters="query.filter_aggs" />
-      </div>
-
-      <!-- Works Filters -->
-      <div :style="metricsColStyle">
-        <query-filter-tree
-          subject-entity="works"
-          :isWithAggs="querySubjectEntity !== 'works'"
-          :filters="query.filter_works" />
-      </div>
-
-    </div>
-  </v-card>
-  <v-card v-else flat rounded class="query-builder px-5 pt-5 pb-5">
-
+  <v-card v-if="uiVariant === 'side'" flat rounded class="query-builder px-5 pt-5 pb-5">
     <!-- Works First UI -->
     <div v-if="uiVariant === 'worksfirst'">
       <!-- Works Filters -->
@@ -49,7 +26,7 @@
         v-if="querySubjectEntity !== 'works'"
         :isExpanded="query.filter_aggs.length > 0"
         :show-sections="['display']" />
- 
+
       <div v-if="querySubjectEntity !== 'works'" class="section-divider clear" /> 
 
       <!-- Works Filters -->
@@ -61,7 +38,7 @@
       <query-columns-controls
         :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
         :isExpanded="query.filter_works.length > 0" />
- 
+
     </div>
 
     <div class="section-divider" />
@@ -70,6 +47,34 @@
       <new-query-button small />
     </div>
 
+  </v-card>
+    
+  <!-- Top UI-->    
+  <v-card v-else flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
+    <query-actions />
+
+    <template v-if="uiVariant === 'sentence'">
+      <QuerySentence />
+    </template>
+
+    <template v-else>
+      <div class="query-builder-top">
+        <!-- Entity Filters -->
+        <div class="mr-4" v-if="querySubjectEntity !== 'works'">
+          <query-filter-tree
+            :subject-entity="querySubjectEntity"
+            :filters="query.filter_aggs" />
+        </div>
+
+        <!-- Works Filters -->
+        <div :style="metricsColStyle">
+          <query-filter-tree
+            subject-entity="works"
+            :isWithAggs="querySubjectEntity !== 'works'"
+            :filters="query.filter_works" />
+        </div>
+      </div>
+    </template>
   </v-card>
 </template>
 
@@ -81,6 +86,7 @@ import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import QueryActions from "@/components/Query/QueryActions.vue";
+import QuerySentence from "@/components/Query/QuerySentence.vue";
 
 export default {
   name: "QueryBuilder",
@@ -89,6 +95,7 @@ export default {
     QueryFilterTree,
     QueryColumnsControls,
     QueryActions,
+    QuerySentence,
     NewQueryButton
   },
   computed: {
@@ -128,9 +135,14 @@ export default {
 </script>
 
 <style>
-.results-box.ui-top .query-builder {
+.results-box .query-builder {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
+  padding-bottom: 0 !important;
+}
+.results-box.ui-side .query-builder {
+  border-bottom-left-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
   padding-bottom: 0 !important;
 }
 .query-builder-top {
@@ -165,16 +177,17 @@ export default {
 .query-builder-chip .v-chip,
 .query-builder-button {
   height: 22px;
-  padding: 0px 10px !important;
+  padding: 0px 3px !important;
 }
 .menu-chip {
   cursor: pointer;
   font-size: 15px !important; 
   background-color: transparent !important;
-  border-bottom: 3px solid;
+  border-bottom: 1px solid;
   border-radius: 0 !important;
   padding: 2px 2px !important;
-  height: auto;
+  margin: 0;
+  height: 22px !important;
 }
 .query-builder-button {
 }

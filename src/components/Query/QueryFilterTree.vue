@@ -23,27 +23,8 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
           </template>
         </template>
 
-        <!-- Top UI -->
-        <template v-else-if="uiVariant === 'top'">
-          <!-- Works Filters -->
-          <template v-if="isWorks && isWithAggs">
-            Analyzing
-            {{ isEmpty ? ' all' : '' }}
-            <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
-
-          <!-- Entity Filters -->
-          <template v-else>
-            Show
-            {{ isEmpty ? ' all' : '' }}
-            <query-summarize-by key="summarize-by"/>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
-        </template>
-
         <!-- Entity First UI -->
-        <template v-else>
+        <template v-else-if="uiVariant === 'side'">
           <!-- Works Filters -->
           <template v-if="isWorks && isWithAggs">
             Found in
@@ -61,9 +42,28 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
           </template>
         </template>
 
+        <!-- Top UI -->
+        <template v-else>
+          <!-- Works Filters -->
+          <template v-if="isWorks && isWithAggs">
+            analyzing
+            {{ isEmpty ? ' all' : '' }}
+            <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+            {{ !isEmpty ? ' where' : '' }}
+          </template>
+
+          <!-- Entity Filters -->
+          <template v-else>
+            Show
+            {{ isEmpty ? ' all' : '' }}
+            <query-summarize-by key="summarize-by"/>
+            {{ !isEmpty ? ' where' : '' }}
+          </template>
+        </template>
+
       </span> 
 
-      <span :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty}" v-if="isEmpty &&hasAvailableFilters">
+      <span :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty}" v-if="hasAvailableFilters && uiVariant !== 'sentence'">
         <query-filter-tree-button
           :subject-entity="subjectEntity"
           @addFilter="addFilter" />
@@ -76,6 +76,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         :filters="myFilters"
         :join-operator="rootJoin"
         :subject-entity="subjectEntity"
+        :is-sentence="isSentence"
         @setJoinOperator="setJoinOperator"
         @setOperator="setOperator"
         @setValue="setValue"
@@ -83,14 +84,14 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         @groupWithAbove="groupWithAbove"
         @ungroupFromAbove="ungroupFromAbove" />
       
-      <div class="bottom-button-wrapper mt-2" v-if="!isEmpty">
+      <div class="bottom-button-wrapper mt-2" v-if="false && !isEmpty">
         <query-filter-tree-button
           :subject-entity="subjectEntity"
           text=""
           @addFilter="addFilter" />
       </div>
 
-      <template v-if="uiVariant === 'top'">
+      <template v-if="!uiVariant">
         <div class="results-count" v-if="!hasQueryChanged  && !isSearchCanceled && queryIsCompleted">
           <span v-if="subjectEntity === 'works' && isWithAggs || subjectEntity === 'summary'">
             Analyzing 
@@ -133,6 +134,10 @@ export default {
     subjectEntity: String,
     filters: Array,
     isWithAggs: Boolean,
+    isSentence: {
+      type: Boolean,
+      default: false,
+    }
   },
   data() {
     return {
@@ -540,25 +545,22 @@ export default {
   font-size: 14px;
   color: #999;
 }
-.results-box.ui-top .query-filter-tree {
+.results-box .query-filter-tree {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
-.results-box.ui-top .query-wrapper {
+.results-box .query-wrapper {
   flex: 1 1 auto;
 }
-.results-box.ui-top .bottom-button-wrapper {
+.results-box .bottom-button-wrapper {
   margin-bottom: 10px;
 }
-.results-box.ui-top .results-count {
+.results-box .results-count {
   font-size: 11px;
   text-align: right;
   margin-bottom: 5px;
   align-self: flex-end;
-  position: absolute;
-  right: 0;
-  bottom: 0;
   color: #555;
 }
 .v-treeview-node__prepend {
