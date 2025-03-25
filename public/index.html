@@ -11,21 +11,9 @@
           rel="stylesheet">
 
     <!-- Plausible.io -->
-    <script>
-    window.onerror = function (message, source, lineno, colno, error) {
-        plausible('javascript-error', {
-        props: {
-            message: message,
-            source: source,
-            line: lineno,
-            column: colno,
-            stack: error ? error.stack : 'no stack'
-        }
-        });
-    };
-    </script>
     <script defer data-domain="staging.openalex.org" src="https://plausible.io/js/script.file-downloads.outbound-links.pageview-props.tagged-events.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
 </head>
 <body>
 <noscript>
@@ -34,10 +22,10 @@
 </noscript>
 <div id="app"></div>
 <!-- built files will be auto injected -->
+
 <!-- Start of openalex Zendesk Widget script -->
 <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=f448c93c-e2e1-4d7c-b344-683a586e69f7"> </script>
-<!-- End of openalex Zendesk Widget script -->
- <script>
+<script>
     // Zendesk Widget Setup
     window.zE = window.zE || function() { (zE.q = zE.q || []).push(arguments); };
     // Wait for the widget to load before setting user details
@@ -56,6 +44,7 @@
         }
     });   
  </script>
+ <!-- End of openalex Zendesk Widget script -->
+
 </body>
-</html>
 </html>
