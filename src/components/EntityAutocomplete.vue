@@ -12,7 +12,8 @@
     return-object
     v-bind="$attrs"
     v-on="$listeners"
-    filled
+    outlined
+    :color="filterColor"
     dense
     hide-no-data
     hide-details
@@ -48,7 +49,11 @@ export default {
     showWorkCounts: {
       type: Boolean,
       default: false
-    }
+    },
+    filterColor: {
+      type: String,
+      required: true
+    },
   },
   data() {
     return {
@@ -109,3 +114,8 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.v-input__slot {
+  min-height: 35px !important;
+}
