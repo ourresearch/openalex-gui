@@ -3,13 +3,13 @@
 
     <!-- Path Label -->
     <span class="path-label number">
-      {{ pathLabel }}.
+      {{ isSentence ? '(' : '' }}{{ pathLabel }}{{ isSentence ? ')' : '.' }}
     </span>
 
     <div class="leaf-content flex-grow-1">
       <!-- The Join Operator - and/or -->
       <span>
-        <template v-if="isFirstFilter">The&nbsp;</template>
+        <template v-if="isFirstFilter">the&nbsp;</template>
         <template v-else>
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
@@ -17,11 +17,11 @@
                 text
                 label
                 class="menu-chip"
-                :style="{'border-color': buttonColor}"
+                :style="{'border-color': buttonColorHex}"
                 v-on="on"
               >
                 {{ joinOperator }}
-                <v-icon small>mdi-menu-down</v-icon>
+                <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
               </v-chip>
             </template>
             <v-list>
@@ -57,12 +57,10 @@
         </template>
       </span>
 
-      <!--    The Filter Key-->
-      <div>
-        {{ columnConfig.displayName }}
-      </div>
+      <!-- The Filter Key-->
+      <div>{{ columnConfig.displayName }}</div>
 
-      <!--    The Filter Operator-->
+      <!-- The Filter Operator-->
       <div>
         <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
         <v-menu v-else offset-y>
@@ -71,11 +69,11 @@
               text
               label
               class="menu-chip px-1 pr-0 mx-1"
-              :style="{'min-width': '1px !important', 'border-bottom-color': buttonColor}"
+              :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
               v-on="on" 
             >
               {{ selectedOperator ?? "select" }}
-              <v-icon small>mdi-menu-down</v-icon>
+              <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
@@ -129,7 +127,7 @@
                   v-on="on" 
                 >
                   Select a Label
-                  <v-icon small>mdi-menu-down</v-icon>
+                  <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
                 </v-chip>
               </template>
               <v-list>
@@ -255,7 +253,7 @@
     </div>
 
     <!-- Delete Button -->
-    <v-btn icon small @click="deleteFilter" class="mt-1">
+    <v-btn v-if="uiVariant !== 'sentence'" icon small @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -264,6 +262,7 @@
 
 
 <script>
+import {mapGetters} from "vuex";
 import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 import axios from "axios";
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
@@ -284,6 +283,7 @@ export default {
     subjectEntity: String,
     canGroupAbove: Boolean,
     canUngroup: Boolean,
+    isSentence: Boolean,
   },
   emits: [
     'setValue',
@@ -305,6 +305,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+     "uiVariant",
+    ]),
     columnConfig() {
       return getColumnConfig(this.subjectEntity, this.column_id);
     },
@@ -314,7 +317,8 @@ export default {
     isFirstFilter() {
       return (this.path.every(i => i === 0));
     },
-    buttonColor() {
+    buttonColorHex() {
+      return "#999";
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
     },
