@@ -16,6 +16,9 @@
     <template v-else-if="columnConfig.type === 'boolean'">
       {{ value ? 'true' : 'false' }}
     </template>
+    <template v-else-if="columnConfig.id === 'related_to_text'">
+      {{ value }}
+    </template> 
     <template v-else>
       {{ value | truncate(50) }}
     </template>
@@ -50,6 +53,9 @@ export default {
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
     },
+    isBoxed() {
+      return this.columnConfig.id === 'related_to_text';
+    }
   },
   methods: {
     async getEntity() {

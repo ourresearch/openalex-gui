@@ -73,6 +73,7 @@ const tracking = {
                 stack: error ? error.stack : 'no stack'
             }
         });
+        return false;
     },
     setupJavaScriptErrorTracking() {
         //console.log("Setting up JavaScript error tracking");

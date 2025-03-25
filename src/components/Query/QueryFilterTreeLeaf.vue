@@ -7,27 +7,81 @@
     </span>
 
     <div class="leaf-content flex-grow-1">
-    <!-- The Join Operator - and/or -->
-    <span>
-      <template v-if="isFirstFilter">The&nbsp;</template>
-      <template v-else>
-        <v-menu offset-y>
+      <!-- The Join Operator - and/or -->
+      <span>
+        <template v-if="isFirstFilter">The&nbsp;</template>
+        <template v-else>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on }">
+              <v-chip
+                text
+                label
+                class="menu-chip"
+                :style="{'border-color': buttonColor}"
+                v-on="on"
+              >
+                {{ joinOperator }}
+                <v-icon small>mdi-menu-down</v-icon>
+              </v-chip>
+            </template>
+            <v-list>
+              <v-list-item-group v-model="selectedJoinOperator">
+                <v-list-item
+                  v-for="operator in ['and', 'or']"
+                  :key="operator"
+                  :value="operator"
+                  active-class="primary--text"
+                >
+                  <v-list-item-title class="py-3">
+                    {{ operator }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list-item-group>
+              
+              <!-- Conditionally show the divider and Grouping actions -->
+              <template v-if="canGroupAbove || canUngroup">
+                <v-divider class="my-2"></v-divider>
+                <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
+                  <v-list-item-title class="py-3">
+                    Group with Above
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
+                  <v-list-item-title class="py-3">
+                    Ungroup from Above
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-list>
+          </v-menu>
+        </template>
+      </span>
+
+      <!--    The Filter Key-->
+      <div>
+        {{ columnConfig.displayName }}
+      </div>
+
+      <!--    The Filter Operator-->
+      <div>
+        <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
+        <v-menu v-else offset-y>
           <template v-slot:activator="{ on }">
             <v-chip
               text
               label
-              class="menu-chip"
-              :style="{'border-color': buttonColor}"
-              v-on="on"
+              class="menu-chip px-1 pr-0 mx-1"
+              :style="{'min-width': '1px !important', 'border-bottom-color': buttonColor}"
+              v-on="on" 
             >
-              {{ joinOperator }}
+              {{ selectedOperator ?? "select" }}
               <v-icon small>mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
-            <v-list-item-group v-model="selectedJoinOperator">
+            <v-list-item-group v-model="selectedOperator">
               <v-list-item
-                v-for="operator in ['and', 'or']"
+                v-for="operator in operatorOptions"
                 :key="operator"
                 :value="operator"
                 active-class="primary--text"
@@ -37,67 +91,12 @@
                 </v-list-item-title>
               </v-list-item>
             </v-list-item-group>
-            
-            <!-- Conditionally show the divider and Grouping actions -->
-            <template v-if="canGroupAbove || canUngroup">
-              <v-divider class="my-2"></v-divider>
-              <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
-                <v-list-item-title class="py-3">
-                  Group with Above
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
-                <v-list-item-title class="py-3">
-                  Ungroup from Above
-                </v-list-item-title>
-              </v-list-item>
-            </template>
           </v-list>
         </v-menu>
-      </template>
-    </span>
+      </div>
 
-    <!--    The Filter Key-->
-    <div>
-      {{ columnConfig.displayName }}
-    </div>
-
-    <!--    The Filter Operator-->
-    <div>
-      <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
-      <v-menu v-else offset-y>
-        <template v-slot:activator="{ on }">
-          <v-chip
-            text
-            label
-            class="menu-chip px-1 pr-0 mx-1"
-            :style="{'min-width': '1px !important', 'border-bottom-color': buttonColor}"
-            v-on="on" 
-          >
-            {{ selectedOperator ?? "select" }}
-            <v-icon small>mdi-menu-down</v-icon>
-          </v-chip>
-        </template>
-        <v-list>
-          <v-list-item-group v-model="selectedOperator">
-            <v-list-item
-              v-for="operator in operatorOptions"
-              :key="operator"
-              :value="operator"
-              active-class="primary--text"
-            >
-              <v-list-item-title class="py-3">
-                {{ operator }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
-      </v-menu>
-    </div>
-
-    <!-- The Filter Value-->
-    <!---- Entity Values -->
-    <div class="flex-grow-1">
+      <!-- The Filter Value-->
+      <!---- Entity Values -->
       <template v-if="columnConfig.objectEntity">
         <!-- Viewing Entity Value -->
         <template v-if="selectedValue && !isEditingValue">
@@ -173,7 +172,8 @@
             item-text="display_name"
             item-value="id"
             hide-details
-            filled
+            outlined
+            :color="filterColor"
             dense
             class="flex-grow-1"
             autofocus
@@ -185,6 +185,7 @@
             v-else
             v-model="valueEditModel"
             :entity-type="columnConfig.objectEntity"
+            :filter-color="filterColor"
             @entity-selected="saveEditingValue"
             @blur="onInputBlur"
             class="flex-grow-1"
@@ -202,13 +203,41 @@
         :value="selectedValue"
         @click="selectedValue = !selectedValue" />
 
+      <!-- Related to Text -->
+      <div v-else-if="columnConfig.id === 'related_to_text'" class="related-to-text-wrapper">
+        <v-textarea
+          v-if="isEditingValue || selectedValue === null"
+          class="related-to-text-textarea"
+          v-model="valueEditModel"
+          dense
+          outlined
+          :color="filterColor"
+          hide-details
+          rows="3"
+          auto-grow
+          autofocus
+          @keydown.escape="cancelEditingValue"
+          @blur="onInputBlur"
+          @keydown.enter.ctrl="saveEditingValue(valueEditModel)"
+        >
+        </v-textarea>
+        <query-filter-value-chip 
+          v-else
+          :column-config="columnConfig"
+          :subject-entity="subjectEntity"
+          :value="selectedValue"
+          @click.native="startEditingValue"
+        />
+      </div>
+
       <!-- Number, String, Array Values -->
       <div v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
         <v-text-field
           v-if="isEditingValue || selectedValue === null"
           v-model="valueEditModel"
           dense
-          filled
+          outlined
+          :color="filterColor"
           hide-details
           autofocus
           @keydown.escape="cancelEditingValue"
@@ -224,10 +253,9 @@
         />
       </div>
     </div>
-    </div>
 
     <!-- Delete Button -->
-    <v-btn icon small @click="deleteFilter" class="mt-1 align-self-end">
+    <v-btn icon small @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -289,6 +317,13 @@ export default {
     buttonColor() {
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
+    },
+    filterColor() {
+      if (['works', 'summary'].includes(this.subjectEntity) || this.columnConfig.id.includes("(")) {
+        return "catWorksDarker";
+      } else {
+        return "catEntityDarker";
+      }
     },
     pathLabel() {
       // 1) The top-level label is always (path[0] + 1)
@@ -452,10 +487,29 @@ export default {
 
 
 <style lang="scss">
-
 .leaf-content {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
+  row-gap: 5px;
 }
-
+.related-to-text-wrapper {
+  width: 100%;
+  flex-basis: 100% !important;
+  min-width: 100%;
+  
+  /* Force it to be on its own line */
+  &::before {
+    content: "";
+    width: 100%;
+    display: block;
+    height: 0;
+    order: 1;
+  }
+}
+.related-to-text-textarea {
+  max-width: 400px;
+  max-height: 130px;
+  overflow-y: auto;
+}
 </style>

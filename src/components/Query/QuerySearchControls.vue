@@ -2,14 +2,13 @@
   <v-sheet v-if="showDialog" class="search-controls">
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
-      color="catWorksDarker" 
       class="mr-2"
+      color="catWorks-darken2"
       @click="createSearch">
       Run Search
     </v-btn>
     <v-btn
       v-if="hasQueryChanged"
-      class="mr-2"
       @click="cancelSearch">
       Cancel
     </v-btn>
