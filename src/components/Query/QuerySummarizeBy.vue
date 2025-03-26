@@ -84,8 +84,8 @@ export default {
         return this.resultsCount ? `Summary of ${this.resultsCount} Works` : "Works Summary"; 
       }
       const name = getConfigs()[entity].displayName;
-      if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant)) {
-        return name === "works" ? 'none' : name.titleCase();
+      if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
+        return 'none';
       }
       return this.resultsCount ? this.resultsCount + " " + name.titleCase() : name.titleCase();
     },
