@@ -382,6 +382,7 @@ export default {
       })
     },
     columnsToAdd() {
+      console.log(this.submittedQuery);
       return Object.values(this.querySubjectEntityConfig.columns)
         .filter(col => {
           return col.actions?.includes("column");

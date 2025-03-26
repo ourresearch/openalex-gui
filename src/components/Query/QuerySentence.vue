@@ -60,7 +60,7 @@ export default {
 <style>
 .query-sentence {
   padding: 0px 10px 20px 10px; 
-  max-width: 900px;
+  max-width: 950px;
   line-height: 2;
   text-indent: -20px;
   margin-left: 20px;
