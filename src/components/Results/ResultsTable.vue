@@ -1,8 +1,8 @@
 <template>
   <div :class="{
       'results-table': true, 
-    'works-query': querySubjectEntity === 'works', 
-    'works-first': uiVariant === 'sentence-worksfirst'
+      'works-query': querySubjectEntity === 'works', 
+      'works-first': uiVariant === 'sentence-worksfirst'
     }"
   >
     <!-- Results Header / Actions -->
@@ -68,117 +68,91 @@
       <!-- Results Table -->
       <v-simple-table class="mx-5 mb-5" ref="resultsTable">
         <thead>
-        <th class="add-column">
-          <span v-if="uiVariant !== 'side'">
-            <v-btn icon @click="clickSelectAllButton">
-              <v-icon>{{ selectAllIcon }}</v-icon>
-            </v-btn>
-          </span>
-        </th>
-        <!-- Results Table Headers -->
-        <th
-          v-for="(header, i) in headers"
-          :key="'header-'+i"
-          :class="[
-            'data-type-' + header.type, 
-            { 'is-date': header.isDate, 'metric': header.id && header.id.includes('(') }
-          ]"
-        >
-          <div class="d-flex">
-            <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
-            <v-menu offset-y>
-              <template v-slot:activator="{ on }">
-                <v-btn
-                  text
-                  v-on="on"
-                  style="white-space: nowrap;"
-                  class="px-0"
-                >
-                  <template v-if="submittedQuery.sort_by_column === header.id">
-                    <v-icon v-if="submittedQuery.sort_by_order==='desc'" small>mdi-arrow-down</v-icon>
-                    <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
-                  </template>
-                  {{ (header.displayNameForColumn || header.displayName) | titleCase }}
-                  <v-icon small>mdi-menu-down</v-icon>
+          <!-- Render all headers based on their type -->
+          <th 
+            v-for="(header, i) in headers" 
+            :key="'header-'+i"
+            :class="[
+              header.type === 'ui-action' ? 'ui-action' : 'data-type-' + header.type, 
+              { 
+                'is-date': header.isDate, 
+                'metric': (header.id && header.id.includes('(')) || header.id === 'columnAdderMetric'
+              }
+            ]"
+          >
+            <!-- Selector header -->
+            <template v-if="header.id === 'selector'">
+              <span v-if="uiVariant !== 'side'">
+                <v-btn icon @click="clickSelectAllButton">
+                  <v-icon>{{ selectAllIcon }}</v-icon>
                 </v-btn>
-              </template>
-              <v-list dense>
-                <v-list-item class="pb-2 py-1">
-                  <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
-                </v-list-item>
-                <v-divider/>
-                <v-list-item @click="removeColumn(header.id)">
-                  <v-list-item-icon>
-                    <v-icon>mdi-table-column-remove</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>Remove Column</v-list-item-title>
-                </v-list-item>
-                <template v-if="header.actions?.includes('sort')">
-                  <v-divider/>
-                  <v-list-item
-                      active-class="primary--text"
-                      :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
-                      @click="commitSortBy({column_id: header.id, direction: 'desc'})"
-                  >
-                    <v-list-item-icon>
-                      <v-icon>mdi-arrow-down</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Sort Descending</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item
-                      @click="commitSortBy({column_id: header.id, direction: 'asc'})"
-                      active-class="primary--text"
-                      :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
-                  >
-                    <v-list-item-icon>
-                      <v-icon>mdi-arrow-up</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>Sort Ascending</v-list-item-title>
-                  </v-list-item>
-                </template>
-              </v-list>
-            </v-menu>
-
-          </div>
-        </th>
-
-        <!-- Add Column Button -->
-        <th key="column-adder" :class="{'add-column': true, 'metric': true}">
-          <v-menu rounded max-height="50vh">
-            <template v-slot:activator="{ on }">
-              <v-btn icon v-on="on">
-                <v-icon>mdi-plus-circle</v-icon>
-              </v-btn>
+              </span>
             </template>
-            <v-card flat rounded>
-              <v-text-field
-                v-model="columnSearch"
-                filled
-                rounded
-                background-color="white"
-                prepend-inner-icon="mdi-magnify"
-                hide-details
-                autofocus
-                placeholder="Add Column"
-              />
-              <v-divider/>
-              <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-                <v-list-item
-                    v-for="column in columnsToAddFiltered"
-                    :key="column.id"
-                    @click="addColumn(column.id)"
-                >
-                  <v-list-item-icon>
-                    <v-icon>{{ column.icon }}</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>{{ column.displayNameForColumn || column.displayName }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-
-            </v-card>
-
-          </v-menu>
-        </th>
+            
+            <!-- Column adder header -->
+            <template v-else-if="header.id === 'columnAdderData' || header.id === 'columnAdderMetric'">
+              <query-column-adder :display="header.display" />
+            </template>
+            
+            <!-- Regular data column header -->
+            <template v-else>
+              <div class="d-flex">
+                <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      text
+                      v-on="on"
+                      style="white-space: nowrap;"
+                      class="px-0"
+                    >
+                      <template v-if="submittedQuery.sort_by_column === header.id">
+                        <v-icon v-if="submittedQuery.sort_by_order==='desc'" small>mdi-arrow-down</v-icon>
+                        <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
+                      </template>
+                      {{ (header.displayNameForColumn || header.displayName) | titleCase }}
+                      <v-icon small>mdi-menu-down</v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list dense>
+                    <v-list-item class="pb-2 py-1">
+                      <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
+                    </v-list-item>
+                    <v-divider/>
+                    <v-list-item @click="removeColumn(header.id)">
+                      <v-list-item-icon>
+                        <v-icon>mdi-table-column-remove</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>Remove Column</v-list-item-title>
+                    </v-list-item>
+                    <template v-if="header.actions?.includes('sort')">
+                      <v-divider/>
+                      <v-list-item
+                        active-class="primary--text"
+                        :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
+                        @click="commitSortBy({column_id: header.id, direction: 'desc'})"
+                      >
+                        <v-list-item-icon>
+                          <v-icon>mdi-arrow-down</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-title>Sort Descending</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        @click="commitSortBy({column_id: header.id, direction: 'asc'})"
+                        active-class="primary--text"
+                        :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
+                      >
+                        <v-list-item-icon>
+                          <v-icon>mdi-arrow-up</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-title>Sort Ascending</v-list-item-title>
+                      </v-list-item>
+                    </template>
+                  </v-list>
+                </v-menu>
+              </div>
+            </template>
+          </th>
         </thead>
       
         <tbody v-if="hasQueryChanged || isSearchCanceled || !queryIsCompleted">
@@ -201,29 +175,41 @@
             @click.exact="clickRow(row.id)"
             @click.meta.stop="metaClickRow(row.id)"
           >
-            <td key="selector" class="selector pr-0" style="width: 1px; white-space: nowrap; padding-left:7px;">
-              <v-btn icon @click.stop="toggleSelectedId(row.id)">
-                <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-                <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-              </v-btn>
-            </td>
             <td
               v-for="(cell, i) in row.cellsWithConfigs"
               :key="'cell-'+i"
               class="px-1"
               :class="[
-                'data-type-' + cell.config.type, 
-                {'is-date': cell.config.isDate, 'metric': cell.config.id.includes('(')}
+                cell.type === 'ui-action' ? 'ui-action' : 'data-type-' + cell.config.type, 
+                {
+                  'is-date': cell.config.isDate, 
+                  'metric': (cell.config.id && cell.config.id.includes('(')) || cell.config.id === 'columnAdderMetric'
+                }
               ]"
             >
-              <column-value :property="cell"/>
+              <!-- Selector cell -->
+              <template v-if="cell.config && cell.config.id === 'selector'">
+                <v-btn icon @click.stop="toggleSelectedId(row.id)">
+                  <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+                  <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+                </v-btn>
+              </template>
+              
+              <!-- Column adder cell (empty) -->
+              <template v-else-if="cell.config && (cell.config.id === 'columnAdderData' || cell.config.id === 'columnAdderMetric')">
+                <!-- Empty cell -->
+              </template>
+              
+              <!-- Regular data cell -->
+              <template v-else>
+                <column-value :property="cell"/>
+              </template>
             </td>
-            <td key="column-adder-placeholder" :class="{'add-column': true, 'metric': hasMetricsColumns}"></td>
           </tr>
         </tbody>
       </v-simple-table>
 
-      <v-card class="more-results-message" flat v-if="!hasQueryChanged && resultsMeta?.count > 100">
+      <v-card class="more-results-message" flat v-if="!hasQueryChanged && resultsMeta?.count > 100 && this.query.get_rows !== 'summary'">
         To view results beyond the first 100, download the full results set above.
       </v-card>
 
@@ -266,6 +252,7 @@ import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
+import QueryColumnAdder from "@/components/Query/QueryColumnAdder.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 
@@ -281,6 +268,7 @@ export default {
     QueryReturn,
     DownloadDialog,
     QuerySearchControls,
+    QueryColumnAdder,
   },
   props: {
     apiUrl: String,
@@ -302,6 +290,7 @@ export default {
       "userId",
     ]),
     ...mapGetters("search", [
+      "query",
       "resultsMeta",
       "resultsHeader",
       "resultsBody",
@@ -315,46 +304,151 @@ export default {
       "querySubjectEntityConfig",
     ]),
     rows() {
-      const rows = this.resultsBody.map((row) => {
-        return {
-          ...row,
-          cellsWithConfigs: row.cells.map((cell, i) => {
-            return {
-              ...cell,
-              config: this.resultsHeader[i],
-            }
-          })
+      return this.resultsBody.map(row => {
+        // Create basic cells with configs
+        let dataCells = row.cells.map((cell, i) => ({
+          ...cell,
+          config: this.resultsHeader[i],
+        }));
+        
+        // Find first metric cell index
+        const firstMetricIndex = dataCells.findIndex(cell => cell.config?.id?.includes('('));
+        const hasMetricCells = firstMetricIndex !== -1;
+        
+        // Create final cells array with UI action cells
+        const finalCells = [
+          // Selector cell
+          {
+            type: 'ui-action',
+            config: { id: 'selector' }
+          }
+        ];
+        
+        // Add data cells with column adders in appropriate positions
+        if (hasMetricCells) {
+          // Add non-metric cells
+          finalCells.push(...dataCells.slice(0, firstMetricIndex));
+          
+          // Add data column adder cell before first metric cell if not in summary mode
+          if (this.query.get_rows !== 'summary') {
+            finalCells.push({
+              type: 'ui-action',
+              config: { id: 'columnAdderData' }
+            });
+          }
+          
+          // Add metric cells
+          finalCells.push(...dataCells.slice(firstMetricIndex));
+          
+          // Add metric column adder cell at the end
+          finalCells.push({
+            type: 'ui-action',
+            config: { id: 'columnAdderMetric' }
+          });
+        } else {
+          // No metric cells, just add all cells
+          finalCells.push(...dataCells);
+          
+          // Add data column adder at the end if not in summary mode
+          if (this.query.get_rows !== 'summary') {
+            finalCells.push({
+              type: 'ui-action',
+              config: { id: 'columnAdderData' }
+            });
+          }
         }
-      });
-      if (this.uiVariant === 'sentence-worksfirst') {
-        // Sort cells in each row to move those with "(" in their ID to the front
-        rows.forEach(row => {
-          row.cellsWithConfigs.sort((a, b) => {
-            const aHas = a.config?.id?.includes("(") || false;
-            const bHas = b.config?.id?.includes("(") || false;
+        
+        // Apply sorting if needed (for worksfirst variant)
+        if (this.uiVariant === 'sentence-worksfirst') {
+          finalCells.sort((a, b) => {
+            // Always keep selector at the beginning
+            if (a.config.id === 'selector') return -1;
+            if (b.config.id === 'selector') return 1;
+            
+            const aHas = a.config.id.includes("(") || a.config.id === "columnAdderMetric" || false;
+            const bHas = b.config.id.includes("(") || b.config.id === "columnAdderMetric" || false;
             
             if (aHas && !bHas) return -1;
             if (!aHas && bHas) return 1;
             return 0; // Keep original order if both have or both don't have parentheses
           });
-        });
-      }
-      return rows;
+        }
+
+        return {
+          ...row,
+          cellsWithConfigs: finalCells
+        };
+      });
     },
     headers() {
-      const headers = this.queryColumnsConfigs.slice();
+      // Start with a selector column
+      const result = [
+        {
+          id: 'selector',
+          type: 'ui-action'
+        }
+      ];
+      
+      // Get data columns
+      const dataColumns = this.queryColumnsConfigs.slice();
+      
+      // Find first metric column index
+      const firstMetricIndex = dataColumns.findIndex(col => col.id && col.id.includes('('));
+      const hasMetricColumns = firstMetricIndex !== -1;
+      
+      // Add data columns with column adders in appropriate positions
+      if (hasMetricColumns) {
+        // Add non-metric columns
+        result.push(...dataColumns.slice(0, firstMetricIndex));
+        
+        // Add data column adder before first metric column if not in summary mode
+        if (this.query.get_rows !== 'summary') {
+          result.push({
+            id: 'columnAdderData',
+            type: 'ui-action',
+            display: 'data'
+          });
+        }
+        
+        // Add metric columns
+        result.push(...dataColumns.slice(firstMetricIndex));
+        
+        // Add metric column adder at the end
+        result.push({
+          id: 'columnAdderMetric',
+          type: 'ui-action',
+          display: 'metrics'
+        });
+      } else {
+        // No metric columns, just add all columns
+        result.push(...dataColumns);
+        
+        // Add data column adder at the end if not in summary mode
+        if (this.query.get_rows !== 'summary') {
+          result.push({
+            id: 'columnAdderData',
+            type: 'ui-action',
+            display: 'data'
+          });
+        }
+      }
+      
+      // Apply sorting if needed (for worksfirst variant)
       if (this.uiVariant === 'sentence-worksfirst') {
-        // Sort cells in each row to move those with "(" in their ID to the front
-        headers.sort((a, b) => {
-          const aHas = a.id.includes("(") || false;
-          const bHas = b.id.includes("(") || false;
+        result.sort((a, b) => {
+          // Always keep selector at the beginning
+          if (a.id === 'selector') return -1;
+          if (b.id === 'selector') return 1;
+          
+          const aHas = a.id.includes("(") || a.id === "columnAdderMetric" || false;
+          const bHas = b.id.includes("(") || b.id === "columnAdderMetric" || false;
           
           if (aHas && !bHas) return -1;
           if (!aHas && bHas) return 1;
           return 0; // Keep original order if both have or both don't have parentheses
         });
       }
-      return headers;
+      return result;
     },
     hasMetricsColumns() { 
       return this.queryColumnsConfigs.some(col => col.id.includes('('));
@@ -589,8 +683,10 @@ th {
   border-color: var(--v-catEntityDarker-base);
   background-color: var(--v-catEntity-base);
 }
-table .add-column {
+table th.ui-action,
+table td.ui-action {
   width: 40px;
+  text-align: center;
 }
 tr:hover {
   background-color: #f5f5f5 !important;
@@ -680,7 +776,7 @@ tr:hover .metric {
   background-color: transparent;
 }
 td.data-type-number {
-  text-align: center;
+  text-align: right;
   font-family: monospace;
   font-size: 0.9em;
 
@@ -688,6 +784,9 @@ td.data-type-number {
     text-align: unset;
     font-family: unset;
   }
+}
+.ui-sentence-worksfirst td.data-type-number {
+  text-align: left;
 }
 th button {
   font-size: 14px !important;
