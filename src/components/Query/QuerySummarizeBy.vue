@@ -66,7 +66,6 @@ export default {
     ...mapGetters("search", [
       "query",
       "querySubjectEntityConfig",
-      "resultsMeta",
       "hasQueryChanged",
       "queryIsCompleted",
     ]),
@@ -81,13 +80,13 @@ export default {
     buttonName() {
       const entity = this.query.get_rows;
       if (entity === 'summary') { 
-        return this.resultsCount ? `Summary of ${this.resultsCount} Works` : "Works Summary"; 
+        return "Works Summary"; 
       }
       const name = getConfigs()[entity].displayName;
       if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
         return 'none';
       }
-      return this.resultsCount ? this.resultsCount + " " + name.titleCase() : name.titleCase();
+      return name.titleCase();
     },
     buttonColor() {
       if (this.uiVariant && this.uiVariant.includes("worksfirst")) { return 'catEntity'; }

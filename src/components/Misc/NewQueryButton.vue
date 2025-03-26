@@ -5,12 +5,12 @@
         @click="onClick"
     >
         <template v-if="!goTo">
-            <v-icon v-if="icon" v-bind="sizeAttrs" :color="$attrs.color === 'primary' ? undefined : 'primary'">{{ icon }}</v-icon>
+            <v-icon v-if="icon" v-bind="{[size]: true}" :color="$attrs.color === 'primary' ? undefined : 'primary'">{{ icon }}</v-icon>
             {{ buttonText }}
         </template>
         <template v-else>
             {{ buttonText }}
-            <v-icon right v-bind="sizeAttrs">mdi-chevron-right</v-icon>
+            <v-icon right v-bind="{[size]: true}">mdi-chevron-right</v-icon>
         </template>
     </v-btn>   
 </template>
@@ -34,14 +34,13 @@ export default {
             type: Boolean,
             default: false
         },
+        size: {
+            type: String,
+            default: "small"
+        }
     },
     computed: {
         ...mapGetters("search",["isBaseQuery"]),
-        sizeAttrs() {
-            // Extract size-related attributes from $attrs
-            const { small, xSmall, large, xLarge } = this.$attrs;
-            return { small, xSmall, large, xLarge };
-        }
     },
     methods: {
         ...mapActions("search",["createNewSearch"]),
