@@ -291,6 +291,7 @@ export const search = {
         queryBackendError: (state) => state.backend_error,
         isQuerySingleRow: (state) => state.query.get_rows === "summary",
         isSearchCanceled: (state) => state.searchCanceled,
+        hasResults: (state, getters) => !getters.hasQueryChanged && !getters.isSearchCanceled && getters.queryIsCompleted,
         selectedIds: (state) => state.selectedIds,
         metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },

@@ -66,7 +66,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-if="isWorks && isWithAggs">
           found in
           {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          <v-chip label color="catBlue" class="entity-chip">{{worksCount}}Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
@@ -81,15 +81,15 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === 'sentence-worksfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks">
-          Find
-          {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ hasResults ? null : 'Find'}}
+          {{ isEmpty && !hasResults ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">{{worksCount}}Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
         <!-- Entity Filters -->
         <template v-else>
-          group by
+          {{ hasResults ? 'grouped by' : 'group by'}}
           <query-summarize-by key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
@@ -190,6 +190,7 @@ export default {
       "isSearchCanceled",
       "hasQueryChanged",
       "queryIsCompleted",
+      "hasResults",
     ]),
     hasAvailableFilters() {
       const myConfig = getConfigs()[this.subjectEntity];
@@ -213,6 +214,11 @@ export default {
     displayButtonInline() {
       return true;
       //return this.isEmpty && this.isWithAggs;
+    },
+    worksCount() {
+      if (!this.resultsMeta || !this.queryIsCompleted || this.isSearchCanceled || this.hasQueryChanged) { return null; }
+      const formatter = Intl.NumberFormat('en', { notation: 'compact' });
+      return formatter.format(this.resultsMeta.works_count) + " ";
     },
     borderColor() {
       const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;

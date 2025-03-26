@@ -66,18 +66,28 @@ export default {
     ...mapGetters("search", [
       "query",
       "querySubjectEntityConfig",
+      "resultsMeta",
+      "hasQueryChanged",
+      "queryIsCompleted",
     ]),
     entities() {
       return Object.values(getConfigs()).filter(config => config.id !== 'works');
     },
+    resultsCount() {
+      if (!this.queryIsCompleted || this.hasQueryChanged) { return null; }
+      const formatter = Intl.NumberFormat('en', { notation: 'compact' });
+      return this.resultsMeta ? formatter.format(this.resultsMeta.count) : null;
+    },
     buttonName() {
       const entity = this.query.get_rows;
-      if (entity === 'summary') { return "Works Summary"; }
+      if (entity === 'summary') { 
+        return this.resultsCount ? `Summary of ${this.resultsCount} Works` : "Works Summary"; 
+      }
       const name = getConfigs()[entity].displayName;
       if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant)) {
         return name === "works" ? 'none' : name.titleCase();
       }
-      return name.titleCase();
+      return this.resultsCount ? this.resultsCount + " " + name.titleCase() : name.titleCase();
     },
     buttonColor() {
       if (this.uiVariant && this.uiVariant.includes("worksfirst")) { return 'catEntity'; }

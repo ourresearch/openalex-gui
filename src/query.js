@@ -7,6 +7,11 @@ const baseQuery = (entity = 'works') => {
     if (entity == "summary") {
         query = {
             get_rows: "summary",
+            filter_works: [],
+            filter_aggs: [],
+            show_columns: ["sum(cited_by_count)", "mean(cited_by_count)", "mean(fwci)", "percent(is_oa)", "sum(is_oa)"],
+            sort_by_column: "sum(cited_by_count)",
+            sort_by_order: "desc",
         }; 
         return query;
     } 
