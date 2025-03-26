@@ -1,5 +1,10 @@
 <template>
-  <div :class="{'results-table': true, 'works-query': querySubjectEntity === 'works'}">
+  <div :class="{
+      'results-table': true, 
+    'works-query': querySubjectEntity === 'works', 
+    'works-first': uiVariant === 'sentence-worksfirst'
+    }"
+  >
     <!-- Results Header / Actions -->
     <div class="results-table-controls pa-2" v-if="uiVariant === 'side'">      
       <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
@@ -63,7 +68,7 @@
       <!-- Results Table -->
       <v-simple-table class="mx-5 mb-5" ref="resultsTable">
         <thead>
-        <th>
+        <th class="add-column">
           <span v-if="uiVariant !== 'side'">
             <v-btn icon @click="clickSelectAllButton">
               <v-icon>{{ selectAllIcon }}</v-icon>
@@ -72,7 +77,7 @@
         </th>
         <!-- Results Table Headers -->
         <th
-          v-for="(header, i) in queryColumnsConfigs"
+          v-for="(header, i) in headers"
           :key="'header-'+i"
           :class="[
             'data-type-' + header.type, 
@@ -138,7 +143,7 @@
         </th>
 
         <!-- Add Column Button -->
-        <th key="column-adder" :class="{'metric': hasMetricsColumns}">
+        <th key="column-adder" :class="{'add-column': true, 'metric': true}">
           <v-menu rounded max-height="50vh">
             <template v-slot:activator="{ on }">
               <v-btn icon v-on="on">
@@ -147,15 +152,14 @@
             </template>
             <v-card flat rounded>
               <v-text-field
-                  v-model="columnSearch"
-                  filled
-                  rounded
-                  background-color="white"
-                  prepend-inner-icon="mdi-magnify"
-                  hide-details
-                  autofocus
-                  placeholder="Add Column"
-                  style=""
+                v-model="columnSearch"
+                filled
+                rounded
+                background-color="white"
+                prepend-inner-icon="mdi-magnify"
+                hide-details
+                autofocus
+                placeholder="Add Column"
               />
               <v-divider/>
               <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
@@ -176,7 +180,6 @@
           </v-menu>
         </th>
         </thead>
-      
       
         <tbody v-if="hasQueryChanged || isSearchCanceled || !queryIsCompleted">
           <tr class="search-controls-row">
@@ -215,7 +218,7 @@
             >
               <column-value :property="cell"/>
             </td>
-            <td key="column-adder-placeholder" :class="{'metric': hasMetricsColumns}"></td>
+            <td key="column-adder-placeholder" :class="{'add-column': true, 'metric': hasMetricsColumns}"></td>
           </tr>
         </tbody>
       </v-simple-table>
@@ -323,7 +326,35 @@ export default {
           })
         }
       });
+      if (this.uiVariant === 'sentence-worksfirst') {
+        // Sort cells in each row to move those with "(" in their ID to the front
+        rows.forEach(row => {
+          row.cellsWithConfigs.sort((a, b) => {
+            const aHas = a.config?.id?.includes("(") || false;
+            const bHas = b.config?.id?.includes("(") || false;
+            
+            if (aHas && !bHas) return -1;
+            if (!aHas && bHas) return 1;
+            return 0; // Keep original order if both have or both don't have parentheses
+          });
+        });
+      }
       return rows;
+    },
+    headers() {
+      const headers = this.queryColumnsConfigs.slice();
+      if (this.uiVariant === 'sentence-worksfirst') {
+        // Sort cells in each row to move those with "(" in their ID to the front
+        headers.sort((a, b) => {
+          const aHas = a.id.includes("(") || false;
+          const bHas = b.id.includes("(") || false;
+          
+          if (aHas && !bHas) return -1;
+          if (!aHas && bHas) return 1;
+          return 0; // Keep original order if both have or both don't have parentheses
+        });
+      }
+      return headers;
     },
     hasMetricsColumns() { 
       return this.queryColumnsConfigs.some(col => col.id.includes('('));
@@ -448,6 +479,8 @@ export default {
       a.click();
     },
     measureMetricColumns() {
+      if (this.uiVariant && this.uiVariant.includes("sentence")) { return; }
+        
       this.$nextTick(() => {
         const table = this.$refs.resultsTable.$el;
         const metricHeaders = Array.from(table.querySelectorAll('th.metric'));
@@ -524,17 +557,20 @@ export default {
 
 
 <style lang="scss">
+.search-controls-row {
+  background-color: #fbfbfb !important;
+}
 .search-controls-row:hover {
-  background-color:
-   transparent !important;
+  background-color: #fbfbfb !important;
 }
 .search-controls-row td {
   height: 500px !important;
   vertical-align: top;
 }
 .search-controls {
-  padding: 70px 0px;
+  padding: 90px 0px;
   text-align: center;
+  background-color: transparent !important;
 }
 .selection-message {
   font-size: 14px;
@@ -548,9 +584,15 @@ table {
   border-collapse: separate !important;
 }
 th {
-  border-bottom: 4px solid;
+  border-bottom: 3px solid;
   border-color: var(--v-catEntityDarker-base);
   background-color: var(--v-catEntity-base);
+}
+table .add-column {
+  width: 40px;
+}
+tr:hover {
+  background-color: #f5f5f5 !important;
 }
 th.metric,
 .works-query th {
@@ -575,12 +617,14 @@ td:last-child {
   border-left-width: 3px;
   border-left-style: solid;
 }
+.results-box.ui-sentence th:first-child,
+.results-box.ui-sentence-worksfirst th:first-child {
+  border-left: none;
+}
 td.metric {
   border-color: var(--v-catWorksDarker-base);
 }
-td:not(.metric) + td.metric {
-  border-left: 3px solid var(--v-catWorksDarker-base);
-}
+td:not(.metric) + td.metric,
 .results-box th:not(.metric) + th.metric {
   border-left: 3px solid var(--v-catWorksDarker-base);
 }
@@ -588,11 +632,54 @@ tr:last-child td {
   border-bottom-width: 3px;
   border-bottom-style: solid;
 }
+.metric {
+  width: 130px;
+}
+.works-first th:first-child,
+.works-first td:first-child {
+  border-color: var(--v-catWorksDarker-base);
+  border-left-width: 3px;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+}
+.works-first th:first-child {
+  background-color: var(--v-catWorks-base);
+}
+.works-first th:last-child {
+  background-color: var(--v-catEntity-base);
+}
+.works-first.works-query th:last-child {
+  background-color: var(--v-catWorks-base);
+}
+.works-first th:last-child,
+.works-first td:last-child {
+  border-color: var(--v-catEntityDarker-base);
+  border-right-width: 3px;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+}
+.works-first.works-query th:last-child,
+.works-first.works-query td:last-child {
+  border-color: var(--v-catWorksDarker-base);
+}
+.works-first td:first-child,
+.works-first td:last-child {
+  background-color: transparent;
+}
+.works-first td:not(.metric) + td.metric,
+.results-box .works-first th:not(.metric) + th.metric {
+  border-left: none;
+}
+.works-first td.metric + td:not(.metric),
+.results-box .works-first th.metric + th:not(.metric) {
+  border-left: 3px solid var(--v-catEntityDarker-base);
+  padding-left: 15px !important;
+}
 tr:hover .metric {
   background-color: transparent;
 }
 td.data-type-number {
-  text-align: right;
+  text-align: center;
   font-family: monospace;
   font-size: 0.9em;
 

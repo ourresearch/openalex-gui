@@ -136,9 +136,6 @@ export default {
 
 
 <style scoped lang="scss">
-button.query-builder-button.tight { 
-  min-width: 28px;
-}
 .line-above {
   border-top: 1px #DDD solid;
 }

@@ -1,9 +1,9 @@
 <template>
   <v-menu max-height="70vh" rounded offset-y>
     <template v-slot:activator="{ on }">
-      <v-chip label class="entity-chip" compact :color="buttonColor" v-on="on">
+      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-on="on">
         {{ buttonName }}
-        <v-icon right>mdi-menu-down</v-icon>
+        <v-icon class="down-icon" right>mdi-menu-down</v-icon>
       </v-chip>
     </template>
 
@@ -74,10 +74,13 @@ export default {
       const entity = this.query.get_rows;
       if (entity === 'summary') { return "Works Summary"; }
       const name = getConfigs()[entity].displayName;
-      return this.uiVariant === 'worksfirst' && name === "works" ? 'none' : name.titleCase();
+      if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant)) {
+        return name === "works" ? 'none' : name.titleCase();
+      }
+      return name.titleCase();
     },
     buttonColor() {
-      if (this.uiVariant === 'worksfirst') { return 'catEntity'; }
+      if (this.uiVariant && this.uiVariant.includes("worksfirst")) { return 'catEntity'; }
       return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
     },
     selected: {
@@ -102,5 +105,12 @@ export default {
 <style scoped lang="scss">
 .query-summarize-by-button {
   padding-right: 4px;
+}
+.down-icon {
+  margin-left: -2px !important; 
+}
+.entity-chip.none {
+  font-weight: normal;
+  font-size: 16px !important;
 }
 </style>

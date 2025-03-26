@@ -1,13 +1,13 @@
 <template>
   <v-chip
     label
-    class="mr-1 menu-chip"
+    class="menu-chip"
     :style="{'font-size': '30px', 'border-bottom-color': buttonColorHex}"
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
         <b>{{ entityData.display_name | truncate(50) }}</b>
-        <v-icon v-if="isEditable && uiVariant !== 'sentence'" x-small>mdi-pencil-outline</v-icon>
+        <v-icon v-if="isEditable && !isSentence" x-small>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         Loading...
@@ -20,7 +20,7 @@
       {{ value }}
     </template> 
     <template v-else>
-      <b>{{ value | truncate(50) }}</b>
+      <b>{{columnConfig.isCurrency ? '$' : ''}}{{ value | truncate(50) }}</b>
     </template>
   </v-chip>
 </template>
@@ -40,7 +40,8 @@ export default {
     value: [String, Number,Boolean],
     isLabelFilter: Boolean,
     isEditable: Boolean,
-    subjectEntity: String, 
+    subjectEntity: String,
+    isSentence: Boolean,
   },
   data() {
     return {

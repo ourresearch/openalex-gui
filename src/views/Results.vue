@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid :class="{'results-box': true, 'ui-side': uiVariant === 'side'}">
+  <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
     <v-row>
       <!-- Left Panel -->
       <v-col cols="12" :md="uiVariant === 'side' ? 5 : 12" class="py-0">

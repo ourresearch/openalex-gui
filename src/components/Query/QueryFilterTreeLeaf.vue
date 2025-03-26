@@ -2,13 +2,31 @@
   <div :style="indentationStyle" class="query-filter-leaf d-flex align-start flex-grow-1 mb-1">
 
     <!-- Path Label -->
-    <span class="path-label number">
-      {{ isSentence ? '(' : '' }}{{ pathLabel }}{{ isSentence ? ')' : '.' }}
+    <span v-if="!isSentence" class="path-label number">
+      {{ pathLabel }}.
+    </span>
+    <span v-else>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <span class="path-label path-label-button number cursor-pointer" v-on="on">
+            ({{ pathLabel }})
+          </span>
+        </template>
+        <v-list dense>
+          <v-list-item @click="deleteFilter">
+            <v-list-item-icon class="mr-2 ml-0">
+              <v-icon small>mdi-close</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Remove Filter</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </span>
 
+    <!-- Leaf Content -->
     <div class="leaf-content flex-grow-1">
       <!-- The Join Operator - and/or -->
-      <span>
+      <span class="join-operator">
         <template v-if="isFirstFilter">the&nbsp;</template>
         <template v-else>
           <v-menu offset-y>
@@ -21,7 +39,7 @@
                 v-on="on"
               >
                 {{ joinOperator }}
-                <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
+                <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
               </v-chip>
             </template>
             <v-list>
@@ -58,10 +76,10 @@
       </span>
 
       <!-- The Filter Key-->
-      <div>{{ columnConfig.displayName }}</div>
+      <span :class="{'font-weight-bold': columnConfig.type === 'boolean'}"> {{ columnConfig.displayName }}</span>
 
       <!-- The Filter Operator-->
-      <div>
+      <span>
         <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
         <v-menu v-else offset-y>
           <template v-slot:activator="{ on }">
@@ -73,7 +91,7 @@
               v-on="on" 
             >
               {{ selectedOperator ?? "select" }}
-              <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
+              <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
@@ -91,7 +109,7 @@
             </v-list-item-group>
           </v-list>
         </v-menu>
-      </div>
+      </span>
 
       <!-- The Filter Value-->
       <!---- Entity Values -->
@@ -104,6 +122,7 @@
             :is-label-filter="isLabelFilter"
             :is-editable="true"
             :subject-entity="subjectEntity"
+            :is-sentence="isSentence"
             @click.native="restartEditingValue"
           />
         </template>
@@ -127,7 +146,7 @@
                   v-on="on" 
                 >
                   Select a Label
-                  <v-icon v-if="uiVariant !== 'sentence'" small>mdi-menu-down</v-icon>
+                  <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
                 </v-chip>
               </template>
               <v-list>
@@ -173,7 +192,7 @@
             outlined
             :color="filterColor"
             dense
-            class="flex-grow-1"
+            class="query-builder-input flex-grow-1"
             autofocus
             @change="saveEditingValue" 
             @blur="onInputBlur"
@@ -199,6 +218,7 @@
         :column-config="columnConfig"
         :subject-entity="subjectEntity"
         :value="selectedValue"
+        :is-sentence="isSentence"
         @click="selectedValue = !selectedValue" />
 
       <!-- Related to Text -->
@@ -224,12 +244,13 @@
           :column-config="columnConfig"
           :subject-entity="subjectEntity"
           :value="selectedValue"
+          :is-sentence="isSentence"
           @click.native="startEditingValue"
         />
       </div>
 
       <!-- Number, String, Array Values -->
-      <div v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
+      <template v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
         <v-text-field
           v-if="isEditingValue || selectedValue === null"
           v-model="valueEditModel"
@@ -247,13 +268,14 @@
           v-else
           :column-config="columnConfig"
           :value="selectedValue"
+          :is-sentence="isSentence"
           @click.native="startEditingValue"
         />
-      </div>
+      </template>
     </div>
 
     <!-- Delete Button -->
-    <v-btn v-if="uiVariant !== 'sentence'" icon small @click="deleteFilter" class="mt-1">
+    <v-btn v-if="!isSentence" icon small @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -497,6 +519,12 @@ export default {
   align-items: flex-end;
   row-gap: 5px;
 }
+.path-label-button:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  background-color: #eee;
+}
+
 .related-to-text-wrapper {
   width: 100%;
   flex-basis: 100% !important;

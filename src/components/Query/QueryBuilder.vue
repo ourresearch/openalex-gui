@@ -48,12 +48,12 @@
     </div>
 
   </v-card>
-    
-  <!-- Top UI-->    
+  
+  <!-- Top UI-->
   <v-card v-else flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
     <query-actions />
 
-    <template v-if="uiVariant === 'sentence'">
+    <template v-if="['sentence', 'sentence-worksfirst'].includes(uiVariant)">
       <QuerySentence />
     </template>
 
@@ -179,20 +179,30 @@ export default {
   height: 22px;
   padding: 0px 3px !important;
 }
-.menu-chip {
+.query-builder .menu-chip {
   cursor: pointer;
   font-size: 15px !important; 
   background-color: transparent !important;
   border-bottom: 1px solid;
   border-radius: 0 !important;
-  padding: 2px 2px !important;
+  padding: 0px 0px !important;
   margin: 0;
-  height: 22px !important;
+  height: 20px !important;
 }
-.query-builder-button {
+.query-builder-input.v-text-field .v-input__control .v-input__slot {
+    min-height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 2px 4px !important;
+  }
+.query-builder-input.v-text-field .v-input__control .v-input__slot .v-input__append-inner {
+  margin-top: 2px;
 }
 .query-builder-button.tight {
   padding: 0px 0px !important;
+  height: 20px !important;
+  width: 20px !important;
+  min-width: 20px !important;
 }
 .new-query-button {
   margin-top: 0px;
