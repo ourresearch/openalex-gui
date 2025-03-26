@@ -95,9 +95,9 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         </template>
       </template>
 
-    </span> 
-
-    <span 
+    </span><!--
+    
+    -->{{isEmpty ? '' : '&nbsp;'}}<span 
       :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === 'sentence'}" 
       v-if="!isSentence && hasAvailableFilters"
     >

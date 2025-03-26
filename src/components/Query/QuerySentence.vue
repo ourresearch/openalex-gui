@@ -81,10 +81,10 @@ export default {
   margin: 0;
   padding: 0;
 }
-.query-sentence .query-section-label,
+/*.query-sentence .query-section-label,
 .query-sentence .query-filter-leaf {
-  /*white-space: nowrap;*/
-}
+  white-space: nowrap;
+}*/
 .query-sentence .query-builder-input {
   display: inline-block !important;
   width: 250px;
