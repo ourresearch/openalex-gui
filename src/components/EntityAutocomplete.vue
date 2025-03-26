@@ -1,6 +1,7 @@
 <template>
   <v-autocomplete
     v-model="selectedEntity"
+    class="query-builder-input"
     ref="autocomplete"
     @input="onEntitySelected"
     :items="entities"

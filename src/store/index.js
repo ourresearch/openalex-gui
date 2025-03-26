@@ -51,6 +51,9 @@ export default new Vuex.Store({
         setIsInitialLoad(state, isInitialLoad) {
             state.isInitialLoad = isInitialLoad;
         },
+        setUiVariant(state, uiVariant) {
+            state.uiVariant = uiVariant;
+        },
     },  
     actions: {
     },

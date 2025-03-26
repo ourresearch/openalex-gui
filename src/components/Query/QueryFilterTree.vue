@@ -3,72 +3,109 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 -->
 <template>
   <div :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-4': !isEmpty}">
-    <div>
-      <span class="query-section-label">
-        <!-- Works First UI -->
-        <template v-if="uiVariant === 'worksfirst'">
-          <!-- Works Filters -->
-          <template v-if="isWorks">
-            Find
-            {{ isEmpty ? ' all' : '' }}
-            <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
-
-          <!-- Entity Filters -->
-          <template v-else>
-            Group by
-            <query-summarize-by /> 
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
+    <span class="query-section-label">
+      <!-- Works First UI -->
+      <template v-if="uiVariant === 'worksfirst'">
+        <!-- Works Filters -->
+        <template v-if="isWorks">
+          Find
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
         </template>
 
-        <!-- Entity First UI -->
-        <template v-else-if="uiVariant === 'side'">
-          <!-- Works Filters -->
-          <template v-if="isWorks && isWithAggs">
-            Found in
-            {{ isEmpty ? ' all' : '' }}
-            <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
-
-          <!-- Entity Filters -->
-          <template v-else>
-            Show
-            {{ isEmpty ? ' all' : '' }}
-            <query-summarize-by key="summarize-by"/>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
-        </template>
-
-        <!-- Top UI -->
+        <!-- Entity Filters -->
         <template v-else>
-          <!-- Works Filters -->
-          <template v-if="isWorks && isWithAggs">
-            analyzing
-            {{ isEmpty ? ' all' : '' }}
-            <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
+          Group by
+          <query-summarize-by /> 
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
 
-          <!-- Entity Filters -->
-          <template v-else>
-            Show
-            {{ isEmpty ? ' all' : '' }}
-            <query-summarize-by key="summarize-by"/>
-            {{ !isEmpty ? ' where' : '' }}
-          </template>
+      <!-- Entity First UI -->
+      <template v-else-if="uiVariant === 'side'">
+        <!-- Works Filters -->
+        <template v-if="isWorks && isWithAggs">
+          Found in
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
         </template>
 
-      </span> 
+        <!-- Entity Filters -->
+        <template v-else>
+          Show
+          {{ isEmpty ? ' all' : '' }}
+          <query-summarize-by key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
 
-      <span :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty}" v-if="hasAvailableFilters && uiVariant !== 'sentence'">
-        <query-filter-tree-button
-          :subject-entity="subjectEntity"
-          @addFilter="addFilter" />
-      </span>
-    </div>
+      <!-- Top Columns UI -->
+      <template v-else-if="uiVariant === null">
+        <!-- Works Filters -->
+        <template v-if="isWorks && isWithAggs">
+          Analyzing
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+
+        <!-- Entity Filters -->
+        <template v-else>
+          Show
+          {{ isEmpty ? ' all' : '' }}
+          <query-summarize-by key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+
+      <!-- Sentence UI - Entity First -->
+      <template v-else-if="uiVariant === 'sentence'">
+        <!-- Works Filters -->
+        <template v-if="isWorks && isWithAggs">
+          found in
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+
+        <!-- Entity Filters -->
+        <template v-else>
+          <query-summarize-by key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+      
+      <!-- Sentence UI - Works First -->
+      <template v-else-if="uiVariant === 'sentence-worksfirst'">
+        <!-- Works Filters -->
+        <template v-if="isWorks">
+          Find
+          {{ isEmpty ? ' all' : '' }}
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+
+        <!-- Entity Filters -->
+        <template v-else>
+          group by
+          <query-summarize-by key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+
+    </span> 
+
+    <span 
+      :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === 'sentence'}" 
+      v-if="!isSentence && hasAvailableFilters"
+    >
+      <query-filter-tree-button
+        :subject-entity="subjectEntity"
+        :text="uiVariant === 'sentence' ? '' : 'Filter'"
+        @addFilter="addFilter" />
+    </span>
 
     <div class="query-wrapper" :style="{'border-color': borderColor }">
       <query-filter-tree-branch
@@ -82,9 +119,9 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         @setValue="setValue"
         @deleteFilter="deleteFilter"
         @groupWithAbove="groupWithAbove"
-        @ungroupFromAbove="ungroupFromAbove" />
+        @ungroupFromAbove="ungroupFromAbove" />{{ isFinal && !isEmpty && uiVariant === 'sentence' ? '.' : '' }}
       
-      <div class="bottom-button-wrapper mt-2" v-if="false && !isEmpty">
+      <div class="bottom-button-wrapper mt-2" v-if="isSentence">
         <query-filter-tree-button
           :subject-entity="subjectEntity"
           text=""
@@ -166,6 +203,9 @@ export default {
     },
     isEmpty() {
       return this.myFilters.length === 0;
+    },
+    isFinal() {
+      return this.isWorks;
     },
     displayInline() {
       return this.uiVariant === 'worksfirst' ? true : !this.isWithAggs;

@@ -75,6 +75,9 @@ const makeUrl = function (pathName, searchParams) {
 const api = (function () {
 
     const getUrl = async function (url, config) {
+        
+        config = config || axiosConfig();
+        
         if (!url.startsWith("http")) { 
             url = urlBase.api + url;
         }

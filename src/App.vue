@@ -31,6 +31,8 @@
       </router-link>
       <div class="flex-grow-1"></div>
 
+      <ui-variant-selector />
+
       <v-btn icon to="/tests">
         <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
       </v-btn>
@@ -137,6 +139,7 @@ import ShortcutBox from "@/components/ShortcutBox.vue";
 import {entity} from "@/entity";
 import Entity from "@/components/Entity/Entity.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
+import UiVariantSelector from "@/components/Misc/UiVariantSelector.vue";
 import router from "@/router";
 
 
@@ -153,6 +156,7 @@ export default {
     Entity,
     SearchFromText,
     ShortcutBox,
+    UiVariantSelector,
     //EntityTypeSelector,
   },
   data: function () {
