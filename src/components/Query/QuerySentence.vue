@@ -85,7 +85,7 @@ export default {
   flex-grow: 1;
   font-size: 12px;
   text-align: right;
-  color: #666;
+  color: #444;
   padding: 0 5px 0px 5px;
   align-self: end;
   white-space: nowrap;

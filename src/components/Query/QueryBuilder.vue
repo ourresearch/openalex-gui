@@ -48,7 +48,7 @@
     </div>
 
   </v-card>
-  
+
   <!-- Top UI-->
   <v-card v-else flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
     <query-actions />
@@ -186,7 +186,7 @@ export default {
   border-bottom: 1px solid;
   border-radius: 0 !important;
   padding: 0px 0px !important;
-  margin: 0;
+  margin: 0 3px;
   height: 20px !important;
 }
 .query-builder-input.v-text-field .v-input__control .v-input__slot {
