@@ -97,9 +97,9 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         </template>
       </template>
 
-    </span><!--
+    </span>
     
-    -->{{isEmpty ? '' : '&nbsp;'}}<span 
+    <span 
       :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === 'sentence'}" 
       v-if="!isSentence && hasAvailableFilters"
     >
@@ -582,6 +582,7 @@ export default {
   line-height: 28px;
   font-size: 15px;
   vertical-align: middle;
+  margin-bottom: 10px;
 }
 .path-label {
   margin-right: 5px;

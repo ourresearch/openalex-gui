@@ -52,7 +52,7 @@ export default {
   computed: {
     ...mapGetters(['uiVariant']),
     buttonColorHex() {
-      return "#999";
+      return "#AAA";
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
     },

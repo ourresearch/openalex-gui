@@ -1,5 +1,5 @@
 <template>
-  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start flex-grow-1 mb-1">
+  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start flex-grow-1">
 
     <!-- Path Label -->
     <span v-if="!isSentence" class="path-label number">
@@ -27,7 +27,7 @@
     <div class="leaf-content flex-grow-1">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
-        <template v-if="isFirstFilter">the&nbsp;</template>
+        <template v-if="isFirstFilter">the </template>
         <template v-else>
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
@@ -80,13 +80,13 @@
 
       <!-- The Filter Operator-->
       <span>
-        <span v-if="columnConfig.type === 'boolean'" class="px-1">is</span>
+        <span v-if="columnConfig.type === 'boolean'" class="mx-1">is</span>
         <v-menu v-else offset-y>
           <template v-slot:activator="{ on }">
             <v-chip
               text
               label
-              class="menu-chip px-1 pr-0 mx-1"
+              class="menu-chip"
               :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
               v-on="on" 
             >
@@ -342,7 +342,7 @@ export default {
       return (this.path.every(i => i === 0));
     },
     buttonColorHex() {
-      return "#999";
+      return "#aaa";
       const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
       return this.$vuetify.theme.themes.light[colorName];
     },
