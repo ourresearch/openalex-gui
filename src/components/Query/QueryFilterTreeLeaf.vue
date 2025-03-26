@@ -5,7 +5,7 @@
     <span v-if="!isSentence" class="path-label number">
       {{ pathLabel }}.
     </span>
-    <span v-else>
+    <span v-else-if="false">
       <v-menu offset-y>
         <template v-slot:activator="{ on }">
           <span class="path-label path-label-button number cursor-pointer" v-on="on">
@@ -115,7 +115,7 @@
       <!---- Entity Values -->
       <template v-if="columnConfig.objectEntity">
         <!-- Viewing Entity Value -->
-        <template v-if="selectedValue && !isEditingValue">
+        <span v-if="selectedValue && !isEditingValue">
           <query-filter-value-chip
             :column-config="columnConfig"
             :value="selectedValue"
@@ -125,7 +125,7 @@
             :is-sentence="isSentence"
             @click.native="restartEditingValue"
           />
-        </template>
+        </span>
         <!-- Editing Entity Value -->
         <template v-else>
           <!-- Labels -->
@@ -214,12 +214,14 @@
       </template>
 
       <!-- Boolean Values -->
-      <query-filter-value-chip v-else-if="columnConfig.type === 'boolean'"
-        :column-config="columnConfig"
-        :subject-entity="subjectEntity"
-        :value="selectedValue"
-        :is-sentence="isSentence"
-        @click="selectedValue = !selectedValue" />
+      <span v-else-if="columnConfig.type === 'boolean'">
+        <query-filter-value-chip
+          :column-config="columnConfig"
+          :subject-entity="subjectEntity"
+          :value="selectedValue"
+          :is-sentence="isSentence"
+          @click="selectedValue = !selectedValue" />
+      </span>
 
       <!-- Related to Text -->
       <div v-else-if="columnConfig.id === 'related_to_text'" class="related-to-text-wrapper">
@@ -517,7 +519,6 @@ export default {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  row-gap: 5px;
 }
 .path-label-button:hover {
   cursor: pointer;

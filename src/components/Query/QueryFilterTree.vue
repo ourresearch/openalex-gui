@@ -64,14 +64,16 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === 'sentence'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
-          found in
+          {{ isSentence ? 'found in' : 'Found in' }}
           {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">{{worksCount}}Works</v-chip>
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
         <!-- Entity Filters -->
         <template v-else>
+          {{ isSentence ? '' : 'Show' }}
+          {{ !isSentence && isEmpty ? 'all' : '' }}
           <query-summarize-by key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
@@ -83,7 +85,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-if="isWorks">
           {{ hasResults ? null : 'Find'}}
           {{ isEmpty && !hasResults ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">{{worksCount}}Works</v-chip>
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
@@ -119,7 +121,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         @setValue="setValue"
         @deleteFilter="deleteFilter"
         @groupWithAbove="groupWithAbove"
-        @ungroupFromAbove="ungroupFromAbove" />{{ isFinal && !isEmpty && uiVariant === 'sentence' ? '.' : '' }}
+        @ungroupFromAbove="ungroupFromAbove" />{{ isSentence && isFinal && !isEmpty && uiVariant === 'sentence' ? '.' : '' }}
       
       <div class="bottom-button-wrapper mt-2" v-if="isSentence">
         <query-filter-tree-button
@@ -214,11 +216,6 @@ export default {
     displayButtonInline() {
       return true;
       //return this.isEmpty && this.isWithAggs;
-    },
-    worksCount() {
-      if (!this.resultsMeta || !this.queryIsCompleted || this.isSearchCanceled || this.hasQueryChanged) { return null; }
-      const formatter = Intl.NumberFormat('en', { notation: 'compact' });
-      return formatter.format(this.resultsMeta.works_count) + " ";
     },
     borderColor() {
       const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;
@@ -582,7 +579,7 @@ export default {
   position: relative;
 }
 .query-filter-leaf {
-  line-height: 34px;
+  line-height: 28px;
   font-size: 15px;
   vertical-align: middle;
 }
@@ -601,13 +598,6 @@ export default {
 }
 .results-box .bottom-button-wrapper {
   margin-bottom: 10px;
-}
-.results-box .results-count {
-  font-size: 11px;
-  text-align: right;
-  margin-bottom: 5px;
-  align-self: flex-end;
-  color: #555;
 }
 .v-treeview-node__prepend {
   min-width: 0;

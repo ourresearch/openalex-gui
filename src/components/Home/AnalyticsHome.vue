@@ -7,7 +7,7 @@
       <div class="text-h3">
         Analytics
       </div>
-      <new-query-button button-text="Start a Query" :goTo="true" color="primary"/>
+      <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium"/>
       <v-spacer />
       <v-btn small color="white" to="/analytics-docs">
         <v-icon left >mdi-book-open-outline</v-icon>

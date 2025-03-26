@@ -99,5 +99,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.v-icon {
+  margin-left: 4px;
+}
 </style>
