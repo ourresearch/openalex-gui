@@ -339,6 +339,12 @@ const api = (function () {
 
     const getSearch = async function(searchId, options={}) {
         // Gets the status/results of an existing redshift query, routing to user api if needed
+        
+        if (!searchId) { 
+            console.log("!!! api.getSearch: received null ID");
+            return; 
+        }
+        
         let url = getSearchUrl(searchId);
 
         const params = new URLSearchParams();
