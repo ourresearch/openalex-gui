@@ -567,7 +567,7 @@ export default {
       a.click();
     },
     measureMetricColumns() {
-      if (this.uiVariant && this.uiVariant.includes("sentence")) { return; }
+      if (!this.uiVariant || !this.uiVariant.includes("sentence")) { return; }
         
       this.$nextTick(() => {
         const table = this.$refs.resultsTable.$el;

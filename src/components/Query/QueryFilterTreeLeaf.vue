@@ -265,6 +265,7 @@
           v-model="valueEditModel"
           dense
           outlined
+          class="query-builder-input flex-grow-1"
           :color="filterColor"
           hide-details
           autofocus
