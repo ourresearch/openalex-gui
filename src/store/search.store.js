@@ -101,6 +101,7 @@ export const search = {
             state.query = newQuery;
         },
         setFilterWorks(state, filters) {
+            console.log("setFilterWorks", filters)
             state.query.filter_works = filters;
         },
         setFilterAggs(state, filters) {

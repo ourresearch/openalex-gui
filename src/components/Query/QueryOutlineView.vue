@@ -10,6 +10,7 @@
       v-model="dialogOpen"
       content-class="query-outline-dialog"
       max-width="600px"
+      :retain-focus="false"
     >
       <v-card class="query-builder">
         <div class="pa-8 pb-0">
