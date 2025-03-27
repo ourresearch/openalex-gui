@@ -9,7 +9,7 @@
     <v-dialog
       v-model="dialogOpen"
       content-class="query-outline-dialog"
-      max-width="500px"
+      max-width="600px"
     >
       <v-card class="query-builder">
         <div class="pa-8 pb-0">

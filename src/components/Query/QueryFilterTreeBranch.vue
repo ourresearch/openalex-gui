@@ -1,7 +1,7 @@
 <template>
   <div class="query-filter-tree-branch">
     <template v-for="(item, index) in filters">
-      <span :key="'openParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#40;</span>
+      <span :key="'openParen' + index" v-if="isSentence && item.filters" class="no-space-paren">(&#x2060;</span>
       <query-filter-tree-branch 
         v-if="item.filters"
         :key="index"
@@ -17,7 +17,7 @@
         @groupWithAbove="(path) => $emit('groupWithAbove', path)"
         @ungroupFromAbove="(path) => $emit('ungroupFromAbove', path)"
       />
-      <span :key="'closeParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#41;</span>
+      <span :key="'closeParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#x2060;)</span>
 
       <query-filter-tree-leaf 
         v-if="!item.filters"
