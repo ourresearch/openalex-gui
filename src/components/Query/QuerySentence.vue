@@ -86,7 +86,7 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 8px;
+  padding-bottom: 2px;
   display: flex;
   justify-content: space-between;
 }
@@ -105,6 +105,9 @@ export default {
 } 
 .query-sentence * {
   text-indent: 0;
+}
+.sentence-buttons-box {
+  white-space: nowrap;
 }
 .sentence-buttons-box .v-btn {
   min-width: 20px !important;
@@ -125,7 +128,7 @@ export default {
   text-align: right;
   height: 28px;
   color: #666;
-  padding: 0 14px 0px 14px;
+  padding: 0 3px;
   align-self: end;
   white-space: nowrap;
   display: flex;
