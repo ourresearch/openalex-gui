@@ -19,7 +19,7 @@
       </template>
 
       <!-- Entity First -->
-      <template v-else-if="uiVariant === 'sentence'">
+      <template v-else>
         <!-- Entity Filters -->
         <query-filter-tree
           v-if="querySubjectEntity !== 'works'"
@@ -80,7 +80,7 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 5px;
+  padding-bottom: 15px;
   display: flex;
   justify-content: space-between;
 }
@@ -137,7 +137,7 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
-  min-width: 234px;
+  min-width: 205px;
 }
 .search-controls {
   padding: 0px 0px;

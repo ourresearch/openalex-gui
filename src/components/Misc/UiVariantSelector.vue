@@ -34,9 +34,9 @@ export default {
   data() {
     return {
       uiOptions: [
-        { value: null, text: 'Top Columns' },
-        { value: 'sentence', text: 'Sentence (Entity First)' },
+        { value: null, text: 'Sentence (Entity First)' },
         { value: 'sentence-worksfirst', text: 'Sentence (Works First)' },
+        { value: 'top', text: 'Top Columns' },
         { value: 'side', text: 'Side (Entity First)' },
         { value: 'worksfirst', text: 'Side (Works First)' }
       ]

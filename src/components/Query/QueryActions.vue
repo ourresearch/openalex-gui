@@ -1,5 +1,5 @@
 <template>
-  <div class="query-actions mb-2">
+  <div class="query-actions mb-1">
     <new-query-button x-small button-text="New Query" />
     
     <v-btn x-small :disabled="!selectedIds.length" @click="exportResults">

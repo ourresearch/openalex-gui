@@ -696,7 +696,7 @@ td:last-child {
   border-left-width: 3px;
   border-left-style: solid;
 }
-.results-box.ui-sentence th:first-child,
+.results-box th:first-child,
 .results-box.ui-sentence-worksfirst th:first-child {
   border-left: none;
 }

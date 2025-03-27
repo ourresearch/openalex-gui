@@ -42,7 +42,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       </template>
 
       <!-- Top Columns UI -->
-      <template v-else-if="uiVariant === null">
+      <template v-else-if="uiVariant === 'top'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
           Analyzing
@@ -61,7 +61,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       </template>
 
       <!-- Sentence UI - Entity First -->
-      <template v-else-if="uiVariant === 'sentence'">
+      <template v-else-if="uiVariant === null">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
           {{ isSentence ? 'from' : 'From' }}
@@ -100,12 +100,12 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
     </span>
     
     <span 
-      :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === 'sentence'}" 
+      :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === null}" 
       v-if="!isSentence && hasAvailableFilters"
     >
       <query-filter-tree-button
         :subject-entity="subjectEntity"
-        :text="uiVariant === 'sentence' ? '' : 'Filter'"
+        :text="uiVariant === null ? '' : 'Filter'"
         @addFilter="addFilter" />
     </span>
 
@@ -122,7 +122,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         @setValue="setValue"
         @deleteFilter="deleteFilter"
         @groupWithAbove="groupWithAbove"
-        @ungroupFromAbove="ungroupFromAbove" />{{ isSentence && isFinal && !isEmpty && uiVariant === 'sentence' ? '.' : '' }}
+        @ungroupFromAbove="ungroupFromAbove" />{{ isSentence && isFinal && !isEmpty ? '.' : '' }}
       
       <div class="bottom-button-wrapper mt-2" v-if="isSentence">
         <query-filter-tree-button
@@ -131,7 +131,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
           @addFilter="addFilter" />
       </div>
 
-      <template v-if="!uiVariant">
+      <template v-if="uiVariant=== 'top'">
         <div class="results-count" v-if="!hasQueryChanged  && !isSearchCanceled && queryIsCompleted">
           <span v-if="subjectEntity === 'works' && isWithAggs || subjectEntity === 'summary'">
             Analyzing 
