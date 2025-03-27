@@ -25,7 +25,7 @@ const stateDefaults = function () {
         redshift_sql: null,
         selectedIds: [],
         pageTitle: null,
-        searchCanceled: false,
+        isSearchCanceled: false,
         metricsColumnPercentage: 40,
     };
     return ret;
@@ -84,8 +84,8 @@ export const search = {
         setBackendError(state, error) {
             state.backend_error = error;
         },
-        setSearchCanceled(state, value) {
-            state.searchCanceled = value;
+        setIsSearchCanceled(state, value) {
+            state.isSearchCanceled = value;
         },
         setPageTitle(state, pageTitle) {
             state.pageTitle = pageTitle;
@@ -290,7 +290,7 @@ export const search = {
         queryIsCompleted: (state) => state.is_completed,
         queryBackendError: (state) => state.backend_error,
         isQuerySingleRow: (state) => state.query.get_rows === "summary",
-        isSearchCanceled: (state) => state.searchCanceled,
+        isSearchCanceled: (state) => state.isSearchCanceled,
         hasResults: (state, getters) => !getters.hasQueryChanged && !getters.isSearchCanceled && getters.queryIsCompleted,
         selectedIds: (state) => state.selectedIds,
         metricsColumnPercentage: (state) => state.metricsColumnPercentage,

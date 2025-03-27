@@ -1,13 +1,10 @@
 <template>
-  <div class="query-actions mb-1">
-    <new-query-button x-small button-text="New Query" />
-    
-    <v-btn x-small :disabled="!selectedIds.length" @click="exportResults">
-      <v-icon x-small>mdi-tray-arrow-down</v-icon>
-      Download
+  <span class="query-actions mb-1">    
+    <v-btn small icon :disabled="!selectedIds.length" @click="exportResults">
+      <v-icon small>mdi-tray-arrow-down</v-icon>
     </v-btn>
 
-    <label-menu :icon="false" :selectedIds="fullSelectedIds" />
+    <label-menu :icon="true" :selectedIds="fullSelectedIds" />
 
     <!--
     <v-btn v-if="querySubjectEntity === 'works'" small :disabled="!selectedIds.length"
@@ -16,7 +13,7 @@
     </v-btn>
     -->
 
-  </div>
+  </span>
 </template>
 
 
