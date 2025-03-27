@@ -464,8 +464,10 @@ export default {
       //console.log("onInputBlur", this.valueEditModel);
       if (this.valueEditModel) {
         this.saveEditingValue(this.valueEditModel);
-      } else {
+      } else if (this.value) {
         this.cancelEditingValue();
+      } else {
+        this.deleteFilter();
       }
     },
     groupWithAbove() {
