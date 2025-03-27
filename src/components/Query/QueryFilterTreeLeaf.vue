@@ -116,7 +116,7 @@
       <template v-if="columnConfig.objectEntity">
         <!-- Viewing Entity Value -->
         <span v-if="selectedValue && !isEditingValue">
-          <hover-menu-wrapper @action-click="deleteFilter">
+          <hover-menu-wrapper @action-click="deleteFilter" :active="isSentence">
             <query-filter-value-chip
               :column-config="columnConfig"
               :value="selectedValue"
@@ -217,7 +217,7 @@
 
       <!-- Boolean Values -->
       <span v-else-if="columnConfig.type === 'boolean'">
-        <hover-menu-wrapper @action-click="deleteFilter">
+        <hover-menu-wrapper @action-click="deleteFilter" :active="isSentence">
           <query-filter-value-chip
             :column-config="columnConfig"
             :subject-entity="subjectEntity"
