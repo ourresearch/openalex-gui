@@ -116,15 +116,17 @@
       <template v-if="columnConfig.objectEntity">
         <!-- Viewing Entity Value -->
         <span v-if="selectedValue && !isEditingValue">
-          <query-filter-value-chip
-            :column-config="columnConfig"
-            :value="selectedValue"
-            :is-label-filter="isLabelFilter"
-            :is-editable="true"
-            :subject-entity="subjectEntity"
-            :is-sentence="isSentence"
-            @click.native="restartEditingValue"
-          />
+          <hover-menu-wrapper @action-click="deleteFilter">
+            <query-filter-value-chip
+              :column-config="columnConfig"
+              :value="selectedValue"
+              :is-label-filter="isLabelFilter"
+              :is-editable="true"
+              :subject-entity="subjectEntity"
+              :is-sentence="isSentence"
+              @click.native="restartEditingValue"
+            />
+          </hover-menu-wrapper>
         </span>
         <!-- Editing Entity Value -->
         <template v-else>
@@ -215,12 +217,14 @@
 
       <!-- Boolean Values -->
       <span v-else-if="columnConfig.type === 'boolean'">
-        <query-filter-value-chip
-          :column-config="columnConfig"
-          :subject-entity="subjectEntity"
-          :value="selectedValue"
-          :is-sentence="isSentence"
-          @click="selectedValue = !selectedValue" />
+        <hover-menu-wrapper @action-click="deleteFilter">
+          <query-filter-value-chip
+            :column-config="columnConfig"
+            :subject-entity="subjectEntity"
+            :value="selectedValue"
+            :is-sentence="isSentence"
+            @click="selectedValue = !selectedValue" />
+        </hover-menu-wrapper>
       </span>
 
       <!-- Related to Text -->
@@ -291,12 +295,14 @@ import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 import axios from "axios";
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
 import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
+import HoverMenuWrapper from "@/components/Misc/HoverMenuWrapper.vue";
 
 export default {
   name: "QueryFilterTreeLeaf",
   components: {
     QueryFilterValueChip,
     EntityAutocomplete,
+    HoverMenuWrapper,
   },
   props: {
     column_id: String,
