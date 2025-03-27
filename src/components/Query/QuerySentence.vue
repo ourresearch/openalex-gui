@@ -36,7 +36,9 @@
         </template>
       </div>
       <div class="search-controls-box">
-        <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
+        <span class="search-controls">
+          <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
+        </span>
         <query-outline-view class="ml-1"/>
       </div>
     </div>
@@ -135,8 +137,11 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
+  min-width: 234px;
 }
 .search-controls {
   padding: 0px 0px;
+  flex-grow: 1;
+  text-align: left;
 }
 </style>

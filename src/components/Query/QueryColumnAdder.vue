@@ -1,43 +1,99 @@
 <template>
-  <!-- Column Add Button/Menu -->
-  <v-menu v-model="isMenuOpen" offset-y rounded max-height="50vh">
-    <template v-slot:activator="{ on }">
-      <v-btn icon v-on="on">
+  <div>
+    <!-- Menu Mode -->
+    <template v-if="mode === 'menu'">
+      <v-menu v-model="isMenuOpen" offset-y rounded max-height="50vh">
+        <template v-slot:activator="{ on }">
+          <v-btn icon v-on="on">
+            <v-icon>mdi-plus-circle</v-icon>
+          </v-btn>
+        </template>
+        <v-card flat rounded>
+          <v-text-field
+            v-model="columnSearch"
+            filled
+            rounded
+            background-color="white"
+            prepend-inner-icon="mdi-magnify"
+            hide-details
+            autofocus
+            :placeholder="'Add ' + buttonText"
+          />
+          <v-divider/>
+          <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
+            <v-list-item
+              v-for="column in filteredColumns"
+              :key="column.column_id"
+              @click="toggleColumn(column)"
+            >
+              <v-list-item-icon>
+                <v-icon>{{ column.icon }}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                {{ column.displayName | titleCase }}
+              </v-list-item-title>
+              <v-spacer />
+              <v-list-item-icon v-if="query.show_columns.includes(column.column_id)">
+                <v-icon>mdi-check</v-icon>
+              </v-list-item-icon>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </template>
+    
+    <!-- Dialog Mode -->
+    <template v-else>
+      <!-- Button to open dialog -->
+      <v-btn icon @click="openDialog">
         <v-icon>mdi-plus-circle</v-icon>
       </v-btn>
+      
+      <!-- Column selection dialog -->
+      <v-dialog v-model="isDialogOpen" max-width="600">
+        <v-card>
+          <v-card-title class="headline">
+            {{ buttonText }}s
+          </v-card-title>
+          
+          <v-divider></v-divider>
+          
+          <v-card-text style="max-height: 400px; overflow-y: auto; padding: 16px 8px;">
+            <v-container fluid class="pa-0">
+              <v-row class="ma-0">
+                <v-col
+                  v-for="column in availableColumns"
+                  :key="column.column_id"
+                  cols="4"
+                  class="py-1"
+                >
+                  <v-chip
+                    @click="toggleColumnSelection(column.column_id)"
+                    :color="isColumnSelected(column.column_id) ? color : undefined"
+                    :class="['column-chip', {'unselected-chip': !isColumnSelected(column.column_id)}]"
+                    height="32"
+                    :style="{ minHeight: '32px' }"
+                    text-color="black"
+                  >
+                    <v-icon size="16" left>{{ column.icon }}</v-icon>
+                    <span class="text-truncate column-option">{{ column.displayName | titleCase }}</span>
+                  </v-chip>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          
+          <v-divider></v-divider>
+          
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="cancelDialog">Cancel</v-btn>
+            <v-btn color="primary" @click="applyChanges">Apply</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
-    <v-card flat rounded>
-      <v-text-field
-        v-model="columnSearch"
-        filled
-        rounded
-        background-color="white"
-        prepend-inner-icon="mdi-magnify"
-        hide-details
-        autofocus
-        :placeholder="'Add ' + buttonText"
-      />
-      <v-divider/>
-      <v-list class="py-0" style="max-height: calc(50vh - 56px); overflow-y: scroll;">
-        <v-list-item
-          v-for="column in filteredColumns"
-          :key="column.column_id"
-          @click="toggleColumn(column)"
-        >
-          <v-list-item-icon>
-            <v-icon>{{ column.icon }}</v-icon>
-          </v-list-item-icon>
-          <v-list-item-title>
-            {{ column.displayName | titleCase }}
-          </v-list-item-title>
-          <v-spacer />
-          <v-list-item-icon v-if="query.show_columns.includes(column.column_id)">
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
-        </v-list-item>
-      </v-list>
-    </v-card>
-  </v-menu>
+  </div>
 </template>
 
 <script>
@@ -51,12 +107,20 @@ export default {
       type: String,
       default: "data",
       validator: value => ["data", "metrics"].includes(value)
+    },
+    mode: {
+      type: String,
+      default: "menu",
+      validator: value => ["menu", "dialog"].includes(value)
     }
   },
   data() {
     return {
       isMenuOpen: false,
-      columnSearch: ""
+      isDialogOpen: false,
+      columnSearch: "",
+      selectedColumns: [],
+      originalColumns: []
     }
   },
   computed: {
@@ -129,7 +193,74 @@ export default {
     removeColumn(column) {
       this.deleteReturnColumn(column.column_id);
       this.createSearch();
+    },
+    toggleColumnSelection(columnId) {
+      if (this.selectedColumns.includes(columnId)) {
+        this.selectedColumns = this.selectedColumns.filter(id => id !== columnId);
+      } else {
+        this.selectedColumns.push(columnId);
+      }
+    },
+    isColumnSelected(columnId) {
+      return this.selectedColumns.includes(columnId);
+    },
+    openDialog() {
+      // Initialize selected columns with current selection
+      this.selectedColumns = [...this.query.show_columns];
+      this.originalColumns = [...this.query.show_columns];
+      this.isDialogOpen = true;
+    },
+    cancelDialog() {
+      this.isDialogOpen = false;
+    },
+    applyChanges() {
+      // Determine which columns to add and which to remove
+      const columnsToAdd = this.selectedColumns.filter(
+        colId => !this.originalColumns.includes(colId)
+      );
+      const columnsToRemove = this.originalColumns.filter(
+        colId => !this.selectedColumns.includes(colId)
+      );
+      
+      // Apply changes
+      columnsToAdd.forEach(colId => this.addReturnColumn(colId));
+      columnsToRemove.forEach(colId => this.deleteReturnColumn(colId));
+      
+      // Only create search once after all changes are applied
+      if (columnsToAdd.length > 0 || columnsToRemove.length > 0) {
+        this.createSearch();
+      }
+      
+      this.isDialogOpen = false;
     }
   }
 };
 </script>
+
+<style scoped>
+.column-option {
+  font-size: 14px;
+}
+
+.column-chip {
+  width: 100%;
+  justify-content: flex-start;
+  margin: 0;
+  font-weight: normal;
+}
+
+.column-chip .v-chip__content {
+  overflow: hidden;
+  width: 100%;
+}
+
+.unselected-chip {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.unselected-chip:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+</style>

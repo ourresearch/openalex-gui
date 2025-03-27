@@ -96,7 +96,7 @@
             
             <!-- Column adder header -->
             <template v-else-if="header.id === 'columnAdderData' || header.id === 'columnAdderMetric'">
-              <query-column-adder :display="header.display" />
+              <query-column-adder mode="dialog":display="header.display" />
             </template>
             
             <!-- Regular data column header -->
