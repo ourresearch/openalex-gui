@@ -37,34 +37,6 @@
     </div>
 
     <div>
-      <!-- Row Selection Message -->
-      <div class="selection-message mx-5"
-        v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
-      >
-        <template v-if="isEntireSearchSelected">
-          All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
-          <v-btn
-            text
-            color="primary"
-            rounded
-            @click="unselectAll"
-          >
-            Clear selection
-          </v-btn>
-        </template>
-        <template v-else>
-          All <span class="font-weight-bold">{{ selectedIds.length }}</span> results on this page are selected.
-          <v-btn
-            text
-            color="primary"
-            rounded
-            @click="isEntireSearchSelected = true"
-          >
-            Select all {{ resultsMeta?.count | millify }} results
-          </v-btn>
-        </template>
-      </div>
-
       <!-- Results Table -->
       <v-simple-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
         <thead>
@@ -171,6 +143,38 @@
         </tbody>
 
         <tbody v-else>
+                <!-- Row Selection Message -->
+          <tr class="selection-message mx-5"
+            v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
+          >
+            <td colspan="100%">
+              <template v-if="isEntireSearchSelected">
+                All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
+                <v-btn
+                  text
+                  small
+                  color="primary"
+                  rounded
+                  @click="unselectAll"
+                >
+                  Clear selection
+                </v-btn>
+              </template>
+              <template v-else>
+                All <span class="font-weight-bold">{{ selectedIds.length }}</span> results on this page are selected.
+                <v-btn
+                  text
+                  small
+                  color="primary"
+                  rounded
+                  @click="isEntireSearchSelected = true"
+                >
+                  Select all {{ resultsMeta?.count | millify }} results
+                </v-btn>
+              </template>
+            </td>
+          </tr>
+          
           <!-- Results Rows -->
           <tr
             v-for="(row, i) in rows"
@@ -222,15 +226,6 @@
       </v-card>
 
     </div>
-
-    <!-- DownloadDialogs -->
-    <v-dialog v-model="isDownloadDialogOpen" width="500">
-      <download-dialog 
-        :resultsCount="resultsMeta?.count" 
-        :isOpen="isDownloadDialogOpen"
-        @close="isDownloadDialogOpen = false"
-         />
-    </v-dialog>
 
     <!-- Correction Dialog -->
     <v-dialog v-model="isCorrectionDialogOpen" width="500">
@@ -492,6 +487,7 @@ export default {
       "setSortBy",
       "setMetricsColumnPercentage",
       "setSelectedIds",
+      "setEntireSearchSelected",
     ]),
     ...mapActions("search", [
       "createSearch",
@@ -642,6 +638,12 @@ export default {
         this.setSelectedIds(newIds);
       },
       deep: true
+    },
+    isEntireSearchSelected: {
+      handler(value) {
+        this.setEntireSearchSelected(value);
+      },
+      deep: true
     }
   }
 }
@@ -651,7 +653,8 @@ export default {
 <style lang="scss">
 .selection-message {
   font-size: 14px;
-  line-height: 28px;;
+  line-height: 22px;
+  background-color: #f5f5f5;
 }
 .results-box .selection-message {
   padding: 10px 10px;
