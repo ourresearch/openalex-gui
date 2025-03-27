@@ -1,6 +1,6 @@
 <template>
   <div class="query-actions mb-2">
-    <new-query-button x-small button-text="New Query"/>
+    <new-query-button x-small button-text="New Query" />
     
     <v-btn x-small :disabled="!selectedIds.length" @click="exportResults">
       <v-icon x-small>mdi-tray-arrow-down</v-icon>
@@ -19,13 +19,13 @@
   </div>
 </template>
 
+
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import { entity } from "@/entity";
 import * as oaxSearch from "@/oaxSearch";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
-
 
 export default {
   name: "QueryActions",

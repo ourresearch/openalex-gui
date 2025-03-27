@@ -1,7 +1,7 @@
 <template>
-  <div class="query-outline-view">
+  <span class="query-outline-view">
     <!-- Button that opens the dialog -->
-    <v-btn class="query-outline-button" color="catPurple"x-small @click="openDialog">
+    <v-btn small class="query-outline-button" color="catPurple" @click="openDialog">
       <v-icon small>mdi-format-list-bulleted</v-icon>
     </v-btn>
 
@@ -40,7 +40,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
+  </span>
 </template>
 
 <script>
@@ -85,8 +85,6 @@ export default {
 
 <style lang="scss">
 .query-outline-button.v-btn {
-  width: 20px;
-  margin-left: 4px;
   min-width: 20px !important;
 }
 </style>

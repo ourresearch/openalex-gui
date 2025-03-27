@@ -66,7 +66,7 @@
       </div>
 
       <!-- Results Table -->
-      <v-simple-table class="mx-5 mb-5" ref="resultsTable">
+      <v-simple-table ref="resultsTable" :class="['mx-5', 'mb-5', {'dimmed': hasQueryChanged}]">
         <thead>
           <!-- Render all headers based on their type -->
           <th 
@@ -155,10 +155,9 @@
           </th>
         </thead>
       
-        <tbody v-if="hasQueryChanged || isSearchCanceled || !queryIsCompleted">
+        <tbody v-if="isSearchCanceled || !queryIsCompleted">
           <tr class="search-controls-row">
             <td colspan="100%">
-              <query-search-controls  v-if="hasQueryChanged || isSearchCanceled || queryBackendError" />
               <results-error v-if="queryBackendError" />
               <results-searching v-else-if="!queryIsCompleted" />
             </td>
@@ -171,7 +170,6 @@
           <tr
             v-for="(row, i) in rows"
             :key="'row-'+i"
-            :class="{'dimmed': hasQueryChanged}"
             @click.exact="clickRow(row.id)"
             @click.meta.stop="metaClickRow(row.id)"
           >
@@ -390,7 +388,7 @@ export default {
       ];
       
       // Get data columns
-      const dataColumns = this.queryColumnsConfigs.slice();
+      const dataColumns = this.resultsHeader.slice();
       
       // Find first metric column index
       const firstMetricIndex = dataColumns.findIndex(col => col.id && col.id.includes('('));
@@ -551,10 +549,12 @@ export default {
     removeColumn(id) {
       console.log("removeColumn", id);
       this.deleteReturnColumn(id);
+      this.createSearch();
     },
     addColumn(id) {
       console.log("addColumn", id);
       this.addReturnColumn(id);
+      this.createSearch();
     },
     exportResults() {
       if (this.isEntireSearchSelected) {
@@ -652,21 +652,6 @@ export default {
 
 
 <style lang="scss">
-.search-controls-row {
-  background-color: #fbfbfb !important;
-}
-.search-controls-row:hover {
-  background-color: #fbfbfb !important;
-}
-.search-controls-row td {
-  height: 500px !important;
-  vertical-align: top;
-}
-.search-controls {
-  padding: 90px 0px;
-  text-align: center;
-  background-color: transparent !important;
-}
 .selection-message {
   font-size: 14px;
   line-height: 28px;;
@@ -795,7 +780,9 @@ a {
   text-decoration: none;
 }
 .dimmed {
-  opacity: 0.4;
+  pointer-events: none;
+  opacity: 0.6;
+  user-select: none;    
 }
 .more-results-message {
   padding: 20px;

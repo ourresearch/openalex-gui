@@ -64,7 +64,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === 'sentence'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
-          {{ isSentence ? 'found in' : 'Found in' }}
+          {{ isSentence ? 'from' : 'From' }}
           {{ isEmpty ? ' all' : '' }}
           <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
@@ -568,6 +568,7 @@ export default {
 }
 .query-section-label {
   font-size: 20px;
+  vertical-align: middle;
 }
 .query-wrapper {
   padding: 0px 0px 0px 15px;
@@ -576,13 +577,12 @@ export default {
   border-radius: 0px !important;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 .query-filter-leaf {
-  line-height: 28px;
+  line-height: 1.6;
   font-size: 15px;
   vertical-align: middle;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 .path-label {
   margin-right: 5px;
