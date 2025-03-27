@@ -1,7 +1,7 @@
 <template>
   <div class="results-count-box">
     <span class="results-count" v-if="hasResults">
-      Found
+
       {{ resultsMeta?.count > 10000 ? "about " : "" }}
       {{ resultsMeta?.count | toPrecision }}
       {{ querySubjectEntity | pluralize }}

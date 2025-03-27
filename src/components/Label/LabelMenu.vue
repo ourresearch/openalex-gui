@@ -3,7 +3,7 @@
     <v-menu max-width="400px">
       <template v-slot:activator="{ on }">
         <v-btn small :icon="icon" v-on="on" :disabled="!selectedIds.length">
-          <v-icon small>mdi-tag-outline</v-icon>
+          <v-icon small >mdi-tag-outline</v-icon>
           <span v-if="!icon">Labels</span>
         </v-btn>
       </template>

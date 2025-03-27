@@ -1,7 +1,7 @@
 <template>
   <span class="query-actions mb-1">    
-    <v-btn small icon :disabled="!selectedIds.length" @click="exportResults">
-      <v-icon small>mdi-tray-arrow-down</v-icon>
+    <v-btn small icon dense :disabled="!selectedIds.length" @click="exportResults">
+      <v-icon small >mdi-tray-arrow-down</v-icon>
     </v-btn>
 
     <label-menu :icon="true" :selectedIds="fullSelectedIds" />
@@ -94,6 +94,6 @@ export default {
   text-align: right;
 }
 .query-actions * {
-  margin-left: 4px;
+  
 }
 </style>
