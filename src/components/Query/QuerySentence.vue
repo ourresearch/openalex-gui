@@ -125,13 +125,13 @@ export default {
   text-align: right;
   height: 28px;
   color: #666;
-  padding: 0 3px 4px 3px;
+  padding: 0 14px 0px 14px;
   align-self: end;
   white-space: nowrap;
   display: flex;
   flex-grow: 1;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
 }
 .query-sentence .query-filter-tree,
 .query-sentence .query-filter-tree > div,
