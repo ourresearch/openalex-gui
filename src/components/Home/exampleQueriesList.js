@@ -645,9 +645,9 @@ const exampleQueries = [
       show_columns: [
         "display_name",
         "count(works)",
-        "mean(fwci)"
+        "sum(citations)"
       ],
-      sort_by_column: "mean(fwci)",
+      sort_by_column: "sum(citations)",
       sort_by_order: "desc"
     }
   },
