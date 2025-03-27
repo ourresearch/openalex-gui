@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapActions } from "vuex";
 import { getConfigs } from "@/oaxConfigs";
 
 export default {
@@ -110,7 +110,10 @@ export default {
   methods: {
     ...mapMutations("search", [
       "addReturnColumn",
-      "deleteReturnColumn"
+      "deleteReturnColumn",
+    ]),
+    ...mapActions("search", [
+      "createSearch"
     ]),
     toggleColumn(column) {
       if (this.query.show_columns.includes(column.column_id)) {
@@ -121,9 +124,11 @@ export default {
     },
     addColumn(column) {
       this.addReturnColumn(column.column_id);
+      this.createSearch();
     },
     removeColumn(column) {
       this.deleteReturnColumn(column.column_id);
+      this.createSearch();
     }
   }
 };

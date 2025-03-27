@@ -1,10 +1,11 @@
 <template>
-  <div class="query-sentence-box">
-    <div class="query-sentence">
-      <!-- Work First -->
-      <template v-if="uiVariant === 'sentence-worksfirst'">
-        <!-- Works Filters -->
-        <query-filter-tree
+  <div>
+    <div class="query-sentence-box">
+      <div class="query-sentence">
+        <!-- Work First -->
+        <template v-if="uiVariant === 'sentence-worksfirst'">
+          <!-- Works Filters -->
+          <query-filter-tree
           subject-entity="works"
           :isWithAggs="querySubjectEntity !== 'works'"
           :filters="query.filter_works"
@@ -32,8 +33,12 @@
           :isWithAggs="querySubjectEntity !== 'works'"
           :filters="query.filter_works"
           :is-sentence="true" />
-      </template>
-      <query-outline-view />
+        </template>
+      </div>
+      <div class="search-controls-box">
+        <query-search-controls v-if="hasQueryChanged"/>
+        <query-outline-view class="ml-1"/>
+      </div>
     </div>
     <query-results-count />
   </div>
@@ -44,19 +49,24 @@ import {mapGetters} from "vuex";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryOutlineView from "@/components/Query/QueryOutlineView.vue";
 import QueryResultsCount from "@/components/Query/QueryResultsCount.vue";
+import QueryActions from "@/components/Query/QueryActions.vue";
+import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
 
 export default {
   name: "QuerySentence",
   components: {
     QueryFilterTree,
+    QuerySearchControls,
     QueryOutlineView,
     QueryResultsCount,
+    QueryActions
   },
   computed: {
     ...mapGetters(["uiVariant"]),
     ...mapGetters("search",[
       "query",
       "querySubjectEntity",
+      "hasQueryChanged",
     ]),
     isWorks() { 
       return ['works', 'summary'].includes(this.querySubjectEntity);
@@ -81,14 +91,16 @@ export default {
 .query-sentence * {
   text-indent: 0;
 }
-.query-sentence-box .results-count {
-  flex-grow: 1;
-  font-size: 12px;
+.results-count {
+  font-size: 11px;
   text-align: right;
+  height: 20px;
   color: #444;
-  padding: 0 5px 0px 5px;
+  padding: 0 7px 2px 7px;
   align-self: end;
   white-space: nowrap;
+  display: flex;
+  justify-content: space-between;
 }
 .query-sentence .query-filter-tree,
 .query-sentence .query-filter-tree > div,
@@ -114,5 +126,16 @@ export default {
 }
 .query-sentence .path-label {
   margin-right: 0;
+}
+.search-controls-box {
+  padding-top: 4px;
+  white-space: nowrap;
+  text-align: right;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.search-controls {
+  padding: 0px 0px;
 }
 </style>
