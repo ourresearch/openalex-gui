@@ -60,7 +60,6 @@ export default {
       isPropSelectorDialogOpen: false,
       isOqlEditDialogOpen: false,
       oql: "",
-      resetSearchFromTextDialog: false,
       cards: [
         "oql",
         "queryJson",
@@ -69,7 +68,8 @@ export default {
         "oql",
         "queryJson",
       ],
-      pollCount: 0
+      pollCount: 0,
+      pollTimer: null,
     }
   },
   computed: {
@@ -132,7 +132,7 @@ export default {
         is_polling: true,
       });
       this.pollCount++;
-      setTimeout(() => {
+      this.pollTimer = setTimeout(() => {
         //console.log("polling search")
         this.pollSearch();
       }, 500);
@@ -143,7 +143,12 @@ export default {
       } else {
         this.resetToSubmittedQuery();
       }
-    }
+    },
+    cancelPollTimer() {
+      if (this.pollTimer) {
+        clearTimeout(this.pollTimer);
+      }
+    },
   },
   created() {
     this.loadFromLocalStorage();
@@ -152,10 +157,14 @@ export default {
   },
   mounted() {
   },
+  beforeDestroy() {
+    this.cancelPollTimer();
+  },
   watch: {
     "$route.params.id": {
       handler: async function (id) {
         if (!id) { return; }
+        this.cancelPollTimer();
         await this.getSearch({id, is_polling: !this.isInitialLoad});
         this.pollCount = 0;
         this.pollSearch();

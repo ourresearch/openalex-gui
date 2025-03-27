@@ -128,7 +128,7 @@ export default {
   text-align: right;
   height: 28px;
   color: #666;
-  padding: 0 3px;
+  padding: 0 5px;
   align-self: end;
   white-space: nowrap;
   display: flex;
