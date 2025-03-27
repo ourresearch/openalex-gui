@@ -113,11 +113,18 @@ export const search = {
         },
         addReturnColumn(state, columnId) {
             if (!state.query.show_columns.includes(columnId)) {
-                state.query.show_columns.push(columnId)
-                state.query.show_columns.sort((a, b) => 
-                    // Sort metrics columns to the end
-                    (a.includes("(") - b.includes("(")) || a.localeCompare(b)
-                );
+                // Separate data and metrics columns
+                const dataColumns = state.query.show_columns.filter(col => !col.includes("("));
+                const metricsColumns = state.query.show_columns.filter(col => col.includes("("));
+                
+                // Add new column to the appropriate group
+                if (columnId.includes("(")) {
+                    metricsColumns.push(columnId);
+                } else {
+                    dataColumns.push(columnId);
+                }
+                const newColumns = [...dataColumns, ...metricsColumns];
+                state.query.show_columns = newColumns;
             }
         },
         deleteReturnColumn(state, columnId) {
