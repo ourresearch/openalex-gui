@@ -52,7 +52,7 @@
   <!-- Top UI-->
   <v-card v-else flat rounded class="query-builder mb-0 px-5 pt-2 pb-0">
     <query-actions />
-    <template v-if="['sentence', 'sentence-worksfirst'].includes(uiVariant)">
+    <template v-if="!uiVariant || uiVariant === 'sentence-worksfirst'">
       <QuerySentence />
     </template>
 
