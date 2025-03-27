@@ -376,6 +376,7 @@ export default {
       return this.pathLabel.split(".").length;
     },
     indentationStyle() {
+      if (this.isSentence) { return {}; }
       return {
         paddingLeft: `${((this.indendationLevel-1) * 15)}px`
       };
