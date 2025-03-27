@@ -2,7 +2,7 @@
   <v-chip
     label
     class="menu-chip"
-    :style="{'font-size': '30px', 'border-bottom-color': buttonColorHex}"
+    :style="{'border-bottom-color': buttonColorHex}"
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">

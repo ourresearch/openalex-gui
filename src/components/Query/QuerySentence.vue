@@ -78,7 +78,7 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 10px;
+  padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
 }
@@ -96,7 +96,7 @@ export default {
   font-size: 11px;
   text-align: right;
   height: 20px;
-  color: #444;
+  color: #666;
   padding: 0 7px 2px 7px;
   align-self: end;
   white-space: nowrap;
@@ -117,10 +117,10 @@ export default {
   margin: 0;
   padding: 0;
 }
-/*.query-sentence .query-section-label,
+.query-sentence .query-section-label,
 .query-sentence .query-filter-leaf {
   white-space: nowrap;
-}*/
+}
 .query-sentence .query-builder-input {
   display: inline-block !important;
   width: 250px;

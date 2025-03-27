@@ -180,13 +180,15 @@ export default {
 }
 .query-builder .menu-chip {
   cursor: pointer;
-  font-size: 15px !important; 
   background-color: transparent !important;
   border-bottom: 1px solid;
   border-radius: 0 !important;
   padding: 0px 0px !important;
   margin: 0 3px;
   height: 20px !important;
+}
+.query-builder .menu-chip .v-icon {
+  margin-right: -4px;
 }
 .query-builder-input.v-text-field .v-input__control .v-input__slot {
     min-height: auto !important;
@@ -212,6 +214,6 @@ export default {
 }
 .section-divider.clear {
   border: none;
-  margin: 30px 0;
+  margin: 20px 0;
 }
 </style>
