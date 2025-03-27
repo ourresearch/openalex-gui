@@ -277,19 +277,15 @@ export default {
     },
     addColumn(column) {
       this.addReturnColumn(column.column_id);
-      this.createSearch();
     },
     removeColumn(column) {
       this.deleteReturnColumn(column.column_id);
-      this.createSearch();
     },
     setSortByColumn(column) {
       this.setSortBy({column_id: column, direction: this.query.sort_by_order });
-      this.createSearch();
    },
     setOrder(order) {
       this.setSortBy({column_id: this.query.sort_by_column, direction: order });
-      this.createSearch();
     },
   },
   mounted() {

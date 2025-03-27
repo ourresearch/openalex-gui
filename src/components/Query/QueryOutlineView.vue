@@ -17,10 +17,19 @@
             :subject-entity="querySubjectEntity"
             :filters="query.filter_aggs" />
 
+          <query-columns-controls 
+            v-if="querySubjectEntity !== 'works'"
+            :isExpanded="query.filter_aggs.length > 0"
+            :show-sections="['display']" />
+
           <query-filter-tree
             subject-entity="works"
             :isWithAggs="querySubjectEntity !== 'works'"
             :filters="query.filter_works" />
+
+          <query-columns-controls
+            :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
+            :isExpanded="query.filter_works.length > 0" />
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -46,11 +55,13 @@
 <script>
 import {mapGetters, mapActions} from "vuex";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
+import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 
 export default {
   name: "QueryOutlineView",
   components: {
-    QueryFilterTree
+    QueryFilterTree,
+    QueryColumnsControls
   },
   data() {
     return {

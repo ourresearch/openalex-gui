@@ -452,7 +452,7 @@ export default {
       return this.queryColumnsConfigs.some(col => col.id.includes('('));
     },
     isEveryRowSelected() {
-      return this.selectedIds.length === this.resultsBody.length;
+      return this.selectedIds.length > 0 && this.selectedIds.length === this.resultsBody.length;
     },
     selectAllIcon() {
       if (this.isEveryRowSelected) {
@@ -778,6 +778,9 @@ th button {
 }
 a {
   text-decoration: none;
+}
+.search-controls-row:hover {
+  background-color: inherit !important;
 }
 .dimmed {
   pointer-events: none;

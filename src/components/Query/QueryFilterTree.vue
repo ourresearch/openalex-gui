@@ -116,6 +116,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         :join-operator="rootJoin"
         :subject-entity="subjectEntity"
         :is-sentence="isSentence"
+        :is-root="true"
         @setJoinOperator="setJoinOperator"
         @setOperator="setOperator"
         @setValue="setValue"

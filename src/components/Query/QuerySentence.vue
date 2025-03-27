@@ -36,7 +36,7 @@
         </template>
       </div>
       <div class="search-controls-box">
-        <query-search-controls v-if="hasQueryChanged"/>
+        <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
         <query-outline-view class="ml-1"/>
       </div>
     </div>
@@ -67,6 +67,7 @@ export default {
       "query",
       "querySubjectEntity",
       "hasQueryChanged",
+      "isSearchCanceled",
     ]),
     isWorks() { 
       return ['works', 'summary'].includes(this.querySubjectEntity);

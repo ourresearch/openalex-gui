@@ -1,6 +1,5 @@
 <template >
   <v-container fluid>
-    <query-search-controls />
     <v-row class="box">
       <div v-if="!isSearchCanceled" class="loading-wrapper">
         <div class="message-container">

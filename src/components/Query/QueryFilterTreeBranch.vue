@@ -1,6 +1,7 @@
 <template>
   <div class="query-filter-tree-branch">
     <template v-for="(item, index) in filters">
+      <span :key="'openParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#40;</span>
       <query-filter-tree-branch 
         v-if="item.filters"
         :key="index"
@@ -16,8 +17,10 @@
         @groupWithAbove="(path) => $emit('groupWithAbove', path)"
         @ungroupFromAbove="(path) => $emit('ungroupFromAbove', path)"
       />
+      <span :key="'closeParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#41;</span>
+
       <query-filter-tree-leaf 
-        v-else
+        v-if="!item.filters"
         :key="index"
         :subject-entity="subjectEntity"
         :column_id="item.column_id"
@@ -56,6 +59,7 @@ export default {
     parentJoinOperator: String,
     subjectEntity: String,
     isSentence: Boolean,
+    isRoot: Boolean,
   },
   emits: [
     'setValue',
@@ -70,5 +74,12 @@ export default {
 
 
 <style scoped lang="scss">
-
+.no-space-paren {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: 0;
+  vertical-align: baseline;
+}
 </style>
