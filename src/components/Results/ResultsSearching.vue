@@ -73,10 +73,10 @@ export default {
   },
   methods: {
     ...mapMutations("search", [
-      "setSearchCanceled"
+      "setIsSearchCanceled"
     ]),
     cancelSearch() {
-      this.setSearchCanceled(true);
+      this.setIsSearchCanceled(true);
       this.clearTimer();
       this.resetTimer();
     },

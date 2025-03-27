@@ -50,7 +50,7 @@
   </v-card>
 
   <!-- Top UI-->
-  <v-card v-else flat rounded class="query-builder mb-0 px-6 pt-5 pb-0">
+  <v-card v-else flat rounded class="query-builder mb-0 px-6 pt-6 pb-0">
     <template v-if="!uiVariant || uiVariant === 'sentence-worksfirst'">
       <QuerySentence />
     </template>
@@ -175,11 +175,12 @@ export default {
 .query-builder-chip .v-chip,
 .query-builder-button {
   height: 22px;
-  padding: 0px 3px !important;
+  padding: 0px 5px !important;
 }
 .query-builder .menu-chip {
   cursor: pointer;
   background-color: transparent !important;
+  border: none;
   border-bottom: 1px solid;
   border-radius: 0 !important;
   padding: 0px 0px !important;

@@ -88,6 +88,7 @@
               label
               class="menu-chip"
               :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
+              @mousedown="onOperatorMouseDown"
               v-on="on" 
             >
               {{ selectedOperator ?? "select" }}
@@ -332,6 +333,7 @@ export default {
       valueEditModel: this.value,
       labelOperators: ["matches any item in label", "matches every item in label"],
       labelMenuOpen: false,
+      operatorClickInProgress: false,
     }
   },
   computed: {
@@ -463,6 +465,10 @@ export default {
     },
     onInputBlur() {
       //console.log("onInputBlur", this.valueEditModel);
+      if (this.operatorClickInProgress) {
+        return;
+      }
+      
       if (this.valueEditModel) {
         this.saveEditingValue(this.valueEditModel);
       } else if (this.value) {
@@ -470,6 +476,13 @@ export default {
       } else {
         this.deleteFilter();
       }
+    },
+    onOperatorMouseDown() {
+      this.operatorClickInProgress = true;
+      // Reset the flag after a short delay so future blurs behave normally.
+      setTimeout(() => {
+        this.operatorClickInProgress = false;
+      }, 100);
     },
     groupWithAbove() {
       this.$emit("groupWithAbove", this.path);

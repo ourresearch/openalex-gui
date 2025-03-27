@@ -1,6 +1,6 @@
 <template>
   <div style="display: inline-block;">
-    <v-menu max-width="400px">
+    <v-menu content-class="label-menu"max-width="400px">
       <template v-slot:activator="{ on }">
         <v-btn small :icon="icon" v-on="on" :disabled="!selectedIds.length">
           <v-icon small >mdi-tag-outline</v-icon>
@@ -124,5 +124,7 @@ export default {
 </script>
 
 <style>
-
+.label-menu .v-subheader {
+  height: 25px;
+}
 </style>
