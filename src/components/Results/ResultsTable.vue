@@ -38,7 +38,7 @@
 
     <div>
       <!-- Row Selection Message -->
-      <div class="selection-message py-1 mx-3"
+      <div class="selection-message mx-5"
         v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
       >
         <template v-if="isEntireSearchSelected">
@@ -66,7 +66,7 @@
       </div>
 
       <!-- Results Table -->
-      <v-simple-table ref="resultsTable" :class="['mx-5', 'mb-5', {'dimmed': hasQueryChanged}]">
+      <v-simple-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
         <thead>
           <!-- Render all headers based on their type -->
           <th 
@@ -781,7 +781,7 @@ a {
 }
 .dimmed {
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.4;
   user-select: none;    
 }
 .more-results-message {

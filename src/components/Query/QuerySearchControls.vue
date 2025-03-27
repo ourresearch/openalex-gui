@@ -1,20 +1,20 @@
 <template>
-  <span class="search-controls">
+  <div class="search-controls">
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
       class="mx-1"
-      small
+      x-small
       color="primary"
       @click="createSearch">
       Run Search
     </v-btn>
     <v-btn
       v-if="hasQueryChanged"
-      small
+      x-small
       @click="cancelSearch">
       Cancel
     </v-btn>
-  </span>
+  </div>
 </template>
 
 

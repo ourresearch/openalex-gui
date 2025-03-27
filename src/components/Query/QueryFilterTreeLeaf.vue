@@ -270,13 +270,13 @@
           @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
-        <query-filter-value-chip 
-          v-else
-          :column-config="columnConfig"
-          :value="selectedValue"
-          :is-sentence="isSentence"
-          @click.native="startEditingValue"
-        />
+        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="isSentence">
+          <query-filter-value-chip 
+            :column-config="columnConfig"
+            :value="selectedValue"
+            :is-sentence="isSentence"
+            @click.native="startEditingValue" />
+        </hover-menu-wrapper>
       </template>
     </div>
 

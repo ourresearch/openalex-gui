@@ -96,12 +96,7 @@ export default {
 </script>
 
 <style lang="scss">
-.query-outline-button.v-btn {
-  min-width: 20px !important;
-  width: 28px;
-}
 .query-outline-dialog .query-filter-leaf {
   font-size: 13px !important;
 }
-
 </style>

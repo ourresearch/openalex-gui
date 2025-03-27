@@ -1,5 +1,6 @@
 <template>
   <div>
+  <div :class="['query-sentence-container', {'in-progress': hasQueryChanged || isSearchCanceled}]">
     <div class="query-sentence-box">
       <div class="query-sentence">
         <!-- Work First -->
@@ -35,14 +36,17 @@
           :is-sentence="true" />
         </template>
       </div>
-      <div class="search-controls-box">
-        <span class="search-controls">
-          <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
-        </span>
-        <query-outline-view class="ml-1"/>
+
+      <div class="sentence-buttons-box">
+        <query-outline-view class="mx-1"/>
+        <new-query-button small button-text="" icon="mdi-refresh"/>
       </div>
     </div>
-    <query-results-count />
+    <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
+  </div>
+  <div class="results-top-line">
+      <query-results-count />
+    </div>
   </div>
 </template>
 
@@ -53,6 +57,7 @@ import QueryOutlineView from "@/components/Query/QueryOutlineView.vue";
 import QueryResultsCount from "@/components/Query/QueryResultsCount.vue";
 import QueryActions from "@/components/Query/QueryActions.vue";
 import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
+import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 
 export default {
   name: "QuerySentence",
@@ -61,7 +66,8 @@ export default {
     QuerySearchControls,
     QueryOutlineView,
     QueryResultsCount,
-    QueryActions
+    QueryActions,
+    NewQueryButton
   },
   computed: {
     ...mapGetters(["uiVariant"]),
@@ -80,12 +86,18 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 15px;
+  padding-bottom: 8px;
   display: flex;
   justify-content: space-between;
 }
+.query-sentence-container.in-progress {
+  background-color: #fcfcfc;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+}
 .query-sentence {
-  padding: 0px 10px 3px 10px; 
+  padding: 0px 10px 3px 3px; 
   max-width: 950px;
   line-height: 2;
   text-indent: -20px;
@@ -94,16 +106,32 @@ export default {
 .query-sentence * {
   text-indent: 0;
 }
-.results-count {
-  font-size: 11px;
+.sentence-buttons-box .v-btn {
+  min-width: 20px !important;
+  width: 28px;
+}
+.search-controls {
+  padding: 10px 0px 0px 0px;
+  margin-top: 10px;
+  text-align: left;
+  border-top: 1px solid #e0e0e0;
+}
+.results-top-line {
+  display: flex;
+  justify-content:
+}
+.results-count-box {
+  font-size: 12px;
   text-align: right;
-  height: 20px;
+  height: 28px;
   color: #666;
-  padding: 0 7px 2px 7px;
+  padding: 0 3px 4px 3px;
   align-self: end;
   white-space: nowrap;
   display: flex;
+  flex-grow: 1;
   justify-content: space-between;
+  align-items: center;
 }
 .query-sentence .query-filter-tree,
 .query-sentence .query-filter-tree > div,
@@ -129,19 +157,5 @@ export default {
 }
 .query-sentence .path-label {
   margin-right: 0;
-}
-.search-controls-box {
-  padding-top: 4px;
-  white-space: nowrap;
-  text-align: right;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-width: 205px;
-}
-.search-controls {
-  padding: 0px 0px;
-  flex-grow: 1;
-  text-align: left;
 }
 </style>
