@@ -13,6 +13,15 @@
     </v-btn>
     -->
 
+    <!-- DownloadDialogs -->
+    <v-dialog v-model="isDownloadDialogOpen" width="500">
+      <download-dialog 
+        :resultsCount="resultsMeta?.count" 
+        :isOpen="isDownloadDialogOpen"
+        @close="isDownloadDialogOpen = false"
+         />
+    </v-dialog>
+
   </span>
 </template>
 
@@ -23,19 +32,16 @@ import { entity } from "@/entity";
 import * as oaxSearch from "@/oaxSearch";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
+import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 
 export default {
   name: "QueryActions",
   components: {
     LabelMenu,
-    NewQueryButton
+    NewQueryButton,
+    DownloadDialog,
   },
-  props: {
-    isEntireSearchSelected: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: {},
   data() {
     return {
       isDownloadDialogOpen: false
@@ -49,6 +55,7 @@ export default {
       "resultsBody",
       "querySubjectEntity",
       "selectedIds",
+      "isEntireSearchSelected",
     ]),
     fullSelectedIds() {
       // Returns selected IDs in full format e.g. "topics/T123" instead of "123"
@@ -61,7 +68,7 @@ export default {
     ...mapMutations(["snackbar"]),
     exportResults() {
       if (this.isEntireSearchSelected) {
-        this.$emit('open-download-dialog');
+        this.isDownloadDialogOpen = true;
       } else {
         this.exportSelectedAsCsv();
       }

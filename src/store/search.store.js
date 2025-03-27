@@ -24,6 +24,7 @@ const stateDefaults = function () {
         backend_error: null,
         redshift_sql: null,
         selectedIds: [],
+        isEntireSearchSelected: false,
         pageTitle: null,
         isSearchCanceled: false,
         metricsColumnPercentage: 40,
@@ -128,6 +129,9 @@ export const search = {
         },
         setSelectedIds(state, ids) {
             state.selectedIds = ids;
+        },
+        setEntireSearchSelected(state, value) {
+            state.isEntireSearchSelected = value;
         },
         setMetricsColumnPercentage(state, percentage) {
             state.metricsColumnPercentage = percentage;
@@ -293,6 +297,7 @@ export const search = {
         isSearchCanceled: (state) => state.isSearchCanceled,
         hasResults: (state, getters) => !getters.hasQueryChanged && !getters.isSearchCanceled && getters.queryIsCompleted,
         selectedIds: (state) => state.selectedIds,
+        isEntireSearchSelected: (state) => state.isEntireSearchSelected,
         metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },
 };
