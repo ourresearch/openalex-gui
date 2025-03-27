@@ -328,9 +328,6 @@ export default {
   margin-right: 4px;
   margin-bottom: 4px;
 }
-.sort-box {
-  align-items: baseline;
-}
 .sort-box .v-chip.first {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
@@ -339,11 +336,11 @@ export default {
   margin-right: 0;
 }
 .sort-box .v-chip.last {
-  margin-right: 0px;
-  padding-left: 4px !important;
-  padding-right: 4px !important;
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+  margin-right: 0px;
   margin-left: 0;
 }
 </style>

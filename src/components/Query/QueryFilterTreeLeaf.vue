@@ -27,7 +27,7 @@
     <div class="leaf-content flex-grow-1">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
-        <template v-if="isFirstFilter">the </template>
+        <span v-if="isFirstFilter">{{ isSentence ? 'the' : 'The&nbsp;' }} </span>
         <template v-else>
           <v-menu offset-y>
             <template v-slot:activator="{ on }">
@@ -223,7 +223,7 @@
             :subject-entity="subjectEntity"
             :value="selectedValue"
             :is-sentence="isSentence"
-            @click="selectedValue = !selectedValue" />
+            @click.native="selectedValue = !selectedValue" />
         </hover-menu-wrapper>
       </span>
 
@@ -534,7 +534,6 @@ export default {
   text-decoration: underline;
   background-color: #eee;
 }
-
 .related-to-text-wrapper {
   width: 100%;
   flex-basis: 100% !important;

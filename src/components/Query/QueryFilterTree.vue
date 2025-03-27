@@ -583,7 +583,6 @@ export default {
   line-height: 1.6;
   font-size: 15px;
   vertical-align: middle;
-  margin-bottom: 5px;
 }
 .path-label {
   margin-right: 5px;

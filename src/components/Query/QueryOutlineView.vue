@@ -8,6 +8,7 @@
     <!-- Dialog component -->
     <v-dialog
       v-model="dialogOpen"
+      content-class="query-outline-dialog"
       max-width="500px"
     >
       <v-card class="query-builder">
@@ -97,5 +98,10 @@ export default {
 <style lang="scss">
 .query-outline-button.v-btn {
   min-width: 20px !important;
+  width: 28px;
 }
+.query-outline-dialog .query-filter-leaf {
+  font-size: 13px !important;
+}
+
 </style>

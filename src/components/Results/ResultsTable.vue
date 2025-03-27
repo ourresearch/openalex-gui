@@ -80,8 +80,13 @@
               }
             ]"
           >
+            <!-- Empty placeholder header -->
+            <template v-if="header.id === 'placeholder'">
+              &nbsp;
+            </template>
+            
             <!-- Selector header -->
-            <template v-if="header.id === 'selector'">
+            <template v-else-if="header.id === 'selector'">
               <span v-if="uiVariant !== 'side'">
                 <v-btn icon @click="clickSelectAllButton">
                   <v-icon>{{ selectAllIcon }}</v-icon>
@@ -185,8 +190,13 @@
                 }
               ]"
             >
+              <!-- Placeholder cell -->
+              <template v-if="cell.config && cell.config.id === 'placeholder'">
+                &nbsp;
+              </template>
+              
               <!-- Selector cell -->
-              <template v-if="cell.config && cell.config.id === 'selector'">
+              <template v-else-if="cell.config && cell.config.id === 'selector'">
                 <v-btn icon @click.stop="toggleSelectedId(row.id)">
                   <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
                   <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
@@ -301,93 +311,14 @@ export default {
       "querySubjectEntity",
       "querySubjectEntityConfig",
     ]),
-    rows() {
-      return this.resultsBody.map(row => {
-        // Create basic cells with configs
-        let dataCells = row.cells.map((cell, i) => ({
-          ...cell,
-          config: this.resultsHeader[i],
-        }));
-        
-        // Find first metric cell index
-        const firstMetricIndex = dataCells.findIndex(cell => cell.config?.id?.includes('('));
-        const hasMetricCells = firstMetricIndex !== -1;
-        
-        // Create final cells array with UI action cells
-        const finalCells = [
-          // Selector cell
-          {
-            type: 'ui-action',
-            config: { id: 'selector' }
-          }
-        ];
-        
-        // Add data cells with column adders in appropriate positions
-        if (hasMetricCells) {
-          // Add non-metric cells
-          finalCells.push(...dataCells.slice(0, firstMetricIndex));
-          
-          // Add data column adder cell before first metric cell if not in summary mode
-          if (this.query.get_rows !== 'summary') {
-            finalCells.push({
-              type: 'ui-action',
-              config: { id: 'columnAdderData' }
-            });
-          }
-          
-          // Add metric cells
-          finalCells.push(...dataCells.slice(firstMetricIndex));
-          
-          // Add metric column adder cell at the end
-          finalCells.push({
-            type: 'ui-action',
-            config: { id: 'columnAdderMetric' }
-          });
-        } else {
-          // No metric cells, just add all cells
-          finalCells.push(...dataCells);
-          
-          // Add data column adder at the end if not in summary mode
-          if (this.query.get_rows !== 'summary') {
-            finalCells.push({
-              type: 'ui-action',
-              config: { id: 'columnAdderData' }
-            });
-          }
-        }
-        
-        // Apply sorting if needed (for worksfirst variant)
-        if (this.uiVariant === 'sentence-worksfirst') {
-          finalCells.sort((a, b) => {
-            // Always keep selector at the beginning
-            if (a.config.id === 'selector') return -1;
-            if (b.config.id === 'selector') return 1;
-            
-            const aHas = a.config.id.includes("(") || a.config.id === "columnAdderMetric" || false;
-            const bHas = b.config.id.includes("(") || b.config.id === "columnAdderMetric" || false;
-            
-            if (aHas && !bHas) return -1;
-            if (!aHas && bHas) return 1;
-            return 0; // Keep original order if both have or both don't have parentheses
-          });
-        }
-
-        return {
-          ...row,
-          cellsWithConfigs: finalCells
-        };
-      });
-    },
     headers() {
-      // Start with a selector column
-      const result = [
-        {
-          id: 'selector',
-          type: 'ui-action'
-        }
-      ];
-      
-      // Get data columns
+      if (!this.resultsHeader.length) { 
+        // Return a single placeholder header when there are no results
+        return [{ id: 'placeholder', type: 'ui-action'}]; 
+      }
+
+      const result = [{ id: 'selector', type: 'ui-action'}]; // Start with a selector column
+
       const dataColumns = this.resultsHeader.slice();
       
       // Find first metric column index
@@ -447,6 +378,72 @@ export default {
         });
       }
       return result;
+    },
+    rows() {
+      return this.resultsBody.map(row => {
+        // Create basic cells with configs
+        let dataCells = row.cells.map((cell, i) => ({
+          ...cell,
+          config: this.resultsHeader[i],
+        }));
+        
+        // Find first metric cell index
+        const firstMetricIndex = dataCells.findIndex(cell => cell.config?.id?.includes('('));
+        const hasMetricCells = firstMetricIndex !== -1;
+        
+        // Create final cells array with UI action cells
+        const finalCells = [{ type: 'ui-action', config: { id: 'selector' }}];
+        
+        // Add data cells with column adders in appropriate positions
+        if (hasMetricCells) {
+          // Add non-metric cells
+          finalCells.push(...dataCells.slice(0, firstMetricIndex));
+          
+          // Add data column adder cell before first metric cell if not in summary mode
+          if (this.query.get_rows !== 'summary') {
+            finalCells.push({
+              type: 'ui-action',
+              config: { id: 'columnAdderData' }
+            });
+          }
+          // Add metric cells
+          finalCells.push(...dataCells.slice(firstMetricIndex));
+          // Add metric column adder cell at the end
+          finalCells.push({type: 'ui-action', config: { id: 'columnAdderMetric' }});
+        } else {
+          // No metric cells, just add all cells
+          finalCells.push(...dataCells);
+          
+          // Add data column adder at the end if not in summary mode
+          if (this.query.get_rows !== 'summary') {
+            finalCells.push({
+              type: 'ui-action',
+              config: { id: 'columnAdderData' }
+            });
+          }
+        }
+        
+        // Apply sorting if needed (for worksfirst variant)
+        if (this.uiVariant === 'sentence-worksfirst') {
+          finalCells.sort((a, b) => {
+            // Always keep selector at the beginning
+            if (a.config.id === 'selector') return -1;
+            if (b.config.id === 'selector') return 1;
+            
+            const aHas = a.config.id.includes("(") || a.config.id === "columnAdderMetric" || false;
+            const bHas = b.config.id.includes("(") || b.config.id === "columnAdderMetric" || false;
+            
+            if (aHas && !bHas) return -1;
+            if (!aHas && bHas) return 1;
+            return 0; // Keep original order if both have or both don't have parentheses
+          });
+        }
+
+        return {
+          ...row,
+          cellsWithConfigs: finalCells
+        };
+      });
     },
     hasMetricsColumns() { 
       return this.queryColumnsConfigs.some(col => col.id.includes('('));
