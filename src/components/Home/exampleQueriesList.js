@@ -1139,6 +1139,8 @@ const exampleQueries = [
     type: "institutions",
     category: "rankings",
     url: "",
+    broken: true,
+    error: "Wrong query.",
     query: {
       "get_rows": "authors",
       "filter_works": [

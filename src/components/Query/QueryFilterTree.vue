@@ -355,7 +355,7 @@ export default {
       return groupParentPath;
     },
     addFilter(column) {
-      //console.log("Adding filter", column.id, column.type);
+      console.log("Adding filter", column.id, column.type);
       const initValue = column.type === "boolean" ? true : null
       this.myFilters.push({
         column_id: column.id,
@@ -365,6 +365,35 @@ export default {
       this.decorateMyFilters();
       this.applyFilters();
       // console.log("After adding filter:", this.myFilters);
+    },
+    deleteFilter(path) {
+      //console.log("deleteFilter at path:", path)
+      // Get the parent path and the index to remove
+      const parentPath = path.slice(0, -1);
+      const indexToRemove = path[path.length - 1];
+
+      if (parentPath.length === 0) {
+        // Removing from root level
+        this.myFilters.splice(indexToRemove, 1);
+      } else {
+        // Get the parent filter that contains our target
+        const parentFilter = this.getFilterFromPath(parentPath);
+        
+        // If parent exists and has nested filters, remove the target
+        if (parentFilter && parentFilter.join && Array.isArray(parentFilter.filters)) {
+          parentFilter.filters.splice(indexToRemove, 1);
+
+          // If parent now has no filters, remove it from *its* parent too
+          if (parentFilter.filters.length === 0) {
+            // Clean up the parent from the grandparent
+            this.removeEmptyGroup(parentPath);
+          }
+        }
+      }
+      if (parentPath.length === 1 && parentPath[0] === 0) {
+        this.isRootGroupUserCreated = false;
+      }
+      this.applyFilters();
     },
     setOperator(path, operator) {
       //console.log("setOperator", path, operator);
@@ -468,35 +497,6 @@ export default {
         grandParentFilter.filters.splice(parentIndexInGrand, 0, singleChild);
       }
 
-      if (parentPath.length === 1 && parentPath[0] === 0) {
-        this.isRootGroupUserCreated = false;
-      }
-      this.applyFilters();
-    },
-    deleteFilter(path) {
-      //console.log("deleteFilter at path:", path)
-      // Get the parent path and the index to remove
-      const parentPath = path.slice(0, -1);
-      const indexToRemove = path[path.length - 1];
-
-      if (parentPath.length === 0) {
-        // Removing from root level
-        this.myFilters.splice(indexToRemove, 1);
-      } else {
-        // Get the parent filter that contains our target
-        const parentFilter = this.getFilterFromPath(parentPath);
-        
-        // If parent exists and has nested filters, remove the target
-        if (parentFilter && parentFilter.join && Array.isArray(parentFilter.filters)) {
-          parentFilter.filters.splice(indexToRemove, 1);
-
-          // If parent now has no filters, remove it from *its* parent too
-          if (parentFilter.filters.length === 0) {
-            // Clean up the parent from the grandparent
-            this.removeEmptyGroup(parentPath);
-          }
-        }
-      }
       if (parentPath.length === 1 && parentPath[0] === 0) {
         this.isRootGroupUserCreated = false;
       }

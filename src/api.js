@@ -103,7 +103,7 @@ const api = (function () {
             throw e
         }
         if (res.data.is_completed !== false) { // Don't cache incomplete redshift searches
-            console.log("caching " + url)
+            //console.log("caching " + url)
             //console.log(res.data)
             stockCache(url, res.data);
         }

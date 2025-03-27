@@ -184,6 +184,7 @@
               </v-list>
             </v-menu>
           </template>
+
           <!-- Local Autocomplete -->
           <v-autocomplete
             v-else-if="localValueOptions.length"
@@ -200,6 +201,7 @@
             @change="saveEditingValue" 
             @blur="onInputBlur"
           />
+
           <!-- API Autocomplete -->
           <entity-autocomplete
             v-else
@@ -334,6 +336,7 @@ export default {
       labelOperators: ["matches any item in label", "matches every item in label"],
       labelMenuOpen: false,
       operatorClickInProgress: false,
+      focusSettling: true,
     }
   },
   computed: {
@@ -465,7 +468,7 @@ export default {
     },
     onInputBlur() {
       //console.log("onInputBlur", this.valueEditModel);
-      if (this.operatorClickInProgress) {
+      if (this.operatorClickInProgress || this.focusSettling) {
         return;
       }
       
@@ -526,6 +529,12 @@ export default {
         this.isLoading = false;
       }
     }, 300, {leading: true}),
+  },
+  mounted() {
+    // Fix for dialog interfering with input focus, prevent detailing new filter on blur
+    setTimeout(() => {
+      this.focusSettling = false;
+    }, 100);
   },
   watch: {
     search(val){

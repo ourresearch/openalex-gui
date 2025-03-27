@@ -79,9 +79,12 @@ export default {
   },
   created() {
     if (!this.value) { 
+      console.log("QueryFilterValueChip: no value");
+      /*
       throw new Error(
         "QueryFilterValueChip only works if there's a value for the filter"
       )
+      */
     };
   },
   watch: {
