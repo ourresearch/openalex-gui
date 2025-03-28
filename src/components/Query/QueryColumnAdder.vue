@@ -53,7 +53,7 @@
       <v-dialog v-model="isDialogOpen" max-width="600">
         <v-card>
           <v-card-title class="headline">
-            {{ buttonText }}s
+            {{ dialogTitle }}
           </v-card-title>
           
           <v-divider></v-divider>
@@ -169,6 +169,10 @@ export default {
     },
     buttonText() {
       return this.display === "data" ? "Column" : "Metric";
+    },
+    dialogTitle() {
+      const subject = this.querySubjectEntity.charAt(0).toUpperCase() + this.querySubjectEntity.slice(1)
+      return this.display === "data" ? subject + " Columns" : "Metrics";
     }
   },
   methods: {
