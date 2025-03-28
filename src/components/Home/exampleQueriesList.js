@@ -874,7 +874,7 @@ const exampleQueries = [
         },
         {
           "column_id": "publication_year",
-          "value": "2019-2025"
+          "value": "2020-2024"
         },
         {
           "column_id": "open_access.is_oa",
