@@ -1198,7 +1198,7 @@ const exampleQueries = [
     }
   },
   {
-    question: "Which researchers at the University of Florida have received funding from the chinese government?",
+    question: "Which researchers at the University of Florida have received funding from the Chinese government?",
     type: "authors",
     category: "compliance",
     url: "",
