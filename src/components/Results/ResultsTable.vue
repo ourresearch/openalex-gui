@@ -501,6 +501,7 @@ export default {
     },
     commitSortBy(sortBy) {
       this.setSortBy(sortBy);
+      this.createSearch();
     },
     addSelectedId(id) {
       this.selectedIds.push(id);
