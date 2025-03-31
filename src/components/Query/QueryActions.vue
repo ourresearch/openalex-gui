@@ -92,8 +92,10 @@ export default {
 <style scoped>
 .query-actions {
   text-align: right;
+  margin-bottom: 2px;
 }
-.query-actions * {
-  
+.query-actions > * {
+  position: relative;
+  top: -2px;
 }
 </style>

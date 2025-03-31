@@ -4,7 +4,6 @@
       <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-on="on">
         <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
             <v-icon small>mdi-layers-triple-outline</v-icon>
-            <v-icon class="down-icon" small right>mdi-menu-down</v-icon>
           </span>
         <span v-else>
           {{ buttonName }}
@@ -27,7 +26,7 @@
           <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
 
-        <v-subheader>Summarize Works by:</v-subheader>
+        <v-subheader>Group Works by:</v-subheader>
         <v-divider/>
         <v-list-item
           value="summary"
@@ -97,7 +96,7 @@ export default {
         return "Works Summary"; 
       }
       const name = getConfigs()[entity].displayName;
-      if (["sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
+      if (["sentence-group", "sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
         return 'none';
       }
       return name.titleCase();
@@ -146,5 +145,6 @@ export default {
 .entity-chip.none {
   font-weight: normal;
   font-size: 16px !important;
+  min-width: 28px;
 }
 </style>

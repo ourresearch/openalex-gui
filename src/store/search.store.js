@@ -24,6 +24,7 @@ const stateDefaults = function () {
         backend_error: null,
         redshift_sql: null,
         selectedIds: [],
+        stashedQueryState: null,
         isEntireSearchSelected: false,
         pageTitle: null,
         isSearchCanceled: false,
@@ -92,7 +93,7 @@ export const search = {
             state.pageTitle = pageTitle;
         },
         setSummarize(state, entity) {
-            //console.log("setSummarize", entity);
+            console.log("setSummarize", entity);
             const newQuery = {
                 ...baseQuery(entity),
                 filter_works: state.query.filter_works,
@@ -140,6 +141,9 @@ export const search = {
         },
         setEntireSearchSelected(state, value) {
             state.isEntireSearchSelected = value;
+        },
+        setStashedQueryState(state, queryState) {
+            state.stashedQueryState = _.cloneDeep(queryState);
         },
         setMetricsColumnPercentage(state, percentage) {
             state.metricsColumnPercentage = percentage;
@@ -208,6 +212,15 @@ export const search = {
             console.log("Resetting to submitted query");
             commit('setQuery', state.submittedQuery);
             dispatch('createSearchFromQuery', state.submittedQuery);
+        },
+        createUnderlyingWorksQuery: async function ({state, commit, dispatch}) {
+            const newQuery = {
+                ...baseQuery('works'),
+                filter_works: _.cloneDeep(state.query.filter_works),
+            };
+            const queryState = _.cloneDeep(state);
+            await dispatch('createSearchFromQuery', newQuery);
+            commit('setStashedQueryState', queryState);
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
             commit('setSearchId', id);
@@ -306,6 +319,7 @@ export const search = {
         hasResults: (state, getters) => !getters.hasQueryChanged && !getters.isSearchCanceled && getters.queryIsCompleted,
         selectedIds: (state) => state.selectedIds,
         isEntireSearchSelected: (state) => state.isEntireSearchSelected,
+        stashedQueryState: (state) => state.stashedQueryState,
         metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },
 };
