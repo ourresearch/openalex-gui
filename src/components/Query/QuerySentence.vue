@@ -17,23 +17,39 @@
           :subject-entity="isWorks ? null : querySubjectEntity"
           :filters="query.filter_aggs"
           :is-sentence="true" />
-      </template>
+        </template>
 
-      <!-- Entity First -->
-      <template v-else>
-        <!-- Entity Filters -->
-        <query-filter-tree
-          v-if="querySubjectEntity !== 'works'"
-          :subject-entity="querySubjectEntity"
-          :filters="query.filter_aggs"
-          :is-sentence="true" />
+        <!-- Group Button -->
+        <template v-else-if="uiVariant === 'sentence-group'">
+          <!-- Entity Filters -->
+          <query-filter-tree
+            :subject-entity="isWorks ? null : querySubjectEntity"
+            :filters="query.filter_aggs"
+            :is-sentence="true" />
 
-        <!-- Works Filters -->
-        <query-filter-tree
-          subject-entity="works"
-          :isWithAggs="querySubjectEntity !== 'works'"
-          :filters="query.filter_works"
-          :is-sentence="true" />
+          <!-- Works Filters -->
+          <query-filter-tree
+            subject-entity="works"
+            :isWithAggs="querySubjectEntity !== 'works'"
+            :filters="query.filter_works"
+            :is-sentence="true" />
+        </template>
+
+        <!-- Entity First -->
+        <template v-else>
+          <!-- Entity Filters -->
+          <query-filter-tree
+            v-if="querySubjectEntity !== 'works'"
+            :subject-entity="querySubjectEntity"
+            :filters="query.filter_aggs"
+            :is-sentence="true" />
+
+          <!-- Works Filters -->
+          <query-filter-tree
+            subject-entity="works"
+            :isWithAggs="querySubjectEntity !== 'works'"
+            :filters="query.filter_works"
+            :is-sentence="true" />
         </template>
       </div>
 

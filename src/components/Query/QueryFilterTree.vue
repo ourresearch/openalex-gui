@@ -4,7 +4,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 <template>
   <div :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-4': !isEmpty}">
     <span class="query-section-label">
-      <!-- Works First UI -->
+      <!-- Side Works First UI -->
       <template v-if="uiVariant === 'worksfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks">
@@ -22,7 +22,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         </template>
       </template>
 
-      <!-- Entity First UI -->
+      <!-- Side Entity First UI -->
       <template v-else-if="uiVariant === 'side'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
@@ -36,7 +36,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-else>
           Show
           {{ isEmpty ? ' all' : '' }}
-          <query-summarize-by key="summarize-by"/>
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
@@ -55,7 +55,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-else>
           Show
           {{ isEmpty ? ' all' : '' }}
-          <query-summarize-by key="summarize-by"/>
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
@@ -64,7 +64,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === null">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
-          {{ isSentence ? 'from' : 'From' }}
+          {{ isSentence ? 'of' : 'Of' }}
           {{ isEmpty ? ' all' : '' }}
           <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
@@ -74,11 +74,38 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <template v-else>
           {{ isSentence ? '' : 'Show' }}
           {{ !isSentence && isEmpty ? 'all' : '' }}
-          <query-summarize-by key="summarize-by"/>
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
       
+      <!-- Sentence UI - Group Button -->
+      <template v-else-if="uiVariant === 'sentence-group'">
+        
+        <!-- Empty Group By Button -->
+        <template v-if="subjectEntity === null">
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
+        </template>
+
+        <!-- Works Filters -->
+        <template v-else-if="isWorks">
+          <span v-if="isWithAggs">
+            {{ isSentence ? 'of' : 'Of' }}
+            {{ isEmpty ? ' all' : '' }}
+          </span>
+          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+
+        <!-- Entity Filters -->
+        <template v-else>
+          {{ isSentence ? '' : 'Show' }}
+          {{ !isSentence && isEmpty ? 'all' : '' }}
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
+          {{ !isEmpty ? ' where' : '' }}
+        </template>
+      </template>
+
       <!-- Sentence UI - Works First -->
       <template v-else-if="uiVariant === 'sentence-worksfirst'">
         <!-- Works Filters -->
@@ -92,7 +119,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <!-- Entity Filters -->
         <template v-else>
           {{ hasResults ? 'grouped by' : 'group by'}}
-          <query-summarize-by key="summarize-by"/>
+          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
@@ -101,7 +128,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
     
     <span 
       :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === null}" 
-      v-if="!isSentence && hasAvailableFilters"
+      v-if="!isSentence && hasAvailableFilters && subjectEntity !== null"
     >
       <query-filter-tree-button
         :subject-entity="subjectEntity"
@@ -124,7 +151,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         @groupWithAbove="groupWithAbove"
         @ungroupFromAbove="ungroupFromAbove" />{{ isSentence && isFinal && !isEmpty ? '.' : '' }}
       
-      <div class="bottom-button-wrapper mt-2" v-if="isSentence">
+      <div class="bottom-button-wrapper mt-2" v-if="isSentence && subjectEntity !== null">
         <query-filter-tree-button
           :subject-entity="subjectEntity"
           text=""
