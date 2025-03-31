@@ -2,8 +2,15 @@
   <v-menu max-height="70vh" rounded offset-y>
     <template v-slot:activator="{ on }">
       <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-on="on">
-        {{ buttonName }}
-        <v-icon class="down-icon" right>mdi-menu-down</v-icon>
+        <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
+            <v-icon small>mdi-layers-triple-outline</v-icon>
+            <v-icon class="down-icon" small right>mdi-menu-down</v-icon>
+          </span>
+        <span v-else>
+          {{ buttonName }}
+          <v-icon v-if="uiVariant === 'sentence-group'" class="down-icon" small @click.stop.prevent="() => {selected = 'works'; }">mdi-close</v-icon>
+          <v-icon v-else class="down-icon" right>mdi-menu-down</v-icon>
+        </span>
       </v-chip>
     </template>
 
@@ -12,12 +19,16 @@
         <v-list-item
           value="works"
           active-class="primary--text"
+          v-if="uiVariant !== 'sentence-group'"
         >
           <v-list-item-icon>
             <v-icon>mdi-file-document-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
+
+        <v-subheader>Summarize Works by:</v-subheader>
+        <v-divider/>
         <v-list-item
           value="summary"
           active-class="primary--text"
@@ -28,8 +39,6 @@
           <v-list-item-title>Works Summary</v-list-item-title>
         </v-list-item>
 
-        <v-subheader>Summarize works by:</v-subheader>
-        <v-divider/>
         <v-list-item
             v-for="(entity, i) in entities"
             :key="i"
@@ -53,14 +62,19 @@
 
 <script>
 
-import {mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations, mapActions} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 
 export default {
   name: "QuerySummarizeBy",
   components: {},
-  props: {},
+  props: {
+    subjectEntity: {
+      type: String,
+      default: null,
+    },
+  },
   computed: {
     ...mapGetters(["uiVariant"]),
     ...mapGetters("search", [
@@ -89,7 +103,12 @@ export default {
       return name.titleCase();
     },
     buttonColor() {
-      if (this.uiVariant && this.uiVariant.includes("worksfirst")) { return 'catEntity'; }
+      if (this.uiVariant === 'sentence-group') {
+        if (this.subjectEntity === null) { return 'catEntity'; }
+        return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
+      }
+      if (this.subjectEntity === null) { return 'catEntity'; }
+      if (this.uiVariant && ["worksfirst"].includes(this.uiVariant)) { return 'catEntity'; }
       return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
     },
     selected: {
@@ -99,12 +118,18 @@ export default {
       set(value) {
         console.log("setSummarize", value);
         this.setSummarize(value);
+        if (this.uiVariant === 'sentence-group') {
+          this.createSearch();
+        }
       }
     },
   },
   methods: {
     ...mapMutations("search", [
       "setSummarize",
+    ]),
+    ...mapActions("search", [
+      "createSearch",
     ]),
   },
 }

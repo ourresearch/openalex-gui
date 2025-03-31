@@ -35,6 +35,7 @@ export default {
     return {
       uiOptions: [
         { value: null, text: 'Sentence (Entity First)' },
+        { value: 'sentence-group', text: 'Sentence (Group Button)' },
         { value: 'sentence-worksfirst', text: 'Sentence (Works First)' },
         { value: 'top', text: 'Top Columns' },
         { value: 'side', text: 'Side (Entity First)' },
