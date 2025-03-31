@@ -8,6 +8,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {shortenOpenAlexId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
+import {baseQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 
@@ -330,6 +331,9 @@ const api = (function () {
             is_test,
         };
 
+        if (options.skipPrefetch) {
+            prefetchUnderlyingWorksQuery(query); // Prefetch underlying works query but don't wait
+        }
         //console.log("api.createSearch to " + url)
         const resp = await post(url, data, axiosConfig({noCache: true, userAuth: true}));
         //console.log("Created Search: " + resp.data.id + " with filters:");
@@ -361,6 +365,19 @@ const api = (function () {
         //console.log("api.getSearch getting: " + searchId);
         const resp = await getUrl(url, axiosConfig({noCache: true, userAuth: true}));
         return resp;
+    }
+
+    const prefetchUnderlyingWorksQuery = async function(query) {
+        const worksQuery = {
+            ...baseQuery("works"),
+            filter_works: _.cloneDeep(query.filter_works),
+        };
+        const options = {
+            bypass_cache: true,
+            is_test: false,
+            skipPrefetch: true
+        };
+        createSearch(worksQuery, options);
     }
 
     const getSearchUrl = function(searchId) {

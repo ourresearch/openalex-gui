@@ -137,14 +137,15 @@ export default {
 }
 .results-top-line {
   display: flex;
-  justify-content:
 }
 .results-count-box {
   font-size: 12px;
   text-align: right;
-  height: 28px;
-  color: #666;
-  padding: 0 5px;
+  color: #444;
+  height: 26px;
+  padding: 0 0px;
+  margin-top: 6px;
+  margin-bottom: -3px;
   align-self: end;
   white-space: nowrap;
   display: flex;

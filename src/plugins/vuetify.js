@@ -8,6 +8,7 @@ import colors from 'vuetify/lib/util/colors'
 
 const baseWeight = "lighten5";
 const darkerWeight = "lighten4";
+const lighterWeight = "lighten5";
 
 export default new Vuetify({
   theme: {
@@ -36,6 +37,9 @@ export default new Vuetify({
         catDisplayDarker: colors.teal[darkerWeight],
         catMetricsDarker: colors.red[darkerWeight],
         catSortDarker: colors.purple[darkerWeight],
+
+        catWorksLighter: colors.blue[lighterWeight],
+        catEntityLighter: colors.green[lighterWeight],
       },
     },
   },
