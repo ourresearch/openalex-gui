@@ -358,7 +358,7 @@ export default {
       }
       
       // Apply sorting if needed (for worksfirst variant)
-      if (this.uiVariant === 'sentence-worksfirst') {
+      if (false && this.uiVariant === 'sentence-worksfirst') {
         result.sort((a, b) => {
           // Always keep selector at the beginning
           if (a.id === 'selector') return -1;
@@ -419,7 +419,7 @@ export default {
         }
         
         // Apply sorting if needed (for worksfirst variant)
-        if (this.uiVariant === 'sentence-worksfirst') {
+        if (false &&this.uiVariant === 'sentence-worksfirst') {
           finalCells.sort((a, b) => {
             // Always keep selector at the beginning
             if (a.config.id === 'selector') return -1;
@@ -568,7 +568,7 @@ export default {
       a.click();
     },
     measureMetricColumns() {
-      if (!this.uiVariant || !this.uiVariant.includes("sentence")) { return; }
+      if (true || !this.uiVariant || !this.uiVariant.includes("sentence")) { return; }
         
       this.$nextTick(() => {
         const table = this.$refs.resultsTable.$el;
@@ -700,8 +700,7 @@ td:last-child {
   border-left-width: 3px;
   border-left-style: solid;
 }
-.results-box th:first-child,
-.results-box.ui-sentence-worksfirst th:first-child {
+.results-box th:first-child {
   border-left: none;
 }
 td.metric {
@@ -718,6 +717,7 @@ tr:last-child td {
 .metric {
   width: 130px;
 }
+/*
 .works-first th:first-child,
 .works-first td:first-child {
   border-color: var(--v-catWorksDarker-base);
@@ -758,6 +758,7 @@ tr:last-child td {
   border-left: 3px solid var(--v-catEntityDarker-base);
   padding-left: 15px !important;
 }
+*/
 tr:hover .metric {
   background-color: transparent;
 }
@@ -770,9 +771,6 @@ td.data-type-number {
     text-align: unset;
     font-family: unset;
   }
-}
-.ui-sentence-worksfirst td.data-type-number {
-  text-align: left;
 }
 th button {
   font-size: 14px !important;

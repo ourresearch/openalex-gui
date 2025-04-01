@@ -236,6 +236,9 @@ export default {
       return this.myFilters.length === 0;
     },
     isFinal() {
+      if (this.uiVariant === 'sentence-worksfirst') {
+        return !this.isWorks;
+      }
       return this.isWorks;
     },
     displayInline() {
@@ -608,8 +611,11 @@ export default {
 }
 .query-filter-leaf {
   line-height: 1.6;
-  font-size: 15px;
+  font-size: 16px !important;
   vertical-align: middle;
+}
+.query-filter-leaf .v-chip {
+  font-size: 16px !important;
 }
 .path-label {
   margin-right: 5px;
