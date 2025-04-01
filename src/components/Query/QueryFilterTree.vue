@@ -4,6 +4,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 <template>
   <div :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-4': !isEmpty}">
     <span class="query-section-label">
+      
       <!-- Side Works First UI -->
       <template v-if="uiVariant === 'worksfirst'">
         <!-- Works Filters -->
@@ -110,7 +111,6 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === 'sentence-worksfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks">
-          {{ hasResults ? null : 'Find'}}
           {{ isEmpty && !hasResults ? ' all' : '' }}
           <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}

@@ -128,7 +128,6 @@ export default {
       
       await this.getSearch({
         id: this.$route.params.id,
-        bypass_cache: this.isIntialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE,
         is_polling: true,
       });
       this.pollCount++;
@@ -165,7 +164,8 @@ export default {
       handler: async function (id) {
         if (!id) { return; }
         this.cancelPollTimer();
-        await this.getSearch({id, is_polling: !this.isInitialLoad});
+        const bypass_cache = this.isInitialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE;
+        await this.getSearch({id, is_polling: !this.isInitialLoad, bypass_cache});
         this.pollCount = 0;
         this.pollSearch();
         this.setIsInitialLoad(false);
