@@ -350,7 +350,6 @@ const api = (function () {
         }
         
         let url = getSearchUrl(searchId);
-
         const params = new URLSearchParams();
         const boolParams = ["bypass_cache", "is_polling", "is_test"];
         boolParams.forEach(param => {
