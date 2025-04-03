@@ -107,7 +107,7 @@ export default {
         return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
       }
       if (this.subjectEntity === null) { return 'catEntity'; }
-      if (this.uiVariant && ["worksfirst"].includes(this.uiVariant)) { return 'catEntity'; }
+      if (["worksfirst"].includes(this.uiVariant)) { return 'catEntity'; }
       return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
     },
     selected: {

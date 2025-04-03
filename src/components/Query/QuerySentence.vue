@@ -36,7 +36,7 @@
         </template>
 
         <!-- Entity First -->
-        <template v-else>
+        <template v-else-if="uiVariant === 'sentence-entityfirst'">
           <!-- Entity Filters -->
           <query-filter-tree
             v-if="querySubjectEntity !== 'works'"

@@ -13,7 +13,7 @@ const stateDefaults = function () {
         snackbarIsOpen: false,
         snackbarColor: undefined,
         zoomId: null,
-        uiVariant: null, // for testing UI variations
+        uiVariant: 'sentence-worksfirst', // for testing UI variations
         isInitialLoad: true, // used to for bypassing cache on freshloads
         testQueries: [],
     }
