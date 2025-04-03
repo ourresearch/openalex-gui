@@ -128,8 +128,11 @@ export default {
       "query",
       "querySubjectEntity",
     ]),
+    entity() {
+      return this.query.show_underlying_works ? 'works' : this.querySubjectEntity;
+    },
     columnConfigs() {
-      return getConfigs()[this.querySubjectEntity].columns;
+      return getConfigs()[this.entity].columns;
     },
     availableColumns() {
       const action = this.query.get_rows === "summary" ? "summary" : "column";
@@ -165,13 +168,13 @@ export default {
       if (this.display === "metrics") {
         return "catWorks";
       }
-      return ['works', 'summary'].includes(this.querySubjectEntity) ? 'catWorks' : 'catEntity';
+      return ['works', 'summary'].includes(this.entity) ? 'catWorks' : 'catEntity';
     },
     buttonText() {
       return this.display === "data" ? "Column" : "Metric";
     },
     dialogTitle() {
-      const subject = this.querySubjectEntity.charAt(0).toUpperCase() + this.querySubjectEntity.slice(1)
+      const subject = this.entity.charAt(0).toUpperCase() + this.entity.slice(1)
       return this.display === "data" ? subject + " Columns" : "Metrics";
     }
   },
