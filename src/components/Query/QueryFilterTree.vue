@@ -62,7 +62,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       </template>
 
       <!-- Sentence UI - Entity First -->
-      <template v-else-if="uiVariant === null">
+      <template v-else-if="uiVariant === 'sentence-entityfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
           {{ isSentence ? 'of' : 'Of' }}
@@ -82,7 +82,6 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       
       <!-- Sentence UI - Group Button -->
       <template v-else-if="uiVariant === 'sentence-group'">
-        
         <!-- Empty Group By Button -->
         <template v-if="subjectEntity === null">
           <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
@@ -127,12 +126,12 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
     </span>
     
     <span 
-      :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant === null}" 
+      :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant.includes('sentence')}" 
       v-if="!isSentence && hasAvailableFilters && subjectEntity !== null"
     >
       <query-filter-tree-button
         :subject-entity="subjectEntity"
-        :text="uiVariant === null ? '' : 'Filter'"
+        :text="uiVariant.includes('sentence') ? '' : 'Filter'"
         @addFilter="addFilter" />
     </span>
 
