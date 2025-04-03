@@ -5,7 +5,7 @@ import router from "@/router";
 import {api} from "@/api";
 import tracking from "@/tracking";
 import {getConfigs} from "@/oaxConfigs";
-import {baseQuery, queryTitle} from "@/query";
+import {baseQuery, queryTitle, makeUnderlyingWorksQuery} from "@/query";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 
@@ -214,10 +214,7 @@ export const search = {
             dispatch('createSearchFromQuery', state.submittedQuery);
         },
         createUnderlyingWorksQuery: async function ({state, commit, dispatch}) {
-            const newQuery = {
-                ...baseQuery('works'),
-                filter_works: _.cloneDeep(state.query.filter_works),
-            };
+            const newQuery = makeUnderlyingWorksQuery(state.query);
             const queryState = _.cloneDeep(state);
             await dispatch('createSearchFromQuery', newQuery);
             commit('setStashedQueryState', queryState);
@@ -274,6 +271,14 @@ export const search = {
             if (data.is_completed) {
                 tracking.trackSearch(data);
             }
+        },
+        addFilter: function ({state, commit}, {filterGroup, filterKey}) {
+            const action = filterGroup === 'works' ? 'setFilterWorks' : 'setFilterAggs';
+            const existingFilters = filterGroup === 'works' ? state.query.filter_works : state.query.filter_aggs;
+
+            const filter = {"column_id": filterKey, "value": null};
+
+            commit(action, [...existingFilters, filter]);
         },
         makePageTitle: async function ({state, commit}) {
             const pageTitle = await queryTitle(state.submittedQuery);

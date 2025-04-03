@@ -111,7 +111,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <template v-else-if="uiVariant === 'sentence-worksfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks">
-          {{ isEmpty && !hasResults ? ' all' : '' }}
+          {{ isEmpty && !hasResults ? '' : '' }}
           <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
