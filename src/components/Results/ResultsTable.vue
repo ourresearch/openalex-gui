@@ -66,7 +66,7 @@
             
             <!-- Column adder header -->
             <template v-else-if="header.id === 'columnAdderData' || header.id === 'columnAdderMetric'">
-              <query-column-adder mode="dialog":display="header.display" />
+              <query-column-adder mode="dialog" :display="header.display" />
             </template>
             
             <!-- Regular data column header -->
@@ -85,15 +85,40 @@
                         <v-icon v-if="submittedQuery.sort_by_order==='desc'" small>mdi-arrow-down</v-icon>
                         <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
                       </template>
+                      <v-icon v-if="getActiveFilters(header.id).length > 0" x-small>mdi-filter</v-icon>
                       {{ (header.displayNameForColumn || header.displayName) | titleCase }}
                       <v-icon small>mdi-menu-down</v-icon>
                     </v-btn>
                   </template>
+
                   <v-list dense>
+                    <!-- Active Filters-->
+                    <template v-if="getActiveFilters(header.id).length">
+                      <v-list-item
+                        v-for="(filterInfo, index) in getActiveFilters(header.id)"
+                        :key="`filter-${index}`"
+                      >
+                        <v-list-item-icon class="align-self-center">
+                          <v-icon >mdi-filter-outline</v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-content>
+                          <QueryFilterValueChip
+                            :column-config="header"
+                            :value="filterInfo.value"
+                          />
+                        </v-list-item-content>
+                        <v-list-item-action>
+                          <v-btn icon @click="removeColumnFilter(filterInfo.targetKey, filterInfo.path)">
+                            <v-icon>mdi-close</v-icon>
+                          </v-btn>
+                        </v-list-item-action> 
+                      </v-list-item>
+                    </template>
+
                     <!-- Add Filter -->
                     <v-list-item @click="addColumnFilter(header.id)">
                       <v-list-item-icon>
-                        <v-icon>mdi-filter-outline</v-icon>
+                        <v-icon>mdi-filter-plus-outline</v-icon>
                       </v-list-item-icon>
                       <v-list-item-title>Add Filter</v-list-item-title>
                     </v-list-item>
@@ -263,7 +288,7 @@ import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
 import QueryColumnAdder from "@/components/Query/QueryColumnAdder.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
-
+import QueryFilterValueChip from '../Query/QueryFilterValueChip.vue'; // Import the component
 
 export default {
   name: "ResultsTable",
@@ -277,6 +302,7 @@ export default {
     DownloadDialog,
     QuerySearchControls,
     QueryColumnAdder,
+    QueryFilterValueChip, // Register the component
   },
   props: {
     apiUrl: String,
@@ -498,6 +524,7 @@ export default {
       "createSearch",
       "resetToSubmittedQuery",
       "addFilter",
+      "deleteFilterByPath", // Map the new action
     ]),
     ...mapActions("user", [
       "createCollection",
@@ -535,9 +562,9 @@ export default {
         this.unselectAll();
       }
     },
-    addColumnFilter(filterKey) {
+    addColumnFilter(filterKey, filterValue) {
       const filterGroup = this.querySubjectEntity === "works" || this.query.show_underlying_works ? "works" : "entity";
-      this.addFilter({filterGroup, filterKey});
+      this.addFilter({filterGroup, filterKey, filterValue});
     },
     clickRow(rowId) {
       console.log("clickRow", rowId);
@@ -575,6 +602,38 @@ export default {
       a.download = "selected.csv";
       a.click();
     },
+    getActiveFilters(columnId) {
+      const activeFiltersWithPath = [];
+      const entityType = this.entity || this.querySubjectEntity;
+      const targetKey = entityType === 'works' ? 'filter_works' : 'filter_aggs';
+      const filtersToSearch = this.query[targetKey];
+
+
+      const findFilters = (filters, currentPath) => {
+        if (!Array.isArray(filters)) return;
+
+        filters.forEach((filter, index) => {
+          const newPath = [...currentPath, index];
+
+          if (filter.filters && Array.isArray(filter.filters)) {
+            findFilters(filter.filters, [...newPath, 'filters']);
+          } else if (filter.column_id === columnId && filter.value !== undefined) {
+            activeFiltersWithPath.push({
+              value: filter.value,
+              path: newPath,
+              targetKey: targetKey
+            });
+          }
+        });
+      };
+
+      findFilters(filtersToSearch, []);
+      return activeFiltersWithPath;
+    },
+    removeColumnFilter(targetKey, path) {
+      this.deleteFilterByPath({ targetKey, path });
+    },
+
     measureMetricColumns() {
       if (true || !this.uiVariant || !this.uiVariant.includes("sentence")) { return; }
         

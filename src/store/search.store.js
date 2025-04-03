@@ -20,7 +20,6 @@ const stateDefaults = function () {
         is_completed: false,
         results_header: [],
         results_body: [],
-        results_meta: null,
         backend_error: null,
         redshift_sql: null,
         selectedIds: [],
@@ -279,6 +278,31 @@ export const search = {
             const filter = {"column_id": filterKey, "value": null};
 
             commit(action, [...existingFilters, filter]);
+        },
+        deleteFilterByPath({ commit, state }, { targetKey, path }) {
+            const mutationName = targetKey === 'filter_works' ? 'setFilterWorks' : 'setFilterAggs';
+            if (!state.query[targetKey]) return;
+            
+            const filtersClone = _.cloneDeep(state.query[targetKey]);
+
+            let parentArray = filtersClone;
+            for (let i = 0; i < path.length - 1; i++) {
+                let currentSegment = parentArray[path[i]];
+                if (typeof currentSegment === 'object' && currentSegment !== null && 'filters' in currentSegment && path[i + 1] === 'filters') {
+                    parentArray = currentSegment.filters;
+                    i++;
+                } else {
+                    parentArray = currentSegment;
+                }
+                if (!parentArray) return;
+            }
+
+            const indexToRemove = path[path.length - 1];
+
+            if (Array.isArray(parentArray) && Number.isInteger(indexToRemove) && indexToRemove >= 0 && indexToRemove < parentArray.length) {
+                parentArray.splice(indexToRemove, 1);
+                commit(mutationName, filtersClone);
+            }
         },
         makePageTitle: async function ({state, commit}) {
             const pageTitle = await queryTitle(state.submittedQuery);

@@ -6,7 +6,7 @@
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
-        <b>{{ entityData.display_name | truncate(50) }}</b>
+        <b>{{ String(entityData.display_name || '') | truncate(50) }}</b>
         <v-icon v-if="isEditable && !isSentence" x-small>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
@@ -20,7 +20,7 @@
       {{ value }}
     </template> 
     <template v-else>
-      <b>{{columnConfig.isCurrency ? '$' : ''}}{{ value | truncate(50) }}</b>
+      <b>{{columnConfig.isCurrency ? '$' : ''}}{{ String(value || '') | truncate(50) }}</b>
     </template>
   </v-chip>
 </template>
