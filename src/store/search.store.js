@@ -20,6 +20,7 @@ const stateDefaults = function () {
         is_completed: false,
         results_header: [],
         results_body: [],
+        results_meta: null,
         backend_error: null,
         redshift_sql: null,
         selectedIds: [],
