@@ -27,6 +27,17 @@ const baseQuery = (entity = 'works') => {
     return query;
 };
 
+const makeUnderlyingWorksQuery = (query) => {
+    const worksQuery = {
+        ...baseQuery("works"),
+        get_rows: query.get_rows,
+        filter_works: _.cloneDeep(query.filter_works),
+        filter_aggs: _.cloneDeep(query.filter_aggs),
+        show_underlying_works: true,
+    };
+    return worksQuery;
+};
+
 // Returns a human readable title representing `query`
 const queryTitle = async (query) => {
     //console.log("making query title for", query);
@@ -138,5 +149,6 @@ const getDisplayNameForValue = (filter, columnConfig) => {
 
 export {
     baseQuery,
+    makeUnderlyingWorksQuery,
     queryTitle,
 };

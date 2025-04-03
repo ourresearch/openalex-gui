@@ -1,7 +1,7 @@
 <template>
   <div :class="{
       'results-table': true, 
-      'works-query': querySubjectEntity === 'works', 
+      'works-query': querySubjectEntity === 'works' || query.show_underlying_works, 
       'works-first': uiVariant === 'sentence-worksfirst'
     }"
   >
@@ -53,9 +53,7 @@
             ]"
           >
             <!-- Empty placeholder header -->
-            <template v-if="header.id === 'placeholder'">
-              &nbsp;
-            </template>
+            <template v-if="header.id === 'placeholder'">&nbsp;</template>
             
             <!-- Selector header -->
             <template v-else-if="header.id === 'selector'">
@@ -92,10 +90,17 @@
                     </v-btn>
                   </template>
                   <v-list dense>
-                    <v-list-item class="pb-2 py-1">
-                      <v-list-item-title style="font-family: monospace; font-size: 10px;">{{ header.id }}</v-list-item-title>
+                    <!-- Add Filter -->
+                    <v-list-item @click="addColumnFilter(header.id)">
+                      <v-list-item-icon>
+                        <v-icon>mdi-filter-outline</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>Add Filter</v-list-item-title>
                     </v-list-item>
+
                     <v-divider/>
+
+                    <!-- Remove -->
                     <v-list-item @click="removeColumn(header.id)">
                       <v-list-item-icon>
                         <v-icon>mdi-table-column-remove</v-icon>
@@ -492,6 +497,7 @@ export default {
     ...mapActions("search", [
       "createSearch",
       "resetToSubmittedQuery",
+      "addFilter",
     ]),
     ...mapActions("user", [
       "createCollection",
@@ -529,6 +535,10 @@ export default {
         this.unselectAll();
       }
     },
+    addColumnFilter(filterKey) {
+      const filterGroup = this.querySubjectEntity === "works" || this.query.show_underlying_works ? "works" : "entity";
+      this.addFilter({filterGroup, filterKey});
+    },
     clickRow(rowId) {
       console.log("clickRow", rowId);
       this.setZoomId(entity.fullId(rowId, this.querySubjectEntity));
@@ -541,12 +551,10 @@ export default {
       return false;
     },
     removeColumn(id) {
-      console.log("removeColumn", id);
       this.deleteReturnColumn(id);
       this.createSearch();
     },
     addColumn(id) {
-      console.log("addColumn", id);
       this.addReturnColumn(id);
       this.createSearch();
     },

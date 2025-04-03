@@ -8,7 +8,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {shortenOpenAlexId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
-import {baseQuery} from "@/query";
+import {baseQuery, makeUnderlyingWorksQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 
@@ -331,8 +331,8 @@ const api = (function () {
             is_test,
         };
 
-        if (options.skipPrefetch) {
-            prefetchUnderlyingWorksQuery(query); // Prefetch underlying works query but don't wait
+        if (query.get_rows !== "works" && !options.skipPrefetch) {
+            //prefetchUnderlyingWorksQuery(query); // Prefetch underlying works query but don't wait
         }
         //console.log("api.createSearch to " + url)
         const resp = await post(url, data, axiosConfig({noCache: true, userAuth: true}));
@@ -367,10 +367,8 @@ const api = (function () {
     }
 
     const prefetchUnderlyingWorksQuery = async function(query) {
-        const worksQuery = {
-            ...baseQuery("works"),
-            filter_works: _.cloneDeep(query.filter_works),
-        };
+        console.log("Prefetching underlying works query");
+        const worksQuery = makeUnderlyingWorksQuery(query);
         const options = {
             bypass_cache: true,
             is_test: false,
