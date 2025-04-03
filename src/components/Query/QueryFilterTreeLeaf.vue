@@ -231,32 +231,58 @@
       </span>
 
       <!-- Related to Text -->
-      <div v-else-if="columnConfig.id === 'related_to_text'" class="related-to-text-wrapper">
-        <v-textarea
-          v-if="isEditingValue || selectedValue === null"
-          class="related-to-text-textarea"
-          v-model="valueEditModel"
-          dense
-          outlined
-          :color="filterColor"
-          hide-details
-          rows="3"
-          auto-grow
-          autofocus
-          @keydown.escape="cancelEditingValue"
-          @blur="onInputBlur"
-          @keydown.enter.ctrl="saveEditingValue(valueEditModel)"
+      <template v-else-if="columnConfig.id === 'related_to_text'">
+        <!-- Only render dialog when needed -->
+        <v-dialog
+          v-if="relatedToTextDialogOpen"
+          v-model="relatedToTextDialogOpen"
+          max-width="600px"
+          persistent
         >
-        </v-textarea>
-        <query-filter-value-chip 
-          v-else
-          :column-config="columnConfig"
-          :subject-entity="subjectEntity"
-          :value="selectedValue"
-          :is-sentence="isSentence"
-          @click.native="startEditingValue"
-        />
-      </div>
+          <v-card>
+            <v-card-title class="headline">
+              Find {{ subjectEntity }} related to the text:
+            </v-card-title>
+            <v-card-text>
+              <v-textarea
+                v-model="valueEditModel"
+                outlined
+                color="catWorksDarker"
+                rows="10"
+                autofocus
+                @keydown.escape.stop="cancelRelatedTextEdit"
+              ></v-textarea>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn 
+                text 
+                @click="cancelRelatedTextEdit"
+              >
+                Cancel
+              </v-btn>
+              <v-btn 
+                color="primary" 
+                text 
+                @click="saveRelatedTextEdit"
+                :disabled="!valueEditModel"
+              >
+                Save
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="isSentence">
+          <query-filter-value-chip 
+            v-if="selectedValue !== null && !isEditingValue"
+            :column-config="columnConfig"
+            :subject-entity="subjectEntity"
+            :value="selectedValue"
+            :is-sentence="isSentence"
+            @click.native="startEditingValue"
+          />
+        </hover-menu-wrapper> 
+      </template>
 
       <!-- Number, String, Array Values -->
       <template v-else-if="['number', 'string', 'array'].includes(columnConfig.type)">
@@ -336,6 +362,7 @@ export default {
       valueEditModel: this.value,
       labelOperators: ["matches any item in label", "matches every item in label"],
       labelMenuOpen: false,
+      relatedToTextDialogOpen: false,
       operatorClickInProgress: false,
       focusSettling: true,
     }
@@ -443,9 +470,18 @@ export default {
     startEditingValue() {
       this.isEditingValue = true;
       this.valueEditModel = this.selectedValue;
+      
+      // Open dialog for related_to_text
+      if (this.columnConfig.id === 'related_to_text') {
+        this.relatedToTextDialogOpen = true;
+      }
     },
     cancelEditingValue() {
       //console.log("cancelEditingValue")
+      if (this.columnConfig.id === 'related_to_text') {
+        this.relatedToTextDialogOpen = false;
+      }
+      
       if (this.value !== null) {
         this.isEditingValue = false;
         this.valueEditModel = null;  
@@ -469,7 +505,7 @@ export default {
     },
     onInputBlur() {
       //console.log("onInputBlur", this.valueEditModel);
-      if (this.operatorClickInProgress || this.focusSettling) {
+      if (this.operatorClickInProgress || this.focusSettling || this.relatedToTextDialogOpen) {
         return;
       }
       
@@ -493,6 +529,23 @@ export default {
     },
     ungroupFromAbove() {
       this.$emit("ungroupFromAbove", this.path);
+    },
+    cancelRelatedTextEdit() {
+      this.relatedToTextDialogOpen = false;
+      if (this.value !== null) {
+        // If we already had a value, just cancel editing
+        this.isEditingValue = false;
+        this.valueEditModel = null;
+      } else {
+        // If this was a new filter with no value, delete it
+        this.deleteFilter();
+      }
+    },
+    saveRelatedTextEdit() {
+      this.relatedToTextDialogOpen = false;
+      this.isEditingValue = false;
+      this.selectedValue = this.valueEditModel;
+      this.valueEditModel = null;
     },
     labelMenuPositionHack() {
       // hacked needed to allow label menu to be rendered open intially in the correct location
@@ -536,6 +589,12 @@ export default {
     setTimeout(() => {
       this.focusSettling = false;
     }, 100);
+    
+    // Auto-open the dialog for related_to_text when value is null (new filter)
+    if (this.columnConfig.id === 'related_to_text' && this.selectedValue === null) {
+      this.isEditingValue = true;
+      this.relatedToTextDialogOpen = true;
+    }
   },
   watch: {
     search(val){
