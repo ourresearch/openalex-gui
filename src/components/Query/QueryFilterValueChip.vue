@@ -17,7 +17,7 @@
       <b>{{ value ? 'true' : 'false' }}</b>
     </template>
     <template v-else-if="columnConfig.id === 'related_to_text'">
-      {{ value }}
+      {{ value | truncate(50) }}
     </template> 
     <template v-else>
       <b>{{columnConfig.isCurrency ? '$' : ''}}{{ String(value || '') | truncate(50) }}</b>
