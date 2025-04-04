@@ -57,17 +57,6 @@ export default {
   props: {},
   data() {
     return {
-      isPropSelectorDialogOpen: false,
-      isOqlEditDialogOpen: false,
-      oql: "",
-      cards: [
-        "oql",
-        "queryJson",
-      ],
-      cardsToShowSelected: [
-        "oql",
-        "queryJson",
-      ],
       pollCount: 0,
       pollTimer: null,
     }
@@ -99,30 +88,6 @@ export default {
     ...mapMutations("search", [
       "setSearchCanceled",
     ]),
-    applyOql() {
-      this.isOqlEditDialogOpen = false;
-      this.createSearchFromOql(this.oql);
-    },
-    toggleCard(cardId) {
-      if (this.cardsToShowSelected.includes(cardId)) {
-        this.cardsToShowSelected = this.cardsToShowSelected.filter(c => c !== cardId);
-      } else {
-        this.cardsToShowSelected.push(cardId);
-      }
-    },
-    saveToLocalStorage() {
-      const dataToSave = {
-        cardsToShowSelected: this.cardsToShowSelected,
-      };
-      localStorage.setItem('resultsPageData', JSON.stringify(dataToSave));
-    },
-    loadFromLocalStorage() {
-      const savedData = localStorage.getItem('resultsPageData');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        this.cardsToShowSelected = parsedData.cardsToShowSelected;
-      }
-    },
     async pollSearch() {
       if (this.queryIsCompleted || this.isSearchCanceled) { return; }
       
@@ -149,13 +114,6 @@ export default {
       }
     },
   },
-  created() {
-    this.loadFromLocalStorage();
-    //console.log("Results state: ")
-    //console.log(this.$store.state)
-  },
-  mounted() {
-  },
   beforeDestroy() {
     this.cancelPollTimer();
   },
@@ -171,12 +129,6 @@ export default {
         this.setIsInitialLoad(false);
       },
       immediate: true
-    },
-    isOqlEditDialogOpen() {
-      this.oql = this.queryOql;
-    },
-    cardsToShowSelected() {
-      this.saveToLocalStorage();
     },
   }
 }
