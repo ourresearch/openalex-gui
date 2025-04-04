@@ -158,8 +158,8 @@ export const search = {
         createSearchFromQuery: async function ({state, commit, dispatch}, query) {
             //console.log("createSearchFromQuery", query);
             
-            // temporary loading state while waiting of ID from API call
-            await router.replace({name: 'search', params: {id: null}});
+            // Push temporary loading state while waiting of ID from API call
+            await pushSafe({name: 'search', params: {id: null}});
             
             const cachedData = api.findQueryInCache(query);
             
@@ -168,10 +168,8 @@ export const search = {
                 commit('setSearchId', cachedData.id);
                 dispatch('setSearchData', cachedData);
                 
-                await pushSafe({
-                    name: 'search',
-                    params: {id: cachedData.id}
-                });
+                // Replace loading state with null ID with actual ID
+                await router.replace({name: 'search', params: {id: cachedData.id}});
             
                 return;
             }
@@ -191,11 +189,8 @@ export const search = {
                     commit('setSearchId', searchId);
                     commit('setQuery', response.data.query);
                     
-                    // Navigate to the search results page
-                    await pushSafe({
-                        name: 'search',
-                        params: {id: searchId}
-                    });
+                    // Replace loading state with null ID actual ID
+                    await router.replace({name: 'search', params: {id: searchId}});
                 }
             } catch (error) {
                 commit('setBackendError', error);
