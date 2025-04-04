@@ -173,7 +173,7 @@
         </tbody>
 
         <tbody v-else>
-                <!-- Row Selection Message -->
+          <!-- Row Selection Message -->
           <tr class="selection-message mx-5"
             v-if="isEveryRowSelected && rows.length < resultsMeta?.count"
           >
@@ -206,48 +206,57 @@
           </tr>
           
           <!-- Results Rows -->
-          <tr
-            v-for="(row, i) in rows"
-            :key="'row-'+i"
-            @click.exact="clickRow(row.id)"
-            @click.meta.stop="metaClickRow(row.id)"
-          >
-            <td
-              v-for="(cell, i) in row.cellsWithConfigs"
-              :key="'cell-'+i"
-              class="px-1"
-              :class="[
-                cell.type === 'ui-action' ? 'ui-action' : 'data-type-' + cell.config.type, 
-                {
-                  'is-date': cell.config.isDate, 
-                  'metric': (cell.config.id && cell.config.id.includes('(')) || cell.config.id === 'columnAdderMetric'
-                }
-              ]"
+          <template v-if="rows.length">
+            <tr
+              v-for="(row, i) in rows"
+              :key="'row-'+i"
+              @click.exact="clickRow(row.id)"
+              @click.meta.stop="metaClickRow(row.id)"
             >
-              <!-- Placeholder cell -->
-              <template v-if="cell.config && cell.config.id === 'placeholder'">
-                &nbsp;
-              </template>
-              
-              <!-- Selector cell -->
-              <template v-else-if="cell.config && cell.config.id === 'selector'">
-                <v-btn icon @click.stop="toggleSelectedId(row.id)">
-                  <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
-                  <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-                </v-btn>
-              </template>
-              
-              <!-- Column adder cell (empty) -->
-              <template v-else-if="cell.config && (cell.config.id === 'columnAdderData' || cell.config.id === 'columnAdderMetric')">
-                <!-- Empty cell -->
-              </template>
-              
-              <!-- Regular data cell -->
-              <template v-else>
-                <column-value :property="cell"/>
-              </template>
-            </td>
-          </tr>
+              <td
+                v-for="(cell, i) in row.cellsWithConfigs"
+                :key="'cell-'+i"
+                class="px-1"
+                :class="[
+                  cell.type === 'ui-action' ? 'ui-action' : 'data-type-' + cell.config.type, 
+                  {
+                    'is-date': cell.config.isDate, 
+                    'metric': (cell.config.id && cell.config.id.includes('(')) || cell.config.id === 'columnAdderMetric'
+                  }
+                ]"
+              >
+                <!-- Placeholder cell -->
+                <template v-if="cell.config && cell.config.id === 'placeholder'">
+                  &nbsp;
+                </template>
+                
+                <!-- Selector cell -->
+                <template v-else-if="cell.config && cell.config.id === 'selector'">
+                  <v-btn icon @click.stop="toggleSelectedId(row.id)">
+                    <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
+                    <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
+                  </v-btn>
+                </template>
+                
+                <!-- Column adder cell (empty) -->
+                <template v-else-if="cell.config && (cell.config.id === 'columnAdderData' || cell.config.id === 'columnAdderMetric')">
+                  <!-- Empty cell -->
+                </template>
+                
+                <!-- Regular data cell -->
+                <template v-else>
+                  <column-value :property="cell"/>
+                </template>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr class="search-controls-row no-results">
+              <td colspan="100%">
+                No results found for this query.
+              </td>
+            </tr>
+          </template>
         </tbody>
       </v-simple-table>
 
@@ -852,6 +861,11 @@ a {
   pointer-events: none;
   opacity: 0.4;
   user-select: none;    
+}
+.no-results {
+  text-align: center;
+  color: #999;
+  height: 300px;
 }
 .more-results-message {
   padding: 20px;
