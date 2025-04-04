@@ -162,7 +162,7 @@
           </th>
         </thead>
       
-        <tbody v-if="isSearchCanceled || !queryIsCompleted">
+        <tbody v-if="!queryIsCompleted || isSearchCanceled || queryBackendError">
           <tr class="search-controls-row">
             <td colspan="100%">
               <results-error v-if="queryBackendError" />
