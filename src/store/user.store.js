@@ -1,10 +1,8 @@
 import axios from "axios";
-import router from "../router";
 import {url} from "@/url";
-import {entity} from "@/entity";
-import {sleep} from "@/util";
+import {api} from "@/api";
+import { navigation } from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
-
 
 const shortUuid = require('short-uuid');
 
@@ -20,6 +18,7 @@ export const user = {
         savedSearches: [],
         collections: [],
         corrections: [],
+        labelLastModified: {},
         isSaving: false,
         renameId: null,
         editAlertId: null,
@@ -65,6 +64,11 @@ export const user = {
                         ids: [...ids]
                     };
                 }
+                state.labelLastModified = {
+                    ...state.labelLastModified,
+                    [collectionId]: Date.now()
+                };
+                api.invalidateCacheForLabel(collectionId);
                 return existing;
             });
         },
@@ -80,7 +84,7 @@ export const user = {
             state.corrections = []
             state.authorId = ""
             localStorage.removeItem("token")
-            router.push("/")
+            navigation.push("/")
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id
@@ -225,7 +229,7 @@ export const user = {
                 axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
-            await url.pushSearchUrlToRoute(router, search_url)
+            await url.pushSearchUrlToRoute(navigation, search_url)
         },
         // create
         async createSearchFromTemplate({commit, dispatch, state, rootState}, id) {
@@ -259,7 +263,7 @@ export const user = {
         async openSavedSearch({commit, state, getters}, id) {
             const savedSearchToOpen = state.savedSearches.find((s => s.id === id))
             return await url.pushToRoute(
-                router,
+                navigation,
                 url.urlObjectFromSearchUrl(savedSearchToOpen?.search_url)
             )
         },
@@ -324,7 +328,7 @@ export const user = {
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search deleted", {root: true})
             rootState.isLoading = false
-            await url.pushToRoute(router, "/me/searches")
+            await url.pushToRoute(navigation, "/me/searches")
             commit("setActiveSearchId", undefined)
 
         },

@@ -8,7 +8,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {shortenOpenAlexId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
-import {baseQuery, makeUnderlyingWorksQuery} from "@/query";
+import {makeUnderlyingWorksQuery, getLabelsInQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 
@@ -399,6 +399,20 @@ const api = (function () {
         return null;
     }
 
+    const invalidateCacheForLabel = function (labelId) {
+        const searchKeys = Object.keys(cache).filter(key => key.includes('/searches/'));
+        for (const key of searchKeys) {
+            const cachedData = cache[key];
+            if (cachedData) {
+                const labels = getLabelsInQuery(cachedData.query);
+                if (labels.includes(labelId)) {
+                    console.log("Invalidating cache for label: " + labelId, ", key: " + key);
+                    delete cache[key];
+                }
+            }
+        }
+    };
+
     const createExport = async function(query, email) {
         // Initiates a data export to CSV
         const url = urlBase.exportApi + "/mega-csv?email=" + email
@@ -431,9 +445,10 @@ const api = (function () {
         getSearch,
         getSearchFromCache,
         findQueryInCache,
+        invalidateCacheForLabel,
         createExport,
     }
-})()
+})();
 
 
 export {

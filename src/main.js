@@ -7,6 +7,8 @@ import VueMeta from "vue-meta";
 import VScrollLock from "v-scroll-lock";
 import millify from "millify";
 
+import { navigation } from './navigation';
+
 import tracking from "./tracking";
 import {shortenOpenAlexId} from "./util";
 import {url} from "./url"
@@ -14,6 +16,7 @@ import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
 import {createSimpleFilter} from "./filterConfigs";
 import _ from 'lodash'
 
+// import VueGtag from "vue-gtag";
 
 tracking.setupJavaScriptErrorTracking();
 
@@ -194,7 +197,9 @@ Vue.filter("millify", function (number) {
 
 Vue.use(vuetify)
 
-window.vm = new Vue({
+navigation.setRouter(router);
+
+const vm = new Vue({
     router,
     store,
     vuetify,
@@ -202,4 +207,8 @@ window.vm = new Vue({
     data: {
         config: {}
     }
-}).$mount('#app')
+})
+
+window.vm = vm;
+
+vm.$mount('#app')

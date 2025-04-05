@@ -53,7 +53,7 @@ export default {
     },
     filterColor: {
       type: String,
-      required: true
+      default: "primary"
     },
   },
   data() {
