@@ -1,13 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import _ from "lodash"
-import router from "@/router";
 import {api} from "@/api";
+import { navigation } from "@/navigation"; 
 import tracking from "@/tracking";
 import {getConfigs} from "@/oaxConfigs";
-import {baseQuery, queryTitle, makeUnderlyingWorksQuery} from "@/query";
+import {baseQuery, makeUnderlyingWorksQuery} from "@/query"; 
+import {queryTitle} from "@/utils/queryTitle"; 
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
-
 
 Vue.use(Vuex);
 
@@ -21,6 +21,7 @@ const stateDefaults = function () {
         results_header: [],
         results_body: [],
         results_meta: null,
+        results_timestamps: null,
         backend_error: null,
         redshift_sql: null,
         selectedIds: [],
@@ -31,26 +32,6 @@ const stateDefaults = function () {
         metricsColumnPercentage: 40,
     };
     return ret;
-};
-
-
-const pushSafe = async function (route) {
-    // Preserve `ui` param if it exists
-    const uiVariant = window.vm.$store.state.uiVariant;
-    const newRoute = {
-        ...route,
-        query: {
-            ...route.query,  // Keep any query params in the destination
-            ...(uiVariant ? { ui: uiVariant } : {})  // Add ui param only if it exists
-        }
-    };
-        
-    await router.push(newRoute)
-        .catch((e) => {
-            if (e.name !== "NavigationDuplicated") {
-                throw e;
-            }
-        });
 };
 
 
@@ -71,10 +52,11 @@ export const search = {
         setSearchId(state, id) {
             state.id = id;
         },
-        setSearchResults(state, { header, body, meta, redshift_sql }) {
+        setSearchResults(state, { header, body, meta, timestamps, redshift_sql }) {
             state.results_header = header;
             state.results_body = body;
             state.results_meta = meta;
+            state.results_timestamps = timestamps;
             state.redshift_sql = redshift_sql;
         },
         setSearchCompleted(state, value) {
@@ -93,7 +75,7 @@ export const search = {
             state.pageTitle = pageTitle;
         },
         setSummarize(state, entity) {
-            console.log("setSummarize", entity);
+            //console.log("setSummarize", entity);
             const newQuery = {
                 ...baseQuery(entity),
                 filter_works: state.query.filter_works,
@@ -155,21 +137,22 @@ export const search = {
             const query = oqlToQuery(oql);
             return await dispatch("createSearchFromQuery", query);
         },
-        createSearchFromQuery: async function ({state, commit, dispatch}, query) {
+        createSearchFromQuery: async function ({state, commit, dispatch, rootState}, query) {
             //console.log("createSearchFromQuery", query);
             
             // Push temporary loading state while waiting of ID from API call
-            await pushSafe({name: 'search', params: {id: null}});
+            await navigationPush({name: 'search', params: {id: null}}, rootState);
             
             const cachedData = api.findQueryInCache(query);
             
             if (cachedData && cachedData.is_completed && cachedData.id) {                
+                console.log("createSearch found cached search for: " + cachedData.id);
                 // Set the search ID and data from cache without resetting the state
                 commit('setSearchId', cachedData.id);
                 dispatch('setSearchData', cachedData);
                 
                 // Replace loading state with null ID with actual ID
-                await router.replace({name: 'search', params: {id: cachedData.id}});
+                await navigationReplace({name: 'search', params: {id: cachedData.id}}, rootState);
             
                 return;
             }
@@ -188,31 +171,20 @@ export const search = {
                     // Set the search ID and query
                     commit('setSearchId', searchId);
                     commit('setQuery', response.data.query);
+
+                    // Replace loading state null ID with actual ID
+                    await navigationReplace({name: 'search', params: {id: searchId}}, rootState);
                     
-                    // Replace loading state with null ID actual ID
-                    await router.replace({name: 'search', params: {id: searchId}});
+                } else {
+                     // Handle cases where the API might not return an ID as expected
+                     console.error("API did not return a search ID.");
+                     commit('setBackendError', new Error("Search creation failed."));
+                     commit('setSearchCompleted', true);
                 }
             } catch (error) {
                 commit('setBackendError', error);
                 commit('setSearchCompleted', true);
             }
-        },
-        createNewSearch: async function ({dispatch}) {
-            return await dispatch("createSearchFromQuery", baseQuery());
-        },
-        createSearch: async function ({state, dispatch}) {
-            return await dispatch("createSearchFromQuery", state.query);
-        },
-        resetToSubmittedQuery: function ({state, commit, dispatch}) {
-            console.log("Resetting to submitted query");
-            commit('setQuery', state.submittedQuery);
-            dispatch('createSearchFromQuery', state.submittedQuery);
-        },
-        createUnderlyingWorksQuery: async function ({state, commit, dispatch}) {
-            const newQuery = makeUnderlyingWorksQuery(state.query);
-            const queryState = _.cloneDeep(state);
-            await dispatch('createSearchFromQuery', newQuery);
-            commit('setStashedQueryState', queryState);
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
             commit('setSearchId', id);
@@ -220,6 +192,7 @@ export const search = {
             // Check the cache first if we're not explicitly bypassing it
             const cachedData = api.getSearchFromCache(id);
             if (!bypass_cache && cachedData) {
+                console.log("getSearch found cached search for: " + id);
                 dispatch('setSearchData', cachedData);
                 return;
             }
@@ -253,6 +226,7 @@ export const search = {
                     header: data.results_header ?? [],
                     body: data.results ?? [],
                     meta: data.meta,
+                    timestamps: data.timestamps,
                     redshift_sql: data.redshift_sql
                 });
             }
@@ -266,6 +240,23 @@ export const search = {
             if (data.is_completed) {
                 tracking.trackSearch(data);
             }
+        },
+        createNewSearch: async function ({dispatch}) {
+            return await dispatch("createSearchFromQuery", baseQuery());
+        },
+        createSearch: async function ({state, dispatch}) {
+            return await dispatch("createSearchFromQuery", state.query);
+        },
+        resetToSubmittedQuery: function ({state, commit, dispatch}) {
+            console.log("Resetting to submitted query");
+            commit('setQuery', state.submittedQuery);
+            dispatch('createSearchFromQuery', state.submittedQuery);
+        },
+        createUnderlyingWorksQuery: async function ({state, commit, dispatch}) {
+            const newQuery = makeUnderlyingWorksQuery(state.query);
+            const queryState = _.cloneDeep(state);
+            await dispatch('createSearchFromQuery', newQuery);
+            commit('setStashedQueryState', queryState);
         },
         addFilter: function ({state, commit}, {filterGroup, filterKey}) {
             const action = filterGroup === 'works' ? 'setFilterWorks' : 'setFilterAggs';
@@ -304,6 +295,23 @@ export const search = {
             const pageTitle = await queryTitle(state.submittedQuery);
             console.log("Setting Page Title: " + pageTitle);
             commit('setPageTitle', pageTitle);
+        },
+        clearSelected({commit, state, rootState}) {
+            commit("selectEntityWorkIds", [])
+
+            // When clearing selection, update the URL to remove the 'select' param
+            const uiVariant = rootState.uiVariant;
+            const route = {
+                name: state.searchId ? 'search' : 'home', // Stay on search if ID exists, else home
+                params: { ...window.vm.$route.params }, // Keep existing params (like search id)
+                query: {
+                    ...window.vm.$route.query, // Keep existing query params
+                    select: undefined, // Remove the select param
+                    ...(uiVariant ? { ui: uiVariant } : {}) // Keep ui variant if present
+                }
+            };
+            // Use replace to avoid polluting history
+            navigation.replace(route);
         },
     },
     getters: {
@@ -347,4 +355,28 @@ export const search = {
         stashedQueryState: (state) => state.stashedQueryState,
         metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },
+};
+
+const navigationPush = async (route, rootState) => {
+    const uiVariant = rootState.uiVariant;
+    const newRoute = {
+        ...route,
+        query: {
+            ...route.query,
+            ...(uiVariant ? { ui: uiVariant } : {})
+        }
+    };
+    await navigation.push(newRoute);
+};
+
+const navigationReplace = async (route, rootState) => {
+    const uiVariant = rootState.uiVariant;
+    const newRoute = {
+        ...route,
+        query: {
+            ...route.query,
+            ...(uiVariant ? { ui: uiVariant } : {})
+        }
+    };
+    await navigation.replace(newRoute);
 };

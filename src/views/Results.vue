@@ -31,6 +31,7 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import store from "@/store";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -38,6 +39,7 @@ import ResultsError from "@/components/Results/ResultsError.vue";
 import QueryBuilder from "@/components/Query/QueryBuilder.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryTabs from "@/components/Query/QueryTabs.vue";
+import {getLabelsInQuery} from "@/query";
 
 export default {
   name: "Results",
@@ -113,6 +115,33 @@ export default {
         clearTimeout(this.pollTimer);
       }
     },
+    areResultsStale() {
+      const searchState = store.state.search;
+      const userState = store.state.user; 
+
+      if (searchState.id && searchState.query && searchState.results_timestamps?.completed) {
+        const labelsInQuery = getLabelsInQuery(searchState.query);
+        const labelModTimestamps = userState.labelLastModified;
+        
+        let needsRefresh = false;
+        const resultsTime = new Date(searchState.results_timestamps.completed).getTime();
+        for (const labelId of labelsInQuery) {
+            if (labelModTimestamps[labelId] && labelModTimestamps[labelId] > resultsTime) {
+              needsRefresh = true;
+              break; 
+            }
+        }
+
+        if (needsRefresh) {
+          console.log("Results are stale");
+        }
+
+        return needsRefresh;
+
+      }
+    },
+  },
+  mounted() {
   },
   beforeDestroy() {
     this.cancelPollTimer();
@@ -122,7 +151,8 @@ export default {
       handler: async function (id) {
         if (!id) { return; }
         this.cancelPollTimer();
-        const bypass_cache = this.isInitialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE;
+        console.log("Initial load with ID, poll count: ", this.pollCount);
+        const bypass_cache = this.areResultsStale() || (this.isInitialLoad && this.pollCount === 0 && DISABLE_SERVER_CACHE);
         await this.getSearch({id, is_polling: !this.isInitialLoad, bypass_cache});
         this.pollCount = 0;
         this.pollSearch();
