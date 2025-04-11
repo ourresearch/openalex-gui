@@ -137,7 +137,6 @@ export default {
         }
 
         return needsRefresh;
-
       }
     },
   },
