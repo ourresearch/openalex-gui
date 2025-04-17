@@ -321,7 +321,7 @@ const api = (function () {
 
     const createSearch = async function(query, options={}) {
         // Creates a new Redshift query, routing to user api if needed
-        const url = urlBase.api + "/searches";
+        const url = urlBase.api + "/analytics";
         const bypass_cache = options.bypass_cache || DISABLE_SERVER_CACHE;
         const is_test = options.is_test || false;
         
@@ -378,7 +378,7 @@ const api = (function () {
     }
 
     const getSearchUrl = function(searchId) {
-        return urlBase.api + "/searches/" + searchId;
+        return urlBase.api + "/analytics/" + searchId;
     }
 
     const getSearchFromCache = function(searchId) {
@@ -388,7 +388,7 @@ const api = (function () {
 
     const findQueryInCache = function(query) {
         // Find cached query data by searching sequentially for matching query objects
-        const searchKeys = Object.keys(cache).filter(key => key.includes('/searches/'));
+        const searchKeys = Object.keys(cache).filter(key => key.includes('/analytics/'));
         
         for (const key of searchKeys) {
             const cachedData = cache[key];
@@ -400,7 +400,7 @@ const api = (function () {
     }
 
     const invalidateCacheForLabel = function (labelId) {
-        const searchKeys = Object.keys(cache).filter(key => key.includes('/searches/'));
+        const searchKeys = Object.keys(cache).filter(key => key.includes('/analytics/'));
         for (const key of searchKeys) {
             const cachedData = cache[key];
             if (cachedData) {
