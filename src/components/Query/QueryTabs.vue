@@ -65,7 +65,7 @@ export default {
       this.createSearchFromOql(this.oql);
     },
     searchApiUrl() {
-      return urlBase.api + '/searches/' + this.$route.params.id;
+      return urlBase.api + '/analytics/' + this.$route.params.id;
     },
     formattedSql() {
       const rawSql = this.querySql;
