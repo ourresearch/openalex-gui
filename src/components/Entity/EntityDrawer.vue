@@ -72,8 +72,8 @@ export default {
   methods: {
     async getEntityData() {
       if (!this.id) {
-        this.entityData = null
-        return
+        this.entityData = null;
+        return;
       }
       this.isLoading = true;
       // console.log("EntityDrawer getEntityData() loading", this.isLoading)
