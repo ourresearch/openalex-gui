@@ -321,7 +321,7 @@ const api = (function () {
 
     const createSearch = async function(query, options={}) {
         // Creates a new Redshift query, routing to user api if needed
-        const url = urlBase.userApi + "/searches";
+        const url = urlBase.api + "/searches";
         const bypass_cache = options.bypass_cache || DISABLE_SERVER_CACHE;
         const is_test = options.is_test || false;
         
@@ -378,7 +378,7 @@ const api = (function () {
     }
 
     const getSearchUrl = function(searchId) {
-        return urlBase.userApi + "/searches/" + searchId;
+        return urlBase.api + "/searches/" + searchId;
     }
 
     const getSearchFromCache = function(searchId) {
