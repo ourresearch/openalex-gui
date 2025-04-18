@@ -65,6 +65,7 @@ export default {
   },
   computed: {
     ...mapState(['uiVariant', 'isInitialLoad']),
+    ...mapState("user", ["isTester"]),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",
@@ -139,6 +140,11 @@ export default {
         return needsRefresh;
       }
     },
+  },
+  created() {
+    if (!this.isTester) {
+      this.$router.push({name: 'AnalyticsTesting'});
+    }
   },
   mounted() {
   },
