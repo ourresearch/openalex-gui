@@ -34,6 +34,7 @@ import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import LabelDetails from "@/components/Label/LabelDetails.vue";
 import Query from "@/views/Query.vue";
+import AdminPage from "@/views/AdminPage.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
@@ -47,6 +48,7 @@ import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue
 Vue.use(VueRouter);
 
 const entityNames = Object.keys(getConfigs()).join("|");
+
 
 const routes = [
 
@@ -162,6 +164,12 @@ const routes = [
     {path: '/tests_old', component: OQOTests},
     {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
 
+    {
+        path: '/admin',
+        name: 'admin',
+        component: AdminPage,
+        meta: { requiresAuth: true }
+    },
 
     // redirects to gitbook docs
     {

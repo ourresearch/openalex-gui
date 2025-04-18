@@ -1,7 +1,7 @@
 import axios from "axios";
 import {url} from "@/url";
 import {api} from "@/api";
-import { navigation } from '@/navigation';
+import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 
 const shortUuid = require('short-uuid');
@@ -15,6 +15,8 @@ export const user = {
         name: "",
         email: "",
         authorId: "",
+        isAdmin: false,
+        isTester: false,
         savedSearches: [],
         collections: [],
         corrections: [],
@@ -90,6 +92,8 @@ export const user = {
             state.id = apiResp.id
             state.name = apiResp.name
             state.email = apiResp.email
+            state.isAdmin = apiResp.is_admin
+            state.isTester = apiResp.is_tester
             state.authorId = apiResp.author_id
         },
     },
@@ -453,7 +457,8 @@ export const user = {
         getCollectionsByType: (state) => (entityType) => {
             return state.collections.filter(coll => coll.entity_type === entityType);
         },
-
+        isAdmin: (state) => state.isAdmin,
+        isTester: (state) => state.isTester,
         isUserSaving: (state) => state.isSaving,
         renameId: (state) => state.renameId,
         editAlertId: (state) => state.editAlertId,
