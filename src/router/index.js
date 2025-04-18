@@ -6,6 +6,7 @@ import Testimonials from "../views/Testimonials.vue";
 import Help from "../views/Help.vue";
 import OpenAlexStats from "../views/OpenAlexStats.vue";
 import AnalyticsDocs from "../views/AnalyticsDocs.vue";
+import AnalyticsTesting from "../views/AnalyticsTesting.vue";
 
 import Serp from "../views/Serp";
 import Results from "@/views/Results.vue";
@@ -163,6 +164,8 @@ const routes = [
     {path: '/query', component: Query},
     {path: '/tests_old', component: OQOTests},
     {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
+    {path: '/analytics-testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
+
 
     {
         path: '/admin',
