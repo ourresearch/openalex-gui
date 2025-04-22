@@ -26,21 +26,32 @@
           <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
 
-        <v-subheader>Group Works by:</v-subheader>
+        <v-subheader>Group works by:</v-subheader>
         <v-divider/>
+        <!-- Show popular entities first -->
         <v-list-item
-          value="summary"
-          active-class="primary--text"
+            v-for="entity in popularEntities"
+            :key="entity.id"
+            :value="entity.id"
+            active-class="primary--text"
         >
           <v-list-item-icon>
-            <v-icon>mdi-file-document</v-icon>
+            <v-icon>{{ entity.icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>Works Summary</v-list-item-title>
+          <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
+          <v-list-item-icon v-if="selected === entity.id">
+            <v-icon>mdi-check</v-icon>
+          </v-list-item-icon>
         </v-list-item>
 
+
+        
+        <v-divider/>
+
+        <!-- Remaining entities in alphabetical order -->
         <v-list-item
-            v-for="(entity, i) in entities"
-            :key="i"
+            v-for="entity in remainingEntitiesSorted"
+            :key="entity.id"
             :value="entity.id"
             active-class="primary--text"
         >
@@ -84,6 +95,31 @@ export default {
     ]),
     entities() {
       return Object.values(getConfigs()).filter(config => config.id !== 'works');
+    },
+    popularEntities() {
+      // Create a special config for summary since it's not a standard entity
+      const summaryConfig = {
+        id: 'summary',
+        displayName: 'Works Summary',
+        icon: 'mdi-file-document'
+      };
+      
+      // Add other popular entities
+      const popularIds = ['authors', 'institutions', 'funders', 'topics'];
+      const entities = popularIds
+        .map(id => this.getEntityConfig(id))
+        .filter(entity => entity !== null);
+        
+      // Add summary after topics
+      entities.push(summaryConfig);
+      
+      return entities;
+    },
+    remainingEntitiesSorted() {
+      const popularIds = ['authors', 'institutions', 'funders', 'topics'];
+      return this.entities
+        .filter(entity => !popularIds.includes(entity.id) && entity.id !== 'works' && entity.id !== 'summary')
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
     },
     resultsCount() {
       if (!this.queryIsCompleted || this.hasQueryChanged) { return null; }
@@ -130,6 +166,10 @@ export default {
     ...mapActions("search", [
       "createSearch",
     ]),
+    getEntityConfig(entityId) {
+      const configs = getConfigs();
+      return configs[entityId] || null;
+    },
   },
 }
 </script>
