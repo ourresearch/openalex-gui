@@ -4,12 +4,16 @@
       <div class="d-flex align-center w-100">
         <div class="header-right">
           <div>
-            <span class="text-h5">
+            <span v-if="labelData" class="text-h5">
               <v-icon>mdi-tag-outline</v-icon>
               {{ labelData.name }}
             </span>
+            <span v-else class="text-h5">
+              <v-icon>mdi-tag-outline</v-icon>
+              Label not found
+            </span>
 
-            <span class="subtitle">
+            <span v-if="labelData" class="subtitle">
               {{ labelData.ids.length}} {{ labelData.entity_type }}
             </span>
           </div>
@@ -40,10 +44,12 @@
       </div>
     </div>
     
-    <v-card-text v-if="!this.displayNamesLoaded" >
+    <v-card-text v-if="!this.displayNamesLoaded">
       Loading...
     </v-card-text>
-
+    <v-card-text v-else-if="!labelData">
+      Label not found.
+    </v-card-text>
     <v-list v-else-if="labelData.ids.length" class="label-items py-3 px-0">
       <v-list-item
           v-for="(id, index) in labelData.ids"
@@ -84,6 +90,24 @@
         @close="showEditDialog = false"
       />
     </v-dialog>
+    <!-- Bulk Upload Button and Dialog -->
+    <div class="label-details-bulk-upload-section px-6 mt-6">
+      <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
+        <v-icon left>mdi-upload</v-icon>
+        Bulk Upload
+      </v-btn>
+    </div>
+    <v-dialog
+      v-model="showBulkUploadDialog"
+      max-width="600px"
+      max-height="600px"
+    >
+      <label-bulk-upload
+        v-if="showBulkUploadDialog"
+        :label-id="labelId"
+        @close="showBulkUploadDialog = false"
+      />
+    </v-dialog>
   </div>
 </template>
 
@@ -94,6 +118,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex"
 import {api} from "@/api"
 import EntityAutocomplete from "@/components/EntityAutocomplete.vue"
 import LabelCreate from "@/components/Label/LabelCreate.vue"
+import LabelBulkUpload from "@/components/Label/LabelBulkUpload.vue"
 
 
 export default {
@@ -101,12 +126,14 @@ export default {
   components: {
     EntityAutocomplete,
     LabelCreate,
+    LabelBulkUpload,
   },
   props: {},
   data() {
     return {
       displayNamesLoaded: false,
       showEditDialog: false,
+      showBulkUploadDialog: false,
     }
   },
   computed: {

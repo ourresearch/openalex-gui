@@ -188,7 +188,7 @@ Vue.filter("millify", function (number) {
     return millify(
         number,
         {
-            precision: 0,
+        precision: 0,
             lowercase: false,
         }
     )
