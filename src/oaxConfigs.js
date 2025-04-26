@@ -1,4 +1,3 @@
-import axios from 'axios'
 import _ from "lodash"
 import {urlBase} from "@/apiConfig"
 

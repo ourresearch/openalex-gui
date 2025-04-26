@@ -1,5 +1,5 @@
 <template>
-  <div class="py-6 ma-0">
+  <div class="pt-6 ma-0">
     <div class="label-details-header px-5 pb-5">
       <div class="d-flex align-center w-100">
         <div class="header-right">
@@ -71,14 +71,23 @@
       </v-list-item>
     </v-list>
 
-    <div class="label-details-add-section px-6">
-      <div class="label">Add to Label:</div>
-      <entity-autocomplete
-        :entityType="labelData.entity_type"
-        @entity-selected="addId($event.id)"
-      />
+    <div class="label-details-action-row d-flex flex-row" style="width: 100%;">
+      <div class="label-details-add-section px-6" style="flex: 1.5; display: flex; flex-direction: column; justify-content: center;">
+        <div class="label mb-2">Add {{ this.labelData.entity_type }}:</div>
+        <entity-autocomplete
+          :entityType="labelData.entity_type"
+          @entity-selected="addId($event.id)"
+        />
+      </div>
+      <div class="label-details-upload-section px-6 mt-0" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
+          <v-icon left>mdi-upload</v-icon>
+          Upload {{ this.labelData.entity_type | capitalize }} List
+        </v-btn>
+      </div>
     </div>
 
+    <!-- Edit Dialog -->
     <v-dialog
       v-model="showEditDialog"
       max-width="600px"
@@ -90,13 +99,8 @@
         @close="showEditDialog = false"
       />
     </v-dialog>
-    <!-- Bulk Upload Button and Dialog -->
-    <div class="label-details-bulk-upload-section px-6 mt-6">
-      <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
-        <v-icon left>mdi-upload</v-icon>
-        Bulk Upload
-      </v-btn>
-    </div>
+
+    <!-- Bulk Upload Dialog -->
     <v-dialog
       v-model="showBulkUploadDialog"
       max-width="600px"
@@ -180,8 +184,15 @@ export default {
       }
     }
   },
-  created() {
-    this.loadAllDisplayNames();
+  watch: {
+    labelData: {
+      handler() {
+        this.displayNamesLoaded = false;
+        this.loadAllDisplayNames();
+      },
+      immediate: true,
+      deep: false
+    }
   },
 }
 </script>
@@ -219,5 +230,9 @@ export default {
 }
 .label-details-add-section .label {
   margin-bottom: 10px;
+}
+.label-details-upload-section {
+  padding: 40px 0;
+  border-left: 1px solid #ddd;
 }
 </style>
