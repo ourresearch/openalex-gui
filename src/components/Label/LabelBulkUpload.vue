@@ -1,6 +1,6 @@
 <template>
   <v-card rounded>
-    <v-card-title>Bulk Upload {{ labelData.entity_type | capitalize }}</v-card-title>
+    <v-card-title>Upload {{ labelData.entity_type | capitalize }} List</v-card-title>
     <v-card-text>
       <template v-if="!checked">
         <v-textarea
@@ -10,17 +10,19 @@
           rows="6"
           no-resize
           outlined
-          placeholder="Paste or type IDs separated by new lines or commas"
+          :placeholder="`Paste or type ${acceptedIdsNames} separated by new lines or commas`"
         ></v-textarea>
+        <div v-if="idType !== 'openalex'" class="caption grey--text mt-1" style="font-size: 12px;">
+          Reading inputs as {{ idType.toUpperCase() }}
+        </div>
 
       </template>
       <template v-else>
         <div v-if="invalidIds.length">
-          <div class="mt-4 font-weight-bold unrecognized-header">{{ invalidIds.length }} {{ labelData.entity_type }} not recognized</div>
+          <div class="mt-4 font-weight-bold unrecognized-header">{{ invalidIds.length }} {{ entitySingularOrPlural(invalidIds.length) }} not recognized</div>
           <v-textarea
             v-model="recheckInput"
-            :auto-grow="false"
-            :rows="Math.min(6, invalidIds.length)"
+            rows="4"
             outlined
             no-resize
             hide-details
@@ -33,7 +35,7 @@
           </div>
         </div>
         <div v-if="validIds.length">
-          <div class="font-weight-bold recognized-header">{{ validIds.length }} {{ labelData.entity_type }} recognized</div>
+          <div class="font-weight-bold recognized-header">{{ validIds.length }} {{ entitySingularOrPlural(validIds.length) }} recognized</div>
           <div class="recognized-id-list mt-1">
             <div v-for="item in validIds" :key="item.id" class="recognized-id-list-item recognized-id-row">
               <span>{{ item.id }} <span class="grey--text">({{ item.display_name }})</span></span>
@@ -68,6 +70,7 @@
 
 <script>
 import {mapGetters, mapActions, mapMutations} from "vuex";
+import {getConfigs} from "@/oaxConfigs";
 
 export default {
   name: 'LabelBulkUpload',
@@ -87,17 +90,30 @@ export default {
       checked: false,
       validIds: [], // {id, display_name}
       invalidIds: [],
+      idType: "openalex", // "orcid", "ror", "doi", "openalex"
     };
   },
   computed: {
-    ...mapGetters("user", [
-      "userCollections",
+    ...mapGetters('user', [
+      'userCollections'
     ]),
     labelData() {
       return this.userCollections.find(coll => coll.id === this.labelId);
-    },
+    },    
     canRecheck() {
       return this.recheckInput !== this.lastCheckedRecheckInput;
+    },
+    acceptedIdsNames() {
+      switch (this.labelData.entity_type) {
+        case 'works':
+          return 'OpenAlex IDs or DOIs';
+        case 'authors':
+          return 'OpenAlex IDs or ORCIDs';
+        case 'ror':
+          return 'OpenAlex IDs or ROR IDs';
+        default:
+          return 'OpenAlex IDs';
+      }
     }
   },
   methods: {
@@ -106,14 +122,38 @@ export default {
       "updateCollectionIds",
     ]),
     parseIds(input) {
+      const idType = this.idType;
       const entityType = this.labelData.entity_type;
       const entityPrefix = entityType && entityType.length > 0 ? entityType[0].toUpperCase() : '';
       let ids = input.split(/\n|,/).map(id => id.trim()).filter(Boolean);
-      return ids.map(id => (/^\d/.test(id) ? entityPrefix + id : id));
+      if (idType === 'openalex') {
+        return ids.map(id => (/^\d/.test(id) ? entityPrefix + id : id));
+      } else {
+        // For orcid/doi/ror, do not prepend anything
+        return ids;
+      }
+    },
+    getIdType(id) {
+      // ORCID: four groups of four digits separated by hyphens (e.g., 0000-0001-2345-6789)
+      if (/^\d{4}-\d{4}-\d{4}-\d{4}$/.test(id)) {
+        return "orcid";
+      }
+      // ROR: starts with 0, 9 digits
+      if (id.length === 9 && id.startsWith("0")) {
+        return "ror";
+      }
+      // DOI: starts with 10.
+      if (id.startsWith("10.")) {
+        return "doi";
+      }
+      return "openalex";
     },
     buildApiUrl(entityType, ids) {
+      const filterKey = this.idType === 'openalex' ? 'ids.openalex' : this.idType;
+      const selectFields = ['id', 'display_name'];
+      if (this.idType !== 'openalex') selectFields.push(this.idType);
       const filter = ids.map(id => encodeURIComponent(id)).join('%7C');
-      return `https://api.openalex.org/${entityType}?filter=ids.openalex:${filter}&select=id,display_name`;
+      return `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}`;
     },
     extractBadIdFromError(message) {
       const match = message && message.match(/'([^']+)' is not a valid OpenAlex ID/);
@@ -155,14 +195,27 @@ export default {
         return;
       }
       const entityType = this.labelData.entity_type;
+      const idType = this.idType;
       const { results, badIds } = await this.validateIdsWithRetry(entityType, ids);
-      // Map returned OpenAlex IDs to stripped IDs
-      const valid = (results || []).map(r => ({
-        id: r.id.replace('https://openalex.org/', ''),
-        display_name: r.display_name
-      }));
+      let valid = [];
+      if (idType === 'openalex') {
+        valid = (results || []).map(r => ({
+          id: r.id.replace('https://openalex.org/', ''),
+          display_name: r.display_name,
+          openalex_id: r.id.replace('https://openalex.org/', '')
+        }));
+      } else {
+        valid = (results || []).map(r => {
+          let rawId = r[idType] ? this.stripIdFromUrl(r[idType]) : null;
+          return {
+            id: rawId,
+            display_name: r.display_name,
+            openalex_id: r.id ? r.id.replace('https://openalex.org/', '') : null
+          };
+        });
+      }
+      // For matching, use the rawId (for orcid/doi/ror) or openalex id
       const foundIds = new Set(valid.map(r => r.id));
-      // Invalid: those not found, plus any badIds
       const invalid = [
         ...badIds,
         ...this.parseIds(input).filter(id => !foundIds.has(id) && !badIds.includes(id))
@@ -170,6 +223,18 @@ export default {
       this.validIds = valid;
       this.invalidIds = invalid;
       this.checking = false;
+    },
+    stripIdFromUrl(url) {
+      // Remove protocol and domain, then leading slash
+      if (!url) return '';
+      try {
+        let path = url.replace(/^https?:\/\/[\w.]+\//, '');
+        // If still a slash, remove
+        if (path.startsWith('/')) path = path.slice(1);
+        return path;
+      } catch {
+        return url;
+      }
     },
     async onCheckIds() {
       this.checked = false;
@@ -199,22 +264,20 @@ export default {
       this.lastCheckedRecheckInput = this.recheckInput;
     },
     async onAddRecognized() {
-      // 1. Prepend entity type to each recognized ID (e.g., "authors/A123")
-      const entityType = this.labelData.entity_type;
-      const recognizedFullIds = this.validIds.map(item => `${entityType}/${item.id}`);
-      // 2. Union with current labelData.ids
+      // Only use OpenAlex IDs for saving
+      const recognizedFullIds = this.validIds
+        .map(item => item.openalex_id)
+        .filter(id => !!id) // filter out null/undefined
+        .map(openalexId => `${this.labelData.entity_type}/${openalexId}`);
       const idSet = new Set([...this.labelData.ids, ...recognizedFullIds]);
       const newIds = Array.from(idSet);
-      // 3. Call updateCollectionIds
       try {
-        console.log(this.labelData);
         await this.updateCollectionIds({
           collectionId: this.labelData.id,
           ids: newIds,
         });
-        // 4. On success, close dialog and show snackbar
         this.$emit('close');
-        this.snackbar(`${recognizedFullIds.length} ${entityType} added to ${this.labelData.display_name}`);
+        this.snackbar(`${recognizedFullIds.length} ${this.labelData.entity_type} added to ${this.labelData.name}`);
       } catch (e) {
         this.snackbar(`Failed to add IDs: ${e.message || e}`);
       }
@@ -227,12 +290,28 @@ export default {
       this.checked = false;
       this.bulkInput = this.originalInput;
     },
+    entitySingularOrPlural(count) {
+      if (count !== 1) {
+        return this.labelData.entity_type;
+      }
+      const config = getConfigs()[this.labelData.entity_type];
+      return config.displayNameSingular;
+    }
+  
+  },
+  watch: {
+    bulkInput(val) {
+      // Auto-detect ID type from the first non-empty value
+      const firstId = (val || '').split(/\n|,/).map(x => x.trim()).find(x => x.length > 0);
+      if (firstId) {
+        this.idType = this.getIdType(firstId);
+      } else {
+        this.idType = 'openalex';
+      }
+    }
   },
 }
 </script>
-
-<style scoped>
-</style>
 
 <style scoped>
 .recognized-id-list {
@@ -270,6 +349,10 @@ export default {
 }
 .unrecognized-header {
   color: #c62828;
+}
+::v-deep .v-textarea__slot textarea {
+  max-height: 170px !important;
+  overflow-y: auto !important;
 }
 .button-align-right {
   display: flex;
