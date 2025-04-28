@@ -14,26 +14,19 @@
     >
       <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
-      <router-link
-          :to="{name: 'Home'}"
-          class="logo-link ml-3"
-      >
+      <router-link :to="{name: 'Home'}" class="logo-link ml-3">
         <img
             src="@/assets/openalex-logo-icon-black-and-white.png"
             class="logo-icon mr-0 colorizable"
         />
-        <span
-            class="logo-text colorizable"
-        >
-                OpenAlex
-              </span>
-
+        <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
+
       <div class="flex-grow-1"></div>
 
-      <ui-variant-selector />
+      <ui-variant-selector v-if="isAdmin"/>
 
-      <v-btn icon to="/tests">
+      <v-btn icon to="/tests" v-if="isAdmin">
         <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
       </v-btn>
 
@@ -119,7 +112,7 @@
 
 
 <script>
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import {sleep} from "./util";
 import axios from "axios";
 import {filtersFromUrlStr} from "@/filterConfigs";
@@ -157,7 +150,6 @@ export default {
     SearchFromText,
     ShortcutBox,
     UiVariantSelector,
-    //EntityTypeSelector,
   },
   data: function () {
     return {
@@ -179,6 +171,7 @@ export default {
       "globalIsLoading",
       "environment",
     ]),
+    ...mapState('user', ['isAdmin']),
     localUrl() {
       return `http://localhost:8080${this.$route.fullPath}`;
     },

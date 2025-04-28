@@ -117,7 +117,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 
         <!-- Entity Filters -->
         <template v-else>
-          {{ hasResults ? 'grouped by' : 'group by'}}
+          {{  hasResults ? (isSentence ? "grouped by" : "Grouped by") : (isSentence ? "group by" : "Group by") }}
           <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
