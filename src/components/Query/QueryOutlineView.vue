@@ -18,27 +18,47 @@
           <v-tab>JSON</v-tab>
           <v-tab>OQL</v-tab>
           <v-tab>SQL</v-tab>
-          <v-tab>API</v-tab>
+          <!-- <v-tab>API</v-tab> -->
         </v-tabs>
 
         <v-tabs-items v-model="activeTab">
           <v-tab-item :key="0">
-            <div class="pa-8 pb-0">
-              <query-filter-tree
-                v-if="querySubjectEntity !== 'works'"
-                :subject-entity="querySubjectEntity"
-                :filters="query.filter_aggs" />
-              <query-columns-controls 
-                v-if="querySubjectEntity !== 'works'"
-                :isExpanded="query.filter_aggs.length > 0"
-                :show-sections="['display']" />
-              <query-filter-tree
-                subject-entity="works"
-                :isWithAggs="querySubjectEntity !== 'works'"
-                :filters="query.filter_works" />
-              <query-columns-controls
-                :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
-                :isExpanded="query.filter_works.length > 0" />
+            <div class="pa-6 pb-0">
+              <template v-if="uiVariant === 'sentence-worksfirst'">
+                <query-filter-tree
+                  subject-entity="works"
+                  :isWithAggs="querySubjectEntity !== 'works'"
+                  :filters="query.filter_works" />
+                <query-filter-tree
+                  v-if="querySubjectEntity !== 'works'"
+                  :subject-entity="querySubjectEntity"
+                  :filters="query.filter_aggs" />
+                <div class="section-divider clear" />
+                <query-columns-controls 
+                  v-if="querySubjectEntity !== 'works'"
+                  :isExpanded="false"
+                  :show-sections="['display']" />
+                <query-columns-controls
+                  :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
+                  :isExpanded="false" />
+              </template>
+              <template v-else-if="uiVariant === 'sentence-entityfirst'">
+                <query-filter-tree
+                  v-if="querySubjectEntity !== 'works'"
+                  :subject-entity="querySubjectEntity"
+                  :filters="query.filter_aggs" />
+                <query-columns-controls 
+                  v-if="querySubjectEntity !== 'works'"
+                  :isExpanded="query.filter_aggs.length > 0"
+                  :show-sections="['display']" />
+                <query-filter-tree
+                  subject-entity="works"
+                  :isWithAggs="querySubjectEntity !== 'works'"
+                  :filters="query.filter_works" />
+                <query-columns-controls
+                  :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
+                  :isExpanded="query.filter_works.length > 0" />
+              </template>
             </div>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -59,9 +79,9 @@
             <v-card flat><v-card-text><pre class="sql">{{ formattedSql }}</pre></v-card-text></v-card>
           </v-tab-item>
 
-          <v-tab-item :key="4">
+          <!-- <v-tab-item :key="4">
             <v-card flat><v-card-text><a class="api-link" :href="searchApiUrl" target="_blank">{{ searchApiUrl }}</a></v-card-text></v-card>
-          </v-tab-item>
+          </v-tab-item> -->
         </v-tabs-items>
       </v-card>
     </v-dialog>
@@ -90,6 +110,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(["uiVariant"]),
     ...mapGetters("search",[
       "query",
       "querySubjectEntity",
@@ -126,9 +147,6 @@ export default {
 </script>
 
 <style lang="scss">
-.query-outline-dialog .query-filter-leaf {
-  font-size: 13px !important;
-}
 .query-outline-tabs {
   border-bottom: #e0e0e0 1px solid;
   margin-bottom: 10px;

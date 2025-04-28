@@ -87,7 +87,6 @@
       </div>
     </div>
 
-    <div class="section-divider clear" />
 
     <!-- Sort by -->
     <div v-if="showSections.includes('sort')" class="sort-box columns-controls-box">
