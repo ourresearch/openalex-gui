@@ -357,7 +357,7 @@ const exampleQueries = [
     }
   },
   {
-    question: "Who are the world experts on macrocystosis?",
+    question: "Who are the world experts on macrocytosis?",
     type: "authors",
     category: "expert discovery",
     url: "",
