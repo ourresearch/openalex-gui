@@ -1,66 +1,82 @@
 <template>
   <div>
-  <div :class="['query-sentence-container', {'in-progress': hasQueryChanged || isSearchCanceled}]">
-    <div class="query-sentence-box">
-      <div class="query-sentence">
-        <!-- Work First -->
-        <template v-if="uiVariant === 'sentence-worksfirst'">
-          <!-- Works Filters -->
-          <query-filter-tree
-          subject-entity="works"
-          :isWithAggs="querySubjectEntity !== 'works'"
-          :filters="query.filter_works"
-          :is-sentence="true" />
+    <div :class="['query-sentence-container', {'in-progress': hasQueryChanged || isSearchCanceled}]">
+      <div class="query-sentence-box">
+        <div class="query-sentence">
+          <!-- Work First -->
+          <template v-if="uiVariant === 'sentence-worksfirst'">
+            <!-- Works Filters -->
+            <query-filter-tree
+            subject-entity="works"
+            :isWithAggs="querySubjectEntity !== 'works'"
+            :filters="query.filter_works"
+            :is-sentence="true" />
 
-        <!-- Entity Filters -->
-        <query-filter-tree
-          :subject-entity="isWorks ? null : querySubjectEntity"
-          :filters="query.filter_aggs"
-          :is-sentence="true" />
-        </template>
-
-        <!-- Group Button -->
-        <template v-else-if="uiVariant === 'sentence-group'">
           <!-- Entity Filters -->
           <query-filter-tree
             :subject-entity="isWorks ? null : querySubjectEntity"
             :filters="query.filter_aggs"
             :is-sentence="true" />
+          </template>
 
-          <!-- Works Filters -->
-          <query-filter-tree
-            subject-entity="works"
-            :isWithAggs="querySubjectEntity !== 'works'"
-            :filters="query.filter_works"
-            :is-sentence="true" />
-        </template>
+          <!-- Group Button -->
+          <template v-else-if="uiVariant === 'sentence-group'">
+            <!-- Entity Filters -->
+            <query-filter-tree
+              :subject-entity="isWorks ? null : querySubjectEntity"
+              :filters="query.filter_aggs"
+              :is-sentence="true" />
 
-        <!-- Entity First -->
-        <template v-else-if="uiVariant === 'sentence-entityfirst'">
-          <!-- Entity Filters -->
-          <query-filter-tree
-            v-if="querySubjectEntity !== 'works'"
-            :subject-entity="querySubjectEntity"
-            :filters="query.filter_aggs"
-            :is-sentence="true" />
+            <!-- Works Filters -->
+            <query-filter-tree
+              subject-entity="works"
+              :isWithAggs="querySubjectEntity !== 'works'"
+              :filters="query.filter_works"
+              :is-sentence="true" />
+          </template>
 
-          <!-- Works Filters -->
-          <query-filter-tree
-            subject-entity="works"
-            :isWithAggs="querySubjectEntity !== 'works'"
-            :filters="query.filter_works"
-            :is-sentence="true" />
-        </template>
+          <!-- Entity First -->
+          <template v-else-if="uiVariant === 'sentence-entityfirst'">
+            <!-- Entity Filters -->
+            <query-filter-tree
+              v-if="querySubjectEntity !== 'works'"
+              :subject-entity="querySubjectEntity"
+              :filters="query.filter_aggs"
+              :is-sentence="true" />
+
+            <!-- Works Filters -->
+            <query-filter-tree
+              subject-entity="works"
+              :isWithAggs="querySubjectEntity !== 'works'"
+              :filters="query.filter_works"
+              :is-sentence="true" />
+          </template>
+        </div>
+
+        <div class="sentence-buttons-box">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <span v-bind="attrs" v-on="on">
+                <query-outline-view class="mx-1"/>
+              </span>
+            </template>
+            <span>Outline View</span>
+          </v-tooltip>
+
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <span v-bind="attrs" v-on="on">
+                <new-query-button small button-text="" icon="mdi-refresh"/>
+              </span>
+            </template>
+            <span>New Query</span>
+          </v-tooltip>
+
+        </div>
       </div>
-
-      <div class="sentence-buttons-box">
-        <query-outline-view class="mx-1"/>
-        <new-query-button small button-text="" icon="mdi-refresh"/>
-      </div>
+      <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
     </div>
-    <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
-  </div>
-  <div class="results-top-line">
+    <div class="results-top-line">
       <query-results-count />
     </div>
   </div>

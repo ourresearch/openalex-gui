@@ -1,10 +1,25 @@
 <template>
   <span class="query-actions mb-1">    
-    <v-btn small icon dense :disabled="!selectedIds.length" @click="exportResults">
-      <v-icon small >mdi-tray-arrow-down</v-icon>
-    </v-btn>
-
-    <label-menu :icon="true" :selectedIds="fullSelectedIds" />
+   
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on, attrs }">
+        <span v-bind="attrs" v-on="on"> 
+          <v-btn small icon dense :disabled="!selectedIds.length" @click="exportResults">
+            <v-icon small >mdi-tray-arrow-down</v-icon>
+          </v-btn>
+        </span>
+      </template>
+      <span>Export</span>
+    </v-tooltip>
+   
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on, attrs }">
+        <span v-bind="attrs" v-on="on">
+          <label-menu :icon="true" :selectedIds="fullSelectedIds" />
+        </span>
+      </template>
+      <span>Labels</span>
+    </v-tooltip>
 
     <!--
     <v-btn v-if="querySubjectEntity === 'works'" small :disabled="!selectedIds.length"
