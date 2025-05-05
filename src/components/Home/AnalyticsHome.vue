@@ -9,7 +9,11 @@
       </div>
       <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium"/>
       <v-spacer />
-      <v-btn small color="white" to="/analytics-docs">
+      <v-btn small color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
+        <v-icon left >mdi-video-outline</v-icon>
+        Watch a Tutorial
+      </v-btn>
+      <v-btn small color="white" to="/analytics-docs" class="ml-1">
         <v-icon left >mdi-book-open-outline</v-icon>
         Read the Docs
       </v-btn>
