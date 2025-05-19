@@ -13,10 +13,9 @@
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>
-
         </v-fab-transition>
-
       </template>
+
       <v-card>
         <v-text-field
             v-model="searchString"
@@ -28,9 +27,7 @@
             autofocus
             placeholder="Search all filters"
             style=""
-
             @keyup.enter="onEnter"
-
         />
         <v-divider/>
         <v-list v-if="searchString">
@@ -104,11 +101,9 @@
             style=""
             class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
             append-outer-icon="mdi-close"
-
             @keyup.enter="onEnter"
             @click:append-outer="clickCloseSearch"
             @click:prepend-inner="clickPrependIcon"
-
         />
         <v-divider/>
 
@@ -138,18 +133,18 @@
                   :key="filter.key"
                   @click="setNewFilterKey(filter.key)"
                   :disabled="filter.disabled"
-                  style="flex-basis: 250px;"
+                  style="        
+                    flex: 1 1 250px; 
+                    min-width: 0;
+                    align-items: flex-start;"
               >
                 <v-list-item-icon>
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>
+                  <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
                     {{ filter.displayName }}
                   </v-list-item-title>
-                  <!--                  <v-list-item-subtitle>-->
-                  <!--                    {{ filter.type }}-->
-                  <!--                  </v-list-item-subtitle>-->
                 </v-list-item-content>
               </v-list-item>
             </v-list>
@@ -164,6 +159,7 @@
   </div>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
@@ -177,8 +173,9 @@ import FilterCardSelect from "@/components/FilterCard/FilterCardSelect.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import {createSimpleFilter} from "@/filterConfigs";
 
+
 export default {
-  name: "Template",
+  name: "AddFilter",
   components: {
     FilterCardRange,
     FilterCardSearch,
@@ -233,15 +230,20 @@ export default {
     },
     potentialFiltersSearchResults() {
       const mySearchString = this.searchString?.toString()?.toLowerCase() ?? ""
-      return this.potentialFilters.filter(f => {
+      //console.log("mySearchString " + mySearchString)
+      const filters = this.potentialFilters.filter(f => {
         return f.displayName.toLowerCase().includes(mySearchString)
         // const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
         // return filterKeyWords.some(w => {
         //   return w.indexOf(mySearchString) === 0
         // })
       })
+      //console.log("potentialFilters:")
+      //console.log(this.potentialFilters)
+      //console.log("filteredFilters:")
+      //console.log(filters)
+      return filters
     },
-
     newFilterConfig() {
       if (!this.newFilterKey) return
       return getFacetConfig(this.entityType, this.newFilterKey)
@@ -264,7 +266,6 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -317,8 +318,6 @@ export default {
         this.searchString = ""
       }
     }
-
-
   },
   created() {
   },
@@ -349,6 +348,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss">
 .add-filter-dialog-body {
