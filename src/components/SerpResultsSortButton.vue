@@ -29,17 +29,10 @@
           <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
         </v-list-item-action>
       </v-list-item>
-      <!--          <v-divider/>-->
-      <!--          <v-list-item @click="isDialogOpen.more = true">-->
-      <!--            <v-icon>mdi-dots-horizontal</v-icon>-->
-      <!--            <v-list-item-content>-->
-      <!--              <v-list-item-title>More</v-list-item-title>-->
-      <!--            </v-list-item-content>-->
-      <!--          </v-list-item>-->
-
     </v-list>
   </v-menu>
 </template>
+
 
 <script>
 
@@ -48,18 +41,20 @@ import {facetConfigs} from "@/facetConfigs";
 import {url} from "@/url";
 
 export default {
-  name: "Template",
+  name: "SerpResultsSortButton",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
       isDialogOpen: {
         more: false
       }
     }
   },
   computed: {
+    ...mapGetters([
+      "entityType",
+    ]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -69,7 +64,7 @@ export default {
     popularOptions() {
       const optionsFromConfigs = facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("sort"))
-      if (url.isSearchFilterApplied(this.$route)) optionsFromConfigs.push({
+      if (url.isSearchFilterApplied(this.$route)) optionsFromConfigs.unshift({
         key: "relevance_score",
         icon: "mdi-magnify",
         displayName: "relevance score",
@@ -78,17 +73,8 @@ export default {
     },
     menuOptions() {
       return this.popularOptions
-
-      // const ret = [...this.popularOptions]
-      // this.selectedOptions.forEach(optionKey => {
-      //   if (!this.popularOptions.includes(optionKey)) {
-      //     ret.push(optionKey)
-      //   }
-      // })
-      // return ret
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -96,11 +82,9 @@ export default {
     ...mapActions([]),
     ...mapActions("user", []),
     clickOption(key) {
-      console.log("hey jason, they clicked clickOption()", key)
+      console.log("SerpResultsSortButton clickOption(): ", key)
       url.setSort(key)
     },
-
-
   },
   created() {
   },
@@ -109,6 +93,7 @@ export default {
   watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
