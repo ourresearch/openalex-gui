@@ -33,10 +33,8 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs, getFacetConfig} from "../../facetConfigs";
-import {createSimpleFilter} from "@/filterConfigs";
+import {getFacetConfig} from "../../facetConfigs";
 import {url} from "@/url";
-import Template from "@/components/Filter/FilterSelect.vue";
 
 
 import {filter} from "core-js/internals/array-iteration";

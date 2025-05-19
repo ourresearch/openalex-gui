@@ -145,7 +145,7 @@ import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 
-import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
+import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 import ShortcutBox from "@/components/ShortcutBox.vue";
@@ -166,7 +166,7 @@ export default {
   },
   components: {
     SerpToolbar,
-    Template,
+    SerpToolbarMenu,
     SearchBox,
     SiteFooter,
     SiteNav,
