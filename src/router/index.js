@@ -87,11 +87,6 @@ const routes = [
         component: Serp,
     },
     {
-        path: `/:namespace(${entityNames})/:identifier`,
-        name: 'EntityPage',
-        component: EntityPage,
-    },
-    {
         path: `/:entityId([waspfict]\\d+)`,
         name: 'EntityPageShortcut',
         redirect: to => {
@@ -105,6 +100,11 @@ const routes = [
                 },
             }
         }
+    },
+    {
+        path: `/:entityType(${entityNames})/:entityId`,
+        name: 'EntityPage',
+        component: EntityPage,
     },
 
     // user pages and routes
