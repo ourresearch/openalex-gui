@@ -1,8 +1,54 @@
 <template>
   <div>
-      <v-btn v-if="userId" icon to="/me/labels" exact>
-        <v-icon>mdi-account-outline</v-icon>
-      </v-btn>
+    <v-menu rounded offset-y v-if="userId">
+      <template v-slot:activator="{on}">
+        <v-btn icon v-on="on">
+          <v-icon>mdi-account-outline</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <div class="pt-2 pb-0 px-4 font-weight-bold text-center">
+          {{ userName }}
+        </div>
+        <div class="pb-2 px-4 caption grey--text text-center">
+          {{ userEmail }}
+        </div>
+        <v-divider></v-divider>
+        <v-list-item exact-path to="/me/searches">
+          <v-list-item-icon>
+            <v-icon>mdi-folder-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Saved Searches
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item v-if="isTester" exact-path to="/me/labels">
+          <v-list-item-icon>
+            <v-icon>mdi-tag-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            My Labels
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item exact-path :to="userAuthorId | entityZoomLink" v-if="userAuthorId">
+          <v-list-item-icon>
+            <v-icon>mdi-account-outline</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            My author profile
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item @click="localLogout">
+          <v-list-item-icon>
+            <v-icon>mdi-logout</v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            Log out
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <div v-else>
       <template v-if="$vuetify.breakpoint.mobile">
@@ -111,6 +157,9 @@ export default {
   computed: {
     ...mapGetters("user", [
       "userId",
+      "userName",
+      "userEmail",
+      "isTester",
     ]),
   },
   methods: {
@@ -126,9 +175,6 @@ export default {
       this.logout();
       this.snackbar("You're logged out");
     },
-    goToSavedSearches() {
-      this.$router.push("/me/searches");
-    }
   },
   created() {
   },
