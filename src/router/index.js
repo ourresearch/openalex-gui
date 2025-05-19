@@ -1,32 +1,38 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Faq from "../views/Faq.vue";
-import Testimonials from "../views/Testimonials.vue";
-import Help from "../views/Help.vue";
-import OpenAlexStats from "../views/OpenAlexStats.vue";
-import AnalyticsDocs from "../views/AnalyticsDocs.vue";
-import AnalyticsTesting from "../views/AnalyticsTesting.vue";
-
-import Serp from "../views/Serp";
-import Results from "@/views/Results.vue";
-import EntityPage from "@/views/EntityPage.vue";
-import About from "../views/About";
-import store from "@/store";
-import UserSignup from "@/components/user/UserSignup.vue";
-import UserMagicToken from "../components/user/UserMagicToken.vue";
-import Login from "@/views/Login.vue";
-
 import goTo from 'vuetify/es5/services/goto'
-import Webinars from "../views/Webinars.vue";
-import OurStats from "../views/OurStats.vue";
-import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
-import PageNotFound from "@/views/PageNotFound.vue";
-import Signup from "@/views/Signup.vue";
-import SavedSearches from "@/views/SavedSearches.vue";
+
 import {url} from "@/url";
+import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import {getConfigs} from "@/oaxConfigs";
+import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
+
+import Home from '@/views/Home.vue'
+import Serp from '@/views/Serp';
+import Results from '@/views/Results.vue';
+import EntityPage from '@/views/EntityPage.vue';
+import AnalyticsHome from '@/components/Home/AnalyticsHome.vue'
+import AnalyticsDocs from '@/views/AnalyticsDocs.vue';
+import AnalyticsTesting from '@/views/AnalyticsTesting.vue';
+
+import Login from '@/views/Login.vue';
+import Signup from "@/views/Signup.vue";
+import UserSignup from '@/components/user/UserSignup.vue';
+import ResetPassword from "@/views/ResetPassword.vue";
+import UserMagicToken from '@/components/user/UserMagicToken.vue';
+import SavedSearches from "@/views/SavedSearches.vue";
+
+import Help from "@/views/Help.vue";
+import About from '@/views/About';
+import Webinars from '@/views/Webinars.vue';
+import OurStats from '@/views/OurStats.vue';
+import Faq from "@/views/Faq.vue";
+import Testimonials from "@/views/Testimonials.vue";
+import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
+import OpenAlexStats from "@/views/OpenAlexStats.vue";
+
+import Me from '@/views/Me.vue';
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
@@ -34,8 +40,11 @@ import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import LabelDetails from "@/components/Label/LabelDetails.vue";
-import Query from "@/views/Query.vue";
+
+import PageNotFound from "@/views/PageNotFound.vue";
 import AdminPage from "@/views/AdminPage.vue";
+
+import Query from "@/views/Query.vue";
 import OQOTests from "@/views/QueryTest.vue";
 import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
@@ -48,11 +57,23 @@ import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue
 
 Vue.use(VueRouter);
 
-const entityNames = Object.keys(getConfigs()).join("|");
+// TOOD Check if these are equal
+//const entityNames = Object.keys(getConfigs()).join("|");
+const entityNames = getEntityConfigs().map(c => c.name).join("|")
 
+const redirect = (path, url) => ({path, beforeEnter() { window.location.href = url }});
 
 const routes = [
-
+    {
+        path: '/',
+        component: Home,
+        name: 'Home',
+    },
+    {
+        path: '/analytics',
+        component: AnalyticsHome,
+        name: 'AnalyticsHome',
+    },
     // data pages
     {
         path: "/s/:id",
@@ -70,11 +91,27 @@ const routes = [
         name: 'EntityPage',
         component: EntityPage,
     },
+    {
+        path: `/:entityId([waspfict]\\d+)`,
+        name: 'EntityPageShortcut',
+        redirect: to => {
+            const entityType = entityTypeFromId(to.params.entityId)
+            console.log("routes EntityPageShortcut", to.params)
+            return {
+                name: "EntityPage",
+                params: {
+                    entityType,
+                    entityId: to.params.entityId,
+                },
+            }
+        }
+    },
 
     // user pages and routes
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
-    // {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
+    {path: '/reset-password', name: 'ResetPassword', component: ResetPassword},
+    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
 
     // Acounts Pages
@@ -117,6 +154,26 @@ const routes = [
         ]
     },
 
+    // static pages
+    {path: '/about', name: 'About', component: About},
+    {path: '/faq', component: Faq},
+    {path: '/users', redirect: {name: "testimonials"}},
+    {path: '/testimonials', name: "testimonials", component: Testimonials},
+    {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
+    {path: '/stats', component: OurStats},
+    {path: '/query', component: Query},
+    {path: '/tests_old', component: OQOTests},
+    {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
+    {path: '/analytics-testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
+    
+    //  admin
+    {
+        path: '/admin',
+        name: 'admin',
+        component: AdminPage,
+        meta: { requiresAuth: true }
+    },
+   
     //  tests
     {
         path: '/tests',
@@ -150,111 +207,34 @@ const routes = [
         ]
     },
 
-    // static pages
-    {
-        path: '/',
-        component: Home,
-        name: 'Home',
-    },
-    {path: '/about', name: 'About', component: About},
-    {path: '/faq', component: Faq},
-    {path: '/users', redirect: {name: "testimonials"}},
-    {path: '/testimonials', name: "testimonials", component: Testimonials},
-    {path: '/stats', component: OurStats},
-    {path: '/query', component: Query},
-    {path: '/tests_old', component: OQOTests},
-    {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
-    {path: '/analytics-testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
-
-
-    {
-        path: '/admin',
-        name: 'admin',
-        component: AdminPage,
-        meta: { requiresAuth: true }
-    },
-
-    // redirects to gitbook docs
-    {
-        path: '/data-dump', beforeEnter() {
-            window.location.href = "https://docs.openalex.org/download-snapshot"
-        }
-    },
-    {
-        path: '/rest-api', beforeEnter() {
-            window.location.href = "https://docs.openalex.org/how-to-use-the-api/api-overview"
-        }
-    },
-    {
-        path: '/schema', beforeEnter() {
-            window.location.href = "https://docs.openalex.org/download-snapshot"
-        }
-    },
-    {
-        path: '/mag-migration-guide', beforeEnter() {
-            window.location.href = "https://docs.openalex.org/download-snapshot/mag-format"
-        }
-    },
-    {
-        path: '/author-change-request', beforeEnter() {
-            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
-        }
-    },
-    {
-        path: '/authorChangeRequest', beforeEnter() {
-            window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"
-        }
-    },
-    {
-        path: '/webinars', beforeEnter() {
-            window.location.href = "https://help.openalex.org/hc/en-us/articles/24428492324631-Webinars"
-        }
-    },
-    {
-        path: '/open-houses', beforeEnter() {
-            window.location.href = "https://help.openalex.org/hc/en-us/articles/24428530346263-Open-houses"
-        }
-    },
-    {
-        path: '/user-meeting', beforeEnter() {
-            window.location.href = "https://help.openalex.org/events/user-meeting"
-        }
-    },
-
-    {
-        path: '/pricing', beforeEnter() {
-            window.location.href = "https://help.openalex.org/pricing"
-        }
-    },
-
-    {
-        path: '/help', beforeEnter() {
-            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
-        }
-    },
-    {
-        path: '/contact', beforeEnter() {
-            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
-        }
-    },
-    {
-        path: '/feedback', beforeEnter() {
-            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
-        }
-    },
-    {
-        path: '/support', beforeEnter() {
-            window.location.href = "https://openalex.zendesk.com/hc/requests/new"
-        }
-    },
-    {
-        path: '/webinars/api-notebook-01', beforeEnter() {
-            window.location.href = "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"
-        }
-    },
-
+    // Docs
+    redirect('/data-dump', "https://docs.openalex.org/download-snapshot"),
+    redirect('/rest-api', "https://docs.openalex.org/how-to-use-the-api/api-overview"),
+    redirect('/schema', "https://docs.openalex.org/download-snapshot"),
+    redirect('/mag-migration-guide', "https://docs.openalex.org/download-snapshot/mag-format"),
+    
+    // Forms
+    redirect('/author-change-request', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
+    redirect('/authorChangeRequest', "https://docs.google.com/forms/d/e/1FAIpQLSel6otVekIyVOl46eh59mSkruIz32hAnGbJR6KM925E8wiCSg/viewform?usp=sf_link"),
+    
+    // Help center
+    redirect('/webinars', "https://help.openalex.org/hc/en-us/articles/24428492324631-Webinars"),
+    redirect('/open-houses', "https://help.openalex.org/hc/en-us/articles/24428530346263-Open-houses"),
+    redirect('/user-meeting', "https://help.openalex.org/events/user-meeting"),
+    redirect('/pricing', "https://help.openalex.org/pricing"),
+    
+    // Support
+    redirect('/help', "https://openalex.zendesk.com/hc/requests/new"),
+    redirect('/contact', "https://openalex.zendesk.com/hc/requests/new"),
+    redirect('/feedback', "https://openalex.zendesk.com/hc/requests/new"),
+    redirect('/support', "https://openalex.zendesk.com/hc/requests/new"),
+    
+    // Resources
+    redirect('/webinars/api-notebook-01', "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"),
+    
     {path: '*', component: PageNotFound},
 ];
+
 
 const router = new VueRouter({
     routes,
@@ -274,25 +254,44 @@ const router = new VueRouter({
     },
 })
 
+const redirectFromOldFilters = function (to, from, next) {
+    const redirects = {
+        // "institutions.country_code": "authorships.countries",
+        // "topics.id": "primary_topic.id",
+    }
+    const isRedirectNeeded = Object.keys(redirects).some(key => {
+        return to.name === "Serp" && to.fullPath.includes(key)
+    })
+    if (isRedirectNeeded) {
+        let newFullPath = to.fullPath
+        Object.keys(redirects).forEach(k => {
+            newFullPath = newFullPath.replaceAll(k, redirects[k])
+        })
+        return next(newFullPath)
+    }
+}
 
 router.beforeEach(async (to, from, next) => {
-    // Fetch user session if a token exists but no user data is loaded
     if (localStorage.getItem("token") && !store.getters["user/userId"]) {
         try {
-            await store.dispatch("user/fetchUser");
+            await store.dispatch("user/fetchUser")
         } catch (e) {
-            store.commit("user/logout");
+            store.commit("user/logout")
         }
     }
 
-    // Enforce authentication for protected routes
-    if (to.matched.some(record => record.meta.requiresAuth) && !store.getters["user/userId"]) {
-        return next({
-            name: 'Login',
-            query: { redirect: to.fullPath }
-        });
+    redirectFromOldFilters(to, from, next)
+
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // this page requires authentication
+        if (store.getters["user/userId"]) {  // you're logged in great. proceed.
+            next()
+        } else { // sorry, you can't view this page. go log in.
+            next("/login")
+        }
+    } else { //  no auth required. proceed.
+        next()
     }
-    next();
 });
 
 export default router;

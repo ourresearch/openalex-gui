@@ -8,11 +8,9 @@ import VScrollLock from "v-scroll-lock";
 import millify from "millify";
 
 import { navigation } from './navigation';
-
-import tracking from "./tracking";
-import {shortenOpenAlexId} from "./util";
 import {url} from "./url"
-import {prettyTitle, toPrecision, entityTypeFromId} from "./util";
+import tracking from "./tracking";
+import {prettyTitle, toPrecision, entityTypeFromId, shortenOpenAlexId} from "./util";
 import {createSimpleFilter} from "./filterConfigs";
 import _ from 'lodash'
 
