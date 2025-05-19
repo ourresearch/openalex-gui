@@ -144,7 +144,7 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
 
 export default {
-  name: "Template",
+  name: "SerpToolbarMenu",
   components: {
     QrcodeVue,
   },
