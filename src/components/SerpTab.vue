@@ -25,11 +25,7 @@ export default {
     id: String,
     index: Number,
   },
-  data() {
-    return {
-      foo: 42,
-    }
-  },
+  data() {},
   computed: {
     ...mapGetters("user", [
       "userId",
@@ -41,13 +37,12 @@ export default {
       return Object.fromEntries(new URL(this.searchUrl).searchParams)
     },
     name() {
-      return this.queryParams?.name ?? "Unsaved search"
+      return this.queryParams?.name ?? "Unsaved search";
     },
     isSelected() {
-      return this.serpTabIndex === this.index
+      return this.serpTabIndex === this.index;
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -67,18 +62,10 @@ export default {
     close() {
 
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-
-  }
 }
 </script>
+
 
 <style scoped lang="scss">
 
