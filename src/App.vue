@@ -1,6 +1,11 @@
 <template>
-  <v-app :style="{ background: backgroundColor }">
-
+  <v-app>
+    <v-progress-linear
+        indeterminate
+        fixed color="primary"
+        style="z-index: 9999"
+        v-if="globalIsLoading"
+    />
     <v-app-bar
         app
         flat
@@ -10,7 +15,6 @@
         absolute
         :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
         extension-height="70"
-        @click.meta.stop="pinkMode"
     >
       <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
 
@@ -21,6 +25,19 @@
         />
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
+      <div
+          class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
+          v-if="$route.name === 'Serp'"
+      >
+        <entity-type-selector
+            v-if="!$vuetify.breakpoint.mobile"
+        />
+        <shortcut-box
+            style="max-width: 800px;"
+            class="flex-grow-1 d-none d-lg-block"
+        />
+      </div>
+      <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
 
       <div class="flex-grow-1"></div>
 
@@ -62,7 +79,7 @@
         </v-list>
       </v-menu>
       <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
-        <!-- <entity-type-selector/> -->
+        <entity-type-selector/>
         <shortcut-box
             class="flex-grow-1"
         />
@@ -104,8 +121,9 @@
       </template>
     </v-snackbar>
 
-    <!--<saved-search-rename-dialog/>
-    <saved-search-edit-alert-dialog/>-- removed to prevent mapgetters calling entityType which doesn't exist on RA> -->
+    <saved-search-rename-dialog/>
+    <saved-search-edit-alert-dialog/>
+    <!-- was removed to prevent mapgetters calling entityType which doesn't exist on RA> -->
 
   </v-app>
 </template>
@@ -123,12 +141,15 @@ import {getConfigs} from "@/oaxConfigs";
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 
+import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
+import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
+import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 
 import Template from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 import ShortcutBox from "@/components/ShortcutBox.vue";
-//import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
+import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import {entity} from "@/entity";
 import Entity from "@/components/Entity/Entity.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
@@ -139,22 +160,30 @@ import router from "@/router";
 export default {
   name: 'App',
   metaInfo: {
-    titleTemplate: (title) => title ? `${title} | OpenAlex Analytics` : 'OpenAlex Analytics',
+    titleTemplate: (title) => title ? `${title} | OpenAlex` : 'OpenAlex',
     link: [],
     meta: []
   },
   components: {
+    SerpToolbar,
+    Template,
+    SearchBox,
     SiteFooter,
+    SiteNav,
     UserToolbarMenu,
+    SavedSearchRenameDialog,
+    SavedSearchSaveDialog,
+    SavedSearchEditAlertDialog,
     Entity,
     SearchFromText,
     ShortcutBox,
+    EntityTypeSelector,
     UiVariantSelector,
   },
   data: function () {
     return {
       exportProgress: 0,
-      backgroundColor: "hsl(220, 60%, 96%)", // light blue
+      // backgroundColor: "hsl(220, 60%, 96%)", // light blue
       // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
       isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {
@@ -169,15 +198,12 @@ export default {
   computed: {
     ...mapGetters([
       "globalIsLoading",
+      "entityType",
       "environment",
     ]),
-    ...mapState('user', ['isAdmin']),
-    localUrl() {
-      return `http://localhost:8080${this.$route.fullPath}`;
-    },
-    stagingUrl() {
-      return `https://staging.openalex.org${this.$route.fullPath}`;
-    },
+    ...mapState('user', [
+      'isAdmin'
+    ]),
     logoStyle() {
       return "opacity: .7;"
       return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
@@ -213,12 +239,6 @@ export default {
       this.exportObj = null
       this.$store.state.exportProgressUrl = null
       this.snackbar("Export cancelled.")
-    },
-    pinkMode() {
-      const newColor = '#FF69B4';
-      this.backgroundColor = "#FFCCDC"
-      this.$vuetify.theme.themes.light.primary = newColor
-      this.$vuetify.theme.currentTheme.primary = newColor
     },
     setUIVariant() {
       // Check if "ui" param exists on URL and if so set it's value on state.ui
@@ -267,6 +287,7 @@ $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
 
 .v-main {
+  background-color: #fff
 }
 .color-3 {
   background-color: $color-3 !important;
