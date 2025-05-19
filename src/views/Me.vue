@@ -46,15 +46,8 @@ export default {
   components: {
     UserSavedSearch,
   },
-  props: {},
-  data() {
-    return {
-      foo: 42,
-    }
-  },
   computed: {
     ...mapGetters([
-
       "globalIsLoading",
     ]),
     ...mapGetters("user", [
@@ -65,7 +58,6 @@ export default {
       "userSavedSearches",
     ]),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -75,8 +67,6 @@ export default {
     ]),
     ...mapActions("user", [
     ]),
-
-
   },
   created() {
   },
