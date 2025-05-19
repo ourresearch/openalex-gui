@@ -1,6 +1,8 @@
 import axios from 'axios'
 import _ from 'lodash'
 import ISO6391 from 'iso-639-1'
+import {filter} from "core-js/internals/array-iteration";
+
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
@@ -37,7 +39,7 @@ const clearCache = function () {
 }
 
 const stockCache = function (url, ret) {
-    cache[url] = _.cloneDeep(ret)
+    cache[url] = _.cloneDeep(ret);
 }
 
 // hack to get around the lack of an autocomplete endpoint for countries
@@ -55,6 +57,9 @@ const autocompleteCountry = function (searchString) {
 //      ?foo=42&bar=43
 const makeUrl = function (pathName, searchParams) {
     const params = new URLSearchParams(searchParams);
+
+    // TODO shouldn't be on all URLs
+    !params.get("per-page") && params.set("per-page", 10);
 
     if (pathName.indexOf("/") !== 0) {
         pathName = "/" + pathName;
@@ -111,6 +116,11 @@ const api = (function () {
         return res.data;
     }
 
+    // TODO: remove
+    const createUrl = function (pathName, searchParams) {
+        return makeUrl(pathName, searchParams);
+    };
+
     const get =  async function (pathName, searchParams) {
         const url = makeUrl(pathName, searchParams);
         const resp = await getUrl(url);
@@ -149,15 +159,15 @@ const api = (function () {
         const entityId = getFacetConfig("works", filterKey)?.entityId;
 
         if (filterKey === "institutions.country_code") {
-            return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
+            return openAlexCountries.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
         } else if (filterKey === "sustainable_development_goals.id") {
-            return openAlexSdgs.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name
+            return openAlexSdgs.find(c => c.id.toLowerCase() === filterValue.toLowerCase())?.display_name;
         } else if (filterKey === "language") {
-            return ISO6391.getName(filterValue.toLowerCase())
+            return ISO6391.getName(filterValue.toLowerCase());
         } else if (entityId) {
-            return await getEntityDisplayName(entityId, filterValue)
+            return await getEntityDisplayName(entityId, filterValue);
         } else {
-            return filterValue
+            return filterValue;
         }
     }
 
