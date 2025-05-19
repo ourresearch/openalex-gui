@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isOpen" max-width="500" :persistent="isFixed">
 
-    <v-card outlined rounded :loading="isLoading" :disabled="isLoading" class="">
+    <v-card v-if="!isForgotPassword" outlined rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
         <div>
           <v-icon left>mdi-account</v-icon>
@@ -55,6 +55,9 @@
         <router-link @click.native.prevent="switchToSignup" class="mr-3 text-caption text-decoration-none" :to="{ name: 'Signup', query: $route.query }">
           Need an account? Signup
         </router-link>
+        <div class="forgot-password-link" @click="isForgotPassword = true">
+          Forgot your password?
+        </div>
         <v-btn
             :disabled="isFormDisabled"
             rounded
@@ -65,6 +68,9 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <v-card v-else-if="isForgotPassword">
+      <user-forgot-password />
+    </v-card>
   </v-dialog>
 
 </template>
@@ -73,10 +79,13 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import UserForgotPassword from "@/components/user/UserForgotPassword.vue";
 
 export default {
   name: "UserLogin",
-  components: {},
+  components: {
+    UserForgotPassword,
+  },
   props: {},
   data() {
     return {
@@ -86,13 +95,15 @@ export default {
       isLoading: false,
       isEmailUnrecognized: false,
       isPasswordWrong: false,
+      isForgotPassword: false,
     }
   },
   computed: {
     ...mapGetters("user", [
       "userId",
       "userName",
-      "isLoginDialogOpen"
+      "isLoginDialogOpen",
+      "showPasswordResetErrorMessage",
     ]),
     isFormDisabled() {
       const isDirty = !!this.email || !!this.password;
@@ -123,6 +134,7 @@ export default {
     ...mapMutations("user", [
       "setIsLoginDialogOpen",
       "setIsSignupDialogOpen",
+      "setShowPasswordResetErrorMessage",
     ]),
     ...mapActions("user", [
       "loginUser",
@@ -165,19 +177,21 @@ export default {
   },
   watch: {
     isOpen(to, from) {
-      this.email = ""
-      this.password = ""
-      this.isLoading = false
-      this.isPasswordVisible = false
-      this.isEmailUnrecognized = false
-      this.isPasswordWrong = false
+      this.email = "";
+      this.password = "";
+      this.isLoading = false;
+      this.isPasswordVisible = false;
+      this.isEmailUnrecognized = false;
+      this.isPasswordWrong = false;
+      this.isForgotPassword = this.showPasswordResetErrorMessage;
+      this.setShowPasswordResetErrorMessage(false);
     },
     password() {
-      this.isPasswordWrong = false
+      this.isPasswordWrong = false;
     },
     email() {
-      this.isEmailUnrecognized = false
-      this.password = ""
+      this.isEmailUnrecognized = false;
+      this.password = "";
     }
   }
 }
