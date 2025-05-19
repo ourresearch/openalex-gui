@@ -23,11 +23,9 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import {getEntityConfig} from "@/entityConfigs";
 import EntityDatumRow from "@/components/Entity/EntityDatumRow.vue";
-import {filter} from "core-js/internals/array-iteration";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import {entityTypeFromId} from "@/util";
 
@@ -42,19 +40,8 @@ export default {
   props: {
     data: Object,
   },
-  data() {
-    return {
-      foo: 42,
-    }
-  },
+  data() {},
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     myEntityConfig() {
       return getEntityConfig(this.type)
     },
@@ -62,18 +49,6 @@ export default {
       return entityTypeFromId(this.data.id)
     }
   },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
