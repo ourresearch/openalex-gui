@@ -50,35 +50,35 @@ const autocompleteCountry = function (searchString) {
         });
 }
 
-// @pathName is the path, like /works
-// @searchParams can be in these formats:
-//      {foo: 42, bar: 43}
-//      [["foo", 42], ["bar", 43]]
-//      ?foo=42&bar=43
-const makeUrl = function (pathName, searchParams) {
-    const params = new URLSearchParams(searchParams);
-
-    // TODO shouldn't be on all URLs
-    !params.get("per-page") && params.set("per-page", 10);
-
-    if (pathName.indexOf("/") !== 0) {
-        pathName = "/" + pathName;
-    }
-    const baseAndPath = urlBase.api + pathName;
-    const paramsStr = [...params.entries()]
-        .filter(p => {
-            return p[1];
-        })
-        .map(p => {
-            return p[0] + "=" + p[1];
-        })
-        .join("&");
-
-    return paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
-}
-
 
 const api = (function () {
+
+    // @pathName is the path, like /works
+    // @searchParams can be in these formats:
+    //      {foo: 42, bar: 43}
+    //      [["foo", 42], ["bar", 43]]
+    //      ?foo=42&bar=43
+    const makeUrl = function (pathName, searchParams) {
+        const params = new URLSearchParams(searchParams);
+
+        // TODO shouldn't be on all URLs
+        !params.get("per-page") && params.set("per-page", 10);
+
+        if (pathName.indexOf("/") !== 0) {
+            pathName = "/" + pathName;
+        }
+        const baseAndPath = urlBase.api + pathName;
+        const paramsStr = [...params.entries()]
+            .filter(p => {
+                return p[1];
+            })
+            .map(p => {
+                return p[0] + "=" + p[1];
+            })
+            .join("&");
+
+        return paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
+    }
 
     const getUrl = async function (url, config) {
         
@@ -115,11 +115,6 @@ const api = (function () {
         }
         return res.data;
     }
-
-    // TODO: remove
-    const createUrl = function (pathName, searchParams) {
-        return makeUrl(pathName, searchParams);
-    };
 
     const get =  async function (pathName, searchParams) {
         const url = makeUrl(pathName, searchParams);
@@ -451,6 +446,7 @@ const api = (function () {
         getEntityConfigs,
         post,
         getAutocomplete,
+        makeUrl,
         createSearch,
         getSearch,
         getSearchFromCache,
