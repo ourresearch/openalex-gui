@@ -190,7 +190,7 @@ export default {
           this.$route.params.entityId,
       )
       const filterString = filtersAsUrlStr([myWorksFilter])
-      const apiUrl = api.createUrl(
+      const apiUrl = api.makeUrl(
           "works",
           {
             filter: filterString,
