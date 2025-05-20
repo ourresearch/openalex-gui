@@ -1,13 +1,10 @@
 <template>
-  <v-container class="analytics-home">
-    <v-row>
-    <v-col cols="0" />
-    <v-col cols="12">
-    <v-row class="">
+  <v-container class="analytics-home mt-12">
+    <v-row class="mx-0 d-flex align-center">
       <div class="text-h3">
         Analytics
       </div>
-      <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium"/>
+      <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium" class="ml-4"/>
       <v-spacer />
       <v-btn small color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
         <v-icon left >mdi-video-outline</v-icon>
@@ -18,16 +15,14 @@
         Read the Docs
       </v-btn>
     </v-row>
-    <v-row>
+
+    <v-row class="mx-0 mt-2">
       <div class="tagline text-h6">
         Query, aggregate, and download across our entire dataset.
       </div>
     </v-row>
-    </v-col>
-    </v-row>
     
-    <v-row class="examples-header-line" />
-    <v-row class="examples-header text-h6 d-flex align-center">
+    <v-row class="examples-header d-flex align-center mt-12">
       <v-text-field
         v-model="searchQuery"
         label="Search Examples..."
@@ -184,13 +179,8 @@ export default {
   font-weight: 400;
   margin-top: 5px;
 }
-.examples-header-line {
-  padding-top: 24px;
-  margin: 24px 0px;
-  border-bottom: 1px #ddd solid;
-}
 .row.examples-header {
-  margin: 10px 0px;
+  margin: 15px 0px;
 }
 .search-field {
   margin-top: -8px;
