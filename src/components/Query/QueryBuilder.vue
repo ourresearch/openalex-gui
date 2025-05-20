@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="uiVariant === 'side'" flat rounded class="query-builder px-5 pt-5 pb-5">
+  <v-card v-if="uiVariant === 'side'" flat rounded class="query-builder px-5 pt-6 pb-5">
     <!-- Works First UI -->
     <div v-if="uiVariant === 'worksfirst'">
       <!-- Works Filters -->
@@ -50,7 +50,7 @@
   </v-card>
 
   <!-- Top UI-->
-  <v-card v-else flat rounded class="query-builder mb-0 px-6 pt-6 pb-0">
+  <v-card v-else flat rounded class="query-builder mb-0 px-6 pt-5 pb-0">
     <template v-if="uiVariant.includes('sentence')">
       <QuerySentence />
     </template>

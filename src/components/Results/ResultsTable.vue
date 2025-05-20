@@ -727,7 +727,7 @@ export default {
 </script>
 
 
-<style lang="scss">
+<style lang="scss" scoped>
 .selection-message {
   font-size: 14px;
   line-height: 22px;
@@ -736,9 +736,8 @@ export default {
 .results-box .selection-message {
   padding: 10px 10px;
 }
-table {
-  border-top: none;
-  border-collapse: separate !important;
+table, thead {
+  border-top: none !important;
 }
 th {
   border-bottom: 3px solid;
@@ -763,6 +762,9 @@ th.metric,
 }
 .results-table.works-query td {
   border-color: var(--v-catWorksDarker-base);
+}
+td:first-child, td:last-child {
+  border-radius: 0 !important;
 }
 td:first-child {
   border-left-width: 3px;
@@ -793,48 +795,6 @@ tr:last-child td {
 .metric {
   width: 130px;
 }
-/*
-.works-first th:first-child,
-.works-first td:first-child {
-  border-color: var(--v-catWorksDarker-base);
-  border-left-width: 3px;
-  border-bottom-width: 3px;
-  border-bottom-style: solid;
-}
-.works-first th:first-child {
-  background-color: var(--v-catWorks-base);
-}
-.works-first th:last-child {
-  background-color: var(--v-catEntity-base);
-}
-.works-first.works-query th:last-child {
-  background-color: var(--v-catWorks-base);
-}
-.works-first th:last-child,
-.works-first td:last-child {
-  border-color: var(--v-catEntityDarker-base);
-  border-right-width: 3px;
-  border-bottom-width: 3px;
-  border-bottom-style: solid;
-}
-.works-first.works-query th:last-child,
-.works-first.works-query td:last-child {
-  border-color: var(--v-catWorksDarker-base);
-}
-.works-first td:first-child,
-.works-first td:last-child {
-  background-color: transparent;
-}
-.works-first td:not(.metric) + td.metric,
-.results-box .works-first th:not(.metric) + th.metric {
-  border-left: none;
-}
-.works-first td.metric + td:not(.metric),
-.results-box .works-first th.metric + th:not(.metric) {
-  border-left: 3px solid var(--v-catEntityDarker-base);
-  padding-left: 15px !important;
-}
-*/
 tr:hover .metric {
   background-color: transparent;
 }

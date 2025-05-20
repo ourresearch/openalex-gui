@@ -178,12 +178,11 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .internal-search-field.v-text-field--rounded > .v-input__control > .v-input__slot {
   padding-left: 0 !important;
 }
-
 .filter {
   border-radius: 25px !important;
 
@@ -193,20 +192,14 @@ export default {
   }
 
 }
-
 .filter-list {
   .v-text-field--rounded > .v-input__control > .v-input__slot {
     //padding: 0 !important;
   }
 }
-
 table {
   border-top: 1px solid #eee;
   border-collapse: collapse !important;
-  //tr {
-  //  display: flex;
-  //}
 }
-
 
 </style>

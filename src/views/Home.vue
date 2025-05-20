@@ -1,6 +1,6 @@
 <template>
 
-  <div style="padding-bottom: 0px;">
+  <div style="padding-bottom: 0px; background: #fff">
     <v-container class="">
       <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>

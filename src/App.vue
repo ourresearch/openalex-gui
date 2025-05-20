@@ -10,7 +10,7 @@
         app
         flat
         :height="$vuetify.breakpoint.mobile ? undefined : 70"
-        color="transparent"
+        color="white"
         class=""
         absolute
         :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
@@ -40,12 +40,6 @@
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
 
       <div class="flex-grow-1"></div>
-
-      <ui-variant-selector v-if="isAdmin"/>
-
-      <v-btn icon to="/tests" v-if="isAdmin">
-        <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
-      </v-btn>
 
       <user-toolbar-menu/>
 
@@ -87,9 +81,11 @@
     </v-app-bar>
     <div>
     </div>
-    <v-main class="ma-0 pb-0">
+
+    <v-main class="color-2 ma-0 pb-0">
       <router-view></router-view>
     </v-main>
+
     <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="500">
       <entity
           v-if="$store.state.zoomId" 

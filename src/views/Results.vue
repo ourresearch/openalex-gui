@@ -172,7 +172,8 @@ export default {
 
 <style lang="scss">
 .results-box {
-  margin-bottom: 20px;
+  margin: 40px 0 20px;
+  padding: 0 20px;
 }
 body .results-box .v-card.query-builder {
   border-bottom-left-radius: 0 !important;

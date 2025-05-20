@@ -118,7 +118,7 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 2px;
+  padding-bottom: 15px;
   display: flex;
   justify-content: space-between;
 }

@@ -1,5 +1,16 @@
 <template>
-  <div>
+  <div class="d-flex align-center">
+    <v-btn v-if="isTester && $route.path !== '/analytics'" color="catWorksDarker" to="/analytics" class="mr-2">
+      <v-icon left>mdi-poll</v-icon>
+      Analytics
+    </v-btn>
+
+    <ui-variant-selector v-if="isAdmin" />
+    
+    <v-btn icon to="/tests" v-if="isAdmin">
+      <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
+    </v-btn>  
+    
     <v-menu rounded offset-y v-if="userId">
       <template v-slot:activator="{on}">
         <v-btn icon v-on="on">
@@ -138,12 +149,14 @@
 import {mapGetters, mapMutations} from "vuex";
 import UserSignup from "./UserSignup.vue";
 import UserLogin from "./UserLogin.vue";
+import UiVariantSelector from "../Misc/UiVariantSelector.vue";
 
 export default {
   name: "UserToolbarMenu",
   components: {
     UserSignup,
     UserLogin,
+    UiVariantSelector,
   },
   props: {},
   data() {
@@ -160,6 +173,7 @@ export default {
       "userName",
       "userEmail",
       "isTester",
+      "isAdmin",
     ]),
   },
   methods: {
@@ -185,5 +199,10 @@ export default {
 
 
 <style scoped lang="scss">
-
+.d-flex {
+  display: flex;
+}
+.align-center {
+  align-items: center;
+}
 </style>
