@@ -32,6 +32,7 @@
 
 <script>
 
+import {mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import {url} from "@/url";
 import {entityTypeFromId} from "@/util";
@@ -53,8 +54,17 @@ export default {
     }
   },
   computed: {
-    id() {
+    ...mapGetters([
+      "zoomId",
+    ]),
+    urlZoomId() {
       return url.getZoom(this.$route);
+    },
+    storeZoomId() {
+      return this.zoomId;
+    },
+    id() {
+      return this.storeZoomId || this.urlZoomId;
     },
     myEntityType() {
       if (!this.id) { return; }
@@ -65,22 +75,29 @@ export default {
         return !!this.id;
       },
       set(to) {
-        !to && url.setZoom(undefined);
+        if (!to) {
+          this.storeZoomId && this.setZoomId(null);
+          this.urlZoomId && url.setZoom(undefined); 
+        }
       }
     }
   },
   methods: {
+    ...mapMutations([
+      "setZoomId",
+    ]),
     async getEntityData() {
       if (!this.id) {
         this.entityData = null;
         return;
       }
       this.isLoading = true;
-      // console.log("EntityDrawer getEntityData() loading", this.isLoading)
       this.entityData = await api.get(this.id);
       this.isLoading = false;
-      // console.log("EntityDrawer getEntityData() done loading", this.isLoading)
     },
+  },
+  mounted() {
+    console.log("EntityDrawer mounted with id", this.id);
   },
   watch: {
     id: {

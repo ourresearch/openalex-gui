@@ -537,7 +537,7 @@ const facetConfigs = function (entityType) {
             categories: ["apc"],
             actions: ["filter",],
             icon: "mdi-cash",
-            extractFn: (entity) => entity.apc_paid.value_usd,
+            extractFn: (entity) => entity.apc_paid?.value_usd,
         },
 
 

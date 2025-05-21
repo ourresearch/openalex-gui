@@ -15,24 +15,13 @@
         <v-icon small>{{ myEntityConfig.icon }}</v-icon>
         {{ myEntityConfig.displayNameSingular | capitalize }}
       </div>
-
-
-      <!--          <div v-else-if="myEntityType !== 'works'" class="grey&#45;&#45;text">-->
-      <!--            {{ myEntityConfig.displayNameSingular | capitalize }}-->
-      <!--          </div>-->
-
     </div>
+
     <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
       <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
-<!--        <v-icon left>mdi-file-document-outline</v-icon>-->
         View works
       </v-btn>
-<!--      <entity-header-claim-profile-button-->
-<!--          v-if="myEntityType === 'authors'"-->
-<!--          :author-id="entityData.id"-->
-<!--      />-->
-
 
       <v-tooltip bottom v-if="entityData.homepage_url">
         <template v-slot:activator="{on}">
@@ -52,7 +41,7 @@
       </v-tooltip>
       <v-tooltip bottom v-if="showPermalinkButton">
         <template v-slot:activator="{on}">
-          <v-btn v-on="on" class="" icon :to="shortId">
+          <v-btn v-on="on" class="" icon :to="'/' + shortId">
             <v-icon>mdi-link</v-icon>
           </v-btn>
         </template>

@@ -135,7 +135,8 @@ export default new Vuex.Store({
             return state.textSearch;
         },
         zoomId(state) {
-            return state.zoomIdsStack.slice(-1)[0]; // last item in stack
+            // return state.zoomIdsStack.slice(-1)[0]; // last item in stack
+            return state.zoomId;
         },
         filtersZoom(state) {
             return state.filtersZoom

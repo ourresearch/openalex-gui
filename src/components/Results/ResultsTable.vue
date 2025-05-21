@@ -286,6 +286,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {entity} from "@/entity";
+import {url} from "@/url";
 import * as oaxSearch from "@/oaxSearch";
 
 import ColumnValue from "@/components/ColumnValue.vue";
@@ -576,8 +577,8 @@ export default {
       this.addFilter({filterGroup, filterKey, filterValue});
     },
     clickRow(rowId) {
-      console.log("clickRow", rowId);
-      this.setZoomId(entity.fullId(rowId, this.querySubjectEntity));
+      const fullEntityId = entity.fullId(rowId, this.querySubjectEntity);
+      this.setZoomId(fullEntityId);
     },
     metaClickRow(rowId) {
       const newTab = window.open(this.apiUrl);
@@ -708,6 +709,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
+    this.setZoomId(null);
   },
   watch: {
     selectedIds: {

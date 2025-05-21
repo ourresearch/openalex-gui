@@ -49,15 +49,10 @@
           </v-col>
         </v-row>
       </template>
-
-
     </v-container>
-
-    <entity-drawer />
   </div>
-
-
 </template>
+
 
 <script>
 
@@ -113,20 +108,13 @@ export default {
     SerpResultsList,
     ApiDialog,
     SerpApiEditor,
-
     Action,
-
     GroupBy,
     AnalyticViews,
-
-
     FilterList,
-
     QrcodeVue,
     SerpTabs,
-
     EntityDrawer,
-
   },
   props: {},
   data() {
@@ -152,21 +140,15 @@ export default {
       showYearRange: true,
       widgetFilterKeys: [],
       resultsFilters: [],
-
       resultsObject: null,
       apiMode: false,
       // resultsTab: 0,
       lastGroupByValue: null,
       groupByKeys: [],
       groupBySearchString: "",
-
       savedActions: [],
-
       listResultsCount: null, // not the group_by one
-
       selectedActionTab: "filter",
-
-
       searchString: "",
       url,
       actionConfigs,
