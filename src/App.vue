@@ -86,6 +86,7 @@
       <router-view></router-view>
     </v-main>
 
+    <!-- 
     <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="500">
       <entity
           v-if="$store.state.zoomId" 
@@ -96,6 +97,9 @@
           @close="clearZoom">
       </entity>
     </v-navigation-drawer>
+    -->
+    <entity-drawer />
+
     <site-footer/>
 
     <v-snackbar
@@ -127,30 +131,24 @@
 
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
-import {sleep} from "./util";
 import axios from "axios";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import SiteFooter from "./components/SiteFooter.vue";
-import SiteNav from "@/components/SiteNav.vue";
 import {url} from "@/url";
 import {getConfigs} from "@/oaxConfigs";
+
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
-
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
-
 import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
-
+import SiteFooter from "./components/SiteFooter.vue";
+import SiteNav from "@/components/SiteNav.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
-import {entity} from "@/entity";
-import Entity from "@/components/Entity/Entity.vue";
+import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 import UiVariantSelector from "@/components/Misc/UiVariantSelector.vue";
-import router from "@/router";
 
 
 export default {
@@ -170,7 +168,7 @@ export default {
     SavedSearchRenameDialog,
     SavedSearchSaveDialog,
     SavedSearchEditAlertDialog,
-    Entity,
+    EntityDrawer,
     SearchFromText,
     ShortcutBox,
     EntityTypeSelector,

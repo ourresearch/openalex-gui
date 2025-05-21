@@ -118,14 +118,18 @@ export default {
 
 <style>
 .query-sentence-box {
-  padding-bottom: 15px;
+  padding-bottom: 0px;
   display: flex;
   justify-content: space-between;
+}
+.query-sentence-container {
+  margin-bottom: 30px;
 }
 .query-sentence-container.in-progress {
   background-color: #fcfcfc;
   border-radius: 5px;
   border: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
   padding: 10px;
 }
 .query-sentence {

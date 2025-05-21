@@ -1,12 +1,12 @@
 <template>
-  <div v-if="data" class="">
+  <div v-if="data">
     <template
-        v-for="(filterKey, i) in myEntityConfig.rowsToShowOnEntityPage"
+        v-for="(filterKey, i) in rowsToShow"
     >
       <v-divider
           v-if="filterKey === null"
           :key="'divider-'+i"
-          class="my-1"
+          class="ma-3"
       />
       <entity-datum-row
           v-else
@@ -40,13 +40,20 @@ export default {
   props: {
     data: Object,
   },
-  data() {},
   computed: {
     myEntityConfig() {
       return getEntityConfig(this.type)
     },
     type(){
       return entityTypeFromId(this.data.id)
+    },
+    rowsToShow() {
+      // Remove initial nulls
+      let rows = this.myEntityConfig.rowsToShowOnEntityPage;
+      while (rows[0] === null) {
+        rows.shift();
+      }
+      return rows;
     }
   },
 }

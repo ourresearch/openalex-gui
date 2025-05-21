@@ -172,6 +172,7 @@ export default {
       "userId",
       "userName",
       "userEmail",
+      "userAuthorId",
       "isTester",
       "isAdmin",
     ]),

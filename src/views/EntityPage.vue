@@ -76,7 +76,6 @@
         </v-col>
       </v-row>
     </v-container>
-    <entity-drawer />
   </div>
 </template>
 
