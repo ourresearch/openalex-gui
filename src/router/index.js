@@ -76,7 +76,7 @@ const routes = [
     },
     // data pages
     {
-        path: "/s/:id",
+        path: "/s/:id?",
         name: "search",
         meta: {requiresAuth: true},
         component: Results,
