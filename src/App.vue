@@ -245,6 +245,26 @@ export default {
   },
   created() {
     this.setUIVariant();
+    // Zendesk widget show/hide logic for certain routes
+    if (this.$router) {
+      this.$router.afterEach((to) => {
+        if (window.zE) {
+          if (to.path.startsWith('/analytics') || to.path.startsWith('/s/') || to.path === '/s') {
+            window.zE('webWidget', 'show');
+          } else {
+            window.zE('webWidget', 'hide');
+          }
+        }
+      });
+      // Set initial visibility
+      if (window.zE) {
+        if (this.$router.currentRoute.path.startsWith('/analytics') || this.$router.currentRoute.path.startsWith('/s/')) {
+          window.zE('webWidget', 'show');
+        } else {
+          window.zE('webWidget', 'hide');
+        }
+      }
+    }
   },
   async mounted() {
     this.$root.configs = getConfigs();
