@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="!isForgotPassword" outlined rounded :loading="isLoading" :disabled="isLoading">
+  <v-card outlined rounded :loading="isLoading" :disabled="isLoading">
     <v-card-title>
       <div>
         <v-icon left>mdi-account</v-icon>
@@ -18,18 +18,17 @@
       <v-card-text>
         <form>
           <v-text-field
-              filled
-              rounded
-              class="mt-0"
-
-              name="email"
-              id="email"
-              type="email"
-
-              prepend-icon="mdi-email-outline"
-              v-model="email"
-              autofocus
-              placeholder="Your email"
+            filled
+            rounded
+            class="mt-0"
+            name="email"
+            id="email"
+            type="email"
+            prepend-icon="mdi-email-outline"
+            v-model="email"
+            hide-details
+            autofocus
+            placeholder="Your email"
           >
           </v-text-field>
         </form>

@@ -181,8 +181,6 @@ export default {
       "setRenameId",
       "setEditAlertId",
       "setActiveSearchId",
-      "setIsLoginDialogOpen",
-      "setIsSignupDialogOpen",
     ]),
     ...mapActions([]),
     ...mapActions("user", [

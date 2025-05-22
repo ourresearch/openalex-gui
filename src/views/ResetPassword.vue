@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height justify-center">
 
-    <v-card flat v-if="!isSubmitted">
+    <v-card flat rounded v-if="!isSubmitted" style="width: 500px;">
       <v-card-title class="text-h5">
         Reset Your Password
       </v-card-title>
@@ -11,11 +11,9 @@
             filled
             rounded
             class="mt-0"
-
             name="password"
             id="password"
             type="password"
-
             prepend-icon="mdi-lock-outline"
             v-model="password"
             autofocus
@@ -38,7 +36,7 @@
       </v-card-actions>
     </v-card>
 
-    <v-card flat v-else-if="isSubmitted">
+    <v-card flat rounded v-else-if="isSubmitted">
       <v-card-text class="text-h6">
         Your password has been reset.
       </v-card-text>
@@ -63,7 +61,7 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 export default {
   name: "ResetPassword",
     metaInfo() {
-        return {title: "Reset Password"}
+      return {title: "Reset Password"}
     },
   components: {},
   props: {},
@@ -85,22 +83,24 @@ export default {
       "resetPassword"
     ]),
     async submit() {
+      console.log("user.store resetPassword submit");
       try {
-        await this.resetPassword({password: this.password, token: this.token})
-        this.isSubmitted = true
+        await this.resetPassword({password: this.password, token: this.token});
+        this.isSubmitted = true;
       } catch (e) {
-        this.setShowPasswordResetErrorMessage(true)
-        this.setIsLoginDialogOpen(true)
+        console.log("user.store resetPassword error", e);
+        this.setShowPasswordResetErrorMessage(true);
+        this.setIsLoginDialogOpen(true);
       } finally {
       } 
     },
   },
-  created() {
-  },
   mounted() {
-    this.token = this.$route.query.token
+    this.token = this.$route.query.token;
   },
-  watch: {}
+  beforeDestroy() {
+    this.setShowPasswordResetErrorMessage(false);
+  }
 }
 </script>
 

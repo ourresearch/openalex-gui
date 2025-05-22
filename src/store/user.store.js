@@ -44,11 +44,11 @@ export const user = {
             localStorage.setItem("token", token);
         },
         setIsSignupDialogOpen(state, val) {
-            state.isLoginDialogOpen = false;
+            val && (state.isLoginDialogOpen = false);
             state.isSignupDialogOpen = val;
         },
         setIsLoginDialogOpen(state, val) {
-            state.isSignupDialogOpen = false;
+            val && (state.isSignupDialogOpen = false);
             state.isLoginDialogOpen = val;
         },
         setShowPasswordResetErrorMessage(state, val) {
@@ -210,7 +210,7 @@ export const user = {
             return resp
         },
         async resetPassword({commit, dispatch, getters}, {token, password}) {
-            console.log(password + " / " + token)
+            console.log("user.store resetPassword", password + " / " + token);
 
             const resp = await axios.post(
                 apiBaseUrl + "/password/reset",
@@ -218,8 +218,8 @@ export const user = {
                     token,
                     password
                 }
-            )
-            return resp
+            );
+            return resp;
         },
 
         // **************************************************

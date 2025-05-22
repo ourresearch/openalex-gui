@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-row align="center" justify="center">
       <v-col cols="12" md="10" lg="8">
-        <div v-if="isAdmin">
+        <div v-if="isAdmin" class="pa-8">
           <h1 class="mb-2">Hello Admin</h1>
           <v-text-field
             v-model="searchQuery"

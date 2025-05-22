@@ -280,16 +280,15 @@ router.beforeEach(async (to, from, next) => {
 
     redirectFromOldFilters(to, from, next)
 
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-        // this page requires authentication
-        if (store.getters["user/userId"]) {  // you're logged in great. proceed.
-            next()
-        } else { // sorry, you can't view this page. go log in.
-            next("/login")
-        }
-    } else { //  no auth required. proceed.
-        next()
+
+    // Enforce authentication for protected routes
+    if (to.matched.some(record => record.meta.requiresAuth) && !store.getters["user/userId"]) {
+        return next({
+            name: 'Login',
+            query: { redirect: to.fullPath }
+        });
     }
+    next();
 });
 
 export default router;

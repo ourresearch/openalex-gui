@@ -32,8 +32,6 @@ const stateDefaults = function () {
         showFiltersDrawer: false,
         facetZoom: null,
         facetsListDialogIsOpen: false,
-        zoomIdsStack: [],
-        zoomDataResponses: [],
         exportProgressUrl: null,
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
@@ -43,7 +41,6 @@ const stateDefaults = function () {
             "open_access.is_oa",
             "cited_by_count",
         ],
-
         serpTabs: [
             {
                 id: null,
@@ -135,7 +132,6 @@ export default new Vuex.Store({
             return state.textSearch;
         },
         zoomId(state) {
-            // return state.zoomIdsStack.slice(-1)[0]; // last item in stack
             return state.zoomId;
         },
         filtersZoom(state) {
