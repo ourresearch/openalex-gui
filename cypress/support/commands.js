@@ -23,3 +23,11 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('kelpSearch', () => {
+  cy.visit('/works?page=1&filter=default.search%3Akelp%20ecology&id=gHcfs1X3YTCsWrAMpMMBTh');
+})
+  
+Cypress.Commands.add('clickIcon', (className) => {
+  cy.get(className).click()
+})
