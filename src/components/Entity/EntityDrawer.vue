@@ -96,9 +96,6 @@ export default {
       this.isLoading = false;
     },
   },
-  mounted() {
-    console.log("EntityDrawer mounted with id", this.id);
-  },
   watch: {
     id: {
       handler(to) {

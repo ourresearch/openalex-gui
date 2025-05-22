@@ -21,7 +21,6 @@ import Signup from "@/views/Signup.vue";
 import UserSignup from '@/components/user/UserSignup.vue';
 import ResetPassword from "@/views/ResetPassword.vue";
 import UserMagicToken from '@/components/user/UserMagicToken.vue';
-import SavedSearches from "@/views/SavedSearches.vue";
 
 import Help from "@/views/Help.vue";
 import About from '@/views/About';
@@ -111,7 +110,6 @@ const routes = [
     {path: '/signup', name: 'Signup', component: Signup},
     {path: '/login', name: 'Login', component: Login},
     {path: '/reset-password', name: 'ResetPassword', component: ResetPassword},
-    {path: '/me/searches', name: 'SavedSearches', component: SavedSearches, meta: {requiresAuth: true}},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
 
     // Acounts Pages
@@ -132,7 +130,7 @@ const routes = [
             },
             {
                 path: '/me/searches',
-                name: 'me-searches',
+                name: 'SavedSearches',
                 component: MeSearches,
             },
             {

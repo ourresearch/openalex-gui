@@ -38,7 +38,7 @@
             <v-icon>mdi-tag-outline</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            My Labels
+            Labels
           </v-list-item-content>
         </v-list-item>
 
