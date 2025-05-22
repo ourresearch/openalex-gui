@@ -1,45 +1,12 @@
 <template>
-  <v-container>
+  <v-container class="mt-6">
     <v-row>
-      <v-col cols="3">
-        <v-list rounded>
-
-          <v-list-item to="/me/labels">
-            <v-list-item-content>
-              <v-list-item-title>
-                Labels
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item to="/me/searches">
-            <v-list-item-content>
-              <v-list-item-title>
-                Searches
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          
-          <v-list-item to="/me/corrections">
-            <v-list-item-content>
-              <v-list-item-title>
-                Corrections
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item to="/me/about">
-            <v-list-item-content>
-              <v-list-item-title>
-                About Me
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-        </v-list>
+      <v-col cols="2">
       </v-col>
-      <v-col cols="9">
+      <v-col cols="8">
         <router-view />
+      </v-col>
+      <v-col cols="2">
       </v-col>
     </v-row>
   </v-container>

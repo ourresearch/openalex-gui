@@ -1,24 +1,24 @@
 <template>
   <div>
-    <template v-if="!labelId">
-      <span class="text-h4 ml-1 mr-4">My Labels</span>
+    <div v-if="!labelId" class="mb-2">
+      <span class="text-h4 ml-1 mr-3">Labels</span>
       <v-btn 
         v-if="!labelId" 
         @click="isLabelCreateDialogOpen = true"
-        rounded 
         color="primary"
+        small
         class="new-label-button">
         <v-icon left>mdi-plus</v-icon>New Label
       </v-btn>
-    </template>
+    </div>
     
-    <v-card v-if="labelId" rounded outlined class="my-0">
-      <router-view />
-    </v-card>
+    <router-view v-if="labelId" />
     
-    <v-card v-else rounded outlined class="my-4">
+    <v-card v-else flat rounded class="mb-6">
       
-      <v-card-text v-if="!userCollections.length">Create labels for authors, institutions, and more that you can use to fitler your searches.</v-card-text>
+      <v-card-text v-if="!userCollections.length">
+        Create labels for authors, institutions, and more that you can use to fitler your searches.
+      </v-card-text>
       
       <v-list v-else>
         <v-list-item
