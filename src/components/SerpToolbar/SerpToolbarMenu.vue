@@ -8,15 +8,14 @@
         @click="$emit('toggle-alert')"
     >
       <template v-if="activeSearchHasAlert">
+        <!-- Remove alert-->
         <v-icon>mdi-bell-check</v-icon>
-<!--        Remove alert-->
       </template>
       <template v-else>
+        <!-- Create alert-->
         <v-icon>mdi-bell-outline</v-icon>
-<!--        Create alert-->
       </template>
     </v-btn>
-
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
@@ -47,9 +46,6 @@
         </v-list-item>
       </v-list>
     </v-menu>
-
-
-
 
     <v-menu offset-y>
       <template v-slot:activator="{on}">
@@ -83,39 +79,6 @@
 
     <v-spacer/>
 
-<!--    <v-tooltip bottom :disabled="!$route.query.id" max-width="200">-->
-<!--      <template v-slot:activator="{on}">-->
-<!--        <span v-on="on">-->
-<!--          <v-chip-->
-<!--              :disabled="!!$route.query.id"-->
-<!--              class="mr-2 white black&#45;&#45;text"-->
-<!--              @click="clickSaveButton"-->
-<!--              text-->
-<!--              rounded-->
-<!--          >-->
-<!--            <v-icon v-if="isUserSaving" left small>mdi-autorenew</v-icon>-->
-<!--            <v-icon v-else left small class="">-->
-<!--              {{ $route.query.id ? "mdi-content-save" : "mdi-content-save-outline" }}-->
-<!--            </v-icon>-->
-<!--            <span v-if="isUserSaving">saving</span>-->
-<!--            <span v-else>-->
-<!--              Save{{ $route.query.id && "d" }}-->
-<!--            </span>-->
-<!--          </v-chip>-->
-<!--        </span>-->
-<!--      </template>-->
-<!--      Autosave is on; all changes are saved automatically.-->
-<!--    </v-tooltip>-->
-
-
-
-
-    <!--    <div v-if="$route.query.id" class="body-2 grey&#45;&#45;text mr-5">-->
-    <!--        <v-icon small left>mdi-content-save-outline</v-icon>-->
-    <!--        autosaved-->
-    <!--      </div>-->
-
-
     <v-dialog :width="qrCodeSize" v-model="isDialogOpen.qrCode">
       <v-card rounded>
         <v-toolbar flat class="">
@@ -139,9 +102,9 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import QrcodeVue from "qrcode.vue";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
-import {filtersFromUrlStr} from "@/filterConfigs";
 import {url} from "@/url";
+import {filtersFromUrlStr} from "@/filterConfigs";
+import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 export default {
   name: "SerpToolbarMenu",
@@ -151,7 +114,6 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       saveSearchDialogHasAlert: false,
       isMenuOpen: {
         search: false,
@@ -166,7 +128,6 @@ export default {
       return url
     },
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -174,18 +135,15 @@ export default {
       "activeSearchHasAlert",
       "activeSearchObj",
       "isUserSaving",
-
     ]),
     urlToShare() {
-      return `https://openalex.org` + this.$route.fullPath
+      return `https://openalex.org` + this.$route.fullPath;
     },
     qrCodeSize() {
-      return this.$vuetify.breakpoint.mdAndUp ?
-          400 :
-          300
+      return this.$vuetify.breakpoint.mdAndUp ? 400 : 300;
     },
     groupByDownloadUrl() {
-      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
+      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter);
       return url.makeGroupByUrl(
           this.entityType,
           this.groupByKeys.join(","),
@@ -193,10 +151,9 @@ export default {
             filters: myFilters,
             isMultipleGroups: true
           }
-      )
+      );
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -204,7 +161,6 @@ export default {
     ...mapMutations("user", [
       "setEditAlertId",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "updateSearchUrl",
     ]),
@@ -212,16 +168,10 @@ export default {
       await navigator.clipboard.writeText(this.urlToShare);
       this.snackbar("URL copied to clipboard.")
     },
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
