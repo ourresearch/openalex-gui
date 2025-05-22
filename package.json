@@ -8,7 +8,9 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "@achrinza/node-ipc": "^10.1.9",
@@ -53,6 +55,7 @@
     "@vue/cli-plugin-vuex": "^5.0.0",
     "@vue/cli-service": "^5.0.8",
     "babel-eslint": "^10.1.0",
+    "cypress": "^14.4.0",
     "eslint": "^9.0.0",
     "eslint-plugin-vue": "^9.0.0",
     "madge": "^8.0.0",
