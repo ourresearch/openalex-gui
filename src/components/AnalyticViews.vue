@@ -1,7 +1,6 @@
 <template>
   <v-card rounded flat color="transparent">
     <v-toolbar dense flat color="transparent" class="">
-      <!--      <v-icon left>mdi-clipboard-outline</v-icon>-->
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <Action v-if="entityType === 'works'" class="ml-2" action="group_by"/>

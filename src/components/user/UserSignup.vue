@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500" :persistent="isFixed">
+  <v-dialog v-model="isOpen" max-width="500">
 
     <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
@@ -64,9 +64,9 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
-        <router-link @click.native.prevent="switchToLogin" class="mr-3 text-caption text-decoration-none" :to="{ name: 'Login', query: $route.query }">
-          Have an account? Login
-        </router-link>
+        <a @click.prevent="switchToLogin" class="mr-3 text-link" href="/login">
+          Have an account? Log in.
+        </a>
         <v-btn
             :disabled="isFormDisabled"
             color="primary"
@@ -133,6 +133,9 @@ export default {
       },
       set(val) {
         this.setIsSignupDialogOpen(val);
+        if (!val && this.isFixed) {
+          this.$router.push({ name: 'Home'});
+        }
       },
     }
   },
@@ -153,7 +156,6 @@ export default {
         this.$router.push({ name: 'Login', query: this.$route.query });
       } else {
         this.setIsLoginDialogOpen(true);
-        this.setIsSignupDialogOpen(false);
       }
     },
     async submit() {
@@ -202,4 +204,12 @@ export default {
 
 
 <style scoped lang="scss">
+.text-link {
+  text-decoration: none;
+  font-size: 11px;
+  color: #999;
+}
+.text-link:hover {
+  text-decoration: underline;
+}
 </style>

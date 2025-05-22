@@ -18,4 +18,14 @@ describe('OpenAlex App Loads', () => {
     cy.get('.mt-4 > .v-toolbar__content > div > .theme--light').should('be.visible');
     /* ==== End Cypress Studio ==== */
   });
+
+  it('Signup page loads', () => {
+    cy.visit('/signup');
+    cy.contains('Sign up');
+  });
+
+  it('Login page loads', () => {
+    cy.visit('/login');
+    cy.contains('Log in');
+  });
 });

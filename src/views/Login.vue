@@ -6,14 +6,13 @@
 <script>
 
 import {mapGetters, mapMutations} from "vuex";
-import UserLogin from "@/components/user/UserLogin.vue";
 
 export default {
   name: "Login",
     metaInfo() {
-        return {title: "Log in" }
+      return {title: "Log in to OpenAlex" }
     },
-  components: {UserLogin},
+  components: {},
   props: {},
   data() {
     return {
@@ -31,8 +30,8 @@ export default {
     ]),
   },
   created() {
+    console.log("Login setting both flags");
     this.setIsLoginDialogOpen(true);
-    this.setIsSignupDialogOpen(false);
   },
   mounted() {
     if (this.userId) {

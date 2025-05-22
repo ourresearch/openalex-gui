@@ -22,7 +22,6 @@
         </v-col>
       </v-row>
 
-
       <template v-else>
         <v-row class="mb-12">
           <v-col>
@@ -249,7 +248,6 @@ export default {
     selectedEntityTypeConfig() {
       return entityConfigs[this.entityType]
     },
-
     entityType() {
       return this.$route.params.entityType
     },
@@ -259,13 +257,10 @@ export default {
     filtersLength() {
       return this.$route.query.filter?.length ?? 0
     },
-
     popularFilterOptions() {
       return facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("filter"))
     },
-
-
   },
   methods: {
     ...mapMutations([
@@ -305,7 +300,6 @@ export default {
               throw e
             }
           })
-
     }
   },
 
@@ -349,14 +343,11 @@ export default {
           }
           url.pushToRoute(this.$router, {name: "Serp", query})
           return
-
         }
-
 
         if (this.userId) {
           this.$store.commit("user/setActiveSearchId", this.$route.query.id)
         }
-
 
         const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
@@ -365,10 +356,6 @@ export default {
         const resp = await api.getResultsList(apiQuery)
         this.$store.state.isLoading = false
         this.resultsObject = resp;
-        // this.count = this.meta.count
-        //
-        // if (!this.$route.query.group_by) this.listResultsCount = resp.meta.count
-
 
         this.$store.state.resultsObject = resp
 
@@ -377,10 +364,8 @@ export default {
             to?.query?.filter
         )
         window.scroll(0, 0)
-
       }
     },
-
   }
 }
 </script>

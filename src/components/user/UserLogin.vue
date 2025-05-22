@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500" :persistent="isFixed">
+  <v-dialog v-model="isOpen" max-width="500">
 
     <v-card v-if="!isForgotPassword" outlined rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
@@ -49,15 +49,15 @@
           >
           </v-text-field>
         </form>
-      </v-card-text>
+      </v-card-text>  
       <v-card-actions>
+        <a @click.prevent="switchToSignup" class="ml-3 text-link" href="/signup">
+          Don't have an account? Sign up.
+        </a>
         <v-spacer/>
-        <router-link @click.native.prevent="switchToSignup" class="mr-3 text-caption text-decoration-none" :to="{ name: 'Signup', query: $route.query }">
-          Need an account? Signup
-        </router-link>
-        <div class="forgot-password-link" @click="isForgotPassword = true">
-          Forgot your password?
-        </div>
+        <a href="#" class="forgot-password-link text-link mr-3" @click="isForgotPassword = true">
+          Forgot password?
+        </a>
         <v-btn
             :disabled="isFormDisabled"
             rounded
@@ -68,9 +68,8 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-    <v-card v-else-if="isForgotPassword">
-      <user-forgot-password />
-    </v-card>
+ 
+    <user-forgot-password v-else-if="isForgotPassword"/>
   </v-dialog>
 
 </template>
@@ -124,6 +123,9 @@ export default {
       },
       set(val) {
         this.setIsLoginDialogOpen(val);
+        if (!val && this.isFixed) {
+          this.$router.push({ name: 'Home'});
+        }
       },
     },
   },
@@ -143,7 +145,6 @@ export default {
       if (this.isFixed) {
         this.$router.push({ name: 'Signup', query: this.$route.query });
       } else {
-        this.setIsLoginDialogOpen(false);
         this.setIsSignupDialogOpen(true);
       }
     },
@@ -158,6 +159,9 @@ export default {
         if (this.redirectPath) {
           this.$router.replace(this.redirectPath);
         }
+        if (this.$route.name == "ResetPassword") {
+          this.$router.push({ name: 'Home'});
+        }
         this.isOpen = false;
         this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
       } catch (e) {
@@ -171,9 +175,10 @@ export default {
         this.isLoading = false;
       }
     },
-
   },
   mounted() {
+    console.log("UserLogin mounted");
+    console.log("isLoginDialogOpen", this.isLoginDialogOpen);
   },
   watch: {
     isOpen(to, from) {
@@ -184,7 +189,6 @@ export default {
       this.isEmailUnrecognized = false;
       this.isPasswordWrong = false;
       this.isForgotPassword = this.showPasswordResetErrorMessage;
-      this.setShowPasswordResetErrorMessage(false);
     },
     password() {
       this.isPasswordWrong = false;
@@ -198,5 +202,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.text-link {
+  text-decoration: none;
+  font-size: 11px;
+  color: #999;
+}
+.text-link:hover {
+  text-decoration: underline;
+}
 </style>

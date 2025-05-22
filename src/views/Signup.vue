@@ -11,7 +11,7 @@ import UserSignup from "@/components/user/UserSignup.vue";
 export default {
   name: "Signup",
     metaInfo() {
-        return {title: "Sign up" }
+      return {title: "Sign up" }
     },
   components: {UserSignup},
   props: {},
@@ -30,7 +30,6 @@ export default {
     ]),
   },
   created() {
-    this.setIsLoginDialogOpen(false);
     this.setIsSignupDialogOpen(true);
   },
   mounted() {
@@ -41,7 +40,6 @@ export default {
   beforeDestroy() {
     this.setIsSignupDialogOpen(false);
   },
-  watch: {}
 }
 </script>
 
