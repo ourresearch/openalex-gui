@@ -3,7 +3,8 @@ describe('OpenAlex App Loads', () => {
     cy.visit('/');
     cy.contains('OpenAlex');
   });
-  it('Visits the search page', () => {
+  
+  it('Search page loads', () => {
     cy.visit('/works?page=1&filter=default.search%3Akyle%20demes');
     cy.contains('kyle demes');
     cy.contains('Works');    
@@ -11,7 +12,7 @@ describe('OpenAlex App Loads', () => {
   });
 
   /* ==== Test Created with Cypress Studio ==== */
-  it('Visits Entity Drawer on SERP', function() {
+  it('Entity Drawer loads on Serp', function() {
     /* ==== Generated with Cypress Studio ==== */
     cy.visit('/works?page=1&filter=default.search%3Akyle%20demes&zoom=w2103321907');
     cy.get('.mt-4 > .v-toolbar__content > div > .theme--light').should('be.visible');
