@@ -1,5 +1,5 @@
 <template>
-  <div class="search-controls">
+  <div class="search-controls mb-1">
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
       class="mx-1"

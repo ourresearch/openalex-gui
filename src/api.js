@@ -426,11 +426,6 @@ const api = (function () {
         return resp
     }
 
-    const getEntityConfigs = async function() {
-        const resp = get("/entity/configs");
-        return resp;
-    };
-
     return {
         getEntityDisplayName,
         getFilterValueDisplayName,
@@ -443,7 +438,6 @@ const api = (function () {
         getAutocompleteResponses,
         getGroups,
         getSuggestions,
-        getEntityConfigs,
         post,
         getAutocomplete,
         makeUrl,

@@ -50,7 +50,7 @@
   </v-card>
 
   <!-- Top UI-->
-  <v-card v-else flat rounded class="query-builder mb-0 px-7 pt-7 pb-0">
+  <v-card v-else flat rounded class="query-builder mb-0 px-6 pt-7 pb-0">
     <template v-if="uiVariant.includes('sentence')">
       <QuerySentence />
     </template>
