@@ -6,12 +6,9 @@
     <v-list-item-content>
       <v-list-item-title>
         {{ name }}
-<!--        {{ isOpenAsSerpTab ? "(open)" : "" }}-->
       </v-list-item-title>
       <v-list-item-subtitle>
-<!--        Last updated -->
         {{  updatedStr }}
-<!--        {{ "filters" | pluralize(filters?.length) }}-->
       </v-list-item-subtitle>
       <div>
       </div>
@@ -42,16 +39,11 @@ export default {
   data() {
     return {
       url,
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "serpTabs",
     ]),
     filters() {
       const url = new URL(this.searchUrl)
@@ -63,9 +55,8 @@ export default {
       const name = url.searchParams.get("name") ?? "Unsaved search"
       return name
     },
-
     disabled() {
-      return this.isOpener && this.isOpenAsSerpTab
+      return this.isOpener;
     },
     updatedStr(){
       const dateOptions =  {
@@ -95,22 +86,13 @@ export default {
     ]),
     ...mapActions("user", [
       "deleteSavedSearch",
-      "createSerpTab",
-      "selectSerpTab",
     ]),
     ...mapActions([]),
     open() {
       this.$emit("click")
       this.$router.push(url.urlObjectFromSearchUrl(this.searchUrl))
     },
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

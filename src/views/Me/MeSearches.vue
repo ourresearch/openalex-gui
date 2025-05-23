@@ -137,11 +137,8 @@ export default {
   methods: {
     ...mapActions("user", [
       "deleteSavedSearch",
-      "createSerpTab",
-      "selectSerpTab",
       "openSavedSearch",
     ]),
-
     ...mapMutations("user", [
       "setEditAlertId",
     ]),

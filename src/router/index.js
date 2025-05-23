@@ -6,7 +6,7 @@ import {url} from "@/url";
 import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import {getConfigs} from "@/oaxConfigs";
-import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
+import {entityTypeFromId} from "@/util";
 
 import Home from '@/views/Home.vue'
 import Serp from '@/views/Serp';
