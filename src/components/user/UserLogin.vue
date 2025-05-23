@@ -176,10 +176,7 @@ export default {
       }
     },
   },
-  mounted() {
-    console.log("UserLogin mounted");
-    console.log("isLoginDialogOpen", this.isLoginDialogOpen);
-  },
+  mounted() {},
   watch: {
     isOpen(to, from) {
       this.email = "";

@@ -1,7 +1,7 @@
 <template>
   <v-card flat rounded class="example-query fill-height d-flex flex-column">
     <v-card-title>
-      <div class="question-link" @click="createSearchFromQuery(query)">{{ question }}</div>
+      <div class="question-link" @click="handleQueryClick(query)">{{ question }}</div>
 
       <!--<router-link class="question-link" to="url">{{ question }}</router-link>-->
     </v-card-title>
@@ -26,7 +26,7 @@
 
 <script>
 
-import {mapActions} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: "ExampleQuery",
@@ -43,10 +43,26 @@ export default {
     return {
     }
   },
+  computed: {
+    ...mapGetters("user", [
+      "userId",
+    ]),
+  },
   methods: {
     ...mapActions("search", [
       "createSearchFromQuery"
     ]),
+    handleQueryClick(query) {
+      if (!this.userId) {
+        this.$router.push({
+          name: 'Login',
+          query: { redirect: '/analytics' }
+        });
+        return;
+      }
+      
+      this.createSearchFromQuery(query);
+    },
   },
 }
 </script>

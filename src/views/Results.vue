@@ -65,7 +65,7 @@ export default {
   },
   computed: {
     ...mapState(['uiVariant', 'isInitialLoad']),
-    ...mapState("user", [
+    ...mapGetters("user", [
       "userId",
       "isTester",
     ]),
@@ -146,7 +146,7 @@ export default {
   },
   created() {
     if (this.userId && !this.isTester) {
-      this.$router.push({name: 'AnalyticsTesting'});
+      this.$router.replace({name: 'AnalyticsTesting'});
     }
   },
   beforeDestroy() {
