@@ -22,9 +22,7 @@ import UserSignup from '@/components/user/UserSignup.vue';
 import ResetPassword from "@/views/ResetPassword.vue";
 import UserMagicToken from '@/components/user/UserMagicToken.vue';
 
-import Help from "@/views/Help.vue";
 import About from '@/views/About';
-import Webinars from '@/views/Webinars.vue';
 import OurStats from '@/views/OurStats.vue';
 import Faq from "@/views/Faq.vue";
 import Testimonials from "@/views/Testimonials.vue";
@@ -43,9 +41,6 @@ import LabelDetails from "@/components/Label/LabelDetails.vue";
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminPage from "@/views/AdminPage.vue";
 
-import Query from "@/views/Query.vue";
-import OQOTests from "@/views/QueryTest.vue";
-import OQOTestDetails from "@/views/QueryTestDetails.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
 import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
@@ -159,8 +154,6 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
-    {path: '/query', component: Query},
-    {path: '/tests_old', component: OQOTests},
     {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
     {path: '/analytics-testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
     
@@ -222,7 +215,7 @@ const routes = [
     redirect('/pricing', "https://help.openalex.org/pricing"),
     
     // Support
-    redirect('/help', "https://openalex.zendesk.com/hc/requests/new"),
+    redirect('/help', "https://help.openalex.org"),
     redirect('/contact', "https://openalex.zendesk.com/hc/requests/new"),
     redirect('/feedback', "https://openalex.zendesk.com/hc/requests/new"),
     redirect('/support', "https://openalex.zendesk.com/hc/requests/new"),

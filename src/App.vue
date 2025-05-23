@@ -123,7 +123,6 @@
 
     <saved-search-rename-dialog/>
     <saved-search-edit-alert-dialog/>
-    <!-- was removed to prevent mapgetters calling entityType which doesn't exist on RA> -->
 
   </v-app>
 </template>
@@ -138,7 +137,6 @@ import {getConfigs} from "@/oaxConfigs";
 import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
@@ -164,7 +162,6 @@ export default {
     SiteFooter,
     UserToolbarMenu,
     SavedSearchRenameDialog,
-    SavedSearchSaveDialog,
     SavedSearchEditAlertDialog,
     EntityDrawer,
     SearchFromText,

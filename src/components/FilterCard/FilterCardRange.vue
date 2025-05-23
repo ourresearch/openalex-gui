@@ -12,11 +12,6 @@
           autofocus
       >
       </v-text-field>
-<!--      <try-chips-->
-<!--          :ideas="['2023', '2020-', '2020-2024', '-2020']"-->
-<!--          @select="idea => searchString = idea"-->
-<!--      />-->
-
     </div>
     <v-card-actions>
       <v-spacer></v-spacer>
@@ -29,13 +24,13 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import TryChips from "@/components/TryChips.vue";
-import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+import {getFacetConfig} from "@/facetConfigs";
+
 
 export default {
   name: "FilterCardRange",
-  components: {TryChips},
+  components: {},
   props: {
     filterKey: String,
   },

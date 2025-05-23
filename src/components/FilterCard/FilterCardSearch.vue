@@ -12,11 +12,6 @@
           autofocus
       >
       </v-text-field>
-<!--      <try-chips-->
-<!--          :ideas="['2023', '2020-', '2020-2024', '-2020']"-->
-<!--          @select="idea => searchString = idea"-->
-<!--      />-->
-
     </div>
     <v-card-actions>
       <v-spacer></v-spacer>
@@ -26,71 +21,55 @@
   </v-card>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import TryChips from "@/components/TryChips.vue";
-import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
-
+import {getFacetConfig} from "@/facetConfigs";
 
 export default {
   name: "FilterCardSearch",
-  components: {TryChips},
+  components: {},
   props: {
     filterKey: String,
   },
   data() {
     return {
-      foo: 42,
       searchString: "",
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     config() {
-      return getFacetConfig(this.entityType, this.filterKey)
+      return getFacetConfig(this.entityType, this.filterKey);
     },
     value: {
       get() {
-        return url.readFilterValue(this.$route, this.$store.state.entityType, this.index)
+        return url.readFilterValue(this.$route, this.entityType, this.index);
       },
       set(to) {
-        console.log("FilterRange value set()", to)
+        console.log("FilterRange value set()", to);
         this.value ?
             url.updateOrDeleteFilter(this.entityType, this.index, to) :
-            url.createFilter(this.entityType, this.filterKey, to)
+            url.createFilter(this.entityType, this.filterKey, to);
       }
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     submit() {
       this.$emit("close")
       this.value = this.searchString
     },
-
-
-  },
-  created() {
   },
   mounted() {
-    this.searchString = this.value
+    this.searchString = this.value;
   },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
