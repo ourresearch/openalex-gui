@@ -15,3 +15,13 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+
+afterEach(function () {
+  if (this.currentTest.state === 'failed') {
+    const fullTitle = this.currentTest.fullTitle();
+    cy.task('notifyOnFail', {
+      title: '❌ Test Failed',
+      message: fullTitle,
+    }, { log: false });
+  }
+});
