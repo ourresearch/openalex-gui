@@ -1,54 +1,45 @@
 <template>
-  <v-container>
-    <!-- Title -->
-    <v-row class="title-block">
-      <v-col cols="12" md="8">
+  <v-container class="works-citing-oa">
+      <!-- Title -->
+      <div class="title-block mt-6 mb-4">
         <div class="text-h3">Works Citing OpenAlex</div>
         <div class="text-h7 subtitle">{{totalWorks}} works discovered through the OpenAlex API</div>
-      </v-col>
-    </v-row>
+      </div>
 
-    <!-- Works List -->
-    <v-row>
-      <v-col cols="12" md="8">
-        <v-list two-line>
-          <v-list-item
-            v-for="work in works"
-            :key="work.id"
-            :href="work.id"
-            target="_blank"
-          >
-            <v-list-item-content>
-              <v-list-item-title>{{ work.title }}</v-list-item-title>
-              <v-list-item-subtitle>
-                <span v-if="work.authorships && work.authorships.length">
-                  {{ formatAuthors(work.authorships) }}
-                </span>,
-                <span v-if="work.publication_year">
-                  {{ work.publication_year }}
-                </span>
-              </v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
+      <!-- Works List -->
+      <v-list two-line class="pa-2">
+        <v-list-item
+          v-for="work in works"
+          :key="work.id"
+          :href="work.id"
+          target="_blank"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{ work.title }}</v-list-item-title>
+            <v-list-item-subtitle>
+              <span v-if="work.authorships && work.authorships.length">
+                {{ formatAuthors(work.authorships) }}
+              </span>,
+              <span v-if="work.publication_year">
+                {{ work.publication_year }}
+              </span>
+            </v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
 
-        <!-- Loading Spinner -->
-        <v-row justify="center" v-if="loading">
-          <v-col cols="12" class="text-center">
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          </v-col>
-        </v-row>
+      <!-- Loading Spinner -->
+      <v-row justify="center" v-if="loading">
+        <v-progress-circular indeterminate color="primary"></v-progress-circular>
+      </v-row>
 
-        <!-- Show More Button -->
-        <v-row v-if="!loading && hasMore" class="pa-3">
-          <v-col cols="12">
-            <v-btn color="primary" @click="showMore">Show More</v-btn>
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
+      <!-- Show More Button -->
+      <v-row v-if="!loading && hasMore" class="pa-3">
+        <v-btn color="primary" @click="showMore">Show More</v-btn>
+      </v-row>
   </v-container>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -125,14 +116,15 @@ export default {
 </script>
 
 <style scoped>
-.title-block {
-  margin: 0 3px -15px 3px;
+.works-citing-oa {
+  width: 700px;
+  max-width: 95%;
+  margin: auto;
 }
 .subtitle {
-  margin-top: 10px;
+  margin-top: 8px;
+  font-size: 14px;
   color: #777;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #ddd;
 }
 .v-list-item__title{
   text-overflow: initial!important;
