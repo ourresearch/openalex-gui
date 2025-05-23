@@ -10,7 +10,7 @@
         <v-icon left >mdi-video-outline</v-icon>
         Watch a Tutorial
       </v-btn>
-      <v-btn small color="white" to="/analytics-docs" class="ml-1">
+      <v-btn small color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
         <v-icon left >mdi-book-open-outline</v-icon>
         Read the Docs
       </v-btn>

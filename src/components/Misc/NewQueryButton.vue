@@ -47,7 +47,22 @@ export default {
         onClick() {
             if (this.$route.name === "Results" && this.isBaseQuery) {
                 return;
-            }   
+            }
+            
+            // Check if the route requires authentication and user is not logged in
+            const requiresAuth = this.$router.resolve({name: 'search'}).route.meta.requiresAuth;
+            const isLoggedIn = !!this.$store.getters["user/userId"];
+            
+            if (requiresAuth && !isLoggedIn) {
+                // Redirect to login with return path
+                this.$router.push({
+                    name: 'Login',
+                    query: { redirect: '/s' }
+                });
+                return;
+            }
+            
+            // Only create new search if user is authenticated or route doesn't require auth
             this.createNewSearch();
         }
     }
