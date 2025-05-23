@@ -143,7 +143,6 @@ import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.
 import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SiteFooter from "./components/SiteFooter.vue";
-import SiteNav from "@/components/SiteNav.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
@@ -163,7 +162,6 @@ export default {
     SerpToolbarMenu,
     SearchBox,
     SiteFooter,
-    SiteNav,
     UserToolbarMenu,
     SavedSearchRenameDialog,
     SavedSearchSaveDialog,
@@ -179,7 +177,6 @@ export default {
       exportProgress: 0,
       // backgroundColor: "hsl(220, 60%, 96%)", // light blue
       // backgroundColor: "hsl(214, 54%, 98%)",  // gmail grey
-      isSiteNavOpen: !this.$vuetify.breakpoint.mobile,
       exportObj: {
         progress: 0,
       },

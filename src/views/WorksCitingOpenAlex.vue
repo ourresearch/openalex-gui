@@ -117,7 +117,7 @@ export default {
 
 <style scoped>
 .works-citing-oa {
-  width: 700px;
+  width: 900px;
   max-width: 95%;
   margin: auto;
 }
@@ -135,6 +135,6 @@ export default {
 }
 .v-list-item {
   cursor: pointer;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 </style>
