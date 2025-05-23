@@ -59,6 +59,7 @@
     "eslint": "^9.0.0",
     "eslint-plugin-vue": "^9.0.0",
     "madge": "^8.0.0",
+    "node-notifier": "^10.0.1",
     "sass": "~1.32.0",
     "sass-loader": "^10.0.0",
     "vue-cli-plugin-vuetify": "~2.4.1",

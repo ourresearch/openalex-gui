@@ -1,4 +1,5 @@
 const { defineConfig } = require("cypress");
+const notifier = require('node-notifier');
 
 module.exports = defineConfig({
   projectId: 'v2z8o5',
@@ -9,7 +10,16 @@ module.exports = defineConfig({
     viewportHeight: 1000,
     excludeSpecPattern: ['**/examples/**'],
     setupNodeEvents(on, config) {
-      // implement node event listeners here
+      on("task", {
+        notifyOnFail({ title, message }) {
+          notifier.notify({
+            title,
+            message,
+            sound: true,
+          });
+          return null;
+        },
+      });
     },
   },
 });

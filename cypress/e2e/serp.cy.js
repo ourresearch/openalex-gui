@@ -1,5 +1,5 @@
 describe('Serp tests', () => {
-  it('toggle layout', () => {
+  it('toggle serp layout', () => {
     cy.kelpSearch()
     cy.contains("Works").should('be.visible');
     cy.contains("Stats").should('be.visible');
