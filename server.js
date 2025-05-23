@@ -10,9 +10,11 @@ app.use(sslRedirect(['production'], 301));
 
 // redirect alpha.openalex.org to openalex.org/works
 app.use(function (req, res, next) {
-    if (req.subdomains.includes('alpha') || req.hostname.split('.').includes('alpha')) {
+    if (req.subdomains.includes('alpha')) {
         res.redirect('https://openalex.org/works');
-    } else {
+    } else if (req.subdomains.includes('analytics')) {
+        res.redirect('https://openalex.org/analytics');
+    }else {
         next();
     }
 });
