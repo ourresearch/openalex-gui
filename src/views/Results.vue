@@ -65,7 +65,10 @@ export default {
   },
   computed: {
     ...mapState(['uiVariant', 'isInitialLoad']),
-    ...mapState("user", ["isTester"]),
+    ...mapState("user", [
+      "userId",
+      "isTester",
+    ]),
     ...mapGetters("search", [
       "query",
       "querySubjectEntity",
@@ -142,11 +145,9 @@ export default {
     },
   },
   created() {
-    if (!this.isTester) {
+    if (this.userId && !this.isTester) {
       this.$router.push({name: 'AnalyticsTesting'});
     }
-  },
-  mounted() {
   },
   beforeDestroy() {
     this.cancelPollTimer();

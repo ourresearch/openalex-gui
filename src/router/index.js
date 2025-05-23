@@ -154,8 +154,8 @@ const routes = [
     {path: '/testimonials', name: "testimonials", component: Testimonials},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
-    {path: '/analytics-docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
-    {path: '/analytics-testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
+    {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
+    {path: '/analytics/testing', name: 'AnalyticsTesting', component: AnalyticsTesting},
     
     //  admin
     {
