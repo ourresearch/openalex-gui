@@ -8,11 +8,10 @@
   </span>
 </template>
 
+
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import axios from "axios";
-import {sleep} from "../../util";
+import {api} from "@/api";
 
 export default {
   name: "OurStatsEntry",
@@ -34,39 +33,24 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
   },
   asyncComputed: {
     async count(){
-      this.isLoading = true
-      const randomWaitMilliseconds = Math.random() * 10000
-      await sleep(randomWaitMilliseconds)
-      const myUrl = new URL("https://api.openalex.org")
-      myUrl.pathname = this.entityType
+      this.isLoading = true;
+      const myUrl = "/" + this.entityType;
+      const params = {};
       if (this.filterKey && this.filterValue) {
-        const myFilter = this.filterKey + ":" + this.filterValue
-        myUrl.search = `filter=${myFilter}`
+        params.filter = `${this.filterKey}:${this.filterValue}`;
       }
 
-
-
-      const resp = await axios.get(myUrl.toString())
-      this.isLoading = false
-      return resp.data.meta.count
+      const resp = await api.get(myUrl, params);
+      this.isLoading = false;
+      return resp.meta.count;
     }
   },
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-  }
 }
 </script>
+
 
 <style scoped lang="scss">
 

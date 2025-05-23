@@ -2,12 +2,13 @@
   <v-container class="page">
 
     <div class="text-h4">
-      Current Stats
+      Data Stats
+    </div>
+    <div class="grey--text mb-2">
+      Last updated {{ new Date().toDateString() }}
     </div>
 
-    <div class="grey--text">Last updated {{ new Date().toDateString() }}</div>
-    <v-divider class="my-3" />
-    <v-row dense>
+    <v-card rounded flat class="d-flex flex-wrap pa-4">
       <v-col
         cols="12"
         lg="4"
@@ -75,56 +76,47 @@
 
         </v-hover>
       </v-col>
-    </v-row>
+    </v-card>
   </v-container>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
 import {entityConfigs} from "../entityConfigs";
 import OurStatsEntry from "../components/OurStats/OurStatsEntry.vue";
-import {getFacetConfig} from "../facetConfigs";
 
 export default {
   name: "OurStats",
+  metaInfo: {
+    title: "Data Stats",
+  },
   components: {
     OurStatsEntry,
   },
   props: {},
-  data() {
-    return {
-      getFacetConfig,
-    }
-  },
+  data() {},
   computed: {
-    cards(){
-      const copy = _.cloneDeep(entityConfigs)
-      let list = Object.values(copy)
+    cards() {
+      const copy = _.cloneDeep(entityConfigs);
+      let list = Object.values(copy);
 
-      const entitiesWithDocs = ["works", "authors", "sources", "institutions", "topics", "keywords", "publishers", "funders", "concenpts"]
+      const entitiesWithDocs = ["works", "authors", "sources", "institutions", "topics", "keywords", "publishers", "funders", "concepts"]
 
-      list = list.map(e => {
-        if (entitiesWithDocs.includes(e.name)) { e.hasDocs = true }
-        return e
+      list = list.map((e, i) => {
+        if (entitiesWithDocs.includes(e.name)) { e.hasDocs = true; }
+        if (!e.color) {
+          const colors = ["blue", "green", "orange", "purple", "pink", "brown", "teal", "indigo", ]
+          e.color = colors[i % colors.length];
+        }
+        return e;
       })
 
-      return list
+      return list;
     }
   },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-  }
 }
 </script>
+
 
 <style scoped lang="scss">
 
