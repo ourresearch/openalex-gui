@@ -82,20 +82,18 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import {api} from "@/api";
+import {url} from "@/url";
+import {getEntityConfig} from "@/entityConfigs";
+import {shortenOpenAlexId} from "@/util";
+import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 
 import EntityNew from "@/components/Entity/EntityNew.vue";
+import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import SerpResultsListItemWork from "@/components/SerpResultsListItem.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
-
-import {api} from "@/api";
-import {getEntityConfig} from "@/entityConfigs";
-import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
-import {url} from "@/url";
-import EntityHeader from "@/components/Entity/EntityHeader.vue";
-import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
-import {shortenOpenAlexId} from "@/util";
 
 export default {
   name: "EntityPage",
@@ -109,7 +107,6 @@ export default {
     GroupBy,
     LinkEntityRolesList,
     EntityHeader,
-    EntityDrawer,
   },
   props: {},
   data() {
@@ -131,34 +128,31 @@ export default {
       "userSavedSearches",
     ]),
     myEntityConfig() {
-      return getEntityConfig(this.myEntityType)
+      return getEntityConfig(this.myEntityType);
     },
     myEntityComponentName() {
-      return "entity-" + this.$pluralize(
-          this.$route.params.entityType,
-          1
-      )
+      return "entity-" + this.$pluralize(this.$route.params.entityType, 1);
     },
     myEntityName() {
-      return this.$route.params.entityType
+      return this.$route.params.entityType;
     },
     myWorksFilter() {
       return createSimpleFilter(
           "works",
           this.myEntityConfig.filterKey,
           this.$route.params.entityId
-      )
+      );
     },
     apiPath() {
       return [
         this.$route.params.entityType,
         this.$route.params.entityId
-      ].join("/")
+      ].join("/");
     },
     isDataMatchingId() {
-      const loadedId = shortenOpenAlexId(this.entityData?.id)
-      const requestedId = this.$route.params.entityId
-      return loadedId === requestedId
+      const loadedId = shortenOpenAlexId(this.entityData?.id);
+      const requestedId = this.$route.params.entityId;
+      return loadedId === requestedId;
     },
     groupByKeys() {
       return [
@@ -166,29 +160,25 @@ export default {
         "open_access.is_oa",
         "primary_topic.id",
         "type",
-      ]
+      ];
     }
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     async getEntityData() {
-      this.$store.state.isLoading = true
-      this.entityData = await api.get(this.apiPath)
-      this.$store.state.isLoading = false
+      this.$store.state.isLoading = true;
+      this.entityData = await api.get(this.apiPath);
+      this.$store.state.isLoading = false;
     },
     async getWorks() {
-      this.worksResultObject = {}
-      if (this.myEntityType === 'works') return
-      if (!this.myEntityConfig) return
+      this.worksResultObject = {};
+      if (this.myEntityType === 'works') return;
+      if (!this.myEntityConfig) return;
       const myWorksFilter = createSimpleFilter(
           "works",
           this.myEntityConfig.filterKey,
           this.$route.params.entityId,
-      )
-      const filterString = filtersAsUrlStr([myWorksFilter])
+      );
+      const filterString = filtersAsUrlStr([myWorksFilter]);
       const apiUrl = api.makeUrl(
           "works",
           {
@@ -197,35 +187,28 @@ export default {
             "per-page": 3,
           },
           true
-      )
-      console.log("getWorks() calling this url", apiUrl)
-      const resp = await api.getResultsList(apiUrl)
-      console.log("getWorks() got response back", resp)
-      this.worksResultObject = resp
+      );
+      console.log("getWorks() calling this url", apiUrl);
+      const resp = await api.getResultsList(apiUrl);
+      console.log("getWorks() got response back", resp);
+      this.worksResultObject = resp;
     },
     viewMyWorks() {
-      console.log(this.myWorksFilter)
-      return url.pushNewFilters([this.myWorksFilter], "works")
+      console.log(this.myWorksFilter);
+      return url.pushNewFilters([this.myWorksFilter], "works");
     },
   },
-  created() {
-  },
   async mounted() {
-    console.log("EntityPage mounted", this.$route.params.entityType, this.$route.params.entityId)
-    this.$store.state.entityType = this.$route.params.entityType
-    // const path = [
-    //   this.$route.params.entityType,
-    //   this.$route.params.entityId
-    // ].join("/")
-    // this.entityData = await api.get(path)
+    console.log("EntityPage mounted", this.$route.params.entityType, this.$route.params.entityId);
+    this.$store.state.entityType = this.$route.params.entityType;
   },
   watch: {
     'apiPath': {
       immediate: true,
       async handler(to, from) {
-        this.myEntityType = this.$route.params.entityType
-        this.getEntityData()
-        this.getWorks()
+        this.myEntityType = this.$route.params.entityType;
+        this.getEntityData();
+        this.getWorks();
       }
     }
   }
