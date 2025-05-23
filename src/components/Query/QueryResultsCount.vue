@@ -17,7 +17,7 @@
           {{ querySubjectEntity | pluralize }}
         </span>
         <span v-else>
-          &nbsp;
+          {{ stashedQueryState.query.get_rows | pluralize }}
         </span>
       </span>
 
@@ -36,7 +36,7 @@
           works
         </span>
         <span v-else>
-          &nbsp;
+          Works
         </span>
       </span>
 

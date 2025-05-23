@@ -76,7 +76,7 @@
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title class="font-weight-bold">
-                  Sign up
+                  Sign Up
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   Create a new account
@@ -89,7 +89,7 @@
               </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>
-                  Log in
+                  Log In
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   Access your existing account
@@ -126,14 +126,14 @@
             rounded
             @click="setIsLoginDialogOpen(true)"
         >
-          Log in
+          Log In
         </v-btn>
         <v-btn
             rounded
             text
             @click="setIsSignupDialogOpen(true)"
         >
-          Sign up
+          Sign Up
         </v-btn>
       </template>
 
