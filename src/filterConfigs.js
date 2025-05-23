@@ -34,29 +34,20 @@ const filtersFromUrlStr = function (entityType, str) {
             isNegated,
         )
         filters.push(myFilter)
-        // if (valuesStr[0] === "!") {
-        //     const value = valuesStr.replace("!", "")
-        //     filters.push(createSimpleFilter(entityType, key, value, true))
-        // } else {
-        //     filters.push(createSimpleFilter(entityType, key, valuesStr, false))
-
-
-        // const values = valuesStr.split("|")
-        // values.forEach(value => {
-        //     filters.push(createSimpleFilter(entityType, key, value, false))
-        // })
-        // }
     })
     return filters
 }
+
 
 const getMatchModeFromSelectFilterValue = function (valueStr) {
     return (valueStr?.indexOf(",") > -1) ? "all" : "any"
 }
 
+
 const optionsToString = function (options) {
     return options.join("|")
 }
+
 
 const optionsFromString = function (str) {
     const strWithoutNegation = str.replace(/^!/, "")
@@ -74,6 +65,8 @@ const deleteOptionFromFilterValue = function (valueStr, optionToDelete) {
     })
     return optionsToString(newOptions)
 }
+
+
 const addOptionToFilterValue = function (valueStr, optionToAdd) {
     // const matchMode = getMatchModeFromSelectFilterValue(valueStr)
     const oldOptions = optionsFromString(valueStr)
@@ -88,11 +81,15 @@ const toggleNegation = function (option) {
         "!" + option
 
 }
+
+
 const negateOption = function (option) {
     return option[0] === "!" ?
         option :
         "!" + option
 }
+
+
 const removeNegationFromOption = function (option) {
     return option[0] === "!" ?
         option.substr(1) :
@@ -112,7 +109,6 @@ const setStringIsNegated = function(string, isNegated) {
 }
 
 
-
 const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
     const oldOptions = optionsFromString(valueStr)
     const newOptions = oldOptions.map(oldOption => {
@@ -125,8 +121,6 @@ const toggleOptionIsNegated = function (valueStr, optionToToggleNegation) {
 }
 
 
-
-
 const makeSelectFilterValue = function (items, matchMode) {
     const sep = {
         any: "|",
@@ -137,6 +131,7 @@ const makeSelectFilterValue = function (items, matchMode) {
     return prepend + items.join(sep[matchMode])
 }
 
+
 const filtersAreEqual = function (f1, f2) {
     const sameKey = f1.key === f2.key
     const sameValue = f1.value === f2.value
@@ -144,17 +139,13 @@ const filtersAreEqual = function (f1, f2) {
     return sameKey && sameValue && sameNegation
 }
 
-// const filtersAsUrlStr = function (filters) {
-//     return filters
-//         .filter(f => typeof f.value !== "undefined")
-//         .map(f => f.asStr)
-//         .join(",")
-// }
+
 const filtersAsUrlStr = function (filters) {
     const filtersAsStrings = filters.map((f => f.asStr))
     const dedupedFilterStrings = new Set([...filtersAsStrings])
     return [...dedupedFilterStrings].join(",")
 }
+
 
 const mergeFacetFilters = function (filters) {
     if (!filters.length) return []
@@ -170,6 +161,7 @@ const mergeFacetFilters = function (filters) {
     return ret
 }
 
+
 const mergePositiveFacetFilters = function (filters) {
     if (!filters.length) return
     const key = filters[0].key
@@ -178,6 +170,7 @@ const mergePositiveFacetFilters = function (filters) {
         filters.map(f => f.value).join("|")
     ].join(":")
 }
+
 
 const filtersFromFiltersApiResponse = function (entityType, apiFacets) {
     let ret = []
@@ -220,6 +213,7 @@ const createFilterValue = function (rawValue, filterType) {
     return rawValue
 }
 
+
 const createSimpleFilter = function (entityType, key, value, isNegated) {
     // console.log("createSimpleFilter", key, value, isNegated)
     if (!key) {
@@ -256,6 +250,7 @@ const createSimpleFilter = function (entityType, key, value, isNegated) {
     }
 }
 
+
 const copySimpleFilter = function (filter, overwriteWith) {
 
     return createSimpleFilter(
@@ -265,8 +260,6 @@ const copySimpleFilter = function (filter, overwriteWith) {
         overwriteWith?.isNegated ?? filter.isNegated
     )
 }
-
-
 
 
 const convertYearRangeToPrettyWords = function (yearRange) {
@@ -282,6 +275,7 @@ const convertYearRangeToPrettyWords = function (yearRange) {
     }
 }
 
+
 const convertRangeToPrettyWords = function (range) {
     if (range[0] === range[1]) {
         return range[0] + " exactly"
@@ -295,8 +289,8 @@ const convertRangeToPrettyWords = function (range) {
     }
 }
 
-const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, countScaled) {
 
+const createDisplayFilter = function (entityType, key, value, isNegated, displayValue, count, countScaled) {
     const simpleFilter = createSimpleFilter(entityType, key, value, isNegated)
     if (simpleFilter.valuesToShow === 'range' && /\d*-\d*/.test(value)) {
         if (key === "publication_year") {
