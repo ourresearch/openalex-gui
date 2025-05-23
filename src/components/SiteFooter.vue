@@ -11,8 +11,7 @@
             />
           </div>
 
-          Made by <a
-            href="https://ourresearch.org">OurResearch</a> with support from
+          Made by <a href="https://ourresearch.org">OurResearch</a> with support from
 
           <a href="https://www.arcadiafund.org.uk/">Arcadia</a> and the <a href="https://www.navigation.org/">Navigation Fund</a>.
         </v-col>
@@ -40,7 +39,6 @@
                 target="_blank"
             >
               {{ link.name }}
-<!--              <v-icon small color="primary">mdi-open-in-new</v-icon>-->
             </a>
           </div>
         </v-col>
