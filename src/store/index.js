@@ -35,23 +35,8 @@ const stateDefaults = function () {
         exportProgressUrl: null,
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
-        showColumns: [
-            "publication_year",
-            "type",
-            "open_access.is_oa",
-            "cited_by_count",
-        ],
-        serpTabs: [
-            {
-                id: null,
-                name: null,
-                query: undefined,
-            }
-        ],
-        isDevEnv: false,
         uiVariant: 'sentence-worksfirst', // for testing UI variations
         isInitialLoad: true, // used to for bypassing cache on freshloads
-        testQueries: [],
     }
     return ret;
 }

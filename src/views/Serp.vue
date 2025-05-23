@@ -83,7 +83,6 @@ import SiteNav from "@/components/SiteNav.vue";
 import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import SerpTabs from "@/components/SerpTabs.vue";
 
 import QrcodeVue from 'qrcode.vue'
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
@@ -112,7 +111,6 @@ export default {
     AnalyticViews,
     FilterList,
     QrcodeVue,
-    SerpTabs,
     EntityDrawer,
   },
   props: {},

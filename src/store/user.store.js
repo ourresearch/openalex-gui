@@ -7,13 +7,6 @@ import {urlBase, axiosConfig} from "@/apiConfig.js"
 
 const shortUuid = require('short-uuid');
 
-const makeDefaultSerpTab = function () {
-    return {
-        searchUrl: "https://openalex.org/works",
-        id: null,
-    }
-}
-
 const apiBaseUrl = urlBase.userApi
 
 export const user = {
@@ -26,8 +19,6 @@ export const user = {
         isAdmin: false,
         isTester: false,
         savedSearches: [],
-        serpTabs: [makeDefaultSerpTab()],
-        serpTabIndex: 0,
         collections: [],
         corrections: [],
         labelLastModified: {},
@@ -103,13 +94,6 @@ export const user = {
             state.authorId = ""
             localStorage.removeItem("token")
             navigation.push("/")
-        },
-        removeSerpTab(state, index) {
-            console.log("remove serp tab", index)
-            if (state.serpTabs.length === 1) {
-                state.serpTabs = [makeDefaultSerpTab()]
-                return
-            }
         },
         setFromApiResp(state, apiResp) {
             state.id = apiResp.id
@@ -381,62 +365,6 @@ export const user = {
         },
 
         // **************************************************
-        // TABS
-        // **************************************************
-
-        async selectSerpTab({state}, index) {
-            console.log("selectSerpTab", index)
-            state.serpTabIndex = index
-            const myUrl = state.serpTabs[index].searchUrl
-            const query = Object.fromEntries(new URL(myUrl).searchParams);
-            await url.pushToRoute(router, {
-                name: "Serp",
-                params: {entityType: "works"}, // hardcoded for now
-                query
-            })
-        },
-        createSerpTab({state, dispatch}, tabObj) {
-            const newTab = tabObj ?? makeDefaultSerpTab()
-            state.serpTabs = [...state.serpTabs, newTab]
-            const newIndex = state.serpTabs.length - 1
-            dispatch("selectSerpTab", newIndex)
-        },
-        copyCurrentSerpTab({state, dispatch}) {
-            const currentTabObj = {
-                ...state.serpTabs[state.serpTabIndex],
-                id: null,
-            }
-            state.serpTabs = [...state.serpTabs, currentTabObj]
-            const newIndex = state.serpTabs.length - 1
-            dispatch("selectSerpTab", newIndex)
-        },
-        async saveCurrentSerpTab({state, dispatch}) {
-            const args = {
-                search_url: 'https://openalex.org' + router.currentRoute.fullPath
-            }
-            const currentTabObj = state.serpTabs[state.serpTabIndex]
-            currentTabObj.id = await dispatch("createSavedSearch", args) // won't work, this is gone
-
-        },
-        removeSerpTab({state, dispatch}, indexToDelete) {
-            const newIndex = Math.min(
-                state.serpTabIndex,
-                state.serpTabs.length - 2
-            )
-            state.serpTabs = state.serpTabs.filter((tab, i) => {
-                return i !== indexToDelete
-            })
-            dispatch("selectSerpTab", newIndex)
-        },
-        async updateCurrentSerpTab({state}, newQuery) {
-            const currentTabObj = state.serpTabs[state.serpTabIndex]
-            currentTabObj.searchUrl = 'https://openalex.org' + router.currentRoute.fullPath
-            if (currentTabObj.id) {
-            }
-        },
-
-
-        // **************************************************
         // COLLECTIONS
         // **************************************************
 
@@ -555,11 +483,6 @@ export const user = {
         },
         getCollectionsByType: (state) => (entityType) => {
             return state.collections.filter(coll => coll.entity_type === entityType);
-        },
-        serpTabs: (state) => state.serpTabs,
-        serpTabIndex: (state) => state.serpTabIndex,
-        isCurrentSerpTabSaved: (state) => {
-            return !!state.serpTabs[state.serpTabIndex].id
         },
         isAdmin: (state) => state.isAdmin,
         isTester: (state) => state.isTester,
