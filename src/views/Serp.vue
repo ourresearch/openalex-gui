@@ -9,7 +9,6 @@
         <v-col
             cols="6"
             xl="4"
-
             v-if="url.isViewSet($route, 'list')"
         >
           <serp-results-list :results-object="resultsObject"/>
@@ -34,6 +33,7 @@
               <v-tab key="0">Results</v-tab>
               <v-tab key="1">Stats</v-tab>
             </v-tabs>
+
             <v-card rounded flat>
               <v-tabs-items v-model="resultsTab">
                 <v-tab-item key="0">
@@ -43,8 +43,8 @@
                   <analytic-views :results-object="resultsObject" />
                 </v-tab-item>
               </v-tabs-items>
-
             </v-card>
+
           </v-col>
         </v-row>
       </template>
@@ -59,44 +59,32 @@ import _ from 'lodash';
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
 
 import {url} from "@/url";
-import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
-
-import {entityConfigs} from "../entityConfigs";
 import {api} from "@/api";
-import SerpResultsList from "@/components/SerpResultsList.vue";
-
-
-import ApiDialog from "../components/ApiDialog.vue";
-
-import SerpApiEditor from "../components/SerpApiEditor.vue";
 import router from "../router";
-
+import {entityConfigs} from "../entityConfigs";
+import {shortenOpenAlexId} from "@/util";
+import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
+import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
 import {facetConfigs, getFacetConfig} from "../facetConfigs";
-import GroupBy from "../components/GroupBy/GroupBy.vue";
 
+import SerpResultsList from "@/components/SerpResultsList.vue";
+import ApiDialog from "../components/ApiDialog.vue";
+import SerpApiEditor from "../components/SerpApiEditor.vue";
+import GroupBy from "../components/GroupBy/GroupBy.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
 import FilterList from "@/components/FilterList.vue";
-
 import Action from "@/components/Action/Action.vue";
-import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
-import {shortenOpenAlexId} from "@/util";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
-
 import QrcodeVue from 'qrcode.vue'
-import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
-
-import {ret1} from "@/data/mockResults1";
-
 
 const shortUuid = require('short-uuid');
-
 
 export default {
   name: "Serp",
   metaInfo() {
-    const ret = {title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"}
-    return ret
+    const ret = {title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"};
+    return ret;
   },
   components: {
     SerpToolbar,
@@ -109,7 +97,6 @@ export default {
     AnalyticViews,
     FilterList,
     QrcodeVue,
-    EntityDrawer,
   },
   props: {},
   data() {
@@ -151,15 +138,15 @@ export default {
   },
   asyncComputed: {
     async sidebarData() {
-      const sidebarId = shortenOpenAlexId(this.$route.query.sidebar)
-      if (!sidebarId) return
+      const sidebarId = shortenOpenAlexId(this.$route.query.sidebar);
+      if (!sidebarId) { return; }
 
       const extantResult = this.resultsObject?.results?.find(res => {
-        const resultId = shortenOpenAlexId((res.id))
-        return resultId === sidebarId
+        const resultId = shortenOpenAlexId((res.id));
+        return resultId === sidebarId;
       })
-      const ret = (extantResult) ? extantResult : await api.getEntity(sidebarId)
-      return ret
+      const ret = (extantResult) ? extantResult : await api.getEntity(sidebarId);
+      return ret;
     },
   },
   computed: {
@@ -172,14 +159,12 @@ export default {
       "userSavedSearches",
     ]),
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ?
-          4 :
-          10
+      const maxToShow = this.$vuetify.breakpoint.mobile ? 4 : 10;
 
       return Math.min(
           Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
           maxToShow
-      )
+      );
     },
     isAnalyze: {
       get() {
