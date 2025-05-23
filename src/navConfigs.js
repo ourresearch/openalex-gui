@@ -3,10 +3,6 @@ const navConfigs = [
         name: "Learn",
         icon: "mdi-book-open-outline",
         links: [
-            // {
-            //     name: "How-to guides",
-            //     href: "https://cookbook.openalex.org/",
-            // },
             {
                 name: "About the data",
                 href: "https://help.openalex.org/",
@@ -43,6 +39,10 @@ const navConfigs = [
                 href: "https://help.openalex.org/coverage",
             },
             {
+                name: "Data Stats",
+                to: "/stats",
+            },
+            {
                 name: "Pricing",
                 href: "https://help.openalex.org/pricing",
             },
@@ -52,7 +52,7 @@ const navConfigs = [
             },
             {
                 name: "Citations",
-                href: "/works-citing-openalex",
+                to: "/works-citing-openalex",
             },
         ],
 
