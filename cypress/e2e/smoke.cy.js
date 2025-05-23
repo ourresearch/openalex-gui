@@ -1,4 +1,4 @@
-describe('OpenAlex App Loads', () => {
+describe('OpenAlex loads', () => {
   it('Home page loads', () => {
     cy.visit('/');
     cy.contains('OpenAlex');

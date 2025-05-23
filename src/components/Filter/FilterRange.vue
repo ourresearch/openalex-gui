@@ -35,17 +35,14 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
 import {url} from "@/url";
-
-
 import {filter} from "core-js/internals/array-iteration";
-import TryChips from "@/components/TryChips.vue";
+
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
 
 export default {
   name: "FilterValueRange",
   components: {
-    TryChips,
     FilterBase,
   },
   props: {
@@ -54,7 +51,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isActive: false,
       searchString: "",
     }
