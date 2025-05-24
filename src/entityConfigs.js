@@ -222,7 +222,6 @@ const entityConfigs = {
         isNative: true,
         rowsToShowOnEntityPage: [],
     },
-
     keywords: {
         icon: "mdi-tag-outline",
         name: "keywords",
@@ -241,7 +240,6 @@ const entityConfigs = {
         rowsToShowOnEntityPage: [
         ],
     },
-
     topics: {
         icon: "mdi-tag-outline",
         name: "topics",
@@ -352,8 +350,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
-
     countries: {
         icon: "mdi-earth",
         name: "countries",
@@ -370,7 +366,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
     continents: {
         icon: "mdi-earth",
         name: "continents",
@@ -389,7 +384,6 @@ const entityConfigs = {
             "countries",
         ],
     },
-
     languages: {
         icon: "mdi-translate",
         name: "languages",
@@ -406,7 +400,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
     types: {
         icon: "mdi-shape-outline",
         name: "types",
@@ -458,8 +451,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
-
     "licenses": {
         icon: "mdi-lock-open-outline",
         name: "licenses",
@@ -476,7 +467,6 @@ const entityConfigs = {
         isNative: false,
         rowsToShowOnEntityPage: [],
     },
-
 }
 
 
@@ -484,6 +474,8 @@ const rowsToShowOnAllEntityPagesExceptWorks = [
     "works_count",
     "cited_by_count",
 ]
+
+
 const getEntityConfigs = function () {
     return Object.values(entityConfigs).map(c => {
         const rowsToShowOnEntityPage = c.name === "works" ?
@@ -513,7 +505,6 @@ const getEntityConfig = function (name) {
 }
 
 
-
 const nativeEntityTypeFromId = function (id) {
     const shortId = shortenOpenAlexId(id)
     const regex = /^(\w)\d+$/
@@ -526,6 +517,8 @@ const nativeEntityTypeFromId = function (id) {
             return shortIdFirstLetter === entityNameFirstLetter
         })
 }
+
+
 const externalEntityTypeFromId = function (id) {
     id = id.replaceAll("https://metadata.un.org/sdg/", "sdgs/") // hack for legacy id format:
 
@@ -555,7 +548,6 @@ const parseEntityId = function (id) {
     id = id.replaceAll("https://openalex.org/", "")
     id = id.replaceAll("openalex:", "")
 
-
     getEntityConfigs().filter(c => c.isNative).forEach(c => {
         const entityTypeFirstLetter = c.entityType.substr(0, 1)
         const regex = new RegExp(`^${entityTypeFirstLetter}\\d+$`)
@@ -580,6 +572,7 @@ const parseEntityId = function (id) {
     }
 }
 
+
 const urlPartsFromId = function (id) {
     const shortId = shortenOpenAlexId(id)
     const entityType = entityTypeFromId(id)
@@ -594,14 +587,7 @@ const urlPartsFromId = function (id) {
     }
 }
 
-
-
-
 // maybe make something that parses an id, no matter what the format, and returns the entityType and entityId
-
-
-
-
 
 const getLocationString = function (entity) {
     if (!entity || !entity?.country_code) return
@@ -618,12 +604,12 @@ const getLocationString = function (entity) {
     return locArr.join(", ")
 }
 
+
 export {
     entityConfigs,
     getEntityConfig,
     getEntityConfigs,
     getLocationString,
-
     nativeEntityTypeFromId,
     externalEntityTypeFromId,
     urlPartsFromId,

@@ -22,8 +22,6 @@ const actionConfigs = [
         color: "primary",
         closeMenuOnContentClick: false,
     },
-
-
     {
         id: "group_by",
         displayName: "Count",
@@ -59,8 +57,6 @@ const actionConfigs = [
         color: "purple",
         closeMenuOnContentClick: true,
     },
-
-
     {
         id: "sort",
         displayName: "Sort",
@@ -79,7 +75,6 @@ const actionConfigs = [
             // return [ isSearchFilterApplied ? "relevance_score" : "cited_by_count" ]
             return [isSearchFilterApplied ? "relevance_score" : "cited_by_count"]
         },
-
         // this is too complicated for a config file...you need to look in the URL
         // to see if a search is set or not. so it's handled via a function url.js
         defaultValues: [],
@@ -89,8 +84,6 @@ const actionConfigs = [
         closeMenuOnContentClick: false,
 
     },
-
-
     {
         id: "column",
         displayName: "Column",
@@ -121,20 +114,24 @@ const actionConfigs = [
     },
 ]
 
+
 const getActionConfig = function (id) {
     return actionConfigs.find(c => c.id === id)
 }
+
+
 const getActionDefaultValues = function (id, query) {
     // return ["last_known_institution.id"] // hack!
     return getActionConfig(id).getDefaultValues(query)
 }
+
+
 const getActionDefaultsStr = function (id, query) {
     const myConfig = getActionConfig(id)
     return getActionDefaultValues(id, query)
         .map(v => v + myConfig.appendToValues)
         .join(",")
 }
-
 
 
 export {

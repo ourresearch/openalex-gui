@@ -2,7 +2,6 @@ import router from "./router";
 import {
     filtersAsUrlStr,
     filtersFromUrlStr,
-    filtersAreEqual,
     createSimpleFilter,
     deleteOptionFromFilterValue,
     optionsFromString,
@@ -10,16 +9,11 @@ import {
     toggleOptionIsNegated,
     getMatchModeFromSelectFilterValue,
     optionsToString,
-    setFilterStringOptionIsNegated,
-    setOptionIsNegated,
-    setStringIsNegated,
 } from "./filterConfigs";
-import {entityConfigs, getEntityConfig} from "@/entityConfigs";
-import {entityTypes, shortenOpenAlexId} from "./util";
-import {filter} from "core-js/internals/array-iteration";
+import {getEntityConfig} from "@/entityConfigs";
+import {shortenOpenAlexId} from "./util";
 import {getActionConfig, getActionDefaultsStr, getActionDefaultValues} from "@/actionConfigs";
 import {getFacetConfig} from "@/facetConfigs";
-import app from "@/App.vue";
 
 
 const urlObjectFromSearchUrl = function (searchUrl) {
@@ -688,6 +682,8 @@ const viewConfigs = [
         isDefault: false,
     },
 ]
+
+
 const defaultViewIds = viewConfigs.filter(v => v.isDefault).map(v => v.id).sort()
 const isViewDefault = function (viewIds) {
     const defaultViewIdsString = [...defaultViewIds].join(",")
@@ -769,9 +765,7 @@ const setActionValueKeys = function (actionName, keys) {
     console.log("url.setActionValueKeys", actionName, keys)
     const actionConfig = getActionConfig(actionName)
 
-    const keysArray = (!Array.isArray(keys)) ?
-        [keys] :
-        keys
+    const keysArray = (!Array.isArray(keys)) ? [keys] : keys
 
     let newValues = keysArray.map(k => k + actionConfig.appendToValues)
     if (actionName === "sort" && newValues.length === 0) {
@@ -893,12 +887,6 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
     }
     options = Object.assign({}, defaults, options);
 
-    // gather state from the current URL
-    // const filters = filtersFromUrlStr(
-    //     entityType,
-    //     router.currentRoute.query.filter
-    // )
-
     // set required params
     const url = new URL(`https://api.openalex.org`)
     url.pathname = entityType
@@ -921,7 +909,6 @@ const makeGroupByUrl = function (entityType, groupByKey, options) {
         url.search = url.search + "&filter=" + filtersAsUrlStr(options.filters)
     }
 
-    // all done
     return url.toString()
 }
 

@@ -6,9 +6,6 @@
       <template v-slot:activator="{on}">
         <v-btn v-on="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
-<!--          <v-icon class="">mdi-filter-plus-outline</v-icon>-->
-<!--          <v-icon left>mdi-plus-circle-outline</v-icon>-->
-<!--          Add filter-->
         </v-btn>
         <v-btn
             v-else
@@ -20,32 +17,14 @@
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-            <!--            <v-icon left>mdi-sort</v-icon>-->
-<!--            <template v-if="$vuetify.breakpoint.smAndUp">-->
-<!--              {{ selectedSortConfig.displayName }}-->
-<!--              <v-icon right>mdi-menu-down</v-icon>-->
-<!--            </template>-->
-<!--            <template v-else>-->
               <v-icon>mdi-sort</v-icon>
-
-<!--            </template>-->
-
-
           </template>
           <template v-if="myConfig.id === 'group_by'">
-            <!--            Add-->
             <v-icon>mdi-plus</v-icon>
           </template>
         </v-btn>
       </template>
-      <!--      <v-card class="pa-4" v-if="action==='filter'">-->
-      <!--&lt;!&ndash;        <filter-chips-list/>&ndash;&gt;-->
-      <!--        <v-btn text rounded-->
-      <!--        @click="$store.state.activeFilter = 'default.search'"-->
-      <!--      >-->
-      <!--        do it-->
-      <!--      </v-btn>-->
-      <!--      </v-card>-->
+
       <v-card flat class="">
         <v-list>
           <v-subheader>
@@ -53,11 +32,9 @@
               Sort by:
             </template>
             <template v-if="myConfig.id === 'group_by'">
-              <!--              <v-icon left>mdi-table-plus</v-icon>-->
               Add to report:
             </template>
             <template v-if="myConfig.id === 'filter'">
-              <!--              <v-icon left>mdi-filter-plus-outline</v-icon>-->
               Add filter:
             </template>
           </v-subheader>
@@ -146,7 +123,7 @@ import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 
 export default {
-  name: "Template",
+  name: "Action",
   components: {},
   props: {
     action: String,
@@ -154,36 +131,14 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isMoreDialogOpen: false,
       isEditDialogOpen: true,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
-    // selected: {
-    //   get() {
-    //     if (this.action === 'sort') {
-    //       return url.getSort(this.$route)
-    //     } else if (this.action === "group_by") {
-    //       return url.getGroupBy(this.$route)
-    //     } else if (this.action === "column") {
-    //       return url.getColumn(this.$route)
-    //     }
-    //   },
-    //   set(to) {
-    //     if (this.action === 'sort') {
-    //       url.setSort(to)
-    //     } else if (this.action === "group_by") {
-    //       url.setGroupBy(to)
-    //     } else if (this.action === "column") {
-    //       url.setColumn(to)
-    //     }
-    //   }
-    // },
     selectedOptions() {
       return url.getActionValueKeys(this.$route, this.action)
     },
@@ -211,13 +166,10 @@ export default {
       const sortKey = url.getSort(this.$route)
       return getFacetConfig(this.entityType, sortKey)
     },
-
-
     myConfig() {
       return getActionConfig(this.action)
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",

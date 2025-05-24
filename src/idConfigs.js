@@ -1,6 +1,5 @@
 const idConfigs = {
 
-
     // mutliple entities
     openalex: {
         namespace: "openalex",
@@ -103,9 +102,6 @@ const idConfigs = {
         isCanonical: true,
         isUrl: true,
     },
-
-    // concepts
-    // nothing to add here
 }
 
 
