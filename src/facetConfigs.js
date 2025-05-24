@@ -58,10 +58,7 @@ const facetCategoriesIcons = {
 
 const facetConfigs = function (entityType) {
     const ret = [
-
-
         // works:  WASPFIC.
-
         {
             key: "ids.openalex",
             entityType: "works",
@@ -201,7 +198,6 @@ const facetConfigs = function (entityType) {
             }),
             isMultiple: true,
         },
-
         {
             key: "grants.award_id",
             entityType: "works",
@@ -215,8 +211,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.grants.map(grant => grant.award_id),
             isMultiple: true,
         },
-
-
         {
             key: "authorships.institutions.lineage",
             entityType: "works",
@@ -237,7 +231,6 @@ const facetConfigs = function (entityType) {
             },
             isMultiple: true,
         },
-
         {
             key: "authorships.institutions.ror",
             entityType: "works",
@@ -257,7 +250,6 @@ const facetConfigs = function (entityType) {
             },
             isMultiple: true,
         },
-
         {
             key: "authorships.author.id",
             entityType: "works",
@@ -277,8 +269,6 @@ const facetConfigs = function (entityType) {
             },
             isMultiple: true,
         },
-
-
         {
             key: "authorships.author.orcid",
             entityType: "works",
@@ -297,10 +287,7 @@ const facetConfigs = function (entityType) {
             },
             isMultiple: true,
         },
-
-
         // works: search
-
         {
             key: "default.search",
             entityType: "works",
@@ -325,7 +312,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
             isMultiple: false,
         },
-
         {
             key: "display_name.search",
             entityType: "works",
@@ -361,7 +347,6 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
             verb: "starts with",
         },
-
         // {
         //     key: "abstract.search",
         //     entityType: "works",
@@ -370,7 +355,6 @@ const facetConfigs = function (entityType) {
         //     categories: ["search"],
         //             //     icon: "mdi-magnify",
         // },
-
         /// this is a wierd one, still working it into the schema
         {
             key: "display_name",
@@ -386,7 +370,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.display_name,
             isMultiple: false,
         },
-
         {
             key: "has_abstract",
             entityType: "works",
@@ -406,9 +389,7 @@ const facetConfigs = function (entityType) {
         //     icon: "mdi-file-document-outline",
         // },
 
-
         // works: authors
-
         {
             key: "authors_count",
             entityType: "works",
@@ -435,8 +416,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-email-outline",
             isMultiple: true,
         },
-
-
         // works: open access
         {
             key: "open_access.is_oa",
@@ -451,7 +430,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
-
         {
             key: "best_oa_location.license",
             entityType: "works",
@@ -466,9 +444,8 @@ const facetConfigs = function (entityType) {
             displayNullAs: "All rights reserved",
             isMultiple: false,
         },
-
-        // disabled, waiting for entity
         {
+            // disabled, waiting for entity
             key: "open_access.oa_status",
             entityType: "works",
             displayName: "Open Access status",
@@ -513,8 +490,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-lock-open-outline",
             isMultiple: false,
         },
-
-
         // works: APC
         // {
         //     key: "apc_list.value_usd",
@@ -525,9 +500,6 @@ const facetConfigs = function (entityType) {
         //             //     categories: ["apc"],
         //             //     icon: "mdi-cash"
         // },
-
-
-        //
         {
             key: "apc_paid.value_usd",
             entityType: "works",
@@ -539,8 +511,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-cash",
             extractFn: (entity) => entity.apc_paid?.value_usd,
         },
-
-
         // {
         //     key: "apc_paid.provenance",
         //     entityType: "works",
@@ -549,7 +519,6 @@ const facetConfigs = function (entityType) {
         //     categories: ["apc"],
         //             //     icon: "mdi-cash"
         // },
-
 
         // works: institutions:
         {
@@ -644,7 +613,6 @@ const facetConfigs = function (entityType) {
 
 
         // works: primary source
-
         {
             key: "primary_location.source.id",
             entityType: "works",
@@ -709,7 +677,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-book-open-outline",
             isMultiple: false,
         },
-
         {
             key: "primary_location.source.publisher_lineage",
             entityType: "works",
@@ -725,9 +692,7 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
 
-
         // works: repository
-
         {
             key: "repository",
             entityType: "works",
@@ -754,10 +719,7 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
         },
 
-
         // works: intrinsic
-
-
         {
             key: "type",
             entityType: "works",
@@ -937,8 +899,6 @@ const facetConfigs = function (entityType) {
             isMultiple: true,
             extractFn: (entity) => entity.sustainable_development_goals
         },
-
-
         {
             key: "cited_by_count",
             entityType: "works",
@@ -1051,7 +1011,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.related_works.length,
         },
 
-
         // authors
         {
             key: "ids.openalex",
@@ -1087,7 +1046,6 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["filter"],
             icon: "mdi-magnify",
         },
-
         {
             key: "display_name",
             isColumnMandatory: true,
@@ -1222,7 +1180,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.summary_stats.i10_index,
         },
 
-
         // sources
         {
             key: "ids.openalex",
@@ -1264,8 +1221,6 @@ const facetConfigs = function (entityType) {
             categories: ["search"],
             icon: "mdi-magnify",
         },
-
-
         {
             key: "display_name",
             isColumnMandatory: true,
@@ -1394,7 +1349,6 @@ const facetConfigs = function (entityType) {
             extractFn: (entity) => entity.summary_stats.i10_index,
         },
 
-
         // publishers
         {
             key: "ids.openalex",
@@ -1415,7 +1369,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-magnify",
         },
 
-
         // funders
         {
             key: "ids.openalex",
@@ -1435,7 +1388,6 @@ const facetConfigs = function (entityType) {
             categories: ["search"],
             icon: "mdi-magnify",
         },
-
 
         // institutions
         {
@@ -1576,11 +1528,7 @@ const facetConfigs = function (entityType) {
                 return i.relationship === "related"
             }),
         },
-
-
-        // institutions: summary_stats
-        // none for now.
-
+        // institutions: summary_stats -- none for now.
 
         // concepts
         {
@@ -1610,7 +1558,6 @@ const facetConfigs = function (entityType) {
             categories: ["popular"],
             icon: "mdi-tag-outline"
         },
-
 
         // topics
         {
@@ -1663,7 +1610,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
-
 
         // subfields
         {
@@ -1727,7 +1673,6 @@ const facetConfigs = function (entityType) {
             extractFn: (e) => e.domain,
         },
 
-
         // fields
         {
             key: "description",
@@ -1779,7 +1724,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-tag-outline",
             extractFn: (e) => e.domain,
         },
-
 
         // domains
         {
@@ -1856,8 +1800,6 @@ const facetConfigs = function (entityType) {
             icon: "mdi-earth",
             extractFn: (e) => e.countries,
         },
-
-
     ]
 
     const worksCountFilters = getEntityConfigs()
@@ -1906,7 +1848,6 @@ const facetConfigs = function (entityType) {
         ...citedByCountFilters,
     ]
 
-
     const manipulated = allConfigs
         // .filter(f => onlyReturnTheseFacets.includes(f.key))
         .map(config => {
@@ -1941,7 +1882,6 @@ const getFacetConfig = function (entityType, key) {
 
     // more hack time
     key = key.replace("primary_location.source.host_organization_lineage", "primary_location.source.publisher_lineage")
-
 
     const myFacetConfig = facetConfigs().find(f => f.key === key && f.entityType === entityType)
     if (!myFacetConfig) {
@@ -1986,7 +1926,6 @@ const facetsByCategory = function (
             return !excludeFiltersByKey.length || !excludeFiltersByKey.includes(c.key)
         })
 
-
     return facetCategories[entityType].map(categoryName => {
         const myFacets = filtered.filter(f => {
             return f.categories.includes(categoryName)
@@ -2004,8 +1943,6 @@ const facetsByCategory = function (
         .filter(categoryObj => {
             return !(searchString && categoryObj.displayName === "popular")
         })
-
-
 }
 
 
@@ -2016,9 +1953,3 @@ export {
     facetsByCategory,
     findFacetConfigs,
 }
-
-
-
-
-
-

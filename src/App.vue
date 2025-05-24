@@ -16,8 +16,6 @@
         :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
         extension-height="70"
     >
-      <!--        v-if="$vuetify.breakpoint.smAndDown || $route.name !== 'Serp'"-->
-
       <router-link :to="{name: 'Home'}" class="logo-link ml-3">
         <img
             src="@/assets/openalex-logo-icon-black-and-white.png"
@@ -86,18 +84,6 @@
       <router-view></router-view>
     </v-main>
 
-    <!-- 
-    <v-navigation-drawer right app temporary v-model="isNavDrawerOpen" width="500">
-      <entity
-          v-if="$store.state.zoomId" 
-          :id="$store.state.zoomId"
-          class="pa-4"
-          closeable
-          small-buttons 
-          @close="clearZoom">
-      </entity>
-    </v-navigation-drawer>
-    -->
     <entity-drawer />
 
     <site-footer/>

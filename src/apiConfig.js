@@ -38,7 +38,7 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
     console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
 } 
 
-const axiosConfig =  (options={}) => {
+const axiosConfig = (options={}) => {
 
     const headers = {}
     if (options.userAuth) {

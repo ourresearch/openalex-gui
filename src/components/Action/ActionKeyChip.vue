@@ -24,7 +24,7 @@ import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 
 export default {
-  name: "Template",
+  name: "ActionKeyChip",
   components: {},
   props: {
     action: String,
@@ -34,12 +34,10 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {

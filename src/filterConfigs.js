@@ -1,5 +1,4 @@
-import {facetConfigs, getFacetConfig} from "./facetConfigs";
-import {api} from "./api";
+import {getFacetConfig} from "./facetConfigs";
 import {shortenOpenAlexId} from "@/util";
 
 
@@ -145,31 +144,6 @@ const filtersAsUrlStr = function (filters) {
     const filtersAsStrings = filters.map((f => f.asStr))
     const dedupedFilterStrings = new Set([...filtersAsStrings])
     return [...dedupedFilterStrings].join(",")
-}
-
-
-const mergeFacetFilters = function (filters) {
-    if (!filters.length) return []
-    const positiveFilters = filters.filter(f => !f.isNegated)
-    const positiveFiltersToString = mergePositiveFacetFilters(positiveFilters)
-
-    const negatedFilters = filters.filter(f => f.isNegated)
-    const negativeFiltersToStrings = negatedFilters.map(f => {
-        return [f.key, "!" + f.value].join(":")
-    })
-
-    const ret = [positiveFiltersToString, ...negativeFiltersToStrings].filter(x => !!x)
-    return ret
-}
-
-
-const mergePositiveFacetFilters = function (filters) {
-    if (!filters.length) return
-    const key = filters[0].key
-    return [
-        key,
-        filters.map(f => f.value).join("|")
-    ].join(":")
 }
 
 
@@ -354,14 +328,12 @@ export {
     filtersAsUrlStr,
     filtersFromUrlStr,
     filtersAreEqual,
-
     filtersFromFiltersApiResponse,
     createSimpleFilter,
     copySimpleFilter,
     createDisplayFilter,
     createFilterId,
     displayYearRange,
-
     deleteOptionFromFilterValue,
     addOptionToFilterValue,
     toggleOptionIsNegated,
@@ -369,9 +341,7 @@ export {
     setStringIsNegated,
     optionsToString,
     optionsFromString,
-
     sortedFilters,
-
     getMatchModeFromSelectFilterValue,
     makeSelectFilterValue,
 }

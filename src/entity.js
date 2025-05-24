@@ -27,19 +27,13 @@ const fullId = (id, entityType) => {
     return id;
 };
 
-const getEntityData = async (id) => {
-    id = fullId(id);
-    console.log("getEntityData", id);
-    const resp = await api.get(`/${id}`, {format: "ui"});
-    return resp.props;
-};
 
 const entity = {
     getType,
     getId,
     fullId,
-    getEntityData
 };
+
 
 export {
     entity

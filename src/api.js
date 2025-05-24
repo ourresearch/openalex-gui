@@ -1,64 +1,34 @@
 import axios from 'axios'
 import _ from 'lodash'
 import ISO6391 from 'iso-639-1'
-import {filter} from "core-js/internals/array-iteration";
 
 import {url} from "@/url";
 import {createDisplayFilter, createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import {openAlexCountries} from "@/countries";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
-import {shortenOpenAlexId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
 import {makeUnderlyingWorksQuery, getLabelsInQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 
 const cache = {};
-const entityCache = {};
 
 const getFromCache = function (url) {
     if (!cache[url]) { return; }
     return _.cloneDeep(cache[url]);
 }
 
-const getEntityFromCache = function (id) {
-    const myId = shortenOpenAlexId(id);
-    if (!myId) { return; }
-    if (!entityCache[myId]) { return; }
-    return _.cloneDeep(entityCache[myId]);
-}
-
-const clearCache = function () {
-    Object.keys(cache).forEach(k => {
-        cache[k] = null;
-    })
-    Object.keys(entityCache).forEach(k => {
-        entityCache[k] = null;
-    })
-}
-
 const stockCache = function (url, ret) {
     cache[url] = _.cloneDeep(ret);
 }
 
-// hack to get around the lack of an autocomplete endpoint for countries
-const autocompleteCountry = function (searchString) {
-    return openAlexCountries
-        .filter(c => {
-            return c.display_name.toLowerCase().includes(searchString.toLowerCase());
-        });
-}
-
-
 const api = (function () {
 
-    // @pathName is the path, like /works
-    // @searchParams can be in these formats:
-    //      {foo: 42, bar: 43}
-    //      [["foo", 42], ["bar", 43]]
-    //      ?foo=42&bar=43
     const makeUrl = function (pathName, searchParams) {
+    // @pathName is the path, like /works
+    // @searchParams can be in these formats: {foo: 42, bar: 43}, [["foo", 42], ["bar", 43]], ?foo=42&bar=43
+
         const params = new URLSearchParams(searchParams);
 
         // TODO shouldn't be on all URLs
@@ -323,7 +293,6 @@ const api = (function () {
     };
 
     // Redshift Searches
-
     const createSearch = async function(query, options={}) {
         // Creates a new Redshift query, routing to user api if needed
         const url = urlBase.api + "/analytics";
