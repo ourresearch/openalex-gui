@@ -1,8 +1,6 @@
 <template>
   <v-container class="page">
     <v-card rounded flat>
-      <!--        class="pa-8 py-12"-->
-      <!--        color="light-blue lighten-5" -->
       <div class="text-h1">About</div>
       <div class="text-h5 mt-4">
         OpenAlex is a free and open catalog of the world's scholarly research system
@@ -44,10 +42,7 @@
         We believe the global research system is one of humankind's most beautiful creations. OpenAlex aims to make that
         whole beautiful creation available to everyone, everywhere.
       </p>
-
-
     </div>
-
 
     <h4 class="text-h4" id="contact">Contact</h4>
     <p>
@@ -61,7 +56,6 @@
         Group</a> and via Twitter (<a href="https://twitter.com/openalex_org">@OpenAlex_org</a>) and Mastodon (<a
         href="https://mastodon.social/@OpenAlex">@OpenAlex@mastodon.social</a>).
     </p>
-
 
     <h4 class="text-h4" id="sources">Sources</h4>
     <p>

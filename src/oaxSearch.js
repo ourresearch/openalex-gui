@@ -1,5 +1,3 @@
-import axios from "axios";
-
 function escapeCsvValue(value) {
     if (value === null || value === undefined) {
         return '';
