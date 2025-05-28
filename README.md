@@ -1,4 +1,4 @@
-# ourresearch-website-2
+# openalex-gui
 
 ## Project setup
 ```
