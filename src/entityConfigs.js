@@ -277,7 +277,7 @@ const entityConfigs = {
         placeholder: "Search subfields",
         filterName: "subfields",
         filterKey: "primary_topic.subfield.id",
-        hasAutocomplete: false,
+        hasAutocomplete: true,
         isNative: false,
         rowsToShowOnEntityPage: [
             "description",
