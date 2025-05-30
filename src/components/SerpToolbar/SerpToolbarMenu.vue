@@ -87,7 +87,12 @@
           </v-toolbar-title>
           <v-spacer/>
         </v-toolbar>
-        <qrcode-vue :value="urlToShare" :size="qrCodeSize" class=""/>
+        <v-card-text v-if="isUrlTooBigForQR">Add commentMore actions
+          <v-alert  type="warning" text>
+            Your current URL is too long to create a QR code.
+          </v-alert>
+        </v-card-text>
+        <qrcode-vue v-else :value="urlToShare" :size="qrCodeSize" class=""/>
         <v-card-actions class="">
           <v-spacer/>
           <v-btn color="primary" rounded @click="isDialogOpen.qrCode = false">Dismiss</v-btn>
@@ -131,13 +136,14 @@ export default {
       "entityType",
     ]),
     ...mapGetters("user", [
-      "userId",
       "activeSearchHasAlert",
       "activeSearchObj",
-      "isUserSaving",
     ]),
     urlToShare() {
       return `https://openalex.org` + this.$route.fullPath;
+    },
+    isUrlTooBigForQR() {
+      return this.urlToShare.length > 3000;
     },
     qrCodeSize() {
       return this.$vuetify.breakpoint.mdAndUp ? 400 : 300;
