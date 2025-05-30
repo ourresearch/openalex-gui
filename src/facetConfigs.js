@@ -457,14 +457,14 @@ const facetConfigs = function (entityType) {
             isMultiple: false,
         },
         {
-            // disabled, waiting for entity
+            // works but with workarounds because entity endpoints don't exist
             key: "open_access.oa_status",
+            entityId: "oa-statuses",
             entityType: "works",
             displayName: "Open Access status",
             type: "select",
             categories: ["open access"],
-            // actions: ["filter", "column", "group_by",],
-            actions: [],
+            actions: ["filter", "column", "group_by",],
             category: "open access",
             icon: "mdi-lock-open-outline",
             isMultiple: false,
