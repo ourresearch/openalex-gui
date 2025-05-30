@@ -216,14 +216,12 @@ const api = (function () {
                 const resultFilterKey = filterKey ?? filterKeyFromAutocompleteResponse(result) //
                 // console.log("getAutocompleteResponses() map() resultFilterKey", resultFilterKey)
 
-
                 const myFilter = createSimpleFilter(
                     entityType,
                     resultFilterKey,
                     result.id
                 )
                 // console.log("getAutocompleteResponses() map() myFilter", entityType, resultFilterKey, myFilter)
-
 
                 const myHintVerb = getEntityConfig(myFilter.entityId)?.hintVerb ?? "-"
                 const myHintString = result.hint ?? ""
@@ -264,6 +262,7 @@ const api = (function () {
     }
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
+        console.log("getSuggestions", entityType, filterKey, searchString)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,
