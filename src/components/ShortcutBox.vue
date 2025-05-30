@@ -41,7 +41,6 @@
         </v-chip>
       </template>
 
-
       <template v-slot:item="data">
         <v-list-item-icon>
           <v-icon>{{ data.item.icon }}</v-icon>
@@ -112,19 +111,19 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
-import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {entityConfigs,  urlPartsFromId} from "@/entityConfigs";
-import {findFacetConfig, findFacetConfigs, getFacetConfig} from "@/facetConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+import {createSimpleFilter} from "@/filterConfigs";
+import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
+import {findFacetConfigs} from "@/facetConfigs";
+import {entityTypeFromId} from "@/util";
 
 import _ from "lodash"
 
 
 export default {
-  name: "Template",
+  name: "ShortcutBox",
   components: {},
   props: {
     dense: Boolean,
@@ -133,16 +132,13 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
       searchString: "",
       suggestions: [],
       newFilter: null,
       select: null,
       interval: null,
-
       isEnterPressed: false,
-
       selectStorage: null,
       searchesToTry: [
         "Claudia Goldin",
@@ -153,7 +149,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     cleanedSearchString() {
@@ -201,12 +196,8 @@ export default {
         return "Search " + pluralizedDisplayName
       }
     },
-
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
     clear() {
       this.searchString = ""
       this.suggestions = []
@@ -344,7 +335,6 @@ export default {
         return // this is very important!!!!
       }
 
-
       const apiSuggestions = await api.getSuggestions(
           this.entityType,
           // "works",
@@ -384,8 +374,6 @@ export default {
       this.$refs.shortcutBox.focus();
     }
   },
-  created() {
-  },
   mounted() {
     window.addEventListener("keypress", this.onKeyPress);
     this.interval = setInterval(() => {
@@ -409,9 +397,6 @@ export default {
         this.clear()
       }
     },
-    async select(to) {
-
-    }
   },
 }
 </script>

@@ -17,10 +17,8 @@
     </template>
 
     <v-list>
-      <v-subheader>Combine
-<!--        {{ count }}-->
-<!--        <span class=" mx-1"> {{ filterConfig.displayName |capitalize }}</span> -->
-        values using:</v-subheader>
+      <v-subheader>
+        Combine values using:</v-subheader>
       <v-divider />
 
       <v-list-item @click="value = 'all'">
@@ -73,7 +71,7 @@ import {url} from "@/url";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
-  name: "Template",
+  name: "FilterMatchMode",
   components: {},
   props: {
     filterKey: String,
@@ -81,12 +79,10 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     filterConfig(){
@@ -113,7 +109,6 @@ export default {
       }
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -123,17 +118,11 @@ export default {
       this.value = (this.value === "any") ?
           "all" :
           "any"
-    }
-
-
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
+    },
+  }
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -27,8 +27,6 @@
         </v-list-item-content>
       </v-list-item>
     </v-list>
-
-
   </v-menu>
 </template>
 
@@ -37,9 +35,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 
-
 export default {
-  name: "Template",
+  name: "FilterVerb",
   components: {},
   props: {
     isNegated: Boolean,
@@ -49,16 +46,11 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     myConfig(){
       return getFacetConfig(this.entityType, this.filterKey)
@@ -89,13 +81,7 @@ export default {
       }
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     setIsNegated(i){
       this.$emit("set", i !== 0)
     },
@@ -104,16 +90,10 @@ export default {
           i === 1 :
           i === 0
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 
