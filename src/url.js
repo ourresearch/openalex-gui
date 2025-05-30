@@ -162,8 +162,8 @@ const createFilter = async function (entityType, key, newValue) {
 
 const createFilterNoPush = function (entityType, key, newValue) {
     const oldFilters = filtersFromUrlStr(entityType, router.currentRoute.query.filter)
-    console.log("createFilterNoPush oldFilters")
-    console.log(oldFilters)
+    // console.log("createFilterNoPush oldFilters")
+    // console.log(oldFilters)
     const newFilter = createSimpleFilter(entityType, key, newValue)
     return [...oldFilters, newFilter]
 }
