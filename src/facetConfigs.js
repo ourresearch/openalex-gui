@@ -444,6 +444,18 @@ const facetConfigs = function (entityType) {
             displayNullAs: "All rights reserved",
             isMultiple: false,
         },
+        {   key: "locations.license", // Added as stub to prevent JS errors
+            entityType: "works",
+            entityId: "licenses",
+            displayName: "license",
+            type: "select",
+            categories: ["open access"],
+            actions: [],
+            category: "open access",
+            icon: "mdi-lock-open-outline",
+            displayNullAs: "All rights reserved",
+            isMultiple: false,
+        },
         {
             // disabled, waiting for entity
             key: "open_access.oa_status",
