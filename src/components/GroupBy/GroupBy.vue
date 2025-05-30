@@ -72,11 +72,6 @@
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
         >
-          <!--          <v-icon class="mr-4 ml-2" color="">{{-->
-          <!--              isSelected ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'-->
-          <!--            }}-->
-          <!--          </v-icon>-->
-
           <v-progress-circular
               size="60"
               width="20"
@@ -90,12 +85,8 @@
             <div class="body-2">
               {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
             </div>
-
           </div>
-
         </v-card>
-
-
       </div>
 
       <v-simple-table dense class="transparent" v-else style="width: 100%;">
@@ -110,8 +101,6 @@
             :count="row.count"
             :hide-checkbox="$route.name !== 'Serp'"
         />
-
-
         </tbody>
       </v-simple-table>
     </div>
@@ -156,19 +145,15 @@
               @add="addFilter"
           />
         </v-card-text>
-
       </v-card>
-
     </v-dialog>
   </v-card>
-
 </template>
+
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {all} from "core-js/internals/document-all";
-import {filter} from "core-js/internals/array-iteration";
 
 import {api} from "@/api";
 import {url} from "../../url";
@@ -196,7 +181,6 @@ export default {
   data() {
     return {
       url,
-      foo: 42,
       isLoading: false,
       selectedValue: this.filterValue,
       searchString: "",
@@ -204,17 +188,10 @@ export default {
       groups: [],
       maxResults: 5,
       maxResultsRange: 25,
-
-
-
     }
   },
   computed: {
-    all() {
-      return all
-    },
     ...mapGetters([
-
       "resultsCount",
     ]),
     isSelected: {
@@ -302,14 +279,10 @@ export default {
       return this.groups.slice(0, maxResults)
     },
   },
-
   methods: {
-    filter,
     ...mapMutations([
-      "snackbar",
       "setApiDialogUrl",
     ]),
-    ...mapActions([]),
     addFilter(id){
       url.createFilter(this.entityType, this.filterKey, id)
       this.isDialogOpen = false
@@ -341,9 +314,7 @@ export default {
       }
       this.groups = ret
       this.isLoading = false
-
     },
-
     selectGroup(val) {
       if (this.myFilterConfig.type === "boolean") {
         url.upsertFilter(this.entityType, this.filterKey, val != 0)
@@ -358,7 +329,6 @@ export default {
       }
     },
   },
-
   watch: {
     "$route.query.filter": {
       immediate: true,
@@ -373,6 +343,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

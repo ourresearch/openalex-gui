@@ -17,7 +17,6 @@
         </template>
         <template v-else>
           {{ hasAutocomplete ? "Top" : "All" }}
-<!--          {{ entityConfig?.name | pluralize(2) }}-->
           {{ entityConfig?.name  }}
           ({{ suggestions.length }})
         </template>
@@ -35,32 +34,23 @@
           :hint="row.hint"
           :is-from-autocomplete="row.isFromAutocomplete"
       />
-
-
-      <!--            @add="(id) => {$emit('add', id)}"-->
-
-
     </v-list>
   </v-card>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {getFacetConfig} from "@/facetConfigs";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import {api} from "@/api";
-import FilterSelectMenu from "@/components/Filter/FilterSelectMenu.vue";
-import {url} from "@/url";
-import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
-import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
-import {entityConfigs, getEntityConfig} from "@/entityConfigs";
-
 import _ from "lodash"
+import {mapActions, mapGetters, mapMutations} from "vuex";
+import {api} from "@/api";
+import {url} from "@/url";
+import {getFacetConfig} from "@/facetConfigs";
+import {getEntityConfig} from "@/entityConfigs";
+import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
 
 
 export default {
-  name: "Template",
+  name: "FilterSelectAddOption",
   components: {
     FilterSelectEditRow,
   },
@@ -73,15 +63,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       suggestions: [],
       isLoading: false,
     }
-
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     filterConfig() {
@@ -102,10 +89,6 @@ export default {
   },
 
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     clickRow(value) {
       this.$emit("close")
       url.upsertFilterOption(this.entityType, this.filterKey, value)
@@ -122,15 +105,10 @@ export default {
       this.isLoading = false
     }, 300, {leading: true})
   },
-  created() {
-  },
-  mounted() {
-  },
   watch: {
     "$route": {
       handler(to, from) {
         this.$emit("close")
-
       }
     },
     searchString(to, from) {
@@ -147,6 +125,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

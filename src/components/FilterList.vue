@@ -1,35 +1,11 @@
 <template>
   <div>
-
-<!--    <v-toolbar dense flat rounded color="transparent" height="30">-->
-<!--      &lt;!&ndash;      <v-toolbar-title class="font-weight-bold">&ndash;&gt;-->
-<!--      &lt;!&ndash;        <span>{{ filters.length }}</span>&ndash;&gt;-->
-<!--      &lt;!&ndash;        {{ "Filter" | pluralize(filters.length) }}&ndash;&gt;-->
-<!--      &lt;!&ndash;      </v-toolbar-title>&ndash;&gt;-->
-<!--      <v-subheader class=" ">-->
-<!--        Filter {{ entityType }} by:-->
-<!--      </v-subheader>-->
-<!--      <v-spacer/>-->
-
-
-<!--      <add-filter v-if="isCollapsed"/>-->
-<!--      &lt;!&ndash;      <v-btn small rounded text :disabled="filters.length === 0"  @click="clearEverything">&ndash;&gt;-->
-<!--      &lt;!&ndash;        <v-icon small left>mdi-delete-outline</v-icon>&ndash;&gt;-->
-<!--      &lt;!&ndash;        clear&ndash;&gt;-->
-<!--      &lt;!&ndash;      </v-btn>&ndash;&gt;-->
-
-<!--      &lt;!&ndash;      <v-btn icon @click="isCollapsed = !isCollapsed">&ndash;&gt;-->
-<!--      &lt;!&ndash;        <v-icon>{{ isCollapsed ? "mdi-chevron-down" : "mdi-chevron-up" }}</v-icon>&ndash;&gt;-->
-<!--      &lt;!&ndash;      </v-btn>&ndash;&gt;-->
-<!--    </v-toolbar>-->
-
-      <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
-        Show {{ entityType }} where:
-      </div>
+    <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
+      Show {{ entityType }} where:
+    </div>
     <v-card rounded flat class="mb-12">
 
       <div class="px-2" v-if="!isCollapsed">
-        <!--      <v-divider/>-->
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 grey--text">
           No filters applied
         </div>
@@ -73,20 +49,18 @@
             <v-icon>mdi-delete-outline</v-icon>
           </v-btn>
         </div>
-
-
       </div>
-
-
     </v-card>
   </div>
-
-
 </template>
+
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
+
+import {url} from "@/url";
+import {getEntityConfig} from "@/entityConfigs";
 
 import FilterBoolean from "@/components/Filter/FilterBoolean.vue";
 import FilterRange from "@/components/Filter/FilterRange.vue";
@@ -94,35 +68,20 @@ import FilterSearch from "@/components/Filter/FilterSearch.vue";
 import FilterSelect from "@/components/Filter/FilterSelect.vue";
 import AddFilter from "@/components/AddFilter.vue";
 
-import {createSimpleFilter, filtersFromUrlStr} from "@/filterConfigs";
-import {url} from "@/url";
-import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import Action from "@/components/Action/Action.vue";
-import {api} from "@/api";
-import {getEntityConfig} from "@/entityConfigs";
-import {clear} from "core-js/internals/task";
-
 export default {
-  name: "Template",
+  name: "FilterList",
   components: {
-    Action,
-    SerpResultsCount,
     FilterBoolean,
     FilterRange,
     FilterSearch,
     FilterSelect,
     AddFilter,
-
-
   },
   props: {
     resultsObject: Object,
   },
   data() {
     return {
-      foo: 42,
-
       url,
       dialogs: {
         moreFilters: false
@@ -134,7 +93,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     entityConfig() {
@@ -147,21 +105,10 @@ export default {
       return this.filters.map(f => f.key)
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     clearEverything() {
       url.pushNewFilters([])
     }
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     "dialogs.moreFilters"(to) {
@@ -177,6 +124,7 @@ export default {
   }
 }
 </script>
+
 
 <style lang="scss" scoped>
 

@@ -3,7 +3,6 @@
       :disabled="disabled"
       @click="isApplied = !isApplied"
   >
-    <!--      @click="$emit('add', value)"-->
     <v-list-item-icon>
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
@@ -34,15 +33,14 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
-import {filtersFromUrlStr} from "@/filterConfigs";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
-  name: "Template",
+  name: "FilterSelectEditRow",
   components: {},
   props: {
     filterKey: String,
@@ -56,14 +54,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       myCount: this.count,
       isCountLoading: false,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     myConfig(){
@@ -98,13 +94,7 @@ export default {
       return url.readIsFilterNegated(this.$route, this.entityType, this.index)
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
     async getMyCount() {
       if (!this.isFromAutocomplete) return
       this.isCountLoading = true
@@ -114,20 +104,8 @@ export default {
       this.myCount = count
       this.isCountLoading = false
     },
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
-    // value: {
-    //   immediate: true,
-    //   handler(to, from) {
-    //     this.getMyCount()
-    //   }
-    // },
     "$route.query.filter": {
       immediate: true,
       handler(to, from) {
@@ -138,16 +116,15 @@ export default {
 }
 </script>
 
+
 <style scoped lang="scss">
 .isNegated {
   text-decoration: line-through !important;
 }
-
 .v-list-item__icon {
   margin: 0;
   align-self: normal;
 }
-
 .group-by-table-row {
   cursor: pointer;
 
@@ -155,5 +132,4 @@ export default {
     //background: $color-2;
   }
 }
-
 </style>

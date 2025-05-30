@@ -53,12 +53,11 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {api} from "@/api";
-import {entityTypeFromId, isOpenAlexId, shortenOpenAlexId} from "@/util";
-import {url} from "@/url";
+import {entityTypeFromId} from "@/util";
 
-import {getEntityConfig, getEntityConfigs} from "@/entityConfigs";
+import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 
@@ -77,7 +76,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       displayValue: "",
       isLoading: false,
       isMenuOpen: false,
@@ -98,9 +96,6 @@ export default {
     menuKey() {
       return this.filterKey + '-' + this.filterId
     },
-    subtitle(){
-      return "subtitle"
-    },
     alternateNamesString() {
       return [
         ...this.entityData?.display_name_alternatives ?? [],
@@ -120,10 +115,6 @@ export default {
   },
   methods: {
     getEntityConfig,
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     toggleMenu() {
       // Don't try to show entity menu for null values or values that failed to get data from entity endpoint
       if (!this.entityData.hideMenu) {

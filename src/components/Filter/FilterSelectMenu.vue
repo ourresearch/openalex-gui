@@ -47,24 +47,22 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
 
 export default {
-  name: "Template",
+  name: "FilterSelectMenu",
   components: {},
   props: {
     filterKey: String,
   },
   data() {
     return {
-      foo: 42,
       url,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     isPinned: {
@@ -95,22 +93,11 @@ export default {
       )
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

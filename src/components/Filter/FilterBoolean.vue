@@ -3,24 +3,20 @@
     <span class="pl-6">
       {{ config.displayName }}
     </span>
-
-
   </filter-base>
-
-
 </template>
+
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {facetConfigs} from "../../facetConfigs";
-import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
 
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
 export default {
-  name: "FilterValueSearch",
+  name: "FilterBoolean",
   components: {
     FilterBase,
   },
@@ -30,12 +26,10 @@ export default {
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {
@@ -49,17 +43,10 @@ export default {
         this.value === undefined ?
             url.createFilter(this.entityType, this.filterKey, to) :
             url.updateFilter(this.entityType, this.index, to)
-
-        // url.upsertFilter(
-        //     this.entityType,
-        //     this.filterKey,
-        //     !!to
-        // )
       }
 
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -71,11 +58,6 @@ export default {
     toggleValue() {
 
     },
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     '$route': {
@@ -86,6 +68,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

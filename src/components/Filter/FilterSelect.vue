@@ -20,11 +20,6 @@
           or
         </span>
       </template>
-
-<!--      <v-btn class="" icon @click.stop="isActive = true">-->
-<!--        <v-icon>mdi-plus-thick</v-icon>-->
-<!--      </v-btn>-->
-
     </div>
 
     <v-dialog
@@ -62,35 +57,28 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-
-
   </filter-base>
-
-
 </template>
 
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
-import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import {makeSelectFilterValue} from "@/filterConfigs";
 import {url} from "@/url";
-import {api} from "@/api";
-import {filter} from "core-js/internals/array-iteration";
+
+import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
 export default {
-  name: "Template",
+  name: "FilterSelect",
   components: {
     FilterSelectOption,
     FilterMatchMode,
     FilterSelectAddOption,
     FilterBase,
-
-
   },
   props: {
     filterKey: String,
@@ -99,7 +87,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       isActive: false,
       searchString: "",
       isLoading: false,
@@ -110,7 +97,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {
@@ -130,13 +116,7 @@ export default {
       }
     },
   },
-
   methods: {
-    filter,
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     submit() {
       console.log("FilterPhraseSelect submit()")
     },
@@ -172,8 +152,6 @@ export default {
           url.addFilterOption(this.entityType, this.index, id) :
           url.createFilter(this.entityType, this.filterKey, id)
     }
-
-
   },
   created() {
   },
