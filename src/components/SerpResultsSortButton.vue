@@ -55,20 +55,19 @@ export default {
     ...mapGetters([
       "entityType",
     ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     selectedOption() {
       return url.getSort(this.$route)
     },
     popularOptions() {
       const optionsFromConfigs = facetConfigs(this.entityType)
           .filter(conf => conf.actionsPopular?.includes("sort"))
-      if (url.isSearchFilterApplied(this.$route)) optionsFromConfigs.unshift({
-        key: "relevance_score",
-        icon: "mdi-magnify",
-        displayName: "relevance score",
-      })
+      if (url.isSearchFilterApplied(this.$route)) {
+         optionsFromConfigs.unshift({
+          key: "relevance_score",
+          icon: "mdi-magnify",
+          displayName: "relevance score",
+        })
+      }
       return optionsFromConfigs
     },
     menuOptions() {
@@ -76,13 +75,8 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     clickOption(key) {
-      console.log("SerpResultsSortButton clickOption(): ", key)
+      //console.log("SerpResultsSortButton clickOption(): ", key)
       url.setSort(key)
     },
   },

@@ -117,8 +117,8 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs, facetsByCategory, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 
@@ -161,20 +161,11 @@ export default {
       })
       return ret
     },
-    selectedSortConfig() {
-      if (this.action !== 'sort') return
-      const sortKey = url.getSort(this.$route)
-      return getFacetConfig(this.entityType, sortKey)
-    },
     myConfig() {
       return getActionConfig(this.action)
     },
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     isDefault(key) {
       const defaults = getActionDefaultValues(this.action, this.$route.query)
       return defaults.includes(key)
@@ -202,30 +193,22 @@ export default {
         url.toggleColumn(key)
       } else if (this.action === "filter") {
         this.$emit("click", key)
-        // this.openFilterEditDialog(key)
       }
     },
     openFilterEditDialog(key) {
       console.log("openFilterEditDialog()", key)
     }
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     "$route.query": {
       immediate: true,
       handler(to) {
-
-
       }
     },
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 
