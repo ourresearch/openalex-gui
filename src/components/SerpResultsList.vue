@@ -70,16 +70,16 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
-import {shortenOpenAlexId} from "@/util";
-import {createSimpleFilter} from "@/filterConfigs";
 import {url} from "@/url";
+
 import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import SerpApiEditor from "@/components/SerpApiEditor.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
 import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
+import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
+
 export default {
   name: "Template",
   components: {
@@ -96,7 +96,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       url,
       resultsPerPage: 10, // not editable now, but could be in future
     }
@@ -107,9 +106,7 @@ export default {
       "entityType",
     ]),
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ?
-          4 :
-          10
+      const maxToShow = this.$vuetify.breakpoint.mobile ? 4 : 10
 
       return Math.min(
           Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
@@ -141,29 +138,13 @@ export default {
       }
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
+
 <style scoped lang="scss">
-
-
 .v-list-item--link:hover, .v-list-item:hover {
-  //background-color: #eee;
 }
-
 </style>
