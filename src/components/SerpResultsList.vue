@@ -23,7 +23,7 @@
             <v-list-item-content>
               <v-list-item-title>10</v-list-item-title>
             </v-list-item-content>
-            <v-list-item-icon v-if="url.getPerPage($route) === 10">
+            <v-list-item-icon v-if="url.getPerPage() === 10">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
@@ -31,7 +31,7 @@
             <v-list-item-content>
               <v-list-item-title>100</v-list-item-title>
             </v-list-item-content>
-            <v-list-item-icon v-if="url.getPerPage($route) === 100">
+            <v-list-item-icon v-if="url.getPerPage() === 100">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
@@ -52,6 +52,7 @@
     </v-list>
     <div class="serp-bottom" v-if="resultsObject?.results?.length">
       <v-pagination
+          v-if="showPagination"
           class="pb-8 pt-3 elevation-0"
           circle
           v-model="page"
@@ -69,7 +70,8 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
+
 import {url} from "@/url";
 
 import Action from "@/components/Action/Action.vue";
@@ -81,15 +83,15 @@ import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 
 export default {
-  name: "Template",
+  name: "SerpResultsList",
   components: {
-    SerpApiEditor,
     Action,
-    WorkAuthorsString,
+    SerpApiEditor,
     SerpResultsCount,
     SerpResultsExportButton,
     SerpResultsSortButton,
     SerpResultsListItem,
+    WorkAuthorsString,
   },
   props: {
     resultsObject: Object,
@@ -97,21 +99,22 @@ export default {
   data() {
     return {
       url,
-      resultsPerPage: 10, // not editable now, but could be in future
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     numPages() {
       const maxToShow = this.$vuetify.breakpoint.mobile ? 4 : 10
 
       return Math.min(
-          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
+          Math.floor(this.resultsObject.meta.count / url.getPerPage()),
           maxToShow
       )
+    },
+    showPagination() {
+      return this.resultsObject.meta.count > url.getPerPage()
     },
     page: {
       get() {
