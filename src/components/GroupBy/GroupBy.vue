@@ -45,7 +45,7 @@
 
         </v-list>
       </v-menu>
-      <v-btn icon @click="url.toggleGroupBy(filterKey)">
+      <v-btn v-if="!isEntityPage" icon @click="url.toggleGroupBy(filterKey)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
 
@@ -94,7 +94,6 @@
         <group-by-table-row
             v-for="row in groupsTruncated"
             :key="row.value + row.count"
-
             :filter-key="filterKey"
             :value="row.value"
             :display-value="row.displayValue"
@@ -153,12 +152,13 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 
 import {api} from "@/api";
 import {url} from "../../url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
+
 import BarGraph from "@/components/BarGraph.vue";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
@@ -177,6 +177,7 @@ export default {
     filterKey: String,
     entityType: String,
     filterBy: Array,
+    isEntityPage: Boolean,
   },
   data() {
     return {
@@ -339,7 +340,6 @@ export default {
     isDialogOpen(to){
       !to && this.closeDialog()
     }
-
   }
 }
 </script>

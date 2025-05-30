@@ -81,7 +81,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {api} from "@/api";
 import {url} from "@/url";
 import {getEntityConfig} from "@/entityConfigs";
@@ -119,13 +119,6 @@ export default {
   computed: {
     ...mapGetters([
       "globalIsLoading",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-      "userName",
-      "userEmail",
-      "userEmailAlerts",
-      "userSavedSearches",
     ]),
     myEntityConfig() {
       return getEntityConfig(this.myEntityType);
