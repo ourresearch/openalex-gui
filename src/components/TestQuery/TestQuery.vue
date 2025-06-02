@@ -1,10 +1,13 @@
 <template>
-  <v-card
+  <div class="">
+   <v-card
       rounded
       flat
+      outlined
       class="fill-height d-flex flex-column"
+      style="max-width: 500px"
       :loading="status === 'loading' ? 'grey lighten-2' : undefined"
-  >
+    >
 
     <div v-if="config.title" class="pa-3" style="margin-bottom: -20px">
       {{config.title}}
@@ -94,6 +97,7 @@
 
     </div>
   </v-card>
+</div>
 </template>
 
 <script>

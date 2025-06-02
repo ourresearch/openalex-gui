@@ -80,7 +80,7 @@
     <div>
     </div>
 
-    <v-main class="color-2 ma-0 pb-0">
+    <v-main class="ma-0 pb-0">
       <router-view></router-view>
     </v-main>
 
