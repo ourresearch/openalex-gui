@@ -1,5 +1,6 @@
 <template>
-  <v-container v-if="queries.length">
+  <div class="color-2 py-2">
+    <v-container v-if="queries.length">
     <div class="d-flex align-center pa-3">
       <div>
         <div>
@@ -36,7 +37,7 @@
       </v-col>
     </v-row>
   </v-container>
-
+</div>
 </template>
 
 

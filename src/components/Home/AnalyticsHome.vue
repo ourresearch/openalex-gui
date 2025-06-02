@@ -1,64 +1,66 @@
 <template>
-  <v-container class="analytics-home mt-12">
-    <v-row class="mx-0 d-flex align-center">
-      <div class="text-h3">
-        Analytics
-      </div>
-      <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium" class="ml-4"/>
-      <v-spacer />
-      <v-btn small color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
-        <v-icon left >mdi-video-outline</v-icon>
-        Watch a Tutorial
-      </v-btn>
-      <v-btn small color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
-        <v-icon left >mdi-book-open-outline</v-icon>
-        Read the Docs
-      </v-btn>
-    </v-row>
+  <div class="color-2 pt-12">
+    <v-container class="analytics-home">
+      <v-row class="mx-0 d-flex align-center">
+        <div class="text-h3">
+          Analytics
+        </div>
+        <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium" class="ml-4"/>
+        <v-spacer />
+        <v-btn small color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
+          <v-icon left >mdi-video-outline</v-icon>
+          Watch a Tutorial
+        </v-btn>
+        <v-btn small color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
+          <v-icon left >mdi-book-open-outline</v-icon>
+          Read the Docs
+        </v-btn>
+      </v-row>
 
-    <v-row class="mx-0 mt-2">
-      <div class="tagline text-h6">
-        Query, aggregate, and download across our entire dataset.
-      </div>
-    </v-row>
-    
-    <v-row class="examples-header d-flex align-center mt-12">
-      <v-text-field
-        v-model="searchQuery"
-        label="Search Examples..."
-        placeholder=""
-        rounded
-        outlined
-        clearable
-        prepend-inner-icon="mdi-magnify"
-        class="search-field flex-grow-1"
-        hide-details
-        background-color="white"
-      ></v-text-field>
-      <v-select
-        v-model="selectedFilter"
-        :items="filterOptions"
-        rounded
-        outlined
-        hide-details
-        class="ml-4 filter-select"
-        background-color="white"
-      ></v-select>
-    </v-row>
+      <v-row class="mx-0 mt-2">
+        <div class="tagline text-h6">
+          Query, aggregate, and download across our entire dataset.
+        </div>
+      </v-row>
+      
+      <v-row class="examples-header d-flex align-center mt-12">
+        <v-text-field
+          v-model="searchQuery"
+          label="Search Examples..."
+          placeholder=""
+          rounded
+          outlined
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          class="search-field flex-grow-1"
+          hide-details
+          background-color="white"
+        ></v-text-field>
+        <v-select
+          v-model="selectedFilter"
+          :items="filterOptions"
+          rounded
+          outlined
+          hide-details
+          class="ml-4 filter-select"
+          background-color="white"
+        ></v-select>
+      </v-row>
 
-    <v-row class="example-questions">
-      <v-col cols="12" md="6" lg="4" v-for="query in showQueries" :key="query.question">
-        <example-query
-          :question="query.question"
-          :type="query.type"
-          :category="query.category"
-          :error="query.error"
-          :url="query.url"
-          :query="query.query"
-        />
-      </v-col>
-    </v-row>
-  </v-container>
+      <v-row class="example-questions">
+        <v-col cols="12" md="6" lg="4" v-for="query in showQueries" :key="query.question">
+          <example-query
+            :question="query.question"
+            :type="query.type"
+            :category="query.category"
+            :error="query.error"
+            :url="query.url"
+            :query="query.query"
+          />
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 

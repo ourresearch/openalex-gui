@@ -1,31 +1,33 @@
 <template>
-  <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
-    <v-row>
-      <!-- Left Panel -->
-      <v-col cols="12" :md="uiVariant === 'side' ? 5 : 12" class="py-0">
-        <v-row>
-          <!-- Query Builder -->
-          <v-col cols="12" class="query-builder">
-            <query-builder />
-          </v-col>
+  <div class="color-2 py-12">
+    <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
+      <v-row>
+        <!-- Left Panel -->
+        <v-col cols="12" :md="uiVariant === 'side' ? 5 : 12" class="py-0">
+          <v-row>
+            <!-- Query Builder -->
+            <v-col cols="12" class="query-builder">
+              <query-builder />
+            </v-col>
 
-          <!-- Query Tabs -->
-          <v-col v-if="uiVariant === 'side'" class="d-none d-md-block" cols="12">
-            <query-tabs />
-          </v-col>
+            <!-- Query Tabs -->
+            <v-col v-if="uiVariant === 'side'" class="d-none d-md-block" cols="12">
+              <query-tabs />
+            </v-col>
 
-        </v-row>
-      </v-col>
+          </v-row>
+        </v-col>
 
-      <!-- Results Table -->
-      <v-col cols="12" :md="uiVariant === 'side' ? 7 : 12">
-        <v-card flat rounded class="results-table-box" style="min-height: 100%;">
-          <results-table/>
-        </v-card>
-      </v-col>
+        <!-- Results Table -->
+        <v-col cols="12" :md="uiVariant === 'side' ? 7 : 12">
+          <v-card flat rounded class="results-table-box" style="min-height: 100%;">
+            <results-table/>
+          </v-card>
+        </v-col>
 
-    </v-row>
-  </v-container>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script>
@@ -173,7 +175,6 @@ export default {
 
 <style lang="scss">
 .results-box {
-  margin: 40px 0 20px;
   padding: 0 20px;
 }
 body .results-box .v-card.query-builder {

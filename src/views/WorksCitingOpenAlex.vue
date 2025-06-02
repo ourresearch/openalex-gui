@@ -7,6 +7,7 @@
       </div>
 
       <!-- Works List -->
+      <v-card flat outlined rounded>
       <v-list two-line class="pa-2">
         <v-list-item
           v-for="work in works"
@@ -27,6 +28,7 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
+      </v-card>
 
       <!-- Loading Spinner -->
       <v-row justify="center" v-if="loading">
@@ -34,7 +36,7 @@
       </v-row>
 
       <!-- Show More Button -->
-      <v-row v-if="!loading && hasMore" class="pa-3">
+      <v-row v-if="!loading && hasMore" class="pa-8">
         <v-btn color="primary" @click="showMore">Show More</v-btn>
       </v-row>
   </v-container>
@@ -123,6 +125,7 @@ export default {
 }
 .subtitle {
   margin-top: 8px;
+  margin-left: 10px;
   font-size: 14px;
   color: #777;
 }
