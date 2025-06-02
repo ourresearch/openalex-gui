@@ -85,7 +85,7 @@
                 <template v-if="!selectedAction">Select an action</template>
                 <template v-else>
                   {{ selectedAction.id }} an
-                  {{ selectedPropToModify.displayName | pluralize(1) }}
+                  {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </template>
                 <v-icon right>mdi-menu-down</v-icon>
               </v-btn>
@@ -100,7 +100,7 @@
                   <v-icon>{{ myAction.icon }}</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
-                  {{ myAction.id }} an {{ selectedPropToModify.displayName | pluralize(1) }}
+                  {{ myAction.id }} an {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -114,17 +114,13 @@
           <v-icon>mdi-numeric-3-circle</v-icon>
         </div>
         <div class="flex-grow-1">
-          What {{ selectedPropToModify.displayName | pluralize(1) }} do you want to {{ selectedAction.id }}?
+          What {{ filters.pluralize(selectedPropToModify.displayName, 1) }} do you want to {{ selectedAction.id }}?
           <entity-autocomplete
               class="mt-3"
               :entity-type="selectedPropToModify.objectEntity"
               @entity-selected="selectedValue = $event"
 
           />
-
-<!--          <div>-->
-<!--            {{ selectedValue}}-->
-<!--          </div>-->
         </div>
       </div>
       <v-divider class="my-4" v-if="selectedValue"></v-divider>
@@ -167,11 +163,13 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import filters from "@/filters";
 import {getConfigs} from "@/oaxConfigs";
+
 import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
 
 export default {
-  name: "Template",
+  name: "CorrectionCreate",
   components: {
     EntityAutocomplete,
   },
@@ -201,10 +199,10 @@ export default {
       ],
       selectedValue: null,
       comments: "",
+      filters,
     }
   },
   computed: {
-    ...mapGetters([]),
     ...mapGetters("user", [
       "userId",
     ]),
@@ -223,7 +221,6 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "createCollection"
     ]),

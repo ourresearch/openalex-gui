@@ -71,11 +71,11 @@
             <v-divider/>
             <div class="ma-4">
               <div class="text-h5">
-                <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_paid_sum_usd | toPrecision }}</span>
+                <span class="font-weight-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_paid_sum_usd) }}</span>
               </div>
               <div class="text-body-2">Sum APCs paid (est)</div>
               <div class="mt-3">
-                <span class="font-weight-bold mr-2">${{ resultsObject?.meta?.apc_list_sum_usd | toPrecision }}</span>
+                <span class="font-weight-bold mr-2">${{ filters.toPrecision(resultsObject?.meta?.apc_list_sum_usd) }}</span>
               </div>
               <div class="text-body-2">Sum APCs list (est)</div>
             </div>
@@ -83,7 +83,7 @@
 
           <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
             <v-icon left>mdi-format-quote-close</v-icon>
-            <span class="text-h5 mr-2">{{ resultsObject?.meta?.cited_by_count_sum | toPrecision }}</span>
+            <span class="text-h5 mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
             <div class="align-self-baseline ">citations</div>
             <v-spacer/>
             <v-btn icon @click="url.toggleGroupBy('cited_by_count_sum')">
@@ -110,15 +110,18 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
+
+import {url} from "@/url";
+import filters from "@/filters";
+import {filtersFromUrlStr} from "@/filterConfigs";
+
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
 import Action from "@/components/Action/Action.vue";
-import {url} from "@/url";
-import {filtersFromUrlStr} from "@/filterConfigs";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
-  name: "Template",
+  name: "AnalyticViews",
   components: {
     SerpResultsCount,
     GroupBy,
@@ -129,13 +132,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       url,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     groupByKeys() {
@@ -177,20 +179,8 @@ export default {
       )
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

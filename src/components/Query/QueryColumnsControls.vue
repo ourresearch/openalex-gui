@@ -9,7 +9,7 @@
       <div class="columns-list" :style="{'border-color': displayColumnsColorHex}">
         <div v-for="(column, index) in visibleDataColumns" :key="index" class="query-builder-chip">
           <v-chip label :color="displayColumnsColor" class="mt-0">
-            {{ column.displayName | titleCase }}
+            {{ filters.titleCase(column.displayName) }}
             <v-icon
               v-if="visibleDataColumns.length > 1" 
               @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
@@ -31,7 +31,7 @@
                   <v-icon>{{ column.icon }}</v-icon>
                 </v-list-item-icon>
                 <v-list-item-title>
-                  {{ column.displayName | titleCase }}
+                  {{ filters.titleCase(column.displayName) }}
                 </v-list-item-title>
                 <v-spacer />
                 <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
@@ -52,7 +52,7 @@
         <div class="columns-list" :style="{'border-color': catWorksHex}">
           <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="query-builder-chip">
             <v-chip label color="catWorks">
-              {{ column.displayName | titleCase }}
+              {{ filters.titleCase(column.displayName) }}
               <v-icon
                 @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
             </v-chip>
@@ -73,7 +73,7 @@
                     <v-icon>{{ column.icon }}</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>
-                    {{ column.displayName | titleCase }}
+                    {{ filters.titleCase(column.displayName) }}
                   </v-list-item-title>
                   <v-spacer />
                   <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
@@ -86,7 +86,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- Sort by -->
     <div v-if="showSections.includes('sort')" class="sort-box columns-controls-box">
@@ -101,7 +100,7 @@
             label
             v-on="on" 
           >
-            {{ (sortByColumn.displayNameForColumn || sortByColumn.displayName) | titleCase }}
+            {{ filters.titleCase((sortByColumn.displayNameForColumn || sortByColumn.displayName)) }}
             <v-icon small>mdi-menu-down</v-icon>
           </v-chip>
         </template>
@@ -118,7 +117,7 @@
                 <v-icon>{{ column.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-title class="py-3">
-                {{ column.displayName | titleCase}}
+                {{ filters.titleCase(column.displayName)}}
               </v-list-item-title>
               <v-list-item-icon>
                 <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
@@ -167,6 +166,7 @@
 
 <script>
 import {mapGetters, mapMutations, mapActions } from "vuex";
+import filters from "@/filters";
 import { getConfigs } from "@/oaxConfigs";
 
 export default {
@@ -187,6 +187,7 @@ export default {
     return {
       isDataColumnsMenuOpen: false,
       isMetricsColumnsMenuOpen: false,
+      filters,
     }
   },
   computed: {
@@ -290,8 +291,6 @@ export default {
   mounted() {
     if (!this.query.show_columns) { debugger; }
   },
-  watch: {
-  }
 };
 </script>
 

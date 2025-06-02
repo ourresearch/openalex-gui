@@ -117,7 +117,6 @@
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import axios from "axios";
-import {url} from "@/url";
 import {getConfigs} from "@/oaxConfigs";
 
 import SearchBox from "@/components/EntityTypeSelector.vue";
@@ -164,7 +163,6 @@ export default {
       dialogs: {
         showAlpha: false
       },
-      url,
     }
   },
   computed: {
@@ -178,7 +176,6 @@ export default {
     ]),
     logoStyle() {
       return "opacity: .7;"
-      return `filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.5) hue-rotate(${this.logoColorRotation}deg);`
     },
     isLocalHost() {
       return window.location.hostname === "localhost"

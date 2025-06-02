@@ -1,6 +1,6 @@
 <template>
   <v-card rounded>
-    <v-card-title>Upload {{ labelData.entity_type | capitalize }} List</v-card-title>
+    <v-card-title>Upload {{ filters.capitalize(labelData.entity_type) }} List</v-card-title>
     <v-card-text>
       <template v-if="!checked">
         <v-textarea
@@ -70,6 +70,7 @@
 
 <script>
 import {mapGetters, mapActions, mapMutations} from "vuex";
+import filters from "@/filters";
 import {getConfigs} from "@/oaxConfigs";
 
 export default {
@@ -91,6 +92,7 @@ export default {
       validIds: [], // {id, display_name}
       invalidIds: [],
       idType: "openalex", // "orcid", "ror", "doi", "openalex"
+      filters,
     };
   },
   computed: {

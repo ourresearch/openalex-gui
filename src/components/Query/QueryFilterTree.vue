@@ -162,12 +162,12 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
           <span v-if="subjectEntity === 'works' && isWithAggs || subjectEntity === 'summary'">
             Analyzing 
             {{ resultsMeta?.works_count > 10000 ? "about " : "" }}
-            {{ resultsMeta?.works_count | toPrecision }}
+            {{ textFilters.toPrecision(resultsMeta?.works_count) }}
             works
           </span>
           <span v-else>
             {{ resultsMeta?.count > 10000 ? "about " : "" }}
-            {{ resultsMeta?.count | toPrecision }}
+            {{ textFilters.toPrecision(resultsMeta?.count) }}
             results
           </span>
         </div>
@@ -180,13 +180,15 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 
 <script>
 
+import Vue from "vue";
 import {mapGetters, mapMutations} from "vuex";
+import _ from 'lodash';
+
 import {getConfigs} from "@/oaxConfigs";
+import filters from "@/filters";
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
-import Vue from "vue";
-import _ from 'lodash';
 
 
 export default {
@@ -209,6 +211,7 @@ export default {
     return {
       myFilters: [], // Local copy of filters kept so we can represent filters as they're being edited before they are applied
       rootJoin: "and",
+      textFilters : filters,
     }
   },
   computed: {

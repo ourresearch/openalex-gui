@@ -16,7 +16,7 @@
     <v-divider vertical class="mx-3"></v-divider>
     <div class="">
       <div class="text-h3">
-        {{ citedByCount | toPrecision }}
+        {{ filters.toPrecision(citedByCount) }}
       </div>
       <div class="text-right">Citations</div>
     </div>
@@ -27,15 +27,17 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import BarGraph from "@/components/BarGraph.vue";
-import {createSimpleFilter} from "@/filterConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
-import {getEntityConfig} from "@/entityConfigs";
+import {mapGetters} from "vuex";
+
 import {url} from "@/url";
+import filters from "@/filters";
+import {createSimpleFilter} from "@/filterConfigs";
+import {shortenOpenAlexId} from "@/util";
+
+import BarGraph from "@/components/BarGraph.vue";
 
 export default {
-  name: "Template",
+  name: "CitationsGraph",
   components: {
     BarGraph,
   },
@@ -46,12 +48,11 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     citesFilter() {
@@ -59,13 +60,7 @@ export default {
       return createSimpleFilter(this.entityType, "cites", shortId)
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
     clickCard() {
       url.pushNewFilters([this.citesFilter])
     },
@@ -73,14 +68,7 @@ export default {
       const yearFilter = createSimpleFilter(this.entityType, "publication_year", barKey)
       url.pushNewFilters([this.citesFilter, yearFilter])
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

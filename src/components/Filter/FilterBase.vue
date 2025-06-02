@@ -75,10 +75,11 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+import filters from "@/filters";
 import FilterVerb from "@/components/Filter/FilterVerb.vue";
 
 export default {
-  name: "Template",
+  name: "FilterBase",
   components: {
     FilterVerb,
   },
@@ -89,26 +90,19 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      url,
     }
   },
   computed: {
-    url() {
-      return url
-    },
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     myConfig() {
       return getFacetConfig(this.entityType, this.filterKey)
     },
     myFilterName(){
       if (this.myConfig.type === "boolean") {
-        return this.$pluralize(this.entityType, 1)
+        return filters.pluralize(this.entityType, 1)
       }
       else {
         return this.myConfig.displayName

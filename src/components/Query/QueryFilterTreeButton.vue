@@ -35,7 +35,7 @@
             <v-icon>{{ column.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-title>
-            {{ column.displayName | titleCase }}
+            {{ filters.titleCase(column.displayName) }}
           </v-list-item-title>
         </v-list-item>
       </v-list>
@@ -47,7 +47,7 @@
 <script>
 
 import {getConfigs} from "@/oaxConfigs";
-
+import filters from "@/filters";
 
 export default {
   name: "QueryFilterTreeButton",
@@ -63,6 +63,7 @@ export default {
     return {
       search: "",
       isMenuOpen: false,
+      filters,
     }
   },
   computed: {

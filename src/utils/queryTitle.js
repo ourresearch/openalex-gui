@@ -1,5 +1,6 @@
 import {api} from "@/api";
 import store from "@/store";
+import filters from "@/filters";
 import {getColumnConfig} from "@/oaxConfigs";
 import {isCollectionFilter} from "../query"; // Assuming isCollectionFilter stays in query.js
 
@@ -74,7 +75,7 @@ const queryTitle = async (query) => {
     // Prepopulate entities cache
     await Promise.all(entities.map(async (entity) => await api.getEntity(entity)));
 
-    const entity = query.get_rows === "summary" ? "Works Summary" : query.get_rows.titleCase();
+    const entity = query.get_rows === "summary" ? "Works Summary" : filters.titleCase(query.get_rows);
     const worksFilterString = makeFilterGroupString(query.filter_works, "and", "works");
     const aggsFilterString = makeFilterGroupString(query.filter_aggs, "and", query.get_rows);
 

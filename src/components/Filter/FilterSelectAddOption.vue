@@ -41,9 +41,10 @@
 <script>
 
 import _ from "lodash"
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {api} from "@/api";
 import {url} from "@/url";
+import filters from "@/filters";
 import {getFacetConfig} from "@/facetConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
@@ -77,7 +78,7 @@ export default {
       return ret
     },
     searchPlaceholder() {
-      const pluralValue = this.$pluralize(this.filterConfig.displayName, 2)
+      const pluralValue = filters.pluralize(this.filterConfig.displayName, 2)
       return "Search " + pluralValue
     },
     hasAutocomplete() {

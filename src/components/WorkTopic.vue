@@ -29,7 +29,6 @@
           </v-list-item-content>
         </v-list-item>
 
-
       </v-list>
     </v-menu>
   </v-chip>
@@ -37,48 +36,29 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import filters from "@/filters";
 import {shortenOpenAlexId} from "@/util";
 
 export default {
-  name: "Template",
+  name: "WorkTopic",
   components: {},
   props: {
     topic:Object,
   },
   data() {
     return {
-      foo: 42,
       levelNames: [
           "domain",
           "field",
           "subfield",
           "topic",
-      ]
+      ],
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    myPluralize(str){
-      return this.$pluralize(str, 2)
-    }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     clickLevel(levelName){
-      console.log("clickLevel", levelName)
-
 
       const entityId = (levelName === "topic") ?
           shortenOpenAlexId(this.topic.id) :
@@ -87,21 +67,15 @@ export default {
       this.$router.push({
         name: "EntityPage",
         params: {
-          entityType: this.$pluralize(levelName, 2),
+          entityType: filters.pluralize(levelName, 2),
           entityId,
         }
       })
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

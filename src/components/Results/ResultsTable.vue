@@ -30,7 +30,7 @@
         <div class="body-2 px-4">
           1-{{ resultsBody.length }} of {{
             resultsMeta?.count > 10000 ? "about " : ""
-          }}{{ resultsMeta?.count | toPrecision }}
+          }}{{ filters.toPrecision(resultsMeta?.count) }}
           results
         </div>
       </div>
@@ -86,7 +86,7 @@
                         <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
                       </template>
                       <v-icon v-if="getActiveFilters(header.id).length > 0" x-small>mdi-filter</v-icon>
-                      {{ (header.displayNameForColumn || header.displayName) | titleCase }}
+                      {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
                       <v-icon small>mdi-menu-down</v-icon>
                     </v-btn>
                   </template>
@@ -179,7 +179,7 @@
           >
             <td colspan="100%">
               <template v-if="isEntireSearchSelected">
-                All <span class="font-weight-bold mx-1">{{ resultsMeta?.count | millify }}</span> results are selected.
+                All <span class="font-weight-bold mx-1">{{ filters.millify(resultsMeta?.count) }}</span> results are selected.
                 <v-btn
                   text
                   small
@@ -199,7 +199,7 @@
                   rounded
                   @click="isEntireSearchSelected = true"
                 >
-                  Select all {{ resultsMeta?.count | millify }} results
+                  Select all {{ filters.millify(resultsMeta?.count) }} results
                 </v-btn>
               </template>
             </td>
@@ -286,7 +286,7 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {entity} from "@/entity";
-import {url} from "@/url";
+import filters from "@/filters";
 import * as oaxSearch from "@/oaxSearch";
 
 import ColumnValue from "@/components/ColumnValue.vue";
@@ -326,6 +326,7 @@ export default {
       isCorrectionDialogOpen: false,
       isDownloadDialogOpen: false,
       columnSearch: "",
+      filters,
     }
   },
   computed: {

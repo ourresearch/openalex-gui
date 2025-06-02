@@ -84,6 +84,7 @@
 import {mapGetters} from "vuex";
 import {api} from "@/api";
 import {url} from "@/url";
+import filters from "@/filters";
 import {getEntityConfig} from "@/entityConfigs";
 import {shortenOpenAlexId} from "@/util";
 import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
@@ -124,7 +125,7 @@ export default {
       return getEntityConfig(this.myEntityType);
     },
     myEntityComponentName() {
-      return "entity-" + this.$pluralize(this.$route.params.entityType, 1);
+      return "entity-" + filters.pluralize(this.$route.params.entityType, 1);
     },
     myEntityName() {
       return this.$route.params.entityType;

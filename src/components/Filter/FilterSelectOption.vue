@@ -17,7 +17,7 @@
           @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
-          {{ filterDisplayValue | truncate(50) }}
+          {{ filters.truncate(filterDisplayValue) }}
         </template>
         <template v-else>
           loading...
@@ -41,9 +41,9 @@
                color="primary"
                rounded
                exact-path
-               :to="filterValue | entityZoomLink"
+               :to="filters.entityZoomLink(filterValue)"
         >
-          {{ myEntityConfig.displayName | pluralize(1) |capitalize }} profile
+          {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -54,11 +54,13 @@
 <script>
 
 import {mapGetters} from "vuex";
-import {api} from "@/api";
-import {entityTypeFromId} from "@/util";
 
+import {api} from "@/api";
+import filters from '@/filters';
+import {entityTypeFromId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
 import {getFacetConfig} from "@/facetConfigs";
+
 import EntityNew from "@/components/Entity/EntityNew.vue";
 
 export default {
@@ -81,6 +83,7 @@ export default {
       isMenuOpen: false,
       entityData: null,
       myEntityConfig: null,
+      filters,
     }
   },
   computed: {

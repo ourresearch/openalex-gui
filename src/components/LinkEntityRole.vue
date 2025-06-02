@@ -2,7 +2,7 @@
   <span>
     <router-link :to="linkTo" class="text-decoration-none">
       {{ displayName }}
-      <span class="caption">({{ role.works_count | millify }}){{(appendComma) ? "," : ""}}</span>
+      <span class="caption">({{ filters.millify(role.works_count) }}){{(appendComma) ? "," : ""}}</span>
     </router-link>
 
   </span>
@@ -10,11 +10,12 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import _ from "lodash"
+
+import filters from "@/filters";
 import {filtersAsUrlStr} from "@/filterConfigs";
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs} from "@/entityConfigs";
-import _ from "lodash"
 
 export default {
   name: "LinkEntityRole",
@@ -25,13 +26,10 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      filters,
     }
   },
   computed: {
-    ...mapGetters([
-
-    ]),
     myEntityConfig() {
       return entityConfigs[this.role.role + "s"];
     },
@@ -54,25 +52,12 @@ export default {
       }
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
+    filters,
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen(to, from) {
-    }
-  }
 }
 </script>
+
 
 <style scoped lang="scss">
 

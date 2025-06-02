@@ -30,7 +30,7 @@
                 <v-icon>{{ column.icon }}</v-icon>
               </v-list-item-icon>
               <v-list-item-title>
-                {{ column.displayName | titleCase }}
+                {{ filters.titleCase(column.displayName) }}
               </v-list-item-title>
               <v-spacer />
               <v-list-item-icon v-if="query.show_columns.includes(column.column_id)">
@@ -76,7 +76,7 @@
                     text-color="black"
                   >
                     <v-icon size="16" left>{{ column.icon }}</v-icon>
-                    <span class="text-truncate column-option">{{ column.displayName | titleCase }}</span>
+                    <span class="text-truncate column-option">{{ filters.titleCase(column.displayName) }}</span>
                   </v-chip>
                 </v-col>
               </v-row>
@@ -99,6 +99,7 @@
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { getConfigs } from "@/oaxConfigs";
+import filters from "@/filters";
 
 export default {
   name: "QueryColumnAdder",
@@ -120,7 +121,8 @@ export default {
       isDialogOpen: false,
       columnSearch: "",
       selectedColumns: [],
-      originalColumns: []
+      originalColumns: [],
+      filters,
     }
   },
   computed: {

@@ -2,8 +2,8 @@
   <div>
     <v-toolbar dense flat class="" color="transparent">
       <v-toolbar-title class="font-weight-bold mr-2">
-        {{ entityType | pluralize(2) | capitalize }}
-      </v-toolbar-title>
+        {{ filters.capitalize(filters.pluralize(entityType, 2)) }}
+      </v-toolbar-title>  
       <v-spacer/>
       <serp-results-sort-button />
 
@@ -71,8 +71,8 @@
 <script>
 
 import {mapGetters} from "vuex";
-
 import {url} from "@/url";
+import filters from '@/filters';
 
 import Action from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
@@ -99,6 +99,7 @@ export default {
   data() {
     return {
       url,
+      filters,
     }
   },
   computed: {

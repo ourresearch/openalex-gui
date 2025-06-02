@@ -6,7 +6,7 @@
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
-        <b>{{ String(entityData.display_name || '') | truncate(50) }}</b>
+        <b>{{ filters.truncate(entityData.display_name || '', 50) }}</b>
         <v-icon v-if="isEditable && !isSentence" x-small>mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
@@ -17,10 +17,10 @@
       <b>{{ value ? 'true' : 'false' }}</b>
     </template>
     <template v-else-if="columnConfig.id === 'related_to_text'">
-      {{ value | truncate(50) }}
+      {{ filters.truncate(value || '', 50) }}
     </template> 
     <template v-else>
-      <b>{{columnConfig.isCurrency ? '$' : ''}}{{ String(value || '') | truncate(50) }}</b>
+      <b>{{columnConfig.isCurrency ? '$' : ''}}{{ filters.truncate(value || '', 50) }}</b>
     </template>
   </v-chip>
 </template>
@@ -28,8 +28,9 @@
 
 <script>
 
-import {api} from "@/api";
 import {mapGetters} from "vuex";
+import {api} from "@/api";
+import filters from "@/filters";
 
 export default {
   name: "QueryFilterValueChip",
@@ -47,6 +48,7 @@ export default {
     return {
       entityData: null,
       isLoading: false,
+      filters,
     }
   },
   computed: {

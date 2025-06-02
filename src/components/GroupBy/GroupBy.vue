@@ -80,10 +80,10 @@
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ groupsTruncated?.find(g => g.value != 0).countScaled * 100 | toPrecision(3) }}%
+              {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).countScaled * 100, 3) }}%
             </div>
             <div class="body-2">
-              {{ groupsTruncated?.find(g => g.value != 0).count | toPrecision }}
+              {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).count) }}
             </div>
           </div>
         </v-card>
@@ -156,6 +156,7 @@ import {mapGetters, mapMutations} from "vuex";
 
 import {api} from "@/api";
 import {url} from "../../url";
+import filters from "@/filters";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {filtersFromUrlStr} from "../../filterConfigs";
 
@@ -189,6 +190,7 @@ export default {
       groups: [],
       maxResults: 5,
       maxResultsRange: 25,
+      filters,
     }
   },
   computed: {
@@ -208,7 +210,7 @@ export default {
       }
     },
     searchStringPlaceholder(){
-      const pluralDisplayName = this.$pluralize(this.filterConfig.displayName, 2)
+      const pluralDisplayName = filters.pluralize(this.filterConfig.displayName, 2)
       return "Search " + pluralDisplayName
     },
     isMoreToShow() {

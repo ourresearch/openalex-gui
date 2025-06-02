@@ -12,22 +12,18 @@
       {{ displayValue }}
     </td>
     <td class="range body-2 text-right align-baseline">
-      {{ myCount | toPrecision }}
+      {{ filters.toPrecision(myCount) }}
     </td>
-    <!--    <td v-if="!hideCheckbox" class="pl-0 pr-1" style="width: 1px; white-space: nowrap">-->
-    <!--      <v-btn small icon :disabled="isNegated" @click.stop="isNegated = true">-->
-    <!--        <v-icon small>mdi-minus-circle-outline</v-icon>-->
-    <!--      </v-btn>-->
-    <!--    </td>-->
   </tr>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
-import {createSimpleFilter, filtersFromUrlStr, setStringIsNegated} from "@/filterConfigs";
 import {api} from "@/api";
+import filters from '@/filters';
+import {createSimpleFilter, filtersFromUrlStr, setStringIsNegated} from "@/filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 
 export default {
@@ -43,13 +39,12 @@ export default {
   data() {
     return {
       isMenuOpen: false,
-      foo: 42,
       myCount: this.count,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     valueId() {
@@ -106,21 +101,10 @@ export default {
       return url.readFilterOptions(this.$route, this.entityType, this.index)?.length > 1
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     clickRow() {
       console.log("GroupByTableRow clickRow()")
       this.isApplied = !this.isApplied
-      // return this.isNegated ?
-      //     this.isNegated = false :
-      //     this.isApplied = !this.isApplied
-    },
-    filtersForCount() {
-
     },
     async getMyCount() {
       if (this.count !== null) {
@@ -138,12 +122,6 @@ export default {
       const count = await api.getResultsCount(this.entityType, queryFilters)
       this.myCount = count
     },
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
     '$route.query.filter': {
@@ -157,18 +135,12 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .isNegated {
   text-decoration: line-through !important;
 }
-
 .group-by-table-row {
   cursor: pointer;
-
-  &:hover {
-    //background: $color-2;
-  }
 }
-
 </style>

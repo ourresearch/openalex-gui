@@ -62,10 +62,12 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
+
+import {url} from "@/url";
+import filters from "@/filters";
 import {getFacetConfig} from "@/facetConfigs";
 import {makeSelectFilterValue} from "@/filterConfigs";
-import {url} from "@/url";
 
 import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
 import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
@@ -103,7 +105,7 @@ export default {
       return getFacetConfig(this.entityType, this.filterKey)
     },
     searchStringPlaceholder() {
-      return "Search " + this.$pluralize(this.config.displayName, 2)
+      return "Search " + filters.pluralize(this.config.displayName, 2)
     },
     optionIds: {
       get() {
