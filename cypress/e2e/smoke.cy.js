@@ -55,4 +55,44 @@ describe('OpenAlex loads', () => {
       cy.contains('Top works');
       cy.contains('Works count:');
   });
+
+  it('Funder Entity page loads', () => {
+    cy.visit('/funders/f4320332161');
+    cy.contains('National Institutes of Health');
+    cy.contains('View works');
+    cy.contains('Works count:');
+    cy.contains('Key stats');
+    cy.contains('Top works');
+  });
+
+  it('Source Entity page loads', () => {
+    cy.visit('/sources/s137773608');
+    cy.contains('Nature');
+    cy.contains('ISSNs');
+    cy.contains('H-index');
+    cy.contains('Works count:');
+    cy.contains('Key stats');
+    cy.contains('Top works');
+  });
+
+  it('Publisher Entity page loads', () => {
+    cy.visit('/publishers/p4310319908');
+    cy.contains('Nature Portfolio');
+    cy.contains('Works count:');
+    cy.contains('Citations count:');
+    cy.contains('Key stats');
+    cy.contains('Top works');
+  });
+
+  it('About page loads', () => {
+    cy.visit('/about');
+    cy.contains('About');
+    cy.contains('Comparison with other');
+  });
+
+  it('Stats page loads', () => {
+    cy.visit('/stats');
+    cy.contains('Data Stats');
+    cy.contains(/\d{3}M/);
+  });
 });
