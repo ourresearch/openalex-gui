@@ -18,6 +18,7 @@
     dense
     hide-no-data
     hide-details
+    @update:search-input="onSearchInputUpdate"
   >
     <template v-slot:item="{ item }">
       <v-list-item-content>
@@ -91,11 +92,19 @@ export default {
       this.$emit('entity-selected', entity);
       this.selectedEntity = null;
       this.search = "";
-
-      // Annoyingly use $nextTick to ensure that the DOM updates before resetting the input
-      this.$nextTick(() => {
-        this.$refs.autocomplete && this.$refs.autocomplete.reset();
-      });
+    },
+    onSearchInputUpdate(val) {
+      console.log("EntityAutocomplete - onSearchInputUpdate:", val);
+      this.search = val;
+      
+      if (this.localValueOptions) {
+        this.entities = this.localValueOptions;
+      }
+      else if (val) {
+        this.debouncedSearchEntities(val);
+      } else {
+        this.entities = [];
+      }
     },
   },
   created() {
