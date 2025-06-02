@@ -32,7 +32,9 @@ const api = (function () {
         const params = new URLSearchParams(searchParams);
 
         // TODO shouldn't be on all URLs
-        !params.get("per-page") && params.set("per-page", 10);
+        if (!pathName.startsWith("/autocomplete/")) {
+            !params.get("per-page") && params.set("per-page", 10);
+        }
 
         if (pathName.indexOf("/") !== 0) {
             pathName = "/" + pathName;
@@ -47,7 +49,9 @@ const api = (function () {
             })
             .join("&");
 
-        return paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
+        const url = paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
+        console.log("makeUrl OUTPUT", url);
+        return url;
     }
 
     const getUrl = async function (url, config) {

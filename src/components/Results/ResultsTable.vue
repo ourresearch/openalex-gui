@@ -644,69 +644,9 @@ export default {
     removeColumnFilter(targetKey, path) {
       this.deleteFilterByPath({ targetKey, path });
     },
-
-    measureMetricColumns() {
-      if (true || !this.uiVariant || !this.uiVariant.includes("sentence")) { return; }
-        
-      this.$nextTick(() => {
-        const table = this.$refs.resultsTable.$el;
-        const metricHeaders = Array.from(table.querySelectorAll('th.metric'));
-        
-        if (!metricHeaders.length) return;
-
-        const totalWidth = table.getBoundingClientRect().width;
-        let metricsWidth = metricHeaders.reduce((sum, th) => 
-          sum + th.getBoundingClientRect().width, 0
-        );
-
-        let metricPercent = (metricsWidth / totalWidth) * 100;
-        const MIN_METRIC_PERCENT = 40;
-
-        if (metricPercent < MIN_METRIC_PERCENT) {
-          const requiredMetricsWidth = (MIN_METRIC_PERCENT / 100) * totalWidth;
-          const LAST_COLUMN_WIDTH = 36;
-          
-          // Always set the last column to fixed width
-          const lastMetricHeader = metricHeaders[metricHeaders.length - 1];
-          lastMetricHeader.style.width = `${LAST_COLUMN_WIDTH}px`;
-          
-          if (metricHeaders.length > 1) {
-            // For other metric columns, distribute remaining width evenly
-            const remainingWidth = requiredMetricsWidth - LAST_COLUMN_WIDTH;
-            const widthPerOtherColumn = remainingWidth / (metricHeaders.length - 1);
-            
-            metricHeaders.slice(0, -1).forEach(th => {
-              th.style.width = `${widthPerOtherColumn}px`;
-            });
-          } else {
-            // If there's only one metric column, it gets the minimum required width
-            lastMetricHeader.style.width = `${requiredMetricsWidth}px`;
-          }
-
-          // Verify the new total width meets minimum
-          metricsWidth = metricHeaders.reduce((sum, th) => 
-            sum + th.getBoundingClientRect().width, 0
-          );
-          metricPercent = (metricsWidth / totalWidth) * 100;
-        }
-
-        metricPercent = Math.max(parseFloat(metricPercent.toFixed(2)), MIN_METRIC_PERCENT);
-        this.setMetricsColumnPercentage(metricPercent);
-      });
-    },
-    handleResize: _.debounce(function() {
-      this.measureMetricColumns();
-    }, 5),
   },
   created() {
    //console.log(this.rows);
-  },
-  mounted() {
-    this.measureMetricColumns();
-    window.addEventListener('resize', this.handleResize);
-  },
-  updated() {
-    this.measureMetricColumns();
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);

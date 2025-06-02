@@ -24,6 +24,7 @@
         @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
+        @update:search-input="onSearchInputUpdate"
     >
       <template v-slot:prepend-inner>
         <v-chip
@@ -120,6 +121,7 @@ import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
 import {findFacetConfigs} from "@/facetConfigs";
 import {entityTypeFromId} from "@/util";
+
 
 export default {
   name: "ShortcutBox",
@@ -307,7 +309,6 @@ export default {
       setTimeout(() => {
         this.searchString = str
         console.log("trySearch", str)
-        this.$refs.shortcutBox.focus()
       }, 100)
     },
     getSuggestions: _.debounce(async function () {
@@ -360,19 +361,12 @@ export default {
 
       this.suggestions = cleaned
     }, 100),
-
-    onKeyPress(event) {
-      if (event.key !== "/") {
-        return;
-      }
-
-      if (document.activeElement === this.$refs.shortcutBox) {
-        return;
-      }
-
-      event.preventDefault();
-      this.$refs.shortcutBox.focus();
-    }
+    onSearchInputUpdate(val) {
+      console.log("onSearchInputUpdate:", val);
+      this.searchString = val;
+      if (this.newFilter && this.newFilter?.type !== "select") return;
+      this.getSuggestions();
+    },
   },
   mounted() {
     window.addEventListener("keypress", this.onKeyPress);
@@ -389,6 +383,7 @@ export default {
   },
   watch: {
     searchString: function (to) {
+      console.log("searchString watch triggered:", to)
       if (this.newFilter && this.newFilter?.type !== "select") return
       this.getSuggestions()
     },
