@@ -1,36 +1,40 @@
 <template>
-  <v-autocomplete
-    v-model="selectedEntity"
-    class="query-builder-input"
-    ref="autocomplete"
-    @input="onEntitySelected"
-    :items="entities"
-    :loading="loading"
-    v-model:search-input="search"
-    item-text="display_name"
-    item-value="id"
-    :placeholder="`Search ${entityType}`"
-    return-object
-    v-bind="$attrs"
-    v-on="$listeners"
-    outlined
-    :color="filterColor"
-    dense
-    hide-no-data
-    hide-details
-    @update:search-input="onSearchInputUpdate"
-  >
-    <template v-slot:item="{ item }">
-      <v-list-item-content>
-        <v-list-item-title>{{ item.display_name }}</v-list-item-title>
-        <v-list-item-subtitle v-if="item.hint || showWorkCounts">
-          {{ item.hint}}
-          <span v-if="item.hint && showWorkCounts">, </span>
-          <span v-if="showWorkCounts">{{ item.works_count}} works</span>
-        </v-list-item-subtitle>
-      </v-list-item-content>
-    </template>
-  </v-autocomplete>
+  <div>
+    <v-autocomplete
+      v-model="selectedEntity"
+      class="query-builder-input"
+      ref="autocomplete"
+      @input="onEntitySelected"
+      :items="entities"
+      :loading="loading"
+      :search-input="search"
+      @update:search-input="onSearchInputUpdate"
+      item-text="display_name"
+      item-value="id"
+      :placeholder="`Search ${entityType}`"
+      return-object
+      v-bind="$attrs"
+      v-on="$listeners"
+      outlined
+      :color="filterColor"
+      dense
+      hide-no-data
+      hide-details
+      no-filter
+      autofocus
+    >
+      <template v-slot:item="{ item }">
+        <v-list-item-content>
+          <v-list-item-title>{{ item.display_name }}</v-list-item-title>
+          <v-list-item-subtitle v-if="item.hint || showWorkCounts">
+            {{ item.hint}}
+            <span v-if="item.hint && showWorkCounts">, </span>
+            <span v-if="showWorkCounts">{{ item.works_count}} works</span>
+          </v-list-item-subtitle>
+        </v-list-item-content>
+      </template>
+    </v-autocomplete>
+  </div>
 </template>
 
 <script>
@@ -72,55 +76,58 @@ export default {
     },
   },
   methods: {
+    onSearchInputUpdate(val) {
+      this.search = val;
+      if (val && val.length > 0) {
+        this.debouncedSearchEntities(val);
+      } else {
+        this.entities = [];
+      }
+    },
     async searchEntities(query) {
+      if (!query || query.length === 0) {
+        this.entities = this.localValueOptions || [];
+        return;
+      }
+
       this.loading = true;
       try {
         const response = await api.getAutocomplete(this.entityType, {q: query});
-        this.entities = response;
+        
+        if (response && response.length > 0) {
+          this.entities = response;
+        } else {
+          this.entities = this.localValueOptions || [];
+        }
       } catch (error) {
         console.error(`Error fetching ${this.entityType}:`, error);
-        this.entities = [];
+        this.entities = this.localValueOptions || [];
       } finally {
         this.loading = false;
       }
     },
     onEntitySelected(entity) {
       if (!entity) { return; }
-      //console.log("onEntitySelected")
-      //console.log(entity)
       if (entity?.short_id) { entity.id = entity.short_id; }
       this.$emit('entity-selected', entity);
       this.selectedEntity = null;
       this.search = "";
-    },
-    onSearchInputUpdate(val) {
-      console.log("EntityAutocomplete - onSearchInputUpdate:", val);
-      this.search = val;
-      
-      if (this.localValueOptions) {
-        this.entities = this.localValueOptions;
-      }
-      else if (val) {
-        this.debouncedSearchEntities(val);
-      } else {
-        this.entities = [];
-      }
     },
   },
   created() {
     this.debouncedSearchEntities = debounce(this.searchEntities, 300);
   },
   watch: {
-    search(val) {
-      if (this.localValueOptions) {
-        this.entities = this.localValueOptions;
-      }
-      else if (val) {
-        this.debouncedSearchEntities(val);
-      } else {
-        this.entities = [];
-      }
-    },
+    // Search input is now handled by onSearchInputUpdate
+    // Keeping the watcher for localValueOptions changes
+    localValueOptions: {
+      handler(newVal) {
+        if (newVal) {
+          this.entities = newVal;
+        }
+      },
+      immediate: true
+    }
   },
 };
 </script>
