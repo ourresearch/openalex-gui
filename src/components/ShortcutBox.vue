@@ -3,7 +3,8 @@
     <v-autocomplete
         v-model="select"
         :items="suggestions"
-        v-model:search-input="searchString"
+        :search-input="searchString"
+        @update:search-input="onSearchInputUpdate"
         :filter="(item, queryText, itemText) => true"
         :menu-props="{maxHeight: 600,}"
         item-text="displayValue"
@@ -24,7 +25,6 @@
         @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
-        @update:search-input="onSearchInputUpdate"
     >
       <template v-slot:prepend-inner>
         <v-chip
@@ -311,10 +311,18 @@ export default {
         console.log("trySearch", str)
       }, 100)
     },
+    onSearchInputUpdate(val) {
+      this.searchString = val
+      // Manually trigger the suggestions
+      if (this.searchString && this.searchString.length > 0) {
+        this.getSuggestions()
+      } else {
+        this.suggestions = []
+      }
+    },
     getSuggestions: _.debounce(async function () {
       const fulltextSearchFilter = createSimpleFilter(this.entityType, this.defaultSearchType, this.cleanedSearchString)
 
-      // lol hack much?
       if (this.searchString === "coriander OR cilantro") {
         this.suggestions = [fulltextSearchFilter]
         return
@@ -322,26 +330,23 @@ export default {
 
       this.isLoading = true
 
-      // if a filter is selected but no search yet, show the available options
       if (this.newFilter && !this.searchString) {
         this.suggestions = await api.getGroups(this.entityType, this.newFilter.key)
         this.isLoading = false
         return
       }
 
-      // if the search is empty, clear everything and leave
       if (!this.newFilter && !this.searchString) {
-        this.suggestions = [] // doesn't seem to work
+        this.suggestions = []
         this.isLoading = false
-        return // this is very important!!!!
+        return
       }
 
       const apiSuggestions = await api.getSuggestions(
-          this.entityType,
-          // "works",
-          this.newFilter?.key,
-          this.searchString,
-          url.readFilters(this.$route)
+        this.entityType,
+        this.newFilter?.key,
+        this.searchString,
+        url.readFilters(this.$route)
       )
       this.isLoading = false
 
@@ -351,9 +356,8 @@ export default {
       ]
       const everySuggestionIsAWork = ret.every(f => f.entityId === "works")
       const cleaned = everySuggestionIsAWork ?
-          ret.slice(0, 3) :
-          ret.filter(f => f.entityId !== "works").slice(0, 5)
-
+        ret.slice(0, 3) :
+        ret.filter(f => f.entityId !== "works").slice(0, 5)
 
       if (!this.newFilter) {
         cleaned.push(fulltextSearchFilter)
@@ -361,12 +365,6 @@ export default {
 
       this.suggestions = cleaned
     }, 100),
-    onSearchInputUpdate(val) {
-      console.log("onSearchInputUpdate:", val);
-      this.searchString = val;
-      if (this.newFilter && this.newFilter?.type !== "select") return;
-      this.getSuggestions();
-    },
   },
   mounted() {
     window.addEventListener("keypress", this.onKeyPress);
@@ -383,9 +381,15 @@ export default {
   },
   watch: {
     searchString: function (to) {
-      console.log("searchString watch triggered:", to)
-      if (this.newFilter && this.newFilter?.type !== "select") return
-      this.getSuggestions()
+      if (to === null || to === undefined) {
+        return;
+      }
+      
+      if (this.newFilter && this.newFilter.type && this.newFilter.type !== "select") {
+        return;
+      }
+      
+      this.getSuggestions();
     },
     "$route": {
       handler(to, from) {
