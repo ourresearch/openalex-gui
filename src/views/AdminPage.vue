@@ -148,16 +148,23 @@ export default {
       this.error = '';
     },
     onFlagChange(user, key, val) {
-      if (!this.editedUsers[user.id]) {
-        this.$set(this.editedUsers, user.id, {});
-      }
-      this.$set(this.editedUsers[user.id], key, val);
+      const userEdits = this.editedUsers[user.id] || {};
+      const updatedUserEdits = { ...userEdits, [key]: val };
+      this.editedUsers = {
+        ...this.editedUsers,
+        [user.id]: updatedUserEdits
+      };
+      
       // If all flags match original user, clear edits
       const orig = this.users.find(u => u.id === user.id);
-      const edits = this.editedUsers[user.id];
-      const allMatch = this.booleanFlags.every(f => (edits[f.key] === undefined ? orig[f.key] : edits[f.key]) === orig[f.key]);
+      const allMatch = this.booleanFlags.every(f => 
+        (updatedUserEdits[f.key] === undefined ? orig[f.key] : updatedUserEdits[f.key]) === orig[f.key]
+      );
+      
       if (allMatch) {
-        this.$set(this.editedUsers, user.id, {});
+        // Create a new object without this user's edits
+        const { [user.id]: _, ...restEdits } = this.editedUsers;
+        this.editedUsers = restEdits;
       }
     },
     hasUserEdits(userId) {
@@ -178,10 +185,19 @@ export default {
         if (idx !== -1) {
           this.users[idx] = { ...this.users[idx], ...this.editedUsers[user.id] };
         }
-        this.$set(this.editedUsers, user.id, {});
-        this.$set(this.savedUsers, user.id, true);
+        this.editedUsers = {
+          ...this.editedUsers,
+          [user.id]: {}
+        };
+        this.savedUsers = {
+          ...this.savedUsers,
+          [user.id]: true
+        };
         setTimeout(() => {
-          this.$set(this.savedUsers, user.id, false);
+          this.savedUsers = {
+            ...this.savedUsers,
+            [user.id]: false
+          };
         }, 2000);
         this.savingUserId = null;
       } catch (err) {

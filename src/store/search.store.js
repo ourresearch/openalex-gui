@@ -85,10 +85,10 @@ export const search = {
         },
         setFilterWorks(state, filters) {
             console.log("setFilterWorks", filters)
-            state.query.filter_works = filters;
+            state.query.filter_works = _.cloneDeep(filters);
         },
         setFilterAggs(state, filters) {
-            state.query.filter_aggs = filters;
+            state.query.filter_aggs = _.cloneDeep(filters);
         },
         setSortBy(state, {column_id, direction}) {
             state.query.sort_by_column = column_id;

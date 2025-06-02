@@ -430,13 +430,13 @@ export default {
     setOperator(path, operator) {
       //console.log("setOperator", path, operator);
       const filterToUpdate = this.getFilterFromPath(path);
-      Vue.set(filterToUpdate, "operator", operator);
+      filterToUpdate.operator = operator;
       this.applyFilters();
     },
     setValue(path, value) {
       //console.log("Setting filter value", { path, value, dontApply });
       const filterToUpdate = this.getFilterFromPath(path);
-      Vue.set(filterToUpdate, "value", value);
+      filterToUpdate.value = value;
       this.applyFilters();
     },
     setJoinOperator(path, joinOperator) {
@@ -448,7 +448,7 @@ export default {
       } else {
         console.log("Setting group join to " + joinOperator + " at path " + JSON.stringify(groupParentPath));
         const groupParentFilter = this.getFilterFromPath(groupParentPath);
-        Vue.set(groupParentFilter, "join", joinOperator);
+        groupParentFilter.join = joinOperator;
       }
       this.applyFilters();
     },
