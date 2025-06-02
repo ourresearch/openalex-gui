@@ -6,7 +6,7 @@
     @input="onEntitySelected"
     :items="entities"
     :loading="loading"
-    :search-input.sync="search"
+    v-model:search-input="search"
     item-text="display_name"
     item-value="id"
     :placeholder="`Search ${entityType}`"

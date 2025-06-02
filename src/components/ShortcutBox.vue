@@ -3,7 +3,7 @@
     <v-autocomplete
         v-model="select"
         :items="suggestions"
-        :search-input.sync="searchString"
+        v-model:search-input="searchString"
         :filter="(item, queryText, itemText) => true"
         :menu-props="{maxHeight: 600,}"
         item-text="displayValue"
