@@ -50,6 +50,7 @@ const optionsToString = function (options) {
 
 
 const optionsFromString = function (str) {
+    if (typeof str !== "string") { return null; }
     const strWithoutNegation = str.replace(/^!/, "")
     const regex = /[+|]/
     return strWithoutNegation.split(regex).map(option => {

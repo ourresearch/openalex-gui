@@ -73,6 +73,7 @@
 <script>
 
 import {mapGetters, mapMutations, mapActions} from "vuex";
+import filters from "@/filters";
 import {getConfigs} from "@/oaxConfigs";
 
 
@@ -135,7 +136,7 @@ export default {
       if (["sentence-group", "sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
         return 'none';
       }
-      return name.titleCase();
+      return filters.titleCase(name);
     },
     buttonColor() {
       if (this.uiVariant === 'sentence-group') {

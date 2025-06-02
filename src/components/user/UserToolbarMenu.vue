@@ -42,7 +42,7 @@
           </v-list-item-content>
         </v-list-item>
 
-        <v-list-item exact-path :to="userAuthorId | entityZoomLink" v-if="userAuthorId">
+        <v-list-item exact-path :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId">
           <v-list-item-icon>
             <v-icon>mdi-account-outline</v-icon>
           </v-list-item-icon>
@@ -147,6 +147,7 @@
 <script>
 
 import {mapGetters, mapMutations} from "vuex";
+import filters from '@/filters';
 import UserSignup from "./UserSignup.vue";
 import UserLogin from "./UserLogin.vue";
 import UiVariantSelector from "../Misc/UiVariantSelector.vue";
@@ -164,7 +165,8 @@ export default {
       dialogs: {
         userSignup: false,
         userLogin: false,
-      }
+      },
+      filters,
     }
   },
   computed: {

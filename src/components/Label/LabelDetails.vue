@@ -86,7 +86,7 @@
         <div class="label-details-upload-section px-6 mt-0" style="flex: 1; display: flex; align-items: center; justify-content: center;">
           <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
             <v-icon left>mdi-upload</v-icon>
-            Upload {{ this.labelData.entity_type | capitalize }} List
+            Upload {{ filters.capitalize(this.labelData.entity_type) }} List
           </v-btn>
         </div>
       </div>
@@ -123,12 +123,13 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex"
+import {mapActions, mapGetters} from "vuex"
 import {api} from "@/api"
+import filters from "@/filters"
+
 import EntityAutocomplete from "@/components/EntityAutocomplete.vue"
 import LabelCreate from "@/components/Label/LabelCreate.vue"
 import LabelBulkUpload from "@/components/Label/LabelBulkUpload.vue"
-
 
 export default {
   name: "LabelDetails",
@@ -143,6 +144,7 @@ export default {
       displayNamesLoaded: false,
       showEditDialog: false,
       showBulkUploadDialog: false,
+      filters,
     }
   },
   computed: {

@@ -35,7 +35,6 @@
         >
           <v-icon left>
             {{ newFilter.icon }}
-
           </v-icon>
           {{ newFilter?.displayName }}
         </v-chip>
@@ -48,7 +47,7 @@
         <template v-if="data.item.isFilterLink">
           <v-list-item-content>
             <v-list-item-title>
-              <span class="font-weight-bold">{{ data.item.displayValue | capitalize }}</span>
+              <span class="font-weight-bold">{{ filters.capitalize(data.item.displayValue) }}</span>
             </v-list-item-title>
             <v-list-item-subtitle>
               Filter by {{ data.item.displayValue }}
@@ -64,7 +63,7 @@
             <v-list-item-title>
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
-              <span class="mr-2">in {{ entityType | pluralize(1) }} {{ data.item.displayName }}</span>
+              <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.displayName }}</span>
             </v-list-item-title>
           </v-list-item-content>
           <v-list-item-action-text>
@@ -75,13 +74,13 @@
         <template v-else>
           <v-list-item-content>
             <v-list-item-title
-                v-html="$prettyTitle(data.item.displayValue)"
+                v-html="filters.prettyTitle(data.item.displayValue)"
                 style="white-space: normal;"
             />
             <v-list-item-subtitle style="white-space: normal;">
-              {{ data.item.displayName |capitalize }}
+              {{ filters.capitalize(data.item.displayName) }}
               <span v-if="data.item.hint">
-                {{ data.item.hint | truncate(100) }}
+                {{ filters.truncate(data.item.hint) }}
               </span>
             </v-list-item-subtitle>
           </v-list-item-content>
@@ -90,8 +89,8 @@
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
           </v-list-item-action>
-
         </template>
+        
       </template>
     </v-autocomplete>
     <div class="ml-2 mt-2" v-if="showExamples">
@@ -111,16 +110,16 @@
 
 <script>
 
-import {mapGetters, mapMutations} from "vuex";
+import _ from "lodash"
+import {mapGetters} from "vuex";
+
 import {url} from "@/url";
 import {api} from "@/api";
+import filters from '@/filters';
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityConfigs, urlPartsFromId} from "@/entityConfigs";
 import {findFacetConfigs} from "@/facetConfigs";
 import {entityTypeFromId} from "@/util";
-
-import _ from "lodash"
-
 
 export default {
   name: "ShortcutBox",
@@ -144,7 +143,8 @@ export default {
         "Claudia Goldin",
         "coriander OR cilantro",
         "Institution",
-      ]
+      ],
+      filters,
     }
   },
   computed: {
@@ -182,7 +182,7 @@ export default {
     placeholder() {
       const displayName = this.newFilter?.displayName
       const pluralizedDisplayName = displayName ?
-          this.$pluralize(displayName, 2) :
+          filters.pluralize(displayName, 2) :
           null
       if (!this.newFilter) {
         return this.entityType === 'works' ? "Search OpenAlex" : "Search " + this.entityType

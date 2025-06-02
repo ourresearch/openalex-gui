@@ -15,7 +15,7 @@
     <v-divider vertical class="mx-3"></v-divider>
     <div class="">
       <div class="text-h3">
-        {{ worksCount | toPrecision }}
+        {{ filters.toPrecision(worksCount) }}
       </div>
       <div class="text-right">Works</div>
     </div>
@@ -26,15 +26,18 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import BarGraph from "@/components/BarGraph.vue";
+import {mapGetters} from "vuex";
+
+import {url} from "@/url";
+import filters from "@/filters";
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 import {getEntityConfig} from "@/entityConfigs";
-import {url} from "@/url";
+
+import BarGraph from "@/components/BarGraph.vue";
 
 export default {
-  name: "Template",
+  name: "WorksGraph",
   components: {
     BarGraph,
   },
@@ -46,24 +49,15 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
-    linkObj() {
-
-    }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     clickBar(barKey) {
       console.log("clicked bar", barKey)
       const myEntityType = entityTypeFromId(this.id)
@@ -75,16 +69,10 @@ export default {
 
       url.pushNewFilters([worksFilter, countFilter])
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

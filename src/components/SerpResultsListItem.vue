@@ -1,12 +1,12 @@
 <template>
   <v-list-item
-      :to="result.id | entityZoomLink"
+      :to="filters.entityZoomLink(result.id)"
       color="primary"
       exact
   >
     <v-list-item-content>
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="" v-html="$prettyTitle(result.display_name)"></div>
+        <div class="" v-html="filters.prettyTitle(result.display_name)"></div>
       </v-list-item-title>
       <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
         <div v-if="myEntityType === 'works'">
@@ -30,7 +30,7 @@
             class="px-1"
             @click.stop.prevent="viewWorks"
         >
-          {{ result.works_count | toPrecision }} works
+          {{ filters.toPrecision(result.works_count) }} works
         </v-btn>
         <v-btn
             v-if="myEntityType === 'works'"
@@ -39,7 +39,7 @@
             class="px-1"
             @click.stop.prevent="viewCitingPapers"
         >
-          Cited by {{ result.cited_by_count | toPrecision }}
+          Cited by {{ filters.toPrecision(result.cited_by_count) }}
         </v-btn>
 
         <span @click.stop>
@@ -61,9 +61,10 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 
 import {url} from "@/url";
+import filters from '@/filters';
 import {createSimpleFilter} from "@/filterConfigs";
 import {entityTypeFromId} from "@/util";
 import {getEntityConfig, getLocationString} from "@/entityConfigs";
@@ -81,16 +82,12 @@ export default {
   },
   data() {
     return {
-      url,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     myEntityType() {
       return entityTypeFromId(this.result.id)

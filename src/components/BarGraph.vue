@@ -15,14 +15,10 @@
               class="bar-graph-bar-container"
               @click.prevent="$emit('click', bar.key)"
           >
-            <!--            @click.exact="clickYear(filter.value)"-->
-            <!--            @click.shift="shiftClickYear(filter.value)"-->
             <div
                 class="bar-graph-bar caption"
                 :style="{height: bar.scaledCount * 100 + '%'}"
             >
-              <!--                    :class="{green: isWithinRange(filter.value)}"-->
-              <!--              v-ripple-->
             </div>
           </div>
         </template>
@@ -31,7 +27,7 @@
           {{ bar.key }}:
         </span>
           <span class="">
-          {{ bar.count | toPrecision }}
+          {{ filters.toPrecision(bar.count) }}
         </span>
         </div>
 
@@ -41,22 +37,22 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
+import filters from "@/filters";
 
 export default {
-  name: "Template",
+  name: "BarGraph",
   components: {},
   props: {
     bars: Array, // [{key: "foo": count: 42} ...]
   },
   data() {
     return {
-      foo: 42,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     scaledBars(){
@@ -69,33 +65,18 @@ export default {
       })
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 
 $color-3: hsl(210, 60%, 98%);
 $color-2: hsl(213, 69%, 95%);
 $color-1: hsl(213, 72%, 88%);
 $color-0: hsl(212, 77%, 82%);
-
-
-
 
 .bar-graph {
   flex-direction: row-reverse;

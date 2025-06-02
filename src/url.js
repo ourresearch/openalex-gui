@@ -464,8 +464,8 @@ const updateOrDeleteFilter = function (entityType, index, filterValue) {
 
 
 const upsertFilter = function (entityType, index, filterValue) {
-    console.log("url.upsertFilter()", index, filterValue)
-    console.log("url.upsertFilter() isFilterApplied: " + isFilterApplied(router.currentRoute, entityType, index))
+    //console.log("url.upsertFilter()", index, filterValue)
+    //console.log("url.upsertFilter() isFilterApplied: " + isFilterApplied(router.currentRoute, entityType, index))
     return isFilterApplied(router.currentRoute, entityType, index) ?
         updateOrDeleteFilter(entityType, index, filterValue) :
         createFilter(entityType, index, filterValue)

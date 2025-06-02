@@ -2,7 +2,7 @@
   <div>
     <div
         class="text-h6 text-lg-h5 mb-1"
-        v-html="$prettyTitle(entityData.display_name)"
+        v-html="filters.prettyTitle(entityData.display_name)"
     />
     <div class="d-flex align-center">
       <link-entity-roles-list
@@ -13,13 +13,13 @@
       />
       <div class="mr-3" v-else>
         <v-icon small>{{ myEntityConfig.icon }}</v-icon>
-        {{ myEntityConfig.displayNameSingular | capitalize }}
+        {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
     </div>
 
     <v-toolbar flat dense class="mt-4" style="margin-left: -20px;" color="transparent">
       <work-linkouts v-if="myEntityType === 'works'" :data="entityData"/>
-      <v-btn v-else color="primary" rounded :to="entityData.id | entityWorksLink">
+      <v-btn v-else color="primary" rounded :to="filters.entityWorksLink(entityData.id)">
         View works
       </v-btn>
 
@@ -62,15 +62,19 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
-import WorkLinkouts from "@/components/WorkLinkouts.vue";
-import EntityHeaderClaimProfileButton from "@/components/Entity/EntityHeaderClaimProfileButton.vue";
+import {mapGetters} from "vuex";
+
+import filters from '@/filters';
 import {getEntityConfig} from "@/entityConfigs";
 import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
+import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
+import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import EntityHeaderClaimProfileButton from "@/components/Entity/EntityHeaderClaimProfileButton.vue";
+
+
 export default {
-  name: "Template",
+  name: "EntityHeader",
   components: {
     WorkLinkouts,
     LinkEntityRolesList,
@@ -82,16 +86,12 @@ export default {
   },
   data() {
     return {
-      foo: 42,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     id() {
       return this.entityData.id
@@ -110,23 +110,11 @@ export default {
       return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

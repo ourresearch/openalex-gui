@@ -40,7 +40,7 @@
       <!-- Works section first -->
       <div v-if="configs.works && hasVisibleColumns(configs.works.columns)" class="mb-10">
         <h2 class="text-h5 mb-1">
-          {{ configs.works.displayName | titleCase }}
+          {{ filters.titleCase(configs.works.displayName) }}
           <span v-if="debugMode" class="text-subtitle-2 grey--text ml-2">
             ({{ countVisibleColumns(configs.works.columns) }} columns)
           </span>
@@ -50,7 +50,7 @@
           <li v-for="(column, columnId) in configs.works.columns" :key="columnId" class="mb-3" 
               v-if="shouldShowColumn(column)">
             <div>
-              <strong>{{ column.displayName | titleCase }}</strong> [{{ column.id }}]:
+              <strong>{{ filters.titleCase(column.displayName) }}</strong> [{{ column.id }}]:
               {{ column.descr }}
               <div class="d-inline-block">
                 <v-chip v-if="column.actions && column.actions.includes('filter')" x-small class="mr-1 my-1" color="primary" text-color="white">filter</v-chip>
@@ -73,7 +73,7 @@
       <div v-for="(config, configKey) in sortedConfigs" :key="configKey" class="mb-10"
            v-if="hasVisibleColumns(config.columns)">
         <h2 class="text-h5 mb-1">
-          {{ config.displayName | titleCase }}
+          {{ filters.titleCase(config.displayName) }}
           <span v-if="debugMode" class="text-subtitle-2 grey--text ml-2">
             ({{ countVisibleColumns(config.columns) }} columns)
           </span>
@@ -83,7 +83,7 @@
           <li v-for="(column, columnId) in config.columns" :key="columnId" class="mb-3"
               v-if="shouldShowColumn(column)">
             <div>
-              <strong>{{ column.displayName | titleCase }}</strong> [{{ column.id }}]:
+              <strong>{{ filters.titleCase(column.displayName) }}</strong> [{{ column.id }}]:
               {{ column.descr }}
               <div class="d-inline-block">
                 <v-chip v-if="column.actions && column.actions.includes('filter')" x-small class="mr-1 my-1" color="primary" text-color="white">filter</v-chip>
@@ -108,6 +108,7 @@
 
 <script>
 
+import filters from '@/filters';
 import {getConfigs} from "@/oaxConfigs";
 
 export default {
@@ -152,7 +153,8 @@ export default {
         name: "Name contains ()",
         filter: (col) => col.id.includes("("),
       },
-    ]
+    ],
+    filters,
   }),
   computed: {
     sortedConfigs() {

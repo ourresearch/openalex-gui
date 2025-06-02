@@ -27,8 +27,7 @@
     </div>
 
     <div class=" monospace body-2 pa-3" v-if="returnData?.timestamps?.duration">
-      <span class="success--text">{{ returnData.timestamps.duration | toPrecision(3) }} seconds</span>
-      <span v-if="returnData.timestamps.duration_core_percent" class="success--text"> / {{ returnData.timestamps.duration_core_percent * 100 | toPrecision(3) }}% core</span>
+      <span class="success--text">{{ filters.toPrecision(returnData.timestamps.duration, 3) }} seconds</span>
     </div>
 
     <div v-if="config.error" class="monospace body-2 pa-3">
@@ -99,13 +98,10 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import axios from "axios";
 import {api} from "@/api";
-import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
+import filters from '@/filters';
 import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
-
 
 export default {
   name: "TestQuery",
@@ -126,6 +122,7 @@ export default {
       searchError: null,
       returnData: null,
       duration: null,
+      filters,
     }
   },
   computed: {

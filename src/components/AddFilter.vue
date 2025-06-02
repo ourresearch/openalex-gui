@@ -162,9 +162,10 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
+import filters from "@/filters";
 
 import FilterCardRange from "@/components/FilterCard/FilterCardRange.vue";
 import FilterCardSearch from "@/components/FilterCard/FilterCardSearch.vue";
@@ -194,14 +195,12 @@ export default {
       newFilterKey: null,
       isFabShowing: false,
       url,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     dialogBodyHeight() {
       const fullHeight = !this.newFilterKey || this.newFilterConfig.type === "select"
@@ -233,10 +232,6 @@ export default {
       //console.log("mySearchString " + mySearchString)
       const filters = this.potentialFilters.filter(f => {
         return f.displayName.toLowerCase().includes(mySearchString)
-        // const filterKeyWords = f.displayName.split(" ").map(w => w.toLowerCase())
-        // return filterKeyWords.some(w => {
-        //   return w.indexOf(mySearchString) === 0
-        // })
       })
       //console.log("potentialFilters:")
       //console.log(this.potentialFilters)
@@ -251,7 +246,7 @@ export default {
     placeholder() {
       const displayName = this.newFilterConfig?.displayName
       const pluralizedDisplayName = displayName ?
-          this.$pluralize(displayName, 2) :
+          filters.pluralize(displayName, 2) :
           null
       if (!this.newFilterKey) {
         return "Search all filters"
@@ -267,11 +262,6 @@ export default {
     },
   },
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     onEnter() {
       console.log("onEnter", this.searchString, this.entityType)
       if (["search", "range"].includes(this.newFilterConfig?.type) && this.searchString) {
@@ -318,8 +308,6 @@ export default {
         this.searchString = ""
       }
     }
-  },
-  created() {
   },
   mounted() {
     setTimeout(()=> {

@@ -22,7 +22,7 @@
 
           <!-- generic string (including openalex ids) -->
           <template v-else>
-            {{ String(property.value) | truncate(100) }}
+            {{ filters.truncate(property.value) }}
           </template>
         </template>
 
@@ -30,7 +30,7 @@
 
           <!--        number: currency -->
           <template v-if="property.config.isCurrency">
-            ${{ property.value | toPrecision }}
+            ${{ filters.toPrecision(property.value) }}
           </template>
 
           <!--        number: year -->
@@ -45,7 +45,7 @@
 
           <!--        number: float or integer -->
           <template v-else>
-            {{ property.value | toPrecision }}
+            {{ filters.toPrecision(property.value) }}
           </template>
         </template>
 
@@ -94,6 +94,8 @@
 
 <script>
 
+import filters from "@/filters";
+
 export default {
   name: "ColumnValue",
   components: {},
@@ -102,6 +104,7 @@ export default {
   },
   data() {
     return {
+      filters,
     }
   },
   methods: {

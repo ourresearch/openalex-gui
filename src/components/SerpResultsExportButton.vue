@@ -50,7 +50,7 @@
         </div>
         <div v-else-if="exportObj.progress < 1" class="pa-5">
           Export in progress...
-          <span class="font-weight-bold">{{ exportObj.progress * 100 | toPrecision }}%</span> complete
+          <span class="font-weight-bold">{{ filters.toPrecision(exportObj.progress * 100) }}%</span> complete
         </div>
         <div v-else class="pa-5">
           Export complete!

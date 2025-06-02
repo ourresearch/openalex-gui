@@ -19,7 +19,7 @@
 
       <div v-else>
         <p v-if="!exportStarted">
-          Exporting {{ resultsCount | millify }} results may take up to {{ estimatedTime }}.
+          Exporting {{ filters.millify(resultsCount) }} results may take up to {{ estimatedTime }}.
           You’ll be notified by email when your CSV is ready to download.
         </p>
         <p v-if="exportStarted">{{ exportMessage }}</p>
@@ -38,8 +38,10 @@
 
 
 <script>
+
 import { mapMutations, mapGetters } from "vuex";
 import {api} from "@/api" 
+import filters from "@/filters";
 
 export default {
   name: "DownloadDialog",
@@ -52,6 +54,7 @@ export default {
       exportStarted: false,
       exportMessage: "",
       isLoading: false,
+      filters,
     };
   },
   computed: {

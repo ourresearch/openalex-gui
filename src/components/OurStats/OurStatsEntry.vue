@@ -2,7 +2,7 @@
   <span>
     <v-progress-circular :color="color" :size="loadingSpinnerSize" v-if="isLoading" indeterminate></v-progress-circular>
     <span v-if="count">
-    {{ count | millify }}
+    {{ filters.millify(count) }}
 
     </span>
   </span>
@@ -12,6 +12,7 @@
 <script>
 
 import {api} from "@/api";
+import filters from "@/filters";
 
 export default {
   name: "OurStatsEntry",
@@ -30,6 +31,7 @@ export default {
   data() {
     return {
       isLoading: false,
+      filters,
     }
   },
   computed: {
@@ -48,6 +50,8 @@ export default {
       return resp.meta.count;
     }
   },
+  methods: {
+  }
 }
 </script>
 

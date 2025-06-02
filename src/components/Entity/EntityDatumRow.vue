@@ -3,10 +3,10 @@
     
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
-          {{ filterConfig.displayName | capitalize | pluralize(pluralizeCount) }}
+          {{ filters.pluralize(filters.capitalize(filterConfig.displayName), pluralizeCount) }}
       </template>
       <template v-else>
-        {{ filterConfig.displayName | capitalize }}:
+        {{ filters.capitalize(filterConfig.displayName) }}:
       </template>
     </span>
 
@@ -14,7 +14,7 @@
       <router-link
           v-for="(entityObj, i) in valueEntityLinks"
           :key="entityObj.id + i"
-          :to="entityObj.id | entityZoomLink"
+          :to="filters.entityZoomLink(entityObj.id)"
           class="mr-1 pr-0"
       >
         {{ entityObj.display_name }}{{ i + 1 < valueEntityLinks.length ? ", " : "" }}
@@ -43,18 +43,18 @@
     </span>
 
     <span v-else-if="valueWorksCount">
-      <router-link :to="data.id | entityWorksLink">
-        {{ valueWorksCount | toPrecision }}
+      <router-link :to="filters.entityZoomLink(data.id)">
+        {{ filters.toPrecision(valueWorksCount) }}
       </router-link>
     </span>
 
     <span v-else-if="valueUnlinkedCount">
-      <span>{{ isValueUsd ? "$"  : ""}}{{ valueUnlinkedCount | toPrecision }}</span>
+      <span>{{ isValueUsd ? "$"  : ""}}{{ filters.toPrecision(valueUnlinkedCount) }}</span>
     </span>
 
     <span v-else-if="valueLinkedCount">
       <router-link :to="url.makeFilterRoute(entityType, this.filterKeyForMakingLinks, data.id)">
-        {{ valueLinkedCount | toPrecision }}
+        {{ filters.toPrecision(valueLinkedCount) }}
       </router-link>
     </span>
 
@@ -69,7 +69,7 @@
         class="font-weight-bold"
     >
       <template v-if="isValueAnArray">
-        +{{ (valueLength - maxLen.array) | toPrecision }} more
+        +{{ filters.toPrecision(valueLength - maxLen.array) }} more
       </template>
       <template v-else>
         more
@@ -88,9 +88,10 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {getFacetConfig} from "@/facetConfigs";
+import {mapGetters} from "vuex";
+import filters from '@/filters';
 import {url} from "@/url";
+import {getFacetConfig} from "@/facetConfigs";
 import {entityTypeFromId} from "../../util";
 import {getEntityConfig} from "@/entityConfigs";
 
@@ -116,14 +117,12 @@ export default {
         array: 5,
       },
       url,
+      filters,
     }
   },
   computed: {
     ...mapGetters([
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     filterConfig() {
       return getFacetConfig(this.myEntityType, this.filterKey)

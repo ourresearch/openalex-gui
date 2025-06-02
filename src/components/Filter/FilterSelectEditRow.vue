@@ -16,8 +16,8 @@
         {{ (disabled) ? "(applied)" : "" }}
       </v-list-item-title>
       <v-list-item-subtitle v-if="hint" style="white-space: normal;">
-        <span v-if="myEntityConfig">{{ myEntityConfig.displayName | pluralize(1) |capitalize }} </span>
-        <span v-if="hint"> {{ hint | truncate(100)}}</span>
+        <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) }} </span>
+        <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
       </v-list-item-subtitle>
     </v-list-item-content>
     <v-list-item-action-text class="body-1">
@@ -25,7 +25,7 @@
         <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>
       <template>
-        {{ myCount | toPrecision }}
+        {{ filters.toPrecision(myCount) }}
       </template>
     </v-list-item-action-text>
   </v-list-item>
@@ -34,6 +34,7 @@
 <script>
 
 import {mapGetters} from "vuex";
+import filters from '@/filters'
 import {url} from "@/url";
 import {api} from "@/api";
 import {getEntityConfig} from "@/entityConfigs";
@@ -56,6 +57,7 @@ export default {
     return {
       myCount: this.count,
       isCountLoading: false,
+      filters,
     }
   },
   computed: {

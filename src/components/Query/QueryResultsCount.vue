@@ -8,16 +8,15 @@
         @click="entityTabClick">
         <span v-if="this.stashedQueryState">
           {{ stashedQueryState.results_meta?.count > 10000 ? "~" : "" }}
-          {{ stashedQueryState.results_meta?.count | toPrecision }}
-          {{ stashedQueryState.query.get_rows | pluralize }}
-        </span>
-        <span v-else-if="hasResults">
-          {{ resultsMeta?.count > 10000 ? "~" : "" }}
-          {{ resultsMeta?.count | toPrecision }}
-          {{ querySubjectEntity | pluralize }}
+          {{ filters.toPrecision(stashedQueryState.results_meta?.count) }}
+          {{ filters.pluralize(stashedQueryState.query.get_rows) }}
         </span>
         <span v-else>
-          {{ stashedQueryState.query.get_rows | pluralize }}
+          <span v-if="hasResults">
+          {{ resultsMeta?.count > 10000 ? "~" : "" }}
+          {{ filters.toPrecision(resultsMeta?.count) }}
+          </span>
+          {{ filters.pluralize(querySubjectEntity) }}
         </span>
       </span>
 
@@ -27,12 +26,12 @@
         @click="worksTabClick">
         <span v-if="querySubjectEntity === 'works' && hasResults">
           {{ resultsMeta?.count > 10000 ? "~" : "" }}
-          {{ resultsMeta?.count | toPrecision }}
+          {{ filters.toPrecision(resultsMeta?.count)}}
           works
         </span>
         <span v-else-if="hasResults">
           {{ resultsMeta?.works_count > 10000 ? "~" : "" }}
-          {{ resultsMeta?.works_count | toPrecision }}
+          {{ filters.toPrecision(resultsMeta?.works_count)}}
           works
         </span>
         <span v-else>
@@ -49,11 +48,18 @@
 
 <script>
 import { mapGetters, mapActions, mapMutations } from 'vuex';
+import filters from "@/filters";
+
 import QueryActions from './QueryActions.vue';
 
 export default {
   components: {
     QueryActions
+  },
+  data() {
+    return {
+      filters,
+    }
   },
   computed: {
     ...mapGetters("search", [
