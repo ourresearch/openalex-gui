@@ -20,8 +20,6 @@
           <v-spacer/>
         </v-toolbar>
         <div v-if="exportObj.progress === null" class="pa-4 py-0">
-<!--          <v-subheader>Select format:</v-subheader>-->
-<!--          <v-divider/>-->
           <v-radio-group v-model="exportFormat">
             <v-radio
                 label="Spreadsheet (.csv)"
@@ -87,37 +85,33 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import QrcodeVue from "qrcode.vue";
 import axios from "axios";
-import {filtersFromUrlStr} from "@/filterConfigs";
+
 import {url} from "@/url";
+import filters from "@/filters";
+import {filtersFromUrlStr} from "@/filterConfigs";
 
 export default {
-  name: "Template",
+  name: "SerpResultsExportButton",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
       isDialogOpen: {
         exportResults: false,
       },
       exportFormat: null,
       areColumnsTruncated: false,
-
       exportProgressUrl: "",
       exportObj: {
         progress: null,
       },
+      filters,
     }
   },
   computed: {
     ...mapGetters([
-
       "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
     ]),
     isResultsExportDisabled() {
       return this.$store.state?.resultsObject?.meta?.count > 100000
@@ -161,10 +155,6 @@ export default {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-    placeholder() {
-    },
     openExportDialog(format) {
       this.isDialogOpen.exportResults = true
       this.exportFormat = format
