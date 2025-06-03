@@ -1,21 +1,21 @@
 <template>
-  <v-container class="mt-6">
-    <v-row>
-      <v-col cols="2">
-      </v-col>
-      <v-col cols="8">
-        <router-view />
-      </v-col>
-      <v-col cols="2">
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="color-2 py-12">
+    <v-container>
+        <v-row>
+          <v-col cols="2">
+          </v-col>
+          <v-col cols="8">
+            <router-view />
+          </v-col>
+          <v-col cols="2">
+          </v-col>
+        </v-row>
+    </v-container>
+  </div>
 </template>
 
 
 <script>
-
-import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "MeBase",
