@@ -3,8 +3,7 @@
     <v-autocomplete
         v-model="select"
         :items="suggestions"
-        :search-input="searchString"
-        @update:search-input="onSearchInputUpdate"
+        :search-input="searchString" @update:search-input="onSearchInputUpdate"
         :filter="(item, queryText, itemText) => true"
         :menu-props="{maxHeight: 600,}"
         item-text="displayValue"
@@ -146,6 +145,7 @@ export default {
         "coriander OR cilantro",
         "Institution",
       ],
+      isProgrammaticInput: false,
       filters,
     }
   },
@@ -235,6 +235,8 @@ export default {
       }
     },
     onChange(myFilterData) {
+      if (this.isProgrammaticInput) return;
+      if (!myFilterData) return; // Don't clear if nothing was selected!
       console.log('onChange()', myFilterData, this.select)
       if (this.select) this.isEnterPressed = false
       if (myFilterData.key === this.defaultSearchType) {
@@ -251,7 +253,7 @@ export default {
         this.clear()
       }
 
-      setTimeout(() => { // no idea why this is necessary but it is
+      setTimeout(() => {
         this.searchString = ""
         this.select = null
         this.suggestions = []
@@ -306,18 +308,24 @@ export default {
       })
     },
     trySearch(str) {
+      this.isProgrammaticInput = true;
       setTimeout(() => {
-        this.searchString = str
+        this.searchString = str;
         console.log("trySearch", str)
-      }, 100)
+        this.$refs.shortcutBox.focus();
+        setTimeout(() => {
+          this.isProgrammaticInput = false;
+        }, 0);
+      }, 100);
     },
     onSearchInputUpdate(val) {
-      this.searchString = val
-      // Manually trigger the suggestions
+      this.searchString = val;
+      // Only trigger suggestions if not selecting from autocomplete
+      if (this.newFilter && this.newFilter?.type !== "select") return;
       if (this.searchString && this.searchString.length > 0) {
-        this.getSuggestions()
+        this.getSuggestions();
       } else {
-        this.suggestions = []
+        this.suggestions = [];
       }
     },
     getSuggestions: _.debounce(async function () {
