@@ -2,10 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import goTo from 'vuetify/es5/services/goto'
 
-import {url} from "@/url";
 import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
-import {getConfigs} from "@/oaxConfigs";
 import {entityTypeFromId} from "@/util";
 
 import Home from '@/views/Home.vue'
@@ -18,7 +16,6 @@ import AnalyticsTesting from '@/views/AnalyticsTesting.vue';
 
 import Login from '@/views/Login.vue';
 import Signup from "@/views/Signup.vue";
-import UserSignup from '@/components/user/UserSignup.vue';
 import ResetPassword from "@/views/ResetPassword.vue";
 import UserMagicToken from '@/components/user/UserMagicToken.vue';
 
@@ -27,13 +24,10 @@ import OurStats from '@/views/OurStats.vue';
 import Faq from "@/views/Faq.vue";
 import Testimonials from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
-import OpenAlexStats from "@/views/OpenAlexStats.vue";
 
-import Me from '@/views/Me.vue';
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
 import MeSearches from "@/views/Me/MeSearches.vue";
-import MeCollections from "@/views/Me/MeLabels.vue";
 import MeLabels from "@/views/Me/MeLabels.vue";
 import MeCorrections from "@/views/Me/MeCorrections.vue";
 import LabelDetails from "@/components/Label/LabelDetails.vue";
