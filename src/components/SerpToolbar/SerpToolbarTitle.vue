@@ -47,7 +47,7 @@
       <v-card rounded>
         <v-card-title>Login required</v-card-title>
         <v-card-text>
-          To save searches, you must be signed up and logged in.
+          To save searches, please log in or sign up.
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
