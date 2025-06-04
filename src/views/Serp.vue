@@ -57,15 +57,16 @@
 
 import _ from 'lodash';
 import {mapGetters, mapMutations, mapActions,} from 'vuex'
+import {useHead} from '@unhead/vue'
 
 import {url} from "@/url";
 import {api} from "@/api";
 import router from "../router";
 import {entityConfigs} from "../entityConfigs";
 import {shortenOpenAlexId} from "@/util";
-import {actionConfigs, getActionConfig, getActionDefaultsStr} from "@/actionConfigs";
-import {filtersAsUrlStr, filtersFromUrlStr} from "@/filterConfigs";
-import {facetConfigs, getFacetConfig} from "../facetConfigs";
+import {actionConfigs} from "@/actionConfigs";
+import {filtersFromUrlStr} from "@/filterConfigs";
+import {facetConfigs} from "../facetConfigs";
 
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import ApiDialog from "../components/ApiDialog.vue";
@@ -78,14 +79,8 @@ import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 import QrcodeVue from 'qrcode.vue'
 
-const shortUuid = require('short-uuid');
-
 export default {
   name: "Serp",
-  metaInfo() {
-    const ret = {title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"};
-    return ret;
-  },
   components: {
     SerpToolbar,
     SerpResultsCount,
@@ -283,8 +278,10 @@ export default {
           })
     }
   },
-
   created() {
+    useHead({
+      title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"
+    });
   },
   async mounted() {
     // if ("group_by" in this.$route.query) return

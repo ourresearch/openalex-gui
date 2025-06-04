@@ -57,12 +57,10 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { useHead } from '@unhead/vue';
 
 export default {
   name: "ResetPassword",
-    metaInfo() {
-      return {title: "Reset Password"}
-    },
   components: {},
   props: {},
   data() {
@@ -91,9 +89,11 @@ export default {
         console.log("user.store resetPassword error", e);
         this.setShowPasswordResetErrorMessage(true);
         this.setIsLoginDialogOpen(true);
-      } finally {
-      } 
+      }
     },
+  },
+  created() {
+    useHead({ title: 'Reset Password' });
   },
   mounted() {
     this.token = this.$route.query.token;

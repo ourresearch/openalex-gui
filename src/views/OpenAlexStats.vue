@@ -37,11 +37,14 @@
 </template>
 
 <script>
-import { api } from "@/api";
 import axios from 'axios'
+import { useHead } from '@unhead/vue';
+
 export default {
   name: "OpenAlexStats",
-  metaInfo: { title: "OpenAlex Stats" },
+  created() {
+    useHead({ title: 'OpenAlex Stats' });
+  },
   data() {
     return {
       numWorks: null,

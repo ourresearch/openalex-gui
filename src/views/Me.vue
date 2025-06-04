@@ -36,12 +36,14 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import { useHead } from '@unhead/vue';
+
 import UserSavedSearch from "../components/user/UserSavedSearch.vue";
 
 export default {
   name: "Me",
-  metaInfo() {
-    return {title: "Account"}
+  created() {
+    useHead({ title: 'Account' });
   },
   components: {
     UserSavedSearch,

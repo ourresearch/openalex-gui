@@ -6,13 +6,12 @@
 <script>
 
 import {mapGetters, mapMutations} from "vuex";
+import { useHead } from '@unhead/vue';
+
 import UserSignup from "@/components/user/UserSignup.vue";
 
 export default {
   name: "Signup",
-    metaInfo() {
-      return {title: "Sign up" }
-    },
   components: {UserSignup},
   props: {},
   data() {
@@ -30,6 +29,7 @@ export default {
     ]),
   },
   created() {
+    useHead({ title: 'Sign up' });
     this.setIsSignupDialogOpen(true);
   },
   mounted() {

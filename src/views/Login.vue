@@ -6,12 +6,10 @@
 <script>
 
 import {mapGetters, mapMutations} from "vuex";
+import { useHead } from '@unhead/vue';
 
 export default {
   name: "Login",
-    metaInfo() {
-      return {title: "Log in to OpenAlex" }
-    },
   components: {},
   props: {},
   data() {
@@ -30,6 +28,7 @@ export default {
     ]),
   },
   created() {
+    useHead({ title: 'Log in to OpenAlex' });
     console.log("Login setting both flags");
     this.setIsLoginDialogOpen(true);
   },

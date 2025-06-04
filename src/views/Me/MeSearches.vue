@@ -104,6 +104,8 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import {VueTyper} from 'vue-typer'
 import {isToday} from "@/util";
+import { useHead } from '@unhead/vue';
+
 import {url} from "@/url";
 import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
@@ -115,9 +117,10 @@ export default {
     VueTyper,
     SavedSearchMenu,
   },
-  metaInfo: {
-    title: "OpenAlex: The open catalog to the global research system",
-    titleTemplate: undefined, // have to override this or it'll get the site title template
+  created() {
+    useHead({
+      title: 'Saved Searches',
+    });
   },
   data() {
     return {

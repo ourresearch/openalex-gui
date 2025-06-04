@@ -83,12 +83,14 @@
 <script>
 
 import {entityConfigs} from "../entityConfigs";
+import { useHead } from '@unhead/vue';
+
 import OurStatsEntry from "../components/OurStats/OurStatsEntry.vue";
 
 export default {
   name: "OurStats",
-  metaInfo: {
-    title: "Data Stats",
+  created() {
+    useHead({ title: 'Data Stats' });
   },
   components: {
     OurStatsEntry,

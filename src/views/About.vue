@@ -146,9 +146,13 @@
 </template>
 
 <script>
+import { useHead } from '@unhead/vue';
+
 export default {
   name: "About",
-  metaInfo: { title: "About" },
+  created() {
+    useHead({ title: 'About' });
+  },
   data() {
     return {
       comparisonRows: [
