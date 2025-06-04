@@ -1,10 +1,10 @@
 <template>
   <v-dialog v-model="isOpen" max-width="500">
 
-    <v-card v-if="!isForgotPassword" outlined rounded :loading="isLoading" :disabled="isLoading" class="">
+    <v-card v-if="!isForgotPassword" border rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
         <div>
-          <v-icon left>mdi-account</v-icon>
+          <v-icon start>mdi-account</v-icon>
           Log in
         </div>
         <v-spacer/>
@@ -15,7 +15,7 @@
       <v-card-text>
         <form>
           <v-text-field
-              filled
+              variant="filled"
               rounded
               class="mt-0"
               name="email"
@@ -31,7 +31,7 @@
           >
           </v-text-field>
           <v-text-field
-              filled
+              variant="filled"
               rounded
               class="mt-3"
               prepend-icon="mdi-lock-outline"

@@ -34,7 +34,7 @@
     <span v-else-if="valueExternalLink">
       <a :href="valueExternalLink" target="_blank">
         Yes
-        <v-icon small style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
+        <v-icon size="small" style="vertical-align: 0px;" color="primary">mdi-open-in-new</v-icon>
       </a>
     </span>
 
@@ -164,6 +164,7 @@ export default {
             this.rawValue.slice(0, this.maxLen.array) :
             this.rawValue
       }
+      return null;
     },
     valueListOfStrings() {
       if (this.isValueAnArray && !this.rawValue.every(o => !!o.id)) {
@@ -171,33 +172,34 @@ export default {
             this.rawValue.slice(0, this.maxLen.array) :
             this.rawValue
       }
+      return null;
     },
     valueString() {
       if (this.filterConfig.key === "publication_year") return this.rawValue; // yikes
-      if (typeof this.rawValue === "string") return (this.isValueTruncated) ?
+      if (typeof this.rawValue === "string") {
+        return (this.isValueTruncated) ?
           this.rawValue.substring(0, this.maxStringLen) :
           this.rawValue
+      }
+      return null;
     },
     valueWorksCount() {
-      if (this.filterKey === "works_count") return this.rawValue
+      return (this.filterKey === "works_count") ? this.rawValue : null;
     },
     valueUnlinkedCount() {
-      if (typeof this.rawValue === "number" && this.filterConfig.type !== "select") return this.rawValue
+      return (typeof this.rawValue === "number" && this.filterConfig.type !== "select") ? this.rawValue : null;
     },
     isValueUsd() {
       return this.filterKey === "apc_paid.value_usd"
     },
     valueLinkedCount() {
-      if (typeof this.rawValue === "number" && this.filterConfig.type === "select") return this.rawValue
+      return (typeof this.rawValue === "number" && this.filterConfig.type === "select") ? this.rawValue : null;
     },
     valueExternalLink() {
-      if (typeof this.rawValue !== "string") return // throws error without this for some reason
-      if (this.rawValue?.indexOf("http") === 0) return this.rawValue
+      return (typeof this.rawValue !== "string") ? null : this.rawValue?.indexOf("http") === 0 ? this.rawValue : null;
     },
     valueBoolean() {
-      if (typeof this.rawValue === "boolean") return this.rawValue ?
-          "Yes" :
-          "No"
+      return (typeof this.rawValue === "boolean") ? (this.rawValue ? "Yes" : "No") : null;
     },
     // what type of DatumRow are we making
     isValueAListOfEntityLinks() {

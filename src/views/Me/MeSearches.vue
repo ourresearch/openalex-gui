@@ -4,7 +4,7 @@
     <div class="text-h4 ml-1 mr-4 mb-2">Saved Searches</div>
 
     <v-card rounded flat class="px-2 pb-4">
-      <v-simple-table v-if="userSavedSearches.length">
+      <v-table v-if="userSavedSearches.length">
         <thead>
         <tr>
           <th>Name</th>
@@ -14,13 +14,13 @@
         </thead>
         <tbody>
         <tr
-            v-for="(savedSearch, i) in userSavedSearches"
+            v-for="savedSearch in userSavedSearches"
             :key="savedSearch.id"
             @click="openSavedSearch(savedSearch.id)"
             class="saved-search-row"
         >
           <td>
-            <v-icon left>mdi-folder-outline</v-icon>
+            <v-icon start>mdi-folder-outline</v-icon>
             {{ savedSearch.name }}
           </td>
           <td>
@@ -32,42 +32,21 @@
             <v-btn icon @click.stop="setEditAlertId(savedSearch.id)">
               <v-icon>{{ savedSearch.has_alert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
             </v-btn>
-            <v-menu offset-y>
-              <template v-slot:activator="{on}">
-                <v-btn icon v-on="on">
+            <v-menu location="bottom">
+              <template v-slot:activator="{props}">
+                <v-btn icon v-bind="props">
                   <v-icon>mdi-dots-vertical</v-icon>
                 </v-btn>
               </template>
               <saved-search-menu :id="savedSearch.id"/>
-
-              <!--            <v-list>-->
-              <!--              <v-list-item @click="openRenameDialog(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
-              <!--                  <v-icon>mdi-pencil-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
-              <!--                <v-list-item-title>Rename</v-list-item-title>-->
-              <!--              </v-list-item>-->
-              <!--              <v-list-item @click="deleteSavedSearch(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
-              <!--                  <v-icon>mdi-delete-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
-              <!--                <v-list-item-title>Delete</v-list-item-title>-->
-              <!--              </v-list-item>-->
-              <!--              <v-list-item @click="openAsCopy(savedSearch.id)">-->
-              <!--                <v-list-item-icon>-->
-              <!--                  <v-icon>mdi-folder-multiple-outline</v-icon>-->
-              <!--                </v-list-item-icon>-->
-              <!--                <v-list-item-title>Open as copy</v-list-item-title>-->
-              <!--              </v-list-item>-->
-              <!--            </v-list>-->
             </v-menu>
           </td>
 
         </tr>
         </tbody>
-      </v-simple-table>
+      </v-table>
       <div  class="color-3 d-flex my-12 mx-4 pa-12" v-else>
-        <div class="grey--text">
+        <div class="text-grey">
           You have no saved searches.
         </div>
       </div>
@@ -80,7 +59,7 @@
           <v-text-field
               autofocus
               rounded
-              filled
+              variant="filled"
               hide-details
               clearable
               prepend-inner-icon="mdi-magnify"
@@ -90,8 +69,8 @@
         </div>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text rounded @click="isDialogOpen.rename = false">Cancel</v-btn>
-          <v-btn text rounded color="primary" @click="rename(searchIdToRename, renameString)">Rename</v-btn>
+          <v-btn variant="text" rounded @click="isDialogOpen.rename = false">Cancel</v-btn>
+          <v-btn variant="text" rounded color="primary" @click="rename(searchIdToRename, renameString)">Rename</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -102,19 +81,15 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import {VueTyper} from 'vue-typer'
-import {isToday} from "@/util";
 import { useHead } from '@unhead/vue';
 
 import {url} from "@/url";
-import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
+import {isToday} from "@/util";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 
 export default {
   name: 'SavedSearches',
   components: {
-    UserSavedSearch,
-    VueTyper,
     SavedSearchMenu,
   },
   created() {
@@ -203,13 +178,6 @@ export default {
           updatedDate.toLocaleDateString(undefined, dateOptions)
     }
   },
-  mounted() {
-  },
-  watch: {
-    "isDialogOpen.rename"(to) {
-
-    }
-  }
 }
 </script>
 
@@ -221,7 +189,5 @@ export default {
   table {
     border-top: none !important;
   }
-
 }
-
 </style>

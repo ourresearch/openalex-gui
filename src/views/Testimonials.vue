@@ -13,7 +13,7 @@
       </div>
 
     </v-card>
-    <v-card color="blue-grey lighten-5 pa-3 mb-6" flat rounded class="d-flex align-center mt-12">
+    <v-card color="blue-grey-lighten-5" flat rounded class="d-flex align-center mt-12">
       <!--      <v-icon large>mdi-filter</v-icon>-->
       <span class="mr-3 text-h5" v-if="!$vuetify.display.mobile">
                     <span class="font-weight-bold">{{ filteredItems.length }} </span>
@@ -28,7 +28,7 @@
             :key="itemType.id"
             :value="itemType.id"
             :color="itemType.color"
-            text-color="#fff"
+            class="text-white"
         >
 
           {{ itemType.id }}
@@ -66,7 +66,7 @@
               v-for="item in filteredItems"
               :key="item.name"
           >
-            <v-card rounded outlined class="fill-height d-flex flex-column">
+            <v-card rounded border class="fill-height d-flex flex-column">
               <v-card-text class="flex-grow-1">
                 <q style="font: 16px Roboto; line-height: 1.3" v-html="item.short"/>
                 <div class="mt-3 d-flex">
@@ -80,9 +80,9 @@
                 </div>
               </v-card-text>
               <v-card-actions class="pt-0">
-                <v-btn small text @click="showMore(item)">More</v-btn>
+                <v-btn size="small" variant="text" @click="showMore(item)">More</v-btn>
                 <v-spacer/>
-                <v-chip small outlined :color="item.color">{{ item.type }}</v-chip>
+                <v-chip size="small" variant="outlined" :color="item.color">{{ item.type }}</v-chip>
               </v-card-actions>
 
             </v-card>
@@ -91,15 +91,15 @@
       </v-col>
     </v-row>
     <div>
-      <v-alert rounded type="info" outlined text class="mt-8">
+      <v-alert rounded type="info" variant="outlined" text class="mt-8">
         <p>
 
           Want to share a testimonial of your own? We'd love to hear it!
         </p>
         <div>
-          <v-btn rounded text color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
+          <v-btn rounded variant="text" color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
             Share testimonial
-            <v-icon right>mdi-open-in-new</v-icon>
+            <v-icon end>mdi-open-in-new</v-icon>
           </v-btn>
         </div>
       </v-alert>
@@ -126,9 +126,9 @@
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-chip small outlined :color="dialogData.color">{{ dialogData.type }}</v-chip>
+          <v-chip size="small" variant="outlined" :color="dialogData.color">{{ dialogData.type }}</v-chip>
           <v-spacer/>
-          <v-btn text @click="closeDialog()">Close</v-btn>
+          <v-btn variant="text" @click="closeDialog()">Close</v-btn>
         </v-card-actions>
 
       </v-card>
@@ -141,7 +141,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "TestimonialsPage",
   components: {},
   props: {},
   data() {
@@ -560,14 +560,6 @@ able to add crucial features to our tool and increase researchers' productivity,
 
 
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen(to, from) {
-    }
-  }
 }
 </script>
 

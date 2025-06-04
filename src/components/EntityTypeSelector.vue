@@ -9,8 +9,8 @@
 <!--    </a>-->
     <v-btn
         rounded
-        text
-        x-large
+        variant="text"
+        size="x-large"
         v-if="$vuetify.display.mobile"
         :id="myId"
         class="pl-0 pr-0"
@@ -21,10 +21,10 @@
     <v-btn
         v-else
         rounded
-        text
+        variant="text"
         class="text-capitalize elevation-0 entity-type-select-btn"
         :id="myId"
-        x-large
+        size="x-large"
 
     >
       <v-icon>{{ entityTypeConfig.icon }}</v-icon>
@@ -97,14 +97,14 @@
               <v-list-item-icon>
                 <v-icon>{{ entityOption.icon }}</v-icon>
               </v-list-item-icon>
-              <v-list-item-content>
+              
                 <v-list-item-title class="text-capitalize">
                   <span>{{ entityOption.displayName }}</span>
                 </v-list-item-title>
                 <v-list-item-subtitle class="">
                   {{ entityOption.descr }}
                 </v-list-item-subtitle>
-              </v-list-item-content>
+              
               <v-list-item-icon v-if="entityType === entityOption.name">
                 <v-icon>mdi-check</v-icon>
               </v-list-item-icon>

@@ -56,7 +56,7 @@
             </div>
           </v-card>
 
-          <v-card outlined class="mb-12" :loading="isLoading">
+          <v-card border class="mb-12" :loading="isLoading">
             <v-card-title>
               Response
               <v-spacer />

@@ -2,15 +2,15 @@
   <div>
     <v-tooltip
         v-if="icon"
-        bottom
+        location="bottom"
         :color="testColor"
         max-width="300"
     >
-      <template v-slot:activator="{ on }">
+      <template v-slot:activator="{ props }">
         <v-btn
-            small
+            size="small"
             icon
-            v-on="on"
+            v-bind="props"
             :color="testColor"
             :to="`/tests/${testSuiteId}/${queryId}/oql/${testId}`"
         >
@@ -27,8 +27,8 @@
           rounded
           :color="testColor"
       >
-        <v-icon v-if="isTestPassing" left color="success">mdi-check-circle</v-icon>
-        <v-icon v-else left color="error">mdi-close-circle</v-icon>
+        <v-icon v-if="isTestPassing" start color="success">mdi-check-circle</v-icon>
+        <v-icon v-else start color="error">mdi-close-circle</v-icon>
         {{ isTestPassing ? 'Passing' : 'Failing' }}
       </v-alert>
 

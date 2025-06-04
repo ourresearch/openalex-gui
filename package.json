@@ -15,6 +15,7 @@
   "dependencies": {
     "@achrinza/node-ipc": "^10.1.9",
     "@mdi/font": "^7.2.96",
+    "@unhead/vue": "^1.8.3",
     "axios": "^0.27.2",
     "body-scroll-lock": "^2.7.1",
     "core-js": "^3.22.0",
@@ -37,7 +38,6 @@
     "vue-click-outside": "^1.1.0",
     "vue-flag-icon": "^2.1.0",
     "vue-json-pretty": "^1.9.4",
-    "@unhead/vue": "^1.8.3",
     "vue-pluralize": "^0.0.2",
     "vue-router": "^4.2.0",
     "vue-sanitize": "^0.2.2",
@@ -48,6 +48,7 @@
     "yaml": "^2.5.1"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.27.5",
     "@babel/plugin-proposal-optional-chaining": "^7.16.7",
     "@mdi/font": "^7.2.96",
     "@vue/cli-plugin-babel": "^5.0.8",
@@ -56,10 +57,10 @@
     "@vue/cli-plugin-vuex": "^5.0.0",
     "@vue/cli-service": "^5.0.8",
     "@vue/compiler-sfc": "^3.4.0",
-    "babel-eslint": "^10.1.0",
     "cypress": "^14.4.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.0.0",
+    "eslint-plugin-vuetify": "^2.5.2",
     "madge": "^8.0.0",
     "node-notifier": "^10.0.1",
     "webpack-bundle-analyzer": "^4.10.2"
@@ -71,10 +72,19 @@
     },
     "extends": [
       "plugin:vue/vue3-essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:vuetify/base"
     ],
+    "plugins": [
+      "vuetify"
+    ],
+    "parser": "vue-eslint-parser",
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false,
+      "babelOptions": {
+        "presets": ["@babel/preset-env"]
+      }
     },
     "rules": {}
   },

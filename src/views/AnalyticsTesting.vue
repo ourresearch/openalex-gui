@@ -10,7 +10,7 @@
         <p>
           OpenAlex Analytics is currently available to invited alpha testers.
           If you'd like to request an invitation, please send an email to
-          <span class="font-weight-medium primary--text">
+          <span class="font-weight-medium text-primary">
             <a href="mailto:brett@ourresearch.org">brett@ourresearch.org</a>
           </span>
           including:

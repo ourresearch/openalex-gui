@@ -2,7 +2,7 @@
   <span>
     <router-link :to="linkTo" class="text-decoration-none">
       {{ displayName }}
-      <span class="caption">({{ filters.millify(role.works_count) }}){{(appendComma) ? "," : ""}}</span>
+      <span class="text-caption">({{ filters.millify(role.works_count) }}){{(appendComma) ? "," : ""}}</span>
     </router-link>
 
   </span>

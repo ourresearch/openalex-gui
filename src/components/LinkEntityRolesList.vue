@@ -1,16 +1,16 @@
 <template>
   <span>
     <v-menu>
-      <template v-slot:activator="{on}">
+      <template v-slot:activator="{props}">
         <v-btn
-            text
+            variant="text"
             rounded
             class="font-weight-regular "
-            v-on="on"
+            v-bind="props"
         >
-          <v-icon left>{{ selectedRoleConfig.icon }}</v-icon>
+          <v-icon start>{{ selectedRoleConfig.icon }}</v-icon>
           {{ filters.capitalize(selectedRoleConfig.nameSingular) }}
-          <v-icon right>mdi-menu-down</v-icon>
+          <v-icon end>mdi-menu-down</v-icon>
         </v-btn>
       </template>
       <v-list>
@@ -22,9 +22,9 @@
           <v-list-item-icon>
             <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>{{ role.role }}</v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-icon>
             <v-icon v-if="role.role === selected">mdi-check</v-icon>
           </v-list-item-icon>

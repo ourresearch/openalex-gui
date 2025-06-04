@@ -42,8 +42,8 @@
       <user-toolbar-menu/>
 
       <v-menu v-if="!$vuetify.display.mobile" offset-y>
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on">
+        <template v-slot:activator="{props}">
+          <v-btn icon v-bind="props">
             <v-icon>mdi-help-circle-outline</v-icon>
           </v-btn>
         </template>
@@ -52,21 +52,21 @@
             <v-list-item-icon>
               <v-icon>mdi-comment-question-outline</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 Contact support
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
           <v-list-item href="https://help.openalex.org/" target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-help-circle-outline</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 Visit help center
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
       </v-menu>
@@ -89,11 +89,11 @@
     <site-footer/>
 
     <v-snackbar
-        top
+        location="top"
         v-model="$store.state.snackbarIsOpen"
         :color="$store.state.snackbarColor"
     >
-      <v-icon dark left v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+      <v-icon dark start v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
       {{ $store.state.snackbarMsg }}
 
       <template v-slot:action="{ attrs }">
@@ -324,10 +324,6 @@ $color-0: hsl(212, 77%, 82%);
     padding-top: 12px;
     background-color: white;
   }
-  .v-card__actions {
-    //background-color: $color-1;
-
-  }
 }
 .v-card.button-card {
   transition: background-color 300ms;
@@ -390,9 +386,6 @@ html, body {
 .v-btn--is-elevated {
   box-shadow: none;
 }
-.theme--light.v-list-item--active::before {
-  //opacity: 0;
-}
 .white-space-normal {
   white-space: normal !important;
 }
@@ -416,12 +409,6 @@ $logo-link-height: 35px;
     font-size: $logo-link-height * 0.75;
     font-weight: 500;
   }
-}
-// https://stackoverflow.com/a/40444657
-//.colorizable { filter: contrast(1000%) invert(100%) sepia(100%) saturate(10000%) brightness(.4) hue-rotate(70deg);}
-.v-btn--active.no-active {
-  //text-decoration: underline !important;
-  //border-bottom: 3px solid #333;
 }
 body {
   .v-application {
@@ -456,17 +443,7 @@ body {
   font-weight: normal !important;
   letter-spacing: 0 !important;
 }
-.v-icon.mdi-checkbox-blank-outline,
-.v-icon.mdi-checkbox-blank-circle-outline {
-  //opacity: 0.2 !important;
-}
-.v-icon.mdi-plus {
-  //opacity: .7 !important;
-}
-.v-list-item__icon {
-  //margin-top: 8px !important;
-}
-.v-list-item__action, {
+.v-list-item__action {
   align-self: flex-start;
   margin-top: 8px;
 }
@@ -481,9 +458,6 @@ body {
 }
 .v-application--is-ltr .v-list-item__action:first-child, .v-application--is-ltr .v-list-item__icon:first-child {
   margin-right: 8px;
-}
-.v-expansion-panel-content__wrap {
-  //padding: 0 16px 16px;
 }
 .capitalize-first-letter::first-letter {
   text-transform: uppercase !important;

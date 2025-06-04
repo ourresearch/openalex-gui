@@ -26,23 +26,21 @@
           <v-col>
             <v-tabs
                 v-model="resultsTab"
-                background-color="transparent"
+                bg-color="transparent"
                 grow
                 class=""
             >
-              <v-tab key="0">Results</v-tab>
-              <v-tab key="1">Stats</v-tab>
+              <v-tab value="results">Results</v-tab>
+              <v-tab value="stats">Stats</v-tab>
             </v-tabs>
 
             <v-card rounded flat>
-              <v-tabs-items v-model="resultsTab">
-                <v-tab-item key="0">
-                  <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
-                </v-tab-item>
-                <v-tab-item key="1">
-                  <analytic-views :results-object="resultsObject" />
-                </v-tab-item>
-              </v-tabs-items>
+              <div v-if="resultsTab === 'results'">
+                <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
+              </div>
+              <div v-if="resultsTab === 'stats'">
+                <analytic-views :results-object="resultsObject" />
+              </div>
             </v-card>
 
           </v-col>
@@ -69,29 +67,19 @@ import {filtersFromUrlStr} from "@/filterConfigs";
 import {facetConfigs} from "../facetConfigs";
 
 import SerpResultsList from "@/components/SerpResultsList.vue";
-import ApiDialog from "../components/ApiDialog.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
-import GroupBy from "../components/GroupBy/GroupBy.vue";
 import AnalyticViews from "@/components/AnalyticViews.vue";
 import FilterList from "@/components/FilterList.vue";
-import Action from "@/components/Action/Action.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
-import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import QrcodeVue from 'qrcode.vue'
 
 export default {
-  name: "Serp",
+  name: "SerpPage",
   components: {
     SerpToolbar,
-    SerpResultsCount,
     SerpResultsList,
-    ApiDialog,
     SerpApiEditor,
-    Action,
-    GroupBy,
     AnalyticViews,
     FilterList,
-    QrcodeVue,
   },
   props: {},
   data() {
@@ -298,7 +286,7 @@ export default {
   watch: {
     filtersLength: {
       immediate: false,
-      handler(to, from) {
+      handler() {
         // const msg = (to > from) ? "Filter added" : "Filter removed"
         // this.snackbar(msg)
       }
@@ -311,7 +299,7 @@ export default {
     },
     "$route": {
       immediate: true,
-      async handler(to, from) {
+      async handler(to) {
         // console.log("Serp $route watcher", to, from)
         if (this.$route.query.id && !this.userSavedSearches.find(s => s.id === this.$route.query.id)) {
           console.log("404 search id doesn't exist", this.$route.params.entityType)
@@ -327,7 +315,6 @@ export default {
           this.$store.commit("user/setActiveSearchId", this.$route.query.id)
         }
 
-        const scrollTop = window.scrollY
         const apiQuery = url.makeApiUrl(this.$route)
 
         this.$store.state.isLoading = true
@@ -349,19 +336,9 @@ export default {
 </script>
 
 <style lang="scss">
-.container {
-  //max-width: 1024px !important;
-}
-
 .v-pagination__item, .v-pagination__navigation {
   box-shadow: none;
 }
-
-.serp-page {
-  //background: #F3F7FF;
-}
-
-
 table.serp-results-table {
   border-collapse: collapse;
 

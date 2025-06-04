@@ -6,10 +6,10 @@
         <div>
           {{queries.length}} queries
         </div>
-        <div v-if="passCount > 0" class="success--text">
+        <div v-if="passCount > 0" class="text-success">
           {{ passCount }} passing
         </div>
-        <div v-if="failCount > 0" class="error--text">
+        <div v-if="failCount > 0" class="text-error">
           {{ failCount }} failing
         </div>
         <div v-if="loadingCount > 0" class="">
@@ -43,11 +43,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import axios from "axios";
 import TestQuery from "@/components/TestQuery/TestQuery.vue";
-import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
-import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import {getTestSuite} from "@/components/TestQuery/tests";
 
 export default {

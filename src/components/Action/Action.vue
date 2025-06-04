@@ -3,16 +3,16 @@
     <v-menu
         rounded
     >
-      <template v-slot:activator="{on}">
-        <v-btn v-on="on" icon large color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
+      <template v-slot:activator="{props}">
+        <v-btn v-on="on" icon size="large" color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
         </v-btn>
         <v-btn
             v-else
             icon
             rounded
-            text
-            v-on="on"
+            variant="text"
+            v-bind="props"
             class=""
             :disabled="disabled"
         >
@@ -50,20 +50,20 @@
             <v-list-item-icon>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>
           </v-list-item>
           <v-divider/>
           <v-list-item @click="openMoreDialog">
-            <v-list-item-content>
+            
               <v-list-item-title>More</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
 
         </v-list>
@@ -96,11 +96,11 @@
             <v-list-item-icon>
               <v-icon>{{ getKeyIcon(key) }}</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>

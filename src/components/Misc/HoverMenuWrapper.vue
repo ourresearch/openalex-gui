@@ -8,21 +8,21 @@
         :open-on-hover="true"
         :close-delay="300"
         offset-y
-        bottom
+        location="bottom"
         :nudge-width="0"
         :nudge-bottom="4"
         max-width="auto"
         content-class="auto-width-menu"
       >
-        <template v-slot:activator="{ on }">
-          <span v-on="on">
+        <template v-slot:activator="{ props }">
+          <span v-bind="props">
             <slot></slot>
           </span>
         </template>
-        <v-list dense class="compact-menu py-0">
-          <v-list-item @click="$emit('action-click')" dense class="py-1 px-2">
+        <v-list density="compact" class="compact-menu py-0">
+          <v-list-item @click="$emit('action-click')" density="compact" class="py-1 px-2">
             <v-list-item-icon class="mr-2 ml-0 my-0 pa-0" style="min-width: 24px;">
-              <v-icon small class="centered-icon">{{ actionIcon }}</v-icon>
+              <v-icon size="small" class="centered-icon">{{ actionIcon }}</v-icon>
             </v-list-item-icon>
             <v-list-item-title class="text-body-2 pr-2">{{ actionText }}</v-list-item-title>
           </v-list-item>

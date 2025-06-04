@@ -45,8 +45,6 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-
 export default {
   name: "TestQueriesSuitesList",
 }

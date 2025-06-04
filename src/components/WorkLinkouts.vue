@@ -16,10 +16,10 @@
         HTML
       </template>
       <template v-else>
-        <v-icon left>mdi-lock</v-icon>
+        <v-icon start>mdi-lock</v-icon>
         HTML
       </template>
-      <v-icon small class="ml-1">mdi-open-in-new</v-icon>
+      <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
     </v-btn>
 
 

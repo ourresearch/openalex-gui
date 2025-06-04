@@ -16,7 +16,7 @@
       <v-textarea
           v-model="queryString"
           autofocus
-          filled
+          variant="filled"
           clearable
           auto-grow
           rounded
@@ -33,7 +33,7 @@
         <v-btn
             color="primary"
             fab
-            small
+            size="small"
             @click="setQueryString"
             class=""
             style="margin-top:-22px;"

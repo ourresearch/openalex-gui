@@ -3,14 +3,14 @@
     <v-autocomplete
         v-model="select"
         :items="suggestions"
-        :search-input="searchString" @update:search-input="onSearchInputUpdate"
-        :filter="(item, queryText, itemText) => true"
+        :search="searchString" @update:search="onSearchInputUpdate"
+        :customFilter="(item, queryText, itemText) => true"
         :menu-props="{maxHeight: 600,}"
-        item-text="displayValue"
+        item-title="displayValue"
         return-object
         rounded
-        :dense="dense"
-        filled
+        :density="dense ? 'compact' : undefined"
+        variant="filled"
         clearable
         hide-no-data
         hide-details
@@ -20,7 +20,7 @@
         ref="shortcutBox"
         :autofocus="autofocus"
         :loading="isLoading"
-        @change="onChange"
+        @update:model-value="onChange"
         @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
@@ -28,12 +28,12 @@
       <template v-slot:prepend-inner>
         <v-chip
             v-if="newFilter"
-            close
+            closable
             @click:close="clear"
             class="pa-5"
             style="margin: -9px 0 0 -9px; border-radius: 30px;"
         >
-          <v-icon left>
+          <v-icon start>
             {{ newFilter.icon }}
           </v-icon>
           {{ newFilter?.displayName }}
@@ -45,34 +45,34 @@
           <v-icon>{{ data.item.icon }}</v-icon>
         </v-list-item-icon>
         <template v-if="data.item.isFilterLink">
-          <v-list-item-content>
+          
             <v-list-item-title>
               <span class="font-weight-bold">{{ filters.capitalize(data.item.displayValue) }}</span>
             </v-list-item-title>
             <v-list-item-subtitle>
               Filter by {{ data.item.displayValue }}
             </v-list-item-subtitle>
-          </v-list-item-content>
+          
           <v-list-item-icon>
             <v-icon>mdi-filter-plus</v-icon>
           </v-list-item-icon>
         </template>
 
         <template v-else-if="data.item.key === defaultSearchType">
-          <v-list-item-content>
+          
             <v-list-item-title>
               <span class="">Search for</span>
               <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
               <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.displayName }}</span>
             </v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-action-text>
             press Enter
           </v-list-item-action-text>
         </template>
 
         <template v-else>
-          <v-list-item-content>
+          
             <v-list-item-title
                 v-html="filters.prettyTitle(data.item.displayValue)"
                 style="white-space: normal;"
@@ -83,7 +83,7 @@
                 {{ filters.truncate(data.item.hint) }}
               </span>
             </v-list-item-subtitle>
-          </v-list-item-content>
+          
           <v-list-item-action v-if="data.item.entityId" @click="goToEntity(data.item.value)">
             <v-btn icon>
               <v-icon>mdi-information-outline</v-icon>
@@ -94,7 +94,7 @@
       </template>
     </v-autocomplete>
     <div class="ml-2 mt-2" v-if="showExamples">
-      <span class="body-2 grey--text">Try:</span>
+      <span class="text-body-2 text-grey">Try:</span>
       <v-chip
           color="white"
           v-for="search in searchesToTry"
@@ -387,7 +387,7 @@ export default {
       }
     }, 10)
   },
-  beforeDestroy() {
+  beforeUnmount() {
     clearInterval(this.interval)
     window.removeEventListener("keypress", this.onKeyPress);
   },

@@ -10,8 +10,8 @@
     </div>
     <v-spacer />
     <v-card-actions>
-      <v-chip label outlined>{{type}}</v-chip>
-      <v-chip label outlined>{{category}}</v-chip>  
+      <v-chip label variant="outlined">{{type}}</v-chip>
+      <v-chip label variant="outlined">{{category}}</v-chip>  
    
       <!--
       <v-chip outlined label :color="this.color('type')">{{type}}</v-chip>

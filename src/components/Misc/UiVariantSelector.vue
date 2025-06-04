@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-menu offset-y>
-      <template v-slot:activator="{ on }">
-        <v-btn icon v-on="on">
+      <template v-slot:activator="{ props }">
+        <v-btn icon v-bind="props">
           <v-icon>mdi-monitor-dashboard</v-icon>
         </v-btn>
       </template>

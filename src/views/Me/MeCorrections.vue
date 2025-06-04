@@ -2,7 +2,7 @@
   <div>
     <div class="text-h4 ml-1">My Corrections</div>
 
-    <v-card rounded outlined class="my-4">
+    <v-card rounded border class="my-4">
 
       <v-alert type="warning" icon="mdi-progress-wrench">
         Support for submitting data correction will be coming soon.
@@ -14,13 +14,11 @@
             v-for="cor in userCorrections"
             :key="cor.id"
         >
-          <v-list-item-icon>
-            <v-icon>mdi-tag-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          <v-icon>mdi-tag-outline</v-icon>
+          
             <v-list-item-title>{{ cor.name }}</v-list-item-title>
             <v-list-item-subtitle>{{ cor.comments }}</v-list-item-subtitle>
-          </v-list-item-content>
+          
           <v-list-item-action>
             <v-btn icon @click="deleteCorrection(cor.id)">
               <v-icon>mdi-delete-outline</v-icon>
@@ -36,7 +34,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: "MeCorrections",

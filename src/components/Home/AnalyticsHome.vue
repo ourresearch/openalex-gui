@@ -7,12 +7,12 @@
         </div>
         <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium" class="ml-4"/>
         <v-spacer />
-        <v-btn small color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
-          <v-icon left >mdi-video-outline</v-icon>
+        <v-btn size="small" color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
+          <v-icon start >mdi-video-outline</v-icon>
           Watch a Tutorial
         </v-btn>
-        <v-btn small color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
-          <v-icon left >mdi-book-open-outline</v-icon>
+        <v-btn size="small" color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
+          <v-icon start >mdi-book-open-outline</v-icon>
           Read the Docs
         </v-btn>
       </v-row>
@@ -29,21 +29,21 @@
           label="Search Examples..."
           placeholder=""
           rounded
-          outlined
+          variant="outlined"
           clearable
           prepend-inner-icon="mdi-magnify"
           class="search-field flex-grow-1"
           hide-details
-          background-color="white"
+          bg-color="white"
         ></v-text-field>
         <v-select
           v-model="selectedFilter"
           :items="filterOptions"
           rounded
-          outlined
+          variant="outlined"
           hide-details
           class="ml-4 filter-select"
-          background-color="white"
+          bg-color="white"
         ></v-select>
       </v-row>
 

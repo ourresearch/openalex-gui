@@ -4,7 +4,7 @@
       :disabled="isNatLangLoading || disabled"
       autofocus
       auto-grow
-      filled
+      variant="filled"
       rounded
       hide-details
       rows="2"
@@ -15,7 +15,7 @@
     <!--      prepend-inner-icon="mdi-code-parentheses-box"-->
     <template v-slot:append>
       <v-btn
-          large icon style="margin-top: -11px; margin-right: -13px;"
+          size="large" icon style="margin-top: -11px; margin-right: -13px;"
           @click="applyQ"
           :disabled="isNatLangLoading"
           :loading="isNatLangLoading"
@@ -25,13 +25,13 @@
     </template>
     <template v-if="naturalLanguage" v-slot:prepend-inner>
       <v-menu rounded max-width="300" offset-y>
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-btn
-              large
-              v-on="on"
+              size="large"
+              v-bind="props"
               style="margin: -11px 0 0 -19px; min-width: 1px; border-radius: 10px;"
               class="pl-1 pr-0"
-              text
+              variant="text"
           >
             <v-icon>{{ inputTypes.find(it => it.id === selectedInputType).icon }}</v-icon>
             <!--            {{ inputTypes.find(it => it.id === selectedInputType).displayName }}-->
@@ -52,13 +52,13 @@
               <v-list-item-icon>
                 <v-icon>{{ inputType.icon }}</v-icon>
               </v-list-item-icon>
-              <v-list-item-content>
+              
                 <v-list-item-title>{{ inputType.displayName }}</v-list-item-title>
                 <v-list-item-subtitle class="white-space-normal">
                   {{ inputType.description }}
                 </v-list-item-subtitle>
 
-              </v-list-item-content>
+              
             </v-list-item>
 
           </v-list-item-group>

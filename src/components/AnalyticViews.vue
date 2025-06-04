@@ -8,8 +8,8 @@
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-menu offset-y v-if="0">
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on">
+        <template v-slot:activator="{props}">
+          <v-btn icon v-bind="props">
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
@@ -18,9 +18,9 @@
             <v-list-item-icon>
               <v-icon>mdi-restore</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>Restore report defaults</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
 
           <v-divider/>
@@ -28,18 +28,18 @@
             <v-list-item-icon>
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>Export all</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>View in API</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action-text>.json</v-list-item-action-text>
           </v-list-item>
         </v-list>
@@ -54,14 +54,14 @@
             class="d-flex flex-column"
         >
           <template v-if="i === 0">
-            <v-card flat rounded class="white pa-3 mb-3">
+            <v-card flat rounded class="bg-white pa-3 mb-3">
               <serp-results-count :results-object="resultsObject" class="text-h5"/>
             </v-card>
           </template>
 
           <v-card flat rounded v-if="key === 'apc_sum'">
             <v-toolbar flat>
-              <v-icon left>mdi-currency-usd</v-icon>
+              <v-icon start>mdi-currency-usd</v-icon>
               <v-toolbar-title>APC sums</v-toolbar-title>
               <v-spacer/>
               <v-btn icon @click="url.toggleGroupBy('apc_sum')">
@@ -82,7 +82,7 @@
           </v-card>
 
           <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
-            <v-icon left>mdi-format-quote-close</v-icon>
+            <v-icon start>mdi-format-quote-close</v-icon>
             <span class="text-h5 mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
             <div class="align-self-baseline ">citations</div>
             <v-spacer/>
@@ -100,7 +100,7 @@
         </v-col>
 
       </v-row>
-      <v-card v-else flat rounded class="grey--text mt-2 pa-4 color-3">
+      <v-card v-else flat rounded class="text-grey mt-2 pa-4 color-3">
         There are no results to analyze.
       </v-card>
 

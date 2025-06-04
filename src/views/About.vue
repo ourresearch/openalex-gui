@@ -93,7 +93,7 @@
     <p>
       Here we offer a comparison of some of the different options available, across just a few aspects:
     </p>
-    <v-simple-table id="comparisonTable">
+    <v-table id="comparisonTable">
       <template v-slot:default>
         <thead>
           <tr>
@@ -132,7 +132,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
     <h4 class="text-h4" id="acknowledgements">Acknowledgements</h4>
     <p>
       We'd like to thank everyone behind all our <a href="#sources">data sources,</a> but especially the folks at <a

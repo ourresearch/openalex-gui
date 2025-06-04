@@ -3,23 +3,23 @@
     <h3 class="text-h3">OpenAlex Stats</h3>
     <v-card class="mx-auto" max-width="800px">
       <v-progress-circular indeterminate v-if="loading" />
-      <v-expansion-panels focusable v-else>
+      <v-expansion-panels v-else>
         <v-expansion-panel v-for="(item, i) in items" :key="i">
-          <v-expansion-panel-header :hide-actions="!item.children"
+          <v-expansion-panel-title :hide-actions="!item.children"
             @click="item.onClick && !item.clicked ? item.onClick() : null">
-            <v-chip label outlined large class="text-button">
-              <v-icon large>{{ item.icon }}</v-icon>
+            <v-chip label variant="outlined" size="large" class="text-button">
+              <v-icon size="large">{{ item.icon }}</v-icon>
               <div class="px-6">
                 {{ item.value.toLocaleString() }} {{ item.text }}
               </div>
             </v-chip>
-          </v-expansion-panel-header>
+          </v-expansion-panel-title>
 
-          <v-expansion-panel-content>
+          <v-expansion-panel-text>
             <v-list>
               <v-list-item v-for="(child, j) in item.children" :key="j">
-                <v-chip label outlined large class="text-button">
-                  <v-icon large>{{ child.icon }}</v-icon>
+                <v-chip label variant="outlined" size="large" class="text-button">
+                  <v-icon size="large">{{ child.icon }}</v-icon>
                   <div v-if="child.value" class="px-6">
                     {{ child.value.toLocaleString() }} {{ child.text }}
                   </div>
@@ -27,7 +27,7 @@
                 </v-chip>
               </v-list-item>
             </v-list>
-          </v-expansion-panel-content>
+          </v-expansion-panel-text>
 
         </v-expansion-panel>
       </v-expansion-panels>

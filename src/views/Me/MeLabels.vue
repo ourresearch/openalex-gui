@@ -6,9 +6,9 @@
         v-if="!labelId" 
         @click="isLabelCreateDialogOpen = true"
         color="primary"
-        small
+        size="small"
         class="new-label-button">
-        <v-icon left>mdi-plus</v-icon>New Label
+        <v-icon start>mdi-plus</v-icon>New Label
       </v-btn>
     </div>
     
@@ -26,13 +26,11 @@
             :key="label.id"
             :to="'/me/labels/' + label.id"
         >
-          <v-list-item-icon>
             <v-icon>mdi-tag-outline</v-icon>
-          </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>{{ label.name }}</v-list-item-title>
             <v-list-item-subtitle>{{ label.ids.length + " " + label.entity_type}}</v-list-item-subtitle>
-          </v-list-item-content>
+          
           <v-list-item-action>
             <v-btn icon @click.stop.prevent="deleteCollection(label.id)">
               <v-icon>mdi-delete-outline</v-icon>

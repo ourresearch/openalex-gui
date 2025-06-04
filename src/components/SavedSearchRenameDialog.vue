@@ -6,7 +6,7 @@
           <v-text-field
               autofocus
               rounded
-              filled
+              variant="filled"
               clearable
               prepend-inner-icon="mdi-magnify"
               placeholder="New name"
@@ -25,8 +25,8 @@
         </div>
         <v-card-actions>
           <v-spacer />
-          <v-btn text rounded @click="isOpen = false">Cancel</v-btn>
-          <v-btn text rounded color="primary" @click="rename">Rename</v-btn>
+          <v-btn variant="text" rounded @click="isOpen = false">Cancel</v-btn>
+          <v-btn variant="text" rounded color="primary" @click="rename">Rename</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

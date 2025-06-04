@@ -8,14 +8,14 @@
         </div>
         <v-progress-linear
           :key="elapsedTime === 0 ? 'reset' : 'progress'"
-          :value="progressValue"
+          :model-value="progressValue"
           height="8"
           rounded
           color="primary"
           style="width: 100%"
           :active="true"
         />
-        <v-btn class="mt-2" small @click="cancelSearch">Cancel</v-btn>
+        <v-btn class="mt-2" size="small" @click="cancelSearch">Cancel</v-btn>
       </div>
     </v-row>
   </v-container>
@@ -68,7 +68,7 @@ export default {
   mounted() {
     this.startTimer();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.clearTimer();
   },
   methods: {

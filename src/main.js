@@ -1,5 +1,4 @@
 import { createApp } from 'vue';
-import _ from 'lodash';
 import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';
 import router from './router';

@@ -3,7 +3,7 @@
    <v-card
       rounded
       flat
-      outlined
+      border
       class="fill-height d-flex flex-column"
       style="max-width: 500px"
       :loading="status === 'loading' ? 'grey lighten-2' : undefined"
@@ -13,28 +13,28 @@
       {{config.title}}
     </div>
 
-    <div class=" monospace body-2 pa-3">
-      <span v-if="status === 'pass'" class="success--text">
+    <div class=" monospace text-body-2 pa-3">
+      <span v-if="status === 'pass'" class="text-success">
         {{ config.oql }}
       </span>
-      <span v-else-if="status === 'fail'" class="error--text">
+      <span v-else-if="status === 'fail'" class="text-error">
         {{ config.oql }}
       </span>
-      <span v-else class="grey--text">{{ config.oql }}</span>
+      <span v-else class="text-grey">{{ config.oql }}</span>
     </div>
 
-    <div class=" monospace body-2 pa-3">
-      <span v-if="isSearchPassing === true" class="success--text">{{ returnData.meta.count }} results</span>
-      <span v-else-if="returnData?.meta.count === 0" class="error--text">{{ returnData.meta.count }} results</span>
-      <span v-else-if="searchError" class="error--text">{{ searchError }}</span>
+    <div class=" monospace text-body-2 pa-3">
+      <span v-if="isSearchPassing === true" class="text-success">{{ returnData.meta.count }} results</span>
+      <span v-else-if="returnData?.meta.count === 0" class="text-error">{{ returnData.meta.count }} results</span>
+      <span v-else-if="searchError" class="text-error">{{ searchError }}</span>
     </div>
 
-    <div class=" monospace body-2 pa-3" v-if="returnData?.timestamps?.duration">
-      <span class="success--text">{{ filters.toPrecision(returnData.timestamps.duration, 3) }} seconds</span>
+    <div class=" monospace text-body-2 pa-3" v-if="returnData?.timestamps?.duration">
+      <span class="text-success">{{ filters.toPrecision(returnData.timestamps.duration, 3) }} seconds</span>
     </div>
 
-    <div v-if="config.error" class="monospace body-2 pa-3">
-      <span class="error--text"><b>Note:</b> {{ config.error }}</span>
+    <div v-if="config.error" class="monospace text-body-2 pa-3">
+      <span class="text-error"><b>Note:</b> {{ config.error }}</span>
     </div>
 
     <div class="fill-height"></div>
@@ -57,16 +57,16 @@
       </template>
 
       <v-tooltip
-          bottom
+          location="bottom"
           :color="searchTestColor"
           max-width="300"
           v-if="runSearch"
       >
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-btn
-              small
+              size="small"
               icon
-              v-on="on"
+              v-bind="props"
               :color="searchTestColor"
               :disabled="!isSearchTestComplete"
               :href="'/s/' + searchId"

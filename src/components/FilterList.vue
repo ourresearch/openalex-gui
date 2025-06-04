@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div v-if="filters.length" class="body-2 px-5 py-2 grey--text">
+    <div v-if="filters.length" class="text-body-2 px-5 py-2 text-grey">
       Show {{ entityType }} where:
     </div>
     <v-card rounded flat class="mb-12">
 
       <div class="px-2" v-if="!isCollapsed">
-        <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 grey--text">
+        <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 text-grey">
           No filters applied
         </div>
         <table v-if="$vuetify.display.mdAndUp" style="width: 100%;">
@@ -41,7 +41,7 @@
               @click="clearEverything"
               v-if="filters.length"
               fab
-              small
+              size="small"
               class="ml-3 elevation-0"
               color="white"
               style="position: relative; top: 5px; border: 2px solid #fff;"

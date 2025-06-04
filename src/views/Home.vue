@@ -19,7 +19,7 @@
 
         </v-col>
         <v-spacer></v-spacer>
-        <v-btn text rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
+        <v-btn variant="text" rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
           <v-icon>mdi-chevron-down</v-icon>
           Learn more
         </v-btn>
@@ -27,8 +27,8 @@
 
     </v-container>
     <v-divider id="learn-more" class=""/>
-    <div class="color-3 lighten-5 py-4 mb-12">
-      <div class="text-center body-2 grey--text pb-2">
+    <div class="color-3-lighten-5 py-4 mb-12">
+      <div class="text-center text-body-2 text-grey pb-2">
         Trusted by hundreds of institutions worldwide, including
       </div>
       <div class="d-flex align-center justify-center flex-wrap user-logo-container"
@@ -56,10 +56,10 @@
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-earth-plus</v-icon>
+              <v-icon start color="black">mdi-earth-plus</v-icon>
               Industry-leading coverage
             </v-card-title>
-            <v-card-text class="body-1 flex-grow-1">
+            <v-card-text class="text-body-1 flex-grow-1">
               <p>
                 We index over <strong>250M</strong> scholarly works from 250k sources, with extra coverage of
                 humanities,
@@ -72,8 +72,8 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer/>
-              <v-btn text rounded href="https://help.openalex.org" target="_blank">
-                <v-icon left>mdi-chart-bar</v-icon>
+              <v-btn variant="text" rounded href="https://help.openalex.org" target="_blank">
+                <v-icon start>mdi-chart-bar</v-icon>
                 About the data
               </v-btn>
             </v-card-actions>
@@ -82,10 +82,10 @@
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-lock-open-variant</v-icon>
+              <v-icon start color="black">mdi-lock-open-variant</v-icon>
               Open, top to bottom
             </v-card-title>
-            <v-card-text class="body-1 flex-grow-1">
+            <v-card-text class="text-body-1 flex-grow-1">
               <p>
                 Export all your search results for free. For more flexibility use our API or even download the whole
                 dataset. It's all CC0-licensed so you can share and reuse it as you like!
@@ -96,17 +96,17 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer/>
-              <v-btn text rounded href="https://docs.openalex.org/" target="_blank">
-                <v-icon left>mdi-cog-outline</v-icon>
+              <v-btn variant="text" rounded href="https://docs.openalex.org/" target="_blank">
+                <v-icon start>mdi-cog-outline</v-icon>
                 API
               </v-btn>
-              <v-btn text rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot"
+              <v-btn variant="text" rounded href="https://docs.openalex.org/download-all-data/openalex-snapshot"
                      target="_blank">
-                <v-icon left>mdi-database-outline</v-icon>
+                <v-icon start>mdi-database-outline</v-icon>
                 Data
               </v-btn>
-              <v-btn text rounded href="https://github.com/ourresearch" target="_blank">
-                <v-icon left>mdi-code-braces</v-icon>
+              <v-btn variant="text" rounded href="https://github.com/ourresearch" target="_blank">
+                <v-icon start>mdi-code-braces</v-icon>
                 Code
               </v-btn>
             </v-card-actions>
@@ -115,10 +115,10 @@
         <v-col cols="12" lg="4" class="">
           <v-card rounded flat class="color-3 fill-height d-flex flex-column">
             <v-card-title class="color-2 mb-3">
-              <v-icon left color="black">mdi-hand-heart</v-icon>
+              <v-icon start color="black">mdi-hand-heart</v-icon>
               Sustainably not-for-profit
             </v-card-title>
-            <v-card-text class="body-1 flex-grow-1">
+            <v-card-text class="text-body-1 flex-grow-1">
               <p>
                 OpenAlex is made by OurResearch, a nonprofit dedicated to making research open. And we've got a
                 decade's
@@ -130,12 +130,12 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer/>
-              <v-btn text rounded href="https://ourresearch.org/" target="_blank">
-                <v-icon left>mdi-account-multiple-outline</v-icon>
+              <v-btn variant="text" rounded href="https://ourresearch.org/" target="_blank">
+                <v-icon start>mdi-account-multiple-outline</v-icon>
                 About us
               </v-btn>
-              <v-btn text rounded href="https://help.openalex.org/pricing" target="_blank">
-                <v-icon left>mdi-diamond-stone</v-icon>
+              <v-btn variant="text" rounded href="https://help.openalex.org/pricing" target="_blank">
+                <v-icon start>mdi-diamond-stone</v-icon>
                 Upgrade
               </v-btn>
             </v-card-actions>
@@ -152,18 +152,14 @@
 
 <script>
 
-import {VueTyper} from 'vue-typer'
 import {mapGetters} from "vuex";
 import { useHead } from '@unhead/vue';
 
-import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 
 export default {
-  name: 'home',
+  name: 'HomePage',
   components: {
-    UserSavedSearch,
-    VueTyper,
     ShortcutBox,
   },
   created() {
@@ -191,11 +187,7 @@ export default {
       "userSavedSearches",
     ]),
     logoHeight() {
-      return 75
-
-      return this.$vuetify.display.mobile ?
-          50 :
-          75
+      return 75;
     }
   },
   methods: {},
@@ -257,14 +249,5 @@ export default {
       height: 40px;
     }
   }
-
 }
-
-
-.above-the-fold {
-  /*background: linear-gradient(0deg, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 100%);*/
-  //background: linear-gradient(0deg, #eee 20%, #fff 20%);
-}
-
-
 </style>

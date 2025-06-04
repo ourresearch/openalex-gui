@@ -6,10 +6,10 @@
             color="primary"
             rounded
             class="my-2"
-            text
+            variant="text"
             @click="$router.back()"
         >
-          <v-icon left>mdi-arrow-left</v-icon>
+          <v-icon start>mdi-arrow-left</v-icon>
           back
         </v-btn>
       </div>
@@ -36,12 +36,12 @@
           </v-card>
           <v-card flat rounded class="mt-3">
             <v-toolbar flat>
-              <v-icon left>mdi-file-document-outline</v-icon>
+              <v-icon start>mdi-file-document-outline</v-icon>
               <v-toolbar-title class="font-weight-bold">
                 Top works
               </v-toolbar-title>
               <v-spacer/>
-              <v-btn color="primary" rounded text @click="viewMyWorks">
+              <v-btn color="primary" rounded variant="text" @click="viewMyWorks">
                 View all
               </v-btn>
             </v-toolbar>
@@ -57,7 +57,7 @@
         <v-col cols="12" md="5">
           <v-card flat rounded class="px-2 pb-3">
             <v-toolbar flat>
-              <v-icon left>mdi-clipboard-outline</v-icon>
+              <v-icon start>mdi-clipboard-outline</v-icon>
               <v-toolbar-title class="font-weight-bold">
                 Key stats
               </v-toolbar-title>
@@ -94,8 +94,6 @@ import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 import SerpResultsListItemWork from "@/components/SerpResultsListItem.vue";
-import WorkLinkouts from "@/components/WorkLinkouts.vue";
-import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
 
 export default {
@@ -103,9 +101,7 @@ export default {
   components: {
     EntityNew,
     SerpResultsListItemWork,
-    WorkLinkouts,
     GroupBy,
-    LinkEntityRolesList,
     EntityHeader,
   },
   props: {},
@@ -201,7 +197,7 @@ export default {
   watch: {
     'apiPath': {
       immediate: true,
-      async handler(to, from) {
+      async handler() {
         this.myEntityType = this.$route.params.entityType;
         this.getEntityData();
         this.getWorks();

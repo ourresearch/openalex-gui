@@ -9,10 +9,10 @@
           hide-details
           rows="6"
           no-resize
-          outlined
+          variant="outlined"
           :placeholder="`Paste or type ${acceptedIdsNames} separated by new lines or commas`"
         ></v-textarea>
-        <div v-if="idType !== 'openalex'" class="caption grey--text mt-1" style="font-size: 12px;">
+        <div v-if="idType !== 'openalex'" class="text-caption text-grey mt-1" style="font-size: 12px;">
           Reading inputs as {{ idType.toUpperCase() }}
         </div>
 
@@ -23,7 +23,7 @@
           <v-textarea
             v-model="recheckInput"
             rows="4"
-            outlined
+            variant="outlined"
             no-resize
             hide-details
             class="mt-1"
@@ -38,8 +38,8 @@
           <div class="font-weight-bold recognized-header">{{ validIds.length }} {{ entitySingularOrPlural(validIds.length) }} recognized</div>
           <div class="recognized-id-list mt-1">
             <div v-for="item in validIds" :key="item.id" class="recognized-id-list-item recognized-id-row">
-              <span>{{ item.id }} <span class="grey--text">({{ item.display_name }})</span></span>
-              <v-icon small class="remove-id-btn" @click="removeRecognizedId(item.id)">mdi-close</v-icon>
+              <span>{{ item.id }} <span class="text-grey">({{ item.display_name }})</span></span>
+              <v-icon size="small" class="remove-id-btn" @click="removeRecognizedId(item.id)">mdi-close</v-icon>
             </div>
           </div>
           <div class="button-align-right">
@@ -51,18 +51,18 @@
       </template>
     </v-card-text>
     <v-card-actions>
-      <v-btn v-if="checked" text color="primary" @click="onBack" class="mr-auto">
-        <v-icon left>mdi-arrow-left</v-icon>Back
+      <v-btn v-if="checked" variant="text" color="primary" @click="onBack" class="mr-auto">
+        <v-icon start>mdi-arrow-left</v-icon>Back
       </v-btn>
       <v-spacer />
       <template v-if="!checked">
-        <v-btn rounded text @click="$emit('close')">Cancel</v-btn>
+        <v-btn rounded variant="text" @click="$emit('close')">Cancel</v-btn>
         <v-btn color="primary" @click="onCheckIds" :loading="checking" :disabled="checking">
           Check IDs
         </v-btn>
       </template>
       <template v-else>
-        <v-btn rounded text @click="$emit('close')">Cancel</v-btn>
+        <v-btn rounded variant="text" @click="$emit('close')">Cancel</v-btn>
       </template>
     </v-card-actions>
   </v-card>

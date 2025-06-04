@@ -4,7 +4,7 @@
         v-model="queryOql"
         label="OQL query"
         rounded
-        filled
+        variant="filled"
         rows="1"
         auto-grow
         clearable
@@ -14,10 +14,10 @@
     <v-btn
         color="primary"
         icon
-        large
+        size="large"
         class="ml-2"
     >
-      <v-icon large>mdi-arrow-down-circle</v-icon>
+      <v-icon size="large">mdi-arrow-down-circle</v-icon>
     </v-btn>
   </div>
 </template>

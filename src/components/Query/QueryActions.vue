@@ -1,20 +1,20 @@
 <template>
   <span class="query-actions mb-1">    
    
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <span v-bind="attrs" v-on="on"> 
-          <v-btn small icon dense :disabled="!selectedIds.length" @click="exportResults">
-            <v-icon small >mdi-tray-arrow-down</v-icon>
+    <v-tooltip location="bottom">
+      <template v-slot:activator="{ props }">
+        <span v-bind="props"> 
+          <v-btn size="small" icon dense :disabled="!selectedIds.length" @click="exportResults">
+            <v-icon size="small" >mdi-tray-arrow-down</v-icon>
           </v-btn>
         </span>
       </template>
       <span>Export</span>
     </v-tooltip>
    
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <span v-bind="attrs" v-on="on">
+    <v-tooltip location="bottom">
+      <template v-slot:activator="{ props }">
+        <span v-bind="props">
           <label-menu :icon="true" :selectedIds="fullSelectedIds" />
         </span>
       </template>

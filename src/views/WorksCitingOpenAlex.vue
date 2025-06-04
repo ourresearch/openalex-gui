@@ -7,15 +7,15 @@
       </div>
 
       <!-- Works List -->
-      <v-card flat outlined rounded>
-      <v-list two-line class="pa-2">
+      <v-card flat border rounded>
+      <v-list lines="two" class="pa-2">
         <v-list-item
           v-for="work in works"
           :key="work.id"
           :href="work.id"
           target="_blank"
         >
-          <v-list-item-content>
+          
             <v-list-item-title>{{ work.title }}</v-list-item-title>
             <v-list-item-subtitle>
               <span v-if="work.authorships && work.authorships.length">
@@ -25,7 +25,7 @@
                 {{ work.publication_year }}
               </span>
             </v-list-item-subtitle>
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
       </v-card>
@@ -45,7 +45,6 @@
 
 <script>
 import axios from 'axios';
-import { debounce } from 'lodash';
 
 export default {
   name: "WorksCitingOpenAlex",

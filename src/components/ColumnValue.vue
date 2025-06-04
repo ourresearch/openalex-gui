@@ -12,7 +12,7 @@
               target="_blank"
               style="white-space: nowrap"
           >
-                  {{ property.value }}<v-icon color="primary" class="pl-1" x-small>mdi-open-in-new</v-icon>
+                  {{ property.value }}<v-icon color="primary" class="pl-1" size="x-small">mdi-open-in-new</v-icon>
           </a>
 
           <!-- string: list separated by "|" -->

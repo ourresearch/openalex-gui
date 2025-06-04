@@ -1,7 +1,7 @@
 <template>
   <div>
     <router-link to="/me/labels" class="all-labels-link d-flex align-center">
-      <v-icon small color="primary" class="mr-1">mdi-arrow-left</v-icon>
+      <v-icon size="small" color="primary" class="mr-1">mdi-arrow-left</v-icon>
       All Labels
     </router-link>
     <v-card flat rounded class="pt-6 ma-0">
@@ -29,19 +29,19 @@
         <div class="header-left">
           <div class="header-left-buttons">
             <v-btn
-              small
+              size="small"
               class="mr-2"
               @click="showEditDialog = true"
             >
-              <v-icon left>mdi-pencil</v-icon>
+              <v-icon start>mdi-pencil</v-icon>
               Edit
             </v-btn>
             <v-btn
-              small
+              size="small"
               class="mr-2"
               @click="deleteLabel"
             >
-              <v-icon left>mdi-delete-outline</v-icon>
+              <v-icon start>mdi-delete-outline</v-icon>
               Delete
             </v-btn>
           </div>
@@ -61,12 +61,12 @@
             class="px-8 ma-0"
             @click="clickRow(id)"
         >
-          <v-list-item-content>
+          
             <v-list-item-title>
               <span class="mr-1" style="display: inline-block; min-width: 16px;">{{ index + 1 }}.</span>
               {{ entityDisplayName(id) }}
           </v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-action class="my-0">
             <v-btn icon @click.stop="removeId(id)">
               <v-icon>mdi-close</v-icon>
@@ -85,7 +85,7 @@
         </div>
         <div class="label-details-upload-section px-6 mt-0" style="flex: 1; display: flex; align-items: center; justify-content: center;">
           <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
-            <v-icon left>mdi-upload</v-icon>
+            <v-icon start>mdi-upload</v-icon>
             Upload {{ filters.capitalize(this.labelData.entity_type) }} List
           </v-btn>
         </div>

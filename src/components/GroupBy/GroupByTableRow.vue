@@ -8,10 +8,10 @@
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </td>
 
-    <td class="body-2" :class="{isNegated}">
+    <td class="text-body-2" :class="{isNegated}">
       {{ displayValue }}
     </td>
-    <td class="range body-2 text-right align-baseline">
+    <td class="range text-body-2 text-right align-baseline">
       {{ filters.toPrecision(myCount) }}
     </td>
   </tr>

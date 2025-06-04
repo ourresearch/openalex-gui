@@ -1,16 +1,16 @@
 <template>
   <v-menu>
-    <template v-slot:activator="{on}">
+    <template v-slot:activator="{props}">
       <v-chip
-          v-on="on"
+          v-bind="props"
           :disabled="isDisabled"
-          outlined
+          variant="outlined"
           label
           style=""
           class="font-weight-regular py-4 justify-center"
       >
         {{ selectedOption }}
-        <v-icon right>mdi-menu-down</v-icon>
+        <v-icon end>mdi-menu-down</v-icon>
       </v-chip>
     </template>
     <v-list>
@@ -22,9 +22,9 @@
         <v-list-item-icon>
           <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
         </v-list-item-icon>
-        <v-list-item-content>
+        
           {{ str }}
-        </v-list-item-content>
+        
       </v-list-item>
     </v-list>
   </v-menu>

@@ -27,7 +27,7 @@
         
         <v-spacer/>
         
-        <div class="body-2 px-4">
+        <div class="text-body-2 px-4">
           1-{{ resultsBody.length }} of {{
             resultsMeta?.count > 10000 ? "about " : ""
           }}{{ filters.toPrecision(resultsMeta?.count) }}
@@ -38,7 +38,7 @@
 
     <div>
       <!-- Results Table -->
-      <v-simple-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
+      <v-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
         <thead>
           <!-- Render all headers based on their type -->
           <th 
@@ -74,24 +74,24 @@
               <div class="d-flex">
                 <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
                 <v-menu offset-y>
-                  <template v-slot:activator="{ on }">
+                  <template v-slot:activator="{ props }">
                     <v-btn
-                      text
-                      v-on="on"
+                      variant="text"
+                      v-bind="props"
                       style="white-space: nowrap;"
                       class="px-0"
                     >
                       <template v-if="submittedQuery.sort_by_column === header.id">
-                        <v-icon v-if="submittedQuery.sort_by_order==='desc'" small>mdi-arrow-down</v-icon>
-                        <v-icon v-if="submittedQuery.sort_by_order==='asc'" small>mdi-arrow-up</v-icon>
+                        <v-icon v-if="submittedQuery.sort_by_order==='desc'" size="small">mdi-arrow-down</v-icon>
+                        <v-icon v-if="submittedQuery.sort_by_order==='asc'" size="small">mdi-arrow-up</v-icon>
                       </template>
-                      <v-icon v-if="getActiveFilters(header.id).length > 0" x-small>mdi-filter</v-icon>
+                      <v-icon v-if="getActiveFilters(header.id).length > 0" size="x-small">mdi-filter</v-icon>
                       {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
-                      <v-icon small>mdi-menu-down</v-icon>
+                      <v-icon size="small">mdi-menu-down</v-icon>
                     </v-btn>
                   </template>
 
-                  <v-list dense>
+                  <v-list density="compact">
                     <!-- Active Filters-->
                     <template v-if="getActiveFilters(header.id).length">
                       <v-list-item
@@ -101,12 +101,12 @@
                         <v-list-item-icon class="align-self-center">
                           <v-icon >mdi-filter-outline</v-icon>
                         </v-list-item-icon>
-                        <v-list-item-content>
+                        
                           <QueryFilterValueChip
                             :column-config="header"
                             :value="filterInfo.value"
                           />
-                        </v-list-item-content>
+                        
                         <v-list-item-action>
                           <v-btn icon @click="removeColumnFilter(filterInfo.targetKey, filterInfo.path)">
                             <v-icon>mdi-close</v-icon>
@@ -181,8 +181,8 @@
               <template v-if="isEntireSearchSelected">
                 All <span class="font-weight-bold mx-1">{{ filters.millify(resultsMeta?.count) }}</span> results are selected.
                 <v-btn
-                  text
-                  small
+                  variant="text"
+                  size="small"
                   color="primary"
                   rounded
                   @click="unselectAll"
@@ -193,8 +193,8 @@
               <template v-else>
                 All <span class="font-weight-bold">{{ selectedIds.length }}</span> results on this page are selected.
                 <v-btn
-                  text
-                  small
+                  variant="text"
+                  size="small"
                   color="primary"
                   rounded
                   @click="isEntireSearchSelected = true"
@@ -258,7 +258,7 @@
             </tr>
           </template>
         </tbody>
-      </v-simple-table>
+      </v-table>
 
       <v-card class="more-results-message" flat v-if="!hasQueryChanged && resultsMeta?.count > 100 && this.query.get_rows !== 'summary'">
         To view results beyond the first 100, download the full results set above.
@@ -648,7 +648,7 @@ export default {
   created() {
    //console.log(this.rows);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.handleResize);
     this.setZoomId(null);
   },

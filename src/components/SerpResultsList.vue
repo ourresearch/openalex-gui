@@ -9,9 +9,9 @@
 
       <serp-results-export-button v-if="entityType === 'works'" />
       <v-menu offset-y rounded>
-        <template v-slot:activator="{on}">
+        <template v-slot:activator="{props}">
           <v-btn
-            v-on="on"
+            v-bind="props"
             icon
           >
             <v-icon>mdi-dots-vertical</v-icon>
@@ -20,17 +20,17 @@
         <v-list>
           <v-subheader>Results per page:</v-subheader>
           <v-list-item @click="url.setPerPage(10)">
-            <v-list-item-content>
+            
               <v-list-item-title>10</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-icon v-if="url.getPerPage() === 10">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
           </v-list-item>
           <v-list-item @click="url.setPerPage(100)">
-            <v-list-item-content>
+            
               <v-list-item-title>100</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-icon v-if="url.getPerPage() === 100">
               <v-icon>mdi-check</v-icon>
             </v-list-item-icon>
@@ -54,14 +54,14 @@
       <v-pagination
           v-if="showPagination"
           class="pb-8 pt-3 elevation-0"
-          circle
+          rounded
           v-model="page"
           :length="numPages"
           :total-visible="10"
           light
       />
     </div>
-    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="grey--text mt-2 pa-4 color-3">
+    <v-card v-if="!resultsObject?.meta?.count" flat rounded class="text-grey mt-2 pa-4 color-3">
       There are no results for this search.
     </v-card>
   </v-card>

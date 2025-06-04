@@ -1,8 +1,8 @@
 <template>
-  <v-card outlined rounded :loading="isLoading" :disabled="isLoading">
+  <v-card border rounded :loading="isLoading" :disabled="isLoading">
     <v-card-title>
       <div>
-        <v-icon left>mdi-account</v-icon>
+        <v-icon start>mdi-account</v-icon>
         Forgot Your Password
       </div>
       <v-spacer/>
@@ -18,7 +18,7 @@
       <v-card-text>
         <form>
           <v-text-field
-            filled
+            variant="filled"
             rounded
             class="mt-0"
             name="email"

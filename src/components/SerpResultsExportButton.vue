@@ -1,8 +1,8 @@
 <template>
   <span>
-    <v-tooltip top>
-      <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon @click="openExportDialog('csv')">
+    <v-tooltip location="top">
+      <template v-slot:activator="{props}">
+          <v-btn v-bind="props" icon @click="openExportDialog('csv')">
             <v-icon>mdi-tray-arrow-down</v-icon>
           </v-btn>
       </template>
@@ -55,7 +55,7 @@
         </div>
         <v-card-actions class="">
           <v-spacer/>
-          <v-btn text rounded @click="isDialogOpen.exportResults = false">Cancel</v-btn>
+          <v-btn variant="text" rounded @click="isDialogOpen.exportResults = false">Cancel</v-btn>
           <v-btn
               v-if="exportObj.progress < 1"
               :disabled="exportObj.progress !== null"
@@ -73,7 +73,7 @@
               target="_blank"
               @click="clickDownloadButton"
           >
-            <v-icon left>mdi-tray-arrow-down</v-icon>
+            <v-icon start>mdi-tray-arrow-down</v-icon>
             Download
           </v-btn>
         </v-card-actions>

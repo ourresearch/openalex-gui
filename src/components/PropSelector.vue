@@ -8,8 +8,8 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-text-field
-          filled
-          dense
+          variant="filled"
+          density="compact"
           rounded
           class="mt-0"
           v-model="q"
@@ -32,9 +32,9 @@
             @click="$vuetify.goTo(`#${cat.id}-section`, {container: '#prop-selector'})"
 
         >
-          <v-list-item-content>
+          
             <v-list-item-title>{{ cat.displayName }}</v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
     </div>
@@ -65,7 +65,7 @@
                   :disabled="prop.isDisabled"
                   @click="select(prop.id)"
               >
-                <v-icon small left v-if="prop.isDisabled">mdi-check</v-icon>
+                <v-icon size="small" start v-if="prop.isDisabled">mdi-check</v-icon>
                 {{ prop.displayName }}
 
               </v-chip>

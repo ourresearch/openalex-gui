@@ -12,7 +12,7 @@
           style="margin-left:-13px;"
       />
       <div class="mr-3" v-else>
-        <v-icon small>{{ myEntityConfig.icon }}</v-icon>
+        <v-icon size="small">{{ myEntityConfig.icon }}</v-icon>
         {{ filters.capitalize(myEntityConfig.displayNameSingular) }}
       </div>
     </div>
@@ -23,33 +23,33 @@
         View works
       </v-btn>
 
-      <v-tooltip bottom v-if="entityData.homepage_url">
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" class="" icon :href="entityData.homepage_url" target="_blank">
+      <v-tooltip location="bottom" v-if="entityData.homepage_url">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" class="" icon :href="entityData.homepage_url" target="_blank">
             <v-icon>mdi-home-outline</v-icon>
           </v-btn>
         </template>
         Visit homepage
       </v-tooltip>
-      <v-tooltip bottom>
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" class="" icon :href="'https://api.openalex.org/' + shortId" target="_blank">
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" class="" icon :href="'https://api.openalex.org/' + shortId" target="_blank">
             <v-icon>mdi-api</v-icon>
           </v-btn>
         </template>
         View in API
       </v-tooltip>
-      <v-tooltip bottom v-if="showPermalinkButton">
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" class="" icon :to="'/' + shortId">
+      <v-tooltip location="bottom" v-if="showPermalinkButton">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" class="" icon :to="'/' + shortId">
             <v-icon>mdi-link</v-icon>
           </v-btn>
         </template>
         View permalink page
       </v-tooltip>
-      <v-tooltip bottom>
-        <template v-slot:activator="{on}">
-          <v-btn v-on="on" icon class="" :href="feebackUrl"
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{props}">
+          <v-btn v-bind="props" icon class="" :href="feebackUrl"
                  target="_blank">
             <v-icon>mdi-message-alert-outline</v-icon>
           </v-btn>

@@ -1,8 +1,8 @@
 <template>
   <span class="query-outline-view">
     <!-- Button that opens the dialog -->
-    <v-btn small class="query-outline-button" color="catPurple" @click="openDialog">
-      <v-icon small>mdi-format-list-bulleted</v-icon>
+    <v-btn size="small" class="query-outline-button" color="catPurple" @click="openDialog">
+      <v-icon size="small">mdi-format-list-bulleted</v-icon>
     </v-btn>
 
     <!-- Dialog component -->
@@ -62,7 +62,7 @@
             </div>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn color="grey darken-1" text @click="cancelClick">Cancel</v-btn>
+              <v-btn color="grey-darken-1" variant="text" @click="cancelClick">Cancel</v-btn>
               <v-btn color="primary" @click="searchClick">Search</v-btn>
             </v-card-actions>
           </v-tab-item>

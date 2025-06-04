@@ -1,16 +1,16 @@
 <template>
   <v-menu>
-    <template v-slot:activator="{on}">
+    <template v-slot:activator="{props}">
       <a v-if="textMode" v-on="on">
         sort={{ activeSortKey }}
       </a>
       <v-btn
           v-else
           :icon="$vuetify.display.mobile"
-          :text="!$vuetify.display.mobile"
+          :variant="!$vuetify.display.mobile ? 'text' : undefined"
           rounded
           class="font-weight-regular"
-          v-on="on"
+          v-bind="props"
           :disabled="disabled"
       >
 <!--        <v-icon>mdi-sort</v-icon>-->
@@ -38,11 +38,11 @@
           <v-list-item-icon>
             <v-icon v-if="activeSortKey === sortConfig.key">mdi-check</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>
               {{ sortConfig.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
 
       </v-list-item-group>

@@ -54,18 +54,18 @@
         </div>
 
         <div class="sentence-buttons-box">
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on">
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
+              <span v-bind="props">
                 <query-outline-view class="mx-1"/>
               </span>
             </template>
             <span>Outline View</span>
           </v-tooltip>
 
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on">
+          <v-tooltip location="bottom">
+            <template v-slot:activator="{ props }">
+              <span v-bind="props">
                 <new-query-button small button-text="" icon="mdi-refresh"/>
               </span>
             </template>

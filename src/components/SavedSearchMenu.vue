@@ -7,24 +7,24 @@
         <v-list-item-icon>
           <v-icon>mdi-plus</v-icon>
         </v-list-item-icon>
-        <v-list-item-content>
+        
           <v-list-item-title>
             New
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-menu offset-x open-on-hover>
-        <template v-slot:activator="{on}">
-          <v-list-item @click="placeholder" v-on="on" :disabled="!userId">
+        <template v-slot:activator="{props}">
+          <v-list-item @click="placeholder" v-bind="props" :disabled="!userId">
             <v-list-item-icon>
               <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 Open
               </v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action class="pt-2">
               <v-icon :disabled="!userId">mdi-menu-right</v-icon>
             </v-list-item-action>
@@ -39,9 +39,9 @@
             <v-list-item-icon>
               <v-icon>mdi-folder-outline</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>{{ search.name }}</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
           <v-divider/>
           <v-list-item
@@ -51,9 +51,9 @@
             <v-list-item-icon>
               <v-icon>mdi-folder-multiple-outline</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>View all</v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
       </v-menu>
@@ -63,11 +63,11 @@
         <v-list-item-icon>
           <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
         </v-list-item-icon>
-        <v-list-item-content>
+        
           <v-list-item-title>
             Make a copy
           </v-list-item-title>
-        </v-list-item-content>
+        
       </v-list-item>
 
       <v-divider/>
@@ -78,11 +78,11 @@
       <v-list-item-icon>
         <v-icon>mdi-content-save-outline</v-icon>
       </v-list-item-icon>
-      <v-list-item-content>
+      
         <v-list-item-title>
           Save {{ id ? "" : "As..." }}
         </v-list-item-title>
-      </v-list-item-content>
+      
     </v-list-item>
 
 
@@ -90,21 +90,21 @@
       <v-list-item-icon>
         <v-icon :disabled="!id">mdi-pencil-outline</v-icon>
       </v-list-item-icon>
-      <v-list-item-content>
+      
         <v-list-item-title>
           Rename
         </v-list-item-title>
-      </v-list-item-content>
+      
     </v-list-item>
     <v-list-item :disabled="!id" @click="deleteSavedSearch(id)">
       <v-list-item-icon>
         <v-icon :disabled="!id">mdi-delete-outline</v-icon>
       </v-list-item-icon>
-      <v-list-item-content>
+      
         <v-list-item-title>
           Delete
         </v-list-item-title>
-      </v-list-item-content>
+      
     </v-list-item>
 
 
@@ -113,11 +113,11 @@
       <v-list-item-icon>
         <v-icon :disabled="!id">{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
       </v-list-item-icon>
-      <v-list-item-content>
+      
         <v-list-item-title>
           {{ activeSearchHasAlert ? "Remove" : "Create" }} alert
         </v-list-item-title>
-      </v-list-item-content>
+      
     </v-list-item>
   </v-list>
 

@@ -2,15 +2,15 @@
   <div>
     <v-tooltip
         v-if="icon"
-        bottom
+        location="bottom"
         :color="testColor"
         max-width="300"
     >
-      <template v-slot:activator="{ on }">
+      <template v-slot:activator="{ props }">
         <v-btn
-            small
+            size="small"
             icon
-            v-on="on"
+            v-bind="props"
             :color="testColor"
             :to="`/test-queries/${queryId}/natlang/${testId}`"
 
@@ -31,8 +31,8 @@
             :color="testColor"
         >
           <v-progress-circular indeterminate size="20" v-if="testStatus === 'running'" class="mr-2" />
-          <v-icon v-else-if="testStatus==='passing'" left color="success">mdi-check-circle</v-icon>
-          <v-icon v-else-if="testStatus==='failing'" left color="error">mdi-close-circle</v-icon>
+          <v-icon v-else-if="testStatus==='passing'" start color="success">mdi-check-circle</v-icon>
+          <v-icon v-else-if="testStatus==='failing'" start color="error">mdi-close-circle</v-icon>
           {{ testStatus }}
         </v-alert>
       </div>

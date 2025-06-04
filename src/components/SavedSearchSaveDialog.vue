@@ -9,7 +9,7 @@
           <v-text-field
               autofocus
               rounded
-              filled
+              variant="filled"
               clearable
               placeholder="Name (required)"
               v-model="nameString"
@@ -18,7 +18,7 @@
           />
           <v-textarea
               rounded
-              filled
+              variant="filled"
               placeholder="Description (optional)"
               v-model="descriptionString"
               @keydown.meta.enter="save"
@@ -30,7 +30,7 @@
             <v-list-item-action>
               <v-switch readonly v-model="myHasAlert" />
             </v-list-item-action>
-            <v-list-item-content>
+            
             <v-list-item-title>
               Receive alerts
             </v-list-item-title>
@@ -39,13 +39,13 @@
 
             </v-list-item-subtitle>
 
-            </v-list-item-content>
+            
           </v-list-item>
 
         </v-list>
         <v-card-actions>
           <v-spacer />
-          <v-btn text rounded @click="myIsOpen = false">Cancel</v-btn>
+          <v-btn variant="text" rounded @click="myIsOpen = false">Cancel</v-btn>
           <v-btn rounded color="primary" @click="save">Save</v-btn>
         </v-card-actions>
       </v-card>
@@ -56,7 +56,7 @@
       </v-card-text>
       <v-card-actions>
           <v-spacer />
-          <v-btn text rounded @click="clickLogin">Log in</v-btn>
+          <v-btn variant="text" rounded @click="clickLogin">Log in</v-btn>
           <v-btn rounded color="primary" @click="clickSignup">Sign up</v-btn>
         </v-card-actions>
     </v-card>
