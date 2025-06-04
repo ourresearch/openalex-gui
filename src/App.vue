@@ -234,7 +234,8 @@ export default {
       });
       // Set initial visibility
       if (window.zE) {
-        if (this.$router.currentRoute.path.startsWith('/analytics') || this.$router.currentRoute.path.startsWith('/s/')) {
+        const currPath = this.$router.currentRoute.value.path;
+        if (currPath.startsWith('/analytics') || currPath.startsWith('/s/')) {
           window.zE('webWidget', 'show');
         } else {
           window.zE('webWidget', 'hide');
