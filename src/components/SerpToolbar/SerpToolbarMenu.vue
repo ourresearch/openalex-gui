@@ -146,7 +146,7 @@ export default {
       return this.urlToShare.length > 3000;
     },
     qrCodeSize() {
-      return this.$vuetify.breakpoint.mdAndUp ? 400 : 300;
+      return this.$vuetify.display.mdAndUp ? 400 : 300;
     },
     groupByDownloadUrl() {
       const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter);

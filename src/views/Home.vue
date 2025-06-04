@@ -32,7 +32,7 @@
         Trusted by hundreds of institutions worldwide, including
       </div>
       <div class="d-flex align-center justify-center flex-wrap user-logo-container"
-           :class="{mobile: $vuetify.breakpoint.mobile}">
+           :class="{mobile: $vuetify.display.mobile}">
         <img class="user-logo"
              src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Logo_of_Sorbonne_University.svg/320px-Logo_of_Sorbonne_University.svg.png"
              alt="">
@@ -193,7 +193,7 @@ export default {
     logoHeight() {
       return 75
 
-      return this.$vuetify.breakpoint.mobile ?
+      return this.$vuetify.display.mobile ?
           50 :
           75
     }

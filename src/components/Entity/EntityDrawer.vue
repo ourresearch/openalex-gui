@@ -3,7 +3,7 @@
       v-model="isOpen"
       app
       right
-      :width="$vuetify.breakpoint.mobile ? '95%' : '50%'"
+      :width="$vuetify.display.mobile ? '95%' : '50%'"
       temporary
       disable-route-watcher
   >

@@ -62,7 +62,7 @@
     </v-menu>
 
     <div v-else>
-      <template v-if="$vuetify.breakpoint.mobile">
+      <template v-if="$vuetify.display.mobile">
         <v-menu offset-y>
           <template v-slot:activator="{on}">
             <v-btn icon v-on="on">

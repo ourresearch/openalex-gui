@@ -15,7 +15,7 @@
     </v-card>
     <v-card color="blue-grey lighten-5 pa-3 mb-6" flat rounded class="d-flex align-center mt-12">
       <!--      <v-icon large>mdi-filter</v-icon>-->
-      <span class="mr-3 text-h5" v-if="!$vuetify.breakpoint.mobile">
+      <span class="mr-3 text-h5" v-if="!$vuetify.display.mobile">
                     <span class="font-weight-bold">{{ filteredItems.length }} </span>
                     testimonials
                   </span>
@@ -527,11 +527,11 @@ able to add crucial features to our tool and increase researchers' productivity,
     },
     isOpen: {
       get() {
-        if (!this.$vuetify.breakpoint.mobile) return true
+        if (!this.$vuetify.display.mobile) return true
         return this.$store.state.showFiltersDrawer
       },
       set(val) {
-        if (!this.$vuetify.breakpoint.mobile) return // you can't falsify isOpen on desktop
+        if (!this.$vuetify.display.mobile) return // you can't falsify isOpen on desktop
         this.$store.state.showFiltersDrawer = val
       },
     },

@@ -9,7 +9,7 @@
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 grey--text">
           No filters applied
         </div>
-        <table v-if="$vuetify.breakpoint.mdAndUp" style="width: 100%;">
+        <table v-if="$vuetify.display.mdAndUp" style="width: 100%;">
           <tbody>
           <component
               class=""
