@@ -6,7 +6,7 @@
       {{ pathLabel }}.
     </span>
     <span v-else-if="false">
-      <v-menu offset-y>
+      <v-menu location="bottom">
         <template v-slot:activator="{ props }">
           <span class="path-label path-label-button number cursor-pointer" v-bind="props">
             ({{ pathLabel }})
@@ -14,9 +14,7 @@
         </template>
         <v-list density="compact">
           <v-list-item @click="deleteFilter">
-            <v-list-item-icon class="mr-2 ml-0">
-              <v-icon size="small">mdi-close</v-icon>
-            </v-list-item-icon>
+            <v-icon class="mr-2 ml-0" size="small">mdi-close</v-icon>
             <v-list-item-title>Remove Filter</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -29,7 +27,7 @@
       <span class="join-operator">
         <span v-if="isFirstFilter">{{ isSentence ? 'the' : 'The&nbsp;' }} </span>
         <template v-else>
-          <v-menu offset-y>
+          <v-menu location="bottom">
             <template v-slot:activator="{ props }">
               <v-chip
                 text
@@ -43,18 +41,17 @@
               </v-chip>
             </template>
             <v-list>
-              <v-list-item-group v-model="selectedJoinOperator">
-                <v-list-item
-                  v-for="operator in ['and', 'or']"
-                  :key="operator"
-                  :value="operator"
-                  active-class="primary--text"
-                >
-                  <v-list-item-title class="py-3">
-                    {{ operator }}
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list-item-group>
+              <v-list-item
+                v-for="operator in ['and', 'or']"
+                :key="operator"
+                :active="selectedJoinOperator === operator"
+                @click="selectedJoinOperator = operator"
+                active-class="primary--text"
+              >
+                <v-list-item-title class="py-3">
+                  {{ operator }}
+                </v-list-item-title>
+              </v-list-item>
               
               <!-- Conditionally show the divider and Grouping actions -->
               <template v-if="canGroupAbove || canUngroup">
@@ -81,7 +78,7 @@
       <!-- The Filter Operator-->
       <span>
         <span v-if="columnConfig.type === 'boolean'" class="mx-1">is</span>
-        <v-menu v-else offset-y>
+        <v-menu v-else location="bottom">
           <template v-slot:activator="{ props }">
             <v-chip
               text
@@ -96,18 +93,17 @@
             </v-chip>
           </template>
           <v-list>
-            <v-list-item-group v-model="selectedOperator">
-              <v-list-item
-                v-for="operator in operatorOptions"
-                :key="operator"
-                :value="operator"
-                active-class="primary--text"
-              >
-                <v-list-item-title class="py-3">
-                  {{ operator }}
-                </v-list-item-title>
-              </v-list-item>
-            </v-list-item-group>
+            <v-list-item
+              v-for="operator in operatorOptions"
+              :key="operator"
+              :active="selectedOperator === operator"
+              @click="selectedOperator = operator"
+              active-class="primary--text"
+            >
+              <v-list-item-title class="py-3">
+                {{ operator }}
+              </v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-menu>
       </span>
@@ -125,7 +121,7 @@
               :is-editable="true"
               :subject-entity="subjectEntity"
               :is-sentence="isSentence"
-              @click.native="restartEditingValue"
+              @click="restartEditingValue"
             />
           </hover-menu-wrapper>
         </span>
@@ -136,9 +132,9 @@
             <v-menu
               v-model="labelMenuOpen"
               :close-on-content-click="false"
-              offset-y
+              location="bottom"
               location-strategy="connected"
-              nudge-width="0"
+              width="auto"
             >
               <template v-slot:activator="{ props }">
                 <v-chip
@@ -153,33 +149,25 @@
                 </v-chip>
               </template>
               <v-list>
-                <v-list-item-group v-model="valueEditModel">
-                  <v-list-item
-                    v-for="label in applicableLabels"
-                    :key="label.id"
-                    :value="label.id"
-                    active-class="primary--text"
-                    @click="() => saveEditingValue(label.id)"
-                  >
-                    <v-list-item-icon>
-                      <v-icon>mdi-tag-outline</v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title class="py-3">
-                      {{ label.name }}
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list-item-group>
+                <v-list-item
+                  v-for="label in applicableLabels"
+                  :key="label.id"
+                  :active="valueEditModel === label.id"
+                  @click="valueEditModel = label.id; saveEditingValue(label.id)"
+                  active-class="primary--text"
+                >
+                  <v-icon>mdi-tag-outline</v-icon>
+                  <v-list-item-title class="py-3">
+                    {{ label.name }}
+                  </v-list-item-title>
+                </v-list-item>
                 <v-divider v-if="applicableLabels.length"></v-divider>
                 <v-list-item
                   key="manage-labels"
                   to="/me/labels"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-tag-plus-outline</v-icon>
-                  </v-list-item-icon>
-                  
-                    <v-list-item-title>Manage Labels</v-list-item-title>
-                  
+                  <v-icon>mdi-tag-plus-outline</v-icon>
+                  <v-list-item-title>Manage Labels</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -226,7 +214,7 @@
             :subject-entity="subjectEntity"
             :value="selectedValue"
             :is-sentence="isSentence"
-            @click.native="selectedValue = !selectedValue" />
+            @click="selectedValue = !selectedValue" />
         </hover-menu-wrapper>
       </span>
 
@@ -279,7 +267,7 @@
             :subject-entity="subjectEntity"
             :value="selectedValue"
             :is-sentence="isSentence"
-            @click.native="startEditingValue"
+            @click="startEditingValue"
           />
         </hover-menu-wrapper> 
       </template>
@@ -305,7 +293,7 @@
             :column-config="columnConfig"
             :value="selectedValue"
             :is-sentence="isSentence"
-            @click.native="startEditingValue" />
+            @click="startEditingValue" />
         </hover-menu-wrapper>
       </template>
     </div>
@@ -320,6 +308,7 @@
 
 
 <script>
+import _ from "lodash";
 import {mapGetters} from "vuex";
 import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 import axios from "axios";
@@ -382,8 +371,6 @@ export default {
     },
     buttonColorHex() {
       return "#aaa";
-      const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
-      return this.$vuetify.theme.themes.light[colorName];
     },
     filterColor() {
       if (['works', 'summary'].includes(this.subjectEntity) || this.columnConfig.id.includes("(")) {

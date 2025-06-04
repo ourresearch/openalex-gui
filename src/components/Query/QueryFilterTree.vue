@@ -180,12 +180,12 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 
 <script>
 
-import Vue from "vue";
-import {mapGetters, mapMutations} from "vuex";
 import _ from 'lodash';
+import {mapGetters, mapMutations} from "vuex";
 
 import {getConfigs} from "@/oaxConfigs";
 import filters from "@/filters";
+
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";

@@ -42,7 +42,7 @@ const actionConfigs = [
             "type",
 
         ],
-        getDefaultValues(query) {
+        getDefaultValues() {
             return [
                 "publication_year",
                 "open_access.is_oa",
@@ -98,7 +98,7 @@ const actionConfigs = [
             "open_access.is_oa",
             "cited_by_count",
         ],
-        getDefaultValues(query) {
+        getDefaultValues() {
             return [
                 "display_name",
                 "publication_year",

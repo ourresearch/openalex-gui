@@ -24,12 +24,10 @@
 <script>
 import _ from "lodash"
 import {mapGetters, mapMutations} from "vuex";
-import QuerySearchControls from '../Query/QuerySearchControls.vue';
 
 export default {
   name: "ResultsSearching",
   components: {
-    QuerySearchControls,
   },
   data() {
     return {

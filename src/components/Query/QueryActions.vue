@@ -45,7 +45,6 @@
 import { mapGetters, mapMutations } from "vuex";
 import { entity } from "@/entity";
 import * as oaxSearch from "@/oaxSearch";
-import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
 import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 
@@ -53,7 +52,6 @@ export default {
   name: "QueryActions",
   components: {
     LabelMenu,
-    NewQueryButton,
     DownloadDialog,
   },
   props: {},

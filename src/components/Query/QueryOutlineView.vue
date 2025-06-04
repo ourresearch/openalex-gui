@@ -21,8 +21,8 @@
           <!-- <v-tab>API</v-tab> -->
         </v-tabs>
 
-        <v-tabs-items v-model="activeTab">
-          <v-tab-item :key="0">
+        <v-window v-model="activeTab">
+          <v-window-item value="0">
             <div class="pa-6 pb-0">
               <template v-if="uiVariant === 'sentence-worksfirst'">
                 <query-filter-tree
@@ -65,24 +65,24 @@
               <v-btn color="grey-darken-1" variant="text" @click="cancelClick">Cancel</v-btn>
               <v-btn color="primary" @click="searchClick">Search</v-btn>
             </v-card-actions>
-          </v-tab-item>
+          </v-window-item>
 
-          <v-tab-item :key="1">
+          <v-window-item value="1">
             <v-card flat><v-card-text><pre>{{ query }}</pre></v-card-text></v-card>
-          </v-tab-item>
+          </v-window-item>
 
-          <v-tab-item class="pa-4" :key="2">
+          <v-window-item value="2" class="pa-4">
             <search-from-text :disabled="!queryIsCompleted" />
-          </v-tab-item>
+          </v-window-item>
 
-          <v-tab-item :key="3">
+          <v-window-item value="3">
             <v-card flat><v-card-text><pre class="sql">{{ formattedSql }}</pre></v-card-text></v-card>
-          </v-tab-item>
+          </v-window-item>
 
-          <!-- <v-tab-item :key="4">
+          <!-- <v-window-item value="4">
             <v-card flat><v-card-text><a class="api-link" :href="searchApiUrl" target="_blank">{{ searchApiUrl }}</a></v-card-text></v-card>
-          </v-tab-item> -->
-        </v-tabs-items>
+          </v-window-item> -->
+        </v-window>
       </v-card>
     </v-dialog>
   </span>

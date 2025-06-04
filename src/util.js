@@ -1,4 +1,3 @@
-import _ from "lodash"
 import {externalEntityTypeFromId, nativeEntityTypeFromId} from "@/entityConfigs";
 
 async function sleep(ms) {

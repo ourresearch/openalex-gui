@@ -24,7 +24,7 @@
       </v-btn>
     </template>
     <template v-if="naturalLanguage" v-slot:prepend-inner>
-      <v-menu rounded max-width="300" offset-y>
+      <v-menu class="rounded-lg" max-width="300" location="bottom">
         <template v-slot:activator="{ props }">
           <v-btn
               size="large"
@@ -39,29 +39,21 @@
           </v-btn>
         </template>
         <v-list>
-          <v-list-item-group
-              v-model="selectedInputType"
-              mandatory
-              active-class="primary--text"
+          <v-list-item
+              v-for="inputType in inputTypes"
+              :key="inputType.id"
+              :active="selectedInputType === inputType.id"
+              @click="selectedInputType = inputType.id"
           >
-            <v-list-item
-                v-for="inputType in inputTypes"
-                :key="inputType.id"
-                :value="inputType.id"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ inputType.icon }}</v-icon>
-              </v-list-item-icon>
-              
-                <v-list-item-title>{{ inputType.displayName }}</v-list-item-title>
-                <v-list-item-subtitle class="white-space-normal">
-                  {{ inputType.description }}
-                </v-list-item-subtitle>
+            <v-icon>{{ inputType.icon }}</v-icon>
+            
+            <v-list-item-title>{{ inputType.displayName }}</v-list-item-title>
+            <v-list-item-subtitle class="white-space-normal">
+              {{ inputType.description }}
+            </v-list-item-subtitle>
 
-              
-            </v-list-item>
+          </v-list-item>
 
-          </v-list-item-group>
         </v-list>
       </v-menu>
     </template>

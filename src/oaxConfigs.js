@@ -1,4 +1,3 @@
-import _ from "lodash"
 import {urlBase} from "@/apiConfig"
 
 // Load Entity Configs from server but allow other code to call getConfigs() synchronously 

@@ -19,12 +19,8 @@
         :key="i"
         @click="setIsNegated(i)"
       >
-        <v-list-item-icon>
-          <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
-        </v-list-item-icon>
-        
-          {{ str }}
-        
+        <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
+        {{ str }}
       </v-list-item>
     </v-list>
   </v-menu>
@@ -32,7 +28,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 
 export default {
@@ -79,6 +75,7 @@ export default {
             ["is any of", "is none of"] :
             ["is", "is not"]
       }
+      return null;
     }
   },
   methods: {

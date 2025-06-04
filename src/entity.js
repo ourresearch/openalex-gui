@@ -1,5 +1,3 @@
-import {api} from "@/api";
-
 const getType = (id, config) => {
     return Object.values(config).find(entity => {
         const reStr = entity.idRegex.replace("(?i)", "");
@@ -7,6 +5,7 @@ const getType = (id, config) => {
         return regex.test(id);
     })?.id;
 };
+
 
 const getId = (id, config) => {
     const myType = getType(id, config);
@@ -18,6 +17,7 @@ const getId = (id, config) => {
     const matches = regex.exec(id);
     return matches ? matches[1] : null;
 };
+
 
 const fullId = (id, entityType) => {
     // 123, topics => "topics/T123"

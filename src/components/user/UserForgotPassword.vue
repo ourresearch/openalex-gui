@@ -55,8 +55,6 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserForgotPassword from "@/components/user/UserForgotPassword.vue";
-
 
 export default {
   name: "UserForgotPassword",

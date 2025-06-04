@@ -53,8 +53,8 @@
                           @update:model-value="val => onFlagChange(user, flag.key, val)"
                           hide-details
                           class="admin-checkbox mr-1 py-0"
-                          dense
-                          small
+                          density="compact"
+                          size="small"
                         />
                       </div>
                       <div class="mt-1" style="width: 100%;">
@@ -163,6 +163,7 @@ export default {
       
       if (allMatch) {
         // Create a new object without this user's edits
+        // eslint-disable-next-line no-unused-vars
         const { [user.id]: _, ...restEdits } = this.editedUsers;
         this.editedUsers = restEdits;
       }
@@ -174,12 +175,11 @@ export default {
       this.savingUserId = user.id;
       this.error = '';
       try {
-        const res = await axios.post(
+        await axios.post(
           `${urlBase.userApi}/admin/user/${user.id}`,
           this.editedUsers[user.id],
           axiosConfig({ userAuth: true })
         );
-        const updated = res.data;
         // Update user in users array
         const idx = this.users.findIndex(u => u.id === user.id);
         if (idx !== -1) {

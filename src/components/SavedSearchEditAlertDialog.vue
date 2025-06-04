@@ -40,29 +40,23 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "SavedSearchEditAlertDialog",
   components: {},
   props: {
   },
   data() {
     return {
-      foo: 42,
       isLoading: false,
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-
-    ]),
     ...mapGetters("user", [
        "userSavedSearches",
     ]),
     ...mapGetters("user", [
       "userId",
       "renameId",
-        "editAlertId",
+      "editAlertId",
     ]),
     isOpen: {
       get(){return !!this.editAlertId},
@@ -74,15 +68,10 @@ export default {
       return this.userSavedSearches.find(s => s.id === this.editAlertId)?.has_alert
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
     ...mapMutations("user", [
       "setEditAlertId",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
         "updateSearchDescription",
     ]),
@@ -95,18 +84,11 @@ export default {
       })
       this.isLoading = false
       this.isOpen = false
-
     },
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

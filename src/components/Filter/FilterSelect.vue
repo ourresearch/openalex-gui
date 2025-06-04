@@ -66,7 +66,6 @@ import {getFacetConfig} from "@/facetConfigs";
 import {makeSelectFilterValue} from "@/filterConfigs";
 
 import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
-import FilterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
@@ -74,7 +73,6 @@ export default {
   name: "FilterSelect",
   components: {
     FilterSelectOption,
-    FilterMatchMode,
     FilterSelectAddOption,
     FilterBase,
   },
@@ -156,7 +154,7 @@ export default {
   mounted() {
   },
   watch: {
-    isActive(to) {
+    isActive() {
       this.searchString = ""
     }
   }

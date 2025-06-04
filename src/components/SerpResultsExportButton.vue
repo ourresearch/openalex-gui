@@ -84,7 +84,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import axios from "axios";
 
 import {url} from "@/url";

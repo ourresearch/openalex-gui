@@ -70,7 +70,6 @@ import {entityTypeFromId, shortenOpenAlexId} from "@/util";
 
 import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import WorkLinkouts from "@/components/WorkLinkouts.vue";
-import EntityHeaderClaimProfileButton from "@/components/Entity/EntityHeaderClaimProfileButton.vue";
 
 
 export default {
@@ -78,7 +77,6 @@ export default {
   components: {
     WorkLinkouts,
     LinkEntityRolesList,
-    EntityHeaderClaimProfileButton,
   },
   props: {
     entityData: Object,

@@ -6,9 +6,9 @@
       </v-btn>
     </template>
     <v-list>
-      <v-subheader>
+      <v-list-subheader>
         Sort by:
-      </v-subheader>
+      </v-list-subheader>
       <v-divider/>
       <v-list-item
           v-for="option in menuOptions"
@@ -17,13 +17,11 @@
           @click="clickOption(option.key)"
           :disabled="menuOptions.length === 1"
       >
-        <v-list-item-icon>
-          <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
-        </v-list-item-icon>
+        <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
         
-          <v-list-item-title>
-            {{ option.displayName }}
-          </v-list-item-title>
+        <v-list-item-title>
+          {{ option.displayName }}
+        </v-list-item-title>
         
         <v-list-item-action class="pl-3 pt-2">
           <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
@@ -36,7 +34,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {facetConfigs} from "@/facetConfigs";
 import {url} from "@/url";
 

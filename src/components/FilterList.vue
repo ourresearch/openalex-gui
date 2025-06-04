@@ -40,7 +40,7 @@
           <v-btn
               @click="clearEverything"
               v-if="filters.length"
-              fab
+              rounded="circle"
               size="small"
               class="ml-3 elevation-0"
               color="white"
@@ -116,7 +116,7 @@ export default {
     },
     '$route': {
       immediate: true,
-      handler(to, from) {
+      handler() {
         this.activeFilterKey = null
         this.searchString = ""
       }
@@ -133,17 +133,6 @@ export default {
 }
 .filter {
   border-radius: 25px !important;
-
-  &:hover {
-    //background: #f4f9ff;
-    //box-shadow: 5px 5px #000 !important;
-  }
-
-}
-.filter-list {
-  .v-text-field--rounded > .v-input__control > .v-input__slot {
-    //padding: 0 !important;
-  }
 }
 table {
   border-top: 1px solid #eee;

@@ -87,7 +87,6 @@ import {mapGetters} from "vuex";
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryOutlineView from "@/components/Query/QueryOutlineView.vue";
 import QueryResultsCount from "@/components/Query/QueryResultsCount.vue";
-import QueryActions from "@/components/Query/QueryActions.vue";
 import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 
@@ -98,7 +97,6 @@ export default {
     QuerySearchControls,
     QueryOutlineView,
     QueryResultsCount,
-    QueryActions,
     NewQueryButton
   },
   computed: {

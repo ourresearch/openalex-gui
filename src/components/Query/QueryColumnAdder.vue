@@ -2,13 +2,13 @@
   <div>
     <!-- Menu Mode -->
     <template v-if="mode === 'menu'">
-      <v-menu v-model="isMenuOpen" offset-y rounded max-height="50vh">
+      <v-menu v-model="isMenuOpen" class="rounded-lg" location="bottom" max-height="50vh">
         <template v-slot:activator="{ props }">
           <v-btn icon v-bind="props">
             <v-icon>mdi-plus-circle</v-icon>
           </v-btn>
         </template>
-        <v-card flat rounded>
+        <v-card flat>
           <v-text-field
             v-model="columnSearch"
             variant="filled"
@@ -26,16 +26,12 @@
               :key="column.column_id"
               @click="toggleColumn(column)"
             >
-              <v-list-item-icon>
-                <v-icon>{{ column.icon }}</v-icon>
-              </v-list-item-icon>
+              <v-icon>{{ column.icon }}</v-icon>
               <v-list-item-title>
                 {{ filters.titleCase(column.displayName) }}
               </v-list-item-title>
               <v-spacer />
-              <v-list-item-icon v-if="query.show_columns.includes(column.column_id)">
-                <v-icon>mdi-check</v-icon>
-              </v-list-item-icon>
+              <v-icon v-if="query.show_columns.includes(column.column_id)">mdi-check</v-icon>
             </v-list-item>
           </v-list>
         </v-card>
@@ -73,7 +69,7 @@
                     :class="['column-chip', {'unselected-chip': !isColumnSelected(column.column_id)}]"
                     height="32"
                     :style="{ minHeight: '32px' }"
-                    text-color="black"
+                    class="text-black"
                   >
                     <v-icon size="16" start>{{ column.icon }}</v-icon>
                     <span class="text-truncate column-option">{{ filters.titleCase(column.displayName) }}</span>
@@ -155,6 +151,7 @@ export default {
       } else if (this.display === "metrics") {
         return allColumns.filter(col => col.column_id.includes("("));
       }
+      return null;
     },
     filteredColumns() {
       // Filter available columns based on search term

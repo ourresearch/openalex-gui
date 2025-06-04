@@ -166,10 +166,7 @@ const api = (function () {
         // const maxGroups = (options.perPage) ? options.perPage - 1 : 25
         // const truncatedGroups = filteredGroups.splice(0, 25)
         const truncatedGroups = filteredGroups
-
         const groupCounts = truncatedGroups.map(g => g.count)
-
-        const maxCount = Math.max(...groupCounts)
         const countSum = groupCounts.reduce((a, b) => a + b, 0)
 
         const groupDisplayFilters = truncatedGroups
@@ -201,7 +198,7 @@ const api = (function () {
         return filterKey
     }
 
-    const getAutocompleteResponses = async function (entityType, filterKey, searchString, filters) {
+    const getAutocompleteResponses = async function (entityType, filterKey, searchString) {
         console.log("getAutocompleteResponses", entityType, filterKey, searchString)
         if (!filterKey && entityType !== "works") {
             filterKey = "ids.openalex"
@@ -343,6 +340,7 @@ const api = (function () {
         return resp;
     }
 
+    // eslint-disable-next-line no-unused-vars
     const prefetchUnderlyingWorksQuery = async function(query) {
         console.log("Prefetching underlying works query");
         const worksQuery = makeUnderlyingWorksQuery(query);

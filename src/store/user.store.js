@@ -164,7 +164,7 @@ export default {
             await dispatch("fetchUser")
         },
 
-        async requestSignupEmail({}, signupObj) {
+        async requestSignupEmail(_, signupObj) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {
@@ -174,7 +174,7 @@ export default {
             )
             return resp
         },
-        async requestLoginEmail({}, email) {
+        async requestLoginEmail(_, email) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {
@@ -183,7 +183,7 @@ export default {
             )
             return resp
         },
-        async requestPasswordReset({}, email) {
+        async requestPasswordReset(_, email) {
             const resp = await axios.post(
                 apiBaseUrl + "/password/request-reset",
                 {
@@ -192,7 +192,7 @@ export default {
             )
             return resp
         },
-        async resetPassword({}, {token, password}) {
+        async resetPassword(_, {token, password}) {
             console.log("user.store resetPassword", password + " / " + token);
 
             const resp = await axios.post(
@@ -449,7 +449,7 @@ export default {
 
 
         // create
-        async createCorrection({}, correctionObj) {
+        async createCorrection(_, correctionObj) {
             console.log("user.store createCorrection", correctionObj)
 
            /*
@@ -475,7 +475,7 @@ export default {
             )
             state.corrections = resp.data
         },
-        async deleteCorrection({}, id) {
+        async deleteCorrection(_, id) {
             console.log("user.store deleteCorrection", id)
         },
     },

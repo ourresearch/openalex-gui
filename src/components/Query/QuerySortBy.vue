@@ -18,23 +18,18 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 export default {
-  name: "Template",
+  name: "QuerySortBy",
   components: {},
   props: {},
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     ...mapGetters("search", [
       "query",
       "isQuerySingleRow",
@@ -72,25 +67,13 @@ export default {
   },
 
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", [
-    ]),
     ...mapActions("search", [
         "setSortBy",
     ]),
-    ...mapActions("user", []),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

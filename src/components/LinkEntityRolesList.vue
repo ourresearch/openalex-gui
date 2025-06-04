@@ -19,15 +19,9 @@
           :key="role.id"
           :to="filters.entityZoomLink(role.id)"
         >
-          <v-list-item-icon>
-            <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
-          </v-list-item-icon>
-          
-            <v-list-item-title>{{ role.role }}</v-list-item-title>
-          
-          <v-list-item-icon>
-            <v-icon v-if="role.role === selected">mdi-check</v-icon>
-          </v-list-item-icon>
+          <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
+          <v-list-item-title>{{ role.role }}</v-list-item-title>
+          <v-icon v-if="role.role === selected">mdi-check</v-icon>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -38,12 +32,10 @@
 
 import filters from "@/filters";
 import {getEntityConfig} from "@/entityConfigs";
-import LinkEntityRole from "@/components/LinkEntityRole.vue";
 
 export default {
   name: "LinkEntityRolesList",
   components: {
-    LinkEntityRole
   },
   props: {
     roles: Array,

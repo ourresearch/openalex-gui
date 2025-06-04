@@ -25,7 +25,7 @@ export default {
       default: 28
     },
     filterKey: String,
-    filterValue: String|Boolean,
+    filterValue: [String, Boolean],
     color: String,
   },
   data() {

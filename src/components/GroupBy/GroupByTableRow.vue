@@ -23,11 +23,11 @@ import {mapGetters} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
 import filters from '@/filters';
-import {createSimpleFilter, filtersFromUrlStr, setStringIsNegated} from "@/filterConfigs";
+import {createSimpleFilter, setStringIsNegated} from "@/filterConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 
 export default {
-  name: "Template",
+  name: "GroupByTableRow",
   components: {},
   props: {
     filterKey: String,
@@ -127,7 +127,7 @@ export default {
     '$route.query.filter': {
       immediate: true,
       deep: true,
-      handler(to, from) {
+      handler() {
         this.getMyCount()
       }
     }

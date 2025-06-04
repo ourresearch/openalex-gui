@@ -249,7 +249,7 @@ async startServerTests(cases) {
                 });
             }
 
-            if (test.hasOwnProperty("natLang") && test.natLang !== null && cases.includes("natLang")) {
+            if (Object.prototype.hasOwnProperty.call(test, "natLang") && test.natLang !== null && cases.includes("natLang")) {
                 test.natLang.forEach(prompt => {
                     serverTestCases.push({
                         test_id: testId,
@@ -325,15 +325,15 @@ async startServerTests(cases) {
                     let comparisonResult = {equal: false};
                     try {
                         comparisonResult = OQOTestRunner.queriesEqual(subResult.oqo, test.query, test.ignore ?? []);
-                    } catch (e) {}
+                    } catch (e) { /* empty */ }
                     return {
                         case: "natLang",
                         prompt: subResult.prompt,
-                        isPassing: comparisonResult.equal && !subResult.hasOwnProperty("error"),
+                        isPassing: comparisonResult.equal && !Object.prototype.hasOwnProperty.call(subResult, "error"),
                         details: comparisonResult.equal ? {} : {
                             expected: test.query,
                             actual: subResult.oqo,
-                            ...(subResult.hasOwnProperty("error") ? { error: subResult.error } : {}),
+                            ...(Object.prototype.hasOwnProperty.call(subResult, "error") ? { error: subResult.error } : {}),
                             ...comparisonResult
                         }
                     };

@@ -2,12 +2,11 @@
   <v-app>
     <v-progress-linear
         indeterminate
-        fixed color="primary"
-        style="z-index: 9999"
+        color="primary"
+        style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999"
         v-if="globalIsLoading"
     />
     <v-app-bar
-        app
         flat
         :height="$vuetify.display.mobile ? undefined : 70"
         color="white"
@@ -41,7 +40,7 @@
 
       <user-toolbar-menu/>
 
-      <v-menu v-if="!$vuetify.display.mobile" offset-y>
+      <v-menu v-if="!$vuetify.display.mobile" location="bottom">
         <template v-slot:activator="{props}">
           <v-btn icon v-bind="props">
             <v-icon>mdi-help-circle-outline</v-icon>
@@ -49,23 +48,18 @@
         </template>
         <v-list>
           <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-comment-question-outline</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>
-                Contact support
-              </v-list-item-title>
+            <v-icon>mdi-comment-question-outline</v-icon>
+            <v-list-item-title>
+              Contact support
+            </v-list-item-title>
             
           </v-list-item>
           <v-list-item href="https://help.openalex.org/" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-help-circle-outline</v-icon>
-            </v-list-item-icon>
+            <v-icon>mdi-help-circle-outline</v-icon>
             
-              <v-list-item-title>
-                Visit help center
-              </v-list-item-title>
+            <v-list-item-title>
+              Visit help center
+            </v-list-item-title>
             
           </v-list-item>
         </v-list>
@@ -93,10 +87,10 @@
         v-model="$store.state.snackbarIsOpen"
         :color="$store.state.snackbarColor"
     >
-      <v-icon dark start v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
+      <v-icon start v-if="$store.state.snackbarIcon">{{ $store.state.snackbarIcon }}</v-icon>
       {{ $store.state.snackbarMsg }}
 
-      <template v-slot:action="{ attrs }">
+      <template v-slot:actions="{ attrs }">
         <v-btn
             icon
             v-bind="attrs"
@@ -120,35 +114,24 @@ import { useHead } from '@unhead/vue';
 import axios from "axios";
 import {getConfigs} from "@/oaxConfigs";
 
-import SearchBox from "@/components/EntityTypeSelector.vue";
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
-import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
-import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
-import SearchFromText from "@/components/SearchFromText.vue";
-import UiVariantSelector from "@/components/Misc/UiVariantSelector.vue";
-
+import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
 
 export default {
   name: 'App',
   components: {
-    SerpToolbar,
-    SerpToolbarMenu,
-    SearchBox,
     SiteFooter,
     UserToolbarMenu,
     SavedSearchRenameDialog,
     SavedSearchEditAlertDialog,
     EntityDrawer,
-    SearchFromText,
     ShortcutBox,
     EntityTypeSelector,
-    UiVariantSelector,
   },
   data: function () {
     return {
@@ -263,7 +246,7 @@ export default {
   watch: {
     '$route': {
       immediate: true,
-      handler(to, from) {
+      handler() {
 
       }
     },

@@ -1,3 +1,4 @@
+import _ from "lodash"
 import {getFacetConfig} from "./facetConfigs";
 import {shortenOpenAlexId} from "@/util";
 

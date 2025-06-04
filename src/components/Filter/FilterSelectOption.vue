@@ -1,14 +1,14 @@
 <template>
   <v-menu
-      rounded
       max-width="800"
-      class=""
-      offset-y
+      class="rounded-lg"
+      location="bottom"
       :close-on-content-click="false"
       v-model="isMenuOpen"
   >
-    <template v-slot:activator="{on}">
+    <template v-slot:activator="{ props }">
       <v-chip
+          v-bind="props"
           color="white"
           class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 text-body-1"
           closable
@@ -40,7 +40,6 @@
                class="ml-4"
                color="primary"
                rounded
-               exact-path
                :to="filters.entityZoomLink(filterValue)"
         >
           {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
@@ -161,11 +160,5 @@ export default {
 .option {
   font-weight: bold;
   cursor: pointer;
-
-  &:hover {
-    //text-decoration:  underline;
-
-  }
 }
-
 </style>

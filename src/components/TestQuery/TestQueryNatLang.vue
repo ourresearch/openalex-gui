@@ -71,10 +71,9 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import _ from "lodash";
 import axios from "axios";
 import {api} from "@/api";
-import {sleep} from "@/util";
 
 export default {
   name: "TestQueryNatLang",
@@ -82,10 +81,8 @@ export default {
   props: {
     input: String,
     expectedResponse: Object,
-
     queryId: Number,
     testId: Number,
-
     icon: Boolean,
   },
   data() {
@@ -95,13 +92,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-    ]),
     isTestComplete() {
       return this.isTestPassing !== null
     },
@@ -127,14 +117,7 @@ export default {
       return this.testStatus === "running" ? "grey" : undefined
     },
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("search", []),
-    ...mapActions("search", []),
-    ...mapActions("user", []),
     async run() {
       console.log("run natlang test", this.input);
       const url = `${api.apiBaseUrl()}}/text/oql?natural_language=${this.input}&mailto=team@ourresearch.org`;

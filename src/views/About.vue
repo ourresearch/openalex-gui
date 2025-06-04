@@ -149,7 +149,7 @@
 import { useHead } from '@unhead/vue';
 
 export default {
-  name: "About",
+  name: "AboutPage",
   created() {
     useHead({ title: 'About' });
   },

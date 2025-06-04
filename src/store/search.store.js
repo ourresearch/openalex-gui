@@ -133,7 +133,7 @@ export default {
             const query = oqlToQuery(oql);
             return await dispatch("createSearchFromQuery", query);
         },
-        createSearchFromQuery: async function ({state, commit, dispatch, rootState}, query) {
+        createSearchFromQuery: async function ({commit, dispatch, rootState}, query) {
             //console.log("createSearchFromQuery", query);
             
             // Push temporary loading state while waiting of ID from API call

@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex align-center">
-    <v-btn v-if="isTester && $route.path !== '/analytics'" color="catWorksDarker" to="/analytics" class="mr-2">
+    <v-btn v-if="isTester && $route.path !== '/analytics'" color="catWorksDarker" variant="flat" to="/analytics" class="mr-2">
       <v-icon start>mdi-poll</v-icon>
       Analytics
     </v-btn>
@@ -11,7 +11,7 @@
       <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
     </v-btn>  
     
-    <v-menu rounded offset-y v-if="userId">
+    <v-menu class="rounded-lg" location="bottom" v-if="userId">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
           <v-icon>mdi-account-outline</v-icon>
@@ -25,45 +25,29 @@
           {{ userEmail }}
         </div>
         <v-divider></v-divider>
-        <v-list-item exact-path to="/me/searches">
-          <v-list-item-icon>
-            <v-icon>mdi-folder-outline</v-icon>
-          </v-list-item-icon>
-          
-            Saved Searches
-          
+        <v-list-item to="/me/searches">
+          <v-icon>mdi-folder-outline</v-icon>          
+          Saved Searches
         </v-list-item>
-        <v-list-item v-if="isTester" exact-path to="/me/labels">
-          <v-list-item-icon>
-            <v-icon>mdi-tag-outline</v-icon>
-          </v-list-item-icon>
-          
-            Labels
-          
+        <v-list-item v-if="isTester" to="/me/labels">
+          <v-icon>mdi-tag-outline</v-icon>
+          Labels
         </v-list-item>
 
-        <v-list-item exact-path :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId">
-          <v-list-item-icon>
-            <v-icon>mdi-account-outline</v-icon>
-          </v-list-item-icon>
-          
-            My author profile
-          
+        <v-list-item :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId">
+          <v-icon>mdi-account-outline</v-icon>
+          My author profile
         </v-list-item>
         <v-list-item @click="localLogout">
-          <v-list-item-icon>
-            <v-icon>mdi-logout</v-icon>
-          </v-list-item-icon>
-          
-            Log out
-          
+          <v-icon>mdi-logout</v-icon>
+          Log out
         </v-list-item>
       </v-list>
     </v-menu>
 
     <div v-else>
       <template v-if="$vuetify.display.mobile">
-        <v-menu offset-y>
+        <v-menu locati>
           <template v-slot:activator="{props}">
             <v-btn icon v-bind="props">
               <v-icon>mdi-menu</v-icon>
@@ -71,52 +55,40 @@
           </template>
           <v-list>
             <v-list-item @click="setIsSignupDialogOpen(true)">
-              <v-list-item-icon>
-                <v-icon>mdi-account-plus</v-icon>
-              </v-list-item-icon>
-              
-                <v-list-item-title class="font-weight-bold">
-                  Sign Up
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  Create a new account
-                </v-list-item-subtitle>
-              
+              <v-icon>mdi-account-plus</v-icon>             
+              <v-list-item-title class="font-weight-bold">
+                Sign Up
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Create a new account
+              </v-list-item-subtitle>  
             </v-list-item>
             <v-list-item @click="setIsLoginDialogOpen(true)">
-              <v-list-item-icon>
-                <v-icon>mdi-account-arrow-right</v-icon>
-              </v-list-item-icon>
-              
-                <v-list-item-title>
-                  Log In
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  Access your existing account
-                </v-list-item-subtitle>
-              
+              <v-icon>mdi-account-arrow-right</v-icon>
+              <v-list-item-title>
+                Log In
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Access your existing account
+              </v-list-item-subtitle>
             </v-list-item>
+
             <v-divider/>
+            
             <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-              <v-list-item-icon>
-                <v-icon>mdi-comment-question-outline</v-icon>
-              </v-list-item-icon>
-              
-                <v-list-item-title>
-                  Contact support
-                </v-list-item-title>
-              
+              <v-icon>mdi-comment-question-outline</v-icon>
+              <v-list-item-title>
+                Contact support
+              </v-list-item-title>
             </v-list-item>
+
             <v-list-item href="https://help.openalex.org/" target="_blank">
-              <v-list-item-icon>
-                <v-icon>mdi-help-circle-outline</v-icon>
-              </v-list-item-icon>
-              
-                <v-list-item-title>
-                  Visit help center
-                </v-list-item-title>
-              
+              <v-icon>mdi-help-circle-outline</v-icon>
+              <v-list-item-title>
+                Visit help center
+              </v-list-item-title>
             </v-list-item>
+
           </v-list>
         </v-menu>
       </template>

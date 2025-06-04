@@ -62,7 +62,6 @@
         </v-row>
       </template>
 
-
       <template v-else>
         <v-row dense>
           <v-col>
@@ -91,17 +90,13 @@
         </v-row>
       </template>
 
-
     </v-container>
-
   </div>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import axios from "axios";
-import {sleep} from "@/util";
+import _ from "lodash";
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
 export default {
@@ -147,12 +142,6 @@ export default {
     isTestPassing() {
       return _.isEqual(this.actualResponse, this.expectedResponse)
     }
-  },
-  methods: {
-  },
-  created() {
-  },
-  mounted() {
   },
   methods: {
     runEvaluation() {

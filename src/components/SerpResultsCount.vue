@@ -12,12 +12,10 @@
 <script>
 
 import filters from '@/filters';
-import Action from "@/components/Action/Action.vue";
 
 export default {
   name: "SerpResultsCount",
   components: {
-    Action
   },
   props: {
     resultsObject: Object,

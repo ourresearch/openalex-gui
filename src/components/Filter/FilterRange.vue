@@ -32,10 +32,9 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {getFacetConfig} from "../../facetConfigs";
 import {url} from "@/url";
-import {filter} from "core-js/internals/array-iteration";
 
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
@@ -57,7 +56,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     config() {
@@ -75,13 +73,7 @@ export default {
       }
     }
   },
-
   methods: {
-    filter,
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     submit() {
       this.isActive = false
       this.value = this.searchString
@@ -90,33 +82,17 @@ export default {
       this.isActive = false
       this.searchString = this.value
     }
-
-
-  },
-  created() {
   },
   mounted() {
     this.searchString = this.value
     this.isActive = !this.value
   },
-  watch: {
-    isActive(to) {
-    }
-  }
 }
 </script>
 
-<style lang="scss">
+
+<style scoped lang="scss">
 input {
   padding: 0 3px !important;
 }
-
-.phrase-search {
-
-}
-
-input:focus, textarea:focus, select:focus {
-  //outline: none;
-}
-
 </style>

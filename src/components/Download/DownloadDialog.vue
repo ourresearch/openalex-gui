@@ -47,7 +47,10 @@ export default {
   name: "DownloadDialog",
   props: {
     resultsCount: Number,
-    isOpen: false,
+    isOpen: {
+      type: Boolean,
+      default: false
+    },
   },
   data() {
     return {
