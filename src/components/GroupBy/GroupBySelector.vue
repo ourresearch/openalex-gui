@@ -1,12 +1,12 @@
 <template>
   <div>
     <v-menu>
-      <template v-slot:activator="{on}">
+      <template v-slot:activator="{props}">
       <v-btn
           :close="!!groupByKey"
           rounded
-          text
-          v-on="on"
+          variant="text"
+          v-bind="props"
           :dark="!!groupByKey"
           :color="groupByKey ? '#333' : undefined"
           @click:close="groupByKey=undefined"

@@ -4,7 +4,7 @@
     <div class="text-h4">
       Data Stats
     </div>
-    <div class="grey--text mb-2">
+    <div class="text-grey mb-2">
       Last updated {{ new Date().toDateString() }}
     </div>
 
@@ -25,7 +25,7 @@
         >
           <div class="flex-grow-1 " :class="`${cardData.color}--text`">
             <div class="d-flex align-baseline pa-4 pb-2">
-              <v-icon left large :color="cardData.color">{{ cardData.icon }}</v-icon>
+              <v-icon start size="large" :color="cardData.color">{{ cardData.icon }}</v-icon>
               <our-stats-entry
                   :entity-type="cardData.name"
                   class="text-h4 font-weight-bold"
@@ -37,12 +37,12 @@
               <v-spacer />
                 <v-btn
                     v-if="cardData.hasDocs"
-                    small
+                    size="small"
                     icon
                     :href="`https://docs.openalex.org/api-entities/${cardData.name}`"
                     target="_blank"
                 >
-                  <v-icon small>mdi-information-outline</v-icon>
+                  <v-icon size="small">mdi-information-outline</v-icon>
                 </v-btn>
 
             </div>
@@ -52,7 +52,7 @@
                 v-for="highlightFilter in cardData.highlightFilters"
                 :key="highlightFilter.key"
               >
-                <v-list-item-content>
+                
                   <v-list-item-title>
                       <our-stats-entry
                         :entity-type="cardData.name"
@@ -67,7 +67,7 @@
                       </span>
 
                   </v-list-item-title>
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </div>
@@ -82,9 +82,10 @@
 
 <script>
 
-import {entityConfigs} from "../entityConfigs";
+import _ from "lodash";
 import { useHead } from '@unhead/vue';
 
+import {entityConfigs} from "../entityConfigs";
 import OurStatsEntry from "../components/OurStats/OurStatsEntry.vue";
 
 export default {

@@ -9,7 +9,7 @@ import {mapGetters, mapMutations} from "vuex";
 import { useHead } from '@unhead/vue';
 
 export default {
-  name: "Login",
+  name: "LoginPage",
   components: {},
   props: {},
   data() {
@@ -37,7 +37,7 @@ export default {
       this.$router.push(this.$route.query.redirect || '/');
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.setIsLoginDialogOpen(false);
   },
 }

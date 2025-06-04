@@ -7,7 +7,7 @@
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
         <b>{{ filters.truncate(entityData.display_name || '', 50) }}</b>
-        <v-icon v-if="isEditable && !isSentence" x-small>mdi-pencil-outline</v-icon>
+        <v-icon v-if="isEditable && !isSentence" size="x-small">mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         Loading...
@@ -87,7 +87,7 @@ export default {
         "QueryFilterValueChip only works if there's a value for the filter"
       )
       */
-    };
+    }
   },
   watch: {
     value: {

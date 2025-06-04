@@ -2,11 +2,11 @@
   <!--  <div class="d-flex align-center">-->
   <div>
     <v-menu rounded>
-      <template v-slot:activator="{on}">
+      <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn
               v-if="isFabShowing"
-              v-on="on"
+              v-bind="props"
               fab
               color="primary"
               class=""
@@ -19,9 +19,9 @@
       <v-card>
         <v-text-field
             v-model="searchString"
-            filled
+            variant="filled"
             rounded
-            background-color="white"
+            bg-color="white"
             prepend-inner-icon="mdi-magnify"
             hide-details
             autofocus
@@ -40,11 +40,11 @@
             <v-list-item-icon>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
         <v-list v-if="!searchString">
@@ -57,11 +57,11 @@
             <v-list-item-icon>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>
                 {{ filter.displayName }}
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
           <v-divider/>
           <v-list-item
@@ -71,11 +71,11 @@
             <v-list-item-icon>
               <v-icon>mdi-dots-horizontal</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title class="font-weight-bold">
                 More
               </v-list-item-title>
-            </v-list-item-content>
+            
           </v-list-item>
         </v-list>
       </v-card>
@@ -91,18 +91,18 @@
       <v-card rounded>
         <v-text-field
             v-model="searchString"
-            filled
+            variant="filled"
             rounded
-            background-color="white"
+            bg-color="white"
             :prepend-inner-icon="prependIcon"
             hide-details
             autofocus
             :placeholder="placeholder"
             style=""
             class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
-            append-outer-icon="mdi-close"
+            append-icon="mdi-close"
             @keyup.enter="onEnter"
-            @click:append-outer="clickCloseSearch"
+            @click:append="clickCloseSearch"
             @click:prepend-inner="clickPrependIcon"
         />
         <v-divider/>
@@ -141,11 +141,11 @@
                 <v-list-item-icon>
                   <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
                 </v-list-item-icon>
-                <v-list-item-content>
+                
                   <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
                     {{ filter.displayName }}
                   </v-list-item-title>
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </div>

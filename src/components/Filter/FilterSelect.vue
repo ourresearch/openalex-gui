@@ -11,7 +11,7 @@
         />
         <span
             v-if="i < optionIds.length-1"
-            class="mx-1 mr-2 grey--text"
+            class="mx-1 mr-2 text-grey"
         >
           or
         </span>
@@ -27,17 +27,17 @@
       <v-card rounded>
         <v-text-field
             v-model="searchString"
-            filled
+            variant="filled"
             rounded
-            background-color="white"
+            bg-color="white"
             prepend-inner-icon="mdi-magnify"
             hide-details
             autofocus
             :placeholder="searchStringPlaceholder"
             style=""
             class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-            append-outer-icon="mdi-close"
-            @click:append-outer="clickCloseSearch"
+            append-icon="mdi-close"
+            @click:append="clickCloseSearch"
         />
         <v-divider/>
         <v-card-text class="pa-0" style="height: 80vh;">

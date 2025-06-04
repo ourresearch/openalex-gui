@@ -3,7 +3,7 @@
     <v-list-item-icon>
       <v-icon>mdi-content-save-outline</v-icon>
     </v-list-item-icon>
-    <v-list-item-content>
+    
       <v-list-item-title>
         {{ name }}
       </v-list-item-title>
@@ -12,7 +12,7 @@
       </v-list-item-subtitle>
       <div>
       </div>
-    </v-list-item-content>
+    
     <v-list-item-action v-if="!isOpener">
       <v-btn icon @click.stop="deleteSavedSearch(id)" :disabled="disabled">
         <v-icon>mdi-delete-outline</v-icon>

@@ -3,17 +3,17 @@
     <!-- Menu Mode -->
     <template v-if="mode === 'menu'">
       <v-menu v-model="isMenuOpen" offset-y rounded max-height="50vh">
-        <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on">
+        <template v-slot:activator="{ props }">
+          <v-btn icon v-bind="props">
             <v-icon>mdi-plus-circle</v-icon>
           </v-btn>
         </template>
         <v-card flat rounded>
           <v-text-field
             v-model="columnSearch"
-            filled
+            variant="filled"
             rounded
-            background-color="white"
+            bg-color="white"
             prepend-inner-icon="mdi-magnify"
             hide-details
             autofocus
@@ -52,7 +52,7 @@
       <!-- Column selection dialog -->
       <v-dialog v-model="isDialogOpen" max-width="600">
         <v-card>
-          <v-card-title class="headline">
+          <v-card-title class="text-h5">
             {{ dialogTitle }}
           </v-card-title>
           
@@ -75,7 +75,7 @@
                     :style="{ minHeight: '32px' }"
                     text-color="black"
                   >
-                    <v-icon size="16" left>{{ column.icon }}</v-icon>
+                    <v-icon size="16" start>{{ column.icon }}</v-icon>
                     <span class="text-truncate column-option">{{ filters.titleCase(column.displayName) }}</span>
                   </v-chip>
                 </v-col>
@@ -87,7 +87,7 @@
           
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn text @click="cancelDialog">Cancel</v-btn>
+            <v-btn variant="text" @click="cancelDialog">Cancel</v-btn>
             <v-btn color="primary" @click="applyChanges">Apply</v-btn>
           </v-card-actions>
         </v-card>

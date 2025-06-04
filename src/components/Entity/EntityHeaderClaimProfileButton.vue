@@ -3,9 +3,8 @@
 
     <v-btn
         v-if="!userAuthorId"
-        text
+        variant="text"
         rounded
-        outlined
         class="ml-3"
         @click="clickClaim"
     >
@@ -13,7 +12,7 @@
     </v-btn>
     <div
         v-if="userAuthorId && userAuthorId === authorId"
-        class="ml-3 primary--text font-weight-bold"
+        class="ml-3 text-primary font-weight-bold"
         @click.alt="deleteAuthorId"
     >
       <v-icon color="primary">mdi-check-decagram</v-icon>
@@ -30,7 +29,7 @@
           <v-btn
               color="primary"
               rounded
-              text
+              variant="text"
               @click="isLoginRequiredDialogOpen = false"
           >
             Close
@@ -68,7 +67,7 @@
           <v-spacer></v-spacer>
           <v-btn
               rounded
-              text
+              variant="text"
               @click="isConfirmDialogOpen = false"
           >
             {{ userAuthorId ? "Close" : "Cancel" }}
@@ -77,7 +76,7 @@
               v-if="!userAuthorId"
               color="primary"
               rounded
-              text
+              variant="text"
               @click="doClaim"
               :disabled="isLoading"
           >
@@ -94,7 +93,7 @@
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "EntityHeaderClaimProfileButton",
   components: {},
   props: {
     authorId: String,

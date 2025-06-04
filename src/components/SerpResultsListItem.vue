@@ -4,7 +4,7 @@
       color="primary"
       exact
   >
-    <v-list-item-content>
+    
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
         <div class="" v-html="filters.prettyTitle(result.display_name)"></div>
       </v-list-item-title>
@@ -25,8 +25,8 @@
       <div>
         <v-btn
             v-if="result.works_count"
-            text
-            small
+            variant="text"
+            size="small"
             class="px-1"
             @click.stop.prevent="viewWorks"
         >
@@ -34,8 +34,8 @@
         </v-btn>
         <v-btn
             v-if="myEntityType === 'works'"
-            text
-            small
+            variant="text"
+            size="small"
             class="px-1"
             @click.stop.prevent="viewCitingPapers"
         >
@@ -47,15 +47,15 @@
                   v-if="result?.best_oa_location?.pdf_url"
                   :href="result?.best_oa_location?.pdf_url"
                   target="_blank"
-                  text
-                  small
+                  variant="text"
+                  size="small"
                   class="ml-2"
               >
                 PDF
               </v-btn>
         </span>
       </div>
-    </v-list-item-content>
+    
   </v-list-item>
 </template>
 

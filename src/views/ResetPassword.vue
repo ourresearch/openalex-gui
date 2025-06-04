@@ -8,7 +8,7 @@
       <v-card-text>
         <form>
           <v-text-field
-            filled
+            variant="filled"
             rounded
             class="mt-0"
             name="password"
@@ -56,7 +56,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapMutations} from "vuex";
 import { useHead } from '@unhead/vue';
 
 export default {
@@ -98,7 +98,7 @@ export default {
   mounted() {
     this.token = this.$route.query.token;
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.setShowPasswordResetErrorMessage(false);
   }
 }

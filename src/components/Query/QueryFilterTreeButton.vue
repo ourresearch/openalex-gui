@@ -1,21 +1,21 @@
 <template>
   <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
-    <template v-slot:activator="{ on }">
+    <template v-slot:activator="{ props }">
       <v-btn
-        v-on="on"
+        v-bind="props"
         :class="{'query-builder-button': true, 'tight': !text.length}"
         :color="buttonColor"
-        small
+        size="small"
       >
-        <v-icon small>mdi-plus</v-icon>{{ text }}
+        <v-icon size="small">mdi-plus</v-icon>{{ text }}
       </v-btn>
     </template>
     <v-card flat rounded v-if="isMenuOpen">
       <v-text-field
         v-model="search"
-        filled
+        variant="filled"
         rounded
-        background-color="white"
+        bg-color="white"
         prepend-inner-icon="mdi-magnify"
         hide-details
         autofocus

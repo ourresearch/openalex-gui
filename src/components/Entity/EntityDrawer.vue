@@ -2,7 +2,7 @@
   <v-navigation-drawer
       v-model="isOpen"
       app
-      right
+      location="right"
       :width="$vuetify.display.mobile ? '95%' : '50%'"
       temporary
       disable-route-watcher

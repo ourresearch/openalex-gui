@@ -10,7 +10,7 @@
       </template>
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </v-list-item-icon>
-    <v-list-item-content>
+    
       <v-list-item-title :class="{isNegated}">
         {{ displayValue }}
         {{ (disabled) ? "(applied)" : "" }}
@@ -19,8 +19,8 @@
         <span v-if="myEntityConfig">{{ filters.capitalize(filters.pluralize(myEntityConfig.displayName, 1)) }} </span>
         <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
       </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action-text class="body-1">
+    
+    <v-list-item-action-text class="text-body-1">
       <template v-if="isCountLoading">
         <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>

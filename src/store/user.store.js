@@ -1,4 +1,3 @@
-import { createStore } from 'vuex';
 import axios from "axios";
 import {url} from "@/url";
 import {api} from "@/api";
@@ -111,7 +110,7 @@ export default {
         // **************************************************
 
         // create
-        async createUser({commit, dispatch, state, getters}, {email, name, password}) {
+        async createUser({commit, dispatch}, {email, name, password}) {
             const id = shortUuid.generate()
             const postData = {
                 email,
@@ -130,7 +129,7 @@ export default {
         },
 
         // read
-        async fetchUser({commit, dispatch, state, getters}) {
+        async fetchUser({commit, dispatch}) {
             const resp = await axios.get(
                 apiBaseUrl + "/user",
                 axiosConfig({userAuth: true})
@@ -145,7 +144,7 @@ export default {
         },
 
         // read
-        async loginUser({commit, dispatch, state, getters}, {email, password}) {
+        async loginUser({commit, dispatch}, {email, password}) {
             console.log("user.store loginUser", email, password)
             const resp = await axios.post(
                 apiBaseUrl + "/user/login",
@@ -155,7 +154,7 @@ export default {
             await dispatch("fetchUser")
         },
 
-        async loginWithMagicToken({commit, dispatch, getters}, magicToken) {
+        async loginWithMagicToken({commit, dispatch}, magicToken) {
             console.log("user.store loginWithMagicToken", magicToken)
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login",
@@ -165,7 +164,7 @@ export default {
             await dispatch("fetchUser")
         },
 
-        async requestSignupEmail({commit, dispatch, getters}, signupObj) {
+        async requestSignupEmail({}, signupObj) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {
@@ -175,7 +174,7 @@ export default {
             )
             return resp
         },
-        async requestLoginEmail({commit, dispatch, getters}, email) {
+        async requestLoginEmail({}, email) {
             const resp = await axios.post(
                 apiBaseUrl + "/user/magic-login-request",
                 {
@@ -184,7 +183,7 @@ export default {
             )
             return resp
         },
-        async requestPasswordReset({commit, dispatch, getters}, email) {
+        async requestPasswordReset({}, email) {
             const resp = await axios.post(
                 apiBaseUrl + "/password/request-reset",
                 {
@@ -193,7 +192,7 @@ export default {
             )
             return resp
         },
-        async resetPassword({commit, dispatch, getters}, {token, password}) {
+        async resetPassword({}, {token, password}) {
             console.log("user.store resetPassword", password + " / " + token);
 
             const resp = await axios.post(
@@ -210,7 +209,7 @@ export default {
         // CLAIM PROFILE
         // **************************************************
 
-        async setAuthorId({commit, dispatch, state, getters}, authorId) {
+        async setAuthorId({dispatch, getters}, authorId) {
             const myUrl = apiBaseUrl + `/user/${getters.userId}/author/${authorId}`
             console.log("user.store setAuthorId", authorId, myUrl)
             const resp = await axios.post(
@@ -241,7 +240,7 @@ export default {
 
 
         // create
-        async createSearch({commit, dispatch, state, rootState}, {search_url, name, description, has_alert}) {
+        async createSearch({dispatch}, {search_url, name, description, has_alert}) {
             const id = shortUuid.generate()
 
             // add id to search_url
@@ -260,7 +259,8 @@ export default {
                 axiosConfig({userAuth: true}),
             )
             await dispatch("fetchSavedSearches") // have to update the list
-            await url.pushSearchUrlToRoute(navigation, search_url)
+            await url.pushSearchUrlToRoute(navigation, search_url);
+            return resp;
         },
         // create
         async createSearchFromTemplate({commit, dispatch, state, rootState}, id) {
@@ -276,7 +276,7 @@ export default {
 
 
         // read
-        async fetchSavedSearches({commit, state}) {
+        async fetchSavedSearches({state}) {
             const resp = await axios.get(
                 apiBaseUrl + "/saved-search",
                 axiosConfig({userAuth: true})
@@ -287,11 +287,11 @@ export default {
                 return a.updated > b.updated ? -1 : 1
             })
 
-            state.savedSearches = sorted
+            state.savedSearches = sorted;
         },
 
         // read
-        async openSavedSearch({commit, state, getters}, id) {
+        async openSavedSearch({state}, id) {
             const savedSearchToOpen = state.savedSearches.find((s => s.id === id))
             return await url.pushToRoute(
                 navigation,
@@ -299,7 +299,7 @@ export default {
             )
         },
         // update
-        async updateSearchDescription({commit, dispatch, state, rootState}, {id, description}) {
+        async updateSearchDescription({commit, dispatch, state}, {id, description}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
@@ -308,9 +308,10 @@ export default {
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Description updated", {root: true})
+            return resp;
         },
         // update
-        async updateSearchName({commit, dispatch, state, rootState}, {id, name}) {
+        async updateSearchName({commit, dispatch, state}, {id, name}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
@@ -319,10 +320,11 @@ export default {
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search renamed", {root: true})
+            return resp;
         },
 
         // update
-        async updateSearchUrl({commit, dispatch, state, rootState}, {id, search_url}) {
+        async updateSearchUrl({commit, dispatch, state}, {id, search_url}) {
             state.isSaving = true
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
@@ -332,10 +334,11 @@ export default {
             )
             await dispatch("fetchSavedSearches") // have to update the list
             commit("snackbar", "Search saved", {root: true})
-            state.isSaving = false
+            state.isSaving = false;
+            return resp;
         },
         // update
-        async updateSearchAlert({commit, dispatch, state, rootState}, {id, has_alert}) {
+        async updateSearchAlert({commit, dispatch, state}, {id, has_alert}) {
             const oldSearchObj = state.savedSearches.find(s => s.id === id)
             const resp = await axios.put(
                 apiBaseUrl + "/saved-search/" + id,
@@ -344,7 +347,8 @@ export default {
             )
             await dispatch("fetchSavedSearches") // have to update the list
             const snackbarString = has_alert ? "Alert added" : "Alert removed"
-            commit("snackbar", snackbarString, {root: true})
+            commit("snackbar", snackbarString, {root: true});
+            return resp;
         },
 
 
@@ -360,8 +364,8 @@ export default {
             commit("snackbar", "Search deleted", {root: true})
             rootState.isLoading = false
             await url.pushToRoute(navigation, "/me/searches")
-            commit("setActiveSearchId", undefined)
-
+            commit("setActiveSearchId", undefined);
+            return resp;
         },
 
         // **************************************************
@@ -369,7 +373,7 @@ export default {
         // **************************************************
 
         // create
-        async createCollection({commit, dispatch, state, rootState}, {ids, name, description, entity_type}) {
+        async createCollection({commit, state}, {ids, name, description, entity_type}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/collections`;
             const resp = await axios.post(myUrl, {
                 ids,
@@ -396,6 +400,7 @@ export default {
                 ids,
             }, axiosConfig({userAuth: true}))
         
+            return resp;
             // TODO Rollback on error
         },
 
@@ -408,11 +413,12 @@ export default {
                 entity_type,
             }, axiosConfig({userAuth: true}))
             
+            return resp;
             // TODO Rollback on error
         },
         
         // delete
-        async deleteCollection({commit, dispatch, state, rootState, getters}, id) {
+        async deleteCollection({commit, state, getters}, id) {
             const label = getters.getCollection(id);
             if (!label) { return; }
             let msg = "Are you sure you want to delete this label";
@@ -430,7 +436,7 @@ export default {
                 myUrl,
                 axiosConfig({userAuth: true}),
             );
-            return true;
+            return resp;
 
             // TODO Rollback on error
 
@@ -443,22 +449,25 @@ export default {
 
 
         // create
-        async createCorrection({commit, dispatch, state, rootState}, correctionObj) {
+        async createCorrection({}, correctionObj) {
             console.log("user.store createCorrection", correctionObj)
 
-            // const myUrl = apiBaseUrl + `/user/${state.id}/collections`
-            // const resp = await axios.post(myUrl, {
-            //     ids,
-            //     name,
-            //     description,
-            // }, axiosConfig())
-            //
-            // await sleep(500)  // hack to give the server time to update
-            // await dispatch("fetchUser")
+           /*
+            const myUrl = apiBaseUrl + `/user/${state.id}/collections`
+           const resp = await axios.post(myUrl, {
+               ids,
+               name,
+               description,
+           }, axiosConfig())
+          
+           await sleep(500)  // hack to give the server time to update
+           await dispatch("fetchUser");
+           return resp;
+           */
         },
 
         // read
-        async fetchCorrections({commit, state}) {
+        async fetchCorrections({state}) {
             const myUrl = apiBaseUrl + `/user/${state.id}/corrections`
             const resp = await axios.get(
                 myUrl,
@@ -466,7 +475,7 @@ export default {
             )
             state.corrections = resp.data
         },
-        async deleteCorrection({commit, dispatch, state, rootState}, id) {
+        async deleteCorrection({}, id) {
             console.log("user.store deleteCorrection", id)
         },
     },
@@ -493,10 +502,10 @@ export default {
         isLoginDialogOpen: (state) => state.isLoginDialogOpen,
         showPasswordResetErrorMessage: (state) => state.showPasswordResetErrorMessage,
         activeSearchId: (state) => state.activeSearchId,
-        activeSearchObj: (state, getters) => state.savedSearches.find(s => s.id === state.activeSearchId),
-        activeSearchUrl: (state, getters) => getters.activeSearchObj?.search_url,
-        activeSearchDescription: (state, getters) => getters.activeSearchObj?.description,
-        activeSearchName: (state, getters) => getters.activeSearchObj?.name,
-        activeSearchHasAlert: (state, getters) => getters.activeSearchObj?.has_alert,
+        activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
+        activeSearchUrl: (getters) => getters.activeSearchObj?.search_url,
+        activeSearchDescription: (getters) => getters.activeSearchObj?.description,
+        activeSearchName: (getters) => getters.activeSearchObj?.name,
+        activeSearchHasAlert: (getters) => getters.activeSearchObj?.has_alert,
     }
 };

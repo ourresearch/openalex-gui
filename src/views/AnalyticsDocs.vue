@@ -6,7 +6,7 @@
       <div class="mb-6">OpenAlex Analytics works by generating a set of works to consider, then optionally grouping them into another entity type like authors or institutions. If no works filters are applied all works in OpenAlex are considered. Filters may be applied to the starting work set and then separetly to each group of resulting entities. Below is a list of all available fields for filtering, displaying as return columns, or sorting.</div>
 
       <!-- Debug Mode Controls -->
-      <div v-if="debugMode" class="mb-6 pa-4 grey lighten-4 rounded">
+      <div v-if="debugMode" class="mb-6 pa-4 bg-grey-lighten-4 rounded">
         <h3 class="mb-3">Show</h3>
         <v-row>
           <v-col cols="12" sm="6" md="4" v-for="field in sortedAvailableFields" :key="field">
@@ -14,7 +14,7 @@
               v-model="selectedFields"
               :label="field"
               :value="field"
-              dense
+              density="compact"
               hide-details
               class="my-0 py-0"
             ></v-checkbox>
@@ -29,7 +29,7 @@
               v-model="activeFilters"
               :label="filter.name"
               :value="filter.name"
-              dense
+              density="compact"
               hide-details
               class="my-0 py-0"
             ></v-checkbox>
@@ -41,26 +41,25 @@
       <div v-if="configs.works && hasVisibleColumns(configs.works.columns)" class="mb-10">
         <h2 class="text-h5 mb-1">
           {{ filters.titleCase(configs.works.displayName) }}
-          <span v-if="debugMode" class="text-subtitle-2 grey--text ml-2">
+          <span v-if="debugMode" class="text-subtitle-2 text-grey ml-2">
             ({{ countVisibleColumns(configs.works.columns) }} columns)
           </span>
         </h2>
         <p class="mb-4">{{ configs.works.descrFull }}</p>
         <ul>
-          <li v-for="(column, columnId) in configs.works.columns" :key="columnId" class="mb-3" 
-              v-if="shouldShowColumn(column)">
+          <li v-for="(column, columnId) in columnsToShow('works')" :key="columnId" class="mb-3">
             <div>
               <strong>{{ filters.titleCase(column.displayName) }}</strong> [{{ column.id }}]:
               {{ column.descr }}
               <div class="d-inline-block">
-                <v-chip v-if="column.actions && column.actions.includes('filter')" x-small class="mr-1 my-1" color="primary" text-color="white">filter</v-chip>
-                <v-chip v-if="column.actions && column.actions.includes('column')" x-small class="mr-1 my-1" color="secondary" text-color="white">column</v-chip>
-                <v-chip v-if="column.actions && column.actions.includes('sort')" x-small class="mr-1 my-1" color="accent" text-color="white">sort</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('filter')" size="x-small" class="mr-1 my-1 text-white" color="primary">filter</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('column')" size="x-small" class="mr-1 my-1 text-white" color="secondary">column</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('sort')" size="x-small" class="mr-1 my-1 text-white" color="accent">sort</v-chip>
               </div>
               
               <!-- Debug field information -->
-              <div v-if="debugMode && selectedFields.length > 0" class="mt-2 pl-4 grey--text text--darken-1">
-                <div v-for="field in selectedFields" :key="field" v-if="column[field] !== undefined && !isDisplayedInDefault(field)">
+              <div v-if="debugMode && selectedFields.length > 0" class="mt-2 pl-4 text-grey-darken-1">
+                <div v-for="field in availavleSelectedFields(column)" :key="field">
                   <small><strong>{{ field }}:</strong> {{ formatFieldValue(column[field]) }}</small>
                 </div>
               </div>
@@ -70,30 +69,28 @@
       </div>
       
       <!-- Remaining sections in alphabetical order -->
-      <div v-for="(config, configKey) in sortedConfigs" :key="configKey" class="mb-10"
-           v-if="hasVisibleColumns(config.columns)">
+      <div v-for="(config, configKey) in sortedConfigs" :key="configKey" class="mb-10">
         <h2 class="text-h5 mb-1">
           {{ filters.titleCase(config.displayName) }}
-          <span v-if="debugMode" class="text-subtitle-2 grey--text ml-2">
+          <span v-if="debugMode" class="text-subtitle-2 text-grey ml-2">
             ({{ countVisibleColumns(config.columns) }} columns)
           </span>
         </h2>
         <p class="mb-4">{{ config.descrFull }}</p>
         <ul>
-          <li v-for="(column, columnId) in config.columns" :key="columnId" class="mb-3"
-              v-if="shouldShowColumn(column)">
+          <li v-for="(column, columnId) in config.columns" :key="columnId" class="mb-3">
             <div>
               <strong>{{ filters.titleCase(column.displayName) }}</strong> [{{ column.id }}]:
               {{ column.descr }}
               <div class="d-inline-block">
-                <v-chip v-if="column.actions && column.actions.includes('filter')" x-small class="mr-1 my-1" color="primary" text-color="white">filter</v-chip>
-                <v-chip v-if="column.actions && column.actions.includes('column')" x-small class="mr-1 my-1" color="secondary" text-color="white">column</v-chip>
-                <v-chip v-if="column.actions && column.actions.includes('sort')" x-small class="mr-1 my-1" color="accent" text-color="white">sort</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('filter')" size="x-small" class="mr-1 my-1 text-white" color="primary">filter</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('column')" size="x-small" class="mr-1 my-1 text-white" color="secondary">column</v-chip>
+                <v-chip v-if="column.actions && column.actions.includes('sort')" size="x-small" class="mr-1 my-1 text-white" color="accent">sort</v-chip>
               </div>
               
               <!-- Debug field information -->
-              <div v-if="debugMode && selectedFields.length > 0" class="mt-2 pl-4 grey--text text--darken-1">
-                <div v-for="field in selectedFields" :key="field" v-if="column[field] !== undefined && !isDisplayedInDefault(field)">
+              <div v-if="debugMode && availableSelectedFields(column).length > 0" class="mt-2 pl-4 text-grey-darken-1">
+                <div v-for="field in availableSelectedFields(column)" :key="field">
                   <small><strong>{{ field }}:</strong> {{ formatFieldValue(column[field]) }}</small>
                 </div>
               </div>
@@ -161,7 +158,7 @@ export default {
       // Create a new object with all configs except 'works'
       const configsWithoutWorks = {};
       Object.keys(this.configs)
-        .filter(key => key !== 'works')
+        .filter(key => key !== 'works' && this.hasVisibleColumns(this.configs[key].columns))
         .sort() // Sort alphabetically
         .forEach(key => {
           configsWithoutWorks[key] = this.configs[key];
@@ -190,7 +187,7 @@ export default {
     sortedFilterFunctions() {
       // Return alphabetically sorted filter functions
       return [...this.filterFunctions].sort((a, b) => a.name.localeCompare(b.name));
-    }
+    },
   },
   methods: {
     handleTitleClick() {
@@ -251,7 +248,14 @@ export default {
     countVisibleColumns(columns) {
       // Count how many columns are visible in this section
       return Object.values(columns).filter(column => this.shouldShowColumn(column)).length;
-    }
+    },
+    columnsToShow(key) {
+      const columns = this.configs[key].columns;
+      return Object.values(columns).filter(column => this.shouldShowColumn(column));
+    },
+    availableSelectedFields(column) {
+      return this.selectedFields.filter(field => column[field] !== undefined && !this.isDisplayedInDefault(field));
+    },
   }
 }
 </script>

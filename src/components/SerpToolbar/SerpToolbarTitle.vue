@@ -11,15 +11,15 @@
 
     <!-- you can only save works searches for now -->
     <div v-if="entityType === 'works'">
-      <v-btn v-if="!userId" rounded text class="font-weight-regular" @click="clickTitle">
+      <v-btn v-if="!userId" rounded variant="text" class="font-weight-regular" @click="clickTitle">
          Unsaved search
         <v-icon class="ml-1">mdi-menu-down</v-icon>
       </v-btn>
       <v-menu v-else offset-y>
-        <template v-slot:activator="{on}">
+        <template v-slot:activator="{props}">
           <v-btn
-              v-on="on"
-              text
+              v-bind="props"
+              variant="text"
               rounded
               class="font-weight-regular"
           >
@@ -51,7 +51,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text rounded @click="clickLogin">Log in</v-btn>
+          <v-btn variant="text" rounded @click="clickLogin">Log in</v-btn>
           <v-btn rounded color="primary" @click="clickSignup">Sign up</v-btn>
         </v-card-actions>
       </v-card>

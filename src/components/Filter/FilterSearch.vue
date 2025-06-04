@@ -2,19 +2,19 @@
   <filter-base :filter-key="filterKey" :index="index">
       <v-chip
           color="transparent"
-          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 body-1"
+          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 text-body-1"
           @click="isActive = true"
           v-if="!isActive"
       >
         "{{ value }}"
-        <v-icon right small>mdi-pencil</v-icon>
+        <v-icon end size="small">mdi-pencil</v-icon>
       </v-chip>
       <template v-if="isActive">
         <v-text-field
             v-model="searchString"
             rounded
-            dense
-            filled
+            density="compact"
+            variant="filled"
             hide-details
             autofocus
             placeholder="Enter search terms"

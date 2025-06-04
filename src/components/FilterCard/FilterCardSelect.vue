@@ -2,18 +2,18 @@
   <v-card rounded>
     <v-text-field
             v-model="searchString"
-            filled
+            variant="filled"
             rounded
-            background-color="white"
+            bg-color="white"
             :prepend-inner-icon="prependIcon"
             hide-details
             autofocus
             :placeholder="placeholder"
             style=""
             class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-            append-outer-icon="mdi-close"
+            append-icon="mdi-close"
             @keyup.enter="onEnter"
-            @click:append-outer="clickCloseSearch"
+            @click:append="clickCloseSearch"
             @click:prepend-inner="clickPrependIcon"
 
     />

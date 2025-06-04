@@ -40,19 +40,13 @@ import {getLabelsInQuery} from "@/query";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 import ResultsTable from "@/components/Results/ResultsTable.vue";
-import ResultsSearching from "@/components/Results/ResultsSearching.vue";
-import ResultsError from "@/components/Results/ResultsError.vue";
 import QueryBuilder from "@/components/Query/QueryBuilder.vue";
-import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryTabs from "@/components/Query/QueryTabs.vue";
 
 export default {
-  name: "Results",
+  name: "ResultsPage",
   components: {
     ResultsTable,
-    ResultsSearching,
-    ResultsError,
-    QueryOql,
     QueryBuilder,
     QueryTabs,
   },
@@ -151,7 +145,7 @@ export default {
       this.$router.replace({name: 'AnalyticsTesting'});
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.cancelPollTimer();
   },
   watch: {

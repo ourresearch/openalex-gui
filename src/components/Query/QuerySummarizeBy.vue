@@ -1,14 +1,14 @@
 <template>
   <v-menu max-height="70vh" rounded offset-y>
-    <template v-slot:activator="{ on }">
-      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-on="on">
+    <template v-slot:activator="{ props }">
+      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-bind="props">
         <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
-            <v-icon small>mdi-layers-triple-outline</v-icon>
+            <v-icon size="small">mdi-layers-triple-outline</v-icon>
           </span>
         <span v-else>
           {{ buttonName }}
-          <v-icon v-if="uiVariant === 'sentence-group'" class="down-icon" small @click.stop.prevent="() => {selected = 'works'; }">mdi-close</v-icon>
-          <v-icon v-else class="down-icon" right>mdi-menu-down</v-icon>
+          <v-icon v-if="uiVariant === 'sentence-group'" class="down-icon" size="small" @click.stop.prevent="() => {selected = 'works'; }">mdi-close</v-icon>
+          <v-icon v-else class="down-icon" end>mdi-menu-down</v-icon>
         </span>
       </v-chip>
     </template>

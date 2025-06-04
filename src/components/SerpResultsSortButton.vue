@@ -1,7 +1,7 @@
 <template>
   <v-menu>
-    <template v-slot:activator="{on}">
-      <v-btn v-on="on" icon>
+    <template v-slot:activator="{props}">
+      <v-btn v-bind="props" icon>
         <v-icon>mdi-sort-ascending</v-icon>
       </v-btn>
     </template>
@@ -20,11 +20,11 @@
         <v-list-item-icon>
           <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
         </v-list-item-icon>
-        <v-list-item-content>
+        
           <v-list-item-title>
             {{ option.displayName }}
           </v-list-item-title>
-        </v-list-item-content>
+        
         <v-list-item-action class="pl-3 pt-2">
           <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
         </v-list-item-action>

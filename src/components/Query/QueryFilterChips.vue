@@ -11,21 +11,21 @@ Drafted by ChatGPT -->
       <div v-for="(filter, index) in appliedFilters" :key="'applied' + index" class="mr-2 mb-2">
         <v-chip
           color="blue"
-          outlined
+          variant="outlined"
         >
           {{ columnConfig(filter.column_id).displayName }}: {{ getFilterValue(filter) }}
-          <v-icon @click="removeFilter(filter)" small class="ml-1">mdi-close-circle</v-icon>
+          <v-icon @click="removeFilter(filter)" size="small" class="ml-1">mdi-close-circle</v-icon>
         </v-chip>
       </div>
 
       <!-- Available Filters -->
       <div v-for="(filter, index) in availableFilters" :key="index" class="mr-2 mb-2">
         <v-chip
-          outlined
+          variant="outlined"
           @click="openFilterMenu(filter)"
         >
           {{ filter.displayName }}
-          <v-icon small class="ml-1">mdi-menu-down</v-icon>
+          <v-icon size="small" class="ml-1">mdi-menu-down</v-icon>
         </v-chip>
       </div>
     </div>
@@ -36,8 +36,8 @@ Drafted by ChatGPT -->
       offset-y
       v-if="currentFilter"
     >
-      <template v-slot:activator="{ on }">
-        <v-btn v-on="on" style="display: none;"></v-btn>
+      <template v-slot:activator="{ props }">
+        <v-btn v-bind="props" style="display: none;"></v-btn>
       </template>
       <v-card flat rounded>
         <query-filter-tree-leaf

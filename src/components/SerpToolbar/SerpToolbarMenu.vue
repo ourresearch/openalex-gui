@@ -18,8 +18,8 @@
     </v-btn>
 
     <v-menu offset-y>
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+      <template v-slot:activator="{props}">
+        <v-btn icon v-bind="props">
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
@@ -35,11 +35,11 @@
           <v-list-item-icon>
             <v-icon>{{ view.icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>
               {{ view.displayName }}
             </v-list-item-title>
-          </v-list-item-content>
+          
           <v-list-item-action class="pt-2">
             <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
           </v-list-item-action>
@@ -48,8 +48,8 @@
     </v-menu>
 
     <v-menu offset-y>
-      <template v-slot:activator="{on}">
-        <v-btn icon v-on="on">
+      <template v-slot:activator="{props}">
+        <v-btn icon v-bind="props">
           <v-icon>mdi-share-variant</v-icon>
         </v-btn>
       </template>
@@ -58,21 +58,21 @@
           <v-list-item-icon>
             <v-icon>mdi-qrcode</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>
               Get QR code to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
         <v-list-item @click="copyUrlToClipboard">
           <v-list-item-icon>
             <v-icon>mdi-link-variant</v-icon>
           </v-list-item-icon>
-          <v-list-item-content>
+          
             <v-list-item-title>
               Copy link to share
             </v-list-item-title>
-          </v-list-item-content>
+          
         </v-list-item>
       </v-list>
     </v-menu>

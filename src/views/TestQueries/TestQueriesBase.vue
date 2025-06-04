@@ -5,7 +5,7 @@
         <v-breadcrumbs
             class="ma-0 pa-0"
             :items="breadcrumbItems"
-            large
+            size="large"
         >
           <template v-slot:divider>
             <v-icon>mdi-chevron-right</v-icon>
@@ -20,8 +20,6 @@
 
 
 <script>
-
-import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "TestQueriesBase",

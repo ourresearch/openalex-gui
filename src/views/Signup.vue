@@ -8,11 +8,10 @@
 import {mapGetters, mapMutations} from "vuex";
 import { useHead } from '@unhead/vue';
 
-import UserSignup from "@/components/user/UserSignup.vue";
 
 export default {
-  name: "Signup",
-  components: {UserSignup},
+  name: "SignupPage",
+  components: {},
   props: {},
   data() {
     return {}
@@ -37,7 +36,7 @@ export default {
       this.$router.push(this.$route.query.redirect || '/');
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.setIsSignupDialogOpen(false);
   },
 }

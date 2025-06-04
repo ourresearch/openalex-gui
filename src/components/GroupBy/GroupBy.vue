@@ -9,16 +9,16 @@
       style="width: 100%;"
   >
     <v-toolbar flat color="transparent">
-      <v-icon left>{{ filterConfig.icon }}</v-icon>
+      <v-icon start>{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title>
         <span class="">{{ filterConfig.displayName }}</span>
       </v-toolbar-title>
       <v-spacer/>
       <v-menu offset-y>
-        <template v-slot:activator="{on}">
+        <template v-slot:activator="{props}">
           <v-btn
               icon
-              v-on="on"
+              v-bind="props"
           >
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
@@ -28,18 +28,18 @@
             <v-list-item-icon>
               <v-icon>mdi-tray-arrow-down</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>Export</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
             <v-list-item-icon>
               <v-icon>mdi-api</v-icon>
             </v-list-item-icon>
-            <v-list-item-content>
+            
               <v-list-item-title>View in API</v-list-item-title>
-            </v-list-item-content>
+            
             <v-list-item-action-text>.json</v-list-item-action-text>
           </v-list-item>
 
@@ -76,20 +76,20 @@
               size="60"
               width="20"
               rotate="270"
-              :value="groupsTruncated?.find(g => g.value != 0).countScaled * 100"
+              :model-value="groupsTruncated?.find(g => g.value != 0).countScaled * 100"
           />
           <div class="ml-3">
             <div class="text-h4">
               {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).countScaled * 100, 3) }}%
             </div>
-            <div class="body-2">
+            <div class="text-body-2">
               {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).count) }}
             </div>
           </div>
         </v-card>
       </div>
 
-      <v-simple-table dense class="transparent" v-else style="width: 100%;">
+      <v-table dense class="bg-transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
             v-for="row in groupsTruncated"
@@ -101,12 +101,12 @@
             :hide-checkbox="$route.name !== 'Serp'"
         />
         </tbody>
-      </v-simple-table>
+      </v-table>
     </div>
 
     <v-card-actions >
       <v-spacer/>
-      <v-btn v-if="isMoreToShow" small rounded text @click="isDialogOpen = true">
+      <v-btn v-if="isMoreToShow" size="small" rounded variant="text" @click="isDialogOpen = true">
         More...
       </v-btn>
 
@@ -121,17 +121,17 @@
       <v-card rounded>
         <v-text-field
               v-model="searchString"
-              filled
+              variant="filled"
               rounded
-              background-color="white"
+              bg-color="white"
               prepend-inner-icon="mdi-magnify"
               hide-details
               autofocus
               :placeholder="searchStringPlaceholder"
               style=""
               class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-              append-outer-icon="mdi-close"
-              @click:append-outer="clickCloseSearch"
+              append-icon="mdi-close"
+              @click:append="clickCloseSearch"
           />
         <v-divider />
         <v-card-text class="pa-0" style="height: 80vh;">

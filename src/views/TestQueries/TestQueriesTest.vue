@@ -22,13 +22,12 @@
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
-import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import {getTestQuery} from "@/components/TestQuery/tests";
 
 export default {
-  name: "Template",
+  name: "TestQueriesTest",
   components: {
-    TestQueryNatLang, TestQueryOql
+   TestQueryOql
   },
   props: {},
   data() {

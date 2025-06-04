@@ -4,7 +4,7 @@
       <v-text-field
           style="width: 100%;"
           rounded
-          outlined
+          variant="outlined"
           full-width
           v-model="searchString"
           hide-details
@@ -15,7 +15,7 @@
     </div>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn text rounded @click="isActive = false">Cancel</v-btn>
+      <v-btn variant="text" rounded @click="isActive = false">Cancel</v-btn>
       <v-btn color="primary" rounded @click="submit">Apply</v-btn>
     </v-card-actions>
   </v-card>

@@ -4,11 +4,11 @@
       class="hover-color-3 font-weight-regular"
       :class="{clickable, card: $vuetify.display.smAndDown}"
   >
-    <td class="grey--text shrink pl-5 d-none d-md-table-cell">
+    <td class="text-grey shrink pl-5 d-none d-md-table-cell">
 <!--      {{ index + 1 }}.-->
       <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
     </td>
-    <td class="grey--text shrink d-none d-md-table-cell">
+    <td class="text-grey shrink d-none d-md-table-cell">
       {{ index > 0 ? "and" : "" }}
     </td>
 
@@ -59,8 +59,8 @@
         </div>
         <div class="ml-3">
           <slot></slot>
-          <v-btn small rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
-            <v-icon left>mdi-plus-thick</v-icon> add {{ myConfig.displayName }}
+          <v-btn size="small" rounded class="ml-2 mt-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+            <v-icon start>mdi-plus-thick</v-icon> add {{ myConfig.displayName }}
           </v-btn>
         </div>
       </div>

@@ -6,7 +6,7 @@
           <h1 class="mb-2">Hello Admin</h1>
           <v-text-field
             v-model="searchQuery"
-            outlined
+            variant="outlined"
             label="Search for users by name or email"
             @keyup.enter="searchUsers"
             append-icon="mdi-magnify"
@@ -17,25 +17,25 @@
             hide-details
             @click:clear="clearResults"
           />
-          <v-alert v-if="error" type="error" dense>{{ error }}</v-alert>
+          <v-alert v-if="error" type="error" density="compact">{{ error }}</v-alert>
           <v-progress-linear v-if="loading" indeterminate color="primary" class="mt-4"/>
           <div v-if="users.length" class="mt-1">
             <div class="d-flex justify-end align-center mb-0">
-              <span class="mb-1 mr-2 grey--text text--darken-1" style="font-size: 13px;">{{ users.length }} result{{ users.length === 1 ? '' : 's' }}</span>
+              <span class="mb-1 mr-2 text-grey-darken-1" style="font-size: 13px;">{{ users.length }} result{{ users.length === 1 ? '' : 's' }}</span>
             </div>
-            <v-list two-line class="pa-0" style="background: transparent;">
+            <v-list lines="two" class="pa-0" style="background: transparent;">
               <v-list-item
                 v-for="user in users"
                 :key="user.id"
                 class="mb-2"
                 style="border:1px solid #eee;border-radius:8px;background:white;"
               >
-                <v-list-item-content>
+                
                   <div class="d-flex align-center justify-space-between">
                     <div>
                       <v-list-item-title>
                         <b class="mr-2">{{ user.name }}</b>
-                        <span v-if="user.email" class="grey--text">{{ user.email }}</span>
+                        <span v-if="user.email" class="text-grey">{{ user.email }}</span>
                       </v-list-item-title>
                       <v-list-item-subtitle>
                         <div style="font-size: 11px;" class="mt-1">ID: {{ user.id }}</div>
@@ -49,8 +49,8 @@
                           :key="flag.key"
                           :label="flag.label"
                           :value="editedUsers[user.id]?.[flag.key] ?? user[flag.key]"
-                          :input-value="editedUsers[user.id]?.[flag.key] ?? user[flag.key]"
-                          @change="val => onFlagChange(user, flag.key, val)"
+                          :model-value="editedUsers[user.id]?.[flag.key] ?? user[flag.key]"
+                          @update:model-value="val => onFlagChange(user, flag.key, val)"
                           hide-details
                           class="admin-checkbox mr-1 py-0"
                           dense
@@ -61,7 +61,7 @@
                         <v-btn
                           v-if="hasUserEdits(user.id)"
                           color="primary"
-                          small
+                          size="small"
                           block
                           @click="saveUser(user)"
                           :loading="savingUserId === user.id"
@@ -69,13 +69,13 @@
                         >Save</v-btn>
                         <span
                           v-else-if="savedUsers[user.id]"
-                          class="green--text text--darken-2 float-right"
+                          class="text-green-darken-2 float-right"
                           style="font-size:13px;"
                         >Saved</span>
                       </div>
                     </div>
                   </div>
-                </v-list-item-content>
+                
               </v-list-item>
             </v-list>
           </div>

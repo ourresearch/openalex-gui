@@ -4,8 +4,8 @@
       :key="actionKey"
       :disabled="isDisabled"
       @click="click"
-      :outlined="!isSelected"
-      :input-value="isSelected"
+      :variant="!isSelected ? 'outlined' : undefined"
+      :model-value="isSelected"
       filter
       color="primary"
       class="mb-1 mr-1"

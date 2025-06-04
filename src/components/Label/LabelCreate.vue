@@ -4,7 +4,7 @@
     <v-card-text>
       <form>
           <v-text-field
-              filled
+              variant="filled"
               rounded
               class="mt-0"
 
@@ -25,9 +25,9 @@
                 v-model="entity_type"
                 :items="entity_types"
                 label="Type"
-                item-text="text"
+                item-title="text"
                 item-value="value"
-                filled
+                variant="filled"
                 rounded
                 class="mt-4"
                 required
@@ -43,7 +43,7 @@
             <v-textarea
               v-model="description"
               label="Description (optional)"
-              filled
+              variant="filled"
               rounded
               class="mt-4"
               hide-details
@@ -54,7 +54,7 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer />
-      <v-btn :disabled="isLoading" rounded text @click="$emit('close')">Cancel</v-btn>
+      <v-btn :disabled="isLoading" rounded variant="text" @click="$emit('close')">Cancel</v-btn>
       <v-btn
           color="primary"
           rounded

@@ -4,30 +4,30 @@
       <v-icon
           :small="small"
           :large="large"
-          :x-large="xLarge"
+          :size="xLarge ? 'x-large' : undefined"
           :color="color"
       >
         {{ entityConfig.icon }}
       </v-icon>
       <span
           style="color: #555;"
-          class="body-1"
+          class="text-body-1"
       >
         {{ (singular) ? entityConfig.displayNameSingular : entityConfig.displayName }}:
       </span>
     </span>
     <span v-else>
-      <v-tooltip bottom>
-        <template v-slot:activator="{ on, attrs }">
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
           <span
-              v-bind="attrs"
-              v-on="on"
+             
+              v-bind="props"
           >
             <v-icon
-                :left="left"
+                :start="left"
                 :small="small"
                 :large="large"
-                :x-large="xLarge"
+                :size="xLarge ? 'x-large' : undefined"
                 :color="color"
                 style="vertical-align: unset;"
             >

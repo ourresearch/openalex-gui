@@ -2,7 +2,7 @@
   <v-dialog v-model="isOpen" max-width="300">
       <v-card flat rounded :loading="isLoading"  v-if="userId">
         <v-card-title>
-          <v-icon left>{{ hasAlert ? "mdi-bell-minus" : "mdi-bell-plus "}}</v-icon>
+          <v-icon start>{{ hasAlert ? "mdi-bell-minus" : "mdi-bell-plus "}}</v-icon>
           {{ hasAlert ? "Remove alert?" : "Create alert?" }}
         </v-card-title>
         <v-card-text>
@@ -15,8 +15,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn text rounded @click="isOpen = false">Cancel</v-btn>
-          <v-btn text rounded color="primary" @click="toggleAlerts">
+          <v-btn variant="text" rounded @click="isOpen = false">Cancel</v-btn>
+          <v-btn variant="text" rounded color="primary" @click="toggleAlerts">
             {{ hasAlert ? "Remove alert" : "Create alert"}}
           </v-btn>
         </v-card-actions>
@@ -28,8 +28,8 @@
       </v-card-text>
       <v-card-actions>
           <v-spacer />
-          <v-btn text rounded to="/login">Log in</v-btn>
-          <v-btn text rounded color="primary" to="signup">Sign up</v-btn>
+          <v-btn variant="text" rounded to="/login">Log in</v-btn>
+          <v-btn variant="text" rounded color="primary" to="signup">Sign up</v-btn>
         </v-card-actions>
     </v-card>
     </v-dialog>

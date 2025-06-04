@@ -26,10 +26,10 @@
         
         <div v-if="!exportStarted" class="mt-6 text-right">
           <v-btn color="primary" @click="createExport">Export</v-btn>
-          <v-btn text @click="closeDialog">Cancel</v-btn>
+          <v-btn variant="text" @click="closeDialog">Cancel</v-btn>
         </div>
         <div v-else class="mt-3 text-right">
-          <v-btn text @click="closeDialog">Close</v-btn>
+          <v-btn variant="text" @click="closeDialog">Close</v-btn>
         </div>
       </div>
     </v-card-text>

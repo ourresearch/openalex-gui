@@ -6,12 +6,12 @@
         :items="sortByOptions"
         placeholder="Sort by.."
         label="sort by"
-        item-text="label"
+        item-title="label"
         return-object
         hide-details
         rounded
-        filled
-        dense
+        variant="filled"
+        density="compact"
     />
   </span>
 </template>

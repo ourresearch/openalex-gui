@@ -4,34 +4,34 @@
       v-model="selectedEntity"
       class="query-builder-input"
       ref="autocomplete"
-      @input="onEntitySelected"
+      @update:model-value="onEntitySelected"
       :items="entities"
       :loading="loading"
-      :search-input="search"
-      @update:search-input="onSearchInputUpdate"
-      item-text="display_name"
+      :search="search"
+      @update:search="onSearchInputUpdate"
+      item-title="display_name"
       item-value="id"
       :placeholder="`Search ${entityType}`"
       return-object
       v-bind="$attrs"
       v-on="$listeners"
-      outlined
+      variant="outlined"
       :color="filterColor"
-      dense
+      density="compact"
       hide-no-data
       hide-details
       no-filter
       autofocus
     >
       <template v-slot:item="{ item }">
-        <v-list-item-content>
+        
           <v-list-item-title>{{ item.display_name }}</v-list-item-title>
           <v-list-item-subtitle v-if="item.hint || showWorkCounts">
             {{ item.hint}}
             <span v-if="item.hint && showWorkCounts">, </span>
             <span v-if="showWorkCounts">{{ item.works_count}} works</span>
           </v-list-item-subtitle>
-        </v-list-item-content>
+        
       </template>
     </v-autocomplete>
   </div>

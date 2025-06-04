@@ -7,15 +7,15 @@
     </span>
     <span v-else-if="false">
       <v-menu offset-y>
-        <template v-slot:activator="{ on }">
-          <span class="path-label path-label-button number cursor-pointer" v-on="on">
+        <template v-slot:activator="{ props }">
+          <span class="path-label path-label-button number cursor-pointer" v-bind="props">
             ({{ pathLabel }})
           </span>
         </template>
-        <v-list dense>
+        <v-list density="compact">
           <v-list-item @click="deleteFilter">
             <v-list-item-icon class="mr-2 ml-0">
-              <v-icon small>mdi-close</v-icon>
+              <v-icon size="small">mdi-close</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Remove Filter</v-list-item-title>
           </v-list-item>
@@ -30,16 +30,16 @@
         <span v-if="isFirstFilter">{{ isSentence ? 'the' : 'The&nbsp;' }} </span>
         <template v-else>
           <v-menu offset-y>
-            <template v-slot:activator="{ on }">
+            <template v-slot:activator="{ props }">
               <v-chip
                 text
                 label
                 class="menu-chip"
                 :style="{'border-color': buttonColorHex}"
-                v-on="on"
+                v-bind="props"
               >
                 {{ joinOperator }}
-                <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
+                <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
               </v-chip>
             </template>
             <v-list>
@@ -82,17 +82,17 @@
       <span>
         <span v-if="columnConfig.type === 'boolean'" class="mx-1">is</span>
         <v-menu v-else offset-y>
-          <template v-slot:activator="{ on }">
+          <template v-slot:activator="{ props }">
             <v-chip
               text
               label
               class="menu-chip"
               :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
               @mousedown="onOperatorMouseDown"
-              v-on="on" 
+              v-bind="props" 
             >
               {{ selectedOperator ?? "select" }}
-              <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
+              <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
@@ -140,16 +140,16 @@
               location-strategy="connected"
               nudge-width="0"
             >
-              <template v-slot:activator="{ on }">
+              <template v-slot:activator="{ props }">
                 <v-chip
-                  outlined
+                  variant="outlined"
                   label
                   class="menu-chip px-1 pr-0 mx-1"
                   style="min-width: 1px !important;"
-                  v-on="on" 
+                  v-bind="props" 
                 >
                   Select a Label
-                  <v-icon v-if="!isSentence" small>mdi-menu-down</v-icon>
+                  <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
                 </v-chip>
               </template>
               <v-list>
@@ -177,9 +177,9 @@
                   <v-list-item-icon>
                     <v-icon>mdi-tag-plus-outline</v-icon>
                   </v-list-item-icon>
-                  <v-list-item-content>
+                  
                     <v-list-item-title>Manage Labels</v-list-item-title>
-                  </v-list-item-content>
+                  
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -190,15 +190,15 @@
             v-else-if="localValueOptions.length"
             v-model="valueEditModel"
             :items="valueOptions"
-            item-text="display_name"
+            item-title="display_name"
             item-value="id"
             hide-details
-            outlined
+            variant="outlined"
             :color="filterColor"
-            dense
+            density="compact"
             class="query-builder-input flex-grow-1"
             autofocus
-            @change="saveEditingValue" 
+            @update:model-value="saveEditingValue" 
             @blur="onInputBlur"
           />
 
@@ -240,13 +240,13 @@
           persistent
         >
           <v-card>
-            <v-card-title class="headline">
+            <v-card-title class="text-h5">
               Find {{ subjectEntity }} related to the text:
             </v-card-title>
             <v-card-text>
               <v-textarea
                 v-model="valueEditModel"
-                outlined
+                variant="outlined"
                 color="catWorksDarker"
                 rows="10"
                 autofocus
@@ -256,14 +256,14 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn 
-                text 
+                variant="text" 
                 @click="cancelRelatedTextEdit"
               >
                 Cancel
               </v-btn>
               <v-btn 
                 color="primary" 
-                text 
+                variant="text" 
                 @click="saveRelatedTextEdit"
                 :disabled="!valueEditModel"
               >
@@ -289,8 +289,8 @@
         <v-text-field
           v-if="isEditingValue || selectedValue === null"
           v-model="valueEditModel"
-          dense
-          outlined
+          density="compact"
+          variant="outlined"
           class="query-builder-input flex-grow-1"
           :color="filterColor"
           hide-details
@@ -311,7 +311,7 @@
     </div>
 
     <!-- Delete Button -->
-    <v-btn v-if="!isSentence" icon small @click="deleteFilter" class="mt-1">
+    <v-btn v-if="!isSentence" icon size="small" @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 

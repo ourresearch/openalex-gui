@@ -7,8 +7,8 @@
         <div>
           <v-chip
               v-if="currentStep"
-              small
-              outlined
+              size="small"
+              variant="outlined"
               label
               class="mr-2"
           >
@@ -28,7 +28,7 @@
         to {{ ids.length }} selected works.
       </v-card-subtitle>
     </div>
-    <v-card-text class="body-1 pa-0">
+    <v-card-text class="text-body-1 pa-0">
 
       <v-divider class="my-4"></v-divider>
       <div class="step step-1 d-flex px-4">
@@ -38,16 +38,16 @@
         <div>
           What property to you want to change?
           <v-menu>
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  text
+                 
+                  v-bind="props"
+                  variant="text"
                   class="d-block px-2"
               >
                 <!--            <v-icon left v-if="selectedPropToModify">{{ selectedPropToModify.icon }}</v-icon>-->
                 {{ selectedPropToModify?.displayName || "select property" }}
-                <v-icon right>mdi-menu-down</v-icon>
+                <v-icon end>mdi-menu-down</v-icon>
               </v-btn>
             </template>
             <v-list>
@@ -74,11 +74,11 @@
         <div>
           What do you want to do?
           <v-menu>
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-btn
-                  v-bind="attrs"
-                  v-on="on"
-                  text
+                 
+                  v-bind="props"
+                  variant="text"
                   class="d-block px-2"
               >
                 <!--            <v-icon left v-if="selectedAction">{{ selectedAction.icon }}</v-icon>-->
@@ -87,7 +87,7 @@
                   {{ selectedAction.id }} an
                   {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </template>
-                <v-icon right>mdi-menu-down</v-icon>
+                <v-icon end>mdi-menu-down</v-icon>
               </v-btn>
             </template>
             <v-list>
@@ -131,8 +131,8 @@
         <div class="flex-grow-1">
           Any comments (optional)?
           <v-textarea
-              filled
-              dense
+              variant="filled"
+              density="compact"
               rounded
               class="mt-4"
               v-model="comments"
@@ -148,7 +148,7 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer/>
-      <v-btn :disabled="isLoading" rounded text @click="$emit('close')">Cancel</v-btn>
+      <v-btn :disabled="isLoading" rounded variant="text" @click="$emit('close')">Cancel</v-btn>
       <v-btn
           color="primary"
           rounded

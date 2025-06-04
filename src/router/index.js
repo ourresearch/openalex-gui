@@ -4,23 +4,22 @@ import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
 import {entityTypeFromId} from "@/util";
 
-import Home from '@/views/Home.vue'
-import Serp from '@/views/Serp';
-import Results from '@/views/Results.vue';
+import HomePage from '@/views/Home.vue'
+import SerpPage from '@/views/Serp.vue';
+import ResultsPage from '@/views/Results.vue';
 import EntityPage from '@/views/EntityPage.vue';
 import AnalyticsHome from '@/components/Home/AnalyticsHome.vue'
 import AnalyticsDocs from '@/views/AnalyticsDocs.vue';
 import AnalyticsTesting from '@/views/AnalyticsTesting.vue';
 
-import Login from '@/views/Login.vue';
-import Signup from "@/views/Signup.vue";
+import LoginPage from '@/views/Login.vue';
+import SignupPage from "@/views/Signup.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import UserMagicToken from '@/components/user/UserMagicToken.vue';
 
 import About from '@/views/About';
 import OurStats from '@/views/OurStats.vue';
-import Faq from "@/views/Faq.vue";
-import Testimonials from "@/views/Testimonials.vue";
+import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
 
 import MeBase from "@/views/Me/MeBase.vue";
@@ -36,7 +35,6 @@ import AdminPage from "@/views/AdminPage.vue";
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
 import TestQueryView from "@/views/TestQueries/TestQueryView.vue";
-import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
 import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
 import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
 
@@ -50,7 +48,7 @@ const redirect = (path, url) => ({path, beforeEnter() { window.location.href = u
 const routes = [
     {
         path: '/',
-        component: Home,
+        component: HomePage,
         name: 'Home',
     },
     {
@@ -63,12 +61,12 @@ const routes = [
         path: "/s/:id?",
         name: "search",
         meta: {requiresAuth: true},
-        component: Results,
+        component: ResultsPage,
     },
     {
         path: `/:entityType(${entityNames})`,
         name: 'Serp',
-        component: Serp,
+        component: SerpPage,
     },
     {
         path: `/:entityId([waspfict]\\d+)`,
@@ -92,8 +90,8 @@ const routes = [
     },
 
     // user pages and routes
-    {path: '/signup', name: 'Signup', component: Signup},
-    {path: '/login', name: 'Login', component: Login},
+    {path: '/signup', name: 'Signup', component: SignupPage},
+    {path: '/login', name: 'Login', component: LoginPage},
     {path: '/reset-password', name: 'ResetPassword', component: ResetPassword},
     {path: '/login/magic-token/:token', name: 'Magic-token', component: UserMagicToken},
 
@@ -139,9 +137,8 @@ const routes = [
 
     // static pages
     {path: '/about', name: 'About', component: About},
-    {path: '/faq', component: Faq},
     {path: '/users', redirect: {name: "testimonials"}},
-    {path: '/testimonials', name: "testimonials", component: Testimonials},
+    {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
     {path: '/stats', component: OurStats},
     {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
@@ -174,11 +171,6 @@ const routes = [
                 path: '/tests/:testSuiteId/:queryId',
                 name: 'test-query',
                 component: TestQueryView,
-            },
-            {
-                path: '/tests/:testSuiteId/:queryId/:testType',
-                name: 'test-type',
-                component: TestQueriesTestType,
             },
             {
                 path: '/tests/:testSuiteId/:queryId/:testType/:testId',

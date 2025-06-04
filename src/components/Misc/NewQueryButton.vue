@@ -10,7 +10,7 @@
     </template>
     <template v-else>
       {{ buttonText }}
-      <v-icon right v-bind="{[size]: true}">mdi-chevron-right</v-icon>
+      <v-icon end v-bind="{[size]: true}">mdi-chevron-right</v-icon>
     </template>
   </v-btn>   
 </template>

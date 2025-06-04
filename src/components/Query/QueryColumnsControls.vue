@@ -12,13 +12,13 @@
             {{ filters.titleCase(column.displayName) }}
             <v-icon
               v-if="visibleDataColumns.length > 1" 
-              @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
+              @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
           </v-chip>
         </div>
         <!-- Columns Button/Menu -->
         <v-menu v-model="isDataColumnsMenuOpen" offset-y>
-          <template v-slot:activator="{ on }">
-            <v-btn class="query-builder-button small" small :color="displayColumnsColor + 'Darker'" v-on="on"><v-icon small>mdi-plus</v-icon>Column</v-btn>
+          <template v-slot:activator="{ props }">
+            <v-btn class="query-builder-button small" size="small" :color="displayColumnsColor + 'Darker'" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Column</v-btn>
           </template>
           <v-card flat rounded>
             <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -54,13 +54,13 @@
             <v-chip label color="catWorks">
               {{ filters.titleCase(column.displayName) }}
               <v-icon
-                @click="removeColumn(column)" small class="ml-1">mdi-close</v-icon>
+                @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
             </v-chip>
           </div>
           <!-- Metrics Button/Menu -->
           <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
-            <template v-slot:activator="{ on }">
-              <v-btn class="query-builder-button small" small color="catWorksDarker" v-on="on"><v-icon small>mdi-plus</v-icon>Metric</v-btn>
+            <template v-slot:activator="{ props }">
+              <v-btn class="query-builder-button small" size="small" color="catWorksDarker" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Metric</v-btn>
             </template>
             <v-card flat rounded>
               <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -92,16 +92,16 @@
     <!-- Sort by Column -->
       <div class="query-section-label" v-if="sortByColumn">Sort by</div>
       <v-menu offset-y>
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-chip
             style="min-width: 1px !important;"
             class="mt-0 first query-builder-chip"
             :color="sortColor"
             label
-            v-on="on" 
+            v-bind="props" 
           >
             {{ filters.titleCase((sortByColumn.displayNameForColumn || sortByColumn.displayName)) }}
-            <v-icon small>mdi-menu-down</v-icon>
+            <v-icon size="small">mdi-menu-down</v-icon>
           </v-chip>
         </template>
         <v-list>
@@ -129,15 +129,15 @@
 
       <!-- Sort by Order -->
       <v-menu offset-y>
-        <template v-slot:activator="{ on }">
+        <template v-slot:activator="{ props }">
           <v-chip
             label
             class="last query-builder-chip"
             :color="sortColor"
             style="min-width: 1px !important;"
-            v-on="on" 
+            v-bind="props" 
           >
-            <v-icon small>{{ {"desc": "mdi-arrow-down", "asc": "mdi-arrow-up"}[query.sort_by_order] }}</v-icon>
+            <v-icon size="small">{{ {"desc": "mdi-arrow-down", "asc": "mdi-arrow-up"}[query.sort_by_order] }}</v-icon>
           </v-chip>
         </template>
         <v-list>

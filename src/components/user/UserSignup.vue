@@ -3,7 +3,7 @@
 
     <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
       <v-card-title>
-        <v-icon left>mdi-account-plus</v-icon>
+        <v-icon start>mdi-account-plus</v-icon>
         Sign up
         <v-spacer/>
         <v-btn v-if="!isFixed" icon @click="isOpen = false">
@@ -16,7 +16,7 @@
         </p>
         <form>
           <v-text-field
-              filled
+              variant="filled"
               rounded
               autofocus
               hide-details
@@ -31,7 +31,7 @@
           </v-text-field>
 
           <v-text-field
-              filled
+              variant="filled"
               rounded
               type="email"
               id="email"
@@ -46,7 +46,7 @@
           </v-text-field>
           <v-text-field
               hide-details
-              filled
+              variant="filled"
               rounded
               class="mt-4"
               prepend-icon="mdi-lock-outline"

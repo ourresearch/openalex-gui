@@ -6,17 +6,17 @@
       <v-tooltip
           v-for="(bar, i) in scaledBars"
           :key="i"
-          bottom
+          location="bottom"
           transition="none"
       >
-        <template v-slot:activator="{on}">
+        <template v-slot:activator="{props}">
           <div
-              v-on="on"
+              v-bind="props"
               class="bar-graph-bar-container"
               @click.prevent="$emit('click', bar.key)"
           >
             <div
-                class="bar-graph-bar caption"
+                class="bar-graph-bar text-caption"
                 :style="{height: bar.scaledCount * 100 + '%'}"
             >
             </div>
