@@ -66,7 +66,6 @@
 
 <script>
 
-import VueHorizontal from 'vue-horizontal';
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 import ExampleQuery from "@/components/Home/ExampleQuery.vue";
 import {exampleQueries} from "./exampleQueriesList";
@@ -74,7 +73,6 @@ import {exampleQueries} from "./exampleQueriesList";
 export default {
   name: "AnalyticsHome",
   components: {
-    VueHorizontal,
     ExampleQuery,
     NewQueryButton,
   },

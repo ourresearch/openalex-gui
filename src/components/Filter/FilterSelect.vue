@@ -1,19 +1,15 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index" @add-option="isActive = true">
     <div class="d-flex flex-wrap align-center">
-      <template
-          v-for="(id, i) in optionIds"
-      >
+      <template v-for="(id, i) in optionIds" :key="id">
         <filter-select-option
             class=""
-            :key="id"
             :filter-value="id"
             :filter-key="filterKey"
             :position="i"
             @delete="deleteOption(id)"
         />
         <span
-            :key="'or'+i"
             v-if="i < optionIds.length-1"
             class="mx-1 mr-2 grey--text"
         >

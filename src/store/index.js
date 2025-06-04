@@ -1,10 +1,7 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-import {user} from "@/store/user.store";
-import {search} from "@/store/search.store";
+import { createStore } from 'vuex';
+import user from "@/store/user.store";
+import search from "@/store/search.store";
 
-
-Vue.use(Vuex);
 
 const stateDefaults = function () {
     const ret = {
@@ -42,7 +39,7 @@ const stateDefaults = function () {
 }
 
 
-export default new Vuex.Store({
+export default createStore({
     state: stateDefaults(),
     modules: {
         user,
