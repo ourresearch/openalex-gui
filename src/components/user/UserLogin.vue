@@ -178,7 +178,7 @@ export default {
   },
   mounted() {},
   watch: {
-    isOpen(to, from) {
+    isOpen() {
       this.email = "";
       this.password = "";
       this.isLoading = false;

@@ -63,12 +63,13 @@
     </v-dialog>
 </template>
 
+
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
-  name: "Template",
+  name: "SavedSearchSaveDialog",
   components: {},
   props: {
     isOpen: Boolean,
@@ -76,7 +77,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       nameString: "",
       descriptionString: "",
       isLoading: false,
@@ -96,12 +96,11 @@ export default {
     },
     myIsOpen: {
       get(){return this.isOpen},
-      set(to){
-        this.$emit("close")
+      set(){
+        this.$emit("close");
       }
     }
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -135,17 +134,11 @@ export default {
       this.myIsOpen = false
       this.setIsLoginDialogOpen(true)
     },
-
-
-  },
-  created() {
-  },
-  mounted() {
   },
   watch: {
-    "$route"(){
+    "$route"() {
     },
-    isOpen(){
+    isOpen() {
       this.nameString = ""
       this.descriptionString = ""
       this.myHasAlert = this.hasAlert
@@ -153,6 +146,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped lang="scss">
 

@@ -16,7 +16,7 @@
           </v-chip>
         </div>
         <!-- Columns Button/Menu -->
-        <v-menu v-model="isDataColumnsMenuOpen" offset-y>
+        <v-menu v-model="isDataColumnsMenuOpen" location="bottom">
           <template v-slot:activator="{ props }">
             <v-btn class="query-builder-button small" size="small" :color="displayColumnsColor + 'Darker'" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Column</v-btn>
           </template>
@@ -27,16 +27,12 @@
                 :key="column.id"
                 @click="toggleColumn(column)"
               >
-                <v-list-item-icon>
-                  <v-icon>{{ column.icon }}</v-icon>
-                </v-list-item-icon>
+                <v-icon>{{ column.icon }}</v-icon>
                 <v-list-item-title>
                   {{ filters.titleCase(column.displayName) }}
                 </v-list-item-title>
                 <v-spacer />
-                <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
-                  <v-icon>mdi-check</v-icon>
-                </v-list-item-icon>
+                <v-icon v-if="(query.show_columns.includes(column.column_id))">mdi-check</v-icon>
               </v-list-item>
             </v-list>
           </v-card>
@@ -58,7 +54,7 @@
             </v-chip>
           </div>
           <!-- Metrics Button/Menu -->
-          <v-menu v-model="isMetricsColumnsMenuOpen" offset-y>
+          <v-menu v-model="isMetricsColumnsMenuOpen" location="bottom">
             <template v-slot:activator="{ props }">
               <v-btn class="query-builder-button small" size="small" color="catWorksDarker" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Metric</v-btn>
             </template>
@@ -69,16 +65,12 @@
                     :key="column.id"
                     @click="toggleColumn(column)"
                 >
-                  <v-list-item-icon>
-                    <v-icon>{{ column.icon }}</v-icon>
-                  </v-list-item-icon>
+                  <v-icon>{{ column.icon }}</v-icon>
                   <v-list-item-title>
                     {{ filters.titleCase(column.displayName) }}
                   </v-list-item-title>
                   <v-spacer />
-                  <v-list-item-icon v-if="(query.show_columns.includes(column.column_id))">
-                    <v-icon>mdi-check</v-icon>
-                  </v-list-item-icon>
+                  <v-icon v-if="(query.show_columns.includes(column.column_id))">mdi-check</v-icon>
                 </v-list-item>
               </v-list>
             </v-card>
@@ -91,7 +83,7 @@
     <div v-if="showSections.includes('sort')" class="sort-box columns-controls-box">
     <!-- Sort by Column -->
       <div class="query-section-label" v-if="sortByColumn">Sort by</div>
-      <v-menu offset-y>
+      <v-menu location="bottom">
         <template v-slot:activator="{ props }">
           <v-chip
             style="min-width: 1px !important;"
@@ -105,30 +97,24 @@
           </v-chip>
         </template>
         <v-list>
-          <v-list-item-group>
-            <v-list-item
-              v-for="column in availableSortByColumns"
-              :key="column.column_id"
-              :value="column.column_id"
-              active-class="primary--text"
-              @click="setSortByColumn(column.column_id)"
-            >
-              <v-list-item-icon>
-                <v-icon>{{ column.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-title class="py-3">
-                {{ filters.titleCase(column.displayName)}}
-              </v-list-item-title>
-              <v-list-item-icon>
-                <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list-item-group>
+          <v-list-item
+            v-for="column in availableSortByColumns"
+            :key="column.column_id"
+            :active="query.sort_by_column === column.column_id"
+            @click="setSortByColumn(column.column_id)"
+            active-class="primary--text"
+          >
+            <v-icon>{{ column.icon }}</v-icon>
+            <v-list-item-title class="py-3">
+              {{ filters.titleCase(column.displayName)}}
+            </v-list-item-title>
+            <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
+          </v-list-item>
         </v-list>
       </v-menu>
 
       <!-- Sort by Order -->
-      <v-menu offset-y>
+      <v-menu location="bottom">
         <template v-slot:activator="{ props }">
           <v-chip
             label
@@ -141,22 +127,18 @@
           </v-chip>
         </template>
         <v-list>
-          <v-list-item-group>
-            <v-list-item
-              v-for="order in ['desc', 'asc']"
-              :key="order"
-              :value="order"
-              active-class="primary--text"
-              @click="setOrder(order)"
-            >
-              <v-list-item-title class="py-3">
-                {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
-              </v-list-item-title>
-              <v-list-item-icon>
-                <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list-item-group>
+          <v-list-item
+            v-for="order in ['desc', 'asc']"
+            :key="order"
+            :active="query.sort_by_order === order"
+            @click="setOrder(order)"
+            active-class="primary--text"
+          >
+            <v-list-item-title class="py-3">
+              {{ {"desc": "Descending", "asc": "Ascending"}[order] }}
+            </v-list-item-title>
+            <v-icon v-if="order===query.sort_by_order">mdi-check</v-icon>
+          </v-list-item>
         </v-list>
       </v-menu>
 
@@ -289,7 +271,7 @@ export default {
     },
   },
   mounted() {
-    if (!this.query.show_columns) { debugger; }
+    if (!this.query.show_columns) { console.log("No show columns"); }
   },
 };
 </script>

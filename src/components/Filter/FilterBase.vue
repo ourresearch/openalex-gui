@@ -113,7 +113,6 @@ export default {
     },
     isNegated: {
       get() {
-        const urlFilter = url.readFilter(this.$route, this.entityType, this.index)
         return this.myConfig.type === "boolean" ?
             !url.readFilter(this.$route, this.entityType, this.index)?.value :
             url.readIsFilterNegated(this.$route, this.entityType, this.index)

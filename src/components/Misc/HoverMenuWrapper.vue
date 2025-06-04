@@ -7,10 +7,9 @@
         :close-on-content-click="false"
         :open-on-hover="true"
         :close-delay="300"
-        offset-y
         location="bottom"
-        :nudge-width="0"
-        :nudge-bottom="4"
+        width="auto"
+        :offset="[0, 4]"
         max-width="auto"
         content-class="auto-width-menu"
       >
@@ -21,9 +20,9 @@
         </template>
         <v-list density="compact" class="compact-menu py-0">
           <v-list-item @click="$emit('action-click')" density="compact" class="py-1 px-2">
-            <v-list-item-icon class="mr-2 ml-0 my-0 pa-0" style="min-width: 24px;">
-              <v-icon size="small" class="centered-icon">{{ actionIcon }}</v-icon>
-            </v-list-item-icon>
+            <v-icon size="small" class="centered-icon mr-2 ml-0 my-0 pa-0" style="min-width: 24px;">
+              {{ actionIcon }}
+            </v-icon>
             <v-list-item-title class="text-body-2 pr-2">{{ actionText }}</v-list-item-title>
           </v-list-item>
         </v-list>

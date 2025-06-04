@@ -17,7 +17,7 @@ import SignupPage from "@/views/Signup.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import UserMagicToken from '@/components/user/UserMagicToken.vue';
 
-import About from '@/views/About';
+import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
@@ -136,7 +136,7 @@ const routes = [
     },
 
     // static pages
-    {path: '/about', name: 'About', component: About},
+    {path: '/about', name: 'About', component: AboutPage},
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},

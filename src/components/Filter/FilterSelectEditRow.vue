@@ -3,13 +3,11 @@
       :disabled="disabled"
       @click="isApplied = !isApplied"
   >
-    <v-list-item-icon>
       <template v-if="isApplied">
         <v-icon v-if="isNegated">mdi-minus-circle</v-icon>
         <v-icon v-else>mdi-checkbox-marked</v-icon>
       </template>
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-    </v-list-item-icon>
     
       <v-list-item-title :class="{isNegated}">
         {{ displayValue }}
@@ -110,7 +108,7 @@ export default {
   watch: {
     "$route.query.filter": {
       immediate: true,
-      handler(to, from) {
+      handler() {
         this.getMyCount()
       }
     },
@@ -129,9 +127,5 @@ export default {
 }
 .group-by-table-row {
   cursor: pointer;
-
-  &:hover {
-    //background: $color-2;
-  }
 }
 </style>

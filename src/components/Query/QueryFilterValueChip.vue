@@ -3,6 +3,7 @@
     label
     class="menu-chip"
     :style="{'border-bottom-color': buttonColorHex}"
+    @click="$emit('click', $event)"
   >
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
@@ -55,8 +56,6 @@ export default {
     ...mapGetters(['uiVariant']),
     buttonColorHex() {
       return "#AAA";
-      const colorName = ['works', 'summary'].includes(this.subjectEntity) ? 'catWorksDarker' : 'catEntityDarker';
-      return this.$vuetify.theme.themes.light[colorName];
     },
     isBoxed() {
       return this.columnConfig.id === 'related_to_text';
@@ -91,7 +90,7 @@ export default {
   },
   watch: {
     value: {
-      handler: function (newValue, oldValue) {
+      handler: function (newValue) {
         if (newValue) {
           this.getEntity();
         }

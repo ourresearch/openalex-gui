@@ -5,7 +5,7 @@ const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvw
 function invertMap(map) {
     const invertedMap = {};
     for (const key in map) {
-        if (map.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
             invertedMap[map[key]] = key;
         }
     }

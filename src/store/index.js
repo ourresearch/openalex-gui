@@ -1,7 +1,8 @@
 import { createStore } from 'vuex';
 import user from "@/store/user.store";
 import search from "@/store/search.store";
-
+import { entityConfigs } from '@/entityConfigs';
+import { facetsByCategory } from '@/facetConfigs';
 
 const stateDefaults = function () {
     const ret = {
@@ -110,7 +111,7 @@ export default createStore({
             return state?.resultsObject?.meta?.count;
         },
         // adds stuff just used by the ui
-        textSearch(state, getters) {
+        textSearch(state) {
             return state.textSearch;
         },
         zoomId(state) {
@@ -127,16 +128,16 @@ export default createStore({
         uiVariant(state) {
             return state.uiVariant;
         },
-        isLocalEnv(state) {
+        isLocalEnv() {
             return window.location.hostname === "localhost";
         },
-        isStagingEnv(state) {
+        isStagingEnv() {
             return window.location.hostname === "staging.openalex.org";
         },
-        isProductionEnv(state) {
+        isProductionEnv() {
             return window.location.hostname === "openalex.org";
         },
-        environment(state, getters) {
+        environment(getters) {
             if (getters.isLocalEnv) {
                 return "local";
             } else if (getters.isStagingEnv) {

@@ -85,12 +85,9 @@
                 :show-length="true"
                 class="pa-4"
             />
-
           </v-card>
-
         </v-card-text>
       </v-card>
-
   </v-dialog>
 </template>
 
@@ -104,7 +101,7 @@ import {entityConfigs} from "@/entityConfigs";
 
 
 export default {
-  name: "Template",
+  name: "ApiDialog",
   components: {
     VueJsonPretty,
   },
@@ -117,7 +114,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "apiDialogUrl",
     ]),
     isSingletonApiCall(){
@@ -130,13 +126,12 @@ export default {
       get() {
         return !!this.$store.state.apiDialogUrl
       },
-      set(val) {
+      set() {
         // you can only close it from here
         this.$store.state.apiDialogUrl = ""
       },
     },
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -153,7 +148,7 @@ export default {
   mounted() {
   },
   watch: {
-    async isOpen(to, from) {
+    async isOpen(to) {
       console.log("apiDialog isOpen chagned", to)
       if (!to) {
         this.data = null

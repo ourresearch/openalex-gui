@@ -1,13 +1,14 @@
 <template>
   <!--  <div class="d-flex align-center">-->
   <div>
-    <v-menu rounded>
+    <v-menu class="rounded-lg">
       <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn
               v-if="isFabShowing"
               v-bind="props"
-              fab
+              rounded="circle"
+              size="large"
               color="primary"
               class=""
           >
@@ -37,16 +38,13 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>
-                {{ filter.displayName }}
-              </v-list-item-title>
-            
+            <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>            
+            <v-list-item-title>
+              {{ filter.displayName }}
+            </v-list-item-title>        
           </v-list-item>
         </v-list>
+
         <v-list v-if="!searchString">
           <v-list-item
               v-for="filter in potentialFiltersPopular"
@@ -54,28 +52,20 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-list-item-icon>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>
-                {{ filter.displayName }}
-              </v-list-item-title>
-            
+            <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            <v-list-item-title>
+              {{ filter.displayName }}
+            </v-list-item-title>
           </v-list-item>
           <v-divider/>
           <v-list-item
               key="more-filters"
               @click="isDialogOpen = true"
           >
-            <v-list-item-icon>
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title class="font-weight-bold">
-                More
-              </v-list-item-title>
-            
+            <v-icon>mdi-dots-horizontal</v-icon>
+            <v-list-item-title class="font-weight-bold">
+              More
+            </v-list-item-title>
           </v-list-item>
         </v-list>
       </v-card>
@@ -123,10 +113,10 @@
 
           <!--  NO FILTER SELECTED YET, WHAT ARE MY OPTIONS? -->
           <div v-else>
-            <v-subheader>
+            <v-list-subheader>
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
-            </v-subheader>
+            </v-list-subheader>
             <v-list class="d-flex flex-wrap" nav>
               <v-list-item
                   v-for="filter in potentialFiltersSearchResults"
@@ -138,24 +128,16 @@
                     min-width: 0;
                     align-items: flex-start;"
               >
-                <v-list-item-icon>
-                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-                </v-list-item-icon>
-                
-                  <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
-                    {{ filter.displayName }}
-                  </v-list-item-title>
-                
+                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+                <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
+                  {{ filter.displayName }}
+                </v-list-item-title>
               </v-list-item>
             </v-list>
           </div>
         </v-card-text>
-
       </v-card>
-
     </v-dialog>
-
-
   </div>
 </template>
 
@@ -163,16 +145,15 @@
 <script>
 
 import {mapGetters} from "vuex";
+
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import filters from "@/filters";
+import {createSimpleFilter} from "@/filterConfigs";
 
 import FilterCardRange from "@/components/FilterCard/FilterCardRange.vue";
 import FilterCardSearch from "@/components/FilterCard/FilterCardSearch.vue";
-import FilterCardSelect from "@/components/FilterCard/FilterCardSelect.vue";
-
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
-import {createSimpleFilter} from "@/filterConfigs";
 
 
 export default {
@@ -180,7 +161,6 @@ export default {
   components: {
     FilterCardRange,
     FilterCardSearch,
-    FilterCardSelect,
     FilterSelectAddOption,
   },
   props: {
@@ -188,7 +168,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       searchString: "",
       isMenuOpen: false,
       isDialogOpen: false,

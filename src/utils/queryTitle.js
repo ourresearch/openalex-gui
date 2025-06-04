@@ -29,7 +29,7 @@ const getDisplayNameForValue = (filter, columnConfig) => {
 const makeFilterString = (filter, entity) => {
     const columnConfig = getColumnConfig(entity, filter.column_id);
     const value = getDisplayNameForValue(filter, columnConfig);
-    return `${columnConfig.displayName} ${filter.operator} \'${value}\'`;
+    return `${columnConfig.displayName} ${filter.operator} '${value}'`;
 };
 
 const makeFilterGroupString = (filters, joinOperator, entity) => {

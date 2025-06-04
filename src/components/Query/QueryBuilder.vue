@@ -79,20 +79,17 @@
 
 <script>
 import { mapGetters, mapState } from "vuex";
-import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
+
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
-import QueryActions from "@/components/Query/QueryActions.vue";
 import QuerySentence from "@/components/Query/QuerySentence.vue";
 
 export default {
   name: "QueryBuilder",
   components: {
-    QuerySummarizeBy,
     QueryFilterTree,
     QueryColumnsControls,
-    QueryActions,
     QuerySentence,
     NewQueryButton
   },

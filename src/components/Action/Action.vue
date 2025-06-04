@@ -1,8 +1,6 @@
 <template>
   <div>
-    <v-menu
-        rounded
-    >
+    <v-menu class="rounded-lg">
       <template v-slot:activator="{props}">
         <v-btn v-on="on" icon size="large" color="" class="px-2 color-1 elevation-0" v-if="myConfig.id === 'filter'" style="min-width: 0;">
           <v-icon class="">mdi-plus</v-icon>
@@ -10,10 +8,9 @@
         <v-btn
             v-else
             icon
-            rounded
             variant="text"
             v-bind="props"
-            class=""
+            class="rounded-lg"
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
@@ -27,7 +24,7 @@
 
       <v-card flat class="">
         <v-list>
-          <v-subheader>
+          <v-list-subheader>
             <template v-if="myConfig.id === 'sort'">
               Sort by:
             </template>
@@ -37,7 +34,7 @@
             <template v-if="myConfig.id === 'filter'">
               Add filter:
             </template>
-          </v-subheader>
+          </v-list-subheader>
           <v-divider/>
           <v-list-item
               v-for="key in menuOptions"
@@ -47,9 +44,7 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
-              <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
+            <v-icon>{{ getKeyIcon(key) }}</v-icon>
             
               <v-list-item-title>
                 {{ getKeyDisplayName(key) }}
@@ -93,19 +88,14 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-list-item-icon>
-              <v-icon>{{ getKeyIcon(key) }}</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>
-                {{ getKeyDisplayName(key) }}
-              </v-list-item-title>
-            
+            <v-icon>{{ getKeyIcon(key) }}</v-icon>
+            <v-list-item-title>
+              {{ getKeyDisplayName(key) }}
+            </v-list-item-title>
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
             </v-list-item-action>
           </v-list-item>
-
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -116,14 +106,14 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
 
 export default {
-  name: "Action",
+  name: "ActionMenu",
   components: {},
   props: {
     action: String,
@@ -202,7 +192,7 @@ export default {
   watch: {
     "$route.query": {
       immediate: true,
-      handler(to) {
+      handler() {
       }
     },
   }

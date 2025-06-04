@@ -41,11 +41,8 @@
       </template>
 
       <template v-slot:item="data">
-        <v-list-item-icon>
-          <v-icon>{{ data.item.icon }}</v-icon>
-        </v-list-item-icon>
+        <v-icon>{{ data.item.icon }}</v-icon>
         <template v-if="data.item.isFilterLink">
-          
             <v-list-item-title>
               <span class="font-weight-bold">{{ filters.capitalize(data.item.displayValue) }}</span>
             </v-list-item-title>
@@ -53,9 +50,7 @@
               Filter by {{ data.item.displayValue }}
             </v-list-item-subtitle>
           
-          <v-list-item-icon>
             <v-icon>mdi-filter-plus</v-icon>
-          </v-list-item-icon>
         </template>
 
         <template v-else-if="data.item.key === defaultSearchType">
@@ -72,11 +67,9 @@
         </template>
 
         <template v-else>
-          
-            <v-list-item-title
-                v-html="filters.prettyTitle(data.item.displayValue)"
-                style="white-space: normal;"
-            />
+            <v-list-item-title style="white-space: normal;">
+              {{ filters.prettyTitle(data.item.displayValue) }}
+            </v-list-item-title>
             <v-list-item-subtitle style="white-space: normal;">
               {{ filters.capitalize(data.item.displayName) }}
               <span v-if="data.item.hint">
@@ -404,7 +397,7 @@ export default {
       this.getSuggestions();
     },
     "$route": {
-      handler(to, from) {
+      handler() {
         this.clear()
       }
     },

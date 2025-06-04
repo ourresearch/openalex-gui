@@ -6,9 +6,7 @@
               :key="option.id"
               @click="clickListItem(option.id)"
           >
-            <v-list-item-icon>
-              <v-icon>{{ option.icon }}</v-icon>
-            </v-list-item-icon>
+            <v-icon>{{ option.icon }}</v-icon>
             <v-list-item-title>{{ filters.pluralize(option.displayName, 1) }}</v-list-item-title>
           </v-list-item>
 

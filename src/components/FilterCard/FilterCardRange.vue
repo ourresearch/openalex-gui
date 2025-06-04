@@ -5,7 +5,6 @@
           style="width: 100%;"
           rounded
           variant="outlined"
-          full-width
           v-model="searchString"
           hide-details
           @keydown.enter="submit"

@@ -1,5 +1,5 @@
 <template>
-  <v-menu rounded offset-y v-model="isMenuOpen" class="inline-block">
+  <v-menu class="rounded-lg inline-block" location="bottom" v-model="isMenuOpen">
     <template v-slot:activator="{ props }">
       <v-btn
         v-bind="props"
@@ -31,9 +31,7 @@
           :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
           @click="$emit('addFilter', column)"
         >
-          <v-list-item-icon>
-            <v-icon>{{ column.icon }}</v-icon>
-          </v-list-item-icon>
+          <v-icon>{{ column.icon }}</v-icon>
           <v-list-item-title>
             {{ filters.titleCase(column.displayName) }}
           </v-list-item-title>

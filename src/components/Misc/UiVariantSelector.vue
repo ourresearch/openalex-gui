@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-menu offset-y>
+    <v-menu location="bottom">
       <template v-slot:activator="{ props }">
         <v-btn icon v-bind="props">
           <v-icon>mdi-monitor-dashboard</v-icon>
@@ -13,18 +13,15 @@
           class="ui-variant-option"
           @click="setUiVariant(option.value)"
         >
-          <v-list-item-icon v-if="uiVariant === option.value">
-            <v-icon color="primary">mdi-check</v-icon>
-          </v-list-item-icon>
-          <v-list-item-icon v-else class="invisible-icon">
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
+          <v-icon v-if="uiVariant === option.value" color="primary">mdi-check</v-icon>
+          <v-icon v-else class="invisible-icon">mdi-check</v-icon>
           <v-list-item-title>{{ option.text }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
   </div>
 </template>
+
 
 <script>
 import { mapMutations, mapState } from 'vuex';
@@ -51,6 +48,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .ui-variant-option {

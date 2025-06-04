@@ -45,29 +45,21 @@
       >
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
-<!--      <v-btn-->
-<!--          icon-->
-<!--          @click="url.setShowApi(undefined)"-->
-<!--      >-->
-<!--        <v-icon>mdi-close</v-icon>-->
-<!--      </v-btn>-->
     </v-card>
-
   </div>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import SortButton from "@/components/SortButton.vue";
+import {mapGetters, mapMutations} from "vuex";
 import {url} from "@/url";
 import {api} from "@/api";
+import {filtersFromUrlStr} from "@/filterConfigs";
+
 
 export default {
-  name: "Template",
+  name: "SerpApiEditor",
   components: {
-    SortButton,
   },
   props: {},
   data() {
@@ -91,20 +83,17 @@ export default {
       return url.makeApiUrl(this.$route)
     },
     apiQuerySplittable() {
-      const url = new URL(this.apiUrl)
-      const parts = url.search.split(/(?=[&,])/).map((part, i) => {
-        return part
-        const prepend = (i > 0) ? "&" : ""
-        return prepend + part
+      const url = new URL(this.apiUrl);
+      const parts = url.search.split(/(?=[&,])/).map(part => {
+        return part;
       })
-      return parts.join("<wbr>")
+      return parts.join("<wbr>");
     }
   },
   methods: {
     ...mapMutations([
       "snackbar",
     ]),
-    ...mapActions([]),
     async copyToClipboard() {
       await navigator.clipboard.writeText(this.apiUrl);
       this.snackbar("URL copied to clipboard.")
@@ -120,7 +109,7 @@ export default {
   watch: {
     "$route": {
       immediate: true,
-      handler(to, from) {
+      handler() {
         // this.apiUrl = to.fullPath
       }
     }
@@ -129,15 +118,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.serp-api-editor {
-  a {
-    //color: #fff !important;
 
-    &:hover {
-      //text-decoration: underline !important;
-    }
-  }
-}
+<style lang="scss">
 
 </style>

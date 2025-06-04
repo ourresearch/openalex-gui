@@ -1,5 +1,5 @@
 <template>
-  <v-menu max-height="70vh" rounded offset-y>
+  <v-menu max-height="70vh" class="rounded-lg" location="bottom">
     <template v-slot:activator="{ props }">
       <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-bind="props">
         <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
@@ -14,57 +14,45 @@
     </template>
 
     <v-list>
-      <v-list-item-group v-model="selected">
         <v-list-item
-          value="works"
+          :active="selected === 'works'"
+          @click="selected = 'works'"
           active-class="primary--text"
           v-if="uiVariant !== 'sentence-group'"
         >
-          <v-list-item-icon>
-            <v-icon>mdi-file-document-outline</v-icon>
-          </v-list-item-icon>
+          <v-icon>mdi-file-document-outline</v-icon>
           <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
 
-        <v-subheader>Group works by:</v-subheader>
+        <v-list-subheader>Group works by:</v-list-subheader>
         <v-divider/>
         <!-- Show popular entities first -->
         <v-list-item
-            v-for="entity in popularEntities"
-            :key="entity.id"
-            :value="entity.id"
-            active-class="primary--text"
+          v-for="entity in popularEntities"
+          :key="entity.id"
+          :active="selected === entity.id"
+          @click="selected = entity.id"
+          active-class="primary--text"
         >
-          <v-list-item-icon>
-            <v-icon>{{ entity.icon }}</v-icon>
-          </v-list-item-icon>
+          <v-icon>{{ entity.icon }}</v-icon>
           <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-          <v-list-item-icon v-if="selected === entity.id">
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
+          <v-icon v-if="selected === entity.id">mdi-check</v-icon>
         </v-list-item>
 
-
-        
         <v-divider/>
 
         <!-- Remaining entities in alphabetical order -->
         <v-list-item
-            v-for="entity in remainingEntitiesSorted"
-            :key="entity.id"
-            :value="entity.id"
-            active-class="primary--text"
+          v-for="entity in remainingEntitiesSorted"
+          :key="entity.id"
+          :active="selected === entity.id"
+          @click="selected = entity.id"
+          active-class="primary--text"
         >
-          <v-list-item-icon>
-            <v-icon>{{ entity.icon }}</v-icon>
-          </v-list-item-icon>
+          <v-icon>{{ entity.icon }}</v-icon>
           <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
-          <v-list-item-icon v-if="selected === entity.id">
-            <v-icon>mdi-check</v-icon>
-          </v-list-item-icon>
+          <v-icon v-if="selected === entity.id">mdi-check</v-icon>
         </v-list-item>
-
-      </v-list-item-group>
     </v-list>
   </v-menu>
 </template>
@@ -75,7 +63,6 @@
 import {mapGetters, mapMutations, mapActions} from "vuex";
 import filters from "@/filters";
 import {getConfigs} from "@/oaxConfigs";
-
 
 export default {
   name: "QuerySummarizeBy",

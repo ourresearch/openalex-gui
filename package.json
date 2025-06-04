@@ -68,7 +68,8 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "es2020": true
     },
     "extends": [
       "plugin:vue/vue3-essential",
@@ -83,7 +84,9 @@
       "parser": "@babel/eslint-parser",
       "requireConfigFile": false,
       "babelOptions": {
-        "presets": ["@babel/preset-env"]
+        "presets": [
+          "@babel/preset-env"
+        ]
       }
     },
     "rules": {}

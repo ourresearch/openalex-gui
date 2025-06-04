@@ -15,7 +15,7 @@
          Unsaved search
         <v-icon class="ml-1">mdi-menu-down</v-icon>
       </v-btn>
-      <v-menu v-else offset-y>
+      <v-menu v-else location="bottom">
         <template v-slot:activator="{props}">
           <v-btn
               v-bind="props"
@@ -36,12 +36,6 @@
       </v-menu>
 
     </div>
-
-<!--    <div v-if="activeSearchDescription" class="body-2 ml-5 grey&#45;&#45;text mb-2">-->
-<!--      <v-divider></v-divider>-->
-<!--      {{ activeSearchDescription }}-->
-<!--    </div>-->
-
 
     <v-dialog v-model="isLoginRequiredDialogOpen" max-width="500">
       <v-card rounded>
@@ -69,12 +63,12 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 
 export default {
-  name: "Template",
+  name: "SerpToolbarTitle",
   components: {
     SavedSearchSaveDialog,
     SavedSearchMenu,
@@ -82,7 +76,6 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       isLoginRequiredDialogOpen: false,
       isDialogOpen: {
         saveSearch: false,
@@ -91,7 +84,6 @@ export default {
   },
   computed: {
     ...mapGetters([
-
       "entityType",
     ]),
     ...mapGetters("user", [
@@ -100,23 +92,16 @@ export default {
       "activeSearchName",
     ]),
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
     ...mapMutations("user", [
       "setIsSignupDialogOpen",
       "setIsLoginDialogOpen",
       "setRenameId",
     ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     clickLogin() {
       this.isLoginRequiredDialogOpen = false
       this.setIsLoginDialogOpen(true)
     },
-
     clickSignup() {
       this.isLoginRequiredDialogOpen = false
       this.setIsSignupDialogOpen(true)
@@ -132,15 +117,10 @@ export default {
         this.isLoginRequiredDialogOpen = true
       }
     },
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

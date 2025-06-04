@@ -13,8 +13,10 @@
       <v-toolbar-title>
         <span class="">{{ filterConfig.displayName }}</span>
       </v-toolbar-title>
+      
       <v-spacer/>
-      <v-menu offset-y>
+
+      <v-menu location="bottom">
         <template v-slot:activator="{props}">
           <v-btn
               icon
@@ -25,21 +27,15 @@
         </template>
         <v-list>
           <v-list-item :href="csvUrl">
-            <v-list-item-icon>
-              <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-list-item-icon>
+            <v-icon>mdi-tray-arrow-down</v-icon>
             
-              <v-list-item-title>Export</v-list-item-title>
+            <v-list-item-title>Export</v-list-item-title>
             
             <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>View in API</v-list-item-title>
-            
+            <v-icon>mdi-api</v-icon>
+            <v-list-item-title>View in API</v-list-item-title>
             <v-list-item-action-text>.json</v-list-item-action-text>
           </v-list-item>
 
@@ -163,7 +159,6 @@ import {filtersFromUrlStr} from "../../filterConfigs";
 import BarGraph from "@/components/BarGraph.vue";
 import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
 import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
-import filterMatchMode from "@/components/Filter/FilterMatchMode.vue";
 
 export default {
   name: "GroupBy",
@@ -171,8 +166,6 @@ export default {
     BarGraph,
     GroupByTableRow,
     FilterSelectAddOption,
-    filterMatchMode,
-
   },
   props: {
     filterKey: String,
@@ -335,7 +328,7 @@ export default {
   watch: {
     "$route.query.filter": {
       immediate: true,
-      handler(to, from) {
+      handler() {
         this.getGroups()
       },
     },

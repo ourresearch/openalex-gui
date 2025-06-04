@@ -73,7 +73,7 @@
             <template v-else>
               <div class="d-flex">
                 <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
-                <v-menu offset-y>
+                <v-menu location="bottom">
                   <template v-slot:activator="{ props }">
                     <v-btn
                       variant="text"
@@ -98,14 +98,12 @@
                         v-for="(filterInfo, index) in getActiveFilters(header.id)"
                         :key="`filter-${index}`"
                       >
-                        <v-list-item-icon class="align-self-center">
-                          <v-icon >mdi-filter-outline</v-icon>
-                        </v-list-item-icon>
+                        <v-icon class="align-self-center">mdi-filter-outline</v-icon>
                         
-                          <QueryFilterValueChip
-                            :column-config="header"
-                            :value="filterInfo.value"
-                          />
+                        <QueryFilterValueChip
+                          :column-config="header"
+                          :value="filterInfo.value"
+                        />
                         
                         <v-list-item-action>
                           <v-btn icon @click="removeColumnFilter(filterInfo.targetKey, filterInfo.path)">
@@ -117,9 +115,7 @@
 
                     <!-- Add Filter -->
                     <v-list-item @click="addColumnFilter(header.id)">
-                      <v-list-item-icon>
-                        <v-icon>mdi-filter-plus-outline</v-icon>
-                      </v-list-item-icon>
+                      <v-icon>mdi-filter-plus-outline</v-icon>
                       <v-list-item-title>Add Filter</v-list-item-title>
                     </v-list-item>
 
@@ -127,31 +123,25 @@
 
                     <!-- Remove -->
                     <v-list-item @click="removeColumn(header.id)">
-                      <v-list-item-icon>
-                        <v-icon>mdi-table-column-remove</v-icon>
-                      </v-list-item-icon>
+                      <v-icon>mdi-table-column-remove</v-icon>
                       <v-list-item-title>Remove Column</v-list-item-title>
                     </v-list-item>
                     <template v-if="header.actions?.includes('sort')">
                       <v-divider/>
                       <v-list-item
                         active-class="primary--text"
-                        :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
+                        :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
                         @click="commitSortBy({column_id: header.id, direction: 'desc'})"
                       >
-                        <v-list-item-icon>
-                          <v-icon>mdi-arrow-down</v-icon>
-                        </v-list-item-icon>
+                        <v-icon>mdi-arrow-down</v-icon>
                         <v-list-item-title>Sort Descending</v-list-item-title>
                       </v-list-item>
                       <v-list-item
                         @click="commitSortBy({column_id: header.id, direction: 'asc'})"
                         active-class="primary--text"
-                        :input-value="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
+                        :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
                       >
-                        <v-list-item-icon>
-                          <v-icon>mdi-arrow-up</v-icon>
-                        </v-list-item-icon>
+                        <v-icon>mdi-arrow-up</v-icon>
                         <v-list-item-title>Sort Ascending</v-list-item-title>
                       </v-list-item>
                     </template>
@@ -292,9 +282,7 @@ import * as oaxSearch from "@/oaxSearch";
 import ColumnValue from "@/components/ColumnValue.vue";
 import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
-import DownloadDialog from "@/components/Download/DownloadDialog.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
-import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
 import QueryColumnAdder from "@/components/Query/QueryColumnAdder.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -309,8 +297,6 @@ export default {
     LabelMenu,
     CorrectionCreate,
     QueryReturn,
-    DownloadDialog,
-    QuerySearchControls,
     QueryColumnAdder,
     QueryFilterValueChip, // Register the component
   },
@@ -399,21 +385,6 @@ export default {
         }
       }
       
-      // Apply sorting if needed (for worksfirst variant)
-      if (false && this.uiVariant === 'sentence-worksfirst') {
-        result.sort((a, b) => {
-          // Always keep selector at the beginning
-          if (a.id === 'selector') return -1;
-          if (b.id === 'selector') return 1;
-          
-          const aHas = a.id.includes("(") || a.id === "columnAdderMetric" || false;
-          const bHas = b.id.includes("(") || b.id === "columnAdderMetric" || false;
-          
-          if (aHas && !bHas) return -1;
-          if (!aHas && bHas) return 1;
-          return 0; // Keep original order if both have or both don't have parentheses
-        });
-      }
       return result;
     },
     rows() {
@@ -458,22 +429,6 @@ export default {
               config: { id: 'columnAdderData' }
             });
           }
-        }
-        
-        // Apply sorting if needed (for worksfirst variant)
-        if (false &&this.uiVariant === 'sentence-worksfirst') {
-          finalCells.sort((a, b) => {
-            // Always keep selector at the beginning
-            if (a.config.id === 'selector') return -1;
-            if (b.config.id === 'selector') return 1;
-            
-            const aHas = a.config.id.includes("(") || a.config.id === "columnAdderMetric" || false;
-            const bHas = b.config.id.includes("(") || b.config.id === "columnAdderMetric" || false;
-            
-            if (aHas && !bHas) return -1;
-            if (!aHas && bHas) return 1;
-            return 0; // Keep original order if both have or both don't have parentheses
-          });
         }
 
         return {
@@ -581,7 +536,7 @@ export default {
       const fullEntityId = entity.fullId(rowId, this.querySubjectEntity);
       this.setZoomId(fullEntityId);
     },
-    metaClickRow(rowId) {
+    metaClickRow() {
       const newTab = window.open(this.apiUrl);
       setTimeout(() => {
         newTab.focus();

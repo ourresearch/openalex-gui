@@ -1,3 +1,5 @@
+/* global plausible */
+
 const tracking = {
     trackSearch: (data) => {
         const countBooleanDepth = (filters) => {

@@ -13,19 +13,16 @@
           v-for="(level, i) in levelNames"
           :key="level"
           :class="'pl-' + (4 + i*2)"
-          exact-path
           @click="clickLevel(level)"
         >
-          <v-list-item-icon >
-            <v-icon>{{ i === 0 ? "mdi-lightbulb-outline" : "mdi-subdirectory-arrow-right" }} </v-icon>
-          </v-list-item-icon>
+          <v-icon>{{ i === 0 ? "mdi-lightbulb-outline" : "mdi-subdirectory-arrow-right" }} </v-icon>
           
-            <v-list-item-title :class="{'font-weight-bold': level==='topic'}">
-              {{ level !== 'topic' ? topic[level].display_name : topic.display_name}}
-            </v-list-item-title>
-            <v-list-item-subtitle >
-              {{  level !== 'topic' ?  level : "topic" }}
-            </v-list-item-subtitle>
+          <v-list-item-title :class="{'font-weight-bold': level==='topic'}">
+            {{ level !== 'topic' ? topic[level].display_name : topic.display_name}}
+          </v-list-item-title>
+          <v-list-item-subtitle >
+            {{  level !== 'topic' ?  level : "topic" }}
+          </v-list-item-subtitle>
           
         </v-list-item>
 

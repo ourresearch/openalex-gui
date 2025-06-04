@@ -13,47 +13,33 @@
           v-bind="props"
           :disabled="disabled"
       >
-<!--        <v-icon>mdi-sort</v-icon>-->
         <v-icon v-if="$vuetify.display.mobile">mdi-sort</v-icon>
         <template v-else>
-<!--          <v-icon left class="">mdi-sort</v-icon>-->
           Sort
-<!--          <v-icon right class="">mdi-menu-down</v-icon>-->
-<!--          {{ activeSortConfig.displayName }}-->
         </template>
       </v-btn>
     </template>
     <v-list>
-      <v-subheader>Sort by</v-subheader>
+      <v-list-subheader>Sort by</v-list-subheader>
       <v-divider></v-divider>
-      <v-list-item-group
-          mandatory
-          v-model="activeSortKey"
+      <v-list-item
+        v-for="sortConfig in sortObjectOptions"
+        :key="sortConfig.key"
+        :active="activeSortKey === sortConfig.key"
+        @click="activeSortKey = sortConfig.key"
       >
-        <v-list-item
-            v-for="sortConfig in sortObjectOptions"
-            :key="sortConfig.key"
-            :value="sortConfig.key"
-        >
-          <v-list-item-icon>
-            <v-icon v-if="activeSortKey === sortConfig.key">mdi-check</v-icon>
-          </v-list-item-icon>
-          
-            <v-list-item-title>
-              {{ sortConfig.displayName }}
-            </v-list-item-title>
-          
-        </v-list-item>
-
-      </v-list-item-group>
+        <v-icon v-if="activeSortKey === sortConfig.key">mdi-check</v-icon>
+        <v-list-item-title>
+          {{ sortConfig.displayName }}
+        </v-list-item-title>
+      </v-list-item>
     </v-list>
   </v-menu>
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import VueJsonPretty from 'vue-json-pretty'
+import {mapGetters} from "vuex";
 import {entityTypes} from "../util";
 
 
@@ -117,8 +103,9 @@ const sortDefaults = {
   },
 }
 
+
 export default {
-  name: "SerpResultsList",
+  name: "SortButton",
   components: {
   },
   props: {
@@ -165,16 +152,8 @@ export default {
         return sortConfig.key === this.activeSortKey
       })
     },
-
-
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([
-    ]),
     async pushQueryChanges(query) {
       const pushTo = {
         name: "Serp",
@@ -190,16 +169,8 @@ export default {
               throw e
             }
           })
-
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

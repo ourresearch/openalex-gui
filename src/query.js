@@ -1,3 +1,4 @@
+import _ from "lodash"
 import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 
 const baseQuery = (entity = 'works') => {

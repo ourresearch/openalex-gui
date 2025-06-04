@@ -12,14 +12,13 @@
       <template v-if="isActive">
         <v-text-field
             v-model="searchString"
-            rounded
+            class="rounded-lg"
             density="compact"
             variant="filled"
             hide-details
             autofocus
             placeholder="Enter search terms"
             :append-icon="searchString && searchString !== value ? 'mdi-check-bold' : undefined"
-
             @keydown.enter="submit"
             @click:append="submit"
             @blur="cancel"
@@ -27,20 +26,15 @@
         />
       </template>
   </filter-base>
-
-
 </template>
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs, getFacetConfig} from "../../facetConfigs";
-import {createSimpleFilter} from "@/filterConfigs";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
+import {getFacetConfig} from "../../facetConfigs";
 import FilterBase from "@/components/Filter/FilterBase.vue";
 
-
-import {filter} from "core-js/internals/array-iteration";
 
 export default {
   name: "FilterValueSearch",
@@ -78,13 +72,7 @@ export default {
       }
     }
   },
-
   methods: {
-    filter,
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     submit() {
       this.isActive = false
       this.value = this.searchString
@@ -93,33 +81,17 @@ export default {
       this.isActive = false
       this.searchString = this.value
     }
-
-
-  },
-  created() {
   },
   mounted() {
     this.searchString = this.value
     this.isActive = !this.value
   },
-  watch: {
-    isActive(to) {
-    }
-  }
 }
 </script>
 
-<style lang="scss">
+
+<style scoped lang="scss">
 input {
   padding: 0 3px !important;
 }
-
-.phrase-search {
-
-}
-
-input:focus, textarea:focus, select:focus {
-  //outline: none;
-}
-
 </style>

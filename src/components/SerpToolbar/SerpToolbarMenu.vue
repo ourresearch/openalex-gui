@@ -17,29 +17,25 @@
       </template>
     </v-btn>
 
-    <v-menu offset-y>
+    <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
           <v-icon>mdi-cog-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
-        <v-subheader>
+        <v-list-subheader>
           Show on page:
-        </v-subheader>
+        </v-list-subheader>
         <v-list-item
             v-for="view in url.viewConfigs"
             :key="view.id"
             @click="url.toggleView(view.id)"
         >
-          <v-list-item-icon>
-            <v-icon>{{ view.icon }}</v-icon>
-          </v-list-item-icon>
-          
-            <v-list-item-title>
-              {{ view.displayName }}
-            </v-list-item-title>
-          
+          <v-icon>{{ view.icon }}</v-icon>
+          <v-list-item-title>
+            {{ view.displayName }}
+          </v-list-item-title>
           <v-list-item-action class="pt-2">
             <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
           </v-list-item-action>
@@ -47,7 +43,7 @@
       </v-list>
     </v-menu>
 
-    <v-menu offset-y>
+    <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
           <v-icon>mdi-share-variant</v-icon>
@@ -55,24 +51,17 @@
       </template>
       <v-list>
         <v-list-item @click="isDialogOpen.qrCode = true">
-          <v-list-item-icon>
-            <v-icon>mdi-qrcode</v-icon>
-          </v-list-item-icon>
-          
-            <v-list-item-title>
-              Get QR code to share
-            </v-list-item-title>
-          
+          <v-icon>mdi-qrcode</v-icon>
+          <v-list-item-title>
+            Get QR code to share
+          </v-list-item-title>
         </v-list-item>
+
         <v-list-item @click="copyUrlToClipboard">
-          <v-list-item-icon>
-            <v-icon>mdi-link-variant</v-icon>
-          </v-list-item-icon>
-          
-            <v-list-item-title>
-              Copy link to share
-            </v-list-item-title>
-          
+          <v-icon>mdi-link-variant</v-icon>
+          <v-list-item-title>
+            Copy link to share
+          </v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -106,10 +95,9 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import QrcodeVue from "qrcode.vue";
 import {url} from "@/url";
 import {filtersFromUrlStr} from "@/filterConfigs";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
+import QrcodeVue from "qrcode.vue";
 
 export default {
   name: "SerpToolbarMenu",

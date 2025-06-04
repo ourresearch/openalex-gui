@@ -310,6 +310,7 @@ class OQOTestRunnerStable {
             const pollingInterval = 1000;
             const startTime = Date.now();
 
+            // eslint-disable-next-line no-constant-condition
             while (true) {
                 const result = await getSearchState(id);
 

@@ -8,7 +8,7 @@
       <serp-results-sort-button />
 
       <serp-results-export-button v-if="entityType === 'works'" />
-      <v-menu offset-y rounded>
+      <v-menu location="bottom" class="rounder-lg">
         <template v-slot:activator="{props}">
           <v-btn
             v-bind="props"
@@ -18,22 +18,15 @@
           </v-btn>
         </template>
         <v-list>
-          <v-subheader>Results per page:</v-subheader>
-          <v-list-item @click="url.setPerPage(10)">
-            
-              <v-list-item-title>10</v-list-item-title>
-            
-            <v-list-item-icon v-if="url.getPerPage() === 10">
-              <v-icon>mdi-check</v-icon>
-            </v-list-item-icon>
+          <v-list-subheader>Results per page:</v-list-subheader>
+          <v-list-item @click="url.setPerPage(10)">          
+            <v-list-item-title>10</v-list-item-title>
+            <v-icon v-if="url.getPerPage() === 10">mdi-check</v-icon>
           </v-list-item>
+
           <v-list-item @click="url.setPerPage(100)">
-            
-              <v-list-item-title>100</v-list-item-title>
-            
-            <v-list-item-icon v-if="url.getPerPage() === 100">
-              <v-icon>mdi-check</v-icon>
-            </v-list-item-icon>
+            <v-list-item-title>100</v-list-item-title>
+            <v-icon v-if="url.getPerPage() === 100">mdi-check</v-icon>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -74,24 +67,16 @@ import {mapGetters} from "vuex";
 import {url} from "@/url";
 import filters from '@/filters';
 
-import Action from "@/components/Action/Action.vue";
-import SerpResultsCount from "@/components/SerpResultsCount.vue";
-import SerpApiEditor from "@/components/SerpApiEditor.vue";
 import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
 import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
 import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
-import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
 
 export default {
   name: "SerpResultsList",
   components: {
-    Action,
-    SerpApiEditor,
-    SerpResultsCount,
     SerpResultsExportButton,
     SerpResultsSortButton,
     SerpResultsListItem,
-    WorkAuthorsString,
   },
   props: {
     resultsObject: Object,
@@ -149,6 +134,5 @@ export default {
 
 
 <style scoped lang="scss">
-.v-list-item--link:hover, .v-list-item:hover {
-}
+
 </style>

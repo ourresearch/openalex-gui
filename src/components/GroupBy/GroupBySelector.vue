@@ -4,30 +4,24 @@
       <template v-slot:activator="{props}">
       <v-btn
           :close="!!groupByKey"
-          rounded
+          class="rounded-lg"
           variant="text"
           v-bind="props"
-          :dark="!!groupByKey"
-          :color="groupByKey ? '#333' : undefined"
+          :color="groupByKey ? '#333' : '#000'"
           @click:close="groupByKey=undefined"
       >
-<!--          :outlined="!groupByKey"-->
-        <!--        <v-icon left>mdi-layers-triple-outline</v-icon>-->
         <span class="font-weight-regular">Group</span>
-<!--        <span class="font-weight-bold ml-1" v-if="groupByKeyConfig">{{ groupByKeyConfig.displayName }}</span>-->
-<!--        <v-icon right>mdi-menu-down</v-icon>-->
       </v-btn>
     </template>
     </v-menu>
 
-
-  <v-dialog
-      :close-on-content-click="false"
-      min-width="400"
-      v-model="isMenuOpen"
-      :fullscreen="$vuetify.display.mobile"
-      scrollable
-  >
+    <v-dialog
+        :close-on-content-click="false"
+        min-width="400"
+        v-model="isMenuOpen"
+        :fullscreen="$vuetify.display.mobile"
+        scrollable
+    >
 
     <v-card>
       <v-toolbar flat>
@@ -57,27 +51,19 @@
         <v-list>
           <keep-alive>
 
-            <v-list-item-group v-model="groupByKey" :key="searchString">
-              <template
-                  v-for="category in facetsByCategory"
+            <template v-for="category in facetsByCategory" :key="category.displayName">
+              <v-list-subheader>{{ category.displayName }}</v-list-subheader>
+              <v-list-item
+                v-for="filterConfig in category.filterConfigs"
+                :key="category.displayName + filterConfig.key"
+                :active="groupByKey === filterConfig.key"
+                @click="groupByKey = filterConfig.key"
+                active-class="primary--text"
               >
-                <v-subheader :key="category.displayName + 'subheader'">{{ category.displayName }}</v-subheader>
-                <v-list-item
-                    v-for="filterConfig in category.filterConfigs"
-                    :key="category.displayName + filterConfig.key"
-                    :value="filterConfig.key"
-                >
-                  <v-list-item-icon>
-                    <v-icon>{{ filterConfig.icon }}</v-icon>
-                  </v-list-item-icon>
-                  {{ filterConfig.displayName }}
-
-                </v-list-item>
-
-
-              </template>
-
-            </v-list-item-group>
+                <v-icon>{{ filterConfig.icon }}</v-icon>
+                {{ filterConfig.displayName }}
+              </v-list-item>
+            </template>
           </keep-alive>
         </v-list>
       </v-card-text>
@@ -89,15 +75,12 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import FilterKeySelector from "../Filters/FilterKeySelector.vue";
 import {url} from "../../url";
 import {facetsByCategory, getFacetConfig} from "../../facetConfigs";
-import {filter} from "core-js/internals/array-iteration";
 
 export default {
-  name: "Template",
+  name: "GroupBySelector",
   components: {
-    FilterKeySelector
   },
   props: {},
   data() {

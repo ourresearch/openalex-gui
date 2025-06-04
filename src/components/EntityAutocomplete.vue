@@ -14,7 +14,6 @@
       :placeholder="`Search ${entityType}`"
       return-object
       v-bind="$attrs"
-      v-on="$listeners"
       variant="outlined"
       :color="filterColor"
       density="compact"

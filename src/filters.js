@@ -113,11 +113,11 @@ const filters = {
     if (!title) return "Untitled"
     if (/^\s+$/.test(title)) return "Untitled"
     if (title && title.toUpperCase() === title) {
-        title = _.startCase(title.toLowerCase());
+        title = this.titleCase(title.toLowerCase());
     }
     if (facetKey && facetKey === "type") {
         title = title.replace("-", " ")
-        title = _.capitalize(title)
+        title = this.titleCase(title)
     }
     if (facetKey === "authorships.institutions.country_code") {
         title = title

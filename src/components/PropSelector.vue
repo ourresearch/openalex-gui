@@ -82,11 +82,10 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
 import {getConfigs} from "@/oaxConfigs";
 
 export default {
-  name: "Template",
+  name: "PropSelector",
   components: {},
   props: {
     subjectEntity: String,
@@ -99,16 +98,11 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       sidebarWidth: 250,
       q: "",
     }
   },
   computed: {
-    ...mapGetters([]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
     filteredProps() {
       if (!this.subjectEntity) return []
       return Object.values(getConfigs()[this.subjectEntity].properties)
@@ -144,13 +138,7 @@ export default {
       })
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
     close() {
       this.q = ""
       this.$emit('close')
@@ -158,18 +146,11 @@ export default {
     select(id){
       this.q = ""
       this.$emit('select', id)
-
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

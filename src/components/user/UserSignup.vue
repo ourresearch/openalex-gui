@@ -184,7 +184,7 @@ export default {
   mounted() {
   },
   watch: {
-    isOpen(to, from) {
+    isOpen() {
       this.name = "";
       this.email = "";
       this.password = "";

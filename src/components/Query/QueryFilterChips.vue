@@ -33,7 +33,7 @@ Drafted by ChatGPT -->
     <!-- Filter Menu -->
     <v-menu
       v-model="isMenuOpen"
-      offset-y
+      location="bottom"
       v-if="currentFilter"
     >
       <template v-slot:activator="{ props }">
@@ -51,7 +51,7 @@ Drafted by ChatGPT -->
 </template>
 
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 import { getConfigs } from "@/oaxConfigs";
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 

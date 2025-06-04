@@ -5,7 +5,6 @@
         :href="data.primary_location.landing_page_url"
         target="_blank"
         :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
-        :dark="!data.primary_location?.is_oa"
         class="mr-3"
     >
 <!--      <v-icon left>mdi-web</v-icon>-->
@@ -42,25 +41,17 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-
 export default {
-  name: "Template",
+  name: "WorkLinkouts",
   components: {},
   props: {
     data: Object,
   },
   data() {
     return {
-      foo: 42,
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
-
     oaUrl() {
       return this.data.open_access.oa_url
     },
@@ -76,23 +67,9 @@ export default {
     isOaAtPublisher() {
       return this.data.open_access?.is_oa && this.data.open_access?.oa_status !== 'green'
     },
-
-
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

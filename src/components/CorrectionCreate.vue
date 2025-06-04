@@ -56,9 +56,7 @@
                   :key="prop.id"
                   @click="selectedPropToModify = prop"
               >
-                <v-list-item-icon>
-                  <v-icon>{{ prop.icon }}</v-icon>
-                </v-list-item-icon>
+                <v-icon>{{ prop.icon }}</v-icon>
                 <v-list-item-title>{{ prop.displayName }}</v-list-item-title>
               </v-list-item>
             </v-list>
@@ -96,9 +94,7 @@
                   :key="myAction.id"
                   @click="selectedAction = myAction"
               >
-                <v-list-item-icon>
-                  <v-icon>{{ myAction.icon }}</v-icon>
-                </v-list-item-icon>
+                <v-icon>{{ myAction.icon }}</v-icon>
                 <v-list-item-title>
                   {{ myAction.id }} an {{ filters.pluralize(selectedPropToModify.displayName, 1) }}
                 </v-list-item-title>
@@ -140,7 +136,7 @@
               placeholder="Comments"
               hide-details
               @keydown.enter.prevent="create"
-              full-width
+              style="width: 100%;"
             ></v-textarea>
 
         </div>
@@ -215,6 +211,7 @@ export default {
       if (!this.selectedAction) return 2
       if (!this.selectedValue) return 3
       if (!this.comments) return 4
+      return 0;
     }
   },
   methods: {
@@ -241,13 +238,9 @@ export default {
       this.$emit('close')
     }
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 

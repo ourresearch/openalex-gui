@@ -420,10 +420,6 @@ const isFilterOptionApplied = function (currentRoute, entityType, filterKey, opt
 
 const readFilterOptionsByKey = function (currentRoute, entityType, filterKey, isNegatedOnly = false) {
     const allFilters = readFilters(currentRoute, isNegatedOnly)
-    const config = getFacetConfig(entityType, filterKey)
-    //if (config.type !== "select") return []
-    //if (!["select", "boolean"].includes(config.type)) { return [] }
-
     const filtersWithKey = allFilters.filter(f => f.key == filterKey)
 
     //console.log("readFilterOptionsByKey: " + filterKey)

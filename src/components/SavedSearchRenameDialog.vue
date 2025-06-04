@@ -34,29 +34,23 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
-  name: "Template",
+  name: "SavedSearchRenameDialog",
   components: {},
   props: {
     id: String,
   },
   data() {
     return {
-      foo: 42,
       renameString: "",
       descriptionString: "",
       isLoading: false
     }
   },
   computed: {
-    ...mapGetters([
-
-      "entityType",
-    ]),
     ...mapGetters("user", [
-      "userId",
       "renameId",
     ]),
     isOpen: {
@@ -66,12 +60,7 @@ export default {
       }
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
     ...mapActions("user", [
         "updateSearchDescription",
         "updateSearchName",
@@ -84,14 +73,7 @@ export default {
       this.isLoading = false
       this.isOpen = false
     }
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

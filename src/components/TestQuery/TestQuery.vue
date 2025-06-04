@@ -104,13 +104,11 @@
 
 import {api} from "@/api";
 import filters from '@/filters';
-import TestQueryNatLang from "@/components/TestQuery/TestQueryNatLang.vue";
 import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
 
 export default {
   name: "TestQuery",
   components: {
-    TestQueryNatLang,
     TestQueryOql,
   },
   props: {

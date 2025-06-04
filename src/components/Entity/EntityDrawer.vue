@@ -1,7 +1,6 @@
 <template>
   <v-navigation-drawer
       v-model="isOpen"
-      app
       location="right"
       :width="$vuetify.display.mobile ? '95%' : '50%'"
       temporary
@@ -98,7 +97,7 @@ export default {
   },
   watch: {
     id: {
-      handler(to) {
+      handler() {
         this.getEntityData();
       },
       immediate: true

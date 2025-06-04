@@ -62,7 +62,7 @@ export default {
   watch: {
     '$route': {
       immediate: true,
-      handler: function (to, from) {
+      handler: function () {
       }
     }
   }

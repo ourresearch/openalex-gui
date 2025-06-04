@@ -11,34 +11,27 @@
     <v-list>
 
       <v-list-item :href="csvUrl">
-        <v-list-item-icon>
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-list-item-icon>
-        
-          <v-list-item-title>Export</v-list-item-title>
-        
+        <v-icon>mdi-tray-arrow-down</v-icon>
+        <v-list-item-title>Export</v-list-item-title>
         <v-list-item-action-text>.csv</v-list-item-action-text>
       </v-list-item>
+
       <v-list-item :href="apiUrl" target="_blank">
-        <v-list-item-icon>
-          <v-icon>mdi-api</v-icon>
-        </v-list-item-icon>
-        
-          <v-list-item-title>
-            View in API
-          </v-list-item-title>
+        <v-icon>mdi-api</v-icon>        
+        <v-list-item-title>
+          View in API
+        </v-list-item-title>
         
         <v-list-item-action-text>.json</v-list-item-action-text>
       </v-list-item>
+
       <v-divider/>
+      
       <v-list-item @click="isPinned = !isPinned">
-        <v-list-item-icon>
-          <v-icon color="">{{ isPinned ? "mdi-playlist-remove" : "mdi-playlist-plus" }}</v-icon>
-        </v-list-item-icon>
-        
-          <v-list-item-title class="">
-            {{ isPinned ? "Remove from" : "Add to" }} report
-          </v-list-item-title>
+        <v-icon color="">{{ isPinned ? "mdi-playlist-remove" : "mdi-playlist-plus" }}</v-icon>
+        <v-list-item-title>
+          {{ isPinned ? "Remove from" : "Add to" }} report
+        </v-list-item-title>
         
       </v-list-item>
     </v-list>

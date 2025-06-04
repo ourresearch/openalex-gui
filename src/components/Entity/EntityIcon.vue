@@ -80,13 +80,9 @@ export default {
     entityType() {
       if (this.type) return this.type
       else if (this.id) return entityTypeFromId(this.id)
+      else return null;
     },
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

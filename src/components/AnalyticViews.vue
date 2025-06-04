@@ -1,13 +1,13 @@
 <template>
-  <v-card rounded flat color="transparent">
+  <v-card class="rounded-lg" flat color="transparent">
     <v-toolbar dense flat color="transparent" class="">
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
-      <Action v-if="entityType === 'works'" class="ml-2" action="group_by"/>
+      <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
       <v-btn icon :href="csvUrl">
         <v-icon>mdi-tray-arrow-down</v-icon>
       </v-btn>
-      <v-menu offset-y v-if="0">
+      <v-menu location="bottom" v-if="0">
         <template v-slot:activator="{props}">
           <v-btn icon v-bind="props">
             <v-icon>mdi-dots-vertical</v-icon>
@@ -15,31 +15,21 @@
         </template>
         <v-list>
           <v-list-item @click="url.setGroupBy(undefined)">
-            <v-list-item-icon>
-              <v-icon>mdi-restore</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>Restore report defaults</v-list-item-title>
-            
+            <v-icon>mdi-restore</v-icon>
+            <v-list-item-title>Restore report defaults</v-list-item-title>
           </v-list-item>
 
           <v-divider/>
+
           <v-list-item :href="csvUrl">
-            <v-list-item-icon>
-              <v-icon>mdi-tray-arrow-down</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>Export all</v-list-item-title>
-            
+            <v-icon>mdi-tray-arrow-down</v-icon>
+            <v-list-item-title>Export all</v-list-item-title>
             <v-list-item-action-text>.csv</v-list-item-action-text>
           </v-list-item>
+
           <v-list-item :href="apiUrl" target="_blank">
-            <v-list-item-icon>
-              <v-icon>mdi-api</v-icon>
-            </v-list-item-icon>
-            
-              <v-list-item-title>View in API</v-list-item-title>
-            
+            <v-icon>mdi-api</v-icon>
+            <v-list-item-title>View in API</v-list-item-title>
             <v-list-item-action-text>.json</v-list-item-action-text>
           </v-list-item>
         </v-list>
@@ -117,7 +107,7 @@ import filters from "@/filters";
 import {filtersFromUrlStr} from "@/filterConfigs";
 
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
-import Action from "@/components/Action/Action.vue";
+import ActionMenu from "@/components/Action/Action.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
@@ -125,7 +115,7 @@ export default {
   components: {
     SerpResultsCount,
     GroupBy,
-    Action,
+    ActionMenu,
   },
   props: {
     resultsObject: Object,
@@ -142,7 +132,7 @@ export default {
     ]),
     groupByKeys() {
       const ret = url.getGroupBy(this.$route)
-      ret.sort((a, b) => {
+      ret.sort((a) => {
         return (['apc_sum', 'cited_by_count_sum'].includes(a)) ? -1 : 1
       });
       return ret

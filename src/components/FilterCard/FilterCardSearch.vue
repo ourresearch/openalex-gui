@@ -5,7 +5,6 @@
           style="width: 100%;"
           rounded
           variant="outlined"
-          full-width
           v-model="searchString"
           hide-details
           @keydown.enter="submit"
@@ -24,7 +23,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {url} from "@/url";
 import {getFacetConfig} from "@/facetConfigs";
 

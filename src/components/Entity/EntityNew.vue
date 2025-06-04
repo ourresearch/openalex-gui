@@ -23,18 +23,14 @@
 
 <script>
 
-import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
 import {getEntityConfig} from "@/entityConfigs";
 import EntityDatumRow from "@/components/Entity/EntityDatumRow.vue";
-import WorkLinkouts from "@/components/WorkLinkouts.vue";
 import {entityTypeFromId} from "@/util";
 
 
 export default {
   name: "EntityNew",
   components: {
-    WorkLinkouts,
-    LinkEntityRolesList,
     EntityDatumRow,
   },
   props: {

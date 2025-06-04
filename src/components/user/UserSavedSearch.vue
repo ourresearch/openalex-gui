@@ -1,15 +1,12 @@
 <template>
   <v-list-item :disabled="disabled" @click="open">
-    <v-list-item-icon>
-      <v-icon>mdi-content-save-outline</v-icon>
-    </v-list-item-icon>
-    
-      <v-list-item-title>
-        {{ name }}
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        {{  updatedStr }}
-      </v-list-item-subtitle>
+    <v-icon>mdi-content-save-outline</v-icon>
+    <v-list-item-title>
+      {{ name }}
+    </v-list-item-title>
+    <v-list-item-subtitle>
+      {{  updatedStr }}
+    </v-list-item-subtitle>
       <div>
       </div>
     
