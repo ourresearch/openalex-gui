@@ -5,7 +5,7 @@
       <filter-list :results-object="resultsObject" class="mb-6 mt-6"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
-      <v-row v-if="!$vuetify.breakpoint.mobile">
+      <v-row v-if="!$vuetify.display.mobile">
         <v-col
             cols="6"
             xl="4"
@@ -154,7 +154,7 @@ export default {
       "userSavedSearches",
     ]),
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ? 4 : 10;
+      const maxToShow = this.$vuetify.display.mobile ? 4 : 10;
 
       return Math.min(
           Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),

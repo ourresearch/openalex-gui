@@ -2,7 +2,7 @@
   <tr
       @click="$emit('click')"
       class="hover-color-3 font-weight-regular"
-      :class="{clickable, card: $vuetify.breakpoint.smAndDown}"
+      :class="{clickable, card: $vuetify.display.smAndDown}"
   >
     <td class="grey--text shrink pl-5 d-none d-md-table-cell">
 <!--      {{ index + 1 }}.-->
@@ -12,7 +12,7 @@
       {{ index > 0 ? "and" : "" }}
     </td>
 
-    <template v-if="$vuetify.breakpoint.mdAndUp">
+    <template v-if="$vuetify.display.mdAndUp">
       <td class="shrink align-center pl-4">
         <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
         {{ myFilterName }}

@@ -114,7 +114,7 @@
 
     <v-dialog
         v-model="isDialogOpen"
-        :fullscreen="$vuetify.breakpoint.mobile"
+        :fullscreen="$vuetify.display.mobile"
         max-width="600"
         scrollable
     >

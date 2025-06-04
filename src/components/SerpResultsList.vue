@@ -107,7 +107,7 @@ export default {
       "entityType",
     ]),
     numPages() {
-      const maxToShow = this.$vuetify.breakpoint.mobile ? 4 : 10
+      const maxToShow = this.$vuetify.display.mobile ? 4 : 10
 
       return Math.min(
           Math.floor(this.resultsObject.meta.count / url.getPerPage()),

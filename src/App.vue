@@ -9,11 +9,11 @@
     <v-app-bar
         app
         flat
-        :height="$vuetify.breakpoint.mobile ? undefined : 70"
+        :height="$vuetify.display.mobile ? undefined : 70"
         color="white"
         class=""
         absolute
-        :extended="$vuetify.breakpoint.mobile && $route.name === 'Serp'"
+        :extended="$vuetify.display.mobile && $route.name === 'Serp'"
         extension-height="70"
     >
       <router-link :to="{name: 'Home'}" class="logo-link ml-3">
@@ -28,7 +28,7 @@
           v-if="$route.name === 'Serp'"
       >
         <entity-type-selector
-            v-if="!$vuetify.breakpoint.mobile"
+            v-if="!$vuetify.display.mobile"
         />
         <shortcut-box
             style="max-width: 800px;"
@@ -41,7 +41,7 @@
 
       <user-toolbar-menu/>
 
-      <v-menu v-if="!$vuetify.breakpoint.mobile" offset-y>
+      <v-menu v-if="!$vuetify.display.mobile" offset-y>
         <template v-slot:activator="{on}">
           <v-btn icon v-on="on">
             <v-icon>mdi-help-circle-outline</v-icon>
@@ -70,7 +70,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <template v-slot:extension v-if="$vuetify.breakpoint.mobile && $route.name === 'Serp'">
+      <template v-slot:extension v-if="$vuetify.display.mobile && $route.name === 'Serp'">
         <entity-type-selector/>
         <shortcut-box
             class="flex-grow-1"

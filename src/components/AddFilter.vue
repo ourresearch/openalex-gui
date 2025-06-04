@@ -87,7 +87,7 @@
         width="800"
         scrollable
     >
-      <!--        :fullscreen="$vuetify.breakpoint.mobile"-->
+      <!--        :fullscreen="$vuetify.display.mobile"-->
       <v-card rounded>
         <v-text-field
             v-model="searchString"

@@ -11,7 +11,7 @@
         rounded
         text
         x-large
-        v-if="$vuetify.breakpoint.mobile"
+        v-if="$vuetify.display.mobile"
         :id="myId"
         class="pl-0 pr-0"
     >
@@ -46,7 +46,7 @@
         <v-card-text class="pa-0">
           <!--        <v-container>-->
           <!--          <v-row-->
-          <!--              v-if="$vuetify.breakpoint.mdAndUp"-->
+          <!--              v-if="$vuetify.display.mdAndUp"-->
           <!--          >-->
           <!--            <v-col-->
           <!--                cols="6"-->

@@ -25,7 +25,7 @@
       :close-on-content-click="false"
       min-width="400"
       v-model="isMenuOpen"
-      :fullscreen="$vuetify.breakpoint.mobile"
+      :fullscreen="$vuetify.display.mobile"
       scrollable
   >
 
