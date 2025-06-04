@@ -1,6 +1,4 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import goTo from 'vuetify/es5/services/goto'
+import { createRouter, createWebHistory } from 'vue-router';
 
 import store from '@/store';
 import {getEntityConfigs} from "@/entityConfigs";
@@ -42,8 +40,6 @@ import TestQueriesTestType from "@/views/TestQueries/TestQueriesTestType.vue";
 import TestQueriesTest from "@/views/TestQueries/TestQueriesTest.vue";
 import TestQueriesSuitesList from "@/views/TestQueries/TestQueriesSuitesList.vue";
 
-
-Vue.use(VueRouter);
 
 // TOOD Check if these are equal
 //const entityNames = Object.keys(getConfigs()).join("|");
@@ -217,27 +213,29 @@ const routes = [
     // Resources
     redirect('/webinars/api-notebook-01', "https://github.com/ourresearch/openalex-api-tutorials/blob/main/notebooks/getting-started/api-webinar-apr2024/tutorial01.ipynb"),
     
-    {path: '*', component: PageNotFound},
+    {path: '/:pathMatch(.*)*', name: "PageNotFound", component: PageNotFound},
 ];
 
 
-const router = new VueRouter({
+const router = createRouter({
+    history: createWebHistory(),
     routes,
-    mode: "history",
-    scrollBehavior: (to, from, savedPosition) => {
+    scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
-            return goTo(to.hash, {
-                offset: 75,
-            })
+            return {
+                el: to.hash,
+                top: 75
+            };
         } else if (savedPosition) {
-            return savedPosition
+            return savedPosition;
         } else if (to.name === "Serp") {
             // do nothing
+            return false;
         } else {
-            return {x: 0, y: 0}
+            return {left: 0, top: 0};
         }
     },
-})
+});
 
 const redirectFromOldFilters = function (to, from, next) {
     const redirects = {

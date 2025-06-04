@@ -22,15 +22,14 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {user} from "@/store/user.store";
+import {mapActions, mapMutations} from "vuex";
 import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
 import SerpToolbarTitle from "@/components/SerpToolbar/SerpToolbarTitle.vue";
 import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
 
 
 export default {
-  name: "Template",
+  name: "SerpToolbar",
   components: {
     SavedSearchSaveDialog,
     SerpToolbarMenu,
@@ -41,7 +40,6 @@ export default {
   },
   data() {
     return {
-      foo: 42,
       saveSearchDialogHasAlert: false,
       isDialogOpen: {
         saveSearch: false,
@@ -49,13 +47,7 @@ export default {
     }
   },
   computed: {
-    user() {
-      return user
-    },
-    ...mapGetters([]),
-    ...mapGetters("user", []),
   },
-
   methods: {
     ...mapMutations([
       "snackbar",
@@ -63,7 +55,6 @@ export default {
     ...mapMutations("user", [
       "setEditAlertId",
     ]),
-    ...mapActions([]),
     ...mapActions("user", [
       "updateSearchUrl"
     ]),
@@ -89,14 +80,7 @@ export default {
           this.setEditAlertId(this.$route.query.id) :
           this.openSaveDialog(true)
     },
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
 

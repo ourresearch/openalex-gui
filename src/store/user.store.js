@@ -1,7 +1,7 @@
+import { createStore } from 'vuex';
 import axios from "axios";
 import {url} from "@/url";
 import {api} from "@/api";
-import router from "@/router";
 import {navigation} from '@/navigation';
 import {urlBase, axiosConfig} from "@/apiConfig.js"
 
@@ -9,7 +9,7 @@ const shortUuid = require('short-uuid');
 
 const apiBaseUrl = urlBase.userApi
 
-export const user = {
+export default {
     namespaced: true,
     state: {
         id: "",
@@ -499,4 +499,4 @@ export const user = {
         activeSearchName: (state, getters) => getters.activeSearchObj?.name,
         activeSearchHasAlert: (state, getters) => getters.activeSearchObj?.has_alert,
     }
-}
+};

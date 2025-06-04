@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex';
 import _ from "lodash"
 import {api} from "@/api";
 import { navigation } from "@/navigation"; 
@@ -8,8 +7,6 @@ import {getConfigs} from "@/oaxConfigs";
 import {baseQuery, makeUnderlyingWorksQuery} from "@/query"; 
 import {queryTitle} from "@/utils/queryTitle"; 
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
-
-Vue.use(Vuex);
 
 const stateDefaults = function () {
     const ret = {
@@ -35,7 +32,7 @@ const stateDefaults = function () {
 };
 
 
-export const search = {
+export default {
     namespaced: true,
     state: stateDefaults(),
     mutations: {

@@ -136,3 +136,4 @@ export default {
 .v-input__slot {
   min-height: 35px !important;
 }
+</style>
