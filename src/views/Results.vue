@@ -33,23 +33,21 @@
 <script>
 
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import { useHead } from '@unhead/vue';
+
 import store from "@/store";
+import {getLabelsInQuery} from "@/query";
 import {DISABLE_SERVER_CACHE} from "@/apiConfig";
+
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import QueryBuilder from "@/components/Query/QueryBuilder.vue";
 import QueryOql from "@/components/Query/QueryOql.vue";
 import QueryTabs from "@/components/Query/QueryTabs.vue";
-import {getLabelsInQuery} from "@/query";
 
 export default {
   name: "Results",
-  metaInfo() {
-    return {
-      title: this.$store.state.search.pageTitle,
-    };
-  },
   components: {
     ResultsTable,
     ResultsSearching,
@@ -147,6 +145,8 @@ export default {
     },
   },
   created() {
+    useHead({ title: this.$store.state.search.pageTitle });
+
     if (this.userId && !this.isTester) {
       this.$router.replace({name: 'AnalyticsTesting'});
     }

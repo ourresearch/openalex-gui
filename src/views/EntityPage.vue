@@ -82,6 +82,8 @@
 <script>
 
 import {mapGetters} from "vuex";
+import { useHead } from '@unhead/vue';
+
 import {api} from "@/api";
 import {url} from "@/url";
 import filters from "@/filters";
@@ -98,9 +100,6 @@ import GroupBy from "@/components/GroupBy/GroupBy.vue";
 
 export default {
   name: "EntityPage",
-  metaInfo() {
-    return {title: this.entityData?.display_name}
-  },
   components: {
     EntityNew,
     SerpResultsListItemWork,
@@ -191,6 +190,9 @@ export default {
       console.log(this.myWorksFilter);
       return url.pushNewFilters([this.myWorksFilter], "works");
     },
+  },
+  created() {
+    useHead({ title: this.entityData?.display_name });
   },
   async mounted() {
     console.log("EntityPage mounted", this.$route.params.entityType, this.$route.params.entityId);

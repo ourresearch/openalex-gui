@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import _ from 'lodash';
-import VueMeta from 'vue-meta';
+import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';
 import router from './router';
 import store from './store';
@@ -23,7 +23,8 @@ const app = createApp(App);
 app.use(router);
 app.use(store);
 app.use(vuetify);
-app.use(VueMeta, { refreshOnceOnNavigation: true });
+const head = createHead();
+app.use(head);
 app.use(VScrollLock);
 
 // Provide config if needed (Vue 3 provides/injects or globalProperties)

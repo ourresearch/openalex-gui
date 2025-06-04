@@ -28,9 +28,13 @@
 </template>
 
 <script>
+import { useHead } from '@unhead/vue';
+
 export default {
   name: "Faq",
-  metaInfo: {title: "FAQ"}
+  created() {
+    useHead({ title: 'FAQ' });
+  }
 }
 </script>
 

@@ -154,8 +154,9 @@
 
 import {VueTyper} from 'vue-typer'
 import {mapGetters} from "vuex";
-import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
+import { useHead } from '@unhead/vue';
 
+import UserSavedSearch from "@/components/user/UserSavedSearch.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 
 export default {
@@ -165,9 +166,11 @@ export default {
     VueTyper,
     ShortcutBox,
   },
-  metaInfo: {
-    title: "OpenAlex: The open catalog to the global research system",
-    titleTemplate: undefined, // have to override this or it'll get the site title template
+  created() {
+    useHead({
+      title: 'OpenAlex: The open catalog to the global research system',
+      titleTemplate: undefined
+    });
   },
   data() {
     return {

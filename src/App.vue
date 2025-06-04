@@ -116,6 +116,7 @@
 
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+import { useHead } from '@unhead/vue';
 import axios from "axios";
 import {getConfigs} from "@/oaxConfigs";
 
@@ -135,11 +136,6 @@ import UiVariantSelector from "@/components/Misc/UiVariantSelector.vue";
 
 export default {
   name: 'App',
-  metaInfo: {
-    titleTemplate: (title) => title ? `${title} | OpenAlex` : 'OpenAlex',
-    link: [],
-    meta: []
-  },
   components: {
     SerpToolbar,
     SerpToolbarMenu,
@@ -219,6 +215,11 @@ export default {
     }
   },
   created() {
+    useHead({
+      titleTemplate: (title) => title ? `${title} | OpenAlex` : 'OpenAlex',
+      link: [],
+      meta: []
+    });
     this.setUIVariant();
     // Zendesk widget show/hide logic for certain routes
     if (this.$router) {
