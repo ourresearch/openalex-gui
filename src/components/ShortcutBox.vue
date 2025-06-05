@@ -62,9 +62,9 @@
               <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.displayName }}</span>
             </v-list-item-title>
           
-          <v-list-item-action-text>
+          <v-list-item-subtitle>
             press Enter
-          </v-list-item-action-text>
+          </v-list-item-subtitle>
         </template>
 
         <template v-else>

@@ -35,22 +35,6 @@
 
           ({{ items.filter(i => i.type === itemType.id).length }})
 
-          <!--          <v-list-item-content>-->
-          <!--            <div>-->
-          <!--              <v-icon :color="itemType.color" left v-if="selectedItemTypes.includes(itemType.id)">-->
-          <!--                mdi-checkbox-marked-->
-          <!--              </v-icon>-->
-          <!--              <v-icon :color="itemType.color" left v-else>mdi-checkbox-blank-outline</v-icon>-->
-          <!--              <span :class="`${itemType.color}&#45;&#45;text`" class="font-weight-bold">-->
-          <!--                {{ itemType.id }}-->
-          <!--              </span>-->
-
-          <!--            </div>-->
-
-          <!--          </v-list-item-content>-->
-          <!--          <v-list-item-action-text>-->
-          <!--            {{ items.filter(i => i.type === itemType.id).length }}-->
-          <!--          </v-list-item-action-text>-->
         </v-chip>
       </v-chip-group>
 

@@ -31,12 +31,12 @@
             
             <v-list-item-title>Export</v-list-item-title>
             
-            <v-list-item-action-text>.csv</v-list-item-action-text>
+            <v-list-item-subtitle>.csv</v-list-item-subtitle>
           </v-list-item>
           <v-list-item :href="apiUrl" target="_blank">
             <v-icon>mdi-api</v-icon>
             <v-list-item-title>View in API</v-list-item-title>
-            <v-list-item-action-text>.json</v-list-item-action-text>
+            <v-list-item-subtitle>.json</v-list-item-subtitle>
           </v-list-item>
 
         </v-list>

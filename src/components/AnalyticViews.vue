@@ -24,13 +24,13 @@
           <v-list-item :href="csvUrl">
             <v-icon>mdi-tray-arrow-down</v-icon>
             <v-list-item-title>Export all</v-list-item-title>
-            <v-list-item-action-text>.csv</v-list-item-action-text>
+            <v-list-item-text>.csv</v-list-item-text>
           </v-list-item>
 
           <v-list-item :href="apiUrl" target="_blank">
             <v-icon>mdi-api</v-icon>
             <v-list-item-title>View in API</v-list-item-title>
-            <v-list-item-action-text>.json</v-list-item-action-text>
+            <v-list-item-text>.json</v-list-item-text>
           </v-list-item>
         </v-list>
       </v-menu>

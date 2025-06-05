@@ -18,14 +18,14 @@
         <span v-if="hint"> {{ filters.truncate(hint, 100) }}</span>
       </v-list-item-subtitle>
     
-    <v-list-item-action-text class="text-body-1">
+    <v-list-item-subtitle class="text-body-1">
       <template v-if="isCountLoading">
         <v-progress-circular indeterminate size="10" width="2" color="grey"/>
       </template>
       <template>
         {{ filters.toPrecision(myCount) }}
       </template>
-    </v-list-item-action-text>
+    </v-list-item-subtitle>
   </v-list-item>
 </template>
 
