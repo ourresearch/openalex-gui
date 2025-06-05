@@ -8,9 +8,10 @@
         :menu-props="{maxHeight: 600,}"
         item-title="displayValue"
         return-object
-        rounded
         :density="dense ? 'compact' : undefined"
-        variant="filled"
+        variant="solo-filled"
+        flat
+        rounded="xl"
         clearable
         hide-no-data
         hide-details
@@ -88,15 +89,15 @@
     </v-autocomplete>
     <div class="ml-2 mt-2" v-if="showExamples">
       <span class="text-body-2 text-grey">Try:</span>
-      <v-chip
-          color="white"
+      <v-btn
           v-for="search in searchesToTry"
           :key="search"
+          variant="text"
+          class="font-weight-regular"
           @click="trySearch(search)"
-          class=""
       >
         {{ search }}
-      </v-chip>
+      </v-btn>
     </div>
   </div>
 </template>
