@@ -23,8 +23,8 @@
         <span class="logo-text colorizable">OpenAlex</span>
       </router-link>
       <div
+          v-if="$route.name === 'Serp'"    
           class="flex-grow-1 mr-3 ml-6 d-flex justify-center"
-          v-if="$route.name === 'Serp'"
       >
         <entity-type-selector
             v-if="!$vuetify.display.mobile"
@@ -36,27 +36,31 @@
       </div>
       <div v-if="$route.name !== 'Serp'" class="flex-grow-1"></div>
 
-      <div class="flex-grow-1"></div>
+      <v-spacer/>
 
       <user-toolbar-menu/>
 
-      <v-menu v-if="!$vuetify.display.mobile" location="bottom">
+      <v-menu v-if="!$vuetify.display.mobile">
         <template v-slot:activator="{props}">
-          <v-btn icon v-bind="props">
+          <v-btn icon variant="plain" v-bind="props">
             <v-icon>mdi-help-circle-outline</v-icon>
           </v-btn>
         </template>
         <v-list>
-          <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-            <v-icon>mdi-comment-question-outline</v-icon>
+          <v-list-item 
+            href="https://openalex.zendesk.com/hc/en-us/requests/new" 
+            target="_blank"
+            prepend-icon="mdi-comment-question-outline"
+          >
             <v-list-item-title>
               Contact support
             </v-list-item-title>
-            
           </v-list-item>
-          <v-list-item href="https://help.openalex.org/" target="_blank">
-            <v-icon>mdi-help-circle-outline</v-icon>
-            
+
+          <v-list-item 
+            href="https://help.openalex.org/" 
+            target="_blank"
+            prepend-icon="mdi-help-circle-outline">
             <v-list-item-title>
               Visit help center
             </v-list-item-title>
@@ -64,6 +68,7 @@
           </v-list-item>
         </v-list>
       </v-menu>
+
       <template v-slot:extension v-if="$vuetify.display.mobile && $route.name === 'Serp'">
         <entity-type-selector/>
         <shortcut-box
@@ -110,8 +115,9 @@
 
 <script>
 import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
-import { useHead } from '@unhead/vue';
 import axios from "axios";
+import { useHead } from '@unhead/vue';
+
 import {getConfigs} from "@/oaxConfigs";
 
 import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
@@ -320,15 +326,15 @@ $color-0: hsl(212, 77%, 82%);
 
   }
 }
+.v-toolbar__content,
 .v-toolbar__extension {
-  padding: 4px;
+    padding: 4px 16px;
 }
 .keyboard-shortcut {
   color: #9e9e9e; // vuetify grey--text
   border: 1px solid #ccc;
   padding: 0 5px;
   border-radius: 5px;
-
 }
 // don't show when a card has focus because we don't care.
 .v-card--link:focus:before {
@@ -394,13 +400,13 @@ $logo-link-height: 35px;
   }
 }
 body {
+  font-family: Roboto, sans-serif;
+  line-height: 1.5;
+
   .v-application {
     //background: #F7F9FC !important;
     //background: #fff !important;
     //background: pink !important;
-    .rounded {
-      border-radius: 15px !important;
-    }
     .body-1, .body-2 {
       letter-spacing: normal !important;
     }
@@ -426,6 +432,10 @@ body {
   font-weight: normal !important;
   letter-spacing: 0 !important;
 }
+.v-list-item__prepend {
+  display: inline !important;
+}
+
 .v-list-item__action {
   align-self: flex-start;
   margin-top: 8px;
@@ -455,4 +465,8 @@ img.site-footer-logo {
   font-size: 12px !important;
   text-transform: capitalize;
 }
+.v-menu {
+  overflow: hidden;
+}
+
 </style>

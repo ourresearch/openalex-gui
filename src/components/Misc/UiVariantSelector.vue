@@ -2,7 +2,7 @@
   <div>
     <v-menu location="bottom">
       <template v-slot:activator="{ props }">
-        <v-btn icon v-bind="props">
+        <v-btn icon variant="plain" v-bind="props">
           <v-icon>mdi-monitor-dashboard</v-icon>
         </v-btn>
       </template>
@@ -13,8 +13,10 @@
           class="ui-variant-option"
           @click="setUiVariant(option.value)"
         >
-          <v-icon v-if="uiVariant === option.value" color="primary">mdi-check</v-icon>
-          <v-icon v-else class="invisible-icon">mdi-check</v-icon>
+          <template v-slot:prepend>
+            <v-icon v-if="uiVariant === option.value" color="primary">mdi-check</v-icon>
+            <v-icon v-else class="invisible-icon">mdi-check</v-icon>
+          </template>
           <v-list-item-title>{{ option.text }}</v-list-item-title>
         </v-list-item>
       </v-list>

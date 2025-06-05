@@ -202,11 +202,9 @@ export default {
   $logo-link-height: 77px;
   display: flex;
   justify-content: center;
-
   .logo-icon {
     height: $logo-link-height;
   }
-
   .logo-text {
     margin: 0;
     line-height: 1.2;
@@ -215,10 +213,8 @@ export default {
     padding-left: .3em;
     font-size: $logo-link-height * 0.75;
     font-weight: 500;
-
   }
 }
-
 .user-logo-container {
   &.mobile {
     .user-logo {
@@ -232,9 +228,7 @@ export default {
         height: 25px;
       }
     }
-
   }
-
   .user-logo {
     height: 50px;
     margin: 20px;
