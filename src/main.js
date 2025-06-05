@@ -1,10 +1,10 @@
-import 'vuetify/styles'
 import { createApp } from 'vue';
 import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';
 import router from './router';
 import store from './store';
 import vuetify from './plugins/vuetify';
+import 'vuetify/styles'
 
 import { navigation } from './navigation';
 import tracking from './tracking';
