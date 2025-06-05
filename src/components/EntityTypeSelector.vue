@@ -16,12 +16,9 @@
         class="text-capitalize rounded-lg elevation-0 entity-type-select-btn"
         :id="myId"
         size="x-large"
-
     >
       <v-icon>{{ entityTypeConfig.icon }}</v-icon>
-      <span
-          class="ml-2"
-      >
+      <span class="ml-2">
         {{ entityTypeConfig.displayName }}
       </span>
       <v-icon>mdi-menu-down</v-icon>
@@ -33,17 +30,19 @@
         class="rounded-lg"
         location="bottom"
     >
-      <v-card flat rounded>
+      <v-card flat rounded="xl">
         <v-card-text class="pa-0">
           <v-list>
             <v-list-subheader>What are you looking for?</v-list-subheader>
             <v-list-item
                 v-for="entityOption in entityTypeOptions"
                 :key="entityOption.name"
-                class=""
+                class="my-0 py-0"
                 @click="entityType = entityOption.name"
             >
-              <v-icon>{{ entityOption.icon }}</v-icon>
+              <template #prepend>
+                <v-icon>{{ entityOption.icon }}</v-icon>
+              </template>
               <v-list-item-title class="text-capitalize">
                 <span>{{ entityOption.displayName }}</span>
               </v-list-item-title>
@@ -51,7 +50,10 @@
                   {{ entityOption.descr }}
                 </v-list-item-subtitle>
               
-              <v-icon v-if="entityType === entityOption.name">mdi-check</v-icon>
+              <template #append>
+                <v-icon v-if="entityType === entityOption.name">mdi-check</v-icon>
+              </template>
+
             </v-list-item>
           </v-list>
         </v-card-text>
@@ -62,12 +64,12 @@
 
 
 <script>
-import {mapGetters, mapMutations, mapActions,} from 'vuex'
+import {mapMutations} from 'vuex'
 import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
 import {url} from "@/url";
 
 export default {
-  name: "SearchBox",
+  name: "EntityTypeSelector",
   props: {
     inline: Boolean,
   },
@@ -82,7 +84,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([]),
     entityTypeOptions() {
       return getEntityConfigs().filter(c => c.hasSerp)
     },
@@ -106,29 +107,20 @@ export default {
     ...mapMutations([
       "setEntityType",
     ]),
-    ...mapActions([
-    ]),
-
     openEntityMenu() {
       this.items = []
-
     },
   },
   watch: {
-
     "$store.state.entityType": {
       handler() {
       },
       immediate: true,
     },
   },
-  mounted() {
-  },
-  beforeCreate() {
-
-  }
 }
 </script>
+
 
 <style lang="scss" scoped>
 .card-button {
