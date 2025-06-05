@@ -3,10 +3,10 @@
     <v-autocomplete
         v-model="select"
         :items="suggestions"
+        item-title="displayValue"
         :search="searchString" @update:search="onSearchInputUpdate"
         :customFilter="(item, queryText, itemText) => true"
         :menu-props="{maxHeight: 600,}"
-        item-title="displayValue"
         return-object
         :density="dense ? 'compact' : undefined"
         variant="solo-filled"
@@ -18,7 +18,7 @@
         class="shortcut-box"
         :placeholder="placeholder"
         prepend-inner-icon="mdi-magnify"
-        ref="shortcutBox"
+        ref="shortcutBoxRef"
         :autofocus="autofocus"
         :loading="isLoading"
         @update:model-value="onChange"
@@ -32,7 +32,7 @@
             closable
             @click:close="clear"
             class="pa-5"
-            style="margin: -9px 0 0 -9px; border-radius: 30px;"
+            style=" border-radius: 30px;"
         >
           <v-icon start>
             {{ newFilter.icon }}
@@ -42,49 +42,69 @@
       </template>
 
       <template v-slot:item="data">
-        <v-icon>{{ data.item.icon }}</v-icon>
-        <template v-if="data.item.isFilterLink">
-            <v-list-item-title>
-              <span class="font-weight-bold">{{ filters.capitalize(data.item.displayValue) }}</span>
-            </v-list-item-title>
-            <v-list-item-subtitle>
-              Filter by {{ data.item.displayValue }}
-            </v-list-item-subtitle>
-          
-            <v-icon>mdi-filter-plus</v-icon>
-        </template>
+        <v-list-item
+          :value="data.item.raw?.value ?? data.item.value"
+          active-class="bg-primary-lighten-4"
+          :active="data.props.selected"
+          @click="onChange(data.item.raw ?? data.item)"
+        >
+          <template #prepend>
+            <v-icon>{{ data.item.raw?.icon ?? data.item.icon }}</v-icon>
+          </template>
 
-        <template v-else-if="data.item.key === defaultSearchType">
-          
-            <v-list-item-title>
-              <span class="">Search for</span>
-              <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
-              <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.displayName }}</span>
-            </v-list-item-title>
-          
-          <v-list-item-subtitle>
-            press Enter
-          </v-list-item-subtitle>
-        </template>
+          <div>
+            <!-- Filter link -->
+            <template v-if="data.item.raw?.isFilterLink ?? data.item.isFilterLink">
+              <v-list-item-title>
+                <span class="font-weight-bold">{{ filters.capitalize(data.item.raw?.displayValue ?? data.item.displayValue) }}</span>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                Filter by {{ data.item.raw?.displayValue ?? data.item.displayValue }}
+              </v-list-item-subtitle>
+            </template>
 
-        <template v-else>
-            <v-list-item-title style="white-space: normal;">
-              {{ filters.prettyTitle(data.item.displayValue) }}
-            </v-list-item-title>
-            <v-list-item-subtitle style="white-space: normal;">
-              {{ filters.capitalize(data.item.displayName) }}
-              <span v-if="data.item.hint">
-                {{ filters.truncate(data.item.hint) }}
-              </span>
-            </v-list-item-subtitle>
-          
-          <v-list-item-action v-if="data.item.entityId" @click="goToEntity(data.item.value)">
-            <v-btn icon>
+            <!-- Default search -->
+            <template v-else-if="(data.item.raw?.key ?? data.item.key) === defaultSearchType">
+              <v-list-item-title>
+                <span class="">Search for</span>
+                <span class="mx-2 font-weight-medium">"{{ searchString }}"</span>
+                <span class="mr-2">in {{ filters.pluralize(entityType, 1) }} {{ data.item.raw?.displayName ?? data.item.displayName }}</span>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                press Enter
+              </v-list-item-subtitle>
+            </template>
+
+            <!-- Entity -->
+            <template v-else>
+              <v-list-item-title style="white-space: normal;">
+                {{ filters.prettyTitle(data.item.raw?.displayValue ?? data.item.displayValue) }}
+              </v-list-item-title>
+              <v-list-item-subtitle style="white-space: normal;">
+                {{ filters.capitalize(data.item.raw?.displayName ?? data.item.displayName) }}
+                <span v-if="data.item.raw?.hint ?? data.item.hint">
+                  {{ filters.truncate(data.item.raw?.hint ?? data.item.hint) }}
+                </span>
+              </v-list-item-subtitle>
+            </template>
+          </div>
+
+          <!-- Info / Filter button -->
+          <template #append>
+            <v-icon v-if="data.item.raw?.isFilterLink ?? data.item.isFilterLink">
+              mdi-filter-plus
+            </v-icon>
+            <v-btn 
+              v-else-if="data.item.raw?.entityId ?? data.item.entityId" 
+              icon
+              variant="plain"
+              @click.stop="goToEntity(data.item.raw?.value ?? data.item.value)"
+              tabindex="-1"
+            >
               <v-icon>mdi-information-outline</v-icon>
             </v-btn>
-          </v-list-item-action>
-        </template>
-        
+          </template>
+        </v-list-item>
       </template>
     </v-autocomplete>
     <div class="ml-2 mt-2" v-if="showExamples">
@@ -103,9 +123,9 @@
 </template>
 
 <script>
-
 import _ from "lodash"
 import {mapGetters} from "vuex";
+import {ref} from 'vue';
 
 import {url} from "@/url";
 import {api} from "@/api";
@@ -123,6 +143,12 @@ export default {
     dense: Boolean,
     showExamples: Boolean,
     autofocus: Boolean,
+  },
+  setup() {
+    const shortcutBoxRef = ref(null);
+    return {
+      shortcutBoxRef,
+    };
   },
   data() {
     return {
@@ -198,7 +224,6 @@ export default {
       this.searchString = ""
       this.suggestions = []
       this.newFilter = null
-
     },
     clickClear() {
       this.suggestions = []
@@ -210,10 +235,9 @@ export default {
       }
     },
     selectFilter(filter) {
-      console.log("selectFilter()", filter)
       if (filter.type === "boolean") {
         const oldFilters = url.readFilters(this.$route)
-        console.log("push new filter", filter)
+        //console.log("push new filter", filter)
         const newFilter = createSimpleFilter(
             "works",
             filter.key,
@@ -231,7 +255,7 @@ export default {
     onChange(myFilterData) {
       if (this.isProgrammaticInput) return;
       if (!myFilterData) return; // Don't clear if nothing was selected!
-      console.log('onChange()', myFilterData, this.select)
+      //console.log('onChange()', myFilterData, this.select)
       if (this.select) this.isEnterPressed = false
       if (myFilterData.key === this.defaultSearchType) {
         this.submitSearchString()
@@ -262,11 +286,11 @@ export default {
       }
 
       const filterKey = this.newFilter?.key ?? this.defaultSearchType
+      //console.log("onEnterKeyup()", filterKey, this.cleanedSearchString)
       url.createFilter(this.entityType, filterKey, this.cleanedSearchString)
       this.isEnterPressed = false
     },
     submitSearchString() {
-      console.log("submitSearchString")
       if (!this.searchString) {
         url.pushToRoute(this.$router, {name: "Serp", params: {entityType: this.entityType}})
       } else {
@@ -278,7 +302,7 @@ export default {
       }
     },
     viewWorks(id) {
-      console.log("view my works", id)
+      //console.log("view my works", id)
 
       const entityType = entityTypeFromId(id)
       if (!id || !entityType) return
@@ -302,15 +326,29 @@ export default {
       })
     },
     trySearch(str) {
-      this.isProgrammaticInput = true;
-      setTimeout(() => {
-        this.searchString = str;
-        console.log("trySearch", str)
-        this.$refs.shortcutBox.focus();
-        setTimeout(() => {
-          this.isProgrammaticInput = false;
-        }, 0);
-      }, 100);
+      this.isProgrammaticInput = true;      
+      // Clear any existing suggestions first
+      this.suggestions = [];
+      // Set both select and searchString to ensure proper display
+      this.select = str;
+      this.searchString = str;
+      
+      this.$nextTick(async () => {
+        if (this.shortcutBoxRef) {
+          this.shortcutBoxRef.focus();
+          // Force update the input value
+          const input = this.shortcutBoxRef.$el.querySelector('input');
+          if (input) {
+            input.value = str;
+          }
+          
+          // Manually trigger the search for suggestions
+          if (this.searchString && this.searchString.length > 0) {
+            await this.getSuggestions();
+          }
+        }
+        this.isProgrammaticInput = false;
+      });
     },
     onSearchInputUpdate(val) {
       this.searchString = val;
@@ -368,7 +406,7 @@ export default {
       if (!this.newFilter) {
         cleaned.push(fulltextSearchFilter)
       }
-
+      console.log("cleaned suggestions", cleaned)
       this.suggestions = cleaned
     }, 100),
   },
@@ -376,7 +414,7 @@ export default {
     window.addEventListener("keypress", this.onKeyPress);
     this.interval = setInterval(() => {
       if (!this.newFilter && !this.searchString && this.suggestions.length) {
-        console.log("setInterval hackily clearing any leftover suggestions")
+        //console.log("setInterval hackily clearing any leftover suggestions")
         this.suggestions = []
       }
     }, 10)
