@@ -1,3 +1,4 @@
+import 'vuetify/styles'
 import { createApp } from 'vue';
 import { createHead } from '@unhead/vue';
 import VScrollLock from 'v-scroll-lock';

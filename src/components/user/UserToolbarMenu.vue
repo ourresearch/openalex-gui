@@ -7,13 +7,14 @@
 
     <ui-variant-selector v-if="isAdmin" />
     
-    <v-btn icon to="/tests" v-if="isAdmin">
+    <v-btn icon variant="plain" to="/tests" v-if="isAdmin">
       <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
     </v-btn>  
     
+    <!-- User menu -->
     <v-menu class="rounded-lg" location="bottom" v-if="userId">
       <template v-slot:activator="{props}">
-        <v-btn icon v-bind="props">
+        <v-btn icon variant="plain" v-bind="props">
           <v-icon>mdi-account-outline</v-icon>
         </v-btn>
       </template>
@@ -24,32 +25,31 @@
         <div class="pb-2 px-4 text-caption text-grey text-center">
           {{ userEmail }}
         </div>
+
         <v-divider></v-divider>
-        <v-list-item to="/me/searches">
-          <v-icon>mdi-folder-outline</v-icon>          
+        
+        <v-list-item to="/me/searches" prepend-icon="mdi-folder-outline">
           Saved Searches
         </v-list-item>
-        <v-list-item v-if="isTester" to="/me/labels">
-          <v-icon>mdi-tag-outline</v-icon>
+        <v-list-item v-if="isTester" to="/me/labels" prepend-icon="mdi-tag-outline">
           Labels
         </v-list-item>
 
-        <v-list-item :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId">
-          <v-icon>mdi-account-outline</v-icon>
+        <v-list-item :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId" prepend-icon="mdi-account-outline">
           My author profile
         </v-list-item>
-        <v-list-item @click="localLogout">
-          <v-icon>mdi-logout</v-icon>
+        <v-list-item @click="localLogout" prepend-icon="mdi-logout">
           Log out
         </v-list-item>
       </v-list>
     </v-menu>
 
     <div v-else>
+      <!-- Login / Sign up links-->
       <template v-if="$vuetify.display.mobile">
-        <v-menu locati>
+        <v-menu location="bottom">
           <template v-slot:activator="{props}">
-            <v-btn icon v-bind="props">
+            <v-btn icon variant="plain" v-bind="props">
               <v-icon>mdi-menu</v-icon>
             </v-btn>
           </template>
@@ -164,10 +164,6 @@ export default {
       this.logout();
       this.snackbar("You're logged out");
     },
-  },
-  created() {
-  },
-  mounted() {
   },
 }
 </script>
