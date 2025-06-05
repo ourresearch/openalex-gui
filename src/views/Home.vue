@@ -1,9 +1,9 @@
 <template>
-
   <div style="padding-bottom: 0px; background: #fff">
     <v-container class="">
       <v-row class="above-the-fold flex-column align-center" style="height: calc(100vh - 65px);">
         <v-col cols="3"></v-col>
+        
         <v-col>
           <div style="max-width: 800px; margin: 0 auto;" class="d-flex ">
             <div class="flex-grow-1">
@@ -11,15 +11,14 @@
                 Search and analyze the world's research.
               </div>
               <shortcut-box show-examples autofocus />
-
             </div>
-
           </div>
 
-
         </v-col>
+
         <v-spacer></v-spacer>
-        <v-btn variant="text" rounded class="mb-3" @click="$vuetify.goTo('#learn-more')">
+        
+        <v-btn variant="text" rounded class="mb-3" @click="scrollToLearnMore">
           <v-icon>mdi-chevron-down</v-icon>
           Learn more
         </v-btn>
@@ -27,7 +26,7 @@
 
     </v-container>
     <v-divider id="learn-more" class=""/>
-    <div class="color-3-lighten-5 py-4 mb-12">
+    <div class="color-3 py-4 mb-12">
       <div class="text-center text-body-2 text-grey pb-2">
         Trusted by hundreds of institutions worldwide, including
       </div>
@@ -54,7 +53,7 @@
 
       <v-row class="">
         <v-col cols="12" lg="4" class="">
-          <v-card rounded flat class="color-3 fill-height d-flex flex-column">
+          <v-card flat class="color-3 fill-height rounded-lg d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon start color="black">mdi-earth-plus</v-icon>
               Industry-leading coverage
@@ -80,7 +79,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" lg="4" class="">
-          <v-card rounded flat class="color-3 fill-height d-flex flex-column">
+          <v-card flat class="color-3 fill-height rounded-lg d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon start color="black">mdi-lock-open-variant</v-icon>
               Open, top to bottom
@@ -113,7 +112,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" lg="4" class="">
-          <v-card rounded flat class="color-3 fill-height d-flex flex-column">
+          <v-card flat class="color-3 fill-height rounded-lg d-flex flex-column">
             <v-card-title class="color-2 mb-3">
               <v-icon start color="black">mdi-hand-heart</v-icon>
               Sustainably not-for-profit
@@ -150,8 +149,16 @@
 
 </template>
 
-<script>
 
+<script setup>
+import { useGoTo } from 'vuetify'
+const goTo = useGoTo()
+function scrollToLearnMore() {
+  goTo('#learn-more')
+}
+</script>
+
+<script>
 import {mapGetters} from "vuex";
 import { useHead } from '@unhead/vue';
 
@@ -190,7 +197,14 @@ export default {
       return 75;
     }
   },
-  methods: {},
+  methods: {
+    scrollToLearnMore() {
+      // useGoTo must be called inside setup(), so we call it here
+      // by creating an instance and using it
+      const goTo = useGoTo();
+      goTo('#learn-more');
+    },
+  },
   mounted() {
     this.$store.commit("user/setActiveSearchId", null)
   },
