@@ -7,11 +7,11 @@
         </div>
         <new-query-button button-text="Start a Query" :goTo="true" color="primary" size="medium" class="ml-4"/>
         <v-spacer />
-        <v-btn size="small" color="white" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
+        <v-btn size="small" color="white" variant="flat" :href="'https://www.youtube.com/watch?v=tZB_BaRlkRU'" target="_blank">
           <v-icon start >mdi-video-outline</v-icon>
           Watch a Tutorial
         </v-btn>
-        <v-btn size="small" color="white" :to="{name: 'AnalyticsDocs'}" class="ml-1">
+        <v-btn size="small" color="white" variant="flat" :to="{name: 'AnalyticsDocs'}" class="ml-1">
           <v-icon start >mdi-book-open-outline</v-icon>
           Read the Docs
         </v-btn>
@@ -23,14 +23,15 @@
         </div>
       </v-row>
       
-      <v-row class="examples-header d-flex align-center mt-12">
+      <v-row class="examples-header d-flex align-center mt-12 mb-4 mx-1">
         <v-text-field
           v-model="searchQuery"
-          label="Search Examples..."
+          label="Search example questions..."
           placeholder=""
-          rounded
-          variant="outlined"
+          variant="solo"
+          flat
           clearable
+          rounded
           prepend-inner-icon="mdi-magnify"
           class="search-field flex-grow-1"
           hide-details
@@ -39,9 +40,10 @@
         <v-select
           v-model="selectedFilter"
           :items="filterOptions"
-          rounded
-          variant="outlined"
+          variant="solo"
+          flat
           hide-details
+          rounded
           class="ml-4 filter-select"
           bg-color="white"
         ></v-select>
@@ -95,17 +97,13 @@ export default {
   },
   computed: {
     filterOptions() {
-      const types = this.typeTags.map(tag => ({ text: this.capitalize(tag), value: { type: tag } }));
-      const categories = this.categoryTags.map(tag => ({ text: this.capitalize(tag), value: { category: tag } }));
+      const types = this.typeTags.map(tag => ({ title: this.capitalize(tag), value: { type: tag } }));
+      const categories = this.categoryTags.map(tag => ({ title: this.capitalize(tag), value: { category: tag } }));
       
       return [
-        { text: "All Questions", value: "All Questions" },
-        { divider: true },
-        { header: "TYPES" },
-        ...types,
-        { divider: true },
-        { header: "CATEGORIES" },
-        ...categories
+      { title: "All Questions", value: "All Questions" },
+      ...types,
+      ...categories
       ];
     },
     showQueries: function() {

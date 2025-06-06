@@ -6,7 +6,7 @@ import * as directives from 'vuetify/directives'
 import colors from 'vuetify/util/colors'
 
 const baseWeight = "lighten5";
-const darkerWeight = "lighten4";
+const darkerWeight = "darken3";
 const lighterWeight = "lighten5";
 
 export default createVuetify({
@@ -27,6 +27,13 @@ export default createVuetify({
           catOrange: colors.orange[baseWeight],
           catPurple: colors.purple[baseWeight],
           catTeal: colors.teal[baseWeight],
+
+          catRedDarker: colors.red[darkerWeight],
+          catBlueDarker: colors.blue[darkerWeight],
+          catGreenDarker: colors.green[darkerWeight],
+          catOrangeDarker: colors.orange[darkerWeight],
+          catPurpleDarker: colors.purple[darkerWeight],
+          catTealDarker: colors.teal[darkerWeight],
 
           catWorks: colors.blue[baseWeight],
           catEntity: colors.green[baseWeight],
