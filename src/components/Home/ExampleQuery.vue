@@ -1,25 +1,16 @@
 <template>
-  <v-card flat rounded class="example-query fill-height d-flex flex-column">
-    <v-card-title>
-      <div class="question-link" @click="handleQueryClick(query)">{{ question }}</div>
-
-      <!--<router-link class="question-link" to="url">{{ question }}</router-link>-->
-    </v-card-title>
-    <div v-if="error" style="margin: 0 20px 10px;">
+  <v-card rounded="xl" flat class="example-query fill-height d-flex flex-column py-3 px-4">
+    <div class="text-body-1 text-weight-bold mb-4 question-link" @click="handleQueryClick(query)">
+      {{ question }}
+    </div>
+    <div v-if="error" style="margin: 0 20px 10px;">``
       <b>Error:</b> {{ error }}
     </div>
     <v-spacer />
-    <v-card-actions>
-      <v-chip label variant="outlined">{{type}}</v-chip>
-      <v-chip label variant="outlined">{{category}}</v-chip>  
-   
-      <!--
-      <v-chip outlined label :color="this.color('type')">{{type}}</v-chip>
-      <v-chip outlined label :color="this.color('category')">{{category}}</v-chip>   
-      <v-chip  :color="this.color('type')" :style="this.bgColorStyle('type')">{{type}}</v-chip>
-      <v-chip  :color="this.color('category')" :style="this.bgColorStyle('category')">{{category}}</v-chip>
-      -->
-    </v-card-actions>
+    <div>
+      <v-chip label :color="chipColor(type)">{{type}}</v-chip>
+      <v-chip label :color="chipColor(category)">{{category}}</v-chip>  
+    </div>
   </v-card>
 </template>
 
@@ -52,6 +43,31 @@ export default {
     ...mapActions("search", [
       "createSearchFromQuery"
     ]),
+    chipColor(category) {
+      const colors = {
+        "works": "catBlueDarker",
+        "authors": "catGreenDarker",
+        "sources": "catTealDarker",
+        "institutions": "catPurpleDarker",
+        "topics": "catTealDarker",
+        "sdgs": "catRedDarker",
+        "funders": "catBlueDarker",
+        "keywords": "catGreenDarker",
+        "fields": "catOrangeDarker",
+        "countries": "catPurpleDarker",
+
+        "discovery": "catTealDarker",
+        "metrics": "catRedDarker",
+        "compliance": "catBlueDarker",
+        "trend detection": "catTealDarker",
+        "expert discovery": "catPurpleDarker",
+        "open access": "catGreenDarker",
+        "recommenders": "catTealDarker",
+        "rankings": "catRedDarker",
+        "collaboration": "catBlueDarker",
+      };
+      return category in colors ? colors[category] :"primary";
+    },
     handleQueryClick(query) {
       if (!this.userId) {
         this.$router.push({
