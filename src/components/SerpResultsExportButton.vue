@@ -3,7 +3,7 @@
     <v-tooltip location="top">
       <template v-slot:activator="{props}">
           <v-btn v-bind="props" icon @click="openExportDialog('csv')">
-            <v-icon>mdi-tray-arrow-down</v-icon>
+            <v-icon color="grey-darken-1">mdi-tray-arrow-down</v-icon>
           </v-btn>
       </template>
       <div v-if="isResultsExportDisabled">

@@ -3,8 +3,8 @@
     <div v-if="filters.length" class="text-body-2 px-5 py-2 text-grey">
       Show {{ entityType }} where:
     </div>
-    <v-card rounded flat class="mb-12">
 
+    <v-card flat class="mb-12 rounded-o filter-list-card">
       <div class="px-2" v-if="!isCollapsed">
         <div v-if="filters.length === 0" class="mx-5 my-2 pt-5 text-grey">
           No filters applied
@@ -25,28 +25,26 @@
         </table>
         <div v-else>
           <component
-              class=""
-              style="width: 100%;"
-              v-for="(filter, i) in filters"
-              :key="i"
-              :is="'filter-' + filter.type"
-              :filter-key="filter.key"
-              :index="i"
-              @delete="url.deleteFilter(entityType, filter.key)"
+            style="width: 100%;"
+            v-for="(filter, i) in filters"
+            :key="i"
+            :is="'filter-' + filter.type"
+            :filter-key="filter.key"
+            :index="i"
+            @delete="url.deleteFilter(entityType, filter.key)"
           />
         </div>
         <div class="d-flex" style="height: 30px;">
           <add-filter class="ml-0" style="position: relative; top: 0px;"/>
           <v-btn
-              @click="clearEverything"
-              v-if="filters.length"
-              rounded="circle"
-              size="small"
-              class="ml-3 elevation-0"
-              color="white"
-              style="position: relative; top: 5px; border: 2px solid #fff;"
+            @click="clearEverything"
+            v-if="filters.length"
+            icon
+            class="clear-btn ml-3 elevation-0"
+            color="white"
+            style=""
           >
-            <v-icon>mdi-delete-outline</v-icon>
+            <v-icon size="24">mdi-delete-outline</v-icon>
           </v-btn>
         </div>
       </div>
@@ -127,7 +125,9 @@ export default {
 
 
 <style lang="scss" scoped>
-
+.filter-list-card {
+  overflow: visible;
+}
 .internal-search-field.v-text-field--rounded > .v-input__control > .v-input__slot {
   padding-left: 0 !important;
 }
@@ -138,5 +138,11 @@ table {
   border-top: 1px solid #eee;
   border-collapse: collapse !important;
 }
-
+.clear-btn {
+  position: relative; 
+  top: 7px; 
+  border: 2px solid #fff;
+  width: 40px !important;
+  height: 40px !important;
+}
 </style>

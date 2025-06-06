@@ -1,42 +1,48 @@
 <template>
-  <v-card class="rounded-lg" flat color="transparent">
-    <v-toolbar dense flat color="transparent" class="">
+  <v-card class="group-by-views" flat color="transparent">
+    <v-toolbar dense flat color="transparent">
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
       <v-btn icon :href="csvUrl">
-        <v-icon>mdi-tray-arrow-down</v-icon>
+        <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
       </v-btn>
       <v-menu location="bottom" v-if="0">
         <template v-slot:activator="{props}">
           <v-btn icon v-bind="props">
-            <v-icon>mdi-dots-vertical</v-icon>
+            <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item @click="url.setGroupBy(undefined)">
-            <v-icon>mdi-restore</v-icon>
+            <template #prepend>
+              <v-icon color="grey-darken-2">mdi-restore</v-icon>
+            </template>
             <v-list-item-title>Restore report defaults</v-list-item-title>
           </v-list-item>
 
           <v-divider/>
 
           <v-list-item :href="csvUrl">
-            <v-icon>mdi-tray-arrow-down</v-icon>
+            <template #prepend>
+              <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
+            </template>
             <v-list-item-title>Export all</v-list-item-title>
             <v-list-item-subtitle>.csv</v-list-item-subtitle>
           </v-list-item>
 
           <v-list-item :href="apiUrl" target="_blank">
-            <v-icon>mdi-api</v-icon>
+            <template #prepend>
+              <v-icon color="grey-darken-2">mdi-api</v-icon>
+            </template>
             <v-list-item-title>View in API</v-list-item-title>
             <v-list-item-subtitle>.json</v-list-item-subtitle>
           </v-list-item>
         </v-list>
       </v-menu>
     </v-toolbar>
+    
     <v-container class="pt-0">
-
       <v-row v-if="resultsObject?.meta?.count" dense class="">
         <v-col
             v-for="(key, i) in groupByKeys"
@@ -44,14 +50,14 @@
             class="d-flex flex-column"
         >
           <template v-if="i === 0">
-            <v-card flat rounded class="bg-white pa-3 mb-3">
+            <v-card flat class="rounded-o bg-white pa-3 mb-3">
               <serp-results-count :results-object="resultsObject" class="text-h5"/>
             </v-card>
           </template>
 
           <v-card flat rounded v-if="key === 'apc_sum'">
             <v-toolbar flat>
-              <v-icon start>mdi-currency-usd</v-icon>
+              <v-icon color="grey-darken-2" start>mdi-currency-usd</v-icon>
               <v-toolbar-title>APC sums</v-toolbar-title>
               <v-spacer/>
               <v-btn icon @click="url.toggleGroupBy('apc_sum')">
@@ -72,12 +78,12 @@
           </v-card>
 
           <v-card flat rounded v-else-if="key === 'cited_by_count_sum'" class="d-flex align-baseline pa-2">
-            <v-icon start>mdi-format-quote-close</v-icon>
+            <v-icon color="grey-darken-2" start>mdi-format-quote-close</v-icon>
             <span class="text-h5 mr-2">{{ filters.toPrecision(resultsObject?.meta?.cited_by_count_sum) }}</span>
             <div class="align-self-baseline ">citations</div>
             <v-spacer/>
             <v-btn icon @click="url.toggleGroupBy('cited_by_count_sum')">
-              <v-icon>mdi-close</v-icon>
+              <v-icon color="grey-darken-2">mdi-close</v-icon>
             </v-btn>
           </v-card>
 
@@ -107,11 +113,11 @@ import filters from "@/filters";
 import {filtersFromUrlStr} from "@/filterConfigs";
 
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
-import ActionMenu from "@/components/Action/Action.vue";
+import ActionMenu from "@/components/Action/ActionMenu.vue";
 import SerpResultsCount from "@/components/SerpResultsCount.vue";
 
 export default {
-  name: "AnalyticViews",
+  name: "GroupByViews",
   components: {
     SerpResultsCount,
     GroupBy,
@@ -175,5 +181,10 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+.group-by-views .v-toolbar__content {
+  padding-left: 0 !important;
+}
+.group-by-views .v-toolbar__content > .v-toolbar-title {
+    margin-inline-start: 0px !important;
+}
 </style>

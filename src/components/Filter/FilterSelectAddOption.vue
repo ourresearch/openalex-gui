@@ -1,9 +1,5 @@
 <template>
-  <v-card
-      tile
-      flat
-      :loading="isLoading"
-  >
+  <v-card tile flat :loading="isLoading">
     <v-list class="mt-0 pt-0">
       <v-list-subheader>
         <template v-if="isLoading">
@@ -25,7 +21,6 @@
       <filter-select-edit-row
           v-for="row in suggestions"
           :key="row.value + row.count"
-
           :filter-key="filterKey"
           :filter-index="filterIndex"
           :value="row.value"
@@ -38,6 +33,7 @@
   </v-card>
 </template>
 
+
 <script>
 
 import _ from "lodash"
@@ -48,7 +44,6 @@ import filters from "@/filters";
 import {getFacetConfig} from "@/facetConfigs";
 import {getEntityConfig} from "@/entityConfigs";
 import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
-
 
 export default {
   name: "FilterSelectAddOption",
@@ -88,7 +83,6 @@ export default {
       return getEntityConfig(this.filterConfig.entityId)
     }
   },
-
   methods: {
     clickRow(value) {
       this.$emit("close")

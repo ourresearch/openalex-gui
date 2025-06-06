@@ -4,12 +4,11 @@
       color="primary"
       exact
   >
-    
       <v-list-item-title style="white-space: normal; line-height: 1.5;">
-        <div class="" v-html="filters.prettyTitle(result.display_name)"></div>
+        <div class="text-subtitle-1" v-html="filters.prettyTitle(result.display_name)"></div>
       </v-list-item-title>
       <v-list-item-subtitle style="white-space: normal; line-height: 1.5;">
-        <div v-if="myEntityType === 'works'">
+        <div class="result-details-line" v-if="myEntityType === 'works'">
           <span v-if="result.publication_year">{{ result.publication_year }}</span>
           <span v-if="result.publication_year && result.type"> · </span>
           <work-authors-string v-if="result.authorships?.length" :authorships="result.authorships"/>
@@ -133,5 +132,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.result-details-line {
+  font-size: 14px;
+}
 </style>

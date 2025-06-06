@@ -2,22 +2,22 @@
   <div class="color-2" style="min-height: 80vh">
     <v-container fluid class="pt-0">
       <serp-toolbar :results-object="resultsObject"/>
-      <filter-list :results-object="resultsObject" class="mb-6 mt-6"/>
+      <filter-list :results-object="resultsObject" class="mb-6 mt-3"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="!$vuetify.display.mobile">
         <v-col
-            cols="6"
-            xl="4"
-            v-if="url.isViewSet($route, 'list')"
+          cols="6"
+          xl="4"
+          v-if="url.isViewSet($route, 'list')"
         >
           <serp-results-list :results-object="resultsObject"/>
         </v-col>
         <v-col
-            class="flex-grow-1"
-            v-if="url.isViewSet($route, 'report')"
+          class="flex-grow-1"
+          v-if="url.isViewSet($route, 'report')"
         >
-          <analytic-views :results-object="resultsObject" class=""/>
+          <group-by-views :results-object="resultsObject"/>
         </v-col>
       </v-row>
 
@@ -25,21 +25,22 @@
         <v-row class="mb-12">
           <v-col>
             <v-tabs
-                v-model="resultsTab"
-                bg-color="transparent"
-                grow
-                class=""
+              v-model="resultsTab"
+              bg-color="transparent"
+              color="primary"
+              grow
+              class="px-3"
             >
-              <v-tab value="results">Results</v-tab>
-              <v-tab value="stats">Stats</v-tab>
+              <v-tab value="results" class="text-uppercase">Results</v-tab>
+              <v-tab value="stats" class="text-uppercase">Stats</v-tab>
             </v-tabs>
 
-            <v-card rounded flat>
+            <v-card rounded flat class="rounded-o">
               <div v-if="resultsTab === 'results'">
                 <serp-results-list v-if="resultsObject?.meta?.count" :results-object="resultsObject"/>
               </div>
               <div v-if="resultsTab === 'stats'">
-                <analytic-views :results-object="resultsObject" />
+                <group-by-views :results-object="resultsObject" />
               </div>
             </v-card>
 
@@ -68,7 +69,7 @@ import {facetConfigs} from "../facetConfigs";
 
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
-import AnalyticViews from "@/components/AnalyticViews.vue";
+import GroupByViews from "@/components/GroupByViews.vue";
 import FilterList from "@/components/FilterList.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
@@ -78,7 +79,7 @@ export default {
     SerpToolbar,
     SerpResultsList,
     SerpApiEditor,
-    AnalyticViews,
+    GroupByViews,
     FilterList,
   },
   props: {},
@@ -94,7 +95,6 @@ export default {
         export: false,
         createAlert: false,
       },
-      resultsTab: 0,
       exportEmail: "",
       exportIsLoading: false,
       exportIsInProgress: false,
@@ -106,6 +106,7 @@ export default {
       widgetFilterKeys: [],
       resultsFilters: [],
       resultsObject: null,
+      resultsTab: "results",
       apiMode: false,
       // resultsTab: 0,
       lastGroupByValue: null,

@@ -2,46 +2,18 @@
   <div class="serp-api-editor">
     <v-card
         flat
-        rounded
         style="font-family: Monaco, monospace; min-height: 40px;"
-        class="d-flex align-start pa-2 pr-3 "
-
+        class="rounded-o d-flex align-center pa-2 pr-3"
     >
-      <v-icon class="mr-3 mt-1 ml-1">mdi-api</v-icon>
+      <v-icon class="mr-3 mt-1 ml-1" color="grey">mdi-api</v-icon>
       <div class="flex-grow-1 mt-1">
         https://api.openalex.org/{{ entityType }}<span v-html="apiQuerySplittable"></span>
-<!--        <span v-for="part in apiQuerySplittable" :key="part">-->
-<!--        {{ part }}-->
-<!--      </span>-->
-        <!--          <span class="entity-type">-->
-        <!--            /{{ $route.params.entityType }}-->
-        <!--          </span>-->
-        <!--        <template v-if="$route.query.page">-->
-        <!--          ?page={{ $route.query.page }}-->
-        <!--        </template>-->
-        <!--        <span class="filters" v-if="filters.length">-->
-        <!--            &filter=-->
-        <!--            <span-->
-        <!--                v-for="(filter, i) in filters"-->
-        <!--                :key="filter.asStr"-->
-        <!--            >-->
-        <!--              {{ filter.asStr }}<template v-if="i < filters.length-1">,</template>-->
-        <!--            </span>-->
-        <!--          </span>-->
-        <!--        <span class="group-by" v-if="$route.query.group_by">-->
-        <!--            &group_by={{ $route.query.group_by }}-->
-        <!--          </span>-->
-        <!--        <span v-if="$route.query.sort">-->
-        <!--            &sort={{ $route.query.sort }}-->
-        <!--          &lt;!&ndash;            <sort-button text-mode />&ndash;&gt;-->
-        <!--          </span>-->
-
-
       </div>
       <v-btn
-          icon
-          @click="copyToClipboard"
-          class="ml-4"
+        icon
+        variant="text"
+        @click="copyToClipboard"
+        class="ml-4"
       >
         <v-icon>mdi-content-copy</v-icon>
       </v-btn>
@@ -64,7 +36,6 @@ export default {
   props: {},
   data() {
     return {
-      foo: 42,
       url,
     }
   },
@@ -73,7 +44,6 @@ export default {
       return api
     },
     ...mapGetters([
-
       "entityType",
     ]),
     filters() {
@@ -98,9 +68,6 @@ export default {
       await navigator.clipboard.writeText(this.apiUrl);
       this.snackbar("URL copied to clipboard.")
     },
-    hideMe() {
-
-    }
   },
   created() {
   },
@@ -113,7 +80,6 @@ export default {
         // this.apiUrl = to.fullPath
       }
     }
-
   }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="myIsOpen" max-width="500">
       <v-card :loading="isLoading" :disabled="isLoading" v-if="userId" flat rounded>
-        <v-card-title>{{ myHasAlert ? "Create alert" : "Save search" }}</v-card-title>
+        <v-card-title>{{ myHasAlert ? "Create Alert" : "Save Search" }}</v-card-title>
         <v-card-subtitle v-if="myHasAlert">
           Save this search and subscribe to alerts
         </v-card-subtitle>
@@ -9,7 +9,8 @@
           <v-text-field
               autofocus
               rounded
-              variant="filled"
+              variant="solo-filled"
+              flat
               clearable
               placeholder="Name (required)"
               v-model="nameString"
@@ -18,7 +19,8 @@
           />
           <v-textarea
               rounded
-              variant="filled"
+              variant="solo-filled"
+              flat
               placeholder="Description (optional)"
               v-model="descriptionString"
               @keydown.meta.enter="save"
@@ -26,17 +28,16 @@
           />
         </div>
         <v-list nav class="pt-0 pb-6 px-6">
-          <v-list-item @click="myHasAlert = !myHasAlert" class="">
-            <v-list-item-action>
-              <v-switch readonly v-model="myHasAlert" />
-            </v-list-item-action>
+          <v-list-item @click="myHasAlert = !myHasAlert">
+            <template #prepend>
+              <v-switch readonly color="primary" v-model="myHasAlert" class="mr-2 mt-2"/>
+            </template>
             
-            <v-list-item-title>
+            <v-list-item-title class="text-subtitle-1 mb-1">
               Receive alerts
             </v-list-item-title>
-            <v-list-item-subtitle style="white-space: normal;">
+            <v-list-item-subtitle class="text-body-2" style="white-space: normal;">
               Get an email when new results appear in this search
-
             </v-list-item-subtitle>
 
             
@@ -46,7 +47,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" rounded @click="myIsOpen = false">Cancel</v-btn>
-          <v-btn rounded color="primary" @click="save">Save</v-btn>
+          <v-btn variant="flat" rounded color="primary" @click="save">Save</v-btn>
         </v-card-actions>
       </v-card>
     <v-card v-else flat rounded>

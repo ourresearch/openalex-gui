@@ -3,7 +3,6 @@
     <div class="d-flex flex-wrap align-center">
       <template v-for="(id, i) in optionIds" :key="id">
         <filter-select-option
-            class=""
             :filter-value="id"
             :filter-key="filterKey"
             :position="i"
@@ -135,9 +134,7 @@ export default {
       if (this.filterKey === this.$store.state.activeFilter) {
         this.$store.state.activeFilter = null
       }
-
     },
-
     deleteOption(id) {
       url.deleteFilterOption(this.entityType, this.index, id)
     },
@@ -149,10 +146,6 @@ export default {
           url.createFilter(this.entityType, this.filterKey, id)
     }
   },
-  created() {
-  },
-  mounted() {
-  },
   watch: {
     isActive() {
       this.searchString = ""
@@ -161,10 +154,9 @@ export default {
 }
 </script>
 
+
 <style scoped lang="scss">
 input {
   padding: 0 3px !important;
 }
-
-
 </style>

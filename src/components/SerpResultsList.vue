@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <v-toolbar dense flat class="" color="transparent">
-      <v-toolbar-title class="font-weight-bold mr-2">
+  <div class="serp-results-list">
+    <v-toolbar dense flat style="margin-bottom: -10px;" class="pr-0" color="transparent">
+      <v-toolbar-title class="font-weight-bold ml-0 mr-2">
         {{ filters.capitalize(filters.pluralize(entityType, 2)) }}
       </v-toolbar-title>  
       <v-spacer/>
@@ -14,7 +14,7 @@
             v-bind="props"
             icon
           >
-            <v-icon>mdi-dots-vertical</v-icon>
+            <v-icon color="grey-darken-1">mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
@@ -32,7 +32,7 @@
       </v-menu>
     </v-toolbar>
 
-  <v-card rounded flat class="">
+  <v-card flat class="rounded-o">
 
     <v-list nav v-if="resultsObject?.results" class="" color="">
       <serp-results-list-item
@@ -48,6 +48,7 @@
           v-if="showPagination"
           class="pb-8 pt-3 elevation-0"
           rounded
+          active-color="primary"
           v-model="page"
           :length="numPages"
           :total-visible="10"
@@ -133,6 +134,8 @@ export default {
 </script>
 
 
-<style scoped lang="scss">
-
+<style lang="scss">
+.serp-results-list .v-toolbar__content {
+  padding-right: 0 !important;
+}
 </style>

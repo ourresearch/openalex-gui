@@ -1,34 +1,32 @@
 <template>
-  <!--  <div class="d-flex align-center">-->
   <div>
-    <v-menu class="rounded-lg">
+    <v-menu location="top left" :offset="[-60, 0]" location-strategy="connected" close-on-content-click="false">
       <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn
               v-if="isFabShowing"
               v-bind="props"
-              rounded="circle"
+              icon
               size="large"
               color="primary"
-              class=""
+              class="rounded-circle"
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>
         </v-fab-transition>
       </template>
 
-      <v-card>
+      <v-card class="add-filter-menu-card rounded-o pr-5">
         <v-text-field
-            v-model="searchString"
-            variant="filled"
-            rounded
-            bg-color="white"
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            autofocus
-            placeholder="Search all filters"
-            style=""
-            @keyup.enter="onEnter"
+          v-model="searchString"
+          variant="default"
+          rounded="xl"
+          bg-color="white"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          autofocus
+          placeholder="Search all filters"
+          @keyup.enter="onEnter"
         />
         <v-divider/>
         <v-list v-if="searchString">
@@ -38,9 +36,11 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>            
+            <template #prepend>
+              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            </template>
             <v-list-item-title>
-              {{ filter.displayName }}
+              {{ filters.titleCase(filter.displayName) }}
             </v-list-item-title>        
           </v-list-item>
         </v-list>
@@ -52,9 +52,11 @@
               @click="setNewFilterKey(filter.key)"
               :disabled="filter.disabled"
           >
-            <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            <template #prepend>
+              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+            </template>
             <v-list-item-title>
-              {{ filter.displayName }}
+              {{ filters.titleCase(filter.displayName) }}
             </v-list-item-title>
           </v-list-item>
           <v-divider/>
@@ -62,7 +64,9 @@
               key="more-filters"
               @click="isDialogOpen = true"
           >
-            <v-icon>mdi-dots-horizontal</v-icon>
+            <template #prepend>
+              <v-icon>mdi-dots-horizontal</v-icon>
+            </template>
             <v-list-item-title class="font-weight-bold">
               More
             </v-list-item-title>
@@ -71,18 +75,15 @@
       </v-card>
     </v-menu>
 
-
     <v-dialog
-        v-model="isDialogOpen"
-        width="800"
-        scrollable
+      v-model="isDialogOpen"
+      width="800"
+      scrollable
     >
-      <!--        :fullscreen="$vuetify.display.mobile"-->
-      <v-card rounded>
+      <v-card class="rounded-o">
         <v-text-field
             v-model="searchString"
-            variant="filled"
-            rounded
+            variant="default"
             bg-color="white"
             :prepend-inner-icon="prependIcon"
             hide-details
@@ -98,7 +99,7 @@
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
-          <!--  FILTER SELECTED, USER ENTERING VALUE -->
+          <!-- Filter selected, user entering value -->
           <div v-if="newFilterKey" class="">
             <filter-card-range v-if="newFilterConfig.type === 'range'" :filter-key="newFilterKey"/>
             <filter-card-search v-if="newFilterConfig.type === 'search'" :filter-key="newFilterKey"/>
@@ -111,9 +112,9 @@
             />
           </div>
 
-          <!--  NO FILTER SELECTED YET, WHAT ARE MY OPTIONS? -->
+          <!-- No filter selected yet, what are my options? -->
           <div v-else>
-            <v-list-subheader>
+            <v-list-subheader class="pl-5">
               {{ searchString ? "Search results" : "All filters" }}
               ({{ potentialFiltersSearchResults.length }})
             </v-list-subheader>
@@ -124,13 +125,15 @@
                   @click="setNewFilterKey(filter.key)"
                   :disabled="filter.disabled"
                   style="        
-                    flex: 1 1 250px; 
+                    flex: 0 1 250px; 
                     min-width: 0;
                     align-items: flex-start;"
               >
-                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-                <v-list-item-title style="white-space: normal; overflow-wrap: break-word;">
-                  {{ filter.displayName }}
+                <template #prepend> 
+                  <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+                </template>
+                <v-list-item-title class="filter-list-item-title">
+                  {{ filters.titleCase(filter.displayName) }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -318,8 +321,16 @@ export default {
 
 
 <style lang="scss">
+.add-filter-menu-card {
+  width: auto;
+}
 .add-filter-dialog-body {
   transition: height 300ms !important;
 }
-
+.v-list-item-title.filter-list-item-title {
+  font-weight: normal !important;
+  font-size: 16px !important;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
 </style>

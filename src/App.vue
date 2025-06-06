@@ -301,6 +301,9 @@ $color-0: hsl(212, 77%, 82%);
   background-color: $color-0 !important;
   transition: background-color 500ms;
 }
+.rounded-o {
+  border-radius: 15px !important;
+}
 .v-card.factoid-card {
   //background-color: #EEF5FC;
   background-color: $color-3;

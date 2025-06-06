@@ -6,8 +6,7 @@
           :disabled="isDisabled"
           variant="outlined"
           label
-          style=""
-          class="font-weight-regular py-4 justify-center"
+          class="font-weight-regular py-4 justify-center light-border"
       >
         {{ selectedOption }}
         <v-icon end>mdi-menu-down</v-icon>
@@ -19,7 +18,10 @@
         :key="i"
         @click="setIsNegated(i)"
       >
-        <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
+        <template #prepend>
+          <v-icon v-if="indexIsSelected(i)">mdi-check</v-icon>
+          <v-icon v-else>mdi-blank</v-icon>
+        </template>
         {{ str }}
       </v-list-item>
     </v-list>
@@ -93,5 +95,7 @@ export default {
 
 
 <style scoped lang="scss">
-
+.light-border {
+  border-color: #ddd !important;
+}
 </style>

@@ -5,7 +5,6 @@
       :class="{clickable, card: $vuetify.display.smAndDown}"
   >
     <td class="text-grey shrink pl-5 d-none d-md-table-cell">
-<!--      {{ index + 1 }}.-->
       <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
     </td>
     <td class="text-grey shrink d-none d-md-table-cell">
@@ -14,8 +13,8 @@
 
     <template v-if="$vuetify.display.mdAndUp">
       <td class="shrink align-center pl-4">
-        <v-icon class="mr-2 mb-1">{{ myConfig.icon }}</v-icon>
-        {{ myFilterName }}
+        <v-icon class="mr-2 mb-1 text-medium-emphasis">{{ myConfig.icon }}</v-icon>
+        {{ filters.titleCase(myFilterName) }}
       </td>
       <td class="shrink pr-6" style="min-width: 5em; text-align: center;">
         <filter-verb
@@ -26,14 +25,14 @@
             @set="(val) => isNegated = val"
         />
       </td>
-      <td class="">
+      <td>
         <slot></slot>
       </td>
       <td class="text-right">
-        <v-btn icon @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+        <v-btn icon variant="plain" size="medium" class="mr-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
           <v-icon>mdi-plus-thick</v-icon>
         </v-btn>
-        <v-btn icon @click.stop="url.deleteFilter(entityType, index)">
+        <v-btn icon variant="plain" size="medium" @click.stop="url.deleteFilter(entityType, index)">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </td>
@@ -72,7 +71,7 @@
 
 <script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+import {mapGetters} from "vuex";
 import {getFacetConfig} from "@/facetConfigs";
 import {url} from "@/url";
 import filters from "@/filters";
@@ -91,6 +90,7 @@ export default {
   data() {
     return {
       url,
+      filters,
     }
   },
   computed: {
@@ -125,23 +125,11 @@ export default {
       }
     }
   },
-
   methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-
-
   },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
 }
 </script>
+
 
 <style scoped lang="scss">
 tr {

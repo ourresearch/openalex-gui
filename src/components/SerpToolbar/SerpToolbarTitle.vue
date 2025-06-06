@@ -1,14 +1,5 @@
 <template>
   <div>
-
-    <!--    <v-btn icon class="mr-2">-->
-    <!--      <v-icon>mdi-folder-outline</v-icon>-->
-    <!--    </v-btn>-->
-
-    <!--    <v-btn icon to="/me/searches" v-if="userId" class="ml-3">-->
-    <!--      <v-icon>mdi-folder-outline</v-icon>-->
-    <!--    </v-btn>-->
-
     <!-- you can only save works searches for now -->
     <div v-if="entityType === 'works'">
       <v-btn v-if="!userId" rounded variant="text" class="font-weight-regular" @click="clickTitle">

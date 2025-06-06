@@ -143,4 +143,7 @@ export default {
 .group-by-table-row {
   cursor: pointer;
 }
+.group-by-table-row td   {
+  height: 32px !important;
+}
 </style>

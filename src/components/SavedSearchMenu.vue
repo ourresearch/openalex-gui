@@ -4,7 +4,9 @@
     <template v-if="$route.name === 'Serp'">
 
       <v-list-item @click="newSearch">
-        <v-icon>mdi-plus</v-icon>
+        <template #prepend>
+          <v-icon>mdi-plus</v-icon>
+        </template>
         <v-list-item-title>
           New
         </v-list-item-title>
@@ -13,14 +15,16 @@
       <v-menu location="right" open-on-hover>
         <template v-slot:activator="{props}">
           <v-list-item @click="placeholder" v-bind="props" :disabled="!userId">
-            <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
+            <template #prepend>
+              <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
+            </template>
             <v-list-item-title>
               Open
             </v-list-item-title>
             
-            <v-list-item-action class="pt-2">
+            <template #append>
               <v-icon :disabled="!userId">mdi-menu-right</v-icon>
-            </v-list-item-action>
+            </template>
           </v-list-item>
         </template>
         <v-list>
@@ -29,7 +33,9 @@
               :key="search.id"
               @click="openSearch(search.id)"
           >
-            <v-icon>mdi-folder-outline</v-icon>
+            <template #prepend>
+              <v-icon>mdi-folder-outline</v-icon>
+            </template>
             <v-list-item-title>{{ search.name }}</v-list-item-title>
           </v-list-item>
           <v-divider/>
@@ -37,16 +43,19 @@
               key="view-em-all"
               to="/me/searches"
           >
-            <v-icon>mdi-folder-multiple-outline</v-icon>
+            <template #prepend>
+              <v-icon>mdi-folder-multiple-outline</v-icon>
+            </template>
             <v-list-item-title>View all</v-list-item-title>
             
           </v-list-item>
         </v-list>
       </v-menu>
 
-
       <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)">
-        <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
+        <template #prepend>
+          <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
+        </template>
         <v-list-item-title>
           Make a copy
         </v-list-item-title>
@@ -58,7 +67,9 @@
     </template>
 
     <v-list-item v-if="$route.name === 'Serp'" @click="$emit('save')">
-      <v-icon>mdi-content-save-outline</v-icon>
+      <template #prepend>
+        <v-icon>mdi-content-save-outline</v-icon>
+      </template>
       <v-list-item-title>
         Save {{ id ? "" : "As..." }}
       </v-list-item-title>
@@ -66,14 +77,18 @@
     </v-list-item>
 
     <v-list-item :disabled="!id" @click="setRenameId(id)">
-      <v-icon :disabled="!id">mdi-pencil-outline</v-icon>
+      <template #prepend>
+        <v-icon :disabled="!id">mdi-pencil-outline</v-icon>
+      </template>
       <v-list-item-title>
         Rename
       </v-list-item-title>
     </v-list-item>
 
     <v-list-item :disabled="!id" @click="deleteSavedSearch(id)">
-      <v-icon :disabled="!id">mdi-delete-outline</v-icon>
+      <template #prepend>
+        <v-icon :disabled="!id">mdi-delete-outline</v-icon>
+      </template>
       <v-list-item-title>
         Delete
       </v-list-item-title>
@@ -82,11 +97,14 @@
     <v-divider/>
 
     <v-list-item :disabled="!id" @click="$emit('toggle-alert')">
-      <v-icon :disabled="!id">{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
+      <template #prepend>
+        <v-icon :disabled="!id">{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
+      </template>
       <v-list-item-title>
         {{ activeSearchHasAlert ? "Remove" : "Create" }} alert
       </v-list-item-title>
     </v-list-item>
+
   </v-list>
 </template>
 
