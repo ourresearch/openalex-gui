@@ -2,16 +2,15 @@
   <v-card
       min-height="100"
       :min-width="minWidth"
-      class="flex-grow-1"
+      class="group-by rounded-o flex-grow-1"
       flat
-      rounded
       :loading="isLoading"
       style="width: 100%;"
   >
     <v-toolbar flat color="transparent">
-      <v-icon start>{{ filterConfig.icon }}</v-icon>
-      <v-toolbar-title>
-        <span class="">{{ filterConfig.displayName }}</span>
+      <v-icon color="grey-darken-2 mr-1">{{ filterConfig.icon }}</v-icon>
+      <v-toolbar-title class="group-by-title flex-grow-1">
+        <span>{{ filters.titleCase(filterConfig.displayName) }}</span>
       </v-toolbar-title>
       
       <v-spacer/>
@@ -22,27 +21,34 @@
               icon
               v-bind="props"
           >
-            <v-icon>mdi-dots-vertical</v-icon>
+            <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
         <v-list>
           <v-list-item :href="csvUrl">
-            <v-icon>mdi-tray-arrow-down</v-icon>
-            
-            <v-list-item-title>Export</v-list-item-title>
-            
-            <v-list-item-subtitle>.csv</v-list-item-subtitle>
+            <template #prepend>
+              <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
+            </template>
+            <v-list-item-title class="mr-2">Export</v-list-item-title>
+            <template #append>
+              <v-list-item-subtitle>.csv</v-list-item-subtitle>
+            </template>
           </v-list-item>
+
           <v-list-item :href="apiUrl" target="_blank">
-            <v-icon>mdi-api</v-icon>
-            <v-list-item-title>View in API</v-list-item-title>
-            <v-list-item-subtitle>.json</v-list-item-subtitle>
+            <template #prepend>
+              <v-icon color="grey-darken-2">mdi-api</v-icon>
+            </template>
+            <v-list-item-title class="mr-2">View in API</v-list-item-title>
+            <template #append>
+              <v-list-item-subtitle>.json</v-list-item-subtitle>
+            </template>
           </v-list-item>
 
         </v-list>
       </v-menu>
       <v-btn v-if="!isEntityPage" icon @click="url.toggleGroupBy(filterKey)">
-        <v-icon>mdi-close</v-icon>
+        <v-icon color="grey-darken-2">mdi-close</v-icon>
       </v-btn>
 
     </v-toolbar>
@@ -341,5 +347,16 @@ export default {
 
 
 <style scoped lang="scss">
-
+.group-by .v-toolbar-title {
+  margin-inline-start: 6px !important;
+}
+.group-by-title {
+  flex-grow: 1;
+  min-width: 120px
+}
+.group-by-title * {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
 </style>

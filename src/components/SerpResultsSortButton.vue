@@ -2,7 +2,7 @@
   <v-menu>
     <template v-slot:activator="{props}">
       <v-btn v-bind="props" icon>
-        <v-icon>mdi-sort-ascending</v-icon>
+        <v-icon color="grey-darken-1">mdi-sort-ascending</v-icon>
       </v-btn>
     </template>
     <v-list>

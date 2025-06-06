@@ -9,18 +9,18 @@
     >
       <template v-if="activeSearchHasAlert">
         <!-- Remove alert-->
-        <v-icon>mdi-bell-check</v-icon>
+        <v-icon color="grey-darken-1">mdi-bell-check</v-icon>
       </template>
       <template v-else>
         <!-- Create alert-->
-        <v-icon>mdi-bell-outline</v-icon>
+        <v-icon color="grey-darken-1">mdi-bell-outline</v-icon>
       </template>
     </v-btn>
 
     <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
-          <v-icon>mdi-cog-outline</v-icon>
+          <v-icon color="grey-darken-1">mdi-cog-outline</v-icon>
         </v-btn>
       </template>
       <v-list>
@@ -32,13 +32,15 @@
             :key="view.id"
             @click="url.toggleView(view.id)"
         >
-          <v-icon>{{ view.icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ view.icon }}</v-icon>
+          </template>
           <v-list-item-title>
             {{ view.displayName }}
           </v-list-item-title>
-          <v-list-item-action class="pt-2">
-            <v-icon v-if="url.isViewSet($route, view.id)">mdi-check</v-icon>
-          </v-list-item-action>
+          <template #append >
+            <v-icon v-if="url.isViewSet($route, view.id)" class="pt-2">mdi-check</v-icon>
+          </template>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -46,19 +48,23 @@
     <v-menu location="bottom">
       <template v-slot:activator="{props}">
         <v-btn icon v-bind="props">
-          <v-icon>mdi-share-variant</v-icon>
+          <v-icon color="grey-darken-1">mdi-share-variant</v-icon>
         </v-btn>
       </template>
       <v-list>
         <v-list-item @click="isDialogOpen.qrCode = true">
-          <v-icon>mdi-qrcode</v-icon>
+          <template #prepend>
+            <v-icon>mdi-qrcode</v-icon>
+          </template>
           <v-list-item-title>
             Get QR code to share
           </v-list-item-title>
         </v-list-item>
 
         <v-list-item @click="copyUrlToClipboard">
-          <v-icon>mdi-link-variant</v-icon>
+          <template #prepend>
+            <v-icon>mdi-link-variant</v-icon>
+          </template>
           <v-list-item-title>
             Copy link to share
           </v-list-item-title>

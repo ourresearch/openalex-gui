@@ -1,17 +1,20 @@
 <template>
-  <v-toolbar dense flat class="" color="transparent">
+  <v-toolbar dense flat class="mb-0" color="transparent">
 
     <serp-toolbar-title
         @save="clickSave"
         @toggle-alert="toggleAlert"
         style="margin-left: -19px;"
     />
+
     <v-spacer/>
+    
     <serp-toolbar-menu
         @save="clickSave"
         @toggle-alert="toggleAlert"
         style="margin-right: -22px;"
     />
+    
     <saved-search-save-dialog
         :is-open="isDialogOpen.saveSearch"
         :has-alert="saveSearchDialogHasAlert"

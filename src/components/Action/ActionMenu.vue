@@ -14,15 +14,15 @@
             :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
-              <v-icon>mdi-sort</v-icon>
+              <v-icon color="grey-darken-2">mdi-sort</v-icon>
           </template>
           <template v-if="myConfig.id === 'group_by'">
-            <v-icon>mdi-plus</v-icon>
+            <v-icon color="grey-darken-2">mdi-plus</v-icon>
           </template>
         </v-btn>
       </template>
 
-      <v-card flat class="">
+      <v-card flat>
         <v-list>
           <v-list-subheader>
             <template v-if="myConfig.id === 'sort'">
@@ -35,7 +35,9 @@
               Add filter:
             </template>
           </v-list-subheader>
+
           <v-divider/>
+          
           <v-list-item
               v-for="key in menuOptions"
               :key="key"
@@ -44,21 +46,23 @@
               :disabled="myConfig?.disableKeys?.includes(key)"
               @click="clickOption(key)"
           >
-            <v-icon>{{ getKeyIcon(key) }}</v-icon>
+            <template #prepend>
+              <v-icon color="grey-darken-2">{{ getKeyIcon(key) }}</v-icon>
+            </template>
             
-              <v-list-item-title>
-                {{ getKeyDisplayName(key) }}
-              </v-list-item-title>
+            <v-list-item-title>
+              {{ getKeyDisplayName(key) }}
+            </v-list-item-title>
             
-            <v-list-item-action>
+            <template #append>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
-            </v-list-item-action>
+            </template>
           </v-list-item>
+
           <v-divider/>
+          
           <v-list-item @click="openMoreDialog">
-            
-              <v-list-item-title>More</v-list-item-title>
-            
+            <v-list-item-title>More</v-list-item-title>
           </v-list-item>
 
         </v-list>
@@ -110,7 +114,6 @@ import {mapGetters} from "vuex";
 import {url} from "@/url";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
-
 
 export default {
   name: "ActionMenu",
