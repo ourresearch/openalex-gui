@@ -1,10 +1,11 @@
 <template>
   <v-navigation-drawer
-      v-model="isOpen"
-      location="right"
-      :width="$vuetify.display.mobile ? '95%' : '50%'"
-      temporary
-      disable-route-watcher
+    v-model="isOpen"
+    location="right"
+    temporary
+    disable-route-watcher
+    :width="drawerWidth"
+    class="full-height"
   >
     <v-card min-height="100" flat tile :loading="isLoading" >
       <template v-if="entityData">
@@ -14,7 +15,7 @@
               show-permalink-button
               class=" flex-grow-1"
           />
-          <v-btn icon @click="isOpen = !isOpen">
+          <v-btn icon variant="plain" @click="isOpen = !isOpen">
             <v-icon>mdi-close</v-icon>
           </v-btn>
 
@@ -49,7 +50,8 @@ export default {
   data() {
     return {
       entityData: null,
-      isLoading: false
+      isLoading: false,
+      windowWidth: window.innerWidth,
     }
   },
   computed: {
@@ -68,6 +70,13 @@ export default {
     myEntityType() {
       if (!this.id) { return; }
       return entityTypeFromId(this.id);
+    },
+    drawerWidth() {
+      // Convert percentage to numeric pixel value due to Vuetify 3 bug
+      // https://github.com/vuetifyjs/vuetify/issues/16150
+      return this.$vuetify.display.mobile 
+        ? Math.round(this.windowWidth * 0.9) 
+        : Math.round(this.windowWidth * 0.5);
     },
     isOpen: {
       get() {
@@ -94,6 +103,9 @@ export default {
       this.entityData = await api.get(this.id);
       this.isLoading = false;
     },
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+    },
   },
   watch: {
     id: {
@@ -102,10 +114,22 @@ export default {
       },
       immediate: true
     }
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
   }
 }
 </script>
 
-<style scoped lang="scss">
-
+<style>
+/* Using non-scoped styles to properly override Vuetify's drawer styles */
+.v-navigation-drawer.full-height {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  top: 0 !important;
+  z-index: 10000 !important;
+}
 </style>
