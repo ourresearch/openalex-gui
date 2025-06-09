@@ -57,15 +57,15 @@
           Don't have an account? Sign up.
         </a>
         <v-spacer/>
-        <a href="#" class="forgot-password-link text-link mr-3" @click="isForgotPassword = true">
+        <a href="#" class="forgot-password-link text-link mr-3" @click.stop.prevent="forgotPasswordClick">
           Forgot password?
         </a>
         <v-btn
-            :disabled="isFormDisabled"
-            rounded
-            color="primary"
-            variant="flat"
-            @click="submit"
+          :disabled="isFormDisabled"
+          rounded
+          color="primary"
+          variant="flat"
+          @click="submit"
         >
           Log in
         </v-btn>
@@ -150,6 +150,15 @@ export default {
       } else {
         this.setIsSignupDialogOpen(true);
       }
+    },
+    forgotPasswordClick(event) {
+      console.log("forgotPasswordClick");
+      // Prevent the default link behavior and stop event propagation
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      this.isForgotPassword = true;
     },
     async submit() {
       if (this.isFormDisabled) return false;

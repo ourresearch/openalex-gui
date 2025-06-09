@@ -1,12 +1,12 @@
 <template>
   <v-card border rounded :loading="isLoading" :disabled="isLoading">
-    <v-card-title>
+    <v-card-title class="d-flex align-center">
       <div>
-        <v-icon start>mdi-account</v-icon>
+        <v-icon variant="plain" start>mdi-account</v-icon>
         Forgot Your Password
       </div>
       <v-spacer/>
-      <v-btn icon @click="setIsLoginDialogOpen(false)">
+      <v-btn icon variant="plain" @click="setIsLoginDialogOpen(false)">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-card-title>
@@ -18,7 +18,8 @@
       <v-card-text>
         <form>
           <v-text-field
-            variant="filled"
+            variant="solo-filled"
+            flat
             rounded
             class="mt-0"
             name="email"
@@ -40,6 +41,7 @@
             :disabled="isFormDisabled"
             rounded
             color="primary"
+            variant="flat"
             @click="submit"
         >
           Send Reset Link
@@ -113,6 +115,7 @@ export default {
   created() {
   },
   mounted() {
+    console.log("UserForgotPassword mounted")
   },
   watch: {
 
