@@ -4,7 +4,7 @@
     <template v-if="mode === 'menu'">
       <v-menu v-model="isMenuOpen" class="rounded-lg" location="bottom" max-height="50vh">
         <template v-slot:activator="{ props }">
-          <v-btn icon v-bind="props">
+          <v-btn icon variant="plain" v-bind="props">
             <v-icon>mdi-plus-circle</v-icon>
           </v-btn>
         </template>
@@ -41,7 +41,7 @@
     <!-- Dialog Mode -->
     <template v-else>
       <!-- Button to open dialog -->
-      <v-btn icon @click="openDialog">
+      <v-btn icon variant="plain" @click="openDialog">
         <v-icon>mdi-plus-circle</v-icon>
       </v-btn>
       
@@ -70,6 +70,7 @@
                     height="32"
                     :style="{ minHeight: '32px' }"
                     class="text-black"
+                    variant="flat"
                   >
                     <v-icon size="16" start>{{ column.icon }}</v-icon>
                     <span class="text-truncate column-option">{{ filters.titleCase(column.displayName) }}</span>

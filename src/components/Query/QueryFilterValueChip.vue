@@ -1,6 +1,7 @@
 <template>
   <v-chip
     label
+    variant="text"
     class="menu-chip"
     :style="{'border-bottom-color': buttonColorHex}"
     @click="$emit('click', $event)"

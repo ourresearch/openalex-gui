@@ -1,11 +1,17 @@
 <template>
   <div class="d-flex align-center">
-    <v-btn v-if="isTester && $route.path !== '/analytics'" color="catWorksDarker" variant="flat" to="/analytics" class="mr-2">
+    <v-btn 
+      v-if="isTester && $route.path !== '/analytics'" 
+      color="catWorksDarker" 
+      variant="flat" 
+      to="/analytics" 
+      class="mr-2"
+    >
       <v-icon start>mdi-poll</v-icon>
       Analytics
     </v-btn>
 
-    <ui-variant-selector v-if="isAdmin" />
+    <ui-variant-selector v-if="false && isAdmin" />
     
     <v-btn icon variant="plain" to="/tests" v-if="isAdmin">
       <v-icon>mdi-clipboard-check-multiple-outline</v-icon>

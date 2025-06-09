@@ -8,18 +8,18 @@
     <!-- Results Header / Actions -->
     <div class="results-table-controls pa-2" v-if="uiVariant === 'side'">      
       <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
-        <v-btn icon @click="clickSelectAllButton">
+        <v-btn icon variant="plain" @click="clickSelectAllButton">
           <v-icon>{{ selectAllIcon }}</v-icon>
         </v-btn>
 
-        <v-btn icon :disabled="!selectedIds.length" @click="exportResults">
+        <v-btn icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
           <v-icon>mdi-tray-arrow-down</v-icon>
         </v-btn>
 
         <template v-if="userId">
           <label-menu :selectedIds="fullSelectedIds" />
 
-          <v-btn v-if="querySubjectEntity === 'works'" icon :disabled="!selectedIds.length"
+          <v-btn v-if="querySubjectEntity === 'works'" icon variant="plain" :disabled="!selectedIds.length"
             @click="snackbar('Submitting data corrections will be coming soon.')">
             <v-icon>mdi-pencil-outline</v-icon>
           </v-btn>
@@ -58,7 +58,7 @@
             <!-- Selector header -->
             <template v-else-if="header.id === 'selector'">
               <span v-if="uiVariant !== 'side'">
-                <v-btn icon @click="clickSelectAllButton">
+                <v-btn icon variant="plain" @click="clickSelectAllButton">
                   <v-icon>{{ selectAllIcon }}</v-icon>
                 </v-btn>
               </span>
@@ -85,7 +85,7 @@
                         <v-icon v-if="submittedQuery.sort_by_order==='desc'" size="small">mdi-arrow-down</v-icon>
                         <v-icon v-if="submittedQuery.sort_by_order==='asc'" size="small">mdi-arrow-up</v-icon>
                       </template>
-                      <v-icon v-if="getActiveFilters(header.id).length > 0" size="x-small">mdi-filter</v-icon>
+                      <v-icon v-if="getActiveFilters(header.id).length > 0" size="x-small">mdi-filter-outline</v-icon>
                       {{ filters.titleCase(header.displayNameForColumn || header.displayName) }}
                       <v-icon size="small">mdi-menu-down</v-icon>
                     </v-btn>
@@ -98,7 +98,9 @@
                         v-for="(filterInfo, index) in getActiveFilters(header.id)"
                         :key="`filter-${index}`"
                       >
-                        <v-icon class="align-self-center">mdi-filter-outline</v-icon>
+                        <template #prepend>
+                          <v-icon class="align-self-center">mdi-filter-outline</v-icon>
+                        </template>
                         
                         <QueryFilterValueChip
                           :column-config="header"
@@ -115,7 +117,9 @@
 
                     <!-- Add Filter -->
                     <v-list-item @click="addColumnFilter(header.id)">
-                      <v-icon>mdi-filter-plus-outline</v-icon>
+                      <template #prepend>
+                        <v-icon>mdi-filter-plus-outline</v-icon>
+                      </template>
                       <v-list-item-title>Add Filter</v-list-item-title>
                     </v-list-item>
 
@@ -123,7 +127,9 @@
 
                     <!-- Remove -->
                     <v-list-item @click="removeColumn(header.id)">
-                      <v-icon>mdi-table-column-remove</v-icon>
+                      <template #prepend>
+                        <v-icon>mdi-table-column-remove</v-icon>
+                      </template>
                       <v-list-item-title>Remove Column</v-list-item-title>
                     </v-list-item>
                     <template v-if="header.actions?.includes('sort')">
@@ -133,7 +139,9 @@
                         :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'desc'"
                         @click="commitSortBy({column_id: header.id, direction: 'desc'})"
                       >
-                        <v-icon>mdi-arrow-down</v-icon>
+                        <template #prepend>
+                          <v-icon>mdi-arrow-down</v-icon>
+                        </template>
                         <v-list-item-title>Sort Descending</v-list-item-title>
                       </v-list-item>
                       <v-list-item
@@ -141,7 +149,9 @@
                         active-class="primary--text"
                         :active="submittedQuery.sort_by_column === header.id && submittedQuery.sort_by_order === 'asc'"
                       >
-                        <v-icon>mdi-arrow-up</v-icon>
+                        <template #prepend>
+                          <v-icon>mdi-arrow-up</v-icon>
+                        </template>
                         <v-list-item-title>Sort Ascending</v-list-item-title>
                       </v-list-item>
                     </template>
@@ -222,7 +232,7 @@
                 
                 <!-- Selector cell -->
                 <template v-else-if="cell.config && cell.config.id === 'selector'">
-                  <v-btn icon @click.stop="toggleSelectedId(row.id)">
+                  <v-btn icon variant="plain" @click.stop="toggleSelectedId(row.id)">
                     <v-icon v-if="selectedIds.includes(row.id)">mdi-checkbox-marked</v-icon>
                     <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
                   </v-btn>
@@ -639,8 +649,8 @@ table, thead {
 }
 th {
   border-bottom: 3px solid;
-  border-color: var(--v-catEntityDarker-base);
-  background-color: var(--v-catEntity-base);
+  border-color: rgb(var(--v-theme-catEntityDarker));
+  background-color: rgb(var(--v-theme-catEntity));
 }
 table th.ui-action,
 table td.ui-action {
@@ -652,14 +662,14 @@ tr:hover {
 }
 th.metric,
 .works-query th {
-  border-color: var(--v-catWorksDarker-base);
-  background-color: var(--v-catWorks-base);
+  border-color: rgb(var(--v-theme-catWorksDarker));
+  background-color: rgb(var(--v-theme-catWorks));
 }
 .results-table td {
-  border-color: var(--v-catEntityDarker-base);
+  border-color: rgb(var(--v-theme-catEntityDarker));
 }
 .results-table.works-query td {
-  border-color: var(--v-catWorksDarker-base);
+  border-color: rgb(var(--v-theme-catWorksDarker));
 }
 td:first-child, td:last-child {
   border-radius: 0 !important;
@@ -680,11 +690,11 @@ td:last-child {
   border-left: none;
 }
 td.metric {
-  border-color: var(--v-catWorksDarker-base);
+  border-color: rgb(var(--v-theme-catWorksDarker));
 }
 td:not(.metric) + td.metric,
 .results-box th:not(.metric) + th.metric {
-  border-left: 3px solid var(--v-catWorksDarker-base);
+  border-left: 3px solid rgb(var(--v-theme-catWorksDarker));
 }
 tr:last-child td {
   border-bottom-width: 3px;

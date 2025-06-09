@@ -5,95 +5,13 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
   <div :class="{'query-filter-tree':  true, 'mb-2': isEmpty, 'mb-4': !isEmpty}">
     <span class="query-section-label">
       
-      <!-- Side Works First UI -->
-      <template v-if="uiVariant === 'worksfirst'">
-        <!-- Works Filters -->
-        <template v-if="isWorks">
-          Find
-          {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-
-        <!-- Entity Filters -->
-        <template v-else>
-          Group by
-          <query-summarize-by /> 
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-      </template>
-
-      <!-- Side Entity First UI -->
-      <template v-else-if="uiVariant === 'side'">
-        <!-- Works Filters -->
-        <template v-if="isWorks && isWithAggs">
-          Found in
-          {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-
-        <!-- Entity Filters -->
-        <template v-else>
-          Show
-          {{ isEmpty ? ' all' : '' }}
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-      </template>
-
-      <!-- Top Columns UI -->
-      <template v-else-if="uiVariant === 'top'">
-        <!-- Works Filters -->
-        <template v-if="isWorks && isWithAggs">
-          Analyzing
-          {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-
-        <!-- Entity Filters -->
-        <template v-else>
-          Show
-          {{ isEmpty ? ' all' : '' }}
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-      </template>
-
       <!-- Sentence UI - Entity First -->
-      <template v-else-if="uiVariant === 'sentence-entityfirst'">
+      <template v-if="uiVariant === 'sentence-entityfirst'">
         <!-- Works Filters -->
         <template v-if="isWorks && isWithAggs">
           {{ isSentence ? 'of' : 'Of' }}
           {{ isEmpty ? ' all' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-
-        <!-- Entity Filters -->
-        <template v-else>
-          {{ isSentence ? '' : 'Show' }}
-          {{ !isSentence && isEmpty ? 'all' : '' }}
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
-          {{ !isEmpty ? ' where' : '' }}
-        </template>
-      </template>
-      
-      <!-- Sentence UI - Group Button -->
-      <template v-else-if="uiVariant === 'sentence-group'">
-        <!-- Empty Group By Button -->
-        <template v-if="subjectEntity === null">
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
-        </template>
-
-        <!-- Works Filters -->
-        <template v-else-if="isWorks">
-          <span v-if="isWithAggs">
-            {{ isSentence ? 'of' : 'Of' }}
-            {{ isEmpty ? ' all' : '' }}
-          </span>
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          <v-chip label color="catBlue" variant="flat" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
@@ -111,13 +29,13 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         <!-- Works Filters -->
         <template v-if="isWorks">
           {{ isEmpty && !hasResults ? '' : '' }}
-          <v-chip label color="catBlue" class="entity-chip">Works</v-chip>
+          <v-chip label color="catBlue" variant="flat" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
         </template>
 
         <!-- Entity Filters -->
         <template v-else>
-          {{  hasResults ? (isSentence ? "grouped by" : "Grouped by") : (isSentence ? "group by" : "Group by") }}
+          {{  hasResults ? (isSentence ? " grouped by" : "Grouped by") : (isSentence ? " group by" : "Group by") }}
           <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>

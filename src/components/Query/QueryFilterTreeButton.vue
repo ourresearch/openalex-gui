@@ -1,26 +1,26 @@
 <template>
-  <v-menu class="rounded-lg inline-block" location="bottom" v-model="isMenuOpen">
+  <v-menu class="rounded-lg inline-block" location="bottom" transition="none" v-model="isMenuOpen">
     <template v-slot:activator="{ props }">
       <v-btn
         v-bind="props"
         :class="{'query-builder-button': true, 'tight': !text.length}"
         :color="buttonColor"
         size="small"
+        variant="flat"
       >
         <v-icon size="small">mdi-plus</v-icon>{{ text }}
       </v-btn>
     </template>
-    <v-card flat rounded v-if="isMenuOpen">
+    <v-card flat rounded style="width: 250px" v-if="isMenuOpen">
       <v-text-field
         v-model="search"
-        variant="filled"
-        rounded
+        variant="default"
+        rounded="xl"
         bg-color="white"
         prepend-inner-icon="mdi-magnify"
         hide-details
         autofocus
         placeholder="Search filters"
-        style=""
       />
       <v-divider/>
 
@@ -31,7 +31,9 @@
           :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
           @click="$emit('addFilter', column)"
         >
-          <v-icon>{{ column.icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ column.icon }}</v-icon>
+          </template>
           <v-list-item-title>
             {{ filters.titleCase(column.displayName) }}
           </v-list-item-title>

@@ -5,12 +5,14 @@
       class="mx-1"
       size="small"
       color="primary"
+      variant="flat"
       @click="createSearch">
       Run Search
     </v-btn>
     <v-btn
       v-if="hasQueryChanged"
       size="small"
+      variant="flat"
       @click="cancelSearch">
       Cancel
     </v-btn>

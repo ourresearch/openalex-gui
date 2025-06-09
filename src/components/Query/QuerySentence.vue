@@ -76,6 +76,7 @@
       </div>
       <query-search-controls v-if="hasQueryChanged || isSearchCanceled"/>
     </div>
+
     <div class="results-top-line">
       <query-results-count />
     </div>
@@ -113,6 +114,7 @@ export default {
   }
 };
 </script>
+
 
 <style>
 .query-sentence-box {
@@ -191,6 +193,7 @@ export default {
 .query-sentence .query-builder-input {
   display: inline-block !important;
   width: 250px;
+  vertical-align: middle;
 }
 .query-sentence .path-label {
   margin-right: 0;
