@@ -481,7 +481,8 @@ export default {
     },
     onInputBlur() {
       //console.log("onInputBlur", this.valueEditModel);        
-      if (this.operatorClickInProgress || this.focusSettling || this.relatedToTextDialogOpen || this.isMenuOpen) {
+      if (this.operatorClickInProgress || this.focusSettling 
+          || this.relatedToTextDialogOpen || this.isMenuOpen) {
         return;
       }
       

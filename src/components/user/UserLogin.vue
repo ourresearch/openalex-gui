@@ -2,20 +2,21 @@
   <v-dialog v-model="isOpen" max-width="500">
 
     <v-card v-if="!isForgotPassword" border rounded :loading="isLoading" :disabled="isLoading" class="">
-      <v-card-title>
+      <v-card-title class="d-flex align-center">
         <div>
-          <v-icon start>mdi-account</v-icon>
+          <v-icon variant="plain" start>mdi-account</v-icon>
           Log in
         </div>
         <v-spacer/>
-        <v-btn v-if="!isFixed" icon @click="isOpen = false">
-          <v-icon>mdi-close</v-icon>
+        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
+          <v-icon variant="plain">mdi-close</v-icon>
         </v-btn>
       </v-card-title>
       <v-card-text>
         <form>
           <v-text-field
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               class="mt-0"
               name="email"
@@ -31,7 +32,8 @@
           >
           </v-text-field>
           <v-text-field
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               class="mt-3"
               prepend-icon="mdi-lock-outline"
@@ -62,6 +64,7 @@
             :disabled="isFormDisabled"
             rounded
             color="primary"
+            variant="flat"
             @click="submit"
         >
           Log in

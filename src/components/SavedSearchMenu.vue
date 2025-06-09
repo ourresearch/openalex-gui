@@ -1,6 +1,5 @@
 <template>
   <v-list>
-
     <template v-if="$route.name === 'Serp'">
 
       <v-list-item @click="newSearch">

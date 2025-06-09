@@ -12,10 +12,10 @@
     item-value="id"
     :placeholder="`Search ${entityType}`"
     return-object
+    density="compact"
     v-bind="$attrs"
     variant="outlined"
     :color="filterColor"
-    density="compact"
     hide-no-data
     hide-details
     :custom-filter="() => true"

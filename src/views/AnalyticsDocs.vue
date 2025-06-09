@@ -1,9 +1,14 @@
 <template>
+  <div class="color-2 pt-3">
   <v-container class="page">
     <v-card rounded flat class="px-8 py-6">
       <h1 class="text-h4 mb-2" @click="handleTitleClick">Analytics Documentation</h1>
       
-      <div class="mb-6">OpenAlex Analytics works by generating a set of works to consider, then optionally grouping them into another entity type like authors or institutions. If no works filters are applied all works in OpenAlex are considered. Filters may be applied to the starting work set and then separetly to each group of resulting entities. Below is a list of all available fields for filtering, displaying as return columns, or sorting.</div>
+      <div class="mb-6">Queries in OpenAlex Analytics start by generating a set of works to consider.
+         These works may then be optionally grouped into another entity type like authors or institutions. 
+         If no works filters are applied all works in OpenAlex are considered. 
+         Filters may be applied to the starting work set and then separately to the resulting grouped entities. 
+         Below is a list of all available fields for filtering, displaying as return columns, or sorting.</div>
 
       <!-- Debug Mode Controls -->
       <div v-if="debugMode" class="mb-6 pa-4 bg-grey-lighten-4 rounded">
@@ -100,6 +105,7 @@
       </div>
     </v-card>
   </v-container>
+  </div>
 </template>
 
 

@@ -31,6 +31,7 @@
             <v-btn
               size="small"
               class="mr-2"
+              variant="tonal"
               @click="showEditDialog = true"
             >
               <v-icon start>mdi-pencil</v-icon>
@@ -39,6 +40,7 @@
             <v-btn
               size="small"
               class="mr-2"
+              variant="tonal"
               @click="deleteLabel"
             >
               <v-icon start>mdi-delete-outline</v-icon>
@@ -205,7 +207,7 @@ export default {
 </script>
 
 
-<style scoped lang="scss">
+<style lang="scss">
 .label-details-header {
   display: flex;
   flex-direction: row;
@@ -216,6 +218,9 @@ export default {
 }
 .label-details-header .header-right {
   flex: 1;
+}
+.label-details-header .header-left-buttons {
+  display: flex;
 }
 .label-details-header .subtitle {
   font-size: 14px;
@@ -232,8 +237,11 @@ export default {
 .label-items {
   border-bottom: 1px solid #eee;
 }
-.label-details-add-section{
+.label-details-add-section {
   padding-top: 20px;
+}
+.label-details-add-section .v-field {
+  height: 40px !important;
 }
 .label-details-add-section .label {
   margin-bottom: 10px;
