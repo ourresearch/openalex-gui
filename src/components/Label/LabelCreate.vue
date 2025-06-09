@@ -4,14 +4,13 @@
     <v-card-text>
       <form>
           <v-text-field
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               class="mt-0"
-
               name="name"
               id="name"
               type="name"
-
               v-model="name"
               autofocus
               placeholder="Label name"
@@ -27,7 +26,8 @@
                 label="Type"
                 item-title="text"
                 item-value="value"
-                variant="filled"
+                variant="solo-filled"
+                flat
                 rounded
                 class="mt-4"
                 required
@@ -43,7 +43,8 @@
             <v-textarea
               v-model="description"
               label="Description (optional)"
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               class="mt-4"
               hide-details
@@ -57,6 +58,7 @@
       <v-btn :disabled="isLoading" rounded variant="text" @click="$emit('close')">Cancel</v-btn>
       <v-btn
           color="primary"
+          variant="flat"
           rounded
           :disabled="!name || isLoading"
           @click="create">

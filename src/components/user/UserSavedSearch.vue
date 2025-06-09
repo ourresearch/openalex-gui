@@ -11,7 +11,7 @@
       </div>
     
     <v-list-item-action v-if="!isOpener">
-      <v-btn icon @click.stop="deleteSavedSearch(id)" :disabled="disabled">
+      <v-btn icon variant="plain" @click.stop="deleteSavedSearch(id)" :disabled="disabled">
         <v-icon>mdi-delete-outline</v-icon>
       </v-btn>
     </v-list-item-action>

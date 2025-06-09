@@ -2,21 +2,22 @@
   <v-dialog v-model="isOpen" max-width="500">
 
     <v-card flat rounded :loading="isLoading" :disabled="isLoading" class="">
-      <v-card-title>
-        <v-icon start>mdi-account-plus</v-icon>
+      <v-card-title class="d-flex align-center">
+        <v-icon variant="plain" start>mdi-account-plus</v-icon>
         Sign up
         <v-spacer/>
-        <v-btn v-if="!isFixed" icon @click="isOpen = false">
+        <v-btn v-if="!isFixed" icon variant="plain" @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
       <v-card-text>
-        <p>
+        <p class="text-body-2 mb-4">
           Signing up for an OpenAlex account lets you create alerts and save searches.
         </p>
         <form>
           <v-text-field
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               autofocus
               hide-details
@@ -31,7 +32,8 @@
           </v-text-field>
 
           <v-text-field
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               type="email"
               id="email"
@@ -46,7 +48,8 @@
           </v-text-field>
           <v-text-field
               hide-details
-              variant="filled"
+              variant="solo-filled"
+              flat
               rounded
               class="mt-4"
               prepend-icon="mdi-lock-outline"
@@ -70,6 +73,7 @@
         <v-btn
             :disabled="isFormDisabled"
             color="primary"
+            variant="flat"
             @click="submit"
             rounded
         >

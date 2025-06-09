@@ -20,7 +20,7 @@
             class="saved-search-row"
         >
           <td>
-            <v-icon start>mdi-folder-outline</v-icon>
+            <v-icon variant="plain" start>mdi-folder-outline</v-icon>
             {{ savedSearch.name }}
           </td>
           <td>
@@ -29,13 +29,13 @@
           </td>
           <td class="d-flex align-center">
             <v-spacer></v-spacer>
-            <v-btn icon @click.stop="setEditAlertId(savedSearch.id)">
+            <v-btn icon variant="plain" @click.stop="setEditAlertId(savedSearch.id)">
               <v-icon>{{ savedSearch.has_alert ? "mdi-bell" : "mdi-bell-outline" }}</v-icon>
             </v-btn>
             <v-menu location="bottom">
               <template v-slot:activator="{props}">
-                <v-btn icon v-bind="props">
-                  <v-icon>mdi-dots-vertical</v-icon>
+                <v-btn icon variant="plain" v-bind="props">
+                  <v-icon >mdi-dots-vertical</v-icon>
                 </v-btn>
               </template>
               <saved-search-menu :id="savedSearch.id"/>

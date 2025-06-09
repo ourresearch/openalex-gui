@@ -57,7 +57,14 @@
       <v-spacer />
       <template v-if="!checked">
         <v-btn rounded variant="text" @click="$emit('close')">Cancel</v-btn>
-        <v-btn color="primary" @click="onCheckIds" :loading="checking" :disabled="checking">
+        <v-btn 
+          color="primary" 
+          variant="flat"
+          rounded
+          @click="onCheckIds" 
+          :loading="checking" 
+          :disabled="checking"
+        >
           Check IDs
         </v-btn>
       </template>
