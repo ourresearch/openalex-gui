@@ -1,10 +1,10 @@
 <template>
-  <span class="query-actions mb-1">    
+  <span class="query-actions">    
    
     <v-tooltip location="bottom">
       <template v-slot:activator="{ props }">
         <span v-bind="props"> 
-          <v-btn size="small" icon dense :disabled="!selectedIds.length" @click="exportResults">
+          <v-btn size="small" icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
             <v-icon size="small" >mdi-tray-arrow-down</v-icon>
           </v-btn>
         </span>
@@ -20,13 +20,6 @@
       </template>
       <span>Labels</span>
     </v-tooltip>
-
-    <!--
-    <v-btn v-if="querySubjectEntity === 'works'" small :disabled="!selectedIds.length"
-    @click="snackbar('Submitting data corrections will be coming soon.')">
-    <v-icon>mdi-pencil-outline</v-icon>
-    </v-btn>
-    -->
 
     <!-- DownloadDialogs -->
     <v-dialog v-model="isDownloadDialogOpen" width="500">
@@ -105,10 +98,10 @@ export default {
 <style scoped>
 .query-actions {
   text-align: right;
-  margin-bottom: 2px;
 }
 .query-actions > * {
   position: relative;
-  top: -2px;
+  top: -8px;
+  margin-right: -12px;
 }
 </style>

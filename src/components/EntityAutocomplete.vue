@@ -1,39 +1,36 @@
 <template>
-  <div>
-    <v-autocomplete
-      v-model="selectedEntity"
-      class="query-builder-input"
-      ref="autocomplete"
-      @update:model-value="onEntitySelected"
-      :items="entities"
-      :loading="loading"
-      :search="search"
-      @update:search="onSearchInputUpdate"
-      item-title="display_name"
-      item-value="id"
-      :placeholder="`Search ${entityType}`"
-      return-object
-      v-bind="$attrs"
-      variant="outlined"
-      :color="filterColor"
-      density="compact"
-      hide-no-data
-      hide-details
-      no-filter
-      autofocus
-    >
-      <template v-slot:item="{ item }">
-        
-          <v-list-item-title>{{ item.display_name }}</v-list-item-title>
-          <v-list-item-subtitle v-if="item.hint || showWorkCounts">
-            {{ item.hint}}
-            <span v-if="item.hint && showWorkCounts">, </span>
-            <span v-if="showWorkCounts">{{ item.works_count}} works</span>
-          </v-list-item-subtitle>
-        
-      </template>
-    </v-autocomplete>
-  </div>
+  <v-autocomplete
+    v-model="selectedEntity"
+    class="query-builder-input"
+    ref="autocomplete"
+    @update:model-value="onEntitySelected"
+    :items="entities"
+    :loading="loading"
+    :search="search"
+    @update:search="onSearchInputUpdate"
+    item-title="display_name"
+    item-value="id"
+    :placeholder="`Search ${entityType}`"
+    return-object
+    v-bind="$attrs"
+    variant="outlined"
+    :color="filterColor"
+    density="compact"
+    hide-no-data
+    hide-details
+    :custom-filter="() => true"
+    autofocus
+    @update:menu="onMenuUpdate"
+  >
+    <template v-slot:item="{ item, props }">
+      <v-list-item
+        v-bind="props"
+        :title="item.raw.display_name"
+        :subtitle="(item.raw.hint || showWorkCounts) ? 
+          `${item.raw.hint || ''}${item.raw.hint && showWorkCounts ? ', ' : ''}${showWorkCounts ? item.raw.works_count + ' works' : ''}` : undefined"
+      ></v-list-item>
+    </template>
+  </v-autocomplete>
 </template>
 
 <script>
@@ -66,6 +63,7 @@ export default {
       entities: [],
       loading: false,
       search: null,
+      isMenuOpen: false,
     };
   },
   computed: {
@@ -75,6 +73,10 @@ export default {
     },
   },
   methods: {
+    onMenuUpdate(isOpen) {
+      this.isMenuOpen = isOpen;
+      this.$emit('menu-state-change', isOpen);
+    },
     onSearchInputUpdate(val) {
       this.search = val;
       if (val && val.length > 0) {

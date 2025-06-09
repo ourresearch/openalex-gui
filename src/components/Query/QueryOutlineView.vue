@@ -1,7 +1,7 @@
 <template>
   <span class="query-outline-view">
     <!-- Button that opens the dialog -->
-    <v-btn size="small" class="query-outline-button" color="catPurple" @click="openDialog">
+    <v-btn variant="flat" size="small" class="query-outline-button" color="catPurple" @click="openDialog">
       <v-icon size="small">mdi-format-list-bulleted</v-icon>
     </v-btn>
 

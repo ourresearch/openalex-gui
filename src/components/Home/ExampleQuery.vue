@@ -8,8 +8,8 @@
     </div>
     <v-spacer />
     <div>
-      <v-chip label :color="chipColor(type)">{{type}}</v-chip>
-      <v-chip label :color="chipColor(category)">{{category}}</v-chip>  
+      <v-chip label size="small" variant="flat" :color="chipColor(type)">{{type}}</v-chip>
+      <v-chip label size="small" variant="flat" :color="chipColor(category)">{{category}}</v-chip>  
     </div>
   </v-card>
 </template>
@@ -56,12 +56,12 @@ export default {
         "fields": "catOrangeDarker",
         "countries": "catPurpleDarker",
 
-        "discovery": "catTealDarker",
+        "discovery": "catRedDarker",
         "metrics": "catRedDarker",
         "compliance": "catBlueDarker",
         "trend detection": "catTealDarker",
         "expert discovery": "catPurpleDarker",
-        "open access": "catGreenDarker",
+        "open access": "catPurpleDarker",
         "recommenders": "catTealDarker",
         "rankings": "catRedDarker",
         "collaboration": "catBlueDarker",

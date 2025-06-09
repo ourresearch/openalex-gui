@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-12">
+  <div class="color-2 py-4">
     <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
       <v-row>
         <!-- Left Panel -->

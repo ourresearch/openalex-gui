@@ -7,6 +7,7 @@
         :close-on-content-click="false"
         :open-on-hover="true"
         :close-delay="300"
+        :open-delay="300"
         location="bottom"
         width="auto"
         :offset="[0, 4]"
@@ -20,9 +21,11 @@
         </template>
         <v-list density="compact" class="compact-menu py-0">
           <v-list-item @click="$emit('action-click')" density="compact" class="py-1 px-2">
-            <v-icon size="small" class="centered-icon mr-2 ml-0 my-0 pa-0" style="min-width: 24px;">
-              {{ actionIcon }}
-            </v-icon>
+            <template #prepend>
+              <v-icon size="small" class="centered-icon mr-2 ml-0 my-0 pa-0" style="min-width: 24px;">
+                {{ actionIcon }}
+              </v-icon>
+            </template>
             <v-list-item-title class="text-body-2 pr-2">{{ actionText }}</v-list-item-title>
           </v-list-item>
         </v-list>

@@ -7,14 +7,12 @@
         :class="['entities-count']"
         @click="entityTabClick">
         <span v-if="this.stashedQueryState">
-          {{ stashedQueryState.results_meta?.count > 10000 ? "~" : "" }}
-          {{ filters.toPrecision(stashedQueryState.results_meta?.count) }}
+          {{ filters.millify(stashedQueryState.results_meta?.count) }}
           {{ filters.pluralize(stashedQueryState.query.get_rows) }}
         </span>
         <span v-else>
           <span v-if="hasResults">
-          {{ resultsMeta?.count > 10000 ? "~" : "" }}
-          {{ filters.toPrecision(resultsMeta?.count) }}
+          {{ filters.millify(resultsMeta?.count) }}
           </span>
           {{ filters.pluralize(querySubjectEntity) }}
         </span>
@@ -25,13 +23,11 @@
         :class="['works-count']"
         @click="worksTabClick">
         <span v-if="querySubjectEntity === 'works' && hasResults">
-          {{ resultsMeta?.count > 10000 ? "~" : "" }}
-          {{ filters.toPrecision(resultsMeta?.count)}}
+          {{ filters.millify(resultsMeta?.count)}}
           works
         </span>
         <span v-else-if="hasResults">
-          {{ resultsMeta?.works_count > 10000 ? "~" : "" }}
-          {{ filters.toPrecision(resultsMeta?.works_count)}}
+          {{ filters.millify(resultsMeta?.works_count)}}
           works
         </span>
         <span v-else>
@@ -102,9 +98,8 @@ export default {
   text-align: center;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  padding: 5px 12px;
+  padding: 3px 12px;
   margin-right: 3px;
-  height: 24px;
   min-width: 80px;
   cursor: pointer;
 
@@ -113,16 +108,16 @@ export default {
   }
 }
 .entities-count {
-  background-color: var(--v-catEntity-base);
+  background-color: rgb(var(--v-theme-catEntity));
 }
 .entities-count.inactive {
-  background-color: var(--v-catEntity-base);
+  background-color: rgb(var(--v-theme-catEntity));
 }
 .works-count {
-  background-color: var(--v-catWorks-base);
+  background-color: rgb(var(--v-theme-catWorks));
 }
 .works-count.inactive {
-  background-color: var(--v-catWorks-base);
+  background-color: rgb(var(--v-theme-catWorks));
 }
 .ui-sentence-worksfirst .works-count {
   order: 1

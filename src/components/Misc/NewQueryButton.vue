@@ -2,10 +2,17 @@
   <v-btn 
     v-bind="$attrs"
     class="new-query-button" 
+    variant="flat"
     @click="onClick"
   >
     <template v-if="!goTo">
-      <v-icon v-if="icon" v-bind="{[size]: true}" :color="$attrs.color === 'primary' ? undefined : 'primary'">{{ icon }}</v-icon>
+      <v-icon 
+        v-if="icon" 
+        v-bind="{[size]: true}" 
+        :color="$attrs.color === 'primary' ? undefined : 'primary'"
+      >
+        {{ icon }}
+      </v-icon>
       {{ buttonText }}
     </template>
     <template v-else>

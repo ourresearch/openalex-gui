@@ -56,22 +56,22 @@
       </v-card-text>
       <v-list v-else-if="labelData.ids.length" class="label-items py-3 px-0">
         <v-list-item
-            v-for="(id, index) in labelData.ids"
-            :key="id"
-            class="px-8 ma-0"
-            @click="clickRow(id)"
+          v-for="(id, index) in labelData.ids"
+          :key="id"
+          class="px-8 ma-0"
+          @click="clickRow(id)"
         >
           
-            <v-list-item-title>
-              <span class="mr-1" style="display: inline-block; min-width: 16px;">{{ index + 1 }}.</span>
-              {{ entityDisplayName(id) }}
+          <v-list-item-title>
+            <span class="mr-1" style="display: inline-block; min-width: 16px;">{{ index + 1 }}.</span>
+            {{ entityDisplayName(id) }}
           </v-list-item-title>
           
-          <v-list-item-action class="my-0">
-            <v-btn icon @click.stop="removeId(id)">
+          <template #append>
+            <v-btn icon variant="plain" @click.stop="removeId(id)">
               <v-icon>mdi-close</v-icon>
             </v-btn>
-          </v-list-item-action>
+          </template>
         </v-list-item>
       </v-list>
 

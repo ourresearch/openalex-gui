@@ -5,33 +5,19 @@
     <span v-if="!isSentence" class="path-label number">
       {{ pathLabel }}.
     </span>
-    <span v-else-if="false">
-      <v-menu location="bottom">
-        <template v-slot:activator="{ props }">
-          <span class="path-label path-label-button number cursor-pointer" v-bind="props">
-            ({{ pathLabel }})
-          </span>
-        </template>
-        <v-list density="compact">
-          <v-list-item @click="deleteFilter">
-            <v-icon class="mr-2 ml-0" size="small">mdi-close</v-icon>
-            <v-list-item-title>Remove Filter</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </span>
 
     <!-- Leaf Content -->
     <div class="leaf-content flex-grow-1">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
-        <span v-if="isFirstFilter">{{ isSentence ? 'the' : 'The&nbsp;' }} </span>
+        <span v-if="isFirstFilter">{{ isSentence ? ' the ' : 'The&nbsp;' }} </span>
         <template v-else>
           <v-menu location="bottom">
             <template v-slot:activator="{ props }">
               <v-chip
                 text
                 label
+                variant="text"
                 class="menu-chip"
                 :style="{'border-color': buttonColorHex}"
                 v-bind="props"
@@ -48,7 +34,7 @@
                 @click="selectedJoinOperator = operator"
                 active-class="primary--text"
               >
-                <v-list-item-title class="py-3">
+                <v-list-item-title>
                   {{ operator }}
                 </v-list-item-title>
               </v-list-item>
@@ -57,12 +43,12 @@
               <template v-if="canGroupAbove || canUngroup">
                 <v-divider class="my-2"></v-divider>
                 <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
-                  <v-list-item-title class="py-3">
+                  <v-list-item-title>
                     Group with Above
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
-                  <v-list-item-title class="py-3">
+                  <v-list-item-title>
                     Ungroup from Above
                   </v-list-item-title>
                 </v-list-item>
@@ -83,6 +69,7 @@
             <v-chip
               text
               label
+              variant="text"
               class="menu-chip"
               :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
               @mousedown="onOperatorMouseDown"
@@ -100,7 +87,7 @@
               @click="selectedOperator = operator"
               active-class="primary--text"
             >
-              <v-list-item-title class="py-3">
+              <v-list-item-title>
                 {{ operator }}
               </v-list-item-title>
             </v-list-item>
@@ -125,6 +112,7 @@
             />
           </hover-menu-wrapper>
         </span>
+
         <!-- Editing Entity Value -->
         <template v-else>
           <!-- Labels -->
@@ -198,10 +186,10 @@
             :filter-color="filterColor"
             @entity-selected="saveEditingValue"
             @blur="onInputBlur"
+            @menu-state-change="onMenuStateChange"
             class="flex-grow-1"
             showWorkCounts
             autofocus
-            dense
           />
         </template>
       </template>
@@ -348,12 +336,13 @@ export default {
       search: "",
       isLoading: false,
       isEditingValue: false,
-      valueEditModel: this.value,
+      valueEditModel: null,
       labelOperators: ["matches any item in label", "matches every item in label"],
       labelMenuOpen: false,
       relatedToTextDialogOpen: false,
       operatorClickInProgress: false,
-      focusSettling: true,
+      focusSettling: false,
+      isMenuOpen: false,
     }
   },
   computed: {
@@ -491,8 +480,8 @@ export default {
       this.$emit("deleteFilter", this.path);
     },
     onInputBlur() {
-      //console.log("onInputBlur", this.valueEditModel);
-      if (this.operatorClickInProgress || this.focusSettling || this.relatedToTextDialogOpen) {
+      //console.log("onInputBlur", this.valueEditModel);        
+      if (this.operatorClickInProgress || this.focusSettling || this.relatedToTextDialogOpen || this.isMenuOpen) {
         return;
       }
       
@@ -540,6 +529,12 @@ export default {
       this.$nextTick(() => {
         this.labelMenuOpen = true
       })
+    },
+    onLabelMenuClose() {
+      this.labelMenuOpen = false;
+    },
+    onMenuStateChange(isOpen) {
+      this.isMenuOpen = isOpen;
     },
     getAsyncValueOptions: _.debounce(async function () {
       this.isLoading = true;

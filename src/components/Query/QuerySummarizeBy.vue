@@ -1,7 +1,7 @@
 <template>
-  <v-menu max-height="70vh" class="rounded-lg" location="bottom">
+  <v-menu height="70vh" class="rounded-lg" transition="none" location="bottom">
     <template v-slot:activator="{ props }">
-      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" compact :color="buttonColor" v-bind="props">
+      <v-chip label :class="['entity-chip', {'none': buttonName === 'none'}]" variant="flat" :color="buttonColor" v-bind="props">
         <span v-if="uiVariant === 'sentence-group' && subjectEntity === null">
             <v-icon size="small">mdi-layers-triple-outline</v-icon>
           </span>
@@ -20,7 +20,9 @@
           active-class="primary--text"
           v-if="uiVariant !== 'sentence-group'"
         >
-          <v-icon>mdi-file-document-outline</v-icon>
+          <template #prepend>
+            <v-icon>mdi-file-document-outline</v-icon>
+          </template>
           <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
 
@@ -34,7 +36,9 @@
           @click="selected = entity.id"
           active-class="primary--text"
         >
-          <v-icon>{{ entity.icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ entity.icon }}</v-icon>
+          </template>
           <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
           <v-icon v-if="selected === entity.id">mdi-check</v-icon>
         </v-list-item>
@@ -49,7 +53,9 @@
           @click="selected = entity.id"
           active-class="primary--text"
         >
-          <v-icon>{{ entity.icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ entity.icon }}</v-icon>
+          </template>
           <v-list-item-title class="text-capitalize">{{ entity.displayName }}</v-list-item-title>
           <v-icon v-if="selected === entity.id">mdi-check</v-icon>
         </v-list-item>

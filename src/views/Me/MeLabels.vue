@@ -26,16 +26,18 @@
             :key="label.id"
             :to="'/me/labels/' + label.id"
         >
+          <template #prepend>
             <v-icon>mdi-tag-outline</v-icon>
+          </template>
           
-            <v-list-item-title>{{ label.name }}</v-list-item-title>
-            <v-list-item-subtitle>{{ label.ids.length + " " + label.entity_type}}</v-list-item-subtitle>
+          <v-list-item-title>{{ label.name }}</v-list-item-title>
+          <v-list-item-subtitle>{{ label.ids.length + " " + label.entity_type}}</v-list-item-subtitle>
           
-          <v-list-item-action>
-            <v-btn icon @click.stop.prevent="deleteCollection(label.id)">
+          <template #append>  
+            <v-btn icon variant="plain" @click.stop.prevent="deleteCollection(label.id)">
               <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
-          </v-list-item-action>
+          </template>
         </v-list-item>
       </v-list>
     </v-card>
