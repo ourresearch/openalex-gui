@@ -61,7 +61,9 @@
           </template>
           <v-list>
             <v-list-item @click="setIsSignupDialogOpen(true)">
-              <v-icon>mdi-account-plus</v-icon>             
+              <template #prepend>
+                <v-icon>mdi-account-plus</v-icon>
+              </template>
               <v-list-item-title class="font-weight-bold">
                 Sign Up
               </v-list-item-title>
@@ -70,7 +72,9 @@
               </v-list-item-subtitle>  
             </v-list-item>
             <v-list-item @click="setIsLoginDialogOpen(true)">
-              <v-icon>mdi-account-arrow-right</v-icon>
+              <template #prepend>
+                <v-icon>mdi-account-arrow-right</v-icon>
+              </template>
               <v-list-item-title>
                 Log In
               </v-list-item-title>
@@ -82,14 +86,18 @@
             <v-divider/>
             
             <v-list-item href="https://openalex.zendesk.com/hc/en-us/requests/new" target="_blank">
-              <v-icon>mdi-comment-question-outline</v-icon>
+              <template #prepend>
+                <v-icon>mdi-comment-question-outline</v-icon>
+              </template>
               <v-list-item-title>
                 Contact support
               </v-list-item-title>
             </v-list-item>
 
             <v-list-item href="https://help.openalex.org/" target="_blank">
-              <v-icon>mdi-help-circle-outline</v-icon>
+              <template #prepend>
+                <v-icon>mdi-help-circle-outline</v-icon>
+              </template>
               <v-list-item-title>
                 Visit help center
               </v-list-item-title>
