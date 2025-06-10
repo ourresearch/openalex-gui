@@ -22,13 +22,18 @@
           variant="default"
           rounded="xl"
           bg-color="white"
-          prepend-inner-icon="mdi-magnify"
           hide-details
           autofocus
           placeholder="Search all filters"
           @keyup.enter="onEnter"
-        />
+        >
+          <template #prepend-inner>
+            <v-icon color="primary">mdi-magnify</v-icon>
+          </template>
+        </v-text-field>
+
         <v-divider/>
+        
         <v-list v-if="searchString">
           <v-list-item
               v-for="filter in potentialFiltersSearchResults"

@@ -17,7 +17,6 @@
         hide-details
         class="shortcut-box"
         :placeholder="placeholder"
-        prepend-inner-icon="mdi-magnify"
         ref="shortcutBoxRef"
         :autofocus="autofocus"
         :loading="isLoading"
@@ -25,8 +24,11 @@
         @click:clear="clickClear"
         @keydown.enter="isEnterPressed = true"
         @keyup.enter="onEnterKeyup"
+        @focus="isFocused = true"
+        @blur="isFocused = false"
     >
       <template v-slot:prepend-inner>
+        <v-icon :color="isFocused ? 'primary' : 'grey'">mdi-magnify</v-icon>
         <v-chip
             v-if="newFilter"
             closable
@@ -166,6 +168,7 @@ export default {
         "Institution",
       ],
       isProgrammaticInput: false,
+      isFocused: false,
       filters,
     }
   },

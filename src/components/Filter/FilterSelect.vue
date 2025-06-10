@@ -9,8 +9,8 @@
             @delete="deleteOption(id)"
         />
         <span
-            v-if="i < optionIds.length-1"
-            class="mx-1 mr-2 text-grey"
+          v-if="i < optionIds.length-1"
+          class="mx-1 mr-2 text-grey"
         >
           or
         </span>
@@ -23,10 +23,10 @@
         max-width="600"
         scrollable
     >
-      <v-card rounded>
+      <v-card class="rounded-o">
         <v-text-field
             v-model="searchString"
-            variant="filled"
+            variant="default"
             rounded
             bg-color="white"
             prepend-inner-icon="mdi-magnify"
