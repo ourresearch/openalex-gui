@@ -3,7 +3,7 @@
     <v-btn 
       v-if="hasQueryChanged || isSearchCanceled"
       class="mx-1"
-      size="small"
+      size="large"
       color="primary"
       variant="flat"
       @click="createSearch">
@@ -11,7 +11,7 @@
     </v-btn>
     <v-btn
       v-if="hasQueryChanged"
-      size="small"
+      size="large"
       variant="flat"
       @click="cancelSearch">
       Cancel

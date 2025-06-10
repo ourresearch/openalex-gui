@@ -20,12 +20,11 @@
         <v-text-field
           v-model="searchString"
           variant="default"
-          rounded="xl"
-          bg-color="white"
           hide-details
           autofocus
           placeholder="Search all filters"
           @keyup.enter="onEnter"
+          @keydown.down="onDownArrow"
         >
           <template #prepend-inner>
             <v-icon color="primary">mdi-magnify</v-icon>
@@ -98,6 +97,7 @@
             class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
             append-icon="mdi-close"
             @keyup.enter="onEnter"
+            @keydown.down="onDownArrow"
             @click:append="clickCloseSearch"
             @click:prepend-inner="clickPrependIcon"
         />
@@ -249,6 +249,26 @@ export default {
     },
   },
   methods: {
+    onDownArrow(event) {
+      // Prevent default behavior of the down arrow key
+      event.preventDefault();
+      
+      // Get all focusable elements in the document
+      const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const elements = Array.from(document.querySelectorAll(focusableElements))
+        .filter(el => !el.disabled && el.offsetParent !== null); // Only visible and enabled elements
+      
+      // Find the current element's position in the focusable elements array
+      const currentIndex = elements.indexOf(event.target);
+      
+      // Focus the next element if it exists, otherwise focus the first element
+      if (currentIndex > -1 && currentIndex < elements.length - 1) {
+        elements[currentIndex + 1].focus();
+      } else if (elements.length > 0) {
+        // If we're at the last element or can't find the current element, go to the first
+        elements[0].focus();
+      }
+    },
     onEnter() {
       console.log("onEnter", this.searchString, this.entityType)
       if (["search", "range"].includes(this.newFilterConfig?.type) && this.searchString) {
