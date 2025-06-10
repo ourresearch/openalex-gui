@@ -115,25 +115,24 @@
     </v-card-actions>
 
     <v-dialog
-        v-model="isDialogOpen"
-        :fullscreen="$vuetify.display.mobile"
-        max-width="600"
-        scrollable
+      v-model="isDialogOpen"
+      :width="600"
+      scrollable
     >
-      <v-card rounded>
+      <v-card rounded class="group-by-dialog">
         <v-text-field
-              v-model="searchString"
-              variant="filled"
-              rounded
-              bg-color="white"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-              autofocus
-              :placeholder="searchStringPlaceholder"
-              style=""
-              class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
-              append-icon="mdi-close"
-              @click:append="clickCloseSearch"
+          v-model="searchString"
+          variant="default"
+          density="compact"
+          bg-color="white"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          autofocus
+          :placeholder="searchStringPlaceholder"
+          style=""
+          class="add-filter-text-field mr-4 py-3 text-h5 font-weight-regular"
+          append-icon="mdi-close"
+          @click:append="clickCloseSearch"
           />
         <v-divider />
         <v-card-text class="pa-0" style="height: 80vh;">
