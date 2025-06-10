@@ -11,17 +11,20 @@
         <v-icon size="small">mdi-plus</v-icon>{{ text }}
       </v-btn>
     </template>
-    <v-card flat rounded style="width: 250px" v-if="isMenuOpen">
+    <v-card flat class="rounded-o" style="width: 250px" v-if="isMenuOpen">
       <v-text-field
         v-model="search"
+        bg-color="white"  
         variant="default"
-        rounded="xl"
-        bg-color="white"
-        prepend-inner-icon="mdi-magnify"
         hide-details
         autofocus
         placeholder="Search filters"
-      />
+        @keydown.down="onDownArrow"
+      >
+        <template #prepend-inner>
+          <v-icon color="primary">mdi-magnify</v-icon>
+        </template>
+      </v-text-field>
       <v-divider/>
 
       <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -123,6 +126,26 @@ export default {
       return columns.filter( f => {
         return f.displayName.toLowerCase().includes(this.search.toLowerCase());
       })
+    },
+    onDownArrow(event) {
+      // Prevent default behavior of the down arrow key
+      event.preventDefault();
+      
+      // Get all focusable elements in the document
+      const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const elements = Array.from(document.querySelectorAll(focusableElements))
+        .filter(el => !el.disabled && el.offsetParent !== null); // Only visible and enabled elements
+      
+      // Find the current element's position in the focusable elements array
+      const currentIndex = elements.indexOf(event.target);
+      
+      // Focus the next element if it exists, otherwise focus the first element
+      if (currentIndex > -1 && currentIndex < elements.length - 1) {
+        elements[currentIndex + 1].focus();
+      } else if (elements.length > 0) {
+        // If we're at the last element or can't find the current element, go to the first
+        elements[0].focus();
+      }
     },  
   },
   watch: {
