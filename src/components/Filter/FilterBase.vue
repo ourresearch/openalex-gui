@@ -1,8 +1,8 @@
 <template>
   <tr
-      @click="$emit('click')"
-      class="hover-color-3 font-weight-regular"
-      :class="{clickable, card: $vuetify.display.smAndDown}"
+    @click="$emit('click')"
+    class="hover-color-3 font-weight-regular"
+    :class="{clickable, card: $vuetify.display.smAndDown}"
   >
     <td class="text-grey shrink pl-5 d-none d-md-table-cell">
       <v-icon>mdi-numeric-{{ index + 1 }}-circle</v-icon>
@@ -18,11 +18,11 @@
       </td>
       <td class="shrink pr-6" style="min-width: 5em; text-align: center;">
         <filter-verb
-            :is-negated="isNegated"
-            :value="myValue"
-            :filter-key="filterKey"
-            :type="myConfig?.type"
-            @set="(val) => isNegated = val"
+          :is-negated="isNegated"
+          :value="myValue"
+          :filter-key="filterKey"
+          :type="myConfig?.type"
+          @set="(val) => isNegated = val"
         />
       </td>
       <td>
@@ -64,8 +64,6 @@
         </div>
       </div>
     </template>
-
-
   </tr>
 </template>
 

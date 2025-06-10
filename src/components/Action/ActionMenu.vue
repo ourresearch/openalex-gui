@@ -51,7 +51,7 @@
             </template>
             
             <v-list-item-title>
-              {{ getKeyDisplayName(key) }}
+              {{ filters.titleCase(getKeyDisplayName(key)) }}
             </v-list-item-title>
             
             <template #append>
@@ -75,7 +75,7 @@
     >
       <v-card rounded>
         <v-toolbar flat>
-          <v-toolbar-title>More {{ myConfig.displayName }} options</v-toolbar-title>
+          <div class="text-h6">More {{ myConfig.displayName }} Options</div>
           <v-spacer/>
           <v-btn icon @click="closeMoreDialog">
             <v-icon>mdi-close</v-icon>
@@ -85,16 +85,18 @@
         <v-card-text class="pa-0">
 
           <v-list-item
-              v-for="key in allOptions"
-              :key="key"
-              color="primary"
-              :value="key"
-              :disabled="myConfig?.disableKeys?.includes(key)"
-              @click="clickOption(key)"
+            v-for="key in allOptions"
+            :key="key"
+            color="primary"
+            :value="key"
+            :disabled="myConfig?.disableKeys?.includes(key)"
+            @click="clickOption(key)"
           >
-            <v-icon>{{ getKeyIcon(key) }}</v-icon>
+            <template #prepend>
+              <v-icon>{{ getKeyIcon(key) }}</v-icon>
+            </template>
             <v-list-item-title>
-              {{ getKeyDisplayName(key) }}
+              {{ filters.titleCase(getKeyDisplayName(key)) }}
             </v-list-item-title>
             <v-list-item-action>
               <v-icon v-if="selectedOptions.includes(key)">mdi-check</v-icon>
@@ -112,6 +114,7 @@
 
 import {mapGetters} from "vuex";
 import {url} from "@/url";
+import filters from "@/filters";
 import {facetConfigs, getFacetConfig} from "@/facetConfigs";
 import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
 
@@ -126,6 +129,7 @@ export default {
     return {
       isMoreDialogOpen: false,
       isEditDialogOpen: true,
+      filters,
     }
   },
   computed: {
