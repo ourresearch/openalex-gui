@@ -65,104 +65,78 @@
   </div>
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import NewQueryButton from '@/components/Misc/NewQueryButton.vue';
+import ExampleQuery from '@/components/Home/ExampleQuery.vue';
+import { exampleQueries as importedExampleQueries } from './exampleQueriesList';
 
-<script>
+defineOptions({ name: 'AnalyticsHome' });
 
-import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
-import ExampleQuery from "@/components/Home/ExampleQuery.vue";
-import {exampleQueries} from "./exampleQueriesList";
+const store = useStore();
 
-export default {
-  name: "AnalyticsHome",
-  components: {
-    ExampleQuery,
-    NewQueryButton,
-  },
-  props: {
-  },
-  data() {
-    return {
-      exampleQueries: exampleQueries,
-      searchQuery: "",
-      selectedFilter: "All Questions",
-      typeFilter: null,
-      categoryFilter: null,
-      uiVariant: this.$store.state.uiVariant,
-    }
-  },
-  methods: {
-    capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-  },
-  computed: {
-    filterOptions() {
-      const types = this.typeTags.map(tag => ({ title: this.capitalize(tag), value: { type: tag } }));
-      const categories = this.categoryTags.map(tag => ({ title: this.capitalize(tag), value: { category: tag } }));
-      
-      return [
-      { title: "All Questions", value: "All Questions" },
-      ...types,
-      ...categories
-      ];
-    },
-    showQueries: function() {
-      let examples = this.exampleQueries;
-      if (this.uiVariant === "errors") {
-        return examples.filter(q => q.broken);
-      }
+const exampleQueries = ref(importedExampleQueries);
+const searchQuery = ref('');
+const selectedFilter = ref('All Questions');
+const typeFilter = ref(null);
+const categoryFilter = ref(null);
+const uiVariant = computed(() => store.state.uiVariant);
 
-      examples = examples.filter(q => !q.broken);
-      
-      if (this.searchQuery) {
-        const searchWords = this.searchQuery.toLowerCase().split(/\s+/).filter(word => word.length > 0);
-        examples = examples.filter(q => {
-          const searchableText = [
-            q.question.toLowerCase(),
-            q.type.toLowerCase(),
-            q.category.toLowerCase()
-          ].join(' ');
-          return searchWords.every(word => searchableText.includes(word));
-        });
-      }
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
-      if (this.selectedFilter && this.selectedFilter !== "All Questions") {
-        if (this.selectedFilter.type) {
-          examples = examples.filter(q => q.type === this.selectedFilter.type);
-        } else if (this.selectedFilter.category) {
-          examples = examples.filter(q => q.category === this.selectedFilter.category);
-        }
-      }
-      
-      if (!this.searchQuery && this.selectedFilter === "All Questions") {
-        examples = examples.reverse();
-      }
-      return examples;
-    },
-    typeTags: function() {
-      return [... new Set(exampleQueries.map(q => q.type))];
-    },
-    categoryTags: function() {
-      return [... new Set(exampleQueries.map(q => q.category))];
-    },
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    typeFilter(newValue) {
-      if (newValue && this.categoryFilter) {
-        this.categoryFilter = null;
-      }
-    },
-    categoryFilter(newValue) {
-      if (newValue && this.typeFilter) {
-        this.typeFilter = null;
-      }
-    },
+const typeTags = computed(() => [...new Set(exampleQueries.value.map(q => q.type))]);
+const categoryTags = computed(() => [...new Set(exampleQueries.value.map(q => q.category))]);
+
+const filterOptions = computed(() => {
+  const types = typeTags.value.map(tag => ({ title: capitalize(tag), value: { type: tag } }));
+  const categories = categoryTags.value.map(tag => ({ title: capitalize(tag), value: { category: tag } }));
+  return [{ title: 'All Questions', value: 'All Questions' }, ...types, ...categories];
+});
+
+const showQueries = computed(() => {
+  let examples = [...exampleQueries.value];
+
+  if (uiVariant.value === 'errors') {
+    return examples.filter(q => q.broken);
   }
-}
+
+  examples = examples.filter(q => !q.broken);
+
+  if (searchQuery.value) {
+    const searchWords = searchQuery.value.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+    examples = examples.filter(q => {
+      const searchableText = `${q.question.toLowerCase()} ${q.type.toLowerCase()} ${q.category.toLowerCase()}`;
+      return searchWords.every(word => searchableText.includes(word));
+    });
+  }
+
+  if (selectedFilter.value && selectedFilter.value !== 'All Questions') {
+    if (selectedFilter.value.type) {
+      examples = examples.filter(q => q.type === selectedFilter.value.type);
+    } else if (selectedFilter.value.category) {
+      examples = examples.filter(q => q.category === selectedFilter.value.category);
+    }
+  }
+
+  if (!searchQuery.value && selectedFilter.value === 'All Questions') {
+    examples = examples.reverse();
+  }
+
+  return examples;
+});
+
+watch(typeFilter, (newValue) => {
+  if (newValue && categoryFilter.value) {
+    categoryFilter.value = null;
+  }
+});
+
+watch(categoryFilter, (newValue) => {
+  if (newValue && typeFilter.value) {
+    typeFilter.value = null;
+  }
+});
 </script>
 
 

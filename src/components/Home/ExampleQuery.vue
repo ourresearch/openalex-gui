@@ -15,72 +15,63 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
-import {mapActions, mapGetters} from "vuex";
+defineOptions({ name: 'ExampleQuery' });
 
-export default {
-  name: "ExampleQuery",
-  components: {
-  },
-  props: {
-    question: String,
-    type: String,
-    category: String,
-    error: String,
-    query: Object,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-    ]),
-  },
-  methods: {
-    ...mapActions("search", [
-      "createSearchFromQuery"
-    ]),
-    chipColor(category) {
-      const colors = {
-        "works": "catBlueDark",
-        "authors": "catGreenDark",
-        "sources": "catTealDark",
-        "institutions": "catPurpleDark",
-        "topics": "catTealDark",
-        "sdgs": "catRedDark",
-        "funders": "catBlueDark",
-        "keywords": "catGreenDark",
-        "fields": "catOrangeDark",
-        "countries": "catPurpleDark",
+defineProps({
+  question: String,
+  type: String,
+  category: String,
+  error: String,
+  query: Object
+});
 
-        "discovery": "catRedDark",
-        "metrics": "catRedDark",
-        "compliance": "catBlueDark",
-        "trend detection": "catTealDark",
-        "expert discovery": "catPurpleDark",
-        "open access": "catPurpleDark",
-        "recommenders": "catTealDark",
-        "rankings": "catRedDark",
-        "collaboration": "catBlueDark",
-      };
-      return category in colors ? colors[category] :"primary";
-    },
-    handleQueryClick(query) {
-      if (!this.userId) {
-        this.$router.push({
-          name: 'Login',
-          query: { redirect: '/analytics' }
-        });
-        return;
-      }
-      
-      this.createSearchFromQuery(query);
-    },
-  },
-}
+const store = useStore();
+const router = useRouter();
+
+const userId = computed(() => store.getters['user/userId']);
+const createSearchFromQuery = (payload) => store.dispatch('search/createSearchFromQuery', payload);
+
+const chipColor = (category) => {
+  const colors = {
+    works: 'catBlueDark',
+    authors: 'catGreenDark',
+    sources: 'catTealDark',
+    institutions: 'catPurpleDark',
+    topics: 'catTealDark',
+    sdgs: 'catRedDark',
+    funders: 'catBlueDark',
+    keywords: 'catGreenDark',
+    fields: 'catOrangeDark',
+    countries: 'catPurpleDark',
+    discovery: 'catRedDark',
+    metrics: 'catRedDark',
+    compliance: 'catBlueDark',
+    'trend detection': 'catTealDark',
+    'expert discovery': 'catPurpleDark',
+    'open access': 'catPurpleDark',
+    recommenders: 'catTealDark',
+    rankings: 'catRedDark',
+    collaboration: 'catBlueDark'
+  };
+
+  return colors[category] || 'primary';
+};
+
+const handleQueryClick = (query) => {
+  if (!userId.value) {
+    router.push({
+      name: 'Login',
+      query: { redirect: '/analytics' }
+    });
+    return;
+  }
+  createSearchFromQuery(query);
+};
 </script>
 
 
