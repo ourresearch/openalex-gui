@@ -11,18 +11,20 @@
       <template v-if="entityData">
         <div class="d-flex pa-4">
           <entity-header
-              :entity-data="entityData"
-              show-permalink-button
-              class=" flex-grow-1"
+            :entity-data="entityData"
+            show-permalink-button
+            class=" flex-grow-1"
           />
           <v-btn icon variant="plain" @click="isOpen = !isOpen">
             <v-icon>mdi-close</v-icon>
           </v-btn>
 
         </div>
+
         <v-divider class="ma-3"/>
+        
         <entity-new
-            :data="entityData"
+          :data="entityData"
         />
 
       </template>
@@ -36,6 +38,7 @@ import {mapGetters, mapMutations} from "vuex";
 import {api} from "@/api";
 import {url} from "@/url";
 import {entityTypeFromId} from "@/util";
+
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
 

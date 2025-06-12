@@ -1,13 +1,13 @@
 <template>
   <div v-if="data">
     <v-btn
-        rounded
-        :href="data.primary_location.landing_page_url"
-        target="_blank"
-        :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
-        class="mr-3"
+      rounded
+      variant="flat"
+      :href="data.primary_location.landing_page_url"
+      target="_blank"
+      :color="data.primary_location?.is_oa ? 'primary' : 'grey darken-1'"
+      class="mr-3"
     >
-<!--      <v-icon left>mdi-web</v-icon>-->
       <template v-if="data.primary_location?.source?.display_name === 'PubMed'">
         PubMed
       </template>
@@ -21,20 +21,18 @@
       <v-icon size="small" class="ml-1">mdi-open-in-new</v-icon>
     </v-btn>
 
-
     <!--   PDF anywhere -->
     <v-btn
-        rounded
-        color="primary"
-        :href="pdfUrl"
-        target="_blank"
-        class="mr-3"
-        v-if="pdfUrl"
+      rounded
+      variant="flat"
+      color="primary"
+      :href="pdfUrl"
+      target="_blank"
+      class="mr-3"
+      v-if="pdfUrl"
     >
       PDF
     </v-btn>
-
-
 
   </div>
 </template>
