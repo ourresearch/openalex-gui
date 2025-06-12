@@ -7,18 +7,26 @@
       <div class="query-section-label">Display</div>
       <!-- Visible Columns -->
       <div class="columns-list" :style="{'border-color': displayColumnsColorHex}">
-        <div v-for="(column, index) in visibleDataColumns" :key="index" class="query-builder-chip">
-          <v-chip label :color="displayColumnsColor" class="mt-0">
-            {{ filters.titleCase(column.displayName) }}
-            <v-icon
-              v-if="visibleDataColumns.length > 1" 
-              @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
-          </v-chip>
-        </div>
+        <v-chip 
+          v-for="(column, index) in visibleDataColumns" 
+          :key="index" 
+          variant="flat" 
+          label 
+          :color="displayColumnsColor" 
+          class="query-builder-chip mt-0"
+        >
+          {{ filters.titleCase(column.displayName) }}
+          <v-icon
+            v-if="visibleDataColumns.length > 1" 
+            @click="removeColumn(column)" size="small" class="ml-1"
+          >
+            mdi-close
+          </v-icon>
+        </v-chip>
         <!-- Columns Button/Menu -->
         <v-menu v-model="isDataColumnsMenuOpen" location="bottom">
           <template v-slot:activator="{ props }">
-            <v-btn class="query-builder-button small" size="small" :color="displayColumnsColor + 'Darker'" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Column</v-btn>
+            <v-btn class="query-builder-chip" variant="flat" size="small" :color="displayColumnsColor" v-bind="props"><v-icon size="small">mdi-plus</v-icon></v-btn>
           </template>
           <v-card flat rounded>
             <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -46,17 +54,22 @@
         <div class="query-section-label">Calculate</div>
         <!-- Visible Columns -->
         <div class="columns-list" :style="{'border-color': catWorksHex}">
-          <div v-for="(column, index) in visibleMetricsColumns" :key="index" class="query-builder-chip">
-            <v-chip label color="catWorks">
-              {{ filters.titleCase(column.displayName) }}
-              <v-icon
-                @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
-            </v-chip>
-          </div>
+          <v-chip 
+            v-for="(column, index) in visibleMetricsColumns" 
+            :key="index" 
+            class="query-builder-chip mt-0"  
+            label
+            variant="flat"
+            color="catWorks"
+          >
+            {{ filters.titleCase(column.displayName) }}
+            <v-icon
+              @click="removeColumn(column)" size="small" class="ml-1">mdi-close</v-icon>
+          </v-chip>
           <!-- Metrics Button/Menu -->
           <v-menu v-model="isMetricsColumnsMenuOpen" location="bottom">
             <template v-slot:activator="{ props }">
-              <v-btn class="query-builder-button small" size="small" color="catWorksDarker" v-bind="props"><v-icon size="small">mdi-plus</v-icon>Metric</v-btn>
+              <v-btn class="query-builder-chip" size="small" variant="flat" color="catWorks" v-bind="props"><v-icon size="small">mdi-plus</v-icon></v-btn>
             </template>
             <v-card flat rounded>
               <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
@@ -90,6 +103,7 @@
             class="mt-0 first query-builder-chip"
             :color="sortColor"
             label
+            variant="flat" 
             v-bind="props" 
           >
             {{ filters.titleCase((sortByColumn.displayNameForColumn || sortByColumn.displayName)) }}
@@ -104,11 +118,15 @@
             @click="setSortByColumn(column.column_id)"
             active-class="primary--text"
           >
-            <v-icon>{{ column.icon }}</v-icon>
+            <template #prepend>
+              <v-icon>{{ column.icon }}</v-icon>
+            </template>
             <v-list-item-title class="py-3">
               {{ filters.titleCase(column.displayName)}}
             </v-list-item-title>
-            <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
+            <template #append>
+              <v-icon v-if="column.column_id===query.sort_by_column">mdi-check</v-icon>
+            </template>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -120,6 +138,7 @@
             label
             class="last query-builder-chip"
             :color="sortColor"
+            variant="flat" 
             style="min-width: 1px !important;"
             v-bind="props" 
           >
@@ -300,11 +319,9 @@ export default {
 .v-chip {
   cursor: pointer;
 } 
-.query-builder-button.small {
-  height: 22px;
+.query-builder-chip {
+  height: 22px !important;
   padding: 0px 5px !important;
-}
-.columns-controls-box .query-builder-chip {
   margin-right: 4px;
   margin-bottom: 4px;
 }

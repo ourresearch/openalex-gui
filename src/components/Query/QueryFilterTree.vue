@@ -45,7 +45,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
     
     <span 
       :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant.includes('sentence')}" 
-      v-if="!isSentence && hasAvailableFilters && subjectEntity !== null"
+      v-if="!isSentence && subjectEntity !== null && hasAvailableFilters"
     >
       <query-filter-tree-button
         :subject-entity="subjectEntity"
@@ -169,9 +169,10 @@ export default {
       //return this.isEmpty && this.isWithAggs;
     },
     borderColor() {
-      const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;
-      const entityColor = this.$vuetify.theme.themes.light.catEntityDarker;
-
+      // Access theme colors using the proper Vuetify 3 syntax
+      const worksColor = this.$vuetify.theme.themes.light.colors.catWorksDarker;
+      const entityColor = this.$vuetify.theme.themes.light.colors.catEntityDarker;
+      
       return this.isWorks ? worksColor : entityColor;
     },
     filtersToStore() {
@@ -520,6 +521,9 @@ export default {
 .query-section-label {
   font-size: 20px;
   vertical-align: middle;
+}
+.top-button-wrapper {
+  margin-left: 8px;
 }
 .query-wrapper {
   padding: 0px 0px 0px 15px;
