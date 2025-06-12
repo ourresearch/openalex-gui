@@ -15,17 +15,10 @@
 </template>
 
 
-<script>
-
-export default {
-  name: "MeBase",
-  components: {},
-  props: {},
-  data() {
-    return {
-    }
-  },
-}
+<script setup>
+defineOptions({
+  name: 'MeBase'
+})
 </script>
 
 

@@ -75,252 +75,203 @@
   </v-card>
 </template>
 
-<script>
-import {mapGetters, mapActions, mapMutations} from "vuex";
-import filters from "@/filters";
-import {getConfigs} from "@/oaxConfigs";
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import filters from '@/filters';
+import { getConfigs } from '@/oaxConfigs';
 
-export default {
-  name: 'LabelBulkUpload',
-  props: {
-    labelId: {
-      type: String,
-      required: true
-    }
-  },
-  data() {
-    return {
-      bulkInput: '',
-      recheckInput: '',
-      lastCheckedRecheckInput: '',
-      originalInput: '',
-      checking: false,
-      checked: false,
-      validIds: [], // {id, display_name}
-      invalidIds: [],
-      idType: "openalex", // "orcid", "ror", "doi", "openalex"
-      filters,
-    };
-  },
-  computed: {
-    ...mapGetters('user', [
-      'userCollections'
-    ]),
-    labelData() {
-      return this.userCollections.find(coll => coll.id === this.labelId);
-    },    
-    canRecheck() {
-      return this.recheckInput !== this.lastCheckedRecheckInput;
-    },
-    acceptedIdsNames() {
-      switch (this.labelData.entity_type) {
-        case 'works':
-          return 'OpenAlex IDs or DOIs';
-        case 'authors':
-          return 'OpenAlex IDs or ORCIDs';
-        case 'ror':
-          return 'OpenAlex IDs or ROR IDs';
-        default:
-          return 'OpenAlex IDs';
+defineOptions({ name: 'LabelBulkUpload' });
+
+const props = defineProps({
+  labelId: { type: String, required: true }
+});
+
+const emit = defineEmits(['close']);
+const store = useStore();
+
+// Reactive state
+const bulkInput = ref('');
+const recheckInput = ref('');
+const lastCheckedRecheckInput = ref('');
+const originalInput = ref('');
+const checking = ref(false);
+const checked = ref(false);
+const validIds = ref([]);
+const invalidIds = ref([]);
+const idType = ref('openalex');
+
+const userCollections = computed(() => store.getters['user/userCollections']);
+const labelData = computed(() => userCollections.value.find(coll => coll.id === props.labelId));
+const canRecheck = computed(() => recheckInput.value !== lastCheckedRecheckInput.value);
+const acceptedIdsNames = computed(() => {
+  switch (labelData.value.entity_type) {
+    case 'works': return 'OpenAlex IDs or DOIs';
+    case 'authors': return 'OpenAlex IDs or ORCIDs';
+    case 'institutions': return 'OpenAlex IDs or ROR IDs';
+    default: return 'OpenAlex IDs';
+  }
+});
+
+const snackbar = (val) => store.commit('snackbar', val);
+const updateCollectionIds = (payload) => store.dispatch('user/updateCollectionIds', payload);
+
+const parseIds = (input) => {
+  const entityType = labelData.value.entity_type;
+  const entityPrefix = entityType ? entityType[0].toUpperCase() : '';
+  const ids = input.split(/\n|,/).map(id => id.trim()).filter(Boolean);
+  return idType.value === 'openalex'
+    ? ids.map(id => (/^\d/.test(id) ? entityPrefix + id : id))
+    : ids;
+};
+
+const getIdType = (id) => {
+  if (/^\d{4}-\d{4}-\d{4}-\d{4}$/.test(id)) return 'orcid';
+  if (id.length === 9 && id.startsWith('0')) return 'ror';
+  if (id.startsWith('10.')) return 'doi';
+  return 'openalex';
+};
+
+const buildApiUrl = (entityType, ids) => {
+  const filterKey = idType.value === 'openalex' ? 'ids.openalex' : idType.value;
+  const selectFields = ['id', 'display_name'];
+  if (idType.value !== 'openalex') selectFields.push(idType.value);
+  const filter = ids.map(id => encodeURIComponent(id)).join('%7C');
+  return `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}`;
+};
+
+const extractBadIdFromError = (message) => {
+  const match = message && message.match(/'([^']+)' is not a valid OpenAlex ID/);
+  return match ? match[1] : null;
+};
+
+const stripIdFromUrl = (url) => {
+  if (!url) return '';
+  try {
+    let path = url.replace(/^https?:\/\/[\w.]+\//, '');
+    return path.startsWith('/') ? path.slice(1) : path;
+  } catch {
+    return url;
+  }
+};
+
+const validateIdsWithRetry = async (entityType, ids) => {
+  let badIds = [];
+  let results = [];
+  while (ids.length) {
+    const url = buildApiUrl(entityType, ids);
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.ok) {
+        results = data.results || [];
+        break;
       }
-    }
-  },
-  methods: {
-    ...mapMutations(["snackbar"]),
-    ...mapActions("user", [
-      "updateCollectionIds",
-    ]),
-    parseIds(input) {
-      const idType = this.idType;
-      const entityType = this.labelData.entity_type;
-      const entityPrefix = entityType && entityType.length > 0 ? entityType[0].toUpperCase() : '';
-      let ids = input.split(/\n|,/).map(id => id.trim()).filter(Boolean);
-      if (idType === 'openalex') {
-        return ids.map(id => (/^\d/.test(id) ? entityPrefix + id : id));
+      const badId = extractBadIdFromError(data.message);
+      if (badId) {
+        badIds.push(badId);
+        ids = ids.filter(id => id !== badId);
       } else {
-        // For orcid/doi/ror, do not prepend anything
-        return ids;
+        break;
       }
-    },
-    getIdType(id) {
-      // ORCID: four groups of four digits separated by hyphens (e.g., 0000-0001-2345-6789)
-      if (/^\d{4}-\d{4}-\d{4}-\d{4}$/.test(id)) {
-        return "orcid";
-      }
-      // ROR: starts with 0, 9 digits
-      if (id.length === 9 && id.startsWith("0")) {
-        return "ror";
-      }
-      // DOI: starts with 10.
-      if (id.startsWith("10.")) {
-        return "doi";
-      }
-      return "openalex";
-    },
-    buildApiUrl(entityType, ids) {
-      const filterKey = this.idType === 'openalex' ? 'ids.openalex' : this.idType;
-      const selectFields = ['id', 'display_name'];
-      if (this.idType !== 'openalex') selectFields.push(this.idType);
-      const filter = ids.map(id => encodeURIComponent(id)).join('%7C');
-      return `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}`;
-    },
-    extractBadIdFromError(message) {
-      const match = message && message.match(/'([^']+)' is not a valid OpenAlex ID/);
-      return match ? match[1] : null;
-    },
-    async validateIdsWithRetry(entityType, ids) {
-      let badIds = [];
-      let results = [];
-      while (ids.length) {
-        const url = this.buildApiUrl(entityType, ids);
-        let response, data;
-        try {
-          response = await fetch(url);
-          data = await response.json();
-        } catch {
-          break; // Network or parsing error: abort
-        }
-        if (response.ok) {
-          results = data.results || [];
-          break;
-        }
-        const badId = this.extractBadIdFromError(data && data.message);
-        if (badId) {
-          badIds.push(badId);
-          ids = ids.filter(id => id !== badId);
-        } else {
-          break; // Unknown error, abort
-        }
-      }
-      return { results, badIds, remainingIds: ids };
-    },
-    async checkIds(input) {
-      this.checking = true;
-      let ids = this.parseIds(input);
-      if (!ids.length) {
-        this.validIds = [];
-        this.invalidIds = [];
-        this.checking = false;
-        return;
-      }
-      const entityType = this.labelData.entity_type;
-      const idType = this.idType;
-      const { results, badIds } = await this.validateIdsWithRetry(entityType, ids);
-      let valid = [];
-      if (idType === 'openalex') {
-        valid = (results || []).map(r => ({
-          id: r.id.replace('https://openalex.org/', ''),
-          display_name: r.display_name,
-          openalex_id: r.id.replace('https://openalex.org/', '')
-        }));
-      } else {
-        valid = (results || []).map(r => {
-          let rawId = r[idType] ? this.stripIdFromUrl(r[idType]) : null;
-          return {
-            id: rawId,
-            display_name: r.display_name,
-            openalex_id: r.id ? r.id.replace('https://openalex.org/', '') : null
-          };
-        });
-      }
-      // For matching, use the rawId (for orcid/doi/ror) or openalex id
-      const foundIds = new Set(valid.map(r => r.id));
-      const invalid = [
-        ...badIds,
-        ...this.parseIds(input).filter(id => !foundIds.has(id) && !badIds.includes(id))
-      ];
-      this.validIds = valid;
-      this.invalidIds = invalid;
-      this.checking = false;
-    },
-    stripIdFromUrl(url) {
-      // Remove protocol and domain, then leading slash
-      if (!url) return '';
-      try {
-        let path = url.replace(/^https?:\/\/[\w.]+\//, '');
-        // If still a slash, remove
-        if (path.startsWith('/')) path = path.slice(1);
-        return path;
-      } catch {
-        return url;
-      }
-    },
-    async onCheckIds() {
-      this.checked = false;
-      this.validIds = [];
-      this.invalidIds = [];
-      this.recheckInput = '';
-      this.originalInput = this.bulkInput;
-      await this.checkIds(this.bulkInput);
-      this.checked = true;
-      this.recheckInput = this.invalidIds.join('\n');
-      this.lastCheckedRecheckInput = this.recheckInput;
-    },
-    async onRecheck() {
-      this.checked = false;
-      const oldValidIds = this.validIds.slice();
-      await this.checkIds(this.recheckInput);
-      // Merge new validIds with old, deduplicating by id
-      const allValid = [...oldValidIds, ...this.validIds];
-      const seen = new Set();
-      this.validIds = allValid.filter(item => {
-        if (seen.has(item.id)) return false;
-        seen.add(item.id);
-        return true;
-      });
-      this.checked = true;
-      this.recheckInput = this.invalidIds.join('\n');
-      this.lastCheckedRecheckInput = this.recheckInput;
-    },
-    async onAddRecognized() {
-      // Only use OpenAlex IDs for saving
-      const recognizedFullIds = this.validIds
-        .map(item => item.openalex_id)
-        .filter(id => !!id) // filter out null/undefined
-        .map(openalexId => `${this.labelData.entity_type}/${openalexId}`);
-      const idSet = new Set([...this.labelData.ids, ...recognizedFullIds]);
-      const newIds = Array.from(idSet);
-      try {
-        await this.updateCollectionIds({
-          collectionId: this.labelData.id,
-          ids: newIds,
-        });
-        this.$emit('close');
-        this.snackbar(`${recognizedFullIds.length} ${this.labelData.entity_type} added to ${this.labelData.name}`);
-      } catch (e) {
-        this.snackbar(`Failed to add IDs: ${e.message || e}`);
-      }
-    },
-    removeRecognizedId(id) {
-      this.validIds = this.validIds.filter(item => item.id !== id);
-    },
-    onBack() {
-      // Go back to initial state, restoring original input
-      this.checked = false;
-      this.bulkInput = this.originalInput;
-    },
-    entitySingularOrPlural(count) {
-      if (count !== 1) {
-        return this.labelData.entity_type;
-      }
-      const config = getConfigs()[this.labelData.entity_type];
-      return config.displayNameSingular;
+    } catch {
+      break;
     }
-  
-  },
-  watch: {
-    bulkInput(val) {
-      // Auto-detect ID type from the first non-empty value
-      const firstId = (val || '').split(/\n|,/).map(x => x.trim()).find(x => x.length > 0);
-      if (firstId) {
-        this.idType = this.getIdType(firstId);
-      } else {
-        this.idType = 'openalex';
-      }
+  }
+  return { results, badIds, remainingIds: ids };
+};
+
+const checkIds = async (input) => {
+  checking.value = true;
+  const ids = parseIds(input);
+  if (!ids.length) {
+    validIds.value = [];
+    invalidIds.value = [];
+    checking.value = false;
+    return;
+  }
+  const { results, badIds } = await validateIdsWithRetry(labelData.value.entity_type, ids);
+  const valid = results.map(r => {
+    if (idType.value === 'openalex') {
+      const openalex_id = r.id.replace('https://openalex.org/', '');
+      return { id: openalex_id, display_name: r.display_name, openalex_id };
+    } else {
+      const rawId = r[idType.value] ? stripIdFromUrl(r[idType.value]) : null;
+      return {
+        id: rawId,
+        display_name: r.display_name,
+        openalex_id: r.id ? r.id.replace('https://openalex.org/', '') : null
+      };
     }
-  },
-}
+  });
+  const foundIds = new Set(valid.map(r => r.id));
+  const invalid = [...badIds, ...parseIds(input).filter(id => !foundIds.has(id) && !badIds.includes(id))];
+  validIds.value = valid;
+  invalidIds.value = invalid;
+  checking.value = false;
+};
+
+const onCheckIds = async () => {
+  checked.value = false;
+  validIds.value = [];
+  invalidIds.value = [];
+  recheckInput.value = '';
+  originalInput.value = bulkInput.value;
+  await checkIds(bulkInput.value);
+  checked.value = true;
+  recheckInput.value = invalidIds.value.join('\n');
+  lastCheckedRecheckInput.value = recheckInput.value;
+};
+
+const onRecheck = async () => {
+  checked.value = false;
+  const oldValid = [...validIds.value];
+  await checkIds(recheckInput.value);
+  const allValid = [...oldValid, ...validIds.value];
+  const seen = new Set();
+  validIds.value = allValid.filter(item => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+  checked.value = true;
+  recheckInput.value = invalidIds.value.join('\n');
+  lastCheckedRecheckInput.value = recheckInput.value;
+};
+
+const onAddRecognized = async () => {
+  const ids = validIds.value.map(item => `${labelData.value.entity_type}/${item.openalex_id}`);
+  const newIds = Array.from(new Set([...labelData.value.ids, ...ids]));
+  try {
+    await updateCollectionIds({ collectionId: labelData.value.id, ids: newIds });
+    emit('close');
+    snackbar(`${ids.length} ${labelData.value.entity_type} added to ${labelData.value.name}`);
+  } catch (e) {
+    snackbar(`Failed to add IDs: ${e.message || e}`);
+  }
+};
+
+const removeRecognizedId = (id) => {
+  validIds.value = validIds.value.filter(item => item.id !== id);
+};
+
+const onBack = () => {
+  checked.value = false;
+  bulkInput.value = originalInput.value;
+};
+
+const entitySingularOrPlural = (count) => {
+  if (count !== 1) return labelData.value.entity_type;
+  return getConfigs()[labelData.value.entity_type].displayNameSingular;
+};
+
+// Watchers
+watch(bulkInput, (val) => {
+  const firstId = val.split(/\n|,/).map(x => x.trim()).find(Boolean);
+  idType.value = firstId ? getIdType(firstId) : 'openalex';
+});
 </script>
+
 
 <style scoped>
 .recognized-id-list {
