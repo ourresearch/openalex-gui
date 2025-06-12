@@ -10,7 +10,7 @@
       <v-chip
           v-bind="props"
           variant="text"
-          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 text-body-1"
+          class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
           closable
           close-icon="mdi-close"
           @click="toggleMenu"
