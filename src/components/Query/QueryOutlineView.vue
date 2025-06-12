@@ -1,8 +1,8 @@
 <template>
   <span class="query-outline-view">
     <!-- Button that opens the dialog -->
-    <v-btn variant="flat" size="small" class="query-outline-button" color="catPurple" @click="openDialog">
-      <v-icon size="small">mdi-format-list-bulleted</v-icon>
+    <v-btn variant="flat" size="default" class="query-outline-button" color="catPurple" @click="openDialog">
+      <v-icon size="default">mdi-format-list-bulleted</v-icon>
     </v-btn>
 
     <!-- Dialog component -->
