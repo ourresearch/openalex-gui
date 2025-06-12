@@ -50,7 +50,7 @@
         </div>
       </div>
       
-      <v-card-text v-if="!this.displayNamesLoaded">
+      <v-card-text v-if="!displayNamesLoaded">
         Loading...
       </v-card-text>
       <v-card-text v-else-if="!labelData">
@@ -77,9 +77,9 @@
         </v-list-item>
       </v-list>
 
-      <div class="label-details-action-row d-flex flex-row" style="width: 100%;">
+      <div v-if="labelData" class="label-details-action-row d-flex flex-row" style="width: 100%;">
         <div class="label-details-add-section px-6" style="flex: 1.5; display: flex; flex-direction: column; justify-content: center;">
-          <div class="label mb-2">Add {{ this.labelData.entity_type }}:</div>
+          <div class="label mb-2">Add {{ labelData.entity_type }}:</div>
           <entity-autocomplete
             :entityType="labelData.entity_type"
             @entity-selected="addId($event.id)"
@@ -88,7 +88,7 @@
         <div class="label-details-upload-section px-6 mt-0" style="flex: 1; display: flex; align-items: center; justify-content: center;">
           <v-btn color="primary" rounded @click="showBulkUploadDialog = true">
             <v-icon start>mdi-upload</v-icon>
-            Upload {{ filters.capitalize(this.labelData.entity_type) }} List
+            Upload {{ filters.capitalize(labelData.entity_type) }} List
           </v-btn>
         </div>
       </div>
@@ -122,88 +122,79 @@
   </div>
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
+import { api } from '@/api';
+import filters from '@/filters';
 
-<script>
+import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
+import LabelCreate from '@/components/Label/LabelCreate.vue';
+import LabelBulkUpload from '@/components/Label/LabelBulkUpload.vue';
 
-import {mapActions, mapGetters} from "vuex"
-import {api} from "@/api"
-import filters from "@/filters"
+defineOptions({ name: 'LabelDetails' });
 
-import EntityAutocomplete from "@/components/EntityAutocomplete.vue"
-import LabelCreate from "@/components/Label/LabelCreate.vue"
-import LabelBulkUpload from "@/components/Label/LabelBulkUpload.vue"
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
-export default {
-  name: "LabelDetails",
-  components: {
-    EntityAutocomplete,
-    LabelCreate,
-    LabelBulkUpload,
-  },
-  props: {},
-  data() {
-    return {
-      displayNamesLoaded: false,
-      showEditDialog: false,
-      showBulkUploadDialog: false,
-      filters,
+const showEditDialog = ref(false);
+const showBulkUploadDialog = ref(false);
+const displayNamesLoaded = ref(false);
+
+const labelId = computed(() => route.params.labelId || null);
+const userCollections = computed(() => store.getters['user/userCollections']);
+const labelData = computed(() => userCollections.value.find(coll => coll.id === labelId.value));
+
+const entityDisplayName = (id) => api.getEntityFromCache(id)?.display_name ?? '';
+const clickRow = (id) => { store.state.zoomId = id };
+const loadAllDisplayNames = async () => {
+  const calls = labelData.value?.ids?.map(id => api.getEntity(id)) ?? [];
+  await Promise.all(calls);
+  displayNamesLoaded.value = true;
+};
+
+// Composables
+const useLabelActions = () => {
+  const updateCollectionIds = (payload) =>
+    store.dispatch('user/updateCollectionIds', payload);
+
+  const deleteCollection = (id) =>
+    store.dispatch('user/deleteCollection', id);
+
+  const addId = async (id) => {
+    const newIds = [...new Set([...labelData.value.ids, id])];
+    await api.getEntity(id);
+    await updateCollectionIds({ collectionId: labelId.value, ids: newIds });
+  };
+
+  const removeId = async (id) => {
+    const newIds = labelData.value.ids.filter(existingId => existingId !== id);
+    await updateCollectionIds({ collectionId: labelId.value, ids: newIds });
+  };
+
+  const deleteLabel = async () => {
+    const resp = await deleteCollection(labelId.value);
+    if (resp) {
+      router.push('/me/labels');
     }
+  };
+
+  return { addId, removeId, deleteLabel };
+};
+
+// Usage
+const { addId, removeId, deleteLabel } = useLabelActions();
+
+// Watch for label changes
+watch(labelData, 
+  async () => {
+    displayNamesLoaded.value = false;
+    await loadAllDisplayNames();
   },
-  computed: {
-    ...mapGetters("user", [
-      "userCollections",
-    ]),
-    labelId() {
-      return this.$route.params.labelId || null;
-    },
-    labelData() {
-      return this.userCollections.find(coll => coll.id === this.labelId);
-    },
-  },
-  methods: {
-    ...mapActions("user", [
-      "updateCollectionIds",
-      "deleteCollection",
-    ]),
-    async loadAllDisplayNames() {
-      const calls = this.labelData.ids.map(id => api.getEntity(id));
-      await Promise.all(calls);
-      //console.log("loadedAllDisplayNames")
-      this.displayNamesLoaded = true;
-    },
-    entityDisplayName(id) {
-      return api.getEntityFromCache(id).display_name;
-    },
-    async addId(id) {
-      const newIds = [...new Set([...this.labelData.ids, id])];
-      await api.getEntity(id); // To preload entity display name
-      await this.updateCollectionIds({collectionId: this.labelId, ids: newIds});
-    },
-    async removeId(id) {
-      const newIds = this.labelData.ids.filter(existingId => existingId != id);
-      await this.updateCollectionIds({collectionId: this.labelId, ids: newIds});
-    },
-    clickRow(rowId) {
-      this.$store.state.zoomId = rowId;
-    },
-    async deleteLabel() {
-      const resp = await this.deleteCollection(this.labelId);
-      if (resp) {
-        this.$router.push("/me/labels");
-      }
-    }
-  },
-  watch: {
-    labelData: {
-      handler() {
-        this.displayNamesLoaded = false;
-        this.loadAllDisplayNames();
-      },
-      immediate: true,
-      deep: false
-    }
-  },
-}
+  { immediate: true });
+
 </script>
 
 

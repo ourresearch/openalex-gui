@@ -3,7 +3,6 @@
     <div v-if="!labelId" class="mb-2">
       <span class="text-h4 ml-1 mr-3">Labels</span>
       <v-btn 
-        v-if="!labelId" 
         @click="isLabelCreateDialogOpen = true"
         color="primary"
         size="small"
@@ -49,48 +48,24 @@
   </div>
 </template>
 
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import LabelCreate from '@/components/Label/LabelCreate.vue';
 
-<script>
+defineOptions({ name: 'MeLabels' });
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import LabelCreate from "@/components/Label/LabelCreate.vue";
+const store = useStore();
+const route = useRoute();
 
-export default {
-  name: "MeLabels",
-  components: {
-    LabelCreate,
-  },
-  props: {},
-  data() {
-    return {
-      isLabelCreateDialogOpen: false,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userCollections",
-    ]),
-    labelId() {
-      return this.$route.params.labelId || null;
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions("user", [
-      "deleteCollection",
-    ]),
-    getLabel(id) {
-      return this.$store.getters['user/getCollection'](id);
-    },
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
-}
+const isLabelCreateDialogOpen = ref(false);
+const labelId = computed(() => route.params.labelId || null);
+const userCollections = computed(() => store.getters['user/userCollections']);
+
+const deleteCollection = async (id) => {
+  await store.dispatch('user/deleteCollection', id);
+};
 </script>
 
 

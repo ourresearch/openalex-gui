@@ -50,7 +50,7 @@ const api = (function () {
             .join("&");
 
         const url = paramsStr ? [baseAndPath, paramsStr].join("?") : baseAndPath;
-        console.log("makeUrl OUTPUT", url);
+        //console.log("makeUrl OUTPUT", url);
         return url;
     }
 

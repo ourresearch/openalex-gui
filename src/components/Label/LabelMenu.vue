@@ -7,36 +7,40 @@
           <span v-if="!icon">Labels</span>
         </v-btn>
       </template>
+
       <v-list>
         <v-list-subheader>Apply Label:</v-list-subheader>
         <v-list-item
-            v-for="label in availableLabels"
-            :key="label.id"
-            @click="toggle(label.id)"
+          v-for="label in availableLabels"
+          :key="label.id"
+          @click="toggle(label.id)"
         >
-          <span @click="toggle(label.id)">
-            <v-icon v-if="showCheck(label.id)">mdi-checkbox-outline</v-icon>
-            <v-icon v-else-if="showHalfCheck(label.id)">mdi-minus-box-outline</v-icon>
-            <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
-          </span>
-          
-            <v-list-item-title>{{ label.name }}</v-list-item-title>
+          <template #prepend>
+            <v-icon @click.stop="toggle(label.id)">{{ checkIcon(label.id) }}</v-icon>
+          </template>
+          <v-list-item-title>{{ label.name }}</v-list-item-title>
           
         </v-list-item>
+
         <v-divider/>
+        
         <v-list-item
-            key="create-label"
-            @click="isCreateLabelDialogOpen = true"
+          key="create-label"
+          @click="isCreateLabelDialogOpen = true"
         >
-          <v-icon>mdi-tag-plus-outline</v-icon>
+          <template #prepend>
+            <v-icon>mdi-tag-plus-outline</v-icon>
+          </template>
           <v-list-item-title>New Label</v-list-item-title>
           
         </v-list-item>
         <v-list-item
-            key="manage-labels"
-            to="/me/labels"
+          key="manage-labels"
+          to="/me/labels"
         >
-          <v-icon>mdi-tag-edit-outline</v-icon>
+          <template #prepend>
+            <v-icon>mdi-tag-edit-outline</v-icon>
+          </template>
           <v-list-item-title>Manage Labels</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -48,71 +52,54 @@
   </div>
 </template>
 
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import LabelCreate from '@/components/Label/LabelCreate.vue';
 
-<script>
-import {mapActions, mapGetters} from "vuex";
-import LabelCreate from "@/components/Label/LabelCreate.vue";
+defineOptions({ name: 'LabelMenu' });
 
-export default {
-  name: "LabelMenu",
-  components: {
-    LabelCreate,
-  },
-  props: {
-    selectedIds: Array,
-    icon: {
-      type: Boolean,
-      default: true
-    },
-  },
-  data() {
-    return {
-      isCreateLabelDialogOpen: false,
-    }
-  },
-  computed: {
-    ...mapGetters("search", [
-      "querySubjectEntity",
-    ]),
-    ...mapGetters("user", [
-      "userCollections",
-    ]),
-    availableLabels() {
-      const labels = this.$store.getters['user/getCollectionsByType'](this.querySubjectEntity);
-      return labels;
-    }
-  },
-  methods: {
-    ...mapActions("user", [
-      "updateCollectionIds",
-    ]),
-    collectionById(id) {
-      return this.userCollections.find(coll => coll.id === id);
-    },
-    showCheck(collectionId) {
-      // Show a check mark only if every selected ID has the label
-      const collection = this.collectionById(collectionId);
-      return this.selectedIds.every(selectedId => collection.ids.includes(selectedId));
-    },
-    showHalfCheck(collectionId) {
-      const collection = this.collectionById(collectionId);
-      return this.selectedIds.some(selectedId => collection.ids.includes(selectedId));
-    },
-    addIds(collectionId) {
-      const collection = this.collectionById(collectionId);
-      const newIds = [...new Set([...collection.ids, ...this.selectedIds])];
-      this.updateCollectionIds({collectionId, ids: newIds});
-    },
-    removeIds(collectionId) {
-      const collection = this.collectionById(collectionId);
-      const newIds = collection.ids.filter(id => !this.selectedIds.includes(id));
-      this.updateCollectionIds({collectionId, ids: newIds});
-    },
-    toggle(collectionId) {
-      this.showCheck(collectionId) ? this.removeIds(collectionId) : this.addIds(collectionId);
-    }
+const props = defineProps({
+  selectedIds: Array,
+  icon: { type: Boolean, default: true }
+});
+
+const store = useStore();
+const isCreateLabelDialogOpen = ref(false);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+const userCollections = computed(() => store.getters['user/userCollections']);
+const availableLabels = computed(() => store.getters['user/getCollectionsByType'](querySubjectEntity.value));
+
+const updateCollectionIds = (payload) => store.dispatch('user/updateCollectionIds', payload);
+
+const collectionById = (id) => userCollections.value.find(coll => coll.id === id);
+
+const checkIcon = (collectionId) => {
+  const collection = collectionById(collectionId);
+  if (props.selectedIds.every(selectedId => collection.ids.includes(selectedId))) {
+    return 'mdi-checkbox-outline';
+  } else if (props.selectedIds.some(selectedId => collection.ids.includes(selectedId))) {
+    return 'mdi-minus-box-outline';
+  } else {
+    return 'mdi-checkbox-blank-outline';
   }
 }
+
+const addIds = (collectionId) => {
+  const collection = collectionById(collectionId);
+  const newIds = [...new Set([...collection.ids, ...props.selectedIds])];
+  updateCollectionIds({ collectionId, ids: newIds });
+};
+
+const removeIds = (collectionId) => {
+  const collection = collectionById(collectionId);
+  const newIds = collection.ids.filter(id => !props.selectedIds.includes(id));
+  updateCollectionIds({ collectionId, ids: newIds });
+};
+
+const toggle = (collectionId) => {
+  checkIcon(collectionId) === 'mdi-checkbox-outline' ? removeIds(collectionId) : addIds(collectionId);
+};
 </script>
 
 

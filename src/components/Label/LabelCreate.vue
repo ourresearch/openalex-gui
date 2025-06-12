@@ -15,7 +15,7 @@
               autofocus
               placeholder="Label name"
               hide-details
-              @keydown.enter.prevent="create"
+              @keydown.enter.prevent="createLabel"
           >
           </v-text-field>
           <template v-if="full">
@@ -61,126 +61,111 @@
           variant="flat"
           rounded
           :disabled="!name || isLoading"
-          @click="create">
+          @click="createLabel">
         {{ editId ? "Save" : "Create" }}
       </v-btn>
     </v-card-actions>
   </v-card>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { getConfigs } from '@/oaxConfigs';
 
-import {mapActions, mapMutations} from "vuex";
-import {getConfigs} from "@/oaxConfigs";
+defineOptions({ name: 'LabelCreate' });
 
-export default {
-  name: "LabelCreate",
-  components: {},
-  props: {
-    full: {
-      type: Boolean,
-      default: false,
-    },
-    ids: {
-      type: Array,
-      required: false,
-    },
-    entityType: {
-      type: String,
-      required: false,
-      default: "authors"
-    },
-    editId: {
-      type: String,
-      required: false,
-      default: null
-    }
-  },
-  data() {
-    return {
-      isLoading: false,
-      name: "",
-      description: "",
-      entity_type: this.entityType,
-      idsArray: this.ids?.length ? this.ids : [],
-    }
-  },
-  computed: {
-    entity_types() {
-      return Object.keys(getConfigs()).map(entity_type => ({
-        text: entity_type.split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' '),
-        value: entity_type
-      }));
-    },
-    isChangeTypeDisabled() {
-      const label = this.$store.getters['user/getCollection'](this.editId);
-      const val = this.editId && label.ids.length > 0;
-      return val;
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions("user", [
-      "createCollection",
-      "updateCollection"
-    ]),
-    handleDisabledSelectClick() {
-      this.snackbar({
-        msg: "To change label type, please delete existing items first.",
-      });
-    },
-    async create(){
-      if (!this.name) { return; }
+const props = defineProps({
+  full: { type: Boolean, default: false },
+  ids: { type: Array, default: () => [] },
+  entityType: { type: String, default: 'authors' },
+  editId: { type: String, default: null }
+});
 
-      this.isLoading = true;
-      const payload = {
-        ids: this.idsArray,
-        name: this.name,
-        entity_type: this.entity_type,
-      };
-      
-      if (this.description) {
-        payload.description = this.description;
-      }
+const emit = defineEmits(['close']);
 
-      if (this.editId) {
-        await this.updateCollection({
-          id: this.editId,
-          name: this.name,
-          description: this.description,
-          entity_type: this.entity_type,
-        });
-        this.snackbar({msg: "Label updated"});
-      } else {
-        await this.createCollection(payload);
-        this.snackbar({msg: "Label created" + (this.idsArray.length ? " and applied" : "")});
-      }
-      
-      this.isLoading = false;
-      this.close();
-    },
-    close(){
-      this.name = "";
-      this.description = "";
-      this.idsArray = [];
-      this.$emit('close');
+const store = useStore();
+
+const name = ref('');
+const description = ref('');
+const entity_type = ref(props.entityType);
+const isLoading = ref(false);
+const idsArray = ref(props.ids?.length ? props.ids : []);
+
+const entity_types = computed(() =>
+  Object.keys(getConfigs()).map((type) => ({
+    text: type
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' '),
+    value: type
+  }))
+);
+
+const isChangeTypeDisabled = computed(() => {
+  if (!props.editId) return false;
+  const label = store.getters['user/getCollection'](props.editId);
+  return label && label.ids.length > 0;
+});
+
+const snackbar = (val) => store.commit('snackbar', val);
+
+const createCollection = (payload) => store.dispatch('user/createCollection', payload);
+const updateCollection = (payload) => store.dispatch('user/updateCollection', payload);
+
+const createLabel = async () => {
+  if (!name.value) return;
+
+  isLoading.value = true;
+
+  const payload = {
+    ids: idsArray.value,
+    name: name.value,
+    entity_type: entity_type.value,
+  };
+
+  if (description.value) {
+    payload.description = description.value;
+  }
+
+  if (props.editId) {
+    await updateCollection({
+      id: props.editId,
+      name: name.value,
+      description: description.value,
+      entity_type: entity_type.value
+    });
+    snackbar({ msg: 'Label updated' });
+  } else {
+    await createCollection(payload);
+    snackbar({ msg: 'Label created' + (idsArray.value.length ? ' and applied' : '') });
+  }
+
+  isLoading.value = false;
+  closeDialog();
+};
+
+const closeDialog = () => {
+  name.value = '';
+  description.value = '';
+  idsArray.value = [];
+  emit('close');
+};
+
+const handleDisabledSelectClick = () => {
+  snackbar({ msg: 'To change label type, please delete existing items first.' });
+};
+
+onMounted(() => {
+  if (props.editId) {
+    const collection = store.getters['user/getCollection'](props.editId);
+    if (collection) {
+      name.value = collection.name;
+      description.value = collection.description || '';
+      entity_type.value = collection.entity_type;
     }
-  },
-  async created() {
-    if (this.editId) {
-      const collection = this.$store.getters['user/getCollection'](this.editId);
-      if (collection) {
-        this.name = collection.name;
-        this.description = collection.description || "";
-        this.entity_type = collection.entity_type;
-      }
-    }
-  },
-}
+  }
+});
 </script>
 
 
