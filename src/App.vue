@@ -120,7 +120,7 @@ import { useHead } from '@unhead/vue';
 
 import {getConfigs} from "@/oaxConfigs";
 
-import UserToolbarMenu from "@/components/user/UserToolbarMenu.vue";
+import UserToolbarMenu from "@/components/User/UserToolbarMenu.vue";
 import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
 import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
 import SiteFooter from "./components/SiteFooter.vue";
