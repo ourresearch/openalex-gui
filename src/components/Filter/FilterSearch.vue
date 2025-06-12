@@ -1,8 +1,8 @@
 <template>
   <filter-base :filter-key="filterKey" :index="index">
       <v-chip
-          color="transparent"
-          class="option mr-1 px-4 py-4 mb-1 mt-1  font-weight-regular hover-color-1 text-body-1"
+          variant="text"
+          class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
           @click="isActive = true"
           v-if="!isActive"
       >
@@ -14,7 +14,8 @@
             v-model="searchString"
             class="rounded-lg"
             density="compact"
-            variant="filled"
+            variant="solo-filled"
+            flat
             hide-details
             autofocus
             placeholder="Enter search terms"

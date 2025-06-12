@@ -3,10 +3,10 @@
     <div class="d-flex flex-wrap align-center">
       <template v-for="(id, i) in optionIds" :key="id">
         <filter-select-option
-            :filter-value="id"
-            :filter-key="filterKey"
-            :position="i"
-            @delete="deleteOption(id)"
+          :filter-value="id"
+          :filter-key="filterKey"
+          :position="i"
+          @delete="deleteOption(id)"
         />
         <span
           v-if="i < optionIds.length-1"
