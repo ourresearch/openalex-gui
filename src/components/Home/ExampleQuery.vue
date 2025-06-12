@@ -8,8 +8,8 @@
     </div>
     <v-spacer />
     <div>
-      <v-chip label size="small" variant="flat" :color="chipColor(type)">{{type}}</v-chip>
-      <v-chip label size="small" variant="flat" :color="chipColor(category)">{{category}}</v-chip>  
+      <v-chip label size="small" variant="tonal" :color="chipColor(type)">{{type}}</v-chip>
+      <v-chip label size="small" variant="tonal" :color="chipColor(category)">{{category}}</v-chip>  
     </div>
   </v-card>
 </template>
@@ -45,26 +45,26 @@ export default {
     ]),
     chipColor(category) {
       const colors = {
-        "works": "catBlueDarker",
-        "authors": "catGreenDarker",
-        "sources": "catTealDarker",
-        "institutions": "catPurpleDarker",
-        "topics": "catTealDarker",
-        "sdgs": "catRedDarker",
-        "funders": "catBlueDarker",
-        "keywords": "catGreenDarker",
-        "fields": "catOrangeDarker",
-        "countries": "catPurpleDarker",
+        "works": "catBlueDark",
+        "authors": "catGreenDark",
+        "sources": "catTealDark",
+        "institutions": "catPurpleDark",
+        "topics": "catTealDark",
+        "sdgs": "catRedDark",
+        "funders": "catBlueDark",
+        "keywords": "catGreenDark",
+        "fields": "catOrangeDark",
+        "countries": "catPurpleDark",
 
-        "discovery": "catRedDarker",
-        "metrics": "catRedDarker",
-        "compliance": "catBlueDarker",
-        "trend detection": "catTealDarker",
-        "expert discovery": "catPurpleDarker",
-        "open access": "catPurpleDarker",
-        "recommenders": "catTealDarker",
-        "rankings": "catRedDarker",
-        "collaboration": "catBlueDarker",
+        "discovery": "catRedDark",
+        "metrics": "catRedDark",
+        "compliance": "catBlueDark",
+        "trend detection": "catTealDark",
+        "expert discovery": "catPurpleDark",
+        "open access": "catPurpleDark",
+        "recommenders": "catTealDark",
+        "rankings": "catRedDark",
+        "collaboration": "catBlueDark",
       };
       return category in colors ? colors[category] :"primary";
     },
