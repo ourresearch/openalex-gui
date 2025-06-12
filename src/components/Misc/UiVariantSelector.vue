@@ -25,30 +25,25 @@
 </template>
 
 
-<script>
-import { mapMutations, mapState } from 'vuex';
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: 'UiVariantSelector',
-  data() {
-    return {
-      uiOptions: [
-        { value: 'sentence-worksfirst', text: 'Works First Sentence' },
-        { value: 'sentence-entityfirst', text: 'Entity First Sentence' },
-        { value: 'sentence-group', text: 'Group Button Sentence' },
-        { value: 'top', text: 'Top Columns' },
-        { value: 'side', text: 'Side (Entity First)' },
-        { value: 'worksfirst', text: 'Side (Works First)' }
-      ]
-    };
-  },
-  computed: {
-    ...mapState(['uiVariant'])
-  },
-  methods: {
-    ...mapMutations(['setUiVariant'])
-  }
-};
+defineOptions({ name: 'UiVariantSelector' });
+
+const store = useStore();
+
+const uiOptions = ref([
+  { value: 'sentence-worksfirst', text: 'Works First Sentence' },
+  { value: 'sentence-entityfirst', text: 'Entity First Sentence' },
+  { value: 'sentence-group', text: 'Group Button Sentence' },
+  { value: 'top', text: 'Top Columns' },
+  { value: 'side', text: 'Side (Entity First)' },
+  { value: 'worksfirst', text: 'Side (Works First)' }
+]);
+
+const uiVariant = computed(() => store.state.uiVariant);
+const setUiVariant = (val) => store.commit('setUiVariant', val);
 </script>
 
 

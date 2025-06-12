@@ -34,28 +34,24 @@
   </span>
 </template>
 
-<script>
-export default {
-  name: "HoverMenuWrapper",
-  props: {
-    active: {
-      type: Boolean,
-    },
-    actionText: {
-      type: String,
-      default: "Remove Filter"
-    },
-    actionIcon: {
-      type: String,
-      default: "mdi-close"
-    }
+<script setup>
+import { ref } from 'vue';
+
+defineOptions({ name: 'HoverMenuWrapper' });
+
+const props = defineProps({
+  active: Boolean,
+  actionText: {
+    type: String,
+    default: 'Remove Filter'
   },
-  data() {
-    return {
-      showMenu: false
-    };
+  actionIcon: {
+    type: String,
+    default: 'mdi-close'
   }
-};
+});
+
+const showMenu = ref(false);
 </script>
 
 <style scoped>
