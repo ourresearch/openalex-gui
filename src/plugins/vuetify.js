@@ -8,6 +8,7 @@ import colors from 'vuetify/util/colors'
 const baseWeight = "lighten5";
 const darkerWeight = "lighten4";
 const lighterWeight = "lighten5";
+const darkWeight = "darken1";
 
 export default createVuetify({
   components,
@@ -28,12 +29,12 @@ export default createVuetify({
           catPurple: colors.purple[baseWeight],
           catTeal: colors.teal[baseWeight],
 
-          catRedDarker: colors.red[darkerWeight],
-          catBlueDarker: colors.blue[darkerWeight],
-          catGreenDarker: colors.green[darkerWeight],
-          catOrangeDarker: colors.orange[darkerWeight],
-          catPurpleDarker: colors.purple[darkerWeight],
-          catTealDarker: colors.teal[darkerWeight],
+          catRedDark: colors.red[darkWeight],
+          catBlueDark: colors.blue[darkWeight],
+          catGreenDark: colors.green[darkWeight],
+          catOrangeDark: colors.orange[darkWeight],
+          catPurpleDark: colors.purple[darkWeight],
+          catTealDark: colors.teal[darkWeight],
 
           catWorks: colors.blue[baseWeight],
           catEntity: colors.green[baseWeight],
