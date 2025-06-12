@@ -1,8 +1,8 @@
 <template>
   <v-btn 
-    v-bind="$attrs"
     class="new-query-button" 
     variant="flat"
+    v-bind="$attrs"
     @click="onClick"
   >
     <template v-if="!goTo">
