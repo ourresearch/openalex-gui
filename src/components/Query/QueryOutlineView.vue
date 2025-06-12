@@ -29,32 +29,39 @@
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
                   :filters="query.filter_works" />
+
                 <query-filter-tree
-                  v-if="querySubjectEntity !== 'works'"
-                  :subject-entity="querySubjectEntity"
+                  :subject-entity="querySubjectEntity === 'works' ? null : querySubjectEntity"
                   :filters="query.filter_aggs" />
-                <div class="section-divider clear" />
+                
+                  <div class="section-divider clear" />
+                
                 <query-columns-controls 
                   v-if="querySubjectEntity !== 'works'"
                   :isExpanded="false"
                   :show-sections="['display']" />
+                
                 <query-columns-controls
                   :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
                   :isExpanded="false" />
               </template>
+
               <template v-else-if="uiVariant === 'sentence-entityfirst'">
                 <query-filter-tree
                   v-if="querySubjectEntity !== 'works'"
                   :subject-entity="querySubjectEntity"
                   :filters="query.filter_aggs" />
+                
                 <query-columns-controls 
                   v-if="querySubjectEntity !== 'works'"
                   :isExpanded="query.filter_aggs.length > 0"
                   :show-sections="['display']" />
+                
                 <query-filter-tree
                   subject-entity="works"
                   :isWithAggs="querySubjectEntity !== 'works'"
                   :filters="query.filter_works" />
+                
                 <query-columns-controls
                   :show-sections="querySubjectEntity === 'works' ? ['display', 'calculate', 'sort'] : ['calculate', 'sort']"
                   :isExpanded="query.filter_works.length > 0" />
@@ -63,7 +70,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="grey-darken-1" variant="text" @click="cancelClick">Cancel</v-btn>
-              <v-btn color="primary" @click="searchClick">Search</v-btn>
+              <v-btn color="primary" variant="flat" @click="searchClick">Search</v-btn>
             </v-card-actions>
           </v-window-item>
 

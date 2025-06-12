@@ -1,5 +1,5 @@
 <template>
-  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start flex-grow-1">
+  <div :style="indentationStyle" class="query-filter-leaf d-flex align-start align-center flex-grow-1">
 
     <!-- Path Label -->
     <span v-if="!isSentence" class="path-label number">
@@ -7,7 +7,7 @@
     </span>
 
     <!-- Leaf Content -->
-    <div class="leaf-content flex-grow-1">
+    <div class="leaf-content flex-grow-1 d-flex align-center">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
         <span v-if="isFirstFilter">{{ isSentence ? ' the ' : 'The&nbsp;' }} </span>
@@ -239,7 +239,7 @@
               </v-btn>
               <v-btn 
                 color="primary" 
-                variant="text" 
+                variant="flat" 
                 @click="saveRelatedTextEdit"
                 :disabled="!valueEditModel"
               >
@@ -287,7 +287,7 @@
     </div>
 
     <!-- Delete Button -->
-    <v-btn v-if="!isSentence" icon size="small" @click="deleteFilter" class="mt-1">
+    <v-btn v-if="!isSentence" icon variant="plain" size="small" @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -341,7 +341,7 @@ export default {
       labelMenuOpen: false,
       relatedToTextDialogOpen: false,
       operatorClickInProgress: false,
-      focusSettling: false,
+      focusSettling: true,
       isMenuOpen: false,
     }
   },
@@ -483,6 +483,7 @@ export default {
       //console.log("onInputBlur", this.valueEditModel);        
       if (this.operatorClickInProgress || this.focusSettling 
           || this.relatedToTextDialogOpen || this.isMenuOpen) {
+        //console.log("onInputBlur: skipping")
         return;
       }
       
@@ -491,6 +492,7 @@ export default {
       } else if (this.value) {
         this.cancelEditingValue();
       } else {
+        //console.log("delete filter onBlur")
         this.deleteFilter();
       }
     },
@@ -566,12 +568,16 @@ export default {
         this.isLoading = false;
       }
     }, 300, {leading: true}),
+    focusSettledTimeout() {
+      console.log("focusSettledTimeout, current focusSettling: " + this.focusSettling);
+      // Fix for dialog interfering with input focus, prevent detailing new filter on blur
+      setTimeout(() => {
+        this.focusSettling = false;
+      }, 100);   
+    },
   },
   mounted() {
-    // Fix for dialog interfering with input focus, prevent detailing new filter on blur
-    setTimeout(() => {
-      this.focusSettling = false;
-    }, 100);
+    this.focusSettledTimeout();
     
     // Auto-open the dialog for related_to_text when value is null (new filter)
     if (this.columnConfig.id === 'related_to_text' && this.selectedValue === null) {

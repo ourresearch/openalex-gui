@@ -580,10 +580,9 @@ export default {
     },
     getActiveFilters(columnId) {
       const activeFiltersWithPath = [];
-      const entityType = this.entity || this.querySubjectEntity;
+      const entityType = this.querySubjectEntity;
       const targetKey = entityType === 'works' ? 'filter_works' : 'filter_aggs';
       const filtersToSearch = this.query[targetKey];
-
 
       const findFilters = (filters, currentPath) => {
         if (!Array.isArray(filters)) return;
