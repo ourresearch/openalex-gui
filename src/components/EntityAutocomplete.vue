@@ -33,105 +33,81 @@
   </v-autocomplete>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, computed } from 'vue';
+import { useAttrs, defineEmits, nextTick } from 'vue';
+import { debounce } from 'lodash';
+import { api } from '@/api';
+import { getConfigs } from '@/oaxConfigs';
 
-import {api} from "@/api";
-import {debounce} from 'lodash';
-import {getConfigs} from "@/oaxConfigs";
+defineOptions({ name: 'EntityAutocomplete' });
 
+const props = defineProps({
+  entityType: { type: String, required: true },
+  showWorkCounts: { type: Boolean, default: false },
+  filterColor: { type: String, default: 'primary' }
+});
 
-export default {
-  name: "EntityAutocomplete",
-  inheritAttrs: false,
-  props: {
-    entityType: {
-      type: String,
-      required: true,
-    },
-    showWorkCounts: {
-      type: Boolean,
-      default: false
-    },
-    filterColor: {
-      type: String,
-      default: "primary"
-    },
-  },
-  data() {
-    return {
-      selectedEntity: null,
-      entities: [],
-      loading: false,
-      search: null,
-      isMenuOpen: false,
-    };
-  },
-  computed: {
-    localValueOptions() {
-      const values = getConfigs()[this.entityType]?.values;
-      return values;
-    },
-  },
-  methods: {
-    onMenuUpdate(isOpen) {
-      this.isMenuOpen = isOpen;
-      this.$emit('menu-state-change', isOpen);
-    },
-    onSearchInputUpdate(val) {
-      this.search = val;
-      if (val && val.length > 0) {
-        this.debouncedSearchEntities(val);
-      } else {
-        this.entities = [];
-      }
-    },
-    async searchEntities(query) {
-      if (!query || query.length === 0) {
-        this.entities = this.localValueOptions || [];
-        return;
-      }
+const $attrs = useAttrs();
+const emit = defineEmits(['entity-selected', 'menu-state-change']);
+const selectedEntity = ref(null);
+const entities = ref([]);
+const loading = ref(false);
+const search = ref(null);
+const isMenuOpen = ref(false);
 
-      this.loading = true;
-      try {
-        const response = await api.getAutocomplete(this.entityType, {q: query});
-        
-        if (response && response.length > 0) {
-          this.entities = response;
-        } else {
-          this.entities = this.localValueOptions || [];
-        }
-      } catch (error) {
-        console.error(`Error fetching ${this.entityType}:`, error);
-        this.entities = this.localValueOptions || [];
-      } finally {
-        this.loading = false;
-      }
-    },
-    onEntitySelected(entity) {
-      if (!entity) { return; }
-      if (entity?.short_id) { entity.id = entity.short_id; }
-      this.$emit('entity-selected', entity);
-      this.selectedEntity = null;
-      this.search = "";
-    },
-  },
-  created() {
-    this.debouncedSearchEntities = debounce(this.searchEntities, 300);
-  },
-  watch: {
-    // Search input is now handled by onSearchInputUpdate
-    // Keeping the watcher for localValueOptions changes
-    localValueOptions: {
-      handler(newVal) {
-        if (newVal) {
-          this.entities = newVal;
-        }
-      },
-      immediate: true
-    }
-  },
+const localValueOptions = computed(() => { return getConfigs()[props.entityType]?.values; });
+
+const onMenuUpdate = (isOpen) => {
+  isMenuOpen.value = isOpen;
+  emit('menu-state-change', isOpen);
 };
+
+const searchEntities = async (query) => {
+  if (!query || query.length === 0) {
+    entities.value = localValueOptions.value || [];
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const response = await api.getAutocomplete(props.entityType, { q: query });
+    entities.value = response && response.length > 0 ? response : localValueOptions.value || [];
+  } catch (error) {
+    console.error(`Error fetching ${props.entityType}:`, error);
+    entities.value = localValueOptions.value || [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+const debouncedSearchEntities = debounce(searchEntities, 300);
+
+const onSearchInputUpdate = (val) => {
+  search.value = val;
+  if (val && val.length > 0) {
+    debouncedSearchEntities(val);
+  } else {
+    entities.value = [];
+  }
+};
+
+const onEntitySelected = async (entity) => {
+  if (!entity) return;
+  if (entity?.short_id) entity.id = entity.short_id;
+  emit('entity-selected', entity);
+  await nextTick();
+  selectedEntity.value = null;
+  search.value = '';
+};
+
+watch(localValueOptions, (newVal) => {
+  if (newVal) {
+    entities.value = newVal;
+  }
+}, { immediate: true });
 </script>
+
 
 <style scoped>
 .v-input__slot {

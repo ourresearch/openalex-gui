@@ -1,9 +1,10 @@
 <template>
-  <div>
+  <div class="label-details">
     <router-link to="/me/labels" class="all-labels-link d-flex align-center">
       <v-icon size="small" color="primary" class="mr-1">mdi-arrow-left</v-icon>
       All Labels
     </router-link>
+
     <v-card flat rounded class="pt-6 ma-0">
       <div class="label-details-header px-5 pb-5">
         <div class="d-flex align-center w-100">
@@ -26,6 +27,7 @@
         </div>
 
         <v-spacer />
+
         <div class="header-left">
           <div class="header-left-buttons">
             <v-btn
@@ -53,25 +55,26 @@
       <v-card-text v-if="!displayNamesLoaded">
         Loading...
       </v-card-text>
+      
       <v-card-text v-else-if="!labelData">
         Label not found.
       </v-card-text>
+      
       <v-list v-else-if="labelData.ids.length" class="label-items py-3 px-0">
         <v-list-item
           v-for="(id, index) in labelData.ids"
           :key="id"
           class="px-8 ma-0"
           @click="clickRow(id)"
-        >
-          
+        > 
           <v-list-item-title>
             <span class="mr-1" style="display: inline-block; min-width: 16px;">{{ index + 1 }}.</span>
             {{ entityDisplayName(id) }}
           </v-list-item-title>
           
           <template #append>
-            <v-btn icon variant="plain" @click.stop="removeId(id)">
-              <v-icon>mdi-close</v-icon>
+            <v-btn icon variant="plain" size="x-small" @click.stop="removeId(id)">
+              <v-icon size="large">mdi-close</v-icon>
             </v-btn>
           </template>
         </v-list-item>
@@ -155,7 +158,6 @@ const loadAllDisplayNames = async () => {
   displayNamesLoaded.value = true;
 };
 
-// Composables
 const useLabelActions = () => {
   const updateCollectionIds = (payload) =>
     store.dispatch('user/updateCollectionIds', payload);
@@ -227,6 +229,9 @@ watch(labelData,
 }
 .label-items {
   border-bottom: 1px solid #eee;
+}
+.label-details .v-list-item .v-list-item__content {
+  padding: 3px 0px !important;
 }
 .label-details-add-section {
   padding-top: 20px;
