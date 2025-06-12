@@ -390,10 +390,10 @@ const api = (function () {
 
     const createExport = async function(query, email) {
         // Initiates a data export to CSV
-        const url = urlBase.exportApi + "/mega-csv?email=" + email
+        const url = urlBase.exportApi + "/mega-csv?email=" + email;
 
-        const resp = await post(url, {...query}, axiosConfig())
-        return resp
+        const resp = await post(url, {...query}, axiosConfig({userAuth: true}));
+        return resp;
     }
 
     return {
