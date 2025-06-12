@@ -36,89 +36,69 @@
   </v-card>
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { api } from '@/api';
+import filters from '@/filters';
 
-<script>
+defineOptions({ name: 'DownloadDialog' });
 
-import { mapMutations, mapGetters } from "vuex";
-import {api} from "@/api" 
-import filters from "@/filters";
+const props = defineProps({
+  resultsCount: Number,
+  isOpen: {
+    type: Boolean,
+    default: false
+  }
+});
 
-export default {
-  name: "DownloadDialog",
-  props: {
-    resultsCount: Number,
-    isOpen: {
-      type: Boolean,
-      default: false
-    },
-  },
-  data() {
-    return {
-      exportStarted: false,
-      exportMessage: "",
-      isLoading: false,
-      filters,
-    };
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userEmail",
-    ]),
-    ...mapGetters("search", [
-      "query"
-    ]),
-    estimatedTime() {
-      if (this.resultsCount <= 10_000) return "5 minutes"
-      if (this.resultsCount <= 1_000_000) return "10 minutes"
-      if (this.resultsCount <= 10_000_000) return "20 minutes"
-      if (this.resultsCount <= 50_000_000) return "2 hours"
-      if (this.resultsCount <= 300_000_000) return "5 hour"
-      return "a day"; // Default for extremely large datasets
-    },
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-    ]),
-    closeDialog() {
-      this.$emit("close");
-    },
-    openLogin() {
-      this.setIsLoginDialogOpen(true);
-    },
-    openSignup() {
-      this.setIsSignupDialogOpen(true);
-    },
-    resetState() {
-      this.exportStarted = false;
-      this.exportMessage = "";
-    },
-    async createExport() {
-      try {
-        this.exportMessage = "Processing your export request...";
-        this.isLoading = true;
-        this.exportStarted = true;
-        await api.createExport(this.query, this.userEmail);
-        this.isLoading = false;
-        this.exportMessage =
-          "Your export has been initiated. You will receive an email when it is ready to download.";
-        this.exportStarted = true;
-      } catch (error) {
-        console.error("Export failed:", error);
-        this.exportMessage = "An error occurred while processing your request. Please try again.";
-      }
-    },
-  },
-  watch: {
-    isOpen(newValue) {
-      if (!newValue) {
-        this.resetState()
-      }
-    },
-  },
+const emit = defineEmits(['close']);
+const store = useStore();
+
+const exportStarted = ref(false);
+const exportMessage = ref('');
+const isLoading = ref(false);
+
+const query = computed(() => store.getters['search/query']);
+const userId = computed(() => store.getters['user/userId']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+
+const estimatedTime = computed(() => {
+  const count = props.resultsCount;
+  if (count <= 10_000) return '5 minutes';
+  if (count <= 1_000_000) return '10 minutes';
+  if (count <= 10_000_000) return '20 minutes';
+  if (count <= 50_000_000) return '2 hours';
+  if (count <= 300_000_000) return '5 hour';
+  return 'a day';
+});
+
+const closeDialog = () => emit('close');
+const openLogin = () => store.commit('user/setIsLoginDialogOpen', true);
+const openSignup = () => store.commit('user/setIsSignupDialogOpen', true);
+
+const resetState = () => {
+  exportStarted.value = false;
+  exportMessage.value = '';
 };
+
+const createExport = async () => {
+  try {
+    exportMessage.value = 'Processing your export request...';
+    isLoading.value = true;
+    exportStarted.value = true;
+    await api.createExport(query.value, userEmail.value);
+    isLoading.value = false;
+    exportMessage.value = 'Your export has been initiated. You will receive an email when it is ready to download.';
+  } catch (error) {
+    console.error('Export failed:', error);
+    exportMessage.value = 'An error occurred while processing your request. Please try again.';
+  }
+};
+
+watch(() => props.isOpen, (newVal) => {
+  if (!newVal) { resetState(); }
+});
 </script>
 
 
