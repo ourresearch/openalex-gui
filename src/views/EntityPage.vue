@@ -1,6 +1,6 @@
 <template>
   <div class="color-2" style="min-height: 80vh">
-    <v-container v-if="entityData" class="">
+    <v-container v-if="entityData" class="entity-page">
       <div>
         <v-btn
             color="primary"
@@ -29,14 +29,17 @@
 
       <v-row v-else>
         <v-col cols="12" md="7">
-          <v-card flat rounded class="py-6">
+          <v-card flat class="rounded-o py-6">
             <entity-new
                 :data="entityData"
             />
           </v-card>
-          <v-card flat rounded class="mt-3">
-            <v-toolbar flat>
-              <v-icon start>mdi-file-document-outline</v-icon>
+
+          <v-card flat class="rounded-o mt-3">
+            <v-toolbar flat color="white" class="entity-page-section-title">
+              <template #prepend>
+                <v-icon variant="text" color="grey-darken-2" start>mdi-file-document-outline</v-icon>
+              </template>
               <v-toolbar-title class="font-weight-bold">
                 Top works
               </v-toolbar-title>
@@ -46,7 +49,7 @@
               </v-btn>
             </v-toolbar>
             <v-list>
-              <serp-results-list-item-work
+              <serp-results-list-item
                   v-for="result in worksResultObject.results"
                   :key="result.id"
                   :result="result"
@@ -54,10 +57,13 @@
             </v-list>
           </v-card>
         </v-col>
+
         <v-col cols="12" md="5">
-          <v-card flat rounded class="px-2 pb-3">
-            <v-toolbar flat>
-              <v-icon start>mdi-clipboard-outline</v-icon>
+          <v-card flat class="rounded-o px-2 pb-3">
+            <v-toolbar flat color="white" class="entity-page-section-title">
+              <template #prepend>
+                <v-icon variant="text" color="grey-darken-2" start>mdi-clipboard-outline</v-icon>
+              </template>
               <v-toolbar-title class="font-weight-bold">
                 Key stats
               </v-toolbar-title>
@@ -93,14 +99,14 @@ import {createSimpleFilter, filtersAsUrlStr} from "@/filterConfigs";
 
 import EntityNew from "@/components/Entity/EntityNew.vue";
 import EntityHeader from "@/components/Entity/EntityHeader.vue";
-import SerpResultsListItemWork from "@/components/SerpResultsListItem.vue";
+import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
 import GroupBy from "@/components/GroupBy/GroupBy.vue";
 
 export default {
   name: "EntityPage",
   components: {
     EntityNew,
-    SerpResultsListItemWork,
+    SerpResultsListItem,
     GroupBy,
     EntityHeader,
   },
@@ -173,7 +179,7 @@ export default {
           {
             filter: filterString,
             sort: "cited_by_count:desc",
-            "per-page": 3,
+            "per-page": 7,
           },
           true
       );
@@ -207,10 +213,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-
-.v-list .v-list-item--active {
+<style lang="scss">
+.entity-page-section-title .v-toolbar__content {
+  margin-inline-start: 0px !important;
+  padding: 4px 12px !important;
+}
+.entity-page-section-title .v-toolbar-title {
+  margin-inline-start: 0px !important;
+}
+.entity-page  .v-list .v-list-item--active {
   color: #1976d2; // primary
 }
-
 </style>

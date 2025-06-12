@@ -3,7 +3,7 @@
     
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
-          {{ filters.pluralize(filters.capitalize(filterConfig.displayName), pluralizeCount) }}
+          {{ filters.pluralize(filters.capitalize(filterConfig.displayName), pluralizeCount) }}:
       </template>
       <template v-else>
         {{ filters.capitalize(filterConfig.displayName) }}:
@@ -64,9 +64,9 @@
 
 
     <a
-        v-if="isValueTruncated"
-        @click="isTruncateSet = false"
-        class="font-weight-bold"
+      v-if="isValueTruncated"
+      @click="isTruncateSet = false"
+      class="font-weight-bold text-primary"
     >
       <template v-if="isValueAnArray">
         +{{ filters.toPrecision(valueLength - maxLen.array) }} more
@@ -76,15 +76,16 @@
       </template>
     </a>
     <a
-        v-if="isValueSubjectToTruncation && !isValueTruncated"
-        @click="isTruncateSet = true"
-        class="font-weight-bold"
+      v-if="isValueSubjectToTruncation && !isValueTruncated"
+      @click="isTruncateSet = true"
+      class="font-weight-bold"
     >
       (less)
     </a>
 
   </div>
 </template>
+
 
 <script>
 
