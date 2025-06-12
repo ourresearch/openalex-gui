@@ -64,7 +64,7 @@ import FilterBoolean from "@/components/Filter/FilterBoolean.vue";
 import FilterRange from "@/components/Filter/FilterRange.vue";
 import FilterSearch from "@/components/Filter/FilterSearch.vue";
 import FilterSelect from "@/components/Filter/FilterSelect.vue";
-import AddFilter from "@/components/AddFilter.vue";
+import AddFilter from "@/components/Filter/AddFilter.vue";
 
 export default {
   name: "FilterList",
