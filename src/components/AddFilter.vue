@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-menu location="top left" :offset="[-60, 0]" location-strategy="connected" close-on-content-click="false">
+    <v-menu location="top left" :offset="[-60, 0]" location-strategy="connected" :close-on-content-click="false">
       <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn

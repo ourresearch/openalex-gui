@@ -1,20 +1,20 @@
 <template>
   <v-menu
-      max-width="800"
-      class="rounded-lg"
-      location="bottom"
-      :close-on-content-click="false"
-      v-model="isMenuOpen"
+    max-width="800"
+    class="rounded-lg"
+    location="bottom"
+    :close-on-content-click="false"
+    v-model="isMenuOpen"
   >
     <template v-slot:activator="{ props }">
       <v-chip
-          v-bind="props"
-          variant="text"
-          class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
-          closable
-          close-icon="mdi-close"
-          @click="toggleMenu"
-          @click:close="$emit('delete')"
+        v-bind="props"
+        variant="text"
+        class="option mr-1 px-4 py-4 mb-1 mt-1 font-weight-regular hover-color-1 text-body-1"
+        closable
+        close-icon="mdi-close"
+        @click.stop="handleClick"
+        @click:close="$emit('delete')"
       >
         <template v-if="filterDisplayValue">
           {{ filters.truncate(filterDisplayValue) }}
@@ -24,23 +24,29 @@
         </template>
       </v-chip>
     </template>
-    <v-card :loading="isLoading" v-if="myEntityConfig">
+
+    <v-card :loading="isLoading" v-if="myEntityConfig" class="rounded-o">
       <v-card-title>
         {{ filterDisplayValue }}
       </v-card-title>
       <v-card-subtitle class="mb-0 pb-0">
         {{ filterValue }}
       </v-card-subtitle>
+
       <v-divider class="my-2" />
+      
       <entity-new :data="entityData" :type="myEntityConfig.name" />
-      <v-divider/>
+      
+      <v-divider />
+      
       <v-card-actions>
-        <v-spacer/>
+        <v-spacer />
         <v-btn
-               class="ml-4"
-               color="primary"
-               rounded
-               :to="filters.entityZoomLink(filterValue)"
+          class="ml-4"
+          color="primary"
+          rounded
+          variant="flat"
+          :to="filters.entityZoomLink(filterValue)"
         >
           {{ filters.pluralize(filters.capitalize(myEntityConfig.displayName), 1) }} profile
         </v-btn>
@@ -117,12 +123,14 @@ export default {
   },
   methods: {
     getEntityConfig,
-    toggleMenu() {
-      // Don't try to show entity menu for null values or values that failed to get data from entity endpoint
-      if (!this.entityData.hideMenu) {
-        this.isMenuOpen = !this.isMenuOpen
+    handleClick() {
+      if (this.entityData?.hideMenu) {
+        // Don't try to show entity menu for null values or values that failed to get data from entity endpoint
+        this.isMenuOpen = false;
+      } else {
+        // Let v-model handle the actual toggling
       }
-    }
+    },
   },
   created() {
   },
