@@ -15,7 +15,7 @@ import AnalyticsTesting from '@/views/AnalyticsTesting.vue';
 import LoginPage from '@/views/Login.vue';
 import SignupPage from "@/views/Signup.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
-import UserMagicToken from '@/components/user/UserMagicToken.vue';
+import UserMagicToken from '@/components/User/UserMagicToken.vue';
 
 import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
