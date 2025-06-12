@@ -22,54 +22,54 @@
   </v-btn>   
 </template>
 
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 
-<script>
-import {mapActions, mapGetters} from "vuex";
+defineOptions({ name: 'NewQueryButton', inheritAttrs: false });
 
-export default {
-  name: "NewQueryButton",
-  inheritAttrs: false,
-  props: {
-    buttonText: {
-      type: String,
-      default: "New Query"
-    },
-    icon: {
-      type: String,
-      default: "mdi-plus"
-    },
-    goTo: {
-      type: Boolean,
-      default: false
-    },
-    size: {
-      type: String,
-      default: "small"
-    }
+defineProps({
+  buttonText: {
+    type: String,
+    default: 'New Query'
   },
-  computed: {
-    ...mapGetters("search",["isBaseQuery"]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
+  icon: {
+    type: String,
+    default: 'mdi-plus'
   },
-  methods: {
-    ...mapActions("search",["createNewSearch"]),
-    onClick() {
-      if (this.$route.name === "Results" && this.isBaseQuery) {
-        return;
-      }
-      
-      if (!this.userId) {
-        this.$router.push({
-          name: 'Login',
-          query: { redirect: '/analytics' }
-        });
-        return;
-      }
-      
-      this.createNewSearch();
-    }
+  goTo: {
+    type: Boolean,
+    default: false
+  },
+  size: {
+    type: String,
+    default: 'small'
   }
-}
+});
+
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+const isBaseQuery = computed(() => store.getters['search/isBaseQuery']);
+const userId = computed(() => store.getters['user/userId']);
+const createNewSearch = () => store.dispatch('search/createNewSearch');
+
+const onClick = () => {
+  if (route.name === 'Results' && isBaseQuery.value) {
+    return;
+  }
+
+  if (!userId.value) {
+    router.push({
+      name: 'Login',
+      query: { redirect: '/analytics' }
+    });
+    return;
+  }
+
+  createNewSearch();
+};
 </script>
+

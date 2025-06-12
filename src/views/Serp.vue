@@ -272,18 +272,6 @@ export default {
       title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"
     });
   },
-  async mounted() {
-    // if ("group_by" in this.$route.query) return
-    //
-    // const query = {...this.$route.query}
-    // query.column ??= getActionConfig("column").defaultValues.join(",")
-    // query.sort ??= getActionConfig("sort").defaultValues.map(v => v + ':desc').join(",")
-    // url.pushToRoute(this.$router, {
-    //           name: "Serp",
-    //           query
-    //         })
-
-  },
   watch: {
     filtersLength: {
       immediate: false,
