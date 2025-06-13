@@ -295,8 +295,6 @@ export default {
         this.newFilterKey = filterKey
         if (filterKey) this.isDialogOpen = true
       }
-      // this.isMenuOpen = false
-      // this.$emit("select", filterKey)
     },
     clickCloseSearch() {
       console.log("clickCloseSearch()")

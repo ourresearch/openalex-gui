@@ -34,7 +34,14 @@ if (window.location.port && parseInt(window.location.port) === 8081) {
 
 // 8085: Local Export API
 } else if (window.location.port && parseInt(window.location.port) === 8085) {
-    urlBase.exportApi = "http://localhost:5006";
+    urlBase.exportApi = "http://localhost:5206";
+    console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
+
+// 8086: Local Elastic & Export API
+} else if (window.location.port && parseInt(window.location.port) === 8086) {
+    urlBase.api = "http://localhost:5006";
+    console.log("Setting API base URL to local machine (dev use only): " + urlBase.api);
+    urlBase.exportApi = "http://localhost:5206";
     console.log("Setting Export API base URL to local machine (dev use only): " + urlBase.exportApi);
 } 
 
