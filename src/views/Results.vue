@@ -21,7 +21,7 @@
         <!-- Results Table -->
         <v-col cols="12" :md="uiVariant === 'side' ? 7 : 12">
           <v-card flat rounded class="results-table-box" style="min-height: 100%;">
-            <results-table/>
+            <results-table />
           </v-card>
         </v-col>
 

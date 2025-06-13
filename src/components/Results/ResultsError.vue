@@ -6,21 +6,15 @@
   </div>
 </template>
 
-<script>
 
-import {mapGetters} from "vuex";
+<script setup>
 
-export default {
-  name: "ResultsError",
-  computed: {
-    ...mapGetters("search", [
-      "queryBackendError",
-    ]),
-  }
-}
+import {computed} from "vue";
+import {useStore} from "vuex";
+
+defineOptions({ name: "ResultsError" });
+
+const store = useStore();
+const queryBackendError = computed(() => store.getters["search/queryBackendError"]);
+
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

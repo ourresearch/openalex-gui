@@ -25,7 +25,6 @@ const stateDefaults = function () {
         isEntireSearchSelected: false,
         pageTitle: null,
         isSearchCanceled: false,
-        metricsColumnPercentage: 40,
     };
     return ret;
 };
@@ -122,9 +121,6 @@ export default {
         },
         setStashedQueryState(state, queryState) {
             state.stashedQueryState = _.cloneDeep(queryState);
-        },
-        setMetricsColumnPercentage(state, percentage) {
-            state.metricsColumnPercentage = percentage;
         },
     },
     actions: {
@@ -349,7 +345,6 @@ export default {
         selectedIds: (state) => state.selectedIds,
         isEntireSearchSelected: (state) => state.isEntireSearchSelected,
         stashedQueryState: (state) => state.stashedQueryState,
-        metricsColumnPercentage: (state) => state.metricsColumnPercentage,
     },
 };
 

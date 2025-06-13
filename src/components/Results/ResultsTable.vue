@@ -5,37 +5,6 @@
       'works-first': uiVariant === 'sentence-worksfirst'
     }"
   >
-    <!-- Results Header / Actions -->
-    <div class="results-table-controls pa-2" v-if="uiVariant === 'side'">      
-      <div v-if="!hasQueryChanged" class="d-flex flex-grow-1 align-center ml-3">
-        <v-btn icon variant="plain" @click="clickSelectAllButton">
-          <v-icon>{{ selectAllIcon }}</v-icon>
-        </v-btn>
-
-        <v-btn icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
-          <v-icon>mdi-tray-arrow-down</v-icon>
-        </v-btn>
-
-        <template v-if="userId">
-          <label-menu :selectedIds="fullSelectedIds" />
-
-          <v-btn v-if="querySubjectEntity === 'works'" icon variant="plain" :disabled="!selectedIds.length"
-            @click="snackbar('Submitting data corrections will be coming soon.')">
-            <v-icon>mdi-pencil-outline</v-icon>
-          </v-btn>
-        </template>
-        
-        <v-spacer/>
-        
-        <div class="text-body-2 px-4">
-          1-{{ resultsBody.length }} of {{
-            resultsMeta?.count > 10000 ? "about " : ""
-          }}{{ filters.toPrecision(resultsMeta?.count) }}
-          results
-        </div>
-      </div>
-    </div>
-
     <div>
       <!-- Results Table -->
       <v-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
@@ -48,7 +17,7 @@
               header.type === 'ui-action' ? 'ui-action' : 'data-type-' + header.type, 
               { 
                 'is-date': header.isDate, 
-                'metric': (header.id && header.id.includes('(')) || header.id === 'columnAdderMetric'
+                'metric': (header.id && header.id.includes('(')) || header.display === 'metrics'
               }
             ]"
           >
@@ -65,14 +34,14 @@
             </template>
             
             <!-- Column adder header -->
-            <template v-else-if="header.id === 'columnAdderData' || header.id === 'columnAdderMetric'">
+            <template v-else-if="header.id === 'columnAdder'">
               <query-column-adder mode="dialog" :display="header.display" />
             </template>
             
             <!-- Regular data column header -->
             <template v-else>
               <div class="d-flex">
-                <v-spacer v-if="header.type === 'number' && !header.isDate"></v-spacer>
+                <v-spacer v-if="header.type === 'number' && !header.isDate" />
                 <v-menu location="bottom">
                   <template v-slot:activator="{ props }">
                     <v-btn
@@ -221,7 +190,7 @@
                   cell.type === 'ui-action' ? 'ui-action' : 'data-type-' + cell.config.type, 
                   {
                     'is-date': cell.config.isDate, 
-                    'metric': (cell.config.id && cell.config.id.includes('(')) || cell.config.id === 'columnAdderMetric'
+                    'metric': (cell.config.id && cell.config.id.includes('(')) || cell.config.display === 'metrics'
                   }
                 ]"
               >
@@ -239,7 +208,7 @@
                 </template>
                 
                 <!-- Column adder cell (empty) -->
-                <template v-else-if="cell.config && (cell.config.id === 'columnAdderData' || cell.config.id === 'columnAdderMetric')">
+                <template v-else-if="cell.config && cell.config.id === 'columnAdder'">
                   <!-- Empty cell -->
                 </template>
                 
@@ -260,7 +229,9 @@
         </tbody>
       </v-table>
 
-      <v-card class="more-results-message" flat v-if="!hasQueryChanged && resultsMeta?.count > 100 && this.query.get_rows !== 'summary'">
+      <v-card class="more-results-message" flat
+        v-if="!hasQueryChanged && resultsMeta?.count > 100 && query.value && query.value.get_rows !== 'summary'"
+      >
         To view results beyond the first 100, download the full results set above.
       </v-card>
 
@@ -281,356 +252,174 @@
   </div>
 </template>
 
-
-<script>
-
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {entity} from "@/entity";
+<script setup>
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
+import { entity } from "@/entity";
 import filters from "@/filters";
-import * as oaxSearch from "@/oaxSearch";
+import { useResultsTable } from '@/composables/Results/useResultsTable';
 
 import ColumnValue from "@/components/ColumnValue.vue";
-import LabelMenu from "@/components/Label/LabelMenu.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
 import QueryReturn from "@/components/Query/QueryReturn.vue";
 import QueryColumnAdder from "@/components/Query/QueryColumnAdder.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
-import QueryFilterValueChip from '../Query/QueryFilterValueChip.vue'; // Import the component
+import QueryFilterValueChip from '@/components/Query/QueryFilterValueChip.vue';
 
-export default {
-  name: "ResultsTable",
-  components: {
-    ResultsError,
-    ResultsSearching,
-    ColumnValue,
-    LabelMenu,
-    CorrectionCreate,
-    QueryReturn,
-    QueryColumnAdder,
-    QueryFilterValueChip, // Register the component
-  },
-  props: {
-    apiUrl: String,
-  },
-  data() {
-    return {
-      selectedIds: [],
-      isEntireSearchSelected: false,
-      zoomId: null,
-      isPropSelectorDialogOpen: false,
-      isCorrectionDialogOpen: false,
-      isDownloadDialogOpen: false,
-      columnSearch: "",
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters(["uiVariant"]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    ...mapGetters("search", [
-      "query",
-      "resultsMeta",
-      "resultsHeader",
-      "resultsBody",
-      "submittedQuery",
-      "hasQueryChanged",
-      "isSearchCanceled",
-      "queryIsCompleted",
-      "queryBackendError",
-      "queryColumnsConfigs",
-      "querySubjectEntity",
-      "querySubjectEntityConfig",
-    ]),
-    headers() {
-      if (!this.resultsHeader.length) { 
-        // Return a single placeholder header when there are no results
-        return [{ id: 'placeholder', type: 'ui-action'}]; 
-      }
+defineOptions({ name: "ResultsTable" });
 
-      const result = [{ id: 'selector', type: 'ui-action'}]; // Start with a selector column
+const store = useStore();
 
-      const dataColumns = this.resultsHeader.slice();
-      
-      // Find first metric column index
-      const firstMetricIndex = dataColumns.findIndex(col => col.id && col.id.includes('('));
-      const hasMetricColumns = firstMetricIndex !== -1;
-      
-      // Add data columns with column adders in appropriate positions
-      if (hasMetricColumns) {
-        // Add non-metric columns
-        result.push(...dataColumns.slice(0, firstMetricIndex));
-        
-        // Add data column adder before first metric column if not in summary mode
-        if (this.query.get_rows !== 'summary') {
-          result.push({
-            id: 'columnAdderData',
-            type: 'ui-action',
-            display: 'data'
-          });
-        }
-        
-        // Add metric columns
-        result.push(...dataColumns.slice(firstMetricIndex));
-        
-        // Add metric column adder at the end
-        result.push({
-          id: 'columnAdderMetric',
-          type: 'ui-action',
-          display: 'metrics'
-        });
-      } else {
-        // No metric columns, just add all columns
-        result.push(...dataColumns);
-        
-        // Add data column adder at the end if not in summary mode
-        if (this.query.get_rows !== 'summary') {
-          result.push({
-            id: 'columnAdderData',
-            type: 'ui-action',
-            display: 'data'
-          });
-        }
-      }
-      
-      return result;
-    },
-    rows() {
-      return this.resultsBody.map(row => {
-        // Create basic cells with configs
-        let dataCells = row.cells.map((cell, i) => ({
-          ...cell,
-          config: this.resultsHeader[i],
-        }));
-        
-        // Find first metric cell index
-        const firstMetricIndex = dataCells.findIndex(cell => cell.config?.id?.includes('('));
-        const hasMetricCells = firstMetricIndex !== -1;
-        
-        // Create final cells array with UI action cells
-        const finalCells = [{ type: 'ui-action', config: { id: 'selector' }}];
-        
-        // Add data cells with column adders in appropriate positions
-        if (hasMetricCells) {
-          // Add non-metric cells
-          finalCells.push(...dataCells.slice(0, firstMetricIndex));
-          
-          // Add data column adder cell before first metric cell if not in summary mode
-          if (this.query.get_rows !== 'summary') {
-            finalCells.push({
-              type: 'ui-action',
-              config: { id: 'columnAdderData' }
-            });
-          }
-          // Add metric cells
-          finalCells.push(...dataCells.slice(firstMetricIndex));
-          // Add metric column adder cell at the end
-          finalCells.push({type: 'ui-action', config: { id: 'columnAdderMetric' }});
-        } else {
-          // No metric cells, just add all cells
-          finalCells.push(...dataCells);
-          
-          // Add data column adder at the end if not in summary mode
-          if (this.query.get_rows !== 'summary') {
-            finalCells.push({
-              type: 'ui-action',
-              config: { id: 'columnAdderData' }
-            });
-          }
-        }
+// Data properties
+const selectedIds = ref([]);
+const isEntireSearchSelected = ref(false);
+const isPropSelectorDialogOpen = ref(false);
+const isCorrectionDialogOpen = ref(false);
 
-        return {
-          ...row,
-          cellsWithConfigs: finalCells
-        };
-      });
-    },
-    hasMetricsColumns() { 
-      return this.queryColumnsConfigs.some(col => col.id.includes('('));
-    },
-    isEveryRowSelected() {
-      return this.selectedIds.length > 0 && this.selectedIds.length === this.resultsBody.length;
-    },
-    selectAllIcon() {
-      if (this.isEveryRowSelected) {
-        return "mdi-checkbox-marked";
-      } else if (this.selectedIds.length === 0) {
-        return "mdi-checkbox-blank-outline";
-      } else {
-        return "mdi-minus-box-outline";
-      }
-    },
-    fullSelectedIds() {
-      // Returns selected IDs in full format e.g. "topics/T123" instead of "123"
-      const fullIds = this.selectedIds.map(id => entity.fullId(id, this.querySubjectEntity));
-      return fullIds;
-    },
-    columnsToAddFiltered() {
-      return this.columnsToAdd.filter(col => {
-        return col.displayName.toLowerCase().includes(this.columnSearch.toLowerCase())
-      })
-    },
-    columnsToAdd() {
-      console.log(this.submittedQuery);
-      return Object.values(this.querySubjectEntityConfig.columns)
-        .filter(col => {
-          return col.actions?.includes("column");
-        })
-        .filter(col => {
-          return !this.submittedQuery.show_columns.includes(col.id);
-        });
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-      "setZoomId",
-    ]),
-    ...mapMutations("search", [
-      "addReturnColumn",
-      "deleteReturnColumn",
-      "setSortBy",
-      "setMetricsColumnPercentage",
-      "setSelectedIds",
-      "setEntireSearchSelected",
-    ]),
-    ...mapActions("search", [
-      "createSearch",
-      "resetToSubmittedQuery",
-      "addFilter",
-      "deleteFilterByPath", // Map the new action
-    ]),
-    ...mapActions("user", [
-      "createCollection",
-    ]),
-    cancelSearch() {
-      this.resetToSubmittedQuery();
-    },
-    commitSortBy(sortBy) {
-      this.setSortBy(sortBy);
-      this.createSearch();
-    },
-    addSelectedId(id) {
-      this.selectedIds.push(id);
-    },
-    removeSelectedId(id) {
-      this.selectedIds = this.selectedIds.filter((i) => i !== id);
-    },
-    toggleSelectedId(id) {
-      //console.log("toggleSelectedId", id);
-      if (this.selectedIds.includes(id)) {
-        this.removeSelectedId(id);
-      } else {
-        this.addSelectedId(id);
-      }
-    },
-    unselectAll(){
-      this.selectedIds = [];
-      this.isEntireSearchSelected = false;
-    },
-    clickSelectAllButton() {
-      this.isEntireSearchSelected = false;
-      if (this.selectedIds.length === 0) {
-        this.selectedIds = this.resultsBody.map((row) => row.id);
-      } else {
-        this.unselectAll();
-      }
-    },
-    addColumnFilter(filterKey, filterValue) {
-      const filterGroup = this.querySubjectEntity === "works" || this.query.show_underlying_works ? "works" : "entity";
-      this.addFilter({filterGroup, filterKey, filterValue});
-    },
-    clickRow(rowId) {
-      const fullEntityId = entity.fullId(rowId, this.querySubjectEntity);
-      this.setZoomId(fullEntityId);
-    },
-    metaClickRow() {
-      const newTab = window.open(this.apiUrl);
-      setTimeout(() => {
-        newTab.focus();
-      }, 1000);
-      return false;
-    },
-    removeColumn(id) {
-      this.deleteReturnColumn(id);
-      this.createSearch();
-    },
-    addColumn(id) {
-      this.addReturnColumn(id);
-      this.createSearch();
-    },
-    exportResults() {
-      if (this.isEntireSearchSelected) {
-        this.isDownloadDialogOpen = true;
-      } else {
-        this.exportSelectedAsCsv();
-      }
-    },
-    exportSelectedAsCsv() {
-      const selectedRows = this.resultsBody.filter(row => this.selectedIds.includes(row.id));
-      const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows);
-      const blob = new Blob([csv], {type: "text/csv"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "selected.csv";
-      a.click();
-    },
-    getActiveFilters(columnId) {
-      const activeFiltersWithPath = [];
-      const entityType = this.querySubjectEntity;
-      const targetKey = entityType === 'works' ? 'filter_works' : 'filter_aggs';
-      const filtersToSearch = this.query[targetKey];
+// Store getters
+const uiVariant = computed(() => store.getters['uiVariant']);
 
-      const findFilters = (filters, currentPath) => {
-        if (!Array.isArray(filters)) return;
+// Search getters
+const query = computed(() => store.getters['search/query']);
+const submittedQuery = computed(() => store.getters['search/submittedQuery']);
+const resultsMeta = computed(() => store.getters['search/resultsMeta']);
+const resultsBody = computed(() => store.getters['search/resultsBody']);
+const hasQueryChanged = computed(() => store.getters['search/hasQueryChanged']);
+const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']);
+const queryIsCompleted = computed(() => store.getters['search/queryIsCompleted']);
+const queryBackendError = computed(() => store.getters['search/queryBackendError']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
 
-        filters.forEach((filter, index) => {
-          const newPath = [...currentPath, index];
+const { headers, rows } = useResultsTable();
 
-          if (filter.filters && Array.isArray(filter.filters)) {
-            findFilters(filter.filters, [...newPath, 'filters']);
-          } else if (filter.column_id === columnId && filter.value !== undefined) {
-            activeFiltersWithPath.push({
-              value: filter.value,
-              path: newPath,
-              targetKey: targetKey
-            });
-          }
-        });
-      };
+// Computed properties
+const isEveryRowSelected = computed(() => {
+  return selectedIds.value.length > 0 && selectedIds.value.length === resultsBody.value.length;
+});
 
-      findFilters(filtersToSearch, []);
-      return activeFiltersWithPath;
-    },
-    removeColumnFilter(targetKey, path) {
-      this.deleteFilterByPath({ targetKey, path });
-    },
-  },
-  created() {
-   //console.log(this.rows);
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.handleResize);
-    this.setZoomId(null);
-  },
-  watch: {
-    selectedIds: {
-      handler(newIds) {
-        this.setSelectedIds(newIds);
-      },
-      deep: true
-    },
-    isEntireSearchSelected: {
-      handler(value) {
-        this.setEntireSearchSelected(value);
-      },
-      deep: true
-    }
+const selectAllIcon = computed(() => {
+  if (isEveryRowSelected.value) {
+    return "mdi-checkbox-marked";
+  } else if (selectedIds.value.length === 0) {
+    return "mdi-checkbox-blank-outline";
+  } else {
+    return "mdi-minus-box-outline";
   }
-}
+});
+
+// Search mutations & actions
+const deleteReturnColumn = (column) => store.commit('search/deleteReturnColumn', column);
+const setSortBy = (sortBy) => store.commit('search/setSortBy', sortBy);
+const setSelectedIds = (ids) => store.commit('search/setSelectedIds', ids);
+const setEntireSearchSelected = (selected) => store.commit('search/setEntireSearchSelected', selected);
+const createSearch = () => store.dispatch('search/createSearch');
+const addFilter = (filter) => store.dispatch('search/addFilter', filter);
+const deleteFilterByPath = (payload) => store.dispatch('search/deleteFilterByPath', payload);
+
+const commitSortBy = (sortBy) => {
+  setSortBy(sortBy);
+  createSearch();
+};
+
+const addSelectedId = (id) => { selectedIds.value.push(id); };
+const removeSelectedId = (id) => { selectedIds.value = selectedIds.value.filter((i) => i !== id); };
+
+const toggleSelectedId = (id) => {
+  if (selectedIds.value.includes(id)) {
+    removeSelectedId(id);
+  } else {
+    addSelectedId(id);
+  }
+};
+
+const unselectAll = () => {
+  selectedIds.value = [];
+  isEntireSearchSelected.value = false;
+};
+
+const clickSelectAllButton = () => {
+  isEntireSearchSelected.value = false;
+  if (selectedIds.value.length === 0) {
+    selectedIds.value = resultsBody.value.map((row) => row.id);
+  } else {
+    unselectAll();
+  }
+};
+
+const setZoomId = (id) => store.commit('setZoomId', id);
+
+const clickRow = (rowId) => {
+  const fullEntityId = entity.fullId(rowId, querySubjectEntity.value);
+  setZoomId(fullEntityId);
+};
+
+const metaClickRow = (rowId) => {
+  const fullEntityId = entity.fullId(rowId, querySubjectEntity.value);
+  const newTab = window.open("http://api.openalex.org/" + fullEntityId);
+  setTimeout(() => {
+    newTab.focus();
+  }, 1000);
+  return false;
+};
+
+const removeColumn = (id) => {
+  deleteReturnColumn(id);
+  createSearch();
+};
+
+const addColumnFilter = (filterKey, filterValue) => {
+  const filterGroup = querySubjectEntity.value === "works" || query.value.show_underlying_works ? "works" : "entity";
+  addFilter({filterGroup, filterKey, filterValue});
+};
+
+const removeColumnFilter = (targetKey, path) => {
+  deleteFilterByPath({ targetKey, path });
+};
+
+const getActiveFilters = (columnId) => {
+  // Finds filters currently applied to columnId
+  const activeFiltersWithPath = [];
+  const entityType = querySubjectEntity.value;
+  const targetKey = entityType === 'works' ? 'filter_works' : 'filter_aggs';
+  const filtersToSearch = query.value[targetKey];
+
+  const findFilters = (filters, currentPath) => {
+    if (!Array.isArray(filters)) return;
+
+    filters.forEach((filter, index) => {
+      const newPath = [...currentPath, index];
+
+      if (filter.filters && Array.isArray(filter.filters)) {
+        findFilters(filter.filters, [...newPath, 'filters']);
+      } else if (filter.column_id === columnId && filter.value !== undefined) {
+        activeFiltersWithPath.push({
+          value: filter.value,
+          path: newPath,
+          targetKey: targetKey
+        });
+      }
+    });
+  };
+
+  findFilters(filtersToSearch, []);
+  return activeFiltersWithPath;
+};
+
+// Lifecycle hooks
+onBeforeUnmount(() => {
+  setZoomId(null);
+});
+
+// Watchers
+watch(selectedIds, (newIds) => {
+  setSelectedIds(newIds);
+}, { deep: true });
+
+watch(isEntireSearchSelected, (value) => {
+  setEntireSearchSelected(value);
+}, { deep: true });
+
 </script>
 
 
