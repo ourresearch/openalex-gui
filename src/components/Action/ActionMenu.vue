@@ -6,12 +6,12 @@
           <v-icon class="">mdi-plus</v-icon>
         </v-btn>
         <v-btn
-            v-else
-            icon
-            variant="text"
-            v-bind="props"
-            class="rounded-lg"
-            :disabled="disabled"
+          v-else
+          icon
+          variant="text"
+          v-bind="props"
+          class="rounded-lg"
+          :disabled="disabled"
         >
           <template v-if="myConfig.id === 'sort'">
               <v-icon color="grey-darken-2">mdi-sort</v-icon>
@@ -39,12 +39,12 @@
           <v-divider/>
           
           <v-list-item
-              v-for="key in menuOptions"
-              :key="key"
-              color="primary"
-              :value="key"
-              :disabled="myConfig?.disableKeys?.includes(key)"
-              @click="clickOption(key)"
+            v-for="key in menuOptions"
+            :key="key"
+            color="primary"
+            :value="key"
+            :disabled="myConfig?.disableKeys?.includes(key)"
+            @click="clickOption(key)"
           >
             <template #prepend>
               <v-icon color="grey-darken-2">{{ getKeyIcon(key) }}</v-icon>
@@ -69,9 +69,9 @@
       </v-card>
     </v-menu>
     <v-dialog
-        v-model="isMoreDialogOpen"
-        scrollable
-        max-width="400"
+      v-model="isMoreDialogOpen"
+      scrollable
+      max-width="400"
     >
       <v-card rounded>
         <v-toolbar flat>
@@ -81,9 +81,10 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
+        
         <v-divider/>
-        <v-card-text class="pa-0">
 
+        <v-card-text class="pa-0">
           <v-list-item
             v-for="key in allOptions"
             :key="key"
@@ -106,107 +107,82 @@
       </v-card>
     </v-dialog>
   </div>
-
-
 </template>
 
-<script>
+<script setup>
+import { ref, computed} from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { url } from '@/url';
+import filters from '@/filters';
+import { facetConfigs, getFacetConfig } from '@/facetConfigs';
+import { getActionConfig } from '@/actionConfigs';
 
-import {mapGetters} from "vuex";
-import {url} from "@/url";
-import filters from "@/filters";
-import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {getActionConfig, getActionDefaultValues} from "@/actionConfigs";
+defineOptions({ name: 'ActionMenu' });
 
-export default {
-  name: "ActionMenu",
-  components: {},
-  props: {
-    action: String,
-    disabled: Boolean,
-  },
-  data() {
-    return {
-      isMoreDialogOpen: false,
-      isEditDialogOpen: true,
-      filters,
+const props = defineProps({
+  action: String,
+  disabled: Boolean
+});
+
+const store = useStore();
+const route = useRoute();
+const emit = defineEmits(['click']);
+
+const isMoreDialogOpen = ref(false);
+const entityType = computed(() => store.getters['entityType']);
+const selectedOptions = computed(() => url.getActionValueKeys(route, props.action));
+
+const allOptions = computed(() =>
+  facetConfigs(entityType.value)
+    .filter(conf => conf.actions?.includes(props.action))
+    .map(conf => conf.key)
+);
+
+const popularOptions = computed(() =>
+  facetConfigs(entityType.value)
+    .filter(conf => conf.actionsPopular?.includes(props.action))
+    .map(conf => conf.key)
+);
+
+const menuOptions = computed(() => {
+  const result = [...popularOptions.value];
+  selectedOptions.value.forEach(optionKey => {
+    if (!popularOptions.value.includes(optionKey)) {
+      result.push(optionKey);
     }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    selectedOptions() {
-      return url.getActionValueKeys(this.$route, this.action)
-    },
-    allOptions() {
-      return facetConfigs(this.entityType)
-          .filter(conf => conf.actions?.includes(this.action))
-          .map(conf => conf.key)
-    },
-    popularOptions() {
-      return facetConfigs(this.entityType)
-          .filter(conf => conf.actionsPopular?.includes(this.action))
-          .map(conf => conf.key)
-    },
-    menuOptions() {
-      const ret = [...this.popularOptions]
-      this.selectedOptions.forEach(optionKey => {
-        if (!this.popularOptions.includes(optionKey)) {
-          ret.push(optionKey)
-        }
-      })
-      return ret
-    },
-    myConfig() {
-      return getActionConfig(this.action)
-    },
-  },
-  methods: {
-    isDefault(key) {
-      const defaults = getActionDefaultValues(this.action, this.$route.query)
-      return defaults.includes(key)
-    },
-    getKeyDisplayName(key) {
-      return getFacetConfig(this.entityType, key)?.displayName
-    },
-    getKeyIcon(key) {
-      return getFacetConfig(this.entityType, key)?.icon
+  });
+  return result;
+});
 
-    },
-    openMoreDialog() {
-      this.isMoreDialogOpen = true
-    },
-    closeMoreDialog() {
-      this.isMoreDialogOpen = false
-    },
-    clickOption(key) {
-      this.isMoreDialogOpen = false
-      if (this.action === 'sort') {
-        url.toggleSort(key)
-      } else if (this.action === "group_by") {
-        url.toggleGroupBy(key)
-      } else if (this.action === "column") {
-        url.toggleColumn(key)
-      } else if (this.action === "filter") {
-        this.$emit("click", key)
-      }
-    },
-    openFilterEditDialog(key) {
-      console.log("openFilterEditDialog()", key)
-    }
-  },
-  watch: {
-    "$route.query": {
-      immediate: true,
-      handler() {
-      }
-    },
+const myConfig = computed(() => getActionConfig(props.action));
+
+const getKeyDisplayName = (key) => {
+  return getFacetConfig(entityType.value, key)?.displayName;
+};
+
+const getKeyIcon = (key) => {
+  return getFacetConfig(entityType.value, key)?.icon;
+};
+
+const openMoreDialog = () => {
+  isMoreDialogOpen.value = true;
+};
+
+const closeMoreDialog = () => {
+  isMoreDialogOpen.value = false;
+};
+
+const clickOption = (key) => {
+  isMoreDialogOpen.value = false;
+  if (props.action === 'sort') {
+    url.toggleSort(key);
+  } else if (props.action === 'group_by') {
+    url.toggleGroupBy(key);
+  } else if (props.action === 'column') {
+    url.toggleColumn(key);
+  } else if (props.action === 'filter') {
+    emit('click', key);
   }
-}
+};
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
