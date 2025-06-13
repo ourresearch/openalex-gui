@@ -20,28 +20,32 @@
           <v-spacer/>
         </v-toolbar>
         <div v-if="exportObj.progress === null" class="pa-4 py-0">
+          <!-- Radio group for format selection -->
           <v-radio-group v-model="exportFormat">
             <v-radio
-                label="Spreadsheet (.csv)"
-                value="csv"
-            />
-            <div class="pl-7 pb-4"  v-if="exportFormat==='csv'">
-              <v-checkbox
-                  style="margin-top: 0px;"
-                  hide-details
-                  v-model="areColumnsTruncated"
-                  label="Shorten column values for Excel compatibility?"
-              />
-            </div>
-            <v-radio
-                label="Endnote format (.ris)"
-                value="ris"
+              label="Spreadsheet (.csv)"
+              value="csv"
             />
             <v-radio
-                label="Text format (.txt)"
-                value="wos-plaintext"
+              label="Endnote format (.ris)"
+              value="ris"
+            />
+            <v-radio
+              label="Text format (.txt)"
+              value="wos-plaintext"
             />
           </v-radio-group>
+          
+          <!-- Separate checkbox that appears when CSV is selected -->
+          <div v-show="exportFormat === 'csv'" class="ml-2 mt-n4 mb-4">
+            <v-checkbox
+              density="compact"
+              hide-details
+              v-model="areColumnsTruncated"
+              label="Shorten column values for Excel compatibility?"
+              @click.stop
+            />
+          </div>
             <v-alert v-if="exportEstimatedTime" type="warning" text>
               Since there are many records, the export will take up to {{ exportEstimatedTime }}.
             </v-alert>
@@ -82,140 +86,97 @@
   </span>
 </template>
 
-<script>
 
-import {mapGetters, mapMutations} from "vuex";
-import axios from "axios";
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+import filters from '@/filters';
 
-import {url} from "@/url";
-import filters from "@/filters";
-import {filtersFromUrlStr} from "@/filterConfigs";
+const store = useStore();
+const route = useRoute();
 
-export default {
-  name: "SerpResultsExportButton",
-  components: {},
-  props: {},
-  data() {
-    return {
-      isDialogOpen: {
-        exportResults: false,
-      },
-      exportFormat: null,
-      areColumnsTruncated: false,
-      exportProgressUrl: "",
-      exportObj: {
-        progress: null,
-      },
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    isResultsExportDisabled() {
-      return this.$store.state?.resultsObject?.meta?.count > 100000
-    },
-    isExportFinished() {
-      return !!this.exportObj.result_url
-    },
-    resultsCount() {
-      return this.$store.state?.resultsObject?.meta?.count
-    },
-    exportEstimatedTime() {
-      if (this.resultsCount < 200) return null
-      if (this.resultsCount < 6600) return "one minute"
-      if (this.resultsCount < 33000) return "five minutes"
-      else if (this.resultsCount < 66000) return "ten minutes"
-      return "fifteen minutes"
-    },
-    exportDialogTitle() {
-      const formatConfig = {
-        csv: "Export spreadsheet (.csv)",
-        "wos-plaintext": "Export text format (.txt)",
-        ris: "Export to Endnote (.ris)",
-      }
-      return formatConfig[this.exportFormat]
-    },
-    groupByDownloadUrl() {
-      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
-      return url.makeGroupByUrl(
-          this.entityType,
-          url.getGroupBy(this.$route).join(","),
-          {
-            filters: myFilters,
-            isMultipleGroups: true,
-            formatCsv: true,
-          }
-      )
-    },
-  },
+const isDialogOpen = ref({ exportResults: false });
+const exportFormat = ref(null);
+const areColumnsTruncated = ref(false);
+const exportProgressUrl = ref('');
+const exportObj = ref({ progress: null });
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    openExportDialog(format) {
-      this.isDialogOpen.exportResults = true
-      this.exportFormat = format
-    },
-    async startExport() {
-      this.exportObj.progress = 0
-      const filterStr = this.$route.query.filter
-      const params = [
-        `filter=${filterStr}`,
-        `format=${this.exportFormat}`,
-        `truncate=${this.areColumnsTruncated}`,
-      ]
-      const url = `https://export.openalex.org/works?` + params.join("&")
-      const resp = await axios.get(url)
-      console.log("startExport resp:", resp)
-      this.exportProgressUrl = resp.data.progress_url
-    },
-    cleanupExport() {
-      this.exportObj = {progress: null}
-      this.exportFormat = null
-      this.exportProgressUrl = null
-      this.isDialogOpen.exportResults = false
-    },
-    cancelExport() {
-      this.cleanupExport()
-      this.snackbar("Export cancelled.")
-    },
-    clickDownloadButton() {
-      this.cleanupExport()
-      this.snackbar("Export downloaded")
-    },
-    clickDownloadSummary() {
-      setTimeout(() => [
-        this.snackbar("Export downloaded")
-      ], 1000)
-    }
+// Computed properties
+const isResultsExportDisabled = computed(() => {
+  return store.state?.resultsObject?.meta?.count > 100000;
+});
 
+const isExportFinished = computed(() => {
+  return !!exportObj.value.result_url;
+});
 
-  },
-  created() {
-  },
-  mounted() {
-    setInterval(async () => {
-      if (!this.exportProgressUrl) return
-      const resp = await axios.get(this.exportProgressUrl)
-      console.log("checking export progress; got this back:", resp.data)
-      this.exportObj = resp.data
-      if (this.isExportFinished) {
-        this.exportProgressUrl = null
-        this.exportObj.progress = 1
-      }
-    }, 1000)
-  },
-  watch: {
-    exportFormat() {
-      this.areColumnsTruncated = false
-    }
-  }
+const resultsCount = computed(() => {
+  return store.state?.resultsObject?.meta?.count;
+});
+
+const exportEstimatedTime = computed(() => {
+  if (resultsCount.value < 200) return null;
+  if (resultsCount.value < 6600) return "one minute";
+  if (resultsCount.value < 33000) return "five minutes";
+  else if (resultsCount.value < 66000) return "ten minutes";
+  return "fifteen minutes";
+});
+
+// Methods
+function openExportDialog(format) {
+  isDialogOpen.value.exportResults = true;
+  exportFormat.value = format;
 }
+
+async function startExport() {
+  exportObj.value.progress = 0;
+  const filterStr = route.query.filter;
+  const params = [
+    `filter=${filterStr}`,
+    `format=${exportFormat.value}`,
+    `truncate=${areColumnsTruncated.value}`,
+  ];
+  const exportUrl = `https://export.openalex.org/works?` + params.join("&");
+  const resp = await axios.get(exportUrl);
+  console.log("startExport resp:", resp);
+  exportProgressUrl.value = resp.data.progress_url;
+}
+
+function cleanupExport() {
+  exportObj.value = {progress: null};
+  exportFormat.value = null;
+  exportProgressUrl.value = null;
+  isDialogOpen.value.exportResults = false;
+}
+
+function clickDownloadButton() {
+  cleanupExport();
+  store.commit('snackbar', "Export downloaded");
+}
+
+// Watchers
+watch(exportFormat, () => {
+  areColumnsTruncated.value = false;
+});
+
+// Lifecycle hooks
+let intervalId;
+onMounted(() => {
+  intervalId = setInterval(async () => {
+    if (!exportProgressUrl.value) return;
+    const resp = await axios.get(exportProgressUrl.value);
+    console.log("checking export progress; got this back:", resp.data);
+    exportObj.value = resp.data;
+    if (isExportFinished.value) {
+      exportProgressUrl.value = null;
+      exportObj.value.progress = 1;
+    }
+  }, 1000);
+});
+
+onBeforeUnmount(() => {
+  clearInterval(intervalId);
+});
 </script>
-
-<style scoped lang="scss">
-
-</style>
