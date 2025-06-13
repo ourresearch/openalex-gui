@@ -63,58 +63,34 @@
   </div>
 </template>
 
-<script>
-
-import {mapGetters} from "vuex";
+<script setup>
+import { computed } from 'vue';
 
 import filters from '@/filters';
-import {getEntityConfig} from "@/entityConfigs";
-import {entityTypeFromId, shortenOpenAlexId} from "@/util";
+import { getEntityConfig } from '@/entityConfigs';
+import { entityTypeFromId, shortenOpenAlexId } from '@/util';
 
-import LinkEntityRolesList from "@/components/LinkEntityRolesList.vue";
-import WorkLinkouts from "@/components/WorkLinkouts.vue";
+import LinkEntityRolesList from '@/components/LinkEntityRolesList.vue';
+import WorkLinkouts from '@/components/WorkLinkouts.vue';
 
+defineOptions({ name: 'EntityHeader' });
 
-export default {
-  name: "EntityHeader",
-  components: {
-    WorkLinkouts,
-    LinkEntityRolesList,
-  },
-  props: {
-    entityData: Object,
-    showPermalinkButton: Boolean,
-  },
-  data() {
-    return {
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    id() {
-      return this.entityData.id
-    },
-    shortId() {
-      return shortenOpenAlexId(this.id)
-    },
-    myEntityType() {
-      return entityTypeFromId(this.id)
-    },
-    myEntityConfig() {
-      return getEntityConfig(this.myEntityType)
-    },
-    feebackUrl() {
-      const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${this.entityData.id}`
-      return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText
-    },
-  },
-  methods: {
-  },
-}
+const props = defineProps({
+  entityData: Object,
+  showPermalinkButton: Boolean
+});
+
+const id = computed(() => props.entityData?.id);
+const shortId = computed(() => shortenOpenAlexId(id.value));
+const myEntityType = computed(() => entityTypeFromId(id.value));
+const myEntityConfig = computed(() => getEntityConfig(myEntityType.value));
+
+const feebackUrl = computed(() => {
+  const descriptionText = `<br /><br /><br />----------------<br />For internal use:<br />This is a support request originating from OpenAlex Web about entity: ${props.entityData?.id}`;
+  return 'https://openalex.zendesk.com/hc/en-us/requests/new?tf_description=' + descriptionText;
+});
 </script>
+
 
 
 <style scoped lang="scss">

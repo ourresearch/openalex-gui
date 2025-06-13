@@ -32,100 +32,74 @@
   </v-navigation-drawer>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { api } from '@/api';
+import { url } from '@/url';
 
-import {mapGetters, mapMutations} from "vuex";
-import {api} from "@/api";
-import {url} from "@/url";
-import {entityTypeFromId} from "@/util";
+import EntityNew from '@/components/Entity/EntityNew.vue';
+import EntityHeader from '@/components/Entity/EntityHeader.vue';
 
-import EntityNew from "@/components/Entity/EntityNew.vue";
-import EntityHeader from "@/components/Entity/EntityHeader.vue";
+defineOptions({ name: 'EntityDrawer' });
 
+const store = useStore();
+const route = useRoute();
 
-export default {
-  name: "EntityDrawer",
-  components: {
-    EntityNew,
-    EntityHeader,
-  },
-  props: {},
-  data() {
-    return {
-      entityData: null,
-      isLoading: false,
-      windowWidth: window.innerWidth,
+const entityData = ref(null);
+const isLoading = ref(false);
+const windowWidth = ref(window.innerWidth);
+
+const zoomId = computed(() => store.getters['zoomId']);
+const setZoomId = (val) => store.commit('setZoomId', val);
+
+const urlZoomId = computed(() => url.getZoom(route));
+const storeZoomId = computed(() => zoomId.value);
+const id = computed(() => storeZoomId.value || urlZoomId.value);
+
+const drawerWidth = computed(() => {
+  const isMobile = store.state?.$vuetify?.display?.mobile; // fallback if not injected
+  return isMobile
+    ? Math.round(windowWidth.value * 0.9)
+    : Math.round(windowWidth.value * 0.5);
+});
+
+const isOpen = computed({
+  get: () => !!id.value,
+  set: (to) => {
+    if (!to) {
+      if (storeZoomId.value) setZoomId(null);
+      if (urlZoomId.value) url.setZoom(undefined);
     }
-  },
-  computed: {
-    ...mapGetters([
-      "zoomId",
-    ]),
-    urlZoomId() {
-      return url.getZoom(this.$route);
-    },
-    storeZoomId() {
-      return this.zoomId;
-    },
-    id() {
-      return this.storeZoomId || this.urlZoomId;
-    },
-    myEntityType() {
-      if (!this.id) { return; }
-      return entityTypeFromId(this.id);
-    },
-    drawerWidth() {
-      // Convert percentage to numeric pixel value due to Vuetify 3 bug
-      // https://github.com/vuetifyjs/vuetify/issues/16150
-      return this.$vuetify.display.mobile 
-        ? Math.round(this.windowWidth * 0.9) 
-        : Math.round(this.windowWidth * 0.5);
-    },
-    isOpen: {
-      get() {
-        return !!this.id;
-      },
-      set(to) {
-        if (!to) {
-          this.storeZoomId && this.setZoomId(null);
-          this.urlZoomId && url.setZoom(undefined); 
-        }
-      }
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "setZoomId",
-    ]),
-    async getEntityData() {
-      if (!this.id) {
-        this.entityData = null;
-        return;
-      }
-      this.isLoading = true;
-      this.entityData = await api.get(this.id);
-      this.isLoading = false;
-    },
-    handleResize() {
-      this.windowWidth = window.innerWidth;
-    },
-  },
-  watch: {
-    id: {
-      handler() {
-        this.getEntityData();
-      },
-      immediate: true
-    }
-  },
-  mounted() {
-    window.addEventListener('resize', this.handleResize);
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.handleResize);
   }
-}
+});
+
+const getEntityData = async () => {
+  if (!id.value) {
+    entityData.value = null;
+    return;
+  }
+  isLoading.value = true;
+  entityData.value = await api.get(id.value);
+  isLoading.value = false;
+};
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth;
+};
+
+watch(id, getEntityData, { immediate: true });
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
 </script>
+
 
 <style>
 /* Using non-scoped styles to properly override Vuetify's drawer styles */

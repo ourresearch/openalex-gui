@@ -8,9 +8,9 @@
       style="width: 100%;"
   >
     <v-toolbar flat color="transparent">
-      <v-icon color="grey-darken-2 mr-1">{{ filterConfig.icon }}</v-icon>
+      <v-icon color="grey-darken-2 mr-1" v-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
       <v-toolbar-title class="group-by-title flex-grow-1">
-        <span>{{ filters.titleCase(filterConfig.displayName) }}</span>
+        <span>{{ filters.titleCase(filterConfig?.displayName || '') }}</span>
       </v-toolbar-title>
       
       <v-spacer/>
@@ -47,29 +47,29 @@
 
         </v-list>
       </v-menu>
-      <v-btn v-if="!isEntityPage" icon @click="url.toggleGroupBy(filterKey)">
+      <v-btn v-if="!props.isEntityPage" icon @click="url.toggleGroupBy(props.filterKey)">
         <v-icon color="grey-darken-2">mdi-close</v-icon>
       </v-btn>
 
     </v-toolbar>
-    <div v-if="groupsTruncated.length || selectedGroupIds.length" class="card-body">
+    <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
-      <div v-if="filterKey==='publication_year'" style="min-width: 200px">
+      <div v-if="props.filterKey==='publication_year'" style="min-width: 200px">
         <bar-graph
-            v-if="groupsTruncated.length > 1"
+            v-if="groupsTruncated?.length > 1"
             :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
             style="height: 100px;"
             class="pa-2"
             @click="selectGroup"
         />
-        <div v-else class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
+        <div v-else-if="groupsTruncated?.length > 0" class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
           <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
-          {{ groupsTruncated[0].value }}
+          {{ groupsTruncated[0]?.value }}
         </div>
       </div>
-      <div v-else-if="myFilterConfig.type === 'boolean'" class="">
+      <div v-else-if="myFilterConfig?.type === 'boolean'">
         <v-card
-            v-if="groupsTruncated.find(g => g.count > 0)"
+            v-if="groupsTruncated?.length && groupsTruncated.some(g => g?.count > 0)"
             flat
             class="pa-2 pl-3 pb-5 d-flex align-center color-3 hover-color-2"
             @click="isSelected = !isSelected"
@@ -78,14 +78,14 @@
               size="60"
               width="20"
               rotate="270"
-              :model-value="groupsTruncated?.find(g => g.value != 0).countScaled * 100"
+              :model-value="(groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100"
           />
           <div class="ml-3">
             <div class="text-h4">
-              {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).countScaled * 100, 3) }}%
+              {{ filters.toPrecision((groupsTruncated?.find(g => g?.value != 0)?.countScaled || 0) * 100, 3) }}%
             </div>
             <div class="text-body-2">
-              {{ filters.toPrecision(groupsTruncated?.find(g => g.value != 0).count) }}
+              {{ filters.toPrecision(groupsTruncated?.find(g => g?.value != 0)?.count || 0) }}
             </div>
           </div>
         </v-card>
@@ -96,11 +96,11 @@
         <group-by-table-row
             v-for="row in groupsTruncated"
             :key="row.value + row.count"
-            :filter-key="filterKey"
+            :filter-key="props.filterKey"
             :value="row.value"
             :display-value="row.displayValue"
             :count="row.count"
-            :hide-checkbox="$route.name !== 'Serp'"
+            :hide-checkbox="route.name !== 'Serp'"
         />
         </tbody>
       </v-table>
@@ -137,10 +137,10 @@
         <v-divider />
         <v-card-text class="pa-0" style="height: 80vh;">
           <filter-select-add-option
-              :filter-key="filterKey"
+              :filter-key="props.filterKey"
               :is-open="isDialogOpen"
               :search-string="searchString"
-              :filters="url.readFilters($route)"
+              :filters="url.readFilters(route)"
               @close="closeDialog"
               @add="addFilter"
           />
@@ -150,198 +150,117 @@
   </v-card>
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
-<script>
+import { api } from '@/api';
+import { url } from '@/url';
+import filters from '@/filters';
+import { facetConfigs, getFacetConfig } from '@/facetConfigs';
+import { filtersFromUrlStr } from '@/filterConfigs';
 
-import {mapGetters, mapMutations} from "vuex";
+import BarGraph from '@/components/BarGraph.vue';
+import GroupByTableRow from '@/components/GroupBy/GroupByTableRow.vue';
+import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 
-import {api} from "@/api";
-import {url} from "../../url";
-import filters from "@/filters";
-import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {filtersFromUrlStr} from "../../filterConfigs";
+defineOptions({ name: 'GroupBy' });
 
-import BarGraph from "@/components/BarGraph.vue";
-import GroupByTableRow from "@/components/GroupBy/GroupByTableRow.vue";
-import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
+const props = defineProps({
+  filterKey: String,
+  entityType: String,
+  filterBy: Array,
+  isEntityPage: Boolean
+});
 
-export default {
-  name: "GroupBy",
-  components: {
-    BarGraph,
-    GroupByTableRow,
-    FilterSelectAddOption,
-  },
-  props: {
-    filterKey: String,
-    entityType: String,
-    filterBy: Array,
-    isEntityPage: Boolean,
-  },
-  data() {
-    return {
-      url,
-      isLoading: false,
-      selectedValue: this.filterValue,
-      searchString: "",
-      isDialogOpen: false,
-      groups: [],
-      maxResults: 5,
-      maxResultsRange: 25,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "resultsCount",
-    ]),
-    isSelected: {
-      get() {
-        return url.isFilterApplied(this.$route, this.entityType, this.filterKey)
-      },
-      set(to) {
-        if (to) {
-          url.upsertFilter(this.entityType, this.filterKey, true)
-        } else {
-          url.deleteFilter(this.entityType, this.filterKey)
-        }
-      }
-    },
-    searchStringPlaceholder(){
-      const pluralDisplayName = filters.pluralize(this.filterConfig.displayName, 2)
-      return "Search " + pluralDisplayName
-    },
-    isMoreToShow() {
-      return this.groups.length > this.groupsTruncated.length
-    },
-    minWidth() {
-      return (this.myFilterConfig.type === "select") ?
-          300 :
-          150
-    },
-    filterConfig() {
-      if (!this.filterKey) return
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    myFilterConfig() {
-      return facetConfigs(this.entityType).find(c => c.key === this.filterKey)
-    },
-    apiRequestFilters(){
-      return this.filterBy?.length ?
-          this.filterBy :
-          filtersFromUrlStr(this.entityType, this.$route.query.filter)
-    },
-    apiUrl() {
-      return url.makeGroupByUrl(
-          this.entityType,
-          this.filterKey,
-          {
-            includeEmail: false,
-            filters: this.apiRequestFilters,
-          }
-      )
-    },
-    csvUrl() {
-      return url.makeGroupByUrl(
-          this.entityType,
-          this.filterKey,
-          {
-            includeEmail: false,
-            formatCsv: true,
-            filters: this.apiRequestFilters,
-          }
-      )
-    },
-    selectedGroups() {
-      return url.readFilterOptions(this.$route, this.entityType, this.filterKey)
-    },
-    negatedGroupIds() {
-      return url.readFilterOptionsByKey(
-          this.$route,
-          this.entityType,
-          this.filterKey,
-          true,
-      )
-    },
-    selectedGroupIds() {
-      return url.readFilterOptionsByKey(
-          this.$route,
-          this.entityType,
-          this.filterKey,
-      )
-    },
-    unselectedGroups() {
-      return this.groups.filter(g => !this.selectedGroupIds.includes(g.value))
-    },
-    groupsTruncated(){
-      const maxResults = (this.myFilterConfig.type === "range") ?
-          this.maxResultsRange :
-          this.maxResults
-      return this.groups.slice(0, maxResults)
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "setApiDialogUrl",
-    ]),
-    addFilter(id){
-      url.createFilter(this.entityType, this.filterKey, id)
-      this.isDialogOpen = false
-    },
-    clickCloseSearch(){
-      this.searchString ?
-          this.searchString = "" :
-          this.closeDialog()
-    },
-    closeDialog(){
-      this.searchString = ""
-      this.isDialogOpen = false
-    },
-    async getGroups() {
-      if (!this.filterKey) return []
-      this.isLoading = true
-      const ret = await api.getGroups(
-          this.entityType,
-          this.filterKey,
-          {
-            hideUnknown: true,
-            filters: this.apiRequestFilters,
-          }
-      )
-      if (this.filterKey === "publication_year") {
-        ret.sort((a, b) => {
-          return (parseInt(a.value) > parseInt(b.value)) ? -1 : 1
-        })
-      }
-      this.groups = ret
-      this.isLoading = false
-    },
-    selectGroup(val) {
-      if (this.myFilterConfig.type === "boolean") {
-        url.upsertFilter(this.entityType, this.filterKey, val != 0)
-      } else if (this.myFilterConfig.type === "range") {
-        url.upsertFilter(this.entityType, this.filterKey, val)
-      } else {
-        if (url.isFilterApplied(this.$route, this.entityType, this.filterKey)) {
-          url.addFilterOption(this.entityType, this.filterKey, val)
-        } else {
-          url.upsertFilter(this.entityType, this.filterKey, val)
-        }
-      }
-    },
-  },
-  watch: {
-    "$route.query.filter": {
-      immediate: true,
-      handler() {
-        this.getGroups()
-      },
-    },
-    isDialogOpen(to){
-      !to && this.closeDialog()
+const route = useRoute();
+
+const isLoading = ref(false);
+const searchString = ref('');
+const isDialogOpen = ref(false);
+const groups = ref([]);
+const maxResults = 5;
+const maxResultsRange = 25;
+
+const isSelected = computed({
+  get: () => url.isFilterApplied(route, props.entityType, props.filterKey),
+  set: (to) => {
+    if (to) url.upsertFilter(props.entityType, props.filterKey, true);
+    else url.deleteFilter(props.entityType, props.filterKey);
+  }
+});
+
+const searchStringPlaceholder = computed(() => {
+  const pluralDisplayName = filters.pluralize(filterConfig.value?.displayName, 2);
+  return 'Search ' + pluralDisplayName;
+});
+
+const myFilterConfig = computed(() => facetConfigs(props.entityType).find(c => c.key === props.filterKey));
+const filterConfig = computed(() => getFacetConfig(props.entityType, props.filterKey));
+const apiRequestFilters = computed(() => props.filterBy?.length ? props.filterBy : filtersFromUrlStr(props.entityType, route.query.filter));
+
+const apiUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, filters: apiRequestFilters.value }));
+const csvUrl = computed(() => url.makeGroupByUrl(props.entityType, props.filterKey, { includeEmail: false, formatCsv: true, filters: apiRequestFilters.value }));
+
+const selectedGroupIds = computed(() => url.readFilterOptionsByKey(route, props.entityType, props.filterKey));
+
+const groupsTruncated = computed(() => {
+  const limit = myFilterConfig.value?.type === 'range' ? maxResultsRange : maxResults;
+  return groups.value.slice(0, limit);
+});
+
+const isMoreToShow = computed(() => groups.value.length > groupsTruncated.value.length);
+const minWidth = computed(() => myFilterConfig.value?.type === 'select' ? 300 : 150);
+
+const addFilter = (id) => {
+  url.createFilter(props.entityType, props.filterKey, id);
+  isDialogOpen.value = false;
+};
+
+const clickCloseSearch = () => {
+  if (searchString.value) searchString.value = '';
+  else closeDialog();
+};
+
+const closeDialog = () => {
+  searchString.value = '';
+  isDialogOpen.value = false;
+};
+
+const getGroups = async () => {
+  if (!props.filterKey) return;
+  isLoading.value = true;
+  const result = await api.getGroups(props.entityType, props.filterKey, {
+    hideUnknown: true,
+    filters: apiRequestFilters.value
+  });
+  if (props.filterKey === 'publication_year') {
+    result.sort((a, b) => parseInt(a.value) > parseInt(b.value) ? -1 : 1);
+  }
+  groups.value = result;
+  isLoading.value = false;
+};
+
+const selectGroup = (val) => {
+  if (myFilterConfig.value?.type === 'boolean') {
+    url.upsertFilter(props.entityType, props.filterKey, val !== 0);
+  } else if (myFilterConfig.value?.type === 'range') {
+    url.upsertFilter(props.entityType, props.filterKey, val);
+  } else {
+    if (url.isFilterApplied(route, props.entityType, props.filterKey)) {
+      url.addFilterOption(props.entityType, props.filterKey, val);
+    } else {
+      url.upsertFilter(props.entityType, props.filterKey, val);
     }
   }
-}
+};
+
+watch(
+  () => [route.params, route.query.filter],
+  getGroups,
+  { immediate: true, deep: true }
+);
+watch(isDialogOpen, (to) => { if (!to) closeDialog(); });
 </script>
 
 
