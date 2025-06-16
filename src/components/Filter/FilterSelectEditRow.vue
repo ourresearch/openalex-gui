@@ -31,91 +31,93 @@
   </v-list-item>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
-import filters from '@/filters'
-import {url} from "@/url";
-import {api} from "@/api";
-import {getEntityConfig} from "@/entityConfigs";
-import {getFacetConfig} from "@/facetConfigs";
+import filters from '@/filters';
+import { url } from '@/url';
+import { api } from '@/api';
+import { getEntityConfig } from '@/entityConfigs';
+import { getFacetConfig } from '@/facetConfigs';
 
-export default {
-  name: "FilterSelectEditRow",
-  components: {},
-  props: {
-    filterKey: String,
-    filterIndex: Number,
-    value: String,
-    displayValue: String,
-    count: Number || null,
-    disabled: Boolean,
-    hint: String,
-    isFromAutocomplete: Boolean,
+defineOptions({name: "FilterSelectEditRow"});
+
+const props = defineProps({
+  filterKey: String,
+  filterIndex: Number,
+  value: String,
+  displayValue: String,
+  count: [Number, null],
+  disabled: Boolean,
+  hint: String,
+  isFromAutocomplete: Boolean
+});
+
+const route = useRoute();
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+// Local state
+const myCount = ref(props.count);
+const isCountLoading = ref(false);
+
+const myConfig = computed(() => getFacetConfig(entityType.value, props.filterKey));
+const myEntityConfig = computed(() => getEntityConfig(myConfig.value?.entityId));
+
+const index = computed(() =>
+  url.findFilterIndex(route, entityType.value, props.filterKey, props.value)
+);
+
+// Two-way binding
+const isApplied = computed({
+  get() {
+    return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
   },
-  data() {
-    return {
-      myCount: this.count,
-      isCountLoading: false,
-      filters,
+  set(to) {
+    if (props.filterIndex >= 0) {
+      console.log('FilterSelectEditRow set()', props.filterIndex);
+      to
+        ? url.addFilterOption(entityType.value, props.filterIndex, props.value)
+        : url.deleteFilterOption(entityType.value, props.filterIndex, props.value);
+    } else {
+      to
+        ? url.createFilter(entityType.value, props.filterKey, props.value)
+        : url.deleteFilterOptionByKey(entityType.value, props.filterKey, props.value);
     }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    myConfig(){
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    myEntityConfig(){
-      return getEntityConfig(this.myConfig?.entityId)
-    },
-    valueId() {
-      return this.value.replace("!", "")
-    },
-    index() {
-      return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
-    },
-    isApplied: {
-      get() {
-        return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
-      },
-      set(to) {
-        if (this.filterIndex >= 0){
-          console.log("FilterSelectEditRow set()", this.filterIndex)
-          to ? url.addFilterOption(this.entityType, this.filterIndex, this.value) :
-              url.deleteFilterOption(this.entityType, this.filterIndex, this.value)
-        }
-        else {
-          to ? url.createFilter(this.entityType, this.filterKey, this.value) :
-               url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
-        }
-      }
-    },
-    isNegated() {
-      return url.readIsFilterNegated(this.$route, this.entityType, this.index)
-    }
-  },
-  methods: {
-    async getMyCount() {
-      if (!this.isFromAutocomplete) return
-      this.isCountLoading = true
-      this.myCount = undefined
-      const filters = url.upsertFilterOptionNoPush(this.entityType, this.filterKey, this.value)
-      const count = await api.getResultsCount(this.entityType, filters)
-      this.myCount = count
-      this.isCountLoading = false
-    },
-  },
-  watch: {
-    "$route.query.filter": {
-      immediate: true,
-      handler() {
-        this.getMyCount()
-      }
-    },
   }
+});
+
+const isNegated = computed(() =>
+  url.readIsFilterNegated(route, entityType.value, index.value)
+);
+
+// Methods
+async function getMyCount() {
+  if (!props.isFromAutocomplete) { return; }
+  isCountLoading.value = true;
+  myCount.value = undefined;
+
+  const filterSet = url.upsertFilterOptionNoPush(
+    entityType.value,
+    props.filterKey,
+    props.value
+  );
+
+  const count = await api.getResultsCount(entityType.value, filterSet);
+  myCount.value = count;
+  isCountLoading.value = false;
 }
+
+// Watch for route filter changes
+watch(
+  () => route.query.filter,
+  () => {
+    getMyCount();
+  },
+  { immediate: true }
+);
 </script>
 
 

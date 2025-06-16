@@ -2,11 +2,11 @@
   <v-menu>
     <template v-slot:activator="{props}">
       <v-chip
-          v-bind="props"
-          :disabled="isDisabled"
-          variant="outlined"
-          label
-          class="font-weight-regular py-4 justify-center light-border"
+        v-bind="props"
+        :disabled="isDisabled"
+        variant="outlined"
+        label
+        class="font-weight-regular py-4 justify-center light-border"
       >
         {{ selectedOption }}
         <v-icon end>mdi-menu-down</v-icon>
@@ -28,68 +28,60 @@
   </v-menu>
 </template>
 
-<script>
 
-import {mapGetters} from "vuex";
-import {getFacetConfig} from "@/facetConfigs";
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "FilterVerb",
-  components: {},
-  props: {
-    isNegated: Boolean,
-    value: [String, Boolean],
-    type: String,
-    filterKey: String,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    myConfig(){
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    selectedOption(){
-      return this.isNegated ?
-          this.options[1] :
-          this.options[0]
-    },
-    isDisabled(){
-      return ["range", "search"].includes(this.type)
-    },
-    options() {
-      if (this.type === "boolean") {
-        return ["is", "is not"]
-      } else if (this.type === "range") {
-        if (this.value.includes("-")) {
-          return ["is within range"]
-        } else {
-          return ["is"]
-        }
-      } else if (this.type === "search") {
-        return [this.myConfig.verb ?? "includes"]
-      } else if (this.type === "select") {
-        return this.value.includes("|") ?
-            ["is any of", "is none of"] :
-            ["is", "is not"]
-      }
-      return null;
-    }
-  },
-  methods: {
-    setIsNegated(i){
-      this.$emit("set", i !== 0)
-    },
-    indexIsSelected(i){
-      return this.isNegated ?
-          i === 1 :
-          i === 0
-    }
-  },
+import { getFacetConfig } from '@/facetConfigs';
+
+defineOptions({name: "FilterVerb"});
+
+const props = defineProps({
+  isNegated: Boolean,
+  value: [String, Boolean],
+  type: String,
+  filterKey: String,
+});
+
+const emit = defineEmits(['set']);
+
+// Store
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+const myConfig = computed(() =>
+  getFacetConfig(entityType.value, props.filterKey)
+);
+
+const options = computed(() => {
+  if (props.type === 'boolean') {
+    return ['is', 'is not'];
+  } else if (props.type === 'range') {
+    return props.value.includes('-') ? ['is within range'] : ['is'];
+  } else if (props.type === 'search') {
+    return [myConfig.value.verb ?? 'includes'];
+  } else if (props.type === 'select') {
+    return props.value.includes('|') ? ['is any of', 'is none of'] : ['is', 'is not'];
+  }
+  return null;
+});
+
+const selectedOption = computed(() =>
+  props.isNegated ? options.value?.[1] : options.value?.[0]
+);
+
+const isDisabled = computed(() =>
+  ['range', 'search'].includes(props.type)
+);
+
+// Methods
+function setIsNegated(index) {
+  emit('set', index !== 0);
+}
+
+function indexIsSelected(index) {
+  return props.isNegated ? index === 1 : index === 0;
 }
 </script>
 

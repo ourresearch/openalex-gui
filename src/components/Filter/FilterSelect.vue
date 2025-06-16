@@ -55,103 +55,86 @@
   </filter-base>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
+import { url } from '@/url';
+import filters from '@/filters';
+import { getFacetConfig } from '@/facetConfigs';
+import { makeSelectFilterValue } from '@/filterConfigs';
 
-import {url} from "@/url";
-import filters from "@/filters";
-import {getFacetConfig} from "@/facetConfigs";
-import {makeSelectFilterValue} from "@/filterConfigs";
+import FilterSelectOption from '@/components/Filter/FilterSelectOption.vue';
+import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
+import FilterBase from '@/components/Filter/FilterBase.vue';
 
-import FilterSelectOption from "@/components/Filter/FilterSelectOption.vue";
-import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
-import FilterBase from "@/components/Filter/FilterBase.vue";
 
-export default {
-  name: "FilterSelect",
-  components: {
-    FilterSelectOption,
-    FilterSelectAddOption,
-    FilterBase,
+defineOptions({name: "FilterSelect"})
+
+const {filterKey, index} = defineProps({
+  filterKey: String,
+  index: Number,
+});
+const emit = defineEmits(['upsert', 'close']);
+
+// Route and store
+const route = useRoute();
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+// Local state
+const isActive = ref(false);
+const searchString = ref('');
+
+// Config for the facet
+const config = computed(() => getFacetConfig(entityType.value, filterKey));
+
+// Dynamic placeholder
+const searchStringPlaceholder = computed(() =>
+  'Search ' + filters.pluralize(config.value.displayName, 2)
+);
+
+// Selected option IDs with getter/setter
+const optionIds = computed({
+  get() {
+    return url.readFilterOptions(route, entityType.value, index);
   },
-  props: {
-    filterKey: String,
-    index: Number,
-    isNew: Boolean,
-  },
-  data() {
-    return {
-      isActive: false,
-      searchString: "",
-      isLoading: false,
-      unselectedOptions: [],
-      maxUnselectedOptionsCount: 10,
-      url,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    config() {
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    searchStringPlaceholder() {
-      return "Search " + filters.pluralize(this.config.displayName, 2)
-    },
-    optionIds: {
-      get() {
-        return url.readFilterOptions(this.$route, this.entityType, this.index)
-      },
-      set(to) {
-        console.log("set appliedOptionIds", to)
-        const newValue = makeSelectFilterValue(to, "any")
-        this.$emit("upsert", newValue)
-      }
-    },
-  },
-  methods: {
-    submit() {
-      console.log("FilterPhraseSelect submit()")
-    },
-    clickCloseSearch() {
-      this.searchString ?
-          this.searchString = "" :
-          this.close()
-    },
-    onDelete() {
-      console.log("FilterPhraseSelect onDelete()")
-    },
-    close() {
-      console.log("FilterSelect close()")
-      this.$store.state.activeFilterKey = null
-      this.isActive = false
-      this.$emit("close") // shouldn't be necessary but it is
-    },
-    onClickOutside() {
-      console.log("FilterPhraseSelect onClickOutside()")
-      if (this.filterKey === this.$store.state.activeFilter) {
-        this.$store.state.activeFilter = null
-      }
-    },
-    deleteOption(id) {
-      url.deleteFilterOption(this.entityType, this.index, id)
-    },
-    addOption(id) {
-      console.log("FilterSelect addOption()", id, this.optionIds)
-      this.close()
-      this.optionIds.length ?
-          url.addFilterOption(this.entityType, this.index, id) :
-          url.createFilter(this.entityType, this.filterKey, id)
-    }
-  },
-  watch: {
-    isActive() {
-      this.searchString = ""
-    }
+  set(to) {
+    console.log('set appliedOptionIds', to);
+    const newValue = makeSelectFilterValue(to, 'any');
+    emit('upsert', newValue);
   }
+});
+
+// Methods
+function clickCloseSearch() {
+  searchString.value ? searchString.value = '' : close();
 }
+
+function close() {
+  console.log('FilterSelect close()');
+  store.state.activeFilterKey = null;
+  isActive.value = false;
+  emit('close'); // still needed
+}
+
+function deleteOption(id) {
+  url.deleteFilterOption(entityType.value, index, id);
+}
+
+function addOption(id) {
+  console.log('FilterSelect addOption()', id, optionIds.value);
+  close();
+  optionIds.value.length
+    ? url.addFilterOption(entityType.value, index, id)
+    : url.createFilter(entityType.value, filterKey, id);
+}
+
+// Watchers
+watch(isActive, () => {
+  searchString.value = '';
+});
 </script>
 
 

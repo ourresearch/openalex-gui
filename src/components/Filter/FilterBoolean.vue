@@ -7,69 +7,20 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { facetConfigs } from '@/facetConfigs';
+import FilterBase from '@/components/Filter/FilterBase.vue';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {facetConfigs} from "../../facetConfigs";
-import {url} from "@/url";
+defineOptions({name: "FilterBoolean"});
 
-import FilterBase from "@/components/Filter/FilterBase.vue";
+const {filterKey, index} = defineProps({
+  filterKey: String,
+  index: Number
+});
 
-export default {
-  name: "FilterBoolean",
-  components: {
-    FilterBase,
-  },
-  props: {
-    filterKey: String,
-    index: Number,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    config() {
-      return facetConfigs().find(c => c.key === this.filterKey)
-    },
-    value: {
-      get() {
-        return url.readFilterValue(this.$route, this.entityType, this.index)
-      },
-      set(to) {
-        this.value === undefined ?
-            url.createFilter(this.entityType, this.filterKey, to) :
-            url.updateFilter(this.entityType, this.index, to)
-      }
-
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    deleteMe() {
-      url.deleteFilter(this.entityType, this.filterKey)
-    },
-    toggleValue() {
-
-    },
-  },
-  watch: {
-    '$route': {
-      immediate: true,
-      handler: function () {
-      }
-    }
-  }
-}
+// Config for this filter
+const config = computed(() =>
+  facetConfigs().find(c => c.key === filterKey)
+);
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

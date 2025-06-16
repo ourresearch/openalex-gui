@@ -2,13 +2,13 @@
   <v-card rounded>
     <div class="pa-2">
       <v-text-field
-          style="width: 100%;"
-          rounded
-          variant="outlined"
-          v-model="searchString"
-          hide-details
-          @keydown.enter="submit"
-          autofocus
+        style="width: 100%;"
+        rounded
+        variant="outlined"
+        v-model="searchString"
+        hide-details
+        @keydown.enter="submit"
+        autofocus
       >
       </v-text-field>
     </div>
@@ -20,69 +20,58 @@
   </v-card>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {getFacetConfig} from "@/facetConfigs";
+import { url } from '@/url';
 
+defineOptions({name: "FilterCardRange"});
 
-export default {
-  name: "FilterCardRange",
-  components: {},
-  props: {
-    filterKey: String,
+const props = defineProps({
+  filterKey: String
+});
+
+const emit = defineEmits(['close']);
+
+const store = useStore();
+const route = useRoute();
+
+const entityType = computed(() => store.getters.entityType);
+
+const searchString = ref('');
+
+// Index lookup based on current filter
+const index = computed(() =>
+  url.findFilterIndex(route, entityType.value, props.filterKey)
+);
+
+// Value getter/setter for the filter
+const value = computed({
+  get() {
+    return url.readFilterValue(route, entityType.value, index.value);
   },
-  data() {
-    return {
-      foo: 42,
-      searchString: "",
+  set(to) {
+    console.log('FilterRange value set()', to);
+    if (value.value) {
+      url.updateOrDeleteFilter(entityType.value, index.value, to);
+    } else {
+      url.createFilter(entityType.value, props.filterKey, to);
     }
-  },
-  computed: {
-    ...mapGetters([
+  }
+});
 
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    config() {
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    value: {
-      get() {
-        return url.readFilterValue(this.$route, this.$store.state.entityType, this.index)
-      },
-      set(to) {
-        console.log("FilterRange value set()", to)
-        this.value ?
-            url.updateOrDeleteFilter(this.entityType, this.index, to) :
-            url.createFilter(this.entityType, this.filterKey, to)
-      }
-    },
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", []),
-    submit() {
-      this.$emit("close")
-      this.value = this.searchString
-    },
-
-
-  },
-  created() {
-  },
-  mounted() {
-    this.searchString = this.value
-  },
-  watch: {}
+// Methods
+function submit() {
+  emit('close');
+  value.value = searchString.value;
 }
+
+// Init on mount
+onMounted(() => {
+  searchString.value = value.value;
+});
 </script>
 
 <style scoped lang="scss">
