@@ -6,6 +6,8 @@ import store from './store';
 import vuetify from './plugins/vuetify';
 import 'vuetify/styles'
 
+import * as Sentry from "@sentry/vue";
+
 import { navigation } from './navigation';
 import tracking from './tracking';
 
@@ -18,6 +20,12 @@ tracking.setupJavaScriptErrorTracking();
 navigation.setRouter(router);
 
 const app = createApp(App);
+
+Sentry.init({
+  app,
+  dsn: "https://fb8a98f98b30ac77643b286fc1842ba9@o4505840077701120.ingest.us.sentry.io/4509509908299776",
+  sendDefaultPii: true
+});
 
 // Register plugins
 app.use(router);
