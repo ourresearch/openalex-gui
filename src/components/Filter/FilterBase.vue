@@ -1,6 +1,6 @@
 <template>
   <tr
-    @click="$emit('click')"
+    @click="emit('click')"
     class="hover-color-3 font-weight-regular"
     :class="{clickable, card: $vuetify.display.smAndDown}"
   >
@@ -29,7 +29,7 @@
         <slot></slot>
       </td>
       <td class="text-right">
-        <v-btn icon variant="plain" size="medium" class="mr-2" @click.stop="$emit('add-option')" v-if="myConfig.type === 'select'">
+        <v-btn icon variant="plain" size="medium" class="mr-2" @click.stop="emit('add-option')" v-if="myConfig.type === 'select'">
           <v-icon>mdi-plus-thick</v-icon>
         </v-btn>
         <v-btn icon variant="plain" size="medium" @click.stop="url.deleteFilter(entityType, index)">
@@ -67,65 +67,60 @@
   </tr>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-import {mapGetters} from "vuex";
-import {getFacetConfig} from "@/facetConfigs";
-import {url} from "@/url";
-import filters from "@/filters";
-import FilterVerb from "@/components/Filter/FilterVerb.vue";
+import { getFacetConfig } from '@/facetConfigs';
+import { url } from '@/url';
+import filters from '@/filters';
+import FilterVerb from '@/components/Filter/FilterVerb.vue';
 
-export default {
-  name: "FilterBase",
-  components: {
-    FilterVerb,
-  },
-  props: {
-    filterKey: String,
-    index: Number,
-    clickable: Boolean,
-  },
-  data() {
-    return {
-      url,
-      filters,
+defineOptions({name: "FilterBase"});
+
+const {filterKey, index, clickable} = defineProps({
+  filterKey: String,
+  index: Number,
+  clickable: Boolean
+});
+
+const emit = defineEmits(['click', 'add-option']);
+
+const route = useRoute();
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+const myConfig = computed(() => getFacetConfig(entityType.value, filterKey));
+
+const myFilterName = computed(() => {
+  return myConfig.value.type === 'boolean'
+    ? filters.pluralize(entityType.value, 1)
+    : myConfig.value.displayName;
+});
+
+const myValue = computed(() =>
+  url.readFilterValue(route, entityType.value, index)
+);
+
+const isNegated = computed({
+  get() {
+    if (myConfig.value.type === 'boolean') {
+      const val = url.readFilter(route, entityType.value, index)?.value;
+      return !val;
+    } else {
+      return url.readIsFilterNegated(route, entityType.value, index);
     }
   },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    myConfig() {
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    myFilterName(){
-      if (this.myConfig.type === "boolean") {
-        return filters.pluralize(this.entityType, 1)
-      }
-      else {
-        return this.myConfig.displayName
-      }
-    },
-    myValue() {
-      return url.readFilterValue(this.$route, this.entityType, this.index)
-    },
-    isNegated: {
-      get() {
-        return this.myConfig.type === "boolean" ?
-            !url.readFilter(this.$route, this.entityType, this.index)?.value :
-            url.readIsFilterNegated(this.$route, this.entityType, this.index)
-      },
-      set(to) {
-        console.log("isNegated setter()", to)
-        return this.myConfig.type === "boolean" ?
-            url.updateFilter(this.entityType, this.index, !to) :
-            url.setIsFilterNegated(this.entityType, this.index, to)
-      }
+  set(to) {
+    console.log('isNegated setter()', to);
+    if (myConfig.value.type === 'boolean') {
+      url.updateFilter(entityType.value, index, !to);
+    } else {
+      url.setIsFilterNegated(entityType.value, index, to);
     }
-  },
-  methods: {
-  },
-}
+  }
+});
 </script>
 
 

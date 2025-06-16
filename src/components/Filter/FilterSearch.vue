@@ -20,74 +20,69 @@
             autofocus
             placeholder="Enter search terms"
             :append-icon="searchString && searchString !== value ? 'mdi-check-bold' : undefined"
-            @keydown.enter="submit"
-            @click:append="submit"
-            @blur="cancel"
-            @keydown.esc="cancel"
+            @keydown.enter="onSubmit"
+            @click:append="onSubmit"
+            @blur="onCancel"
+            @keydown.esc="onCancel"
         />
       </template>
   </filter-base>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-import {mapGetters} from "vuex";
-import {url} from "@/url";
-import {getFacetConfig} from "../../facetConfigs";
-import FilterBase from "@/components/Filter/FilterBase.vue";
+import { url } from '@/url';
+import FilterBase from '@/components/Filter/FilterBase.vue';
 
+defineOptions({name: "FilterSearch"});
 
-export default {
-  name: "FilterValueSearch",
-  components: {
-    FilterBase,
+const {filterKey, index} = defineProps({
+  filterKey: String,
+  index: Number
+});
+
+const route = useRoute();
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+// Local state
+const isActive = ref(false);
+const searchString = ref('');
+
+// Value with getter/setter
+const value = computed({
+  get() {
+    return url.readFilterValue(route, entityType.value, index);
   },
-  props: {
-    filterKey: String,
-    index: Number,
-  },
-  data() {
-    return {
-      foo: 42,
-      isActive: false,
-      searchString: "",
+  set(to) {
+    //console.log('FilterSearch value set()', to);
+    if (value.value) {
+      url.updateOrDeleteFilter(entityType.value, index, to);
+    } else {
+      url.createFilter(entityType.value, filterKey, to);
     }
-  },
-  computed: {
-    ...mapGetters([
+  }
+});
 
-      "entityType",
-    ]),
-    config() {
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    value: {
-      get() {
-        return url.readFilterValue(this.$route, this.$store.state.entityType, this.index)
-      },
-      set(to) {
-        console.log("FilterSearch value set()", to)
-        this.value ?
-            url.updateOrDeleteFilter(this.entityType, this.index, to) :
-            url.createFilter(this.entityType, this.filterKey, to)
-      }
-    }
-  },
-  methods: {
-    submit() {
-      this.isActive = false
-      this.value = this.searchString
-    },
-    cancel(){
-      this.isActive = false
-      this.searchString = this.value
-    }
-  },
-  mounted() {
-    this.searchString = this.value
-    this.isActive = !this.value
-  },
+// Methods
+function onSubmit() {
+  isActive.value = false;
+  value.value = searchString.value;
 }
+
+function onCancel() {
+  isActive.value = false;
+  searchString.value = value.value;
+}
+
+// Lifecycle
+onMounted(() => {
+  searchString.value = value.value;
+  isActive.value = !value.value;
+});
 </script>
 
 

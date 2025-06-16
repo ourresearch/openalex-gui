@@ -7,7 +7,7 @@
           variant="outlined"
           v-model="searchString"
           hide-details
-          @keydown.enter="submit"
+          @keydown.enter="onSubmit"
           autofocus
       >
       </v-text-field>
@@ -15,58 +15,64 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn variant="text" rounded @click="isActive = false">Cancel</v-btn>
-      <v-btn color="primary" rounded @click="submit">Apply</v-btn>
+      <v-btn color="primary" rounded @click="onSubmit">Apply</v-btn>
     </v-card-actions>
   </v-card>
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-import {mapGetters} from "vuex";
-import {url} from "@/url";
-import {getFacetConfig} from "@/facetConfigs";
+import { url } from '@/url';
 
-export default {
-  name: "FilterCardSearch",
-  components: {},
-  props: {
-    filterKey: String,
+defineOptions({name: "FilterCardSearch"});
+
+const props = defineProps({
+  filterKey: String
+});
+
+const emit = defineEmits(['close']);
+
+const store = useStore();
+const route = useRoute();
+
+const entityType = computed(() => store.getters.entityType);
+
+// Local state
+const searchString = ref('');
+
+// Filter index and value
+const index = computed(() =>
+  url.findFilterIndex(route, entityType.value, props.filterKey)
+);
+
+const value = computed({
+  get() {
+    return url.readFilterValue(route, entityType.value, index.value);
   },
-  data() {
-    return {
-      searchString: "",
+  set(to) {
+    console.log('FilterRange value set()', to);
+    if (value.value) {
+      url.updateOrDeleteFilter(entityType.value, index.value, to);
+    } else {
+      url.createFilter(entityType.value, props.filterKey, to);
     }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    config() {
-      return getFacetConfig(this.entityType, this.filterKey);
-    },
-    value: {
-      get() {
-        return url.readFilterValue(this.$route, this.entityType, this.index);
-      },
-      set(to) {
-        console.log("FilterRange value set()", to);
-        this.value ?
-            url.updateOrDeleteFilter(this.entityType, this.index, to) :
-            url.createFilter(this.entityType, this.filterKey, to);
-      }
-    },
-  },
-  methods: {
-    submit() {
-      this.$emit("close")
-      this.value = this.searchString
-    },
-  },
-  mounted() {
-    this.searchString = this.value;
-  },
+  }
+});
+
+// Methods
+function onSubmit() {
+  emit('close');
+  value.value = searchString.value;
 }
+
+// Lifecycle
+onMounted(() => {
+  searchString.value = value.value;
+});
 </script>
 
 

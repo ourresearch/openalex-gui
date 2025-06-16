@@ -2,7 +2,7 @@
   <div class="color-2" style="min-height: 80vh">
     <v-container fluid class="pt-0">
       <serp-toolbar :results-object="resultsObject"/>
-      <filter-list :results-object="resultsObject" class="mb-6 mt-3"/>
+      <filter-list class="mb-6 mt-3"/>
       <serp-api-editor v-if="url.isViewSet($route, 'api')" class="mb-6"/>
 
       <v-row v-if="!$vuetify.display.mobile">
@@ -70,7 +70,7 @@ import {facetConfigs} from "../facetConfigs";
 import SerpResultsList from "@/components/SerpResultsList.vue";
 import SerpApiEditor from "../components/SerpApiEditor.vue";
 import GroupByViews from "@/components/GroupByViews.vue";
-import FilterList from "@/components/FilterList.vue";
+import FilterList from "@/components/Filter/FilterList.vue";
 import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
 
 export default {

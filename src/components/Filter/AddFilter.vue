@@ -150,196 +150,154 @@
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
+import { url } from '@/url';
+import filters from '@/filters';
+import { createSimpleFilter } from '@/filterConfigs';
+import { facetConfigs, getFacetConfig } from '@/facetConfigs';
 
-import {facetConfigs, getFacetConfig} from "@/facetConfigs";
-import {url} from "@/url";
-import filters from "@/filters";
-import {createSimpleFilter} from "@/filterConfigs";
+import FilterCardRange from '@/components/FilterCard/FilterCardRange.vue';
+import FilterCardSearch from '@/components/FilterCard/FilterCardSearch.vue';
+import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 
-import FilterCardRange from "@/components/FilterCard/FilterCardRange.vue";
-import FilterCardSearch from "@/components/FilterCard/FilterCardSearch.vue";
-import FilterSelectAddOption from "@/components/Filter/FilterSelectAddOption.vue";
+defineOptions({ name: 'AddFilter' });
 
+defineProps({
+  includeChips: Boolean
+});
 
-export default {
-  name: "AddFilter",
-  components: {
-    FilterCardRange,
-    FilterCardSearch,
-    FilterSelectAddOption,
-  },
-  props: {
-    includeChips: Boolean,
-  },
-  data() {
-    return {
-      searchString: "",
-      isMenuOpen: false,
-      isDialogOpen: false,
-      newFilterKey: null,
-      isFabShowing: false,
-      url,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    dialogBodyHeight() {
-      const fullHeight = !this.newFilterKey || this.newFilterConfig.type === "select"
-      return fullHeight ? "80vh" : 0
-    },
-    prependIcon() {
-      return this.newFilterKey ?
-          "mdi-arrow-left" :
-          "mdi-magnify"
-    },
-    potentialFilters() {
-      return facetConfigs(this.entityType)
-          .filter(conf => conf.actions?.includes("filter"))
-          .map(f => {
-            return {
-              ...f,
-              disabled: !url.isFilterKeyAvailableToCreate(this.$route, this.entityType, f.key)
-            }
-          })
-    },
-    potentialFiltersPopular() {
-      return this.potentialFilters.filter(f => f.actionsPopular?.includes("filter"))
-    },
-    potentialFiltersMore() {
-      return this.potentialFilters.filter(f => !f.actionsPopular?.includes("filter"))
-    },
-    potentialFiltersSearchResults() {
-      const mySearchString = this.searchString?.toString()?.toLowerCase() ?? ""
-      //console.log("mySearchString " + mySearchString)
-      const filters = this.potentialFilters.filter(f => {
-        return f.displayName.toLowerCase().includes(mySearchString)
-      })
-      //console.log("potentialFilters:")
-      //console.log(this.potentialFilters)
-      //console.log("filteredFilters:")
-      //console.log(filters)
-      return filters
-    },
-    newFilterConfig() {
-      if (!this.newFilterKey) return
-      return getFacetConfig(this.entityType, this.newFilterKey)
-    },
-    placeholder() {
-      const displayName = this.newFilterConfig?.displayName
-      const pluralizedDisplayName = displayName ?
-          filters.pluralize(displayName, 2) :
-          null
-      if (!this.newFilterKey) {
-        return "Search all filters"
-      } else if (this.newFilterKey === "publication_year") {
-        return "Enter year or range of years"
-      } else if (this.newFilterConfig.type === "range") {
-        return "Enter number or range"
-      } else if (this.newFilterConfig.type === "search") {
-        return "Search within " + pluralizedDisplayName
-      } else {
-        return "Search " + pluralizedDisplayName
-      }
-    },
-  },
-  methods: {
-    onDownArrow(event) {
-      // Prevent default behavior of the down arrow key
-      event.preventDefault();
-      
-      // Get all focusable elements in the document
-      const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-      const elements = Array.from(document.querySelectorAll(focusableElements))
-        .filter(el => !el.disabled && el.offsetParent !== null); // Only visible and enabled elements
-      
-      // Find the current element's position in the focusable elements array
-      const currentIndex = elements.indexOf(event.target);
-      
-      // Focus the next element if it exists, otherwise focus the first element
-      if (currentIndex > -1 && currentIndex < elements.length - 1) {
-        elements[currentIndex + 1].focus();
-      } else if (elements.length > 0) {
-        // If we're at the last element or can't find the current element, go to the first
-        elements[0].focus();
-      }
-    },
-    onEnter() {
-      console.log("onEnter", this.searchString, this.entityType)
-      if (["search", "range"].includes(this.newFilterConfig?.type) && this.searchString) {
-        url.createFilter(this.entityType, this.newFilterKey, this.searchString)
-      }
-    },
-    setNewFilterKey(filterKey) {
-      console.log("AddFilter setNewFilterKey", filterKey)
+// Routing and store
+const route = useRoute();
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
 
-      const myConfig = getFacetConfig(this.entityType, filterKey)
-      if (myConfig.type === "boolean") {
-        const oldFilters = url.readFilters(this.$route)
-        const newFilter = createSimpleFilter(
-            this.entityType,
-            filterKey,
-            true
-        )
-        url.pushNewFilters([
-          ...oldFilters,
-          newFilter,
-        ])
+// Reactive state
+const searchString = ref('');
+const isMenuOpen = ref(false);
+const isDialogOpen = ref(false);
+const newFilterKey = ref(null);
+const isFabShowing = ref(false);
 
-      } else {
-        this.newFilterKey = filterKey
-        if (filterKey) this.isDialogOpen = true
-      }
-    },
-    clickCloseSearch() {
-      console.log("clickCloseSearch()")
-      this.searchString ?
-          this.searchString = "" :
-          this.closeDialog()
-    },
-    closeDialog() {
-      this.searchString = ""
-      this.isDialogOpen = false
-      this.newFilterKey = null
-    },
-    clickPrependIcon() {
-      if (this.newFilterKey) {
-        this.newFilterKey = null
-        this.searchString = ""
-      }
-    }
-  },
-  mounted() {
-    setTimeout(()=> {
-      this.isFabShowing = true
-    }, 1)
-  },
-  watch: {
-    isDialogOpen(to) {
-      if (!to) {
-        this.searchString = ""
-        this.newFilterKey = null
-      }
+// Derived config
+const newFilterConfig = computed(() => {
+  if (!newFilterKey.value) { return null; }
+  return getFacetConfig(entityType.value, newFilterKey.value);
+});
 
-      setTimeout(() => {
-      }, 10)
-    },
-    newFilterKey() {
-      this.searchString = ""
-    },
-    "$route": {
-      deep: true,
-      handler() {
-        this.closeDialog()
-      }
-    }
+// Computed values
+const dialogBodyHeight = computed(() => {
+  const fullHeight = !newFilterKey.value || newFilterConfig.value?.type === 'select';
+  return fullHeight ? '80vh' : 0;
+});
+
+const prependIcon = computed(() => newFilterKey.value ? 'mdi-arrow-left' : 'mdi-magnify');
+
+const potentialFilters = computed(() =>
+  facetConfigs(entityType.value)
+    .filter(conf => conf.actions?.includes('filter'))
+    .map(f => ({
+      ...f,
+      disabled: !url.isFilterKeyAvailableToCreate(route, entityType.value, f.key)
+    }))
+);
+
+const potentialFiltersPopular = computed(() =>
+  potentialFilters.value.filter(f => f.actionsPopular?.includes('filter'))
+);
+
+const potentialFiltersSearchResults = computed(() => {
+  const query = searchString.value.toLowerCase();
+  return potentialFilters.value.filter(f =>
+    f.displayName.toLowerCase().includes(query)
+  );
+});
+
+const placeholder = computed(() => {
+  const displayName = newFilterConfig.value?.displayName;
+  const pluralized = displayName ? filters.pluralize(displayName, 2) : null;
+
+  if (!newFilterKey.value) return 'Search all filters';
+  if (newFilterKey.value === 'publication_year') return 'Enter year or range of years';
+  if (newFilterConfig.value?.type === 'range') return 'Enter number or range';
+  if (newFilterConfig.value?.type === 'search') return 'Search within ' + pluralized;
+  return 'Search ' + pluralized;
+});
+
+// Methods
+function onDownArrow(event) {
+  event.preventDefault();
+  const focusable = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  const elements = Array.from(document.querySelectorAll(focusable))
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  const currentIndex = elements.indexOf(event.target);
+  if (currentIndex > -1 && currentIndex < elements.length - 1) {
+    elements[currentIndex + 1].focus();
+  } else if (elements.length > 0) {
+    elements[0].focus();
   }
 }
+
+function onEnter() {
+  if (['search', 'range'].includes(newFilterConfig.value?.type) && searchString.value) {
+    url.createFilter(entityType.value, newFilterKey.value, searchString.value);
+  }
+}
+
+function setNewFilterKey(filterKey) {
+  const config = getFacetConfig(entityType.value, filterKey);
+  if (config.type === 'boolean') {
+    const oldFilters = url.readFilters(route);
+    const newFilter = createSimpleFilter(entityType.value, filterKey, true);
+    url.pushNewFilters([...oldFilters, newFilter]);
+  } else {
+    newFilterKey.value = filterKey;
+    if (filterKey) isDialogOpen.value = true;
+  }
+}
+
+function clickCloseSearch() {
+  searchString.value ? searchString.value = '' : closeDialog();
+}
+
+function closeDialog() {
+  searchString.value = '';
+  isDialogOpen.value = false;
+  newFilterKey.value = null;
+}
+
+function clickPrependIcon() {
+  if (newFilterKey.value) {
+    newFilterKey.value = null;
+    searchString.value = '';
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  setTimeout(() => {
+    isFabShowing.value = true;
+  }, 1);
+});
+
+// Watchers
+watch(isDialogOpen, to => {
+  if (!to) {
+    searchString.value = '';
+    newFilterKey.value = null;
+  }
+});
+
+watch(newFilterKey, () => {
+  searchString.value = '';
+});
+
+watch(() => route.fullPath, () => {
+  closeDialog();
+});
 </script>
 
 

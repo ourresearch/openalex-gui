@@ -56,111 +56,88 @@
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
-
-import {api} from "@/api";
+import { api } from '@/api';
 import filters from '@/filters';
-import {entityTypeFromId} from "@/util";
-import {getEntityConfig} from "@/entityConfigs";
-import {getFacetConfig} from "@/facetConfigs";
+import { entityTypeFromId } from '@/util';
+import { getEntityConfig } from '@/entityConfigs';
+import { getFacetConfig } from '@/facetConfigs';
 
-import EntityNew from "@/components/Entity/EntityNew.vue";
+import EntityNew from '@/components/Entity/EntityNew.vue';
 
-export default {
-  name: "FilterSelectOption",
-  components: {
-    EntityNew,
-  },
-  props: {
-    disabled: Boolean,
-    filterValue: String,
-    filterKey: String,
-    close: Boolean,
-    openMenu: Boolean,
-    position: Number,
-  },
-  data() {
-    return {
-      displayValue: "",
-      isLoading: false,
-      isMenuOpen: false,
-      entityData: null,
-      myEntityConfig: null,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    filterConfig(){
-      return getFacetConfig(this.entityType, this.filterKey)
-    },
-    filterId() {
-      return this.filterValue.replace("!", "")
-    },
-    menuKey() {
-      return this.filterKey + '-' + this.filterId
-    },
-    alternateNamesString() {
-      return [
-        ...this.entityData?.display_name_alternatives ?? [],
-        ...this.entityData?.display_name_acronyms ?? [],
-        ...this.entityData?.alternate_titles ?? [],
-      ].join("; ")
-    },
-    filterDisplayValue(){
-      return this.entityData?.display_name
-    },
-    isValueNull() {
-      return this.filterValue.split("/").slice(-1)[0] === "null"
-    },
-    nullDisplayValue() {
-      return this.filterConfig.displayNullAs ?? "Unknown"
-    }
-  },
-  methods: {
-    getEntityConfig,
-    handleClick() {
-      if (this.entityData?.hideMenu) {
-        // Don't try to show entity menu for null values or values that failed to get data from entity endpoint
-        this.isMenuOpen = false;
-      } else {
-        // Let v-model handle the actual toggling
-      }
-    },
-  },
-  created() {
-  },
-  async mounted() {
-    this.isLoading = true
-    //console.log("filterOptionSelect requesting entityData for: " + this.filterValue)
-    if (this.isValueNull) {
-      this.entityData = {
-        display_name: this.nullDisplayValue,
-        hideMenu : true
-      }
-    } else {
-      try {
-        this.entityData = await api.getEntity(this.filterValue)
-        // Don't try getting entityConfig on filterValue unless API calls return,
-        // when entity endpoint aren't available filterValue doesn't return from API will type included.
-        const myEntityType = entityTypeFromId(this.filterValue)
-        this.myEntityConfig = getEntityConfig(myEntityType)
-      } catch (e) {
-        // Mock data whenever API calls fails
-        this.entityData = {
-          display_name: this.filterValue,
-          hideMenu: true
-        }
-      }
-    }
-    this.isLoading = false
-  },
-  watch: {}
+defineOptions({name: "FilterSelectOption"});
+
+const props = defineProps({
+  disabled: Boolean,
+  filterValue: String,
+  filterKey: String,
+  close: Boolean,
+  openMenu: Boolean,
+  position: Number
+});
+
+// Store
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+// State
+const isLoading = ref(false);
+const isMenuOpen = ref(false);
+const entityData = ref(null);
+const myEntityConfig = ref(null);
+
+// Configs
+const filterConfig = computed(() =>
+  getFacetConfig(entityType.value, props.filterKey)
+);
+
+const isValueNull = computed(() =>
+  props.filterValue.split('/').slice(-1)[0] === 'null'
+);
+
+const nullDisplayValue = computed(() =>
+  filterConfig.value.displayNullAs ?? 'Unknown'
+);
+
+const filterDisplayValue = computed(() =>
+  entityData.value?.display_name
+);
+
+function handleClick() {
+  if (entityData.value?.hideMenu) {
+    isMenuOpen.value = false;
+  } else {
+    // Let v-model handle toggling
+  }
 }
+
+// Lifecycle
+onMounted(async () => {
+  isLoading.value = true;
+
+  if (isValueNull.value) {
+    entityData.value = {
+      display_name: nullDisplayValue.value,
+      hideMenu: true
+    };
+  } else {
+    try {
+      entityData.value = await api.getEntity(props.filterValue);
+      const myEntityType = entityTypeFromId(props.filterValue);
+      myEntityConfig.value = getEntityConfig(myEntityType);
+    } catch (e) {
+      entityData.value = {
+        display_name: props.filterValue,
+        hideMenu: true
+      };
+    }
+  }
+
+  isLoading.value = false;
+});
 </script>
 
 

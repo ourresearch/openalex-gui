@@ -5,10 +5,10 @@
         <template v-if="isLoading">
           Searching...
         </template>
-        <template v-else-if="searchString && suggestions.length">
+        <template v-else-if="props.searchString && suggestions.length">
           Top search results ({{ suggestions.length }})
         </template>
-        <template v-else-if="searchString && !suggestions.length">
+        <template v-else-if="props.searchString && !suggestions.length">
           No results found
         </template>
         <template v-else>
@@ -19,109 +19,90 @@
       </v-list-subheader>
 
       <filter-select-edit-row
-          v-for="row in suggestions"
-          :key="row.value + row.count"
-          :filter-key="filterKey"
-          :filter-index="filterIndex"
-          :value="row.value"
-          :display-value="row.displayValue"
-          :count="row.count"
-          :hint="row.hint"
-          :is-from-autocomplete="row.isFromAutocomplete"
+        v-for="row in suggestions"
+        :key="row.value + row.count"
+        :filter-key="props.filterKey"
+        :filter-index="props.filterIndex"
+        :value="row.value"
+        :display-value="row.displayValue"
+        :count="row.count"
+        :hint="row.hint"
+        :is-from-autocomplete="row.isFromAutocomplete"
       />
     </v-list>
   </v-card>
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import _ from 'lodash';
 
-import _ from "lodash"
-import {mapGetters} from "vuex";
-import {api} from "@/api";
-import {url} from "@/url";
-import filters from "@/filters";
-import {getFacetConfig} from "@/facetConfigs";
-import {getEntityConfig} from "@/entityConfigs";
-import FilterSelectEditRow from "@/components/Filter/FilterSelectEditRow.vue";
+import { api } from '@/api';
+import { getFacetConfig } from '@/facetConfigs';
+import { getEntityConfig } from '@/entityConfigs';
 
-export default {
-  name: "FilterSelectAddOption",
-  components: {
-    FilterSelectEditRow,
-  },
-  props: {
-    filterKey: String,
-    filterIndex: Number,
-    isOpen: Boolean,
-    searchString: String,
-    filters: Array,
-  },
-  data() {
-    return {
-      suggestions: [],
-      isLoading: false,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    filterConfig() {
-      const ret = getFacetConfig(this.entityType, this.filterKey)
-      // console.log("FilterSelectAddOption filterConfig()", this.entityType, this.filterKey, ret)
-      return ret
-    },
-    searchPlaceholder() {
-      const pluralValue = filters.pluralize(this.filterConfig.displayName, 2)
-      return "Search " + pluralValue
-    },
-    hasAutocomplete() {
-      return this.entityConfig?.hasAutocomplete
-    },
-    entityConfig() {
-      return getEntityConfig(this.filterConfig.entityId)
-    }
-  },
-  methods: {
-    clickRow(value) {
-      this.$emit("close")
-      url.upsertFilterOption(this.entityType, this.filterKey, value)
+import FilterSelectEditRow from '@/components/Filter/FilterSelectEditRow.vue';
 
-    },
-    getSuggestions: _.debounce(async function () {
-      this.isLoading = true
-      this.suggestions = await api.getSuggestions(
-          this.entityType,
-          this.filterKey,
-          this.searchString,
-          this.filters ?? []
-      )
-      this.isLoading = false
-    }, 300, {leading: true})
-  },
-  watch: {
-    "$route": {
-      handler() {
-        this.$emit("close")
-      }
-    },
-    searchString() {
-      this.suggestions = []
-      this.isLoading = true
-      this.getSuggestions()
-    },
-    isOpen: {
-      immediate: true,
-      handler() {
-        this.getSuggestions()
-      }
-    }
-  }
-}
+// Props
+const props = defineProps({
+  filterKey: String,
+  filterIndex: Number,
+  isOpen: Boolean,
+  searchString: String,
+  filters: Array
+});
+
+const emit = defineEmits(['close']);
+
+// Route and store
+const store = useStore();
+const route = useRoute();
+const entityType = computed(() => store.getters.entityType);
+
+// State
+const suggestions = ref([]);
+const isLoading = ref(false);
+
+// Configs
+const filterConfig = computed(() =>
+  getFacetConfig(entityType.value, props.filterKey)
+);
+
+const entityConfig = computed(() =>
+  getEntityConfig(filterConfig.value.entityId)
+);
+
+const hasAutocomplete = computed(() =>
+  entityConfig.value?.hasAutocomplete
+);
+
+// Debounced suggestion fetching
+const getSuggestions = _.debounce(async () => {
+  isLoading.value = true;
+  suggestions.value = await api.getSuggestions(
+    entityType.value,
+    props.filterKey,
+    props.searchString,
+    props.filters ?? []
+  );
+  isLoading.value = false;
+}, 300, { leading: true });
+
+// Watchers
+watch(() => props.searchString, () => {
+  suggestions.value = [];
+  isLoading.value = true;
+  getSuggestions();
+});
+
+watch(() => props.isOpen, () => {
+  getSuggestions();
+}, { immediate: true });
+
+watch(() => route.fullPath, () => {
+  emit('close');
+});
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
