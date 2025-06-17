@@ -1,77 +1,63 @@
 <template>
   <v-card
-      flat
-      rounded
-      class="button-card pa-4 d-flex align-end"
-      height="100"
-      @click="clickCard"
+    flat
+    rounded
+    class="button-card pa-4 d-flex align-end"
+    height="100"
+    @click="clickCard"
   >
-    <bar-graph
-        :bars="countsByYear.map(y => {return {key: y.year, count: y.cited_by_count}})"
-        style="height: 100%;"
-        class="flex-grow-1"
-        @click="clickBar"
-
+    <BarGraph
+      :bars="countsByYear.map(y => ({ key: y.year, count: y.cited_by_count }))"
+      style="height: 100%;"
+      class="flex-grow-1"
+      @click="clickBar"
     />
     <v-divider vertical class="mx-3"></v-divider>
-    <div class="">
+    <div>
       <div class="text-h3">
         {{ filters.toPrecision(citedByCount) }}
       </div>
       <div class="text-right">Citations</div>
     </div>
-
-
   </v-card>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
+import { url } from '@/url';
+import filters from '@/filters';
+import { createSimpleFilter } from '@/filterConfigs';
+import { shortenOpenAlexId } from '@/util';
 
-import {url} from "@/url";
-import filters from "@/filters";
-import {createSimpleFilter} from "@/filterConfigs";
-import {shortenOpenAlexId} from "@/util";
+import BarGraph from '@/components/BarGraph.vue';
 
-import BarGraph from "@/components/BarGraph.vue";
+defineOptions({ name: 'CitationsGraph' });
 
-export default {
-  name: "CitationsGraph",
-  components: {
-    BarGraph,
-  },
-  props: {
-    countsByYear: Array,
-    citedByCount: Number,
-    id: String,
-  },
-  data() {
-    return {
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    citesFilter() {
-      const shortId = shortenOpenAlexId(this.id)
-      return createSimpleFilter(this.entityType, "cites", shortId)
-    }
-  },
-  methods: {
-    clickCard() {
-      url.pushNewFilters([this.citesFilter])
-    },
-    clickBar(barKey) {
-      const yearFilter = createSimpleFilter(this.entityType, "publication_year", barKey)
-      url.pushNewFilters([this.citesFilter, yearFilter])
-    }
-  },
+defineProps({
+  countsByYear: Array,
+  citedByCount: Number,
+  id: String,
+});
+
+const store = useStore();
+const entityType = computed(() => store.getters.entityType);
+
+const citesFilter = computed(() => {
+  const shortId = shortenOpenAlexId(id);
+  return createSimpleFilter(entityType.value, 'cites', shortId);
+});
+
+function clickCard() {
+  url.pushNewFilters([citesFilter.value]);
+}
+
+function clickBar(barKey) {
+  const yearFilter = createSimpleFilter(entityType.value, 'publication_year', barKey);
+  url.pushNewFilters([citesFilter.value, yearFilter]);
 }
 </script>
 
 <style scoped lang="scss">
-
 </style>
