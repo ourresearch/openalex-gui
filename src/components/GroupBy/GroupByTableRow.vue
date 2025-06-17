@@ -8,7 +8,7 @@
       <v-icon v-else>mdi-checkbox-blank-outline</v-icon>
     </td>
 
-    <td class="text-body-2" :class="{isNegated}">
+    <td class="text-body-2" :class="{ isNegated }">
       {{ displayValue }}
     </td>
     <td class="range text-body-2 text-right align-baseline">
@@ -17,122 +17,94 @@
   </tr>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-import {mapGetters} from "vuex";
-import {url} from "@/url";
-import {api} from "@/api";
+import { url } from '@/url';
+import { api } from '@/api';
 import filters from '@/filters';
-import {createSimpleFilter, setStringIsNegated} from "@/filterConfigs";
-import {getEntityConfig} from "@/entityConfigs";
+import { createSimpleFilter, setStringIsNegated } from '@/filterConfigs';
+import { getEntityConfig } from '@/entityConfigs';
 
-export default {
-  name: "GroupByTableRow",
-  components: {},
-  props: {
-    filterKey: String,
-    value: String,
-    displayValue: String,
-    count: Number || null,
-    hideCheckbox: Boolean,
+defineOptions({ name: 'GroupByTableRow' });
+
+const props = defineProps({
+  filterKey: String,
+  value: String,
+  displayValue: String,
+  count: [Number, null],
+  hideCheckbox: Boolean,
+});
+
+const store = useStore();
+const route = useRoute();
+
+const entityType = computed(() => store.getters.entityType);
+const myCount = ref(props.count);
+
+const index = computed(() => url.findFilterIndex(route, entityType.value, props.filterKey, props.value));
+
+const isApplied = computed({
+  get() {
+    if (route.name === 'EntityPage') return false;
+    return url.isFilterOptionApplied(route, entityType.value, props.filterKey, props.value);
   },
-  data() {
-    return {
-      isMenuOpen: false,
-      myCount: this.count,
-      filters,
+  set(to) {
+    if (to) {
+      if (route.name === 'EntityPage') {
+        const myEntityType = route.params.entityType;
+        const myEntityId = route.params.entityId;
+        const myEntityConfig = getEntityConfig(myEntityType);
+        const myEntityWorksFilter = createSimpleFilter('works', myEntityConfig.filterKey, myEntityId);
+        const myRowFilter = createSimpleFilter('works', props.filterKey, props.value);
+        url.pushNewFilters([myEntityWorksFilter, myRowFilter], 'works');
+      } else {
+        url.createFilter(entityType.value, props.filterKey, props.value);
+      }
+    } else {
+      url.deleteFilterOptionByKey(entityType.value, props.filterKey, props.value);
     }
   },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    valueId() {
-      return this.value.replace("!", "")
-    },
-    index() {
-      return url.findFilterIndex(this.$route, this.entityType, this.filterKey, this.value)
-    },
-    isApplied: {
-      get() {
-        if (this.$route.name === 'EntityPage') return false // there are no filters set on the entity page
-        return url.isFilterOptionApplied(this.$route, this.entityType, this.filterKey, this.value)
-      },
-      set(to) {
-        console.log("GroupByTableRow isApplied.set()", to)
-        if (to) {
-          if (this.$route.name === 'EntityPage') {
-            console.log("clicking on GroupByTableRow from entity page")
-            const myEntityType = this.$route.params.entityType
-            const myEntityId = this.$route.params.entityId
-            const myEntityConfig = getEntityConfig(myEntityType)
-            const myEntityWorksFilter = createSimpleFilter(
-                "works",
-                myEntityConfig.filterKey,
-                myEntityId,
-            )
-            const myRowFilter = createSimpleFilter(
-                "works",
-                this.filterKey,
-                this.value
-            )
-            url.pushNewFilters([myEntityWorksFilter, myRowFilter], "works")
-          } else {
-            url.createFilter(this.entityType, this.filterKey, this.value)
-          }
-        } else {
-          url.deleteFilterOptionByKey(this.entityType, this.filterKey, this.value)
-        }
-      }
-    },
-    isNegated: {
-      get() {
-        return url.readIsFilterNegated(this.$route, this.entityType, this.index)
-      },
-      set(to) {
-        const newValue = setStringIsNegated(this.value, to)
-        this.index >= 0 ?
-            url.setIsFilterOptionNegated(this.entityType, this.filterKey, this.value, to) :
-            url.createFilter(this.entityType, this.filterKey, newValue)
+});
 
-      }
-    },
-    doesMyFilterHaveOtherOptions() {
-      return url.readFilterOptions(this.$route, this.entityType, this.index)?.length > 1
-    },
+const isNegated = computed({
+  get() {
+    return url.readIsFilterNegated(route, entityType.value, index.value);
   },
-  methods: {
-    clickRow() {
-      console.log("GroupByTableRow clickRow()")
-      this.isApplied = !this.isApplied
-    },
-    async getMyCount() {
-      if (this.count !== null) {
-        this.myCount = this.count
-        return
-      }
-      const filters = url.readFilters(this.$route)
-
-      const filtersWithoutMyFilter = filters.toSpliced(this.index, 1)
-      const filterWithOnlyMyValue = createSimpleFilter(this.entityType, this.filterKey, this.value, this.isNegated)
-      const queryFilters = (this.isNegated) ?
-          filters :
-          [...filtersWithoutMyFilter, filterWithOnlyMyValue]
-
-      const count = await api.getResultsCount(this.entityType, queryFilters)
-      this.myCount = count
-    },
-  },
-  watch: {
-    '$route.query.filter': {
-      immediate: true,
-      deep: true,
-      handler() {
-        this.getMyCount()
-      }
+  set(to) {
+    const newValue = setStringIsNegated(props.value, to);
+    if (index.value >= 0) {
+      url.setIsFilterOptionNegated(entityType.value, props.filterKey, props.value, to);
+    } else {
+      url.createFilter(entityType.value, props.filterKey, newValue);
     }
+  },
+});
+
+const clickRow = () => {
+  isApplied.value = !isApplied.value;
+};
+
+const getMyCount = async () => {
+  if (props.count !== null) {
+    myCount.value = props.count;
+    return;
   }
-}
+  const allFilters = url.readFilters(route);
+  const filtersWithoutMyFilter = allFilters.toSpliced(index.value, 1);
+  const filterWithOnlyMyValue = createSimpleFilter(entityType.value, props.filterKey, props.value, isNegated.value);
+  const queryFilters = isNegated.value ? allFilters : [...filtersWithoutMyFilter, filterWithOnlyMyValue];
+  const count = await api.getResultsCount(entityType.value, queryFilters);
+  myCount.value = count;
+};
+
+watch(
+  () => route.query.filter,
+  () => { getMyCount();},
+  { immediate: true, deep: true }
+);
 </script>
 
 
