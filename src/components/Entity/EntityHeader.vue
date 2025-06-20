@@ -6,10 +6,10 @@
     />
     <div class="d-flex align-center">
       <link-entity-roles-list
-          v-if="entityData.roles"
-          :roles="entityData.roles"
-          :selected="myEntityConfig.nameSingular"
-          style="margin-left:-13px;"
+        v-if="entityData.roles"
+        :roles="entityData.roles"
+        :selected="myEntityConfig.nameSingular"
+        style="margin-left:-13px;"
       />
       <div class="mr-3" v-else>
         <v-icon size="x-small" variant="plain">{{ myEntityConfig.icon }}</v-icon>
