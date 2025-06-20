@@ -1,68 +1,62 @@
 <template>
   <span>
     <v-menu>
-      <template v-slot:activator="{props}">
+      <template v-slot:activator="{props: menuProps}">
         <v-btn
-            variant="text"
-            rounded
-            class="font-weight-regular "
-            v-bind="props"
+          variant="text"
+          rounded
+          class="font-weight-regular"
+          v-bind="menuProps"
         >
-          <v-icon start>{{ selectedRoleConfig.icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ selectedRoleConfig.icon }}</v-icon>
+          </template>
           {{ filters.capitalize(selectedRoleConfig.nameSingular) }}
-          <v-icon end>mdi-menu-down</v-icon>
+          <template #append>
+            <v-icon>mdi-menu-down</v-icon>
+          </template>
         </v-btn>
       </template>
       <v-list>
         <v-list-item
-          v-for="role in roles"
+          v-for="role in rolesToShow"
           :key="role.id"
           :to="filters.entityZoomLink(role.id)"
         >
-          <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
+          <template #prepend>
+            <v-icon>{{ getEntityConfig(role.role).icon }}</v-icon>
+          </template>
           <v-list-item-title>{{ role.role }}</v-list-item-title>
-          <v-icon v-if="role.role === selected">mdi-check</v-icon>
+          <template #append>
+            <v-icon v-if="role.role === selected">mdi-check</v-icon>
+          </template>
         </v-list-item>
       </v-list>
     </v-menu>
   </span>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
 
-import filters from "@/filters";
-import {getEntityConfig} from "@/entityConfigs";
+import filters from '@/filters';
+import { getEntityConfig } from '@/entityConfigs';
 
-export default {
-  name: "LinkEntityRolesList",
-  components: {
-  },
-  props: {
-    roles: Array,
-    hideRole: String,
-    selected: String,
-  },
-  data() {
-    return {
-      filters,
-      getEntityConfig,
-    }
-  },
-  computed: {
-    rolesToShow() {
-      return this.roles.filter(r => {
-        return r.role !== this.hideRole
-      })
-    },
-    selectedRoleConfig(){
-      return getEntityConfig(this.selected)
-    }
-  },
-  methods: {
-  },
-}
+defineOptions({ name: 'LinkEntityRolesList' });
+
+// Props
+const { roles, hideRole, selected } = defineProps({
+  roles: Array,
+  hideRole: String,
+  selected: String
+});
+
+const rolesToShow = computed(() => {
+  return roles.filter(r => r.role !== hideRole);
+});
+
+const selectedRoleConfig = computed(() => {
+  return getEntityConfig(selected);
+});
+
 </script>
-
-<style scoped lang="scss">
-
-</style>
