@@ -88,9 +88,9 @@
           </v-card>
 
           <group-by
-              v-else
-              :filter-key="key"
-              :entity-type="entityType"
+            v-else
+            :filter-key="key"
+            :entity-type="entityType"
           />
 
         </v-col>
@@ -104,81 +104,69 @@
   </v-card>
 </template>
 
-<script>
 
-import {mapGetters} from "vuex";
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {url} from "@/url";
-import filters from "@/filters";
-import {filtersFromUrlStr} from "@/filterConfigs";
+import { url } from '@/url';
+import filters from '@/filters';
+import { filtersFromUrlStr } from '@/filterConfigs';
 
-import GroupBy from "@/components/GroupBy/GroupBy.vue";
-import ActionMenu from "@/components/Action/ActionMenu.vue";
-import SerpResultsCount from "@/components/SerpResultsCount.vue";
+import GroupBy from '@/components/GroupBy/GroupBy.vue';
+import ActionMenu from '@/components/Action/ActionMenu.vue';
+import SerpResultsCount from '@/components/SerpResultsCount.vue';
 
-export default {
-  name: "GroupByViews",
-  components: {
-    SerpResultsCount,
-    GroupBy,
-    ActionMenu,
-  },
-  props: {
-    resultsObject: Object,
-  },
-  data() {
-    return {
-      url,
-      filters,
+defineOptions({ name: 'GroupByViews'});
+
+// Props
+defineProps({
+  resultsObject: Object
+});
+
+// Store and router
+const store = useStore();
+const route = useRoute();
+
+const entityType = computed(() => store.getters.entityType);
+
+// Group by keys, sorted
+const groupByKeys = computed(() => {
+  const keys = url.getGroupBy(route);
+  keys.sort((a) => ['apc_sum', 'cited_by_count_sum'].includes(a) ? -1 : 1);
+  return keys;
+});
+
+
+// API URL based on current filters
+const apiUrl = computed(() => {
+  const myFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  return url.makeGroupByUrl(
+    entityType.value,
+    groupByKeys.value.join(','),
+    {
+      filters: myFilters,
+      isMultipleGroups: true
     }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    groupByKeys() {
-      const ret = url.getGroupBy(this.$route)
-      ret.sort((a) => {
-        return (['apc_sum', 'cited_by_count_sum'].includes(a)) ? -1 : 1
-      });
-      return ret
-    },
-    hideResults: {
-      get() {
-        return this.$route.query.hide_results
-      },
-      set(to) {
-        url.setHideResults(to)
-      }
-    },
-    apiUrl() {
-      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
-      return url.makeGroupByUrl(
-          this.entityType,
-          this.groupByKeys.join(","),
-          {
-            filters: myFilters,
-            isMultipleGroups: true
-          }
-      )
-    },
-    csvUrl() {
-      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter)
-      return url.makeGroupByUrl(
-          this.entityType,
-          this.groupByKeys.join(","),
-          {
-            filters: myFilters,
-            isMultipleGroups: true,
-            formatCsv: true,
-          }
-      )
-    },
-  },
-  methods: {
-  },
-}
+  );
+});
+
+// CSV export URL
+const csvUrl = computed(() => {
+  const myFilters = filtersFromUrlStr(entityType.value, route.query.filter);
+  return url.makeGroupByUrl(
+    entityType.value,
+    groupByKeys.value.join(','),
+    {
+      filters: myFilters,
+      isMultipleGroups: true,
+      formatCsv: true
+    }
+  );
+});
 </script>
+
 
 <style scoped lang="scss">
 .group-by-views .v-toolbar__content {
