@@ -34,66 +34,59 @@
 </template>
 
 
-<script>
-import { mapGetters, mapMutations } from "vuex";
-import { entity } from "@/entity";
-import * as oaxSearch from "@/oaxSearch";
-import LabelMenu from "@/components/Label/LabelMenu.vue";
-import DownloadDialog from "@/components/Download/DownloadDialog.vue";
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "QueryActions",
-  components: {
-    LabelMenu,
-    DownloadDialog,
-  },
-  props: {},
-  data() {
-    return {
-      isDownloadDialogOpen: false
-    };
-  },
-  computed: {
-    ...mapGetters("user", ["userId"]),
-    ...mapGetters("search", [
-      "resultsMeta",
-      "resultsHeader",
-      "resultsBody",
-      "querySubjectEntity",
-      "selectedIds",
-      "isEntireSearchSelected",
-    ]),
-    fullSelectedIds() {
-      // Returns selected IDs in full format e.g. "topics/T123" instead of "123"
-      return this.selectedIds.map(id => 
-        entity.fullId(id, this.querySubjectEntity)
-      );
-    }
-  },
-  methods: {
-    ...mapMutations(["snackbar"]),
-    exportResults() {
-      if (this.isEntireSearchSelected) {
-        this.isDownloadDialogOpen = true;
-      } else {
-        this.exportSelectedAsCsv();
-      }
-    },
-    exportSelectedAsCsv() {
-      const selectedRows = this.resultsBody.filter(row => 
-        this.selectedIds.includes(row.id)
-      );
-      const csv = oaxSearch.jsonToCsv(this.resultsHeader, selectedRows);
-      const blob = new Blob([csv], {type: "text/csv"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "selected.csv";
-      a.click();
-    }
+import { entity } from '@/entity';
+import * as oaxSearch from '@/oaxSearch';
+
+import LabelMenu from '@/components/Label/LabelMenu.vue';
+import DownloadDialog from '@/components/Download/DownloadDialog.vue';
+
+defineOptions({ name: 'QueryActions' });
+
+const store = useStore();
+
+const isDownloadDialogOpen = ref(false);
+
+const resultsMeta = computed(() => store.getters['search/resultsMeta']);
+const resultsHeader = computed(() => store.getters['search/resultsHeader']);
+const resultsBody = computed(() => store.getters['search/resultsBody']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+const selectedIds = computed(() => store.getters['search/selectedIds']);
+const isEntireSearchSelected = computed(() => store.getters['search/isEntireSearchSelected']);
+
+// Derived: full selected IDs
+const fullSelectedIds = computed(() => {
+  return selectedIds.value.map(id =>
+    entity.fullId(id, querySubjectEntity.value)
+  );
+});
+
+// Methods
+function exportResults() {
+  if (isEntireSearchSelected.value) {
+    isDownloadDialogOpen.value = true;
+  } else {
+    exportSelectedAsCsv();
   }
-};
+}
+
+function exportSelectedAsCsv() {
+  const selectedRows = resultsBody.value.filter(row =>
+    selectedIds.value.includes(row.id)
+  );
+  const csv = oaxSearch.jsonToCsv(resultsHeader.value, selectedRows);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'selected.csv';
+  a.click();
+}
 </script>
+
 
 <style scoped>
 .query-actions {

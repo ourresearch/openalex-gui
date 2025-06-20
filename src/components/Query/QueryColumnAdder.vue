@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Menu Mode -->
-    <template v-if="mode === 'menu'">
+    <template v-if="props.mode === 'menu'">
       <v-menu v-model="isMenuOpen" class="rounded-lg" location="bottom" max-height="50vh">
         <template v-slot:activator="{ props }">
           <v-btn icon variant="plain" v-bind="props">
@@ -93,180 +93,183 @@
   </div>
 </template>
 
-<script>
-import { mapGetters, mapMutations, mapActions } from "vuex";
-import { getConfigs } from "@/oaxConfigs";
-import filters from "@/filters";
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "QueryColumnAdder",
-  props: {
-    display: {
-      type: String,
-      default: "data",
-      validator: value => ["data", "metrics"].includes(value)
-    },
-    mode: {
-      type: String,
-      default: "menu",
-      validator: value => ["menu", "dialog"].includes(value)
-    }
+import { getConfigs } from '@/oaxConfigs';
+import filters from '@/filters';
+
+defineOptions({ name: 'QueryColumnAdder'});
+
+// Props
+const props = defineProps({
+  display: {
+    type: String,
+    default: 'data',
+    validator: value => ['data', 'metrics'].includes(value)
   },
-  data() {
-    return {
-      isMenuOpen: false,
-      isDialogOpen: false,
-      columnSearch: "",
-      selectedColumns: [],
-      originalColumns: [],
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters("search", [
-      "query",
-      "querySubjectEntity",
-    ]),
-    entity() {
-      return this.query.show_underlying_works ? 'works' : this.querySubjectEntity;
-    },
-    columnConfigs() {
-      return getConfigs()[this.entity].columns;
-    },
-    availableColumns() {
-      const action = this.query.get_rows === "summary" ? "summary" : "column";
-      const allColumns = Object.values(this.columnConfigs)
-        .filter(column => column.actions?.includes(action))
-        .map(column => ({
-          displayName: column.displayNameForColumn || column.displayName,
-          column_id: column.id,
-          icon: column.icon,
-        }))
-        .sort((a, b) => a.displayName.localeCompare(b.displayName));
-      
-      // Filter based on display type
-      if (this.query.get_rows === "summary") {
-        return allColumns;
-      } else if (this.display === "data") {
-        return allColumns.filter(col => !col.column_id.includes("("));
-      } else if (this.display === "metrics") {
-        return allColumns.filter(col => col.column_id.includes("("));
-      }
-      return null;
-    },
-    filteredColumns() {
-      // Filter available columns based on search term
-      if (!this.columnSearch) {
-        return this.availableColumns;
-      }
-      
-      return this.availableColumns.filter(col => 
-        col.displayName.toLowerCase().includes(this.columnSearch.toLowerCase())
-      );
-    },
-    color() {
-      if (this.display === "metrics") {
-        return "catWorks";
-      }
-      return ['works', 'summary'].includes(this.entity) ? 'catWorks' : 'catEntity';
-    },
-    buttonText() {
-      return this.display === "data" ? "Column" : "Metric";
-    },
-    dialogTitle() {
-      const subject = this.entity.charAt(0).toUpperCase() + this.entity.slice(1)
-      return this.display === "data" ? subject + " Columns" : "Metrics";
-    }
-  },
-  methods: {
-    ...mapMutations("search", [
-      "addReturnColumn",
-      "deleteReturnColumn",
-    ]),
-    ...mapActions("search", [
-      "createSearch"
-    ]),
-    toggleColumn(column) {
-      if (this.query.show_columns.includes(column.column_id)) {
-        this.removeColumn(column);
-      } else {
-        this.addColumn(column);
-      }
-    },
-    addColumn(column) {
-      this.addReturnColumn(column.column_id);
-      this.createSearch();
-    },
-    removeColumn(column) {
-      this.deleteReturnColumn(column.column_id);
-      this.createSearch();
-    },
-    toggleColumnSelection(columnId) {
-      if (this.selectedColumns.includes(columnId)) {
-        this.selectedColumns = this.selectedColumns.filter(id => id !== columnId);
-      } else {
-        this.selectedColumns.push(columnId);
-      }
-    },
-    isColumnSelected(columnId) {
-      return this.selectedColumns.includes(columnId);
-    },
-    openDialog() {
-      // Initialize selected columns with current selection
-      this.selectedColumns = [...this.query.show_columns];
-      this.originalColumns = [...this.query.show_columns];
-      this.isDialogOpen = true;
-    },
-    cancelDialog() {
-      this.isDialogOpen = false;
-    },
-    applyChanges() {
-      // Determine which columns to add and which to remove
-      const columnsToAdd = this.selectedColumns.filter(
-        colId => !this.originalColumns.includes(colId)
-      );
-      const columnsToRemove = this.originalColumns.filter(
-        colId => !this.selectedColumns.includes(colId)
-      );
-      
-      // Apply changes
-      columnsToAdd.forEach(colId => this.addReturnColumn(colId));
-      columnsToRemove.forEach(colId => this.deleteReturnColumn(colId));
-      
-      // Only create search once after all changes are applied
-      if (columnsToAdd.length > 0 || columnsToRemove.length > 0) {
-        this.createSearch();
-      }
-      
-      this.isDialogOpen = false;
-    }
+  mode: {
+    type: String,
+    default: 'menu',
+    validator: value => ['menu', 'dialog'].includes(value)
   }
-};
+});
+
+// Vuex store
+const store = useStore();
+
+// Refs
+const isMenuOpen = ref(false);
+const isDialogOpen = ref(false);
+const columnSearch = ref('');
+const selectedColumns = ref([]);
+const originalColumns = ref([]);
+
+// Vuex Getters
+const query = computed(() => store.getters['search/query']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+
+// Computed: current entity
+const entity = computed(() => {
+  return query.value.show_underlying_works ? 'works' : querySubjectEntity.value;
+});
+
+// Column configs
+const columnConfigs = computed(() => {
+  return getConfigs()[entity.value].columns;
+});
+
+// Available columns, filtered by action and display type
+const availableColumns = computed(() => {
+  const action = query.value.get_rows === 'summary' ? 'summary' : 'column';
+  const allColumns = Object.values(columnConfigs.value)
+    .filter(column => column.actions?.includes(action))
+    .map(column => ({
+      displayName: column.displayNameForColumn || column.displayName,
+      column_id: column.id,
+      icon: column.icon
+    }))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  if (query.value.get_rows === 'summary') {
+    return allColumns;
+  } else if (props.display === 'data') {
+    return allColumns.filter(col => !col.column_id.includes('('));
+  } else if (props.display === 'metrics') {
+    return allColumns.filter(col => col.column_id.includes('('));
+  }
+
+  return [];
+});
+
+// Columns filtered by search
+const filteredColumns = computed(() => {
+  if (!columnSearch.value) {
+    return availableColumns.value;
+  }
+  return availableColumns.value.filter(col =>
+    col.displayName.toLowerCase().includes(columnSearch.value.toLowerCase())
+  );
+});
+
+const color = computed(() => {
+  if (props.display === 'metrics') {
+    return 'catWorks';
+  }
+  return ['works', 'summary'].includes(entity.value) ? 'catWorks' : 'catEntity';
+});
+
+const buttonText = computed(() => {
+  return props.display === 'data' ? 'Column' : 'Metric';
+});
+
+const dialogTitle = computed(() => {
+  const subject = entity.value.charAt(0).toUpperCase() + entity.value.slice(1);
+  return props.display === 'data' ? `${subject} Columns` : 'Metrics';
+});
+
+// Mutations and actions
+const addReturnColumn = (id) => store.commit('search/addReturnColumn', id);
+const deleteReturnColumn = (id) => store.commit('search/deleteReturnColumn', id);
+const createSearch = () => store.dispatch('search/createSearch');
+
+// Methods
+function toggleColumn(column) {
+  if (query.value.show_columns.includes(column.column_id)) {
+    removeColumn(column);
+  } else {
+    addColumn(column);
+  }
+}
+
+function addColumn(column) {
+  addReturnColumn(column.column_id);
+  createSearch();
+}
+
+function removeColumn(column) {
+  deleteReturnColumn(column.column_id);
+  createSearch();
+}
+
+function toggleColumnSelection(columnId) {
+  if (selectedColumns.value.includes(columnId)) {
+    selectedColumns.value = selectedColumns.value.filter(id => id !== columnId);
+  } else {
+    selectedColumns.value.push(columnId);
+  }
+}
+
+function isColumnSelected(columnId) {
+  return selectedColumns.value.includes(columnId);
+}
+
+function openDialog() {
+  selectedColumns.value = [...query.value.show_columns];
+  originalColumns.value = [...query.value.show_columns];
+  isDialogOpen.value = true;
+}
+
+function cancelDialog() {
+  isDialogOpen.value = false;
+}
+
+function applyChanges() {
+  const toAdd = selectedColumns.value.filter(id => !originalColumns.value.includes(id));
+  const toRemove = originalColumns.value.filter(id => !selectedColumns.value.includes(id));
+
+  toAdd.forEach(addReturnColumn);
+  toRemove.forEach(deleteReturnColumn);
+
+  if (toAdd.length > 0 || toRemove.length > 0) {
+    createSearch();
+  }
+
+  isDialogOpen.value = false;
+}
 </script>
+
 
 <style scoped>
 .column-option {
   font-size: 14px;
 }
-
 .column-chip {
   width: 100%;
   justify-content: flex-start;
   margin: 0;
   font-weight: normal;
 }
-
 .column-chip .v-chip__content {
   overflow: hidden;
   width: 100%;
 }
-
 .unselected-chip {
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
 }
-
 .unselected-chip:hover {
   background-color: rgba(0, 0, 0, 0.05) !important;
 }

@@ -165,134 +165,157 @@
   </v-card>
 </template>
 
-<script>
-import {mapGetters, mapMutations, mapActions } from "vuex";
-import filters from "@/filters";
-import { getConfigs } from "@/oaxConfigs";
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "QueryColumnsControl",
-  components: {
+import filters from '@/filters';
+import { getConfigs } from '@/oaxConfigs';
+
+defineOptions({ name: 'QueryColumnsControl' });
+
+// Props
+const { showSections, isExpanded } = defineProps({
+  showSections: {
+    type: Array,
+    default: () => ['display', 'calculate', 'sort']
   },
-  props: {
-    showSections: {
-      type: Array,
-      default: () => ["display", "calculate", "sort"]
-    },
-    isExpanded: {
-      type: Boolean,
-      default: false
-    }
-  },
-  data() {
-    return {
-      isDataColumnsMenuOpen: false,
-      isMetricsColumnsMenuOpen: false,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters("search",[
-      "query",
-      "querySubjectEntity",
-    ]),
-    columnConfigs() {
-      return getConfigs()[this.querySubjectEntity].columns;
-    },
-    availableColumns() {
-      const availableColumns = Object.values(this.columnConfigs)
-          .filter(column => column.actions?.includes("column"))
-          .map(column => ({
-            displayName: column.displayNameForColumn || column.displayName,
-            column_id: column.id,
-            icon: column.icon,
-          }))
-          .sort((a, b) => a.displayName.localeCompare(b.displayName));
-      return availableColumns;  
-    },
-    availableDataColumns() {
-      return this.availableColumns.filter(col => !col.column_id.includes("("));
-    },
-    availableMetricsColumns() {
-      return this.availableColumns.filter(col => col.column_id.includes("("));
-    },
-    visibleColumns() {
-      return this.query.show_columns.map(column => ({
-          displayName: this.columnConfigs[column].displayNameForColumn || this.columnConfigs[column].displayName,
-          column_id: column,
-        }));
-    },
-    visibleDataColumns() {
-      return this.visibleColumns.filter(col => !col.column_id.includes("("));
-    },
-    visibleMetricsColumns() {
-      return this.visibleColumns.filter(col => col.column_id.includes("("));
-    },
-    availableSortByColumns() {
-      return Object.values(this.columnConfigs)
-          .filter(column => column.actions?.includes("sort"))
-          .map(column => ({
-            displayName:  column.displayNameForColumn || column.displayName,
-            column_id: column.id,
-            icon: column.icon,
-        }));
-    },
-    sortByColumn() {
-      return this.columnConfigs?.[this.query.sort_by_column];
-    },
-    displayColumnsColor() {
-      return ['works', 'summary'].includes(this.querySubjectEntity) ? 'catWorks' : 'catEntity';
-    },
-    displayColumnsColorHex() {
-      const worksColor = this.$vuetify.theme.themes.light.catWorksDarker;
-      const entityColor = this.$vuetify.theme.themes.light.catEntityDarker;
-      return ['works', 'summary'].includes(this.querySubjectEntity) ? worksColor : entityColor;
-    },
-    catWorksHex() {
-      return this.$vuetify.theme.themes.light.catWorksDarker;
-    },
-    sortColor() {
-      const sortColor = ['works', 'summary'].includes(this.querySubjectEntity) ? 'catWorks' : 'catEntity';
-      return this.query.sort_by_column.includes("(") ? 'catWorks' : sortColor;
-    }
-  },
-  methods: {
-    ...mapMutations("search", [
-      "addReturnColumn",
-      "deleteReturnColumn",
-      "setSortBy"
-    ]),
-    ...mapActions("search", [
-      "createSearch"
-    ]),
-    openColumnsMenu(filter) {
-      this.currentFilter = filter;
-      this.isColumnsMenuOpen = true;
-    },
-    toggleColumn(column) {
-      if (this.query.show_columns.includes(column.column_id)) {
-        this.removeColumn(column);
-      } else {
-        this.addColumn(column);
-      }
-    },
-    addColumn(column) {
-      this.addReturnColumn(column.column_id);
-    },
-    removeColumn(column) {
-      this.deleteReturnColumn(column.column_id);
-    },
-    setSortByColumn(column) {
-      this.setSortBy({column_id: column, direction: this.query.sort_by_order });
-   },
-    setOrder(order) {
-      this.setSortBy({column_id: this.query.sort_by_column, direction: order });
-    },
-  },
-  mounted() {
-    if (!this.query.show_columns) { console.log("No show columns"); }
-  },
-};
+  isExpanded: {
+    type: Boolean,
+    default: false
+  }
+});
+
+// Store
+const store = useStore();
+
+// Local state
+const isDataColumnsMenuOpen = ref(false);
+const isMetricsColumnsMenuOpen = ref(false);
+
+// Vuex Getters
+const query = computed(() => store.getters['search/query']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+
+// Column configs
+const columnConfigs = computed(() => {
+  return getConfigs()[querySubjectEntity.value].columns;
+});
+
+// Available columns
+const availableColumns = computed(() => {
+  return Object.values(columnConfigs.value)
+    .filter(column => column.actions?.includes('column'))
+    .map(column => ({
+      displayName: column.displayNameForColumn || column.displayName,
+      column_id: column.id,
+      icon: column.icon
+    }))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+});
+
+const availableDataColumns = computed(() => {
+  return availableColumns.value.filter(col => !col.column_id.includes('('));
+});
+
+const availableMetricsColumns = computed(() => {
+  return availableColumns.value.filter(col => col.column_id.includes('('));
+});
+
+// Visible columns
+const visibleColumns = computed(() => {
+  return query.value.show_columns.map(column => ({
+    displayName: columnConfigs.value[column]?.displayNameForColumn || columnConfigs.value[column]?.displayName,
+    column_id: column
+  }));
+});
+
+const visibleDataColumns = computed(() => {
+  return visibleColumns.value.filter(col => !col.column_id.includes('('));
+});
+
+const visibleMetricsColumns = computed(() => {
+  return visibleColumns.value.filter(col => col.column_id.includes('('));
+});
+
+// Sortable columns
+const availableSortByColumns = computed(() => {
+  return Object.values(columnConfigs.value)
+    .filter(column => column.actions?.includes('sort'))
+    .map(column => ({
+      displayName: column.displayNameForColumn || column.displayName,
+      column_id: column.id,
+      icon: column.icon
+    }));
+});
+
+const sortByColumn = computed(() => {
+  return columnConfigs.value?.[query.value.sort_by_column];
+});
+
+// Color logic
+const displayColumnsColor = computed(() => {
+  return ['works', 'summary'].includes(querySubjectEntity.value) ? 'catWorks' : 'catEntity';
+});
+
+const displayColumnsColorHex = computed(() => {
+  const theme = store.state.vuetify?.theme?.themes?.light;
+  const worksColor = theme?.catWorksDarker;
+  const entityColor = theme?.catEntityDarker;
+  return ['works', 'summary'].includes(querySubjectEntity.value) ? worksColor : entityColor;
+});
+
+const catWorksHex = computed(() => {
+  return store.state.vuetify?.theme?.themes?.light?.catWorksDarker;
+});
+
+const sortColor = computed(() => {
+  const base = ['works', 'summary'].includes(querySubjectEntity.value) ? 'catWorks' : 'catEntity';
+  return query.value.sort_by_column.includes('(') ? 'catWorks' : base;
+});
+
+// Vuex mutations and actions
+const addReturnColumn = (colId) => store.commit('search/addReturnColumn', colId);
+const deleteReturnColumn = (colId) => store.commit('search/deleteReturnColumn', colId);
+const setSortBy = (payload) => store.commit('search/setSortBy', payload);
+
+// Methods
+function toggleColumn(column) {
+  if (query.value.show_columns.includes(column.column_id)) {
+    removeColumn(column);
+  } else {
+    addColumn(column);
+  }
+}
+
+function addColumn(column) {
+  addReturnColumn(column.column_id);
+}
+
+function removeColumn(column) {
+  deleteReturnColumn(column.column_id);
+}
+
+function setSortByColumn(columnId) {
+  setSortBy({
+    column_id: columnId,
+    direction: query.value.sort_by_order
+  });
+}
+
+function setOrder(order) {
+  setSortBy({
+    column_id: query.value.sort_by_column,
+    direction: order
+  });
+}
+
+// Lifecycle
+onMounted(() => {
+  if (!query.value.show_columns) {
+    console.log('No show columns');
+  }
+});
 </script>
 
 
