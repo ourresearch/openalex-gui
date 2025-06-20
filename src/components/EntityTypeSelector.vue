@@ -63,62 +63,44 @@
 </template>
 
 
-<script>
-import {mapMutations} from 'vuex'
-import {entityConfigs, getEntityConfig, getEntityConfigs} from "../entityConfigs";
-import {url} from "@/url";
+<script setup>
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
-export default {
-  name: "EntityTypeSelector",
-  props: {
-    inline: Boolean,
-  },
-  components: {
-  },
-  data: function () {
-    return {
-      select: "",
-      isDialogOpen: false,
-      entityConfigs,
-      myId: "my-id-" + Math.random().toString().replace(".", "")
-    }
-  },
-  computed: {
-    entityTypeOptions() {
-      return getEntityConfigs().filter(c => c.hasSerp)
-    },
-    entityTypeConfig() {
-      return getEntityConfig(this.entityType)
-    },
-    entityType: {
-      get(){
-        return this.$route.params.entityType
-      },
-      set(to){
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          params: {entityType: to}
-        })
+import { getEntityConfig, getEntityConfigs } from '../entityConfigs';
+import { url } from '@/url';
 
-      }
-    }
+defineOptions({ name: 'EntityTypeSelector' });
+
+defineProps({
+  inline: Boolean
+});
+
+const route = useRoute();
+const router = useRouter();
+
+const isDialogOpen = ref(false);
+const myId = 'my-id-' + Math.random().toString().replace('.', '');
+
+const entityType = computed({
+  get() {
+    return route.params.entityType;
   },
-  methods: {
-    ...mapMutations([
-      "setEntityType",
-    ]),
-    openEntityMenu() {
-      this.items = []
-    },
-  },
-  watch: {
-    "$store.state.entityType": {
-      handler() {
-      },
-      immediate: true,
-    },
-  },
-}
+  set(to) {
+    url.pushToRoute(router, {
+      name: 'Serp',
+      params: { entityType: to }
+    });
+  }
+});
+
+const entityTypeOptions = computed(() => {
+  return getEntityConfigs().filter(c => c.hasSerp);
+});
+
+const entityTypeConfig = computed(() => {
+  return getEntityConfig(entityType.value);
+});
 </script>
 
 
@@ -135,5 +117,4 @@ export default {
 
   }
 }
-
 </style>
