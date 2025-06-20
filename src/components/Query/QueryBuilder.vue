@@ -4,56 +4,23 @@
     <template v-if="uiVariant.includes('sentence')">
       <QuerySentence />
     </template>
-
   </v-card>
+  
 </template>
 
 
-<script>
-import { mapGetters, mapState } from "vuex";
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import QuerySentence from "@/components/Query/QuerySentence.vue";
+import QuerySentence from '@/components/Query/QuerySentence.vue';
 
-export default {
-  name: "QueryBuilder",
-  components: {
-    QuerySentence,
-  },
-  computed: {
-    ...mapState(['uiVariant']),
-    ...mapGetters("search", [
-      "query",
-      "querySubjectEntity",
-      "metricsColumnPercentage",
-    ]),
-    isWorks() {
-      return this.querySubjectEntity === 'works';
-    },
-    areTopLevelFiltersApplied() {
-      if (this.querySubjectEntity !== 'works' && this.querySubjectEntity !== 'summary') {
-        return this.areEntityFiltersApplied;
-      } else {
-        return this.areWorksFiltersApplied;
-      }
-    },
-    areWorksFiltersApplied() {
-      return this.query.filter_works.length !== 0;
-    },
-    areEntityFiltersApplied() {
-      return this.query.filter_aggs.length !== 0;
-    },
-    showAllLabel() {
-      return !this.areTopLevelFiltersApplied && this.query.get_rows !== 'summary';
-    },
-    metricsColStyle() {
-      return this.isWorks ? {} : {
-        flexBasis: `${this.metricsColumnPercentage}%`,
-        maxWidth: `${this.metricsColumnPercentage}%`,
-      };
-    },
-  }
-}
+defineOptions({ name: 'QueryBuilder' });
+
+const store = useStore();
+const uiVariant = computed(() => store.state.uiVariant);
 </script>
+
 
 <style>
 .results-box .query-builder {
