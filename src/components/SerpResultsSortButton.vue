@@ -11,78 +11,70 @@
       </v-list-subheader>
       <v-divider/>
       <v-list-item
-          v-for="option in menuOptions"
-          :key="option.key"
-          color="primary"
-          @click="clickOption(option.key)"
-          :disabled="menuOptions.length === 1"
+        v-for="option in menuOptions"
+        :key="option.key"
+        color="primary"
+        @click="clickOption(option.key)"
+        :disabled="menuOptions.length === 1"
       >
-        <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
+        <template #prepend>
+          <v-icon :disabled="menuOptions.length === 1">{{ option.icon }}</v-icon>
+        </template>
         
         <v-list-item-title>
           {{ option.displayName }}
         </v-list-item-title>
         
-        <v-list-item-action class="pl-3 pt-2">
+        <template #append>
           <v-icon v-if="selectedOption === option.key">mdi-check</v-icon>
-        </v-list-item-action>
+        </template>
       </v-list-item>
     </v-list>
   </v-menu>
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
-import {facetConfigs} from "@/facetConfigs";
-import {url} from "@/url";
+import { facetConfigs } from '@/facetConfigs';
+import { url } from '@/url';
 
-export default {
-  name: "SerpResultsSortButton",
-  components: {},
-  props: {},
-  data() {
-    return {
-      isDialogOpen: {
-        more: false
-      }
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    selectedOption() {
-      return url.getSort(this.$route)
-    },
-    popularOptions() {
-      const optionsFromConfigs = facetConfigs(this.entityType)
-          .filter(conf => conf.actionsPopular?.includes("sort"))
-      if (url.isSearchFilterApplied(this.$route)) {
-         optionsFromConfigs.unshift({
-          key: "relevance_score",
-          icon: "mdi-magnify",
-          displayName: "relevance score",
-        })
-      }
-      return optionsFromConfigs
-    },
-    menuOptions() {
-      return this.popularOptions
-    },
-  },
-  methods: {
-    clickOption(key) {
-      //console.log("SerpResultsSortButton clickOption(): ", key)
-      url.setSort(key)
-    },
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
+defineOptions({ name: 'SerpResultsSortButton' });
+
+const store = useStore();
+const route = useRoute();
+
+const entityType = computed(() => store.getters.entityType);
+
+// Computed: selected option
+const selectedOption = computed(() => {
+  return url.getSort(route);
+});
+
+// Computed: sort options
+const popularOptions = computed(() => {
+  const optionsFromConfigs = facetConfigs(entityType.value)
+    .filter(conf => conf.actionsPopular?.includes('sort'));
+
+  if (url.isSearchFilterApplied(route)) {
+    optionsFromConfigs.unshift({
+      key: 'relevance_score',
+      icon: 'mdi-magnify',
+      displayName: 'relevance score'
+    });
+  }
+
+  return optionsFromConfigs;
+});
+
+const menuOptions = computed(() => popularOptions.value);
+
+// Methods
+function clickOption(key) {
+  url.setSort(key);
 }
 </script>
 
