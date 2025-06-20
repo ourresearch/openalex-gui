@@ -32,37 +32,17 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapActions, mapGetters} from "vuex";
+defineOptions({ name: 'MeCorrections' });
 
-export default {
-  name: "MeCorrections",
-  components: {
-  },
-  props: {},
-  data() {
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userCorrections",
-    ]),
-  },
-  methods: {
-    ...mapActions("user", [
-      "deleteCorrection",
-    ]),
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {}
-}
+const store = useStore();
+
+// Getters
+const userCorrections = computed(() => store.getters['user/userCorrections']);
+
+// Actions
+const deleteCorrection = (id) => store.dispatch('user/deleteCorrection', id);
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
