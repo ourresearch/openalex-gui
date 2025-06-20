@@ -156,92 +156,72 @@
   </v-card>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import filters from "@/filters";
-import {getConfigs} from "@/oaxConfigs";
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import filters from '@/filters';
+import { getConfigs } from '@/oaxConfigs';
+import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
 
-import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
+defineOptions({
+  name: 'CorrectionCreate'
+});
 
-export default {
-  name: "CorrectionCreate",
-  components: {
-    EntityAutocomplete,
-  },
-  props: {
-    ids: {
-      type: Array,
-      required: false,
-      default: () => [],
-    }
-  },
-  data() {
-    return {
-      isLoading: false,
-      propToModify: null,
-      action: "remove",
-      value: null,
-      selectedPropToModify: null,
-      propToModifyOptionIds: [
-        "authorships.institutions.id",
-        "authorships.author.id",
-        // "open_access.is_oa",
-      ],
-      selectedAction: null,
-      actionOptions: [
-        {id: "remove", displayName: "removing", icon: "mdi-delete"},
-        {id: "add", displayName: "adding", icon: "mdi-plus"},
-      ],
-      selectedValue: null,
-      comments: "",
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    propToModifyOptions() {
-      return Object.values(getConfigs().works.properties)
-          .filter(prop => this.propToModifyOptionIds.includes(prop.id))
-    },
-    currentStep() {
-      if (!this.selectedPropToModify) return 1
-      if (!this.selectedAction) return 2
-      if (!this.selectedValue) return 3
-      if (!this.comments) return 4
-      return 0;
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions("user", [
-      "createCollection"
-    ]),
-    async create() {
-      // if (!this.name) return
-      //
-      // this.isLoading = true
-      // await this.createCollection({ids: this.idsArray, name: this.name})
-      // this.isLoading = false
-      // this.snackbar({msg: "Label created" + (this.idsArray.length ? " and applied" : "")})
-      this.snackbar({msg: "this doesn't do anything yet..."})
-      this.close()
-    },
-    close() {
-      // this.name = ""
-      // this.description = ""
-      // this.idsArray = []
-      this.$emit('close')
-    }
-  },
+// Props
+defineProps({
+  ids: {
+    type: Array,
+    required: false,
+    default: () => []
+  }
+});
+
+// Emits
+const emit = defineEmits(['close']);
+
+// Store
+const store = useStore();
+const snackbar = (msg) => store.commit('snackbar', msg);
+
+// State
+const isLoading = ref(false);
+const selectedPropToModify = ref(null);
+const propToModifyOptionIds = [
+  'authorships.institutions.id',
+  'authorships.author.id',
+  // 'open_access.is_oa',
+];
+const selectedAction = ref(null);
+const actionOptions = [
+  { id: 'remove', displayName: 'removing', icon: 'mdi-delete' },
+  { id: 'add', displayName: 'adding', icon: 'mdi-plus' },
+];
+const selectedValue = ref(null);
+const comments = ref('');
+
+// Computed
+const propToModifyOptions = computed(() => {
+  return Object.values(getConfigs().works.properties)
+    .filter(prop => propToModifyOptionIds.includes(prop.id));
+});
+
+const currentStep = computed(() => {
+  if (!selectedPropToModify.value) return 1;
+  if (!selectedAction.value) return 2;
+  if (!selectedValue.value) return 3;
+  if (!comments.value) return 4;
+  return 0;
+});
+
+// Methods
+async function create() {
+  // Placeholder logic
+  snackbar({ msg: "this doesn't do anything yet..." });
+  close();
+}
+
+function close() {
+  emit('close');
 }
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
