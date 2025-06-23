@@ -43,33 +43,38 @@
 </template>
 
 
-<script>
-
+<script setup>
+import { defineProps, defineOptions, defineEmits, defineAsyncComponent } from 'vue';
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 
-export default {
-  name: "QueryFilterTreeBranch",
-  components: {
-    QueryFilterTreeBranch: () => import('./QueryFilterTreeBranch.vue'),
-    QueryFilterTreeLeaf,
-  },
-  props: {
-    filters: Array,
-    joinOperator: String,
-    parentJoinOperator: String,
-    subjectEntity: String,
-    isSentence: Boolean,
-    isRoot: Boolean,
-  },
-  emits: [
-    'setValue',
-    'setOperator',
-    'deleteFilter',
-    'setJoinOperator',
-    'groupWithAbove',
-    'ungroupFromAbove'
-  ],
-}
+// Import self component for recursive usage
+const QueryFilterTreeBranch = defineAsyncComponent(() => import('./QueryFilterTreeBranch.vue'));
+
+defineOptions({ name: "QueryFilterTreeBranch" });
+
+const {
+  filters, 
+  joinOperator, 
+  parentJoinOperator,
+  subjectEntity, 
+  isSentence
+} = defineProps({
+  filters: Array,
+  joinOperator: String,
+  parentJoinOperator: String,
+  subjectEntity: String,
+  isSentence: Boolean,
+  isRoot: Boolean,
+});
+
+defineEmits([
+  'setValue',
+  'setOperator',
+  'deleteFilter',
+  'setJoinOperator',
+  'groupWithAbove',
+  'ungroupFromAbove'
+]);
 </script>
 
 

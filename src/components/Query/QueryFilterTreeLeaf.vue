@@ -2,7 +2,7 @@
   <div :style="indentationStyle" class="query-filter-leaf d-flex align-start align-center flex-grow-1">
 
     <!-- Path Label -->
-    <span v-if="!isSentence" class="path-label number">
+    <span v-if="!props.isSentence" class="path-label number">
       {{ pathLabel }}.
     </span>
 
@@ -10,20 +10,20 @@
     <div class="leaf-content flex-grow-1 d-flex align-center">
       <!-- The Join Operator - and/or -->
       <span class="join-operator">
-        <span v-if="isFirstFilter">{{ isSentence ? ' the ' : 'The&nbsp;' }} </span>
+        <span v-if="isFirstFilter">{{ props.isSentence ? ' the ' : 'The&nbsp;' }} </span>
         <template v-else>
           <v-menu location="bottom">
-            <template v-slot:activator="{ props }">
+            <template v-slot:activator="{ props: chipProps }">
               <v-chip
                 text
                 label
                 variant="text"
                 class="menu-chip"
                 :style="{'border-color': buttonColorHex}"
-                v-bind="props"
+                v-bind="chipProps"
               >
-                {{ joinOperator }}
-                <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
+                {{ props.joinOperator }}
+                <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
               </v-chip>
             </template>
             <v-list>
@@ -40,14 +40,14 @@
               </v-list-item>
               
               <!-- Conditionally show the divider and Grouping actions -->
-              <template v-if="canGroupAbove || canUngroup">
+              <template v-if="props.canGroupAbove || props.canUngroup">
                 <v-divider class="my-2"></v-divider>
-                <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
+                <v-list-item v-if="props.canGroupAbove" @click="groupWithAbove">
                   <v-list-item-title>
                     Group with Above
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
+                <v-list-item v-if="props.canUngroup" @click="ungroupFromAbove">
                   <v-list-item-title>
                     Ungroup from Above
                   </v-list-item-title>
@@ -65,7 +65,7 @@
       <span>
         <span v-if="columnConfig.type === 'boolean'" class="mx-1">is</span>
         <v-menu v-else location="bottom">
-          <template v-slot:activator="{ props }">
+          <template v-slot:activator="{ props: chipProps }">
             <v-chip
               text
               label
@@ -73,10 +73,10 @@
               class="menu-chip"
               :style="{'min-width': '1px !important', 'border-bottom-color': buttonColorHex}"
               @mousedown="onOperatorMouseDown"
-              v-bind="props" 
+              v-bind="chipProps" 
             >
               {{ selectedOperator ?? "select" }}
-              <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
+              <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
@@ -95,19 +95,19 @@
         </v-menu>
       </span>
 
-      <!-- The Filter Value-->
-      <!---- Entity Values -->
+      <!-- The Filter Value -->
+      <!---- Entity Values ----->
       <template v-if="columnConfig.objectEntity">
         <!-- Viewing Entity Value -->
         <span v-if="selectedValue && !isEditingValue">
-          <hover-menu-wrapper @action-click="deleteFilter" :active="isSentence">
+          <hover-menu-wrapper @action-click="deleteFilter" :active="props.isSentence">
             <query-filter-value-chip
               :column-config="columnConfig"
               :value="selectedValue"
               :is-label-filter="isLabelFilter"
               :is-editable="true"
-              :subject-entity="subjectEntity"
-              :is-sentence="isSentence"
+              :subject-entity="props.subjectEntity"
+              :is-sentence="props.isSentence"
               @click="restartEditingValue"
             />
           </hover-menu-wrapper>
@@ -124,16 +124,16 @@
               location-strategy="connected"
               width="auto"
             >
-              <template v-slot:activator="{ props }">
+              <template v-slot:activator="{ props: chipProps }">
                 <v-chip
                   variant="outlined"
                   label
                   class="menu-chip px-1 pr-0 mx-1"
                   style="min-width: 1px !important;"
-                  v-bind="props" 
+                  v-bind="chipProps" 
                 >
                   Select a Label
-                  <v-icon v-if="!isSentence" size="small">mdi-menu-down</v-icon>
+                  <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
                 </v-chip>
               </template>
               <v-list>
@@ -196,12 +196,12 @@
 
       <!-- Boolean Values -->
       <span v-else-if="columnConfig.type === 'boolean'">
-        <hover-menu-wrapper @action-click="deleteFilter" :active="isSentence">
+        <hover-menu-wrapper @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip
             :column-config="columnConfig"
-            :subject-entity="subjectEntity"
+            :subject-entity="props.subjectEntity"
             :value="selectedValue"
-            :is-sentence="isSentence"
+            :is-sentence="props.isSentence"
             @click="selectedValue = !selectedValue" />
         </hover-menu-wrapper>
       </span>
@@ -217,7 +217,7 @@
         >
           <v-card>
             <v-card-title class="text-h5">
-              Find {{ subjectEntity }} related to the text:
+              Find {{ props.subjectEntity }} related to the text:
             </v-card-title>
             <v-card-text>
               <v-textarea
@@ -248,13 +248,13 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="isSentence">
+        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip 
             v-if="selectedValue !== null && !isEditingValue"
             :column-config="columnConfig"
-            :subject-entity="subjectEntity"
+            :subject-entity="props.subjectEntity"
             :value="selectedValue"
-            :is-sentence="isSentence"
+            :is-sentence="props.isSentence"
             @click="startEditingValue"
           />
         </hover-menu-wrapper> 
@@ -276,18 +276,18 @@
           @keydown.enter="saveEditingValue(valueEditModel)"
         >
         </v-text-field>
-        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="isSentence">
+        <hover-menu-wrapper v-else @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip 
             :column-config="columnConfig"
             :value="selectedValue"
-            :is-sentence="isSentence"
+            :is-sentence="props.isSentence"
             @click="startEditingValue" />
         </hover-menu-wrapper>
       </template>
     </div>
 
     <!-- Delete Button -->
-    <v-btn v-if="!isSentence" icon variant="plain" size="small" @click="deleteFilter" class="mt-1">
+    <v-btn v-if="!props.isSentence" icon variant="plain" size="small" @click="deleteFilter" class="mt-1">
       <v-icon>mdi-close</v-icon>
     </v-btn>
 
@@ -295,302 +295,259 @@
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { useStore } from "vuex";
 import _ from "lodash";
-import {mapGetters} from "vuex";
-import {getConfigs, getColumnConfig} from "@/oaxConfigs";
 import axios from "axios";
+
+import { getConfigs, getColumnConfig } from "@/oaxConfigs";
+
 import QueryFilterValueChip from "@/components/Query/QueryFilterValueChip.vue";
-import EntityAutocomplete from '@/components/EntityAutocomplete.vue';
+import EntityAutocomplete from "@/components/EntityAutocomplete.vue";
 import HoverMenuWrapper from "@/components/Misc/HoverMenuWrapper.vue";
 
-export default {
-  name: "QueryFilterTreeLeaf",
-  components: {
-    QueryFilterValueChip,
-    EntityAutocomplete,
-    HoverMenuWrapper,
-  },
-  props: {
-    column_id: String,
-    operator: String,
-    joinOperator: {type: String, default: "and"},
-    path: Array,
-    value: [String, Number, Boolean],
-    subjectEntity: String,
-    canGroupAbove: Boolean,
-    canUngroup: Boolean,
-    isSentence: Boolean,
-  },
-  emits: [
-    'setValue',
-    'setOperator',
-    'deleteFilter',
-    'setJoinOperator',
-    'groupWithAbove', 
-    'ungroupFromAbove'
-  ],
-  data() {
-    return {
-      asyncValueOptions: [], // for the async autocomplete values
-      search: "",
-      isLoading: false,
-      isEditingValue: false,
-      valueEditModel: null,
-      labelOperators: ["matches any item in label", "matches every item in label"],
-      labelMenuOpen: false,
-      relatedToTextDialogOpen: false,
-      operatorClickInProgress: false,
-      focusSettling: true,
-      isMenuOpen: false,
-    }
-  },
-  computed: {
-    ...mapGetters([
-     "uiVariant",
-    ]),
-    columnConfig() {
-      return getColumnConfig(this.subjectEntity, this.column_id);
-    },
-    isLabelFilter() {
-      return this.labelOperators.includes(this.operator);
-    },
-    isFirstFilter() {
-      return (this.path.every(i => i === 0));
-    },
-    buttonColorHex() {
-      return "#aaa";
-    },
-    filterColor() {
-      if (['works', 'summary'].includes(this.subjectEntity) || this.columnConfig.id.includes("(")) {
-        return "catWorksDarker";
-      } else {
-        return "catEntityDarker";
-      }
-    },
-    pathLabel() {
-      // 1) The top-level label is always (path[0] + 1)
-      let label = (this.path[0] + 1).toString();
+defineOptions({ name: "QueryFilterTreeLeaf" });
 
-      // 2) For each subsequent index in the path, only append if it's not zero
-      for (let i = 1; i < this.path.length; i++) {
-        const subIndex = this.path[i];
-        if (subIndex !== 0) {
-          label += "." + subIndex;
-        }
-      }
-      return label;
-    },
-    indendationLevel() {
-      return this.pathLabel.split(".").length;
-    },
-    indentationStyle() {
-      if (this.isSentence) { return {}; }
-      return {
-        paddingLeft: `${((this.indendationLevel-1) * 15)}px`
-      };
-    },
-    operatorOptions() {
-      return this.columnConfig.operators;
-    },
-    localValueOptions() {
-      if (!this.columnConfig.objectEntity) return [];
-      const values = getConfigs()[this.columnConfig.objectEntity]?.values ?? [];
-      return values;
-    },
-    valueOptions() {
-      return (this.localValueOptions.length) ? this.localValueOptions : this.asyncValueOptions;
-    },
-    selectedOperator: {
-      get() {
-        return this.operator ?? this.columnConfig.defaultOperator;
-      },
-      set(newValue) {
-        const oldValue = this.operator
-        if (this.labelOperators.includes(newValue) !== this.labelOperators.includes(oldValue)) {
-          // when switching between label and entity operators reset value and don't immediately apply
-          //console.log("operator change to/from label")
-          this.restartEditingValue();
-          this.$emit("setOperator", this.path, newValue, true);
-          this.$emit("setValue", this.path, null, true);
-        } else {
-          this.$emit("setOperator", this.path, newValue);
-        }
-        this.labelMenuPositionHack();
-      }
-    },  
-    selectedJoinOperator: {
-      get() {
-        return this.joinOperator;
-      },
-      set(value) {
-        if (value !== this.joinOperator) {
-          this.$emit("setJoinOperator", this.path, value);
-        }
-      }
-    },
-    selectedValue: {
-      get() {
-        return this.value;
-      },
-      set(value) {
-        this.$emit("setValue", this.path, value);
-      }
-    },
-    applicableLabels() {
-      const labels = this.$store.getters['user/getCollectionsByType'](this.columnConfig.objectEntity);
-      return labels;
-    },
-  },
-  methods: {
-    startEditingValue() {
-      this.isEditingValue = true;
-      this.valueEditModel = this.selectedValue;
-      
-      // Open dialog for related_to_text
-      if (this.columnConfig.id === 'related_to_text') {
-        this.relatedToTextDialogOpen = true;
-      }
-    },
-    cancelEditingValue() {
-      //console.log("cancelEditingValue")
-      if (this.columnConfig.id === 'related_to_text') {
-        this.relatedToTextDialogOpen = false;
-      }
-      
-      if (this.value !== null) {
-        this.isEditingValue = false;
-        this.valueEditModel = null;  
-      }
-    },
-    restartEditingValue() {
-      //console.log("restart edit")
-      this.labelMenuPositionHack();
-      this.isEditingValue = true;
-      this.valueEditModel = null;
-    },
-    saveEditingValue(value) {
-      //console.log("saveEditingValue: ", value)
-      this.isEditingValue = false;
-      // Handle both full entity objects and direct ID values
-      this.selectedValue = value?.id || value;
-      this.valueEditModel = null;
-    },
-    deleteFilter() {
-      this.$emit("deleteFilter", this.path);
-    },
-    onInputBlur() {
-      //console.log("onInputBlur", this.valueEditModel);        
-      if (this.operatorClickInProgress || this.focusSettling 
-          || this.relatedToTextDialogOpen || this.isMenuOpen) {
-        //console.log("onInputBlur: skipping")
-        return;
-      }
-      
-      if (this.valueEditModel) {
-        this.saveEditingValue(this.valueEditModel);
-      } else if (this.value) {
-        this.cancelEditingValue();
-      } else {
-        //console.log("delete filter onBlur")
-        this.deleteFilter();
-      }
-    },
-    onOperatorMouseDown() {
-      this.operatorClickInProgress = true;
-      // Reset the flag after a short delay so future blurs behave normally.
-      setTimeout(() => {
-        this.operatorClickInProgress = false;
-      }, 100);
-    },
-    groupWithAbove() {
-      this.$emit("groupWithAbove", this.path);
-    },
-    ungroupFromAbove() {
-      this.$emit("ungroupFromAbove", this.path);
-    },
-    cancelRelatedTextEdit() {
-      this.relatedToTextDialogOpen = false;
-      if (this.value !== null) {
-        // If we already had a value, just cancel editing
-        this.isEditingValue = false;
-        this.valueEditModel = null;
-      } else {
-        // If this was a new filter with no value, delete it
-        this.deleteFilter();
-      }
-    },
-    saveRelatedTextEdit() {
-      this.relatedToTextDialogOpen = false;
-      this.isEditingValue = false;
-      this.selectedValue = this.valueEditModel;
-      this.valueEditModel = null;
-    },
-    labelMenuPositionHack() {
-      // hacked needed to allow label menu to be rendered open intially in the correct location
-      this.labelMenuOpen = false
-      this.$nextTick(() => {
-        this.labelMenuOpen = true
-      })
-    },
-    onLabelMenuClose() {
-      this.labelMenuOpen = false;
-    },
-    onMenuStateChange(isOpen) {
-      this.isMenuOpen = isOpen;
-    },
-    getAsyncValueOptions: _.debounce(async function () {
-      this.isLoading = true;
-      try {
-        const response = await axios.get(`https://api.openalex.org/autocomplete/${this.columnConfig.objectEntity}`, {
-          params: {q: this.search}
-        });
+const props = defineProps({
+  column_id: String,
+  operator: String,
+  joinOperator: { type: String, default: "and" },
+  path: Array,
+  value: [String, Number, Boolean],
+  subjectEntity: String,
+  canGroupAbove: Boolean,
+  canUngroup: Boolean,
+  isSentence: Boolean,
+});
 
-        const autocompleteSuggestions = response.data.results.map(r => {
-          return {
-            ...r,
-            id: r.short_id,
-          }
-        })
+const emit = defineEmits([
+  "setValue",
+  "setOperator",
+  "deleteFilter",
+  "setJoinOperator",
+  "groupWithAbove",
+  "ungroupFromAbove"
+]);
 
-        // add the new options to the existing options
-        const extantIds = this.asyncValueOptions.map(o => o.id);
-        autocompleteSuggestions.forEach(r => {
-          if (!extantIds.includes(r.id)) {
-            this.asyncValueOptions.push(r);
-          }
-        })
+const store = useStore();
 
-      } catch (error) {
-        console.error(`Error fetching ${this.columnConfig.objectEntity}:`, error);
-        this.asyncValueOptions = [];
-      } finally {
-        this.isLoading = false;
-      }
-    }, 300, {leading: true}),
-    focusSettledTimeout() {
-      console.log("focusSettledTimeout, current focusSettling: " + this.focusSettling);
-      // Fix for dialog interfering with input focus, prevent detailing new filter on blur
-      setTimeout(() => {
-        this.focusSettling = false;
-      }, 100);   
-    },
-  },
-  mounted() {
-    this.focusSettledTimeout();
-    
-    // Auto-open the dialog for related_to_text when value is null (new filter)
-    if (this.columnConfig.id === 'related_to_text' && this.selectedValue === null) {
-      this.isEditingValue = true;
-      this.relatedToTextDialogOpen = true;
-    }
-  },
-  watch: {
-    search(val){
-      if (val) this.getAsyncValueOptions();
+const asyncValueOptions = ref([]);
+const search = ref("");
+const isLoading = ref(false);
+const isEditingValue = ref(false);
+const valueEditModel = ref(null);
+const labelOperators = ["matches any item in label", "matches every item in label"];
+const labelMenuOpen = ref(false);
+const relatedToTextDialogOpen = ref(false);
+const operatorClickInProgress = ref(false);
+const focusSettling = ref(true);
+const isMenuOpen = ref(false);
+
+const columnConfig   = computed(() => getColumnConfig(props.subjectEntity, props.column_id));
+const isLabelFilter  = computed(() => labelOperators.includes(selectedOperator.value));
+const isFirstFilter  = computed(() => props.path.every(i => i === 0));
+const buttonColorHex = computed(() => "#aaa");
+
+const filterColor = computed(() => {
+  return (['works', 'summary'].includes(props.subjectEntity) || columnConfig.value.id.includes("("))
+    ? "catWorksDarker"
+    : "catEntityDarker";
+});
+
+const pathLabel = computed(() => {
+  let label = (props.path[0] + 1).toString();
+  for (let i = 1; i < props.path.length; i++) {
+    if (props.path[i] !== 0) {
+      label += "." + props.path[i];
     }
   }
+  return label;
+});
+
+const indendationLevel = computed(() => pathLabel.value.split(".").length);
+
+const indentationStyle = computed(() => {
+  if (props.isSentence) { return {}; }
+  return {
+    paddingLeft: `${(indendationLevel.value - 1) * 15}px`
+  };
+});
+
+const operatorOptions = computed(() => columnConfig.value.operators);
+
+const localValueOptions = computed(() => {
+  if (!columnConfig.value.objectEntity) return [];
+  return getConfigs()[columnConfig.value.objectEntity]?.values ?? [];
+});
+
+const valueOptions = computed(() => {
+  return localValueOptions.value.length ? localValueOptions.value : asyncValueOptions.value;
+});
+
+const selectedOperator = computed({
+  get: () => props.operator ?? columnConfig.value.defaultOperator,
+  set: (newValue) => {
+    const oldValue = props.operator;
+    if (labelOperators.includes(newValue) !== labelOperators.includes(oldValue)) {
+      restartEditingValue();
+      emit("setOperator", props.path, newValue, true);
+      emit("setValue", props.path, null, true);
+    } else {
+      emit("setOperator", props.path, newValue);
+    }
+    labelMenuPositionHack();
+  }
+});
+
+const selectedJoinOperator = computed({
+  get: () => props.joinOperator,
+  set: (val) => {
+    if (val !== props.joinOperator) {
+      emit("setJoinOperator", props.path, val);
+    }
+  }
+});
+
+const selectedValue = computed({
+  get: () => props.value,
+  set: (val) => {
+    emit("setValue", props.path, val);
+  }
+});
+
+const applicableLabels = computed(() => {
+  return store.getters["user/getCollectionsByType"](columnConfig.value.objectEntity);
+});
+
+function startEditingValue() {
+  isEditingValue.value = true;
+  valueEditModel.value = selectedValue.value;
+  if (columnConfig.value.id === "related_to_text") {
+    relatedToTextDialogOpen.value = true;
+  }
 }
+
+function cancelEditingValue() {
+  if (columnConfig.value.id === "related_to_text") {
+    relatedToTextDialogOpen.value = false;
+  }
+  if (props.value !== null) {
+    isEditingValue.value = false;
+    valueEditModel.value = null;
+  }
+}
+
+function restartEditingValue() {
+  labelMenuPositionHack();
+  isEditingValue.value = true;
+  valueEditModel.value = null;
+}
+
+function saveEditingValue(val) {
+  isEditingValue.value = false;
+  selectedValue.value = val?.id || val;
+  valueEditModel.value = null;
+}
+
+function deleteFilter() {
+  emit("deleteFilter", props.path);
+}
+
+function onInputBlur() {
+  if (operatorClickInProgress.value || focusSettling.value || relatedToTextDialogOpen.value || isMenuOpen.value) {
+    return;
+  }
+  if (valueEditModel.value) {
+    saveEditingValue(valueEditModel.value);
+  } else if (props.value) {
+    cancelEditingValue();
+  } else {
+    deleteFilter();
+  }
+}
+
+function onOperatorMouseDown() {
+  operatorClickInProgress.value = true;
+  setTimeout(() => {
+    operatorClickInProgress.value = false;
+  }, 100);
+}
+
+function groupWithAbove() {
+  emit("groupWithAbove", props.path);
+}
+
+function ungroupFromAbove() {
+  emit("ungroupFromAbove", props.path);
+}
+
+function cancelRelatedTextEdit() {
+  relatedToTextDialogOpen.value = false;
+  if (props.value !== null) {
+    isEditingValue.value = false;
+    valueEditModel.value = null;
+  } else {
+    deleteFilter();
+  }
+}
+
+function saveRelatedTextEdit() {
+  relatedToTextDialogOpen.value = false;
+  isEditingValue.value = false;
+  selectedValue.value = valueEditModel.value;
+  valueEditModel.value = null;
+}
+
+function labelMenuPositionHack() {
+  labelMenuOpen.value = false;
+  nextTick(() => {
+    labelMenuOpen.value = true;
+  });
+}
+
+function onMenuStateChange(open) {
+  isMenuOpen.value = open;
+}
+
+const getAsyncValueOptions = _.debounce(async () => {
+  isLoading.value = true;
+  try {
+    const response = await axios.get(`https://api.openalex.org/autocomplete/${columnConfig.value.objectEntity}`, {
+      params: { q: search.value }
+    });
+    const newOptions = response.data.results.map(r => ({ ...r, id: r.short_id }));
+    const extantIds = asyncValueOptions.value.map(o => o.id);
+    newOptions.forEach(r => {
+      if (!extantIds.includes(r.id)) {
+        asyncValueOptions.value.push(r);
+      }
+    });
+  } catch (err) {
+    console.error(`Error fetching ${columnConfig.value.objectEntity}:`, err);
+    asyncValueOptions.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+}, 300, { leading: true });
+
+function focusSettledTimeout() {
+  setTimeout(() => {
+    focusSettling.value = false;
+  }, 100);
+}
+
+onMounted(() => {
+  focusSettledTimeout();
+  if (columnConfig.value.id === "related_to_text" && selectedValue.value === null) {
+    isEditingValue.value = true;
+    relatedToTextDialogOpen.value = true;
+  }
+});
+
+watch(search, (val) => {
+  if (val) { getAsyncValueOptions(); }
+});
 </script>
 
 

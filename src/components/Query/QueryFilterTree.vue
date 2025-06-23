@@ -8,8 +8,8 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
       <!-- Sentence UI - Entity First -->
       <template v-if="uiVariant === 'sentence-entityfirst'">
         <!-- Works Filters -->
-        <template v-if="isWorks && isWithAggs">
-          {{ isSentence ? 'of' : 'Of' }}
+        <template v-if="isWorks && props.isWithAggs">
+          {{ props.isSentence ? 'of' : 'Of' }}
           {{ isEmpty ? ' all' : '' }}
           <v-chip label color="catBlue" variant="flat" class="entity-chip">Works</v-chip>
           {{ !isEmpty ? ' where' : '' }}
@@ -17,9 +17,9 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 
         <!-- Entity Filters -->
         <template v-else>
-          {{ isSentence ? '' : 'Show' }}
-          {{ !isSentence && isEmpty ? 'all' : '' }}
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
+          {{ props.isSentence ? '' : 'Show' }}
+          {{ !props.isSentence && isEmpty ? 'all' : '' }}
+          <query-summarize-by :subjectEntity="props.subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
@@ -35,8 +35,8 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 
         <!-- Entity Filters -->
         <template v-else>
-          {{  hasResults ? (isSentence ? " grouped by" : "Grouped by") : (isSentence ? " group by" : "Group by") }}
-          <query-summarize-by :subjectEntity="subjectEntity" key="summarize-by"/>
+          {{  hasResults ? (props.isSentence ? " grouped by" : "Grouped by") : (props.isSentence ? " group by" : "Group by") }}
+          <query-summarize-by :subjectEntity="props.subjectEntity" key="summarize-by"/>
           {{ !isEmpty ? ' where' : '' }}
         </template>
       </template>
@@ -45,10 +45,10 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
     
     <span 
       :class="{'top-button-wrapper': true, 'mb-2': isEmpty, 'mb-4': !isEmpty, 'tight': uiVariant.includes('sentence')}" 
-      v-if="!isSentence && subjectEntity !== null && hasAvailableFilters"
+      v-if="!props.isSentence && props.subjectEntity !== null && hasAvailableFilters"
     >
       <query-filter-tree-button
-        :subject-entity="subjectEntity"
+        :subject-entity="props.subjectEntity"
         :text="uiVariant.includes('sentence') ? '' : 'Filter'"
         @addFilter="addFilter" />
     </span>
@@ -58,26 +58,26 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
         v-if="!isEmpty"
         :filters="myFilters"
         :join-operator="rootJoin"
-        :subject-entity="subjectEntity"
-        :is-sentence="isSentence"
+        :subject-entity="props.subjectEntity"
+        :is-sentence="props.isSentence"
         :is-root="true"
         @setJoinOperator="setJoinOperator"
         @setOperator="setOperator"
         @setValue="setValue"
         @deleteFilter="deleteFilter"
         @groupWithAbove="groupWithAbove"
-        @ungroupFromAbove="ungroupFromAbove" />{{ isSentence && isFinal && !isEmpty ? '.' : '' }}
+        @ungroupFromAbove="ungroupFromAbove" />{{ props.isSentence && isFinal && !isEmpty ? '.' : '' }}
       
-      <div class="bottom-button-wrapper mt-2" v-if="isSentence && subjectEntity !== null">
+      <div class="bottom-button-wrapper mt-2" v-if="props.isSentence && props.subjectEntity !== null">
         <query-filter-tree-button
-          :subject-entity="subjectEntity"
+          :subject-entity="props.subjectEntity"
           text=""
           @addFilter="addFilter" />
       </div>
 
       <template v-if="uiVariant=== 'top'">
         <div class="results-count" v-if="!hasQueryChanged  && !isSearchCanceled && queryIsCompleted">
-          <span v-if="subjectEntity === 'works' && isWithAggs || subjectEntity === 'summary'">
+          <span v-if="props.subjectEntity === 'works' && props.isWithAggs || props.subjectEntity === 'summary'">
             Analyzing 
             {{ resultsMeta?.works_count > 10000 ? "about " : "" }}
             {{ textFilters.toPrecision(resultsMeta?.works_count) }}
@@ -96,421 +96,212 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 </template>
 
 
-<script>
+<script setup>
+import { computed, ref, watch } from "vue";
+import { useStore } from "vuex";
+import _ from "lodash";
 
-import _ from 'lodash';
-import {mapGetters, mapMutations} from "vuex";
-
-import {getConfigs} from "@/oaxConfigs";
-import filters from "@/filters";
+import { getConfigs } from "@/oaxConfigs";
+import textFilters from "@/filters";
 
 import QuerySummarizeBy from "@/components/Query/QuerySummarizeBy.vue";
 import QueryFilterTreeBranch from "@/components/Query/QueryFilterTreeBranch.vue";
 import QueryFilterTreeButton from "@/components/Query/QueryFilterTreeButton.vue";
 
+defineOptions({ name: "QueryFilterTree" });
 
-export default {
-  name: "QueryFilterTree",
-  components: {
-    QuerySummarizeBy,
-    QueryFilterTreeBranch,
-    QueryFilterTreeButton,
-  },
-  props: {
-    subjectEntity: String,
-    filters: Array,
-    isWithAggs: Boolean,
-    isSentence: {
-      type: Boolean,
-      default: false,
+const props = defineProps({
+  subjectEntity: String,
+  filters: Array,
+  isWithAggs: Boolean,
+  isSentence: {
+    type: Boolean,
+    default: false,
+  }
+});
+
+const store = useStore();
+
+const myFilters = ref([]);
+const rootJoin = ref("and");
+const isRootGroupUserCreated = ref(false);
+
+const uiVariant        = computed(() => store.getters.uiVariant);
+const resultsMeta      = computed(() => store.getters["search/resultsMeta"]);
+const isSearchCanceled = computed(() => store.getters["search/isSearchCanceled"]);
+const hasQueryChanged  = computed(() => store.getters["search/hasQueryChanged"]);
+const queryIsCompleted = computed(() => store.getters["search/queryIsCompleted"]);
+const hasResults       = computed(() => store.getters["search/hasResults"]);
+
+const isWorks = computed(() => ["works", "summary"].includes(props.subjectEntity));
+const isEmpty = computed(() => myFilters.value.length === 0);
+const isFinal = computed(() => uiVariant.value === 'sentence-worksfirst' ? !isWorks.value : isWorks.value);
+
+const hasAvailableFilters = computed(() => {
+  const myConfig = getConfigs()[props.subjectEntity];
+  const myPossibleColumns = Object.values(myConfig.columns);
+  const availableFilters = myPossibleColumns.filter(f => f.actions && f.actions.includes("filter"));
+  return availableFilters.length > 0;
+});
+
+const borderColor = computed(() => {
+  const theme = store.state.vuetify?.theme?.themes?.light?.colors;
+  return isWorks.value ? theme?.catWorksDarker : theme?.catEntityDarker;
+});
+
+// Cleaned filters that get pushed into store
+const filtersToStore = computed(() => {
+  const cleanFilter = (filter) => {
+    if (filter.filters) {
+      const cleanedChildFilters = filter.filters.map(cleanFilter).filter(f => f !== null);
+      if (cleanedChildFilters.length === 0) return null;
+      return { join: filter.join, filters: cleanedChildFilters };
     }
-  },
-  data() {
-    return {
-      myFilters: [], // Local copy of filters kept so we can represent filters as they're being edited before they are applied
-      rootJoin: "and",
-      textFilters : filters,
-    }
-  },
-  computed: {
-    ...mapGetters(["uiVariant"]),
-    ...mapGetters("search",[
-      "resultsMeta",
-      "resultsBody",
-      "isSearchCanceled",
-      "hasQueryChanged",
-      "queryIsCompleted",
-      "hasResults",
-    ]),
-    hasAvailableFilters() {
-      const myConfig = getConfigs()[this.subjectEntity];
-      const myPossibleColumns = Object.values(myConfig.columns);
-      const availableFilters = myPossibleColumns.filter( f => f.actions && f.actions.includes("filter"));
-            
-      return availableFilters.length > 0;
-    },
-    isWorks() {
-      return ["works", "summary"].includes(this.subjectEntity);
-    },
-    isEmpty() {
-      return this.myFilters.length === 0;
-    },
-    isFinal() {
-      if (this.uiVariant === 'sentence-worksfirst') {
-        return !this.isWorks;
-      }
-      return this.isWorks;
-    },
-    displayInline() {
-      return this.uiVariant === 'worksfirst' ? true : !this.isWithAggs;
-    },
-    displayButtonInline() {
-      return true;
-      //return this.isEmpty && this.isWithAggs;
-    },
-    borderColor() {
-      // Access theme colors using the proper Vuetify 3 syntax
-      const worksColor = this.$vuetify.theme.themes.light.colors.catWorksDarker;
-      const entityColor = this.$vuetify.theme.themes.light.colors.catEntityDarker;
-      
-      return this.isWorks ? worksColor : entityColor;
-    },
-    filtersToStore() {
-      // Returns local filter state, cleaned of local props, to be stored in Vuex store
-      const cleanFilter = (filter) => {
-        if (filter.filters) { // Branch
-          const cleanedChildFilters = filter.filters
-            .map(cleanFilter)
-            .filter((f) => f !== null);
+    const cleanedLeaf = { column_id: filter.column_id, value: filter.value };
+    if (filter.operator) cleanedLeaf.operator = filter.operator;
+    return cleanedLeaf;
+  };
+  let cleaned = myFilters.value.map(cleanFilter).filter(f => f !== null);
+  return rootJoin.value === "or" ? [{ join: "or", filters: cleaned }] : cleaned;
+});
 
-          // If no valid child filters remain, discard this group
-          if (cleanedChildFilters.length === 0) { return null; }
-
-          return {
-            join: filter.join,
-            filters: cleanedChildFilters
-          };
-        }
-
-        // Keep the basic leaf properties
-        const cleanedLeaf = {
-          column_id: filter.column_id,
-          value: filter.value
-        };
-
-        // Only include operator if it exists
-        if (filter.operator) {
-          cleanedLeaf.operator = filter.operator;
-        }
-        return cleanedLeaf;
-      };
-
-      // Process top-level array
-      let cleanedFilters = this.myFilters
-        .map(cleanFilter)
-        .filter((f) => f !== null);
-
-      if (this.rootJoin == "or") {
-        cleanedFilters = [{
-          join: "or",
-          filters: cleanedFilters
-        }];
-      }
-      return cleanedFilters;
-    },
-  },
-  methods: {
-    ...mapMutations("search", [
-      "setFilterWorks",
-      "setFilterAggs",
-    ]),
-    decorateMyFilters() {
-      // Recursively decorates filters with path + grouping properties
-      const decorateFilters = (filters, parentPath = []) => {
-        return filters.map((filter, index) => {
-          const currentPath = [...parentPath, index];
-          const canGroupAbove = (parentPath.length === 0 && index > 0) 
-                                || (parentPath.length > 0 && index > 1);
-          const canUngroup = (currentPath.length > 1);
-
-          if (filter.filters) {
-            // Nested group
-            return {
-              join: filter.join,
-              filters: decorateFilters(filter.filters, currentPath),
-            };
-          } else {
-            // Leaf
-            return {
-              ...filter,
-              path: currentPath,
-              canGroupAbove,
-              canUngroup,
-            };
-          }
-        });
-      };
-      this.myFilters = decorateFilters(this.myFilters);
-      //console.log("decorated filters:", JSON.stringify(this.myFilters, null, 2));
-    },
-    hasSingleRootGroup() {
-      return this.myFilters.length === 1 && this.myFilters[0].filters;
-    },
-    getFilterFromPath(path) {
-      // Returns filter object given a path like [0], [1,2]
-      // If path is empty, interpret that as “the root array”
-      if (!path || path.length === 0) {
-        // Return a “fake” parent object that points to myFilters
-        return { join: this.rootJoin, filters: this.myFilters, root: true };
-      }
-
-      let currentFilters = this.myFilters;
-      let currentFilter = null;
-
-      for (let i = 0; i < path.length; i++) {
-        const index = path[i]; // 0-based index
-        currentFilter = currentFilters[index];
-
-        if (!currentFilter) {
-          //console.log("No filter found at index", index);
-          return null; // Path is invalid
-        }
-
-        // If we're not at the end, we go deeper
-        if (i < path.length - 1) {
-          if (!currentFilter.join || !Array.isArray(currentFilter.filters)) {
-            //console.log("Cannot go deeper - not a nested filter");
-            return null;
-          }
-          currentFilters = currentFilter.filters;
-        }
-      }
-      return currentFilter;
-    },
-    getFiltersInSameGroup(path) {
-      // Returns all filters that are in the same group as the filter at `path`
-      const parentFilter = this.getParentFilter(path);
-      return parentFilter.filters;
-    },
-    getParentFilter(path) {
-      const parentPath = path.slice(0, -1);
-      const parentFilter = this.getFilterFromPath(parentPath);
-      return parentFilter;      
-    },
-    getGroupParentPath(path) {
-      // Returns the oldest ancestor of path for which path is always the first child
-      while (path[path.length-1] === 0) {
-        path = path.slice(0, -1);
-      }
-      const groupParentPath = path.slice(0, -1);
-      return groupParentPath;
-    },
-    addFilter(column) {
-      console.log("Adding filter", column.id, column.type);
-      const initValue = column.type === "boolean" ? true : null
-      this.myFilters.push({
-        column_id: column.id,
-        value: initValue,
-        operator: column.defaultOperator,
-      });
-      this.decorateMyFilters();
-      this.applyFilters();
-      // console.log("After adding filter:", this.myFilters);
-    },
-    deleteFilter(path) {
-      //console.log("deleteFilter at path:", path)
-      // Get the parent path and the index to remove
-      const parentPath = path.slice(0, -1);
-      const indexToRemove = path[path.length - 1];
-
-      if (parentPath.length === 0) {
-        // Removing from root level
-        this.myFilters.splice(indexToRemove, 1);
+function decorateMyFilters() {
+  const decorate = (filters, parentPath = []) => {
+    return filters.map((filter, index) => {
+      const path = [...parentPath, index];
+      const canGroupAbove = (parentPath.length === 0 && index > 0) || (parentPath.length > 0 && index > 1);
+      const canUngroup = path.length > 1;
+      if (filter.filters) {
+        return { join: filter.join, filters: decorate(filter.filters, path) };
       } else {
-        // Get the parent filter that contains our target
-        const parentFilter = this.getFilterFromPath(parentPath);
-        
-        // If parent exists and has nested filters, remove the target
-        if (parentFilter && parentFilter.join && Array.isArray(parentFilter.filters)) {
-          parentFilter.filters.splice(indexToRemove, 1);
-
-          // If parent now has no filters, remove it from *its* parent too
-          if (parentFilter.filters.length === 0) {
-            // Clean up the parent from the grandparent
-            this.removeEmptyGroup(parentPath);
-          }
-        }
+        return { ...filter, path, canGroupAbove, canUngroup };
       }
-      if (parentPath.length === 1 && parentPath[0] === 0) {
-        this.isRootGroupUserCreated = false;
-      }
-      this.applyFilters();
-    },
-    setOperator(path, operator) {
-      //console.log("setOperator", path, operator);
-      const filterToUpdate = this.getFilterFromPath(path);
-      filterToUpdate.operator = operator;
-      this.applyFilters();
-    },
-    setValue(path, value) {
-      //console.log("Setting filter value", { path, value, dontApply });
-      const filterToUpdate = this.getFilterFromPath(path);
-      filterToUpdate.value = value;
-      this.applyFilters();
-    },
-    setJoinOperator(path, joinOperator) {
-      console.log("setJoin", JSON.stringify(path), joinOperator);
-      const groupParentPath = this.getGroupParentPath(path);
-      if (groupParentPath.length === 0) {
-        console.log("Setting root join to " + joinOperator);
-        this.rootJoin = joinOperator;
-      } else {
-        console.log("Setting group join to " + joinOperator + " at path " + JSON.stringify(groupParentPath));
-        const groupParentFilter = this.getFilterFromPath(groupParentPath);
-        groupParentFilter.join = joinOperator;
-      }
-      this.applyFilters();
-    },
-    groupWithAbove(path) {
-      //console.log("groupWithAbove path: " + path);
-      // The parent is the array containing this filter
-      const parentPath = path.slice(0, -1);
-      const index = path[path.length - 1];
+    });
+  };
+  myFilters.value = decorate(myFilters.value);
+}
 
-      if (index === 0) { return; } //console.warn("No filter above to group with.");
+function hasSingleRootGroup() {
+  return myFilters.value.length === 1 && myFilters.value[0].filters;
+}
 
-      const parentFilter = this.getFilterFromPath(parentPath);
+function getFilterFromPath(path) {
+  if (!path || path.length === 0) return { join: rootJoin.value, filters: myFilters.value, root: true };
+  let current = myFilters.value;
+  for (let i = 0; i < path.length; i++) {
+    const f = current[path[i]];
+    if (!f) return null;
+    if (i < path.length - 1) current = f.filters;
+    else return f;
+  }
+}
 
-      // Our parent's array
-      const parentFilters = parentFilter.filters;
-      const sibling = parentFilters[index - 1];
-      const current = parentFilters[index];
+function getGroupParentPath(path) {
+  while (path[path.length - 1] === 0) path = path.slice(0, -1);
+  return path.slice(0, -1);
+}
 
-      // If sibling above is already a group, push current into sibling
-      if (sibling.join && Array.isArray(sibling.filters)) {
-        parentFilters.splice(index, 1);    // remove current
-        sibling.filters.push(current);   // add to sibling group
-      } else {
-        // Otherwise create a new group with sibling + current
-        const newGroup = {
-          join: parentFilter.join,
-          filters: [sibling, current],
-        };
-        // Remove sibling & current, then insert the group
-        parentFilters.splice(index - 1, 2);
-        parentFilters.splice(index - 1, 0, newGroup);
-      }
+function addFilter(column) {
+  const initValue = column.type === "boolean" ? true : null;
+  myFilters.value.push({ column_id: column.id, value: initValue, operator: column.defaultOperator });
+  decorateMyFilters();
+  applyFilters();
+}
 
-      if (parentPath.length === 0 && this.hasSingleRootGroup()) {
-        this.isRootGroupUserCreated = true;
-      }
-      // console.log("After grouping, myFilters:", JSON.stringify(this.myFilters, null, 2));
-      this.applyFilters();
-    },
-    ungroupFromAbove(path) {
-      //console.log("ungroupFromAbove path:", path);
+function deleteFilter(path) {
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1];
+  const parent = getFilterFromPath(parentPath);
+  if (parentPath.length === 0) myFilters.value.splice(index, 1);
+  else if (parent && Array.isArray(parent.filters)) {
+    parent.filters.splice(index, 1);
+    if (parent.filters.length === 0) removeEmptyGroup(parentPath);
+  }
+  if (parentPath.length === 1 && parentPath[0] === 0) isRootGroupUserCreated.value = false;
+  applyFilters();
+}
 
-      // 1) Identify the parent group and index
-      const parentPath = path.slice(0, -1);
-      const indexInParent = path[path.length - 1];
+function setOperator(path, operator) {
+  getFilterFromPath(path).operator = operator;
+  applyFilters();
+}
 
-      // 2) The parent group
-      const parentFilter = this.getFilterFromPath(parentPath);
+function setValue(path, value) {
+  getFilterFromPath(path).value = value;
+  applyFilters();
+}
 
-      // 3) Remove the 'removed' filter from parent's array
-      const [removed] = parentFilter.filters.splice(indexInParent, 1);
+function setJoinOperator(path, joinOperator) {
+  const groupParentPath = getGroupParentPath(path);
+  if (groupParentPath.length === 0) rootJoin.value = joinOperator;
+  else getFilterFromPath(groupParentPath).join = joinOperator;
+  applyFilters();
+}
 
-      // 4) Insert the removed filter as a sibling in the grandparent
-      const grandParentPath = parentPath.slice(0, -1);
-      const parentIndexInGrand = parentPath[parentPath.length - 1];
-      const grandParentFilter = this.getFilterFromPath(grandParentPath);
+function groupWithAbove(path) {
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1];
+  if (index === 0) return;
+  const parent = getFilterFromPath(parentPath);
+  const group = parent.filters;
+  const sibling = group[index - 1];
+  const current = group[index];
+  if (sibling.join && Array.isArray(sibling.filters)) {
+    group.splice(index, 1);
+    sibling.filters.push(current);
+  } else {
+    const newGroup = { join: parent.join, filters: [sibling, current] };
+    group.splice(index - 1, 2, newGroup);
+  }
+  if (parentPath.length === 0 && hasSingleRootGroup()) isRootGroupUserCreated.value = true;
+  applyFilters();
+}
 
-      if (!grandParentFilter || !grandParentFilter.filters) {
-        console.warn("Grandparent is invalid. Cannot ungroup.");
-        return;
-      }
+function ungroupFromAbove(path) {
+  const parentPath = path.slice(0, -1);
+  const index = path[path.length - 1];
+  const parent = getFilterFromPath(parentPath);
+  const [removed] = parent.filters.splice(index, 1);
+  const grandPath = parentPath.slice(0, -1);
+  const parentIndex = parentPath[parentPath.length - 1];
+  const grand = getFilterFromPath(grandPath);
+  if (!grand || !Array.isArray(grand.filters)) return;
+  grand.filters.splice(parentIndex + 1, 0, removed);
+  if (parent.filters.length === 0) removeEmptyGroup(parentPath);
+  else if (parent.filters.length === 1) grand.filters.splice(parentIndex, 1, parent.filters[0]);
+  if (parentPath.length === 1 && parentPath[0] === 0) isRootGroupUserCreated.value = false;
+  applyFilters();
+}
 
-      // Insert below the parent group
-      grandParentFilter.filters.splice(parentIndexInGrand + 1, 0, removed);
-
-      // 5) If the parent group is empty, remove it entirely
-      if (parentFilter.filters.length === 0) {
-        this.removeEmptyGroup(parentPath);
-      }
-      // 6) Else if the parent group now has only one child, flatten it 
-      //    (i.e. remove the group, put the single child in its place)
-      else if (parentFilter.filters.length === 1) {
-        const [singleChild] = parentFilter.filters;  // the only remaining child
-
-        // Remove the parent group from the grandparent
-        grandParentFilter.filters.splice(parentIndexInGrand, 1);
-        // Insert the single child in its place
-        grandParentFilter.filters.splice(parentIndexInGrand, 0, singleChild);
-      }
-
-      if (parentPath.length === 1 && parentPath[0] === 0) {
-        this.isRootGroupUserCreated = false;
-      }
-      this.applyFilters();
-    },
-    removeEmptyGroup(path) {
-      // Remove an empty group from its parent's filters.
-      // If that empties the parent, bubble up again, etc.
-      if (path.length === 0) {
-        return;
-      }
-
-      const grandParentPath = path.slice(0, -1);
-      const emptyGroupIndex = path[path.length - 1];
-
-      if (grandParentPath.length === 0) {
-        // The group is itself in the root array
-        this.myFilters.splice(emptyGroupIndex, 1);
-      } else {
-        // Remove the group from its grandparent
-        const grandParentFilter = this.getFilterFromPath(grandParentPath);
-        if (grandParentFilter && grandParentFilter.join && Array.isArray(grandParentFilter.filters)) {
-          grandParentFilter.filters.splice(emptyGroupIndex, 1);
-
-          // If that made the grandparent empty, bubble up
-          if (grandParentFilter.filters.length === 0) {
-            this.removeEmptyGroup(grandParentPath);
-          }
-        }
-      }
-    },
-    async applyFilters() {
-      //console.log("applyFilters:")
-      //console.log(JSON.stringify(this.filtersToStore, null, 2));
-      if (this.subjectEntity === "works") {
-        this.setFilterWorks(this.filtersToStore);
-      } else {
-        this.setFilterAggs(this.filtersToStore);
-      }
-    },
-  },
-  watch: {
-    "filters": {
-      handler: function (filters) {
-        this.myFilters = _.cloneDeep(filters);
-
-        if (this.myFilters.length === 1 && 
-            this.myFilters[0].join === "or" &&
-            !this.isRootGroupUserCreated) {
-          // Special case single "or" group to appear at root level
-          console.log("Special case single \"or\" group to appear at root level");
-          this.rootJoin == "or";
-          this.myFilters = this.myFilters[0].filters;
-        }
-
-        this.decorateMyFilters();
-        //console.log("Watcher updating filters:");
-        //console.log(JSON.stringify(filters, null, 2));
-      },
-      immediate: true,
+function removeEmptyGroup(path) {
+  if (path.length === 0) return;
+  const grandPath = path.slice(0, -1);
+  const index = path[path.length - 1];
+  if (grandPath.length === 0) myFilters.value.splice(index, 1);
+  else {
+    const grand = getFilterFromPath(grandPath);
+    if (grand && Array.isArray(grand.filters)) {
+      grand.filters.splice(index, 1);
+      if (grand.filters.length === 0) removeEmptyGroup(grandPath);
     }
   }
 }
+
+async function applyFilters() {
+  const method = props.subjectEntity === "works" ? "setFilterWorks" : "setFilterAggs";
+  store.commit(`search/${method}`, filtersToStore.value);
+}
+
+watch(() => props.filters, 
+  (val) => {
+    myFilters.value = _.cloneDeep(val);
+    if (myFilters.value.length === 1 && myFilters.value[0].join === "or" && !isRootGroupUserCreated.value) {
+      rootJoin.value = "or";
+      myFilters.value = myFilters.value[0].filters;
+    }
+    decorateMyFilters();
+  }, 
+  { immediate: true });
 </script>
 
 

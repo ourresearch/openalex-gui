@@ -174,7 +174,6 @@ import { getConfigs } from '@/oaxConfigs';
 
 defineOptions({ name: 'QueryColumnsControl' });
 
-// Props
 const { showSections, isExpanded } = defineProps({
   showSections: {
     type: Array,
@@ -186,14 +185,11 @@ const { showSections, isExpanded } = defineProps({
   }
 });
 
-// Store
 const store = useStore();
 
-// Local state
 const isDataColumnsMenuOpen = ref(false);
 const isMetricsColumnsMenuOpen = ref(false);
 
-// Vuex Getters
 const query = computed(() => store.getters['search/query']);
 const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
 

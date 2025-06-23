@@ -1,14 +1,14 @@
 <template>
   <v-menu class="rounded-lg inline-block" location="bottom" transition="none" v-model="isMenuOpen">
-    <template v-slot:activator="{ props }">
+    <template v-slot:activator="{ props: menuProps }">
       <v-btn
-        v-bind="props"
-        :class="{'query-builder-button': true, 'tight': !text.length}"
+        v-bind="menuProps"
+        :class="{'query-builder-button': true, 'tight': !props.text.length}"
         :color="buttonColor"
         size="small"
         variant="flat"
       >
-        <v-icon size="small">mdi-plus</v-icon>{{ text }}
+        <v-icon size="small">mdi-plus</v-icon>{{ props.text }}
       </v-btn>
     </template>
     <v-card flat class="rounded-o" style="width: 250px" v-if="isMenuOpen">
@@ -47,115 +47,102 @@
 </template>
 
 
-<script>
-
-import {getConfigs} from "@/oaxConfigs";
+<script setup>
+import { computed, ref, watch } from "vue";
+import { getConfigs } from "@/oaxConfigs";
 import filters from "@/filters";
 
-export default {
-  name: "QueryFilterTreeButton",
-  components: {},
-  props: {
-    subjectEntity: String,
-    text: {
-      type: String, 
-      default: "Filter"
-    }
-  },
-  data() {
-    return {
-      search: "",
-      isMenuOpen: false,
-      filters,
-    }
-  },
-  computed: {
-    buttonColor() {
-      let color =  ['works', 'summary'].includes(this.subjectEntity) ? 'catWorks' : 'catEntity';
-      if (this.text.length > 0) {
-        color += 'Darker';
-      }
-      return color;
-    },
-    availableFilters() {
-      const mySubjectEntity = this.subjectEntity;
-      const myConfig = getConfigs()[mySubjectEntity];
-      const myPossibleColumns = Object.values(myConfig.columns);
+defineOptions({ name: "QueryFilterTreeButton" });
 
-      //console.log(myPossibleColumns)
+const props = defineProps({
+  subjectEntity: String,
+  text: {
+    type: String,
+    default: "Filter"
+  }
+});
 
-      const availableFilters = myPossibleColumns.filter( f => {
-        if  (!f.actions) {console.log(f.displayName + " / " + f.id + " missing 'actions'"); return false}
-        return f.actions.includes("filter");
-      });
-      
-      return availableFilters;
-    },
-    popularFilters() {
-      return this.availableFilters.filter( f => {
-        return (f.actionsPopular && f.actionsPopular.includes("filter"));
-      })
-    },
-    nonpopularFilters() {
-      return this.availableFilters.filter( f => {
-        return (!f.actionsPopular || !f.actionsPopular.includes("filter"));
-      })
-    },
-    filteredPopularFilters() {
-      return this.filterFiltersBySearch(this.popularFilters)
-                  .sort((a, b) => a.displayName.localeCompare(b.displayName));
-    },
-    filteredNonpopularFilters() {
-      return this.filterFiltersBySearch(this.nonpopularFilters)
-                  .sort((a, b) => a.displayName.localeCompare(b.displayName));
-    },
-    filteredFilters() {
-      return this.filteredPopularFilters.concat(this.filteredNonpopularFilters);
-    },
-    lineBetweenPopularIndex() {
-      // Location of the line between popular filters at top and remaining filters below, if any
-      return (this.filteredPopularFilters.length === 0 
-              || this.filteredNonpopularFilters.length === 0)
-        ? -1
-        : this.availableFilters.length > 5 ? this.filteredPopularFilters.length : -1;
-    }, 
-  },
-  methods: {
-    filterFiltersBySearch(columns) {
-      //console.log(columns)
-      return columns.filter( f => {
-        return f.displayName.toLowerCase().includes(this.search.toLowerCase());
-      })
-    },
-    onDownArrow(event) {
-      // Prevent default behavior of the down arrow key
-      event.preventDefault();
-      
-      // Get all focusable elements in the document
-      const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-      const elements = Array.from(document.querySelectorAll(focusableElements))
-        .filter(el => !el.disabled && el.offsetParent !== null); // Only visible and enabled elements
-      
-      // Find the current element's position in the focusable elements array
-      const currentIndex = elements.indexOf(event.target);
-      
-      // Focus the next element if it exists, otherwise focus the first element
-      if (currentIndex > -1 && currentIndex < elements.length - 1) {
-        elements[currentIndex + 1].focus();
-      } else if (elements.length > 0) {
-        // If we're at the last element or can't find the current element, go to the first
-        elements[0].focus();
-      }
-    },  
-  },
-  watch: {
-    isMenuOpen(newValue) {
-      if (!newValue) {
-        this.search = "";
-      }
-    }
+const search = ref("");
+const isMenuOpen = ref(false);
+
+const buttonColor = computed(() => {
+  let color = ['works', 'summary'].includes(props.subjectEntity) ? 'catWorks' : 'catEntity';
+  if (props.text.length > 0) {
+    color += 'Darker';
+  }
+  return color;
+});
+
+const availableFilters = computed(() => {
+  const myConfig = getConfigs()[props.subjectEntity];
+  const myPossibleColumns = Object.values(myConfig.columns);
+  return myPossibleColumns.filter(f => {
+    return f.actions && f.actions.includes("filter");
+  });
+});
+
+const popularFilters = computed(() =>
+  availableFilters.value.filter(f =>
+    f.actionsPopular && f.actionsPopular.includes("filter")
+  )
+);
+
+const nonpopularFilters = computed(() =>
+  availableFilters.value.filter(f =>
+    !f.actionsPopular || !f.actionsPopular.includes("filter")
+  )
+);
+
+function filterFiltersBySearch(columns) {
+  return columns.filter(f =>
+    f.displayName.toLowerCase().includes(search.value.toLowerCase())
+  );
+}
+
+const filteredPopularFilters = computed(() =>
+  filterFiltersBySearch(popularFilters.value)
+    .sort((a, b) => a.displayName.localeCompare(b.displayName))
+);
+
+const filteredNonpopularFilters = computed(() =>
+  filterFiltersBySearch(nonpopularFilters.value)
+    .sort((a, b) => a.displayName.localeCompare(b.displayName))
+);
+
+const filteredFilters = computed(() =>
+  filteredPopularFilters.value.concat(filteredNonpopularFilters.value)
+);
+
+const lineBetweenPopularIndex = computed(() => {
+  return (filteredPopularFilters.value.length === 0 ||
+          filteredNonpopularFilters.value.length === 0)
+    ? -1
+    : availableFilters.value.length > 5
+      ? filteredPopularFilters.value.length
+      : -1;
+});
+
+function onDownArrow(event) {
+  event.preventDefault();
+  const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  const elements = Array.from(document.querySelectorAll(focusableElements))
+    .filter(el => !el.disabled && el.offsetParent !== null);
+
+  const currentIndex = elements.indexOf(event.target);
+  if (currentIndex > -1 && currentIndex < elements.length - 1) {
+    elements[currentIndex + 1].focus();
+  } else if (elements.length > 0) {
+    elements[0].focus();
   }
 }
+
+watch(isMenuOpen, 
+  (newVal) => {
+    if (!newVal) {
+      search.value = "";
+    }
+  }
+);
 </script>
 
 
