@@ -64,108 +64,104 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import filters from '@/filters';
+import { getConfigs } from '@/oaxConfigs';
 
-import {mapGetters, mapMutations, mapActions} from "vuex";
-import filters from "@/filters";
-import {getConfigs} from "@/oaxConfigs";
+defineOptions({ name: 'QuerySummarizeBy' });
 
-export default {
-  name: "QuerySummarizeBy",
-  components: {},
-  props: {
-    subjectEntity: {
-      type: String,
-      default: null,
-    },
+const props = defineProps({
+  subjectEntity: {
+    type: String,
+    default: null,
   },
-  computed: {
-    ...mapGetters(["uiVariant"]),
-    ...mapGetters("search", [
-      "query",
-      "querySubjectEntityConfig",
-      "hasQueryChanged",
-      "queryIsCompleted",
-    ]),
-    entities() {
-      return Object.values(getConfigs()).filter(config => config.id !== 'works');
-    },
-    popularEntities() {
-      // Create a special config for summary since it's not a standard entity
-      const summaryConfig = {
-        id: 'summary',
-        displayName: 'Works Summary',
-        icon: 'mdi-file-document'
-      };
-      
-      // Add other popular entities
-      const popularIds = ['authors', 'institutions', 'funders', 'topics'];
-      const entities = popularIds
-        .map(id => this.getEntityConfig(id))
-        .filter(entity => entity !== null);
-        
-      // Add summary after topics
-      entities.push(summaryConfig);
-      
-      return entities;
-    },
-    remainingEntitiesSorted() {
-      const popularIds = ['authors', 'institutions', 'funders', 'topics'];
-      return this.entities
-        .filter(entity => !popularIds.includes(entity.id) && entity.id !== 'works' && entity.id !== 'summary')
-        .sort((a, b) => a.displayName.localeCompare(b.displayName));
-    },
-    resultsCount() {
-      if (!this.queryIsCompleted || this.hasQueryChanged) { return null; }
-      const formatter = Intl.NumberFormat('en', { notation: 'compact' });
-      return this.resultsMeta ? formatter.format(this.resultsMeta.count) : null;
-    },
-    buttonName() {
-      const entity = this.query.get_rows;
-      if (entity === 'summary') { 
-        return "Works Summary"; 
-      }
-      const name = getConfigs()[entity].displayName;
-      if (["sentence-group", "sentence-worksfirst", "worksfirst"].includes(this.uiVariant) && name === "works") {
-        return 'none';
-      }
-      return filters.titleCase(name);
-    },
-    buttonColor() {
-      if (this.uiVariant === 'sentence-group') {
-        if (this.subjectEntity === null) { return 'catEntity'; }
-        return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
-      }
-      if (this.subjectEntity === null) { return 'catEntity'; }
-      if (["worksfirst"].includes(this.uiVariant)) { return 'catEntity'; }
-      return ['works', 'summary'].includes(this.query.get_rows) ? 'catWorks' : 'catEntity';
-    },
-    selected: {
-      get() {
-        return this.query.summarize;
-      },
-      set(value) {
-        console.log("setSummarize", value);
-        this.setSummarize(value);
-        if (this.uiVariant === 'sentence-group') {
-          this.createSearch();
-        }
-      }
-    },
-  },
-  methods: {
-    ...mapMutations("search", [
-      "setSummarize",
-    ]),
-    ...mapActions("search", [
-      "createSearch",
-    ]),
-    getEntityConfig(entityId) {
-      const configs = getConfigs();
-      return configs[entityId] || null;
-    },
-  },
+});
+
+const store = useStore();
+
+const uiVariant = computed(() => store.getters['uiVariant']);
+const query = computed(() => store.getters['search/query']);
+
+const setSummarize = (val) => store.commit('search/setSummarize', val);
+const createSearch = () => store.dispatch('search/createSearch');
+
+function getEntityConfig(entityId) {
+  const configs = getConfigs();
+  return configs[entityId] || null;
 }
+
+const entities = computed(() => {
+  return Object.values(getConfigs()).filter(config => config.id !== 'works');
+});
+
+const popularEntities = computed(() => {
+  const summaryConfig = {
+    id: 'summary',
+    displayName: 'Works Summary',
+    icon: 'mdi-file-document',
+  };
+
+  const popularIds = ['authors', 'institutions', 'funders', 'topics'];
+  const mapped = popularIds
+    .map(id => getEntityConfig(id))
+    .filter(entity => entity !== null);
+
+  mapped.push(summaryConfig);
+  return mapped;
+});
+
+const remainingEntitiesSorted = computed(() => {
+  const popularIds = ['authors', 'institutions', 'funders', 'topics'];
+  return entities.value
+    .filter(entity => !popularIds.includes(entity.id) && entity.id !== 'works' && entity.id !== 'summary')
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+});
+
+const buttonName = computed(() => {
+  const entity = query.value.get_rows;
+  if (entity === 'summary') {
+    return 'Works Summary';
+  }
+  const name = getConfigs()[entity].displayName;
+  if (
+    ['sentence-group', 'sentence-worksfirst', 'worksfirst'].includes(uiVariant.value) &&
+    name === 'works'
+  ) {
+    return 'none';
+  }
+  return filters.titleCase(name);
+});
+
+const buttonColor = computed(() => {
+  if (uiVariant.value === 'sentence-group') {
+    if (props.subjectEntity === null) {
+      return 'catEntity';
+    }
+    return ['works', 'summary'].includes(query.value.get_rows) ? 'catWorks' : 'catEntity';
+  }
+  if (props.subjectEntity === null) {
+    return 'catEntity';
+  }
+  if (['worksfirst'].includes(uiVariant.value)) {
+    return 'catEntity';
+  }
+  return ['works', 'summary'].includes(query.value.get_rows) ? 'catWorks' : 'catEntity';
+});
+
+const selected = computed({
+  get() {
+    return query.value.summarize;
+  },
+  set(value) {
+    console.log('setSummarize', value);
+    setSummarize(value);
+    if (uiVariant.value === 'sentence-group') {
+      createSearch();
+    }
+  },
+});
 </script>
 
 

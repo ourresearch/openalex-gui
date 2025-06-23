@@ -28,80 +28,64 @@
 </template>
 
 
-<script>
-
-import {mapGetters} from "vuex";
-import {api} from "@/api";
+<script setup>
+import { ref, computed, watch, onMounted } from "vue";
+import { useStore } from "vuex";
+import { api } from "@/api";
 import filters from "@/filters";
 
-export default {
-  name: "QueryFilterValueChip",
-  components: {
-  },
-  props: {
-    columnConfig: Object,
-    value: [String, Number,Boolean],
-    isLabelFilter: Boolean,
-    isEditable: Boolean,
-    subjectEntity: String,
-    isSentence: Boolean,
-  },
-  data() {
-    return {
-      entityData: null,
-      isLoading: false,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters(['uiVariant']),
-    buttonColorHex() {
-      return "#AAA";
-    },
-    isBoxed() {
-      return this.columnConfig.id === 'related_to_text';
-    }
-  },
-  methods: {
-    async getEntity() {
-      if (!this.columnConfig.objectEntity) { 
-        return;
-      } else if (this.isLabelFilter) {
-        const collection = this.$store.getters['user/getCollection'](this.value)
-        this.entityData = {
-          display_name: collection.name,
-        }
-      } else {
-        this.isLoading = true;
-        const response = await api.getEntity(this.value);
-        this.entityData = response;
-        this.isLoading = false;   
-      }
-    },
-  },
-  created() {
-    if (!this.value) { 
-      console.log("QueryFilterValueChip: no value");
-      /*
-      throw new Error(
-        "QueryFilterValueChip only works if there's a value for the filter"
-      )
-      */
-    }
-  },
-  watch: {
-    value: {
-      handler: function (newValue) {
-        if (newValue) {
-          this.getEntity();
-        }
-      },
-      immediate: true,
-    }
+defineOptions({
+  name: "QueryFilterValueChip"
+});
+
+const props = defineProps({
+  columnConfig: Object,
+  value: [String, Number, Boolean],
+  isLabelFilter: Boolean,
+  isEditable: Boolean,
+  subjectEntity: String,
+  isSentence: Boolean
+});
+
+const store = useStore();
+
+const entityData = ref(null);
+const isLoading = ref(false);
+
+const buttonColorHex = computed(() => "#AAA");
+
+async function getEntity() {
+  if (!props.columnConfig.objectEntity) {
+    return;
+  } else if (props.isLabelFilter) {
+    const collection = store.getters["user/getCollection"](props.value);
+    entityData.value = {
+      display_name: collection.name
+    };
+  } else {
+    isLoading.value = true;
+    const response = await api.getEntity(props.value);
+    entityData.value = response;
+    isLoading.value = false;
   }
 }
-</script>
 
+watch(
+  () => props.value,
+  (newValue) => {
+    if (newValue) {
+      getEntity();
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  if (!props.value) {
+    console.log("QueryFilterValueChip: no value");
+  }
+});
+</script>
 
 <style scoped lang="scss">
 .v-icon {

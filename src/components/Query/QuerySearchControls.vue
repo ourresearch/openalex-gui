@@ -20,27 +20,22 @@
 </template>
 
 
-<script>
-import { mapGetters, mapActions } from 'vuex';
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: 'QuerySearchControls',
-  computed: {
-    ...mapGetters('search', [
-      'hasQueryChanged',
-      'isSearchCanceled',
-      'queryIsCompleted'
-    ]),
-  },
-  methods: {
-    ...mapActions('search', [
-      'createSearch',
-      'resetToSubmittedQuery'
-    ]),
-    cancelSearch() {
-      this.resetToSubmittedQuery();
-    }
-  }
+defineOptions({ name: 'QuerySearchControls' });
+
+const store = useStore();
+
+const hasQueryChanged = computed(() => store.getters['search/hasQueryChanged']);
+const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']);
+
+const createSearch = () => store.dispatch('search/createSearch');
+const resetToSubmittedQuery = () => store.dispatch('search/resetToSubmittedQuery');
+
+function cancelSearch() {
+  resetToSubmittedQuery();
 }
 </script>
 
