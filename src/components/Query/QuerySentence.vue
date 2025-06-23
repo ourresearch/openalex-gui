@@ -83,36 +83,30 @@
   </div>
 </template>
 
-<script>
-import {mapGetters} from "vuex";
-import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
-import QueryOutlineView from "@/components/Query/QueryOutlineView.vue";
-import QueryResultsCount from "@/components/Query/QueryResultsCount.vue";
-import QuerySearchControls from "@/components/Query/QuerySearchControls.vue";
-import NewQueryButton from "@/components/Misc/NewQueryButton.vue";
 
-export default {
-  name: "QuerySentence",
-  components: {
-    QueryFilterTree,
-    QuerySearchControls,
-    QueryOutlineView,
-    QueryResultsCount,
-    NewQueryButton
-  },
-  computed: {
-    ...mapGetters(["uiVariant"]),
-    ...mapGetters("search",[
-      "query",
-      "querySubjectEntity",
-      "hasQueryChanged",
-      "isSearchCanceled",
-    ]),
-    isWorks() { 
-      return ['works', 'summary'].includes(this.querySubjectEntity);
-    },
-  }
-};
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+
+import QueryFilterTree from '@/components/Query/QueryFilterTree.vue';
+import QueryOutlineView from '@/components/Query/QueryOutlineView.vue';
+import QueryResultsCount from '@/components/Query/QueryResultsCount.vue';
+import QuerySearchControls from '@/components/Query/QuerySearchControls.vue';
+import NewQueryButton from '@/components/Misc/NewQueryButton.vue';
+
+defineOptions({
+  name: 'QuerySentence',
+});
+
+const store = useStore();
+
+const uiVariant = computed(() => store.getters['uiVariant']);
+const query = computed(() => store.getters['search/query']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+const hasQueryChanged = computed(() => store.getters['search/hasQueryChanged']);
+const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']);
+
+const isWorks = computed(() => ['works', 'summary'].includes(querySubjectEntity.value));
 </script>
 
 

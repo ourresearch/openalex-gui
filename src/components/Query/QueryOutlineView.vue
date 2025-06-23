@@ -95,63 +95,50 @@
   </span>
 </template>
 
-<script>
-import {mapGetters, mapActions} from "vuex";
-import { format } from 'sql-formatter';
-import { urlBase } from "@/apiConfig";
+
+<script setup>
+import { ref, computed } from "vue";
+import { useStore } from "vuex";
+import { format } from "sql-formatter";
+
 import QueryFilterTree from "@/components/Query/QueryFilterTree.vue";
 import QueryColumnsControls from "@/components/Query/QueryColumnsControls.vue";
 import SearchFromText from "@/components/SearchFromText.vue";
 
-export default {
-  name: "QueryOutlineView",
-  components: {
-    QueryFilterTree,
-    QueryColumnsControls,
-    SearchFromText
-  },
-  data() {
-    return {
-      dialogOpen: false,
-      activeTab: 0, // Add state for tabs
-    };
-  },
-  computed: {
-    ...mapGetters(["uiVariant"]),
-    ...mapGetters("search",[
-      "query",
-      "querySubjectEntity",
-      "queryIsCompleted", 
-      "querySql",
-    ]),
-    searchApiUrl() {
-      return urlBase.api + '/analytics/' + this.$route.params.id;
-    },
-    formattedSql() {
-      const rawSql = this.querySql;
-      if (!rawSql) { return ""; }
-      return format(rawSql, {language: "redshift"});
-    }
-  },
-  methods: {
-    ...mapActions('search', [
-      'createSearch',
-      'resetToSubmittedQuery'
-    ]),
-    openDialog() {
-      this.dialogOpen = true;
-    },
-    cancelClick() {
-      this.resetToSubmittedQuery();
-      this.dialogOpen = false;
-    },
-    searchClick() {
-      this.createSearch();
-      this.dialogOpen = false;
-    }
-  }
-};
+defineOptions({ name: "QueryOutlineView" });
+
+const store = useStore();
+
+const dialogOpen = ref(false);
+const activeTab = ref(0);
+
+const uiVariant = computed(() => store.getters["uiVariant"]);
+const query = computed(() => store.getters["search/query"]);
+const querySubjectEntity = computed(() => store.getters["search/querySubjectEntity"]);
+const queryIsCompleted = computed(() => store.getters["search/queryIsCompleted"]);
+const querySql = computed(() => store.getters["search/querySql"]);
+
+const formattedSql = computed(() => {
+  const rawSql = querySql.value;
+  if (!rawSql) return "";
+  return format(rawSql, { language: "redshift" });
+});
+
+function openDialog() {
+  dialogOpen.value = true;
+}
+
+function cancelClick() {
+  store.dispatch("search/resetToSubmittedQuery");
+  dialogOpen.value = false;
+}
+
+function searchClick() {
+  store.dispatch("search/createSearch");
+  dialogOpen.value = false;
+}
 </script>
+
 
 <style lang="scss">
 .query-outline-tabs {

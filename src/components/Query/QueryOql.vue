@@ -23,27 +23,13 @@
 </template>
 
 
-<script>
+<script setup>
+import { useStore } from "vuex";
+import { computed } from "vue";
 
-import {mapGetters} from "vuex";
+defineOptions({ name: "QueryOql"});
 
-export default {
-  name: "QueryOql",
-  components: {},
-  props: {},
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters("search",[
-      'queryOql',
-    ]),
-  },
-}
+const store = useStore();
+
+const queryOql = computed(() => store.getters["search/queryOql"]);
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

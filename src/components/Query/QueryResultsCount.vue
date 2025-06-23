@@ -42,51 +42,37 @@
   </div>
 </template>
 
-<script>
-import { mapGetters, mapActions, mapMutations } from 'vuex';
+
+<script setup>
+import { computed } from "vue";
+import { useStore } from "vuex";
 import filters from "@/filters";
 
-import QueryActions from './QueryActions.vue';
+import QueryActions from "./QueryActions.vue";
 
-export default {
-  components: {
-    QueryActions
-  },
-  data() {
-    return {
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters("search", [
-      "resultsMeta",
-      "hasResults",
-      "querySubjectEntity",
-      "stashedQueryState",
-    ]),
-  },
-  methods: {
-    ...mapMutations("search", [
-      "setStashedQueryState",
-    ]),
-    ...mapActions("search", [
-      "createUnderlyingWorksQuery",
-      "createSearchFromQuery",
-    ]),
-    entityTabClick() {
-      if (this.stashedQueryState) {
-        this.createSearchFromQuery(this.stashedQueryState.query);
-        this.setStashedQueryState(null);      
-      }
-    },
-    worksTabClick() {
-      if (this.querySubjectEntity !== 'works') {
-        this.createUnderlyingWorksQuery();
-      }
-    },
-  },
-};
+defineOptions({ name: "QueryResultsCount" });
+
+const store = useStore();
+
+const resultsMeta = computed(() => store.getters["search/resultsMeta"]);
+const hasResults = computed(() => store.getters["search/hasResults"]);
+const querySubjectEntity = computed(() => store.getters["search/querySubjectEntity"]);
+const stashedQueryState = computed(() => store.getters["search/stashedQueryState"]);
+
+function entityTabClick() {
+  if (stashedQueryState.value) {
+    store.dispatch("search/createSearchFromQuery", stashedQueryState.value.query);
+    store.commit("search/setStashedQueryState", null);
+  }
+}
+
+function worksTabClick() {
+  if (querySubjectEntity.value !== "works") {
+    store.dispatch("search/createUnderlyingWorksQuery");
+  }
+}
 </script>
+
 
 <style lang="scss">
 .results-count {

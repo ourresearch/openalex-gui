@@ -10,11 +10,6 @@
               <query-builder />
             </v-col>
 
-            <!-- Query Tabs -->
-            <v-col v-if="uiVariant === 'side'" class="d-none d-md-block" cols="12">
-              <query-tabs />
-            </v-col>
-
           </v-row>
         </v-col>
 
@@ -41,14 +36,12 @@ import {DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 import ResultsTable from "@/components/Results/ResultsTable.vue";
 import QueryBuilder from "@/components/Query/QueryBuilder.vue";
-import QueryTabs from "@/components/Query/QueryTabs.vue";
 
 export default {
   name: "ResultsPage",
   components: {
     ResultsTable,
     QueryBuilder,
-    QueryTabs,
   },
   props: {},
   data() {

@@ -242,13 +242,6 @@
       <correction-create :ids="selectedIds" @close="isCorrectionDialogOpen = false"/>
     </v-dialog>
 
-    <!-- Query Return Dialog -->
-    <v-dialog scrollable v-model="isPropSelectorDialogOpen">
-      <v-card flat rounded>
-        <query-return @close="isPropSelectorDialogOpen = false"/>
-      </v-card>
-    </v-dialog>
-
   </div>
 </template>
 
@@ -261,7 +254,6 @@ import { useResultsTable } from '@/composables/Results/useResultsTable';
 
 import ColumnValue from "@/components/ColumnValue.vue";
 import CorrectionCreate from "@/components/CorrectionCreate.vue";
-import QueryReturn from "@/components/Query/QueryReturn.vue";
 import QueryColumnAdder from "@/components/Query/QueryColumnAdder.vue";
 import ResultsError from "@/components/Results/ResultsError.vue";
 import ResultsSearching from "@/components/Results/ResultsSearching.vue";
@@ -274,7 +266,6 @@ const store = useStore();
 // Data properties
 const selectedIds = ref([]);
 const isEntireSearchSelected = ref(false);
-const isPropSelectorDialogOpen = ref(false);
 const isCorrectionDialogOpen = ref(false);
 
 // Store getters
