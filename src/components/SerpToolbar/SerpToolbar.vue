@@ -30,7 +30,7 @@ import { useRoute } from 'vue-router';
 
 import SerpToolbarMenu from '@/components/SerpToolbar/SerpToolbarMenu.vue';
 import SerpToolbarTitle from '@/components/SerpToolbar/SerpToolbarTitle.vue';
-import SavedSearchSaveDialog from '@/components/SavedSearchSaveDialog.vue';
+import SavedSearchSaveDialog from '@/components/SavedSearch/SavedSearchSaveDialog.vue';
 
 defineOptions({ name: 'SerpToolbar', });
 

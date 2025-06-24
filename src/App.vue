@@ -121,8 +121,8 @@ import { useHead } from '@unhead/vue';
 import {getConfigs} from "@/oaxConfigs";
 
 import UserToolbarMenu from "@/components/User/UserToolbarMenu.vue";
-import SavedSearchRenameDialog from "@/components/SavedSearchRenameDialog.vue";
-import SavedSearchEditAlertDialog from "@/components/SavedSearchEditAlertDialog.vue";
+import SavedSearchRenameDialog from "@/components/SavedSearch/SavedSearchRenameDialog.vue";
+import SavedSearchEditAlertDialog from "@/components/SavedSearch/SavedSearchEditAlertDialog.vue";
 import SiteFooter from "./components/SiteFooter.vue";
 import ShortcutBox from "@/components/ShortcutBox.vue";
 import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
