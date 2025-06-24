@@ -94,74 +94,69 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, watch } from 'vue';
+import _ from 'lodash';
+import { oqlToQuery, queryToOQL } from '@/oqlParse/oqlParse';
 
-import _ from "lodash";
-import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
+defineOptions({
+  name: 'TestQueryOql',
+});
 
-export default {
-  name: "TestQueryOql",
-  components: {},
-  props: {
-    input: [String, Object],
-    expectedResponse: [Object, String],
-    queryId: Number,
-    testId: String,
-    testSuiteId: String,
-    icon: Boolean,
-    runTest: Number,
-  },
-  data() {
-    return {
+const props = defineProps({
+  input: [String, Object],
+  expectedResponse: [Object, String],
+  queryId: Number,
+  testId: String,
+  testSuiteId: String,
+  icon: Boolean,
+  runTest: Number,
+});
+
+const emit = defineEmits(['pass', 'fail']);
+
+// Computed: transform input to actual response
+const actualResponse = computed(() => {
+  try {
+    if (props.testId === 'from-query') {
+      return queryToOQL(props.input);
+    } else if (props.testId === 'to-query') {
+      return oqlToQuery(props.input);
+    } else {
+      throw new Error(`Unknown OQL testId: ${props.testId}`);
     }
-  },
-  computed: {
-    testColor() {
-      return this.isTestPassing ? "green" : "red"
-    },
-    actualResponse() {
-      if (this.testId === 'from-query') {
-        try {
-          return queryToOQL(this.input)
-        } catch (e) {
-          console.log(e.stack)
-          return `test threw error: "${e.message}"`
-        }
-      } else if (this.testId === 'to-query') {
-        try {
-          return oqlToQuery(this.input)
-        } catch (e) {
-          console.log(e.stack)
-          return `test threw error: "${e.message}"`
-        }
-      } else {
-        throw new Error(`Unknown OQL testId: ${this.testId}`)
-      }
-    },
-    // trim ; character from end of oql strings when comparing for equality (sometimes one has it at the end, sometimes not)
-    isTestPassing() {
-      return _.isEqual(this.actualResponse, this.expectedResponse)
-    }
-  },
-  methods: {
-    runEvaluation() {
-      // Re-emit pass/fail based on the computed value
-      this.$emit(this.isTestPassing ? "pass" : "fail");
-    },
-  },
-  watch: {
-    runTest: {
-      handler(newVal) {
-        if (newVal) {
-          this.runEvaluation(); // Re-evaluate and emit when parent toggles runTest
-        }
-      },
-      immediate: true, // Only react when runTest changes
-    },
-  },
+  } catch (e) {
+    console.log(e.stack);
+    return `test threw error: "${e.message}"`;
+  }
+});
+
+// Equality check (trimming trailing semicolons if strings)
+const isTestPassing = computed(() => {
+  const expected = typeof props.expectedResponse === 'string'
+    ? props.expectedResponse.trim().replace(/;$/, '')
+    : props.expectedResponse;
+
+  const actual = typeof actualResponse.value === 'string'
+    ? actualResponse.value.trim().replace(/;$/, '')
+    : actualResponse.value;
+
+  return _.isEqual(actual, expected);
+});
+
+const testColor = computed(() => (isTestPassing.value ? 'green' : 'red'));
+
+// Emit result when requested
+function runEvaluation() {
+  emit(isTestPassing.value ? 'pass' : 'fail');
 }
+
+// Watch runTest trigger
+watch(
+  () => props.runTest,
+  (newVal) => {
+    if (newVal) runEvaluation();
+  },
+  { immediate: true }
+);
 </script>
-
-<style scoped lang="scss">
-
-</style>

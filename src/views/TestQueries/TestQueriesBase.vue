@@ -19,68 +19,59 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
-export default {
-  name: "TestQueriesBase",
-  components: {
-  },
-  props: {},
-  data() {
-    return {
-    }
-  },
-  computed: {
-    breadcrumbItems() {
-      // /tests/:testSuiteId/:queryId/:testType/:testId
+defineOptions({
+  name: 'TestQueriesBase',
+});
 
-      const items = [
-        {text: 'Tests', to: '/tests', exact: true,}
-      ];
+const route = useRoute();
 
-      if (this.$route.params.testSuiteId) {
-        items.push({
-          text: `Suite: ${this.$route.params.testSuiteId}`,
-          exact: true,
-          to: `/tests/${this.$route.params.testSuiteId}`
-        });
-      }
+const breadcrumbItems = computed(() => {
+  const items = [
+    { text: 'Tests', to: '/tests', exact: true },
+  ];
 
-      if (this.$route.params.queryId) {
-        items.push({
-          text: `Query: ${this.$route.params.queryId}`,
-          exact: true,
-          to: `/tests/${this.$route.params.testSuiteId}/${this.$route.params.queryId}`
-        });
-      }
+  const { testSuiteId, queryId, testType, testId } = route.params;
 
-      if (this.$route.params.testType) {
-        items.push({
-          text: `${this.$route.params.testType}`,
-          exact: true,
-          to: `/tests/${this.$route.params.testSuiteId}/${this.$route.params.queryId}/${this.$route.params.testType}`
-        });
-      }
+  if (testSuiteId) {
+    items.push({
+      text: `Suite: ${testSuiteId}`,
+      exact: true,
+      to: `/tests/${testSuiteId}`,
+    });
+  }
 
-      if (this.$route.params.testId) {
-        items.push({
-          text: `${this.$route.params.testId}`,
-          exact: true,
-          to: `/tests/${this.$route.params.testSuiteId}/${this.$route.params.queryId}/${this.$route.params.testType}/${this.$route.params.testId}`
-        });
-      }
-      return items
-    },
-    pageTitle(){
-      // get the last item in the breadcrumbs list
-      return this.breadcrumbItems[this.breadcrumbItems.length - 1].text
-    }
-  },
-  methods: {
-  },
-}
+  if (queryId) {
+    items.push({
+      text: `Query: ${queryId}`,
+      exact: true,
+      to: `/tests/${testSuiteId}/${queryId}`,
+    });
+  }
+
+  if (testType) {
+    items.push({
+      text: `${testType}`,
+      exact: true,
+      to: `/tests/${testSuiteId}/${queryId}/${testType}`,
+    });
+  }
+
+  if (testId) {
+    items.push({
+      text: `${testId}`,
+      exact: true,
+      to: `/tests/${testSuiteId}/${queryId}/${testType}/${testId}`,
+    });
+  }
+
+  return items;
+});
+
+const pageTitle = computed(() => {
+  return breadcrumbItems.value[breadcrumbItems.value.length - 1]?.text || '';
+});
 </script>
-
-<style scoped lang="scss">
-
-</style>
