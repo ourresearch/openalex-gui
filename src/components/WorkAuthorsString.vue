@@ -12,29 +12,17 @@
 </template>
 
 
-<script>
+<script setup>
+import { computed } from 'vue';
 
-export default {
-  name: "WorkAuthorsString",
-  components: {},
-  props: {
-    authorships: Array,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    authorsCount() {
-      return this.authorships.length
-    },
-    authorNames() {
-      return this.authorships.map(a => a.author.display_name)
-    },
-  },
-  methods: {
-  },
-}
+defineOptions({ name: 'WorkAuthorsString' });
+
+const props = defineProps({
+  authorships: Array,
+});
+
+const authorsCount = computed(() => props.authorships.length);
+const authorNames = computed(() => props.authorships.map(a => a.author.display_name));
 </script>
 
 
