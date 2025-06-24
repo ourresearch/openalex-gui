@@ -56,8 +56,8 @@ import { ref, reactive, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
-import SavedSearchSaveDialog from '@/components/SavedSearchSaveDialog.vue';
-import SavedSearchMenu from '@/components/SavedSearchMenu.vue';
+import SavedSearchSaveDialog from '@/components/SavedSearch/SavedSearchSaveDialog.vue';
+import SavedSearchMenu from '@/components/SavedSearch/SavedSearchMenu.vue';
 
 defineOptions({ name: 'SerpToolbarTitle' });
 

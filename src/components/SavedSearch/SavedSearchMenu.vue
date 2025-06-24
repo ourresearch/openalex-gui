@@ -107,79 +107,50 @@
   </v-list>
 </template>
 
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import { url } from '@/url';
 
-<script>
+defineOptions({
+  name: 'SavedSearchMenu',
+});
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
+defineProps({
+  id: String,
+});
 
+const emit = defineEmits(['close']);
 
-export default {
-  name: "SavedSearchMenu",
-  components: {},
-  props: {
-    id: String,
-  },
-  data() {
-    return {
-      isDialogOpen: {
-        save: false,
-        rename: false,
-        alert: false,
-      }
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userSavedSearches",
-      "activeSearchHasAlert",
-    ]),
-    mySearchObj() {
-      return this.userSavedSearches.find(s => s.id === this.id)
-    },
-    myName() {
-      const myUrl = new URL(this.mySearchObj?.search_url)
-      const name = myUrl.searchParams.get("name") ?? "Unsaved search"
-      return name
-    },
-    myQuery() {
-      const myUrl = this.mySearchObj?.search_url
-      return Object.fromEntries(new URL(myUrl).searchParams)
-    },
-    searchesToOpen() {
-      return this.userSavedSearches
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "setRenameId",
-      "setEditAlertId",
-      "setActiveSearchId",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", [
-      "deleteSavedSearch",
-      "createSearchFromTemplate",
-      "openSavedSearch",
-    ]),
-    newSearch() {
-      url.pushToRoute(this.$router, {name: "Serp"})
-      // this.snackbar("New search created.")
-    },
-    openSearch(id) {
-      this.openSavedSearch(id)
-      this.$emit("close")
-      this.snackbar("Search opened.")
-    },
-  },
+const store = useStore();
+const router = useRouter();
+
+// Vuex getters
+const userId = computed(() => store.getters['user/userId']);
+const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+const activeSearchHasAlert = computed(() => store.getters['user/activeSearchHasAlert']);
+
+const searchesToOpen = computed(() => userSavedSearches.value);
+
+// Vuex mutations
+const snackbar = (msg) => store.commit('snackbar', msg);
+const setRenameId = (id) => store.commit('user/setRenameId', id);
+
+// Vuex actions
+const deleteSavedSearch = (id) => store.dispatch('user/deleteSavedSearch', id);
+const createSearchFromTemplate = (query) => store.dispatch('user/createSearchFromTemplate', query);
+const openSavedSearch = (id) => store.dispatch('user/openSavedSearch', id);
+
+// Methods
+function newSearch() {
+  url.pushToRoute(router, { name: 'Serp' });
+  // snackbar('New search created.');
+}
+
+function openSearch(id) {
+  openSavedSearch(id);
+  emit('close');
+  snackbar('Search opened.');
 }
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

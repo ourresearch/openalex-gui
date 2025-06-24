@@ -63,91 +63,79 @@
     </v-dialog>
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-<script>
+defineOptions({ name: 'SavedSearchSaveDialog' });
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+const props = defineProps({
+  isOpen: Boolean,
+  hasAlert: Boolean,
+});
 
-export default {
-  name: "SavedSearchSaveDialog",
-  components: {},
-  props: {
-    isOpen: Boolean,
-    hasAlert: Boolean,
-  },
-  data() {
-    return {
-      nameString: "",
-      descriptionString: "",
-      isLoading: false,
-      myHasAlert: false,
-    }
-  },
-  computed: {
-    ...mapGetters([
+const emit = defineEmits(['close']);
 
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-    currentUrl(){
-      return "https://openalex.org" + this.$route.fullPath
-    },
-    myIsOpen: {
-      get(){return this.isOpen},
-      set(){
-        this.$emit("close");
-      }
-    }
+const store = useStore();
+const route = useRoute();
+
+const nameString = ref('');
+const descriptionString = ref('');
+const isLoading = ref(false);
+const myHasAlert = ref(false);
+
+const userId = computed(() => store.getters['user/userId']);
+
+const currentUrl = computed(() => `https://openalex.org${route.fullPath}`);
+
+const myIsOpen = computed({
+  get() {
+    return props.isOpen;
   },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-        "setIsLoginDialogOpen",
-        "setIsSignupDialogOpen",
-    ]),
-    ...mapActions([]),
-    ...mapActions("user", [
-        "updateSearchDescription",
-    ]),
-    async save(){
-      console.log("save search", this.nameString, this.myHasAlert)
-      this.isLoading = true
-      await this.$store.dispatch("user/createSearch", {
-        search_url: this.currentUrl,
-        name: this.nameString,
-        description: this.descriptionString,
-        has_alert: this.myHasAlert
-      })
-      this.myIsOpen = false
-      this.isLoading = false
-      this.snackbar("Search saved.")
-    },
-    clickSignup(){
-      this.myIsOpen = false
-      this.setIsSignupDialogOpen(true)
-    },
-    clickLogin(){
-      this.myIsOpen = false
-      this.setIsLoginDialogOpen(true)
-    },
+  set() {
+    emit('close');
   },
-  watch: {
-    "$route"() {
-    },
-    isOpen() {
-      this.nameString = ""
-      this.descriptionString = ""
-      this.myHasAlert = this.hasAlert
-    }
-  }
+});
+
+const snackbar = (msg) => store.commit('snackbar', msg);
+const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
+const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
+
+const createSearch = (payload) => store.dispatch('user/createSearch', payload);
+
+// Methods
+async function save() {
+  console.log('save search', nameString.value, myHasAlert.value);
+  isLoading.value = true;
+  await createSearch({
+    search_url: currentUrl.value,
+    name: nameString.value,
+    description: descriptionString.value,
+    has_alert: myHasAlert.value,
+  });
+  myIsOpen.value = false;
+  isLoading.value = false;
+  snackbar('Search saved.');
 }
+
+function clickSignup() {
+  myIsOpen.value = false;
+  setIsSignupDialogOpen(true);
+}
+
+function clickLogin() {
+  myIsOpen.value = false;
+  setIsLoginDialogOpen(true);
+}
+
+// Watchers
+watch(
+  () => props.isOpen,
+  () => {
+    nameString.value = '';
+    descriptionString.value = '';
+    myHasAlert.value = props.hasAlert;
+  }
+);
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

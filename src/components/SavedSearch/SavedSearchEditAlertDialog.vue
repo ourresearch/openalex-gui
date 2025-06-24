@@ -35,57 +35,48 @@
     </v-dialog>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script setup>
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "SavedSearchEditAlertDialog",
-  components: {},
-  props: {
+defineOptions({ name: 'SavedSearchEditAlertDialog' });
+
+const store = useStore();
+
+const isLoading = ref(false);
+
+// Vuex getters
+const userId = computed(() => store.getters['user/userId']);
+const editAlertId = computed(() => store.getters['user/editAlertId']);
+const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+
+const isOpen = computed({
+  get() {
+    return !!editAlertId.value;
   },
-  data() {
-    return {
-      isLoading: false,
-    }
+  set(to) {
+    store.commit('user/setEditAlertId', to);
   },
-  computed: {
-    ...mapGetters("user", [
-       "userSavedSearches",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-      "renameId",
-      "editAlertId",
-    ]),
-    isOpen: {
-      get(){return !!this.editAlertId},
-      set(to){
-        return this.$store.commit("user/setEditAlertId", to)
-      }
-    },
-    hasAlert(){
-      return this.userSavedSearches.find(s => s.id === this.editAlertId)?.has_alert
-    },
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setEditAlertId",
-    ]),
-    ...mapActions("user", [
-        "updateSearchDescription",
-    ]),
-    async toggleAlerts(){
-      this.isLoading = true
-      console.log("toggle alerts", this.editAlertId)
-      await this.$store.dispatch("user/updateSearchAlert", {
-        id: this.editAlertId,
-        has_alert: !this.hasAlert,
-      })
-      this.isLoading = false
-      this.isOpen = false
-    },
-  },
+});
+
+const hasAlert = computed(() => {
+  return userSavedSearches.value.find(s => s.id === editAlertId.value)?.has_alert;
+});
+
+// Vuex actions and mutations
+const updateSearchAlert = (payload) => store.dispatch('user/updateSearchAlert', payload);
+
+// Methods
+async function toggleAlerts() {
+  isLoading.value = true;
+  console.log('toggle alerts', editAlertId.value);
+  await updateSearchAlert({
+    id: editAlertId.value,
+    has_alert: !hasAlert.value,
+  });
+  isLoading.value = false;
+  isOpen.value = false;
 }
 </script>
 

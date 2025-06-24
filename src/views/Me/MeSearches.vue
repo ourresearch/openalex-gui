@@ -85,7 +85,7 @@ import { useHead } from '@unhead/vue';
 
 import {url} from "@/url";
 import {isToday} from "@/util";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
+import SavedSearchMenu from "@/components/SavedSearch/SavedSearchMenu.vue";
 
 export default {
   name: 'SavedSearches',
