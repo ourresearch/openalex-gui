@@ -37,40 +37,18 @@
   </div>
 </template>
 
-<script>
 
-export default {
-  name: "WorkLinkouts",
-  components: {},
-  props: {
-    data: Object,
-  },
-  data() {
-    return {
-    }
-  },
-  computed: {
-    oaUrl() {
-      return this.data.open_access.oa_url
-    },
-    pdfUrl() {
-      return this.data.best_oa_location?.pdf_url
-    },
-    htmlUrl() {
-      return this.data.best_oa_location.landing_page_url
-    },
-    isGreenOa() {
-      return this.data.open_access?.oa_status === 'green'
-    },
-    isOaAtPublisher() {
-      return this.data.open_access?.is_oa && this.data.open_access?.oa_status !== 'green'
-    },
-  },
-  methods: {
-  },
-}
+<script setup>
+import { computed } from 'vue';
+
+defineOptions({ name: 'WorkLinkouts' });
+
+const props = defineProps({
+  data: Object,
+});
+
+const pdfUrl = computed(() => props.data.best_oa_location?.pdf_url);
+const isOaAtPublisher = computed(() =>
+  props.data.open_access?.is_oa && props.data.open_access?.oa_status !== 'green'
+);
 </script>
-
-<style scoped lang="scss">
-
-</style>
