@@ -5,9 +5,9 @@
         <v-col cols="12" sm="5" class="">
           <div>
             <img
-                src="@/assets/logo-full-small.png"
-                class="logo-icon mt-1 mb-2 colorizable"
-                style="height: 25px;"
+              src="@/assets/logo-full-small.png"
+              class="logo-icon mt-1 mb-2 colorizable"
+              style="height: 25px;"
             />
           </div>
 
@@ -17,26 +17,26 @@
         </v-col>
         <v-spacer/>
         <v-col
-            cols="12"
-            sm="2"
-            v-for="col in navConfigs"
-            :key="col.name"
+          cols="12"
+          sm="2"
+          v-for="col in navConfigs"
+          :key="col.name"
         >
           <div class=" mb-4">{{ col.name }}</div>
           <div
-              v-for="link in col.links"
-              :key="link.name"
+            v-for="link in col.links"
+            :key="link.name"
           >
             <router-link
-                v-if="link.to"
-                :to="link.to"
+              v-if="link.to"
+              :to="link.to"
             >
               {{ link.name }}
             </router-link>
             <a
-                v-if="link.href"
-                :href="link.href"
-                target="_blank"
+              v-if="link.href"
+              :href="link.href"
+              target="_blank"
             >
               {{ link.name }}
             </a>
@@ -48,18 +48,13 @@
   </v-footer>
 </template>
 
-<script>
+
+<script setup>
 import {navConfigs} from "@/navConfigs";
 
-export default {
-  name: "SiteFooter",
-  data() {
-    return {
-      navConfigs,
-    }
-  }
-}
+defineOptions({ name: 'SiteFooter' });
 </script>
+
 
 <style scoped lang="scss">
 .site-footer {
