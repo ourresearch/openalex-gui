@@ -9,20 +9,19 @@
       <v-menu v-else location="bottom">
         <template v-slot:activator="{props}">
           <v-btn
-              v-bind="props"
-              variant="text"
-              rounded
-              class="font-weight-regular"
+            v-bind="props"
+            variant="text"
+            rounded
+            class="font-weight-regular"
           >
-            <!--                        <v-icon left>mdi-content-save-outline</v-icon>-->
             {{ activeSearchName || "Unsaved search" }}
             <v-icon class="ml-1">mdi-menu-down</v-icon>
           </v-btn>
         </template>
         <saved-search-menu
-            :id="$route.query.id"
-            @save="$emit('save')"
-            @toggle-alert="$emit('toggle-alert')"
+          :id="$route.query.id"
+          @save="$emit('save')"
+          @toggle-alert="$emit('toggle-alert')"
         />
       </v-menu>
 
@@ -44,75 +43,62 @@
     </v-dialog>
 
     <saved-search-save-dialog
-        :is-open="isDialogOpen.saveSearch"
-        @close="isDialogOpen.saveSearch = false"
+      :is-open="isDialogOpen.saveSearch"
+      @close="isDialogOpen.saveSearch = false"
     />
-
 
   </div>
 </template>
 
-<script>
 
-import {mapGetters, mapMutations} from "vuex";
-import SavedSearchMenu from "@/components/SavedSearchMenu.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
+<script setup>
+import { ref, reactive, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-export default {
-  name: "SerpToolbarTitle",
-  components: {
-    SavedSearchSaveDialog,
-    SavedSearchMenu,
-  },
-  props: {},
-  data() {
-    return {
-      isLoginRequiredDialogOpen: false,
-      isDialogOpen: {
-        saveSearch: false,
-      }
+import SavedSearchSaveDialog from '@/components/SavedSearchSaveDialog.vue';
+import SavedSearchMenu from '@/components/SavedSearchMenu.vue';
+
+defineOptions({ name: 'SerpToolbarTitle' });
+
+const store = useStore();
+const route = useRoute();
+
+const isLoginRequiredDialogOpen = ref(false);
+const isDialogOpen = reactive({
+  saveSearch: false,
+});
+
+// Vuex getters
+const entityType = computed(() => store.getters['entityType']);
+const userId = computed(() => store.getters['user/userId']);
+const activeSearchName = computed(() => store.getters['user/activeSearchName']);
+
+// Vuex mutations
+const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
+const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
+const setRenameId = (id) => store.commit('user/setRenameId', id);
+
+// Methods
+function clickLogin() {
+  isLoginRequiredDialogOpen.value = false;
+  setIsLoginDialogOpen(true);
+}
+
+function clickSignup() {
+  isLoginRequiredDialogOpen.value = false;
+  setIsSignupDialogOpen(true);
+}
+
+function clickTitle() {
+  if (userId.value) {
+    if (route.query.id) {
+      setRenameId(route.query.id);
+    } else {
+      isDialogOpen.saveSearch = true;
     }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-      "activeSearchDescription",
-      "activeSearchName",
-    ]),
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-      "setRenameId",
-    ]),
-    clickLogin() {
-      this.isLoginRequiredDialogOpen = false
-      this.setIsLoginDialogOpen(true)
-    },
-    clickSignup() {
-      this.isLoginRequiredDialogOpen = false
-      this.setIsSignupDialogOpen(true)
-    },
-    clickTitle() {
-      if (this.userId) {
-        if (this.$route.query.id) {
-          this.setRenameId(this.$route.query.id)
-        } else {
-          this.isDialogOpen.saveSearch = true
-        }
-      } else {
-        this.isLoginRequiredDialogOpen = true
-      }
-    },
-  },
+  } else {
+    isLoginRequiredDialogOpen.value = true;
+  }
 }
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

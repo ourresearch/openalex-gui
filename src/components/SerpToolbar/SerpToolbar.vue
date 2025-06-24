@@ -2,88 +2,80 @@
   <v-toolbar dense flat class="mb-0" color="transparent">
 
     <serp-toolbar-title
-        @save="clickSave"
-        @toggle-alert="toggleAlert"
-        style="margin-left: -19px;"
+      @save="clickSave"
+      @toggle-alert="toggleAlert"
+      style="margin-left: -19px;"
     />
 
     <v-spacer/>
     
     <serp-toolbar-menu
-        @save="clickSave"
-        @toggle-alert="toggleAlert"
-        style="margin-right: -22px;"
+      @save="clickSave"
+      @toggle-alert="toggleAlert"
+      style="margin-right: -22px;"
     />
     
     <saved-search-save-dialog
-        :is-open="isDialogOpen.saveSearch"
-        :has-alert="saveSearchDialogHasAlert"
-        @close="isDialogOpen.saveSearch = false"
+      :is-open="isDialogOpen.saveSearch"
+      :has-alert="saveSearchDialogHasAlert"
+      @close="isDialogOpen.saveSearch = false"
     />
   </v-toolbar>
 </template>
 
-<script>
+<script setup>
+import { reactive, ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
 
-import {mapActions, mapMutations} from "vuex";
-import SerpToolbarMenu from "@/components/SerpToolbar/SerpToolbarMenu.vue";
-import SerpToolbarTitle from "@/components/SerpToolbar/SerpToolbarTitle.vue";
-import SavedSearchSaveDialog from "@/components/SavedSearchSaveDialog.vue";
+import SerpToolbarMenu from '@/components/SerpToolbar/SerpToolbarMenu.vue';
+import SerpToolbarTitle from '@/components/SerpToolbar/SerpToolbarTitle.vue';
+import SavedSearchSaveDialog from '@/components/SavedSearchSaveDialog.vue';
 
+defineOptions({ name: 'SerpToolbar', });
 
-export default {
-  name: "SerpToolbar",
-  components: {
-    SavedSearchSaveDialog,
-    SerpToolbarMenu,
-    SerpToolbarTitle,
-  },
-  props: {
-    resultsObject: Object,
-  },
-  data() {
-    return {
-      saveSearchDialogHasAlert: false,
-      isDialogOpen: {
-        saveSearch: false,
-      }
-    }
-  },
-  computed: {
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "setEditAlertId",
-    ]),
-    ...mapActions("user", [
-      "updateSearchUrl"
-    ]),
-    clickSave() {
-      this.$route.query.id ?
-          this.saveThisSearch() :
-          this.openSaveDialog(false)
+defineProps({
+  resultsObject: Object,
+});
 
-    },
-    async saveThisSearch() {
-      await this.updateSearchUrl({
-        id: this.$route.query.id,
-        search_url: "https://openalex.org/" + this.$route.fullPath
-      })
-    },
-    openSaveDialog(hasAlert) {
-      console.log("SerpToolbar openSaveDialog", hasAlert)
-      this.saveSearchDialogHasAlert = hasAlert
-      this.isDialogOpen.saveSearch = true
-    },
-    toggleAlert() {
-      this.$route.query.id ?
-          this.setEditAlertId(this.$route.query.id) :
-          this.openSaveDialog(true)
-    },
-  },
+const store = useStore();
+const route = useRoute();
+
+const saveSearchDialogHasAlert = ref(false);
+const isDialogOpen = reactive({
+  saveSearch: false,
+});
+
+const setEditAlertId = (id) => store.commit('user/setEditAlertId', id);
+const updateSearchUrl = (payload) => store.dispatch('user/updateSearchUrl', payload);
+
+function clickSave() {
+  if (route.query.id) {
+    saveThisSearch();
+  } else {
+    openSaveDialog(false);
+  }
+}
+
+async function saveThisSearch() {
+  await updateSearchUrl({
+    id: route.query.id,
+    search_url: 'https://openalex.org/' + route.fullPath,
+  });
+}
+
+function openSaveDialog(hasAlert) {
+  console.log('SerpToolbar openSaveDialog', hasAlert);
+  saveSearchDialogHasAlert.value = hasAlert;
+  isDialogOpen.saveSearch = true;
+}
+
+function toggleAlert() {
+  if (route.query.id) {
+    setEditAlertId(route.query.id);
+  } else {
+    openSaveDialog(true);
+  }
 }
 </script>
 
