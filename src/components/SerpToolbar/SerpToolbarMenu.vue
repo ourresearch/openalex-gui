@@ -3,9 +3,9 @@
 
     <!-- you can only get alerts for new works -->
     <v-btn
-        v-if="entityType === 'works'"
-        icon
-        @click="$emit('toggle-alert')"
+      v-if="entityType === 'works'"
+      icon
+      @click="$emit('toggle-alert')"
     >
       <template v-if="activeSearchHasAlert">
         <!-- Remove alert-->
@@ -28,9 +28,9 @@
           Show on page:
         </v-list-subheader>
         <v-list-item
-            v-for="view in url.viewConfigs"
-            :key="view.id"
-            @click="url.toggleView(view.id)"
+          v-for="view in url.viewConfigs"
+          :key="view.id"
+          @click="url.toggleView(view.id)"
         >
           <template #prepend>
             <v-icon>{{ view.icon }}</v-icon>
@@ -98,81 +98,39 @@
   </div>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import QrcodeVue from "qrcode.vue";
+<script setup>
+import { computed, reactive } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import QrcodeVue from 'qrcode.vue';
 
-export default {
-  name: "SerpToolbarMenu",
-  components: {
-    QrcodeVue,
-  },
-  props: {},
-  data() {
-    return {
-      saveSearchDialogHasAlert: false,
-      isMenuOpen: {
-        search: false,
-      },
-      isDialogOpen: {
-        qrCode: false,
-      }
-    }
-  },
-  computed: {
-    url() {
-      return url
-    },
-    ...mapGetters([
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "activeSearchHasAlert",
-      "activeSearchObj",
-    ]),
-    urlToShare() {
-      return `https://openalex.org` + this.$route.fullPath;
-    },
-    isUrlTooBigForQR() {
-      return this.urlToShare.length > 3000;
-    },
-    qrCodeSize() {
-      return this.$vuetify.display.mdAndUp ? 400 : 300;
-    },
-    groupByDownloadUrl() {
-      const myFilters = filtersFromUrlStr(this.entityType, this.$route.query.filter);
-      return url.makeGroupByUrl(
-          this.entityType,
-          this.groupByKeys.join(","),
-          {
-            filters: myFilters,
-            isMultipleGroups: true
-          }
-      );
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "setEditAlertId",
-    ]),
-    ...mapActions("user", [
-      "updateSearchUrl",
-    ]),
-    async copyUrlToClipboard() {
-      await navigator.clipboard.writeText(this.urlToShare);
-      this.snackbar("URL copied to clipboard.")
-    },
-  },
+import { url } from '@/url';
+
+defineOptions({ name: 'SerpToolbarMenu' });
+
+const store = useStore();
+const route = useRoute();
+
+const isDialogOpen = reactive({
+  qrCode: false,
+});
+
+// Vuex getters
+const entityType = computed(() => store.getters['entityType']);
+const activeSearchHasAlert = computed(() => store.getters['user/activeSearchHasAlert']);
+
+// Computed props
+const urlToShare = computed(() => `https://openalex.org${route.fullPath}`);
+const isUrlTooBigForQR = computed(() => urlToShare.value.length > 3000);
+const qrCodeSize = computed(() => {
+  return window?.$vuetify?.display?.mdAndUp ? 400 : 300;
+});
+
+const snackbar = (val) => store.commit('snackbar', val);
+
+async function copyUrlToClipboard() {
+  await navigator.clipboard.writeText(urlToShare.value);
+  snackbar('URL copied to clipboard.');
 }
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
