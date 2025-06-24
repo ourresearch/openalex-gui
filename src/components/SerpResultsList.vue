@@ -62,75 +62,54 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
-import {url} from "@/url";
+import { url } from '@/url';
 import filters from '@/filters';
 
-import SerpResultsExportButton from "@/components/SerpResultsExportButton.vue";
-import SerpResultsSortButton from "@/components/SerpResultsSortButton.vue";
-import SerpResultsListItem from "@/components/SerpResultsListItem.vue";
+import SerpResultsExportButton from '@/components/SerpResultsExportButton.vue';
+import SerpResultsSortButton from '@/components/SerpResultsSortButton.vue';
+import SerpResultsListItem from '@/components/SerpResultsListItem.vue';
 
-export default {
-  name: "SerpResultsList",
-  components: {
-    SerpResultsExportButton,
-    SerpResultsSortButton,
-    SerpResultsListItem,
-  },
-  props: {
-    resultsObject: Object,
-  },
-  data() {
-    return {
-      url,
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    numPages() {
-      const maxToShow = this.$vuetify.display.mobile ? 4 : 10
+defineOptions({
+  name: 'SerpResultsList',
+});
 
-      return Math.min(
-          Math.floor(this.resultsObject.meta.count / url.getPerPage()),
-          maxToShow
-      )
-    },
-    showPagination() {
-      return this.resultsObject.meta.count > url.getPerPage()
-    },
-    page: {
-      get() {
-        return this.resultsObject?.meta?.page ?? 1
-      },
-      set(val) {
-        const valToUse = (val === 1) ? undefined : val
-        url.setPage(valToUse)
-      }
-    },
-    isShowApiSet: {
-      get() {
-        return !!this.$route.query.show_api
-      },
-      set(to) {
-        const show_api = (to) ? to : undefined
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            show_api
-          },
-        })
-      }
-    },
+const props = defineProps({
+  resultsObject: Object,
+});
+
+const store = useStore();
+
+const entityType = computed(() => store.getters['entityType']);
+
+const isMobile = computed(() => {
+  // Vuetify 3 support
+  return typeof window !== 'undefined' && window.innerWidth <= 600;
+});
+
+const numPages = computed(() => {
+  const maxToShow = isMobile.value ? 4 : 10;
+  const count = props.resultsObject.meta?.count || 0;
+  const perPage = url.getPerPage();
+  return Math.min(Math.floor(count / perPage), maxToShow);
+});
+
+const showPagination = computed(() => {
+  return props.resultsObject.meta?.count > url.getPerPage();
+});
+
+const page = computed({
+  get() {
+    return props.resultsObject.meta?.page ?? 1;
   },
-  methods: {
+  set(val) {
+    const valToUse = val === 1 ? undefined : val;
+    url.setPage(valToUse);
   },
-}
+});
 </script>
 
 
