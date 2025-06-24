@@ -42,79 +42,79 @@
   </v-container>
 </template>
 
-
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-export default {
-  name: "WorksCitingOpenAlex",
-  data() {
-    return {
-      works: [],            // All fetched works
-      displayedWorks: [],   // Works currently displayed
-      loading: false,      // Loading state
-      error: null,         // Error message
-      currentPage: 1,      // Current page number
-      perPage: 20,        // Number of works per page
-      totalWorks: 0,
-    };
-  },
-  computed: {
-    hasMore() {
-      return this.currentPage * this.perPage < this.totalWorks
-    },
-  },
-  methods: {
-    // Fetch works from the API
-    async fetchWorks(page) {
-      this.loading = true;
-      this.error = null;
-      try {
-        const response = await axios.get(`https://api.openalex.org/works`, {
-          params: {
-            page: page,
-            filter: 'cites:w4229010617',
-            sort: 'publication_year:desc',
-            per_page: this.perPage,
-          },
-        });
+defineOptions({
+  name: 'WorksCitingOpenAlex',
+});
 
-        // Extract works and meta information
-        const fetchedWorks = response.data.results || [];
-        const meta = response.data.meta || {};
-        this.totalWorks = meta.count
+// Reactive state
+const works = ref([]);
+const loading = ref(false);
+const error = ref(null);
+const currentPage = ref(1);
+const perPage = ref(20);
+const totalWorks = ref(0);
 
-        // Append fetched works to the existing list
-        this.works = [...this.works, ...fetchedWorks];
+// Computed: determine if more results are available
+const hasMore = computed(() => {
+  return currentPage.value * perPage.value < totalWorks.value;
+});
 
+// Method: format authors
+function formatAuthors(authorships) {
+  return authorships
+    .map(auth => {
+      const author = auth.author;
+      return author?.display_name || 'Unknown Author';
+    })
+    .join(', ');
+}
 
-      } catch (err) {
-        console.error(err);
-        this.error = "Failed to fetch works. Please try again later.";
-      } finally {
-        this.loading = false;
-      }
-    },
-    // Handle "Show More" button click
-    showMore() {
-      if (this.hasMore) {
-        this.currentPage += 1;
-        this.fetchWorks(this.currentPage);
-      }
-    },
-    // Format authorship information
-    formatAuthors(authorships) {
-      return authorships.map(auth => {
-        const author = auth.author;
-        return author && author.display_name ? author.display_name : "Unknown Author";
-      }).join(", ");
-    },
-  },
-  created() {
-    this.fetchWorks(this.currentPage);
-  },
-};
+// Method: fetch works from the API
+async function fetchWorks(page) {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    const response = await axios.get('https://api.openalex.org/works', {
+      params: {
+        page,
+        filter: 'cites:w4229010617',
+        sort: 'publication_year:desc',
+        per_page: perPage.value,
+      },
+    });
+
+    const fetchedWorks = response.data.results || [];
+    const meta = response.data.meta || {};
+    totalWorks.value = meta.count;
+    works.value = [...works.value, ...fetchedWorks];
+
+  } catch (err) {
+    console.error(err);
+    error.value = 'Failed to fetch works. Please try again later.';
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Method: handle "Show More"
+function showMore() {
+  if (hasMore.value) {
+    currentPage.value += 1;
+    fetchWorks(currentPage.value);
+  }
+}
+
+// Lifecycle: initial fetch
+onMounted(() => {
+  fetchWorks(currentPage.value);
+});
 </script>
+
 
 <style scoped>
 .works-citing-oa {

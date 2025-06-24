@@ -108,161 +108,152 @@
   </div>
 </template>
 
-
-<script>
-
+<script setup>
+import { ref, computed } from 'vue';
 import filters from '@/filters';
-import {getConfigs} from "@/oaxConfigs";
+import { getConfigs } from '@/oaxConfigs';
 
-export default {
-  name: "AnalyticsDocs",
-  components: {
+defineOptions({
+  name: 'AnalyticsDocs',
+});
+
+// State
+const configs = ref(getConfigs());
+const debugMode = ref(false);
+const clickCount = ref(0);
+let clickTimer = null;
+
+const selectedFields = ref([]);
+const activeFilters = ref([]);
+
+const filterFunctions = [
+  {
+    name: 'Actions Empty',
+    filter: col => !col.actions || col.actions.length === 0,
   },
-  props: {
+  {
+    name: 'Has Actions',
+    filter: col => col.actions && col.actions.length > 0,
   },
-  data: () => ({
-    configs: getConfigs(),
-    debugMode: false,
-    clickCount: 0,
-    clickTimer: null,
-    selectedFields: [],
-    activeFilters: [],
-    filterFunctions: [
-      {
-        name: "Actions Empty",
-        filter: (col) => !col.actions || col.actions.length === 0
-      },
-      {
-        name: "Has Actions",
-        filter: (col) => col.actions && col.actions.length > 0
-      },
-      {
-        name: "Has Actions Popular",
-        filter: (col) => col.actionsPopular && col.actionsPopular.length > 0
-      },
-      {
-        name: "Redshift Columns Unequal",
-        filter: (col) => col.redshiftFilterColumn !== col.redshiftDisplayColumn
-      },
-      {
-        name: "Type is not 'string'",
-        filter: (col) => col.type !== "string",
-      },
-      {
-        name: "Type is 'object' or 'array'",
-        filter: (col) => col.type === "object" || col.type === "array",
-      },
-      {
-        name: "Name contains ()",
-        filter: (col) => col.id.includes("("),
-      },
-    ],
-    filters,
-  }),
-  computed: {
-    sortedConfigs() {
-      // Create a new object with all configs except 'works'
-      const configsWithoutWorks = {};
-      Object.keys(this.configs)
-        .filter(key => key !== 'works' && this.hasVisibleColumns(this.configs[key].columns))
-        .sort() // Sort alphabetically
-        .forEach(key => {
-          configsWithoutWorks[key] = this.configs[key];
-        });
-      return configsWithoutWorks;
-    },
-    availableFields() {
-      // Extract all unique field names from all columns in all configs
-      const fieldSet = new Set();
-      
-      // Iterate through all configs
-      Object.values(this.configs).forEach(config => {
-        // Iterate through all columns in each config
-        if (config.columns) {
-          Object.values(config.columns).forEach(column => {
-            Object.keys(column).forEach(key => fieldSet.add(key));
-          });
-        }
-      });      
-      return Array.from(fieldSet);
-    },
-    sortedAvailableFields() {
-      // Return alphabetically sorted available fields
-      return [...this.availableFields].sort();
-    },
-    sortedFilterFunctions() {
-      // Return alphabetically sorted filter functions
-      return [...this.filterFunctions].sort((a, b) => a.name.localeCompare(b.name));
-    },
+  {
+    name: 'Has Actions Popular',
+    filter: col => col.actionsPopular && col.actionsPopular.length > 0,
   },
-  methods: {
-    handleTitleClick() {
-      // Clear the timer if it exists
-      if (this.clickTimer) {
-        clearTimeout(this.clickTimer);
-      }
-      
-      // Increment click count
-      this.clickCount++;
-      // If 4 clicks were detected within the time window, toggle debug mode
-       if (this.clickCount === 4) {
-        this.debugMode = !this.debugMode;
-      }
-      
-      // Set a timer to reset the click count after 1 second
-      this.clickTimer = setTimeout(() => {
-        this.clickCount = 0;
-      }, 1000);
-    },
-    formatFieldValue(value) {
-      if (value === null || value === undefined) {
-        return 'null';
-      } else if (typeof value === 'object') {
-        return JSON.stringify(value);
-      } else if (typeof value === 'boolean') {
-        return value ? 'true' : 'false';
-      } else {
-        return value.toString();
-      }
-    },
-    isDisplayedInDefault(field) {
-      // These fields are already displayed in the default view
-      const defaultFields = ['id', 'displayName', 'descr', 'actions'];
-      return defaultFields.includes(field);
-    },
-    shouldShowColumn(column) {
-      // In normal mode, only show columns with actions
-      if (!this.debugMode) {
-        return column.actions && column.actions.length > 0;
-      }
-      
-      // In debug mode with no active filters, show all columns
-      if (this.activeFilters.length === 0) {
-        return true;
-      }
-      
-      // In debug mode with active filters, apply each selected filter
-      return this.activeFilters.every(filterName => {
-        const filterFunc = this.filterFunctions.find(f => f.name === filterName).filter;
-        return filterFunc(column);
+  {
+    name: 'Redshift Columns Unequal',
+    filter: col => col.redshiftFilterColumn !== col.redshiftDisplayColumn,
+  },
+  {
+    name: "Type is not 'string'",
+    filter: col => col.type !== 'string',
+  },
+  {
+    name: "Type is 'object' or 'array'",
+    filter: col => col.type === 'object' || col.type === 'array',
+  },
+  {
+    name: 'Name contains ()',
+    filter: col => col.id.includes('('),
+  },
+];
+
+// Computed
+const sortedConfigs = computed(() => {
+  const result = {};
+  Object.keys(configs.value)
+    .filter(
+      key =>
+        key !== 'works' &&
+        hasVisibleColumns(configs.value[key].columns)
+    )
+    .sort()
+    .forEach(key => {
+      result[key] = configs.value[key];
+    });
+  return result;
+});
+
+const availableFields = computed(() => {
+  const fieldSet = new Set();
+  Object.values(configs.value).forEach(config => {
+    if (config.columns) {
+      Object.values(config.columns).forEach(column => {
+        Object.keys(column).forEach(key => fieldSet.add(key));
       });
-    },
-    hasVisibleColumns(columns) {
-      // Check if any columns in this section should be shown
-      return Object.values(columns).some(column => this.shouldShowColumn(column));
-    },
-    countVisibleColumns(columns) {
-      // Count how many columns are visible in this section
-      return Object.values(columns).filter(column => this.shouldShowColumn(column)).length;
-    },
-    columnsToShow(key) {
-      const columns = this.configs[key].columns;
-      return Object.values(columns).filter(column => this.shouldShowColumn(column));
-    },
-    availableSelectedFields(column) {
-      return this.selectedFields.filter(field => column[field] !== undefined && !this.isDisplayedInDefault(field));
-    },
+    }
+  });
+  return Array.from(fieldSet);
+});
+
+const sortedAvailableFields = computed(() =>
+  [...availableFields.value].sort()
+);
+
+const sortedFilterFunctions = computed(() =>
+  [...filterFunctions].sort((a, b) => a.name.localeCompare(b.name))
+);
+
+// Methods
+function handleTitleClick() {
+  if (clickTimer) {
+    clearTimeout(clickTimer);
   }
+
+  clickCount.value++;
+  if (clickCount.value === 4) {
+    debugMode.value = !debugMode.value;
+  }
+
+  clickTimer = setTimeout(() => {
+    clickCount.value = 0;
+  }, 1000);
+}
+
+function formatFieldValue(value) {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'object') return JSON.stringify(value);
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  return value.toString();
+}
+
+function isDisplayedInDefault(field) {
+  const defaultFields = ['id', 'displayName', 'descr', 'actions'];
+  return defaultFields.includes(field);
+}
+
+function shouldShowColumn(column) {
+  if (!debugMode.value) {
+    return column.actions && column.actions.length > 0;
+  }
+
+  if (activeFilters.value.length === 0) {
+    return true;
+  }
+
+  return activeFilters.value.every(filterName => {
+    const filterFunc = filterFunctions.find(f => f.name === filterName)?.filter;
+    return filterFunc ? filterFunc(column) : true;
+  });
+}
+
+function hasVisibleColumns(columns) {
+  return Object.values(columns).some(col => shouldShowColumn(col));
+}
+
+function countVisibleColumns(columns) {
+  return Object.values(columns).filter(col => shouldShowColumn(col)).length;
+}
+
+function columnsToShow(configKey) {
+  const columns = configs.value[configKey].columns;
+  return Object.values(columns).filter(col => shouldShowColumn(col));
+}
+
+function availableSelectedFields(column) {
+  return selectedFields.value.filter(
+    field =>
+      column[field] !== undefined && !isDisplayedInDefault(field)
+  );
 }
 </script>
 

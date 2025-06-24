@@ -145,82 +145,85 @@
   </v-container>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
 import { useHead } from '@unhead/vue';
 
-export default {
-  name: "AboutPage",
-  created() {
-    useHead({ title: 'About' });
+defineOptions({
+  name: 'AboutPage',
+});
+
+useHead({ title: 'About' });
+
+const comparisonRows = ref([
+  {
+    name: 'OpenAlex',
+    url: 'https://openalex.org/',
+    numWorks: '243M',
+    numWorksOA: '48M',
+    numCitations: '1.9B',
+    price: 'Freemium',
+    dataOpenness: 'Fully open, CC0 license',
+    orgStructure: 'Non-profit',
   },
-  data() {
-    return {
-      comparisonRows: [
-        {
-          name: 'OpenAlex',
-          url: 'https://openalex.org/',
-          numWorks: '243M',
-          numWorksOA: '48M',
-          numCitations: '1.9B',
-          price: 'Freemium',
-          dataOpenness: 'Fully open, CC0 license',
-          orgStructure: 'Non-profit',
-        },
-        {
-          name: 'Scopus',
-          url: 'https://www.elsevier.com/solutions/scopus',
-          numWorks: '87M',
-          numWorksOA: '20.5M (<a href="https://blog.scopus.com/posts/scopus-now-includes-90-million-content-records" target="_blank" rel="noopener noreferrer">ref</a>)',
-          numCitations: '1.8B',
-          price: 'Subscription',
-          dataOpenness: 'Closed',
-          orgStructure: 'For Profit',
-        },
-        {
-          name: 'Web of Science (core)',
-          url: 'https://clarivate.com/webofsciencegroup/solutions/web-of-science',
-          numWorks: '87M (<a href="https://clarivate.libguides.com/librarianresources/coverage" target="_blank" rel="noopener noreferrer">ref</a>)',
-          numWorksOA: '12M (<a href="https://clarivate.com/webofsciencegroup/solutions/open-access/" target="_blank" rel="noopener noreferrer">ref</a>)',
-          numCitations: '1.8B',
-          price: 'Subscription',
-          dataOpenness: 'Closed',
-          orgStructure: 'For Profit',
-        },
-        {
-          name: 'Dimensions',
-          url: 'https://www.dimensions.ai/',
-          numWorks: '135M',
-          numWorksOA: '29M (<a href="https://www.dimensions.ai/resources/evaluate-your-universitys-oa-status/" target="_blank" rel="noopener noreferrer">ref</a>)',
-          numCitations: '1.7B',
-          price: 'Freemium',
-          dataOpenness: 'Partly open, personal use',
-          orgStructure: 'For Profit',
-        },
-        {
-          name: 'Google Scholar',
-          url: 'https://scholar.google.com/',
-          numWorks: '389M (<a href="https://doi.org/10.1007/s11192-018-2958-5" target="_blank" rel="noopener noreferrer">estimated</a>)',
-          numWorksOA: '?',
-          numCitations: '?',
-          price: 'Free',
-          dataOpenness: 'Closed',
-          orgStructure: 'For Profit',
-        },
-        {
-          name: 'Crossref',
-          url: 'https://www.crossref.org/',
-          numWorks: '145M',
-          numWorksOA: '20M',
-          numCitations: '1.45B',
-          price: 'Free',
-          dataOpenness: 'Fully open, CC0 license',
-          orgStructure: 'Non-profit',
-        },
-      ]
-    }
-  }
-}
+  {
+    name: 'Scopus',
+    url: 'https://www.elsevier.com/solutions/scopus',
+    numWorks: '87M',
+    numWorksOA:
+      '20.5M (<a href="https://blog.scopus.com/posts/scopus-now-includes-90-million-content-records" target="_blank" rel="noopener noreferrer">ref</a>)',
+    numCitations: '1.8B',
+    price: 'Subscription',
+    dataOpenness: 'Closed',
+    orgStructure: 'For Profit',
+  },
+  {
+    name: 'Web of Science (core)',
+    url: 'https://clarivate.com/webofsciencegroup/solutions/web-of-science',
+    numWorks:
+      '87M (<a href="https://clarivate.libguides.com/librarianresources/coverage" target="_blank" rel="noopener noreferrer">ref</a>)',
+    numWorksOA:
+      '12M (<a href="https://clarivate.com/webofsciencegroup/solutions/open-access/" target="_blank" rel="noopener noreferrer">ref</a>)',
+    numCitations: '1.8B',
+    price: 'Subscription',
+    dataOpenness: 'Closed',
+    orgStructure: 'For Profit',
+  },
+  {
+    name: 'Dimensions',
+    url: 'https://www.dimensions.ai/',
+    numWorks: '135M',
+    numWorksOA:
+      '29M (<a href="https://www.dimensions.ai/resources/evaluate-your-universitys-oa-status/" target="_blank" rel="noopener noreferrer">ref</a>)',
+    numCitations: '1.7B',
+    price: 'Freemium',
+    dataOpenness: 'Partly open, personal use',
+    orgStructure: 'For Profit',
+  },
+  {
+    name: 'Google Scholar',
+    url: 'https://scholar.google.com/',
+    numWorks:
+      '389M (<a href="https://doi.org/10.1007/s11192-018-2958-5" target="_blank" rel="noopener noreferrer">estimated</a>)',
+    numWorksOA: '?',
+    numCitations: '?',
+    price: 'Free',
+    dataOpenness: 'Closed',
+    orgStructure: 'For Profit',
+  },
+  {
+    name: 'Crossref',
+    url: 'https://www.crossref.org/',
+    numWorks: '145M',
+    numWorksOA: '20M',
+    numCitations: '1.45B',
+    price: 'Free',
+    dataOpenness: 'Fully open, CC0 license',
+    orgStructure: 'Non-profit',
+  },
+]);
 </script>
+
 
 <style scoped lang="scss">
 .text-h4 {
