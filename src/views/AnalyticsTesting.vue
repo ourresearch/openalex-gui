@@ -24,11 +24,9 @@
   </v-container>
 </template>
 
-<script>
-export default {
-  name: "AnalyticsTesting",
-  components: {
-    
-  }
-}
+
+<script setup>
+defineOptions({
+  name: 'AnalyticsTesting',
+});
 </script>

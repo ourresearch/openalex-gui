@@ -5,8 +5,6 @@
         rounded
         flat
     >
-      <!--        class="pa-8 py-12"-->
-      <!--        color="light-blue lighten-5" -->
       <div class="text-h1">Testimonials</div>
       <div class="text-h5 mt-4">
         Here's what some of our users have to say about OpenAlex:
@@ -14,11 +12,10 @@
 
     </v-card>
     <v-card color="blue-grey-lighten-5" flat rounded class="d-flex align-center mt-12">
-      <!--      <v-icon large>mdi-filter</v-icon>-->
       <span class="mr-3 text-h5" v-if="!$vuetify.display.mobile">
-                    <span class="font-weight-bold">{{ filteredItems.length }} </span>
-                    testimonials
-                  </span>
+        <span class="font-weight-bold">{{ filteredItems.length }} </span>
+        testimonials
+      </span>
 
       <v-spacer />
       <v-chip-group v-model="selectedItemTypes">
@@ -44,11 +41,11 @@
       <v-col cols="12">
         <v-row>
           <v-col
-              cols="12"
-              md="4"
-              class=""
-              v-for="item in filteredItems"
-              :key="item.name"
+            cols="12"
+            md="4"
+            class=""
+            v-for="item in filteredItems"
+            :key="item.name"
           >
             <v-card rounded border class="fill-height d-flex flex-column">
               <v-card-text class="flex-grow-1">
@@ -120,37 +117,27 @@
   </v-container>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script setup>
+import { ref, computed } from 'vue';
 
-export default {
-  name: "TestimonialsPage",
-  components: {},
-  props: {},
-  data() {
-    return {
-      isDialogOpen: false,
-      dialogData: null,
-      itemTypes: [
-        {
-          id: "enterprise",
-          color: "orange",
-        },
+defineOptions({
+  name: 'TestimonialsPage',
+});
 
-        {
-          id: "analytics",
-          color: "teal",
-        },
+// State
+const isDialogOpen = ref(false);
+const dialogData = ref(null);
 
-        {
-          id: "research",
-          color: "purple",
-        },
+const itemTypes = [
+  { id: 'enterprise', color: 'orange' },
+  { id: 'analytics', color: 'teal' },
+  { id: 'research', color: 'purple' },
+];
 
-      ],
-      selectedItemTypes: [],
-      items: [
+const selectedItemTypes = ref([]);
+
+const items = ref([
         {
           short: `The OpenAlex dataset was <strong>a game changer....</strong>an open dataset that allows for transparency is essential.`,
           long: `Dragonfly Data Science is a New Zealand based consulting company that specializes in data science, statistical analysis and machine learning.<br><br>
@@ -491,62 +478,27 @@ able to add crucial features to our tool and increase researchers' productivity,
         },
 
 
-      ]
-    }
-  },
-  computed: {
-    ...mapGetters([
+]);
 
-    ]),
-    filteredItems() {
+// Computed: filtered items
+const filteredItems = computed(() =>
+  items.value
+    .filter(item => selectedItemTypes.value.length === 0 || selectedItemTypes.value.includes(item.type))
+    .map(item => ({
+      ...item,
+      color: itemTypes.find(t => t.id === item.type)?.color,
+    }))
+);
 
-      return this.items
-          .filter(item => !this.selectedItemTypes?.length || this.selectedItemTypes.includes(item.type))
-          .map(item => {
-            return {
-              ...item,
-              color: this.itemTypes.find(itemType => itemType.id === item.type)?.color
-            }
-          })
-    },
-    isOpen: {
-      get() {
-        if (!this.$vuetify.display.mobile) return true
-        return this.$store.state.showFiltersDrawer
-      },
-      set(val) {
-        if (!this.$vuetify.display.mobile) return // you can't falsify isOpen on desktop
-        this.$store.state.showFiltersDrawer = val
-      },
-    },
-  },
-
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    showMore(item) {
-      this.dialogData = item
-      this.isDialogOpen = true
-    },
-    closeDialog() {
-      this.isDialogOpen = false
-      this.dialogData = null
-    },
-    toggleSelectedItemType(itemTypeId) {
-      if (this.selectedItemTypes.includes(itemTypeId)) {
-        this.selectedItemTypes = this.selectedItemTypes.filter(i => i !== itemTypeId)
-      } else {
-        this.selectedItemTypes.push(itemTypeId)
-      }
-    }
-
-
-  },
+// Methods
+function showMore(item) {
+  dialogData.value = item;
+  isDialogOpen.value = true;
 }
+
+function closeDialog() {
+  isDialogOpen.value = false;
+  dialogData.value = null;
+}
+
 </script>
-
-<style scoped lang="scss">
-
-</style>

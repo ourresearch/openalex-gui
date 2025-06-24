@@ -10,17 +10,8 @@
 </template>
 
 
-<script>
-
-export default {
-  name: "PageNotFound",
-  components: {},
-  props: {},
-  data() {},
-}
+<script setup>
+defineOptions({
+  name: 'PageNotFound',
+});
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
