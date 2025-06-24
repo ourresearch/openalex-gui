@@ -100,167 +100,168 @@
 </div>
 </template>
 
-<script>
-
-import {api} from "@/api";
+<script setup>
+import { ref, computed, watch, onBeforeMount } from 'vue';
+import { api } from '@/api';
 import filters from '@/filters';
-import TestQueryOql from "@/components/TestQuery/TestQueryOql.vue";
+import TestQueryOql from '@/components/TestQuery/TestQueryOql.vue';
 
-export default {
-  name: "TestQuery",
-  components: {
-    TestQueryOql,
-  },
-  props: {
-    config: Object,
-    runSearch: Number,
-  },
-  data() {
-    return {
-      failCount: 0,
-      passCount: 0,
-      searchId: null,
-      isSearchPassing: null,
-      searchError: null,
-      returnData: null,
-      duration: null,
-      filters,
-    }
-  },
-  computed: {
-    status() {
-      return this.loadingCount ?
-          'loading' :
-          this.failCount ?
-              "fail" :
-              "pass";
-    },
-    testsCount() {
-      const oqlCount = this.config.oql ? 2 : 0;
-      const searchCount = this.runSearch ? 1 : 0;
-      return oqlCount + searchCount;
-    },
-    completeCount() {
-      return this.failCount + this.passCount;
-    },
-    loadingCount() {
-      return Math.max(this.testsCount - this.completeCount, 0);
-    },
-    oqlTests() {
-      return [
-        {
-          id: "from-query",
-          input: this.config.query,
-          expectedResponse: this.config.oql,
-        },
-        {
-          id: "to-query",
-          input: this.config.oql,
-          expectedResponse: this.config.query,
-        }
-      ];
-    },
-    searchTestColor() {
-      if (!this.isSearchTestComplete) {
-        return "grey";
-      } else {
-        return (this.isSearchPassing) ? "success" : "error";
-      }
-    },
-    isSearchTestComplete() {
-      return this.isSearchPassing !== null;
-    },
-  },
-  methods: {
-    async createSearch() {
-      try {
-        const resp = await api.createSearch(this.config.query, {bypass_cache: true, is_test: true});
-        this.searchId = resp.data.id;
-      } catch (e) {
-        this.isSearchPassing = false;
-        this.searchError = "Could not create search: " + e;
-        this.searchId = null;
-      }
-    },
-    async getSearch() {
-      console.log("getSearch: " + this.searchId);
-      const resp = await api.getSearch(this.searchId, {is_test: true});
-      if (resp.is_completed) {
-        this.returnData = resp;
+defineOptions({
+  name: 'TestQuery',
+});
 
-        if (resp.backend_error) {
-          this.isSearchPassing = false;
-          this.searchError = resp.backend_error;
-          
-        } else if (this.config.expectsZeroResults && resp.results.length === 0) {
-          this.isSearchPassing = true;
+const props = defineProps({
+  config: Object,
+  runSearch: Number,
+});
 
-        } else if (resp.results.length == 0) {
-          this.isSearchPassing = false;
+const emit = defineEmits(['pass', 'fail']);
 
-        } else {
-          this.isSearchPassing = true;
-        }
-      }
-    },
-    async pollSearch() {
-      if (!this.searchId) {
-        this.isSearchPassing = false;
-        return
-      }
-      //console.log("polling search", this.searchId)
-      await this.getSearch();
-      if (this.isSearchPassing === null) {
-        setTimeout(() => {
-          this.pollSearch();
-        }, 500);
-      }
-    },
-    run() {
-      this.passCount = 0;
-      this.failCount = 0;
-      this.searchId = null;
-      this.isSearchPassing = null;
-      this.searchError = null;
-      this.returnData = null;
-      if (this.runSearch) {
-        this.runSearchMethod();
-      }
-    },
-    async runSearchMethod() {
-      await this.createSearch();
-      this.pollSearch();
-    }
+// State
+const failCount = ref(0);
+const passCount = ref(0);
+const searchId = ref(null);
+const isSearchPassing = ref(null);
+const searchError = ref(null);
+const returnData = ref(null);
+
+
+// Computed
+const status = computed(() => {
+  return loadingCount.value
+    ? 'loading'
+    : failCount.value
+      ? 'fail'
+      : 'pass';
+});
+
+const testsCount = computed(() => {
+  const oqlCount = props.config.oql ? 2 : 0;
+  const searchCount = props.runSearch ? 1 : 0;
+  return oqlCount + searchCount;
+});
+
+const completeCount = computed(() => failCount.value + passCount.value);
+
+const loadingCount = computed(() => {
+  return Math.max(testsCount.value - completeCount.value, 0);
+});
+
+const oqlTests = computed(() => [
+  {
+    id: 'from-query',
+    input: props.config.query,
+    expectedResponse: props.config.oql,
   },
-  created() {
-    if (!this.config) throw new Error("config prop is required")
-    this.run();
+  {
+    id: 'to-query',
+    input: props.config.oql,
+    expectedResponse: props.config.query,
   },
-  mounted() {
-  },
-  watch: {
-    runSearch: {
-      handler(newVal) {
-        if (newVal) {
-          this.run()
-        }
-      },
-      immediate: true
-    },
-    isSearchPassing(newVal) {
-      if (newVal) {
-        this.passCount += 1;
-      } else {
-        this.failCount += 1;
-      }
-    },
-    loadingCount(newVal) {
-      if (newVal === 0) { // no loading, we're done
-        this.$emit(this.failCount === 0 ? "pass" : "fail");
-      }
-    },
+]);
+
+const isSearchTestComplete = computed(() => isSearchPassing.value !== null);
+
+const searchTestColor = computed(() => {
+  if (!isSearchTestComplete.value) return 'grey';
+  return isSearchPassing.value ? 'success' : 'error';
+});
+
+// Methods
+async function createSearch() {
+  try {
+    const resp = await api.createSearch(props.config.query, {
+      bypass_cache: true,
+      is_test: true,
+    });
+    searchId.value = resp.data.id;
+  } catch (e) {
+    isSearchPassing.value = false;
+    searchError.value = 'Could not create search: ' + e;
+    searchId.value = null;
   }
 }
+
+async function getSearch() {
+  console.log('getSearch: ' + searchId.value);
+  const resp = await api.getSearch(searchId.value, { is_test: true });
+
+  if (resp.is_completed) {
+    returnData.value = resp;
+
+    if (resp.backend_error) {
+      isSearchPassing.value = false;
+      searchError.value = resp.backend_error;
+    } else if (props.config.expectsZeroResults && resp.results.length === 0) {
+      isSearchPassing.value = true;
+    } else if (resp.results.length === 0) {
+      isSearchPassing.value = false;
+    } else {
+      isSearchPassing.value = true;
+    }
+  }
+}
+
+async function pollSearch() {
+  if (!searchId.value) {
+    isSearchPassing.value = false;
+    return;
+  }
+  await getSearch();
+  if (isSearchPassing.value === null) {
+    setTimeout(() => {
+      pollSearch();
+    }, 500);
+  }
+}
+
+function run() {
+  passCount.value = 0;
+  failCount.value = 0;
+  searchId.value = null;
+  isSearchPassing.value = null;
+  searchError.value = null;
+  returnData.value = null;
+
+  if (props.runSearch) {
+    runSearchMethod();
+  }
+}
+
+async function runSearchMethod() {
+  await createSearch();
+  pollSearch();
+}
+
+// Lifecycle
+onBeforeMount(() => {
+  if (!props.config) throw new Error('config prop is required');
+  run();
+});
+
+watch(
+  () => props.runSearch,
+  (newVal) => {
+    if (newVal) {
+      run();
+    }
+  },
+  { immediate: true }
+);
+
+watch(isSearchPassing, (newVal) => {
+  if (newVal === true) {
+    passCount.value += 1;
+  } else if (newVal === false) {
+    failCount.value += 1;
+  }
+});
+
+watch(loadingCount, (newVal) => {
+  if (newVal === 0) {
+    emit(failCount.value === 0 ? 'pass' : 'fail');
+  }
+});
 </script>
 
 <style scoped lang="scss">

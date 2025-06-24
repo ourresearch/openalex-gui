@@ -43,14 +43,6 @@
 </template>
 
 
-<script>
-
-export default {
-  name: "TestQueriesSuitesList",
-}
+<script setup>
+defineOptions({ name: 'TestQueriesSuitesList' });
 </script>
-
-
-<style scoped lang="scss">
-
-</style>

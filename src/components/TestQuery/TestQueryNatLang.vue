@@ -69,86 +69,68 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import _ from 'lodash';
+import axios from 'axios';
+import { api } from '@/api';
 
-import _ from "lodash";
-import axios from "axios";
-import {api} from "@/api";
+defineOptions({
+  name: 'TestQueryNatLang',
+});
 
-export default {
-  name: "TestQueryNatLang",
-  components: {},
-  props: {
-    input: String,
-    expectedResponse: Object,
-    queryId: Number,
-    testId: Number,
-    icon: Boolean,
-  },
-  data() {
-    return {
-      foo: 42,
-      actualResponse: null,
-    }
-  },
-  computed: {
-    isTestComplete() {
-      return this.isTestPassing !== null
-    },
-    testColor() {
-      if (this.isTestPassing === null) {
-        return "grey"
-      }
-      return this.isTestPassing ? "green" : "red"
-    },
-    isTestPassing() {
-      if (this.actualResponse === null) {
-        return null
-      }
-      return _.isEqual(this.actualResponse, this.expectedResponse)
-    },
-    testStatus() {
-      if (this.isTestPassing === null) {
-        return "running"
-      }
-      return this.isTestPassing ? "passing" : "failing"
-    },
-    loadingColor() {
-      return this.testStatus === "running" ? "grey" : undefined
-    },
-  },
-  methods: {
-    async run() {
-      console.log("run natlang test", this.input);
-      const url = `${api.apiBaseUrl()}}/text/oql?natural_language=${this.input}&mailto=team@ourresearch.org`;
+const props = defineProps({
+  input: String,
+  expectedResponse: Object,
+  queryId: Number,
+  testId: Number,
+  icon: Boolean,
+});
 
-      // const randomTimeToSleep = Math.random() * 10000
-      // await sleep(randomTimeToSleep)
+const emit = defineEmits(['pass', 'fail']);
 
-      try {
-        const resp = await axios.get(url);
-        this.actualResponse = resp.data
-      } catch (e) {
-        // console.error("got error back from natlang test", e)
-        this.actualResponse = "error: " + e
-      }
-    },
+// State
+const actualResponse = ref(null);
 
+// Computed
+const isTestPassing = computed(() => {
+  if (actualResponse.value === null) return null;
+  return _.isEqual(actualResponse.value, props.expectedResponse);
+});
 
-  },
-  created() {
-  },
-  mounted() {
-    this.run()
-  },
-  watch: {
-    isTestPassing(newVal){
-      this.$emit(newVal ? "pass" : "fail")
-    }
+const testColor = computed(() => {
+  if (isTestPassing.value === null) return 'grey';
+  return isTestPassing.value ? 'green' : 'red';
+});
+
+const testStatus = computed(() => {
+  if (isTestPassing.value === null) return 'running';
+  return isTestPassing.value ? 'passing' : 'failing';
+});
+
+const loadingColor = computed(() => testStatus.value === 'running' ? 'grey' : undefined);
+
+// Methods
+async function run() {
+  console.log('run natlang test', props.input);
+  const url = `${api.apiBaseUrl()}/text/oql?natural_language=${props.input}&mailto=team@ourresearch.org`;
+
+  try {
+    const resp = await axios.get(url);
+    actualResponse.value = resp.data;
+  } catch (e) {
+    actualResponse.value = 'error: ' + e;
   }
 }
+
+// Lifecycle
+onMounted(() => {
+  run();
+});
+
+// Watchers
+watch(isTestPassing, (newVal) => {
+  if (newVal === true) emit('pass');
+  else if (newVal === false) emit('fail');
+});
 </script>
-
-<style scoped lang="scss">
-
-</style>

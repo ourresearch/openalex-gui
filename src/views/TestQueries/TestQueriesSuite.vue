@@ -21,18 +21,18 @@
     </div>
     <v-row dense>
       <v-col
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-          v-for="(query, index) in queries"
-          :key="index"
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+        v-for="(query, index) in queries"
+        :key="index"
       >
         <test-query
-            :config="query"
-            :run-search="runSearch"
-            @pass="passCount += 1"
-            @fail="failCount +=1"
+          :config="query"
+          :run-search="runSearch"
+          @pass="passCount += 1"
+          @fail="failCount +=1"
         />
       </v-col>
     </v-row>
@@ -41,54 +41,40 @@
 </template>
 
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 
-import TestQuery from "@/components/TestQuery/TestQuery.vue";
-import {getTestSuite} from "@/components/TestQuery/tests";
+import TestQuery from '@/components/TestQuery/TestQuery.vue';
+import { getTestSuite } from '@/components/TestQuery/tests';
 
-export default {
-  name: "TestQueriesSuite",
-  components: {
-    TestQuery,
-  },
-  props: {},
-  data() {
-    return {
-      runSearch: 0,
-      passCount: 0,
-      failCount: 0,
-      queries: [],
-    }
-  },
-  computed: {
-    completeCount() {
-      return this.failCount + this.passCount;
-    },
-    testsCount() {
-      return this.queries.length;
-    },
-    loadingCount() {
-      return this.runSearch ? this.testsCount - this.completeCount : 0;
-    },
-  },
-  methods: {
-    runSearchSuite() {
-      this.passCount = 0
-      this.failCount = 0
-      this.runSearch += 1
-    }
-  },
-  created() {
-  },
-  async mounted() {
-    const queries = await getTestSuite(this.$route.params.testSuiteId)
-    this.queries = queries
-  },
-  watch: {}
+defineOptions({ name: 'TestQueriesSuite' });
+
+const route = useRoute();
+
+// Reactive state
+const runSearch = ref(0);
+const passCount = ref(0);
+const failCount = ref(0);
+const queries = ref([]);
+
+// Computed values
+const completeCount = computed(() => passCount.value + failCount.value);
+const testsCount = computed(() => queries.value.length);
+const loadingCount = computed(() =>
+  runSearch.value ? testsCount.value - completeCount.value : 0
+);
+
+// Methods
+function runSearchSuite() {
+  passCount.value = 0;
+  failCount.value = 0;
+  runSearch.value += 1;
 }
+
+// Fetch test suite queries on mount
+onMounted(async () => {
+  const result = await getTestSuite(route.params.testSuiteId);
+  queries.value = result;
+});
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
