@@ -43,12 +43,12 @@
 
         <span @click.stop>
               <v-btn
-                  v-if="result?.best_oa_location?.pdf_url"
-                  :href="result?.best_oa_location?.pdf_url"
-                  target="_blank"
-                  variant="text"
-                  size="small"
-                  class="ml-2"
+                v-if="result?.best_oa_location?.pdf_url"
+                :href="result?.best_oa_location?.pdf_url"
+                target="_blank"
+                variant="text"
+                size="small"
+                class="ml-2"
               >
                 PDF
               </v-btn>
@@ -58,75 +58,66 @@
   </v-list-item>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapGetters} from "vuex";
-
-import {url} from "@/url";
+import { url } from '@/url';
 import filters from '@/filters';
-import {createSimpleFilter} from "@/filterConfigs";
-import {entityTypeFromId} from "@/util";
-import {getEntityConfig, getLocationString} from "@/entityConfigs";
+import { createSimpleFilter } from '@/filterConfigs';
+import { entityTypeFromId } from '@/util';
+import { getEntityConfig, getLocationString } from '@/entityConfigs';
 
-import WorkAuthorsString from "@/components/WorkAuthorsString.vue";
+import WorkAuthorsString from '@/components/WorkAuthorsString.vue';
 
-export default {
-  name: "SerpResultsListItem",
-  components: {
-    WorkAuthorsString,
-  },
-  props: {
-    result: Object,
-    showIcon: Boolean,
-  },
-  data() {
-    return {
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "entityType",
-    ]),
-    myEntityType() {
-      return entityTypeFromId(this.result.id)
-    },
-    unworkSubheader() {
-      const factsToShow = {
-        works: undefined,
-        authors: [
-            this.result.last_known_institutions?.map(i => i.display_name)?.join(", "),
-          // getLocationString(this.result.last_known_institution),
-        ],
-        sources: [
-          this.result.type,
-          this.result.host_organization_name,
-          (this.result.is_oa ? 'open access' : 'toll-access')
-        ],
-        institutions: [
-          getLocationString(this.result),
-          this.result.type
-        ],
-      }
-      const ret = factsToShow[this.myEntityType].filter(f => !!f).join(" · ")
+defineOptions({
+  name: 'SerpResultsListItem',
+});
 
-      return ret
-    },
-  },
-  methods: {
-    viewCitingPapers() {
-      const citesFilter = createSimpleFilter(this.entityType, "cites", this.result.id);
-      url.pushNewFilters([citesFilter], "works");
-    },
-    viewWorks() {
-      const myWorksFilter = createSimpleFilter(
-          "works",
-          getEntityConfig(this.myEntityType).filterKey,
-          this.result.id,
-      )
-      url.pushNewFilters([myWorksFilter], "works")
-    },
-  },
+const props = defineProps({
+  result: Object,
+  showIcon: Boolean,
+});
+
+const store = useStore();
+
+const entityType = computed(() => store.getters['entityType']);
+const myEntityType = computed(() => entityTypeFromId(props.result.id));
+
+const unworkSubheader = computed(() => {
+  const r = props.result;
+
+  const factsToShow = {
+    works: undefined,
+    authors: [
+      r.last_known_institutions?.map(i => i.display_name)?.join(', '),
+    ],
+    sources: [
+      r.type,
+      r.host_organization_name,
+      r.is_oa ? 'open access' : 'toll-access',
+    ],
+    institutions: [
+      getLocationString(r),
+      r.type,
+    ],
+  };
+
+  return (factsToShow[myEntityType.value] || [])
+    .filter(f => !!f)
+    .join(' · ');
+});
+
+// Methods
+function viewCitingPapers() {
+  const citesFilter = createSimpleFilter(entityType.value, 'cites', props.result.id);
+  url.pushNewFilters([citesFilter], 'works');
+}
+
+function viewWorks() {
+  const filterKey = getEntityConfig(myEntityType.value).filterKey;
+  const worksFilter = createSimpleFilter('works', filterKey, props.result.id);
+  url.pushNewFilters([worksFilter], 'works');
 }
 </script>
 

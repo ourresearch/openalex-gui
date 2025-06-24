@@ -21,70 +21,37 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 
-import {mapGetters, mapMutations} from "vuex";
-import {url} from "@/url";
-import {api} from "@/api";
-import {filtersFromUrlStr} from "@/filterConfigs";
+import { url } from '@/url';
 
+defineOptions({
+  name: 'SerpApiEditor',
+});
 
-export default {
-  name: "SerpApiEditor",
-  components: {
-  },
-  props: {},
-  data() {
-    return {
-      url,
-    }
-  },
-  computed: {
-    api() {
-      return api
-    },
-    ...mapGetters([
-      "entityType",
-    ]),
-    filters() {
-      return filtersFromUrlStr(this.entityType, this.$route.query.filter)
-    },
-    apiUrl() {
-      return url.makeApiUrl(this.$route)
-    },
-    apiQuerySplittable() {
-      const url = new URL(this.apiUrl);
-      const parts = url.search.split(/(?=[&,])/).map(part => {
-        return part;
-      })
-      return parts.join("<wbr>");
-    }
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    async copyToClipboard() {
-      await navigator.clipboard.writeText(this.apiUrl);
-      this.snackbar("URL copied to clipboard.")
-    },
-  },
-  created() {
-  },
-  mounted() {
-  },
-  watch: {
-    "$route": {
-      immediate: true,
-      handler() {
-        // this.apiUrl = to.fullPath
-      }
-    }
-  }
+const store = useStore();
+const route = useRoute();
+
+// Vuex getter
+const entityType = computed(() => store.getters['entityType']);
+
+// Reactive values
+const apiUrl = computed(() => url.makeApiUrl(route));
+const apiQuerySplittable = computed(() => {
+  const search = new URL(apiUrl.value).search;
+  const parts = search.split(/(?=[&,])/).map(part => part);
+  return parts.join('<wbr>');
+});
+
+// Vuex mutation
+const snackbar = (msg) => store.commit('snackbar', msg);
+
+// Methods
+async function copyToClipboard() {
+  await navigator.clipboard.writeText(apiUrl.value);
+  snackbar('URL copied to clipboard.');
 }
 </script>
-
-
-<style lang="scss">
-
-</style>

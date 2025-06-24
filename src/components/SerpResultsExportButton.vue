@@ -86,7 +86,6 @@
   </span>
 </template>
 
-
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
@@ -103,25 +102,19 @@ const areColumnsTruncated = ref(false);
 const exportProgressUrl = ref('');
 const exportObj = ref({ progress: null });
 
-// Computed properties
-const isResultsExportDisabled = computed(() => {
-  return store.state?.resultsObject?.meta?.count > 100000;
-});
+const resultsCount = computed(() => store.state?.resultsObject?.meta?.count ?? 0);
 
-const isExportFinished = computed(() => {
-  return !!exportObj.value.result_url;
-});
+const isResultsExportDisabled = computed(() => resultsCount.value > 100000);
 
-const resultsCount = computed(() => {
-  return store.state?.resultsObject?.meta?.count;
-});
+const isExportFinished = computed(() => !!exportObj.value.result_url);
 
 const exportEstimatedTime = computed(() => {
-  if (resultsCount.value < 200) return null;
-  if (resultsCount.value < 6600) return "one minute";
-  if (resultsCount.value < 33000) return "five minutes";
-  else if (resultsCount.value < 66000) return "ten minutes";
-  return "fifteen minutes";
+  const count = resultsCount.value;
+  if (count < 200) return null;
+  if (count < 6600) return 'one minute';
+  if (count < 33000) return 'five minutes';
+  if (count < 66000) return 'ten minutes';
+  return 'fifteen minutes';
 });
 
 // Methods
@@ -133,27 +126,33 @@ function openExportDialog(format) {
 async function startExport() {
   exportObj.value.progress = 0;
   const filterStr = route.query.filter;
-  const params = [
-    `filter=${filterStr}`,
-    `format=${exportFormat.value}`,
-    `truncate=${areColumnsTruncated.value}`,
-  ];
-  const exportUrl = `https://export.openalex.org/works?` + params.join("&");
-  const resp = await axios.get(exportUrl);
-  console.log("startExport resp:", resp);
-  exportProgressUrl.value = resp.data.progress_url;
+  const params = new URLSearchParams({
+    filter: filterStr,
+    format: exportFormat.value,
+    truncate: areColumnsTruncated.value,
+  });
+
+  try {
+    const resp = await axios.get(`https://export.openalex.org/works?${params.toString()}`);
+    console.log('startExport resp:', resp);
+    exportProgressUrl.value = resp.data.progress_url;
+  } catch (error) {
+    console.error('Export failed:', error);
+    store.commit('snackbar', 'Export failed. Please try again.');
+    cleanupExport();
+  }
 }
 
 function cleanupExport() {
-  exportObj.value = {progress: null};
+  exportObj.value = { progress: null };
   exportFormat.value = null;
-  exportProgressUrl.value = null;
+  exportProgressUrl.value = '';
   isDialogOpen.value.exportResults = false;
 }
 
 function clickDownloadButton() {
   cleanupExport();
-  store.commit('snackbar', "Export downloaded");
+  store.commit('snackbar', 'Export downloaded');
 }
 
 // Watchers
@@ -161,17 +160,21 @@ watch(exportFormat, () => {
   areColumnsTruncated.value = false;
 });
 
-// Lifecycle hooks
+// Polling logic
 let intervalId;
 onMounted(() => {
   intervalId = setInterval(async () => {
     if (!exportProgressUrl.value) return;
-    const resp = await axios.get(exportProgressUrl.value);
-    console.log("checking export progress; got this back:", resp.data);
-    exportObj.value = resp.data;
-    if (isExportFinished.value) {
-      exportProgressUrl.value = null;
-      exportObj.value.progress = 1;
+    try {
+      const resp = await axios.get(exportProgressUrl.value);
+      console.log('checking export progress; got this back:', resp.data);
+      exportObj.value = resp.data;
+      if (isExportFinished.value) {
+        exportProgressUrl.value = '';
+        exportObj.value.progress = 1;
+      }
+    } catch (err) {
+      console.error('Failed to check export progress:', err);
     }
   }, 1000);
 });

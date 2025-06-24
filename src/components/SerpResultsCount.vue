@@ -10,27 +10,15 @@
 </template>
 
 
-<script>
-
+<script setup>
 import filters from '@/filters';
 
-export default {
-  name: "SerpResultsCount",
-  components: {
-  },
-  props: {
-    resultsObject: Object,
-    includeTime: Boolean
-  },
-  data() {
-    return {
-      filters,
-    }
-  },
-}
+defineOptions({
+  name: 'SerpResultsCount',
+});
+
+defineProps({
+  resultsObject: Object,
+  includeTime: Boolean,
+});
 </script>
-
-
-<style scoped lang="scss">
-
-</style>
