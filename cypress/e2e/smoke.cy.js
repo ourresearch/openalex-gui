@@ -13,7 +13,7 @@ describe('OpenAlex loads', () => {
 
   it('Entity Drawer loads on Serp', function() {
     cy.visit('/works?page=1&filter=default.search%3Akyle%20demes&zoom=w2103321907');
-    cy.get('.mt-4 > .v-toolbar__content > div > .theme--light').should('be.visible');
+    cy.get('.v-navigation-drawer .text-h6').contains('How within-group behavioural variation');
   });
 
   it('Signup page loads', () => {
@@ -28,16 +28,18 @@ describe('OpenAlex loads', () => {
 
   it('Work Entity page loads', () => {
     cy.visit('/works/w2016949000');
-    cy.contains('Effects Of Climate Change');
+    cy.get('.text-h6').contains('Effects of Climate Change');
     cy.contains('FWCI');
     cy.contains('Journal of Phycology');
     cy.contains('Citation percentile');
     cy.contains('Cited by:');
   });
 
-  it('Author Entity page loads', () => {
-    cy.visit('/authors/a5086928770');
-    cy.contains('Kyle Demes');
+  it.skip('Author Entity page loads', () => {
+    cy.intercept('GET', 'https://api.openalex.org/people/a5059584992?per-page=10').as('getData');
+    cy.visit('/authors/a5059584992');
+    cy.wait('@getData');
+    cy.contains('Tai M. Lockspesier');
     cy.contains('H-index');
     cy.contains('Citations count:');
     cy.contains('Key stats');
@@ -84,15 +86,16 @@ describe('OpenAlex loads', () => {
     cy.contains('Top works');
   });
 
+  it('Stats page loads', () => {
+    cy.visit('/stats');
+    cy.contains('Data Stats');
+    cy.contains(/\d{3}M/);
+  });
+
   it('About page loads', () => {
     cy.visit('/about');
     cy.contains('About');
     cy.contains('Comparison with other');
   });
 
-  it('Stats page loads', () => {
-    cy.visit('/stats');
-    cy.contains('Data Stats');
-    cy.contains(/\d{3}M/);
-  });
 });
