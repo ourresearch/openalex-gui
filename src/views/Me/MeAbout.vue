@@ -2,7 +2,6 @@
   <div>
     <div class="text-h4">About Me</div>
     <v-card rounded border class="my-4">
-      <!--          <v-divider></v-divider>-->
       <v-list color="transparent">
         <v-list-item>
           <v-icon>mdi-account</v-icon>
@@ -24,36 +23,19 @@
   </div>
 </template>
 
-<script>
 
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+defineOptions({ name: 'MeAbout' });
 
-export default {
-  name: "MeAbout",
-  components: {},
-  props: {},
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userName",
-      "userEmail",
-    ]),
-  },
-  methods: {
-    ...mapMutations("user", [
-      "logout",
-    ]),
-    ...mapActions("user", [
-    ]),
-  },
-}
+const store = useStore();
+
+// Vuex getters
+const userName = computed(() => store.getters['user/userName']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+
+// Vuex mutation
+const logout = () => store.commit('user/logout');
 </script>
-
-<style scoped lang="scss">
-
-</style>

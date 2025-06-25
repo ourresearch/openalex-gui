@@ -14,18 +14,17 @@
         </thead>
         <tbody>
         <tr
-            v-for="savedSearch in userSavedSearches"
-            :key="savedSearch.id"
-            @click="openSavedSearch(savedSearch.id)"
-            class="saved-search-row"
+          v-for="savedSearch in userSavedSearches"
+          :key="savedSearch.id"
+          @click="openSavedSearch(savedSearch.id)"
+          class="saved-search-row"
         >
           <td>
-            <v-icon variant="plain" start>mdi-folder-outline</v-icon>
+            <v-icon color="grey" start>mdi-folder-outline</v-icon>
             {{ savedSearch.name }}
           </td>
           <td>
             {{ formatDate(savedSearch.updated) }}
-            <!--          {{ (savedSearch.updated) }} -->
           </td>
           <td class="d-flex align-center">
             <v-spacer></v-spacer>
@@ -57,14 +56,14 @@
         <v-card-title>Rename saved search</v-card-title>
         <div class="pa-4">
           <v-text-field
-              autofocus
-              rounded
-              variant="filled"
-              hide-details
-              clearable
-              prepend-inner-icon="mdi-magnify"
-              placeholder="New name"
-              v-model="renameString"
+            autofocus
+            rounded
+            variant="filled"
+            hide-details
+            clearable
+            prepend-inner-icon="mdi-magnify"
+            placeholder="New name"
+            v-model="renameString"
           />
         </div>
         <v-card-actions>
@@ -78,108 +77,57 @@
   </div>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script setup>
+import { ref, reactive, computed } from 'vue';
+import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 
-import {url} from "@/url";
-import {isToday} from "@/util";
-import SavedSearchMenu from "@/components/SavedSearch/SavedSearchMenu.vue";
+import { isToday } from '@/util';
 
-export default {
-  name: 'SavedSearches',
-  components: {
-    SavedSearchMenu,
-  },
-  created() {
-    useHead({
-      title: 'Saved Searches',
-    });
-  },
-  data() {
-    return {
-      renameString: "",
-      isDialogOpen: {
-        rename: false,
-      },
-      searchIdToRename: null,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userSavedSearches",
-    ]),
-  },
-  methods: {
-    ...mapActions("user", [
-      "deleteSavedSearch",
-      "openSavedSearch",
-    ]),
-    ...mapMutations("user", [
-      "setEditAlertId",
-    ]),
-    openRenameDialog(id) {
-      this.renameString = this.nameFromId(id)
-      this.searchIdToRename = id
-      this.isDialogOpen.rename = true
-    },
-    rename(id, newName) {
-      console.log("rename search", id, newName)
-      this.isDialogOpen.rename = false
-      this.searchIdToRename = null
-    },
-    openAsCopy(id) {
-      const baseSearchName = this.nameFromId(id)
-      const newName = baseSearchName + " copy"
+import SavedSearchMenu from '@/components/SavedSearch/SavedSearchMenu.vue';
 
-      const query = {
-        ...this.queryFromId(id),
-        id: undefined,
-        name: newName,
-      }
-      url.pushToRoute(this.$router, {
-        name: "Serp",
-        params: {entityType: "works"},
-        query,
-      })
-    },
-    queryFromId(id) {
-      const myUrl = this.urlFromId(id)
-      return Object.fromEntries(new URL(myUrl).searchParams)
-    },
-    urlFromId(id) {
-      return this.userSavedSearches.find(s => s.id === id)?.search_url
-    },
-    nameFromId(id) {
-      const myUrl = this.urlFromId(id)
-      return this.nameFromUrl(myUrl)
-    },
-    nameFromUrl(urlArg) {
-      const myUrl = new URL(urlArg)
-      const name = myUrl.searchParams.get("name") ?? "Unsaved search"
-      return name
-    },
-    formatDate(dateString) {
-      const dateOptions = {
-        month: "short",
-        // weekday: "short",
-        day: "numeric"
-      }
-      const timeOptions = {
-        timeStyle: "short",
-      }
+defineOptions({ name: 'SavedSearches' });
 
-      const updatedDate = new Date(dateString + "+0000") // server gives us UTC
+useHead({ title: 'Saved Searches' });
 
-      return (isToday(updatedDate)) ?
-          updatedDate.toLocaleTimeString(undefined, timeOptions) :
-          updatedDate.toLocaleDateString(undefined, dateOptions)
-    }
-  },
-}
+const store = useStore();
+
+const renameString = ref('');
+const isDialogOpen = reactive({
+  rename: false,
+});
+const searchIdToRename = ref(null);
+
+const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+
+const openSavedSearch = (id) => store.dispatch('user/openSavedSearch', id);
+const setEditAlertId = (id) => store.commit('user/setEditAlertId', id);
+
+// Methods
+const rename = (id, newName) => {
+  console.log('rename search', id, newName);
+  isDialogOpen.rename = false;
+  searchIdToRename.value = null;
+};
+
+const formatDate = (dateString) => {
+  const dateOptions = {
+    month: 'short',
+    day: 'numeric',
+  };
+  const timeOptions = {
+    timeStyle: 'short',
+  };
+
+  const updatedDate = new Date(dateString + '+0000'); // server gives us UTC
+
+  return isToday(updatedDate)
+    ? updatedDate.toLocaleTimeString(undefined, timeOptions)
+    : updatedDate.toLocaleDateString(undefined, dateOptions);
+};
 </script>
+
 
 <style lang="scss" >
 .saved-searches-page {
