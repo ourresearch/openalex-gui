@@ -6,7 +6,7 @@ import {entityTypeFromId} from "@/util";
 
 import HomePage from '@/views/Home.vue'
 import SerpPage from '@/views/Serp.vue';
-import ResultsPage from '@/views/Results.vue';
+import ResultsPage from '@/views/ResultsPage.vue';
 import EntityPage from '@/views/EntityPage.vue';
 import AnalyticsHome from '@/components/Home/AnalyticsHome.vue'
 import AnalyticsDocs from '@/views/AnalyticsDocs.vue';
