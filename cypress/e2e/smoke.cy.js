@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 describe('OpenAlex loads', () => {
   it('Home page loads', () => {
     cy.visit('/');
