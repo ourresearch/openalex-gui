@@ -113,152 +113,91 @@
 </template>
 
 
-<script>
-import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
-import axios from "axios";
+<script setup>
+defineOptions({ name: 'App' });
+
+import { ref, computed, onMounted, onBeforeMount, getCurrentInstance } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
+import axios from 'axios';
 
-import {getConfigs} from "@/oaxConfigs";
+import { getConfigs } from '@/oaxConfigs';
 
-import UserToolbarMenu from "@/components/User/UserToolbarMenu.vue";
-import SavedSearchRenameDialog from "@/components/SavedSearch/SavedSearchRenameDialog.vue";
-import SavedSearchEditAlertDialog from "@/components/SavedSearch/SavedSearchEditAlertDialog.vue";
-import SiteFooter from "./components/SiteFooter.vue";
-import ShortcutBox from "@/components/ShortcutBox.vue";
-import EntityDrawer from "@/components/Entity/EntityDrawer.vue";
-import EntityTypeSelector from "@/components/EntityTypeSelector.vue";
+import UserToolbarMenu from '@/components/User/UserToolbarMenu.vue';
+import SavedSearchRenameDialog from '@/components/SavedSearch/SavedSearchRenameDialog.vue';
+import SavedSearchEditAlertDialog from '@/components/SavedSearch/SavedSearchEditAlertDialog.vue';
+import SiteFooter from './components/SiteFooter.vue';
+import ShortcutBox from '@/components/ShortcutBox.vue';
+import EntityDrawer from '@/components/Entity/EntityDrawer.vue';
+import EntityTypeSelector from '@/components/EntityTypeSelector.vue';
 
-export default {
-  name: 'App',
-  components: {
-    SiteFooter,
-    UserToolbarMenu,
-    SavedSearchRenameDialog,
-    SavedSearchEditAlertDialog,
-    EntityDrawer,
-    ShortcutBox,
-    EntityTypeSelector,
-  },
-  data: function () {
-    return {
-      exportProgress: 0,
-      exportObj: {
-        progress: 0,
-      },
-      dialogs: {
-        showAlpha: false
-      },
-    }
-  },
-  computed: {
-    ...mapGetters([
-      "globalIsLoading",
-      "entityType",
-      "environment",
-    ]),
-    ...mapState('user', [
-      'isAdmin'
-    ]),
-    logoStyle() {
-      return "opacity: .7;"
-    },
-    isLocalHost() {
-      return window.location.hostname === "localhost"
-    },
-    exportIsFinished() {
-      return this.exportObj.progress === 1
-    },
-    isNavDrawerOpen: {
-      get() {
-        return !!this.$store.state.zoomId
-      },
-      set(val) {
-        if (!val) this.$store.state.zoomId = null
-      }
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions([]),
-    async copyToClipboard(content) {
-      await navigator.clipboard.writeText(content);
-      this.snackbar("Copied to clipboard.")
-    },
-    clearZoom() {
-      this.$store.state.zoomId = null;
-    },
-    cancelExport() {
-      this.exportObj = null
-      this.$store.state.exportProgressUrl = null
-      this.snackbar("Export cancelled.")
-    },
-    setUIVariant() {
-      // Check if "ui" param exists on URL and if so set it's value on state.ui
-      const urlParams = new URLSearchParams(window.location.search);
-      const ui = urlParams.get('ui');
-      if (ui) {
-        this.$store.state.uiVariant = ui;
-      }
-    }
-  },
-  created() {
-    useHead({
-      titleTemplate: (title) => title ? `${title} | OpenAlex` : 'OpenAlex',
-      link: [],
-      meta: []
-    });
-    this.setUIVariant();
-    // Zendesk widget show/hide logic for certain routes
-    if (this.$router) {
-      this.$router.afterEach((to) => {
-        if (window.zE) {
-          if (to.path.startsWith('/analytics') || to.path.startsWith('/s/') || to.path === '/s') {
-            window.zE('webWidget', 'show');
-          } else {
-            window.zE('webWidget', 'hide');
-          }
-        }
-      });
-      // Set initial visibility
+const store = useStore();
+const router = useRouter();
+
+const exportObj = ref({ progress: 0 });
+
+const globalIsLoading = computed(() => store.getters.globalIsLoading);
+
+// Head
+useHead({
+  titleTemplate: (title) => (title ? `${title} | OpenAlex` : 'OpenAlex'),
+  link: [],
+  meta: []
+});
+
+function setUIVariant() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const ui = urlParams.get('ui');
+  if (ui) {
+    store.state.uiVariant = ui;
+  }
+}
+
+// Lifecycle
+onBeforeMount(() => {
+  setUIVariant();
+
+  if (router) {
+    router.afterEach((to) => {
       if (window.zE) {
-        const currPath = this.$router.currentRoute.value.path;
-        if (currPath.startsWith('/analytics') || currPath.startsWith('/s/')) {
+        if (to.path.startsWith('/analytics') || to.path.startsWith('/s/') || to.path === '/s') {
           window.zE('webWidget', 'show');
         } else {
           window.zE('webWidget', 'hide');
         }
       }
-    }
-  },
-  async mounted() {
-    this.$root.configs = getConfigs();
-    
-    setInterval(async () => {
-      if (!this.$store.state.exportProgressUrl) return
-      const resp = await axios.get(this.$store.state.exportProgressUrl)
-      console.log(resp.data)
-      this.exportObj = resp.data
-      if (this.exportObj === 1) {
-        this.exportObj = null
-        this.$store.state.exportProgressUrl = null
-      }
-    }, 1000)
-    // await sleep(2000)
-    // console.log("disable body scroll")
-    // bodyScrollLock.disableBodyScroll()
-  },
-  watch: {
-    '$route': {
-      immediate: true,
-      handler() {
+    });
 
+    if (window.zE) {
+      const currPath = router.currentRoute.value.path;
+      if (currPath.startsWith('/analytics') || currPath.startsWith('/s/')) {
+        window.zE('webWidget', 'show');
+      } else {
+        window.zE('webWidget', 'hide');
       }
-    },
+    }
   }
-};
+});
+
+onMounted(() => {
+  const root = getCurrentInstance().appContext.app;
+  root.configs = getConfigs();
+
+  setInterval(async () => {
+    if (!store.state.exportProgressUrl) return;
+    const resp = await axios.get(store.state.exportProgressUrl);
+    console.log(resp.data);
+    exportObj.value = resp.data;
+    if (exportObj.value === 1) {
+      exportObj.value = null;
+      store.state.exportProgressUrl = null;
+    }
+  }, 1000);
+});
 </script>
+
+
 <style lang="scss">
 
 $color-3: hsl(210, 60%, 98%);
