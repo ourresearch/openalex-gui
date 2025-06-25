@@ -42,9 +42,9 @@
       </v-card-text>
       <v-card-actions class="d-flex justify-center">
         <v-btn
-            rounded
-            color="primary"
-            @click="setIsLoginDialogOpen(true)"
+          rounded
+          color="primary"
+          @click="setIsLoginDialogOpen(true)"
         >
           Log in
         </v-btn>
@@ -53,55 +53,48 @@
   </v-container>
 </template>
 
-
-<script>
-
-import {mapActions, mapMutations} from "vuex";
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import { useHead } from '@unhead/vue';
 
-export default {
-  name: "ResetPassword",
-  components: {},
-  props: {},
-  data() {
-    return {
-      token: null,
-      password: "",
-      isSubmitted: false
-    }
-  },
-  computed: {
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setShowPasswordResetErrorMessage",
-      "setIsLoginDialogOpen",
-    ]),
-    ...mapActions("user", [
-      "resetPassword"
-    ]),
-    async submit() {
-      console.log("user.store resetPassword submit");
-      try {
-        await this.resetPassword({password: this.password, token: this.token});
-        this.isSubmitted = true;
-      } catch (e) {
-        console.log("user.store resetPassword error", e);
-        this.setShowPasswordResetErrorMessage(true);
-        this.setIsLoginDialogOpen(true);
-      }
-    },
-  },
-  created() {
-    useHead({ title: 'Reset Password' });
-  },
-  mounted() {
-    this.token = this.$route.query.token;
-  },
-  beforeUnmount() {
-    this.setShowPasswordResetErrorMessage(false);
+defineOptions({ name: 'ResetPassword' });
+
+useHead({ title: 'Reset Password' });
+
+const store = useStore();
+const route = useRoute();
+
+const token = ref(null);
+const password = ref('');
+const isSubmitted = ref(false);
+
+const resetPassword = (payload) => store.dispatch('user/resetPassword', payload);
+const setShowPasswordResetErrorMessage = (val) => store.commit('user/setShowPasswordResetErrorMessage', val);
+const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
+
+// Methods
+const submit = async () => {
+  console.log('user.store resetPassword submit');
+  try {
+    await resetPassword({ password: password.value, token: token.value });
+    isSubmitted.value = true;
+  } catch (e) {
+    console.log('user.store resetPassword error', e);
+    setShowPasswordResetErrorMessage(true);
+    setIsLoginDialogOpen(true);
   }
-}
+};
+
+// Lifecycle
+onMounted(() => {
+  token.value = route.query.token || null;
+});
+
+onBeforeUnmount(() => {
+  setShowPasswordResetErrorMessage(false);
+});
 </script>
 
 
