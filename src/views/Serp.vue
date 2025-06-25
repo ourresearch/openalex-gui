@@ -51,278 +51,88 @@
   </div>
 </template>
 
-
-<script>
-
+<script setup>
 import _ from 'lodash';
-import {mapGetters, mapMutations, mapActions,} from 'vuex'
-import {useHead} from '@unhead/vue'
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
+import { useHead } from '@unhead/vue';
 
-import {url} from "@/url";
-import {api} from "@/api";
-import router from "../router";
-import {entityConfigs} from "../entityConfigs";
-import {shortenOpenAlexId} from "@/util";
-import {actionConfigs} from "@/actionConfigs";
-import {filtersFromUrlStr} from "@/filterConfigs";
-import {facetConfigs} from "../facetConfigs";
+import { url } from '@/url';
+import { api } from '@/api';
+import { entityConfigs } from '@/entityConfigs';
+import { filtersFromUrlStr } from '@/filterConfigs';
 
-import SerpResultsList from "@/components/SerpResultsList.vue";
-import SerpApiEditor from "../components/SerpApiEditor.vue";
-import GroupByViews from "@/components/GroupByViews.vue";
-import FilterList from "@/components/Filter/FilterList.vue";
-import SerpToolbar from "@/components/SerpToolbar/SerpToolbar.vue";
+import SerpResultsList from '@/components/SerpResultsList.vue';
+import GroupByViews from '@/components/GroupByViews.vue';
+import FilterList from '@/components/Filter/FilterList.vue';
+import SerpToolbar from '@/components/SerpToolbar/SerpToolbar.vue';
+import SerpApiEditor from '@/components/SerpApiEditor.vue';
 
-export default {
-  name: "SerpPage",
-  components: {
-    SerpToolbar,
-    SerpResultsList,
-    SerpApiEditor,
-    GroupByViews,
-    FilterList,
+defineOptions({ name: 'Serp' });
+
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+// Data
+const resultsFilters = ref([]);
+const resultsObject = ref(null);
+
+const selectedEntityType = computed(() => route.params.entityType);
+const selectedEntityTypeConfig = computed(() => entityConfigs[selectedEntityType.value]);
+
+useHead({
+  title: _.capitalize(selectedEntityTypeConfig.value.displayName) + ' search',
+});
+
+const userId = computed(() => store.getters['user/userId']);
+const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
+
+watch(
+  () => route.params.entityType,
+  (to) => {
+    store.state.entityType = to;
   },
-  props: {},
-  data() {
-    return {
-      loading: false,
-      facetZoom: null,
-      filterDrawerIsOpen: true,
-      apiResp: {},
-      resultsPerPage: 25, // not editable now, but could be in future
-      isCreateWidgetDialogOpen: false,
-      dialogs: {
-        export: false,
-        createAlert: false,
-      },
-      exportEmail: "",
-      exportIsLoading: false,
-      exportIsInProgress: false,
-      createAlert: {
-        velocityIsLoading: false
-      },
-      logoColorRotation: 0,
-      showYearRange: true,
-      widgetFilterKeys: [],
-      resultsFilters: [],
-      resultsObject: null,
-      resultsTab: "results",
-      apiMode: false,
-      // resultsTab: 0,
-      lastGroupByValue: null,
-      groupByKeys: [],
-      groupBySearchString: "",
-      savedActions: [],
-      listResultsCount: null, // not the group_by one
-      selectedActionTab: "filter",
-      searchString: "",
-      url,
-      actionConfigs,
+  { immediate: true }
+);
+
+watch(
+  () => route.fullPath,
+  async () => {
+    if (
+      route.query.id &&
+      !userSavedSearches.value.find((s) => s.id === route.query.id)
+    ) {
+      url.pushToRoute(router, {
+        name: 'Serp',
+        query: { ...route.query, id: undefined },
+      });
+      return;
     }
-  },
-  asyncComputed: {
-    async sidebarData() {
-      const sidebarId = shortenOpenAlexId(this.$route.query.sidebar);
-      if (!sidebarId) { return; }
 
-      const extantResult = this.resultsObject?.results?.find(res => {
-        const resultId = shortenOpenAlexId((res.id));
-        return resultId === sidebarId;
-      })
-      const ret = (extantResult) ? extantResult : await api.getEntity(sidebarId);
-      return ret;
-    },
-  },
-  computed: {
-    ...mapGetters([
-      "searchIsLoading",
-      "entityType",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-      "userSavedSearches",
-    ]),
-    numPages() {
-      const maxToShow = this.$vuetify.display.mobile ? 4 : 10;
-
-      return Math.min(
-          Math.ceil(this.resultsObject.meta.count / this.resultsPerPage),
-          maxToShow
-      );
-    },
-    isAnalyze: {
-      get() {
-        return !!this.$route.query.analyze
-      },
-      set(to) {
-        const analyze = (to) ? to : undefined
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            analyze,
-          },
-        })
-      }
-    },
-    isShowApiSet: {
-      get() {
-        return !!this.$route.query.show_api
-      },
-      set(to) {
-        const show_api = (to) ? to : undefined
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            show_api
-          },
-        })
-      }
-    },
-    isListView: {
-      get() {
-        return !!this.$route.query.is_list_view
-      },
-      set(to) {
-        const is_list_view = (to) ? to : undefined
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            is_list_view
-          },
-        })
-      }
-    },
-    isSidebarOpen: {
-      get() {
-        return !!this.$route.query.sidebar
-      },
-      set(to) {
-        if (to) return
-        url.pushToRoute(this.$router, {
-          name: "Serp",
-          query: {
-            ...this.$route.query,
-            sidebar: undefined
-          },
-        })
-      }
-    },
-    selectedEntityTypeConfig() {
-      return entityConfigs[this.entityType]
-    },
-    entityType() {
-      return this.$route.params.entityType
-    },
-    resultsCount() {
-      return this.resultsObject?.meta?.count
-    },
-    filtersLength() {
-      return this.$route.query.filter?.length ?? 0
-    },
-    popularFilterOptions() {
-      return facetConfigs(this.entityType)
-          .filter(conf => conf.actionsPopular?.includes("filter"))
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-      "toggleFiltersDrawer",
-    ]),
-    ...mapActions([
-      "updateTextSearch",
-      "setEntityZoom",
-    ]),
-    async copyToClipboard(content) {
-      await navigator.clipboard.writeText(content);
-      this.snackbar("URL copied to clipboard.")
-    },
-    clearGroupBy() {
-      url.pushToRoute(this.$router, {
-        name: "Serp",
-        query: {
-          ...this.$route.query,
-          group_by: undefined,
-        }
-      })
-    },
-    async pushQueryChanges(query) {
-
-      const pushTo = {
-        name: "Serp",
-        query: {
-          ...this.$route.query,
-          ...query,
-        }
-      }
-      console.log("pushQueryChanges", query)
-      await router.push(pushTo)
-          .catch((e) => {
-            if (e.name !== "NavigationDuplicated") {
-              throw e
-            }
-          })
+    if (userId.value) {
+      store.commit('user/setActiveSearchId', route.query.id);
     }
+
+    const apiQuery = url.makeApiUrl(route);
+    store.state.isLoading = true;
+    const resp = await api.getResultsList(apiQuery);
+    store.state.isLoading = false;
+    resultsObject.value = resp;
+    store.state.resultsObject = resp;
+
+    resultsFilters.value = filtersFromUrlStr(
+      selectedEntityType.value,
+      route.query.filter
+    );
+
+    window.scroll(0, 0);
   },
-  created() {
-    useHead({
-      title: _.capitalize(this.selectedEntityTypeConfig.displayName) + " search"
-    });
-  },
-  watch: {
-    filtersLength: {
-      immediate: false,
-      handler() {
-        // const msg = (to > from) ? "Filter added" : "Filter removed"
-        // this.snackbar(msg)
-      }
-    },
-    "$route.params.entityType": {
-      immediate: true,
-      handler(to){
-        this.$store.state.entityType = to
-      }
-    },
-    "$route": {
-      immediate: true,
-      async handler(to) {
-        // console.log("Serp $route watcher", to, from)
-        if (this.$route.query.id && !this.userSavedSearches.find(s => s.id === this.$route.query.id)) {
-          console.log("404 search id doesn't exist", this.$route.params.entityType)
-          const query = {
-            ...this.$route.query,
-            id: undefined,
-          }
-          url.pushToRoute(this.$router, {name: "Serp", query})
-          return
-        }
-
-        if (this.userId) {
-          this.$store.commit("user/setActiveSearchId", this.$route.query.id)
-        }
-
-        const apiQuery = url.makeApiUrl(this.$route)
-
-        this.$store.state.isLoading = true
-        const resp = await api.getResultsList(apiQuery)
-        this.$store.state.isLoading = false
-        this.resultsObject = resp;
-
-        this.$store.state.resultsObject = resp
-
-        this.resultsFilters = filtersFromUrlStr(
-            this.entityType,
-            to?.query?.filter
-        )
-        window.scroll(0, 0)
-      }
-    },
-  }
-}
+  { immediate: true }
+);
 </script>
+
 
 <style lang="scss">
 .v-pagination__item, .v-pagination__navigation {
@@ -355,6 +165,4 @@ table.serp-results-table {
   }
 
 }
-
-
 </style>
