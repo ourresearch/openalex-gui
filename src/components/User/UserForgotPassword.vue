@@ -38,11 +38,11 @@
       <v-card-actions>
         <v-spacer/>
         <v-btn
-            :disabled="isFormDisabled"
-            rounded
-            color="primary"
-            variant="flat"
-            @click="submit"
+          :disabled="isFormDisabled"
+          rounded
+          color="primary"
+          variant="flat"
+          @click="submit"
         >
           Send Reset Link
         </v-btn>
@@ -54,74 +54,41 @@
   </v-card>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script setup>
+import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
 
-export default {
-  name: "UserForgotPassword",
-  components: {
-  },
-  props: {},
-  data() {
-    return {
-      email: "",
-      isLoading: false,
-      isSubmitted: false,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "isLoginDialogOpen",
-      "showPasswordResetErrorMessage",
-    ]),
-    isFormDisabled() {
-      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
-      const isValid = emailRegex.test(this.email)
+defineOptions({ name: 'UserForgotPassword' });
 
-      return this.isLoading || !isValid
-    },
-    isOpen: {
-      get() {
-        return this.isLoginDialogOpen
-      },
-      set(val) {
-        this.setIsLoginDialogOpen(val)
-      },
-    },
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setIsLoginDialogOpen",
-    ]),
-    ...mapActions("user", [
-      "requestPasswordReset",
-    ]),
-    async submit() {
-      if (this.isFormDisabled) return false
-      this.isLoading = true
-      try {
-        await this.requestPasswordReset(this.email)
-        this.isSubmitted = true
-      } catch (e) {
-        // For security, we ignore errors so this form can't be used to determine if an email has an account or not. 
-        console.log(e)
-      } finally {
-        this.isLoading = false
-      }
-    },
+const store = useStore();
 
-  },
-  created() {
-  },
-  mounted() {
-    console.log("UserForgotPassword mounted")
-  },
-  watch: {
+const email = ref('');
+const isLoading = ref(false);
+const isSubmitted = ref(false);
 
+const showPasswordResetErrorMessage = computed(() => store.getters['user/showPasswordResetErrorMessage']);
+
+const isFormDisabled = computed(() => {
+  const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+  const isValid = emailRegex.test(email.value);
+  return isLoading.value || !isValid;
+});
+
+const submit = async () => {
+  if (isFormDisabled.value) return false;
+  isLoading.value = true;
+  try {
+    await store.dispatch('user/requestPasswordReset', email.value);
+    isSubmitted.value = true;
+  } catch (e) {
+    console.log(e); // Silently catch for security reasons
+  } finally {
+    isLoading.value = false;
   }
-}
+};
 </script>
+
 
 <style scoped lang="scss">
 .submit-message {

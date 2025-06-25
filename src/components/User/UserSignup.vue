@@ -16,51 +16,51 @@
         </p>
         <form>
           <v-text-field
-              variant="solo-filled"
-              flat
-              rounded
-              autofocus
-              hide-details
-              type="text"
-              name="name"
-              id="name"
-              v-model="name"
-              prepend-icon="mdi-account-outline"
-              placeholder="Your name"
-              @keyup.enter="submit"
+            variant="solo-filled"
+            flat
+            rounded
+            autofocus
+            hide-details
+            type="text"
+            name="name"
+            id="name"
+            v-model="name"
+            prepend-icon="mdi-account-outline"
+            placeholder="Your name"
+            @keyup.enter="submit"
           >
           </v-text-field>
 
           <v-text-field
-              variant="solo-filled"
-              flat
-              rounded
-              type="email"
-              id="email"
-              name="email"
-              class="mt-3"
-              prepend-icon="mdi-email-outline"
-              v-model="email"
-              placeholder="Your email"
-              :messages="emailMsg"
-              :error="isEmailAlreadyInUse"
+            variant="solo-filled"
+            flat
+            rounded
+            type="email"
+            id="email"
+            name="email"
+            class="mt-3"
+            prepend-icon="mdi-email-outline"
+            v-model="email"
+            placeholder="Your email"
+            :messages="emailMsg"
+            :error="isEmailAlreadyInUse"
           >
           </v-text-field>
           <v-text-field
-              hide-details
-              variant="solo-filled"
-              flat
-              rounded
-              class="mt-4"
-              prepend-icon="mdi-lock-outline"
-              v-model="password"
-              placeholder="Password"
-              id="new-password"
-              name="new-password"
-              :type="isPasswordVisible ? 'text' : 'password'"
-              :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append="isPasswordVisible = !isPasswordVisible"
-              @keydown.enter="submit"
+            hide-details
+            variant="solo-filled"
+            flat
+            rounded
+            class="mt-4"
+            prepend-icon="mdi-lock-outline"
+            v-model="password"
+            placeholder="Password"
+            id="new-password"
+            name="new-password"
+            :type="isPasswordVisible ? 'text' : 'password'"
+            :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append="isPasswordVisible = !isPasswordVisible"
+            @keydown.enter="submit"
           >
           </v-text-field>
         </form>
@@ -84,126 +84,106 @@
   </v-dialog>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+defineOptions({ name: 'UserSignup' });
 
-export default {
-  name: "UserSignup",
-  components: {},
-  props: {
-    showCloseButton: Boolean,
-  },
-  data() {
-    return {
-      email: "",
-      name: "",
-      password: "",
-      isPasswordVisible: false,
-      isEmailAlreadyInUse: false,
-      isLoading: false,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userName",
-      "isSignupDialogOpen"
-    ]),
-    emailMsg() {
-      return this.isEmailAlreadyInUse ?
-          "Sorry, this email already has an account" :
-          "Used only for login and account notifications; never shared"
-    },
-    isFormDisabled() {
-      const isDirty = !!this.email || !!this.name || !!this.password
-      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/
-      const isEmailValid = emailRegex.test(this.email)
-      const isNameValid = !!this.name
-      const isPasswordValid = this.password?.length >= 5
-      const isFormValid = isEmailValid && isNameValid && isPasswordValid
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
-      return this.isLoading || (isDirty && !isFormValid)
-    },
-    isFixed() {
-      return this.$route.name == "Signup";
-    },
-    redirectPath() {
-      return this.$route.query.redirect;
-    },
-    isOpen: {
-      get() {
-        return this.isSignupDialogOpen;
-      },
-      set(val) {
-        this.setIsSignupDialogOpen(val);
-        if (!val && this.isFixed) {
-          this.$router.push({ name: 'Home'});
-        }
-      },
+defineProps({
+  showCloseButton: Boolean,
+});
+
+const email = ref('');
+const name = ref('');
+const password = ref('');
+const isPasswordVisible = ref(false);
+const isEmailAlreadyInUse = ref(false);
+const isLoading = ref(false);
+
+const isSignupDialogOpen = computed(() => store.getters['user/isSignupDialogOpen']);
+
+// computed
+const emailMsg = computed(() =>
+  isEmailAlreadyInUse.value
+    ? 'Sorry, this email already has an account'
+    : 'Used only for login and account notifications; never shared'
+);
+
+const isFormDisabled = computed(() => {
+  const isDirty = !!email.value || !!name.value || !!password.value;
+  const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+  const isEmailValid = emailRegex.test(email.value);
+  const isNameValid = !!name.value;
+  const isPasswordValid = password.value?.length >= 5;
+  const isFormValid = isEmailValid && isNameValid && isPasswordValid;
+  return isLoading.value || (isDirty && !isFormValid);
+});
+
+const isFixed = computed(() => route.name === 'Signup');
+const redirectPath = computed(() => route.query.redirect);
+
+const isOpen = computed({
+  get: () => isSignupDialogOpen.value,
+  set: (val) => {
+    store.commit('user/setIsSignupDialogOpen', val);
+    if (!val && isFixed.value) {
+      router.push({ name: 'Home' });
     }
   },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-    ]),
-    ...mapActions("user", [
-      "requestSignupEmail",
-      "createUser",
-    ]),
-    switchToLogin() {
-      if (this.isFixed) {
-        this.$router.push({ name: 'Login', query: this.$route.query });
-      } else {
-        this.setIsLoginDialogOpen(true);
-      }
-    },
-    async submit() {
-      if (this.isFormDisabled) { return; }
-      this.isLoading = true;
-      try {
-        await this.createUser({
-          email: this.email,
-          name: this.name,
-          password: this.password
-        });
-        if (this.redirectPath) {
-          this.$router.replace(this.redirectPath);
-        } 
-        this.snackbar(`Account created. Welcome, ${this.name}!`);
-        this.isOpen = false;
-      } catch (e) {
-        if (e.message.includes("409")) {
-          this.isEmailAlreadyInUse = true;
-        }
-      } finally {
-        this.isLoading = false;
-      }
-    }
-  },
-  mounted() {
-  },
-  watch: {
-    isOpen() {
-      this.name = "";
-      this.email = "";
-      this.password = "";
-      this.isLoading = false;
-      this.isPasswordVisible = false;
-      this.isEmailAlreadyInUse = false;
-    },
-    password() {
-    },
-    email() {
-      this.password = "";
-      this.isEmailAlreadyInUse = false;
-    }
+});
+
+// methods
+const switchToLogin = () => {
+  if (isFixed.value) {
+    router.push({ name: 'Login', query: route.query });
+  } else {
+    store.commit('user/setIsLoginDialogOpen', true);
   }
-}
+};
+
+const submit = async () => {
+  if (isFormDisabled.value) return;
+  isLoading.value = true;
+  try {
+    await store.dispatch('user/createUser', {
+      email: email.value,
+      name: name.value,
+      password: password.value,
+    });
+    if (redirectPath.value) {
+      router.replace(redirectPath.value);
+    }
+    store.commit('snackbar', `Account created. Welcome, ${name.value}!`);
+    isOpen.value = false;
+  } catch (e) {
+    if (e.message.includes('409')) {
+      isEmailAlreadyInUse.value = true;
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// watchers
+watch(isOpen, () => {
+  name.value = '';
+  email.value = '';
+  password.value = '';
+  isLoading.value = false;
+  isPasswordVisible.value = false;
+  isEmailAlreadyInUse.value = false;
+});
+
+watch(email, () => {
+  password.value = '';
+  isEmailAlreadyInUse.value = false;
+});
 </script>
 
 
