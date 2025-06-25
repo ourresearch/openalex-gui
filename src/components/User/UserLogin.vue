@@ -15,39 +15,39 @@
       <v-card-text>
         <form>
           <v-text-field
-              variant="solo-filled"
-              flat
-              rounded
-              class="mt-0"
-              name="email"
-              id="email"
-              type="email"
-              prepend-icon="mdi-email-outline"
-              v-model="email"
-              autofocus
-              placeholder="Your email"
-              :messages="isEmailUnrecognized ? 'Email not found' : undefined"
-              :error="isEmailUnrecognized"
-              :hide-details="!isEmailUnrecognized"
+            variant="solo-filled"
+            flat
+            rounded
+            class="mt-0"
+            name="email"
+            id="email"
+            type="email"
+            prepend-icon="mdi-email-outline"
+            v-model="email"
+            autofocus
+            placeholder="Your email"
+            :messages="isEmailUnrecognized ? 'Email not found' : undefined"
+            :error="isEmailUnrecognized"
+            :hide-details="!isEmailUnrecognized"
           >
           </v-text-field>
           <v-text-field
-              variant="solo-filled"
-              flat
-              rounded
-              class="mt-3"
-              prepend-icon="mdi-lock-outline"
-              v-model="password"
-              placeholder="Password"
-              name="current-password"
-              id="current-password"
-              :type="isPasswordVisible ? 'text' : 'password'"
-              :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
-              @click:append="isPasswordVisible = !isPasswordVisible"
-              :messages="isPasswordWrong ? 'Wrong password' : undefined"
-              :error="isPasswordWrong"
-              :hide-details="!isPasswordWrong"
-              @keyup.enter="submit"
+            variant="solo-filled"
+            flat
+            rounded
+            class="mt-3"
+            prepend-icon="mdi-lock-outline"
+            v-model="password"
+            placeholder="Password"
+            name="current-password"
+            id="current-password"
+            :type="isPasswordVisible ? 'text' : 'password'"
+            :append-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+            @click:append="isPasswordVisible = !isPasswordVisible"
+            :messages="isPasswordWrong ? 'Wrong password' : undefined"
+            :error="isPasswordWrong"
+            :hide-details="!isPasswordWrong"
+            @keyup.enter="submit"
           >
           </v-text-field>
         </form>
@@ -77,138 +77,130 @@
 
 </template>
 
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 
-<script>
+import UserForgotPassword from '@/components/User/UserForgotPassword.vue';
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import UserForgotPassword from "@/components/User/UserForgotPassword.vue";
+defineOptions({
+  name: 'UserLogin'
+});
 
-export default {
-  name: "UserLogin",
-  components: {
-    UserForgotPassword,
-  },
-  props: {},
-  data() {
-    return {
-      email: "",
-      password: "",
-      isPasswordVisible: false,
-      isLoading: false,
-      isEmailUnrecognized: false,
-      isPasswordWrong: false,
-      isForgotPassword: false,
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+
+// state
+const email = ref('');
+const password = ref('');
+const isPasswordVisible = ref(false);
+const isLoading = ref(false);
+const isEmailUnrecognized = ref(false);
+const isPasswordWrong = ref(false);
+const isForgotPassword = ref(false);
+
+// getters
+const userName = computed(() => store.getters['user/userName']);
+const isLoginDialogOpen = computed(() => store.getters['user/isLoginDialogOpen']);
+const showPasswordResetErrorMessage = computed(() => store.getters['user/showPasswordResetErrorMessage']);
+
+// computed props
+const isFormDisabled = computed(() => {
+  const isDirty = !!email.value || !!password.value;
+  const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+  const isValid = emailRegex.test(email.value) && password.value?.length >= 5;
+  return isLoading.value || (isDirty && !isValid);
+});
+
+const isFixed = computed(() => route.name === 'Login');
+const handlingRedirect = ref(false); // Track if we're handling a redirect after login to prevent double navigation
+
+const isOpen = computed({
+  get: () => isLoginDialogOpen.value,
+  set: (val) => {
+    store.commit('user/setIsLoginDialogOpen', val);
+    if (!val && isFixed.value && !handlingRedirect.value) {
+      console.log('Login closing redirect');
+      router.push({ name: 'Home' });
     }
   },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userName",
-      "isLoginDialogOpen",
-      "showPasswordResetErrorMessage",
-    ]),
-    isFormDisabled() {
-      const isDirty = !!this.email || !!this.password;
-      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
-      const isValid = emailRegex.test(this.email) && this.password?.length >= 5;
+});
 
-      return this.isLoading || (isDirty && !isValid);
-    },
-    isFixed() {
-      return this.$route.name == "Login";
-    },
-    redirectPath() {
-      return this.$route.query.redirect;
-    },
-    isOpen: {
-      get() {
-        return this.isLoginDialogOpen;
-      },
-      set(val) {
-        this.setIsLoginDialogOpen(val);
-        if (!val && this.isFixed) {
-          this.$router.push({ name: 'Home'});
-        }
-      },
-    },
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "setIsLoginDialogOpen",
-      "setIsSignupDialogOpen",
-      "setShowPasswordResetErrorMessage",
-    ]),
-    ...mapActions("user", [
-      "loginUser",
-    ]),
-    switchToSignup() {
-      if (this.isFixed) {
-        this.$router.push({ name: 'Signup', query: this.$route.query });
-      } else {
-        this.setIsSignupDialogOpen(true);
-      }
-    },
-    forgotPasswordClick(event) {
-      console.log("forgotPasswordClick");
-      // Prevent the default link behavior and stop event propagation
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      this.isForgotPassword = true;
-    },
-    async submit() {
-      if (this.isFormDisabled) return false;
-      this.isLoading = true;
-      try {
-        await this.loginUser({
-          email: this.email,
-          password: this.password,
-        });
-        if (this.redirectPath) {
-          this.$router.replace(this.redirectPath);
-        }
-        if (this.$route.name == "ResetPassword") {
-          this.$router.push({ name: 'Home'});
-        }
-        this.isOpen = false;
-        this.snackbar(`You're logged in. Welcome back, ${this.userName}!`)
-      } catch (e) {
-        if (e.message.includes("404")) {
-          this.isEmailUnrecognized = true;
-        }
-        else if (e.message.includes("403")){
-          this.isPasswordWrong = true;
-        }
-      } finally {
-        this.isLoading = false;
-      }
-    },
-  },
-  mounted() {},
-  watch: {
-    isOpen() {
-      this.email = "";
-      this.password = "";
-      this.isLoading = false;
-      this.isPasswordVisible = false;
-      this.isEmailUnrecognized = false;
-      this.isPasswordWrong = false;
-      this.isForgotPassword = this.showPasswordResetErrorMessage;
-    },
-    password() {
-      this.isPasswordWrong = false;
-    },
-    email() {
-      this.isEmailUnrecognized = false;
-      this.password = "";
-    }
+// methods
+const switchToSignup = () => {
+  if (isFixed.value) {
+    router.push({ name: 'Signup', query: route.query });
+  } else {
+    store.commit('user/setIsSignupDialogOpen', true);
   }
-}
+};
+
+const forgotPasswordClick = (event) => {
+  console.log('forgotPasswordClick');
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  isForgotPassword.value = true;
+};
+
+const submit = async () => {
+  if (isFormDisabled.value) return false;
+  isLoading.value = true;
+  try {
+    await store.dispatch('user/loginUser', {
+      email: email.value,
+      password: password.value,
+    });
+    store.commit('snackbar', `You're logged in. Welcome back, ${userName.value}!`);
+    console.log("Login Succeeded");
+    
+    if (route.query.redirect) {
+      console.log('Login redirecting to', route.query.redirect);
+      handlingRedirect.value = true;
+      router.replace(route.query.redirect);
+      return;
+    } else if (route.name === 'ResetPassword') {
+      handlingRedirect.value = true;
+      router.push({ name: 'Home' });
+      return;
+    }
+    
+    isOpen.value = false;
+  } catch (e) {
+    if (e.message.includes('404')) {
+      isEmailUnrecognized.value = true;
+    } else if (e.message.includes('403')) {
+      isPasswordWrong.value = true;
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// watchers
+watch(isOpen, () => {
+  email.value = '';
+  password.value = '';
+  isLoading.value = false;
+  isPasswordVisible.value = false;
+  isEmailUnrecognized.value = false;
+  isPasswordWrong.value = false;
+  isForgotPassword.value = showPasswordResetErrorMessage.value;
+});
+
+watch(password, () => {
+  isPasswordWrong.value = false;
+});
+
+watch(email, () => {
+  isEmailUnrecognized.value = false;
+  password.value = '';
+});
 </script>
+
 
 <style scoped lang="scss">
 .text-link {

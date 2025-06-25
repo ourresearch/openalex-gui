@@ -11,53 +11,26 @@
   </v-container>
 </template>
 
-<script>
 
-import {mapActions, mapGetters, mapMutations} from "vuex";
+<script setup>
+import { computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute, useRouter } from 'vue-router';
 
-export default {
-  name: "MagicToken",
-  components: {
-  },
-  props: {},
-  data() {
-    return {
-      foo: 42,
-    }
-  },
-  computed: {
-    ...mapGetters([
+defineOptions({
+  name: 'MagicToken'
+});
 
-      "userId",
-      "userName",
-      "userEmail",
-    ]),
-    ...mapGetters("user", [
-      "userId",
-    ]),
-  },
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
 
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapActions("user", [
-        "loginWithMagicToken"
-    ]),
+const userId = computed(() => store.getters['userId'] || store.getters['user/userId']);
 
+const loginWithMagicToken = (token) => store.dispatch('user/loginWithMagicToken', token);
 
-  },
-  created() {
-  },
-  async mounted() {
-    await this.loginWithMagicToken(this.$route.params.token)
-    this.$router.push("/")
-  },
-  watch: {
-  }
-}
+onMounted(async () => {
+  await loginWithMagicToken(route.params.token);
+  router.push('/');
+});
 </script>
-
-<style scoped lang="scss">
-
-</style>

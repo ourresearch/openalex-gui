@@ -3,43 +3,35 @@
   </v-container>
 </template>
 
-<script>
-
-import {mapGetters, mapMutations} from "vuex";
+<script setup>
+import { computed, onMounted, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter, useRoute } from 'vue-router';
 import { useHead } from '@unhead/vue';
 
+defineOptions({ name: 'SignupPage' });
 
-export default {
-  name: "SignupPage",
-  components: {},
-  props: {},
-  data() {
-    return {}
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-    ]),
-  },
-  methods: {
-    ...mapMutations("user", [
-      "setIsLoginDialogOpen",
-      "setIsSignupDialogOpen",
-    ]),
-  },
-  created() {
-    useHead({ title: 'Sign up' });
-    this.setIsSignupDialogOpen(true);
-  },
-  mounted() {
-    if (this.userId) {
-      this.$router.push(this.$route.query.redirect || '/');
-    }
-  },
-  beforeUnmount() {
-    this.setIsSignupDialogOpen(false);
-  },
-}
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
+
+useHead({ title: 'Sign up' });
+
+const userId = computed(() => store.getters['user/userId']);
+const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
+
+// On Created
+setIsSignupDialogOpen(true);
+
+onMounted(() => {
+  if (userId.value) {
+    router.push(route.query.redirect || '/');
+  }
+});
+
+onBeforeUnmount(() => {
+  setIsSignupDialogOpen(false);
+});
 </script>
 
 <style scoped lang="scss">

@@ -130,56 +130,36 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
+import { useStore } from 'vuex';
 
-import {mapGetters, mapMutations} from "vuex";
 import filters from '@/filters';
-import UserSignup from "./UserSignup.vue";
-import UserLogin from "./UserLogin.vue";
-import UiVariantSelector from "../Misc/UiVariantSelector.vue";
+import UserSignup from './UserSignup.vue';
+import UserLogin from './UserLogin.vue';
+import UiVariantSelector from '../Misc/UiVariantSelector.vue';
 
-export default {
-  name: "UserToolbarMenu",
-  components: {
-    UserSignup,
-    UserLogin,
-    UiVariantSelector,
-  },
-  props: {},
-  data() {
-    return {
-      dialogs: {
-        userSignup: false,
-        userLogin: false,
-      },
-      filters,
-    }
-  },
-  computed: {
-    ...mapGetters("user", [
-      "userId",
-      "userName",
-      "userEmail",
-      "userAuthorId",
-      "isTester",
-      "isAdmin",
-    ]),
-  },
-  methods: {
-    ...mapMutations([
-      "snackbar",
-    ]),
-    ...mapMutations("user", [
-      "logout",
-      "setIsSignupDialogOpen",
-      "setIsLoginDialogOpen",
-    ]),
-    localLogout() {
-      this.logout();
-      this.snackbar("You're logged out");
-    },
-  },
-}
+defineOptions({ name: 'UserToolbarMenu' });
+
+const store = useStore();
+
+const userId = computed(() => store.getters['user/userId']);
+const userName = computed(() => store.getters['user/userName']);
+const userEmail = computed(() => store.getters['user/userEmail']);
+const userAuthorId = computed(() => store.getters['user/userAuthorId']);
+const isTester = computed(() => store.getters['user/isTester']);
+const isAdmin = computed(() => store.getters['user/isAdmin']);
+
+// Methods
+const snackbar = (msg) => store.commit('snackbar', msg);
+const logout = () => store.commit('user/logout');
+const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);
+const setIsLoginDialogOpen = (val) => store.commit('user/setIsLoginDialogOpen', val);
+
+const localLogout = () => {
+  logout();
+  snackbar("You're logged out");
+};
 </script>
 
 
