@@ -44,7 +44,7 @@
 
 
 <script setup>
-import { defineProps, defineOptions, defineEmits, defineAsyncComponent } from 'vue';
+import {defineAsyncComponent } from 'vue';
 import QueryFilterTreeLeaf from "@/components/Query/QueryFilterTreeLeaf.vue";
 
 // Import self component for recursive usage

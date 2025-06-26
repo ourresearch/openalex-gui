@@ -99,6 +99,7 @@ UX for creating a tree of filters which are stored in either `filter_aggs` or `f
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
+import { useTheme } from "vuetify";
 import _ from "lodash";
 
 import { getConfigs } from "@/oaxConfigs";
@@ -145,8 +146,8 @@ const hasAvailableFilters = computed(() => {
 });
 
 const borderColor = computed(() => {
-  const theme = store.state.vuetify?.theme?.themes?.light?.colors;
-  return isWorks.value ? theme?.catWorksDarker : theme?.catEntityDarker;
+  const theme = useTheme();
+  return isWorks.value ? theme.current.value.colors.catWorks : theme.current.value.colors.catEntity;
 });
 
 // Cleaned filters that get pushed into store

@@ -2,10 +2,10 @@
     <span class="results-count">
 
       <!-- Entity Tab -->
-      <span v-if="this.stashedQueryState || this.querySubjectEntity !== 'works'"
-        class="entities-count"
+      <span v-if="stashedQueryState || querySubjectEntity !== 'works'"
+        class="tab entities-count"
         @click="entityTabClick">
-        <span v-if="this.stashedQueryState">
+        <span v-if="stashedQueryState">
           {{ filters.millify(stashedQueryState.results_meta?.count) }}
           {{ filters.pluralize(stashedQueryState.query.get_rows) }}
         </span>
@@ -22,7 +22,7 @@
 
       <!-- Works Tab -->
       <span 
-        class="works-count"
+        class="tab works-count"
         @click="worksTabClick">
         <span v-if="querySubjectEntity === 'works' && hasResults">
           {{ filters.millify(resultsMeta?.count)}}
@@ -78,19 +78,20 @@ function worksTabClick() {
 <style lang="scss">
 .results-count {
   display: flex;
-  margin-bottom: -8px;
+  margin-bottom: -16px;
 }
-.entities-count,
-.works-count {
+.tab {
   display: inline-block;
   text-align: center;
+  color: #555;
+  font-size: 12px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   padding: 0px 24px;
   margin-right: 4px;
   min-width: 90px;
-  height: 40px;
-  line-height: 40px;
+  height: 32px;
+  line-height: 32px;
   cursor: pointer;
 
   &:hover {
@@ -117,6 +118,9 @@ function worksTabClick() {
 }
 .ui-sentence-worksfirst .query-actions {
   order: 3
+}
+.query-actions-box {
+  margin-top: -8px;
 }
 
 </style>
