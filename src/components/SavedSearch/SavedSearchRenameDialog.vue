@@ -6,7 +6,8 @@
           <v-text-field
             autofocus
             rounded
-            variant="filled"
+            variant="solo-filled"
+            flat
             clearable
             prepend-inner-icon="mdi-magnify"
             placeholder="New name"
@@ -28,9 +29,7 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 
-defineOptions({
-  name: 'SavedSearchRenameDialog',
-});
+defineOptions({ name: 'SavedSearchRenameDialog' });
 
 defineProps({
   id: String,
