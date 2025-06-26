@@ -1,40 +1,35 @@
 <template>
   <v-container class="page">
 
-    <v-card
-        rounded
-        flat
-    >
+    <v-card flat >
       <div class="text-h1">Testimonials</div>
       <div class="text-h5 mt-4">
         Here's what some of our users have to say about OpenAlex:
       </div>
-
     </v-card>
-    <v-card color="blue-grey-lighten-5" flat rounded class="d-flex align-center mt-12">
+
+    <v-card color="blue-grey-lighten-5" flat class="d-flex align-center rounded-o py-4 px-4 mt-12 mb-6">
       <span class="mr-3 text-h5" v-if="!$vuetify.display.mobile">
         <span class="font-weight-bold">{{ filteredItems.length }} </span>
         testimonials
       </span>
 
       <v-spacer />
-      <v-chip-group v-model="selectedItemTypes">
-        <v-chip
-            filter
-            v-for="itemType in itemTypes"
-            :key="itemType.id"
-            :value="itemType.id"
-            :color="itemType.color"
-            class="text-white"
-        >
 
-          {{ itemType.id }}
-
-          ({{ items.filter(i => i.type === itemType.id).length }})
-
-        </v-chip>
-      </v-chip-group>
-
+      <v-chip
+        v-for="itemType in itemTypes"
+        :key="itemType.id"
+        :color="itemType.color"
+        variant="flat"
+        class="text-white mr-1"
+        @click="toggleItemType(itemType.id)"
+      >
+        <template #prepend v-if="selectedItemTypes.includes(itemType.id)" >
+          <v-icon start size="small">mdi-check</v-icon>
+        </template>
+        {{ itemType.id }}
+        ({{ items.filter(i => i.type === itemType.id).length }})
+      </v-chip>
     </v-card>
 
     <v-row>
@@ -47,7 +42,7 @@
             v-for="item in filteredItems"
             :key="item.name"
           >
-            <v-card rounded border class="fill-height d-flex flex-column">
+            <v-card border flat class="fill-height d-flex flex-column rounded-o">
               <v-card-text class="flex-grow-1">
                 <q style="font: 16px Roboto; line-height: 1.3" v-html="item.short"/>
                 <div class="mt-3 d-flex">
@@ -74,28 +69,27 @@
     <div>
       <v-alert rounded type="info" variant="outlined" text class="mt-8">
         <p>
-
           Want to share a testimonial of your own? We'd love to hear it!
         </p>
-        <div>
-          <v-btn rounded variant="text" color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
+        <div class="mt-4">
+          <v-btn rounded color="primary" href="https://wkf.ms/42RdSkP" target="_blank">
             Share testimonial
-            <v-icon end>mdi-open-in-new</v-icon>
+            <v-icon style="font-size: 20px;" end>mdi-open-in-new</v-icon>
           </v-btn>
         </div>
-      </v-alert>
+      </v-alert> 
     </div>
+
     <v-dialog scrollable v-model="isDialogOpen" max-width="600">
       <v-card v-if="dialogData">
-        <v-card-title>
-          <!--          {{ dialogData.org }}-->
+        <div class="d-flex pt-2">
           <v-spacer/>
-          <v-btn icon @click="closeDialog">
+          <v-btn variant="plain" @click="closeDialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
-        </v-card-title>
-        <v-card-text style="max-height: 80vh;">
+        </div>
 
+        <v-card-text style="max-height: 80vh;">
           <q style="font: 16px Roboto; line-height: 1.3" v-html="dialogData.long"/>
           <div class="mt-3 d-flex">
             <div class="mr-1">
@@ -111,9 +105,9 @@
           <v-spacer/>
           <v-btn variant="text" @click="closeDialog()">Close</v-btn>
         </v-card-actions>
-
       </v-card>
     </v-dialog>
+
   </v-container>
 </template>
 
@@ -137,6 +131,36 @@ const itemTypes = [
 
 const selectedItemTypes = ref([]);
 
+const toggleItemType = (type) => {
+  if (selectedItemTypes.value.includes(type)) {
+    selectedItemTypes.value = selectedItemTypes.value.filter(t => t !== type);
+  } else {
+    selectedItemTypes.value.push(type);
+  }
+};
+
+// Computed: filtered items
+const filteredItems = computed(() =>
+  items.value
+    .filter(item => selectedItemTypes.value.length === 0 || selectedItemTypes.value.includes(item.type))
+    .map(item => ({
+      ...item,
+      color: itemTypes.find(t => t.id === item.type)?.color,
+    }))
+);
+
+// Methods
+function showMore(item) {
+  dialogData.value = item;
+  isDialogOpen.value = true;
+}
+
+function closeDialog() {
+  isDialogOpen.value = false;
+  dialogData.value = null;
+}
+
+// Data
 const items = ref([
         {
           short: `The OpenAlex dataset was <strong>a game changer....</strong>an open dataset that allows for transparency is essential.`,
@@ -338,7 +362,6 @@ I have recommended OpenAlex to many colleagues.`,
           type: "research",
         },
 
-
         {
           short: `I am currently moving all of my projects to use OpenAlex... [it] has among the <strong> best available data </strong> on disambiguated authorship and author metadata that I have encountered.`,
           long: `I am a sociologist who researches the dynamics of scholarly communication. My research relies centrally on high quality and reliable data on citations, publication metadata, author characteristics, and other aspects of the publication ecosystem.<br><br>
@@ -352,7 +375,6 @@ I would, and often do, recommend OpenAlex to others who need this kind of data.`
           org: `McGill University`,
           type: "research",
         },
-
 
         {
           short: `OpenAlex has enabled me to build a cleanly assembled dataset... with <strong> minimal effort and maximum confidence</strong> in data quality.`,
@@ -479,26 +501,4 @@ able to add crucial features to our tool and increase researchers' productivity,
 
 
 ]);
-
-// Computed: filtered items
-const filteredItems = computed(() =>
-  items.value
-    .filter(item => selectedItemTypes.value.length === 0 || selectedItemTypes.value.includes(item.type))
-    .map(item => ({
-      ...item,
-      color: itemTypes.find(t => t.id === item.type)?.color,
-    }))
-);
-
-// Methods
-function showMore(item) {
-  dialogData.value = item;
-  isDialogOpen.value = true;
-}
-
-function closeDialog() {
-  isDialogOpen.value = false;
-  dialogData.value = null;
-}
-
 </script>
