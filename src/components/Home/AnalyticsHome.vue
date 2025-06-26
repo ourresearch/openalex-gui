@@ -120,7 +120,11 @@ const showQueries = computed(() => {
   }
 
   if (!searchQuery.value && selectedFilter.value === 'All Questions') {
-    examples = examples.reverse();
+    // Shuffle the examples array using Fisher-Yates algorithm
+    for (let i = examples.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [examples[i], examples[j]] = [examples[j], examples[i]];
+    }
   }
 
   return examples;

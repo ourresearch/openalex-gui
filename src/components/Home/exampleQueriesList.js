@@ -1302,12 +1302,10 @@ const exampleQueries = [
     }
   },
   {
-    question: "What topics of research does the Russian Government fund the most research on?",
+    question: "What topics of research does the Russian Science Foundation fund the most research on?",
     type: "topics",
     category: "discovery",
     url: "",
-    broken: true,
-    error: "There are dozens of Russian funding agencies. Include all / more?",
     query: {
       "get_rows": "topics",
       "filter_works": [

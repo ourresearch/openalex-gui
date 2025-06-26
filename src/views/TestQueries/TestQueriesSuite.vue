@@ -1,43 +1,43 @@
 <template>
   <div class="color-2 py-2">
     <v-container v-if="queries.length">
-    <div class="d-flex align-center pa-3">
-      <div>
+      <div class="d-flex align-center pa-3">
         <div>
-          {{queries.length}} queries
+          <div>
+            {{queries.length}} queries
+          </div>
+          <div v-if="passCount > 0" class="text-success">
+            {{ passCount }} passing
+          </div>
+          <div v-if="failCount > 0" class="text-error">
+            {{ failCount }} failing
+          </div>
+          <div v-if="loadingCount > 0" class="">
+            {{ loadingCount }} loading
+          </div>
         </div>
-        <div v-if="passCount > 0" class="text-success">
-          {{ passCount }} passing
-        </div>
-        <div v-if="failCount > 0" class="text-error">
-          {{ failCount }} failing
-        </div>
-        <div v-if="loadingCount > 0" class="">
-          {{ loadingCount }} loading
-        </div>
+        <v-spacer/>
+        <v-btn color="primary" @click="runSearchSuite">Run Queries</v-btn>
       </div>
-      <v-spacer/>
-      <v-btn color="primary" @click="runSearchSuite">Run Searches</v-btn>
-    </div>
-    <v-row dense>
-      <v-col
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-        v-for="(query, index) in queries"
-        :key="index"
-      >
-        <test-query
-          :config="query"
-          :run-search="runSearch"
-          @pass="passCount += 1"
-          @fail="failCount +=1"
-        />
-      </v-col>
-    </v-row>
-  </v-container>
-</div>
+      <v-row dense>
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+          v-for="(query, index) in queries"
+          :key="index"
+        >
+          <test-query
+            :config="query"
+            :run-search="runSearch"
+            @pass="passCount += 1"
+            @fail="failCount += 1"
+          />
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 
@@ -52,13 +52,11 @@ defineOptions({ name: 'TestQueriesSuite' });
 
 const route = useRoute();
 
-// Reactive state
 const runSearch = ref(0);
 const passCount = ref(0);
 const failCount = ref(0);
 const queries = ref([]);
 
-// Computed values
 const completeCount = computed(() => passCount.value + failCount.value);
 const testsCount = computed(() => queries.value.length);
 const loadingCount = computed(() =>

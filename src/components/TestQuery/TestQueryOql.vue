@@ -1,31 +1,33 @@
 <template>
   <div>
     <v-tooltip
-        v-if="icon"
-        location="bottom"
-        :color="testColor"
-        max-width="300"
+      v-if="icon"
+      location="bottom"
+      :color="testColor"
+      max-width="300"
     >
       <template v-slot:activator="{ props }">
         <v-btn
-            size="small"
-            icon
-            v-bind="props"
-            :color="testColor"
-            :to="`/tests/${testSuiteId}/${queryId}/oql/${testId}`"
+          size="small"
+          variant="plain"
+          icon
+          v-bind="props"
+          :color="testColor"
+          :to="`/tests/${testSuiteId}/${queryId}/oql/${testId}`"
         >
           <v-icon>mdi-code-parentheses-box</v-icon>
         </v-btn>
       </template>
       <div>
-        <div class="">{{ testId }}</div>
+        <div>{{ testId }}</div>
       </div>
     </v-tooltip>
+
     <v-container v-else>
       <v-alert
-          text
-          rounded
-          :color="testColor"
+        text
+        rounded
+        :color="testColor"
       >
         <v-icon v-if="isTestPassing" start color="success">mdi-check-circle</v-icon>
         <v-icon v-else start color="error">mdi-close-circle</v-icon>
@@ -155,7 +157,7 @@ function runEvaluation() {
 watch(
   () => props.runTest,
   (newVal) => {
-    if (newVal) runEvaluation();
+    if (newVal) { runEvaluation(); }
   },
   { immediate: true }
 );
