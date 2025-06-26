@@ -1,15 +1,15 @@
 <template>
   <div>
-    <v-menu location="top left" :offset="[-60, 0]" location-strategy="connected" :close-on-content-click="false">
+    <v-menu v-model="isMenuOpen" location="top left" :offset="[-60, 0]" location-strategy="connected" :close-on-content-click="false">
       <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn
-              v-if="isFabShowing"
-              v-bind="props"
-              icon
-              size="large"
-              color="primary"
-              class="rounded-circle"
+            v-if="isFabShowing"
+            v-bind="props"
+            icon
+            size="large"
+            color="primary"
+            class="rounded-circle"
           >
             <v-icon>mdi-plus-thick</v-icon>
           </v-btn>
@@ -35,10 +35,10 @@
         
         <v-list v-if="searchString">
           <v-list-item
-              v-for="filter in potentialFiltersSearchResults"
-              :key="filter.key"
-              @click="setNewFilterKey(filter.key)"
-              :disabled="filter.disabled"
+            v-for="filter in potentialFiltersSearchResults"
+            :key="filter.key"
+            @click="setNewFilterKey(filter.key)"
+            :disabled="filter.disabled"
           >
             <template #prepend>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
@@ -51,10 +51,10 @@
 
         <v-list v-if="!searchString">
           <v-list-item
-              v-for="filter in potentialFiltersPopular"
-              :key="filter.key"
-              @click="setNewFilterKey(filter.key)"
-              :disabled="filter.disabled"
+            v-for="filter in potentialFiltersPopular"
+            :key="filter.key"
+            @click="setNewFilterKey(filter.key)"
+            :disabled="filter.disabled"
           >
             <template #prepend>
               <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
@@ -65,8 +65,8 @@
           </v-list-item>
           <v-divider/>
           <v-list-item
-              key="more-filters"
-              @click="isDialogOpen = true"
+            key="more-filters"
+            @click="isDialogOpen = true; isMenuOpen = false;"
           >
             <template #prepend>
               <v-icon>mdi-dots-horizontal</v-icon>
@@ -86,20 +86,20 @@
     >
       <v-card class="rounded-o">
         <v-text-field
-            v-model="searchString"
-            variant="default"
-            bg-color="white"
-            :prepend-inner-icon="prependIcon"
-            hide-details
-            autofocus
-            :placeholder="placeholder"
-            style=""
-            class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
-            append-icon="mdi-close"
-            @keyup.enter="onEnter"
-            @keydown.down="onDownArrow"
-            @click:append="clickCloseSearch"
-            @click:prepend-inner="clickPrependIcon"
+          v-model="searchString"
+          variant="default"
+          bg-color="white"
+          :prepend-inner-icon="prependIcon"
+          hide-details
+          autofocus
+          :placeholder="placeholder"
+          style=""
+          class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
+          append-icon="mdi-close"
+          @keyup.enter="onEnter"
+          @keydown.down="onDownArrow"
+          @click:append="clickCloseSearch"
+          @click:prepend-inner="clickPrependIcon"
         />
         <v-divider/>
 
@@ -255,8 +255,9 @@ function setNewFilterKey(filterKey) {
     url.pushNewFilters([...oldFilters, newFilter]);
   } else {
     newFilterKey.value = filterKey;
-    if (filterKey) isDialogOpen.value = true;
+    if (filterKey) { isDialogOpen.value = true; }
   }
+  isMenuOpen.value = false;
 }
 
 function clickCloseSearch() {
