@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :class="['query-sentence-container', {'in-progress': hasQueryChanged || isSearchCanceled}]">
+    <div :class="['query-sentence-container', 'mb-10', {'in-progress': hasQueryChanged || isSearchCanceled}]">
       <div class="query-sentence-box">
         <div class="query-sentence">
           <!-- Work First -->
@@ -111,26 +111,23 @@ const isWorks = computed(() => ['works', 'summary'].includes(querySubjectEntity.
 
 
 <style>
-.query-sentence-box {
-  padding-bottom: 0px;
-  display: flex;
-  justify-content: space-between;
-}
-.query-sentence-container {
-  margin-bottom: 20px;
-}
 .query-sentence-container.in-progress {
   border-radius: 5px;
   border: 1px solid #e0e0e0;
   background-color: #fafafa;
   padding: 10px;
 }
+.query-sentence-box {
+  padding-bottom: 0px;
+  display: flex;
+  justify-content: space-between;
+}
 .query-sentence {
-  padding: 0px 10px 3px 3px; 
+  padding: 0px 12px 4px 4px; 
   max-width: 950px;
   line-height: 2;
-  text-indent: -20px;
-  margin-left: 20px;
+  text-indent: -24px;
+  margin-left: 24px;
 } 
 .query-sentence * {
   text-indent: 0;

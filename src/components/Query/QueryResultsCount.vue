@@ -1,10 +1,9 @@
 <template>
-  <div class="results-count-box">
     <span class="results-count">
 
       <!-- Entity Tab -->
       <span v-if="this.stashedQueryState || this.querySubjectEntity !== 'works'"
-        :class="['entities-count']"
+        class="entities-count"
         @click="entityTabClick">
         <span v-if="this.stashedQueryState">
           {{ filters.millify(stashedQueryState.results_meta?.count) }}
@@ -12,15 +11,18 @@
         </span>
         <span v-else>
           <span v-if="hasResults">
-          {{ filters.millify(resultsMeta?.count) }}
+            {{ filters.millify(resultsMeta?.count) }}
+            {{ filters.pluralize(querySubjectEntity) }}
           </span>
-          {{ filters.pluralize(querySubjectEntity) }}
+          <span v-else>
+            {{ filters.capitalize(filters.pluralize(querySubjectEntity)) }}
+          </span>
         </span>
       </span>
 
       <!-- Works Tab -->
       <span 
-        :class="['works-count']"
+        class="works-count"
         @click="worksTabClick">
         <span v-if="querySubjectEntity === 'works' && hasResults">
           {{ filters.millify(resultsMeta?.count)}}
@@ -39,7 +41,6 @@
 
     </span>
 
-  </div>
 </template>
 
 
@@ -77,6 +78,7 @@ function worksTabClick() {
 <style lang="scss">
 .results-count {
   display: flex;
+  margin-bottom: -8px;
 }
 .entities-count,
 .works-count {
@@ -84,9 +86,11 @@ function worksTabClick() {
   text-align: center;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  padding: 3px 12px;
-  margin-right: 3px;
-  min-width: 80px;
+  padding: 0px 24px;
+  margin-right: 4px;
+  min-width: 90px;
+  height: 40px;
+  line-height: 40px;
   cursor: pointer;
 
   &:hover {

@@ -4,8 +4,8 @@
     <v-tooltip location="bottom">
       <template v-slot:activator="{ props }">
         <span v-bind="props"> 
-          <v-btn size="small" icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
-            <v-icon size="small" >mdi-tray-arrow-down</v-icon>
+          <v-btn size="default" icon variant="plain" :disabled="!selectedIds.length" @click="exportResults">
+            <v-icon size="default" >mdi-tray-arrow-down</v-icon>
           </v-btn>
         </span>
       </template>
@@ -94,7 +94,7 @@ function exportSelectedAsCsv() {
 }
 .query-actions > * {
   position: relative;
-  top: -8px;
-  margin-right: -12px;
+  top: -2px;
+  margin-right: -8px;
 }
 </style>

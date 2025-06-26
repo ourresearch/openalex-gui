@@ -5,13 +5,13 @@
       All Labels
     </router-link>
 
-    <v-card flat rounded class="pt-6 ma-0">
+    <v-card flat class="rounded-o pt-6 ma-0">
       <div class="label-details-header px-5 pb-5">
         <div class="d-flex align-center w-100">
           <div class="header-right">
             <div>
               <span v-if="labelData" class="text-h5">
-                <v-icon>mdi-tag-outline</v-icon>
+                <v-icon color="grey">mdi-tag-outline</v-icon>
                 {{ labelData.name }}
               </span>
               <span v-else class="text-h5">
@@ -33,20 +33,19 @@
             <v-btn
               size="small"
               class="mr-2"
-              variant="tonal"
-              @click="showEditDialog = true"
+              variant="outlined"
+              @click="deleteLabel"
             >
-              <v-icon start>mdi-pencil</v-icon>
-              Edit
+              <v-icon>mdi-delete-outline</v-icon>
             </v-btn>
             <v-btn
               size="small"
               class="mr-2"
-              variant="tonal"
-              @click="deleteLabel"
+              variant="outlined"
+              @click="showEditDialog = true"
             >
-              <v-icon start>mdi-delete-outline</v-icon>
-              Delete
+              <v-icon start>mdi-pencil</v-icon>
+              Edit
             </v-btn>
           </div>
         </div>

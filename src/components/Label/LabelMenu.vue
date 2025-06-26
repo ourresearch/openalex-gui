@@ -2,8 +2,8 @@
   <div style="display: inline-block;">
     <v-menu content-class="label-menu" max-width="400px">
       <template v-slot:activator="{ props }">
-        <v-btn size="small" :icon="icon" variant="plain" v-bind="props" :disabled="!selectedIds.length">
-          <v-icon size="small" >mdi-tag-outline</v-icon>
+        <v-btn size="default" :icon="icon" variant="plain" v-bind="props" :disabled="!selectedIds.length">
+          <v-icon size="default" >mdi-tag-outline</v-icon>
           <span v-if="!icon">Labels</span>
         </v-btn>
       </template>
