@@ -1,14 +1,14 @@
 <template>
-  <div class="color-2 py-4">
+  <div class="color-2 py-7">
     <v-container fluid :class="['results-box', `ui-${uiVariant}`]">
       <v-row>
         <!-- Top Panel / Query Builder -->
-        <v-col cols="12" class="query-builder py-0">
+        <v-col cols="12" class="query-builder py-0 px-6">
           <query-builder />
         </v-col>
 
         <!-- Results Table -->
-        <v-col cols="12 pt-0">
+        <v-col cols="12 pt-0 px-6">
           <v-card flat rounded class="results-table-box" style="min-height: 100%;">
             <results-table />
           </v-card>

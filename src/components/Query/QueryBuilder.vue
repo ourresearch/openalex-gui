@@ -1,6 +1,6 @@
 <template>
 
-  <v-card flat rounded class="query-builder mb-0 px-6 pt-5 pb-0">
+  <v-card flat rounded class="query-builder mb-0 px-8 pt-10 pb-0">
     <template v-if="uiVariant.includes('sentence')">
       <QuerySentence />
     </template>

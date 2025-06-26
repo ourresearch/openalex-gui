@@ -7,7 +7,7 @@
   >
     <div>
       <!-- Results Table -->
-      <v-table ref="resultsTable" :class="['mx-6', 'mb-5', {'dimmed': hasQueryChanged}]">
+      <v-table ref="resultsTable" :class="['mx-8', 'mb-5', {'dimmed': hasQueryChanged}]">
         <thead>
           <!-- Render all headers based on their type -->
           <th 

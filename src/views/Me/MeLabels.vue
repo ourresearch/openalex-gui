@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="!labelId" class="mb-2">
-      <span class="text-h4 ml-1 mr-3">Labels</span>
+      <span class="text-h5 ml-1 mr-2">Labels</span>
       <v-btn 
         @click="isLabelCreateDialogOpen = true"
         color="primary"
@@ -13,7 +13,7 @@
     
     <router-view v-if="labelId" />
     
-    <v-card v-else flat rounded class="mb-6">
+    <v-card v-else flat class="rounded-o mb-6">
       
       <v-card-text v-if="!userCollections.length">
         Create labels for authors, institutions, and more that you can use to fitler your searches.

@@ -13,10 +13,6 @@
 
     <ui-variant-selector v-if="false && isAdmin" />
     
-    <v-btn icon variant="plain" to="/tests" v-if="isAdmin">
-      <v-icon>mdi-clipboard-check-multiple-outline</v-icon>
-    </v-btn>  
-    
     <!-- User menu -->
     <v-menu class="rounded-lg" location="bottom" v-if="userId">
       <template v-slot:activator="{props}">
@@ -37,9 +33,14 @@
         <v-list-item to="/me/searches" prepend-icon="mdi-folder-outline">
           Saved Searches
         </v-list-item>
+
         <v-list-item v-if="isTester" to="/me/labels" prepend-icon="mdi-tag-outline">
           Labels
         </v-list-item>
+
+        <v-list-item v-if="isAdmin" to="/tests" prepend-icon="mdi-clipboard-check-multiple-outline">
+          Tests
+        </v-list-item>  
 
         <v-list-item :to="filters.entityZoomLink(userAuthorId)" v-if="userAuthorId" prepend-icon="mdi-account-outline">
           My author profile

@@ -8,8 +8,8 @@
     </div>
     <v-spacer />
     <div>
-      <v-chip label size="small" variant="tonal" :color="chipColor(type)">{{type}}</v-chip>
-      <v-chip label size="small" variant="tonal" :color="chipColor(category)">{{category}}</v-chip>  
+      <v-chip label size="small" variant="tonal" :color="chipColor(type)"><b>{{type}}</b></v-chip>
+      <v-chip label size="small" variant="tonal" :color="chipColor(category)"><b>{{category}}</b></v-chip>  
     </div>
   </v-card>
 </template>
