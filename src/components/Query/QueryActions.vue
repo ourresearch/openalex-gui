@@ -94,7 +94,7 @@ function exportSelectedAsCsv() {
 }
 .query-actions > * {
   position: relative;
-  top: -2px;
+  top: -6px;
   margin-right: -8px;
 }
 </style>

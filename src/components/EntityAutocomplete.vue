@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import { useAttrs, defineEmits, nextTick } from 'vue';
+import { useAttrs, nextTick } from 'vue';
 import { debounce } from 'lodash';
 import { api } from '@/api';
 import { getConfigs } from '@/oaxConfigs';

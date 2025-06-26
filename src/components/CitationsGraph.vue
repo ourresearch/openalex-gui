@@ -35,7 +35,7 @@ import BarGraph from '@/components/BarGraph.vue';
 
 defineOptions({ name: 'CitationsGraph' });
 
-defineProps({
+const {id} = defineProps({
   countsByYear: Array,
   citedByCount: Number,
   id: String,
