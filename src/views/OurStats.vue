@@ -2,11 +2,11 @@
   <v-container class="page">
 
     <v-row>
-      <v-col cols="12">
+      <v-col cols="12" class="ml-4">
         <div class="text-h4">
           Data Stats
         </div>
-        <div class="text-grey mb-2">
+        <div class="text-grey">
           Last updated {{ new Date().toDateString() }}
         </div>
       </v-col>
@@ -25,7 +25,7 @@
             rounded
             flat
             class="fill-height d-flex flex-column pb-3"
-            :color="`${cardData.color}-lighten-4`"
+            :color="`${cardData.color}-lighten-5`"
           >
             <div class="flex-grow-1 " :class="`${cardData.color}--text`">
               <div class="d-flex align-baseline pa-4 pb-2">
@@ -89,7 +89,6 @@ import { computed } from 'vue';
 import { entityConfigs } from '../entityConfigs';
 import OurStatsEntry from '../components/OurStats/OurStatsEntry.vue';
 
-
 defineOptions({ name: 'OurStats' });
 
 useHead({ title: 'Data Stats' });
@@ -101,11 +100,11 @@ const entitiesWithDocs = [
 
 const cards = computed(() => {
   const copy = _.cloneDeep(entityConfigs);
-  const colors = ['blue', 'green', 'orange', 'purple', 'pink', 'teal', 'indigo'];
+  const colors = ['blue', 'green', 'purple', 'orange', 'pink', 'teal', 'indigo'];
 
   return Object.values(copy).map((e, i) => {
-    if (entitiesWithDocs.includes(e.name)) e.hasDocs = true;
-    if (!e.color) e.color = colors[i % colors.length];
+    if (entitiesWithDocs.includes(e.name)) { e.hasDocs = true; }
+    if (!e.color) { e.color = colors[i % colors.length]; }
     return e;
   });
 });
