@@ -1,14 +1,10 @@
 <template>
-  <div class="">
-   <v-card
-      rounded
-      flat
-      border
-      class="fill-height d-flex flex-column"
-      style="max-width: 500px"
-      :loading="status === 'loading' ? 'grey lighten-2' : undefined"
-    >
-
+  <v-card
+    flat
+    class="fill-height d-flex flex-column rounded-o" 
+    style="max-width: 500px"
+    :loading="status === 'loading' ? 'grey lighten-2' : undefined"
+  >
     <div v-if="config.title" class="pa-3" style="margin-bottom: -20px">
       {{config.title}}
     </div>
@@ -42,47 +38,49 @@
     <div class="px-3 pt-1  d-flex">
       <template v-if="config.oql">
         <test-query-oql
-            v-for="test in oqlTests"
-            :key="test.id"
-            :input="test.input"
-            :expected-response="test.expectedResponse"
-            :test-suite-id="$route.params.testSuiteId"
-            :query-id="config.id"
-            :test-id="test.id"
-            icon
-            :runTest="runSearch+1"
-            @pass="passCount += 1"
-            @fail="failCount += 1"
+          v-for="test in oqlTests"
+          :key="test.id"
+          :input="test.input"
+          :expected-response="test.expectedResponse"
+          :test-suite-id="$route.params.testSuiteId"
+          :query-id="config.id"
+          :test-id="test.id"
+          icon
+          :runTest="runSearch+1"
+          @pass="passCount += 1"
+          @fail="failCount += 1"
         />
       </template>
 
       <v-tooltip
-          location="bottom"
-          :color="searchTestColor"
-          max-width="300"
-          v-if="runSearch"
+        location="bottom"
+        :color="searchTestColor"
+        max-width="300"
+        v-if="runSearch"
       >
         <template v-slot:activator="{ props }">
           <v-btn
-              size="small"
-              icon
-              v-bind="props"
-              :color="searchTestColor"
-              :disabled="!isSearchTestComplete"
-              :href="'/s/' + searchId"
-              target="_blank"
+            size="small"
+            variant="plain"
+            icon
+            v-bind="props"
+            :color="searchTestColor"
+            :disabled="!isSearchTestComplete"
+            :href="'/s/' + searchId"
+            target="_blank"
           >
             <v-icon v-if="isSearchPassing === null">mdi-timer-sand</v-icon>
             <v-icon v-else>mdi-magnify</v-icon>
           </v-btn>
         </template>
+
         <span>
           <span v-if="isSearchPassing">
             <span class="font-weight-bold">Search passed</span>
             (click to view)
           </span>
           <span v-else-if="searchError">
-              <span class="font-weight-bold">Search Error:</span>
+              <span class="font-weight-bold">Search error:</span>
               {{ searchError }}
           </span>
           <span v-else>
@@ -91,13 +89,12 @@
         </span>
       </v-tooltip>
       <v-spacer/>
-      <v-btn icon :to="`/tests/${$route.params.testSuiteId}/${config.id}`">
+      <v-btn variant="plain" icon :to="`/tests/${$route.params.testSuiteId}/${config.id}`">
         <v-icon>mdi-link</v-icon>
       </v-btn>
 
     </div>
   </v-card>
-</div>
 </template>
 
 <script setup>
@@ -106,9 +103,7 @@ import { api } from '@/api';
 import filters from '@/filters';
 import TestQueryOql from '@/components/TestQuery/TestQueryOql.vue';
 
-defineOptions({
-  name: 'TestQuery',
-});
+defineOptions({ name: 'TestQuery' });
 
 const props = defineProps({
   config: Object,
@@ -124,7 +119,6 @@ const searchId = ref(null);
 const isSearchPassing = ref(null);
 const searchError = ref(null);
 const returnData = ref(null);
-
 
 // Computed
 const status = computed(() => {

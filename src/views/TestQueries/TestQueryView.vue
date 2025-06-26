@@ -1,14 +1,16 @@
 <template>
-  <v-container>
+  <div class="color-2 py-2">
+    <v-container>
     <div>
-      <v-btn color="primary" class="ma-4" @click="runSearch += 1">Run Searches</v-btn>
+      <v-btn color="primary" class="ma-4" @click="runSearch += 1">Run Query</v-btn>
     </div>
     <test-query
-        v-if="myQueryConfig"
-        :config="myQueryConfig"
-        :run-search="runSearch"
+      v-if="myQueryConfig"
+      :config="myQueryConfig"
+      :run-search="runSearch"
     />
-  </v-container>
+    </v-container>
+  </div>
 </template>
 
 

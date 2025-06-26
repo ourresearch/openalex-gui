@@ -87,9 +87,9 @@ function worksTabClick() {
   font-size: 12px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  padding: 0px 24px;
+  padding: 0px 16px;
   margin-right: 4px;
-  min-width: 90px;
+  min-width: 70px;
   height: 32px;
   line-height: 32px;
   cursor: pointer;

@@ -3,9 +3,10 @@
     <v-container class="mt-6" >
       <div>
         <v-breadcrumbs
-            class="ma-0 pa-0"
-            :items="breadcrumbItems"
-            size="large"
+          v-if="breadcrumbItems.length > 1"
+          class="ma-0 pa-0"
+          :items="breadcrumbItems"
+          size="large"
         >
           <template v-slot:divider>
             <v-icon>mdi-chevron-right</v-icon>
@@ -23,22 +24,20 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
-defineOptions({
-  name: 'TestQueriesBase',
-});
+defineOptions({ name: 'TestQueriesBase' });
 
 const route = useRoute();
 
 const breadcrumbItems = computed(() => {
   const items = [
-    { text: 'Tests', to: '/tests', exact: true },
+    { title: 'Tests', to: '/tests', exact: true },
   ];
 
   const { testSuiteId, queryId, testType, testId } = route.params;
 
   if (testSuiteId) {
     items.push({
-      text: `Suite: ${testSuiteId}`,
+      title: `Suite: ${testSuiteId}`,
       exact: true,
       to: `/tests/${testSuiteId}`,
     });
@@ -46,7 +45,7 @@ const breadcrumbItems = computed(() => {
 
   if (queryId) {
     items.push({
-      text: `Query: ${queryId}`,
+      title: `Query: ${queryId}`,
       exact: true,
       to: `/tests/${testSuiteId}/${queryId}`,
     });
@@ -54,7 +53,7 @@ const breadcrumbItems = computed(() => {
 
   if (testType) {
     items.push({
-      text: `${testType}`,
+      title: `${testType}`,
       exact: true,
       to: `/tests/${testSuiteId}/${queryId}/${testType}`,
     });
@@ -62,7 +61,7 @@ const breadcrumbItems = computed(() => {
 
   if (testId) {
     items.push({
-      text: `${testId}`,
+      title: `${testId}`,
       exact: true,
       to: `/tests/${testSuiteId}/${queryId}/${testType}/${testId}`,
     });
@@ -72,6 +71,6 @@ const breadcrumbItems = computed(() => {
 });
 
 const pageTitle = computed(() => {
-  return breadcrumbItems.value[breadcrumbItems.value.length - 1]?.text || '';
+  return breadcrumbItems.value[breadcrumbItems.value.length - 1]?.title || '';
 });
 </script>

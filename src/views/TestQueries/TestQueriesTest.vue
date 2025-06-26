@@ -1,6 +1,7 @@
 <template>
-  <v-container>
-    <template v-if="myTest">
+  <div class="color-2">
+    <v-container>
+      <template v-if="myTest">
         <test-query-oql
           v-if="myTestType === 'oql'"
           :input="myTest.input"
@@ -9,11 +10,12 @@
           :query-id="Number($route.params.queryId)"
           :test-id="$route.params.testId"
         />
-    </template>
-    <template v-else>
-      loading....
-    </template>
-  </v-container>
+      </template>
+      <template v-else>
+        loading....
+      </template>
+    </v-container>  
+  </div>
 </template>
 
 
@@ -25,19 +27,14 @@ import { getTestQuery } from '@/components/TestQuery/tests';
 
 import TestQueryOql from '@/components/TestQuery/TestQueryOql.vue';
 
-defineOptions({
-  name: 'TestQueriesTest',
-});
+defineOptions({ name: 'TestQueriesTest' });
 
 const route = useRoute();
 
-// State
 const myQuery = ref(null);
 
-// Test type
 const myTestType = computed(() => route.params.testType);
 
-// Test definition
 const myTest = computed(() => {
   if (!myQuery.value && myTestType.value && route.params.testId) {
     return null;
