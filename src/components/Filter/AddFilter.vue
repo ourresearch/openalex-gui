@@ -106,8 +106,6 @@
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
           <!-- Filter selected, user entering value -->
           <div v-if="newFilterKey">
-            <filter-card-range v-if="newFilterConfig.type === 'range'" :filter-key="newFilterKey"/>
-            <filter-card-search v-if="newFilterConfig.type === 'search'" :filter-key="newFilterKey"/>
             <filter-select-add-option
               v-if="newFilterConfig.type === 'select'"
               :filter-key="newFilterKey"
@@ -160,8 +158,6 @@ import filters from '@/filters';
 import { createSimpleFilter } from '@/filterConfigs';
 import { facetConfigs, getFacetConfig } from '@/facetConfigs';
 
-import FilterCardRange from '@/components/FilterCard/FilterCardRange.vue';
-import FilterCardSearch from '@/components/FilterCard/FilterCardSearch.vue';
 import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue';
 
 defineOptions({ name: 'AddFilter' });
@@ -247,7 +243,7 @@ function setNewFilterKey(filterKey) {
   if (config.type === 'boolean') {
     const oldFilters = url.readFilters(route);
     const newFilter = createSimpleFilter(entityType.value, filterKey, true);
-    console.log("Pushing new filter", newFilter);
+    //console.log("Pushing new filter", newFilter);
     url.pushNewFilters([...oldFilters, newFilter]);
   } else {
     newFilterKey.value = filterKey;
