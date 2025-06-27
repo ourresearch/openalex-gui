@@ -19,7 +19,7 @@
       <v-card class="add-filter-menu-card rounded-o pr-5">
         <v-text-field
           v-model="searchString"
-          variant="default"
+          variant="plain"
           hide-details
           autofocus
           placeholder="Search all filters"
@@ -79,6 +79,7 @@
       </v-card>
     </v-menu>
 
+    <!-- Full Filter Selection Dialog-->
     <v-dialog
       v-model="isDialogOpen"
       width="800"
@@ -87,7 +88,7 @@
       <v-card class="rounded-o">
         <v-text-field
           v-model="searchString"
-          variant="default"
+          variant="plain"
           bg-color="white"
           :prepend-inner-icon="prependIcon"
           hide-details
@@ -99,8 +100,8 @@
           @keyup.enter="onEnter"
           @keydown.down="onDownArrow"
           @click:append="clickCloseSearch"
-          @click:prepend-inner="clickPrependIcon"
         />
+        
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
@@ -270,16 +271,10 @@ function closeDialog() {
   newFilterKey.value = null;
 }
 
-function clickPrependIcon() {
-  if (newFilterKey.value) {
-    newFilterKey.value = null;
-    searchString.value = '';
-  }
-}
-
 // Lifecycle
 onMounted(() => {
   setTimeout(() => {
+    // Fab Animation
     isFabShowing.value = true;
   }, 1);
 });
@@ -305,6 +300,7 @@ watch(() => route.fullPath, () => {
 <style lang="scss">
 .add-filter-menu-card {
   width: auto;
+  max-height: 70vh;
 }
 .add-filter-dialog-body {
   transition: height 300ms !important;

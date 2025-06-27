@@ -427,6 +427,7 @@ table, thead {
   border-top: none !important;
 }
 th {
+  min-height: 50px;
   border-bottom: 3px solid;
   border-color: rgb(var(--v-theme-catEntityDarker));
   background-color: rgb(var(--v-theme-catEntity));

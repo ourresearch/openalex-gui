@@ -1,23 +1,22 @@
 <template>
   <span>
     <v-btn
-        variant="text"
-        size="x-large"
-        v-if="$vuetify.display.mobile"
-        :id="myId"
-        class="rounded-lg pl-0 pr-0"
+      variant="text"
+      size="x-large"
+      v-if="$vuetify.display.mobile"
+      :id="myId"
+      class="rounded-lg pl-0 pr-0"
     >
       <v-icon>{{ entityTypeConfig.icon }}</v-icon>
       <v-icon>mdi-menu-down</v-icon>
     </v-btn>
     <v-btn
-        v-else
-        variant="text"
-        class="text-capitalize rounded-lg elevation-0 entity-type-select-btn"
-        :id="myId"
-        size="x-large"
+      v-else
+      class="text-capitalize rounded-lg elevation-0 entity-type-select-btn"
+      :id="myId"
+      size="x-large"
     >
-      <v-icon>{{ entityTypeConfig.icon }}</v-icon>
+      <v-icon variant="plain">{{ entityTypeConfig.icon }}</v-icon>
       <span class="ml-2">
         {{ entityTypeConfig.displayName }}
       </span>

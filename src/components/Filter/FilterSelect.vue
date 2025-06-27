@@ -26,7 +26,7 @@
       <v-card class="rounded-o">
         <v-text-field
             v-model="searchString"
-            variant="default"
+            variant="plain"
             rounded
             bg-color="white"
             prepend-inner-icon="mdi-magnify"
