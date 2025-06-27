@@ -79,7 +79,7 @@
       </v-card>
     </v-menu>
 
-    <!-- Full Filter Selection Dialog-->
+    <!-- Filter Dialog: Value Inputs or Full Filter List -->
     <v-dialog
       v-model="isDialogOpen"
       width="800"
@@ -93,28 +93,27 @@
           :prepend-inner-icon="prependIcon"
           hide-details
           autofocus
-          :placeholder="placeholder"
-          style=""
+          :placeholder="placeholderText"
           class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
           append-icon="mdi-close"
           @keyup.enter="onEnter"
           @keydown.down="onDownArrow"
           @click:append="clickCloseSearch"
         />
-        
+
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
           <!-- Filter selected, user entering value -->
-          <div v-if="newFilterKey" class="">
+          <div v-if="newFilterKey">
             <filter-card-range v-if="newFilterConfig.type === 'range'" :filter-key="newFilterKey"/>
             <filter-card-search v-if="newFilterConfig.type === 'search'" :filter-key="newFilterKey"/>
             <filter-select-add-option
-                v-if="newFilterConfig.type === 'select'"
-                :filter-key="newFilterKey"
-                :is-open="isMenuOpen"
-                :search-string="searchString"
-                :filters="url.readFilters($route)"
+              v-if="newFilterConfig.type === 'select'"
+              :filter-key="newFilterKey"
+              :is-open="isMenuOpen"
+              :search-string="searchString"
+              :filters="url.readFilters($route)"
             />
           </div>
 
@@ -167,21 +166,16 @@ import FilterSelectAddOption from '@/components/Filter/FilterSelectAddOption.vue
 
 defineOptions({ name: 'AddFilter' });
 
-defineProps({
-  includeChips: Boolean
-});
-
-// Routing and store
 const route = useRoute();
 const store = useStore();
-const entityType = computed(() => store.getters.entityType);
 
-// Reactive state
 const searchString = ref('');
 const isMenuOpen = ref(false);
 const isDialogOpen = ref(false);
 const newFilterKey = ref(null);
 const isFabShowing = ref(false);
+
+const entityType = computed(() => store.getters.entityType);
 
 // Derived config
 const newFilterConfig = computed(() => {
@@ -217,7 +211,7 @@ const potentialFiltersSearchResults = computed(() => {
   );
 });
 
-const placeholder = computed(() => {
+const placeholderText = computed(() => {
   const displayName = newFilterConfig.value?.displayName;
   const pluralized = displayName ? filters.pluralize(displayName, 2) : null;
 
@@ -253,6 +247,7 @@ function setNewFilterKey(filterKey) {
   if (config.type === 'boolean') {
     const oldFilters = url.readFilters(route);
     const newFilter = createSimpleFilter(entityType.value, filterKey, true);
+    console.log("Pushing new filter", newFilter);
     url.pushNewFilters([...oldFilters, newFilter]);
   } else {
     newFilterKey.value = filterKey;
@@ -282,8 +277,7 @@ onMounted(() => {
 // Watchers
 watch(isDialogOpen, to => {
   if (!to) {
-    searchString.value = '';
-    newFilterKey.value = null;
+    closeDialog();
   }
 });
 

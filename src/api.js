@@ -74,7 +74,7 @@ const api = (function () {
 
         let res;
         try {
-            console.log(`GET ${url}`);
+            //console.log(`GET ${url}`);
             res = await axios.get(url, config);
             // console.log(`api GET ${url} success:`, res.data)
         } catch (e) {
