@@ -503,9 +503,5 @@ export default {
         showPasswordResetErrorMessage: (state) => state.showPasswordResetErrorMessage,
         activeSearchId: (state) => state.activeSearchId,
         activeSearchObj: (state) => state.savedSearches.find(s => s.id === state.activeSearchId),
-        activeSearchUrl: (getters) => getters.activeSearchObj?.search_url,
-        activeSearchDescription: (getters) => getters.activeSearchObj?.description,
-        activeSearchName: (getters) => getters.activeSearchObj?.name,
-        activeSearchHasAlert: (getters) => getters.activeSearchObj?.has_alert,
     }
 };

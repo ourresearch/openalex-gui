@@ -356,7 +356,7 @@ const getSuggestions = _.debounce(async () => {
     cleaned.push(fulltext);
   }
 
-  console.log('cleaned suggestions', cleaned);
+  //console.log('cleaned suggestions', cleaned);
   suggestions.value = cleaned;
 }, 100);
 

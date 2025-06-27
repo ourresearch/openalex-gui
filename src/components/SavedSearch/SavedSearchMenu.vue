@@ -13,10 +13,11 @@
 
       <v-menu location="right" open-on-hover>
         <template v-slot:activator="{props}">
-          <v-list-item @click="placeholder" v-bind="props" :disabled="!userId">
+          <v-list-item v-bind="props" :disabled="!userId" @click.stop>
             <template #prepend>
               <v-icon :disabled="!userId">mdi-folder-open-outline</v-icon>
             </template>
+
             <v-list-item-title>
               Open
             </v-list-item-title>
@@ -26,39 +27,41 @@
             </template>
           </v-list-item>
         </template>
+
+        <!-- Submenu of Saved Searches-->
         <v-list>
           <v-list-item
-              v-for="search in searchesToOpen"
-              :key="search.id"
-              @click="openSearch(search.id)"
+            v-for="search in searchesToOpen"
+            :key="search.id"
+            @click="openSearch(search.id)"
           >
             <template #prepend>
               <v-icon>mdi-folder-outline</v-icon>
             </template>
             <v-list-item-title>{{ search.name }}</v-list-item-title>
           </v-list-item>
+
           <v-divider/>
+          
           <v-list-item
-              key="view-em-all"
-              to="/me/searches"
+            key="view-em-all"
+            to="/me/searches"
           >
             <template #prepend>
               <v-icon>mdi-folder-multiple-outline</v-icon>
             </template>
             <v-list-item-title>View all</v-list-item-title>
-            
           </v-list-item>
         </v-list>
       </v-menu>
 
-      <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)">
+      <v-list-item :disabled="!id" @click="createSearchFromTemplate(id)" @click.stop>
         <template #prepend>
           <v-icon :disabled="!id">mdi-folder-multiple-outline</v-icon>
         </template>
         <v-list-item-title>
           Make a copy
         </v-list-item-title>
-        
       </v-list-item>
 
       <v-divider/>
@@ -97,10 +100,10 @@
 
     <v-list-item :disabled="!id" @click="$emit('toggle-alert')">
       <template #prepend>
-        <v-icon :disabled="!id">{{ activeSearchHasAlert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
+        <v-icon :disabled="!id">{{ activeSearchObj?.has_alert ? "mdi-bell-minus" : "mdi-bell-plus-outline" }}</v-icon>
       </template>
       <v-list-item-title>
-        {{ activeSearchHasAlert ? "Remove" : "Create" }} alert
+        {{ activeSearchObj?.has_alert ? "Remove" : "Create" }} alert
       </v-list-item-title>
     </v-list-item>
 
@@ -113,9 +116,7 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { url } from '@/url';
 
-defineOptions({
-  name: 'SavedSearchMenu',
-});
+defineOptions({ name: 'SavedSearchMenu' });
 
 defineProps({
   id: String,
@@ -126,10 +127,9 @@ const emit = defineEmits(['close']);
 const store = useStore();
 const router = useRouter();
 
-// Vuex getters
 const userId = computed(() => store.getters['user/userId']);
 const userSavedSearches = computed(() => store.getters['user/userSavedSearches']);
-const activeSearchHasAlert = computed(() => store.getters['user/activeSearchHasAlert']);
+const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 
 const searchesToOpen = computed(() => userSavedSearches.value);
 

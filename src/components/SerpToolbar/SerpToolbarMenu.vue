@@ -7,7 +7,7 @@
       icon
       @click="$emit('toggle-alert')"
     >
-      <template v-if="activeSearchHasAlert">
+      <template v-if="activeSearchObj?.has_alert">
         <!-- Remove alert-->
         <v-icon color="grey-darken-1">mdi-bell-check</v-icon>
       </template>
@@ -118,7 +118,7 @@ const isDialogOpen = reactive({
 
 // Vuex getters
 const entityType = computed(() => store.getters['entityType']);
-const activeSearchHasAlert = computed(() => store.getters['user/activeSearchHasAlert']);
+const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
 
 // Computed props
 const urlToShare = computed(() => `https://openalex.org${route.fullPath}`);
