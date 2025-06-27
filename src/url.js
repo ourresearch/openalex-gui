@@ -65,20 +65,6 @@ const replaceQueryParam = function (key, value) {
 }
 
 
-const nameFromUrl = function (myUrl) {
-    const urlObj = new URL(myUrl)
-    const name = urlObj.searchParams.get("name") ?? "Unsaved search"
-    return name
-}
-
-
-const setUrlName = function (myUrl, name) {
-    const urlObj = new URL(myUrl)
-    urlObj.searchParams.set("name", name)
-    return urlObj.toString()
-}
-
-
 const pushToRoute = async function (router, newRoute) {
     return await router.push(newRoute)
         .catch((e) => {
@@ -132,6 +118,8 @@ const setHideResults = function (val) {
 
 
 const pushNewFilters = async function (newFilters, entityType) {
+    console.log("url.pushNewFilters", newFilters, entityType)
+    console.trace();
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined
@@ -974,7 +962,6 @@ const url = {
     getColumn,
     addGroupBy,
 
-
     setSidebar,
 
     setSearch,
@@ -991,9 +978,6 @@ const url = {
 
     pushQueryParam,
     replaceQueryParam,
-
-    nameFromUrl,
-    setUrlName,
 
     viewConfigs,
     isViewSet,

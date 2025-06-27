@@ -360,20 +360,6 @@ const getSuggestions = _.debounce(async () => {
   suggestions.value = cleaned;
 }, 100);
 
-onMounted(() => {
-  window.addEventListener('keypress', onKeyPress);
-  interval.value = setInterval(() => {
-    if (!newFilter.value && !searchString.value && suggestions.value.length) {
-      suggestions.value = [];
-    }
-  }, 10);
-});
-
-onBeforeUnmount(() => {
-  clearInterval(interval.value);
-  window.removeEventListener('keypress', onKeyPress);
-});
-
 watch(searchString, val => {
   if (val === null || val === undefined) return;
   if (newFilter.value?.type && newFilter.value.type !== 'select') return;
@@ -383,13 +369,6 @@ watch(searchString, val => {
 watch(() => route.fullPath, () => {
   clear();
 });
-
-function onKeyPress(e) {
-  if (e.key === 'Enter') {
-    isEnterPressed.value = true;
-    onEnterKeyup();
-  }
-}
 </script>
 
 

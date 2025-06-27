@@ -2,13 +2,13 @@
   <v-card rounded>
     <div class="pa-2">
       <v-text-field
+        v-model="searchString"
         style="width: 100%;"
         rounded
         variant="outlined"
-        v-model="searchString"
         hide-details
-        @keydown.enter="submit"
         autofocus
+        @keydown.enter="submit"
       >
       </v-text-field>
     </div>
@@ -19,6 +19,7 @@
     </v-card-actions>
   </v-card>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -64,8 +65,9 @@ const value = computed({
 
 // Methods
 function submit() {
-  emit('close');
+  console.log('FilterCardRange submit()', searchString.value);
   value.value = searchString.value;
+  //emit('close');
 }
 
 // Init on mount
