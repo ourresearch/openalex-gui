@@ -122,7 +122,7 @@
       <v-card rounded class="group-by-dialog">
         <v-text-field
           v-model="searchString"
-          variant="default"
+          variant="plain"
           density="compact"
           bg-color="white"
           prepend-inner-icon="mdi-magnify"

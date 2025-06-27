@@ -15,7 +15,7 @@
       <v-text-field
         v-model="search"
         bg-color="white"  
-        variant="default"
+        variant="plain"
         hide-details
         autofocus
         placeholder="Search filters"
