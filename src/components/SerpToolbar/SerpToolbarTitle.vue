@@ -14,7 +14,7 @@
             rounded
             class="font-weight-regular"
           >
-            {{ activeSearchName || "Unsaved search" }}
+            {{ activeSearchObj?.name || "Unsaved search" }}
             <v-icon class="ml-1">mdi-menu-down</v-icon>
           </v-btn>
         </template>
@@ -72,7 +72,8 @@ const isDialogOpen = reactive({
 // Vuex getters
 const entityType = computed(() => store.getters['entityType']);
 const userId = computed(() => store.getters['user/userId']);
-const activeSearchName = computed(() => store.getters['user/activeSearchName']);
+const activeSearchObj = computed(() => store.getters['user/activeSearchObj']);
+
 
 // Vuex mutations
 const setIsSignupDialogOpen = (val) => store.commit('user/setIsSignupDialogOpen', val);

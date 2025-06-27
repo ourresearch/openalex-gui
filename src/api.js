@@ -199,13 +199,12 @@ const api = (function () {
     }
 
     const getAutocompleteResponses = async function (entityType, filterKey, searchString) {
-        console.log("getAutocompleteResponses", entityType, filterKey, searchString)
+        //console.log("getAutocompleteResponses", entityType, filterKey, searchString)
         if (!filterKey && entityType !== "works") {
             filterKey = "ids.openalex"
         }
 
         const filterValueEntityId = getFacetConfig(entityType, filterKey)?.entityId
-        // console.log("getAutocompleteResponses autocompleteEntityName", filterValueEntityId)
 
         const myUrl = url.makeAutocompleteUrl(filterValueEntityId, searchString)
         const resp = await getUrl(myUrl)
@@ -263,7 +262,7 @@ const api = (function () {
     }
 
     const getSuggestions = async function (entityType, filterKey, searchString, filters) {
-        console.log("getSuggestions", entityType, filterKey, searchString)
+        //console.log("getSuggestions", entityType, filterKey, searchString)
         if (!searchString) {
             return await getGroups(entityType, filterKey, {
                 searchString,
