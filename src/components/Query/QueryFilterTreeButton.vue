@@ -11,6 +11,7 @@
         <v-icon size="small">mdi-plus</v-icon>{{ props.text }}
       </v-btn>
     </template>
+
     <v-card flat class="rounded-o" style="width: 250px" v-if="isMenuOpen">
       <v-text-field
         v-model="search"
@@ -22,25 +23,33 @@
         @keydown.down="onDownArrow"
       >
         <template #prepend-inner>
-          <v-icon color="primary">mdi-magnify</v-icon>
+          <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
         </template>
       </v-text-field>
-      <v-divider/>
+
+      <v-divider class="mt-2"/>
 
       <v-list class="py-0" style="max-height: calc(60vh - 56px); overflow-y: scroll;">
-        <v-list-item
-          v-for="(column, i) in filteredFilters"
-          :key="column.id"
-          :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
-          @click="$emit('addFilter', column)"
-        >
-          <template #prepend>
-            <v-icon>{{ column.icon }}</v-icon>
-          </template>
-          <v-list-item-title>
-            {{ filters.titleCase(column.displayName) }}
-          </v-list-item-title>
-        </v-list-item>
+        <template v-if="filteredFilters.length > 0">
+          <v-list-item
+            v-for="(column, i) in filteredFilters"
+            :key="column.id"
+            :class="lineBetweenPopularIndex === i ? 'line-above' : ''"
+            @click="$emit('addFilter', column)"
+          >
+            <template #prepend>
+              <v-icon>{{ column.icon }}</v-icon>
+            </template>
+            <v-list-item-title>
+              {{ filters.titleCase(column.displayName) }}
+            </v-list-item-title>
+          </v-list-item>
+        </template>
+        <template v-else>
+          <v-list-item>
+            <v-list-item-title class="text-grey">No matching filters.</v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-card>
   </v-menu>

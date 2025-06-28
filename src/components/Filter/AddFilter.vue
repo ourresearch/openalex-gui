@@ -1,6 +1,11 @@
 <template>
   <div>
-    <v-menu v-model="isMenuOpen" location="top left" :offset="[-60, 0]" location-strategy="connected" :close-on-content-click="false">
+    <v-menu 
+      v-model="isMenuOpen"
+      location="top left"
+      :offset="[-60, 0]"
+      :close-on-content-click="false"
+    >
       <template v-slot:activator="{props}">
         <v-fab-transition>
           <v-btn
@@ -19,6 +24,7 @@
       <v-card class="add-filter-menu-card rounded-o pr-5">
         <v-text-field
           v-model="searchString"
+          ref="addFilterInitialInput"
           variant="plain"
           hide-details
           autofocus
@@ -27,26 +33,33 @@
           @keydown.down="onDownArrow"
         >
           <template #prepend-inner>
-            <v-icon color="primary">mdi-magnify</v-icon>
+            <v-icon color="primary" class="ml-4">mdi-magnify</v-icon>
           </template>
         </v-text-field>
 
         <v-divider/>
         
         <v-list v-if="searchString">
-          <v-list-item
-            v-for="filter in potentialFiltersSearchResults"
-            :key="filter.key"
-            @click="setNewFilterKey(filter.key)"
-            :disabled="filter.disabled"
-          >
-            <template #prepend>
-              <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
-            </template>
-            <v-list-item-title>
-              {{ filters.titleCase(filter.displayName) }}
-            </v-list-item-title>        
-          </v-list-item>
+          <template v-if="potentialFiltersSearchResults.length > 0">
+            <v-list-item
+              v-for="filter in potentialFiltersSearchResults"
+              :key="filter.key"
+              @click="setNewFilterKey(filter.key)"
+              :disabled="filter.disabled"
+            >
+              <template #prepend>
+                <v-icon :disabled="filter.disabled">{{ filter.icon }}</v-icon>
+              </template>
+              <v-list-item-title>
+                {{ filters.titleCase(filter.displayName) }}
+              </v-list-item-title>        
+            </v-list-item>
+          </template>
+          <template v-else>
+            <v-list-item>
+              <v-list-item-title class="text-grey">No matching filters.</v-list-item-title>
+            </v-list-item>
+          </template>
         </v-list>
 
         <v-list v-if="!searchString">
@@ -85,26 +98,32 @@
       width="800"
       scrollable
     >
-      <v-card class="rounded-o">
+      <v-card class="add-filter-dialog-card rounded-o">
         <v-text-field
           v-model="searchString"
           variant="plain"
           bg-color="white"
-          :prepend-inner-icon="prependIcon"
+          flat
           hide-details
+          center-affix
           autofocus
           :placeholder="placeholderText"
           class="add-filter-text-field mr-4 py-3 text-lg-h5 font-weight-regular"
-          append-icon="mdi-close"
           @keyup.enter="onEnter"
           @keydown.down="onDownArrow"
-          @click:append="clickCloseSearch"
-        />
+        >
+          <template #prepend-inner>
+            <v-icon class="ml-4">{{ prependIcon }}</v-icon>
+          </template>
+          <template #append-inner>
+            <v-icon @click="clickCloseSearch">mdi-close</v-icon>
+          </template>
+        </v-text-field>
 
         <v-divider/>
 
         <v-card-text :style="{height: dialogBodyHeight}" class="add-filter-dialog-body pa-0">
-          <!-- Filter selected, user entering value -->
+          <!-- Filter selected, user choosing value -->
           <div v-if="newFilterKey">
             <filter-select-add-option
               v-if="newFilterConfig.type === 'select'"
@@ -115,7 +134,7 @@
             />
           </div>
 
-          <!-- No filter selected yet, what are my options? -->
+          <!-- No filter selected, what are my options? -->
           <div v-else>
             <v-list-subheader class="pl-5">
               {{ searchString ? "Search results" : "All filters" }}
@@ -149,7 +168,7 @@
 
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
@@ -170,6 +189,7 @@ const isMenuOpen = ref(false);
 const isDialogOpen = ref(false);
 const newFilterKey = ref(null);
 const isFabShowing = ref(false);
+const addFilterInitialInput = ref(null);
 
 const entityType = computed(() => store.getters.entityType);
 
@@ -220,6 +240,7 @@ const placeholderText = computed(() => {
 
 // Methods
 function onDownArrow(event) {
+  // Workaround to allow down arrow press to focus first element in list
   event.preventDefault();
   const focusable = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
   const elements = Array.from(document.querySelectorAll(focusable))
@@ -271,6 +292,16 @@ onMounted(() => {
 });
 
 // Watchers
+watch(isMenuOpen, async (to) => {
+  if (to) {
+    setTimeout(() => {
+      if (addFilterInitialInput.value) {
+        addFilterInitialInput.value.focus();
+      }
+    }, 50);
+  }
+});
+
 watch(isDialogOpen, to => {
   if (!to) {
     closeDialog();
@@ -291,6 +322,15 @@ watch(() => route.fullPath, () => {
 .add-filter-menu-card {
   width: auto;
   max-height: 70vh;
+  min-height: 200px;
+}
+.add-filter-menu-card, .add-filter-dialog-card {
+  input {
+    padding-top: 4px !important;
+  }
+  .v-field__prepend-inner, .v-field__append-inner {
+    padding-top: 12px !important;
+  }
 }
 .add-filter-dialog-body {
   transition: height 300ms !important;
