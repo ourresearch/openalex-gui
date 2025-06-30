@@ -1,19 +1,19 @@
 <template>
   <v-app>
     <v-progress-linear
-        indeterminate
-        color="primary"
-        style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999"
-        v-if="globalIsLoading"
+      indeterminate
+      color="primary"
+      style="position: fixed; top: 0; left: 0; width: 100%; z-index: 9999"
+      v-if="globalIsLoading"
     />
     <v-app-bar
-        flat
-        :height="$vuetify.display.mobile ? undefined : 70"
-        color="white"
-        class=""
-        absolute
-        :extended="$vuetify.display.mobile && $route.name === 'Serp'"
-        extension-height="70"
+      flat
+      :height="$vuetify.display.mobile ? undefined : 70"
+      color="white"
+      class=""
+      absolute
+      :extended="$vuetify.display.mobile && $route.name === 'Serp'"
+      extension-height="70"
     >
       <router-link :to="{name: 'Home'}" class="logo-link ml-3">
         <img

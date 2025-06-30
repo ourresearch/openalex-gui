@@ -1,14 +1,50 @@
 <template>
   <div class="color-2 pt-3">
   <v-container>
-    <v-card rounded flat class="px-8 py-6 page">
+    <v-navigation-drawer 
+      v-model="isNavOpen" 
+      :temporary="display.mobile.value"
+      :permanent="!display.mobile.value"
+      location="start"
+      width="250"
+      :transition="false"
+    >
+      <v-list-item 
+        title="Entity Types"
+        prepend-icon="mdi-cog"
+      >
+        <template #title>
+          <span class="font-weight-medium" style="font-size: 12px;">Entity Types</span>
+        </template>
+      </v-list-item>
+      <v-divider class="mb-3"/>
+      <v-list-item 
+        v-for="config in sortedConfigs"
+        :key="config.displayName"
+        :title="filters.titleCase(config.displayName)"
+        :prepend-icon="config.icon"
+        :to="'#' + config.id"
+        :active="activeSection === config.id"
+        class="text-grey-darken-2"
+      />
+    </v-navigation-drawer>
+
+    <template v-if="display.mobile.value">
+      <v-btn 
+        @click="isNavOpen = !isNavOpen" 
+        append-icon="mdi-menu-down"
+        style="position: fixed; top: 75px; left: 10px; z-index: 9999;"
+      >Entity Types</v-btn>
+    </template>
+
+    <v-card rounded flat class="px-8 py-6 mt-4 analytics-docs" :transition="false">
       <h1 class="text-h4 mb-2" @click="handleTitleClick">Analytics Documentation</h1>
       
       <div class="mb-9 text-grey-darken-1">Queries in OpenAlex Analytics start by generating a set of works to consider.
-         These works may then be optionally grouped into another entity type like authors or institutions. 
-         If no works filters are applied all works in OpenAlex are considered. 
-         Filters may be applied both to the initial work set and to the resulting grouped entities. 
-         Below is a list of all available fields for filtering each entity type, displaying as return columns, or sorting.</div>
+         These works can be optionally grouped into a different entity type like authors or institutions. 
+         If no works filters are applied then all works in OpenAlex are considered in the query.
+         When grouping into another entity type, another set of filters can be applied specific to that entity type. 
+         Below is a list of all available fields for filtering each entity type, displaying data columns, or sorting.</div>
 
       <!-- Debug Mode Controls -->
       <div v-if="debugMode" class="mb-6 pa-4 bg-grey-lighten-4 rounded">
@@ -44,7 +80,7 @@
 
       <!-- Entity Sections -->
       <div v-for="config in sortedConfigs" :key="config.displayName" class="mb-14">
-        <h2 class="text-h5 mb-1 font-weight-bold">
+        <h2 class="text-h5 mb-1 font-weight-bold" :id="config.id">
           {{ filters.titleCase(config.displayName) }}
           <span v-if="debugMode" class="text-subtitle-2 text-grey ml-2">
             ({{ countVisibleColumns(config.columns) }} columns)
@@ -84,18 +120,20 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useDisplay } from 'vuetify';
 import filters from '@/filters';
 import { getConfigs } from '@/oaxConfigs';
 
-defineOptions({
-  name: 'AnalyticsDocs',
-});
+defineOptions({ name: 'AnalyticsDocs' });
 
-// State
 const configs = ref(getConfigs());
 const debugMode = ref(false);
 const clickCount = ref(0);
+const activeSection = ref(null);
+const display = useDisplay();
+const isNavOpen = ref(!display.mobile.value);
+
 let clickTimer = null;
 
 const selectedFields = ref([]);
@@ -232,14 +270,49 @@ function availableSelectedFields(column) {
       column[field] !== undefined && !isDisplayedInDefault(field)
   );
 }
+
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          console.log(entry.target.id);
+          activeSection.value = entry.target.id;
+        }
+      });
+    },
+    {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.6 // adjust as needed
+    }
+  );
+
+  sortedConfigs.value.forEach(config => {
+    const el = document.getElementById(config.id);
+    if (el) observer.observe(el);
+  });
+
+  onUnmounted(() => {
+    observer.disconnect();
+  });
+});
+
 </script>
 
-<style scoped>
-.page {
-  max-width: 900px;
+<style>
+.v-app-bar {
+  position: fixed !important;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.analytics-docs {
+  max-width: 800px;
   margin: 0 auto;
 }
-.v-icon {
-  margin-top: -5px;
+.analytics-docs .v-icon {
+  margin-top: -4px;
 }
 </style>
