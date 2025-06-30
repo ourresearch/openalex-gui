@@ -1,11 +1,11 @@
 <template>
   <v-card
-      min-height="100"
-      :min-width="minWidth"
-      class="group-by rounded-o flex-grow-1"
-      flat
-      :loading="isLoading"
-      style="width: 100%;"
+    min-height="100"
+    :min-width="minWidth"
+    class="group-by rounded-o flex-grow-1"
+    flat
+    :loading="isLoading"
+    style="width: 100%;"
   >
     <v-toolbar flat color="transparent">
       <v-icon color="grey-darken-2 mr-1" v-if="filterConfig?.icon">{{ filterConfig.icon }}</v-icon>
@@ -15,52 +15,52 @@
       
       <v-spacer/>
 
-      <v-menu location="bottom">
-        <template v-slot:activator="{props}">
-          <v-btn
-              icon
-              v-bind="props"
-          >
-            <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item :href="csvUrl">
-            <template #prepend>
-              <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
-            </template>
-            <v-list-item-title class="mr-2">Export</v-list-item-title>
-            <template #append>
-              <v-list-item-subtitle>.csv</v-list-item-subtitle>
-            </template>
-          </v-list-item>
+      <div class="toolbar-actions">
+        <v-menu location="bottom">
+          <template v-slot:activator="{props}">
+            <v-btn icon v-bind="props">
+              <v-icon color="grey-darken-2">mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item :href="csvUrl">
+              <template #prepend>
+                <v-icon color="grey-darken-2">mdi-tray-arrow-down</v-icon>
+              </template>
+              <v-list-item-title class="mr-2">Export</v-list-item-title>
+              <template #append>
+                <v-list-item-subtitle>.csv</v-list-item-subtitle>
+              </template>
+            </v-list-item>
 
-          <v-list-item :href="apiUrl" target="_blank">
-            <template #prepend>
-              <v-icon color="grey-darken-2">mdi-api</v-icon>
-            </template>
-            <v-list-item-title class="mr-2">View in API</v-list-item-title>
-            <template #append>
-              <v-list-item-subtitle>.json</v-list-item-subtitle>
-            </template>
-          </v-list-item>
+            <v-list-item :href="apiUrl" target="_blank">
+              <template #prepend>
+                <v-icon color="grey-darken-2">mdi-api</v-icon>
+              </template>
+              <v-list-item-title class="mr-2">View in API</v-list-item-title>
+              <template #append>
+                <v-list-item-subtitle>.json</v-list-item-subtitle>
+              </template>
+            </v-list-item>
 
-        </v-list>
-      </v-menu>
-      <v-btn v-if="!props.isEntityPage" icon @click="url.toggleGroupBy(props.filterKey)">
-        <v-icon color="grey-darken-2">mdi-close</v-icon>
-      </v-btn>
+          </v-list>
+        </v-menu>
+
+        <v-btn v-if="!props.isEntityPage" icon @click="url.toggleGroupBy(props.filterKey)">
+          <v-icon color="grey-darken-2">mdi-close</v-icon>
+        </v-btn>
+      </div>
 
     </v-toolbar>
     <div v-if="groupsTruncated?.length || selectedGroupIds?.length" class="card-body">
 
       <div v-if="props.filterKey==='publication_year'" style="min-width: 200px">
         <bar-graph
-            v-if="groupsTruncated?.length > 1"
-            :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
-            style="height: 100px;"
-            class="pa-2"
-            @click="selectGroup"
+          v-if="groupsTruncated?.length > 1"
+          :bars="groupsTruncated?.map(g => { return {key: g.value, count: g.count}})"
+          style="height: 100px;"
+          class="pa-2"
+          @click="selectGroup"
         />
         <div v-else-if="groupsTruncated?.length > 0" class="text-h4 pa-3 hover-color-1" style="cursor: pointer;" @click="isSelected = false">
           <v-icon class="mr-2 ml-1">mdi-checkbox-marked</v-icon>
@@ -94,13 +94,13 @@
       <v-table dense class="bg-transparent" v-else style="width: 100%;">
         <tbody>
         <group-by-table-row
-            v-for="row in groupsTruncated"
-            :key="row.value + row.count"
-            :filter-key="props.filterKey"
-            :value="row.value"
-            :display-value="row.displayValue"
-            :count="row.count"
-            :hide-checkbox="route.name !== 'Serp'"
+          v-for="row in groupsTruncated"
+          :key="row.value + row.count"
+          :filter-key="props.filterKey"
+          :value="row.value"
+          :display-value="row.displayValue"
+          :count="row.count"
+          :hide-checkbox="route.name !== 'Serp'"
         />
         </tbody>
       </v-table>
@@ -276,5 +276,8 @@ watch(isDialogOpen, (to) => { if (!to) closeDialog(); });
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
+}
+.toolbar-actions .v-btn {
+  margin-right: -16px;
 }
 </style>
