@@ -2,9 +2,11 @@
     <span class="results-count">
 
       <!-- Entity Tab -->
-      <span v-if="stashedQueryState || querySubjectEntity !== 'works'"
+      <span 
+        v-if="stashedQueryState || querySubjectEntity !== 'works'"
         class="tab entities-count"
-        @click="entityTabClick">
+        @click="entityTabClick"
+      >
         <span v-if="stashedQueryState">
           {{ filters.millify(stashedQueryState.results_meta?.count) }}
           {{ filters.pluralize(stashedQueryState.query.get_rows) }}
@@ -28,8 +30,8 @@
           {{ filters.millify(resultsMeta?.count)}}
           works
         </span>
-        <span v-else-if="hasResults">
-          {{ filters.millify(resultsMeta?.works_count)}}
+        <span v-else-if="hasResults && resultsWorksCount !== null">
+          {{ filters.millify(resultsWorksCount)}}
           works
         </span>
         <span v-else>
@@ -56,6 +58,7 @@ defineOptions({ name: "QueryResultsCount" });
 const store = useStore();
 
 const resultsMeta = computed(() => store.getters["search/resultsMeta"]);
+const resultsWorksCount = computed(() => store.getters["search/resultsWorksCount"]);
 const hasResults = computed(() => store.getters["search/hasResults"]);
 const querySubjectEntity = computed(() => store.getters["search/querySubjectEntity"]);
 const stashedQueryState = computed(() => store.getters["search/stashedQueryState"]);
@@ -95,7 +98,10 @@ function worksTabClick() {
   cursor: pointer;
 
   &:hover {
-    background-color: #eee;
+    filter: brightness(0.95);
+  }
+  &:active {
+    filter: brightness(0.85);
   }
 }
 .entities-count {
