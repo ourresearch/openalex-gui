@@ -8,7 +8,7 @@ import {openAlexCountries} from "@/countries";
 import {getFacetConfig} from "@/facetConfigs";
 import {openAlexSdgs} from "@/sdgs";
 import {getEntityConfig} from "@/entityConfigs";
-import {makeUnderlyingWorksQuery, getLabelsInQuery} from "@/query";
+import {getLabelsInQuery} from "@/query";
 import {urlBase, axiosConfig, DISABLE_SERVER_CACHE} from "@/apiConfig";
 
 
@@ -55,7 +55,6 @@ const api = (function () {
     }
 
     const getUrl = async function (url, config) {
-        
         config = config || axiosConfig();
         
         if (!url.startsWith("http")) { 
@@ -304,9 +303,6 @@ const api = (function () {
             is_test,
         };
 
-        if (query.get_rows !== "works" && !options.skipPrefetch) {
-            //prefetchUnderlyingWorksQuery(query); // Prefetch underlying works query but don't wait
-        }
         //console.log("api.createSearch to " + url)
         const resp = await post(url, data, axiosConfig({noCache: true, userAuth: true}));
         //console.log("Created Search: " + resp.data.id + " with filters:");
@@ -315,8 +311,7 @@ const api = (function () {
     }
 
     const getSearch = async function(searchId, options={}) {
-        // Gets the status/results of an existing redshift query, routing to user api if needed
-        
+        // Gets the status/results of an existing redshift query
         if (!searchId) { 
             console.log("!!! api.getSearch: received null ID");
             return; 
@@ -337,18 +332,6 @@ const api = (function () {
         //console.log("api.getSearch getting: " + searchId);
         const resp = await getUrl(url, axiosConfig({noCache: true, userAuth: true}));
         return resp;
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    const prefetchUnderlyingWorksQuery = async function(query) {
-        console.log("Prefetching underlying works query");
-        const worksQuery = makeUnderlyingWorksQuery(query);
-        const options = {
-            bypass_cache: true,
-            is_test: false,
-            skipPrefetch: true
-        };
-        createSearch(worksQuery, options);
     }
 
     const getSearchUrl = function(searchId) {

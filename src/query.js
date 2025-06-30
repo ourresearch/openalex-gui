@@ -37,6 +37,20 @@ const makeUnderlyingWorksQuery = (query) => {
     return worksQuery;
 };
 
+const areCoreQuriesEqual = (query1, query2) => {
+    // Returns true if queries are equal in get_rows, filter_works, filter_aggs
+    const [q1, q2] = [query1, query2].map(q => {
+        return {
+            get_rows: q.get_rows,
+            filter_works: _.cloneDeep(q.filter_works),
+            filter_aggs: _.cloneDeep(q.filter_aggs),
+        };
+    });
+    const areEqual = _.isEqual(q1, q2);
+    console.log("areCoreQuriesEqual", q1, q2, areEqual);
+    return areEqual;
+};
+
 const getLabelsInQuery = (query) => {
     const labels = [];
     const walkFilters = (filters, entity) => {
@@ -67,6 +81,7 @@ const isCollectionFilter = (filter) => {
 export {
     baseQuery,
     makeUnderlyingWorksQuery,
+    areCoreQuriesEqual,
     getLabelsInQuery,
     isCollectionFilter,
 };

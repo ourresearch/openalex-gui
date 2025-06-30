@@ -3,7 +3,7 @@ import {api} from "@/api";
 import { navigation } from "@/navigation"; 
 import tracking from "@/tracking";
 import {getConfigs} from "@/oaxConfigs";
-import {baseQuery, makeUnderlyingWorksQuery} from "@/query"; 
+import {baseQuery, makeUnderlyingWorksQuery, areCoreQuriesEqual} from "@/query"; 
 import {queryTitle} from "@/utils/queryTitle"; 
 import {oqlToQuery, queryToOQL} from "@/oqlParse/oqlParse";
 
@@ -12,11 +12,12 @@ const stateDefaults = function () {
         id: null,
         oql: "",
         submittedQuery: {...baseQuery()}, // query that has been submitted to the API
-        query: {...baseQuery()}, // In progress query, update with each UI change
+        query: {...baseQuery()}, // In progress query, updates with each UI change
         is_completed: false,
         results_header: [],
         results_body: [],
         results_meta: null,
+        results_works_count: null,
         results_timestamps: null,
         backend_error: null,
         redshift_sql: null,
@@ -119,16 +120,14 @@ export default {
         setEntireSearchSelected(state, value) {
             state.isEntireSearchSelected = value;
         },
+        setResultsWorksCount(state, count) {
+            state.results_works_count = count;
+        },
         setStashedQueryState(state, queryState) {
             state.stashedQueryState = _.cloneDeep(queryState);
         },
     },
     actions: {
-        createSearchFromOql: async function ({dispatch}, oql) {
-            //console.log("createSearchFromOql", oql, oqlToQuery(oql))
-            const query = oqlToQuery(oql);
-            return await dispatch("createSearchFromQuery", query);
-        },
         createSearchFromQuery: async function ({commit, dispatch, rootState}, query) {
             //console.log("createSearchFromQuery", query);
             
@@ -167,6 +166,10 @@ export default {
                     // Replace loading state null ID with actual ID
                     await navigationReplace({name: 'search', params: {id: searchId}}, rootState);
                     
+                    if (query.get_rows !== "works" && query.get_rows !== "summary") {
+                        dispatch('prefetchUnderlyingWorksQuery', query); // Prefetch underlying works query
+                    }
+
                 } else {
                      // Handle cases where the API might not return an ID as expected
                      console.error("API did not return a search ID.");
@@ -177,6 +180,11 @@ export default {
                 commit('setBackendError', error);
                 commit('setSearchCompleted', true);
             }
+        },
+        createSearchFromOql: async function ({dispatch}, oql) {
+            //console.log("createSearchFromOql", oql, oqlToQuery(oql))
+            const query = oqlToQuery(oql);
+            return await dispatch("createSearchFromQuery", query);
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
             commit('setSearchId', id);
@@ -231,6 +239,29 @@ export default {
             
             if (data.is_completed) {
                 tracking.trackSearch(data);
+            }
+        },
+        prefetchUnderlyingWorksQuery: async function({commit, state}, query) {
+            console.log("Prefetching underlying works query");
+            console.log(query);
+            const worksQuery = makeUnderlyingWorksQuery(query);
+            const options = {
+                bypass_cache: true,
+                is_test: false,
+            };
+            const resp = await api.createSearch(worksQuery, options);
+            if (resp.data.id) {
+                // Poll for results, do nothing but stock cache
+                const poll = setInterval(async () => {
+                    const data = await api.getSearch(resp.data.id, {is_polling: true});
+                    if (data.is_completed) {
+                        if (areCoreQuriesEqual(data.query, state.submittedQuery)) {
+                            console.log("Setting results works count: " + data.meta.count);
+                            commit('setResultsWorksCount', data.meta.count);
+                        }
+                        clearInterval(poll);
+                    }
+                }, 500);
             }
         },
         createNewSearch: async function ({dispatch}) {
@@ -310,6 +341,7 @@ export default {
         resultsHeader: (state) => state.results_header,
         resultsBody: (state) => state.results_body,
         resultsMeta: (state) => state.results_meta,
+        resultsWorksCount: (state) => state.results_works_count,
         submittedQuery: (state) => state.submittedQuery,
         query: (state) => state.query,
         querySubjectEntity: (state) => {

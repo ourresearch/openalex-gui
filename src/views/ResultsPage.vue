@@ -50,6 +50,7 @@ const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']
 // Vuex mutations/actions
 const setIsInitialLoad = (v) => store.commit('setIsInitialLoad', v);
 const getSearch = (payload) => store.dispatch('search/getSearch', payload);
+const prefetchUnderlyingWorksQuery = (query) => store.dispatch('search/prefetchUnderlyingWorksQuery', query);
 
 // Title
 onMounted(() => {
@@ -62,7 +63,7 @@ onMounted(() => {
 
 // Methods
 const pollSearch = async () => {
-  if (queryIsCompleted.value || isSearchCanceled.value) return;
+  if (queryIsCompleted.value || isSearchCanceled.value) { return; }
 
   await getSearch({
     id: route.params.id,
@@ -124,6 +125,10 @@ watch(
       is_polling: !isInitialLoad.value,
       bypass_cache,
     });
+
+    if (isInitialLoad.value) {
+      prefetchUnderlyingWorksQuery(store.state.search.submittedQuery);
+    }
 
     pollCount.value = 0;
     pollSearch();
