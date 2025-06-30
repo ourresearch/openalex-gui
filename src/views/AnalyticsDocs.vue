@@ -324,10 +324,18 @@ onMounted(() => {
   });
 });
 
+onMounted(() => {
+  document.querySelector('.v-app-bar').classList.add('fixed');
+});
+
+onUnmounted(() => {
+  document.querySelector('.v-app-bar').classList.remove('fixed');
+});
+
 </script>
 
 <style>
-.v-app-bar {
+.v-app-bar.fixed {
   position: fixed !important;
   top: 0;
   z-index: 10;
