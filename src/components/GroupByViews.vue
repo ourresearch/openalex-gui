@@ -1,6 +1,6 @@
 <template>
   <v-card class="group-by-views" flat color="transparent">
-    <v-toolbar dense flat color="transparent">
+    <v-toolbar dense flat color="transparent" style="margin-bottom: -16px;" >
       <v-toolbar-title class="font-weight-bold">Stats</v-toolbar-title>
       <v-spacer/>
       <action-menu v-if="entityType === 'works'" class="ml-2" action="group_by"/>
@@ -173,6 +173,6 @@ const csvUrl = computed(() => {
   padding-left: 0 !important;
 }
 .group-by-views .v-toolbar__content > .v-toolbar-title {
-    margin-inline-start: 0px !important;
+  margin-inline-start: 16px !important;
 }
 </style>
