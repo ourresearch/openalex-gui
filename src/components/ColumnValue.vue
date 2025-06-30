@@ -30,7 +30,7 @@
     <template v-else-if="property.config.type==='number'">
       <!-- number: currency -->
       <template v-if="property.config.isCurrency">
-        ${{ filters.toPrecision(property.value) }}
+        ${{ property.value.toLocaleString() }}
       </template>
 
       <!-- number: year -->
@@ -45,7 +45,7 @@
 
       <!-- number: float or integer -->
       <template v-else>
-        {{ filters.toPrecision(property.value) }}
+        {{ property.value.toLocaleString() }}
       </template>
     </template>
 
