@@ -40,11 +40,26 @@
     <v-card rounded flat class="px-8 py-6 mt-4 analytics-docs" :transition="false">
       <h1 class="text-h4 mb-2" @click="handleTitleClick">Analytics Documentation</h1>
       
-      <div class="mb-9 text-grey-darken-1">Queries in OpenAlex Analytics start by generating a set of works to consider.
-         These works can be optionally grouped into a different entity type like authors or institutions. 
-         If no works filters are applied then all works in OpenAlex are considered in the query.
-         When grouping into another entity type, another set of filters can be applied specific to that entity type. 
-         Below is a list of all available fields for filtering each entity type, displaying data columns, or sorting.</div>
+      <div class="mb-4 text-grey-darken-1">
+        Queries in OpenAlex Analytics start by generating a set of works to consider.
+        These works can be optionally grouped into a different entity type like authors or institutions. 
+        If no works filters are applied then all works in OpenAlex are considered in the query.
+        When grouping into another entity type, another set of filters can be applied specific to that entity type. 
+        Below is a list of all available fields for filtering each entity type, displaying data columns, or sorting.
+      </div>
+
+      <v-text-field
+        v-model="searchStr"
+        label="Search all fields"
+        variant="solo-filled"
+        flat
+        rounded
+        prepend-inner-icon="mdi-magnify"
+        single-line
+        density="comfortable"
+        hide-details
+        class="mb-8"
+      />
 
       <!-- Debug Mode Controls -->
       <div v-if="debugMode" class="mb-6 pa-4 bg-grey-lighten-4 rounded">
@@ -88,7 +103,7 @@
         </h2>
         <p class="mb-4 text-grey-darken-1">{{ config.descrFull }}</p>
         <div style="border: 1px solid #e0e0e0;">
-          <div v-for="(column, columnId) in config.columns" :key="columnId" class="mb-3">
+          <div v-for="(column, columnId) in columnsToShow(config.id)" :key="columnId" class="mb-3">
             <div class="bg-green-lighten-5 mb-3 py-2 px-3">
               <v-icon color="grey-darken-1" size="x-small" class="mr-2">{{ config.icon }}</v-icon>
               <strong>{{ filters.titleCase(column.displayName) }}</strong> 
@@ -130,6 +145,7 @@ defineOptions({ name: 'AnalyticsDocs' });
 const configs = ref(getConfigs());
 const debugMode = ref(false);
 const clickCount = ref(0);
+const searchStr = ref('');
 const activeSection = ref(null);
 const display = useDisplay();
 const isNavOpen = ref(!display.mobile.value);
@@ -175,15 +191,19 @@ const sortedConfigs = computed(() => {
   const results = [];
   Object.keys(configs.value)
     .filter(
-      key =>
-        key !== 'works' &&
-        hasVisibleColumns(configs.value[key].columns)
+      key => hasVisibleColumns(configs.value[key].columns)
     )
     .sort()
     .forEach(key => {
       results.push(configs.value[key]);
     });
-    results.unshift(configs.value['works']);
+
+    // Move works to the front if it exists in the results
+    const worksIndex = results.findIndex(config => config.id === 'works');
+    if (worksIndex !== -1) {
+      const worksConfig = results.splice(worksIndex, 1)[0];
+      results.unshift(worksConfig);
+    }
 
     return results;
 });
@@ -209,21 +229,6 @@ const sortedFilterFunctions = computed(() =>
 );
 
 // Methods
-function handleTitleClick() {
-  if (clickTimer) {
-    clearTimeout(clickTimer);
-  }
-
-  clickCount.value++;
-  if (clickCount.value === 4) {
-    debugMode.value = !debugMode.value;
-  }
-
-  clickTimer = setTimeout(() => {
-    clickCount.value = 0;
-  }, 1000);
-}
-
 function formatFieldValue(value) {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'object') return JSON.stringify(value);
@@ -238,7 +243,13 @@ function isDisplayedInDefault(field) {
 
 function shouldShowColumn(column) {
   if (!debugMode.value) {
-    return column.actions && column.actions.length > 0;
+    if (!column.actions || column.actions.length === 0) { return false; }
+    if (searchStr.value.length > 0) {
+      const query = searchStr.value.toLowerCase();
+      const fields = ['displayName', 'descr', 'id'];
+      const content = fields.map(field => column[field].toLowerCase()).join(' ');
+      return content.includes(query);
+    }
   }
 
   if (activeFilters.value.length === 0) {
@@ -269,6 +280,21 @@ function availableSelectedFields(column) {
     field =>
       column[field] !== undefined && !isDisplayedInDefault(field)
   );
+}
+
+function handleTitleClick() {
+  if (clickTimer) {
+    clearTimeout(clickTimer);
+  }
+
+  clickCount.value++;
+  if (clickCount.value === 4) {
+    debugMode.value = !debugMode.value;
+  }
+
+  clickTimer = setTimeout(() => {
+    clickCount.value = 0;
+  }, 1000);
 }
 
 onMounted(() => {
