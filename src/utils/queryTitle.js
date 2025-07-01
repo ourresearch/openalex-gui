@@ -2,7 +2,7 @@ import {api} from "@/api";
 import store from "@/store";
 import filters from "@/filters";
 import {getColumnConfig} from "@/oaxConfigs";
-import {isCollectionFilter} from "../query"; // Assuming isCollectionFilter stays in query.js
+import {isCollectionFilter} from "@/query";
 
 // Get display name for a value (either from entity cache or collection)
 const getDisplayNameForValue = (filter, columnConfig) => {
@@ -29,7 +29,7 @@ const getDisplayNameForValue = (filter, columnConfig) => {
 const makeFilterString = (filter, entity) => {
     const columnConfig = getColumnConfig(entity, filter.column_id);
     const value = getDisplayNameForValue(filter, columnConfig);
-    return `${columnConfig.displayName} ${filter.operator} '${value}'`;
+    return `${columnConfig.displayName} ${filter.operator || columnConfig.defaultOperator} '${value}'`;
 };
 
 const makeFilterGroupString = (filters, joinOperator, entity) => {
