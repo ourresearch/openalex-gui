@@ -85,7 +85,7 @@
                     </template>
 
                     <!-- Add Filter -->
-                    <v-list-item @click="addColumnFilter(header.id)">
+                    <v-list-item v-if="canAddColumnFilter(header.id)" @click="addColumnFilter(header.id)">
                       <template #prepend>
                         <v-icon>mdi-filter-plus-outline</v-icon>
                       </template>
@@ -248,7 +248,9 @@
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
+
 import { entity } from "@/entity";
+import { getColumnConfig } from "@/oaxConfigs";
 import filters from "@/filters";
 import { useResultsTable } from '@/composables/Results/useResultsTable';
 
@@ -358,6 +360,14 @@ const removeColumn = (id) => {
   deleteReturnColumn(id);
   createSearch();
 };
+
+const canAddColumnFilter = (filterKey) => {
+  const columnConfig = getColumnConfig(querySubjectEntity.value, filterKey);
+  const canAddFilter = columnConfig.actions?.includes("filter");
+  console.log("canAddColumnFilter", filterKey, columnConfig, canAddFilter);
+  return canAddFilter;
+};
+  
 
 const addColumnFilter = (filterKey, filterValue) => {
   const filterGroup = querySubjectEntity.value === "works" || query.value.show_underlying_works ? "works" : "entity";
