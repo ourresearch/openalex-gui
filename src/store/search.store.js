@@ -189,7 +189,7 @@ export default {
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
             if (!id) { return; }
-            
+
             commit('setSearchId', id);
             
             // Check the cache first if we're not explicitly bypassing it
@@ -257,7 +257,6 @@ export default {
                     const data = await api.getSearch(resp.data.id, {is_polling: true});
                     if (data.is_completed) {
                         if (areCoreQuriesEqual(data.query, state.submittedQuery)) {
-                            console.log("Setting results works count: " + data.meta.count);
                             commit('setResultsWorksCount', data.meta.count);
                         }
                         clearInterval(poll);

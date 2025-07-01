@@ -23,7 +23,7 @@
           <template #prepend>
             <v-icon>mdi-file-document-outline</v-icon>
           </template>
-          <v-list-item-title>{{this.uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
+          <v-list-item-title>{{uiVariant === 'worksfirst' ? 'none' : 'Works'}}</v-list-item-title>
         </v-list-item>
 
         <v-list-subheader>Group works by:</v-list-subheader>
