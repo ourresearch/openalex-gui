@@ -40,12 +40,12 @@ const store = useStore();
 const pollCount = ref(0);
 const pollTimer = ref(null);
 
-const uiVariant        = computed(() => store.state.uiVariant);
 const isInitialLoad    = computed(() => store.state.isInitialLoad);
 const userId           = computed(() => store.getters['user/userId']);
 const isTester         = computed(() => store.getters['user/isTester']);
 const queryIsCompleted = computed(() => store.getters['search/queryIsCompleted']);
 const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']);
+const uiVariant        = computed(() => store.state.uiVariant);
 
 // Vuex mutations/actions
 const setIsInitialLoad = (v) => store.commit('setIsInitialLoad', v);
