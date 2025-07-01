@@ -23,7 +23,6 @@
                 v-bind="chipProps"
               >
                 {{ props.joinOperator }}
-                <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
               </v-chip>
             </template>
             <v-list>
@@ -77,7 +76,6 @@
               v-bind="chipProps" 
             >
               {{ selectedOperator ?? "select" }}
-              <v-icon v-if="!props.isSentence" size="small">mdi-menu-down</v-icon>
             </v-chip>
           </template>
           <v-list>
