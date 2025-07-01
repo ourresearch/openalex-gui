@@ -47,7 +47,6 @@ const areCoreQuriesEqual = (query1, query2) => {
         };
     });
     const areEqual = _.isEqual(q1, q2);
-    console.log("areCoreQuriesEqual", q1, q2, areEqual);
     return areEqual;
 };
 

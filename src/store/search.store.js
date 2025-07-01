@@ -62,6 +62,7 @@ export default {
             state.redshift_sql = sql;
         },
         setBackendError(state, error) {
+            console.trace("setBackendError");
             state.backend_error = error;
         },
         setIsSearchCanceled(state, value) {
@@ -187,6 +188,8 @@ export default {
             return await dispatch("createSearchFromQuery", query);
         },
         getSearch: async function ({state, commit, dispatch}, {id, bypass_cache, is_polling}) {
+            if (!id) { return; }
+            
             commit('setSearchId', id);
             
             // Check the cache first if we're not explicitly bypassing it
@@ -242,8 +245,6 @@ export default {
             }
         },
         prefetchUnderlyingWorksQuery: async function({commit, state}, query) {
-            console.log("Prefetching underlying works query");
-            console.log(query);
             const worksQuery = makeUnderlyingWorksQuery(query);
             const options = {
                 bypass_cache: true,

@@ -114,7 +114,7 @@ watch(
     if (!id) { return; }
 
     cancelPollTimer();
-    console.log('Initial load with ID, poll count:', pollCount.value);
+    //console.log('Initial load with ID, poll count:', pollCount.value);
 
     const bypass_cache =
       areResultsStale() ||
