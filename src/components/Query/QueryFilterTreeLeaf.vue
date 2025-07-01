@@ -59,6 +59,7 @@
       </span>
 
       <!-- The Filter Key-->
+      <span v-if="isSentence && isFirstOfGroup" class="no-space-paren">(&#x2060;</span>
       <span :class="{'font-weight-bold': columnConfig.type === 'boolean'}"> {{ columnConfig.displayName }}</span>
 
       <!-- The Filter Operator-->
@@ -284,6 +285,9 @@
             @click="startEditingValue" />
         </hover-menu-wrapper>
       </template>
+
+      <span v-if="isSentence && isLastOfGroup" class="no-space-paren">&#x2060;)</span>
+
     </div>
 
     <!-- Delete Button -->
@@ -319,6 +323,8 @@ const props = defineProps({
   canGroupAbove: Boolean,
   canUngroup: Boolean,
   isSentence: Boolean,
+  isFirstOfGroup: Boolean,
+  isLastOfGroup: Boolean,
 });
 
 const emit = defineEmits([
@@ -561,6 +567,14 @@ watch(search, (val) => {
   cursor: pointer;
   text-decoration: underline;
   background-color: #eee;
+}
+.no-space-paren {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: 0;
+  vertical-align: baseline;
 }
 .related-to-text-wrapper {
   width: 100%;

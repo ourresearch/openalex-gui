@@ -1,7 +1,6 @@
 <template>
   <div class="query-filter-tree-branch">
     <template v-for="(item, index) in filters">
-      <span :key="'openParen' + index" v-if="isSentence && item.filters" class="no-space-paren">(&#x2060;</span>
       <query-filter-tree-branch 
         v-if="item.filters"
         :key="index"
@@ -10,6 +9,7 @@
         :parent-join-operator="joinOperator"
         :subject-entity="subjectEntity"
         :is-sentence="isSentence"
+        :is-group="true"
         @setValue="(path, value, dontApply) => $emit('setValue', path, value, dontApply)"
         @setOperator="(path, operator, dontApply) => $emit('setOperator', path, operator, dontApply)"
         @deleteFilter="(path) => $emit('deleteFilter', path)"
@@ -17,7 +17,6 @@
         @groupWithAbove="(path) => $emit('groupWithAbove', path)"
         @ungroupFromAbove="(path) => $emit('ungroupFromAbove', path)"
       />
-      <span :key="'closeParen' + index" v-if="isSentence && item.filters" class="no-space-paren">&#x2060;)</span>
 
       <query-filter-tree-leaf 
         v-if="!item.filters"
@@ -31,6 +30,8 @@
         :can-group-above="item.canGroupAbove"
         :can-ungroup="item.canUngroup"
         :is-sentence="isSentence"
+        :is-first-of-group="isGroup && index === 0"
+        :is-last-of-group="isGroup && index === filters.length - 1"
         @setValue="(path, value, dontApply) => $emit('setValue', path, value, dontApply)"
         @setOperator="(path, operator, dontApply) => $emit('setOperator', path, operator, dontApply)"
         @deleteFilter="(path) => $emit('deleteFilter', path)"
@@ -52,19 +53,14 @@ const QueryFilterTreeBranch = defineAsyncComponent(() => import('./QueryFilterTr
 
 defineOptions({ name: "QueryFilterTreeBranch" });
 
-const {
-  filters, 
-  joinOperator, 
-  parentJoinOperator,
-  subjectEntity, 
-  isSentence
-} = defineProps({
+defineProps({
   filters: Array,
   joinOperator: String,
   parentJoinOperator: String,
   subjectEntity: String,
   isSentence: Boolean,
   isRoot: Boolean,
+  isGroup: Boolean,
 });
 
 defineEmits([
@@ -84,6 +80,7 @@ defineEmits([
   margin: 0;
   padding: 0;
   font-size: inherit;
+  font-weight: bold;
   line-height: 0;
   vertical-align: baseline;
 }
