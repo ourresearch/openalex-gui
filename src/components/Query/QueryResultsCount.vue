@@ -17,7 +17,7 @@
             {{ filters.pluralize(querySubjectEntity) }}
           </span>
           <span v-else>
-            {{ filters.capitalize(filters.pluralize(querySubjectEntity)) }}
+            {{ filters.titleCase(filters.pluralize(querySubjectEntity)) }}
           </span>
         </span>
       </span>

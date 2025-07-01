@@ -65,7 +65,13 @@ const filters = {
     return str;
   },
   pluralize(str, count) {
-    return pluralize(str, count);
+    let pluralized = pluralize(str, count);
+    fixedCaseWords.map(word => {
+      if (pluralized === word.toLowerCase()) {
+        pluralized = word;
+      }
+    })
+    return pluralized;
   },
   capitalize(str) {
     if (typeof str !== "string") { return str; }
@@ -74,15 +80,7 @@ const filters = {
   },
   titleCase(str) {
     if (typeof str !== "string") return str;
-    const stopWords = [
-      "a", "an", "and", "as", "at", "but", "by", "for", "in",
-      "nor", "of", "on", "or", "so", "the", "to", "up", "yet"
-    ];
-    const fixedWords = [
-      "OpenAlex", "ID", "IDs", "ROR", "ORCID", "DOI", "OA", "ISSN", "ISSNs",
-      "DOAJ", "SDG", "SDGs", "FWCI", "URL", "CrossRef"
-    ];
-    const fixedWordsMap = fixedWords.reduce((map, word) => {
+    const fixedWordsMap = fixedCaseWords.reduce((map, word) => {
       map[word.toLowerCase()] = word;
       return map;
     }, {});
@@ -146,5 +144,14 @@ const filters = {
     );
   },
 };
+
+const stopWords = [
+  "a", "an", "and", "as", "at", "but", "by", "for", "in",
+  "nor", "of", "on", "or", "so", "the", "to", "up", "yet"
+];
+const fixedCaseWords = [
+  "OpenAlex", "ID", "IDs", "ROR", "ORCID", "DOI", "OA", "ISSN", "ISSNs",
+  "DOAJ", "SDG", "SDGs", "FWCI", "URL", "CrossRef"
+];
 
 export default filters;
