@@ -40,14 +40,14 @@
               </v-list-item>
               
               <!-- Conditionally show the divider and Grouping actions -->
-              <template v-if="props.canGroupAbove || props.canUngroup">
+              <template v-if="!isSentence && (canGroupAbove || canUngroup)">
                 <v-divider class="my-2"></v-divider>
-                <v-list-item v-if="props.canGroupAbove" @click="groupWithAbove">
+                <v-list-item v-if="canGroupAbove" @click="groupWithAbove">
                   <v-list-item-title>
                     Group with Above
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item v-if="props.canUngroup" @click="ungroupFromAbove">
+                <v-list-item v-if="canUngroup" @click="ungroupFromAbove">
                   <v-list-item-title>
                     Ungroup from Above
                   </v-list-item-title>
