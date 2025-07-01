@@ -9,7 +9,6 @@
     <template v-if="columnConfig.objectEntity">
       <template v-if="entityData">
         <b>{{ filters.truncate(entityData.display_name || '', 50) }}</b>
-        <v-icon v-if="isEditable && !isSentence" size="x-small">mdi-pencil-outline</v-icon>
       </template>
       <template v-else>
         Loading...
