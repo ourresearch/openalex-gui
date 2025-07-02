@@ -1,5 +1,5 @@
 // Send bypass_cache params on API calls
-const DISABLE_SERVER_CACHE = true;
+const DISABLE_SERVER_CACHE = false;
 
 const urlBase = {
     api: "https://api.openalex.org",
