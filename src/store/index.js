@@ -34,6 +34,7 @@ const stateDefaults = function () {
         filterOptionChipOpenMenu: null,
         isApiEditorShowing: false,
         uiVariant: 'sentence-worksfirst', // for testing UI variations
+        useElasticForAnalytics: false,
         isInitialLoad: true, // used to for bypassing cache on freshloads
     }
     return ret;
@@ -81,6 +82,9 @@ export default createStore({
         },
         setUiVariant(state, uiVariant) {
             state.uiVariant = uiVariant;
+        },
+        setUseElasticForAnalytics(state, value) {
+            state.useElasticForAnalytics = value;
         },
     },  
     actions: {

@@ -1,5 +1,22 @@
 <template>
-    <span class="results-count">
+    <v-row class="results-count px-3">
+
+      <!-- Works Tab -->
+      <span 
+        class="tab works-count"
+        @click="worksTabClick">
+        <span v-if="querySubjectEntity === 'works' && hasResults">
+          {{ filters.millify(resultsMeta?.count)}}
+          works
+        </span>
+        <span v-else-if="hasResults && resultsWorksCount !== null">
+          {{ filters.millify(resultsWorksCount)}}
+          works
+        </span>
+        <span v-else>
+          Works
+        </span>
+      </span>
 
       <!-- Entity Tab -->
       <span 
@@ -22,26 +39,22 @@
         </span>
       </span>
 
-      <!-- Works Tab -->
-      <span 
-        class="tab works-count"
-        @click="worksTabClick">
-        <span v-if="querySubjectEntity === 'works' && hasResults">
-          {{ filters.millify(resultsMeta?.count)}}
-          works
-        </span>
-        <span v-else-if="hasResults && resultsWorksCount !== null">
-          {{ filters.millify(resultsWorksCount)}}
-          works
-        </span>
-        <span v-else>
-          Works
-        </span>
-      </span>
-
       <query-actions />
+      
+      <v-spacer/>
 
-    </span>
+      <v-chip 
+        v-if="useElasticForAnalytics && resultsMeta?.source" 
+        class="source-chip mb-1"
+        variant="flat"
+        density="comfortable"
+        style="font-size: 12px;"
+        :color="resultsMeta.source === 'elastic' ? 'catWorks' : 'catEntity'"
+      >
+        <v-icon icon="mdi-database-outline" start/>
+        {{ resultsMeta.source === 'elastic' ? 'Search' : 'Analytics' }}
+      </v-chip>
+    </v-row>
 
 </template>
 
@@ -57,11 +70,12 @@ defineOptions({ name: "QueryResultsCount" });
 
 const store = useStore();
 
-const resultsMeta = computed(() => store.getters["search/resultsMeta"]);
-const resultsWorksCount = computed(() => store.getters["search/resultsWorksCount"]);
-const hasResults = computed(() => store.getters["search/hasResults"]);
-const querySubjectEntity = computed(() => store.getters["search/querySubjectEntity"]);
-const stashedQueryState = computed(() => store.getters["search/stashedQueryState"]);
+const resultsMeta             = computed(() => store.getters["search/resultsMeta"]);
+const resultsWorksCount       = computed(() => store.getters["search/resultsWorksCount"]);
+const hasResults              = computed(() => store.getters["search/hasResults"]);
+const querySubjectEntity      = computed(() => store.getters["search/querySubjectEntity"]);
+const stashedQueryState       = computed(() => store.getters["search/stashedQueryState"]);
+const useElasticForAnalytics  = computed(() => store.state.useElasticForAnalytics);
 
 function entityTabClick() {
   if (stashedQueryState.value) {
@@ -80,8 +94,7 @@ function worksTabClick() {
 
 <style lang="scss">
 .results-count {
-  display: flex;
-  margin-bottom: -16px;
+  margin-bottom: -16px !important;
 }
 .tab {
   display: inline-block;
@@ -115,15 +128,6 @@ function worksTabClick() {
 }
 .works-count.inactive {
   background-color: rgb(var(--v-theme-catWorks));
-}
-.ui-sentence-worksfirst .works-count {
-  order: 1
-}
-.ui-sentence-worksfirst .entities-count {
-  order: 2
-}
-.ui-sentence-worksfirst .query-actions {
-  order: 3
 }
 .query-actions-box {
   margin-top: -8px;

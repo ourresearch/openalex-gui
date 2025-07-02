@@ -40,12 +40,13 @@ const store = useStore();
 const pollCount = ref(0);
 const pollTimer = ref(null);
 
-const isInitialLoad    = computed(() => store.state.isInitialLoad);
-const userId           = computed(() => store.getters['user/userId']);
-const isTester         = computed(() => store.getters['user/isTester']);
-const queryIsCompleted = computed(() => store.getters['search/queryIsCompleted']);
-const isSearchCanceled = computed(() => store.getters['search/isSearchCanceled']);
-const uiVariant        = computed(() => store.state.uiVariant);
+const isInitialLoad      = computed(() => store.state.isInitialLoad);
+const userId             = computed(() => store.getters['user/userId']);
+const isTester           = computed(() => store.getters['user/isTester']);
+const queryIsCompleted   = computed(() => store.getters['search/queryIsCompleted']);
+const isSearchCanceled   = computed(() => store.getters['search/isSearchCanceled']);
+const querySubjectEntity = computed(() => store.getters['search/querySubjectEntity']);
+const uiVariant          = computed(() => store.state.uiVariant);
 
 // Vuex mutations/actions
 const setIsInitialLoad = (v) => store.commit('setIsInitialLoad', v);
@@ -65,10 +66,15 @@ onMounted(() => {
 const pollSearch = async () => {
   if (queryIsCompleted.value || isSearchCanceled.value) { return; }
 
-  await getSearch({
+  const data = await getSearch({
     id: route.params.id,
     is_polling: true,
   });
+
+  if (data?.backend_error) {
+    cancelPollTimer();
+    return;
+  }
 
   pollCount.value++;
   pollTimer.value = setTimeout(() => {
@@ -78,6 +84,7 @@ const pollSearch = async () => {
 
 const cancelPollTimer = () => {
   if (pollTimer.value) {
+    pollCount.value = 0;
     clearTimeout(pollTimer.value);
   }
 };
@@ -126,7 +133,7 @@ watch(
       bypass_cache,
     });
 
-    if (isInitialLoad.value) {
+    if (isInitialLoad.value && !["works", "summary"].includes(querySubjectEntity.value)) {
       prefetchUnderlyingWorksQuery(store.state.search.submittedQuery);
     }
 
