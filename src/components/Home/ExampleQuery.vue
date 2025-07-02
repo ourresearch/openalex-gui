@@ -34,7 +34,7 @@ const store = useStore();
 const router = useRouter();
 
 const userId = computed(() => store.getters['user/userId']);
-const createSearchFromQuery = (payload) => store.dispatch('search/createSearchFromQuery', payload);
+const createSearchFromQuery = (query) => store.dispatch('search/createSearchFromQuery', query);
 
 const chipColor = (category) => {
   const colors = {

@@ -129,7 +129,7 @@ export default {
         },
     },
     actions: {
-        createSearchFromQuery: async function ({state, commit, dispatch, rootState}, query) {
+        createSearchFromQuery: async function ({commit, dispatch, rootState}, query) {
             //console.log("createSearchFromQuery", query);
             
             // Push temporary loading state while waiting of ID from API call
