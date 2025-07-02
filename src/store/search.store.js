@@ -129,7 +129,7 @@ export default {
         },
     },
     actions: {
-        createSearchFromQuery: async function ({commit, dispatch, rootState}, query) {
+        createSearchFromQuery: async function ({state, commit, dispatch, rootState}, query) {
             //console.log("createSearchFromQuery", query);
             
             // Push temporary loading state while waiting of ID from API call
@@ -155,7 +155,8 @@ export default {
             
             try {
                 // Create the search to get the ID
-                const response = await api.createSearch(query);
+                console.log("createSearchFromQuery useElastic", rootState.useElasticForAnalytics);
+                const response = await api.createSearch(query, {useElastic: rootState.useElasticForAnalytics});
                 
                 if (response.data.id) {
                     const searchId = response.data.id;
@@ -255,6 +256,9 @@ export default {
                 // Poll for results, do nothing but stock cache
                 const poll = setInterval(async () => {
                     const data = await api.getSearch(resp.data.id, {is_polling: true});
+                    
+                    if (data?.backend_error) { return; }
+                    
                     if (data.is_completed) {
                         if (areCoreQuriesEqual(data.query, state.submittedQuery)) {
                             commit('setResultsWorksCount', data.meta.count);

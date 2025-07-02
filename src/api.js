@@ -296,11 +296,13 @@ const api = (function () {
         const url = urlBase.api + "/analytics";
         const bypass_cache = options.bypass_cache || DISABLE_SERVER_CACHE;
         const is_test = options.is_test || false;
+        const use_elastic = options.useElastic || false;
         
         const data = {
             query,
             bypass_cache,
             is_test,
+            use_elastic,
         };
 
         //console.log("api.createSearch to " + url)

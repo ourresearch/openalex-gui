@@ -146,17 +146,21 @@ useHead({
   meta: []
 });
 
-function setUIVariant() {
+function setFeatureFlags() {
   const urlParams = new URLSearchParams(window.location.search);
   const ui = urlParams.get('ui');
   if (ui) {
     store.state.uiVariant = ui;
   }
+  const useElastic = urlParams.has('elastic');
+  if (useElastic) {
+    store.commit("setUseElasticForAnalytics", true);
+  }
 }
 
 // Lifecycle
 onBeforeMount(() => {
-  setUIVariant();
+  setFeatureFlags();
 
   if (router) {
     router.afterEach((to) => {
