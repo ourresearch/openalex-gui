@@ -179,8 +179,8 @@
             <tr
               v-for="(row, i) in rows"
               :key="'row-'+i"
-              @click.exact="clickRow(row.id)"
-              @click.meta.stop="metaClickRow(row.id)"
+              @click.exact="onClickRow(row.id)"
+              @click.meta.stop="onMetaClickRow(row.id)"
             >
               <td
                 v-for="(cell, i) in row.cellsWithConfigs"
@@ -342,13 +342,16 @@ const clickSelectAllButton = () => {
 
 const setZoomId = (id) => store.commit('setZoomId', id);
 
-const clickRow = (rowId) => {
-  const fullEntityId = entity.fullId(rowId, querySubjectEntity.value);
+const onClickRow = (rowId) => { 
+  const entityType = query.value.show_underlying_works ? "works" : querySubjectEntity.value;
+  console.log("onClickRow", rowId, entityType);
+  const fullEntityId = entity.fullId(rowId, entityType);
   setZoomId(fullEntityId);
 };
 
-const metaClickRow = (rowId) => {
-  const fullEntityId = entity.fullId(rowId, querySubjectEntity.value);
+const onMetaClickRow = (rowId) => {
+  const entityType = query.value.show_underlying_works ? "works" : querySubjectEntity.value;
+  const fullEntityId = entity.fullId(rowId, entityType);
   const newTab = window.open("http://api.openalex.org/" + fullEntityId);
   setTimeout(() => {
     newTab.focus();
@@ -367,7 +370,6 @@ const canAddColumnFilter = (filterKey) => {
   console.log("canAddColumnFilter", filterKey, columnConfig, canAddFilter);
   return canAddFilter;
 };
-  
 
 const addColumnFilter = (filterKey, filterValue) => {
   const filterGroup = querySubjectEntity.value === "works" || query.value.show_underlying_works ? "works" : "entity";
