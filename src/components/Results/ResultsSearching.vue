@@ -30,10 +30,10 @@ defineOptions({ name: 'ResultsSearching' });
 
 const store = useStore();
 
-// State
 const elapsedTime = ref(0); // in milliseconds
 const timer = ref(null);
 const progressValue = ref(0);
+
 const messages = {
   0: "We're crunching the numbers in real time for you.",
   4: "Each query involves calculations on hundreds of millions of papers.",
@@ -98,6 +98,7 @@ const restartTimer = () => {
 
 // Lifecycle hooks
 onMounted(() => {
+  console.log("Mounted, starting timer");
   startTimer();
 });
 
@@ -107,7 +108,7 @@ onBeforeUnmount(() => {
 
 // Watchers
 watch(query, (to, from) => {
-  if (!_.isEqual(to, from)) {
+  if (!_.isEqual(to.value, from.value)) {
     restartTimer();
   }
 });
