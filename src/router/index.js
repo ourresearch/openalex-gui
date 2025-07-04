@@ -31,6 +31,7 @@ import LabelDetails from "@/components/Label/LabelDetails.vue";
 
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminPage from "@/views/AdminPage.vue";
+import WaldenQA from "@/views/WaldenQA.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -152,6 +153,11 @@ const routes = [
         meta: { requiresAuth: true }
     },
    
+    {
+        path: '/qa/walden',
+        name: 'walden-qa',
+        component: WaldenQA,
+    },
     //  tests
     {
         path: '/tests',
