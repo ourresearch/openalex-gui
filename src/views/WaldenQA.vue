@@ -1,5 +1,5 @@
 <template>
-  <div class="color-2 py-1 py-sm-12" style="min-height: 70vh;">
+  <div class="color-2 py-0 py-sm-12" style="min-height: 70vh;">
     <v-container :fluid="smAndDown" class="pa-0 pa-sm-4">
       <v-row>
         <v-col cols="12">
