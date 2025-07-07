@@ -21,6 +21,7 @@ import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
+import DataMap from "@/views/DataMap.vue";
 
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
@@ -141,6 +142,7 @@ const routes = [
     {path: '/users', redirect: {name: "testimonials"}},
     {path: '/testimonials', name: "testimonials", component: TestimonialsPage},
     {path: '/works-citing-openalex', name: "works-citing-openalex", component: WorksCitingOpenAlex},
+    {path: '/data-map', name: "data-map", component: () => import('@/views/DataMap.vue')}, // Lazy-loaded},
     {path: '/stats', component: OurStats},
     {path: '/analytics/docs', name: 'AnalyticsDocs', component: AnalyticsDocs},
     {path: '/analytics/testing', name: 'AnalyticsTesting', component: AnalyticsTesting},

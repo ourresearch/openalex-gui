@@ -1,6 +1,6 @@
 <template>
-  <div class="color-2 py-12" style="min-height: 70vh;">
-    <v-container>
+  <div class="color-2 py-1 py-sm-12" style="min-height: 70vh;">
+    <v-container :fluid="smAndDown" class="pa-0 pa-sm-4">
       <v-row>
         <v-col cols="12">
           <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
@@ -8,71 +8,78 @@
                 Walden QA
               </v-card-title>
 
-              <div class="top-controls d-flex mb-0">
+              <v-row class="top-controls mb-0" dense>
+                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
+                  <v-number-input 
+                    v-model="sampleSize" 
+                    variant="outlined" 
+                    density="compact"
+                    hide-details
+                    label="Sample" 
+                    :min="1" 
+                    :max="500"
+                    control-variant="stacked"
+                    class="mr-2"
+                    style="width: 110px; height: 40px;" 
+                  />
 
-                <v-number-input 
-                  v-model="sampleSize" 
-                  variant="outlined" 
-                  density="compact"
-                  hide-details
-                  label="Sample" 
-                  :min="1" 
-                  :max="500"
-                  control-variant="stacked"
-                  class="flex-grow-0 mr-2"
-                  style="width: 110px; height: 40px;" 
-                />
+                  <v-select
+                    v-model="entityType"
+                    :items="entityTypes"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    label="Entity"
+                    style="width: 150px; height: 40px" 
+                  />
+                </v-col>
 
-                <v-select
-                  v-model="entityType"
-                  :items="entityTypes"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  label="Entity"
-                  style="width: 150px; height: 40px" 
-                  class="flex-grow-0 mr-2"
-                />
-
-                <v-btn 
-                  variant="flat" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary"
-                  :disabled="entityType !== 'works'"
-                  class="mr-2" 
-                  @click="fetchRandomSample"
-                >
-                  <v-icon start icon="mdi-dice-multiple-outline"></v-icon>
-                  Sample
-                </v-btn>
+                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0">
+                  <v-btn 
+                    variant="flat" 
+                    size="x-large" 
+                    density="compact"
+                    color="primary"
+                    :disabled="entityType !== 'works'"
+                    @click="fetchRandomSample"
+                    class="w-100 w-sm-auto"
+                  >
+                    <v-icon start icon="mdi-dice-multiple-outline"></v-icon>
+                    Sample
+                  </v-btn>
+                </v-col>
                             
-                <v-btn 
-                  variant="outlined" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary"
-                  :disabled="entityType !== 'works'"
-                  class="mr-2" 
-                  @click="showGetIdsDialog = true"
-                >
-                  <v-icon start icon="mdi-file-document-outline"></v-icon>
-                  Get IDs
-                </v-btn>
+                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
+                  <v-btn 
+                    variant="outlined" 
+                    size="x-large" 
+                    density="compact"
+                    color="primary"
+                    :disabled="entityType !== 'works'"
+                    class="mr-2 flex-grow-1 flex-sm-grow-0"
+                    @click="showGetIdsDialog = true"
+                  >
+                    <v-icon start icon="mdi-file-document-outline"></v-icon>
+                    Get IDs
+                  </v-btn>
 
-                <v-btn 
-                  variant="outlined" 
-                  size="x-large" 
-                  density="compact"
-                  color="primary" 
-                  class="mr-3 square-btn"
-                  @click="showSettingsDialog = true"
-                >
-                  <v-icon icon="mdi-cog"></v-icon>
-                </v-btn>
-                <div class="text-grey-darken-1 align-self-end" style="font-size: 14px;">
-                  {{ settingsSummary }}
-                </div>
+                  <v-btn 
+                    variant="outlined" 
+                    size="x-large" 
+                    density="compact"
+                    color="primary" 
+                    class="mr-1 square-btn flex-grow-0"
+                    @click="showSettingsDialog = true"
+                  >
+                    <v-icon icon="mdi-cog"></v-icon>
+                  </v-btn>
+                </v-col>
+                
+                <v-col cols="12" sm class="align-self-end">
+                  <div class="text-grey-darken-1 align-self-end" style="font-size: 14px; min-width: 150px;">
+                    {{ settingsSummary }}
+                  </div>
+                </v-col>
 
                 <!-- Get IDs Dialog -->
                 <v-dialog v-model="showGetIdsDialog" max-width="500px">
@@ -117,7 +124,7 @@
                       <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">Sample</div>
                       <v-card flat rounded class="pa-0 mb-8">
                         <v-row>
-                          <v-col cols="4">
+                          <v-col cols="12" sm="4">
                             <v-card 
                               flat 
                               rounded 
@@ -135,7 +142,7 @@
                             </v-card>
                           </v-col>
 
-                          <v-col cols="4">
+                          <v-col cols="12" sm="4">
                             <v-card 
                               flat 
                               rounded 
@@ -165,7 +172,7 @@
                             </v-card>
                           </v-col>
 
-                          <v-col cols="4">
+                          <v-col cols="12" sm="4">
                             <v-card 
                               flat 
                               rounded 
@@ -225,7 +232,8 @@
                   </v-card>
                 </v-dialog>
 
-              </div>
+              </v-row>
+
             <!-- Start View -->
             <div v-if="!searchStarted && Object.keys(matches).length === 0" class="start-view mt-8 d-flex align-center justify-center">
               <div class="text-center">
@@ -244,27 +252,27 @@
             <div v-if="Object.keys(matches).length > 0" class="bg-blue-lighten-5 mx-n10 mt-10 py-2 results-section">
                 
               <!-- Stats -->
-              <v-row class="px-6 pt-5 pb-7">
+              <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
-                  <v-card color="grey-lighten-5" rounded class="text-center">
+                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ matchRate }}%</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Match Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center">
+                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ returnRate }}%</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Return Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center">
+                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ cellMatchRate }}%</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Cell Match Rate</v-card-text>
                   </v-card>
                 </v-col>
                 <v-col cols="3">
-                  <v-card color="grey-lighten-5" rounded class="text-center">
+                  <v-card color="grey-lighten-5" rounded class="text-center fill-height">
                     <v-card-title class="text-h6 font-weight-bold">{{ Object.keys(matches).length }}</v-card-title>
                     <v-card-text class="text-caption text-uppercase text-grey-darken-2">Sample Size</v-card-text>
                   </v-card>
@@ -321,6 +329,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { useDisplay } from 'vuetify';
 import axios from 'axios';
 
 import { getConfigs } from '../oaxConfigs';
@@ -369,6 +378,8 @@ const fieldsToShowSettings = ref([]);
 const showGetIdsDialog     = ref(false);
 const showSettingsDialog   = ref(false);
 const errorMessage         = ref('');
+
+const { smAndDown } = useDisplay();
 
 const entityConfig = computed(() => getConfigs()[entityType.value]);
 
