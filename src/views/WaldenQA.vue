@@ -4,235 +4,236 @@
       <v-row>
         <v-col cols="12">
           <v-card rounded elevation="4" class="pt-6 pb-0 px-10">
-              <v-card-title class="pa-0 mb-5">
-                Walden QA
-              </v-card-title>
+            <v-card-title class="pa-0 mb-5">
+              Walden QA
+            </v-card-title>
 
-              <v-row class="top-controls mb-0" dense>
-                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-                  <v-number-input 
-                    v-model="sampleSize" 
-                    variant="outlined" 
-                    density="compact"
-                    hide-details
-                    label="Sample" 
-                    :min="1" 
-                    :max="500"
-                    control-variant="stacked"
-                    class="mr-2"
-                    style="width: 110px; height: 40px;" 
-                  />
+            <!-- Top Controls -->
+            <v-row class="top-controls mb-0" dense>
+              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
+                <v-number-input 
+                  v-model="sampleSize" 
+                  variant="outlined" 
+                  density="compact"
+                  hide-details
+                  label="Sample" 
+                  :min="1" 
+                  :max="500"
+                  control-variant="stacked"
+                  class="mr-2"
+                  style="width: 110px; height: 40px;" 
+                />
 
-                  <v-select
-                    v-model="entityType"
-                    :items="entityTypes"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    label="Entity"
-                    style="width: 150px; height: 40px" 
-                  />
-                </v-col>
+                <v-select
+                  v-model="entityType"
+                  :items="entityTypes"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  label="Entity"
+                  style="width: 150px; height: 40px" 
+                />
+              </v-col>
 
-                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0">
-                  <v-btn 
-                    variant="flat" 
-                    size="x-large" 
-                    density="compact"
-                    color="primary"
-                    :disabled="entityType !== 'works'"
-                    @click="fetchRandomSample"
-                    class="w-100 w-sm-auto"
-                  >
-                    <v-icon start icon="mdi-dice-multiple-outline"></v-icon>
-                    Sample
-                  </v-btn>
-                </v-col>
-                            
-                <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
-                  <v-btn 
-                    variant="outlined" 
-                    size="x-large" 
-                    density="compact"
-                    color="primary"
-                    :disabled="entityType !== 'works'"
-                    class="mr-2 flex-grow-1 flex-sm-grow-0"
-                    @click="showGetIdsDialog = true"
-                  >
-                    <v-icon start icon="mdi-file-document-outline"></v-icon>
-                    Get IDs
-                  </v-btn>
+              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0">
+                <v-btn 
+                  variant="flat" 
+                  size="x-large" 
+                  density="compact"
+                  color="primary"
+                  :disabled="entityType !== 'works'"
+                  @click="fetchRandomSample"
+                  class="w-100 w-sm-auto"
+                >
+                  <v-icon start icon="mdi-dice-multiple-outline"></v-icon>
+                  Sample
+                </v-btn>
+              </v-col>
+                          
+              <v-col cols="12" sm="auto" class="mb-2 mb-sm-0 d-flex">
+                <v-btn 
+                  variant="outlined" 
+                  size="x-large" 
+                  density="compact"
+                  color="primary"
+                  :disabled="entityType !== 'works'"
+                  class="mr-2 flex-grow-1 flex-sm-grow-0"
+                  @click="showGetIdsDialog = true"
+                >
+                  <v-icon start icon="mdi-file-document-outline"></v-icon>
+                  Get IDs
+                </v-btn>
 
-                  <v-btn 
-                    variant="outlined" 
-                    size="x-large" 
-                    density="compact"
-                    color="primary" 
-                    class="mr-1 square-btn flex-grow-0"
-                    @click="showSettingsDialog = true"
-                  >
-                    <v-icon icon="mdi-cog"></v-icon>
-                  </v-btn>
-                </v-col>
-                
-                <v-col cols="12" sm class="align-self-end">
-                  <div class="text-grey-darken-1 align-self-end" style="font-size: 14px; min-width: 150px;">
-                    {{ settingsSummary }}
-                  </div>
-                </v-col>
+                <v-btn 
+                  variant="outlined" 
+                  size="x-large" 
+                  density="compact"
+                  color="primary" 
+                  class="mr-1 square-btn flex-grow-0"
+                  @click="showSettingsDialog = true"
+                >
+                  <v-icon icon="mdi-cog"></v-icon>
+                </v-btn>
+              </v-col>
+              
+              <v-col cols="12" sm class="align-self-end">
+                <div class="text-grey-darken-1 align-self-end" style="font-size: 14px; min-width: 150px;">
+                  {{ settingsSummary }}
+                </div>
+              </v-col>
 
-                <!-- Get IDs Dialog -->
-                <v-dialog v-model="showGetIdsDialog" max-width="500px">
-                  <v-card class="pa-2">
-                    <v-card-title class="text-h5">
-                      <v-icon size="small" variant="plain" color="grey" :icon="entityConfig.icon"></v-icon>
-                      Compare IDs
-                    </v-card-title>
+              <!-- Get IDs Dialog -->
+              <v-dialog v-model="showGetIdsDialog" max-width="500px">
+                <v-card class="pa-2">
+                  <v-card-title class="text-h5">
+                    <v-icon size="small" variant="plain" color="grey" :icon="entityConfig.icon"></v-icon>
+                    Compare IDs
+                  </v-card-title>
 
-                    <v-card-subtitle>
-                      Paste a list of IDs or URLs
-                    </v-card-subtitle>
+                  <v-card-subtitle>
+                    Paste a list of IDs or URLs
+                  </v-card-subtitle>
 
-                    <v-card-text>
-                      <v-textarea
-                        v-model="idsInput"
-                        placeholder="W4406469713, W4406469714..."
-                        variant="outlined"
-                        hide-details
-                        :rows="6"
+                  <v-card-text>
+                    <v-textarea
+                      v-model="idsInput"
+                      placeholder="W4406469713, W4406469714..."
+                      variant="outlined"
+                      hide-details
+                      :rows="6"
+                    />
+                  </v-card-text>
+
+                  <v-card-actions class="justify-end">
+                    <v-btn variant="text" @click="showGetIdsDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" variant="flat" @click="onGetIds">Compare</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
+
+              <!-- Settings Dialog -->
+              <v-dialog v-model="showSettingsDialog" max-width="900px">
+                <v-card class="pa-2">
+                  <v-card-title class="text-h5">
+                    <v-icon size="small" variant="plain" color="grey" icon="mdi-cog"></v-icon>
+                    Settings
+                  </v-card-title>
+
+                  <!-- Sample -->
+                  <v-card-text>
+                    <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">Sample</div>
+                    <v-card flat rounded class="pa-0 mb-8">
+                      <v-row>
+                        <v-col cols="12" sm="4">
+                          <v-card 
+                            flat 
+                            rounded 
+                            :class="['option-card', 'fill-height', sampleFilter == null ? 'selected' : '']"
+                            variant="outlined"
+                            class="d-flex align-center justify-center"
+                            @click="sampleFilter = null"
+                          >
+                            <v-card-text>
+                              <div class="text-grey-darken-2 text-center">
+                                <v-icon size="x-large" variant="plain" color="grey" class="mb-1" :icon="entityConfig.icon"></v-icon>
+                                <div>All {{ entityType }}</div>
+                              </div>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+
+                        <v-col cols="12" sm="4">
+                          <v-card 
+                            flat 
+                            rounded 
+                            :class="['option-card', 'fill-height', sampleFilter == 'recent' ? 'selected' : '']"
+                            variant="outlined"
+                            @click="sampleFilter = 'recent'"
+                          >
+                            <v-card-text>
+                              <div class="text-grey-darken-2 mb-2">
+                                <v-icon variant="plain" color="grey" icon="mdi-clock-outline"></v-icon>
+                                {{ filters.titleCase(entityType) }} from recent days:
+                              </div>
+                              <v-number-input
+                                v-model="sampleDays"
+                                :min="1"
+                                :max="365"
+                                variant="outlined"
+                                flat
+                                density="compact"
+                                inline
+                                hide-details
+                                width="100px"
+                                style="margin: auto;"
+                                control-variant="stacked"
+                              />
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+
+                        <v-col cols="12" sm="4">
+                          <v-card 
+                            flat 
+                            rounded 
+                            :class="['option-card', 'fill-height', sampleFilter == 'custom' ? 'selected' : '']"
+                            variant="outlined"
+                            @click="sampleFilter = 'custom'"
+                          >
+                            <v-card-text>
+                              <div class="text-grey-darken-2 mb-2">
+                                <v-icon variant="plain" color="grey" icon="mdi-filter-outline"></v-icon>
+                                Custom filter:
+                              </div>
+                              <v-text-field
+                                v-model="customFilter"
+                                placeholder="filter=foo:bar"
+                                variant="outlined"
+                                flat
+                                hide-details
+                                density="compact"
+                              />
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </v-card>
+
+                    <!-- Fields -->
+                    <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
+                      Fields
+                      <v-btn
+                        color="grey"
+                        variant="tonal"
+                        icon
+                        size="x-small"
+                        @click="fieldsToShowSettings = [...defaultFieldsToShow]"
+                      >
+                        <v-icon icon="mdi-refresh"></v-icon>
+                      </v-btn>
+                    </div>
+                    <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
+                      <v-chip 
+                        v-for="field in Object.keys(schema)" 
+                        :key="field"
+                        :text="field"
+                        :variant="fieldsToShowSettings.includes(field) ? 'flat' : 'flat'"
+                        :color="fieldsToShowSettings.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
+                        class="mr-2 mb-3"
+                        @click="toggleFieldInSettings(field)"
                       />
-                    </v-card-text>
+                    </v-card>
+                  </v-card-text>
 
-                    <v-card-actions class="justify-end">
-                      <v-btn variant="text" @click="showGetIdsDialog = false">Cancel</v-btn>
-                      <v-btn color="primary" variant="flat" @click="onGetIds">Compare</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
+                  <v-card-actions class="justify-end">
+                    <v-btn variant="text" @click="showSettingsDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" variant="flat" @click="onSaveSettings">Apply</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
 
-
-                <!-- Settings Dialog -->
-                <v-dialog v-model="showSettingsDialog" max-width="900px">
-                  <v-card class="pa-2">
-                    <v-card-title class="text-h5">
-                      <v-icon size="small" variant="plain" color="grey" icon="mdi-cog"></v-icon>
-                      Settings
-                    </v-card-title>
-
-                    <!-- Sample -->
-                    <v-card-text>
-                      <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">Sample</div>
-                      <v-card flat rounded class="pa-0 mb-8">
-                        <v-row>
-                          <v-col cols="12" sm="4">
-                            <v-card 
-                              flat 
-                              rounded 
-                              :class="['option-card', 'fill-height', sampleFilter == null ? 'selected' : '']"
-                              variant="outlined"
-                              class="d-flex align-center justify-center"
-                              @click="sampleFilter = null"
-                            >
-                              <v-card-text>
-                                <div class="text-grey-darken-2 text-center">
-                                  <v-icon size="x-large" variant="plain" color="grey" class="mb-1" :icon="entityConfig.icon"></v-icon>
-                                  <div>All {{ entityType }}</div>
-                                </div>
-                              </v-card-text>
-                            </v-card>
-                          </v-col>
-
-                          <v-col cols="12" sm="4">
-                            <v-card 
-                              flat 
-                              rounded 
-                              :class="['option-card', 'fill-height', sampleFilter == 'recent' ? 'selected' : '']"
-                              variant="outlined"
-                              @click="sampleFilter = 'recent'"
-                            >
-                              <v-card-text>
-                                <div class="text-grey-darken-2 mb-2">
-                                  <v-icon variant="plain" color="grey" icon="mdi-clock-outline"></v-icon>
-                                  {{ filters.titleCase(entityType) }} from recent days:
-                                </div>
-                                <v-number-input
-                                  v-model="sampleDays"
-                                  :min="1"
-                                  :max="365"
-                                  variant="outlined"
-                                  flat
-                                  density="compact"
-                                  inline
-                                  hide-details
-                                  width="100px"
-                                  style="margin: auto;"
-                                  control-variant="stacked"
-                                />
-                              </v-card-text>
-                            </v-card>
-                          </v-col>
-
-                          <v-col cols="12" sm="4">
-                            <v-card 
-                              flat 
-                              rounded 
-                              :class="['option-card', 'fill-height', sampleFilter == 'custom' ? 'selected' : '']"
-                              variant="outlined"
-                              @click="sampleFilter = 'custom'"
-                            >
-                              <v-card-text>
-                                <div class="text-grey-darken-2 mb-2">
-                                  <v-icon variant="plain" color="grey" icon="mdi-filter-outline"></v-icon>
-                                  Custom filter:
-                                </div>
-                                <v-text-field
-                                  v-model="customFilter"
-                                  placeholder="filter=foo:bar"
-                                  variant="outlined"
-                                  flat
-                                  hide-details
-                                  density="compact"
-                                />
-                              </v-card-text>
-                            </v-card>
-                          </v-col>
-                        </v-row>
-                      </v-card>
-
-                      <!-- Fields -->
-                      <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">
-                        Fields
-                        <v-btn
-                          color="grey"
-                          variant="tonal"
-                          icon
-                          size="x-small"
-                          @click="fieldsToShowSettings = [...defaultFieldsToShow]"
-                        >
-                          <v-icon icon="mdi-refresh"></v-icon>
-                        </v-btn>
-                      </div>
-                      <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
-                        <v-chip 
-                          v-for="field in Object.keys(schema)" 
-                          :key="field"
-                          :text="field"
-                          :variant="fieldsToShowSettings.includes(field) ? 'flat' : 'flat'"
-                          :color="fieldsToShowSettings.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
-                          class="mr-2 mb-3"
-                          @click="toggleFieldInSettings(field)"
-                        />
-                      </v-card>
-                    </v-card-text>
-
-                    <v-card-actions class="justify-end">
-                      <v-btn variant="text" @click="showSettingsDialog = false">Cancel</v-btn>
-                      <v-btn color="primary" variant="flat" @click="onSaveSettings">Apply</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-
-              </v-row>
+            </v-row>
 
             <!-- Start View -->
             <div v-if="!searchStarted && Object.keys(matches).length === 0" class="start-view mt-8 d-flex align-center justify-center">
@@ -248,9 +249,9 @@
             
             <!-- Skeleton Loader -->
             <v-skeleton-loader v-if="searchStarted && Object.keys(matches).length === 0" type="table" class="mt-8"/>
-              
+
+            <!-- Results -->
             <div v-if="Object.keys(matches).length > 0" class="bg-blue-lighten-5 mx-n10 mt-10 py-2 results-section">
-                
               <!-- Stats -->
               <v-row :dense="smAndDown" class="px-2 px-sm-6 pt-5 pb-7">
                 <v-col cols="3" class="py-2">
@@ -279,9 +280,10 @@
                 </v-col>
               </v-row>
 
-              <!-- Table -->
-              <div class="table-scroll">
+              <!-- Results Table -->
+              <div ref="tableScrollRef" class="table-scroll">
                 <v-data-table
+                  ref="vDataTableRef"
                   :headers="headers"
                   :items="rows"
                   :items-per-page="-1"
@@ -317,18 +319,39 @@
                     </template>
                 </v-data-table>
               </div>
-            
             </div>
 
           </v-card>
         </v-col>
       </v-row>
     </v-container>
+    
+    <!-- Fixed Table Header -->
+    <div
+      v-if="headers.length > 0"
+      ref="fixedHeaderRef"
+      class="fixed-header"
+      v-show="showFixedHeader"
+    >
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th v-for="column in headers" :key="column.key">
+              {{ column.title }}
+              <span v-if="column.key !== 'source'" class="text-caption text-grey-darken-1 ml-1">
+                {{ columnMatchRates[column.key] }}%
+              </span>
+            </th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+ 
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
 
@@ -378,6 +401,11 @@ const fieldsToShowSettings = ref([]);
 const showGetIdsDialog     = ref(false);
 const showSettingsDialog   = ref(false);
 const errorMessage         = ref('');
+
+const tableScrollRef       = ref(null);
+const fixedHeaderRef       = ref(null);
+const vDataTableRef        = ref(null);
+const showFixedHeader      = ref(false);
 
 const { smAndDown } = useDisplay();
 
@@ -648,12 +676,41 @@ const extractID = (input) => {
   return input.split("/").slice(-1)[0];
 }
 
-// If IDs are provided in URL, fetch results immediately
+ async function syncFixedHeader() {
+  // Synchronize the fixed header's horizontal scroll, position, and column widths with the real table
+  await nextTick();
+  const scroll = tableScrollRef.value;
+  const fixed = fixedHeaderRef.value;
+  
+  if (!scroll || !fixed) return;
+
+  const left = scroll.getBoundingClientRect().left;
+  fixed.style.left = `${left}px`;
+  fixed.style.width = `${scroll.clientWidth}px`;
+  fixed.style.overflow = 'hidden';
+
+  const realThs = scroll.querySelectorAll('thead tr:first-child th');
+  const fixedThs = fixed.querySelectorAll('thead tr:first-child th');
+  if (realThs.length === fixedThs.length) {
+    for (let i = 0; i < realThs.length; i++) {
+      const w = realThs[i].offsetWidth;
+      fixedThs[i].style.width = w + 'px';
+      fixedThs[i].style.minWidth = w + 'px';
+      fixedThs[i].style.maxWidth = w + 'px';
+    }
+  }
+}
+
 onMounted(() => {
+  // If IDs are provided in URL, fetch results immediately
   if (ids.value && ids.value.length > 0) {
     searchStarted.value = true;
     fetchResults();
   }
+
+  window.addEventListener('resize', () => {
+    syncFixedHeader();
+  });
 });
 
 watch(showGetIdsDialog, (newVal) => {
@@ -668,13 +725,45 @@ watch(showSettingsDialog, (newVal) => {
   }
 });
 
+const handleWindowScroll = () => {
+  // Fixed header visibility logic based on window scroll
+  const wrapper = document.querySelector('.v-table__wrapper');
+  if (!wrapper) return;
+
+  const wrapperRect = wrapper.getBoundingClientRect();
+  showFixedHeader.value = wrapperRect.top < 0;
+};
+
+watch(() => Object.keys(matches.value).length, async (count) => {
+  if (count > 0) {
+    // Setup syncing fixed header with data table
+    await nextTick();
+    const scroll = document.querySelector('.v-table__wrapper');
+    const fixed = fixedHeaderRef.value;
+    if (scroll && fixed) {
+      const scrollHandler = () => {
+        fixed.scrollLeft = scroll.scrollLeft;
+      };
+      scroll.addEventListener('scroll', scrollHandler);
+      fixed.scrollLeft = scroll.scrollLeft;
+      syncFixedHeader();
+      window.addEventListener('scroll', handleWindowScroll);
+      handleWindowScroll(); // Call immediately to set showFixedHeader initially
+    }
+  }
+});
+
+watch([tableScrollRef, fixedHeaderRef], () => {
+  syncFixedHeader();
+  handleWindowScroll();
+});
+
 const entityTypes = [
   { title: "Works", value: "works" },
   { title: "Sources", value: "sources" },
   { title: "Authors", value: "authors" },
   { title: "Institutions", value: "institutions" },
   { title: "Topics", value: "topics" },
-  { title: "Concepts", value: "concepts" },
 ];
 
 const schema = {
@@ -745,12 +834,6 @@ const schema = {
 .results-section {
   border-top: 3px solid #BBDEFB !important;
 }
-:deep(thead th) {
-  position: sticky;
-  top: 0;
-  background: white; /* required to avoid bleed-through */
-  z-index: 10;         /* keep above tbody cells */
-}
 :deep(thead tr th) {
   background-color: #F5F5F5 !important;
   border-top: 1px solid #ccc !important;
@@ -759,24 +842,22 @@ const schema = {
 }
 tr:nth-child(even) td {
   border-bottom: 2px solid #ccc !important;
-  padding-bottom: 8px !important;
+  padding-bottom: 12px !important;
 }
 tr:nth-child(odd) td {
-  padding-top: 8px !important;
+  padding-top: 12px !important;
 }
-/* Freeze first column */
-:deep(.v-data-table thead th:first-child) {
+:deep(table thead th:first-child) {
   position: sticky !important;
   left: 0 !important;
   z-index: 3 !important;
 }
-:deep(.v-data-table table > tbody > tr > td:nth-child(1)) {
+:deep(table > tbody > tr > td:nth-child(1)) {
   position: sticky;
   left: 0;
   z-index: 2;
 }
-/* Elevate header cell */
-:deep(.v-data-table table > thead > tr > th:nth-child(1)) {
+:deep(table > thead > tr > th:nth-child(1)) {
   z-index: 3;
 }
 td a {
@@ -807,5 +888,35 @@ td a:hover {
 }
 .fields-card {
   border-color: #BDBDBD;
+}
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  background: white;
+  border-collapse: collapse;
+  z-index: 1000;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  pointer-events: none;
+}
+.fixed-header::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+.fixed-header table {
+  min-width: max-content;
+  width: max-content;
+  border-collapse: collapse;
+}
+.fixed-header th {
+  background-color: #F5F5F5;
+  padding: 4px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-top: 1px solid #ccc;
+  border-bottom: 2px solid #ccc;
+  white-space: nowrap;
+  text-align: left;
 }
 </style>
