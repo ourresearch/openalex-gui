@@ -41,7 +41,6 @@
                   size="x-large" 
                   density="compact"
                   color="primary"
-                  :disabled="entityType !== 'works'"
                   @click="fetchRandomSample"
                   class="w-100 w-sm-auto"
                 >
@@ -56,7 +55,6 @@
                   size="x-large" 
                   density="compact"
                   color="primary"
-                  :disabled="entityType !== 'works'"
                   class="mr-2 flex-grow-1 flex-sm-grow-0"
                   @click="showGetIdsDialog = true"
                 >
@@ -208,17 +206,17 @@
                         variant="tonal"
                         icon
                         size="x-small"
-                        @click="fieldsToShowSettings = [...defaultFieldsToShow]"
+                        @click="fieldsToShowSettings = [...defaultFields[entityType]]"
                       >
                         <v-icon icon="mdi-refresh"></v-icon>
                       </v-btn>
                     </div>
                     <v-card rounded flat border class="fields-card pa-6 pb-4 bg-grey-lighten-5">
                       <v-chip 
-                        v-for="field in Object.keys(schema)" 
+                        v-for="field in Object.keys(schema[entityType])" 
                         :key="field"
                         :text="field"
-                        :variant="fieldsToShowSettings.includes(field) ? 'flat' : 'flat'"
+                        variant="flat"
                         :color="fieldsToShowSettings.includes(field) ? 'blue-lighten-5' : 'grey-lighten-3'"
                         class="mr-2 mb-3"
                         @click="toggleFieldInSettings(field)"
@@ -239,9 +237,8 @@
             <div v-if="!searchStarted && Object.keys(matches).length === 0" class="start-view mt-8 d-flex align-center justify-center">
               <div class="text-center">
                 <v-icon size="200" :color="errorMessage ? 'red-lighten-4' : 'blue-lighten-4'" icon="mdi-tools" class="mb-4"></v-icon>
-                <div class="ml-2 text-grey-darken-1 font-weight-medium" style="font-size: 18px; letter-spacing: 1px;">
-                  <span v-if="entityType !== 'works'">{{ filters.titleCase(entityType) }} coming soon.</span>
-                  <span v-else-if="errorMessage" class="text-red">{{ errorMessage }}</span>
+                <div class="ml-2 text-grey-darken-1 font-weight-medium" style="font-size: 18px; letter-spacing: .5px;">
+                  <span v-if="errorMessage" class="text-red">{{ errorMessage }}</span>
                   <span v-else>“Quality improvement through painstaking toil.”</span>
                 </div>
               </div>
@@ -355,9 +352,10 @@ import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
 
-import { getConfigs } from '../oaxConfigs';
+import { getConfigs } from '@/oaxConfigs';
+import { defaultFields, schema } from '@/qa/apiComparison';
 import filters from '@/filters';
-import { useParamsAndLocalStorage, useParams } from '../composables/useStorage';
+import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -365,33 +363,13 @@ const prodUrl = `https://api.openalex.org/`;
 const waldenUrl = `https://api.openalex.org/v2/`;
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
 
-const defaultFieldsToShow = [
-  "id",
-  "doi",
-  "title",
-  "type",
-  "publication_year",
-  "publication_date",
-  "ids",
-  "language",
-  "primary_location",
-  "open_access",
-  "authorships",
-  "biblio",
-  "locations_count",
-  "locations",
-  "best_oa_location",
-  "referenced_works_count",
-  "referenced_works",
-];
-
 const ids          = useParams('ids', 'array', []);
 const sampleSize   = useParamsAndLocalStorage('sampleSize', 'number', 100);
 const entityType   = useParamsAndLocalStorage('entityType', 'string', 'works');
 const sampleFilter = useParamsAndLocalStorage('sampleFilter', 'string', null);
 const sampleDays   = useParamsAndLocalStorage('sampleDays', 'number', 7);
 const customFilter = useParamsAndLocalStorage('customFilter', 'string', '');
-const fieldsToShow = useParamsAndLocalStorage('fieldsToShow', 'array', defaultFieldsToShow);
+const fieldsToShow = useParamsAndLocalStorage('fieldsToShow', 'array', defaultFields[entityType.value]);
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
@@ -411,6 +389,11 @@ const { smAndDown } = useDisplay();
 
 const entityConfig = computed(() => getConfigs()[entityType.value]);
 
+const entityTypes = Object.keys(schema).map((key) => ({
+  title: filters.titleCase(key),
+  value: key,
+}));
+
 const matches = computed(() => {
   const matches = {};
   Object.keys(prodResults).forEach(id => {
@@ -422,7 +405,7 @@ const matches = computed(() => {
     matches[id] = {};
     let rowPassed = true;
     fieldsToShow.value.forEach(field => {
-      const type = schema[field];
+      const type = schema[entityType.value][field];
       let passed = false;
 
       if (type === "object") {
@@ -504,7 +487,7 @@ const columnMatchRates = computed(() => {
 });
 
 const settingsSummary = computed(() => {
-  let summary = `Comparing ${fieldsToShow.value.length} of ${Object.keys(schema).length} fields`;
+  let summary = `Comparing ${fieldsToShow.value.length} of ${Object.keys(schema[entityType.value]).length} fields`;
   if (sampleFilter.value === "recent") {
     summary += ` from past ${sampleDays.value} days`;
   } else if (sampleFilter.value === "custom") {
@@ -544,7 +527,7 @@ const makeRow = (data, source, id) => {
   row.source = source;
   row.url = `https://api.openalex.org/${source === "Prod" ? "" : "v2/"}${entityType.value}/${id}`;
   fieldsToShow.value.map(field => {
-    const type = schema[field];
+    const type = schema[entityType.value][field];
     if (!data) {
       row[field] = "-";
       return;
@@ -582,13 +565,15 @@ function getCellStyle(item, column) {
     styles.overflow = 'hidden';
     styles.textOverflow = 'ellipsis';
     styles.maxWidth = '300px';
-  }
 
-  if (column.key === 'source') {
+  } else if (column.key === 'source') {
     styles.width = '250px';
     styles.fontWeight = 'bold';
     styles.fontSize = '11px';
     styles.whiteSpace = 'nowrap';
+    
+  } else if (column.key === 'display_name') {
+    styles.minWidth = '300px';
   }
   return styles;
 }
@@ -713,6 +698,12 @@ onMounted(() => {
   });
 });
 
+watch(entityType, () => {
+  fieldsToShow.value = [...defaultFields[entityType.value]];
+  clearResults();
+  searchStarted.value = false;
+});
+
 watch(showGetIdsDialog, (newVal) => {
   if (!newVal) {
     idsInput.value = '';
@@ -758,62 +749,6 @@ watch([tableScrollRef, fixedHeaderRef], () => {
   handleWindowScroll();
 });
 
-const entityTypes = [
-  { title: "Works", value: "works" },
-  { title: "Sources", value: "sources" },
-  { title: "Authors", value: "authors" },
-  { title: "Institutions", value: "institutions" },
-  { title: "Topics", value: "topics" },
-];
-
-const schema = {
-  abstract_inverted_index: "object",
-  authorships: "array",
-  apc_list: "object",
-  apc_paid: "object",
-  best_oa_location: "object",
-  biblio: "object",
-  citation_normalized_percentile: "object",
-  cited_by_api_url: "string",
-  cited_by_count: "number",
-  concepts: "array",
-  corresponding_author_ids: "array",
-  corresponding_institution_ids: "array",
-  countries_distinct_count: "number",
-  counts_by_year: "array",
-  created_date: "string",
-  display_name: "string",
-  doi: "string",
-  fulltext_origin: "string",
-  fwci: "number",
-  grants: "array",
-  has_fulltext: "boolean",
-  id: "string",
-  ids: "object",
-  indexed_in: "array",
-  institutions_distinct_count: "number",
-  is_paratext: "boolean",
-  is_retracted: "boolean",
-  keywords: "array",
-  language: "string",
-  license: "string",
-  locations: "array",
-  locations_count: "number",
-  mesh: "array",
-  open_access: "object",
-  primary_location: "object",
-  primary_topic: "object",
-  publication_date: "string",
-  publication_year: "number",
-  referenced_works: "array",
-  related_works: "array",
-  sustainable_development_goals: "array",
-  topics: "array",
-  title: "string",
-  type: "string",
-  type_crossref: "string",
-  updated_date: "string"
-};
 </script>
 
 
