@@ -408,12 +408,21 @@ const matches = computed(() => {
       const type = schema[entityType.value][field];
       let passed = false;
 
-      if (type === "object") {
-        passed = walden && Object.keys(prod?.[field] || {}).length === Object.keys(walden?.[field] || {}).length;
+      const prodValue = getFieldValue(prod, field);
+      const waldenValue = getFieldValue(walden, field);
+
+      if (prod && !walden) {
+        passed = false;
+      } else if (prodValue === null && waldenValue === null) {
+        passed = true;
+      } else if (prod === undefined && walden === undefined) {
+        passed = true;
+      } else if (type === "object") {
+        passed = Object.keys(prodValue || {}).length === Object.keys(waldenValue || {}).length;
       } else if (type === "array") {
-        passed = walden &&prod?.[field] && walden?.[field] && prod?.[field].length === walden?.[field].length;
+        passed = prodValue && waldenValue && prodValue.length === waldenValue.length;
       } else {
-        passed = walden && prod?.[field] === walden?.[field];
+        passed = prodValue === waldenValue;
       }
       matches[id][field] = passed;
       //console.log("matches", id, field, prod?.[field], walden?.[field], matches[id][field]);
@@ -425,6 +434,19 @@ const matches = computed(() => {
   });
   return matches;
 });
+
+const getFieldValue = (obj, field) => {
+  if (!obj) { return undefined; }
+  const keys = field.split(".");
+  let value = obj;
+  for (let i = 0; i < keys.length; i++) {
+    value = value !== null && typeof value === "object" ? value[keys[i]] : undefined;
+    if (value === undefined) {
+      return undefined;
+    }
+  }
+  return value;
+};
 
 const matchRate = computed(() => {
   let total = 0;
@@ -525,18 +547,20 @@ const rows = computed(() => {
 const makeRow = (data, source, id) => {
   const row = {};
   row.source = source;
+  row._id = id;
   row.url = `https://api.openalex.org/${source === "Prod" ? "" : "v2/"}${entityType.value}/${id}`;
   fieldsToShow.value.map(field => {
     const type = schema[entityType.value][field];
+    
     if (!data) {
       row[field] = "-";
       return;
     }
-    const val = data[field];
-    if (!val) {
+    const val = getFieldValue(data, field);
+    if (val == null || val === undefined) {
       row[field] = "-";
     } else if (type === "object") {
-      row[field] = val && Object.keys(val).length; // TODO, not meaningful
+      row[field] = val && Object.keys(val).length;
     } else if (type === "array") {
       row[field] = val && val.length;
     } else {
@@ -547,12 +571,12 @@ const makeRow = (data, source, id) => {
 };
 
 function getCellStyle(item, column) {  
-  if (!item || !item.id) { return {} }
+  console.log("getCellStyle", item, column);
+  if (!item) { return {}; }
 
   let passed = false;
-  const id = item.id.split("/").slice(-1)[0];
 
-  if (matches.value[id] && matches.value[id][column.key]) {
+  if (matches.value[item._id] && matches.value[item._id][column.key]) {
     passed = true;
   }
 
@@ -575,6 +599,7 @@ function getCellStyle(item, column) {
   } else if (column.key === 'display_name') {
     styles.minWidth = '300px';
   }
+  console.log(passed, styles);
   return styles;
 }
 
@@ -778,8 +803,10 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 tr:nth-child(even) td {
   border-bottom: 2px solid #ccc !important;
   padding-bottom: 12px !important;
+  padding-top: 4px !important;
 }
 tr:nth-child(odd) td {
+  padding-bottom: 4px !important;
   padding-top: 12px !important;
 }
 :deep(table thead th:first-child) {
