@@ -23,6 +23,7 @@ const schema = [
     entity: "works",
     divisions: [
       "type",
+      "language",
       "open_access.is_oa",
       "open_access.any_repository_has_fulltext",
       "authorships.institutions.is_global_south",
