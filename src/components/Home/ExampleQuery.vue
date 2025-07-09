@@ -8,8 +8,17 @@
     </div>
     <v-spacer />
     <div>
-      <v-chip label size="small" variant="tonal" :color="chipColor(type)"><b>{{type}}</b></v-chip>
-      <v-chip label size="small" variant="tonal" :color="chipColor(category)"><b>{{category}}</b></v-chip>  
+      <v-chip 
+        v-for="(label, index) in [['type', type], ['category', category]]"
+        :key="index"
+        label
+        size="small"
+        variant="tonal"
+        @click="emit('set-filter', { [label[0]]: label[1] })" 
+        :color="chipColor(label[1])"
+      >
+        <b>{{label[1]}}</b>
+      </v-chip>
     </div>
   </v-card>
 </template>
@@ -19,6 +28,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import filters from '@/filters';
 
 defineOptions({ name: 'ExampleQuery' });
 
@@ -29,6 +39,8 @@ defineProps({
   error: String,
   query: Object
 });
+
+const emit = defineEmits(['set-filter']);
 
 const store = useStore();
 const router = useRouter();

@@ -58,6 +58,7 @@
             :error="query.error"
             :url="query.url"
             :query="query.query"
+            @set-filter="(filter) => selectedFilter = filters.titleCase(filter)"
           />
         </v-col>
       </v-row>
@@ -68,6 +69,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import filters from '@/filters';
 import NewQueryButton from '@/components/Misc/NewQueryButton.vue';
 import ExampleQuery from '@/components/Home/ExampleQuery.vue';
 import { exampleQueries as importedExampleQueries } from './exampleQueriesList';
@@ -83,14 +85,12 @@ const typeFilter = ref(null);
 const categoryFilter = ref(null);
 const uiVariant = computed(() => store.state.uiVariant);
 
-const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-
 const typeTags = computed(() => [...new Set(exampleQueries.value.map(q => q.type))]);
 const categoryTags = computed(() => [...new Set(exampleQueries.value.map(q => q.category))]);
 
 const filterOptions = computed(() => {
-  const types = typeTags.value.map(tag => ({ title: capitalize(tag), value: { type: tag } }));
-  const categories = categoryTags.value.map(tag => ({ title: capitalize(tag), value: { category: tag } }));
+  const types = typeTags.value.map(tag => ({ title: filters.titleCase(tag), value: { type: tag } }));
+  const categories = categoryTags.value.map(tag => ({ title: filters.titleCase(tag), value: { category: tag } }));
   return [{ title: 'All Questions', value: 'All Questions' }, ...types, ...categories];
 });
 
