@@ -48,13 +48,14 @@ const props = defineProps({
   filterColor: { type: String, default: 'primary' }
 });
 
-const $attrs = useAttrs();
 const emit = defineEmits(['entity-selected', 'menu-state-change']);
+
+const $attrs         = useAttrs();
 const selectedEntity = ref(null);
-const entities = ref([]);
-const loading = ref(false);
-const search = ref(null);
-const isMenuOpen = ref(false);
+const entities       = ref([]);
+const loading        = ref(false);
+const search         = ref(null);
+const isMenuOpen     = ref(false);
 
 const localValueOptions = computed(() => { return getConfigs()[props.entityType]?.values; });
 
@@ -93,8 +94,8 @@ const onSearchInputUpdate = (val) => {
 };
 
 const onEntitySelected = async (entity) => {
-  if (!entity) return;
-  if (entity?.short_id) entity.id = entity.short_id;
+  if (!entity) { return; }
+  if (entity?.short_id) { entity.id = entity.short_id; }
   emit('entity-selected', entity);
   await nextTick();
   selectedEntity.value = null;
