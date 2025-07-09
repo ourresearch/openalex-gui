@@ -173,6 +173,7 @@
             density="compact"
             class="query-builder-input flex-grow-1"
             autofocus
+            @update:menu="onMenuStateChange"
             @update:model-value="saveEditingValue" 
             @blur="onInputBlur"
           />
@@ -247,6 +248,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+
         <hover-menu-wrapper v-else @action-click="deleteFilter" :active="props.isSentence">
           <query-filter-value-chip 
             v-if="selectedValue !== null && !isEditingValue"
