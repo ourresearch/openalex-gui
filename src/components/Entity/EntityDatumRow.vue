@@ -1,5 +1,5 @@
 <template>
-  <div v-if="data && isDisplayed">
+  <div v-if="data && isDisplayed && isRawValueValid">
     
     <span class="font-weight-bold">
       <template v-if="isValueAnArray">
@@ -101,6 +101,9 @@ const props = defineProps({
   data: Object
 });
 
+console.log("EntityDatumRow props")
+console.log(props)
+
 const store = useStore();
 const entityType = computed(() => store.getters['entityType']);
 
@@ -112,6 +115,13 @@ const rawValue = computed(() => filterConfig.value.extractFn(props.data));
 const myValueType = computed(() => Array.isArray(rawValue.value) ? 'array' : typeof rawValue.value);
 const isValueAnArray = computed(() => Array.isArray(rawValue.value));
 const valueLength = computed(() => rawValue.value?.length);
+
+const isRawValueValid = computed(() => {
+  if (myValueType.value === 'array' && !rawValue.value.every(o => o !== undefined)) {
+    return false;
+  }
+  return true;
+});
 
 const isValueSubjectToTruncation = computed(() => {
   const type = myValueType.value;
@@ -125,6 +135,7 @@ const isDisplayed = computed(() => {
 });
 
 const valueEntityLinks = computed(() => {
+  console.log("valueEntityLinks rawValue.value", rawValue.value);
   if (rawValue.value?.id) return [rawValue.value];
   if (isValueAnArray.value && rawValue.value.every(o => !!o.id)) {
     return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
@@ -133,6 +144,7 @@ const valueEntityLinks = computed(() => {
 });
 
 const valueListOfStrings = computed(() => {
+  console.log("valueListOfStrings rawValue.value", rawValue.value);
   if (isValueAnArray.value && !rawValue.value.every(o => !!o.id)) {
     return isValueTruncated.value ? rawValue.value.slice(0, maxLen.value.array) : rawValue.value;
   }

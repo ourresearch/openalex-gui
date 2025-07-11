@@ -147,7 +147,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-tag-outline",
             isMultiple: false,
-            extractFn: (entity) => entity.primary_topic.subfield,
+            extractFn: (entity) => entity.primary_topic?.subfield,
         },
         {
             key: "primary_topic.field.id",
@@ -162,7 +162,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-tag-outline",
             isMultiple: false,
-            extractFn: (entity) => entity.primary_topic.field,
+            extractFn: (entity) => entity.primary_topic?.field,
         },
         {
             key: "primary_topic.domain.id",
@@ -177,7 +177,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: [],
             icon: "mdi-tag-outline",
             isMultiple: false,
-            extractFn: (entity) => entity.primary_topic.domain,
+            extractFn: (entity) => entity.primary_topic?.domain,
         },
         {
             key: "grants.funder",
@@ -190,12 +190,12 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: ["filter", "group_by",],
             icon: "mdi-cash-multiple",
-            extractFn: (entity) => entity.grants.map(grant => {
+            extractFn: (entity) => entity.grants ? entity.grants.map(grant => {
                 return {
                     id: grant.funder,
                     display_name: grant.funder_display_name,
                 }
-            }),
+            }) : [],
             isMultiple: true,
         },
         {
@@ -208,7 +208,7 @@ const facetConfigs = function (entityType) {
             category: "other",
             actions: [],
             icon: "mdi-cash-multiple",
-            extractFn: (entity) => entity.grants.map(grant => grant.award_id),
+            extractFn: (entity) => entity.grants ? entity.grants.map(grant => grant.award_id) : [],
             isMultiple: true,
         },
         {
@@ -976,7 +976,7 @@ const facetConfigs = function (entityType) {
             actionsPopular: ["sort", "column",],
             icon: "mdi-format-quote-close",
             isMultiple: false,
-            extractFn: (entity) => 100 * entity.citation_normalized_percentile.value,
+            extractFn: (entity) => 100 * (entity.citation_normalized_percentile?.value || 0),
         },
         {
             key: "fwci",
@@ -1018,7 +1018,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-format-quote-close",
             isMultiple: true,
             isDisplayedAsCount: true,
-            extractFn: (entity) => entity.referenced_works.length,
+            extractFn: (entity) => entity.referenced_works?.length,
         },
         {
             key: "related_to",
@@ -1033,7 +1033,7 @@ const facetConfigs = function (entityType) {
             icon: "mdi-book-open-outline",
             isMultiple: true,
             isDisplayedAsCount: true,
-            extractFn: (entity) => entity.related_works.length,
+            extractFn: (entity) => entity.related_works?.length,
         },
 
         // authors

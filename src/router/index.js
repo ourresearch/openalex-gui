@@ -21,7 +21,6 @@ import AboutPage from '@/views/About.vue';
 import OurStats from '@/views/OurStats.vue';
 import TestimonialsPage from "@/views/Testimonials.vue";
 import WorksCitingOpenAlex from "@/views/WorksCitingOpenAlex.vue";
-import DataMap from "@/views/DataMap.vue";
 
 import MeBase from "@/views/Me/MeBase.vue";
 import MeAbout from "@/views/Me/MeAbout.vue";
@@ -33,6 +32,7 @@ import LabelDetails from "@/components/Label/LabelDetails.vue";
 import PageNotFound from "@/views/PageNotFound.vue";
 import AdminPage from "@/views/AdminPage.vue";
 import WaldenQA from "@/views/WaldenQA.vue";
+import XpacQA from "@/views/XpacQA.vue";
 
 import TestQueriesBase from "@/views/TestQueries/TestQueriesBase.vue";
 import TestQueriesSuite from "@/views/TestQueries/TestQueriesSuite.vue";
@@ -155,11 +155,9 @@ const routes = [
         meta: { requiresAuth: true }
     },
    
-    {
-        path: '/qa/walden',
-        name: 'walden-qa',
-        component: WaldenQA,
-    },
+    {path: '/qa/walden', name: 'walden-qa', component: WaldenQA},
+    {path: '/qa/xpac', name: 'xpac-qa', component: XpacQA},
+    
     //  tests
     {
         path: '/tests',
