@@ -1,15 +1,23 @@
 <template>
-  <v-navigation-drawer v-model="isOpen" temporary location="right" width="700" class="full-height-drawer">
+  <v-navigation-drawer 
+    :model-value="isDrawerOpen" 
+    @update:model-value="handleModelValueChange($event)" 
+    temporary
+    :disable-route-watcher="true"
+    location="right" 
+    width="700" 
+    class="full-height-drawer"
+  >
     <template v-if="workData">
       <v-card flat>
         <v-row>
           <v-col cols="10">
-            <div class="text-h6 pt-6 px-8">
+            <div class="text-h6 pt-12 px-8">
               {{ workData.title || '[Title Missing]' }}
             </div>
           </v-col>
           <v-col cols="2" class="text-right">
-            <v-btn icon variant="plain" @click="closeDrawer">
+            <v-btn icon variant="plain" @click="emit('close')">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-col>
@@ -172,10 +180,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
 import { useStore } from 'vuex';
 
-const props = defineProps({
+defineProps({
   workId: {
     type: String,
     default: null
@@ -190,26 +197,23 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:isDrawerOpen', 'close']);
+const emit = defineEmits(['close']);
 
 const store = useStore();
 
-const isOpen = computed({
-  get: () => props.isDrawerOpen,
-  set: (value) => emit('update:isDrawerOpen', value)
-});
 
-function closeDrawer() {
-  emit('update:isDrawerOpen', false);
-  emit('close');
+function handleModelValueChange(value) {
+  if (value === false) {
+    emit('close');
+  }
 }
 
 function openZoomDrawer(id) {
-  closeDrawer();
+  emit("close");
   store.commit('setZoomId', "v2/works/" + id);
-  isOpen.value = true;
 }
 </script>
+
 
 <style scoped>
 .v-navigation-drawer {
