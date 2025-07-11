@@ -29,7 +29,7 @@
             color="blue-lighten-1" 
             size="small"
             variant="flat"
-            :href="`https://api.openalex.org/v2/works/${workData.id}`"
+            :href="`https://api.openalex.org/${isV2 ? 'v2/' : ''}works/${workId}`"
             target="_blank"
             class="mr-1"
           >
@@ -194,6 +194,10 @@ defineProps({
   isDrawerOpen: {
     type: Boolean,
     default: false
+  },
+  isV2: {
+    type: Boolean,
+    default: true,
   }
 });
 
