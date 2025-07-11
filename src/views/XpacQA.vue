@@ -232,7 +232,7 @@ import { ref, reactive, watch, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 
 import filters from '@/filters';
-import { useParamsAndLocalStorage } from '@/composables/useStorage';
+import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 const apiBase = `https://api.openalex.org/v2/`;
@@ -251,9 +251,9 @@ const isDrawerOpen       = ref(false);
 const bottomObserver     = ref(null);
 const scrollContainer    = ref(null);
 
-const sampleFilter = useParamsAndLocalStorage('sampleFilter', 'string', null);
-const sampleDays   = useParamsAndLocalStorage('sampleDays', 'number', 2);
-const customFilter = useParamsAndLocalStorage('customFilter', 'string', '');
+const sampleFilter = useParams('sampleFilter', 'string', null);
+const sampleDays   = useParams('sampleDays', 'number', 2);
+const customFilter = useParams('customFilter', 'string', '');
 
 const previousSettings = {};
 
