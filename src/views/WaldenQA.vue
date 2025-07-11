@@ -80,6 +80,19 @@
                 </div>
               </v-col>
 
+              <v-col cols="12" sm="auto">
+                <v-btn-toggle
+                  v-model="mode"
+                  color="primary"
+                  variant="outlined"
+                  density="compact"
+                  mandatory
+                >
+                  <v-btn value="table">Table</v-btn>
+                  <v-btn value="results">Results</v-btn>
+                </v-btn-toggle>
+              </v-col>
+
               <!-- Get IDs Dialog -->
               <v-dialog v-model="showGetIdsDialog" max-width="500px">
                 <v-card class="pa-2">
@@ -245,7 +258,11 @@
             </div>
             
             <!-- Skeleton Loader -->
-            <v-skeleton-loader v-if="searchStarted && Object.keys(matches).length === 0" type="table" class="mt-8"/>
+            <v-skeleton-loader 
+              v-if="searchStarted && Object.keys(matches).length === 0" 
+              :type="mode === 'table' ? 'table' : 'list-item-three-line@12'" 
+              class="mt-8"
+            />
 
             <!-- Results -->
             <div v-if="Object.keys(matches).length > 0" class="bg-blue-lighten-5 mx-n10 mt-10 py-2 results-section">
@@ -278,7 +295,7 @@
               </v-row>
 
               <!-- Results Table -->
-              <div ref="tableScrollRef" class="table-scroll">
+              <div v-if="mode == 'table'" ref="tableScrollRef" class="table-scroll">
                 <v-data-table
                   ref="vDataTableRef"
                   :headers="headers"
@@ -316,8 +333,97 @@
                     </template>
                 </v-data-table>
               </div>
-            </div>
 
+              <!-- Results List -->
+              <div v-else-if="mode == 'results'">
+                <v-card class="py-8 px-12">
+                  <v-row>
+                    <v-spacer/>
+                    <v-chip
+                      :variant="hide404s ? 'flat' : 'tonal'"
+                      :color="hide404s ? 'blue-lighten-1' : 'blue'"
+                      @click="hide404s = !hide404s"
+                    >
+                      Hide 404s
+                    </v-chip>
+                  </v-row>
+                  <v-row v-for="id in Object.keys(matches)" :key="id">
+                    <template v-if="!hide404s || waldenResults[id]">
+                      <v-col  
+                        v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
+                        :key="index" 
+                        cols="6" 
+                        class="pr-12 pb-10"
+                      >
+                        <div v-if="data">
+                          <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
+                            <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
+                              {{ data.title }}
+                            </span>
+                            <span v-else class="text-red-lighten-2">Title Missing</span>
+                          </div>
+                          <div class="text-green-darken-2" style="line-height: 1;">
+                            <template v-if="data.authorships.length">
+                              <span 
+                                v-for="(authorship, index) in data.authorships" :key="authorship.id"
+                                class="text-caption mr-1"
+                                style="font-size: 14px !important;"
+                              >
+                              {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
+                              </span>
+                            </template>
+                            <template v-else>
+                              <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
+                            </template>
+                          </div>
+                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                            <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
+                              {{ data.publication_year }}
+                            </span>
+                            <span class="mx-1">•</span>
+                            <template v-if="data.primary_location.source?.display_name">
+                              <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
+                                {{ data.primary_location.source.display_name }}
+                              </span> 
+                              <span v-if="!data.primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
+                            </template>
+                            <template v-else>
+                              <span class="text-red-lighten-2">Source Missing</span>
+                            </template>
+                          </div>
+                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
+                              {{ data.type }}
+                            </span>
+                            <span class="mx-1">•</span>
+                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
+                              {{ data.open_access?.oa_status }}
+                            </span>
+                            <v-chip
+                                :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
+                                target="_blank"
+                                color="blue-lighten-1"
+                                size="x-small"
+                                class="ml-2"
+                                style="text-decoration: none;"
+                              >
+                                API
+                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                              </v-chip>
+                          </div>
+                        </div>
+                        <div v-else>
+                          <div class="mb-0" style="font-size: 18px;">
+                            <span class="text-red-lighten-2">404</span>
+                          </div>
+                        </div>
+                      </v-col>
+                    </template>
+                  </v-row>
+              </v-card>
+              </div>
+
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -344,6 +450,15 @@
       </table>
     </div>
  
+    <!-- Work Details Drawer -->  
+    <work-drawer 
+      v-model:isDrawerOpen="isDrawerOpen" 
+      :workId="zoomId" 
+      :workData="zoomData"
+      :isV2="zoomSource === 'walden'"
+      @close="onDrawerClose"
+    />
+
   </div>
 </template>
 
@@ -356,6 +471,7 @@ import { getConfigs } from '@/oaxConfigs';
 import { defaultFields, schema } from '@/qa/apiComparison';
 import filters from '@/filters';
 import { useParamsAndLocalStorage, useParams } from '@/composables/useStorage';
+import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
 defineOptions({ name: 'WaldenQA' });
 
@@ -370,6 +486,10 @@ const sampleFilter = useParamsAndLocalStorage('sampleFilter', 'string', null);
 const sampleDays   = useParamsAndLocalStorage('sampleDays', 'number', 7);
 const customFilter = useParamsAndLocalStorage('customFilter', 'string', '');
 const fieldsToShow = useParamsAndLocalStorage('fieldsToShow', 'array', defaultFields[entityType.value]);
+const mode         = useParamsAndLocalStorage('mode', 'string', 'table');
+const hide404s     = useParamsAndLocalStorage('hide404s', 'boolean', false);
+const zoomId       = useParams('zoomId', 'string', null);
+const zoomSource   = useParams('zoomSource', 'string', 'prod');
 
 const prodResults          = reactive({});
 const waldenResults        = reactive({});
@@ -681,6 +801,26 @@ const onSaveSettings = () => {
   fieldsToShow.value = [...fieldsToShowSettings.value];
   showSettingsDialog.value = false;
 };
+
+const isDrawerOpen = computed(() => {
+  return Boolean(zoomId.value);
+});
+
+const zoomData = computed(() => {
+  if (!zoomId.value) { return null; }
+
+  return zoomSource.value === "prod" ? prodResults[zoomId.value] : waldenResults[zoomId.value];
+});
+
+const onZoom = (id, sourceIndex) => {
+  console.log('onZoom', id, sourceIndex);
+  zoomId.value = extractID(id);
+  zoomSource.value = sourceIndex === 0 ? "prod" : "walden";
+}
+
+function onDrawerClose() {
+  zoomId.value = null;
+}
 
 const extractID = (input) => {
   return input.split("/").slice(-1)[0];

@@ -106,7 +106,7 @@
                     v-if="titleMatches[id]"
                     :href="`https://openalex.org/works?filter=display_name.search:${encodeTitle(apiData[id].title)}`" 
                     target="_blank"
-                    color="blue-lighten-1"
+                    color="blue"
                     size="x-small"
                     class="display-inline-block flex-grow-0 mb-1"
                     style="text-decoration: none;"
@@ -120,7 +120,7 @@
             </v-row>
             </template>
 
-            <v-skeleton-loader v-if="isLoading" type="list-item-two-line@12"></v-skeleton-loader>
+            <v-skeleton-loader v-if="isLoading" type="list-item-three-line@12"></v-skeleton-loader>
             
             <v-pagination
               v-if="!isLoading"
@@ -142,7 +142,7 @@
       v-model:isDrawerOpen="isDrawerOpen" 
       :workId="zoomId" 
       :workData="zoomId && apiData[zoomId] ? apiData[zoomId] : null"
-      @close="handleDrawerClose"
+      @close="onDrawerClose"
     />
   </div>
 </template>
@@ -224,7 +224,7 @@ watch(idsToShow, async () => {
   });
 }, { immediate: true });
 
-function handleDrawerClose() {
+function onDrawerClose() {
   zoomId.value = null;
 }
 
