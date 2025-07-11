@@ -28,7 +28,6 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import filters from '@/filters';
 
 defineOptions({ name: 'ExampleQuery' });
 
