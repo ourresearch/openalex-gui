@@ -119,7 +119,6 @@ const setHideResults = function (val) {
 
 const pushNewFilters = async function (newFilters, entityType) {
     console.log("url.pushNewFilters", newFilters, entityType)
-    console.trace();
     const filter = (newFilters.length) ?
         filtersAsUrlStr(newFilters) :
         undefined

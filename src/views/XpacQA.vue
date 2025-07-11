@@ -10,36 +10,65 @@
                 Xpac Sampler
               </v-card-title>
               <v-spacer></v-spacer>
-              <v-btn 
-                variant="outlined" 
-                size="x-large" 
-                density="compact"
-                color="blue-lighten-2" 
-                class="mr-1 square-btn flex-grow-0"
-                @click="showSettingsDialog = true"
-              >
-                <v-icon icon="mdi-cog"></v-icon>
-              </v-btn>
+              <v-tooltip location="bottom">
+                <template #activator="{ props }">
+                  <v-chip
+                    color="teal"
+                    v-bind="props"
+                  >
+                    <b class="mr-1">Sample:</b> {{ sample.name }}
+                  </v-chip>
+                </template>
+
+                <template #default>
+                  <div>{{ sample.description }}</div>
+                  <div>Size: {{ sample.ids.length.toLocaleString() }}</div>
+                  <div>Date: {{ sample.date }}</div>
+                </template>
+              </v-tooltip>
+
             </v-row>
 
-            <v-row v-for="id in ids" :key="id" class="mb-3 pb-3" style="line-height: 1.3; border-bottom: 1px solid #f5f5f5;">
+            <v-pagination
+              v-model="page"
+              :length="100"
+              :total-visible="10"
+              rounded
+              class="mt-2 mb-12 bg-blue-lighten-5 mx-n10"
+              style="border-top: 3px solid #BBDEFB;"
+            ></v-pagination>
+
+            <template v-if="!isLoading">
+            <v-row v-for="id in idsToShow" :key="id" class="mb-3 pb-3" style="line-height: 1.3; border-bottom: 1px solid #f5f5f5;">
               <v-col cols="12" sm="9">
                 <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="zoomId = id">
-                  {{ apiData[id].title ? apiData[id].title : '[Title Missing]' }}
+                  <span v-if="apiData[id].title">{{ apiData[id].title }}</span>
+                  <span v-else class="text-red-lighten-2">Title Missing</span>
                 </div>
                 <div class="text-green-darken-2" style="line-height: 1;">
-                  <span 
-                    v-for="(authorship, index) in apiData[id].authorships" :key="authorship.id"
-                    class="text-caption mr-1"
-                    style="font-size: 14px !important;"
-                  >
+                  <template v-if="apiData[id].authorships.length">
+                    <span 
+                      v-for="(authorship, index) in apiData[id].authorships" :key="authorship.id"
+                      class="text-caption mr-1"
+                      style="font-size: 14px !important;"
+                    >
                     {{ authorship.raw_author_name }}{{ index < apiData[id].authorships.length - 1 ? ',' : '' }}
-                  </span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
+                  </template>
                 </div>
                 <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
                   <span>{{ apiData[id].publication_year }}</span>
-                  <span v-if="apiData[id].primary_location.source.display_name" class="mx-1">•</span>
-                  <span>{{ apiData[id].primary_location.source.display_name }}</span>
+                  <span class="mx-1">•</span>
+                  <template v-if="apiData[id].primary_location.source.display_name">
+                    <span>{{ apiData[id].primary_location.source.display_name }}</span>
+                    <span v-if="!apiData[id].primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
+                  </template>
+                  <template v-else>
+                    <span class="text-red-lighten-2">Source Missing</span>
+                  </template>
                 </div>
                 <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
                   <span>{{ apiData[id].type }}</span>
@@ -77,7 +106,7 @@
                     v-if="titleMatches[id]"
                     :href="`https://openalex.org/works?filter=display_name.search:${encodeTitle(apiData[id].title)}`" 
                     target="_blank"
-                    color="red-lighten-3"
+                    color="blue-lighten-1"
                     size="x-small"
                     class="display-inline-block flex-grow-0 mb-1"
                     style="text-decoration: none;"
@@ -86,176 +115,133 @@
                     <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
                   </v-chip>
 
-                  <v-chip
-                    v-if="!apiData[id].title"
-                    color="red-lighten-3"
-                    size="x-small"
-                    class="display-inline-block flex-grow-0 mb-1"
-                  >
-                    Title missing
-                  </v-chip>
-
-                  <v-chip
-                    v-if="apiData[id].authorships.length === 0"
-                    color="red-lighten-3"
-                    size="x-small"
-                    class="display-inline-block flex-grow-0 mb-1"
-                  >
-                    Authors missing
-                  </v-chip>
-
-                  <v-chip
-                    v-if="apiData[id].primary_location.source.id === null"
-                    color="red-lighten-3"
-                    size="x-small"
-                    class="display-inline-block flex-grow-0 mb-1"
-                  >
-                    Source missing
-                  </v-chip>
-
                 </div>
               </v-col>
             </v-row>
+            </template>
 
             <v-skeleton-loader v-if="isLoading" type="list-item-two-line@12"></v-skeleton-loader>
             
+            <v-pagination
+              v-if="!isLoading"
+              v-model="page"
+              :length="100"
+              :total-visible="10"
+              rounded
+              class="mt-8"
+            ></v-pagination>
+
             <div ref="bottomObserver" class="py-4"></div>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
 
-    <!-- Settings Dialog -->
-    <v-dialog v-model="showSettingsDialog" max-width="900px">
-      <v-card class="pa-2">
-
-        <!-- Sample -->
-        <v-card-text>
-          <div class="text-body-1 text-grey-darken-2 font-weight-medium mb-2">Sample</div>
-          <v-card flat rounded class="pa-0 mb-2">
-            <v-row>
-              <v-col cols="12" sm="4">
-                <v-card 
-                  flat 
-                  rounded 
-                  :class="['option-card', 'fill-height', sampleFilter == null ? 'selected' : '']"
-                  variant="outlined"
-                  class="d-flex align-center justify-center"
-                  @click="sampleFilter = null"
-                >
-                  <v-card-text>
-                    <div class="text-grey-darken-2 text-center">
-                      <v-icon size="x-large" variant="plain" color="grey" class="mb-1" icon="mdi-file-document-outline"></v-icon>
-                      <div>All {{ entityType }}</div>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" sm="4">
-                <v-card 
-                  flat 
-                  rounded 
-                  :class="['option-card', 'fill-height', sampleFilter == 'recent' ? 'selected' : '']"
-                  variant="outlined"
-                  @click="sampleFilter = 'recent'"
-                >
-                  <v-card-text>
-                    <div class="text-grey-darken-2 mb-2">
-                      <v-icon variant="plain" color="grey" icon="mdi-clock-outline"></v-icon>
-                      {{ filters.titleCase(entityType) }} from recent days:
-                    </div>
-                    <v-number-input
-                      v-model="sampleDays"
-                      :min="1"
-                      :max="365"
-                      variant="outlined"
-                      flat
-                      density="compact"
-                      inline
-                      hide-details
-                      width="100px"
-                      style="margin: auto;"
-                      control-variant="stacked"
-                    />
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" sm="4">
-                <v-card 
-                  flat 
-                  rounded 
-                  :class="['option-card', 'fill-height', sampleFilter == 'custom' ? 'selected' : '']"
-                  variant="outlined"
-                  @click="sampleFilter = 'custom'"
-                >
-                  <v-card-text>
-                    <div class="text-grey-darken-2 mb-2">
-                      <v-icon variant="plain" color="grey" icon="mdi-filter-outline"></v-icon>
-                      Custom filter:
-                    </div>
-                    <v-text-field
-                      v-model="customFilter"
-                      placeholder="e.g. 'type:article'"
-                      variant="outlined"
-                      flat
-                      hide-details
-                      density="compact"
-                    />
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-card>
-        </v-card-text>
-
-        <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="cancelSettingsChange">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="applySettingsChange">Apply</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Work Details Drawer -->  
     <work-drawer 
       v-model:isDrawerOpen="isDrawerOpen" 
       :workId="zoomId" 
       :workData="zoomId && apiData[zoomId] ? apiData[zoomId] : null"
+      @close="handleDrawerClose"
     />
   </div>
 </template>
 
 
 <script setup>
-import { ref, reactive, watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 
-import filters from '@/filters';
+import { xpac1 } from '@/qa/samples';
 import { useParams } from '@/composables/useStorage';
 import WorkDrawer from '@/components/QA/WorkDrawer.vue';
 
-const apiBase = `https://api.openalex.org/v2/`;
 const axiosConfig = {headers: {Authorization: "Bearer YWMKSvdNwfrknsOPtdqCPz"}};
-const sampleSize = 100;
 const entityType = 'works';
 
-const ids                = ref([]);
-const apiData            = reactive({});
-const titleMatches       = reactive({});
-const errorMessage       = ref('');
-const isLoading          = ref(false);
-const zoomId             = ref(null);
-const showSettingsDialog = ref(false);
-const isDrawerOpen       = ref(false);
-const bottomObserver     = ref(null);
-const scrollContainer    = ref(null);
+const sample = xpac1;
+const sampleIds = sample.ids;
 
-const sampleFilter = useParams('sampleFilter', 'string', null);
-const sampleDays   = useParams('sampleDays', 'number', 2);
-const customFilter = useParams('customFilter', 'string', '');
+const apiData       = reactive({});
+const titleMatches  = reactive({});
+const isLoading     = ref(false);
+const pageSize      = ref(100);
+const page          = useParams('page', 'number', 1);
+const zoomId        = useParams('zoomId', 'string', null);
 
-const previousSettings = {};
+const idsToShow = computed(() => {
+  return sampleIds.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
+});
+
+const isDrawerOpen = computed(() => zoomId.value !== null);
+
+async function fetchResponses() {
+  isLoading.value = true;
+  let newIds = [];
+  idsToShow.value.forEach(id => {
+    if (!(id in apiData)) {
+      newIds.push(id);
+    }
+  });
+  if (newIds.length > 0) {
+    const url = `https://api.openalex.org/v2/${entityType}?filter=ids.openalex:${newIds.join('|')}&per_page=100`;
+    const response = await axios.get(url, axiosConfig);
+    response.data.results.forEach(result => {
+      apiData[extractID(result.id)] = result;
+    });
+  }
+  isLoading.value = false;
+}
+
+const extractID = (input) => {
+  return input.split("/").slice(-1)[0];
+}
+
+async function checkTitleMatch(id) {
+  if (!apiData[id]?.title) return;
+  const title = apiData[id].title;
+  const url = `https://api.openalex.org/works?filter=display_name.search:${encodeTitle(title)}`;
+  try {
+    const response = await axios.get(url, axiosConfig);
+    titleMatches[id] = response.data.meta.count;
+  } catch (error) {
+    console.error("Error checking title match:", error);
+  }
+}
+
+function encodeTitle(title) {
+  title = title.replace(/[^\w\s]/gi, ' ');
+  title = title.replace(/\s+/g, '+');
+  return encodeURIComponent(title);
+}
+
+watch(idsToShow, async () => {
+  await fetchResponses();
+  idsToShow.value.forEach(id => {
+    if (!(id in titleMatches)) {
+      checkTitleMatch(id);
+    }
+  });
+}, { immediate: true });
+
+function handleDrawerClose() {
+  zoomId.value = null;
+}
+
+onMounted(() => {
+ // buildSample();
+});
+
+
+/*
+async function buildSample() {
+  while (ids.value.length < 10000) {
+    await fetchRandomSample();
+    console.log(ids.value.length);
+  }
+  console.log(ids.value);
+}
+
 
 async function fetchRandomSample() {
   isLoading.value = true;
@@ -283,7 +269,7 @@ async function fetchRandomSample() {
       apiData[extractID(result.id)] = result;
     });
     let xpacIds = await removeProdIds(allIds);
-    ids.value = ids.value.concat(xpacIds);
+    ids.value = [...new Set(ids.value.concat(xpacIds))];
     isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
@@ -299,110 +285,12 @@ async function removeProdIds(ids) {
   const filterKey = 'ids.openalex'
   const selectFields = ['id'];
   const filter = ids.map(id => encodeURIComponent(id)).join('|');
-  const url = `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}`;
+  const url = `https://api.openalex.org/${entityType}?filter=${filterKey}:${filter}&select=${selectFields.join(',')}&per_page=100`;
   const response = await axios.get(url, axiosConfig);
   const prodIds = response.data.results.map(result => extractID(result.id));
   return ids.filter(id => !prodIds.includes(id));
 }
-
-const extractID = (input) => {
-  return input.split("/").slice(-1)[0];
-}
-
-async function checkTitleMatch(id) {
-  if (!apiData[id]?.title) return;
-  const title = apiData[id].title;
-  const url = `https://api.openalex.org/works?filter=display_name.search:${encodeTitle(title)}`;
-  try {
-    const response = await axios.get(url, axiosConfig);
-    titleMatches[id] = response.data.meta.count;
-  } catch (error) {
-    console.error("Error checking title match:", error);
-  }
-}
-
-function encodeTitle(title) {
-  title = title.replace(/[^\w\s]/gi, ' ');
-  title = title.replace(/\s+/g, '+');
-  return encodeURIComponent(title);
-}
-
-function cancelSettingsChange() {
-  sampleFilter.value = previousSettings.sampleFilter;
-  sampleDays.value = previousSettings.sampleDays;
-  customFilter.value = previousSettings.customFilter;
-  showSettingsDialog.value = false;
-}
-
-function applySettingsChange() {
-  showSettingsDialog.value = false;
-  if (previousSettings.sampleFilter !== sampleFilter.value 
-    || previousSettings.sampleDays !== sampleDays.value 
-    || previousSettings.customFilter !== customFilter.value) {
-    ids.value = [];
-    fetchRandomSample();
-  }
-}
-
-watch(ids, () => {
-  ids.value.forEach(id => {
-    if (!(id in titleMatches)) {
-      checkTitleMatch(id);
-    }
-  });
-});
-
-watch(showSettingsDialog, () => {
-  if (showSettingsDialog.value) {
-    previousSettings.sampleFilter = sampleFilter.value;
-    previousSettings.sampleDays = sampleDays.value;
-    previousSettings.customFilter = customFilter.value;
-  }
-});
-
-watch(zoomId, () => {
-  if (zoomId.value) {
-    isDrawerOpen.value = true;
-  }
-});
-
-watch(isDrawerOpen, () => {
-  if (!isDrawerOpen.value) {
-    zoomId.value = null;
-  }
-});
-
-onMounted(() => {
-  fetchRandomSample();
-  setupInfiniteScroll();
-});
-
-onUnmounted(() => {
-  if (observer) {
-    observer.disconnect();
-  }
-});
-
-let observer = null;
-
-function setupInfiniteScroll() {
-  // Use Intersection Observer API to detect when user scrolls to bottom
-  observer = new IntersectionObserver((entries) => {
-    const entry = entries[0];
-    if (entry.isIntersecting && !isLoading.value) {
-      fetchRandomSample();
-    }
-  }, {
-    root: null, // Use viewport as root
-    rootMargin: '0px',
-    threshold: 0.1 // Trigger when 10% of the element is visible
-  });
-  
-  // Start observing the bottom element
-  if (bottomObserver.value) {
-    observer.observe(bottomObserver.value);
-  }
-}
+*/
 </script>
 
 
