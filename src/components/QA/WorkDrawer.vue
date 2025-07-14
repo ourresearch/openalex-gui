@@ -4,6 +4,8 @@
     @update:model-value="handleModelValueChange($event)" 
     temporary
     :disable-route-watcher="true"
+    disable-resize-watcher
+    :scroll-strategy="'none'"
     location="right" 
     width="700" 
     class="full-height-drawer"

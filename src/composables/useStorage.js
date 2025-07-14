@@ -108,8 +108,16 @@ export function useParams(name, type, defaultValue = null) {
       query[name] = serializeForUrl(newValue, type);
     }
     
-    // Replace URL without reloading the page
-    router.replace({ query });
+    // Save current scroll position
+    const currentScroll = window.scrollY;
+    
+    // Replace URL without reloading the page and restore scroll position
+    router.replace({ query }).then(() => {
+      // Restore scroll position after navigation
+      requestAnimationFrame(() => {
+        window.scrollTo(0, currentScroll);
+      });
+    });
   };
   
   // Watch for changes to update URL
