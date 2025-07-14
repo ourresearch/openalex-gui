@@ -90,6 +90,7 @@
                 >
                   <v-btn value="table">Table</v-btn>
                   <v-btn value="results">Results</v-btn>
+                  <v-btn value="diff">Diff</v-btn>
                 </v-btn-toggle>
               </v-col>
 
@@ -298,6 +299,7 @@
               <div v-if="mode == 'table'" ref="tableScrollRef" class="table-scroll">
                 <v-data-table
                   ref="vDataTableRef"
+                  class="results-table"
                   :headers="headers"
                   :items="rows"
                   :items-per-page="-1"
@@ -334,72 +336,88 @@
                 </v-data-table>
               </div>
 
-              <!-- Results List -->
-              <div v-else-if="mode == 'results'">
+
+              <div v-else-if="mode === 'results' || mode === 'diff'">
                 <v-card class="py-8 px-12">
                   <v-row>
                     <v-spacer/>
                     <v-chip
-                      :variant="hide404s ? 'flat' : 'tonal'"
-                      :color="hide404s ? 'blue-lighten-1' : 'blue'"
-                      @click="hide404s = !hide404s"
+                      :variant="hide404s ? 'tonal' : 'outlined'"
+                      :color="hide404s ? 'blue' : 'blue'"
+                      @click="!hide404s && (hide404s = true)"
                     >
                       Hide 404s
+                      <template v-if="hide404s" #append>
+                        <v-icon 
+                          icon="mdi-close" 
+                          size="x-small" 
+                          class="ml-2 rounded-circle bg-blue"
+                          color="white"
+                          style="width: 15px; height: 15px;"
+                          @click.stop="hide404s = !hide404s"
+                        />
+                      </template>
                     </v-chip>
                   </v-row>
-                  <v-row v-for="id in Object.keys(matches)" :key="id">
-                    <template v-if="!hide404s || waldenResults[id]">
-                      <v-col  
-                        v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
-                        :key="index" 
-                        cols="6" 
-                        class="pr-12 pb-10"
-                      >
-                        <div v-if="data">
-                          <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
-                            <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
-                              {{ data.title }}
-                            </span>
-                            <span v-else class="text-red-lighten-2">Title Missing</span>
-                          </div>
-                          <div class="text-green-darken-2" style="line-height: 1;">
-                            <template v-if="data.authorships.length">
-                              <span 
-                                v-for="(authorship, index) in data.authorships" :key="authorship.id"
-                                class="text-caption mr-1"
-                                style="font-size: 14px !important;"
-                              >
-                              {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
+                </v-card>
+
+
+                <!-- Results List -->
+                <div v-if="mode == 'results'">
+                  <v-card class="py-8 px-12">
+                    <v-row v-for="id in Object.keys(matches)" :key="id">
+                      <template v-if="!hide404s || waldenResults[id]">
+                        <v-col  
+                          v-for="(data, index) in [prodResults[id], waldenResults[id]]" 
+                          :key="index" 
+                          cols="6" 
+                          class="pr-12 pb-10"
+                        >
+                          <div v-if="data">
+                            <div class="mb-0" style="font-size: 18px; cursor: pointer;" @click="onZoom(data.id, index)">
+                              <span v-if="data.title" :class="index === 1 && !matches[id]['title'] ? 'text-red-lighten-2' : ''">
+                                {{ data.title }}
                               </span>
-                            </template>
-                            <template v-else>
-                              <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
-                            </template>
-                          </div>
-                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                            <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
-                              {{ data.publication_year }}
-                            </span>
-                            <span class="mx-1">•</span>
-                            <template v-if="data.primary_location.source?.display_name">
-                              <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
-                                {{ data.primary_location.source.display_name }}
-                              </span> 
-                              <span v-if="!data.primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
-                            </template>
-                            <template v-else>
-                              <span class="text-red-lighten-2">Source Missing</span>
-                            </template>
-                          </div>
-                          <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
-                            <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
-                              {{ data.type }}
-                            </span>
-                            <span class="mx-1">•</span>
-                            <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
-                              {{ data.open_access?.oa_status }}
-                            </span>
-                            <v-chip
+                              <span v-else class="text-red-lighten-2">Title Missing</span>
+                            </div>
+                            <div class="text-green-darken-2" style="line-height: 1;">
+                              <template v-if="data.authorships.length">
+                                <span 
+                                  v-for="(authorship, index) in data.authorships" :key="authorship.id"
+                                  class="text-caption mr-1"
+                                  style="font-size: 14px !important;"
+                                >
+                                {{ authorship.raw_author_name }}{{ index < data.authorships.length - 1 ? ',' : '' }}
+                                </span>
+                              </template>
+                              <template v-else>
+                                <span class="text-caption mr-1 text-red-lighten-2" style="font-size: 14px !important;">Authors Missing</span>
+                              </template>
+                            </div>
+                            <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                              <span :class="index === 1 && !matches[id]['publication_year'] ? 'text-red-lighten-2' : ''">
+                                {{ data.publication_year }}
+                              </span>
+                              <span class="mx-1">•</span>
+                              <template v-if="data.primary_location.source?.display_name">
+                                <span :class="index === 1 && !matches[id]['primary_location.source.display_name'] ? 'text-red-lighten-2' : ''">
+                                  {{ data.primary_location.source.display_name }}
+                                </span> 
+                                <span v-if="!data.primary_location.source.id" class="text-red-lighten-2 ml-1">- Source ID Missing</span>
+                              </template>
+                              <template v-else>
+                                <span class="text-red-lighten-2">Source Missing</span>
+                              </template>
+                            </div>
+                            <div class="text-caption text-grey-darken-2" style="font-size: 14px !important;">
+                              <span :class="index === 1 && !matches[id]['type'] ? 'text-red-lighten-2' : ''">
+                                {{ data.type }}
+                              </span>
+                              <span class="mx-1">•</span>
+                              <span :class="index === 1 && !matches[id]['open_access.oa_status'] ? 'text-red-lighten-2' : ''">
+                                {{ data.open_access?.oa_status }}
+                              </span>
+                              <v-chip
                                 :href="`https://api.openalex.org/${index === 1 ? 'v2/' : ''}works/${id}`" 
                                 target="_blank"
                                 color="blue-lighten-1"
@@ -410,17 +428,79 @@
                                 API
                                 <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
                               </v-chip>
+                            </div>
                           </div>
-                        </div>
-                        <div v-else>
-                          <div class="mb-0" style="font-size: 18px;">
-                            <span class="text-red-lighten-2">404</span>
+                          <div v-else>
+                            <div class="mb-0" style="font-size: 18px;">
+                              <span class="text-red-lighten-2">404</span>
+                            </div>
                           </div>
-                        </div>
-                      </v-col>
-                    </template>
-                  </v-row>
-              </v-card>
+                        </v-col>
+                      </template>
+                    </v-row>
+                </v-card>
+                </div>
+
+                <!-- Diff List-->
+                <div v-else-if="mode == 'diff'">
+                  <v-card class="py-8 px-12">
+                    <v-row v-for="id in Object.keys(matches)" :key="id">
+                      <template v-if="!hide404s || waldenResults[id]">
+                        <table class="diff-table mb-16" style="table-layout: fixed; max-width: 100%;">
+                          <tr class="text-h6 mb-2" style="border-bottom: 1px solid #f5f5f5;">
+                            <th>
+                              Prod {{ id }}
+                              <v-chip
+                                :href="`https://api.openalex.org/works/${id}`" 
+                                target="_blank"
+                                color="blue-lighten-1"
+                                size="x-small"
+                                class="ml-2"
+                                style="text-decoration: none;"
+                              >
+                                API
+                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                              </v-chip>
+                            </th>
+                            <th>
+                              Walden {{ id }}
+                              <v-chip
+                                :href="`https://api.openalex.org/v2/works/${id}`" 
+                                target="_blank"
+                                color="blue-lighten-1"
+                                size="x-small"
+                                class="ml-2"
+                                style="text-decoration: none;"
+                              >
+                                API
+                                <v-icon class="ml-0" icon="mdi-chevron-right"></v-icon>
+                              </v-chip>
+                            </th>
+                          </tr>
+                          <tbody>
+                            <tr
+                              v-for="field in fieldsToShow"
+                              :key="field"
+                            >
+                              <td
+                                v-for="(data, index) in [prodResults[id], waldenResults[id]]"
+                                :key="index"
+                                :class="index === 1 ? getDiffCellClass(id, field) : ''"
+                                style="word-wrap: break-word; overflow-wrap: break-word;"
+                              >
+                                <span class="font-weight-bold mr-2">{{ field }}:</span>
+                                <span v-if="isObject(getFieldValue(data, field))">
+                                  <span style="white-space: pre">{{ JSON.stringify(getFieldValue(data, field), null, 2) }}</span>
+                                </span>
+                                <span v-else>{{ getFieldValue(data, field) }}</span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </template>
+                    </v-row>
+                </v-card>
+                </div>
               </div>
 
             </div>
@@ -702,7 +782,7 @@ function getCellStyle(item, column) {
 
   const styles = {};
 
-  styles.backgroundColor = passed ? "#e8f5e9" : "#ffebee";
+  styles.backgroundColor = passed ? "#DCEDC8" : "#FFCDD2";
 
   if (column.key === 'title') {
     styles.whiteSpace = 'nowrap';
@@ -722,6 +802,32 @@ function getCellStyle(item, column) {
   console.log(passed, styles);
   return styles;
 }
+
+function getDiffCellClass(id, field) {
+  const prodValue = getFieldValue(prodResults[id], field);
+  const waldenValue = getFieldValue(waldenResults[id], field);
+
+  if ((prodValue === null || prodValue === undefined) && (waldenValue !== null && waldenValue !== undefined)) {
+    return 'bg-green-lighten-4';
+  }
+
+  if (!matches.value[id][field]) {
+    return 'bg-red-lighten-4';
+  }
+
+  return '';
+}
+
+function isObject(obj) {
+  if (Array.isArray(obj)) {
+    return true;
+  } else if (typeof obj === 'object' && obj !== null) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 
 async function fetchRandomSample() {
   clearResults();
@@ -934,39 +1040,39 @@ watch([tableScrollRef, fixedHeaderRef], () => {
 .results-section {
   border-top: 3px solid #BBDEFB !important;
 }
-:deep(thead tr th) {
+:deep(.results-table thead tr th) {
   background-color: #F5F5F5 !important;
   border-top: 1px solid #ccc !important;
   border-bottom: 2px solid #ccc !important;
   white-space: nowrap;
 }
-tr:nth-child(even) td {
+.results-table tr:nth-child(even) td {
   border-bottom: 2px solid #ccc !important;
   padding-bottom: 12px !important;
   padding-top: 4px !important;
 }
-tr:nth-child(odd) td {
+.results-table tr:nth-child(odd) td {
   padding-bottom: 4px !important;
   padding-top: 12px !important;
 }
-:deep(table thead th:first-child) {
+:deep(.results-table table thead th:first-child) {
   position: sticky !important;
   left: 0 !important;
   z-index: 3 !important;
 }
-:deep(table > tbody > tr > td:nth-child(1)) {
+:deep(.results-table table > tbody > tr > td:nth-child(1)) {
   position: sticky;
   left: 0;
   z-index: 2;
 }
-:deep(table > thead > tr > th:nth-child(1)) {
+:deep(.results-table table > thead > tr > th:nth-child(1)) {
   z-index: 3;
 }
-td a {
+.results-table td a {
   color: #555;
   text-decoration: none;
 }
-td a:hover {
+.results-table td a:hover {
   color: #555;
   text-decoration: underline;
 }
@@ -1020,5 +1126,30 @@ td a:hover {
   border-bottom: 2px solid #ccc;
   white-space: nowrap;
   text-align: left;
+}
+.diff-table {
+  width: 100%;
+  table-layout: fixed;
+  max-width: 100%;
+}
+.diff-table th {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+  text-align: left;
+}
+.diff-table tr {
+  width: 100%;
+}
+.diff-table td {
+  width: 50%;
+  vertical-align: top;
+  margin: 0 40px 0 0;
+  padding-right: 40px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+} 
+.diff-table tbody tr:first-child td {
+  padding-top: 12px;
 }
 </style>
